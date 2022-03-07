@@ -10,24 +10,24 @@ info:
 
     For more information see:
 
-    * [Timestamp API Technical Specifications](https://ec.europa.eu/cefdigital/wiki/display/EBSIDOC/Timestamp+API)
-    * [Timestamp Smart Contract Technical Specifications](https://ec.europa.eu/cefdigital/wiki/display/EBSIDOC/TimeStamp+Smart+Contract)
-    * [Code Repository](https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/timestamp-api/browse)
+    * [Timestamp API Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/Timestamp+API)
+    * [Timestamp Smart Contract Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/TimeStamp+Smart+Contract)
+    * [Code Repository](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/timestamp-api/browse)
   termsOfService: "/docs/terms"
   contact:
-    name: EBSI Support – Service Desk
-    url: https://ec.europa.eu/cefdigital/tracker/plugins/servlet/desk/portal/11
+    name: EBSI Support - Service Desk
+    url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11
   license:
     name: "EUPL-1.2"
     url: "https://joinup.ec.europa.eu/page/eupl-text-11-12"
 paths:
   /timestamp/v2/hash-algorithms:
     get:
-      tags:
-        - Timestamp API
       operationId: get-timestamp-v2-hash-algorithms
-      summary: List of hash algorithms
-      description: Returns a list of hash algorithms
+      summary: List hash algorithms
+      description: Returns a list of hash algorithms.
+      tags:
+        - Hash algorithms
       parameters:
         - in: query
           name: page[after]
@@ -40,7 +40,7 @@ paths:
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
       responses:
-        200:
+        "200":
           description: Success
           content:
             application/json:
@@ -117,34 +117,34 @@ paths:
                       next: https://api.conformance.intebsi.xyz/timestamp/v2/hash-algorithms?page[after]=2&page[size]=2
                       last: https://api.conformance.intebsi.xyz/timestamp/v2/hash-algorithms?page[after]=42&page[size]=2
 
-        400:
+        "400":
           description: Bad Request Error
           content:
             "application/problem+json":
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Bad Paging Request:
                   value:
                     title: Bad Paging Request
                     status: 400
                     detail: PageSize should not be greater than 50
-        500:
+        "500":
           description: Internal Server Error
           content:
             "application/problem+json":
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
   /timestamp/v2/hash-algorithms/{hashAlgorithmId}:
     get:
-      tags:
-        - Timestamp API
       operationId: get-timestamp-v2-hash-algorithms-hash-algorithm-id
-      summary: Get hash algorithm by its ID
-      description: Returns a hash algorithm by its ID
+      summary: Get a hash algorithm
+      description: Returns a hash algorithm identified by its ID.
+      tags:
+        - Hash algorithms
       parameters:
         - name: hashAlgorithmId
           in: path
@@ -153,7 +153,7 @@ paths:
           example: "0"
           required: true
       responses:
-        200:
+        "200":
           description: Success
           content:
             application/json:
@@ -167,43 +167,43 @@ paths:
                     oid: "2.16.840.1.101.3.4.2.1"
                     status: active
                     multihash: sha2-256
-        400:
+        "400":
           description: Bad Request
           content:
             "application/problem+json":
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Invalid {hashAlgorithmId} Parameter:
                   value:
                     title: Bad Request
                     status: 400
                     detail: The format of {hashAlgorithmId} parameter is not valid
-        404:
+        "404":
           description: Not found
           content:
             "application/problem+json":
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Hash algortihm Not Found:
                   $ref: "#/components/examples/NotFound"
-        500:
+        "500":
           description: Internal Server Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
   /timestamp/v2/timestamps:
     get:
-      tags:
-        - Timestamp API
       operationId: get-timestamp-v2-timestamps
-      summary: List of timestamps
-      description: Returns a list of timestamps
+      summary: List timestamps
+      description: Returns a list of timestamps.
+      tags:
+        - Timestamps
       parameters:
         - in: query
           name: page[after]
@@ -216,7 +216,7 @@ paths:
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
       responses:
-        200:
+        "200":
           description: Success
           content:
             application/json:
@@ -294,34 +294,34 @@ paths:
                       prev: https://api.conformance.intebsi.xyz/timestamp/v2/timestamps?page[after]=2&page[size]=2
                       next: https://api.conformance.intebsi.xyz/timestamp/v2/timestamps?page[after]=4&page[size]=2
                       last: https://api.conformance.intebsi.xyz/timestamp/v2/timestamps?page[after]=208&page[size]=2
-        400:
+        "400":
           description: Bad Request Error
           content:
             "application/problem+json":
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Bad Paging Request:
                   value:
                     title: Bad Paging Request
                     status: 400
                     detail: PageSize should not be greater than 50
-        500:
+        "500":
           description: Internal Server Error
           content:
             "application/problem+json":
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
   /timestamp/v2/timestamps/{timestampId}:
     get:
-      tags:
-        - Timestamp API
       operationId: get-timestamp-v2-timestamps-timestampId
-      summary: Get timestamp by its ID
-      description: Returns a timestamp by its ID
+      summary: Get a timestamp
+      description: Returns a timestamp identified by its ID.
+      tags:
+        - Timestamps
       parameters:
         - name: timestampId
           description: |
@@ -357,7 +357,7 @@ paths:
               value: uEiAdujH21UQak2LBQyCjr44jVfGekbhNG4wLgtrqgKnFBQ
           required: true
       responses:
-        200:
+        "200":
           description: Success
           content:
             application/json:
@@ -372,43 +372,43 @@ paths:
                     timestamp: "2021-08-30T15:20:16.000Z"
                     data: "0x7b2274657374223a3734327d"
                     transactionHash: "0x125988a9a6a9a02da35981dee230e1900088ef7fc5064c1f1d2225ef2d2c53e6"
-        400:
+        "400":
           description: Bad Request
           content:
             "application/problem+json":
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Invalid {timestampId} Parameter:
                   value:
                     title: Bad Request
                     status: 400
                     detail: The format of {timestampId} parameter is not valid
-        404:
+        "404":
           description: Not found
           content:
             "application/problem+json":
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Hash algortihm Not Found:
                   $ref: "#/components/examples/NotFound"
-        500:
+        "500":
           description: Internal Server Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
   /timestamp/v2/records:
     get:
-      tags:
-        - Timestamp API
       operationId: get-timestamp-v2-records
-      summary: List of records
-      description: Returns a list of records
+      summary: List records
+      description: Returns a list of records.
+      tags:
+        - Records
       parameters:
         - in: query
           name: page[after]
@@ -433,7 +433,7 @@ paths:
           description: Filter records by owner address
           example: "0x94e88a60f272309fdedef19498d8e05b3f632f9f"
       responses:
-        200:
+        "200":
           description: Success
           content:
             application/json:
@@ -505,34 +505,34 @@ paths:
                       prev: https://api.conformance.intebsi.xyz/timestamp/v2/records?page[after]=1&page[size]=2
                       next: https://api.conformance.intebsi.xyz/timestamp/v2/records?page[after]=1&page[size]=2
                       last: https://api.conformance.intebsi.xyz/timestamp/v2/records?page[after]=1&page[size]=2
-        400:
+        "400":
           description: Bad Request Error
           content:
             "application/problem+json":
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Bad Paging Request:
                   value:
                     title: Bad Paging Request
                     status: 400
                     detail: PageSize should not be greater than 50
-        500:
+        "500":
           description: Internal Server Error
           content:
             "application/problem+json":
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
   /timestamp/v2/records/{recordId}:
     get:
-      tags:
-        - Timestamp API
       operationId: get-timestamp-v2-records-record-id
-      summary: Get record by its ID
-      description: Returns a record by its ID
+      summary: Get a record
+      description: Returns a record identified by its ID.
+      tags:
+        - Records
       parameters:
         - in: path
           name: recordId
@@ -548,7 +548,7 @@ paths:
               value: u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ
           required: true
       responses:
-        200:
+        "200":
           description: Success
           content:
             application/json:
@@ -568,43 +568,43 @@ paths:
                     lastVersionTimestamps:
                       - "0x984651fa..."
                     totalVersions: 4
-        400:
+        "400":
           description: Bad Request
           content:
             "application/problem+json":
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Invalid {versionId} Parameter:
                   value:
                     title: Bad Request
                     status: 400
                     detail: The format of {versionId} parameter is not valid
-        404:
+        "404":
           description: Not found
           content:
             "application/problem+json":
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Hash algortihm Not Found:
                   $ref: "#/components/examples/NotFound"
-        500:
+        "500":
           description: Internal Server Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
   /timestamp/v2/records/{recordId}/versions:
     get:
-      tags:
-        - Timestamp API
       operationId: get-timestamp-v2-records-record-id-versions
-      summary: List of record versions
-      description: Returns a list of record versions
+      summary: List a record's versions
+      description: Returns a list of versions of a given record.
+      tags:
+        - Records
       parameters:
         - in: path
           name: recordId
@@ -630,7 +630,7 @@ paths:
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
       responses:
-        200:
+        "200":
           description: Success
           content:
             application/json:
@@ -702,34 +702,34 @@ paths:
                       prev: https://api.conformance.intebsi.xyz/timestamp/v2/records/u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ/versions?page[after]=1&page[size]=2
                       next: https://api.conformance.intebsi.xyz/timestamp/v2/records/u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ/versions?page[after]=1&page[size]=2
                       last: https://api.conformance.intebsi.xyz/timestamp/v2/records/u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ/versions?page[after]=1&page[size]=2
-        400:
+        "400":
           description: Bad Request Error
           content:
             "application/problem+json":
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Bad Paging Request:
                   value:
                     title: Bad Paging Request
                     status: 400
                     detail: PageSize should not be greater than 50
-        500:
+        "500":
           description: Internal Server Error
           content:
             "application/problem+json":
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
   /timestamp/v2/records/{recordId}/versions/{versionId}:
     get:
-      tags:
-        - Timestamp API
       operationId: get-timestamp-v2-records-record-id-versions-version-id
-      summary: Get version its ID
-      description: Returns a version by its ID
+      summary: Get a version
+      description: Returns a record version identified by its version ID.
+      tags:
+        - Records
       parameters:
         - in: path
           name: recordId
@@ -751,7 +751,7 @@ paths:
           example: "0"
           required: true
       responses:
-        200:
+        "200":
           description: Success
           content:
             application/json:
@@ -779,45 +779,45 @@ paths:
                           "born": "1940-10-09",
                           "spouse": "http://dbpedia.org/resource/Cynthia_Lennon",
                         }
-        400:
+        "400":
           description: Bad Request
           content:
             "application/problem+json":
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Invalid {versionId} Parameter:
                   value:
                     title: Bad Request
                     status: 400
                     detail: The format of {versionId} parameter is not valid
-        404:
+        "404":
           description: Not found
           content:
             "application/problem+json":
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Hash algortihm Not Found:
                   $ref: "#/components/examples/NotFound"
-        500:
+        "500":
           description: Internal Server Error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
   /timestamp/v2/jsonrpc:
     post:
       operationId: post-timestamp-v2-jsonrpc
-      tags:
-        - Timestamp API
-      summary: Helper APIs
+      summary: JSON-RPC API
       description: |
-        Helper APIs that assist the construction of blockchain transactions for Timestamp
-        operations, and interaction with the ledger (Write operation on ledger)
+        The JSON-RPC API provides methods assisting the construction of blockchain transactions for
+        Timestamp operations, and interaction with the ledger.
+      tags:
+        - JSON-RPC
       security:
         - bearerAuth: []
       requestBody:
@@ -828,14 +828,150 @@ paths:
 
           It requires the following fields:
 
-          - **jsonrpc**: Must be exactly '2.0'
-          - **method**: Method to be invoked. Possible values: insertHashAlgorithm,
-            updateHashAlgorithm, timestampHashes, timestampRecordHashes, timestampVersionHashes,
-            insertRecordOwner, revokeRecordOwner, timestampRecordVersionHashes,
-            appendRecordVersionHashes, detachRecordVersionHash
-            insertRecordVersionInfo, sendSignedTransaction.
-          - **params**: Array of parameters
-          - **id**: Identifier stablished by the client
+          - **jsonrpc**: must be exactly "2.0"
+          - **method**: method to be invoked
+          - **params**: method parameters
+          - **id**: identifier established by the client
+
+          ### API Methods
+
+          #### insertHashAlgorithm
+
+          Call to build an unsigned transaction to insert a new hash algorithm.
+
+          Parameters:
+          - **from**: Ethereum address of the administrator
+          - **outputLength**: hash output length (in bits)
+          - **ianaName**: IANA name of the hash algorithm
+          - **oid**: object identifier (OID)
+          - **status**: status of the algorithm (1 = active, 2 = revoked)
+          - **multihash**: multihash name
+
+          #### updateHashAlgorithm
+
+          Call to build an unsigned transaction to update a hash algorithm.
+
+          Parameters:
+          - **from**: Ethereum address of the administrator
+          - **outputLength**: hash output length (in bits)
+          - **ianaName**: IANA name of the hash algorithm
+          - **oid**: object identifier (OID)
+          - **status**: status of the algorithm (1 = active, 2 = revoked)
+          - **multihash**: multihash name
+
+          #### timestampHashes
+
+          Call to build an unsigned transaction to timestamp hashes. It's possible to insert up to
+          3 hashes in a single transaction.
+
+          Parameters:
+          - **from**: Ethereum address of user
+          - **hashAlgorithmIds**: Array of hash algorithms ids used (up to 3)
+          - **hashValues**: Array of hashes (up to 3)
+          - **timestampData** (optional): Timestamp data. This field must be a JSON stringified and converted into hex string
+
+          #### timestampRecordHashes
+
+          Call to build an unsigned transaction to timestamp data and create a record of it with
+          some info. It's possible to insert up to 3 hashes in a single transaction.
+
+          Parameters:
+          - **from**: Ethereum address of user
+          - **hashAlgorithmIds**: Array of hash algorithms ids used (up to 3)
+          - **hashValues**: Array of hashes (up to 3)
+          - **timestampData** (optional): Timestamp data. This field must be a JSON stringified and converted into hex string
+
+          #### timestampVersionHashes
+
+          Call to build an unsigned transaction to timestamp hashes and store them under the given
+          record. It's possible to insert up to 3 hashes in a single transaction. This method can
+          be called only by record owners.
+
+          Parameters:
+          - **from**: Ethereum address of user
+          - **versionHash**: Version hash to update
+          - **hashAlgorithmIds**: Array of hash algorithms ids used (up to 3)
+          - **hashValues**: Array of hashes (up to 3)
+          - **timestampData** (optional): Timestamp data. This field must be a JSON stringified and converted into hex string
+          - **versionInfo** (optional): Version info. This field must be a JSON stringified and converted into hex string
+
+          #### insertRecordOwner
+
+          Call to build an unsigned transaction to insert a record owner. This method can be called
+          only by record owners.
+
+          Parameters:
+          - **from**: Ethereum address of user
+          - **recordId**: Record ID to update
+          - **ownerId**: Ethereum address of new owner
+          - **notBefore**: Point in time when the owner becomes valid. It should be defined in epoch time.
+          - **notAfter**: Point in time when the owner becomes invalid. It should be defined in epoch time. For indefinite time set 0.
+
+          #### revokeRecordOwner
+
+          Call to build an unsigned transaction to revoke a record owner. This method can be called
+          only by record owners.
+
+          Parameters:
+          - **from**: Ethereum address of user
+          - **recordId**: Record ID to update
+          - **ownerId**: Ethereum address of the owner to revoke
+
+          #### timestampRecordVersionHashes
+
+          Call to build an unsigned transaction to timestamp data and link it to a new version of
+          an existing record. It's possible to insert up to 3 hashes in a single transaction. This
+          method can be called only by record owners.
+
+          Parameters:
+          - **from**: Ethereum address of user
+          - **recordId**: Record ID to update
+          - **hashAlgorithmIds**: Array of hash algorithms ids used (up to 3)
+          - **hashValues**: Array of hashes (up to 3)
+          - **timestampData** (optional): Timestamp data. This field must be a JSON stringified and converted into hex string
+          - **versionInfo** (optional): Version info. This field must be a JSON stringified and converted into hex string
+
+          #### appendRecordVersionHashes
+
+          Call to build an unsigned transaction to timestamp data and link it to an existing
+          version of a record. It's possible to insert up to 3 hashes in a single transaction. This
+          method can be called only by record owners.
+
+          Parameters:
+          - **from**: Ethereum address of user
+          - **recordId**: Record ID to update
+          - **versionId**: Version ID to update
+          - **hashAlgorithmIds**: Array of hash algorithms ids used (up to 3)
+          - **hashValues**: Array of hashes (up to 3)
+          - **timestampData** (optional): Timestamp data. This field must be a JSON stringified and converted into hex string
+          - **versionInfo** (optional): Version info. This field must be a JSON stringified and converted into hex string
+
+          #### detachRecordVersionHash
+
+          Call to build an unsigned transaction to detach a hash from the timestamps ids of a
+          version of an existing record. This method can be called only by record owners.
+
+          Parameters:
+          - **from**: Ethereum address of user
+          - **recordId**: Record ID to update
+          - **versionId**: Version ID to update
+          - **versionHash**: Version hash to update
+          - **hashValue**: Hash value to detach
+
+          #### insertRecordVersionInfo
+
+          Call to build an unsigned transaction to to insert new info to a version of an existing
+          record. This method can be called only by record owners.
+
+          Parameters:
+          - **from**: Ethereum address of user
+          - **recordId**: Record ID to update
+          - **versionId**: Version ID to update
+          - **versionInfo** (optional): Version info. This field must be a JSON stringified and converted into hex string
+
+          #### sendSignedTransaction
+
+          Call to send a signed transaction to the blockchain.
         content:
           application/json:
             schema:
@@ -847,7 +983,7 @@ paths:
               type: object
               properties:
                 jsonrpc:
-                  description: Must be exactly '2.0'
+                  description: Must be exactly "2.0"
                   type: string
                 method:
                   description: Method that needs to be invoked
@@ -858,21 +994,11 @@ paths:
                   items:
                     type: object
                 id:
-                  description: Identifier stablished by the client
+                  description: Identifier established by the client
                   type: integer
                   example: 1
             examples:
               Build tx to insertHashAlgorithm:
-                description: |
-                  Call to build an unsigned transaction to insert a new hash algorithm. This method requires admin rights in the Trusted Apps Registry.
-
-                  Parameters:
-                  - **from**: Ethereum address of the administrator
-                  - **outputLength**: hash output length (in bits)
-                  - **ianaName**: IANA name of the hash algorithm
-                  - **oid**: object identifier (OID)
-                  - **status**: status of the algorithm (1 = active, 2 = revoked)
-                  - **multihash**: multihash name
                 value:
                   jsonrpc: "2.0"
                   method: insertHashAlgorithm
@@ -885,16 +1011,6 @@ paths:
                       multihash: sha2-256
                   id: 1
               Build tx to updateHashAlgorithm:
-                description: |
-                  Call to build an unsigned transaction to update a hash algorithm. This method requires admin rights in the DID Registry.
-
-                  Parameters:
-                  - **from**: Ethereum address of the administrator
-                  - **outputLength**: hash output length (in bits)
-                  - **ianaName**: IANA name of the hash algorithm
-                  - **oid**: object identifier (OID)
-                  - **status**: status of the algorithm (1 = active, 2 = revoked)
-                  - **multihash**: multihash name
                 value:
                   jsonrpc: "2.0"
                   method: updateHashAlgorithm
@@ -908,14 +1024,6 @@ paths:
                       multihash: sha2-256
                   id: 1
               Build tx to timestampHashes:
-                description: |
-                  Call to build an unsigned transaction to timestamp hashes. It's possible to insert up to 3 hashes in a single transaction.
-
-                  Parameters:
-                  - **from**: Ethereum address of user
-                  - **hashAlgorithmIds**: Array of hash algorithms ids used (up to 3)
-                  - **hashValues**: Array of hashes (up to 3)
-                  - **timestampData** (optional): Timestamp data. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
                   method: timestampHashes
@@ -929,14 +1037,6 @@ paths:
                         - "0x7b2274657374223a3834327d"
                   id: 1
               Build tx to timestampRecordHashes:
-                description: |
-                  Call to build an unsigned transaction to timestamp data and create a record of it with some info. It's possible to insert up to 3 hashes in a single transaction.
-
-                  Parameters:
-                  - **from**: Ethereum address of user
-                  - **hashAlgorithmIds**: Array of hash algorithms ids used (up to 3)
-                  - **hashValues**: Array of hashes (up to 3)
-                  - **timestampData** (optional): Timestamp data. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
                   method: timestampRecordHashes
@@ -951,16 +1051,6 @@ paths:
                       versionInfo: "0x7b2274657374223a34327d"
                   id: 1
               Build tx to timestampVersionHashes:
-                description: |
-                  Call to build an unsigned transaction to timestamp hashes and store them under the given record. It's possible to insert up to 3 hashes in a single transaction. This method can be called only by record owners.
-
-                  Parameters:
-                  - **from**: Ethereum address of user
-                  - **versionHash**: Version hash to update
-                  - **hashAlgorithmIds**: Array of hash algorithms ids used (up to 3)
-                  - **hashValues**: Array of hashes (up to 3)
-                  - **timestampData** (optional): Timestamp data. This field must be a JSON stringified and converted into hex string
-                  - **versionInfo** (optional): Version info. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
                   method: timestampVersionHashes
@@ -976,15 +1066,6 @@ paths:
                       versionInfo: "0x7b2274657374223a34327d"
                   id: 1
               Build tx to insertRecordOwner:
-                description: |
-                  Call to build an unsigned transaction to insert a record owner. This method can be called only by record owners.
-
-                  Parameters:
-                  - **from**: Ethereum address of user
-                  - **recordId**: Record ID to update
-                  - **ownerId**: Ethereum address of new owner
-                  - **notBefore**: Point in time when the owner becomes valid. It should be defined in epoch time.
-                  - **notAfter**: Point in time when the owner becomes invalid. It should be defined in epoch time. For indefinite time set 0.
                 value:
                   jsonrpc: "2.0"
                   method: insertRecordOwner
@@ -996,13 +1077,6 @@ paths:
                       notAfter: 0
                   id: 1
               Build tx to revokeRecordOwner:
-                description: |
-                  Call to build an unsigned transaction to revoke a record owner. This method can be called only by record owners.
-
-                  Parameters:
-                  - **from**: Ethereum address of user
-                  - **recordId**: Record ID to update
-                  - **ownerId**: Ethereum address of the owner to revoke
                 value:
                   jsonrpc: "2.0"
                   method: revokeRecordOwner
@@ -1012,16 +1086,6 @@ paths:
                       ownerId: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                   id: 1
               Build tx to timestampRecordVersionHashes:
-                description: |
-                  Call to build an unsigned transaction to timestamp data and link it to a new version of an existing record. It's possible to insert up to 3 hashes in a single transaction. This method can be called only by record owners.
-
-                  Parameters:
-                  - **from**: Ethereum address of user
-                  - **recordId**: Record ID to update
-                  - **hashAlgorithmIds**: Array of hash algorithms ids used (up to 3)
-                  - **hashValues**: Array of hashes (up to 3)
-                  - **timestampData** (optional): Timestamp data. This field must be a JSON stringified and converted into hex string
-                  - **versionInfo** (optional): Version info. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
                   method: timestampRecordVersionHashes
@@ -1037,17 +1101,6 @@ paths:
                       versionInfo: "0x7b2274657374223a34327d"
                   id: 1
               Build tx to appendRecordVersionHashes:
-                description: |
-                  Call to build an unsigned transaction to timestamp data and link it to an existing version of a record. It's possible to insert up to 3 hashes in a single transaction. This method can be called only by record owners.
-
-                  Parameters:
-                  - **from**: Ethereum address of user
-                  - **recordId**: Record ID to update
-                  - **versionId**: Version ID to update
-                  - **hashAlgorithmIds**: Array of hash algorithms ids used (up to 3)
-                  - **hashValues**: Array of hashes (up to 3)
-                  - **timestampData** (optional): Timestamp data. This field must be a JSON stringified and converted into hex string
-                  - **versionInfo** (optional): Version info. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
                   method: appendRecordVersionHashes
@@ -1064,15 +1117,6 @@ paths:
                       versionInfo: "0x7b2274657374223a34327d"
                   id: 1
               Build tx to detachRecordVersionHash:
-                description: |
-                  Call to build an unsigned transaction to detach a hash from the timestamps ids of a version of an existing record. This method can be called only by record owners.
-
-                  Parameters:
-                  - **from**: Ethereum address of user
-                  - **recordId**: Record ID to update
-                  - **versionId**: Version ID to update
-                  - **versionHash**: Version hash to update
-                  - **hashValue**: Hash value to detach
                 value:
                   jsonrpc: "2.0"
                   method: detachRecordVersionHash
@@ -1083,14 +1127,6 @@ paths:
                       hashValue: "0x1234567890123456789012345678901234567890123456789012345678901234"
                   id: 1
               Build tx to insertRecordVersionInfo:
-                description: |
-                  Call to build an unsigned transaction to to insert new info to a version of an existing record. This method can be called only by record owners.
-
-                  Parameters:
-                  - **from**: Ethereum address of user
-                  - **recordId**: Record ID to update
-                  - **versionId**: Version ID to update
-                  - **versionInfo** (optional): Version info. This field must be a JSON stringified and converted into hex string
                 value:
                   jsonrpc: "2.0"
                   method: insertRecordVersionInfo
@@ -1145,7 +1181,7 @@ paths:
                       signedRawTransaction: "--- signed raw transaction ---"
                   id: 1
       responses:
-        200:
+        "200":
           description: Response
           content:
             application/json:
@@ -1170,26 +1206,21 @@ paths:
                     jsonrpc: "2.0"
                     id: 1
                     result: "0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331"
-        400:
+        "400":
           description: Bad request
           content:
             "application/problem+json":
               schema:
-                $ref: "#/components/schemas/Problem"
+                $ref: "#/components/schemas/ProblemDetails"
               examples:
                 Bad Request:
                   $ref: "#/components/examples/BadRequest"
 components:
   schemas:
-    Problem:
-      description: A Problem Details object (RFC 7807)
+    ProblemDetails:
+      title: Problem Details
+      description: A [Problem Details](https://datatracker.ietf.org/doc/html/rfc7807) object.
       type: object
-      x-examples:
-        Not Enough Credit:
-          type: "https://example.com/probs/out-of-credit"
-          title: You do not have enough credit.
-          detail: "Your current balance is 30, but that costs 50."
-          instance: /account/12345/msgs/abc
       properties:
         type:
           type: string
@@ -1227,7 +1258,7 @@ components:
       type: object
       properties:
         jsonrpc:
-          description: Must be exactly '2.0'
+          description: Must be exactly "2.0"
           type: string
         id:
           description: Same identifier established by the client in the call
@@ -1321,6 +1352,7 @@ components:
           type: string
     Links:
       title: Links
+      description: Links model used for pagination.
       type: object
       properties:
         last:
@@ -1335,7 +1367,6 @@ components:
         first:
           type: string
           description: URI of the first page
-      description: links model used for pagination
   examples:
     BadRequest:
       value:
@@ -1357,9 +1388,6 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-tags:
-  - name: Timestamp API
-    description: Timestamp and validate timestamp records
 servers:
   - url: "http://localhost"
     description: Local Computer Environment
