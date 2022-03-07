@@ -262,13 +262,11 @@ contract AppDetailed is AppStorage {
     /**
      * @dev Update application name and/or domain.
      */
-    function updateApp(
-        bytes32 applicationId,
-        string memory name,
-        AppStoreLib.Domains domain
-    ) external {
+    function updateApp(bytes32 applicationId, AppStoreLib.Domains domain)
+        external
+    {
         AppStoreLib.Applications storage apps = appStorage();
-        return apps.updateApp(applicationId, name, domain);
+        return apps.updateApp(applicationId, domain);
     }
 
     /**

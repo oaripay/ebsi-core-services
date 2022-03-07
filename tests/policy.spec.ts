@@ -28,7 +28,6 @@ function randomPolicyName(): string {
 
 describe("Policies", () => {
   let ts: Tar;
-  let admin: SignerWithAddress;
   let user: SignerWithAddress;
 
   const policyName = randomPolicyName();
@@ -42,7 +41,7 @@ describe("Policies", () => {
   );
 
   beforeEach(async () => {
-    [admin, user] = await ethers.getSigners();
+    [, user] = await ethers.getSigners();
     const deployContract = async (
       name: string,
       opts: FactoryOptions = {}

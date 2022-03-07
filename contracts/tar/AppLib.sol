@@ -35,8 +35,6 @@ library AppLib {
     );
     event ApplicationUpdated(
         bytes32 indexed appId,
-        string indexed oldName,
-        string indexed newName,
         AppStoreLib.Domains oldDomain,
         AppStoreLib.Domains newDomain
     );
@@ -458,35 +456,19 @@ library AppLib {
     function updateApp(
         AppStoreLib.Applications storage apps,
         bytes32 applicationId,
-        string memory name,
         AppStoreLib.Domains domain
     ) external {
         require(applicationId != bytes32(0), "appId empty");
-        require(keccak256(bytes(name)) != keccak256(bytes("")), "name empty");
         // Check that app is registered
         require(
             apps.appStore[applicationId].applicationId == applicationId,
             "app unknown"
         );
-        AdminAuthLib.requirePolicyOrAppAdmin(
-            apps,
-            "TAR:updateApp",
-            applicationId
-        );
+        AdminAuthLib.requirePolicy(apps, "TAR:updateApp");
 
         AppStoreLib.Domains oldDomain = apps.appStore[applicationId].domain;
         apps.appStore[applicationId].domain = domain;
-        string memory oldName = apps.appStore[applicationId].applicationName;
-        apps.appStore[applicationId].applicationName = name;
-        apps.nameToId[name] = apps.nameToId[oldName];
-        apps.nameToId[oldName] = "";
-        emit ApplicationUpdated(
-            applicationId,
-            oldName,
-            name,
-            oldDomain,
-            domain
-        );
+        emit ApplicationUpdated(applicationId, oldDomain, domain);
     }
 
     /**
@@ -588,8 +570,8 @@ library AppLib {
         bytes32 appId = apps.nameToId[name];
         require(appId == "", "name exists");
 
-        // Application id is calculated as SHA2-256 hash of the first registered public key of the application
-        appId = sha256(publickey);
+        // Application id is calculated as SHA2-256 hash of the application name
+        appId = sha256(bytes(name));
 
         // administrator must be provided.
         require(

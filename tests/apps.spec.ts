@@ -7,6 +7,8 @@ import { testDidrAddress, testTprAddress } from "./testAddress";
 import { FactoryOptions } from "hardhat/types";
 
 const num = ethers.BigNumber.from;
+const getAppId = (name: string) =>
+  ethers.utils.sha256(ethers.utils.toUtf8Bytes(name));
 
 function getEthObject(o: unknown): Record<string, unknown> {
   const obj = o as string[] & Record<string, unknown>;
@@ -43,7 +45,7 @@ describe("Trusted Apps", () => {
 
   const app = {
     name: "my-app",
-    id: ethers.utils.sha256(randomData),
+    id: getAppId("my-app"),
     publicKeyId: ethers.utils.sha256(randomData),
     publicKey: `0x${randomData.toString("hex")}`,
     admin: "did:ebsi:admin-my-app",
@@ -51,7 +53,7 @@ describe("Trusted Apps", () => {
 
   const app2 = {
     name: "my-app2",
-    id: ethers.utils.sha256(randomData2),
+    id: getAppId("my-app2"),
     publicKeyId: ethers.utils.sha256(randomData2),
     publicKey: `0x${randomData2.toString("hex")}`,
     admin: "did:ebsi:admin-my-app2",
@@ -59,7 +61,7 @@ describe("Trusted Apps", () => {
 
   const authApp = {
     name: "my-app3",
-    id: ethers.utils.sha256(randomData3),
+    id: getAppId("my-app3"),
     publicKeyId: ethers.utils.sha256(randomData3),
     publicKey: `0x${randomData3.toString("hex")}`,
     admin: "did:ebsi:admin-my-app3",
@@ -154,8 +156,8 @@ describe("Trusted Apps", () => {
       0
     );
     firstAuthId = calcAuthorizationId(
-      app.publicKeyId,
-      authApp.publicKeyId,
+      getAppId(app.name),
+      getAppId(authApp.name),
       app.admin,
       1
     );
@@ -187,12 +189,8 @@ describe("Trusted Apps", () => {
     await policyContractMock.setPolicyResult(false);
 
     // reject changes in existing apps
-    await expect(tar.updateApp(app.id, "new-name", 1)).to.be.revertedWith(
-      [
-        "Policy error: sender is not controller of any of the ",
-        "adminitrators of app 'my-app' and it doesn't have ",
-        "the attribute TAR:updateApp",
-      ].join("")
+    await expect(tar.updateApp(app.id, 1)).to.be.revertedWith(
+      "Policy error: sender doesn't have the attribute TAR:updateApp"
     );
 
     await expect(tar.insertAppInfo(app.id, randomData)).to.be.revertedWith(
@@ -276,7 +274,7 @@ describe("Trusted Apps", () => {
     const data = crypto.randomBytes(40);
     const newApp = {
       name: "new-app",
-      id: ethers.utils.sha256(data),
+      id: getAppId("new-app"),
       publicKeyId: ethers.utils.sha256(data),
       publicKey: `0x${data.toString("hex")}`,
       admin: "did:ebsi:admin-my-app",
@@ -299,10 +297,6 @@ describe("Trusted Apps", () => {
 
   it("should update info/publickeys of the app by app admin", async () => {
     await policyContractMock.setPolicyResult(false);
-    await expect(tar.updateApp(app.id, "new-name", 1)).to.emit(
-      tar,
-      "ApplicationUpdated"
-    );
 
     const info = crypto.randomBytes(32);
     const infoId = ethers.utils.sha256(info);
@@ -346,7 +340,7 @@ describe("Trusted Apps", () => {
 
     const appById = await tar.getAppById(app.id);
     expect(getEthObject(appById)).to.eql({
-      name: "new-name",
+      name: app.name,
       domain: 1,
     });
 
@@ -356,14 +350,7 @@ describe("Trusted Apps", () => {
     const resultAppByPublicKey = await tar.getAppByPublicKeyId(app.publicKeyId);
     expect(getEthObject(resultAppByPublicKey)).to.eql({
       applicationId: app.id,
-      name: "new-name",
-      domain: 1,
-    });
-
-    await expect(tar.getAppByName(app.name)).to.be.revertedWith("app unknown");
-    const resultAppByName = await tar.getAppByName("new-name");
-    expect(getEthObject(resultAppByName)).to.eql({
-      applicationId: app.id,
+      name: app.name,
       domain: 1,
     });
 
@@ -437,8 +424,8 @@ describe("Trusted Apps", () => {
       tar.insertAuthorization(app.name, app2.name, "did:me", 0, 0, 0, 0)
     ).to.emit(tar, "AddNewAuthorization");
     const authId = calcAuthorizationId(
-      app.publicKeyId,
-      app2.publicKeyId,
+      getAppId(app.name),
+      getAppId(app2.name),
       "did:me",
       0
     );
