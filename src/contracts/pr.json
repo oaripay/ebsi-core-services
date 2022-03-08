@@ -112,18 +112,6 @@
       {
         "indexed": false,
         "internalType": "string",
-        "name": "oldName",
-        "type": "string"
-      },
-      {
-        "indexed": false,
-        "internalType": "string",
-        "name": "newName",
-        "type": "string"
-      },
-      {
-        "indexed": false,
-        "internalType": "string",
         "name": "oldDescription",
         "type": "string"
       },
@@ -296,6 +284,19 @@
   },
   {
     "inputs": [],
+    "name": "DIAMOND_STORAGE_POSITION",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "OPERATOR_ROLE",
     "outputs": [
       {
@@ -323,12 +324,70 @@
   {
     "inputs": [
       {
+        "internalType": "string",
+        "name": "policyName",
+        "type": "string"
+      }
+    ],
+    "name": "activatePolicy",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "uint256",
         "name": "policyId",
         "type": "uint256"
       }
     ],
     "name": "activatePolicy",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "policyName",
+        "type": "string"
+      },
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "internalType": "string",
+            "name": "attributeName",
+            "type": "string"
+          },
+          {
+            "internalType": "enum PolicyStorage.TYPE",
+            "name": "typeOfValue",
+            "type": "uint8"
+          },
+          {
+            "internalType": "bytes",
+            "name": "value",
+            "type": "bytes"
+          },
+          {
+            "internalType": "enum PolicyStorage.OPERATION",
+            "name": "attributeOperation",
+            "type": "uint8"
+          }
+        ],
+        "internalType": "struct PolicyStorage.PolicyCondition[]",
+        "name": "policyConditions",
+        "type": "tuple[]"
+      }
+    ],
+    "name": "addPolicyConditions",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -375,6 +434,19 @@
     ],
     "name": "addPolicyConditions",
     "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "admin",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -429,12 +501,43 @@
   {
     "inputs": [
       {
+        "internalType": "string",
+        "name": "policyName",
+        "type": "string"
+      }
+    ],
+    "name": "deactivatePolicy",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "uint256",
         "name": "policyId",
         "type": "uint256"
       }
     ],
     "name": "deactivatePolicy",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
+        "name": "policyName",
+        "type": "string"
+      },
+      {
+        "internalType": "uint256",
+        "name": "policyConditionId",
+        "type": "uint256"
+      }
+    ],
+    "name": "deletePolicyCondition",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -884,6 +987,19 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "implementation",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "uint256",
@@ -1080,8 +1196,26 @@
       },
       {
         "internalType": "string",
+        "name": "description",
+        "type": "string"
+      }
+    ],
+    "name": "updatePolicy",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "string",
         "name": "policyName",
         "type": "string"
+      },
+      {
+        "internalType": "enum PolicyStorage.OPERATION_TYPE",
+        "name": "opType",
+        "type": "uint8"
       },
       {
         "internalType": "string",

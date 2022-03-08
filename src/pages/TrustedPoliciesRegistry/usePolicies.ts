@@ -101,7 +101,9 @@ export default function usePolicies() {
         return undefined;
       }
       try {
-        const tx = await policyRegistryContract[functionName](policyId);
+        const tx = await policyRegistryContract.functions[functionName](
+          policyId
+        );
         setShowPendingTxNotif(true);
         await tx.wait(1);
         setShowPendingTxNotif(false);
@@ -117,14 +119,14 @@ export default function usePolicies() {
 
   const activatePolicy = useCallback(
     async (policyId: number) => {
-      await runPolicyAction("activatePolicy", policyId);
+      await runPolicyAction("activatePolicy(uint256)", policyId);
     },
     [runPolicyAction]
   );
 
   const deactivatePolicy = useCallback(
     async (policyId: number) => {
-      await runPolicyAction("deactivatePolicy", policyId);
+      await runPolicyAction("deactivatePolicy(uint256)", policyId);
     },
     [runPolicyAction]
   );
@@ -136,12 +138,10 @@ export default function usePolicies() {
       }
 
       try {
-        const tx = await policyRegistryContract.updatePolicy(
-          values.id,
-          values.opType,
-          values.policyName,
-          values.description
-        );
+        const tx = await policyRegistryContract.functions[
+          "updatePolicy(uint256,uint8,string)"
+        ](values.id, values.opType, values.description);
+
         setShowPendingTxNotif(true);
         await tx.wait(1);
         setShowPendingTxNotif(false);
@@ -159,10 +159,9 @@ export default function usePolicies() {
         return;
       }
       try {
-        const tx = await policyRegistryContract.deletePolicyCondition(
-          policyId,
-          policyConditionId
-        );
+        const tx = await policyRegistryContract.functions[
+          "deletePolicyCondition(uint256,uint256)"
+        ](policyId, policyConditionId);
         setShowPendingTxNotif(true);
         await tx.wait(1);
         setShowPendingTxNotif(false);

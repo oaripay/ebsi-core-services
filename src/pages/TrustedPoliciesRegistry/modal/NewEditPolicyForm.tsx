@@ -269,7 +269,7 @@ export default function NewEditPolicyForm(prop: PropType): ReactElement {
           name="policyName"
           rules={[{ required: true, message: "Field is required" }]}
         >
-          <Input />
+          <Input disabled={isEdit} />
         </Form.Item>
         <Form.Item
           label="Description"
