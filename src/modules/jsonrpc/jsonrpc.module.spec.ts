@@ -17,6 +17,7 @@ import {
 } from "@nestjs/platform-fastify";
 import { createJWT, ES256KSigner } from "did-jwt";
 import { Session as SiopSession } from "@cef-ebsi/siop-auth";
+import nock from "nock";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcService } from "./jsonrpc.service";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
@@ -36,9 +37,14 @@ import {
   setupTestEnv,
 } from "../../../tests/utils/schemaRegistry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
-import { createDid } from "../../../tests/utils/data";
+import {
+  createDid,
+  createSchema,
+  createVerifiableAuthorisationSchema,
+} from "../../../tests/utils/data";
 import { ApiConfig } from "../../config/configuration";
 import { ContractService } from "../../shared/services/contract.service";
+import { computeId } from "../../shared/utils";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -69,22 +75,24 @@ describe("JsonRpc Module", () => {
 
   const adminDid = createDid();
 
-  const schemaId = `0x${Buffer.from("11.11.2011").toString("hex")}`;
-  const rawSchema = {
-    "@context": "https://ebsi.eu",
-    type: "Schema",
-    name: "example",
-  };
+  let schemaId: string;
+  const rawSchema = createSchema();
   const serializedSchema = JSON.stringify(rawSchema);
   const serializedSchemaBuffer = Buffer.from(serializedSchema);
 
   const rawUpdatedSchema = {
-    "@context": "https://ebsi.eu",
-    type: "Schema",
-    name: "example updated",
+    ...rawSchema,
+    description: "Updated schema of an EBSI Verifiable Attestation",
   };
   const serializedUpdatedSchema = JSON.stringify(rawUpdatedSchema);
   const serializedUpdatedSchemaBuffer = Buffer.from(serializedUpdatedSchema);
+
+  let schema2Id: string;
+  const referencedSchemaUrl =
+    "https://test.ebsi/trusted-schemas-registry/v1/schemas/z3kRpVjUFj4Bq8qHRENUHiZrVF5VgMBUe7biEafp1wf2J";
+  const rawSchema2 = createVerifiableAuthorisationSchema(referencedSchemaUrl);
+  const serializedSchema2 = JSON.stringify(rawSchema2);
+  const serializedSchema2Buffer = Buffer.from(serializedSchema2);
 
   const rawMetadata = {
     meta: "value",
@@ -127,6 +135,18 @@ describe("JsonRpc Module", () => {
   const policy3 = createPolicy();
 
   beforeAll(async () => {
+    // Disable external requests
+    nock.disableNetConnect();
+    // Allow localhost connections so we can test local routes and mock servers.
+    nock.enableNetConnect("127.0.0.1");
+
+    // Compute IDs. We need to mock the request GET $referencedSchemaUrl because rawSchema2 depends on it
+    const refSchemaUrl = new URL(referencedSchemaUrl);
+    nock(refSchemaUrl.origin).get(refSchemaUrl.pathname).reply(200, rawSchema);
+    schemaId = `0x${(await computeId(rawSchema)).toString("hex")}`;
+    schema2Id = `0x${(await computeId(rawSchema2)).toString("hex")}`;
+    nock.cleanAll();
+
     // Spin up test blockchain (ganache)
     testEnv = await setupTestEnv();
     schemasRegistryContract = testEnv.schemasRegistryContract;
@@ -194,13 +214,22 @@ describe("JsonRpc Module", () => {
     jest
       .spyOn(jsonRpcService, "isDidControlledByAddress")
       .mockImplementation(async () => Promise.resolve(true));
+
+    // Mock $ref response
+    const refSchemaUrl = new URL(referencedSchemaUrl);
+    nock(refSchemaUrl.origin)
+      .persist()
+      .get(refSchemaUrl.pathname)
+      .reply(200, rawSchema);
   });
 
   afterEach(() => {
     jest.resetAllMocks();
+    nock.cleanAll();
   });
 
   afterAll(async () => {
+    nock.enableNetConnect();
     await app.close();
   });
 
@@ -460,6 +489,55 @@ describe("JsonRpc Module", () => {
     expect(responseSend.status).toBe(400);
   });
 
+  it("should throw an error if the schema references an URL that can't be fetched", async () => {
+    expect.assertions(2);
+
+    // Mock $ref response - 404
+    nock.cleanAll();
+    const refSchemaUrl = new URL(referencedSchemaUrl);
+    nock(refSchemaUrl.origin)
+      .get(refSchemaUrl.pathname)
+      .reply(404, "Not Found");
+
+    // Mock access token verification
+    jest
+      .spyOn(SiopSession.prototype, "verifyAccessToken")
+      .mockImplementation(async () =>
+        Promise.resolve(defaultSignerSiopAccessTokenPayload)
+      );
+
+    const signer = ethers.Wallet.createRandom();
+
+    const param: JsonRpcParams = {
+      from: signer.address,
+      schemaId: schema2Id,
+      schema: `0x${serializedSchema2Buffer.toString("hex")}`,
+      metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
+    } as InsertSchemaParam;
+
+    const response: SupertestJsonRpcResponse = await request(server)
+      .post("/jsonrpc")
+      .auth(defaultSignerSiopAccessToken, { type: "bearer" })
+      .send({
+        jsonrpc: "2.0",
+        method: "insertSchema",
+        params: [param],
+        id: 231,
+      });
+
+    expect(response.body).toStrictEqual({
+      jsonrpc: "2.0",
+      id: 231,
+      error: {
+        code: -32600,
+        message: expect.stringContaining(
+          `Error downloading ${referencedSchemaUrl}`
+        ) as string,
+      },
+    });
+    expect(response.status).toBe(400);
+  });
+
   // Tests to be repeated for every method
   describe.each([
     "insertPolicy",
@@ -687,159 +765,216 @@ describe("JsonRpc Module", () => {
 
       const signer = ethers.Wallet.createRandom();
 
-      let param1: JsonRpcParams = null;
-      let param2: JsonRpcParams = null;
-      let param3: JsonRpcParams = null;
-
-      let expectedErrorMessage1: string;
-      let expectedErrorMessage2: string;
-      let expectedErrorMessage3: string;
+      const testSetup: {
+        params: JsonRpcParams;
+        expectedErrorMessage: string;
+      }[] = [];
 
       switch (method) {
         case "insertPolicy": {
-          param1 = {
+          const params1 = {
             ...policy1,
             from: signer.address,
           };
-          param2 = {
+          delete params1.policyId;
+
+          testSetup.push({
+            params: params1,
+            expectedErrorMessage:
+              "property params[0].policyId has failed the following constraints: isString",
+          });
+
+          const params2 = {
             ...policy2,
             from: signer.address,
           };
-          param3 = {
-            ...policy3,
-            from: signer.address,
-          };
+          delete params2.policyData;
 
-          delete param1.policyId;
-          expectedErrorMessage1 =
-            "property params[0].policyId has failed the following constraints: isString";
+          testSetup.push({
+            params: params2,
+            expectedErrorMessage:
+              "property params[0].policyData has failed the following constraints: isHexadecimal",
+          });
 
-          delete param2.policyData;
-          expectedErrorMessage2 =
-            "property params[0].policyData has failed the following constraints: isHexadecimal";
+          testSetup.push({
+            params: {
+              ...policy3,
+              from: "bad address",
+            },
+            expectedErrorMessage:
+              "property params[0].from has failed the following constraints: isEthereumAddress",
+          });
 
-          param3.from = "bad address";
-          expectedErrorMessage3 =
-            "property params[0].from has failed the following constraints: isEthereumAddress";
           break;
         }
         case "insertSchema": {
-          param1 = {
-            from: signer.address,
-            schemaId,
-            schema: "0x1234",
-            metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
-          } as InsertSchemaParam;
+          // Test #1: `schema` param is not valid JSON encoded in hex
+          testSetup.push({
+            params: {
+              from: signer.address,
+              schemaId,
+              schema: "0x1234",
+              metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
+            } as InsertSchemaParam,
+            expectedErrorMessage:
+              "property params[0].schema has failed the following constraints: isHexadecimalJSON",
+          });
 
-          expectedErrorMessage1 =
-            "property params[0].schema has failed the following constraints: isHexadecimalJSON";
+          // Test #2: `metadata` param is not valid JSON encoded in hex
+          testSetup.push({
+            params: {
+              from: signer.address,
+              schemaId,
+              schema: `0x${serializedSchemaBuffer.toString("hex")}`,
+              metadata: "0x1234",
+            } as InsertSchemaParam,
+            expectedErrorMessage:
+              "property params[0].metadata has failed the following constraints: isHexadecimalJSON",
+          });
 
-          param2 = {
-            from: signer.address,
-            schemaId,
-            schema: `0x${serializedSchemaBuffer.toString("hex")}`,
-            metadata: "0x1234",
-          } as InsertSchemaParam;
+          // Test #3: `metadata` param doesn't start with 0x
+          testSetup.push({
+            params: {
+              from: signer.address,
+              schemaId,
+              schema: `0x${serializedSchemaBuffer.toString("hex")}`,
+              metadata: serializedMetadataBuffer.toString("hex"),
+            } as InsertSchemaParam,
+            expectedErrorMessage:
+              "property params[0].metadata has failed the following constraints: matches",
+          });
 
-          expectedErrorMessage2 =
-            "property params[0].metadata has failed the following constraints: isHexadecimalJSON";
+          // Test #4: `schemaId` param doesn't match the computed schema ID
+          const randomSchemaId = `0x${crypto.randomBytes(32).toString("hex")}`;
+          testSetup.push({
+            params: {
+              from: signer.address,
+              schemaId: randomSchemaId,
+              schema: `0x${serializedSchemaBuffer.toString("hex")}`,
+              metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
+            } as InsertSchemaParam,
+            expectedErrorMessage: `Invalid schema ID: "${randomSchemaId}" is different from the actual schema ID "${schemaId}"`,
+          });
 
-          param3 = {
-            from: signer.address,
-            schema: `0x${serializedSchemaBuffer.toString("hex")}`,
-            metadata: serializedMetadataBuffer.toString("hex"),
-          } as InsertSchemaParam;
-
-          expectedErrorMessage3 =
-            "property params[0].metadata has failed the following constraints: matches";
           break;
         }
         case "updateSchema": {
-          param1 = {
-            from: signer.address,
-            schemaId,
-            schema: "0x1234",
-            metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
-          } as UpdateSchemaParam;
+          // Test #1: `schema` param is not valid JSON encoded in hex
+          testSetup.push({
+            params: {
+              from: signer.address,
+              schemaId,
+              schema: "0x1234",
+              metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
+            } as UpdateSchemaParam,
+            expectedErrorMessage:
+              "property params[0].schema has failed the following constraints: isHexadecimalJSON",
+          });
 
-          expectedErrorMessage1 =
-            "property params[0].schema has failed the following constraints: isHexadecimalJSON";
+          // Test #2: `metadata` param is not valid JSON encoded in hex
+          testSetup.push({
+            params: {
+              from: signer.address,
+              schemaId,
+              schema: `0x${serializedUpdatedSchemaBuffer.toString("hex")}`,
+              metadata: "0x1234",
+            } as UpdateSchemaParam,
+            expectedErrorMessage:
+              "property params[0].metadata has failed the following constraints: isHexadecimalJSON",
+          });
 
-          param2 = {
-            from: signer.address,
-            schemaId,
-            schema: `0x${serializedUpdatedSchemaBuffer.toString("hex")}`,
-            metadata: "0x1234",
-          } as UpdateSchemaParam;
+          // Test #3: `schemaId` is not an hex string
+          testSetup.push({
+            params: {
+              from: signer.address,
+              schemaId: "11.11.2011",
+              schema: `0x${serializedUpdatedSchemaBuffer.toString("hex")}`,
+              metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
+            } as UpdateSchemaParam,
+            expectedErrorMessage:
+              "property params[0].schemaId has failed the following constraints: isHexadecimal, matches",
+          });
 
-          expectedErrorMessage2 =
-            "property params[0].metadata has failed the following constraints: isHexadecimalJSON";
+          // Test #4: the user tries to insert breaking changes (update schema1 with schema2)
+          testSetup.push({
+            params: {
+              from: signer.address,
+              schemaId,
+              schema: `0x${serializedSchema2Buffer.toString("hex")}`,
+              metadata: `0x${serializedMetadataBuffer2.toString("hex")}`,
+            } as UpdateSchemaParam,
+            expectedErrorMessage: `Invalid schema ID: "${schemaId}" is different from the actual schema ID "${schema2Id}"`,
+          });
 
-          param3 = {
-            from: signer.address,
-            schemaId: "11.11.2011",
-            schema: `0x${serializedUpdatedSchemaBuffer.toString("hex")}`,
-            metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
-          } as UpdateSchemaParam;
-
-          expectedErrorMessage3 =
-            "property params[0].schemaId has failed the following constraints: isHexadecimal, matches";
           break;
         }
         case "updateMetadata": {
-          param1 = {
-            from: signer.address,
-            schemaRevisionId: "1234",
-            metadata: `0x${serializedMetadataBuffer2.toString("hex")}`,
-          } as UpdateMetadataParam;
+          testSetup.push({
+            params: {
+              from: signer.address,
+              schemaRevisionId: "1234",
+              metadata: `0x${serializedMetadataBuffer2.toString("hex")}`,
+            } as UpdateMetadataParam,
+            expectedErrorMessage:
+              "property params[0].schemaRevisionId has failed the following constraints: matches",
+          });
 
-          expectedErrorMessage1 =
-            "property params[0].schemaRevisionId has failed the following constraints: matches";
+          testSetup.push({
+            params: {
+              from: signer.address,
+              schemaRevisionId: "0x",
+              metadata: "0x1234",
+            } as UpdateMetadataParam,
+            expectedErrorMessage:
+              "property params[0].metadata has failed the following constraints: isHexadecimalJSON",
+          });
 
-          param2 = {
-            from: signer.address,
-            schemaRevisionId: "0x",
-            metadata: "0x1234",
-          } as UpdateMetadataParam;
+          testSetup.push({
+            params: {
+              from: signer.address,
+              schemaRevisionId: "0x",
+              metadata: serializedMetadataBuffer.toString("hex"),
+            } as UpdateMetadataParam,
+            expectedErrorMessage:
+              "property params[0].metadata has failed the following constraints: matches",
+          });
 
-          expectedErrorMessage2 =
-            "property params[0].metadata has failed the following constraints: isHexadecimalJSON";
-
-          param3 = {
-            from: signer.address,
-            schemaRevisionId: "0x",
-            metadata: serializedMetadataBuffer.toString("hex"),
-          } as UpdateMetadataParam;
-
-          expectedErrorMessage3 =
-            "property params[0].metadata has failed the following constraints: matches";
           break;
         }
         case "updatePolicy": {
-          param1 = {
+          const params1 = {
             ...policy1,
             from: signer.address,
           };
-          param2 = {
+          delete params1.policyId;
+
+          testSetup.push({
+            params: params1,
+            expectedErrorMessage:
+              "property params[0].policyId has failed the following constraints: isString",
+          });
+
+          const params2 = {
             ...policy2,
             from: signer.address,
           };
-          param3 = {
-            ...policy3,
-            from: signer.address,
-          };
+          delete params2.policyData;
 
-          delete param1.policyId;
-          expectedErrorMessage1 =
-            "property params[0].policyId has failed the following constraints: isString";
+          testSetup.push({
+            params: params2,
+            expectedErrorMessage:
+              "property params[0].policyData has failed the following constraints: isHexadecimal",
+          });
 
-          delete param2.policyData;
-          expectedErrorMessage2 =
-            "property params[0].policyData has failed the following constraints: isHexadecimal";
+          testSetup.push({
+            params: {
+              ...policy3,
+              from: "bad address",
+            },
+            expectedErrorMessage:
+              "property params[0].from has failed the following constraints: isEthereumAddress",
+          });
 
-          param3.from = "bad address";
-          expectedErrorMessage3 =
-            "property params[0].from has failed the following constraints: isEthereumAddress";
           break;
         }
         default: {
@@ -847,65 +982,35 @@ describe("JsonRpc Module", () => {
         }
       }
 
-      const response1 = await request(server)
-        .post("/jsonrpc")
-        .auth(defaultSignerSiopAccessToken, { type: "bearer" })
-        .send({
-          jsonrpc: "2.0",
-          method,
-          params: [param1],
-          id: 231,
-        });
+      expect.assertions(testSetup.length * 2);
 
-      expect(response1.body).toStrictEqual({
-        jsonrpc: "2.0",
-        id: 231,
-        error: {
-          code: -32600,
-          message: expect.stringContaining(expectedErrorMessage1) as string,
-        },
-      });
-      expect(response1.status).toBe(400);
+      await Promise.all(
+        testSetup.map(async (setup) => {
+          const response = await request(server)
+            .post("/jsonrpc")
+            .auth(defaultSignerSiopAccessToken, {
+              type: "bearer",
+            })
+            .send({
+              jsonrpc: "2.0",
+              method,
+              params: [setup.params],
+              id: 231,
+            });
 
-      const response2 = await request(server)
-        .post("/jsonrpc")
-        .auth(defaultSignerSiopAccessToken, { type: "bearer" })
-        .send({
-          jsonrpc: "2.0",
-          method,
-          params: [param2],
-          id: 231,
-        });
-
-      expect(response2.body).toStrictEqual({
-        jsonrpc: "2.0",
-        id: 231,
-        error: {
-          code: -32600,
-          message: expect.stringContaining(expectedErrorMessage2) as string,
-        },
-      });
-      expect(response2.status).toBe(400);
-
-      const response3 = await request(server)
-        .post("/jsonrpc")
-        .auth(defaultSignerSiopAccessToken, { type: "bearer" })
-        .send({
-          jsonrpc: "2.0",
-          method,
-          params: [param3],
-          id: 231,
-        });
-
-      expect(response3.body).toStrictEqual({
-        jsonrpc: "2.0",
-        id: 231,
-        error: {
-          code: -32600,
-          message: expect.stringContaining(expectedErrorMessage3) as string,
-        },
-      });
-      expect(response3.status).toBe(400);
+          expect(response.body).toStrictEqual({
+            jsonrpc: "2.0",
+            id: 231,
+            error: {
+              code: -32600,
+              message: expect.stringContaining(
+                setup.expectedErrorMessage
+              ) as string,
+            },
+          });
+          expect(response.status).toBe(400);
+        })
+      );
     });
 
     it("should throw an error when the unsignedTransaction has been tampered", async () => {

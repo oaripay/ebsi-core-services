@@ -1,11 +1,12 @@
 import hre from "hardhat";
 import "@nomiclabs/hardhat-ethers";
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { Contract, ethers } from "ethers";
 import { range } from "rxjs";
 import { mergeMap, toArray } from "rxjs/operators";
 import { SchemaSCRegistry } from "../../src/contracts";
-import { createDid } from "./data";
+import { createDid, createSchema } from "./data";
+import { computeId } from "../../src/shared/utils/jsonSchema.utils";
 
 interface User {
   wallet: ethers.Wallet;
@@ -31,25 +32,12 @@ export interface PolicyObject {
   policyHash: string;
 }
 
-const randomOid = () =>
-  `1.3.6.1.4.1.${Math.ceil(Math.random() * 2020)}.${Math.ceil(
-    Math.random() * 10
-  )}.${Math.ceil(Math.random() * 250)}.${Math.ceil(
-    Math.random() * 3
-  )}.${Math.ceil(Math.random() * 3)}.${Math.ceil(
-    Math.random() * 3
-  )}.${Math.ceil(Math.random() * 100)}`;
-
 export async function insertSchema(
   contract: SchemaSCRegistry
 ): Promise<SchemaObject> {
-  const schemaId = `0x${Buffer.from(randomOid()).toString("hex")}`;
+  const schema = createSchema();
 
-  const schema = {
-    "@context": "https://ebsi.com",
-    type: "CustomSchema",
-    data: `data-${crypto.randomBytes(16).toString("hex")}`,
-  };
+  const schemaId = `0x${(await computeId(schema)).toString("hex")}`;
 
   const serializedSchema = Buffer.from(JSON.stringify(schema));
 
@@ -76,11 +64,7 @@ export async function updateSchema(
   schemaId: string,
   contract: SchemaSCRegistry
 ): Promise<SchemaObject> {
-  const schema = {
-    "@context": "https://ebsi.com",
-    type: "CustomSchema",
-    data: `data-${crypto.randomBytes(16).toString("hex")}`,
-  };
+  const schema = createSchema();
 
   const serializedSchema = Buffer.from(JSON.stringify(schema));
 

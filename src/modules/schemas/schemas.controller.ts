@@ -53,8 +53,6 @@ export class SchemasController {
   @Get("/:schemaId")
   async getSchema(@Param() params: GetSchemaParams): Promise<unknown> {
     const { schemaId } = params;
-    // TODO: change response content-type based on schema metadata?
-    // Waiting for feedback https://ec.europa.eu/digital-building-blocks/wikis/display/BLOCKCHAININT/Trusted+Schemas+Registry+API?focusedCommentId=356876619#comment-356876619
     return this.schemasService.getSchema(schemaId);
   }
 
@@ -90,8 +88,6 @@ export class SchemasController {
     @Param() params: GetSchemaRevisionParams
   ): Promise<unknown> {
     const { schemaId, schemaRevisionId } = params;
-    // TODO: change response content-type based on schema metadata?
-    // Waiting for feedback https://ec.europa.eu/digital-building-blocks/wikis/display/BLOCKCHAININT/Trusted+Schemas+Registry+API?focusedCommentId=356876619#comment-356876619
     return this.schemasService.getSchemaRevision(schemaId, schemaRevisionId);
   }
 

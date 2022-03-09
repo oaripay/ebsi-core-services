@@ -4,7 +4,7 @@ import pLimit from "p-limit";
 import { ContractService } from "../../shared/services/contract.service";
 import { SchemaSCRegistry } from "../../contracts";
 import { ItemsList } from "./schemas.interface";
-import { range } from "./schemas.utils";
+import { range, schemaIdToHex } from "./schemas.utils";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 const MAX_RESULTS_PER_PAGE = 50;
@@ -29,11 +29,12 @@ export class SchemasService {
 
   async getSchema(schemaId: string): Promise<unknown> {
     let schema: AsyncReturnType<SchemaSCRegistry["getLatestSchemaRevision"]>;
+    const hexSchemaId = schemaIdToHex(schemaId);
 
     try {
       schema = await (
         await this.contractService.getContract()
-      ).getLatestSchemaRevision(schemaId);
+      ).getLatestSchemaRevision(hexSchemaId);
     } catch (error) {
       throw new NotFoundError("Schema Not Found", {
         detail: `Schema ${schemaId} not found`,
@@ -53,11 +54,13 @@ export class SchemasService {
     pageSize: number,
     validAt?: string
   ): Promise<ItemsList> {
+    const hexSchemaId = schemaIdToHex(schemaId);
+
     // Make sure the schema exists
     try {
       await (
         await this.contractService.getContract()
-      ).getLatestSchemaRevision(schemaId);
+      ).getLatestSchemaRevision(hexSchemaId);
     } catch (error) {
       throw new NotFoundError("Schema Not Found", {
         detail: `Schema ${schemaId} not found`,
@@ -72,7 +75,7 @@ export class SchemasService {
       // Get the first MAX_RESULTS_PER_PAGE revisions IDs
       const revisions = await (
         await this.contractService.getContract()
-      ).getSchemaRevisionIds(schemaId, 1, MAX_RESULTS_PER_PAGE);
+      ).getSchemaRevisionIds(hexSchemaId, 1, MAX_RESULTS_PER_PAGE);
       allRevisionsIds.push(...revisions.items);
       const total = revisions.total.toNumber();
 
@@ -89,7 +92,7 @@ export class SchemasService {
                 (pageIndex) =>
                   limit(() =>
                     contract.getSchemaRevisionIds(
-                      schemaId,
+                      hexSchemaId,
                       pageIndex,
                       MAX_RESULTS_PER_PAGE
                     )
@@ -148,7 +151,7 @@ export class SchemasService {
     // Get the revisions
     const revisions = await (
       await this.contractService.getContract()
-    ).getSchemaRevisionIds(schemaId, page, pageSize);
+    ).getSchemaRevisionIds(hexSchemaId, page, pageSize);
 
     return {
       items: revisions.items,
@@ -160,11 +163,13 @@ export class SchemasService {
     schemaId: string,
     schemaRevisionId: string
   ): Promise<unknown> {
+    const hexSchemaId = schemaIdToHex(schemaId);
+
     // Make sure the schema exists
     try {
       await (
         await this.contractService.getContract()
-      ).getLatestSchemaRevision(schemaId);
+      ).getLatestSchemaRevision(hexSchemaId);
     } catch (error) {
       throw new NotFoundError("Schema Not Found", {
         detail: `Schema ${schemaId} not found`,
@@ -196,11 +201,13 @@ export class SchemasService {
     page: number,
     pageSize: number
   ): Promise<ItemsList> {
+    const hexSchemaId = schemaIdToHex(schemaId);
+
     // Make sure the schema exists
     try {
       await (
         await this.contractService.getContract()
-      ).getLatestSchemaRevision(schemaId);
+      ).getLatestSchemaRevision(hexSchemaId);
     } catch (error) {
       throw new NotFoundError("Schema Not Found", {
         detail: `Schema ${schemaId} not found`,
@@ -234,11 +241,13 @@ export class SchemasService {
     schemaRevisionId: string,
     metadataId: string
   ): Promise<unknown> {
+    const hexSchemaId = schemaIdToHex(schemaId);
+
     // Make sure the schema exists
     try {
       await (
         await this.contractService.getContract()
-      ).getLatestSchemaRevision(schemaId);
+      ).getLatestSchemaRevision(hexSchemaId);
     } catch (error) {
       throw new NotFoundError("Schema Not Found", {
         detail: `Schema ${schemaId} not found`,

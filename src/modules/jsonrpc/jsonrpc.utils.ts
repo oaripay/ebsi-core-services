@@ -1,6 +1,7 @@
 import * as ClassValidator from "class-validator";
 import { ClassTransformer, ClassConstructor } from "class-transformer";
 import { ethers } from "ethers";
+import $RefParser from "@apidevtools/json-schema-ref-parser";
 import {
   RequestSendSignedTransactionDto,
   UnsignedTransaction,
@@ -15,6 +16,7 @@ import {
   ArgsUpdateSchema,
   RequestUpdateSchemaDto,
 } from "./dto";
+import { remove0xPrefix, computeId, prefixWith0x } from "../../shared/utils";
 
 export function formatEthersUnsignedTransaction(
   unsignedTransaction: UnsignedTransaction
@@ -68,5 +70,26 @@ export const validateClass = async (
   const errors = await ClassValidator.validate(dataClass);
   if (errors.length > 0) {
     throw new Error(errors.toString());
+  }
+};
+
+export const validateSchemaId = async (
+  hexJsonSchema: string,
+  expectedSchemaId: string
+): Promise<void> => {
+  // 1. Hex JSON -> JSON
+  const jsonSchema = JSON.parse(
+    Buffer.from(remove0xPrefix(hexJsonSchema), "hex").toString("utf8")
+  ) as $RefParser.JSONSchema;
+
+  // 2. Compute schema ID
+  const schemaId = await computeId(jsonSchema);
+  const actualSchemaId = prefixWith0x(schemaId.toString("hex"));
+
+  // 3. Compare
+  if (actualSchemaId !== expectedSchemaId) {
+    throw new Error(
+      `Invalid schema ID: "${expectedSchemaId}" is different from the actual schema ID "${actualSchemaId}"`
+    );
   }
 };

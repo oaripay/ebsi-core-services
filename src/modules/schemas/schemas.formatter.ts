@@ -6,6 +6,7 @@ import {
 } from "./schemas.interface";
 import { PaginatedList } from "../../shared/interfaces";
 import { paginate } from "../../shared/utils";
+import { hexToMultibaseBase58Btc } from "./schemas.utils";
 
 export function formatSchemas(
   schemas: ItemsList,
@@ -15,10 +16,14 @@ export function formatSchemas(
 ): PaginatedList<GetSchemasResponse> {
   // Reshape items
   const { total } = schemas;
-  const items = schemas.items.map((schema) => ({
-    schemaId: schema,
-    href: `${baseUrl}/${schema}`,
-  }));
+  const items = schemas.items.map((schema) => {
+    const multibaseBase58BtcSchemaId = hexToMultibaseBase58Btc(schema);
+
+    return {
+      schemaId: multibaseBase58BtcSchemaId,
+      href: `${baseUrl}/${multibaseBase58BtcSchemaId}`,
+    };
+  });
 
   return paginate<GetSchemasResponse>(items, baseUrl, total, page, pageSize);
 }

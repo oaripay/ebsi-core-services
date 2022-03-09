@@ -1,9 +1,8 @@
-import { Matches, IsHexadecimal } from "class-validator";
+import { IsSchemaId } from "../../../shared/validators";
 
 export class GetSchemaParams {
-  @Matches(/^0x/)
-  @IsHexadecimal()
-  schemaId: string; // DOI or OID
+  @IsSchemaId()
+  schemaId: string;
 }
 
 export default GetSchemaParams;

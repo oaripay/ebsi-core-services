@@ -14,6 +14,7 @@ import {
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
+import $RefParser from "@apidevtools/json-schema-ref-parser";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
@@ -26,9 +27,12 @@ import {
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x } from "../../src/shared/utils";
+import { computeId } from "../../src/shared/utils/jsonSchema.utils";
 import { getAccessToken, waitToBeMined } from "../utils/waitToBeMined";
 import { ItemsList } from "../../src/modules/schemas/schemas.interface";
 import { requestSiopJwt } from "../utils/siopJwt";
+import { createVerifiableAuthorisationSchema } from "../utils/data";
+import { hexToMultibaseBase58Btc } from "../../src/modules/schemas/schemas.utils";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -40,72 +44,34 @@ type JsonRpcParams =
   | UpdateSchemaParam
   | UpdateMetadataParam;
 
-const randomOid = () =>
-  `1.3.6.1.4.1.${Math.ceil(Math.random() * 2020)}.${Math.ceil(
-    Math.random() * 10
-  )}.${Math.ceil(Math.random() * 250)}.${Math.ceil(
-    Math.random() * 3
-  )}.${Math.ceil(Math.random() * 3)}.${Math.ceil(
-    Math.random() * 3
-  )}.${Math.ceil(Math.random() * 100)}`;
-
 describe("Schemas (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
   let adminTestWallet: ethers.Wallet;
   let testUserAccessToken: string;
 
-  const schemaId = `0x${Buffer.from(randomOid()).toString("hex")}`;
+  let rawSchema: $RefParser.JSONSchema;
+  let schemaId: string;
+  let serializedSchema: string;
+  let serializedSchemaBuffer: Buffer;
+  let schemaRevisionId: string;
 
-  const rawSchema = {
-    "@context": "https://ebsi.eu",
-    type: "Schema",
-    name: "example",
-    data: crypto.randomBytes(16).toString("hex"),
-  };
-  const serializedSchema = JSON.stringify(rawSchema);
-  const serializedSchemaBuffer = Buffer.from(serializedSchema);
-  const schemaRevisionId = ethers.utils.sha256(serializedSchemaBuffer);
+  let rawUpdatedSchema: $RefParser.JSONSchema;
+  let serializedUpdatedSchema: string;
+  let serializedSchemaUpdatedBuffer: Buffer;
 
-  const rawUpdatedSchema = {
-    "@context": "https://ebsi.eu",
-    type: "Schema",
-    name: "example updated",
-    data: crypto.randomBytes(16).toString("hex"),
-  };
-  const serializedUpdatedSchema = JSON.stringify(rawUpdatedSchema);
-  const serializedSchemaUpdatedBuffer = Buffer.from(serializedUpdatedSchema);
+  let rawMetadata: Record<string, unknown>;
+  let serializedMetadata: string;
+  let serializedMetadataBuffer: Buffer;
+  let schemaRevisionMetadataId: string;
 
-  const rawMetadata = {
-    meta: "value",
-    data: crypto.randomBytes(16).toString("hex"),
-    validFrom: new Date(Date.now() - 60 * 1000).toISOString(), // -1 minute
-    validTo: new Date(Date.now() + 5 * 60 * 1000).toISOString(), // +5 minutes
-  };
-  const serializedMetadata = JSON.stringify(rawMetadata);
-  const serializedMetadataBuffer = Buffer.from(serializedMetadata);
-  const schemaRevisionMetadataId = ethers.utils.sha256(
-    serializedMetadataBuffer
-  );
+  let rawMetadata2: Record<string, unknown>;
+  let serializedMetadata2: string;
+  let serializedMetadataBuffer2: Buffer;
 
-  const rawMetadata2 = {
-    meta: "value 2",
-    data: crypto.randomBytes(16).toString("hex"),
-    validFrom: new Date(Date.now() - 60 * 1000).toISOString(), // -1 minute
-    validTo: new Date(Date.now() + 5 * 60 * 1000).toISOString(), // +5 minutes
-  };
-  const serializedMetadata2 = JSON.stringify(rawMetadata2);
-  const serializedMetadataBuffer2 = Buffer.from(serializedMetadata2);
-  const rawUpdatedMetadata = {
-    meta: "value updated",
-    data: crypto.randomBytes(16).toString("hex"),
-    validFrom: new Date(Date.now() - 60 * 1000).toISOString(), // -1 minute
-    validTo: new Date(Date.now() + 5 * 60 * 1000).toISOString(), // +5 minutes
-  };
-  const serializedUpdatedMetadata = JSON.stringify(rawUpdatedMetadata);
-  const serializedUpdatedMetadataBuffer = Buffer.from(
-    serializedUpdatedMetadata
-  );
+  let rawUpdatedMetadata: Record<string, unknown>;
+  let serializedUpdatedMetadata: string;
+  let serializedUpdatedMetadataBuffer: Buffer;
 
   let ledgerApi: string;
   let apiAccessToken: string;
@@ -149,6 +115,50 @@ describe("Schemas (e2e)", () => {
 
     ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
     apiAccessToken = await getAccessToken(configService);
+
+    rawSchema = createVerifiableAuthorisationSchema(
+      configService.get<string>("testVaSchemaUrl")
+    );
+
+    schemaId = `0x${(await computeId(rawSchema)).toString("hex")}`;
+
+    serializedSchema = JSON.stringify(rawSchema);
+    serializedSchemaBuffer = Buffer.from(serializedSchema);
+    schemaRevisionId = ethers.utils.sha256(serializedSchemaBuffer);
+
+    rawUpdatedSchema = {
+      ...rawSchema,
+      description: "Updated schema of an EBSI Verifiable Attestation",
+    };
+    serializedUpdatedSchema = JSON.stringify(rawUpdatedSchema);
+    serializedSchemaUpdatedBuffer = Buffer.from(serializedUpdatedSchema);
+
+    rawMetadata = {
+      meta: "value",
+      data: crypto.randomBytes(16).toString("hex"),
+      validFrom: new Date(Date.now() - 60 * 1000).toISOString(), // -1 minute
+      validTo: new Date(Date.now() + 5 * 60 * 1000).toISOString(), // +5 minutes
+    };
+    serializedMetadata = JSON.stringify(rawMetadata);
+    serializedMetadataBuffer = Buffer.from(serializedMetadata);
+    schemaRevisionMetadataId = ethers.utils.sha256(serializedMetadataBuffer);
+
+    rawMetadata2 = {
+      meta: "value 2",
+      data: crypto.randomBytes(16).toString("hex"),
+      validFrom: new Date(Date.now() - 60 * 1000).toISOString(), // -1 minute
+      validTo: new Date(Date.now() + 5 * 60 * 1000).toISOString(), // +5 minutes
+    };
+    serializedMetadata2 = JSON.stringify(rawMetadata2);
+    serializedMetadataBuffer2 = Buffer.from(serializedMetadata2);
+    rawUpdatedMetadata = {
+      meta: "value updated",
+      data: crypto.randomBytes(16).toString("hex"),
+      validFrom: new Date(Date.now() - 60 * 1000).toISOString(), // -1 minute
+      validTo: new Date(Date.now() + 5 * 60 * 1000).toISOString(), // +5 minutes
+    };
+    serializedUpdatedMetadata = JSON.stringify(rawUpdatedMetadata);
+    serializedUpdatedMetadataBuffer = Buffer.from(serializedUpdatedMetadata);
   });
 
   describe.each(["insertSchema", "updateSchema", "updateMetadata"])(
@@ -269,6 +279,7 @@ describe("Schemas (e2e)", () => {
       expect.assertions(2);
 
       const response = await request(server).get("/schemas");
+
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           "/schemas?page[after]=1&page[size]=10"
@@ -292,10 +303,26 @@ describe("Schemas (e2e)", () => {
   });
 
   describe("GET /schemas/{schemaId}", () => {
-    it("should return a specific schema", async () => {
+    it("should return a specific schema identified by an hexadecimal schema ID", async () => {
       expect.assertions(3);
 
       const response = await request(server).get(`/schemas/${schemaId}`);
+
+      expect(response.body).toStrictEqual(rawUpdatedSchema);
+      expect(response.status).toBe(200);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/json"));
+    });
+
+    it("should return a specific schema identified by a multibase base58btc schema ID", async () => {
+      expect.assertions(3);
+
+      const multibaseSchemaId = hexToMultibaseBase58Btc(schemaId);
+
+      const response = await request(server).get(
+        `/schemas/${multibaseSchemaId}`
+      );
 
       expect(response.body).toStrictEqual(rawUpdatedSchema);
       expect(response.status).toBe(200);
@@ -333,8 +360,7 @@ describe("Schemas (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail:
-          '["schemaId must be a hexadecimal number","schemaId must match /^0x/ regular expression"]',
+        detail: '["schemaId must be a valid schema ID"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -563,8 +589,7 @@ describe("Schemas (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail:
-          '["schemaId must be a hexadecimal number","schemaId must match /^0x/ regular expression"]',
+        detail: '["schemaId must be a valid schema ID"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -672,8 +697,7 @@ describe("Schemas (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail:
-          '["schemaId must be a hexadecimal number","schemaId must match /^0x/ regular expression"]',
+        detail: '["schemaId must be a valid schema ID"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -813,8 +837,7 @@ describe("Schemas (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail:
-          '["schemaId must be a hexadecimal number","schemaId must match /^0x/ regular expression"]',
+        detail: '["schemaId must be a valid schema ID"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",

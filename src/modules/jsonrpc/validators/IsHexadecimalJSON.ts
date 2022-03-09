@@ -5,6 +5,7 @@ import {
   isHexadecimal,
   ValidationOptions,
 } from "class-validator";
+import { remove0xPrefix } from "../../../shared/utils";
 
 export const IS_HEXADECIMAL_JSON = "isHexadecimalJSON";
 
@@ -18,12 +19,7 @@ export function isHexadecimalJSON(value: unknown): boolean {
   // Length must be even
   if (value.length % 2 !== 0) return false;
 
-  return isJSON(
-    Buffer.from(
-      value.startsWith("0x") ? value.substr(2) : value,
-      "hex"
-    ).toString("utf8")
-  );
+  return isJSON(Buffer.from(remove0xPrefix(value), "hex").toString("utf8"));
 }
 
 /**

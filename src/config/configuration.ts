@@ -25,6 +25,7 @@ export interface ApiConfig {
   // Test variables
   testAdminDid: string;
   testAdminPrivateKey: string;
+  testVaSchemaUrl: string;
 }
 
 // Example of default values to be used, depending on the environment
@@ -108,6 +109,7 @@ export const loadConfig = (): ApiConfig => {
     // Test vars
     testAdminDid: process.env.TEST_ADMIN_DID,
     testAdminPrivateKey: process.env.TEST_ADMIN_PRIVATE_KEY,
+    testVaSchemaUrl: process.env.TEST_VA_SCHEMA_URL,
   };
 };
 
@@ -156,5 +158,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
     // Test vars
     TEST_ADMIN_DID: Joi.string(),
     TEST_ADMIN_PRIVATE_KEY: Joi.string(),
+    TEST_VA_SCHEMA_URL: Joi.string(),
   }),
 });

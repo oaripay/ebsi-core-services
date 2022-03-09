@@ -7,7 +7,7 @@ import { ItemsList } from "./schemas.interface";
 
 describe("formatSchemas", () => {
   const schemas: ItemsList = {
-    items: ["schema-id", "schema-id-2"],
+    items: ["0x1234", "0x5678"],
     total: 42,
   };
 
@@ -20,12 +20,12 @@ describe("formatSchemas", () => {
     expect(formatSchemas(schemas, page, pageSize, "")).toStrictEqual({
       items: [
         {
-          schemaId: "schema-id",
-          href: "/schema-id",
+          schemaId: "z2PM",
+          href: "/z2PM",
         },
         {
-          schemaId: "schema-id-2",
-          href: "/schema-id-2",
+          schemaId: "z7af",
+          href: "/z7af",
         },
       ],
       links: {

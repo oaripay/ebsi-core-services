@@ -23,6 +23,7 @@ import {
   formatEthersUnsignedTransaction,
   formatEthersSignature,
   validateClass,
+  validateSchemaId,
 } from "./jsonrpc.utils";
 import { ContractService } from "../../shared/services/contract.service";
 import { ApiConfig } from "../../config/configuration";
@@ -131,35 +132,39 @@ export class JsonRpcService {
       signature
     );
 
-    if (serializedTransactionSigned !== signedRawTransaction)
+    if (serializedTransactionSigned !== signedRawTransaction) {
       throw new Error(
         `The unsigned transaction + signature (${serializedTransactionSigned}) does not match with the signedRawTransaction (${signedRawTransaction})`
       );
+    }
 
     // recover address used to sign
     const digest = ethers.utils.keccak256(serializedTransaction);
     const signer = ethers.utils.recoverAddress(digest, signature);
 
-    if (signer.toLowerCase() !== unsignedTransaction.from.toLowerCase())
+    if (signer.toLowerCase() !== unsignedTransaction.from.toLowerCase()) {
       throw new Error(
         `The signer of the transaction (${signer}) does not match with unsignedTransaction.from (${unsignedTransaction.from}) `
       );
+    }
 
     const chainId = await this.getChainId();
-    if (unsignedTransaction.chainId !== chainId)
+    if (unsignedTransaction.chainId !== chainId) {
       throw new Error(
         `Invalid unsignedTransaction.chainId. Expected ${chainId}. Received ${unsignedTransaction.chainId}`
       );
+    }
 
     if (
       unsignedTransaction.to !==
       (await this.contractService.getContract()).address
-    )
+    ) {
       throw new Error(
         `Invalid unsignedTransaction.to. Expected ${
           (await this.contractService.getContract()).address
         }. Received ${unsignedTransaction.to}`
       );
+    }
 
     // verify function and parameters enconded in unsignedTransaction.data
     const { args, functionFragment } = (
@@ -175,10 +180,15 @@ export class JsonRpcService {
         break;
       }
       case "insertSchema": {
-        await validateClass(
-          ArgsInsertSchema,
-          args as unknown as ArgsInsertSchema
+        const argsInsertSchema = args as unknown as ArgsInsertSchema;
+
+        await validateClass(ArgsInsertSchema, argsInsertSchema);
+
+        await validateSchemaId(
+          argsInsertSchema.schema,
+          argsInsertSchema.schemaId
         );
+
         break;
       }
       case "updatePolicy": {
@@ -189,10 +199,15 @@ export class JsonRpcService {
         break;
       }
       case "updateSchema": {
-        await validateClass(
-          ArgsUpdateSchema,
-          args as unknown as ArgsUpdateSchema
+        const argsUpdateSchema = args as unknown as ArgsUpdateSchema;
+
+        await validateClass(ArgsUpdateSchema, argsUpdateSchema);
+
+        await validateSchemaId(
+          argsUpdateSchema.schema,
+          argsUpdateSchema.schemaId
         );
+
         break;
       }
       case "updateMetadata": {
@@ -284,6 +299,8 @@ export class JsonRpcService {
 
       const { from, schemaId, schema, metadata } = body.params[0];
 
+      await validateSchemaId(schema, schemaId);
+
       const data = (
         await this.contractService.getContract()
       ).interface.encodeFunctionData("insertSchema", [
@@ -327,6 +344,8 @@ export class JsonRpcService {
       await validateClass(RequestUpdateSchemaDto, body);
 
       const { from, schemaId, schema, metadata } = body.params[0];
+
+      await validateSchemaId(schema, schemaId);
 
       const data = (
         await this.contractService.getContract()

@@ -67,7 +67,7 @@ paths:
                       properties:
                         schemaId:
                           type: string
-                          description: Unique schema id (OID or DOI)
+                          description: Unique schema ID, encoded in multibase base58btc.
                         href:
                           type: string
                           description: Link to the resource.
@@ -84,14 +84,14 @@ paths:
                   value:
                     self: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas?page[after]=1&page[size]=10
                     items:
-                      - schemaId: "0x312e332e362e312e342e312e313636342e31302e3138372e312e322e322e3333"
-                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313636342e31302e3138372e312e322e322e3333
-                      - schemaId: "0x312e332e362e312e342e312e313532372e382e3132352e322e312e322e3639"
-                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313532372e382e3132352e322e312e322e3639
-                      - schemaId: "0x312e332e362e312e342e312e313730312e372e3130372e322e322e332e3235"
-                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313730312e372e3130372e322e322e332e3235
-                      - schemaId: "0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530"
-                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530
+                      - schemaId: "z3kRpVjUFj4Bq8qHRENUHiZrVF5VgMBUe7biEafp1wf2J"
+                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/z3kRpVjUFj4Bq8qHRENUHiZrVF5VgMBUe7biEafp1wf2J
+                      - schemaId: "zkVjiLUWHoDtRie9iRAV1oDfjY7onVTEdzzqdXajvBa"
+                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/zkVjiLUWHoDtRie9iRAV1oDfjY7onVTEdzzqdXajvBa
+                      - schemaId: "zArZLLNBiR4puGn7xbvnbuwTTUMpwuLTD2rSEHYmFc"
+                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/zArZLLNBiR4puGn7xbvnbuwTTUMpwuLTD2rSEHYmFc
+                      - schemaId: zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG
+                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG
                     total: 4
                     pageSize: 10
                     links:
@@ -103,14 +103,14 @@ paths:
                   value:
                     self: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas?page[after]=1&page[size]=10
                     items:
-                      - schemaId: "0x312e332e362e312e342e312e313636342e31302e3138372e312e322e322e3333"
-                        href: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313636342e31302e3138372e312e322e322e3333
-                      - schemaId: "0x312e332e362e312e342e312e313532372e382e3132352e322e312e322e3639"
-                        href: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313532372e382e3132352e322e312e322e3639
-                      - schemaId: "0x312e332e362e312e342e312e313730312e372e3130372e322e322e332e3235"
-                        href: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313730312e372e3130372e322e322e332e3235
-                      - schemaId: "0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530"
-                        href: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530
+                      - schemaId: "z3kRpVjUFj4Bq8qHRENUHiZrVF5VgMBUe7biEafp1wf2J"
+                        href: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/z3kRpVjUFj4Bq8qHRENUHiZrVF5VgMBUe7biEafp1wf2J
+                      - schemaId: "zkVjiLUWHoDtRie9iRAV1oDfjY7onVTEdzzqdXajvBa"
+                        href: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/zkVjiLUWHoDtRie9iRAV1oDfjY7onVTEdzzqdXajvBa
+                      - schemaId: "zArZLLNBiR4puGn7xbvnbuwTTUMpwuLTD2rSEHYmFc"
+                        href: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/zArZLLNBiR4puGn7xbvnbuwTTUMpwuLTD2rSEHYmFc
+                      - schemaId: zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG
+                        href: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG
                     total: 4
                     pageSize: 10
                     links:
@@ -154,10 +154,10 @@ paths:
           examples:
             "[test] schemaId":
               description: valid test schemaId
-              value: "0x312e332e362e312e342e312e313936372e372e3138312e332e322e332e3735"
+              value: zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG
             "[pilot] schemaId":
               description: valid preprod schemaId
-              value: "0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530"
+              value: zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG
           required: true
       responses:
         "200":
@@ -220,10 +220,10 @@ paths:
           examples:
             "[test] schemaId":
               description: valid test schemaId
-              value: "0x312e332e362e312e342e312e313936372e372e3138312e332e322e332e3735"
+              value: zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG
             "[pilot] schemaId":
               description: valid preprod schemaId
-              value: "0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530"
+              value: zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG
           required: true
         - in: query
           name: page[after]
@@ -276,30 +276,30 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313936372e372e3138312e332e322e332e3735/revisions?page[after]=1&page[size]=10
+                    self: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions?page[after]=1&page[size]=10
                     items:
                       - schemaRevisionId: "0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066"
-                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313936372e372e3138312e332e322e332e3735/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066
+                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313936372e372e3138312e332e322e332e3735/revisions?page[after]=1&page[size]=10
-                      prev: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313936372e372e3138312e332e322e332e3735/revisions?page[after]=1&page[size]=10
-                      next: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313936372e372e3138312e332e322e332e3735/revisions?page[after]=1&page[size]=10
-                      last: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313936372e372e3138312e332e322e332e3735/revisions?page[after]=1&page[size]=10
+                      first: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions?page[after]=1&page[size]=10
+                      last: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions?page[after]=1&page[size]=10
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530/revisions?page[after]=1&page[size]=10
+                    self: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions?page[after]=1&page[size]=10
                     items:
                       - schemaRevisionId: "0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd"
-                        href: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd
+                        href: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530/revisions?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530/revisions?page[after]=1&page[size]=10
-                      next: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530/revisions?page[after]=1&page[size]=10
-                      last: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530/revisions?page[after]=1&page[size]=10
+                      first: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions?page[after]=1&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -336,10 +336,10 @@ paths:
           examples:
             "[test] schemaId":
               description: valid test schemaId
-              value: "0x312e332e362e312e342e312e313936372e372e3138312e332e322e332e3735"
+              value: zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG
             "[pilot] schemaId":
               description: valid preprod schemaId
-              value: "0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530"
+              value: zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG
           required: true
         - name: schemaRevisionId
           in: path
@@ -414,10 +414,10 @@ paths:
           examples:
             "[test] schemaId":
               description: valid test schemaId
-              value: "0x312e332e362e312e342e312e313936372e372e3138312e332e322e332e3735"
+              value: zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG
             "[pilot] schemaId":
               description: valid preprod schemaId
-              value: "0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530"
+              value: zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG
           required: true
         - name: schemaRevisionId
           in: path
@@ -477,30 +477,30 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313936372e372e3138312e332e322e332e3735/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata?page[after]=1&page[size]=10
+                    self: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata?page[after]=1&page[size]=10
                     items:
                       - metadataId: "0x007e4954f43d3cc40b3a0a5ab81a8e6098fda8c54e0d66bb5d196cb27b55c3be"
-                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313936372e372e3138312e332e322e332e3735/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata/0x007e4954f43d3cc40b3a0a5ab81a8e6098fda8c54e0d66bb5d196cb27b55c3be
+                        href: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata/0x007e4954f43d3cc40b3a0a5ab81a8e6098fda8c54e0d66bb5d196cb27b55c3be
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313936372e372e3138312e332e322e332e3735/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata?page[after]=1&page[size]=10
-                      prev: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313936372e372e3138312e332e322e332e3735/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata?page[after]=1&page[size]=10
-                      next: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313936372e372e3138312e332e322e332e3735/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata?page[after]=1&page[size]=10
-                      last: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313936372e372e3138312e332e322e332e3735/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata?page[after]=1&page[size]=10
+                      first: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata?page[after]=1&page[size]=10
+                      last: https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata?page[after]=1&page[size]=10
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
+                    self: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
                     items:
                       - metadataId: "0xb9085bf38ccf24a264f73f6ba42204fda51185d89afc8104ab9155c4b002e1eb"
-                        href: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata/0xb9085bf38ccf24a264f73f6ba42204fda51185d89afc8104ab9155c4b002e1eb
+                        href: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata/0xb9085bf38ccf24a264f73f6ba42204fda51185d89afc8104ab9155c4b002e1eb
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
-                      next: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
-                      last: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
+                      first: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/trusted-schemas-registry/v1/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -548,10 +548,10 @@ paths:
           examples:
             "[test] schemaId":
               description: valid test schemaId
-              value: "0x312e332e362e312e342e312e313936372e372e3138312e332e322e332e3735"
+              value: zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG
             "[pilot] schemaId":
               description: valid preprod schemaId
-              value: "0x312e332e362e312e342e312e313537362e342e3230352e312e332e332e3530"
+              value: zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG
           required: true
         - name: schemaRevisionId
           in: path
@@ -932,7 +932,7 @@ paths:
 
           Parameters:
           - **from**: Ethereum address of the sender
-          - **schemaId**: DOI/OID converted into hex string
+          - **schemaId**: schema ID converted into hex string
           - **schema**: Content. This field must be a JSON stringified and converted into hex string
           - **metadata**: Metadata of the first version. This field must be a JSON stringified and converted into hex string
 
@@ -957,7 +957,7 @@ paths:
 
           #### insertPolicy
 
-          Call to build an unsigned transaction to insert a policy in the registry. 
+          Call to build an unsigned transaction to insert a policy in the registry.
 
           Parameters:
           - **from**: Ethereum address of the sender
@@ -1019,7 +1019,7 @@ paths:
                   id: 1
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      schemaId: "{ hex-encoded oid or doi }"
+                      schemaId: "0x312e332e362e312e342e312e3339312e31302e3132302e322e332e312e3734"
                       schema: "0x227b2240636f6e74657874223a2268747470733a2f2f656273692e6575222c2274797065223a22536368656d61222c226e616d65223a226578616d706c65227d22"
                       metadata: "0x227b226d657461223a2276616c7565227d22"
               Build tx to updateMetadata:

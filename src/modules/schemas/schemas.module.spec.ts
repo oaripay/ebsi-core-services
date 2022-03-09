@@ -19,6 +19,7 @@ import { setupTestEnv } from "../../../tests/utils/schemaRegistry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { ItemsList } from "./schemas.interface";
 import { ContractService } from "../../shared/services/contract.service";
+import { hexToMultibaseBase58Btc } from "./schemas.utils";
 
 const SCHEMAS_TOTAL = 3;
 const SCHEMA_REVISIONS_TOTAL = 3;
@@ -78,11 +79,20 @@ describe("Schemas Module", () => {
       expect.assertions(3);
 
       const response = await request(server).get("/schemas");
+
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           "/schemas?page[after]=1&page[size]=10"
         ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        items: expect.arrayContaining(
+          testEnv.schemas.map((schema) => {
+            const schemaId = hexToMultibaseBase58Btc(schema.schemaId);
+            return {
+              schemaId,
+              href: expect.stringContaining(`/schemas/${schemaId}`) as string,
+            };
+          })
+        ) as Array<string>,
         total: SCHEMAS_TOTAL,
         pageSize: 10,
         links: {
@@ -278,14 +288,34 @@ describe("Schemas Module", () => {
   });
 
   describe("GET /schemas/{schemaId}", () => {
-    it("should throw an error if the schema ID is not hexadecimal", async () => {
+    it("should throw an error if the schema ID is not hexadecimal or multibase base58btc", async () => {
       expect.assertions(3);
 
       const response = await request(server).get("/schemas/no-schema");
 
       expect(response.body).toStrictEqual({
-        detail:
-          '["schemaId must be a hexadecimal number","schemaId must match /^0x/ regular expression"]',
+        detail: '["schemaId must be a valid schema ID"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should throw an error if the multibase base58btc schema ID is not 32 bytes long", async () => {
+      expect.assertions(3);
+
+      const schemaId = hexToMultibaseBase58Btc(
+        crypto.randomBytes(24).toString("hex")
+      );
+
+      const response = await request(server).get(`/schemas/${schemaId}`);
+
+      expect(response.body).toStrictEqual({
+        detail: '["schemaId must be a valid schema ID"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -314,12 +344,50 @@ describe("Schemas Module", () => {
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
 
-    it("should return a specific schema", async () => {
+    it("should throw an error if the schema is not found (multibase base58btc)", async () => {
+      expect.assertions(3);
+
+      const schemaId = hexToMultibaseBase58Btc(
+        crypto.randomBytes(32).toString("hex")
+      );
+      const response = await request(server).get(`/schemas/${schemaId}`);
+
+      expect(response.body).toStrictEqual({
+        title: "Schema Not Found",
+        status: 404,
+        detail: `Schema ${schemaId} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should return a specific schema identified by an hexadecimal schema ID", async () => {
       expect.assertions(3);
 
       const schema = testEnv.schemas[0];
 
       const response = await request(server).get(`/schemas/${schema.schemaId}`);
+
+      // Expect to receive the last revision
+      const revision = testEnv.schemaRevisions[SCHEMA_REVISIONS_TOTAL - 2];
+
+      expect(response.body).toStrictEqual(revision.schema);
+      expect(response.status).toBe(200);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/json"));
+    });
+
+    it("should return a specific schema identified by a multibase base58btc schema ID", async () => {
+      expect.assertions(3);
+
+      const schema = testEnv.schemas[0];
+      const schemaId = hexToMultibaseBase58Btc(schema.schemaId);
+
+      const response = await request(server).get(`/schemas/${schemaId}`);
 
       // Expect to receive the last revision
       const revision = testEnv.schemaRevisions[SCHEMA_REVISIONS_TOTAL - 2];
@@ -341,8 +409,7 @@ describe("Schemas Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail:
-          '["schemaId must be a hexadecimal number","schemaId must match /^0x/ regular expression"]',
+        detail: '["schemaId must be a valid schema ID"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -724,8 +791,7 @@ describe("Schemas Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail:
-          '["schemaId must be a hexadecimal number","schemaId must match /^0x/ regular expression"]',
+        detail: '["schemaId must be a valid schema ID"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -956,8 +1022,7 @@ describe("Schemas Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail:
-          '["schemaId must be a hexadecimal number","schemaId must match /^0x/ regular expression"]',
+        detail: '["schemaId must be a valid schema ID"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -1237,8 +1302,7 @@ describe("Schemas Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail:
-          '["schemaId must be a hexadecimal number","schemaId must match /^0x/ regular expression"]',
+        detail: '["schemaId must be a valid schema ID"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
