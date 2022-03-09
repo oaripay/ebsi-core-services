@@ -16,12 +16,8 @@ library AppLib {
     event ApplicationRegistered(
         string indexed name,
         bytes32 indexed appId,
-        bytes32 indexed publicKeyId,
         AppStoreLib.Domains domain,
-        string appAdministrator,
-        AppStoreLib.Status status,
-        uint256 notBefore,
-        uint256 notAfter
+        string appAdministrator
     );
     event ApplicationAdministratorAdded(
         bytes32 indexed appId,
@@ -322,17 +318,12 @@ library AppLib {
     ) internal {
         bytes32 appId = apps.nameToId[name];
         AppStoreLib.Application storage app = apps.appStore[appId];
-        bytes32 publicKeyId = app.publicKeyIds[0];
 
         emit ApplicationRegistered(
             name,
             appId,
-            publicKeyId,
             app.domain,
-            app.administrators[0],
-            apps.publicKeyStore[publicKeyId].status,
-            apps.publicKeyStore[publicKeyId].notBefore,
-            apps.publicKeyStore[publicKeyId].notAfter
+            app.administrators[0]
         );
     }
 
@@ -557,13 +548,8 @@ library AppLib {
         AppStoreLib.Applications storage apps,
         string calldata name,
         AppStoreLib.Domains domain,
-        string calldata appAdministrator,
-        bytes calldata publickey,
-        AppStoreLib.Status status,
-        uint256 notBefore,
-        uint256 notAfter
+        string calldata appAdministrator
     ) external {
-        require(publickey.length > 0, "pubkey null");
         require(keccak256(bytes(name)) != keccak256(bytes("")), "name empty");
         // Check that app with the same name or same public key is not registered already
 
@@ -580,16 +566,6 @@ library AppLib {
         );
 
         AdminAuthLib.requirePolicy(apps, "TAR:insertApp");
-
-        // Store the publickey to public key store
-        addPublicKeyToStore(
-            apps,
-            appId,
-            publickey,
-            status,
-            notBefore,
-            notAfter
-        );
 
         // add appId to mapping and list
         apps.applicationIdList.push(appId);

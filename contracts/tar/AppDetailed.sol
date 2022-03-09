@@ -12,12 +12,8 @@ contract AppDetailed is AppStorage {
     event ApplicationRegistered(
         string indexed name,
         bytes32 indexed appId,
-        bytes32 indexed publicKeyId,
         AppStoreLib.Domains domain,
-        string appAdministrator,
-        AppStoreLib.Status status,
-        uint256 notBefore,
-        uint256 notAfter
+        string appAdministrator
     );
     event ApplicationAdministratorAdded(
         bytes32 indexed appId,
@@ -308,22 +304,9 @@ contract AppDetailed is AppStorage {
     function insertApp(
         string calldata name,
         AppStoreLib.Domains domain,
-        string calldata appAdministrator,
-        bytes calldata publickey,
-        AppStoreLib.Status status,
-        uint256 notBefore,
-        uint256 notAfter
+        string calldata appAdministrator
     ) external {
         AppStoreLib.Applications storage apps = appStorage();
-        return
-            apps.insertApp(
-                name,
-                domain,
-                appAdministrator,
-                publickey,
-                status,
-                notBefore,
-                notAfter
-            );
+        return apps.insertApp(name, domain, appAdministrator);
     }
 }

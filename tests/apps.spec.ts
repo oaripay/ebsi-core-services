@@ -134,17 +134,15 @@ describe("Trusted Apps", () => {
     await didContractMock.setDidResult(true);
 
     // insert apps
-    await tar.insertApp(app.name, 1, app.admin, app.publicKey, 1, 0, 0);
-    await tar.insertApp(app2.name, 1, app2.admin, app2.publicKey, 1, 0, 0);
-    await tar.insertApp(
-      authApp.name,
-      1,
-      authApp.admin,
-      authApp.publicKey,
-      1,
-      0,
-      0
-    );
+    await tar.insertApp(app.name, 1, app.admin);
+    await tar.insertApp(app2.name, 1, app2.admin);
+    await tar.insertApp(authApp.name, 1, authApp.admin);
+
+    // insert public keys
+    await tar.insertAppPublicKey(app.id, app.publicKey, 1, 0, 0);
+    await tar.insertAppPublicKey(app2.id, app2.publicKey, 1, 0, 0);
+    await tar.insertAppPublicKey(authApp.id, authApp.publicKey, 1, 0, 0);
+
     // authApp is authorized to use app
     await tar.insertAuthorization(
       app.name,
@@ -168,9 +166,7 @@ describe("Trusted Apps", () => {
     await didContractMock.setDidResult(false);
 
     // reject new apps
-    await expect(
-      tar.insertApp("new-app", 1, "did:me", crypto.randomBytes(32), 1, 0, 0)
-    ).to.be.revertedWith(
+    await expect(tar.insertApp("new-app", 1, "did:me")).to.be.revertedWith(
       "Policy error: sender doesn't have the attribute TAR:insertApp"
     );
 
@@ -279,9 +275,11 @@ describe("Trusted Apps", () => {
       publicKey: `0x${data.toString("hex")}`,
       admin: "did:ebsi:admin-my-app",
     };
-    await expect(
-      tar.insertApp(newApp.name, 1, newApp.admin, newApp.publicKey, 1, 0, 0)
-    ).to.emit(tar, "ApplicationRegistered");
+
+    await expect(tar.insertApp(newApp.name, 1, newApp.admin)).to.emit(
+      tar,
+      "ApplicationRegistered"
+    );
 
     await expect(tar.insertRevocation(newApp.id, "did:me", 0)).to.emit(
       tar,
