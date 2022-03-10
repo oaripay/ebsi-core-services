@@ -8,7 +8,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "audit": "audit-ci --skip-dev --moderate -a 1049160",
+    "audit": "audit-ci --skip-dev --moderate -a 1059620",
     "analyze": "source-map-explorer 'build/static/js/*.js'",
     "compress": "precompress build",
     "lint-staged": "lint-staged",

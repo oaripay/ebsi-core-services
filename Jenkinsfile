@@ -1,14 +1,21 @@
 node {
-    stage('Clone repo') {
-        checkout scm
-    }
-    stage('Unit test') {
-        nodejs(nodeJSInstallationName: '16.13.0') {
-            sh 'yarn install --frozen-lockfile'
-            sh 'yarn run audit'
-            sh 'yarn lint'
-            sh 'yarn test:ci'
+    try {
+        stage('Clone repo') {
+            checkout scm
+        }
+        stage('Deploy') {
+            if (env.BRANCH_NAME == 'conformance') {
+                ebsi_conformance_deploy("clone_repo": false)
+            } else {
+                ebsi_deploy("clone_repo": false)
+            }
+        }
+    } catch (e) {
+        throw e
+    } finally {
+        cleanWs()
+        dir("${env.WORKSPACE}@script") {
+            deleteDir()
         }
     }
-    ebsi_deploy("clone_repo": false)
 }
