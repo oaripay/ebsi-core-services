@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
 import { CustomCaptcha } from "../custom-captcha/CustomCaptcha";
 import { loginLink } from "../../apis/ecas";
@@ -10,7 +10,7 @@ import { session } from "../../types";
 
 export const LoginButtons: React.FunctionComponent = () => {
   const [captchaToken, setCaptchaToken] = useState("");
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const euLogin = () => {
     window.location.assign(loginLink());
@@ -25,8 +25,10 @@ export const LoginButtons: React.FunctionComponent = () => {
     };
     const response = await validateSession(sessionRequest);
     if (response.status === 200 || response.status === 201) {
-      history.push("/authentication", {
-        sessionToken: (response.data as session.SessionResponse).Bearer,
+      navigate("/authentication", {
+        state: {
+          sessionToken: (response.data as session.SessionResponse).Bearer,
+        },
       });
     }
   };

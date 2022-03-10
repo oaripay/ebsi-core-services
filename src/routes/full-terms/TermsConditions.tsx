@@ -1,12 +1,12 @@
 import React from "react";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { PageHeader } from "../../ui-components/page-header/PageHeader";
 
 export const TermsConditions: React.FunctionComponent = () => {
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const onBackClick = () => {
-    history.go(-1);
+    navigate(-1);
   };
 
   return (

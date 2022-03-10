@@ -2,6 +2,14 @@ import React from "react";
 import { render, screen } from "@testing-library/react";
 import { TermsConditions } from "./TermsConditions";
 
+const mockedUsedNavigate = jest.fn();
+jest.mock("react-router-dom", () => ({
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  ...jest.requireActual("react-router-dom"),
+  useNavigate: () => mockedUsedNavigate,
+}));
+
 describe("TermsConditions page", () => {
   it("renders the TermsConditions page", () => {
     expect.assertions(2);

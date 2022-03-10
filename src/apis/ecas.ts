@@ -1,4 +1,3 @@
-import url from "url";
 import REACT_APP_EULOGIN from "../env";
 
 const options = {
@@ -35,12 +34,18 @@ class Ecas {
 
   loginLink = (): string => {
     sessionStorage.setItem("urlBeforeLogin", window.location.href);
+
     const query = {
       service: `${options.service_url}/authentication`,
       renew: options.renew !== undefined ? !!options.renew : false,
     };
-    const urlLogin =
-      options.cas_url + url.format({ pathname: "/login", query });
+
+    const urlLogin = `${options.cas_url}/login?${new URLSearchParams(
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      query
+    ).toString()}`;
+
     return urlLogin;
   };
 
@@ -50,11 +55,11 @@ class Ecas {
       renew: options.renew !== undefined ? !!options.renew : false,
     };
     window.location.assign(
-      options.cas_url +
-        url.format({
-          pathname: "/logout",
-          query,
-        })
+      `${options.cas_url}/logout?${new URLSearchParams(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        query
+      ).toString()}`
     );
   };
 }

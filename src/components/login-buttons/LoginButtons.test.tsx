@@ -1,5 +1,7 @@
 import React from "react";
-import { shallow } from "enzyme";
+import "@testing-library/jest-dom";
+import { MemoryRouter } from "react-router-dom";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { LoginButtons } from "./LoginButtons";
 import * as onboarding from "../../apis/onboarding";
 import REQUIRED_VARIABLES from "../../env";
@@ -8,12 +10,17 @@ describe("LoginButtons component", () => {
   it("call the API when click the login with captcha", () => {
     expect.assertions(1);
 
-    const wrapper = shallow(<LoginButtons />);
+    render(
+      <MemoryRouter>
+        <LoginButtons />
+      </MemoryRouter>
+    );
 
     const validateSessionMock = jest
       .spyOn(onboarding, "default")
-      .mockImplementation();
-    wrapper.find("Button").at(0).simulate("click");
+      .mockImplementation(() => Promise.resolve({ status: 400, data: {} }));
+
+    fireEvent.click(screen.getByText("Onboard with Captcha"));
 
     expect(validateSessionMock).toHaveBeenCalled();
   });
@@ -28,10 +35,15 @@ describe("LoginButtons component", () => {
       },
     });
 
-    const wrapper = shallow(<LoginButtons />);
+    render(
+      <MemoryRouter>
+        <LoginButtons />
+      </MemoryRouter>
+    );
 
     jest.spyOn(window.location, "assign").mockImplementation();
-    wrapper.find("Button").at(1).simulate("click");
+
+    fireEvent.click(screen.getByText("Onboard with EU Login"));
 
     const urlFormated = encodeURIComponent(
       `${REQUIRED_VARIABLES.REACT_APP_WALLET}/authentication`

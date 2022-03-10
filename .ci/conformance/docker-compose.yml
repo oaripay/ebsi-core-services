@@ -2,7 +2,7 @@ version: "3.7"
 
 services:
   users-onboarding-web-client:
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/users-onboarding-web-client:conformance_ebsiint-3606-prep-conformance_v1.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/users-onboarding-web-client:conformance_ebsiint-3756-update-deps_v1.0.0
     build:
       context: ../..
       args:

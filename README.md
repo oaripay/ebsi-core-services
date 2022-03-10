@@ -18,7 +18,7 @@ It has been developed using Create-React-App.
 
 ### Requirements
 
-- Node.js >= 12
+- Node.js 16.13.2
 - Yarn >= 1.22.0
 
 ### Instructions

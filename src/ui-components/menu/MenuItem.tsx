@@ -1,5 +1,5 @@
 import React from "react";
-import { Link as RouterLink, useRouteMatch } from "react-router-dom";
+import { Link as RouterLink, useMatch } from "react-router-dom";
 import PropTypes from "prop-types";
 import classnames from "classnames";
 
@@ -10,7 +10,7 @@ export interface MenuItemProps {
 }
 
 export const MenuItem: React.FC<MenuItemProps> = ({ label, href, onClick }) => {
-  const isCurrent = !!useRouteMatch(href);
+  const isCurrent = !!useMatch(href);
 
   return (
     <li

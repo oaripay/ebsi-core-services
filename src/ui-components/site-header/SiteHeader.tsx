@@ -4,7 +4,7 @@ import { Link as RouterLink } from "react-router-dom";
 import PropTypes from "prop-types";
 import classnames from "classnames";
 import { FocusOn } from "react-focus-on";
-import logoSrc from "@ecl/ec-resources-logo/logo--en.svg";
+import logoSrc from "./logo.svg";
 import { MemoizedIcon } from "../icon/Icon";
 import { MemoizedLink, Link, LinkProps } from "../link/Link";
 import { Menu, MenuProps } from "../menu/Menu";

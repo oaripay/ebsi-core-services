@@ -1,5 +1,5 @@
 import React from "react";
-import { Switch, Route, BrowserRouter } from "react-router-dom";
+import { Routes, Route, BrowserRouter } from "react-router-dom";
 import { Layout } from "./components/layout/Layout";
 import { Home } from "./routes/home/Home";
 import { NotFound } from "./routes/not-found/NotFound";
@@ -18,17 +18,15 @@ function App(): JSX.Element {
   return (
     <BrowserRouter basename={basename}>
       <Layout>
-        <Switch>
-          <Route exact path="/" component={Home} />
-          <Route exact path="/authentication" component={Authentication} />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/authentication" element={<Authentication />} />
           {/* EBSIINT-3061: disable link to Terms and conditions */}
           {/*
           <Route exact path="/terms" component={TermsConditions} />
           */}
-          <Route path="*">
-            <NotFound />
-          </Route>
-        </Switch>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
       </Layout>
     </BrowserRouter>
   );

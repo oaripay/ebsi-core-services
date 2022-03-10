@@ -3,7 +3,7 @@ pipeline {
     stages {
         stage('Setup') {
             steps {
-                nodejs(nodeJSInstallationName: '14.15.4') {
+                nodejs(nodeJSInstallationName: '16.13.0') {
                   sh "yarn install --frozen-lockfile"
                   sh "yarn run audit"
                 }
@@ -11,14 +11,14 @@ pipeline {
         }
         stage('Lint') {
             steps {
-                nodejs(nodeJSInstallationName: '14.15.4') {
+                nodejs(nodeJSInstallationName: '16.13.0') {
                     sh 'yarn lint'
                 }
             }
         }
         stage('Unit Test') {
             steps{
-                nodejs(nodeJSInstallationName: '14.15.4') {
+                nodejs(nodeJSInstallationName: '16.13.0') {
                   sh "yarn test:ci"
                 }
             }

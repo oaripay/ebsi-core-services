@@ -30,6 +30,6 @@ describe("onboarding api", () => {
       .mockResolvedValue({ status: 201, data: responseAPI });
     const response = await validateSession(recaptcha);
     const data = response.data as session.SessionResponse;
-    expect(data.Bearer).toStrictEqual("token");
+    expect(data.Bearer).toBe("token");
   });
 });

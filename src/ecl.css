@@ -1,3 +1,6 @@
+/* stylelint-disable selector-class-pattern */
+@import url("@ecl/ec-preset-website/dist/styles/ecl-ec-preset-website.css");
+
 /* ECL Fixes */
 
 @media (min-width: 996px) {
