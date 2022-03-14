@@ -6,9 +6,7 @@ import {
   RequestInsertAppDto,
   RequestInsertAppAdministratorDto,
   RequestInsertAppInfoDto,
-  RequestInsertAdministratorDto,
   RequestSendSignedTransactionDto,
-  RequestUpdateAdministratorDto,
   RequestUpdateAppDto,
   RequestInsertRevocationDto,
   RequestInsertAppPublicKeyDto,
@@ -22,8 +20,6 @@ import {
   ArgsInsertApp,
   ArgsInsertAppAdministrator,
   ArgsInsertAppInfo,
-  ArgsInsertAdministrator,
-  ArgsUpdateAdministrator,
   ArgsUpdateApp,
   ArgsInsertRevocation,
   ArgsInsertAppPublicKey,
@@ -39,9 +35,7 @@ type JsonRpcDtos =
   | RequestInsertAppDto
   | RequestInsertAppAdministratorDto
   | RequestInsertAppInfoDto
-  | RequestInsertAdministratorDto
   | RequestSendSignedTransactionDto
-  | RequestUpdateAdministratorDto
   | RequestUpdateAppDto
   | RequestInsertRevocationDto
   | RequestInsertAppPublicKeyDto
@@ -55,8 +49,6 @@ type JsonRpcDtos =
   | ArgsInsertApp
   | ArgsInsertAppAdministrator
   | ArgsInsertAppInfo
-  | ArgsInsertAdministrator
-  | ArgsUpdateAdministrator
   | ArgsUpdateApp
   | ArgsInsertRevocation
   | ArgsInsertAppPublicKey

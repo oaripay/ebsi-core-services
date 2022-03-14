@@ -1,4 +1,4 @@
-import { IsHexadecimal, IsString, IsInt, Min, Max } from "class-validator";
+import { IsString, IsInt, Min, Max } from "class-validator";
 
 export class ArgsInsertApp {
   @IsString()
@@ -11,22 +11,6 @@ export class ArgsInsertApp {
 
   @IsString()
   appAdministrator: string;
-
-  @IsHexadecimal()
-  publicKey: string;
-
-  @IsInt()
-  @Min(0)
-  @Max(3)
-  status: number;
-
-  @IsInt()
-  @Min(0)
-  notBefore: number;
-
-  @IsInt()
-  @Min(0)
-  notAfter: number;
 }
 
 export default { ArgsInsertApp };

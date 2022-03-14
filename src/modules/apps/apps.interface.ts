@@ -55,6 +55,11 @@ export interface AuthorizationResponseObject {
   notAfter: number;
 }
 
+export interface AppRevocationInfo {
+  revokedBy: string;
+  notBefore: number;
+}
+
 export interface AppResponseObject {
   applicationId: string;
   name: string;
@@ -65,6 +70,7 @@ export interface AppResponseObject {
     [x: string]: unknown;
   };
   authorizations: AuthorizationResponseObject[];
+  revocation: AppRevocationInfo;
 }
 
 export interface PublicKeyResponseObject {

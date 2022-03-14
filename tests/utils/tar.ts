@@ -1,5 +1,6 @@
 import hre from "hardhat";
 import "@nomiclabs/hardhat-ethers";
+import { FactoryOptions } from "hardhat/types";
 import crypto from "crypto";
 import { ethers } from "ethers";
 import { range } from "rxjs";
@@ -7,9 +8,8 @@ import { mergeMap, toArray } from "rxjs/operators";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { Tar } from "../../src/contracts";
 
-interface Administrator {
+interface User {
   wallet: ethers.Wallet;
-  attribute: { [x: string]: unknown };
   did: string;
 }
 
@@ -43,79 +43,72 @@ interface AuthorizationObject {
   notAfter: number;
 }
 
+const deployContract = async (
+  name: string,
+  opts: FactoryOptions = {}
+): Promise<string> => {
+  const factory = await hre.ethers.getContractFactory(name, opts);
+  const contract = await factory.deploy();
+  return contract.address;
+};
+
 export async function deployTarContract(): Promise<Tar> {
-  // Deploy libs
-  const paginationFactory = await hre.ethers.getContractFactory("Pagination");
-  const pagination = await paginationFactory.deploy();
+  // mock trusted policies registry
+  const testTprAddress = "0xb2a560271ce08135e245F490b8794794A13a1208";
+  const testDidrAddress = "0xf6080028519B49D94C846bd34e30f72586E3F5d5";
 
-  const appLibFactory = await hre.ethers.getContractFactory("AppLib", {
-    libraries: {
-      Pagination: pagination.address,
-    },
-  });
-  const appLib = await appLibFactory.deploy();
-
-  const authLibFactory = await hre.ethers.getContractFactory("AuthLib");
-  const authLib = await authLibFactory.deploy();
-
-  const policyLibFactory = await hre.ethers.getContractFactory("PolicyLib", {
-    libraries: {
-      Pagination: pagination.address,
-    },
-  });
-  const policyLib = await policyLibFactory.deploy();
-
-  const adminLibFactory = await hre.ethers.getContractFactory("AdminLib", {
-    libraries: {
-      Pagination: pagination.address,
-    },
-  });
-  const adminLib = await adminLibFactory.deploy();
-
-  const revocationFactory = await hre.ethers.getContractFactory(
-    "RevocationLib"
+  const policyRegistryFactory = await hre.ethers.getContractFactory(
+    "PolicyRegistryMock"
   );
-  const revocationLib = await revocationFactory.deploy();
+  const tempPolicyContract = await policyRegistryFactory.deploy();
+  await tempPolicyContract.deployed();
+  const bytecode = await hre.ethers.provider.getCode(
+    tempPolicyContract.address
+  );
+  await hre.network.provider.send("hardhat_setCode", [
+    testTprAddress,
+    bytecode,
+  ]);
+  const policyContractMock = policyRegistryFactory.attach(testTprAddress);
+  await policyContractMock.setPolicyResult(true);
+
+  const didRegistryFactory = await hre.ethers.getContractFactory(
+    "DidRegistryMock"
+  );
+  const tempDidContract = await didRegistryFactory.deploy();
+  await tempDidContract.deployed();
+  const bytecodeDid = await hre.ethers.provider.getCode(
+    tempDidContract.address
+  );
+  await hre.network.provider.send("hardhat_setCode", [
+    testDidrAddress,
+    bytecodeDid,
+  ]);
+  const didContractMock = didRegistryFactory.attach(testDidrAddress);
+  await didContractMock.setDidResult(true);
+
+  const paginationAddress = await deployContract("Pagination");
+
+  const linkLibPagination = {
+    libraries: {
+      Pagination: paginationAddress,
+    },
+  };
 
   const tarFactory = await hre.ethers.getContractFactory("Tar", {
     libraries: {
-      AppLib: appLib.address,
-      AuthLib: authLib.address,
-      PolicyLib: policyLib.address,
-      AdminLib: adminLib.address,
-      RevocationLib: revocationLib.address,
+      AppLib: await deployContract("AppLib", linkLibPagination),
+      AuthLib: await deployContract("AuthLib"),
+      TarPolicyLib: await deployContract("TarPolicyLib", linkLibPagination),
+      RevocationLib: await deployContract("RevocationLib"),
     },
   });
 
   const tarContract = await tarFactory.deploy();
-
   await tarContract.initialize(1);
+  await tarContract.setRegistryAddresses();
 
   return tarContract;
-}
-
-export async function insertAdmin(
-  contract: Tar,
-  adminDid: string
-): Promise<{ [x: string]: unknown }> {
-  const attribute = {
-    "@context": {
-      name: {
-        "@id": "http://did-registry-api-test.org/name",
-        "@type": "@id",
-      },
-      description: "http://did-registry-api-test.org/description",
-    },
-    name: `test-${adminDid}`,
-    validFrom: new Date().toISOString(),
-    validTo: new Date(Date.now() + 4e8).toISOString(),
-  };
-
-  const bufferAttribute = Buffer.from(JSON.stringify(attribute));
-
-  await contract.insertAdministrator(adminDid, bufferAttribute);
-
-  return attribute;
 }
 
 export async function insertPolicy(contract: Tar): Promise<PolicyObject> {
@@ -160,7 +153,7 @@ export async function insertApp(contract: Tar): Promise<AppObject> {
   const domain = 0; // "ebsi"
   const appAdministrator = EbsiWallet.createDid();
   const publicKey = `pubkey-${crypto.randomBytes(8).toString("hex")}`;
-  const applicationId = ethers.utils.sha256(Buffer.from(publicKey, "utf8"));
+  const applicationId = ethers.utils.sha256(ethers.utils.toUtf8Bytes(name));
   const status = 1; // "active"
   const notBefore = Date.now();
   const notAfter = Date.now() + 365 * 24 * 60 * 60 * 1000;
@@ -176,10 +169,10 @@ export async function insertApp(contract: Tar): Promise<AppObject> {
   const bufferPublicKey = Buffer.from(publicKey, "utf8");
   const bufferInfo = Buffer.from(JSON.stringify(info), "utf8");
 
-  await contract.insertApp(
-    name,
-    domain,
-    appAdministrator,
+  await contract.insertApp(name, domain, appAdministrator);
+
+  await contract.insertAppPublicKey(
+    applicationId,
     bufferPublicKey,
     status,
     notBefore,
@@ -233,7 +226,6 @@ export async function insertAuthorization(
 }
 
 export interface SetupOptions {
-  administratorsTotal?: number;
   policiesTotal?: number;
   policiesRevisionsTotal?: number;
   appsTotal?: number;
@@ -241,7 +233,6 @@ export interface SetupOptions {
 
 export async function setupTestEnv(
   opts: SetupOptions = {
-    administratorsTotal: 1,
     policiesTotal: 0,
     policiesRevisionsTotal: 1,
     appsTotal: 0,
@@ -249,7 +240,7 @@ export async function setupTestEnv(
 ): Promise<{
   provider: ethers.providers.JsonRpcProvider;
   tarContract: Tar;
-  administrators: Administrator[];
+  user: User;
   policies: PolicyObject[];
   policyRevisions: { [x: string]: PolicyObject[] };
   apps: AppObject[];
@@ -261,20 +252,14 @@ export async function setupTestEnv(
   const tarContract = await deployTarContract();
 
   // Insert fake data
-
-  // Create as many admins as requested
-  const createAdminWallet = async () => {
+  const createWallet = () => {
     // Create random wallet and connect it so we can use it later to send transactions
     const wallet = ethers.Wallet.createRandom().connect(ethersProvider);
-
     const did = EbsiWallet.createDid();
-    const attribute = await insertAdmin(tarContract, did);
-    return { wallet, attribute, did };
+    return { wallet, did };
   };
 
-  const administrators = await range(0, opts.administratorsTotal ?? 1)
-    .pipe(mergeMap(createAdminWallet), toArray())
-    .toPromise();
+  const user = createWallet();
 
   const policyRevisions = {};
 
@@ -337,7 +322,7 @@ export async function setupTestEnv(
   return {
     provider: ethersProvider,
     tarContract,
-    administrators,
+    user,
     policies,
     policyRevisions,
     apps,

@@ -19,6 +19,8 @@ export interface ApiConfig {
   externalEbsiApiHealthCheck: string;
   testAdminDid: string;
   testAdminPrivateKey: string;
+  testUserDid: string;
+  testUserPrivateKey: string;
 }
 
 // Example of default values to be used, depending on the environment
@@ -76,7 +78,7 @@ export const loadConfig = (): ApiConfig => {
     // TAR API variables
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
     apiPrivateKey: process.env.API_PRIVATE_KEY,
-    apiUrlPrefix: process.env.API_URL_PREFIX || "/trusted-apps-registry/v2",
+    apiUrlPrefix: process.env.API_URL_PREFIX || "/trusted-apps-registry/v3",
     apiName: process.env.API_NAME || "trusted-apps-registry-api",
     apiKid: process.env.API_KID,
     domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
@@ -101,6 +103,8 @@ export const loadConfig = (): ApiConfig => {
     // Test variables
     testAdminDid: process.env.TEST_ADMIN_DID,
     testAdminPrivateKey: process.env.TEST_ADMIN_PRIVATE_KEY,
+    testUserDid: process.env.TEST_USER_DID,
+    testUserPrivateKey: process.env.TEST_USER_PRIVATE_KEY,
   };
 };
 

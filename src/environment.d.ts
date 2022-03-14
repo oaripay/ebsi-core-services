@@ -20,6 +20,8 @@ declare global {
       DID_REGISTRY_API_URL?: string;
       TEST_ADMIN_DID?: string;
       TEST_ADMIN_PRIVATE_KEY?: string;
+      TEST_USER_DID?: string;
+      TEST_USER_PRIVATE_KEY?: string;
     }
   }
 

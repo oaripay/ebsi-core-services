@@ -28,7 +28,6 @@ import { prefixWith0x } from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
 import { generateMultihash } from "../../src/shared/utils/multihash.utils";
 import { requestSiopJwt } from "../utils/siopJwt";
-import LedgerService from "../../src/modules/ledger/ledger.service";
 import { UnsignedTransaction } from "../../src/modules/jsonrpc/dto";
 
 interface SupertestJsonRpcResponse {
@@ -56,7 +55,7 @@ describe("Policies (e2e)", () => {
   let server: HttpServer;
   let adminTestWallet: ethers.Wallet;
   let testUserAccessToken: string;
-  let ledgerService: LedgerService;
+  let besuRpcNode: string;
 
   const createPolicy = (
     n: string | number
@@ -97,7 +96,6 @@ describe("Policies (e2e)", () => {
 
     const configService =
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
-    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
     adminTestWallet = new ethers.Wallet(
       prefixWith0x(configService.get("testAdminPrivateKey"))
@@ -114,6 +112,7 @@ describe("Policies (e2e)", () => {
       clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
     });
+    besuRpcNode = configService.get("besuRpcNode");
   });
 
   afterAll(async () => {
@@ -130,23 +129,23 @@ describe("Policies (e2e)", () => {
       expect(response.body).toStrictEqual(
         expect.objectContaining({
           self: expect.stringContaining(
-            "/trusted-apps-registry/v2/policies?page[after]=1&page[size]=10"
+            "/trusted-apps-registry/v3/policies?page[after]=1&page[size]=10"
           ) as string,
           items: expect.arrayContaining([]) as string[],
           total: expect.any(Number) as number,
           pageSize: expect.any(Number) as number,
           links: expect.objectContaining({
             first: expect.stringContaining(
-              "/trusted-apps-registry/v2/policies?page[after]=1&page[size]=10"
+              "/trusted-apps-registry/v3/policies?page[after]=1&page[size]=10"
             ) as string,
             prev: expect.stringContaining(
-              "/trusted-apps-registry/v2/policies?page[after]=1&page[size]=10"
+              "/trusted-apps-registry/v3/policies?page[after]=1&page[size]=10"
             ) as string,
             next: expect.stringContaining(
-              "/trusted-apps-registry/v2/policies?page[after]="
+              "/trusted-apps-registry/v3/policies?page[after]="
             ) as string,
             last: expect.stringContaining(
-              "/trusted-apps-registry/v2/policies?page[after]="
+              "/trusted-apps-registry/v3/policies?page[after]="
             ) as string,
           }) as PaginatedList<PolicyLink>["links"],
         })
@@ -210,7 +209,7 @@ describe("Policies (e2e)", () => {
       expect(response.body).toStrictEqual(
         expect.objectContaining({
           self: expect.stringContaining(
-            `/trusted-apps-registry/v2/policies/${encodeURIComponent(
+            `/trusted-apps-registry/v3/policies/${encodeURIComponent(
               policyId
             )}/revisions?page[after]=1&page[size]=10`
           ) as string,
@@ -225,22 +224,22 @@ describe("Policies (e2e)", () => {
           pageSize: expect.any(Number) as number,
           links: expect.objectContaining({
             first: expect.stringContaining(
-              `/trusted-apps-registry/v2/policies/${encodeURIComponent(
+              `/trusted-apps-registry/v3/policies/${encodeURIComponent(
                 policyId
               )}/revisions?page[after]=1&page[size]=10`
             ) as string,
             prev: expect.stringContaining(
-              `/trusted-apps-registry/v2/policies/${encodeURIComponent(
+              `/trusted-apps-registry/v3/policies/${encodeURIComponent(
                 policyId
               )}/revisions?page[after]=1&page[size]=10`
             ) as string,
             next: expect.stringContaining(
-              `/trusted-apps-registry/v2/policies/${encodeURIComponent(
+              `/trusted-apps-registry/v3/policies/${encodeURIComponent(
                 policyId
               )}/revisions?page[after]=`
             ) as string,
             last: expect.stringContaining(
-              `/trusted-apps-registry/v2/policies/${encodeURIComponent(
+              `/trusted-apps-registry/v3/policies/${encodeURIComponent(
                 policyId
               )}/revisions?page[after]=`
             ) as string,
@@ -386,7 +385,7 @@ describe("Policies (e2e)", () => {
 
         // wait to be mined
         const receipt = await waitToBeMined(
-          ledgerService,
+          besuRpcNode,
           responseSend.body.result as string
         );
         expect(receipt.status).toBe(1);

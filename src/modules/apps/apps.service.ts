@@ -85,8 +85,15 @@ export default class AppsService {
     return this.getContract().getApps(page, pageSize);
   }
 
-  async getAppByName(name: string): ReturnType<Tar["getAppByName"]> {
-    return this.getContract().getAppByName(name);
+  async getAppByName(appName: string): ReturnType<Tar["getAppByName"]> {
+    try {
+      return await this.getContract().getAppByName(appName);
+    } catch (e) {
+      this.logger.error(e);
+      throw new NotFoundError("App Not Found", {
+        detail: `App ${appName} not found`,
+      });
+    }
   }
 
   async getAppByPublicKeyId(
@@ -95,25 +102,22 @@ export default class AppsService {
     return this.getContract().getAppByPublicKeyId(publicKeyId);
   }
 
-  async getApp(appId: string): Promise<AppResponseObject> {
-    let app: AsyncReturnType<Tar["getAppById"]>;
+  async getAppById(applicationId: string): ReturnType<Tar["getAppById"]> {
+    return this.getContract().getAppById(applicationId);
+  }
 
-    try {
-      app = await this.getContract().getAppById(appId);
-    } catch (e) {
-      this.logger.error(e);
-      throw new NotFoundError("App Not Found", {
-        detail: `App ${appId} not found`,
-      });
-    }
+  async getApp(appName: string): Promise<AppResponseObject> {
+    const app: AsyncReturnType<Tar["getAppByName"]> = await this.getAppByName(
+      appName
+    );
 
-    const [name, domain] = app;
+    const [applicationId, domain] = app;
 
     const administrators = (await this.getAllPages("getAppAdministratorIds", [
-      appId,
+      applicationId,
     ])) as string[];
     const publicKeyIds = (await this.getAllPages("getAppPublicKeyIds", [
-      appId,
+      applicationId,
     ])) as string[];
     const publicKeys = await Promise.all(
       publicKeyIds.map(async (publicKeyId) => {
@@ -124,7 +128,7 @@ export default class AppsService {
       })
     );
     const infoIds = (await this.getAllPages("getAppInfoIds", [
-      appId,
+      applicationId,
     ])) as string[];
     let info = {};
     if (infoIds.length > 0) {
@@ -134,37 +138,63 @@ export default class AppsService {
       const infoStr = Buffer.from(infoBytes.slice(2), "hex").toString("utf8");
       info = JSON.parse(infoStr) as { [x: string]: unknown };
     }
-    const authorizationItems = await this.getAllAuthorizations(appId);
+    const authorizationItems = await this.getAllAuthorizations(applicationId);
     const authorizations = await Promise.all(
       authorizationItems.map(async (auth) =>
-        this.getAuthorization(appId, auth.authorizationId)
+        this.getAuthorization(appName, auth.authorizationId)
       )
     );
+    const revocationStatus = await this.getAppRevocationStatus(applicationId);
+    const revocation = revocationStatus
+      ? {
+          revokedBy: revocationStatus.revokedBy,
+          notBefore: revocationStatus.notBefore.toNumber(),
+        }
+      : null;
 
     return {
-      applicationId: appId,
-      name,
+      applicationId,
+      name: appName,
       domain: domainName[domain],
       administrators,
       publicKeys,
       info,
       authorizations,
+      revocation,
     };
   }
 
+  async getAppRevocationStatus(
+    applicationId: string
+  ): ReturnType<Tar["getRevocation"]> {
+    try {
+      return await this.getContract().getRevocation(applicationId);
+    } catch {
+      return null;
+    }
+  }
+
   async getPublicKeys(
-    applicationId: string,
+    appName: string,
     page: number,
     pageSize: number
   ): ReturnType<Tar["getAppPublicKeyIds"]> {
+    const app: AsyncReturnType<Tar["getAppByName"]> = await this.getAppByName(
+      appName
+    );
+    const [applicationId] = app;
     return this.getContract().getAppPublicKeyIds(applicationId, page, pageSize);
   }
 
   async getPublicKey(
-    applicationId: string,
+    appName: string,
     publicKeyId: string
   ): Promise<PublicKeyResponseObject> {
     let result: AsyncReturnType<Tar["getPublicKey"]>;
+    const app: AsyncReturnType<Tar["getAppByName"]> = await this.getAppByName(
+      appName
+    );
+    const [applicationId] = app;
     try {
       result = await this.getContract().getPublicKey(publicKeyId);
     } catch (error) {
@@ -175,7 +205,7 @@ export default class AppsService {
     const { appId, publicKey, status, notBefore, notAfter } = result;
     if (appId !== applicationId)
       throw new NotFoundError("Public Key Not Found", {
-        detail: `Public key ${publicKeyId} is not owned by ${applicationId}`,
+        detail: `Public key ${publicKeyId} is not owned by ${appName}`,
       });
 
     return {
@@ -281,10 +311,15 @@ export default class AppsService {
   }
 
   async getAuthorizations(
-    resourceApplicationId: string,
+    applicationName: string,
     page: number,
     pageSize: number
   ): Promise<{ items: AuthorizationItemObject[]; total: number }> {
+    const app: AsyncReturnType<Tar["getAppByName"]> = await this.getAppByName(
+      applicationName
+    );
+    const [resourceApplicationId] = app;
+
     const authorizations = await this.getAllAuthorizations(
       resourceApplicationId
     );
@@ -294,18 +329,24 @@ export default class AppsService {
     };
   }
 
-  async getAuthorizationsByRequesterApplicationId(
-    resourceApplicationId: string,
-    requesterApplicationId: string,
+  async getAuthorizationsByRequesterApplicationName(
+    applicationName: string,
+    requesterApplicationName: string,
     page: number,
     pageSize: number
   ): Promise<{ items: AuthorizationItemObject[]; total: number }> {
     let auths: AsyncReturnType<Tar["getAuthorizations"]>;
+    const app: AsyncReturnType<Tar["getAppByName"]> = await this.getAppByName(
+      applicationName
+    );
+    const [resourceApplicationId] = app;
+    const requesterApplication: AsyncReturnType<Tar["getAppByName"]> =
+      await this.getAppByName(requesterApplicationName);
 
     try {
       auths = await this.getContract().getAuthorizations(
         resourceApplicationId,
-        requesterApplicationId,
+        requesterApplication.applicationId,
         page,
         pageSize
       );
@@ -316,22 +357,24 @@ export default class AppsService {
       return { items: [], total: 0 };
     }
 
-    const app = await this.getContract().getAppById(requesterApplicationId);
-    const authorizedAppName = app.name;
-
     const items = auths.items.map((authorizationId) => ({
       authorizationId,
-      authorizedAppName,
+      authorizedAppName: applicationName,
     }));
     const total = auths.total.toNumber();
     return { items, total };
   }
 
   async getAuthorization(
-    resourceApplicationId: string,
+    applicationName: string,
     authorizationId: string
   ): Promise<AuthorizationResponseObject> {
     let authorization: AsyncReturnType<Tar["getAuthorizationById"]>;
+    const app: AsyncReturnType<Tar["getAppByName"]> = await this.getAppByName(
+      applicationName
+    );
+    const [resourceApplicationId] = app;
+
     try {
       authorization = await this.getContract().getAuthorizationById(
         authorizationId

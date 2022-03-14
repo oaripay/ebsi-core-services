@@ -8,9 +8,7 @@ import {
   RequestInsertAppDto,
   RequestInsertAppAdministratorDto,
   RequestInsertAppInfoDto,
-  RequestInsertAdministratorDto,
   RequestSendSignedTransactionDto,
-  RequestUpdateAdministratorDto,
   RequestUpdateAppDto,
   RequestInsertRevocationDto,
   RequestInsertAppPublicKeyDto,
@@ -24,8 +22,6 @@ import {
   ArgsInsertApp,
   ArgsInsertAppAdministrator,
   ArgsInsertAppInfo,
-  ArgsInsertAdministrator,
-  ArgsUpdateAdministrator,
   ArgsUpdateApp,
   ArgsInsertRevocation,
   ArgsInsertAppPublicKey,
@@ -45,8 +41,6 @@ import {
 import LedgerService from "../ledger/ledger.service";
 import { Tar } from "../../contracts/Tar";
 import { ApiConfig } from "../../config/configuration";
-import { prefixWith0x } from "../../shared/utils";
-import AdministratorsService from "../administrators/administrators.service";
 
 function getErrorMessage(error: unknown) {
   if (error instanceof ProblemDetailsError && error.detail) {
@@ -67,8 +61,7 @@ export class JsonRpcService {
 
   constructor(
     configService: ConfigService<ApiConfig>,
-    private ledgerService: LedgerService,
-    private administratorService: AdministratorsService
+    private ledgerService: LedgerService
   ) {
     this.tarContract = this.ledgerService.getContract();
     this.didRegistry = configService.get<string>("didRegistryApiUrl");
@@ -127,8 +120,6 @@ export class JsonRpcService {
   }
 
   async checkWritePermission(address: string, clientId: string): Promise<void> {
-    await this.administratorService.allowAdministratorsOnly(clientId);
-
     // Check DID Registry
     if (!(await this.isDidControlledByAddress(clientId, address))) {
       throw new Error(
@@ -202,20 +193,6 @@ export class JsonRpcService {
         await validateClass(
           ArgsInsertAppInfo,
           args as unknown as ArgsInsertAppInfo
-        );
-        break;
-      }
-      case "insertAdministrator": {
-        await validateClass(
-          ArgsInsertAdministrator,
-          args as unknown as ArgsInsertAdministrator
-        );
-        break;
-      }
-      case "updateAdministrator": {
-        await validateClass(
-          ArgsUpdateAdministrator,
-          args as unknown as ArgsUpdateAdministrator
         );
         break;
       }
@@ -350,25 +327,12 @@ export class JsonRpcService {
     try {
       await validateClass(RequestInsertAppDto, body);
 
-      const {
-        from,
-        name,
-        domain,
-        appAdministrator,
-        publicKey,
-        status,
-        notBefore,
-        notAfter,
-      } = body.params[0];
+      const { from, name, domain, appAdministrator } = body.params[0];
 
       const data = this.tarContract.interface.encodeFunctionData("insertApp", [
         name,
         domain,
         appAdministrator,
-        publicKey,
-        status,
-        notBefore,
-        notAfter,
       ]);
 
       return await this.buildTransaction(from, data);
@@ -423,71 +387,6 @@ export class JsonRpcService {
     }
   }
 
-  async buildTransactionInsertAdministrator(
-    body: RequestInsertAdministratorDto,
-    id?: number | string
-  ): Promise<UnsignedTransaction> {
-    try {
-      await validateClass(RequestInsertAdministratorDto, body);
-
-      const { from, did, attributeData } = body.params[0];
-
-      const data = this.tarContract.interface.encodeFunctionData(
-        "insertAdministrator",
-        [did, attributeData]
-      );
-
-      return await this.buildTransaction(from, data);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
-      throw error;
-    }
-  }
-
-  async buildTransactionUpdateAdministrator(
-    body: RequestUpdateAdministratorDto,
-    id?: number | string
-  ): Promise<UnsignedTransaction> {
-    try {
-      await validateClass(RequestUpdateAdministratorDto, body);
-
-      const { from, did, attributeData, prevAttributeHash } = body.params[0];
-
-      const data = [did, attributeData];
-
-      if (prevAttributeHash) {
-        data.push(prefixWith0x(prevAttributeHash));
-      }
-
-      let functionSig: string;
-
-      if (prevAttributeHash) {
-        // using updateAdministrator function (did, attributeData, lastVersHash)
-        functionSig = "updateAdministrator(string,bytes,bytes32)";
-      } else {
-        // using updateAdministrator function (did, attributeData)
-        functionSig = "updateAdministrator(string,bytes)";
-      }
-
-      // TODO: double check result
-      const encodedData = this.tarContract.interface.encodeFunctionData(
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        functionSig,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        data
-      );
-
-      return await this.buildTransaction(from, encodedData);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
-      throw error;
-    }
-  }
-
   async buildTransactionInsertRevocation(
     body: RequestInsertRevocationDto,
     id?: number | string
@@ -517,11 +416,10 @@ export class JsonRpcService {
     try {
       await validateClass(RequestUpdateAppDto, body);
 
-      const { from, applicationId, name, domain } = body.params[0];
+      const { from, applicationId, domain } = body.params[0];
 
       const data = this.tarContract.interface.encodeFunctionData("updateApp", [
         applicationId,
-        name,
         domain,
       ]);
 

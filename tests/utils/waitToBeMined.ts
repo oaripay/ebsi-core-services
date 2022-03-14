@@ -1,22 +1,38 @@
+import axios from "axios";
 import { TransactionReceipt } from "@ethersproject/abstract-provider";
-import LedgerService from "../../src/modules/ledger/ledger.service";
+
+export interface TransactionReceiptBesu extends TransactionReceipt {
+  revertReason: string;
+}
+
+export async function getTransactionReceipt(
+  url: string,
+  txId: string
+): Promise<TransactionReceiptBesu> {
+  const { data } = await axios.post<{
+    result: TransactionReceiptBesu;
+  }>(url, {
+    jsonrpc: "2.0",
+    method: "eth_getTransactionReceipt",
+    params: [txId],
+    id: 4,
+  });
+  if (data.result) data.result.status = Number(data.result.status);
+  return data.result;
+}
 
 export const waitToBeMined = async (
-  ledgerService: LedgerService,
+  url: string,
   txId: string
-): Promise<TransactionReceipt> => {
+): Promise<TransactionReceiptBesu> => {
   let mined = false;
-  let receipt: TransactionReceipt;
+  let receipt: TransactionReceiptBesu;
   /* eslint-disable no-await-in-loop */
   while (!mined) {
     await new Promise((resolve) => {
       setTimeout(resolve, 500);
     });
-
-    receipt = await ledgerService
-      .getContract()
-      .provider.getTransactionReceipt(txId);
-
+    receipt = await getTransactionReceipt(url, txId);
     mined = !!receipt;
   }
 

@@ -44,21 +44,7 @@ export default class AppsController {
     const appIds = await this.appsService.getApps(pageAfter, pageSize);
     const total = appIds.total.toNumber();
     let tempTotal = 0;
-    if (query.name) {
-      extraQuery = `&name=${query.name}`;
-      if (pageAfter === 1) {
-        try {
-          const appByName = await this.appsService.getAppByName(query.name);
-          apps.push({
-            applicationId: appByName.applicationId,
-            name: query.name,
-          });
-          tempTotal = 1;
-        } catch (error) {
-          /* empty */
-        }
-      }
-    } else if (query.public_key_id) {
+    if (query.public_key_id) {
       extraQuery = `&public_key_id=${query.public_key_id}`;
       if (pageAfter === 1) {
         try {
@@ -77,12 +63,10 @@ export default class AppsController {
     } else {
       apps = await Promise.all(
         appIds.items.map(async (appId) => {
-          const appByPublicKeyId = await this.appsService.getAppByPublicKeyId(
-            appId
-          );
+          const app = await this.appsService.getAppById(appId);
           return {
-            applicationId: appByPublicKeyId.applicationId,
-            name: appByPublicKeyId.name,
+            applicationId: appId,
+            name: app.name,
           };
         })
       );
@@ -105,33 +89,33 @@ export default class AppsController {
     return responseApps;
   }
 
-  @Get("/:applicationId")
+  @Get("/:applicationName")
   async getApp(@Param() params: GetAppDto): Promise<AppResponseObject> {
-    const { applicationId } = params;
+    const { applicationName } = params;
 
-    const app = await this.appsService.getApp(applicationId);
+    const app = await this.appsService.getApp(applicationName);
 
     return app;
   }
 
-  @Get("/:applicationId/public-keys")
+  @Get("/:applicationName/public-keys")
   async getPublicKeys(
     @Param() params: GetPublicKeysParamDto,
     @Query() query: PaginationQuery
   ): Promise<PaginatedList<PublicKeyLink>> {
-    const { applicationId } = params;
+    const { applicationName } = params;
     const pageAfter = query["page[after]"];
     const pageSize = query["page[size]"];
 
     const publicKeys = await this.appsService.getPublicKeys(
-      applicationId,
+      applicationName,
       pageAfter,
       pageSize
     );
     const { total, items } = publicKeys;
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
     const domain = this.configService.get<string>("domain");
-    const baseUrl = `${domain}${apiUrlPrefix}/apps/${applicationId}/public-keys`;
+    const baseUrl = `${domain}${apiUrlPrefix}/apps/${applicationName}/public-keys`;
 
     return formatPublicKeys(
       items,
@@ -142,38 +126,38 @@ export default class AppsController {
     );
   }
 
-  @Get("/:applicationId/public-keys/:publicKeyId")
+  @Get("/:applicationName/public-keys/:publicKeyId")
   async getPublicKey(
     @Param() params: GetPublicKeyDto
   ): Promise<PublicKeyResponseObject> {
-    const { applicationId, publicKeyId } = params;
+    const { applicationName, publicKeyId } = params;
 
-    return this.appsService.getPublicKey(applicationId, publicKeyId);
+    return this.appsService.getPublicKey(applicationName, publicKeyId);
   }
 
-  @Get("/:resourceApplicationId/authorizations")
+  @Get("/:applicationName/authorizations")
   async getAuthorizations(
     @Param() params: GetAuthorizationsParamDto,
     @Query() query: GetAuthorizationsDto
   ): Promise<PaginatedList<AuthorizationLink>> {
-    const { resourceApplicationId } = params;
+    const { applicationName } = params;
     const pageAfter = query["page[after]"];
     const pageSize = query["page[size]"];
 
     let authorizations: { items: AuthorizationItemObject[]; total: number };
     let extraQuery = "";
-    if (query.requesterApplicationId) {
+    if (query.requesterApplicationName) {
       authorizations =
-        await this.appsService.getAuthorizationsByRequesterApplicationId(
-          resourceApplicationId,
-          query.requesterApplicationId,
+        await this.appsService.getAuthorizationsByRequesterApplicationName(
+          applicationName,
+          query.requesterApplicationName,
           pageAfter,
           pageSize
         );
-      extraQuery = `&requesterApplicationId=${query.requesterApplicationId}`;
+      extraQuery = `&requesterApplicationName=${query.requesterApplicationName}`;
     } else {
       authorizations = await this.appsService.getAuthorizations(
-        resourceApplicationId,
+        applicationName,
         pageAfter,
         pageSize
       );
@@ -181,7 +165,7 @@ export default class AppsController {
     const { total, items } = authorizations;
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
     const domain = this.configService.get<string>("domain");
-    const baseUrl = `${domain}${apiUrlPrefix}/apps/${resourceApplicationId}/authorizations`;
+    const baseUrl = `${domain}${apiUrlPrefix}/apps/${applicationName}/authorizations`;
 
     return formatAuthorizations(
       items,
@@ -193,14 +177,14 @@ export default class AppsController {
     );
   }
 
-  @Get("/:resourceApplicationId/authorizations/:authorizationId")
+  @Get("/:applicationName/authorizations/:authorizationId")
   async getAuthorization(
     @Param() params: GetAuthorizationDto
   ): Promise<AuthorizationResponseObject> {
-    const { resourceApplicationId, authorizationId } = params;
+    const { applicationName, authorizationId } = params;
 
     const authorization = await this.appsService.getAuthorization(
-      resourceApplicationId,
+      applicationName,
       authorizationId
     );
 

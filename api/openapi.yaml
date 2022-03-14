@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Trusted Apps Registry API
-  version: 2.0.0
+  version: 3.0.0
   description: |
     Trusted Apps Registry (TAR) API is an EBSI core service. It enables us to interact with the Trusted Apps Registry Smart Contract to:
     * manage (register/update/revoke) trusted EBSI and trusted external applications,
@@ -23,7 +23,7 @@ info:
     name: EUPL-1.2
     url: https://joinup.ec.europa.eu/page/eupl-text-11-12
 paths:
-  /trusted-apps-registry/v2/apps:
+  /trusted-apps-registry/v3/apps:
     get:
       operationId: get-trusted-apps-registry-v2-apps
       summary: List apps
@@ -41,11 +41,6 @@ paths:
           in: query
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
-        - in: query
-          name: name
-          schema:
-            type: string
-          description: Filter results by name
         - in: query
           name: public_key_id
           schema:
@@ -88,38 +83,38 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps?page[after]=3&page[size]=2
+                    self: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps?page[after]=3&page[size]=2
                     items:
                       - id: "0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909"
                         name: test-app-1
-                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909
+                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps/test-app-1
                       - id: "0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854"
                         name: test-app-2
-                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps/0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854
+                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps/test-app-2
                     total: 124
                     pageSize: 2
                     links:
-                      first: https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps?page[after]=1&page[size]=2
-                      prev: https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps?page[after]=2&page[size]=2
-                      next: https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps?page[after]=4&page[size]=2
-                      last: https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps?page[after]=62&page[size]=2
+                      first: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps?page[after]=1&page[size]=2
+                      prev: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps?page[after]=2&page[size]=2
+                      next: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps?page[after]=4&page[size]=2
+                      last: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps?page[after]=62&page[size]=2
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/apps?page[after]=3&page[size]=2
+                    self: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps?page[after]=3&page[size]=2
                     items:
                       - id: "0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909"
                         name: test-app-1
-                        href: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/apps/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909
+                        href: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909
                       - id: "0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854"
                         name: test-app-2
-                        href: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/apps/0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854
+                        href: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps/0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854
                     total: 124
                     pageSize: 2
                     links:
-                      first: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/apps?page[after]=1&page[size]=2
-                      prev: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/apps?page[after]=2&page[size]=2
-                      next: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/apps?page[after]=4&page[size]=2
-                      last: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/apps?page[after]=62&page[size]=2
+                      first: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps?page[after]=1&page[size]=2
+                      prev: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps?page[after]=2&page[size]=2
+                      next: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps?page[after]=4&page[size]=2
+                      last: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps?page[after]=62&page[size]=2
         "400":
           description: Bad Request Error
           content:
@@ -141,7 +136,7 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /trusted-apps-registry/v2/apps/{applicationId}:
+  /trusted-apps-registry/v3/apps/{applicationName}:
     get:
       operationId: get-trusted-apps-registry-v2-app
       summary: Get an app
@@ -149,17 +144,17 @@ paths:
       tags:
         - Apps
       parameters:
-        - name: applicationId
+        - name: applicationName
           in: path
           schema:
             type: string
           examples:
-            "[test] applicationId":
-              description: valid test applicationId
-              value: "0xb9f5523a132d9c22c552bf126691a0c9dfa3ba550c8de3e8409c0c21b28e0e99"
-            "[pilot] applicationId":
-              description: valid preprod applicationId
-              value: "0x7623198d13d51cc485e4ec6bd52af05f6b691c1d9dd06a4b3f609d9c19efb985"
+            "[test] applicationName":
+              description: valid test applicationName
+              value: "ledger-api"
+            "[pilot] applicationName":
+              description: valid preprod applicationName
+              value: "ledger-api"
           required: true
       responses:
         "200":
@@ -197,6 +192,7 @@ paths:
                         status: active
                         notBefore: 1610699786
                         notAfter: 2610699786
+                    revocation: null
                 "[pilot] Success":
                   value:
                     applicationId: "0x7623198d13d51cc485e4ec6bd52af05f6b691c1d9dd06a4b3f609d9c19efb985"
@@ -225,6 +221,7 @@ paths:
                         status: active
                         notBefore: 1610699786
                         notAfter: 2610699786
+                    revocation: null
         "400":
           description: Bad Request
           content:
@@ -232,11 +229,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
               examples:
-                Invalid {appId} Parameter:
+                Invalid {applicationName} Parameter:
                   value:
                     title: Bad Request
                     status: 400
-                    detail: The format of {appId} parameter is not valid
+                    detail: The format of {applicationName} parameter is not valid
         "404":
           description: Not found
           content:
@@ -255,7 +252,7 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /trusted-apps-registry/v2/apps/{applicationId}/public-keys:
+  /trusted-apps-registry/v3/apps/{applicationName}/public-keys:
     get:
       operationId: get-apps-applicationId-public-keys
       summary: List public keys
@@ -263,17 +260,17 @@ paths:
       tags:
         - Apps
       parameters:
-        - name: applicationId
+        - name: applicationName
           in: path
           schema:
             type: string
           examples:
-            "[test] applicationId":
-              description: valid test applicationId
-              value: "0xb9f5523a132d9c22c552bf126691a0c9dfa3ba550c8de3e8409c0c21b28e0e99"
-            "[pilot] applicationId":
-              description: valid preprod applicationId
-              value: "0x7623198d13d51cc485e4ec6bd52af05f6b691c1d9dd06a4b3f609d9c19efb985"
+            "[test] applicationName":
+              description: valid test applicationName
+              value: "ledger-api"
+            "[pilot] applicationName":
+              description: valid preprod applicationName
+              value: "ledger-api"
           required: true
       responses:
         "200":
@@ -309,34 +306,34 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps/0xb9f5523a132d9c22c552bf126691a0c9dfa3ba550c8de3e8409c0c21b28e0e99/public-keys?page[after]=3&page[size]=2
+                    self: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/public-keys?page[after]=3&page[size]=2
                     items:
                       - id: "0xb9f5523a132d9c22c552bf126691a0c9dfa3ba550c8de3e8409c0c21b28e0e99"
-                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps/0xb9f5523a132d9c22c552bf126691a0c9dfa3ba550c8de3e8409c0c21b28e0e99/public-keys/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909
+                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/public-keys/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909
                       - id: "0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854"
-                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps/0xb9f5523a132d9c22c552bf126691a0c9dfa3ba550c8de3e8409c0c21b28e0e99/public-keys/0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854
+                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/public-keys/0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854
                     total: 4
                     pageSize: 2
                     links:
-                      first: https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps/0xb9f5523a132d9c22c552bf126691a0c9dfa3ba550c8de3e8409c0c21b28e0e99/public-keys?page[after]=1&page[size]=2
-                      prev: https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps/0xb9f5523a132d9c22c552bf126691a0c9dfa3ba550c8de3e8409c0c21b28e0e99/public-keys?page[after]=2&page[size]=2
-                      next: https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps/0xb9f5523a132d9c22c552bf126691a0c9dfa3ba550c8de3e8409c0c21b28e0e99/public-keys?page[after]=4&page[size]=2
-                      last: https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps/0xb9f5523a132d9c22c552bf126691a0c9dfa3ba550c8de3e8409c0c21b28e0e99/public-keys?page[after]=62&page[size]=2
+                      first: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/public-keys?page[after]=1&page[size]=2
+                      prev: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/public-keys?page[after]=2&page[size]=2
+                      next: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/public-keys?page[after]=4&page[size]=2
+                      last: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/public-keys?page[after]=62&page[size]=2
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/apps/0x7623198d13d51cc485e4ec6bd52af05f6b691c1d9dd06a4b3f609d9c19efb985/public-keys?page[after]=3&page[size]=2
+                    self: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/public-keys?page[after]=3&page[size]=2
                     items:
                       - id: "0x7623198d13d51cc485e4ec6bd52af05f6b691c1d9dd06a4b3f609d9c19efb985"
-                        href: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/apps/0x7623198d13d51cc485e4ec6bd52af05f6b691c1d9dd06a4b3f609d9c19efb985/public-keys/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909
+                        href: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/public-keys/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909
                       - id: "0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854"
-                        href: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/apps/0x7623198d13d51cc485e4ec6bd52af05f6b691c1d9dd06a4b3f609d9c19efb985/public-keys/0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854
+                        href: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/public-keys/0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854
                     total: 4
                     pageSize: 2
                     links:
-                      first: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/apps/0x7623198d13d51cc485e4ec6bd52af05f6b691c1d9dd06a4b3f609d9c19efb985/public-keys?page[after]=1&page[size]=2
-                      prev: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/apps/0x7623198d13d51cc485e4ec6bd52af05f6b691c1d9dd06a4b3f609d9c19efb985/public-keys?page[after]=2&page[size]=2
-                      next: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/apps/0x7623198d13d51cc485e4ec6bd52af05f6b691c1d9dd06a4b3f609d9c19efb985/public-keys?page[after]=4&page[size]=2
-                      last: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/apps/0x7623198d13d51cc485e4ec6bd52af05f6b691c1d9dd06a4b3f609d9c19efb985/public-keys?page[after]=62&page[size]=2
+                      first: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/public-keys?page[after]=1&page[size]=2
+                      prev: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/public-keys?page[after]=2&page[size]=2
+                      next: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/public-keys?page[after]=4&page[size]=2
+                      last: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/public-keys?page[after]=62&page[size]=2
         "400":
           description: Bad Request Error
           content:
@@ -358,7 +355,7 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /trusted-apps-registry/v2/apps/{applicationId}/public-keys/{publicKeyId}:
+  /trusted-apps-registry/v3/apps/{applicationName}/public-keys/{publicKeyId}:
     get:
       operationId: get-apps-applicationId-public-keys-public-key
       summary: Get a public key
@@ -366,17 +363,17 @@ paths:
       tags:
         - Apps
       parameters:
-        - name: applicationId
+        - name: applicationName
           in: path
           schema:
             type: string
           examples:
-            "[test] applicationId":
-              description: valid test applicationId
-              value: "0xb9f5523a132d9c22c552bf126691a0c9dfa3ba550c8de3e8409c0c21b28e0e99"
-            "[pilot] applicationId":
-              description: valid preprod applicationId
-              value: "0x7623198d13d51cc485e4ec6bd52af05f6b691c1d9dd06a4b3f609d9c19efb985"
+            "[test] applicationName":
+              description: valid test applicationName
+              value: "ledger-api"
+            "[pilot] applicationName":
+              description: valid preprod applicationName
+              value: "ledger-api"
           required: true
         - name: publicKeyId
           in: path
@@ -462,7 +459,7 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /trusted-apps-registry/v2/apps/{resourceApplicationId}/authorizations:
+  /trusted-apps-registry/v3/apps/{applicationName}/authorizations:
     get:
       operationId: get-apps-resourceApplicationId-authorizations
       summary: List authorizations
@@ -470,29 +467,29 @@ paths:
       tags:
         - Apps
       parameters:
-        - name: resourceApplicationId
+        - name: applicationName
           in: path
           schema:
             type: string
           examples:
-            "[test] resourceApplicationId":
-              description: valid test resourceApplicationId
-              value: "0xb9f5523a132d9c22c552bf126691a0c9dfa3ba550c8de3e8409c0c21b28e0e99"
-            "[pilot] resourceApplicationId":
-              description: valid preprod resourceApplicationId
-              value: "0x7623198d13d51cc485e4ec6bd52af05f6b691c1d9dd06a4b3f609d9c19efb985"
+            "[test] applicationName":
+              description: valid test applicationName
+              value: "ledger-api"
+            "[pilot] applicationName":
+              description: valid preprod applicationName
+              value: "ledger-api"
           required: true
         - name: requesterApplicationId
           in: query
           schema:
             type: string
           examples:
-            "[test] requesterApplicationId":
-              description: valid test requesterApplicationId
-              value: "0xb99b5591521d7e8dbde5fa4e33d35b1a05fb557d4f1865144fe572a28f6f808a"
-            "[pilot] requesterApplicationId":
-              description: valid preprod requesterApplicationId
-              value: "0xfa52f2b09ff4365b14f2064cf72a28b46e0980029e4b16ccdac1dafe67a2c0f0"
+            "[test] requesterApplicationName":
+              description: valid test requesterApplicationName
+              value: "notifications-api"
+            "[pilot] requesterApplicationName":
+              description: valid preprod requesterApplicationName
+              value: "notifications-api"
       responses:
         "200":
           description: Success
@@ -530,38 +527,38 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps/0xb9f5523a132d9c22c552bf126691a0c9dfa3ba550c8de3e8409c0c21b28e0e99/authorizations?page[after]=3&page[size]=2
+                    self: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/authorizations?page[after]=3&page[size]=2
                     items:
                       - authorizationId: "0x62c0cd975b022bb3169a61de2ca2a3be3941d2d2b037ff5888241e33aef15d27"
                         requesterApplicationName: timestamp-api
-                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps/0xb9f5523a132d9c22c552bf126691a0c9dfa3ba550c8de3e8409c0c21b28e0e99/authorizations/0x62c0cd975b022bb3169a61de2ca2a3be3941d2d2b037ff5888241e33aef15d27
+                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/authorizations/0x62c0cd975b022bb3169a61de2ca2a3be3941d2d2b037ff5888241e33aef15d27
                       - authorizationId: "0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854"
                         requesterApplicationName: test-app-2
-                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps/0xb9f5523a132d9c22c552bf126691a0c9dfa3ba550c8de3e8409c0c21b28e0e99/authorizations/0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854
+                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/authorizations/0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854
                     total: 124
                     pageSize: 2
                     links:
-                      first: https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps/0xb9f5523a132d9c22c552bf126691a0c9dfa3ba550c8de3e8409c0c21b28e0e99/authorizations?page[after]=1&page[size]=2
-                      prev: https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps/0xb9f5523a132d9c22c552bf126691a0c9dfa3ba550c8de3e8409c0c21b28e0e99/authorizations?page[after]=2&page[size]=2
-                      next: https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps/0xb9f5523a132d9c22c552bf126691a0c9dfa3ba550c8de3e8409c0c21b28e0e99/authorizations?page[after]=4&page[size]=2
-                      last: https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps/0xb9f5523a132d9c22c552bf126691a0c9dfa3ba550c8de3e8409c0c21b28e0e99/authorizations?page[after]=62&page[size]=2
+                      first: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/authorizations?page[after]=1&page[size]=2
+                      prev: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/authorizations?page[after]=2&page[size]=2
+                      next: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/authorizations?page[after]=4&page[size]=2
+                      last: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/authorizations?page[after]=62&page[size]=2
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/apps/0x7623198d13d51cc485e4ec6bd52af05f6b691c1d9dd06a4b3f609d9c19efb985/authorizations?page[after]=3&page[size]=2
+                    self: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/authorizations?page[after]=3&page[size]=2
                     items:
                       - authorizationId: "0x743072ec11502736ecc5f4bcb1d2ffd435131b2d03003b4a2d222ab9b384a663"
                         requesterApplicationName: timestamp-api
-                        href: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/apps/0x7623198d13d51cc485e4ec6bd52af05f6b691c1d9dd06a4b3f609d9c19efb985/authorizations/0x743072ec11502736ecc5f4bcb1d2ffd435131b2d03003b4a2d222ab9b384a663
+                        href: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/authorizations/0x743072ec11502736ecc5f4bcb1d2ffd435131b2d03003b4a2d222ab9b384a663
                       - authorizationId: "0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854"
                         requesterApplicationName: test-app-2
-                        href: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/apps/0x7623198d13d51cc485e4ec6bd52af05f6b691c1d9dd06a4b3f609d9c19efb985/authorizations/0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854
+                        href: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/authorizations/0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854
                     total: 124
                     pageSize: 2
                     links:
-                      first: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/apps/0x7623198d13d51cc485e4ec6bd52af05f6b691c1d9dd06a4b3f609d9c19efb985/authorizations?page[after]=1&page[size]=2
-                      prev: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/apps/0x7623198d13d51cc485e4ec6bd52af05f6b691c1d9dd06a4b3f609d9c19efb985/authorizations?page[after]=2&page[size]=2
-                      next: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/apps/0x7623198d13d51cc485e4ec6bd52af05f6b691c1d9dd06a4b3f609d9c19efb985/authorizations?page[after]=4&page[size]=2
-                      last: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/apps/0x7623198d13d51cc485e4ec6bd52af05f6b691c1d9dd06a4b3f609d9c19efb985/authorizations?page[after]=62&page[size]=2
+                      first: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/authorizations?page[after]=1&page[size]=2
+                      prev: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/authorizations?page[after]=2&page[size]=2
+                      next: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/authorizations?page[after]=4&page[size]=2
+                      last: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/authorizations?page[after]=62&page[size]=2
         "400":
           description: Bad Request Error
           content:
@@ -583,7 +580,7 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /trusted-apps-registry/v2/apps/{resourceApplicationId}/authorizations/{authorizationId}:
+  /trusted-apps-registry/v3/apps/{applicationName}/authorizations/{authorizationId}:
     get:
       operationId: get-trusted-apps-registry-v2-authorizationId
       summary: Get an authorisation
@@ -591,17 +588,17 @@ paths:
       tags:
         - Apps
       parameters:
-        - name: resourceApplicationId
+        - name: applicationName
           in: path
           schema:
             type: string
           examples:
-            "[test] resourceApplicationId":
-              description: valid test resourceApplicationId
-              value: "0xb9f5523a132d9c22c552bf126691a0c9dfa3ba550c8de3e8409c0c21b28e0e99"
-            "[pilot] resourceApplicationId":
-              description: valid preprod resourceApplicationId
-              value: "0x7623198d13d51cc485e4ec6bd52af05f6b691c1d9dd06a4b3f609d9c19efb985"
+            "[test] applicationName":
+              description: valid test applicationName
+              value: "ledger-api"
+            "[pilot] applicationName":
+              description: valid preprod applicationName
+              value: "ledger-api"
           required: true
         - name: authorizationId
           in: path
@@ -685,511 +682,7 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /trusted-apps-registry/v2/administrators:
-    get:
-      tags:
-        - Trusted Apps Registry
-      summary: List of trusted administrators
-      description: Returns a list of trusted administrators
-      operationId: get-trusted-apps-registry-v2-administrators
-      responses:
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  self:
-                    type: string
-                    description: URI to administrators
-                  items:
-                    type: array
-                    description: List of administrators
-                    items:
-                      type: object
-                      properties:
-                        did:
-                          type: string
-                          description: DID of the administrator
-                        href:
-                          type: string
-                          description: Link to the resource
-                  total:
-                    type: integer
-                    description: Total number of items in a collection
-                  pageSize:
-                    type: integer
-                    description: Number of items to be returned per page
-                  links:
-                    $ref: "#/components/schemas/Links"
-              examples:
-                "[test] Success":
-                  value:
-                    self: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators?page[after]=3&page[size]=10
-                    items:
-                      - did: did:ebsi:zo6Vo7okfoLbvWYTmVoqAn6
-                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:zo6Vo7okfoLbvWYTmVoqAn6
-                      - did: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
-                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
-                    total: 2
-                    pageSize: 10
-                    links:
-                      first: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators?page[after]=1&page[size]=10
-                      prev: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators?page[after]=2&page[size]=10
-                      next: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators?page[after]=4&page[size]=10
-                      last: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators?page[after]=13&page[size]=10
-                "[pilot] Success":
-                  value:
-                    self: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators?page[after]=3&page[size]=10
-                    items:
-                      - did: did:ebsi:zo6Vo7okfoLbvWYTmVoqAn6
-                        href: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:zo6Vo7okfoLbvWYTmVoqAn6
-                      - did: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
-                        href: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
-                    total: 2
-                    pageSize: 10
-                    links:
-                      first: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators?page[after]=2&page[size]=10
-                      next: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators?page[after]=4&page[size]=10
-                      last: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators?page[after]=13&page[size]=10
-        "400":
-          description: Bad Request Error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                Bad Paging Request:
-                  value:
-                    title: Bad Paging Request
-                    status: 400
-                    detail: PageSize should not be greater than 50
-        "500":
-          description: Internal Server Error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
-      parameters:
-        - in: query
-          name: page[after]
-          schema:
-            type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
-          name: page[size]
-          description: Defines the maximum number of objects that may be returned.
-  /trusted-apps-registry/v2/administrators/{did}:
-    get:
-      tags:
-        - Trusted Apps Registry
-      summary: Get administrator by its Decentralized Identifier
-      description: Returns a trusted administrator by its decentralized identifier
-      operationId: get-trusted-administrator
-      parameters:
-        - name: did
-          in: path
-          schema:
-            type: string
-          examples:
-            "[test] did":
-              description: valid test did
-              value: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
-            "[pilot] did":
-              description: valid preprod did
-              value: did:ebsi:zygB8RTRTYBynqrWU83hijr
-          required: true
-      responses:
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Administrator"
-              examples:
-                "[test] Success":
-                  value:
-                    did: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
-                    attributes:
-                      - hash: "b03dfb86a20a21934a7df79f66616415e3da23642b966eba39afefb89eac2c32"
-                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
-                "[pilot] Success":
-                  value:
-                    did: did:ebsi:zygB8RTRTYBynqrWU83hijr
-                    attributes:
-                      - hash: "31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
-                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
-        "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                Invalid {did} Parameter:
-                  value:
-                    title: Bad Request
-                    status: 400
-                    detail: The format of {did} parameter is not valid
-        "404":
-          description: Not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                DID Not Found:
-                  $ref: "#/components/examples/NotFound"
-        "500":
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
-  /trusted-apps-registry/v2/administrators/{did}/attributes:
-    get:
-      tags:
-        - Trusted Apps Registry
-      summary: List the attributes of an administrator
-      description: Returns a list of attributes for a given administrator
-      responses:
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  self:
-                    type: string
-                    description: URI to attributes
-                  items:
-                    type: array
-                    description: List of attributes
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                          description: Attribute ID. (hash, sha256)
-                        href:
-                          type: string
-                          description: Link to the resource
-                  total:
-                    type: integer
-                    description: Total number of items in a collection
-                  pageSize:
-                    type: integer
-                    description: Number of items to be returned per page
-                  links:
-                    $ref: "#/components/schemas/Links"
-              examples:
-                "[test] Success":
-                  value:
-                    self: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ/attributes?page[after]=3&page[size]=10
-                    items:
-                      - id: b03dfb86a20a21934a7df79f66616415e3da23642b966eba39afefb89eac2c32
-                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ/attributes/b03dfb86a20a21934a7df79f66616415e3da23642b966eba39afefb89eac2c32
-                      - id: 7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
-                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
-                    total: 124
-                    pageSize: 10
-                    links:
-                      first: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ/attributes?page[after]=1&page[size]=10
-                      prev: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ/attributes?page[after]=2&page[size]=10
-                      next: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ/attributes?page[after]=4&page[size]=10
-                      last: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ/attributes?page[after]=13&page[size]=10
-                "[pilot] Success":
-                  value:
-                    self: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:zygB8RTRTYBynqrWU83hijr/attributes?page[after]=3&page[size]=10
-                    items:
-                      - id: 792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b
-                        href: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:zygB8RTRTYBynqrWU83hijr/attributes/792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b
-                      - id: 7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
-                        href: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:zygB8RTRTYBynqrWU83hijr/attributes/7b67c9b6770882ea71c0371cbde2153dd4d0f402a2dc8d561526c35d4d46c7a2
-                    total: 124
-                    pageSize: 10
-                    links:
-                      first: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:zygB8RTRTYBynqrWU83hijr/attributes?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:zygB8RTRTYBynqrWU83hijr/attributes?page[after]=2&page[size]=10
-                      next: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:zygB8RTRTYBynqrWU83hijr/attributes?page[after]=4&page[size]=10
-                      last: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:zygB8RTRTYBynqrWU83hijr/attributes?page[after]=13&page[size]=10
-        "400":
-          description: Bad Request Error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                Bad Paging Request:
-                  value:
-                    title: Bad Paging Request
-                    status: 400
-                    detail: PageSize should not be greater than 50
-        "404":
-          description: Not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                DID Not Found:
-                  $ref: "#/components/examples/NotFound"
-        "500":
-          description: Internal Server Error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
-      operationId: get-trusted-apps-registry-v2-administrators-did-attributes
-      parameters:
-        - name: did
-          in: path
-          schema:
-            type: string
-          examples:
-            "[test] did":
-              description: valid test did
-              value: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
-            "[pilot] did":
-              description: valid preprod did
-              value: did:ebsi:zygB8RTRTYBynqrWU83hijr
-          required: true
-        - in: query
-          name: page[after]
-          schema:
-            type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
-          name: page[size]
-          description: Defines the maximum number of objects that may be returned.
-  /trusted-apps-registry/v2/administrators/{did}/attributes/{attributeId}:
-    get:
-      tags:
-        - Trusted Apps Registry
-      summary: Get a specific attribute
-      description: Returns the corresponding attribute of a given administrator
-      parameters:
-        - name: did
-          in: path
-          schema:
-            type: string
-          examples:
-            "[test] did":
-              description: valid test did
-              value: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
-            "[pilot] did":
-              description: valid preprod did
-              value: did:ebsi:zygB8RTRTYBynqrWU83hijr
-          required: true
-        - name: attributeId
-          in: path
-          schema:
-            type: string
-          examples:
-            "[test] attributeId":
-              description: valid test attributeId
-              value: b03dfb86a20a21934a7df79f66616415e3da23642b966eba39afefb89eac2c32
-            "[pilot] attributeId":
-              description: valid preprod attributeId
-              value: 0f9a698d39ec76c33c20855d714133409ab1ff4b3d548c4aa24c2e26d28320c1
-          required: true
-      responses:
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AttributeDetails"
-              examples:
-                "[test] Success":
-                  value:
-                    did: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
-                    attribute:
-                      hash: b03dfb86a20a21934a7df79f66616415e3da23642b966eba39afefb89eac2c32
-                      body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
-                "[pilot] Success":
-                  value:
-                    did: did:ebsi:zygB8RTRTYBynqrWU83hijr
-                    attribute:
-                      hash: 0f9a698d39ec76c33c20855d714133409ab1ff4b3d548c4aa24c2e26d28320c1
-                      body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
-        "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                Invalid {did} Parameter:
-                  value:
-                    title: Bad Request
-                    status: 400
-                    detail: "The format of {did} parameter is not valid"
-        "404":
-          description: Not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                DID Not Found:
-                  $ref: "#/components/examples/NotFound"
-        "500":
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
-      operationId: get-trusted-apps-registry-v2-administrators-did-attributes-attributeid
-  /trusted-apps-registry/v2/administrators/{did}/attributes/{attributeId}/revisions:
-    get:
-      tags:
-        - Trusted Apps Registry
-      summary: List the revisions of an attribute
-      description: |
-        Returns a list of revisions for a given attribute attached to a given administrator.
-      responses:
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  self:
-                    type: string
-                    description: URI of the current page
-                  items:
-                    type: array
-                    description: Array of attribute objects sorted chronologically
-                    items:
-                      $ref: "#/components/schemas/Attribute"
-                  total:
-                    type: integer
-                    description: Total number of results
-                  pageSize:
-                    type: integer
-                    description: Number of items to be returned per page
-                  links:
-                    $ref: "#/components/schemas/Links"
-              examples:
-                "[test] Success":
-                  value:
-                    self: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ/attributes/0f9a698d39ec76c33c20855d714133409ab1ff4b3d548c4aa24c2e26d28320c1/revisions?page[after]=3&page[size]=10
-                    items:
-                      - hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
-                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
-                      - hash: "0x56ef14c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da632125a"
-                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSe8
-                    total: 2
-                    pageSize: 123
-                    links:
-                      first: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ/attributes/0f9a698d39ec76c33c20855d714133409ab1ff4b3d548c4aa24c2e26d28320c1/revisions?page[after]=1&page[size]=10
-                      prev: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ/attributes/0f9a698d39ec76c33c20855d714133409ab1ff4b3d548c4aa24c2e26d28320c1/revisions?page[after]=2&page[size]=10
-                      next: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ/attributes/0f9a698d39ec76c33c20855d714133409ab1ff4b3d548c4aa24c2e26d28320c1/revisions?page[after]=4&page[size]=10
-                      last: https://api.test.intebsi.xyz/trusted-apps-registry/v2/administrators/did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ/attributes/0f9a698d39ec76c33c20855d714133409ab1ff4b3d548c4aa24c2e26d28320c1/revisions?page[after]=13&page[size]=10
-                "[pilot] Success":
-                  value:
-                    self: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:zygB8RTRTYBynqrWU83hijr/attributes/0f9a698d39ec76c33c20855d714133409ab1ff4b3d548c4aa24c2e26d28320c1/revisions?page[after]=3&page[size]=10
-                    items:
-                      - hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
-                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
-                      - hash: "0x56ef14c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da632125a"
-                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSe8
-                    total: 2
-                    pageSize: 123
-                    links:
-                      first: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:zygB8RTRTYBynqrWU83hijr/attributes/0f9a698d39ec76c33c20855d714133409ab1ff4b3d548c4aa24c2e26d28320c1/revisions?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:zygB8RTRTYBynqrWU83hijr/attributes/0f9a698d39ec76c33c20855d714133409ab1ff4b3d548c4aa24c2e26d28320c1/revisions?page[after]=2&page[size]=10
-                      next: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:zygB8RTRTYBynqrWU83hijr/attributes/0f9a698d39ec76c33c20855d714133409ab1ff4b3d548c4aa24c2e26d28320c1/revisions?page[after]=4&page[size]=10
-                      last: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators/did:ebsi:zygB8RTRTYBynqrWU83hijr/attributes/0f9a698d39ec76c33c20855d714133409ab1ff4b3d548c4aa24c2e26d28320c1/revisions?page[after]=13&page[size]=10
-        "400":
-          description: Bad Request Error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                Bad Paging Request:
-                  value:
-                    title: Bad Paging Request
-                    status: 400
-                    detail: PageSize should not be greater than 50
-
-        "404":
-          description: Not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                DID Not Found:
-                  $ref: "#/components/examples/NotFound"
-        "500":
-          description: Internal Server Error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
-      operationId: get-trusted-apps-registry-v2-administrators-did-attributes-attributeid-revisions
-      parameters:
-        - name: did
-          in: path
-          schema:
-            type: string
-          examples:
-            "[test] did":
-              description: valid test did
-              value: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
-            "[pilot] did":
-              description: valid preprod did
-              value: did:ebsi:zygB8RTRTYBynqrWU83hijr
-          required: true
-        - name: attributeId
-          in: path
-          schema:
-            type: string
-          examples:
-            "[test] attributeId":
-              description: valid test attributeId
-              value: b03dfb86a20a21934a7df79f66616415e3da23642b966eba39afefb89eac2c32
-            "[pilot] attributeId":
-              description: valid preprod attributeId
-              value: 0f9a698d39ec76c33c20855d714133409ab1ff4b3d548c4aa24c2e26d28320c1
-          required: true
-        - in: query
-          name: page[after]
-          schema:
-            type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
-          name: page[size]
-          description: Defines the maximum number of objects that may be returned.
-  /trusted-apps-registry/v2/policies:
+  /trusted-apps-registry/v3/policies:
     get:
       operationId: get-trusted-apps-registry-v2-policies
       summary: List policies
@@ -1241,34 +734,34 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/trusted-apps-registry/v2/policies?page[after]=3&page[size]=2
+                    self: https://api.test.intebsi.xyz/trusted-apps-registry/v3/policies?page[after]=3&page[size]=2
                     items:
                       - policyId: test-policy-1
-                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v2/policies/test-policy-1
+                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v3/policies/test-policy-1
                       - policyId: test-policy-2
-                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v2/policies/test-policy-2
+                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v3/policies/test-policy-2
                     total: 124
                     pageSize: 2
                     links:
-                      first: https://api.test.intebsi.xyz/trusted-apps-registry/v2/policies?page[after]=1&page[size]=2
-                      prev: https://api.test.intebsi.xyz/trusted-apps-registry/v2/policies?page[after]=2&page[size]=2
-                      next: https://api.test.intebsi.xyz/trusted-apps-registry/v2/policies?page[after]=4&page[size]=2
-                      last: https://api.test.intebsi.xyz/trusted-apps-registry/v2/policies?page[after]=62&page[size]=2
+                      first: https://api.test.intebsi.xyz/trusted-apps-registry/v3/policies?page[after]=1&page[size]=2
+                      prev: https://api.test.intebsi.xyz/trusted-apps-registry/v3/policies?page[after]=2&page[size]=2
+                      next: https://api.test.intebsi.xyz/trusted-apps-registry/v3/policies?page[after]=4&page[size]=2
+                      last: https://api.test.intebsi.xyz/trusted-apps-registry/v3/policies?page[after]=62&page[size]=2
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/policies?page[after]=3&page[size]=2
+                    self: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/policies?page[after]=3&page[size]=2
                     items:
                       - policyId: test-policy-1
-                        href: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/policies/test-policy-1
+                        href: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-1
                       - policyId: test-policy-2
-                        href: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/policies/test-policy-2
+                        href: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-2
                     total: 124
                     pageSize: 2
                     links:
-                      first: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/policies?page[after]=1&page[size]=2
-                      prev: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/policies?page[after]=2&page[size]=2
-                      next: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/policies?page[after]=4&page[size]=2
-                      last: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/policies?page[after]=62&page[size]=2
+                      first: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/policies?page[after]=1&page[size]=2
+                      prev: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/policies?page[after]=2&page[size]=2
+                      next: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/policies?page[after]=4&page[size]=2
+                      last: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/policies?page[after]=62&page[size]=2
         "400":
           description: Bad Request Error
           content:
@@ -1290,7 +783,7 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /trusted-apps-registry/v2/policies/{policyId}:
+  /trusted-apps-registry/v3/policies/{policyId}:
     get:
       operationId: get-trusted-apps-registry-v2-policy
       summary: Get a policy
@@ -1347,7 +840,7 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /trusted-apps-registry/v2/policies/{policyId}/revisions:
+  /trusted-apps-registry/v3/policies/{policyId}/revisions:
     get:
       operationId: get-trusted-apps-registry-v2-policy-revisions
       summary: List policy revisions
@@ -1398,7 +891,7 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/trusted-apps-registry/v2/policies/test-policy-1/revisions?page[after]=3&page[size]=2
+                    self: https://api.test.intebsi.xyz/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=3&page[size]=2
                     items:
                       - policyId: test-policy-1
                         policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
@@ -1409,13 +902,13 @@ paths:
                     total: 61
                     pageSize: 2
                     links:
-                      first: https://api.test.intebsi.xyz/trusted-apps-registry/v2/policies/test-policy-1/revisions?page[after]=1&page[size]=2
-                      prev: https://api.test.intebsi.xyz/trusted-apps-registry/v2/policies/test-policy-1/revisions?page[after]=2&page[size]=2
-                      next: https://api.test.intebsi.xyz/trusted-apps-registry/v2/policies/test-policy-1/revisions?page[after]=4&page[size]=2
-                      last: https://api.test.intebsi.xyz/trusted-apps-registry/v2/policies/test-policy-1/revisions?page[after]=31&page[size]=2
+                      first: https://api.test.intebsi.xyz/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=1&page[size]=2
+                      prev: https://api.test.intebsi.xyz/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=2&page[size]=2
+                      next: https://api.test.intebsi.xyz/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=4&page[size]=2
+                      last: https://api.test.intebsi.xyz/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=31&page[size]=2
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/policies/test-policy-1/revisions?page[after]=3&page[size]=2
+                    self: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=3&page[size]=2
                     items:
                       - policyId: test-policy-1
                         policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
@@ -1426,10 +919,10 @@ paths:
                     total: 61
                     pageSize: 2
                     links:
-                      first: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/policies/test-policy-1/revisions?page[after]=1&page[size]=2
-                      prev: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/policies/test-policy-1/revisions?page[after]=2&page[size]=2
-                      next: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/policies/test-policy-1/revisions?page[after]=4&page[size]=2
-                      last: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/policies/test-policy-1/revisions?page[after]=31&page[size]=2
+                      first: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=1&page[size]=2
+                      prev: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=2&page[size]=2
+                      next: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=4&page[size]=2
+                      last: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=31&page[size]=2
         "400":
           description: Bad Request Error
           content:
@@ -1460,7 +953,7 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /trusted-apps-registry/v2/jsonrpc:
+  /trusted-apps-registry/v3/jsonrpc:
     post:
       operationId: post-ledger-v2-blockchains-besu
       summary: JSON-RPC API
@@ -1487,39 +980,26 @@ paths:
 
           #### deleteAppAdministrator
 
-          Call to build an unsigned transaction to delete an app administrator. This method requires admin rights in the Trusted Apps Registry.
+          Call to build an unsigned transaction to delete an app administrator. This method requires user attributes in the Trusted Policies Registry.
 
           Parameters:
           - **from**: Ethereum address of the administrator
           - **applicationId**: Application ID
           - **administratorId**: DID of app administrator
 
-          #### insertAdministrator
-
-          Call to build an unsigned transaction to insert a new administrator in the registry. This method requires admin rights in the Trusted Apps Registry.
-
-          Parameters:
-          - **from**: Ethereum address of the administrator
-          - **did**: DID of new administrator
-          - **attributeData**: Attribute data. This field must be a JSON stringified and converted into hex string
-
           #### insertApp
 
-          Call to build an unsigned transaction to insert an App. This method requires admin rights in the Trusted Apps Registry.
+          Call to build an unsigned transaction to insert an App. This method requires user attributes in the Trusted Policies Registry.
 
           Parameters:
           - **from**: Ethereum address of the administrator
           - **name**: Name of the app
           - **domain**: Domain. 1 (ebsi) or 2 (external)
           - **appAdministrator**: DID of the app administrator
-          - **publicKey**: Public key. Insert the hex string representation of PEM string.
-          - **status**: Status. 1 (active), 2 (revoked), or 3 (suspended)
-          - **notBefore**: Point in time when the public key becomes valid. It should be defined in epoch time.
-          - **notAfter**: Point in time when the public key becomes invalid. It should be defined in epoch time.
 
           #### insertAppAdministrator
 
-          Call to build an unsigned transaction to insert an app administrator. This method requires admin rights in the Trusted Apps Registry.
+          Call to build an unsigned transaction to insert an app administrator. This method requires user attributes in the Trusted Policies Registry.
 
           Parameters:
           - **from**: Ethereum address of the administrator
@@ -1528,7 +1008,7 @@ paths:
 
           #### insertAppInfo
 
-          Call to build an unsigned transaction to insert app info. This method requires admin rights in the Trusted Apps Registry.
+          Call to build an unsigned transaction to insert app info. This method requires user attributes in the Trusted Policies Registry.
 
           Parameters:
           - **from**: Ethereum address of the administrator
@@ -1537,7 +1017,7 @@ paths:
 
           #### insertAppPublicKey
 
-          Call to build an unsigned transaction to insert a public key. This method requires admin rights in the Trusted Apps Registry.
+          Call to build an unsigned transaction to insert a public key. This method requires user attributes in the Trusted Policies Registry.
 
           Parameters:
           - **from**: Ethereum address of the administrator
@@ -1549,7 +1029,7 @@ paths:
 
           #### insertAuthorization
 
-          Call to build an unsigned transaction to insert an authorisation. This method requires admin rights in the Trusted Apps Registry.
+          Call to build an unsigned transaction to insert an authorisation. This method requires user attributes in the Trusted Policies Registry.
 
           Parameters:
           - **from**: Ethereum address of the administrator
@@ -1563,7 +1043,7 @@ paths:
 
           #### insertPolicy
 
-          Call to build an unsigned transaction to insert a policy in the registry. This method requires admin rights in the Trusted Apps Registry.
+          Call to build an unsigned transaction to insert a policy in the registry. This method requires user attributes in the Trusted Policies Registry.
 
           Parameters:
           - **from**: Ethereum address of the administrator
@@ -1572,7 +1052,7 @@ paths:
 
           #### insertRevocation
 
-          Call to build an unsigned transaction to insert a revocation. This method requires admin rights in the Trusted Apps Registry.
+          Call to build an unsigned transaction to insert a revocation. This method requires user attributes in the Trusted Policies Registry.
 
           Parameters:
           - **from**: Ethereum address of the administrator
@@ -1580,36 +1060,18 @@ paths:
           - **revokedBy**: Administrator DID
           - **notBefore**: Point in time when the revocation becomes valid. It should be defined in epoch time.
 
-          #### updateAdministrator
-
-          Call to build an unsigned transaction to insert new attribute data to an administrator in the registry. This method requires admin rights in the Trusted Apps Registry.
-
-          Parameters:
-          - **from**: Ethereum address of the administrator
-          - **did**: DID of the administrator to update
-          - **attributeData**: Attribute data to add. This field must be a JSON stringified and converted into hex string
-
-          Call to build an unsigned transaction to update an attribute of an administrator in the registry. This method requires admin rights in the Trusted Apps Registry.
-
-          Parameters:
-          - **from**: Ethereum address of the administrator
-          - **did**: DID of the administrator to update
-          - **prevAttributeHash**: Attribute ID to update
-          - **attributeData**: Attribute data. This field must be a JSON stringified and converted into hex string
-
           #### updateApp
 
-          Call to build an unsigned transaction to update an app. This method requires admin rights in the Trusted Apps Registry.
+          Call to build an unsigned transaction to update an app. This method requires user attributes in the Trusted Policies Registry.
 
           Parameters:
           - **from**: Ethereum address of the administrator
           - **applicationId**: Application ID
-          - **name**: New name
           - **domain**: Domain. 1 (ebsi) or 2 (external)
 
           #### updateAppPublicKey
 
-          Call to build an unsigned transaction to update an existing public key. This method requires admin rights in the Trusted Apps Registry.
+          Call to build an unsigned transaction to update an existing public key. This method requires user attributes in the Trusted Policies Registry.
 
           Parameters:
           - **from**: Ethereum address of the administrator
@@ -1619,7 +1081,7 @@ paths:
 
           #### updateAuthorization
 
-          Call to build an unsigned transaction to update an authorisation. This method requires admin rights in the Trusted Apps Registry.
+          Call to build an unsigned transaction to update an authorisation. This method requires user attributes in the Trusted Policies Registry.
 
           Parameters:
           - **from**: Ethereum address of the administrator
@@ -1630,7 +1092,7 @@ paths:
 
           #### updatePolicy.
 
-          Call to build an unsigned transaction to update a policy. This method requires admin rights in the Trusted Apps Registry.
+          Call to build an unsigned transaction to update a policy. This method requires user attributes in the Trusted Policies Registry.
 
           Parameters:
           - **from**: Ethereum address of the administrator
@@ -1693,10 +1155,6 @@ paths:
                       name: "my app"
                       domain: 1
                       appAdministrator: "did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ"
-                      publicKey: "0x219846541f63165e651651ca231..."
-                      status: 1
-                      notBefore: 1609926740
-                      notAfter: 1709926740
                   id: 1
               Build tx to insertAppAdministrator:
                 value:
@@ -1761,25 +1219,6 @@ paths:
                       revokedBy: "did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ"
                       notBefore: 1609926740
                   id: 1
-              Build tx to add a new attribute to an administrator:
-                value:
-                  jsonrpc: "2.0"
-                  method: updateAdministrator
-                  params:
-                    - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
-                      did: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
-                      attributeData: "0x7b2261646d696e223a22306139393338616431616538623865323932613961336536227d"
-                  id: 1
-              Build tx to update an attribute of an administrator:
-                value:
-                  jsonrpc: "2.0"
-                  method: updateAdministrator
-                  params:
-                    - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
-                      did: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
-                      attributeData: "0x7b2261646d696e223a22306139393338616431616538623865323932613961336536227d"
-                      prevAttributeHash: "0x9045517cc555c75cd7085900a900e6693439086f9eddeee513271fba278964fe"
-                  id: 1
               Build tx to updateApp:
                 value:
                   jsonrpc: "2.0"
@@ -1787,7 +1226,6 @@ paths:
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       applicationId: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
-                      name: "new name"
                       domain: 2
                   id: 1
               Build tx to updateAppPublicKey:
@@ -1933,6 +1371,14 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Authorization"
+        revocation:
+          type: object
+          nullable: true
+          properties:
+            revokedBy:
+              type: string
+            notBefore:
+              type: number
     Authorization:
       description: Authorization data model
       type: object
@@ -2003,43 +1449,10 @@ components:
           description: URI of the first page
       x-examples:
         Links:
-          first: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators?page[after]=1&page[size]=2
-          prev: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators?page[after]=2&page[size]=2
-          next: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators?page[after]=4&page[size]=2
-          last: https://api.preprod.ebsi.eu/trusted-apps-registry/v2/administrators?page[after]=13&page[size]=2
-    Attribute:
-      title: Attribute
-      description: Attribute object.
-      type: object
-      properties:
-        hash:
-          type: string
-          description: sha256 hash of the payload
-        body:
-          description: Base64 encoded content
-    AttributeDetails:
-      title: Attribute Details
-      description: Attribute Details object.
-      type: object
-      properties:
-        did:
-          type: string
-          description: DID of the attribute owner
-        attribute:
-          $ref: "#/components/schemas/Attribute"
-    Administrator:
-      title: Administrator
-      type: object
-      description: Name of the administrator
-      properties:
-        did:
-          type: string
-          description: DID of the administrator
-        attributes:
-          type: array
-          description: Array of attributes
-          items:
-            $ref: "#/components/schemas/Attribute"
+          first: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps?page[after]=1&page[size]=2
+          prev: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps?page[after]=2&page[size]=2
+          next: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps?page[after]=4&page[size]=2
+          last: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps?page[after]=13&page[size]=2
     JsonRpcResponse:
       title: JSON-RPC Response
       type: object

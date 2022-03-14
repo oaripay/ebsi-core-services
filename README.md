@@ -6,7 +6,6 @@ Trusted Apps Registry (TAR) API is an EBSI core service. It enables us to intera
 
 - manage (register/update/revoke) trusted EBSI and trusted external applications,
 - manage application authorisations,
-- manage application administrators,
 - obtain application information,
 - obtain application authorisations.
 
@@ -88,7 +87,7 @@ And then you can serve the production build with:
 yarn start:prod
 ```
 
-You can now open http://localhost:3000/trusted-apps-registry/v2/health. If everything's working correctly, then you should see `"status":"ok"`.
+You can now open http://localhost:3000/trusted-apps-registry/v3/health. If everything's working correctly, then you should see `"status":"ok"`.
 
 ### Run with Docker
 
@@ -98,7 +97,7 @@ After creating the `.env.local` file, run:
 docker-compose up --build
 ```
 
-Check http://localhost:3000/trusted-apps-registry/v2/health to see if it's working.
+Check http://localhost:3000/trusted-apps-registry/v3/health to see if it's working.
 
 ## Linting
 

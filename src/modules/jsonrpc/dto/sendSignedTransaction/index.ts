@@ -1,5 +1,4 @@
 export * from "./args-delete-app-administrator.dto";
-export * from "./args-insert-administrator.dto";
 export * from "./args-insert-app-administrator.dto";
 export * from "./args-insert-app-info.dto";
 export * from "./args-insert-app-public-key.dto";
@@ -7,7 +6,6 @@ export * from "./args-insert-app.dto";
 export * from "./args-insert-authorization.dto";
 export * from "./args-insert-policy.dto";
 export * from "./args-insert-revocation.dto";
-export * from "./args-update-administrator.dto";
 export * from "./args-update-app-public-key.dto";
 export * from "./args-update-app.dto";
 export * from "./args-update-authorization.dto";

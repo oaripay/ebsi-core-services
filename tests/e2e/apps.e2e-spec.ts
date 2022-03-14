@@ -94,12 +94,15 @@ describe("Apps (e2e)", () => {
   let server: HttpServer;
   let ledgerService: LedgerService;
   let adminTestWallet: ethers.Wallet;
-  let testUserAccessToken: string;
+  let adminUserAccessToken: string;
+  let userTestWallet: ethers.Wallet;
+  let userAccessToken: string;
+  let besuRpcNode: string;
+  let didAppAdmin: string;
 
   const publicKeyRaw = `-----BEGIN ${crypto.randomBytes(12).toString("hex")}`;
   const publicKeyBuffer = Buffer.from(publicKeyRaw, "utf8");
   const publicKeyId = ethers.utils.sha256(publicKeyBuffer);
-  const applicationId = publicKeyId;
   const info = {
     someData: Date.now(),
   };
@@ -109,13 +112,10 @@ describe("Apps (e2e)", () => {
     name: `test-app-${new Date().toISOString()}`,
     domain: 1,
     appAdministrator: EbsiWallet.createDid(),
-    publicKey: `0x${publicKeyBuffer.toString("hex")}`,
-    status: 1,
-    notBefore: Math.trunc(Date.now() / 1000),
-    notAfter: Math.trunc(Date.now() / 1000) + 365 * 24 * 60 * 60,
   };
-
-  const didAppAdmin = EbsiWallet.createDid();
+  const applicationId = ethers.utils.sha256(
+    ethers.utils.toUtf8Bytes(newApp.name)
+  );
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -141,7 +141,9 @@ describe("Apps (e2e)", () => {
     adminTestWallet = new ethers.Wallet(
       prefixWith0x(configService.get("testAdminPrivateKey"))
     );
-
+    userTestWallet = new ethers.Wallet(
+      prefixWith0x(configService.get("testUserPrivateKey"))
+    );
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
     // Generate a valid Client JWT (SIOP) for the tests
@@ -149,12 +151,21 @@ describe("Apps (e2e)", () => {
       "didRegistryApiUrl"
     )}/identifiers`;
 
-    testUserAccessToken = await requestSiopJwt({
+    adminUserAccessToken = await requestSiopJwt({
       didRegistry,
       clientDid: configService.get<string>("testAdminDid"),
       clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
     });
+
+    userAccessToken = await requestSiopJwt({
+      didRegistry,
+      clientDid: configService.get<string>("testUserDid"),
+      clientPrivateKey: configService.get<string>("testUserPrivateKey"),
+      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+    });
+    didAppAdmin = configService.get<string>("testAdminDid");
+    besuRpcNode = configService.get("besuRpcNode");
   });
 
   afterAll(async () => {
@@ -171,66 +182,27 @@ describe("Apps (e2e)", () => {
       expect(response.body).toStrictEqual(
         expect.objectContaining({
           self: expect.stringContaining(
-            "/trusted-apps-registry/v2/apps?page[after]=1&page[size]=10"
+            "/trusted-apps-registry/v3/apps?page[after]=1&page[size]=10"
           ) as string,
           items: expect.arrayContaining([]) as string[],
           total: expect.any(Number) as number,
           pageSize: expect.any(Number) as number,
           links: expect.objectContaining({
             first: expect.stringContaining(
-              "/trusted-apps-registry/v2/apps?page[after]=1&page[size]=10"
+              "/trusted-apps-registry/v3/apps?page[after]=1&page[size]=10"
             ) as string,
             prev: expect.stringContaining(
-              "/trusted-apps-registry/v2/apps?page[after]=1&page[size]=10"
+              "/trusted-apps-registry/v3/apps?page[after]=1&page[size]=10"
             ) as string,
             next: expect.stringContaining(
-              "/trusted-apps-registry/v2/apps?page[after]="
+              "/trusted-apps-registry/v3/apps?page[after]="
             ) as string,
             last: expect.stringContaining(
-              "/trusted-apps-registry/v2/apps?page[after]="
+              "/trusted-apps-registry/v3/apps?page[after]="
             ) as string,
           }) as PaginatedList<AppLink>["links"],
         })
       );
-      expect(response.status).toBe(200);
-    });
-
-    it("should return an app when query name is defined", async () => {
-      expect.assertions(3);
-
-      const responseApps: SupertestAppsResponse = await request(server).get(
-        "/apps"
-      );
-      const lastOne = responseApps.body.items.length - 1;
-      const appName = responseApps.body.items[lastOne].name;
-      const response: SupertestAppsResponse = await request(server).get(
-        `/apps?name=${appName}`
-      );
-      expect(response.body).toStrictEqual(
-        expect.objectContaining({
-          self: expect.stringContaining(
-            `/trusted-apps-registry/v2/apps?page[after]=1&page[size]=10&name=${appName}`
-          ) as string,
-          items: expect.arrayContaining([]) as string[],
-          total: expect.any(Number) as number,
-          pageSize: expect.any(Number) as number,
-          links: expect.objectContaining({
-            first: expect.stringContaining(
-              `/trusted-apps-registry/v2/apps?page[after]=1&page[size]=10&name=${appName}`
-            ) as string,
-            prev: expect.stringContaining(
-              `/trusted-apps-registry/v2/apps?page[after]=1&page[size]=10&name=${appName}`
-            ) as string,
-            next: expect.stringContaining(
-              "/trusted-apps-registry/v2/apps?page[after]="
-            ) as string,
-            last: expect.stringContaining(
-              "/trusted-apps-registry/v2/apps?page[after]="
-            ) as string,
-          }) as PaginatedList<AppLink>["links"],
-        })
-      );
-      expect(response.body.items).toHaveLength(1);
       expect(response.status).toBe(200);
     });
 
@@ -253,16 +225,16 @@ describe("Apps (e2e)", () => {
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/trusted-apps-registry/v2/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId0}`
+            `/trusted-apps-registry/v3/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId0}`
           ) as string,
           prev: expect.stringContaining(
-            `/trusted-apps-registry/v2/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId0}`
+            `/trusted-apps-registry/v3/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId0}`
           ) as string,
           next: expect.stringContaining(
-            "/trusted-apps-registry/v2/apps?page[after]="
+            "/trusted-apps-registry/v3/apps?page[after]="
           ) as string,
           last: expect.stringContaining(
-            "/trusted-apps-registry/v2/apps?page[after]="
+            "/trusted-apps-registry/v3/apps?page[after]="
           ) as string,
         },
       });
@@ -276,69 +248,78 @@ describe("Apps (e2e)", () => {
       const responseApps: SupertestAppsResponse = await request(server).get(
         "/apps"
       );
-      const applicationId0 = responseApps.body.items[0].id;
+
+      const { name }: AppLink =
+        responseApps.body.items[responseApps.body.items.length - 1];
+      const applicationName0 = name;
+
       const response: SupertestAuthorizationsResponse = await request(
         server
-      ).get(`/apps/${applicationId0}/authorizations`);
+      ).get(`/apps/${applicationName0}/authorizations`);
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          `/trusted-apps-registry/v2/apps/${applicationId0}/authorizations?page[after]=1&page[size]=10`
+          `/trusted-apps-registry/v3/apps/${applicationName0}/authorizations?page[after]=1&page[size]=10`
         ) as string,
         items: expect.arrayContaining([]) as Array<string>,
         total: expect.any(Number) as number,
         pageSize: expect.any(Number) as number,
         links: {
           first: expect.stringContaining(
-            `/trusted-apps-registry/v2/apps/${applicationId0}/authorizations?page[after]=1&page[size]=10`
+            `/trusted-apps-registry/v3/apps/${applicationName0}/authorizations?page[after]=1&page[size]=10`
           ) as string,
           prev: expect.stringContaining(
-            `/trusted-apps-registry/v2/apps/${applicationId0}/authorizations?page[after]=1&page[size]=10`
+            `/trusted-apps-registry/v3/apps/${applicationName0}/authorizations?page[after]=1&page[size]=10`
           ) as string,
           next: expect.stringContaining(
-            `/trusted-apps-registry/v2/apps/${applicationId0}/authorizations?page[after]=`
+            `/trusted-apps-registry/v3/apps/${applicationName0}/authorizations?page[after]=`
           ) as string,
           last: expect.stringContaining(
-            `/trusted-apps-registry/v2/apps/${applicationId0}/authorizations?page[after]=`
+            `/trusted-apps-registry/v3/apps/${applicationName0}/authorizations?page[after]=`
           ) as string,
         },
       });
       expect(response.status).toBe(200);
     });
 
-    it("should return a paginated collection of authorizations filtered by requesterApplicationId", async () => {
+    it("should return a paginated collection of authorizations filtered by requesterApplicationName", async () => {
       expect.assertions(2);
 
       // Get first app
       const responseApps: SupertestAppsResponse = await request(server).get(
         "/apps"
       );
-      const applicationId1 = responseApps.body.items[0].id;
-      const applicationId2 = responseApps.body.items[1].id;
+
+      const { name }: AppLink =
+        responseApps.body.items[responseApps.body.items.length - 1];
+      const app2: AppLink =
+        responseApps.body.items[responseApps.body.items.length - 2];
+      const applicationName1 = name;
+      const applicationName2 = app2.name;
 
       const response: SupertestAuthorizationsResponse = await request(
         server
       ).get(
-        `/apps/${applicationId1}/authorizations?requesterApplicationId=${applicationId2}`
+        `/apps/${applicationName1}/authorizations?requesterApplicationName=${applicationName2}`
       );
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          `/apps/${applicationId1}/authorizations?page[after]=1&page[size]=10&requesterApplicationId=${applicationId2}`
+          `/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${applicationName2}`
         ) as string,
         items: expect.arrayContaining([]) as Array<string>,
         total: expect.any(Number) as number,
         pageSize: expect.any(Number) as number,
         links: {
           first: expect.stringContaining(
-            `/trusted-apps-registry/v2/apps/${applicationId1}/authorizations?page[after]=1&page[size]=10&requesterApplicationId=${applicationId2}`
+            `/trusted-apps-registry/v3/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${applicationName2}`
           ) as string,
           prev: expect.stringContaining(
-            `/trusted-apps-registry/v2/apps/${applicationId1}/authorizations?page[after]=1&page[size]=10&requesterApplicationId=${applicationId2}`
+            `/trusted-apps-registry/v3/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${applicationName2}`
           ) as string,
           next: expect.stringContaining(
-            `/trusted-apps-registry/v2/apps/${applicationId1}/authorizations?page[after]=1&page[size]=10&requesterApplicationId=${applicationId2}`
+            `/trusted-apps-registry/v3/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${applicationName2}`
           ) as string,
           last: expect.stringContaining(
-            `/trusted-apps-registry/v2/apps/${applicationId1}/authorizations?page[after]=1&page[size]=10&requesterApplicationId=${applicationId2}`
+            `/trusted-apps-registry/v3/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${applicationName2}`
           ) as string,
         },
       });
@@ -346,7 +327,7 @@ describe("Apps (e2e)", () => {
     });
   });
 
-  describe("/apps/{applicationId}", () => {
+  describe("/apps/{applicationName}", () => {
     it("should return a specific app", async () => {
       expect.assertions(3);
 
@@ -359,7 +340,7 @@ describe("Apps (e2e)", () => {
         appsResponse.body.items[appsResponse.body.items.length - 1];
 
       const response: SupertestAppResponse = await request(server).get(
-        `/apps/${id}`
+        `/apps/${name}`
       );
 
       expect(response.body).toStrictEqual({
@@ -372,6 +353,7 @@ describe("Apps (e2e)", () => {
         ) as AuthorizationResponseObject[],
         info: expect.any(Object) as { [x: string]: unknown },
         publicKeys: expect.arrayContaining([]) as string[],
+        revocation: expect.any(Object) as unknown,
       });
       expect(response.status).toBe(200);
     });
@@ -392,38 +374,38 @@ describe("Apps (e2e)", () => {
     });
   });
 
-  describe("/apps/{applicationId}/public-keys", () => {
+  describe("/apps/{applicationName}/public-keys", () => {
     it("should return a collection of public keys", async () => {
       expect.assertions(2);
       const appsResponse: SupertestAppsResponse = await request(server).get(
         "/apps"
       );
-      const { id }: AppLink =
+      const { name }: AppLink =
         appsResponse.body.items[appsResponse.body.items.length - 1];
       const response: SupertestPublicKeysResponse = await request(server).get(
-        `/apps/${id}/public-keys`
+        `/apps/${name}/public-keys`
       );
 
       expect(response.body).toStrictEqual(
         expect.objectContaining({
           self: expect.stringContaining(
-            `/trusted-apps-registry/v2/apps/${id}/public-keys?page[after]=1&page[size]=10`
+            `/trusted-apps-registry/v3/apps/${name}/public-keys?page[after]=1&page[size]=10`
           ) as string,
           items: expect.arrayContaining([]) as string[],
           total: expect.any(Number) as number,
           pageSize: expect.any(Number) as number,
           links: expect.objectContaining({
             first: expect.stringContaining(
-              `/trusted-apps-registry/v2/apps/${id}/public-keys?page[after]=1&page[size]=10`
+              `/trusted-apps-registry/v3/apps/${name}/public-keys?page[after]=1&page[size]=10`
             ) as string,
             prev: expect.stringContaining(
-              `/trusted-apps-registry/v2/apps/${id}/public-keys?page[after]=1&page[size]=10`
+              `/trusted-apps-registry/v3/apps/${name}/public-keys?page[after]=1&page[size]=10`
             ) as string,
             next: expect.stringContaining(
-              `/trusted-apps-registry/v2/apps/${id}/public-keys?page[after]=`
+              `/trusted-apps-registry/v3/apps/${name}/public-keys?page[after]=`
             ) as string,
             last: expect.stringContaining(
-              `/trusted-apps-registry/v2/apps/${id}/public-keys?page[after]=`
+              `/trusted-apps-registry/v3/apps/${name}/public-keys?page[after]=`
             ) as string,
           }) as PaginatedList<AppLink>["links"],
         })
@@ -432,22 +414,22 @@ describe("Apps (e2e)", () => {
     });
   });
 
-  describe("GET /apps/{appId}/public-keys/{publicKeyId}", () => {
+  describe("GET /apps/{name}/public-keys/{publicKeyId}", () => {
     it("should return a specific public key", async () => {
       expect.assertions(2);
       const appsResponse: SupertestAppsResponse = await request(server).get(
         "/apps"
       );
-      const { id }: AppLink =
+      const { name, id }: AppLink =
         appsResponse.body.items[appsResponse.body.items.length - 1];
       const responseKeys: SupertestPublicKeysResponse = await request(
         server
-      ).get(`/apps/${id}/public-keys`);
+      ).get(`/apps/${name}/public-keys`);
 
       const pubKeyId = responseKeys.body.items[0].id;
 
       const response: SupertestPublicKeyResponse = await request(server).get(
-        `/apps/${id}/public-keys/${pubKeyId}`
+        `/apps/${name}/public-keys/${pubKeyId}`
       );
 
       expect(response.body).toStrictEqual({
@@ -531,7 +513,6 @@ describe("Apps (e2e)", () => {
           param = {
             from: adminTestWallet.address,
             applicationId: publicKeyId,
-            name: `test-app-updated-${new Date().toISOString()}`,
             domain: 2,
           } as UpdateAppParam;
           break;
@@ -549,7 +530,7 @@ describe("Apps (e2e)", () => {
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
-        .auth(testUserAccessToken, { type: "bearer" })
+        .auth(adminUserAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -577,6 +558,8 @@ describe("Apps (e2e)", () => {
 
   describe.each([
     "insertApp",
+    "insertAppPublicKey",
+    "updateAppPublicKey",
     "insertAppAdministrator",
     "deleteAppAdministrator",
     "insertAppInfo",
@@ -584,14 +567,11 @@ describe("Apps (e2e)", () => {
     "insertAuthorization",
     "updateAuthorization",
     "updateApp",
-    "insertAppPublicKey",
-    "updateAppPublicKey",
   ])("/jsonrpc - send transaction for %s", (method: string) => {
     it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction", async () => {
       expect.assertions(5);
 
       let param: JsonRpcParams = null;
-
       switch (method) {
         case "insertApp": {
           // create a new app
@@ -647,7 +627,7 @@ describe("Apps (e2e)", () => {
         case "updateAuthorization": {
           // Dynamically get the authorizationId that we've just inserted
           const appId = ethers.utils.sha256(
-            Buffer.from(newApp.publicKey.slice(2), "hex")
+            ethers.utils.toUtf8Bytes(newApp.name)
           );
           const authorizationId = (
             await ledgerService
@@ -665,21 +645,17 @@ describe("Apps (e2e)", () => {
           break;
         }
         case "updateApp":
-          // update app
           param = {
             from: adminTestWallet.address,
             applicationId,
-            name: `test-app-updated-${new Date().toISOString()}`,
-            domain: 2,
+            domain: 0,
           } as UpdateAppParam;
           break;
         case "insertAppPublicKey":
           param = {
             from: adminTestWallet.address,
             applicationId,
-            publicKey: `0x${Buffer.from(
-              `another public key - ${new Date().toISOString()}`
-            ).toString("hex")}`,
+            publicKey: `0x${publicKeyBuffer.toString("hex")}`,
             status: 3,
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
@@ -700,7 +676,7 @@ describe("Apps (e2e)", () => {
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
-        .auth(testUserAccessToken, { type: "bearer" })
+        .auth(adminUserAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method,
@@ -720,7 +696,7 @@ describe("Apps (e2e)", () => {
 
       const responseSend: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
-        .auth(testUserAccessToken, { type: "bearer" })
+        .auth(adminUserAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method: "sendSignedTransaction",
@@ -746,7 +722,7 @@ describe("Apps (e2e)", () => {
 
       // wait to be mined
       const receipt = await waitToBeMined(
-        ledgerService,
+        besuRpcNode,
         responseSend.body.result as string
       );
       expect(receipt.status).toBe(1);
@@ -756,25 +732,25 @@ describe("Apps (e2e)", () => {
         case "insertApp": {
           // get app
           const appResponse: SupertestAppsResponse = await request(server).get(
-            `/apps?name=${newApp.name}`
+            `/apps/${newApp.name}`
           );
-          expect(appResponse.body.items).toHaveLength(1);
+          expect(appResponse.body).toBeDefined();
           expect(appResponse.status).toBe(200);
           break;
         }
         case "insertAuthorization": {
           // get Authorization
-          const appResponse: SupertestAppsResponse = await request(server).get(
-            `/apps?name=${newApp.name}`
-          );
-          const appId = appResponse.body.items[0].id;
+          const appResponse = await request(server).get(`/apps/${newApp.name}`);
+          const applicationName = (appResponse.body as AppResponseObject).name;
+          const appId = (appResponse.body as AppResponseObject).applicationId;
+
           const authsResponse: SupertestAuthorizationsResponse = await request(
             server
-          ).get(`/apps/${appId}/authorizations`);
+          ).get(`/apps/${applicationName}/authorizations`);
           const { authorizationId, requesterApplicationName } =
             authsResponse.body.items[0];
           const response = await request(server).get(
-            `/apps/${appId}/authorizations/${authorizationId}`
+            `/apps/${applicationName}/authorizations/${authorizationId}`
           );
           expect(response.body).toStrictEqual({
             authorizationId,
@@ -796,11 +772,109 @@ describe("Apps (e2e)", () => {
           expect(response.status).toBe(200);
           break;
         }
+        case "insertRevocation": {
+          const response: SupertestAppResponse = await request(server).get(
+            `/apps/${newApp.name}`
+          );
+
+          expect(response.body).toStrictEqual({
+            applicationId: response.body.applicationId,
+            name: response.body.name,
+            domain: expect.any(String) as string,
+            administrators: expect.arrayContaining([]) as string[],
+            authorizations: expect.arrayContaining(
+              []
+            ) as AuthorizationResponseObject[],
+            info: expect.any(Object) as { [x: string]: unknown },
+            publicKeys: expect.arrayContaining([]) as string[],
+            revocation: {
+              revokedBy: didAppAdmin,
+              notBefore: expect.any(Number) as number,
+            },
+          });
+          expect(response.status).toBe(200);
+          break;
+        }
         default:
           expect(1).toBe(1);
           expect(1).toBe(1);
           break;
       }
     });
+  });
+
+  it("should revert the transaction if the sender has not the right attribute in TPR", async () => {
+    expect.assertions(2);
+
+    const randomApp = {
+      name: `test-app-${new Date().toISOString()}`,
+      domain: 1,
+      appAdministrator: EbsiWallet.createDid(),
+    };
+
+    const param = {
+      from: userTestWallet.address,
+      ...randomApp,
+    } as InsertAppParam;
+
+    const method = "insertApp";
+    const responseBuild: SupertestJsonRpcResponse = await request(server)
+      .post("/jsonrpc")
+      .auth(userAccessToken, { type: "bearer" })
+      .send({
+        jsonrpc: "2.0",
+        method,
+        params: [param],
+        id: 231,
+      });
+
+    const unsignedTransaction = responseBuild.body.result;
+    const uTx = formatEthersUnsignedTransaction(
+      JSON.parse(
+        JSON.stringify(unsignedTransaction)
+      ) as unknown as UnsignedTransaction
+    );
+    uTx.chainId = Number(uTx.chainId);
+    const sgnTx = await userTestWallet.signTransaction(uTx);
+    const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+    const responseSend: SupertestJsonRpcResponse = await request(server)
+      .post("/jsonrpc")
+      .auth(userAccessToken, { type: "bearer" })
+      .send({
+        jsonrpc: "2.0",
+        method: "sendSignedTransaction",
+        params: [
+          {
+            protocol: "eth",
+            unsignedTransaction,
+            r,
+            s,
+            v: `0x${Number(v).toString(16)}`,
+            signedRawTransaction: sgnTx,
+          },
+        ],
+        id: "45",
+      });
+    // wait to be mined
+    const receipt = await waitToBeMined(
+      besuRpcNode,
+      responseSend.body.result as string
+    );
+    expect(receipt.status).toBe(0);
+    receipt.revertReason = Buffer.from(
+      (receipt.revertReason ?? "").slice(2),
+      "hex"
+    )
+      .toString()
+      .replace(/[^a-zA-Z:' ]/g, "");
+    expect(receipt).toStrictEqual(
+      expect.objectContaining({
+        status: 0,
+        revertReason: expect.stringContaining(
+          `Policy error: sender doesn't have the attribute TAR:insertApp`
+        ) as string,
+      })
+    );
   });
 });

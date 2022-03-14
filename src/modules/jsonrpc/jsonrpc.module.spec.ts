@@ -27,8 +27,6 @@ import {
   InsertAppParam,
   InsertAppInfoParam,
   InsertAppAdministratorParam,
-  InsertAdministratorParam,
-  UpdateAdministratorParam,
   InsertRevocationParam,
   InsertAuthorizationParam,
   UpdateAuthorizationParam,
@@ -39,7 +37,6 @@ import {
   UpdateAppPublicKeyParam,
 } from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
-import { AttributeObject } from "../administrators/administrators.interface";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { Tar, Tar__factory } from "../../contracts";
 import { setupTestEnv } from "../../../tests/utils/tar";
@@ -57,8 +54,6 @@ type JsonRpcParams =
   | InsertAppParam
   | InsertAppInfoParam
   | InsertAppAdministratorParam
-  | InsertAdministratorParam
-  | UpdateAdministratorParam
   | InsertRevocationParam
   | InsertAuthorizationParam
   | UpdateAuthorizationParam
@@ -83,26 +78,6 @@ describe("JsonRpc Module", () => {
   let defaultSignerSiopAccessToken: string;
   let defaultSignerSiopAccessTokenPayload: { [x: string]: unknown };
 
-  const createAdministrator = (did: string) => {
-    const json = {
-      any: "Any attribute here",
-      type: "credential",
-      data: crypto.randomBytes(16).toString("hex"),
-      validFrom: new Date().toISOString(),
-      validTo: new Date(Date.now() + 4e8).toISOString(),
-    };
-    const data = Buffer.from(JSON.stringify(json));
-    const dataBase64 = data.toString("base64");
-    const dataHash = ethers.utils.sha256(data).slice(2);
-    const attribute: AttributeObject = {
-      body: dataBase64,
-      hash: dataHash,
-    };
-    const attributeData = `0x${data.toString("hex")}`;
-
-    return { did, attribute, attributeData };
-  };
-
   function createPolicy() {
     const policyId = `policy-test-${crypto.randomBytes(16).toString("hex")}`;
     const json = {
@@ -120,21 +95,16 @@ describe("JsonRpc Module", () => {
   }
 
   const adminDid = EbsiWallet.createDid();
-  const adminV1 = createAdministrator(adminDid);
-  const adminV2 = createAdministrator(adminDid);
-  const adminV3 = createAdministrator(adminDid);
 
   const policy1 = createPolicy();
   const policy2 = createPolicy();
   const policy3 = createPolicy();
 
   const appAdmin1 = EbsiWallet.createDid();
-  const appAdmin2 = EbsiWallet.createDid();
 
   beforeAll(async () => {
     // Spin up test blockchain (ganache)
     testEnv = await setupTestEnv({
-      administratorsTotal: 1,
       policiesTotal: 0,
       policiesRevisionsTotal: 0,
       appsTotal: 2, // create 2 random apps
@@ -182,7 +152,7 @@ describe("JsonRpc Module", () => {
     });
 
     defaultSignerSiopAccessTokenPayload = {
-      sub: testEnv.administrators[0].did,
+      sub: testEnv.user.did,
     };
     defaultSignerSiopAccessToken = await createJWT(
       defaultSignerSiopAccessTokenPayload,
@@ -302,9 +272,7 @@ describe("JsonRpc Module", () => {
     const transaction = {
       from: wallet.address,
       to: tarContract.address,
-      data: tarContract.interface.encodeFunctionData("getAdministrator", [
-        "did",
-      ]),
+      data: tarContract.interface.encodeFunctionData("getAppByName", ["myapp"]),
       value: "0x00",
       nonce: "0x00",
       chainId: "0x1b3b",
@@ -352,89 +320,6 @@ describe("JsonRpc Module", () => {
     expect(responseSend.status).toBe(400);
   });
 
-  it("should throw an error when the sender of a transaction is not in the TAR", async () => {
-    expect.assertions(3);
-
-    // Mock access token verification
-    jest
-      .spyOn(SiopSession.prototype, "verifyAccessToken")
-      .mockImplementation(async () => Promise.resolve(userAccessTokenPayload));
-
-    const wallet = ethers.Wallet.createRandom();
-
-    const data = Buffer.from(
-      JSON.stringify({
-        "@context": {
-          name: { "@id": "http://tar-api-test.org/name", "@type": "@id" },
-          description: "http://tar-api-test.org/description",
-        },
-        name: "alice",
-        validFrom: new Date().toISOString(),
-      })
-    );
-    const attributeData = `0x${data.toString("hex")}`;
-
-    const responseBuild: SupertestJsonRpcResponse = await request(server)
-      .post("/jsonrpc")
-      .auth(userAccessToken, { type: "bearer" })
-      .send({
-        jsonrpc: "2.0",
-        method: "insertAdministrator",
-        params: [
-          {
-            from: wallet.address, // this address is not in the TAR
-            did: EbsiWallet.createDid(),
-            attributeData,
-          },
-        ],
-        id: 231,
-      });
-
-    expect(responseBuild.status).toBe(200);
-
-    const transaction = responseBuild.body.result as UnsignedTransaction;
-
-    const uTx = formatEthersUnsignedTransaction(
-      JSON.parse(JSON.stringify(transaction)) as unknown as UnsignedTransaction
-    );
-
-    uTx.chainId = Number(uTx.chainId);
-
-    const sgnTx = await wallet.signTransaction(uTx);
-    const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
-
-    const responseSend = await request(server)
-      .post("/jsonrpc")
-      .auth(userAccessToken, { type: "bearer" })
-      .send({
-        jsonrpc: "2.0",
-        method: "sendSignedTransaction",
-        params: [
-          {
-            protocol: "eth",
-            unsignedTransaction: transaction,
-            r,
-            s,
-            v: `0x${Number(v).toString(16)}`,
-            signedRawTransaction: sgnTx,
-          },
-        ],
-        id: "45",
-      });
-
-    expect(responseSend.body).toStrictEqual({
-      jsonrpc: "2.0",
-      id: "45",
-      error: {
-        code: -32600,
-        message: expect.stringContaining(
-          `${adminDid} is not an administrator`
-        ) as string,
-      },
-    });
-    expect(responseSend.status).toBe(400);
-  });
-
   it("should throw an Invalid Request error for bad method", async () => {
     expect.assertions(2);
 
@@ -468,16 +353,14 @@ describe("JsonRpc Module", () => {
 
   it("should throw an error if the signer doesn't control the DID", async () => {
     expect.assertions(4);
-
-    const { did } = adminV1;
-
     const signer = ethers.Wallet.createRandom();
 
-    const param: JsonRpcParams = {
-      attributeData: adminV1.attributeData,
-      did,
+    const param = {
       from: signer.address,
-    } as InsertAdministratorParam;
+      name: "App1",
+      domain: 0,
+      appAdministrator: appAdmin1,
+    } as InsertAppParam;
 
     // Mock access token verification
     jest
@@ -496,7 +379,7 @@ describe("JsonRpc Module", () => {
       .auth(defaultSignerSiopAccessToken, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
-        method: "insertAdministrator",
+        method: "insertApp",
         params: [param],
         id: 231,
       });
@@ -549,7 +432,7 @@ describe("JsonRpc Module", () => {
     expect(responseSend.body).toStrictEqual({
       error: {
         code: -32600,
-        message: `The DID ${testEnv.administrators[0].did} is not controlled by the address ${signer.address}`,
+        message: `The DID ${testEnv.user.did} is not controlled by the address ${signer.address}`,
       },
       id: "45",
       jsonrpc: "2.0",
@@ -560,22 +443,18 @@ describe("JsonRpc Module", () => {
   // Tests to be repeated for every method
   describe.each([
     "insertApp",
+    "insertAppPublicKey",
+    "updateAppPublicKey",
     "insertAppAdministrator",
     "deleteAppAdministrator",
     "insertAppInfo",
-    "insertAdministrator",
-    "updateAdministrator",
-    "updateAdministrator(test update attribute)",
     "updateApp",
     "insertRevocation",
     "insertAuthorization",
     "updateAuthorization",
-    "insertAppPublicKey",
-    "updateAppPublicKey",
     "insertPolicy",
     "updatePolicy",
   ])("/jsonrpc with method %s", (testMethod: string) => {
-    const updateAttribute = testMethod.includes("(test update attribute)");
     const method = testMethod.replace("(test update attribute)", "");
 
     it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction", async () => {
@@ -588,11 +467,12 @@ describe("JsonRpc Module", () => {
           Promise.resolve(defaultSignerSiopAccessTokenPayload)
         );
 
-      const { did } = adminV1;
       let param: JsonRpcParams = null;
 
-      const signer = testEnv.administrators[0].wallet;
+      const signer = testEnv.user.wallet;
 
+      const name = "my-app1";
+      const applicationId = ethers.utils.sha256(ethers.utils.toUtf8Bytes(name));
       const appPublicKey = "this is a public key";
       const publickeyBytes = Buffer.from(appPublicKey, "utf8");
       const publicKeyId = ethers.utils.sha256(publickeyBytes);
@@ -624,13 +504,9 @@ describe("JsonRpc Module", () => {
           // insert a new app
           param = {
             from: signer.address,
-            name: "App1",
+            name,
             domain: 0,
             appAdministrator: appAdmin1,
-            publicKey: publicKeyHex,
-            status: 1,
-            notBefore: Date.now(),
-            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as InsertAppParam;
           break;
         }
@@ -638,59 +514,30 @@ describe("JsonRpc Module", () => {
           // insert administrator to an app
           param = {
             from: signer.address,
-            applicationId: publicKeyId,
-            administratorId: appAdmin2,
+            applicationId,
+            administratorId: appAdmin1,
           } as InsertAppAdministratorParam;
           break;
         case "deleteAppAdministrator":
           // delete administrator from an app
           param = {
             from: signer.address,
-            applicationId: publicKeyId,
-            administratorId: appAdmin2,
+            applicationId,
+            administratorId: appAdmin1,
           } as DeleteAppAdministratorParam;
           break;
         case "insertAppInfo":
           // insert info to an app
           param = {
             from: signer.address,
-            applicationId: publicKeyId,
+            applicationId,
             info: appInfoHex,
           } as InsertAppInfoParam;
           break;
-        case "insertAdministrator": {
-          // create a new administrator and add attribute1
-          param = {
-            attributeData: adminV1.attributeData,
-            did,
-            from: signer.address,
-          } as InsertAdministratorParam;
-          break;
-        }
-        case "updateAdministrator": {
-          if (updateAttribute) {
-            // update attribute1: change it to attribute3
-            param = {
-              attributeData: adminV3.attributeData,
-              did,
-              from: signer.address,
-              prevAttributeHash: adminV1.attribute.hash,
-            } as UpdateAdministratorParam;
-          } else {
-            // updateIssuer: add attribute2
-            param = {
-              attributeData: adminV2.attributeData,
-              did,
-              from: signer.address,
-            } as UpdateAdministratorParam;
-          }
-          break;
-        }
         case "updateApp": {
           param = {
             from: signer.address,
-            applicationId: publicKeyId,
-            name: "App1-v2",
+            applicationId,
             domain: 0,
           } as UpdateAppParam;
           break;
@@ -699,9 +546,7 @@ describe("JsonRpc Module", () => {
           param = {
             from: signer.address,
             // The applicationId is derived from the app public key
-            applicationId: ethers.utils.sha256(
-              Buffer.from(appPublicKey, "utf8")
-            ),
+            applicationId,
             revokedBy: appAdmin1,
             notBefore: Date.now() + 10000000,
           } as InsertRevocationParam;
@@ -720,8 +565,8 @@ describe("JsonRpc Module", () => {
             await ledgerService
               .getContract()
               .getAuthorizations(
-                ethers.utils.sha256(Buffer.from(apps[0].publicKey, "utf8")),
-                ethers.utils.sha256(Buffer.from(apps[1].publicKey, "utf8")),
+                ethers.utils.sha256(Buffer.from(apps[0].name, "utf8")),
+                ethers.utils.sha256(Buffer.from(apps[1].name, "utf8")),
                 1,
                 10
               )
@@ -739,8 +584,8 @@ describe("JsonRpc Module", () => {
         case "insertAppPublicKey": {
           param = {
             from: signer.address,
-            applicationId: publicKeyId,
-            publicKey: `0x${crypto.randomBytes(12).toString("hex")}`,
+            applicationId,
+            publicKey: publicKeyHex,
             status: 1,
             notBefore: Date.now(),
             notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
@@ -849,7 +694,7 @@ describe("JsonRpc Module", () => {
           Promise.resolve(defaultSignerSiopAccessTokenPayload)
         );
 
-      const signer = testEnv.administrators[0].wallet;
+      const signer = testEnv.user.wallet;
       const appPublicKey = "this is a public key";
 
       // Get pre-existing apps
@@ -876,10 +721,6 @@ describe("JsonRpc Module", () => {
             name: "App1",
             domain: 0,
             appAdministrator: appAdmin1,
-            publicKey: publicKeyHex,
-            status: 1,
-            notBefore: Date.now(),
-            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as InsertAppParam;
           break;
         }
@@ -888,7 +729,7 @@ describe("JsonRpc Module", () => {
           param = {
             from: signer.address,
             applicationId: publicKeyId,
-            administratorId: appAdmin2,
+            administratorId: appAdmin1,
           } as InsertAppAdministratorParam;
           break;
         case "deleteAppAdministrator":
@@ -896,7 +737,7 @@ describe("JsonRpc Module", () => {
           param = {
             from: signer.address,
             applicationId: publicKeyId,
-            administratorId: appAdmin2,
+            administratorId: appAdmin1,
           } as DeleteAppAdministratorParam;
           break;
         case "insertAppInfo":
@@ -907,16 +748,6 @@ describe("JsonRpc Module", () => {
             info: appInfoHex,
           } as InsertAppInfoParam;
           break;
-        case "insertAdministrator":
-        case "updateAdministrator": {
-          // create a new administrator and add attribute1
-          param = {
-            attributeData: adminV1.attributeData,
-            did: adminV1.did,
-            from: signer.address,
-          } as InsertAdministratorParam;
-          break;
-        }
         case "insertPolicy":
         case "updatePolicy": {
           param = {
@@ -1021,7 +852,7 @@ describe("JsonRpc Module", () => {
           Promise.resolve(defaultSignerSiopAccessTokenPayload)
         );
 
-      const signer = testEnv.administrators[0].wallet;
+      const signer = testEnv.user.wallet;
 
       let param1: JsonRpcParams = null;
       let param2: JsonRpcParams = null;
@@ -1051,10 +882,6 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             domain: 0,
             appAdministrator: appAdmin1,
-            publicKey: publicKeyHex,
-            status: 2,
-            notBefore: Date.now(),
-            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as InsertAppParam;
 
           expectedErrorMessage1 =
@@ -1065,10 +892,6 @@ describe("JsonRpc Module", () => {
             name: "App1",
             domain: 45,
             appAdministrator: appAdmin1,
-            publicKey: publicKeyHex,
-            status: 2,
-            notBefore: Date.now(),
-            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as unknown as InsertAppParam;
 
           expectedErrorMessage2 =
@@ -1078,14 +901,10 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             name: "App1",
             domain: 0,
-            appAdministrator: appAdmin1,
-            publicKey: appPublicKey,
-            status: 1,
-            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as InsertAppParam;
 
           expectedErrorMessage3 =
-            "property params[0].notBefore has failed the following constraints: min, isInt";
+            "property params[0].appAdministrator has failed the following constraints: isString";
           break;
         }
         case "insertAppAdministrator":
@@ -1093,7 +912,7 @@ describe("JsonRpc Module", () => {
             applicationId: ethers.utils.sha256(
               Buffer.from(appPublicKey, "utf8")
             ),
-            administratorId: appAdmin2,
+            administratorId: appAdmin1,
           } as InsertAppAdministratorParam;
 
           expectedErrorMessage1 =
@@ -1101,7 +920,7 @@ describe("JsonRpc Module", () => {
 
           param2 = {
             from: signer.address,
-            administratorId: appAdmin2,
+            administratorId: appAdmin1,
           } as InsertAppAdministratorParam;
 
           expectedErrorMessage2 =
@@ -1123,7 +942,7 @@ describe("JsonRpc Module", () => {
             applicationId: ethers.utils.sha256(
               Buffer.from(appPublicKey, "utf8")
             ),
-            administratorId: appAdmin2,
+            administratorId: appAdmin1,
           } as DeleteAppAdministratorParam;
 
           expectedErrorMessage1 =
@@ -1131,7 +950,7 @@ describe("JsonRpc Module", () => {
 
           param2 = {
             from: signer.address,
-            administratorId: appAdmin2,
+            administratorId: appAdmin1,
           } as DeleteAppAdministratorParam;
 
           expectedErrorMessage2 =
@@ -1179,46 +998,16 @@ describe("JsonRpc Module", () => {
           expectedErrorMessage3 =
             "property params[0].info has failed the following constraints: isHexadecimal";
           break;
-        case "insertAdministrator":
-        case "updateAdministrator": {
-          param1 = {
-            did: adminV1.did,
-            from: signer.address,
-          } as InsertAdministratorParam;
-
-          expectedErrorMessage1 =
-            "property params[0].attributeData has failed the following constraints: isHexadecimal";
-
-          param2 = {
-            from: signer.address,
-            attributeData: adminV1.attributeData,
-          } as InsertAdministratorParam;
-
-          expectedErrorMessage2 =
-            "property params[0].did has failed the following constraints: isDid";
-
-          param3 = {
-            did: adminV1.did,
-            attributeData: adminV1.attributeData,
-            from: "bad address",
-          } as InsertAdministratorParam;
-
-          expectedErrorMessage3 =
-            "property params[0].from has failed the following constraints: isEthereumAddress";
-          break;
-        }
         case "updateApp":
           param1 = {
             from: signer.address,
             applicationId:
               "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
-            name: "new-name",
             domain: 45,
-          } as unknown as UpdateAppParam;
+          } as UpdateAppParam;
 
           param2 = {
             from: signer.address,
-            name: "new-name",
             domain: 0,
           } as UpdateAppParam;
 
@@ -1226,15 +1015,15 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             applicationId:
               "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
-            domain: 0,
-          } as UpdateAppParam;
+            domain: "0",
+          } as unknown as UpdateAppParam;
 
           expectedErrorMessage1 =
             "property params[0].domain has failed the following constraints: max";
           expectedErrorMessage2 =
             "property params[0].applicationId has failed the following constraints: isHexadecimal";
           expectedErrorMessage3 =
-            "property params[0].name has failed the following constraints: isString";
+            "property params[0].domain has failed the following constraints: max, min, isInt";
 
           break;
         case "insertRevocation": {
@@ -1530,7 +1319,7 @@ describe("JsonRpc Module", () => {
           Promise.resolve(defaultSignerSiopAccessTokenPayload)
         );
 
-      const signer = testEnv.administrators[0].wallet;
+      const signer = testEnv.user.wallet;
 
       let param1: JsonRpcParams;
       let param2: JsonRpcParams;
@@ -1556,10 +1345,6 @@ describe("JsonRpc Module", () => {
             name: "App1",
             domain: 0,
             appAdministrator: appAdmin1,
-            publicKey: publicKeyHex,
-            status: 1,
-            notBefore: Date.now(),
-            notAfter: Date.now() + 365 * 24 * 60 * 60 * 1000,
           } as InsertAppParam;
           param2 = {
             from: signer.address,
@@ -1579,7 +1364,7 @@ describe("JsonRpc Module", () => {
             applicationId: ethers.utils.sha256(
               Buffer.from(appPublicKey, "utf8")
             ),
-            administratorId: appAdmin2,
+            administratorId: appAdmin1,
           } as InsertAppAdministratorParam;
           param2 = {
             from: signer.address,
@@ -1595,7 +1380,7 @@ describe("JsonRpc Module", () => {
             applicationId: ethers.utils.sha256(
               Buffer.from(appPublicKey, "utf8")
             ),
-            administratorId: appAdmin2,
+            administratorId: appAdmin1,
           } as DeleteAppAdministratorParam;
           param2 = {
             from: signer.address,
@@ -1619,18 +1404,6 @@ describe("JsonRpc Module", () => {
             info: appInfoHex,
           } as InsertAppInfoParam;
           break;
-        case "insertAdministrator":
-        case "updateAdministrator": {
-          param1 = {
-            ...adminV1,
-            from: signer.address,
-          } as InsertAdministratorParam;
-          param2 = {
-            ...adminV2,
-            from: signer.address,
-          } as InsertAdministratorParam;
-          break;
-        }
         case "insertRevocation": {
           param1 = {
             from: signer.address,
@@ -1655,7 +1428,6 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             applicationId:
               "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
-            name: "App1-v2",
             domain: 0,
           } as UpdateAppParam;
 
@@ -1663,8 +1435,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             applicationId:
               "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3",
-            name: "App1-v2.1",
-            domain: 0,
+            domain: 1,
           } as UpdateAppParam;
           break;
         }

@@ -12,7 +12,7 @@ export const options = {
 };
 
 export default function loadTesting() {
-  const pathname = "/trusted-apps-registry/v2/apps";
+  const pathname = "/trusted-apps-registry/v3/apps";
 
   group(pathname, () => {
     const url = `${BASE_URL}${pathname}`;
