@@ -20,8 +20,6 @@ paths:
       description: Returns a list of policies registered in the blockchain.
       tags:
         - Policies
-      security:
-        - bearerAuth: []
       responses:
         "200":
           description: Success
@@ -173,8 +171,6 @@ paths:
       description: Returns a list of users registered in the registry.
       tags:
         - Users
-      security:
-        - bearerAuth: []
       responses:
         "200":
           description: Success
