@@ -22,46 +22,53 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
       Pagination: pagination.address,
     },
   };
-  const didTimestampLib = await deployments.deploy(
-    "DidTimestampLib",
-    optsPagination
-  );
+  const didTimestampLib = await deployments.deploy("DidTimestampLib", {
+    ...optsPagination,
+    contract:
+      "contracts/did-registry-ethereum-sc/contracts/did-registry/DidTimestampLib.sol:DidTimestampLib",
+  });
   const didRecordLib = await deployments.deploy("DidRecordLib", {
     from: deployer,
     log: true,
+    contract:
+      "contracts/did-registry-ethereum-sc/contracts/did-registry/DidRecordLib.sol:DidRecordLib",
     libraries: {
       Pagination: pagination.address,
       DidTimestampLib: didTimestampLib.address,
     },
   });
-  const didMethodLib = await deployments.deploy("DidMethodLib", optsPagination);
+  const didMethodLib = await deployments.deploy("DidMethodLib", {
+    ...optsPagination,
+    contract:
+      "contracts/did-registry-ethereum-sc/contracts/did-registry/DidMethodLib.sol:DidMethodLib",
+  });
+
+  const didPolicyLib = await deployments.deploy("DidPolicyLib", {
+    ...opts,
+    contract:
+      "contracts/did-registry-ethereum-sc/contracts/did-registry/DidPolicyLib.sol:DidPolicyLib",
+    libraries: {
+      Pagination: pagination.address,
+    },
+  });
 
   const hashAlgoLib = await deployments.deploy("HashAlgoLib", {
     ...optsPagination,
     contract:
       "contracts/did-registry-ethereum-sc/contracts/did-registry/HashAlgoLib.sol:HashAlgoLib",
   });
-  const policyLib = await deployments.deploy("PolicyLib", {
-    ...optsPagination,
-    contract:
-      "contracts/did-registry-ethereum-sc/contracts/did-registry/PolicyLib.sol:PolicyLib",
-  });
-  const administratorLib = await deployments.deploy("AdministratorLib", {
-    ...optsPagination,
-    contract:
-      "contracts/did-registry-ethereum-sc/contracts/did-registry/AdministratorLib.sol:AdministratorLib",
-  });
 
   const ts = await deployments.deploy("DidRegistry", {
     from: deployer,
+    contract:
+      "contracts/did-registry-ethereum-sc/contracts/did-registry/DidRegistry.sol:DidRegistry",
     libraries: {
       DidRecordLib: didRecordLib.address,
       DidMethodLib: didMethodLib.address,
-      PolicyLib: policyLib.address,
-      AdministratorLib: administratorLib.address,
       HashAlgoLib: hashAlgoLib.address,
       DidTimestampLib: didTimestampLib.address,
       Pagination: pagination.address,
+      DidPolicyLib: didPolicyLib.address,
     },
     log: true,
   });

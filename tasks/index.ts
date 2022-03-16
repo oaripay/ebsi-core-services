@@ -14,3 +14,4 @@ import "./addHashAlgo";
 import "./fixTarStatus";
 import "./insertTSRSchema";
 import "./updateTSRSchema";
+import "./updateDIDDocument";

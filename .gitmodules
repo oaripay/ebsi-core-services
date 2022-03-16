@@ -1,40 +1,44 @@
 [submodule "contracts/proxy-ethereum-sc"]
 	path = contracts/proxy-ethereum-sc
-	url = https://ec.europa.eu/cefdigital/code/scm/ebsi/proxy-ethereum-sc.git
+	url = https://ec.europa.eu/digital-building-blocks/code/scm/ebsi/proxy-ethereum-sc.git
   branch = develop
 [submodule "contracts/timestamp-ethereum-sc"]
 	path = contracts/timestamp-ethereum-sc
-	url = https://ec.europa.eu/cefdigital/code/scm/ebsi/timestamp-ethereum-sc.git
+	url = https://ec.europa.eu/digital-building-blocks/code/scm/ebsi/timestamp-ethereum-sc.git
   branch = develop
 [submodule "contracts/trusted-apps-registry-ethereum-sc"]
 	path = contracts/trusted-apps-registry-ethereum-sc
-	url = https://ec.europa.eu/cefdigital/code/scm/ebsi/trusted-apps-registry-ethereum-sc.git
+	url = https://ec.europa.eu/digital-building-blocks/code/scm/ebsi/trusted-apps-registry-ethereum-sc.git
 	branch = develop
 [submodule "contracts/trusted-issuers-registry-ethereum-sc"]
 	path = contracts/trusted-issuers-registry-ethereum-sc
-	url = https://ec.europa.eu/cefdigital/code/scm/ebsi/trusted-issuers-registry-ethereum-sc.git
+	url = https://ec.europa.eu/digital-building-blocks/code/scm/ebsi/trusted-issuers-registry-ethereum-sc.git
 	branch = develop
 [submodule "contracts/trusted-schemas-registry-ethereum-sc"]
 	path = contracts/trusted-schemas-registry-ethereum-sc
-	url = https://ec.europa.eu/cefdigital/code/scm/ebsi/trusted-schemas-registry-ethereum-sc.git
+	url = https://ec.europa.eu/digital-building-blocks/code/scm/ebsi/trusted-schemas-registry-ethereum-sc.git
 	branch = develop
 [submodule "contracts/trusted-sc-registry-ethereum-sc"]
 	path = contracts/trusted-sc-registry-ethereum-sc
-	url = https://ec.europa.eu/cefdigital/code/scm/ebsi/trusted-sc-registry-ethereum-sc.git
+	url = https://ec.europa.eu/digital-building-blocks/code/scm/ebsi/trusted-sc-registry-ethereum-sc.git
 	branch = develop
 [submodule "contracts/bootstrap-ethereum-sc"]
 	path = contracts/bootstrap-ethereum-sc
-	url = https://ec.europa.eu/cefdigital/code/scm/ebsi/bootstrap-ethereum-sc
+	url = https://ec.europa.eu/digital-building-blocks/code/scm/ebsi/bootstrap-ethereum-sc
 	branch = main
 [submodule "contracts/trusted-ledgers-sc-registry-ethereum-sc"]
 	path = contracts/trusted-ledgers-sc-registry-ethereum-sc
-	url = https://ec.europa.eu/cefdigital/code/scm/ebsi/trusted-ledgers-sc-registry-ethereum-sc
+	url = https://ec.europa.eu/digital-building-blocks/code/scm/ebsi/trusted-ledgers-sc-registry-ethereum-sc
 	branch = develop
 [submodule "contracts/did-registry-ethereum-sc"]
 	path = contracts/did-registry-ethereum-sc
-	url = https://ec.europa.eu/cefdigital/code/scm/ebsi/did-registry-ethereum-sc
+	url = https://ec.europa.eu/digital-building-blocks/code/scm/ebsi/did-registry-ethereum-sc
   branch = develop
 [submodule "schemas/json-schemas"]
 	path = schemas/json-schemas
-	url = https://ec.europa.eu/cefdigital/code/scm/ebsi/json-schema
+	url = https://ec.europa.eu/digital-building-blocks/code/scm/ebsi/json-schema
   branch = Main
+[submodule "contracts/trusted-policies-registry-etehereum-sc"]
+	path = contracts/trusted-policies-registry-etehereum-sc
+	url = https://ec.europa.eu/digital-building-blocks/code/scm/ebsi/trusted-policies-registry-ethereum-sc.git
+	branch = develop

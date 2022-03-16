@@ -3,8 +3,8 @@ import { DeployFunction } from "hardhat-deploy/types";
 
 const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const { deployments, getNamedAccounts } = hre;
-  const { deployer } = await getNamedAccounts();
 
+  const { deployer } = await getNamedAccounts();
   const opts = {
     from: deployer,
     log: true,
@@ -15,15 +15,17 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
       "contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol:Pagination",
   });
 
-  await deployments.deploy("PolicyLib", {
+  const ts = await deployments.deploy("PolicyRegistry", {
     ...opts,
     contract:
-      "contracts/did-registry-ethereum-sc/contracts/did-registry/PolicyLib.sol:PolicyLib",
+      "contracts/trusted-policies-registry-etehereum-sc/contracts/trusted-policies-registry/PolicyRegistry.sol:PolicyRegistry",
     libraries: {
       Pagination: pagination.address,
     },
   });
+
+  deployments.log("Trusted Schema Registry deployed at:", ts.address);
 };
 export default func;
-func.tags = ["PolicyLib"];
+func.tags = ["PolicyRegistry"];
 func.dependencies = ["Pagination"];
