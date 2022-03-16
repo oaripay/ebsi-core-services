@@ -26,23 +26,18 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const appLib = await deployments.deploy("AppLib", optsPagination);
   const authLib = await deployments.deploy("AuthLib", opts);
   const revocationLib = await deployments.deploy("RevocationLib", opts);
-  const policyLib = await deployments.deploy("PolicyLib", {
+  const TarPolicyLib = await deployments.deploy("TarPolicyLib", {
     ...optsPagination,
     contract:
-      "contracts/trusted-apps-registry-ethereum-sc/contracts/tar/PolicyLib.sol:PolicyLib",
+      "contracts/trusted-apps-registry-ethereum-sc/contracts/tar/TarPolicyLib.sol:TarPolicyLib",
   });
-  const adminLib = await deployments.deploy(
-    "contracts/trusted-apps-registry-ethereum-sc/contracts/tar/AdminLib.sol:AdminLib",
-    optsPagination
-  );
 
   const ts = await deployments.deploy("Tar", {
     from: deployer,
     libraries: {
       AppLib: appLib.address,
       AuthLib: authLib.address,
-      PolicyLib: policyLib.address,
-      AdminLib: adminLib.address,
+      TarPolicyLib: TarPolicyLib.address,
       RevocationLib: revocationLib.address,
     },
     log: true,
