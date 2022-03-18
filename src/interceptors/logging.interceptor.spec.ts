@@ -8,14 +8,25 @@ import {
 import { HttpService } from "@nestjs/axios";
 import { ethers } from "ethers";
 import type { FastifyInstance } from "fastify";
-import { Session as SiopSession } from "@cef-ebsi/siop-auth";
 import type { JWTDecoded } from "did-jwt/lib/JWT";
 import didJwt from "did-jwt";
 import { of } from "rxjs";
+import { JWTVerifyResult } from "jose";
 import { AppModule } from "../app.module";
 import { AllExceptionsFilter } from "../filters/http-exception.filter";
 
 jest.setTimeout(60000);
+
+// Mock access token verification
+jest.mock("@cef-ebsi/siop-auth", () => ({
+  verifyJwtTar: jest.fn().mockImplementationOnce(async () => {
+    return Promise.resolve({
+      payload: {
+        sub: "test",
+      },
+    } as JWTVerifyResult);
+  }),
+}));
 
 describe("Logging interceptor", () => {
   let app: INestApplication;
@@ -120,7 +131,6 @@ describe("Logging interceptor", () => {
   describe("POST /jsonrpc with bad payload", () => {
     it("should log the request and response", async () => {
       expect.assertions(2);
-
       const decodedToken: Partial<JWTDecoded> = {
         payload: {
           login_hint: "did_siop",
@@ -133,11 +143,6 @@ describe("Logging interceptor", () => {
 
       const token =
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
-
-      // Mock access token verification
-      jest
-        .spyOn(SiopSession.prototype, "verifyAccessToken")
-        .mockImplementation(async () => Promise.resolve({}));
 
       await request(app.getHttpServer())
         .post("/jsonrpc")

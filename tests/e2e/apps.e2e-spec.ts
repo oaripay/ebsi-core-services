@@ -146,23 +146,22 @@ describe("Apps (e2e)", () => {
     );
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
-    // Generate a valid Client JWT (SIOP) for the tests
-    const didRegistry = `${configService.get<string>(
-      "didRegistryApiUrl"
-    )}/identifiers`;
-
     adminUserAccessToken = await requestSiopJwt({
-      didRegistry,
       clientDid: configService.get<string>("testAdminDid"),
       clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+      trustedAppsRegistryUrl: configService.get<string>(
+        "trustedAppsRegistryUrl"
+      ),
     });
 
     userAccessToken = await requestSiopJwt({
-      didRegistry,
       clientDid: configService.get<string>("testUserDid"),
       clientPrivateKey: configService.get<string>("testUserPrivateKey"),
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+      trustedAppsRegistryUrl: configService.get<string>(
+        "trustedAppsRegistryUrl"
+      ),
     });
     didAppAdmin = configService.get<string>("testAdminDid");
     besuRpcNode = configService.get("besuRpcNode");

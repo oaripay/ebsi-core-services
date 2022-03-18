@@ -104,10 +104,10 @@ paths:
                     items:
                       - id: "0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909"
                         name: test-app-1
-                        href: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909
+                        href: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps/test-app-1
                       - id: "0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854"
                         name: test-app-2
-                        href: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps/0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854
+                        href: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps/test-app-2
                     total: 124
                     pageSize: 2
                     links:

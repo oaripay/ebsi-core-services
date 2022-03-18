@@ -1,29 +1,19 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JWTPayload } from "did-jwt";
-import { Session as SiopSession } from "@cef-ebsi/siop-auth";
+import { verifyJwtTar } from "@cef-ebsi/siop-auth";
 import { UnauthorizedError } from "@cef-ebsi/problem-details-errors";
 import { ClientInfo } from "./auth.interface";
 import { ApiConfig } from "../../config/configuration";
 
 @Injectable()
 export class AuthService {
-  private authorisationApiDid: string;
-
-  private didRegistry: string;
-
-  private siopSession: SiopSession;
+  private tarAppsRegistry: string;
 
   constructor(configService: ConfigService<ApiConfig>) {
-    this.authorisationApiDid = configService.get<string>("authorisationApiDid");
-
-    this.didRegistry = `${configService.get<string>(
-      "didRegistryApiUrl"
-    )}/identifiers`;
-
-    this.siopSession = new SiopSession({
-      didRegistry: this.didRegistry,
-    });
+    this.tarAppsRegistry = `${configService.get<string>(
+      "trustedAppsRegistryUrl"
+    )}/apps`;
   }
 
   async validateSiopToken(bearerToken: string): Promise<ClientInfo> {
@@ -31,10 +21,11 @@ export class AuthService {
     let payload: JWTPayload;
 
     try {
-      payload = await this.siopSession.verifyAccessToken(
-        bearerToken,
-        this.authorisationApiDid
-      );
+      const verifiedJwt = await verifyJwtTar(bearerToken, {
+        trustedAppsRegistry: this.tarAppsRegistry,
+        audience: "ebsi-core-services",
+      });
+      payload = verifiedJwt.payload;
     } catch (e) {
       let message = "unkown error";
 

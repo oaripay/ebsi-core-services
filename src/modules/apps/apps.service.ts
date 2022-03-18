@@ -87,7 +87,8 @@ export default class AppsService {
 
   async getAppByName(appName: string): ReturnType<Tar["getAppByName"]> {
     try {
-      return await this.getContract().getAppByName(appName);
+      const app = await this.getContract().getAppByName(appName);
+      return app;
     } catch (e) {
       this.logger.error(e);
       throw new NotFoundError("App Not Found", {
@@ -168,7 +169,10 @@ export default class AppsService {
     applicationId: string
   ): ReturnType<Tar["getRevocation"]> {
     try {
-      return await this.getContract().getRevocation(applicationId);
+      const revocationStatus = await this.getContract().getRevocation(
+        applicationId
+      );
+      return revocationStatus;
     } catch {
       return null;
     }
@@ -359,7 +363,7 @@ export default class AppsService {
 
     const items = auths.items.map((authorizationId) => ({
       authorizationId,
-      authorizedAppName: applicationName,
+      authorizedAppName: requesterApplicationName,
     }));
     const total = auths.total.toNumber();
     return { items, total };

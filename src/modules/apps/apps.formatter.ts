@@ -20,7 +20,7 @@ export function formatApps(
   const items = apps.map((app) => ({
     id: app.applicationId,
     name: app.name,
-    href: `${baseUrl}/${app.applicationId}`,
+    href: `${baseUrl}/${encodeURIComponent(app.name)}`,
   }));
 
   return paginate<AppLink>(items, baseUrl, total, page, pageSize, extraQuery);
@@ -62,7 +62,7 @@ export function formatAuthorizations(
   const items = authorizations.map((auth) => ({
     authorizationId: auth.authorizationId,
     requesterApplicationName: auth.authorizedAppName,
-    href: `${baseUrl}/${auth.authorizationId}`,
+    href: `${baseUrl}/${encodeURIComponent(auth.authorizedAppName)}`,
   }));
 
   return paginate<AuthorizationLink>(

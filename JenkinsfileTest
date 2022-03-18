@@ -39,9 +39,6 @@ pipeline {
             }
         }
         stage('Unit tests') {
-            environment {
-                API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
-            }
             steps {
                 nodejs(nodeJSInstallationName: '16.13.0') {
                     sh 'yarn test:ci'

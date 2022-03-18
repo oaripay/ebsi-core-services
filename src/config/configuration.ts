@@ -4,15 +4,13 @@ import Joi from "joi";
 // List here all the values that will be returned by the config factory
 export interface ApiConfig {
   apiPort: number;
-  apiPrivateKey: string;
-  apiKid: string;
   apiUrlPrefix: string;
   apiName: string;
-  authorisationApiDid: string;
   authorisationApiName: string;
   authorisationApiUrl: string;
   contractAddr: string;
   didRegistryApiUrl: string;
+  trustedAppsRegistryUrl: string;
   domain: string;
   logLevel: string;
   besuRpcNode: string;
@@ -32,6 +30,8 @@ const defaultConfig = {
     LOG_LEVEL: "debug",
     AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v1",
     DID_REGISTRY_API_URL: "https://api.test.intebsi.xyz/did-registry/v2",
+    TRUSTED_APPS_REGISTRY_API_URL:
+      "https://api.test.intebsi.xyz/trusted-apps-registry/v3",
   },
   test: {
     DOMAIN: "https://api.test.intebsi.xyz",
@@ -40,6 +40,8 @@ const defaultConfig = {
     LOG_LEVEL: "info",
     AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v1",
     DID_REGISTRY_API_URL: "https://api.test.intebsi.xyz/did-registry/v2",
+    TRUSTED_APPS_REGISTRY_API_URL:
+      "https://api.test.intebsi.xyz/trusted-apps-registry/v3",
   },
   conformance: {
     DOMAIN: "https://api.conformance.intebsi.xyz",
@@ -49,6 +51,8 @@ const defaultConfig = {
     AUTHORISATION_API_URL:
       "https://api.conformance.intebsi.xyz/authorisation/v1",
     DID_REGISTRY_API_URL: "https://api.conformance.intebsi.xyz/did-registry/v2",
+    TRUSTED_APPS_REGISTRY_API_URL:
+      "https://api.conformance.intebsi.xyz/trusted-apps-registry/v3",
   },
   pilot: {
     DOMAIN: "https://api.preprod.ebsi.eu",
@@ -57,6 +61,8 @@ const defaultConfig = {
     LOG_LEVEL: "warn",
     AUTHORISATION_API_URL: "https://api.preprod.ebsi.eu/authorisation/v1",
     DID_REGISTRY_API_URL: "https://api.preprod.ebsi.eu/did-registry/v2",
+    TRUSTED_APPS_REGISTRY_API_URL:
+      "https://api.preprod.ebsi.eu/trusted-apps-registry/v3",
   },
   prod: {
     DOMAIN: "https://api.ebsi.eu",
@@ -65,6 +71,8 @@ const defaultConfig = {
     LOG_LEVEL: "error",
     AUTHORISATION_API_URL: "https://api.ebsi.eu/authorisation/v1",
     DID_REGISTRY_API_URL: "https://api.ebsi.eu/did-registry/v2",
+    TRUSTED_APPS_REGISTRY_API_URL:
+      "https://api.ebsi.eu/trusted-apps-registry/v3",
   },
 };
 
@@ -77,10 +85,8 @@ export const loadConfig = (): ApiConfig => {
   return {
     // TAR API variables
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
-    apiPrivateKey: process.env.API_PRIVATE_KEY,
     apiUrlPrefix: process.env.API_URL_PREFIX || "/trusted-apps-registry/v3",
     apiName: process.env.API_NAME || "trusted-apps-registry-api",
-    apiKid: process.env.API_KID,
     domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     externalEbsiApiHealthCheck:
@@ -92,10 +98,12 @@ export const loadConfig = (): ApiConfig => {
     // Authorisation API
     authorisationApiName:
       process.env.AUTHORISATION_API_NAME || "authorisation-api",
-    authorisationApiDid: process.env.AUTHORISATION_API_DID,
     authorisationApiUrl:
       process.env.AUTHORISATION_API_URL ||
       defaultConfig[EBSI_ENV].AUTHORISATION_API_URL,
+    trustedAppsRegistryUrl:
+      process.env.TRUSTED_APPS_REGISTRY_API_URL ||
+      defaultConfig[EBSI_ENV].TRUSTED_APPS_REGISTRY_API_URL,
     // DID Registry API
     didRegistryApiUrl:
       process.env.DID_REGISTRY_API_URL ||
@@ -126,10 +134,8 @@ export const ApiConfigModule = ConfigModule.forRoot({
       .default("development"),
     // TAR specific variables
     API_PORT: Joi.string().default("3000"),
-    API_PRIVATE_KEY: Joi.string().required(),
     API_URL_PREFIX: Joi.string(),
     API_NAME: Joi.string(),
-    API_KID: Joi.string().uri().required(),
     LOG_LEVEL: Joi.string().valid(
       "silent",
       "error",
@@ -145,7 +151,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
     CONTRACT_ADDR: Joi.string().required(),
     // Authorisation API
     AUTHORISATION_API_NAME: Joi.string(),
-    AUTHORISATION_API_DID: Joi.string().required(),
     AUTHORISATION_API_URL: Joi.string().uri(),
     // DID Registry API
     DID_REGISTRY_API_URL: Joi.string().uri(),

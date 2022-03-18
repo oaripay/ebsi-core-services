@@ -7,7 +7,6 @@ import type WebSocket from "ws";
 import { ApiConfig } from "../../config/configuration";
 import { Tar__factory } from "../../contracts/factories/Tar__factory";
 import { Tar } from "../../contracts/Tar";
-import { prefixWith0x } from "../../shared/utils";
 
 const EXPECTED_PONG_BACK = 15000;
 const KEEP_ALIVE_CHECK_INTERVAL = 7500;
@@ -97,8 +96,7 @@ export default class LedgerService implements OnModuleDestroy {
       }
     }
 
-    const ethersWallet = new ethers.Wallet(
-      prefixWith0x(this.configService.get<string>("apiPrivateKey")),
+    const ethersWallet = ethers.Wallet.createRandom().connect(
       this.ethersProvider
     );
 
