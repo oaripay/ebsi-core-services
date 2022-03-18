@@ -139,19 +139,19 @@ describe("formatAuthorizations", () => {
           authorizationId:
             "0x40571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d09a8",
           requesterApplicationName: "app-1:with/specialChars",
-          href: `/${encodeURIComponent("app-1:with/specialChars")}`,
+          href: "/0x40571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d09a8",
         },
         {
           authorizationId:
             "0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909",
           requesterApplicationName: "app-2",
-          href: `/${encodeURIComponent("app-2")}`,
+          href: "/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909",
         },
         {
           authorizationId:
             "0x24571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d091c",
           requesterApplicationName: "app-3",
-          href: `/${encodeURIComponent("app-3")}`,
+          href: "/0x24571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d091c",
         },
       ],
       links: {

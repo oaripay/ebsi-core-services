@@ -62,7 +62,7 @@ export function formatAuthorizations(
   const items = authorizations.map((auth) => ({
     authorizationId: auth.authorizationId,
     requesterApplicationName: auth.authorizedAppName,
-    href: `${baseUrl}/${encodeURIComponent(auth.authorizedAppName)}`,
+    href: `${baseUrl}/${auth.authorizationId}`,
   }));
 
   return paginate<AuthorizationLink>(
