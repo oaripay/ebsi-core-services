@@ -183,7 +183,7 @@ yarn audit
 
 ## Testing
 
-Reminder: you need to set `TEST_APP_NAME`, `TEST_APP_KID`, `TEST_APP_PRIVATE_KEY`, `TEST_CLIENT_DID` and `TEST_CLIENT_PRIVATE_KEY`. (preferably in `.env.test.local`) before running the e2e tests!
+Reminder: you need to set `TEST_APP_NAME`, `TEST_APP_KID`, `TEST_APP_PRIVATE_KEY`, `TEST_CLIENT_DID` and `TEST_CLIENT_PRIVATE_KEY`. (preferably in `.env.test.local`) before running the e2e tests! Moreover, if you want to enable the e2e tests which perform write operations (i.e. inserting data into the ledger), make sure to set `TEST_ENABLE_WRITE_OPS=true`.
 
 Run all the tests:
 

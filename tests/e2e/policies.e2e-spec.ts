@@ -32,6 +32,8 @@ import {
 } from "../../src/shared/utils";
 import { requestSiopJwt } from "../utils/siopJwt";
 import { UnsignedTransaction } from "../../src/modules/jsonrpc/dto";
+import { describeWriteOps } from "../utils/describeWriteOps";
+import { getServer } from "../utils/getServer";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -55,7 +57,7 @@ interface SupertestRevisionsResponse {
 
 describe("Policies (e2e)", () => {
   let app: INestApplication;
-  let server: HttpServer;
+  let server: HttpServer | string;
   let testClientWallet: ethers.Wallet;
   let configService: ConfigService<ApiConfig>;
   let testUserAccessToken: string;
@@ -97,9 +99,9 @@ describe("Policies (e2e)", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
 
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+    server = getServer(app, configService);
 
     testClientWallet = new ethers.Wallet(
       prefixWith0x(configService.get("testClientPrivateKey"))
@@ -120,7 +122,7 @@ describe("Policies (e2e)", () => {
     ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
   });
 
-  describe.each(["insertPolicy", "updatePolicy"])(
+  describeWriteOps().each(["insertPolicy", "updatePolicy"])(
     "/jsonrpc - method: %s",
     (method: string) => {
       it(`should return a new unsigned transaction`, async () => {

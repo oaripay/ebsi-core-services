@@ -28,6 +28,8 @@ import { prefixWith0x } from "../../src/shared/utils";
 import { getAccessToken, waitToBeMined } from "../utils/waitToBeMined";
 import { HashAlgorithmLink } from "../../src/modules/hash-algorithms/hash-algorithms.interface";
 import { requestSiopJwt } from "../utils/siopJwt";
+import { describeWriteOps } from "../utils/describeWriteOps";
+import { getServer } from "../utils/getServer";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -74,7 +76,7 @@ const validHashAlgorithms: Record<
 
 describe("HashAlgorithms (e2e)", () => {
   let app: INestApplication;
-  let server: HttpServer;
+  let server: HttpServer | string;
   let testClientWallet: ethers.Wallet;
   let configService: ConfigService<ApiConfig>;
   let testUserAccessToken: string;
@@ -97,9 +99,9 @@ describe("HashAlgorithms (e2e)", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
 
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+    server = getServer(app, configService);
 
     testClientWallet = new ethers.Wallet(
       prefixWith0x(configService.get("testClientPrivateKey"))
@@ -121,7 +123,7 @@ describe("HashAlgorithms (e2e)", () => {
     ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
   });
 
-  describe.each(["insertHashAlgorithm", "updateHashAlgorithm"])(
+  describeWriteOps().each(["insertHashAlgorithm", "updateHashAlgorithm"])(
     "/jsonrpc - send transaction for %s",
     (method: string) => {
       it("should work", async () => {

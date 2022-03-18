@@ -1710,28 +1710,29 @@ paths:
 
           #### insertPolicy
 
-          Call to build an unsigned transaction to insert a policy in the registry. This method requires admin rights in the DID Registry.
+          Call to build an unsigned transaction to insert a policy in the registry.
 
           Parameters:
-          - **from**: Ethereum address of the administrator
+          - **from**: Ethereum address of the signer
           - **policyId**: Policy Id
           - **policyData**: Policy data. This field must be a JSON stringified and converted into hex string
 
           #### updatePolicy
 
-          Call to build an unsigned transaction to update a policy. This method requires admin rights in the DID Registry.
+          Call to build an unsigned transaction to update a policy.
 
           Parameters:
-          - **from**: Ethereum address of the administrator
+          - **from**: Ethereum address of the signer
           - **policyId**: Policy Id
           - **policyData**: Policy data. This field must be a JSON stringified and converted into hex string
 
           #### insertHashAlgorithm
 
-          Call to build an unsigned transaction to insert a new hash algorithm. This method requires admin rights in the DID Registry.
+          Call to build an unsigned transaction to insert a new hash algorithm.
+          This method requires the "DIDR:insertHashAlgorithm" attribute in the TPR.
 
           Parameters:
-          - **from**: Ethereum address of the administrator
+          - **from**: Ethereum address of the signer
           - **outputLength**: hash output length (in bits)
           - **ianaName**: IANA name of the hash algorithm
           - **oid**: object identifier (OID)
@@ -1740,10 +1741,11 @@ paths:
 
           #### updateHashAlgorithm
 
-          Call to build an unsigned transaction to update an existing hash algorithm. This method requires admin rights in the DID Registry.
+          Call to build an unsigned transaction to update an existing hash algorithm.
+          This method requires the "DIDR:updateHashAlgorithm" attribute in the TPR.
 
           Parameters:
-          - **from**: Ethereum address of the administrator
+          - **from**: Ethereum address of the signer
           - **hashAlgorithmId**: ID of the hash algorithm to update
           - **outputLength**: hash output length (in bits)
           - **ianaName**: IANA name of the hash algorithm
@@ -1810,7 +1812,8 @@ paths:
 
           #### insertDidMethod
 
-          Call to build an unsigned transaction to insert a new DID Method. This method requires admin rights in the DID Registry.
+          Call to build an unsigned transaction to insert a new DID Method.
+          This method requires the "DIDR:insertDidMethod" attribute in the TPR.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -1824,7 +1827,8 @@ paths:
 
           #### updateDidMethod
 
-          Call to build an unsigned transaction to update an existing DID Method. This method requires admin rights in the DID Registry.
+          Call to build an unsigned transaction to update an existing DID Method.
+          This method requires the "DIDR:updateDidMethod" attribute in the TPR.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -2332,7 +2336,7 @@ components:
           description: Status of the did method (1 = "active", 2 = "revoked", 3 = "suspended")
         did:
           type: string
-          description: DID of the administrator
+          description: DID of the registerer
         attributes:
           type: array
           description: Array of attributes

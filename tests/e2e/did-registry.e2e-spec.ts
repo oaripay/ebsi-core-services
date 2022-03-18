@@ -22,11 +22,7 @@ import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
-import {
-  multihashEncode,
-  prefixWith0x,
-  multibase,
-} from "../../src/shared/utils";
+import { prefixWith0x } from "../../src/shared/utils";
 import { getAccessToken, waitToBeMined } from "../utils/waitToBeMined";
 import {
   InsertDidControllerParam,
@@ -54,6 +50,8 @@ import {
   createDidMethod,
 } from "../utils/data";
 import { requestNewUserSiopJwt, requestSiopJwt } from "../utils/siopJwt";
+import { describeWriteOps } from "../utils/describeWriteOps";
+import { getServer } from "../utils/getServer";
 
 type JsonRpcParams =
   | InsertDidDocumentParam
@@ -109,7 +107,7 @@ const multihashToNodeHashAlg: { [Key in HashName]?: string } = {
 
 describe("DID Registry (e2e)", () => {
   let app: INestApplication;
-  let server: HttpServer;
+  let server: HttpServer | string;
   let configService: ConfigService<ApiConfig>;
   let hashAlgorithMultihash: HashName;
   let hashAlgorithOutputLength: number;
@@ -119,6 +117,18 @@ describe("DID Registry (e2e)", () => {
   let newUserAccessToken: string;
   let apiAccessToken: string;
   let ledgerApi: string;
+  let lastIdentifier: {
+    did: string;
+    href: string;
+  };
+  let lastVersion: {
+    versionId: string;
+    href: string;
+  };
+  let lastMetadata: {
+    metadataId: string;
+    href: string;
+  };
 
   const prepareDidDocument = (
     did: string,
@@ -217,9 +227,9 @@ describe("DID Registry (e2e)", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
 
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+    server = getServer(app, configService);
 
     existingUserWallet = new ethers.Wallet(
       prefixWith0x(configService.get("testClientPrivateKey"))
@@ -292,9 +302,49 @@ describe("DID Registry (e2e)", () => {
 
     apiAccessToken = await getAccessToken(configService);
     ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
+
+    // Get last identifier
+    const getAllIdentifiers = await request(server).get("/identifiers");
+    const { total } = getAllIdentifiers.body as {
+      total: number;
+    };
+    const getIdentifiersLastPage = await request(server).get(
+      `/identifiers?page[after]=${Math.ceil(total / 10)}&page[size]=10`
+    );
+    const { items: identifiers } = getIdentifiersLastPage.body as {
+      items: {
+        did: string;
+        href: string;
+      }[];
+    };
+    [lastIdentifier] = identifiers.slice(-1);
+
+    // Get last identifier's last version
+    const getAllVersions = await request(server).get(
+      `/identifiers/${lastIdentifier.did}/versions`
+    );
+    const { items: versions } = getAllVersions.body as {
+      items: {
+        versionId: string;
+        href: string;
+      }[];
+    };
+    [lastVersion] = versions.slice(-1);
+
+    // Get last identifier's last version's last metadata
+    const getAllMetadata = await request(server).get(
+      `/identifiers/${lastIdentifier.did}/versions/${lastVersion.versionId}/metadata`
+    );
+    const { items: metadata } = getAllMetadata.body as {
+      items: {
+        metadataId: string;
+        href: string;
+      }[];
+    };
+    [lastMetadata] = metadata.slice(-1);
   });
 
-  describe.each([
+  describeWriteOps().each([
     "insertDidMethod",
     "insertDidDocument",
     "updateDidDocument",
@@ -577,7 +627,7 @@ describe("DID Registry (e2e)", () => {
     });
   });
 
-  describe.each(["insertDidMethod", "updateDidMethod"])(
+  describeWriteOps().each(["insertDidMethod", "updateDidMethod"])(
     "/jsonrpc - special authorization for %s",
     (method: string) => {
       it("should send the transaction but the SC should reject no authorized users", async () => {
@@ -796,20 +846,26 @@ describe("DID Registry (e2e)", () => {
     it("should return a specific DID Method", async () => {
       expect.assertions(2);
 
+      const getAllDidMethods = await request(server).get("/did-methods");
+      const { items } = getAllDidMethods.body as {
+        items: {
+          name: string;
+          href: string;
+        }[];
+      };
+
       const response = await request(server).get(
-        `/did-methods/${didMethod.methodName}`
+        `/did-methods/${items[0].name}`
       );
 
       expect(response.body).toStrictEqual({
-        methodName: didMethod.methodName,
-        ledgerName: "ebsi-besu-2",
-        methodSpec: didMethod.didMethodsBuffer.map(
-          (b) => `0x${b.toString("hex")}`
-        ),
-        methodSpecHash: didMethod.canonicalizedDidMethodsHash,
-        notBefore: didMethod.notBefore,
-        notAfter: didMethod.notAfter,
-        status: didMethod.status,
+        methodName: items[0].name,
+        ledgerName: expect.any(String) as string,
+        status: expect.any(Number) as number,
+        methodSpec: expect.arrayContaining([]) as string[],
+        methodSpecHash: expect.arrayContaining([]) as string[],
+        notAfter: expect.any(Number) as number,
+        notBefore: expect.any(Number) as number,
       } as DidMethodResponseObject);
       expect(response.status).toBe(200);
     });
@@ -952,10 +1008,22 @@ describe("DID Registry (e2e)", () => {
       expect.assertions(3);
 
       const response = await request(server).get(
-        `/identifiers/${updatedDidDocument.controllerDid}`
+        `/identifiers/${lastIdentifier.did}`
       );
 
-      expect(response.body).toStrictEqual(updatedDidDocument.didDocument);
+      expect(response.body).toStrictEqual(
+        expect.objectContaining({
+          "@context": "https://www.w3.org/ns/did/v1",
+          id: expect.stringContaining("did:") as string,
+          verificationMethod: expect.arrayContaining([
+            expect.objectContaining({
+              controller: expect.stringContaining("did:") as string,
+              id: expect.stringContaining("did:") as string,
+              type: expect.any(String) as string,
+            }),
+          ]) as unknown[],
+        })
+      );
       expect(response.status).toBe(200);
       expect(
         (response.headers as { "content-type": string })["content-type"]
@@ -963,19 +1031,24 @@ describe("DID Registry (e2e)", () => {
     });
 
     it("should return a specific identifier as 'application/did+json' if 'Accept' header is 'application/did+json'", async () => {
-      expect.assertions(4);
+      expect.assertions(3);
 
       const response = await request(server)
-        .get(`/identifiers/${updatedDidDocument.controllerDid}`)
+        .get(`/identifiers/${lastIdentifier.did}`)
         .set("Accept", "application/did+json");
 
-      const { "@context": context, ...didDocWithoutContext } =
-        updatedDidDocument.didDocument;
-
-      expect(response.body).toStrictEqual(didDocWithoutContext);
-      expect(
-        (response.body as { [x: string]: unknown })["@context"]
-      ).toBeUndefined();
+      expect(response.body).toStrictEqual(
+        expect.objectContaining({
+          id: expect.stringContaining("did:") as string,
+          verificationMethod: expect.arrayContaining([
+            expect.objectContaining({
+              controller: expect.stringContaining("did:") as string,
+              id: expect.stringContaining("did:") as string,
+              type: expect.any(String) as string,
+            }),
+          ]) as unknown[],
+        })
+      );
       expect(response.status).toBe(200);
       expect(
         (response.headers as { "content-type": string })["content-type"]
@@ -1016,7 +1089,7 @@ describe("DID Registry (e2e)", () => {
     it("should return a paginated collection of DID methods", async () => {
       expect.assertions(2);
 
-      const did = updatedDidDocument.controllerDid;
+      const { did } = lastIdentifier;
 
       const response = await request(server).get(
         `/identifiers/${did}/versions`
@@ -1034,7 +1107,7 @@ describe("DID Registry (e2e)", () => {
             ) as string,
           },
         ]) as Array<string>,
-        total: 3,
+        total: expect.any(Number) as number,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
@@ -1052,123 +1125,6 @@ describe("DID Registry (e2e)", () => {
         },
       });
       expect(response.status).toBe(200);
-    });
-
-    it("should handle the pagination properly", async () => {
-      expect.assertions(8);
-
-      const did = updatedDidDocument.controllerDid;
-
-      const response1 = await request(server).get(
-        `/identifiers/${did}/versions?page[size]=2`
-      );
-      expect(response1.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/identifiers/${did}/versions?page[after]=1&page[size]=2`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
-        total: 3,
-        pageSize: 2,
-        links: {
-          first: expect.stringContaining(
-            `/identifiers/${did}/versions?page[after]=1&page[size]=2`
-          ) as string,
-          prev: expect.stringContaining(
-            `/identifiers/${did}/versions?page[after]=1&page[size]=2`
-          ) as string,
-          next: expect.stringContaining(
-            `/identifiers/${did}/versions?page[after]=2&page[size]=2`
-          ) as string,
-          last: expect.stringContaining(
-            `/identifiers/${did}/versions?page[after]=2&page[size]=2`
-          ) as string,
-        },
-      });
-      expect(response1.status).toBe(200);
-
-      // next page
-      const response2 = await request(server).get(
-        `/identifiers/${did}/versions?page[after]=2&page[size]=2`
-      );
-      expect(response2.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/identifiers/${did}/versions?page[after]=2&page[size]=2`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
-        total: 3,
-        pageSize: 2,
-        links: {
-          first: expect.stringContaining(
-            `/identifiers/${did}/versions?page[after]=1&page[size]=2`
-          ) as string,
-          prev: expect.stringContaining(
-            `/identifiers/${did}/versions?page[after]=1&page[size]=2`
-          ) as string,
-          next: expect.stringContaining(
-            `/identifiers/${did}/versions?page[after]=2&page[size]=2`
-          ) as string,
-          last: expect.stringContaining(
-            `/identifiers/${did}/versions?page[after]=2&page[size]=2`
-          ) as string,
-        },
-      });
-      expect(response2.status).toBe(200);
-
-      // big page
-      const response3 = await request(server).get(
-        `/identifiers/${did}/versions?page[after]=100&page[size]=2`
-      );
-      expect(response3.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/identifiers/${did}/versions?page[after]=100&page[size]=2`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
-        total: 3,
-        pageSize: 2,
-        links: {
-          first: expect.stringContaining(
-            `/identifiers/${did}/versions?page[after]=1&page[size]=2`
-          ) as string,
-          prev: expect.stringContaining(
-            `/identifiers/${did}/versions?page[after]=2&page[size]=2`
-          ) as string,
-          next: expect.stringContaining(
-            `/identifiers/${did}/versions?page[after]=2&page[size]=2`
-          ) as string,
-          last: expect.stringContaining(
-            `/identifiers/${did}/versions?page[after]=2&page[size]=2`
-          ) as string,
-        },
-      });
-      expect(response3.status).toBe(200);
-
-      // page["after"] defined but page["size"] undefined
-      const response4 = await request(server).get(
-        `/identifiers/${did}/versions?page[after]=1`
-      );
-      expect(response4.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/identifiers/${did}/versions?page[after]=1&page[size]=10`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
-        total: 3,
-        pageSize: 10,
-        links: {
-          first: expect.stringContaining(
-            `/identifiers/${did}/versions?page[after]=1&page[size]=10`
-          ) as string,
-          prev: expect.stringContaining(
-            `/identifiers/${did}/versions?page[after]=1&page[size]=10`
-          ) as string,
-          next: expect.stringContaining(
-            `/identifiers/${did}/versions?page[after]=1&page[size]=10`
-          ) as string,
-          last: expect.stringContaining(
-            `/identifiers/${did}/versions?page[after]=1&page[size]=10`
-          ) as string,
-        },
-      });
-      expect(response4.status).toBe(200);
     });
 
     it("should throw an error if the identifier is not a valid did", async () => {
@@ -1190,7 +1146,7 @@ describe("DID Registry (e2e)", () => {
     it("should throw a Bad Request for bad pagination", async () => {
       expect.assertions(8);
 
-      const did = updatedDidDocument.controllerDid;
+      const { did } = lastIdentifier;
 
       const response1 = await request(server).get(
         `/identifiers/${did}/versions?page[size]=100`
@@ -1243,15 +1199,26 @@ describe("DID Registry (e2e)", () => {
     it("should return a specific DID document version", async () => {
       expect.assertions(3);
 
-      const { didDocument, didDocumentBuffer } = updatedDidDocument;
-      const did = updatedDidDocument.controllerDid;
-      const versionId = ethers.utils.sha256(didDocumentBuffer);
+      const { did } = lastIdentifier;
+      const { versionId } = lastVersion;
 
       const response = await request(server).get(
         `/identifiers/${did}/versions/${versionId}`
       );
 
-      expect(response.body).toStrictEqual(didDocument);
+      expect(response.body).toStrictEqual(
+        expect.objectContaining({
+          "@context": "https://www.w3.org/ns/did/v1",
+          id: expect.stringContaining("did:") as string,
+          verificationMethod: expect.arrayContaining([
+            expect.objectContaining({
+              controller: expect.stringContaining("did:") as string,
+              id: expect.stringContaining("did:") as string,
+              type: expect.any(String) as string,
+            }),
+          ]) as unknown[],
+        })
+      );
       expect(response.status).toBe(200);
       expect(
         (response.headers as { "content-type": string })["content-type"]
@@ -1261,17 +1228,25 @@ describe("DID Registry (e2e)", () => {
     it("should return a specific DID document version as 'application/did+json' if 'Accept' header is 'application/did+json'", async () => {
       expect.assertions(4);
 
-      const { didDocument, didDocumentBuffer } = updatedDidDocument;
-      const did = updatedDidDocument.controllerDid;
-      const versionId = ethers.utils.sha256(didDocumentBuffer);
+      const { did } = lastIdentifier;
+      const { versionId } = lastVersion;
 
       const response = await request(server)
         .get(`/identifiers/${did}/versions/${versionId}`)
         .set("Accept", "application/did+json");
 
-      const { "@context": context, ...didDocWithoutContext } = didDocument;
-
-      expect(response.body).toStrictEqual(didDocWithoutContext);
+      expect(response.body).toStrictEqual(
+        expect.objectContaining({
+          id: expect.stringContaining("did:") as string,
+          verificationMethod: expect.arrayContaining([
+            expect.objectContaining({
+              controller: expect.stringContaining("did:") as string,
+              id: expect.stringContaining("did:") as string,
+              type: expect.any(String) as string,
+            }),
+          ]) as unknown[],
+        })
+      );
       expect(
         (response.body as { [x: string]: unknown })["@context"]
       ).toBeUndefined();
@@ -1284,8 +1259,7 @@ describe("DID Registry (e2e)", () => {
     it("should throw an error if the identifier is not a valid did", async () => {
       expect.assertions(2);
 
-      const { didDocumentBuffer } = updatedDidDocument;
-      const versionId = ethers.utils.sha256(didDocumentBuffer);
+      const { versionId } = lastVersion;
 
       const response = await request(server).get(
         `/identifiers/invalid/versions/${versionId}`
@@ -1303,8 +1277,7 @@ describe("DID Registry (e2e)", () => {
     it("should throw an error if the identifier is not found", async () => {
       expect.assertions(2);
 
-      const { didDocumentBuffer } = updatedDidDocument;
-      const versionId = ethers.utils.sha256(didDocumentBuffer);
+      const { versionId } = lastVersion;
       const randomDid = createDid();
 
       const response = await request(server).get(
@@ -1323,7 +1296,7 @@ describe("DID Registry (e2e)", () => {
     it("should throw an error if the version ID is not valid", async () => {
       expect.assertions(2);
 
-      const did = updatedDidDocument.controllerDid;
+      const { did } = lastIdentifier;
       const versionId = "test";
 
       const response = await request(server).get(
@@ -1345,9 +1318,8 @@ describe("DID Registry (e2e)", () => {
     it("should return a paginated collection of DID Document metadata", async () => {
       expect.assertions(2);
 
-      const { didDocumentBuffer } = updatedDidDocument;
-      const did = updatedDidDocument.controllerDid;
-      const versionId = ethers.utils.sha256(didDocumentBuffer);
+      const { did } = lastIdentifier;
+      const { versionId } = lastVersion;
 
       const response = await request(server).get(
         `/identifiers/${did}/versions/${versionId}/metadata`
@@ -1365,7 +1337,7 @@ describe("DID Registry (e2e)", () => {
             ) as string,
           },
         ]) as Array<string>,
-        total: 1,
+        total: expect.any(Number) as number,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
@@ -1385,104 +1357,11 @@ describe("DID Registry (e2e)", () => {
       expect(response.status).toBe(200);
     });
 
-    it("should handle the pagination properly", async () => {
-      expect.assertions(6);
-
-      const { didDocumentBuffer } = updatedDidDocument;
-      const did = updatedDidDocument.controllerDid;
-      const versionId = ethers.utils.sha256(didDocumentBuffer);
-
-      const response1 = await request(server).get(
-        `/identifiers/${did}/versions/${versionId}/metadata?page[size]=2`
-      );
-
-      expect(response1.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
-        total: 1,
-        pageSize: 2,
-        links: {
-          first: expect.stringContaining(
-            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
-          ) as string,
-          prev: expect.stringContaining(
-            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
-          ) as string,
-          next: expect.stringContaining(
-            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
-          ) as string,
-          last: expect.stringContaining(
-            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
-          ) as string,
-        },
-      });
-      expect(response1.status).toBe(200);
-
-      // big page
-      const response3 = await request(server).get(
-        `/identifiers/${did}/versions/${versionId}/metadata?page[after]=100&page[size]=2`
-      );
-      expect(response3.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/identifiers/${did}/versions/${versionId}/metadata?page[after]=100&page[size]=2`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
-        total: 1,
-        pageSize: 2,
-        links: {
-          first: expect.stringContaining(
-            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
-          ) as string,
-          prev: expect.stringContaining(
-            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
-          ) as string,
-          next: expect.stringContaining(
-            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
-          ) as string,
-          last: expect.stringContaining(
-            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
-          ) as string,
-        },
-      });
-      expect(response3.status).toBe(200);
-
-      // page["after"] defined but page["size"] undefined
-      const response4 = await request(server).get(
-        `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1`
-      );
-      expect(response4.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=10`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
-        total: 1,
-        pageSize: 10,
-        links: {
-          first: expect.stringContaining(
-            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=10`
-          ) as string,
-          prev: expect.stringContaining(
-            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=10`
-          ) as string,
-          next: expect.stringContaining(
-            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=10`
-          ) as string,
-          last: expect.stringContaining(
-            `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=10`
-          ) as string,
-        },
-      });
-      expect(response4.status).toBe(200);
-    });
-
     it("should throw a Bad Request for bad pagination", async () => {
       expect.assertions(8);
 
-      const { didDocumentBuffer } = updatedDidDocument;
-      const did = updatedDidDocument.controllerDid;
-      const versionId = ethers.utils.sha256(didDocumentBuffer);
+      const { did } = lastIdentifier;
+      const { versionId } = lastVersion;
 
       const response1 = await request(server).get(
         `/identifiers/${did}/versions/${versionId}/metadata?page[size]=100`
@@ -1530,11 +1409,10 @@ describe("DID Registry (e2e)", () => {
       expect(response4.status).toBe(400);
     });
 
-    it("should throw an error if the identifier is not a valid did", async () => {
+    it("should throw an error if the identifier is not a valid DID", async () => {
       expect.assertions(2);
 
-      const { didDocumentBuffer } = updatedDidDocument;
-      const versionId = ethers.utils.sha256(didDocumentBuffer);
+      const { versionId } = lastVersion;
 
       const response = await request(server).get(
         `/identifiers/invalid/versions/${versionId}/metadata`
@@ -1552,9 +1430,7 @@ describe("DID Registry (e2e)", () => {
     it("should throw an error if the identifier is not found", async () => {
       expect.assertions(2);
 
-      const { didDocumentBuffer } = updatedDidDocument;
-      const versionId = ethers.utils.sha256(didDocumentBuffer);
-
+      const { versionId } = lastVersion;
       const randomDid = createDid();
 
       const response = await request(server).get(
@@ -1573,7 +1449,7 @@ describe("DID Registry (e2e)", () => {
     it("should throw an error if the version ID is not valid", async () => {
       expect.assertions(2);
 
-      const did = updatedDidDocument.controllerDid;
+      const { did } = lastIdentifier;
       const versionId = "test";
 
       const response = await request(server).get(
@@ -1593,7 +1469,7 @@ describe("DID Registry (e2e)", () => {
     it("should throw an error if the version ID is not found", async () => {
       expect.assertions(2);
 
-      const did = updatedDidDocument.controllerDid;
+      const { did } = lastIdentifier;
       const versionId = ethers.utils.sha256(crypto.randomBytes(32));
 
       const response = await request(server).get(
@@ -1614,20 +1490,15 @@ describe("DID Registry (e2e)", () => {
     it("should return a specific DID Document metadata", async () => {
       expect.assertions(3);
 
-      const {
-        didDocumentBuffer,
-        didVersionMetadata,
-        didVersionMetadataBuffer,
-      } = updatedDidDocument;
-      const did = updatedDidDocument.controllerDid;
-      const versionId = ethers.utils.sha256(didDocumentBuffer);
-      const metadataId = ethers.utils.sha256(didVersionMetadataBuffer);
+      const { did } = lastIdentifier;
+      const { versionId } = lastVersion;
+      const { metadataId } = lastMetadata;
 
       const response = await request(server).get(
         `/identifiers/${did}/versions/${versionId}/metadata/${metadataId}`
       );
 
-      expect(response.body).toStrictEqual(didVersionMetadata);
+      expect(response.body).toStrictEqual(expect.objectContaining({}));
       expect(response.status).toBe(200);
       expect(
         (response.headers as { "content-type": string })["content-type"]
@@ -1637,10 +1508,8 @@ describe("DID Registry (e2e)", () => {
     it("should throw an error if the identifier is not a valid did", async () => {
       expect.assertions(2);
 
-      const { didDocumentBuffer, didVersionMetadataBuffer } =
-        updatedDidDocument;
-      const versionId = ethers.utils.sha256(didDocumentBuffer);
-      const metadataId = ethers.utils.sha256(didVersionMetadataBuffer);
+      const { versionId } = lastVersion;
+      const { metadataId } = lastMetadata;
 
       const response = await request(server).get(
         `/identifiers/invalid/versions/${versionId}/metadata/${metadataId}`
@@ -1658,10 +1527,8 @@ describe("DID Registry (e2e)", () => {
     it("should throw an error if the identifier is not found", async () => {
       expect.assertions(2);
 
-      const { didDocumentBuffer, didVersionMetadataBuffer } =
-        updatedDidDocument;
-      const versionId = ethers.utils.sha256(didDocumentBuffer);
-      const metadataId = ethers.utils.sha256(didVersionMetadataBuffer);
+      const { versionId } = lastVersion;
+      const { metadataId } = lastMetadata;
       const randomDid = createDid();
 
       const response = await request(server).get(
@@ -1680,10 +1547,9 @@ describe("DID Registry (e2e)", () => {
     it("should throw an error if the version ID is not valid", async () => {
       expect.assertions(2);
 
-      const { didVersionMetadataBuffer } = updatedDidDocument;
-      const did = updatedDidDocument.controllerDid;
+      const { did } = lastIdentifier;
       const versionId = "test";
-      const metadataId = ethers.utils.sha256(didVersionMetadataBuffer);
+      const { metadataId } = lastMetadata;
 
       const response = await request(server).get(
         `/identifiers/${did}/versions/${versionId}/metadata/${metadataId}`
@@ -1702,10 +1568,9 @@ describe("DID Registry (e2e)", () => {
     it("should throw an error if the version ID is not found", async () => {
       expect.assertions(2);
 
-      const { didVersionMetadataBuffer } = updatedDidDocument;
-      const did = updatedDidDocument.controllerDid;
+      const { did } = lastIdentifier;
       const versionId = ethers.utils.sha256(crypto.randomBytes(32));
-      const metadataId = ethers.utils.sha256(didVersionMetadataBuffer);
+      const { metadataId } = lastMetadata;
 
       const response = await request(server).get(
         `/identifiers/${did}/versions/${versionId}/metadata/${metadataId}`
@@ -1723,9 +1588,8 @@ describe("DID Registry (e2e)", () => {
     it("should throw an error if the metadata ID is not valid", async () => {
       expect.assertions(2);
 
-      const { didDocumentBuffer } = updatedDidDocument;
-      const did = updatedDidDocument.controllerDid;
-      const versionId = ethers.utils.sha256(didDocumentBuffer);
+      const { did } = lastIdentifier;
+      const { versionId } = lastVersion;
       const metadataId = "test";
 
       const response = await request(server).get(
@@ -1745,9 +1609,8 @@ describe("DID Registry (e2e)", () => {
     it("should throw an error if the metadata ID is not found", async () => {
       expect.assertions(2);
 
-      const { didDocumentBuffer } = updatedDidDocument;
-      const did = updatedDidDocument.controllerDid;
-      const versionId = ethers.utils.sha256(didDocumentBuffer);
+      const { did } = lastIdentifier;
+      const { versionId } = lastVersion;
       const metadataId = "0x1234";
 
       const response = await request(server).get(
@@ -1798,121 +1661,6 @@ describe("DID Registry (e2e)", () => {
         },
       });
       expect(response.status).toBe(200);
-    });
-
-    it("should handle the pagination properly", async () => {
-      expect.assertions(8);
-
-      const response1 = await request(server).get(
-        "/did-timestamps?page[size]=2"
-      );
-      expect(response1.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/did-timestamps?page[after]=1&page[size]=2"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
-        total: expect.any(Number) as number,
-        pageSize: 2,
-        links: {
-          first: expect.stringContaining(
-            "/did-timestamps?page[after]=1&page[size]=2"
-          ) as string,
-          prev: expect.stringContaining(
-            "/did-timestamps?page[after]=1&page[size]=2"
-          ) as string,
-          next: expect.stringContaining(
-            "/did-timestamps?page[after]="
-          ) as string,
-          last: expect.stringContaining(
-            "/did-timestamps?page[after]="
-          ) as string,
-        },
-      });
-      expect(response1.status).toBe(200);
-
-      // next page
-      const response2 = await request(server).get(
-        "/did-timestamps?page[after]=2&page[size]=2"
-      );
-      expect(response2.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/did-timestamps?page[after]=2&page[size]=2"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
-        total: expect.any(Number) as number,
-        pageSize: 2,
-        links: {
-          first: expect.stringContaining(
-            "/did-timestamps?page[after]=1&page[size]=2"
-          ) as string,
-          prev: expect.stringContaining(
-            "/did-timestamps?page[after]=1&page[size]=2"
-          ) as string,
-          next: expect.stringContaining(
-            "/did-timestamps?page[after]="
-          ) as string,
-          last: expect.stringContaining(
-            "/did-timestamps?page[after]="
-          ) as string,
-        },
-      });
-      expect(response2.status).toBe(200);
-
-      // big page
-      const response3 = await request(server).get(
-        "/did-timestamps?page[after]=100&page[size]=2"
-      );
-      expect(response3.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/did-timestamps?page[after]=100&page[size]=2"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
-        total: expect.any(Number) as number,
-        pageSize: 2,
-        links: {
-          first: expect.stringContaining(
-            "/did-timestamps?page[after]=1&page[size]=2"
-          ) as string,
-          prev: expect.stringContaining(
-            "/did-timestamps?page[after]="
-          ) as string,
-          next: expect.stringContaining(
-            "/did-timestamps?page[after]="
-          ) as string,
-          last: expect.stringContaining(
-            "/did-timestamps?page[after]="
-          ) as string,
-        },
-      });
-      expect(response3.status).toBe(200);
-
-      // page["after"] defined but page["size"] undefined
-      const response4 = await request(server).get(
-        "/did-timestamps?page[after]=1"
-      );
-      expect(response4.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/did-timestamps?page[after]=1&page[size]=10"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
-        total: expect.any(Number) as number,
-        pageSize: 10,
-        links: {
-          first: expect.stringContaining(
-            "/did-timestamps?page[after]=1&page[size]=10"
-          ) as string,
-          prev: expect.stringContaining(
-            "/did-timestamps?page[after]=1&page[size]=10"
-          ) as string,
-          next: expect.stringContaining(
-            "/did-timestamps?page[after]="
-          ) as string,
-          last: expect.stringContaining(
-            "/did-timestamps?page[after]="
-          ) as string,
-        },
-      });
-      expect(response4.status).toBe(200);
     });
 
     it("should throw a Bad Request for bad pagination", async () => {
@@ -2002,7 +1750,7 @@ describe("DID Registry (e2e)", () => {
     it("should return a paginated collection of DID timestamps filtered by identifier and version ID", async () => {
       expect.assertions(2);
 
-      const did = updatedDidDocument.controllerDid;
+      const { did } = lastIdentifier;
       const versionId = 1;
 
       const response = await request(server).get(
@@ -2044,31 +1792,30 @@ describe("DID Registry (e2e)", () => {
     it("should return a specific DID timestamp", async () => {
       expect.assertions(2);
 
-      const { canonicalizedDidDocumentHash, timestampDataBuffer } =
-        updatedDidDocument;
-
-      const timestampId = multibase.base64url.encode(
-        Buffer.from(
-          ethers.utils.sha256(canonicalizedDidDocumentHash).replace(/^0x/, ""),
-          "hex"
-        )
+      const getAllTimestamps = await request(server).get("/did-timestamps");
+      const { total } = getAllTimestamps.body as {
+        total: number;
+      };
+      const getTimestampsLastPage = await request(server).get(
+        `/did-timestamps?page[after]=${Math.ceil(total / 10)}&page[size]=10`
       );
+      const { items: timestamps } = getTimestampsLastPage.body as {
+        items: {
+          timestampId: string;
+          href: string;
+        }[];
+      };
+      const lastTimestamp = timestamps.pop();
 
       const response = await request(server).get(
-        `/did-timestamps/${timestampId}`
+        `/did-timestamps/${lastTimestamp.timestampId}`
       );
 
       expect(response.body).toStrictEqual({
         blockNumber: expect.any(Number) as number,
-        data: `0x${timestampDataBuffer.toString("hex")}`,
-        hash: multibase.base64.encode(
-          multihashEncode(
-            canonicalizedDidDocumentHash,
-            hashAlgorithMultihash,
-            hashAlgorithOutputLength
-          )
-        ),
-        timestampedBy: newUserWallet.address,
+        data: expect.stringContaining("0x") as string,
+        hash: expect.any(String) as string,
+        timestampedBy: expect.stringContaining("0x") as string,
       } as DidTimestampResponseObject);
 
       expect(response.status).toBe(200);
