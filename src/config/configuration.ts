@@ -7,8 +7,7 @@ export interface ApiConfig {
   apiPrivateKey: string;
   apiName: string;
   apiUrlPrefix: string;
-  apiDid: string;
-  apiTarId: string;
+  ebsiEnv: "local" | "test" | "conformance" | "pilot" | "prod";
   onboardingAllowlist: string[];
   onboardingApiPrivateKey: string; // for tests
   trustedAppsRegistry: string;
@@ -22,6 +21,10 @@ export interface ApiConfig {
   testAppName: string;
   testAppPrivateKey: string;
   testClientDid: string;
+  testClientKidES256K: string;
+  testClientKidES256: string;
+  testClientKidRS256: string;
+  testClientKidEdDSA: string;
   testClientPrivateKeysBase64: string;
   testIssuerDid: string;
   testIssuerPrivateKey: string;
@@ -33,7 +36,7 @@ const defaultConfig = {
     LOG_LEVEL: "debug",
     DOMAIN: "https://api.test.intebsi.xyz",
     TRUSTED_APPS_REGISTRY:
-      "https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps",
+      "https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps",
     TRUSTED_ISSUERS_REGISTRY:
       "https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers",
     HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
@@ -43,7 +46,7 @@ const defaultConfig = {
     LOG_LEVEL: "info",
     DOMAIN: "https://api.test.intebsi.xyz",
     TRUSTED_APPS_REGISTRY:
-      "https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps",
+      "https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps",
     TRUSTED_ISSUERS_REGISTRY:
       "https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers",
     HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
@@ -53,7 +56,7 @@ const defaultConfig = {
     LOG_LEVEL: "info",
     DOMAIN: "https://api.conformance.intebsi.xyz",
     TRUSTED_APPS_REGISTRY:
-      "https://api.conformance.intebsi.xyz/trusted-apps-registry/v2/apps",
+      "https://api.conformance.intebsi.xyz/trusted-apps-registry/v3/apps",
     TRUSTED_ISSUERS_REGISTRY:
       "https://api.conformance.intebsi.xyz/trusted-issuers-registry/v2/issuers",
     HEALTH_CHECK: "https://api.conformance.intebsi.xyz/docs/",
@@ -64,7 +67,7 @@ const defaultConfig = {
     LOG_LEVEL: "warn",
     DOMAIN: "https://api.preprod.ebsi.eu",
     TRUSTED_APPS_REGISTRY:
-      "https://api.preprod.ebsi.eu/trusted-apps-registry/v2/apps",
+      "https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps",
     TRUSTED_ISSUERS_REGISTRY:
       "https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers",
     HEALTH_CHECK: "https://api.preprod.ebsi.eu/docs/",
@@ -73,7 +76,7 @@ const defaultConfig = {
   prod: {
     LOG_LEVEL: "error",
     DOMAIN: "https://api.ebsi.eu",
-    TRUSTED_APPS_REGISTRY: "https://api.ebsi.eu/trusted-apps-registry/v2/apps",
+    TRUSTED_APPS_REGISTRY: "https://api.ebsi.eu/trusted-apps-registry/v3/apps",
     TRUSTED_ISSUERS_REGISTRY:
       "https://api.ebsi.eu/trusted-issuers-registry/v2/issuers",
     HEALTH_CHECK: "https://api.ebsi.eu/docs/",
@@ -90,10 +93,9 @@ export const loadConfig = (): ApiConfig => {
   return {
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
     apiPrivateKey: process.env.API_PRIVATE_KEY,
-    apiName: process.env.API_NAME || "authorisation-api",
-    apiUrlPrefix: process.env.API_URL_PREFIX || "/authorisation/v1",
-    apiDid: process.env.API_DID,
-    apiTarId: process.env.API_TAR_ID,
+    apiName: process.env.API_NAME,
+    apiUrlPrefix: process.env.API_URL_PREFIX || "/authorisation/v2",
+    ebsiEnv: EBSI_ENV,
     onboardingAllowlist: process.env.ONBOARDING_ALLOWLIST.split(","),
     onboardingApiPrivateKey: process.env.ONBOARDING_API_PRIVATE_KEY || "",
     trustedAppsRegistry:
@@ -113,6 +115,10 @@ export const loadConfig = (): ApiConfig => {
     testAppName: process.env.TEST_APP_NAME || "",
     testAppPrivateKey: process.env.TEST_APP_PRIVATE_KEY || "",
     testClientDid: process.env.TEST_CLIENT_DID || "",
+    testClientKidES256K: process.env.TEST_CLIENT_KID_ES256K || "",
+    testClientKidES256: process.env.TEST_CLIENT_KID_ES256 || "",
+    testClientKidRS256: process.env.TEST_CLIENT_KID_RS256 || "",
+    testClientKidEdDSA: process.env.TEST_CLIENT_KID_EDDSA || "",
     testClientPrivateKeysBase64:
       process.env.TEST_CLIENT_PRIVATE_KEYS_BASE64 || "",
     testIssuerDid: process.env.TEST_ISSUER_DID || "",
@@ -138,9 +144,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       .default("development"),
     API_PORT: Joi.string().default("3000"),
     API_PRIVATE_KEY: Joi.string().required(),
-    API_DID: Joi.string().required(),
-    API_TAR_ID: Joi.string().required(),
-    API_NAME: Joi.string(),
+    API_NAME: Joi.string().required(),
     API_URL_PREFIX: Joi.string(),
     LOG_LEVEL: Joi.string().valid(
       "silent",
@@ -163,6 +167,10 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_APP_NAME: Joi.string(),
     TEST_APP_PRIVATE_KEY: Joi.string(),
     TEST_CLIENT_DID: Joi.string(),
+    TEST_CLIENT_KID_ES256K: Joi.string(),
+    TEST_CLIENT_KID_ES256: Joi.string(),
+    TEST_CLIENT_KID_RS256: Joi.string(),
+    TEST_CLIENT_KID_EDDSA: Joi.string(),
     TEST_CLIENT_PRIVATE_KEY: Joi.string(),
     TEST_ISSUER_DID: Joi.string(),
     TEST_ISSUER_PRIVATE_KEY: Joi.string(),

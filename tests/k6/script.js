@@ -14,8 +14,8 @@ export const options = {
 };
 
 export default function loadTesting() {
-  group("/authorisation/v1/authentication-requests", () => {
-    const url = `${BASE_URL}/authorisation/v1/authentication-requests`;
+  group("/authorisation/v2/authentication-requests", () => {
+    const url = `${BASE_URL}/authorisation/v2/authentication-requests`;
     const request = http.get(url);
     check(request, {
       Success: (r) => r.status === 200,

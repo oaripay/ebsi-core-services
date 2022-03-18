@@ -12,7 +12,7 @@ import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 
 jest.setTimeout(60000);
 
-describe("/authorisation/v1 (generic tests)", () => {
+describe("/authorisation/v2 (generic tests)", () => {
   let app: INestApplication;
 
   beforeAll(async () => {

@@ -84,10 +84,10 @@ export async function createAuthenticationResponseJose(input: {
     .setProtectedHeader({
       alg,
       typ: "JWT",
-      kid: did,
+      kid: keyId,
     })
     .setIssuedAt()
-    .setIssuer("https://self-issued.me")
+    .setIssuer("https://self-issued.me/v2")
     .setAudience(redirectUri)
     .setExpirationTime("15s")
     .sign(privateKey);

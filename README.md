@@ -1,4 +1,4 @@
-![EBSI Logo](https://ec.europa.eu/cefdigital/wiki/images/logo/default-space-logo.svg)
+![EBSI Logo](https://ec.europa.eu/digital-building-blocks/wikis/images/logo/default-space-logo.svg)
 
 # Authorisation API
 
@@ -10,7 +10,7 @@ Trusted Applications receive access tokens if they are well registered in the Tr
 
 For more information see:
 
-- [Technical Specifications](https://ec.europa.eu/cefdigital/wiki/x/aoiWFQ)
+- [Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/x/aoiWFQ)
 - API catalogs:
   - [EBSI Pre-production network API Catalog](https://api.preprod.ebsi.eu/docs)
   - [EBSI Production network API Catalog](https://api.ebsi.eu/docs)
@@ -45,7 +45,7 @@ First, create an `.env.local` file locally. You can duplicate the content of `.e
 
 Please note that you need to fill the API_PRIVATE_KEY and ADMIN_TEST_PRIVATE_KEY environment variable with secp256k1 elliptic curve private keys in hexadecimal.
 
-You must at least set `API_PRIVATE_KEY`, `API_DID`, `API_TAR_ID` and `EBSI_ENV` to run the API. For e2e testing, you must also set `TEST_APP_NAME`, `TEST_APP_PRIVATE_KEY`, `TEST_CLIENT_DID` and `TEST_CLIENT_PRIVATE_KEY`.
+You must at least set `API_PRIVATE_KEY`, `API_NAME`, and `EBSI_ENV` to run the API. For e2e testing, you must also set `TEST_APP_NAME`, `TEST_APP_PRIVATE_KEY`, `TEST_CLIENT_DID`, `TEST_CLIENT_KID_ES256K`, `TEST_CLIENT_KID_ES256`, `TEST_CLIENT_KID_RS256`, `TEST_CLIENT_KID_EDDSA` and `TEST_CLIENT_PRIVATE_KEY`.
 
 ### Run the project locally
 
@@ -77,7 +77,7 @@ And then you can serve the production build with:
 yarn start:prod
 ```
 
-You can now open http://localhost:3000/authorisation/v1/health. If everything's working correctly, then you should see `"status":"ok"`.
+You can now open http://localhost:3000/authorisation/v2/health. If everything's working correctly, then you should see `"status":"ok"`.
 
 ### Run with Docker
 
@@ -87,7 +87,7 @@ After creating the `.env.local` file, run:
 docker-compose up --build
 ```
 
-Check http://localhost:3000/authorisation/v1/health to see if it's working.
+Check http://localhost:3000/authorisation/v2/health to see if it's working.
 
 ## Linting
 
@@ -171,7 +171,7 @@ yarn audit
 
 ## Testing
 
-Reminder: you need to set `TEST_APP_NAME`, `TEST_APP_PRIVATE_KEY`, `TEST_CLIENT_DID` and `TEST_CLIENT_PRIVATE_KEY` (preferably in `.env.test.local`) before running the e2e tests!
+Reminder: you need to set `TEST_APP_NAME`, `TEST_APP_PRIVATE_KEY`, `TEST_CLIENT_DID`, `TEST_CLIENT_KID_ES256K`, `TEST_CLIENT_KID_ES256`, `TEST_CLIENT_KID_RS256`, `TEST_CLIENT_KID_EDDSA`, and `TEST_CLIENT_PRIVATE_KEY` (preferably in `.env.test.local`) before running the e2e tests!
 
 Run all the tests:
 

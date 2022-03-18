@@ -1,12 +1,13 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import { INestApplication, ValidationPipe } from "@nestjs/common";
+import { INestApplication, ValidationPipe, Logger } from "@nestjs/common";
+import { HttpService } from "@nestjs/axios";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
-import { Logger } from "@nestjs/common/services/logger.service";
+import { of } from "rxjs";
 import { AppModule } from "../app.module";
 import { AllExceptionsFilter } from "../filters/http-exception.filter";
 
@@ -14,6 +15,8 @@ jest.setTimeout(60000);
 
 describe("Logging interceptor", () => {
   let app: INestApplication;
+  let httpService: HttpService;
+
   const mockedLogger = {
     log: jest.fn(),
     warn: jest.fn(),
@@ -35,6 +38,8 @@ describe("Logging interceptor", () => {
 
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+
+    httpService = await moduleFixture.resolve<HttpService>(HttpService);
   });
 
   afterEach(() => {
@@ -58,8 +63,14 @@ describe("Logging interceptor", () => {
     it("should log the request and response", async () => {
       expect.assertions(2);
 
+      jest
+        .spyOn(httpService, "request")
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        .mockImplementation(() => of({}));
+
       await request(app.getHttpServer())
-        .get(`/health`)
+        .get("/health")
         .set("conformance", "test-id-conformance");
 
       const calls = mockedLogger.log.mock.calls.length;

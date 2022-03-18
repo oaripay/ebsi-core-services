@@ -7,12 +7,10 @@ import { ValidationPipe, Logger } from "@nestjs/common";
 import type { INestApplication, HttpServer } from "@nestjs/common";
 import { FastifyAdapter } from "@nestjs/platform-fastify";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
-import canonicalize from "canonicalize";
 import {
   exportJWK,
   generateKeyPair,
   importJWK,
-  jwtDecrypt,
   jwtVerify,
   SignJWT,
 } from "jose";
@@ -26,17 +24,15 @@ import type { Ake1SigPayload, AkeResponse } from "@cef-ebsi/oauth2-auth";
 import {
   RP,
   Agent as SiopAgent,
-  DidAuthResponseMode,
+  encode,
+  verifyJwtTar,
 } from "@cef-ebsi/siop-auth";
-import axios from "axios";
-import { base64url } from "multiformats/bases/base64";
 import { AppModule } from "../../src/app.module";
-import type { AuthenticationRequestResponse } from "../../src/modules/authorisation/authorisation.interface";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import type { ApiConfig } from "../../src/config/configuration";
 import { getPublicKey, randomPrivateKeySecp256k1 } from "../utils/keys";
-import { createVerifiableAuthorisation } from "../utils/verifiableAuthorisation";
-import { createVP } from "../utils/verfiablePresentation";
+import { createVerifiableAuthorisationJwt } from "../utils/verifiableAuthorisation";
+import { createVpJwt } from "../utils/verfiablePresentation";
 import {
   createAuthenticationResponseJose,
   getKeyByAlg,
@@ -49,18 +45,14 @@ function prefix0x(value: string): string {
 describe("Authorisation (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
-  let appTestId: string;
-  let didRegistry: string;
   let trustedAppsRegistry: string;
-  let trustedIssuersRegistry: string;
   let authorisationCredentialSchema: string;
   let onboardingApiPrivateKey: string;
   let onboardingAllowlist: string[];
   let apiKid: string;
-  let apiDid: string;
+  let apiName: string;
   let trustedApp: {
     name: string;
-    apiTarId: string;
     privateKey: string;
     kid: string;
   };
@@ -69,6 +61,9 @@ describe("Authorisation (e2e)", () => {
     did: string;
   };
   let configService: ConfigService<ApiConfig>;
+  let ebsiEnv: "test" | "conformance" | "pilot" | "prod";
+  // Fake audience used for the creation of the VP JWT (not checked by the API)
+  const audience = "authorisation-api";
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -90,7 +85,6 @@ describe("Authorisation (e2e)", () => {
 
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
 
-    const apiName = configService.get<string>("apiName");
     const testAppName = configService.get<string>("testAppName");
     const testAppPrivateKey = configService.get<string>("testAppPrivateKey");
     const testIssuerDid = configService.get<string>("testIssuerDid");
@@ -98,10 +92,6 @@ describe("Authorisation (e2e)", () => {
       "testIssuerPrivateKey"
     );
     trustedAppsRegistry = configService.get<string>("trustedAppsRegistry");
-    trustedIssuersRegistry = configService.get<string>(
-      "trustedIssuersRegistry"
-    );
-    didRegistry = configService.get<string>("didRegistry");
     authorisationCredentialSchema = configService.get<string>(
       "authorisationCredentialSchema"
     );
@@ -110,29 +100,21 @@ describe("Authorisation (e2e)", () => {
     );
     onboardingAllowlist = configService.get<string[]>("onboardingAllowlist");
 
-    let listAppsByName: {
-      data: { items: { id: string }[] };
-    } = await axios.get(`${trustedAppsRegistry}?name=${apiName}`);
-    const apiTarId = listAppsByName.data.items[0].id;
-
-    listAppsByName = await axios.get(
-      `${trustedAppsRegistry}?name=${testAppName}`
-    );
-    appTestId = listAppsByName.data.items[0].id;
-
-    apiDid = configService.get("apiDid");
-    apiKid = `${trustedAppsRegistry}/${apiTarId}`;
+    apiName = configService.get<string>("apiName");
+    apiKid = `${trustedAppsRegistry}/${apiName}`;
 
     trustedApp = {
       name: testAppName,
-      apiTarId: appTestId,
       privateKey: testAppPrivateKey,
-      kid: `${trustedAppsRegistry}/${appTestId}`,
+      kid: `${trustedAppsRegistry}/${testAppName}`,
     };
     trustedIssuer = {
       privateKey: testIssuerPrivateKey,
       did: testIssuerDid,
     };
+    ebsiEnv = configService.get<"test" | "conformance" | "pilot" | "prod">(
+      "ebsiEnv"
+    );
   });
 
   describe("POST /authentication-requests", () => {
@@ -174,13 +156,10 @@ describe("Authorisation (e2e)", () => {
       expect(response.status).toBe(200);
 
       const query = new URLSearchParams(
-        (response.body as AuthenticationRequestResponse).uri.replace(
-          "openid://?",
-          ""
-        )
+        response.text.replace("openid://?", "")
       );
 
-      expect(query.get("scope")).toBe("openid did_authn");
+      expect(query.get("scope")).toBe(encodeURIComponent("openid did_authn"));
       expect(query.get("response_type")).toBe("id_token");
       expect(query.get("client_id")).toBeDefined();
       expect(query.get("nonce")).toBeDefined();
@@ -202,10 +181,10 @@ describe("Authorisation (e2e)", () => {
         client_id: expect.any(String) as string,
         nonce: expect.any(String) as string,
         redirect_uri: expect.stringContaining(
-          "/authorisation/v1/siop-sessions"
+          "/authorisation/v2/siop-sessions"
         ) as string,
         response_mode: "post",
-        iss: configService.get<string>("apiDid"),
+        iss: apiName,
         claims: expect.objectContaining({}) as { id_token: unknown },
       });
     });
@@ -241,24 +220,26 @@ describe("Authorisation (e2e)", () => {
         clientAssertion: token,
         scope: "openid did_authn",
       });
+
       expect(response.body).toStrictEqual({
         title: "Invalid Client Assertion",
         status: 400,
-        detail:
-          "Assertion token requires aud, iss, exp, sub, jti, nonce and iat in the payload",
+        detail: `JWT with invalid kid. It should be hosted at ${configService.get<string>(
+          "trustedAppsRegistry"
+        )}`,
         type: "about:blank",
       });
       expect(response.status).toBe(400);
 
-      const apiTarId =
-        "0x0000000000000000000000000000000000000000000000000000000000000000";
       const nonce = randomUUID();
-      let agent = new OAuth2Agent(randomPrivateKeySecp256k1(), {
-        issuer: trustedApp.name,
-        kid: `${trustedAppsRegistry}/${apiTarId}`,
+
+      let agent = new OAuth2Agent({
+        privateKey: randomPrivateKeySecp256k1(),
+        name: "invalid-app",
+        trustedAppsRegistry: configService.get<string>("trustedAppsRegistry"),
       });
 
-      let authRequest = await agent.createRequestPayload("storage-api", {
+      let authRequest = await agent.createRequest("storage-api", {
         nonce,
       });
 
@@ -269,17 +250,18 @@ describe("Authorisation (e2e)", () => {
       expect(response.body).toStrictEqual({
         title: "Invalid Client Assertion",
         status: 400,
-        detail: expect.stringContaining(`App ${apiTarId} not found`) as string,
+        detail: expect.stringContaining("App invalid-app not found") as string,
         type: "about:blank",
       });
       expect(response.status).toBe(400);
 
-      agent = new OAuth2Agent(randomPrivateKeySecp256k1(), {
-        issuer: trustedApp.name,
-        kid: trustedApp.kid,
+      agent = new OAuth2Agent({
+        privateKey: randomPrivateKeySecp256k1(),
+        name: trustedApp.name,
+        trustedAppsRegistry: configService.get<string>("trustedAppsRegistry"),
       });
 
-      authRequest = await agent.createRequestPayload("storage-api", {
+      authRequest = await agent.createRequest("storage-api", {
         nonce,
       });
 
@@ -290,7 +272,9 @@ describe("Authorisation (e2e)", () => {
       expect(response.body).toStrictEqual({
         title: "Invalid Client Assertion",
         status: 400,
-        detail: "token validation failed",
+        detail: expect.stringContaining(
+          "signature verification failed"
+        ) as string,
         type: "about:blank",
       });
       expect(response.status).toBe(400);
@@ -299,12 +283,14 @@ describe("Authorisation (e2e)", () => {
     it("should create an OAuth2 session", async () => {
       expect.assertions(3);
       const nonce = randomUUID();
-      const agent = new OAuth2Agent(trustedApp.privateKey, {
-        issuer: trustedApp.name,
-        kid: trustedApp.kid,
+
+      const agent = new OAuth2Agent({
+        privateKey: trustedApp.privateKey,
+        name: trustedApp.name,
+        trustedAppsRegistry: configService.get<string>("trustedAppsRegistry"),
       });
 
-      const authRequest = await agent.createRequestPayload("ledger-api", {
+      const authRequest = await agent.createRequest("ledger-api", {
         nonce,
       });
 
@@ -320,7 +306,7 @@ describe("Authorisation (e2e)", () => {
           ake1_nonce: nonce,
           ake1_enc_payload: expect.any(String) as string,
           kid: trustedApp.kid,
-          iss: "authorisation-api",
+          iss: apiName,
         }) as Ake1SigPayload,
         ake1_jws_detached: expect.stringContaining("..") as string, // payload removed from the JWT
         kid: apiKid,
@@ -328,10 +314,7 @@ describe("Authorisation (e2e)", () => {
       expect(response.status).toBe(200);
 
       const check = async () => {
-        await agent.verifyAuthenticationResponse(
-          response.body as AkeResponse,
-          nonce
-        );
+        await agent.verifyAkeResponse(response.body as AkeResponse, { nonce });
       };
 
       await expect(check()).resolves.not.toThrow();
@@ -342,7 +325,7 @@ describe("Authorisation (e2e)", () => {
     "POST /siop-sessions with alg %s",
     (alg) => {
       it("should reject bad requests", async () => {
-        expect.assertions(12);
+        expect.assertions(14);
 
         const clientDid = configService.get<string>("testClientDid");
         const clientPrivateKeys = JSON.parse(
@@ -405,12 +388,7 @@ describe("Authorisation (e2e)", () => {
         expect(response.body).toStrictEqual({
           title: "Invalid ID Token",
           status: 400,
-          detail:
-            alg === "ES256K"
-              ? "The Response Token Issuer Claim (iss) MUST contain https://self-issued.me."
-              : (expect.stringContaining(
-                  `"iss" must be [https://self-issued.me]`
-                ) as string),
+          detail: `invalid issuer ${clientDid}. Possible values: https://self-issued.me, https://self-issued.me/v2`,
           type: "about:blank",
         });
         expect(response.status).toBe(400);
@@ -422,6 +400,7 @@ describe("Authorisation (e2e)", () => {
           did: randomDid,
           sub_jwk: {},
           nonce: "nonce",
+          // missing claims with encryption_key
         };
 
         idToken = await new SignJWT(payload)
@@ -431,43 +410,7 @@ describe("Authorisation (e2e)", () => {
             kid: randomDid, // wrong DID
           })
           .setIssuedAt()
-          .setIssuer("https://self-issued.me")
-          .setAudience(siopSessionsUrl)
-          .setExpirationTime("15s")
-          .sign(clientPrivateKey);
-
-        response = await request(server)
-          .post("/siop-sessions")
-          .set("Content-Type", "application/x-www-form-urlencoded")
-          .send({ id_token: idToken });
-
-        expect(response.body).toStrictEqual({
-          title: alg === "ES256K" ? "Invalid ID Token" : "Identifier Not Found",
-          status: alg === "ES256K" ? 400 : 404,
-          detail:
-            alg === "ES256K"
-              ? "The DID Document can't be found."
-              : `Identifier ${randomDid} not found`,
-          type: "about:blank",
-        });
-        expect(response.status).toBe(alg === "ES256K" ? 400 : 404);
-
-        payload = {
-          sub_did_verification_method_uri: clientDid,
-          sub: clientDid,
-          did: clientDid,
-          sub_jwk: {},
-          nonce: undefined, // missing nonce
-        };
-
-        idToken = await new SignJWT(payload)
-          .setProtectedHeader({
-            alg,
-            typ: "JWT",
-            kid: clientDid,
-          })
-          .setIssuedAt()
-          .setIssuer("https://self-issued.me")
+          .setIssuer("https://self-issued.me/v2")
           .setAudience(siopSessionsUrl)
           .setExpirationTime("15s")
           .sign(clientPrivateKey);
@@ -480,12 +423,89 @@ describe("Authorisation (e2e)", () => {
         expect(response.body).toStrictEqual({
           title: "Invalid ID Token",
           status: 400,
-          detail:
-            alg === "ES256K"
-              ? "No nonce found in JWT payload."
-              : (expect.stringContaining(
-                  "without its required peers [nonce]"
-                ) as string),
+          detail: "no encryption_key found in the claims",
+          type: "about:blank",
+        });
+        expect(response.status).toBe(400);
+
+        // Create encryption key
+        const encryptionKeyPair =
+          alg === "EdDSA"
+            ? crypto.generateKeyPairSync("x25519")
+            : await generateKeyPair(alg);
+
+        const publicEncryptionKeyJwk = await exportJWK(
+          encryptionKeyPair.publicKey
+        );
+
+        payload = {
+          sub_did_verification_method_uri: `${randomDid}#keys-2`, // wrong DID
+          sub: clientDid,
+          did: randomDid,
+          sub_jwk: {},
+          nonce: "nonce",
+          claims: {
+            encryption_key: publicEncryptionKeyJwk,
+          },
+        };
+
+        idToken = await new SignJWT(payload)
+          .setProtectedHeader({
+            alg,
+            typ: "JWT",
+            kid: randomDid, // wrong DID
+          })
+          .setIssuedAt()
+          .setIssuer("https://self-issued.me/v2")
+          .setAudience(siopSessionsUrl)
+          .setExpirationTime("15s")
+          .sign(clientPrivateKey);
+
+        response = await request(server)
+          .post("/siop-sessions")
+          .set("Content-Type", "application/x-www-form-urlencoded")
+          .send({ id_token: idToken });
+
+        expect(response.body).toStrictEqual({
+          title: "Invalid ID Token",
+          status: 400,
+          detail: `Identifier ${randomDid} not found`,
+          type: "about:blank",
+        });
+        expect(response.status).toBe(400);
+
+        payload = {
+          sub_did_verification_method_uri: clientDid,
+          sub: clientDid,
+          did: clientDid,
+          sub_jwk: {},
+          nonce: undefined, // missing nonce
+          claims: {
+            encryption_key: publicEncryptionKeyJwk,
+          },
+        };
+
+        idToken = await new SignJWT(payload)
+          .setProtectedHeader({
+            alg,
+            typ: "JWT",
+            kid: clientDid,
+          })
+          .setIssuedAt()
+          .setIssuer("https://self-issued.me/v2")
+          .setAudience(siopSessionsUrl)
+          .setExpirationTime("15s")
+          .sign(clientPrivateKey);
+
+        response = await request(server)
+          .post("/siop-sessions")
+          .set("Content-Type", "application/x-www-form-urlencoded")
+          .send({ id_token: idToken });
+
+        expect(response.body).toStrictEqual({
+          title: "Invalid ID Token",
+          status: 400,
+          detail: "No nonce found in JWT payload",
           type: "about:blank",
         });
         expect(response.status).toBe(400);
@@ -502,6 +522,7 @@ describe("Authorisation (e2e)", () => {
           nonce,
           redirectUri: "redirect_uri",
           privateKeyJwk: wrongJwk,
+          publicKeyEncryptionJwk: publicEncryptionKeyJwk,
         });
 
         response = await request(server)
@@ -512,10 +533,7 @@ describe("Authorisation (e2e)", () => {
         expect(response.body).toStrictEqual({
           title: "Invalid ID Token",
           status: 400,
-          detail:
-            alg === "ES256K"
-              ? "Error verifying the DID Auth Token signature."
-              : "ID Token validation failed: signature verification failed",
+          detail: "signature verification failed",
           type: "about:blank",
         });
         expect(response.status).toBe(400);
@@ -526,6 +544,7 @@ describe("Authorisation (e2e)", () => {
           nonce,
           redirectUri: "redirect_uri",
           privateKeyJwk: wrongJwk,
+          publicKeyEncryptionJwk: publicEncryptionKeyJwk,
         });
 
         response = await request(server)
@@ -534,12 +553,9 @@ describe("Authorisation (e2e)", () => {
           .send({ id_token: idToken });
 
         expect(response.body).toStrictEqual({
-          title: alg === "ES256K" ? "Invalid ID Token" : "Bad Request",
+          title: "Invalid ID Token",
           status: 400,
-          detail:
-            alg === "ES256K"
-              ? "Error verifying the DID Auth Token signature."
-              : `["did must be a valid DID"]`,
+          detail: `["did must be a valid DID"]`,
           type: "about:blank",
         });
         expect(response.status).toBe(400);
@@ -553,13 +569,21 @@ describe("Authorisation (e2e)", () => {
         const privateKey = prefix0x(configService.get<string>("apiPrivateKey"));
         const siopSessionsUrl = `${domain}${urlPrefix}/siop-sessions`;
 
-        const { uri } = await RP.createAuthenticationRequest({
-          redirectUri: siopSessionsUrl,
-          hexPrivateKey: privateKey,
+        // The RP creates an authentication request
+        const rp = new RP({
+          privateKey: await importJWK(
+            encode.privateKey.fromHextoJWK(privateKey),
+            "ES256K"
+          ),
+          alg: "ES256K",
+          name: apiName,
           kid: apiKid,
-          issuer: apiDid,
+          redirectUri: siopSessionsUrl,
+          didRegistry: configService.get<string>("didRegistry"),
         });
+        const uri = await rp.createRequest({});
 
+        // The agent verifies the authentication request
         const uriDecoded = new URLSearchParams(uri.replace("openid://?", ""));
 
         const nonce = randomUUID();
@@ -574,46 +598,63 @@ describe("Authorisation (e2e)", () => {
           id: string;
           privateKeyJwk: JWK;
           publicKeyJwk: JWK;
-          privateKeyEncryptionJwk?: JWK;
-          publicKeyEncryptionJwk?: JWK;
         }[];
+
+        const encryptionKeyPair =
+          alg === "EdDSA"
+            ? crypto.generateKeyPairSync("x25519")
+            : await generateKeyPair(alg);
+
+        const publicEncryptionKeyJwk = await exportJWK(
+          encryptionKeyPair.publicKey
+        );
+
+        const privateEncryptionKeyJwk = await exportJWK(
+          encryptionKeyPair.privateKey
+        );
 
         const keyObject = await getKeyByAlg(clientPrivateKeys, alg);
 
-        let idToken: string;
-        let agent: SiopAgent;
-
-        if (alg === "ES256K") {
-          const client = {
-            privateKey: prefix0x(keyObject.privateKeyHexES256K),
-            did: configService.get<string>("testClientDid"),
-            didRegistry: configService.get<string>("didRegistry"),
-          };
-          agent = new SiopAgent(client);
-
-          const authenticationResponse =
-            await agent.createAuthenticationResponse({
-              did: configService.get("testClientDid"),
-              nonce,
-              redirectUri: uriDecoded.get("client_id"),
-              responseMode: DidAuthResponseMode.FORM_POST,
-            });
-
-          const authResponseDecoded = new URLSearchParams(
-            authenticationResponse.bodyEncoded || ""
-          );
-
-          idToken = authResponseDecoded.get("id_token");
-        } else {
-          idToken = await createAuthenticationResponseJose({
-            alg,
-            keyId: keyObject.id,
-            nonce,
-            redirectUri: uriDecoded.get("client_id"),
-            privateKeyJwk: keyObject.privateKeyJwk,
-            publicKeyEncryptionJwk: keyObject.publicKeyEncryptionJwk,
-          });
+        let clientKid: string;
+        switch (alg) {
+          case "ES256K": {
+            clientKid = configService.get<string>("testClientKidES256K");
+            break;
+          }
+          case "ES256": {
+            clientKid = configService.get<string>("testClientKidES256");
+            break;
+          }
+          case "RS256": {
+            clientKid = configService.get<string>("testClientKidRS256");
+            break;
+          }
+          case "EdDSA": {
+            clientKid = configService.get<string>("testClientKidEdDSA");
+            break;
+          }
+          default: {
+            throw Error("Unhandled case");
+          }
         }
+
+        const agent = new SiopAgent({
+          privateKey: await importJWK(keyObject.privateKeyJwk, alg),
+          alg,
+          kid: clientKid,
+          siopV2: true,
+        });
+
+        const authenticationResponse = await agent.createResponse({
+          nonce,
+          redirectUri: uriDecoded.get("client_id"),
+          claims: {
+            encryption_key: publicEncryptionKeyJwk,
+          },
+          responseMode: "form_post",
+        });
+
+        const { idToken } = authenticationResponse;
 
         const response = await request(server)
           .post("/siop-sessions")
@@ -629,9 +670,9 @@ describe("Authorisation (e2e)", () => {
             did: expect.any(String) as string,
             iat: expect.any(Number) as number,
             exp: expect.any(Number) as number,
-            iss: apiDid,
+            iss: apiName,
           }) as Ake1SigPayload,
-          did: apiDid,
+          kid: apiKid,
         });
         expect(
           (
@@ -643,22 +684,16 @@ describe("Authorisation (e2e)", () => {
         expect(response.status).toBe(200);
 
         // Check that we can get the access token
-        let accessToken: string;
+        const accessToken = await SiopAgent.verifyAkeResponse(
+          response.body as AkeResponse,
+          {
+            nonce,
+            privateEncryptionKeyJwk,
+            trustedAppsRegistry,
+            alg,
+          }
+        );
 
-        if (alg === "ES256K") {
-          accessToken = await agent.verifyAuthenticationResponse(
-            response.body as AkeResponse,
-            nonce
-          );
-        } else {
-          const ake1EndPayload = (response.body as { ake1_enc_payload: string })
-            .ake1_enc_payload;
-          const { payload } = await jwtDecrypt(
-            ake1EndPayload,
-            keyObject.privateKeyEncryption as crypto.KeyObject
-          );
-          accessToken = (payload as { access_token: string }).access_token;
-        }
         expect(accessToken).toBeDefined();
       });
     }
@@ -666,7 +701,7 @@ describe("Authorisation (e2e)", () => {
 
   describe("SIOP flow", () => {
     it("should support the full SIOP flow for a known user (registered did)", async () => {
-      expect.assertions(1);
+      expect.assertions(2);
       // 1. First, the client calls /authentication-requests
       const authenticationRequestsResponse = await request(server)
         .post("/authentication-requests")
@@ -685,38 +720,54 @@ describe("Authorisation (e2e)", () => {
         id: string;
         privateKeyJwk: JWK;
         publicKeyJwk?: JWK;
-        privateKeyEncryptionJwk?: JWK;
-        publicKeyEncryptionJwk?: JWK;
       }[];
+
       const keyObject = await getKeyByAlg(clientPrivateKeys, "ES256K");
+
       const siopAgent = new SiopAgent({
-        privateKey: prefix0x(keyObject.privateKeyHexES256K),
-        didRegistry: configService.get<string>("didRegistry"),
+        privateKey: await importJWK(
+          encode.privateKey.fromHextoJWK(keyObject.privateKeyHexES256K),
+          "ES256K"
+        ),
+        alg: "ES256K",
+        kid: configService.get<string>("testClientKidES256K"),
+        siopV2: true,
       });
 
-      const { uri } = authenticationRequestsResponse.body as { uri: string };
-      const uriDecoded = new URLSearchParams(uri.replace("openid://?", ""));
+      const uri = authenticationRequestsResponse.text;
+      const urlParams = new URLSearchParams(uri.replace("openid://?", ""));
+      const params = Object.fromEntries(urlParams);
 
-      const payload = await siopAgent.verifyAuthenticationRequest(
-        uriDecoded.get("request")
-      );
+      Object.keys(params).forEach((k) => {
+        params[k] = decodeURIComponent(params[k]);
+      });
+
+      const { payload } = await verifyJwtTar(params.request, {
+        trustedAppsRegistry,
+      });
 
       // 3. The client creates an authentication response and gets an ID Token
-      const nonce = randomUUID();
-      const authenticationResponse =
-        await siopAgent.createAuthenticationResponse({
-          did: configService.get("testClientDid"),
-          nonce,
-          redirectUri: payload.client_id,
-          responseMode: DidAuthResponseMode.FORM_POST,
-          claims: {},
-        });
+      const encryptionKeyPair = await generateKeyPair("ES256K");
 
-      const authResponseDecoded = new URLSearchParams(
-        authenticationResponse.bodyEncoded ?? ""
+      const publicEncryptionKeyJwk = await exportJWK(
+        encryptionKeyPair.publicKey
       );
 
-      const idToken = authResponseDecoded.get("id_token");
+      const privateEncryptionKeyJwk = await exportJWK(
+        encryptionKeyPair.privateKey
+      );
+
+      const nonce = randomUUID();
+      const authenticationResponse = await siopAgent.createResponse({
+        nonce,
+        redirectUri: payload.client_id as string,
+        claims: {
+          encryption_key: publicEncryptionKeyJwk,
+        },
+        responseMode: "form_post",
+      });
+
+      const { idToken } = authenticationResponse;
 
       // 4. The client calls /siop-sessions with the ID Token
       const siopSessionsResponse = await request(server)
@@ -725,16 +776,29 @@ describe("Authorisation (e2e)", () => {
         .send({ id_token: idToken });
 
       // 5. Finally, the client verifies the SIOP authentication response and gets an access token
-      const accessToken = await siopAgent.verifyAuthenticationResponse(
+      const accessToken = await SiopAgent.verifyAkeResponse(
         siopSessionsResponse.body as AkeResponse,
-        nonce
+        {
+          nonce,
+          privateEncryptionKeyJwk,
+          trustedAppsRegistry,
+          alg: "ES256K",
+        }
       );
 
       expect(accessToken).toBeDefined();
+
+      // Verify access token
+      await expect(
+        verifyJwtTar(accessToken, {
+          trustedAppsRegistry,
+          audience: "ebsi-core-services",
+        })
+      ).resolves.not.toThrow();
     });
 
     it("should support the full SIOP flow for an unknown user (not registered did)", async () => {
-      expect.assertions(2);
+      expect.assertions(3);
 
       // 1. The user creates an authentication request in Onboarding api
       // Since this step requires human intervention (eulogin, recaptcha) this test
@@ -743,69 +807,116 @@ describe("Authorisation (e2e)", () => {
       const did = EbsiWallet.createDid();
       const privateKey = randomPrivateKeySecp256k1();
       const privateKeyHexEncryption = randomPrivateKeySecp256k1();
+      const privateEncryptionKeyJwk = encode.privateKey.fromHextoJWK(
+        privateKeyHexEncryption
+      );
       const publicKeyEncryption = new EbsiWallet(
         privateKeyHexEncryption
       ).getPublicKey({ format: "jwk" }) as JsonWebKey;
-      const verifiableCredential = await createVerifiableAuthorisation(
+
+      const verifiableCredentialJwt = await createVerifiableAuthorisationJwt(
         did,
         authorisationCredentialSchema,
         onboardingApiPrivateKey,
         onboardingAllowlist[0], // must be did of onboarding api
-        didRegistry
+        ebsiEnv
       );
 
       // 2. The client creates a verifiable presentation using the verifiable credential
       const siopAgent = new SiopAgent({
-        privateKey: prefix0x(privateKeyHexEncryption),
-        didRegistry: configService.get<string>("didRegistry"),
+        privateKey: await importJWK(
+          encode.privateKey.fromHextoJWK(privateKeyHexEncryption),
+          "ES256K"
+        ),
+        alg: "ES256K",
+        siopV2: true,
       });
 
-      const vp = await createVP(did, privateKey, verifiableCredential, {
-        resolver: didRegistry,
-        tirUrl: trustedIssuersRegistry,
-      });
+      const vp = await createVpJwt(
+        did,
+        privateKey,
+        verifiableCredentialJwt,
+        audience,
+        ebsiEnv
+      );
+
       const nonce = randomUUID();
-      const canonicalizedVP = base64url.baseEncode(
-        Buffer.from(canonicalize(vp))
-      );
 
-      const authenticationResponse =
-        await siopAgent.createAuthenticationResponse({
-          did,
-          nonce,
-          redirectUri: "/siop-sessions",
-          responseMode: DidAuthResponseMode.FORM_POST,
-          claims: {
-            verified_claims: canonicalizedVP,
-            encryption_key: { ...publicKeyEncryption },
+      const authenticationResponse = await siopAgent.createResponse({
+        nonce,
+        redirectUri: "/siop-sessions",
+        responseMode: "form_post",
+        claims: {
+          encryption_key: { ...publicKeyEncryption },
+        },
+        _vp_token: {
+          presentation_submission: {
+            // The presentation_submission object MUST contain an id property.
+            // The value of this property MUST be a unique identifier, such as a UUID.
+            id: randomUUID(),
+            // The presentation_submission object MUST contain a definition_id property.
+            // The value of this property MUST be the id value of a valid Presentation Definition.
+            definition_id: randomUUID(),
+            // The presentation_submission object MUST include a descriptor_map property.
+            // The value of this property MUST be an array of Input Descriptor Mapping Objects, composed as follows:
+            descriptor_map: [
+              {
+                // The descriptor_map object MUST include an id property.
+                // The value of this property MUST be a string that matches the id property of the Input Descriptor in the Presentation Definition that this Presentation Submission is related to.
+                id: randomUUID(),
+                // The descriptor_map object MUST include a format property.
+                // The value of this property MUST be a string that matches one of the Claim Format Designation. This denotes the data format of the Claim.
+                format: "jwt_vp",
+                // The descriptor_map object MUST include a path property.
+                // The value of this property MUST be a JSONPath string expression. The path property indicates the Claim submitted in relation to the identified Input Descriptor, when executed against the top-level of the object the Presentation Submission is embedded within.
+                path: "$",
+                // The object MAY include a path_nested object to indicate the presence of a multi-Claim envelope format.
+                // This means the Claim indicated is to be decoded separately from its parent enclosure.
+                path_nested: {
+                  id: "onboarding-input-id",
+                  format: "jwt_vc",
+                  path: "$.vp.verifiableCredential[0]",
+                },
+              },
+            ],
           },
-        });
+        },
+      });
 
-      const authResponseDecoded = new URLSearchParams(
-        authenticationResponse.bodyEncoded ?? ""
-      );
-
-      const idToken = authResponseDecoded.get("id_token");
+      const { idToken } = authenticationResponse;
 
       // 3. The client calls /siop-sessions with the ID Token
       const siopSessionsResponse = await request(server)
         .post("/siop-sessions")
         .set("Content-Type", "application/x-www-form-urlencoded")
-        .send({ id_token: idToken });
+        .send({ id_token: idToken, vp_token: vp });
 
       expect(siopSessionsResponse.status).toBe(200);
 
       // 4. Finally, the client verifies the SIOP authentication response and gets an access token
-      const accessToken = await siopAgent.verifyAuthenticationResponse(
+      const accessToken = await SiopAgent.verifyAkeResponse(
         siopSessionsResponse.body as AkeResponse,
-        nonce
+        {
+          nonce,
+          privateEncryptionKeyJwk,
+          trustedAppsRegistry,
+          alg: "ES256K",
+        }
       );
 
       expect(accessToken).toBeDefined();
+
+      // Verify access token
+      await expect(
+        verifyJwtTar(accessToken, {
+          trustedAppsRegistry,
+          audience: "ebsi-core-services",
+        })
+      ).resolves.not.toThrow();
     });
 
     it("should support the full SIOP flow (EdDSA) for an unknown user (not registered did)", async () => {
-      expect.assertions(2);
+      expect.assertions(3);
 
       // 1. The user creates an authentication request in Onboarding API
       // Since this step requires human intervention (eulogin, recaptcha) this test
@@ -814,71 +925,113 @@ describe("Authorisation (e2e)", () => {
       const did = EbsiWallet.createDid();
       const privateKey = crypto.randomBytes(64).toString("base64");
       const privateKeyHexEncryption = randomPrivateKeySecp256k1();
+      const privateEncryptionKeyJwk = encode.privateKey.fromHextoJWK(
+        privateKeyHexEncryption
+      );
       const publicKeyEncryption = new EbsiWallet(
         privateKeyHexEncryption
       ).getPublicKey({ format: "jwk" }) as JsonWebKey;
-      const verifiableCredential = await createVerifiableAuthorisation(
+
+      const verifiableCredentialJwt = await createVerifiableAuthorisationJwt(
         did,
         authorisationCredentialSchema,
         onboardingApiPrivateKey,
         onboardingAllowlist[0], // must be did of onboarding api
-        didRegistry
+        ebsiEnv
       );
 
       // 2. The client creates a verifiable presentation using the verifiable credential
       const siopAgent = new SiopAgent({
-        privateKey: prefix0x(privateKeyHexEncryption),
-        didRegistry: configService.get<string>("didRegistry"),
+        privateKey: await importJWK(
+          encode.privateKey.fromHextoJWK(privateKeyHexEncryption),
+          "ES256K"
+        ),
+        alg: "ES256K",
+        siopV2: true,
       });
 
-      const vp = await createVP(
+      const vp = await createVpJwt(
         did,
         privateKey,
-        verifiableCredential,
-        {
-          resolver: didRegistry,
-          tirUrl: trustedIssuersRegistry,
-        },
+        verifiableCredentialJwt,
+        audience,
+        ebsiEnv,
         "EdDSA"
       );
+
       const nonce = randomUUID();
-      const canonicalizedVP = base64url.baseEncode(
-        Buffer.from(canonicalize(vp))
-      );
 
-      const authenticationResponse =
-        await siopAgent.createAuthenticationResponse({
-          did,
-          nonce,
-          redirectUri: "/siop-sessions",
-          responseMode: DidAuthResponseMode.FORM_POST,
-          claims: {
-            verified_claims: canonicalizedVP,
-            encryption_key: { ...publicKeyEncryption },
+      const authenticationResponse = await siopAgent.createResponse({
+        nonce,
+        redirectUri: "/siop-sessions",
+        responseMode: "form_post",
+        claims: {
+          encryption_key: { ...publicKeyEncryption },
+        },
+        _vp_token: {
+          presentation_submission: {
+            // The presentation_submission object MUST contain an id property.
+            // The value of this property MUST be a unique identifier, such as a UUID.
+            id: randomUUID(),
+            // The presentation_submission object MUST contain a definition_id property.
+            // The value of this property MUST be the id value of a valid Presentation Definition.
+            definition_id: randomUUID(),
+            // The presentation_submission object MUST include a descriptor_map property.
+            // The value of this property MUST be an array of Input Descriptor Mapping Objects, composed as follows:
+            descriptor_map: [
+              {
+                // The descriptor_map object MUST include an id property.
+                // The value of this property MUST be a string that matches the id property of the Input Descriptor in the Presentation Definition that this Presentation Submission is related to.
+                id: randomUUID(),
+                // The descriptor_map object MUST include a format property.
+                // The value of this property MUST be a string that matches one of the Claim Format Designation. This denotes the data format of the Claim.
+                format: "jwt_vp",
+                // The descriptor_map object MUST include a path property.
+                // The value of this property MUST be a JSONPath string expression. The path property indicates the Claim submitted in relation to the identified Input Descriptor, when executed against the top-level of the object the Presentation Submission is embedded within.
+                path: "$",
+                // The object MAY include a path_nested object to indicate the presence of a multi-Claim envelope format.
+                // This means the Claim indicated is to be decoded separately from its parent enclosure.
+                path_nested: {
+                  id: "onboarding-input-id",
+                  format: "jwt_vc",
+                  path: "$.vp.verifiableCredential[0]",
+                },
+              },
+            ],
           },
-        });
+        },
+      });
 
-      const authResponseDecoded = new URLSearchParams(
-        authenticationResponse.bodyEncoded ?? ""
-      );
-
-      const idToken = authResponseDecoded.get("id_token");
+      const { idToken } = authenticationResponse;
 
       // 3. The client calls /siop-sessions with the ID Token
       const siopSessionsResponse = await request(server)
         .post("/siop-sessions")
         .set("Content-Type", "application/x-www-form-urlencoded")
-        .send({ id_token: idToken });
+        .send({ id_token: idToken, vp_token: vp });
 
       expect(siopSessionsResponse.status).toBe(200);
 
       // 4. Finally, the client verifies the SIOP authentication response and gets an access token
-      const accessToken = await siopAgent.verifyAuthenticationResponse(
+      const accessToken = await SiopAgent.verifyAkeResponse(
         siopSessionsResponse.body as AkeResponse,
-        nonce
+        {
+          nonce,
+          privateEncryptionKeyJwk,
+          trustedAppsRegistry,
+          alg: "ES256K",
+        }
       );
 
       expect(accessToken).toBeDefined();
+
+      // Verify access token
+      await expect(
+        verifyJwtTar(accessToken, {
+          trustedAppsRegistry,
+          audience: "ebsi-core-services",
+        })
+      ).resolves.not.toThrow();
     });
 
     it("should not support the full SIOP flow for an unknown user (not registered did) if the verifiable authorisation is not signed by Users onboarding API", async () => {
@@ -893,52 +1046,83 @@ describe("Authorisation (e2e)", () => {
       const publicKeyEncryption = new EbsiWallet(
         privateKeyHexEncryption
       ).getPublicKey({ format: "jwk" }) as JsonWebKey;
-      const verifiableCredential = await createVerifiableAuthorisation(
+
+      const verifiableCredentialJwt = await createVerifiableAuthorisationJwt(
         did,
         authorisationCredentialSchema,
         trustedIssuer.privateKey, // not signed by onboarding api, but by a different Trusted Issuer
         trustedIssuer.did,
-        didRegistry
+        ebsiEnv
       );
 
       // 2. The client creates a verifiable presentation using the verifiable credential
       const siopAgent = new SiopAgent({
-        privateKey: prefix0x(privateKeyHexEncryption),
-        didRegistry: configService.get<string>("didRegistry"),
+        privateKey: await importJWK(
+          encode.privateKey.fromHextoJWK(privateKeyHexEncryption),
+          "ES256K"
+        ),
+        alg: "ES256K",
+        siopV2: true,
       });
 
-      const vp = await createVP(did, privateKey, verifiableCredential, {
-        resolver: didRegistry,
-        tirUrl: trustedIssuersRegistry,
-      });
+      const vp = await createVpJwt(
+        did,
+        privateKey,
+        verifiableCredentialJwt,
+        audience,
+        ebsiEnv
+      );
+
       const nonce = randomUUID();
-      const canonicalizedVP = base64url.baseEncode(
-        Buffer.from(canonicalize(vp))
-      );
 
-      const authenticationResponse =
-        await siopAgent.createAuthenticationResponse({
-          did,
-          nonce,
-          redirectUri: "/siop-sessions",
-          responseMode: DidAuthResponseMode.FORM_POST,
-          claims: {
-            verified_claims: canonicalizedVP,
-            encryption_key: { ...publicKeyEncryption },
+      const authenticationResponse = await siopAgent.createResponse({
+        nonce,
+        redirectUri: "/siop-sessions",
+        responseMode: "form_post",
+        claims: {
+          encryption_key: { ...publicKeyEncryption },
+        },
+        _vp_token: {
+          presentation_submission: {
+            // The presentation_submission object MUST contain an id property.
+            // The value of this property MUST be a unique identifier, such as a UUID.
+            id: randomUUID(),
+            // The presentation_submission object MUST contain a definition_id property.
+            // The value of this property MUST be the id value of a valid Presentation Definition.
+            definition_id: randomUUID(),
+            // The presentation_submission object MUST include a descriptor_map property.
+            // The value of this property MUST be an array of Input Descriptor Mapping Objects, composed as follows:
+            descriptor_map: [
+              {
+                // The descriptor_map object MUST include an id property.
+                // The value of this property MUST be a string that matches the id property of the Input Descriptor in the Presentation Definition that this Presentation Submission is related to.
+                id: randomUUID(),
+                // The descriptor_map object MUST include a format property.
+                // The value of this property MUST be a string that matches one of the Claim Format Designation. This denotes the data format of the Claim.
+                format: "jwt_vp",
+                // The descriptor_map object MUST include a path property.
+                // The value of this property MUST be a JSONPath string expression. The path property indicates the Claim submitted in relation to the identified Input Descriptor, when executed against the top-level of the object the Presentation Submission is embedded within.
+                path: "$",
+                // The object MAY include a path_nested object to indicate the presence of a multi-Claim envelope format.
+                // This means the Claim indicated is to be decoded separately from its parent enclosure.
+                path_nested: {
+                  id: "onboarding-input-id",
+                  format: "jwt_vc",
+                  path: "$.vp.verifiableCredential[0]",
+                },
+              },
+            ],
           },
-        });
+        },
+      });
 
-      const authResponseDecoded = new URLSearchParams(
-        authenticationResponse.bodyEncoded ?? ""
-      );
-
-      const idToken = authResponseDecoded.get("id_token");
+      const { idToken } = authenticationResponse;
 
       // 3. The client calls /siop-sessions with the ID Token
       const siopSessionsResponse = await request(server)
         .post("/siop-sessions")
         .set("Content-Type", "application/x-www-form-urlencoded")
-        .send({ id_token: idToken });
+        .send({ id_token: idToken, vp_token: vp });
 
       expect(siopSessionsResponse.body).toStrictEqual({
         detail: `All verifiable credentials must be signed by issuers in the allowlist: ${onboardingAllowlist.join(

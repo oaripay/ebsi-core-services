@@ -6,7 +6,6 @@ import {
   OAuth2SessionDto,
   SiopSessionDto,
 } from "./dto";
-import { AuthenticationRequestResponse } from "./authorisation.interface";
 
 @Controller("/")
 export class AuthorisationController {
@@ -17,7 +16,7 @@ export class AuthorisationController {
   async authenticationRequests(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     @Body() _body: AuthenticationRequestDto
-  ): Promise<AuthenticationRequestResponse> {
+  ): Promise<string> {
     return this.authorisationService.authenticationRequest();
   }
 

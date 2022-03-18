@@ -1,6 +1,6 @@
 version: "3.7"
 
 services:
-  authorisation-api:
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/authorisation-api:test_ebsiint-3819-update-deps_v1.0.0
+  authorisation-api-v2:
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/authorisation-api-v2:test_ebsiint-3791-vp-jwt_v2.0.0
     build: ../..

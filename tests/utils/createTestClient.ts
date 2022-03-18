@@ -24,7 +24,7 @@ export async function createTestClient(): Promise<{
     "@context": "https://www.w3.org/ns/did/v1",
     id: did,
     verificationMethod: [],
-    authentication: [did],
+    authentication: [`${did}#keys-1`],
     assertionMethod: [],
   };
 
