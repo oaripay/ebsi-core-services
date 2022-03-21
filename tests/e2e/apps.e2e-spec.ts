@@ -150,18 +150,18 @@ describe("Apps (e2e)", () => {
       clientDid: configService.get<string>("testAdminDid"),
       clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
-      trustedAppsRegistryUrl: configService.get<string>(
-        "trustedAppsRegistryUrl"
-      ),
+      trustedAppsRegistryUrl: `${configService.get<string>(
+        "domain"
+      )}${configService.get<string>("apiUrlPrefix")}`,
     });
 
     userAccessToken = await requestSiopJwt({
       clientDid: configService.get<string>("testUserDid"),
       clientPrivateKey: configService.get<string>("testUserPrivateKey"),
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
-      trustedAppsRegistryUrl: configService.get<string>(
-        "trustedAppsRegistryUrl"
-      ),
+      trustedAppsRegistryUrl: `${configService.get<string>(
+        "domain"
+      )}${configService.get<string>("apiUrlPrefix")}`,
     });
     didAppAdmin = configService.get<string>("testAdminDid");
     besuRpcNode = configService.get("besuRpcNode");

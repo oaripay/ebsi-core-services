@@ -12,8 +12,8 @@ export class AuthService {
 
   constructor(configService: ConfigService<ApiConfig>) {
     this.tarAppsRegistry = `${configService.get<string>(
-      "trustedAppsRegistryUrl"
-    )}/apps`;
+      "domain"
+    )}${configService.get<string>("apiUrlPrefix")}/apps`;
   }
 
   async validateSiopToken(bearerToken: string): Promise<ClientInfo> {

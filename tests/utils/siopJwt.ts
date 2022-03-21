@@ -35,13 +35,13 @@ export const requestSiopJwt = async ({
   // 1. First, the client calls /authentication-requests
   const authenticationRequestsResponse = await axios.post<
     { scope: string },
-    AxiosResponse<{ uri: string }>
+    AxiosResponse<string>
   >(`${authorisationApiUrl}/authentication-requests`, {
     scope: "openid did_authn",
   });
 
   // 2. The client verifies the response
-  const { uri } = authenticationRequestsResponse.data;
+  const uri = authenticationRequestsResponse.data;
 
   const urlParams = new URLSearchParams(uri.replace("openid://?", ""));
   const params = Object.fromEntries(urlParams);
@@ -57,14 +57,15 @@ export const requestSiopJwt = async ({
   const nonce = randomUUID();
 
   const authenticationResponse = await siopAgent.createResponse({
-    did: clientDid,
     nonce,
     redirectUri: payload.client_id as string,
-    responseMode: "form_post",
     claims: {
       encryption_key: publicEncryptionKeyJwk,
     },
+    responseMode: "form_post",
   });
+
+  const { idToken } = authenticationResponse;
 
   // 4. The client call /siop-sessions with the ID Token
   const siopSessionsResponse = await axios.post<
@@ -72,7 +73,7 @@ export const requestSiopJwt = async ({
     AxiosResponse<AkeResponse>
   >(
     `${authorisationApiUrl}/siop-sessions`,
-    authenticationResponse.bodyEncoded,
+    new URLSearchParams({ id_token: idToken }).toString(),
     {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",

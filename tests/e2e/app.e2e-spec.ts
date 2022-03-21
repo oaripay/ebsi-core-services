@@ -7,13 +7,15 @@ import {
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
 import { Logger } from "@nestjs/common/services/logger.service";
+import { ConfigService } from "@nestjs/config";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
+import { ApiConfig } from "../../src/config/configuration";
 
 describe("TAR API (generic tests)", () => {
   let app: NestFastifyApplication;
   let server: HttpServer;
-
+  let trustedAppsRegistryUrl: string;
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
@@ -24,9 +26,12 @@ describe("TAR API (generic tests)", () => {
     );
     app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe());
-
+    const configService =
+      moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
     Logger.overrideLogger(false);
-
+    trustedAppsRegistryUrl = `${configService.get<string>(
+      "domain"
+    )}${configService.get<string>("apiUrlPrefix")}`;
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
@@ -98,8 +103,7 @@ describe("TAR API (generic tests)", () => {
         .send();
 
       expect(response.body).toStrictEqual({
-        detail:
-          "Invalid JWT: not_supported: No supported signature types for algorithm HS256",
+        detail: `Invalid JWT: JWT with invalid kid. It should be hosted at ${trustedAppsRegistryUrl}/apps`,
         status: 401,
         title: "Unauthorized",
         type: "about:blank",
