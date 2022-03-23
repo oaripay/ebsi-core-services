@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.8](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/proxy-data-hub-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.7&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.8&targetRepoId=252) (2022-03-16)
+
+### 🚀 Features
+
+- log requests and responses ([#63](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/proxy-data-hub-api/pull-requests/63/overview)) - EBSIINT-3651 ([7bcf6ba](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/proxy-data-hub-api/commits/7bcf6ba19b02a39518d65b04cc882c4e68617472))
+
 ## [2.0.0-rc.7](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/proxy-data-hub-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.6&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.7&targetRepoId=252) (2021-12-06)
 
 ## [2.0.0-rc.6](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/proxy-data-hub-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.5&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.6&targetRepoId=252) (2021-11-15)
