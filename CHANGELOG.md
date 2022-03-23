@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.8](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/storage-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.7&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.8&targetRepoId=245) (2022-03-16)
+
+### 🚀 Features
+
+- log requests and responses ([#73](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/storage-api/pull-requests/73/overview)) - EBSIINT-3651 ([6440af8](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/storage-api/commits/6440af8f3320752e077dd1cb973109a62a9e5af5))
+
+### 🐛 Bug Fixes
+
+- update fastiy-multipart, fix CVE-2021-23597 ([#78](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/storage-api/pull-requests/78/overview)) - EBSIINT-3831 ([15a1a35](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/storage-api/commits/15a1a3509e27ae37bbe995b886000622a58c7cd4))
+
 ## [2.0.0-rc.7](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/storage-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.6&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.7&targetRepoId=245) (2021-12-06)
 
 ## [2.0.0-rc.6](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/storage-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.5&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.6&targetRepoId=245) (2021-11-15)
