@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.9](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/did-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.8&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.9&targetRepoId=234) (2022-03-16)
+
+### 🚀 Features
+
+- implement TPR changes ([#130](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/did-registry-api/pull-requests/130/overview)) - EBSIINT-3843 ([af9b0cc](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/did-registry-api/commits/af9b0cca00ff183a5ef38d5e6760592d043251da))
+- intercept and log requests and responses ([#119](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/did-registry-api/pull-requests/119/overview)) - EBSIINT-3651 ([761c803](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/did-registry-api/commits/761c803cdaee1dd8d83df5f268a1b544fbfb3bb4))
+
 ## [2.0.0-rc.8](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/did-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.7&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.8&targetRepoId=234) (2021-12-06)
 
 ### 🚀 Features
