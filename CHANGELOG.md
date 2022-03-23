@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.8](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.7&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.8&targetRepoId=244) (2022-03-16)
+
+### 🚀 Features
+
+- log requests and responses ([#93](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/93/overview)) - EBSIINT-3651 ([b98ba8e](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/b98ba8eac756068c556f550c2267b844b10ceb77))
+
 ## [2.0.0-rc.7](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.6&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.7&targetRepoId=244) (2021-12-10)
 
 ## [2.0.0-rc.6](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.5&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.6&targetRepoId=244) (2021-11-15)
