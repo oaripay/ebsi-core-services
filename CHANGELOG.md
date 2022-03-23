@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [1.0.0-rc.7](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.6&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.7&targetRepoId=387) (2022-03-16)
+
+### 🚀 Features
+
+- implement TPR changes ([#55](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/pull-requests/55/overview)) - EBSIINT-3848 ([3c5d07c](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/commits/3c5d07cc83bfc7273f9be13156c5ebad51db9067))
+- log requests and responses ([#50](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/pull-requests/50/overview)) - EBSIINT-3651 ([5115ece](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/commits/5115ecefb1d00ca0356b72b01a558c0e8f582b16))
+
 ## [1.0.0-rc.6](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.5&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.6&targetRepoId=387) (2021-12-06)
 
 ### 🚀 Features
