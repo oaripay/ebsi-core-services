@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [1.0.0-rc.8](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/notifications-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.7&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.8&targetRepoId=318) (2022-03-16)
+
+### 🚀 Features
+
+- log requests and responses ([#52](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/notifications-api/pull-requests/52/overview)) - EBSIINT-3651 ([7e06de4](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/notifications-api/commits/7e06de496f630f9883dd4cd2fc66152051bdae4f))
+- remove throttling ([#53](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/notifications-api/pull-requests/53/overview)) - EBSIINT-3704 ([a65a921](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/notifications-api/commits/a65a9216aaeee5a41273fb75003dc037e876fa5f))
+
 ## [1.0.0-rc.7](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/notifications-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.6&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.7&targetRepoId=318) (2021-12-06)
 
 ## [1.0.0-rc.6](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/notifications-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.5&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.6&targetRepoId=318) (2021-11-15)
