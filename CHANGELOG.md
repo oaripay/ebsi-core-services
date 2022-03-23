@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.9](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-issuers-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.8&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.9&targetRepoId=251) (2022-03-16)
+
+### 🚀 Features
+
+- implement TPR changes ([#89](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-issuers-registry-api/pull-requests/89/overview)) - EBSIINT-3846 ([e023bc4](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-issuers-registry-api/commits/e023bc480e1294156360e4afc798d2a91b779f67))
+- log requests and responses ([#83](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-issuers-registry-api/pull-requests/83/overview)) - EBSIINT-3651 ([e97826c](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-issuers-registry-api/commits/e97826cc641a044f7fd41f6e783169733e77b465))
+
 ## [2.0.0-rc.8](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-issuers-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.7&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.8&targetRepoId=251) (2021-12-06)
 
 ### 🚀 Features
