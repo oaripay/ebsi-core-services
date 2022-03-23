@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.10](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/timestamp-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.9&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.10&targetRepoId=247) (2022-03-16)
+
+### 🚀 Features
+
+- log requests and responses ([#95](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/timestamp-api/pull-requests/95/overview)) - EBSIINT-3651 ([9e3edc4](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/timestamp-api/commits/9e3edc46cc3ea9996b85228a1280e90f182d3404))
+- remove sc administrator and owner checks ([#102](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/timestamp-api/pull-requests/102/overview)) - EBSIINT-3844 ([01a9735](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/timestamp-api/commits/01a9735a6635bfc33ffa466441b6ce11b340d7fc))
+
 ## [2.0.0-rc.9](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/timestamp-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.8&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.9&targetRepoId=247) (2021-12-06)
 
 ### 🚀 Features
