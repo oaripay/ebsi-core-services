@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [1.0.0-rc.7](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-schemas-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.6&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.7&targetRepoId=292) (2022-03-16)
+
+### 🚀 Features
+
+- implement TPR updates ([#63](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-schemas-registry-api/pull-requests/63/overview)) - EBSIINT-3847 ([1f130ec](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-schemas-registry-api/commits/1f130ec6f97127f0cc62f2553a559a80ea084345))
+- log requests and responses ([#57](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-schemas-registry-api/pull-requests/57/overview)) - EBSIINT-3651 ([58dc1b3](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-schemas-registry-api/commits/58dc1b3743ed844af9c2d4e9efa6606244b35d73))
+- support multibase base58btc schema IDs ([#65](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-schemas-registry-api/pull-requests/65/overview)) - EBSIINT-3915 ([385ded9](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-schemas-registry-api/commits/385ded96ef92ce4965cd19216d712bde92182049))
+
 ## [1.0.0-rc.6](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-schemas-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.5&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.6&targetRepoId=292) (2021-12-06)
 
 ### 🚀 Features
