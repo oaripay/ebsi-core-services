@@ -6,7 +6,6 @@ declare global {
       EBSI_ENV: "local" | "test" | "conformance" | "pilot" | "prod";
       API_PORT?: string;
       API_URL_PREFIX?: string;
-      API_NAME?: string;
       AUTHORISATION_API_NAME?: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
       BESU_RPC_NODE: string;
@@ -18,10 +17,9 @@ declare global {
       DOMAIN?: string;
       LOCAL_ORIGIN?: string;
       TRUSTED_APPS_REGISTRY_API_URL?: string;
-      DID_REGISTRY_API_URL?: string;
       AUTHORISATION_API_URL?: string;
       HEALTH_CHECK?: string;
-      TEST_USER_DID?: string;
+      TEST_USER_KID?: string;
       TEST_USER_PRIVATE_KEY?: string;
       TEST_APP_ID?: string;
       TEST_APP_NAME?: string;

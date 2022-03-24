@@ -13,7 +13,7 @@ export const options = {
 };
 
 export default function loadTesting() {
-  const pathname = "/ledger/v2/blockchains/besu";
+  const pathname = "/ledger/v3/blockchains/besu";
 
   group(pathname, () => {
     const url = `${BASE_URL}${pathname}`;

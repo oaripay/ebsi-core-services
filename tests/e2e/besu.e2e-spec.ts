@@ -13,18 +13,19 @@ import {
 import type { FastifyInstance } from "fastify";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { ApiConfig } from "../../src/config/configuration";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import {
   createFakeToken,
-  oauth2Authentication,
-  siopAuthentication,
+  requestOAuth2Jwt,
+  requestSiopJwt,
 } from "../utils/authorisation";
 
 jest.setTimeout(60000);
 
-describe("POST /ledger/v2/blockchains/besu", () => {
+describe("POST /ledger/v3/blockchains/besu", () => {
   let app: INestApplication;
   let server: HttpServer;
   let tokenOAuth2: string;
@@ -50,20 +51,43 @@ describe("POST /ledger/v2/blockchains/besu", () => {
 
     const configService =
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+
     const testApp = configService.get<{
       id: string;
       name: string;
       privateKey: string;
     }>("testApp");
 
-    const testUser = configService.get<{
-      did: string;
-      privateKey: string;
-    }>("testUser");
+    const testUser = configService.get<ApiConfig["testUser"]>("testUser");
 
-    tokenOAuth2 = await oauth2Authentication(testApp);
-    tokenSiop = await siopAuthentication(testUser);
-    fakeTokenOAuth2 = await createFakeToken("oauth2", true);
+    tokenOAuth2 = await requestOAuth2Jwt({
+      trustedAppName: testApp.name,
+      trustedAppPrivateKey: testApp.privateKey,
+      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+      trustedAppsRegistryApiUrl: configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      ),
+    });
+
+    tokenSiop = await requestSiopJwt({
+      clientKid: testUser.kid,
+      clientPrivateKey: testUser.privateKey,
+      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+      trustedAppsRegistryApiUrl: configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      ),
+    });
+
+    fakeTokenOAuth2 = await createFakeToken({
+      loginHint: "oauth2",
+      authorisationApiName: configService.get<string>("authorisationApiName"),
+      trustedAppsRegistryApiUrl: configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      ),
+      testUserDid: EbsiWallet.createDid(),
+      testAppName: testApp.name,
+      useKidAuthApi: true,
+    });
   });
 
   afterAll(async () => {
@@ -91,7 +115,9 @@ describe("POST /ledger/v2/blockchains/besu", () => {
     expect(response.body).toStrictEqual({
       title: "Unauthorized",
       status: 401,
-      detail: "token validation failed",
+      detail: expect.stringContaining(
+        "JWT could not be validated with the public keys of 'authorisation-api'"
+      ) as string,
       type: "about:blank",
     });
     expect(response.status).toBe(401);

@@ -1016,7 +1016,7 @@ describe("Fabric Module", () => {
     });
   });
 
-  describe("GET /ledger/v2/blockchains/fabric/jsonrpc", () => {
+  describe("GET /ledger/v3/blockchains/fabric/jsonrpc", () => {
     it("should read a contract", async () => {
       expect.assertions(3);
 

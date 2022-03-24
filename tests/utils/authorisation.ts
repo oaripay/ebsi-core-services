@@ -1,48 +1,38 @@
 import { URLSearchParams } from "node:url";
-import crypto from "node:crypto";
+import crypto, { randomUUID } from "node:crypto";
 import request from "supertest";
-import axios from "axios";
-import { base58btc } from "multiformats/bases/base58";
+import axios, { AxiosResponse } from "axios";
 import { Agent as OAuth2Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
-import { DidAuthResponseMode, Agent as SiopAgent } from "@cef-ebsi/siop-auth";
+import { Agent as SiopAgent, encode, verifyJwtTar } from "@cef-ebsi/siop-auth";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
+import { exportJWK, generateKeyPair, importJWK } from "jose";
 import { createJWT, ES256KSigner } from "did-jwt";
-import { loadConfig } from "../../src/config/configuration";
 
-const {
-  apiName,
-  authorisationApiName,
-  authorisationApiUrl,
-  authorisationApiDid,
-  didRegistryApiUrl,
+export async function createFakeToken({
   trustedAppsRegistryApiUrl,
-  testApp,
-  testUser,
-} = loadConfig();
-
-export const prefixWith0x = (key: string): string =>
-  key.startsWith("0x") ? key : `0x${key}`;
-
-export async function createFakeToken(
-  loginHint: "did_siop" | "oauth2",
-  useKidAuthApi = false
-): Promise<string> {
+  loginHint,
+  authorisationApiName,
+  testUserDid,
+  testAppName,
+  useKidAuthApi = false,
+}: {
+  trustedAppsRegistryApiUrl: string;
+  loginHint: "did_siop" | "oauth2";
+  authorisationApiName: string;
+  testUserDid?: string;
+  testAppName?: string;
+  useKidAuthApi: boolean;
+}): Promise<string> {
   let kid = `${trustedAppsRegistryApiUrl}/0x${"0".repeat(64)}`;
+
   if (useKidAuthApi) {
-    const response = await axios.get(
-      `${trustedAppsRegistryApiUrl}/apps?name=${authorisationApiName}`
-    );
-    const { href } = (
-      response.data as {
-        items: { href: string }[];
-      }
-    ).items[0];
-    kid = href;
+    kid = `${trustedAppsRegistryApiUrl}/apps/${authorisationApiName}`;
   }
 
   if (loginHint === "did_siop") {
     return createJWT(
       {
-        sub: testUser.did,
+        sub: testUserDid,
         aud: "ebsi-core-services",
         iat: Math.floor(Date.now() / 1000),
         exp: Math.floor(Date.now() / 1000) + 15,
@@ -51,7 +41,7 @@ export async function createFakeToken(
       },
       {
         alg: "ES256K",
-        issuer: authorisationApiDid,
+        issuer: EbsiWallet.createDid(),
         signer: ES256KSigner(crypto.randomBytes(32).toString("hex")),
       },
       {
@@ -62,8 +52,8 @@ export async function createFakeToken(
 
   const payload = {
     iss: authorisationApiName,
-    sub: testApp.name,
-    aud: apiName,
+    sub: testAppName,
+    aud: "ledger-api",
     atHash: `0x${crypto.randomBytes(32).toString("hex")}`,
     exp: Math.trunc(Date.now() / 1000) + 15,
     nonce: crypto.randomBytes(16).toString("base64"),
@@ -82,29 +72,25 @@ export async function createFakeToken(
   );
 }
 
-const createUser = () => ({
-  privateKey: crypto.randomBytes(32).toString("hex"),
-  did: `did:ebsi:${base58btc.encode(crypto.randomBytes(32)).slice(1)}`,
-});
-
-export async function oauth2Authentication(trustedApp: {
-  privateKey: string;
-  name: string;
+export async function requestOAuth2Jwt({
+  trustedAppPrivateKey,
+  trustedAppName,
+  trustedAppsRegistryApiUrl,
+  authorisationApiUrl,
+}: {
+  trustedAppPrivateKey: string;
+  trustedAppName: string;
+  trustedAppsRegistryApiUrl: string;
+  authorisationApiUrl: string;
 }): Promise<string> {
-  const listAppsByName = await request(trustedAppsRegistryApiUrl)
-    .get(`/apps?name=${trustedApp.name}`)
-    .send();
-  const appId = (listAppsByName.body as { items: { id: string }[] }).items[0]
-    .id;
-  const kid = `${trustedAppsRegistryApiUrl}/apps/${appId}`;
-
   const nonce = crypto.randomUUID();
-  const agent = new OAuth2Agent(trustedApp.privateKey, {
-    issuer: trustedApp.name,
-    kid,
+  const agent = new OAuth2Agent({
+    privateKey: trustedAppPrivateKey,
+    name: trustedAppName,
+    trustedAppsRegistry: `${trustedAppsRegistryApiUrl}/apps`,
   });
 
-  const authRequest = await agent.createRequestPayload(apiName, {
+  const authRequest = await agent.createRequest("ledger-api", {
     nonce,
   });
 
@@ -112,51 +98,95 @@ export async function oauth2Authentication(trustedApp: {
     .post("/oauth2-sessions")
     .send(authRequest);
 
-  return agent.verifyAuthenticationResponse(
-    response.body as AkeResponse,
-    nonce
-  );
+  return agent.verifyAkeResponse(response.body as AkeResponse, { nonce });
 }
 
-export async function siopAuthentication(
-  user: {
-    privateKey: string;
-    did: string;
-  } = createUser()
-): Promise<string> {
-  let response = await request(authorisationApiUrl)
-    .post("/authentication-requests")
-    .send({
-      scope: "openid did_authn",
-    });
-  const uriDecoded = new URLSearchParams(
-    (response.body as { uri: string }).uri.replace("openid://?", "")
+export const requestSiopJwt = async ({
+  clientKid,
+  clientPrivateKey,
+  authorisationApiUrl,
+  trustedAppsRegistryApiUrl,
+}: {
+  clientKid: string;
+  clientPrivateKey: string;
+  authorisationApiUrl: string;
+  trustedAppsRegistryApiUrl: string;
+}): Promise<string> => {
+  const alg = "ES256K";
+  const encryptionKeyPair = await generateKeyPair(alg);
+  const publicEncryptionKeyJwk = await exportJWK(encryptionKeyPair.publicKey);
+  const privateEncryptionKeyJwk = await exportJWK(encryptionKeyPair.privateKey);
+
+  const siopAgent = new SiopAgent({
+    privateKey: await importJWK(
+      encode.privateKey.fromHextoJWK(clientPrivateKey),
+      alg
+    ),
+    kid: clientKid,
+    alg,
+    siopV2: true,
+  });
+
+  // 1. First, the client calls /authentication-requests
+  const authenticationRequestsResponse = await axios.post<
+    { scope: string },
+    AxiosResponse<string>
+  >(`${authorisationApiUrl}/authentication-requests`, {
+    scope: "openid did_authn",
+  });
+
+  // 2. The client verifies the response
+  const uri = authenticationRequestsResponse.data;
+
+  const urlParams = new URLSearchParams(uri.replace("openid://?", ""));
+  const params = Object.fromEntries(urlParams);
+  Object.keys(params).forEach((k) => {
+    params[k] = decodeURIComponent(params[k]);
+  });
+
+  const { payload } = await verifyJwtTar(params.request, {
+    trustedAppsRegistry: `${trustedAppsRegistryApiUrl}/apps`,
+  });
+
+  // 3. The client creates an authentication response and gets an ID Token
+  const nonce = randomUUID();
+
+  const authenticationResponse = await siopAgent.createResponse({
+    did: clientKid.split("#")[0],
+    nonce,
+    redirectUri: payload.client_id as string,
+    responseMode: "form_post",
+    claims: {
+      encryption_key: publicEncryptionKeyJwk,
+    },
+  });
+
+  const { idToken } = authenticationResponse;
+
+  // 4. The client call /siop-sessions with the ID Token
+  const siopSessionsResponse = await axios.post<
+    string,
+    AxiosResponse<AkeResponse>
+  >(
+    `${authorisationApiUrl}/siop-sessions`,
+    new URLSearchParams({ id_token: idToken }).toString(),
+    {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    }
   );
 
-  const agent = new SiopAgent({
-    privateKey: prefixWith0x(user.privateKey),
-    didRegistry: `${didRegistryApiUrl}/identifiers`,
-  });
-
-  await agent.verifyAuthenticationRequest(uriDecoded.get("request"));
-
-  const nonce = crypto.randomBytes(10).toString("base64");
-
-  const didAuthJwt = await agent.createAuthenticationResponse({
-    did: user.did,
-    nonce,
-    redirectUri: uriDecoded.get("client_id"),
-    responseMode: DidAuthResponseMode.FORM_POST,
-  });
-
-  response = await request(authorisationApiUrl)
-    .post("/siop-sessions")
-    .send(didAuthJwt.bodyEncoded);
-
-  const accessToken = await agent.verifyAuthenticationResponse(
-    response.body as AkeResponse,
-    nonce
+  // 5. Finally, the client verifies the SIOP authentication response and gets an access token
+  const accessToken = await SiopAgent.verifyAkeResponse(
+    siopSessionsResponse.data,
+    {
+      nonce,
+      privateEncryptionKeyJwk,
+      trustedAppsRegistry: `${trustedAppsRegistryApiUrl}/apps`,
+      alg,
+    }
   );
 
   return accessToken;
-}
+};

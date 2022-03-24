@@ -58,7 +58,7 @@ describe("Fabric e2e tests", () => {
     await app.close();
   });
 
-  describe("GET /ledger/v2/blockchains/fabric/channels", () => {
+  describe("GET /ledger/v3/blockchains/fabric/channels", () => {
     it("should return a list of available channels", async () => {
       expect.assertions(2);
 
@@ -103,7 +103,7 @@ describe("Fabric e2e tests", () => {
     });
   });
 
-  describe("GET /ledger/v2/blockchains/fabric/channels/{channel}", () => {
+  describe("GET /ledger/v3/blockchains/fabric/channels/{channel}", () => {
     it("should return 204 if the channel exists", async () => {
       expect.assertions(2);
 
@@ -157,7 +157,7 @@ describe("Fabric e2e tests", () => {
     });
   });
 
-  describe("GET /ledger/v2/blockchains/fabric/channels/{channel}/blocks", () => {
+  describe("GET /ledger/v3/blockchains/fabric/channels/{channel}/blocks", () => {
     it("should return 400 if the channel parameter is not formatted correctly", async () => {
       expect.assertions(2);
 
@@ -243,7 +243,7 @@ describe("Fabric e2e tests", () => {
     });
   });
 
-  describe("GET /ledger/v2/blockchains/fabric/channels/{channel}/blocks/{blockNum}", () => {
+  describe("GET /ledger/v3/blockchains/fabric/channels/{channel}/blocks/{blockNum}", () => {
     it("should return 400 if the channel parameter is not formatted correctly", async () => {
       expect.assertions(2);
 
@@ -349,7 +349,7 @@ describe("Fabric e2e tests", () => {
     });
   });
 
-  describe("GET /ledger/v2/blockchains/fabric/channels/{channel}/transactions", () => {
+  describe("GET /ledger/v3/blockchains/fabric/channels/{channel}/transactions", () => {
     it("should return 400 if the channel parameter is not formatted correctly", async () => {
       expect.assertions(2);
 
@@ -493,7 +493,7 @@ describe("Fabric e2e tests", () => {
     });
   });
 
-  describe("GET /ledger/v2/blockchains/fabric/channels/{channel}/transactions/{transactionId}", () => {
+  describe("GET /ledger/v3/blockchains/fabric/channels/{channel}/transactions/{transactionId}", () => {
     let validTransactionId: string;
 
     beforeAll(async () => {
@@ -625,7 +625,7 @@ describe("Fabric e2e tests", () => {
     });
   });
 
-  describe("GET /ledger/v2/blockchains/fabric/jsonrpc", () => {
+  describe("GET /ledger/v3/blockchains/fabric/jsonrpc", () => {
     it("should read a contract", async () => {
       expect.assertions(2);
       const response = await request(server)

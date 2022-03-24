@@ -1,18 +1,17 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import { INestApplication, ValidationPipe } from "@nestjs/common";
+import { INestApplication, ValidationPipe, Logger } from "@nestjs/common";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
-import { Logger } from "@nestjs/common/services/logger.service";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 
 jest.setTimeout(60000);
 
-describe("/ledger/v2 (generic tests)", () => {
+describe("/ledger/v3 (generic tests)", () => {
   let app: INestApplication;
 
   beforeAll(async () => {
