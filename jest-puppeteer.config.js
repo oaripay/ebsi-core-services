@@ -1,6 +1,6 @@
 module.exports = {
   preset: "./jest-puppeteer.preset.js",
-  testTimeout: 60000,
+  testTimeout: 120000,
   rootDir: ".",
   roots: ["<rootDir>/src/", "<rootDir>/tests/"],
   testMatch: ["**/?(*.|*-)+(spec|test).ts"],
