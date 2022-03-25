@@ -1,7 +1,6 @@
 import request from "supertest";
 import axios from "axios";
 import { Test, TestingModule } from "@nestjs/testing";
-import { ConfigService } from "@nestjs/config";
 import {
   INestApplication,
   ValidationPipe,
@@ -16,8 +15,8 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { createJWT, ES256KSigner } from "did-jwt";
-import { Session as SiopSession } from "@cef-ebsi/siop-auth";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
+import { JWTVerifyResult } from "jose";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import { JsonRpcService } from "./jsonrpc.service";
@@ -33,7 +32,6 @@ import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { Tir } from "../../contracts";
 import { setupTestEnv } from "../../../tests/utils/tir";
-import { ApiConfig } from "../../config/configuration";
 import { LedgerService } from "../../shared/services/ledger.service";
 import { AttributeObject } from "../issuers/issuers.interface";
 
@@ -50,13 +48,34 @@ type JsonRpcParams =
 
 jest.setTimeout(90000);
 
+let tokenVerificationResolve = true;
+let customPayload = {
+  sub: "test",
+} as unknown;
+
+jest.mock("@cef-ebsi/siop-auth", () => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const originalModule = jest.requireActual("@cef-ebsi/siop-auth");
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return {
+    __esModule: true, // Use it when dealing with esModules
+    ...originalModule,
+    verifyJwtTar: jest.fn().mockImplementation(async () => {
+      if (!tokenVerificationResolve)
+        return Promise.reject(new Error("error message"));
+      return Promise.resolve({
+        payload: customPayload,
+      } as JWTVerifyResult);
+    }),
+  };
+});
+
 describe("JsonRpc Module", () => {
   let app: INestApplication;
   let server: HttpServer;
   let tirContract: Tir;
   let jsonRpcService: JsonRpcService;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
-  let configService: ConfigService<ApiConfig>;
   let ledgerService: LedgerService;
   let userAccessToken: string;
   let userAccessTokenPayload: { [x: string]: unknown };
@@ -195,7 +214,6 @@ describe("JsonRpc Module", () => {
     server = app.getHttpServer() as HttpServer;
 
     jsonRpcService = moduleFixture.get<JsonRpcService>(JsonRpcService);
-    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
     // Generate JWTs
@@ -242,10 +260,6 @@ describe("JsonRpc Module", () => {
       .mockImplementation(async () => Promise.resolve(true));
   });
 
-  afterEach(() => {
-    jest.resetAllMocks();
-  });
-
   afterAll(async () => {
     await app.close();
   });
@@ -269,14 +283,10 @@ describe("JsonRpc Module", () => {
   });
 
   it("should reject a POST with an invalid user token", async () => {
-    expect.assertions(4);
+    expect.assertions(3);
 
     // Mock reject JWT
-    const verifyAccessTokenSpy = jest
-      .spyOn(SiopSession.prototype, "verifyAccessToken")
-      .mockImplementation(async () =>
-        Promise.reject(new Error("error message"))
-      );
+    tokenVerificationResolve = false;
 
     const response = await request(server)
       .post("/jsonrpc")
@@ -293,19 +303,14 @@ describe("JsonRpc Module", () => {
     expect(
       (response.headers as { "content-type": string })["content-type"]
     ).toStrictEqual(expect.stringContaining("application/problem+json"));
-    expect(verifyAccessTokenSpy).toHaveBeenCalledWith(
-      userAccessToken,
-      configService.get("authorisationApiDid")
-    );
   });
 
   it("should throw Bad Request for a bad JSON-RPC call", async () => {
     expect.assertions(2);
 
     // Mock access token verification
-    jest
-      .spyOn(SiopSession.prototype, "verifyAccessToken")
-      .mockImplementation(async () => Promise.resolve(userAccessTokenPayload));
+    tokenVerificationResolve = true;
+    customPayload = userAccessTokenPayload;
 
     const response = await request(server)
       .post("/jsonrpc")
@@ -326,10 +331,8 @@ describe("JsonRpc Module", () => {
     expect.assertions(2);
 
     // Mock access token verification
-    jest
-      .spyOn(SiopSession.prototype, "verifyAccessToken")
-      .mockImplementation(async () => Promise.resolve(userAccessTokenPayload));
-
+    tokenVerificationResolve = true;
+    customPayload = userAccessTokenPayload;
     const wallet = ethers.Wallet.createRandom();
 
     const transaction = {
@@ -387,9 +390,8 @@ describe("JsonRpc Module", () => {
     expect.assertions(2);
 
     // Mock access token verification
-    jest
-      .spyOn(SiopSession.prototype, "verifyAccessToken")
-      .mockImplementation(async () => Promise.resolve(userAccessTokenPayload));
+    tokenVerificationResolve = true;
+    customPayload = userAccessTokenPayload;
 
     const response = await request(server)
       .post("/jsonrpc")
@@ -426,11 +428,8 @@ describe("JsonRpc Module", () => {
     } as InsertPolicyParam;
 
     // Mock access token verification
-    jest
-      .spyOn(SiopSession.prototype, "verifyAccessToken")
-      .mockImplementation(async () =>
-        Promise.resolve(defaultSignerSiopAccessTokenPayload)
-      );
+    tokenVerificationResolve = true;
+    customPayload = defaultSignerSiopAccessTokenPayload;
 
     // The DID is not controlled by the signer
     jest
@@ -520,18 +519,12 @@ describe("JsonRpc Module", () => {
       // Mock access token verification
       if (method === "updateIssuer" && updateAttribute) {
         // Authenticate as issuer V1
-        jest
-          .spyOn(SiopSession.prototype, "verifyAccessToken")
-          .mockImplementation(async () =>
-            Promise.resolve(issuerV1SiopAccessTokenPayload)
-          );
+        tokenVerificationResolve = true;
+        customPayload = issuerV1SiopAccessTokenPayload;
       } else {
         // Authenticate as admin
-        jest
-          .spyOn(SiopSession.prototype, "verifyAccessToken")
-          .mockImplementation(async () =>
-            Promise.resolve(defaultSignerSiopAccessTokenPayload)
-          );
+        tokenVerificationResolve = true;
+        customPayload = defaultSignerSiopAccessTokenPayload;
       }
 
       const signer = ethers.Wallet.createRandom();
@@ -603,11 +596,8 @@ describe("JsonRpc Module", () => {
       expect.assertions(2);
 
       // Mock access token verification
-      jest
-        .spyOn(SiopSession.prototype, "verifyAccessToken")
-        .mockImplementation(async () =>
-          Promise.resolve(defaultSignerSiopAccessTokenPayload)
-        );
+      tokenVerificationResolve = true;
+      customPayload = defaultSignerSiopAccessTokenPayload;
 
       const signer = ethers.Wallet.createRandom();
 
@@ -635,11 +625,8 @@ describe("JsonRpc Module", () => {
       expect.assertions(6);
 
       // Mock access token verification
-      jest
-        .spyOn(SiopSession.prototype, "verifyAccessToken")
-        .mockImplementation(async () =>
-          Promise.resolve(defaultSignerSiopAccessTokenPayload)
-        );
+      tokenVerificationResolve = true;
+      customPayload = defaultSignerSiopAccessTokenPayload;
 
       const signer = ethers.Wallet.createRandom();
 
@@ -749,11 +736,8 @@ describe("JsonRpc Module", () => {
       expect.assertions(6);
 
       // Mock access token verification
-      jest
-        .spyOn(SiopSession.prototype, "verifyAccessToken")
-        .mockImplementation(async () =>
-          Promise.resolve(defaultSignerSiopAccessTokenPayload)
-        );
+      tokenVerificationResolve = true;
+      customPayload = defaultSignerSiopAccessTokenPayload;
 
       const wallet1 = ethers.Wallet.createRandom();
       const wallet2 = ethers.Wallet.createRandom();

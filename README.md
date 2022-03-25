@@ -45,9 +45,9 @@ You can choose to run the project locally with your own Node.js environment, or 
 
 First, create an `.env.local` file locally. You can duplicate the content of `.env` or only set the variables that you want to change.
 
-Please note that you need to fill the `API_PRIVATE_KEY`, `TEST_ADMIN_PRIVATE_KEY`, and `TEST_USER_PRIVATE_KEY` envirnoment variables with secp256k1 elliptic curve private keys in hexadecimal.
+Please note that you need to fill the `API_PRIVATE_KEY`, `TEST_USER_PRIVATE_KEY` and `TEST_ADMIN_PRIVATE_KEY` environment variables with secp256k1 elliptic curve private keys in hexadecimal.
 
-You must at least set `API_PRIVATE_KEY`, `API_KID`, `AUTHORISATION_API_DID`, `BESU_TRUSTED_ISSUERS_REGISTRY_ADDRESS` and `EBSI_ENV` to run the API. For e2e testing, you must also set `TEST_ADMIN_PRIVATE_KEY`, `TEST_ADMIN_DID`, `TEST_USER_PRIVATE_KEY` and `TEST_USER_DID`.
+You must at least set `API_NAME`, `API_PRIVATE_KEY`, `BESU_TRUSTED_ISSUERS_REGISTRY_ADDRESS` and `EBSI_ENV` to run the API. For e2e testing, you must also set `TEST_ADMIN_PRIVATE_KEY`, `TEST_ADMIN_KID`, `TEST_USER_PRIVATE_KEY` and `TEST_USER_KID`.
 
 ### Run the project locally
 
@@ -87,7 +87,7 @@ After creating the `.env.local` file, run:
 docker-compose up --build
 ```
 
-You can now open http://localhost:3000/trusted-issuers-registry/v2/health. If everything's working correctly, then you should see "ok".
+You can now open http://localhost:3000/trusted-issuers-registry/v3/health. If everything's working correctly, then you should see "ok".
 
 ## Linting
 

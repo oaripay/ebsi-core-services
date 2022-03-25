@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Trusted Issuers Registry API
-  version: 2.0.0
+  version: 3.0.0
   description: |
     Trusted Issuers Registry (TIR) is a generic decentralised registry holding information about trusted issuers, like public information, accreditations and other. All information is stored in the smart contract in form of Attribute envelops (like Verifiable Credentials) that are issued by Trusted Issuers or self-issued. Generic Envelop (like Verifiable Credential) validation is performed outside EBSI.
 
@@ -25,9 +25,9 @@ info:
     name: EUPL-1.2
     url: https://joinup.ec.europa.eu/page/eupl-text-11-12
 paths:
-  /trusted-issuers-registry/v2/issuers:
+  /trusted-issuers-registry/v3/issuers:
     get:
-      operationId: get-trusted-issuers-registry-v2-issuers
+      operationId: get-trusted-issuers-registry-v3-issuers
       summary: List issuers
       description: Returns a list of trusted issuers.
       tags:
@@ -77,34 +77,34 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers
+                    self: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers
                     items:
                       - did: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
-                        href: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17
+                        href: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17
                       - did: did:ebsi:zy2Qja194nGwT5tPHrRY6Ly
-                        href: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:zy2Qja194nGwT5tPHrRY6Ly
+                        href: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zy2Qja194nGwT5tPHrRY6Ly
                     total: 2
                     pageSize: 10
                     links:
-                      first: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers?page[after]=0&page[size]=10
-                      prev: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers?page[after]=2&page[size]=10
-                      next: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers?page[after]=4&page[size]=10
-                      last: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers?page[after]=13&page[size]=10
+                      first: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers?page[after]=0&page[size]=10
+                      prev: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers?page[after]=2&page[size]=10
+                      next: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers?page[after]=4&page[size]=10
+                      last: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers?page[after]=13&page[size]=10
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers
+                    self: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/issuers
                     items:
                       - did: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
-                        href: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17
+                        href: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17
                       - did: did:ebsi:zy2Qja194nGwT5tPHrRY6Ly
-                        href: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers/did:ebsi:zy2Qja194nGwT5tPHrRY6Ly
+                        href: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/issuers/did:ebsi:zy2Qja194nGwT5tPHrRY6Ly
                     total: 2
                     pageSize: 10
                     links:
-                      first: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers?page[after]=0&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers?page[after]=2&page[size]=10
-                      next: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers?page[after]=4&page[size]=10
-                      last: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers?page[after]=13&page[size]=10
+                      first: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/issuers?page[after]=0&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/issuers?page[after]=2&page[size]=10
+                      next: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/issuers?page[after]=4&page[size]=10
+                      last: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/issuers?page[after]=13&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -126,9 +126,9 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /trusted-issuers-registry/v2/issuers/{did}:
+  /trusted-issuers-registry/v3/issuers/{did}:
     get:
-      operationId: get-trusted-issuers-registry-v2-issuers-issuer
+      operationId: get-trusted-issuers-registry-v3-issuers-issuer
       summary: Get an issuer
       description: Returns a trusted issuer identified by its decentralised identifier (DID).
       tags:
@@ -196,9 +196,9 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /trusted-issuers-registry/v2/issuers/{did}/attributes:
+  /trusted-issuers-registry/v3/issuers/{did}/attributes:
     get:
-      operationId: get-trusted-issuers-registry-v2-issuers-did-attributes
+      operationId: get-trusted-issuers-registry-v3-issuers-did-attributes
       summary: List attributes
       description: Returns a list of attributes of a trusted issuer.
       tags:
@@ -260,30 +260,30 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes
+                    self: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes
                     items:
                       - id: 25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
-                        href: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
+                        href: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes?page[after]=0&page[size]=10
-                      prev: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes?page[after]=2&page[size]=10
-                      next: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes?page[after]=4&page[size]=10
-                      last: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes?page[after]=13&page[size]=10
+                      first: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes?page[after]=0&page[size]=10
+                      prev: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes?page[after]=2&page[size]=10
+                      next: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes?page[after]=4&page[size]=10
+                      last: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes?page[after]=13&page[size]=10
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes
+                    self: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes
                     items:
                       - id: db14d3c6ee1a499c2719a9e2c93c240105cc82545fc491f7eea15e738d45ea73
-                        href: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b
+                        href: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes?page[after]=0&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes?page[after]=2&page[size]=10
-                      next: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes?page[after]=4&page[size]=10
-                      last: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes?page[after]=13&page[size]=10
+                      first: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes?page[after]=0&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes?page[after]=2&page[size]=10
+                      next: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes?page[after]=4&page[size]=10
+                      last: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes?page[after]=13&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -314,9 +314,9 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /trusted-issuers-registry/v2/issuers/{did}/attributes/{attributeId}:
+  /trusted-issuers-registry/v3/issuers/{did}/attributes/{attributeId}:
     get:
-      operationId: get-trusted-issuers-registry-v2-issuers-did-attributes-attributeid
+      operationId: get-trusted-issuers-registry-v3-issuers-did-attributes-attributeid
       summary: Get an attribute
       description: Returns an issuer attribute identified by its attribute ID.
       tags:
@@ -396,9 +396,9 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /trusted-issuers-registry/v2/issuers/{did}/attributes/{attributeId}/revisions:
+  /trusted-issuers-registry/v3/issuers/{did}/attributes/{attributeId}/revisions:
     get:
-      operationId: get-trusted-issuers-registry-v2-issuers-did-attributes-attributeid-revisions
+      operationId: get-trusted-issuers-registry-v3-issuers-did-attributes-attributeid-revisions
       summary: List revisions
       description: Returns a list of revisions of an attribute.
       tags:
@@ -465,7 +465,7 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f/revisions
+                    self: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f/revisions
                     items:
                       - hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
                         body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
@@ -474,13 +474,13 @@ paths:
                     total: 2
                     pageSize: 10
                     links:
-                      first: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f/revisions?page[after]=0&page[size]=10
-                      prev: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f/revisions?page[after]=2&page[size]=10
-                      next: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f/revisions?page[after]=4&page[size]=10
-                      last: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f/revisions?page[after]=13&page[size]=10
+                      first: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f/revisions?page[after]=0&page[size]=10
+                      prev: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f/revisions?page[after]=2&page[size]=10
+                      next: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f/revisions?page[after]=4&page[size]=10
+                      last: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f/revisions?page[after]=13&page[size]=10
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/db14d3c6ee1a499c2719a9e2c93c240105cc82545fc491f7eea15e738d45ea73/revisions
+                    self: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/db14d3c6ee1a499c2719a9e2c93c240105cc82545fc491f7eea15e738d45ea73/revisions
                     items:
                       - hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
                         body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
@@ -489,10 +489,10 @@ paths:
                     total: 2
                     pageSize: 10
                     links:
-                      first: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/db14d3c6ee1a499c2719a9e2c93c240105cc82545fc491f7eea15e738d45ea73/revisions?page[after]=0&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/db14d3c6ee1a499c2719a9e2c93c240105cc82545fc491f7eea15e738d45ea73/revisions?page[after]=2&page[size]=10
-                      next: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/db14d3c6ee1a499c2719a9e2c93c240105cc82545fc491f7eea15e738d45ea73/revisions?page[after]=4&page[size]=10
-                      last: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/db14d3c6ee1a499c2719a9e2c93c240105cc82545fc491f7eea15e738d45ea73/revisions?page[after]=13&page[size]=10
+                      first: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/db14d3c6ee1a499c2719a9e2c93c240105cc82545fc491f7eea15e738d45ea73/revisions?page[after]=0&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/db14d3c6ee1a499c2719a9e2c93c240105cc82545fc491f7eea15e738d45ea73/revisions?page[after]=2&page[size]=10
+                      next: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/db14d3c6ee1a499c2719a9e2c93c240105cc82545fc491f7eea15e738d45ea73/revisions?page[after]=4&page[size]=10
+                      last: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/db14d3c6ee1a499c2719a9e2c93c240105cc82545fc491f7eea15e738d45ea73/revisions?page[after]=13&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -524,9 +524,9 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /trusted-issuers-registry/v2/policies:
+  /trusted-issuers-registry/v3/policies:
     get:
-      operationId: get-trusted-issuers-registry-v2-policies
+      operationId: get-trusted-issuers-registry-v3-policies
       summary: List policies
       description: Returns a list of policies.
       tags:
@@ -576,34 +576,34 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/policies?page[after]=3&page[size]=2
+                    self: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/policies?page[after]=3&page[size]=2
                     items:
                       - policyId: test-policy-1
-                        href: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/policies/test-policy-1
+                        href: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/policies/test-policy-1
                       - policyId: test-policy-2
-                        href: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/policies/test-policy-2
+                        href: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/policies/test-policy-2
                     total: 124
                     pageSize: 2
                     links:
-                      first: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/policies?page[after]=1&page[size]=2
-                      prev: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/policies?page[after]=2&page[size]=2
-                      next: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/policies?page[after]=4&page[size]=2
-                      last: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/policies?page[after]=62&page[size]=2
+                      first: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/policies?page[after]=1&page[size]=2
+                      prev: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/policies?page[after]=2&page[size]=2
+                      next: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/policies?page[after]=4&page[size]=2
+                      last: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/policies?page[after]=62&page[size]=2
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/policies?page[after]=3&page[size]=2
+                    self: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/policies?page[after]=3&page[size]=2
                     items:
                       - policyId: test-policy-1
-                        href: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/policies/test-policy-1
+                        href: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/policies/test-policy-1
                       - policyId: test-policy-2
-                        href: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/policies/test-policy-2
+                        href: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/policies/test-policy-2
                     total: 124
                     pageSize: 2
                     links:
-                      first: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/policies?page[after]=1&page[size]=2
-                      prev: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/policies?page[after]=2&page[size]=2
-                      next: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/policies?page[after]=4&page[size]=2
-                      last: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/policies?page[after]=62&page[size]=2
+                      first: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/policies?page[after]=1&page[size]=2
+                      prev: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/policies?page[after]=2&page[size]=2
+                      next: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/policies?page[after]=4&page[size]=2
+                      last: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/policies?page[after]=62&page[size]=2
         "400":
           description: Bad Request Error
           content:
@@ -625,9 +625,9 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /trusted-issuers-registry/v2/policies/{policyId}:
+  /trusted-issuers-registry/v3/policies/{policyId}:
     get:
-      operationId: get-trusted-issuers-registry-v2-policy
+      operationId: get-trusted-issuers-registry-v3-policy
       summary: Get a policy
       description: Returns a policiy identified by its ID.
       tags:
@@ -682,9 +682,9 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /trusted-issuers-registry/v2/policies/{policyId}/revisions:
+  /trusted-issuers-registry/v3/policies/{policyId}/revisions:
     get:
-      operationId: get-trusted-issuers-registry-v2-policy-revisions
+      operationId: get-trusted-issuers-registry-v3-policy-revisions
       summary: List revisions
       description: Returns a paginated list of policy revisions.
       tags:
@@ -733,7 +733,7 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/policies/test-policy-1/revisions?page[after]=3&page[size]=2
+                    self: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/policies/test-policy-1/revisions?page[after]=3&page[size]=2
                     items:
                       - policyId: test-policy-1
                         policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
@@ -744,13 +744,13 @@ paths:
                     total: 61
                     pageSize: 2
                     links:
-                      first: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/policies/test-policy-1/revisions?page[after]=1&page[size]=2
-                      prev: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/policies/test-policy-1/revisions?page[after]=2&page[size]=2
-                      next: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/policies/test-policy-1/revisions?page[after]=4&page[size]=2
-                      last: https://api.test.intebsi.xyz/trusted-issuers-registry/v2/policies/test-policy-1/revisions?page[after]=31&page[size]=2
+                      first: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/policies/test-policy-1/revisions?page[after]=1&page[size]=2
+                      prev: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/policies/test-policy-1/revisions?page[after]=2&page[size]=2
+                      next: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/policies/test-policy-1/revisions?page[after]=4&page[size]=2
+                      last: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/policies/test-policy-1/revisions?page[after]=31&page[size]=2
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/policies/test-policy-1/revisions?page[after]=3&page[size]=2
+                    self: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/policies/test-policy-1/revisions?page[after]=3&page[size]=2
                     items:
                       - policyId: test-policy-1
                         policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
@@ -761,10 +761,10 @@ paths:
                     total: 61
                     pageSize: 2
                     links:
-                      first: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/policies/test-policy-1/revisions?page[after]=1&page[size]=2
-                      prev: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/policies/test-policy-1/revisions?page[after]=2&page[size]=2
-                      next: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/policies/test-policy-1/revisions?page[after]=4&page[size]=2
-                      last: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/policies/test-policy-1/revisions?page[after]=31&page[size]=2
+                      first: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/policies/test-policy-1/revisions?page[after]=1&page[size]=2
+                      prev: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/policies/test-policy-1/revisions?page[after]=2&page[size]=2
+                      next: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/policies/test-policy-1/revisions?page[after]=4&page[size]=2
+                      last: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/policies/test-policy-1/revisions?page[after]=31&page[size]=2
         "400":
           description: Bad Request Error
           content:
@@ -795,7 +795,7 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /trusted-issuers-registry/v2/jsonrpc:
+  /trusted-issuers-registry/v3/jsonrpc:
     post:
       operationId: post-ledger-v2-blockchains-besu
       summary: JSON-RPC API
@@ -1078,10 +1078,10 @@ components:
           description: URI of the first page
       x-examples:
         Links:
-          first: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers?page[after]=1&page[size]=2
-          prev: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers?page[after]=2&page[size]=2
-          next: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers?page[after]=4&page[size]=2
-          last: https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers?page[after]=13&page[size]=2
+          first: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/issuers?page[after]=1&page[size]=2
+          prev: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/issuers?page[after]=2&page[size]=2
+          next: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/issuers?page[after]=4&page[size]=2
+          last: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/issuers?page[after]=13&page[size]=2
     JsonRpcResponse:
       title: JSON-RPC Response
       type: object

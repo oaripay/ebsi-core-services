@@ -10,13 +10,16 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
+import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
+import { ApiConfig } from "../../src/config/configuration";
 
 describe("App Module (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
+  let trustedAppsRegistryUrl: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -27,6 +30,9 @@ describe("App Module (e2e)", () => {
       new FastifyAdapter()
     );
 
+    const configService =
+      moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+    trustedAppsRegistryUrl = `${configService.get<string>("tarApiUrl")}`;
     // Turn off logger
     Logger.overrideLogger(false);
 
@@ -81,8 +87,7 @@ describe("App Module (e2e)", () => {
         .send();
 
       expect(response.body).toStrictEqual({
-        detail:
-          "Invalid JWT: not_supported: No supported signature types for algorithm HS256",
+        detail: `Invalid JWT: JWT with invalid kid. It should be hosted at ${trustedAppsRegistryUrl}/apps`,
         status: 401,
         title: "Unauthorized",
         type: "about:blank",

@@ -5,7 +5,6 @@ import Joi from "joi";
 export interface ApiConfig {
   apiPort: number;
   apiPrivateKey: string;
-  apiKid: string;
   apiUrlPrefix: string;
   apiName: string;
   logLevel: string;
@@ -17,15 +16,15 @@ export interface ApiConfig {
   ledgerApiName: string;
   besuTrustedIssuersRegistryAddress: string;
   // Authorisation API
-  authorisationApiName: string;
-  authorisationApiDid: string;
   authorisationApiUrl: string;
   // DID Registry API
   didRegistryApiUrl: string;
+  // Trusted Apps Registry API
+  tarApiUrl: string;
   // Test variables
-  testAdminDid: string;
+  testAdminKid: string;
   testAdminPrivateKey: string;
-  testUserDid: string;
+  testUserKid: string;
   testUserPrivateKey: string;
 }
 
@@ -34,42 +33,52 @@ const defaultConfig = {
     DOMAIN: "https://api.test.intebsi.xyz",
     LOG_LEVEL: "debug",
     HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
-    LEDGER_API_URL: "https://api.test.intebsi.xyz/ledger/v2",
-    AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v1",
+    LEDGER_API_URL: "https://api.test.intebsi.xyz/ledger/v3",
+    AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v2",
     DID_REGISTRY_API_URL: "https://api.test.intebsi.xyz/did-registry/v2",
+    TRUSTED_APPS_REGISTRY_API_URL:
+      "https://api.test.intebsi.xyz/trusted-apps-registry/v3",
   },
   test: {
     DOMAIN: "https://api.test.intebsi.xyz",
     LOG_LEVEL: "info",
     HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
-    LEDGER_API_URL: "https://api.test.intebsi.xyz/ledger/v2",
-    AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v1",
+    LEDGER_API_URL: "https://api.test.intebsi.xyz/ledger/v3",
+    AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v2",
     DID_REGISTRY_API_URL: "https://api.test.intebsi.xyz/did-registry/v2",
+    TRUSTED_APPS_REGISTRY_API_URL:
+      "https://api.test.intebsi.xyz/trusted-apps-registry/v3",
   },
   conformance: {
     DOMAIN: "https://api.conformance.intebsi.xyz",
     LOG_LEVEL: "info",
     HEALTH_CHECK: "https://api.conformance.intebsi.xyz/docs/",
-    LEDGER_API_URL: "https://api.conformance.intebsi.xyz/ledger/v2",
+    LEDGER_API_URL: "https://api.conformance.intebsi.xyz/ledger/v3",
     AUTHORISATION_API_URL:
-      "https://api.conformance.intebsi.xyz/authorisation/v1",
+      "https://api.conformance.intebsi.xyz/authorisation/v2",
     DID_REGISTRY_API_URL: "https://api.conformance.intebsi.xyz/did-registry/v2",
+    TRUSTED_APPS_REGISTRY_API_URL:
+      "https://api.conformance.intebsi.xyz/trusted-apps-registry/v3",
   },
   pilot: {
     DOMAIN: "https://api.preprod.ebsi.eu",
     LOG_LEVEL: "warn",
     HEALTH_CHECK: "https://api.preprod.ebsi.eu/docs/",
-    LEDGER_API_URL: "https://api.preprod.ebsi.eu/ledger/v2",
-    AUTHORISATION_API_URL: "https://api.preprod.ebsi.eu/authorisation/v1",
+    LEDGER_API_URL: "https://api.preprod.ebsi.eu/ledger/v3",
+    AUTHORISATION_API_URL: "https://api.preprod.ebsi.eu/authorisation/v2",
     DID_REGISTRY_API_URL: "https://api.preprod.ebsi.eu/did-registry/v2",
+    TRUSTED_APPS_REGISTRY_API_URL:
+      "https://api.preprod.ebsi.eu/trusted-apps-registry/v3",
   },
   prod: {
     DOMAIN: "https://api.ebsi.eu",
     LOG_LEVEL: "error",
     HEALTH_CHECK: "https://api.ebsi.eu/docs/",
     LEDGER_API_URL: "https://api.ebsi.eu/ledger/v2",
-    AUTHORISATION_API_URL: "https://api.ebsi.eu/authorisation/v1",
+    AUTHORISATION_API_URL: "https://api.ebsi.eu/authorisation/v2",
     DID_REGISTRY_API_URL: "https://api.ebsi.eu/did-registry/v2",
+    TRUSTED_APPS_REGISTRY_API_URL:
+      "https://api.ebsi.eu/trusted-apps-registry/v3",
   },
 };
 
@@ -79,9 +88,8 @@ export const loadConfig = (): ApiConfig => {
   return {
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
     apiPrivateKey: process.env.API_PRIVATE_KEY,
-    apiUrlPrefix: process.env.API_URL_PREFIX || "/trusted-issuers-registry/v2",
-    apiKid: process.env.API_KID,
-    apiName: process.env.API_NAME || "trusted-issuers-registry-api",
+    apiUrlPrefix: process.env.API_URL_PREFIX || "/trusted-issuers-registry/v3",
+    apiName: process.env.API_NAME,
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
@@ -94,9 +102,6 @@ export const loadConfig = (): ApiConfig => {
     besuTrustedIssuersRegistryAddress:
       process.env.BESU_TRUSTED_ISSUERS_REGISTRY_ADDRESS,
     // Authorisation API
-    authorisationApiDid: process.env.AUTHORISATION_API_DID,
-    authorisationApiName:
-      process.env.AUTHORISATION_API_NAME || "authorisation-api",
     authorisationApiUrl:
       process.env.AUTHORISATION_API_URL ||
       defaultConfig[EBSI_ENV].AUTHORISATION_API_URL,
@@ -104,10 +109,14 @@ export const loadConfig = (): ApiConfig => {
     didRegistryApiUrl:
       process.env.DID_REGISTRY_API_URL ||
       defaultConfig[EBSI_ENV].DID_REGISTRY_API_URL,
+    // Trusted Apps Registry API
+    tarApiUrl:
+      process.env.TRUSTED_APPS_REGISTRY_API_URL ||
+      defaultConfig[EBSI_ENV].TRUSTED_APPS_REGISTRY_API_URL,
     // Test vars
-    testAdminDid: process.env.TEST_ADMIN_DID,
+    testAdminKid: process.env.TEST_ADMIN_KID,
     testAdminPrivateKey: process.env.TEST_ADMIN_PRIVATE_KEY,
-    testUserDid: process.env.TEST_USER_DID,
+    testUserKid: process.env.TEST_USER_KID,
     testUserPrivateKey: process.env.TEST_USER_PRIVATE_KEY,
   };
 };
@@ -130,9 +139,8 @@ export const ApiConfigModule = ConfigModule.forRoot({
       .default("development"),
     API_PORT: Joi.string().default("3000"),
     API_PRIVATE_KEY: Joi.string().required(),
-    API_KID: Joi.string().uri().required(),
     API_URL_PREFIX: Joi.string(),
-    API_NAME: Joi.string(),
+    API_NAME: Joi.string().required(),
     LOG_LEVEL: Joi.string().valid(
       "silent",
       "error",
@@ -148,14 +156,14 @@ export const ApiConfigModule = ConfigModule.forRoot({
     BESU_TRUSTED_ISSUERS_REGISTRY_ADDRESS: Joi.string().required(),
     LEDGER_API_URL: Joi.string().uri(),
     LEDGER_API_NAME: Joi.string(),
-    // Authorisation API
-    AUTHORISATION_API_NAME: Joi.string(),
-    AUTHORISATION_API_URL: Joi.string().uri(),
-    AUTHORISATION_API_DID: Joi.string().required(),
     // DID Registry API
     DID_REGISTRY_API_URL: Joi.string().uri(),
+    // Trusted Apps Registry API
+    TRUSTED_APPS_REGISTRY_API_URL: Joi.string(),
     // Test vars
-    TEST_ADMIN_DID: Joi.string(),
+    TEST_ADMIN_KID: Joi.string(),
     TEST_ADMIN_PRIVATE_KEY: Joi.string(),
+    TEST_USER_KID: Joi.string(),
+    TEST_USER_PRIVATE_KEY: Joi.string(),
   }),
 });

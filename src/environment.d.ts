@@ -6,7 +6,6 @@ declare global {
       EBSI_ENV: "local" | "test" | "conformance" | "pilot" | "prod";
       API_PRIVATE_KEY: string;
       API_PORT?: string;
-      API_KID: string;
       API_URL_PREFIX?: string;
       API_NAME?: string;
       LOG_LEVEL?: "error" | "warn" | "log" | "verbose" | "debug" | "silent";
@@ -18,15 +17,15 @@ declare global {
       LEDGER_API_NAME?: string;
       BESU_TRUSTED_ISSUERS_REGISTRY_ADDRESS: string;
       // Authorisation API
-      AUTHORISATION_API_DID: string;
-      AUTHORISATION_API_NAME?: string;
       AUTHORISATION_API_URL?: string;
       // DID Registry API
       DID_REGISTRY_API_URL?: string;
+      // Trusted Apps Registry API
+      TRUSTED_APPS_REGISTRY_API_URL?: string;
       // Test vars
-      TEST_ADMIN_DID?: string;
+      TEST_ADMIN_KID?: string;
       TEST_ADMIN_PRIVATE_KEY?: string;
-      TEST_USER_DID?: string;
+      TEST_USER_KID?: string;
       TEST_USER_PRIVATE_KEY?: string;
     }
   }

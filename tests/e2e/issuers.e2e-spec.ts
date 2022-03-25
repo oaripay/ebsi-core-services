@@ -132,21 +132,18 @@ describe("Issuers (e2e)", () => {
     );
 
     // Generate a valid Client JWT (SIOP) for the tests
-    const didRegistry = `${configService.get<string>(
-      "didRegistryApiUrl"
-    )}/identifiers`;
-
     testUserAccessToken = await requestSiopJwt({
-      didRegistry,
-      clientDid: configService.get<string>("testUserDid"),
+      clientKid: configService.get<string>("testUserKid"),
       clientPrivateKey: configService.get<string>("testUserPrivateKey"),
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+      trustedAppsRegistryUrl: `${configService.get<string>("tarApiUrl")}`,
     });
+
     testAdminAccessToken = await requestSiopJwt({
-      didRegistry,
-      clientDid: configService.get<string>("testAdminDid"),
+      clientKid: configService.get<string>("testAdminKid"),
       clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+      trustedAppsRegistryUrl: `${configService.get<string>("tarApiUrl")}`,
     });
 
     // Get last 2 issuers DID
@@ -177,23 +174,23 @@ describe("Issuers (e2e)", () => {
       expect(response.body).toStrictEqual(
         expect.objectContaining({
           self: expect.stringContaining(
-            "/trusted-issuers-registry/v2/issuers?page[after]=1&page[size]=10"
+            "/trusted-issuers-registry/v3/issuers?page[after]=1&page[size]=10"
           ) as string,
           items: expect.arrayContaining([]) as string[],
           total: expect.any(Number) as number,
           pageSize: expect.any(Number) as number,
           links: expect.objectContaining({
             first: expect.stringContaining(
-              "/trusted-issuers-registry/v2/issuers?page[after]=1&page[size]=10"
+              "/trusted-issuers-registry/v3/issuers?page[after]=1&page[size]=10"
             ) as string,
             prev: expect.stringContaining(
-              "/trusted-issuers-registry/v2/issuers?page[after]=1&page[size]=10"
+              "/trusted-issuers-registry/v3/issuers?page[after]=1&page[size]=10"
             ) as string,
             next: expect.stringContaining(
-              "/trusted-issuers-registry/v2/issuers?page[after]="
+              "/trusted-issuers-registry/v3/issuers?page[after]="
             ) as string,
             last: expect.stringContaining(
-              "/trusted-issuers-registry/v2/issuers?page[after]="
+              "/trusted-issuers-registry/v3/issuers?page[after]="
             ) as string,
           }) as PaginatedList<IdLink>["links"],
         })
@@ -270,23 +267,23 @@ describe("Issuers (e2e)", () => {
       expect(response.body).toStrictEqual(
         expect.objectContaining({
           self: expect.stringContaining(
-            `/trusted-issuers-registry/v2/issuers/${lastExistingIssuerDid}/attributes?page[after]=1&page[size]=10`
+            `/trusted-issuers-registry/v3/issuers/${lastExistingIssuerDid}/attributes?page[after]=1&page[size]=10`
           ) as string,
           items: expect.arrayContaining([]) as string[],
           total: expect.any(Number) as number,
           pageSize: expect.any(Number) as number,
           links: expect.objectContaining({
             first: expect.stringContaining(
-              `/trusted-issuers-registry/v2/issuers/${lastExistingIssuerDid}/attributes?page[after]=1&page[size]=10`
+              `/trusted-issuers-registry/v3/issuers/${lastExistingIssuerDid}/attributes?page[after]=1&page[size]=10`
             ) as string,
             prev: expect.stringContaining(
-              `/trusted-issuers-registry/v2/issuers/${lastExistingIssuerDid}/attributes?page[after]=1&page[size]=10`
+              `/trusted-issuers-registry/v3/issuers/${lastExistingIssuerDid}/attributes?page[after]=1&page[size]=10`
             ) as string,
             next: expect.stringContaining(
-              `/trusted-issuers-registry/v2/issuers/${lastExistingIssuerDid}/attributes?page[after]=`
+              `/trusted-issuers-registry/v3/issuers/${lastExistingIssuerDid}/attributes?page[after]=`
             ) as string,
             last: expect.stringContaining(
-              `/trusted-issuers-registry/v2/issuers/${lastExistingIssuerDid}/attributes?page[after]=`
+              `/trusted-issuers-registry/v3/issuers/${lastExistingIssuerDid}/attributes?page[after]=`
             ) as string,
           }) as PaginatedList<IdLink>["links"],
         })
@@ -474,7 +471,7 @@ describe("Issuers (e2e)", () => {
     it("should return revisions", async () => {
       expect.assertions(2);
 
-      const urlPath = `/trusted-issuers-registry/v2/issuers/${lastExistingIssuerDid}/attributes/${attributeId}/revisions`;
+      const urlPath = `/trusted-issuers-registry/v3/issuers/${lastExistingIssuerDid}/attributes/${attributeId}/revisions`;
 
       const response = await request(server).get(
         `/issuers/${lastExistingIssuerDid}/attributes/${attributeId}/revisions`
@@ -786,11 +783,11 @@ describe("Issuers (e2e)", () => {
             // update attribute1: change it to attribute3
             attribute = attribute4;
             prevAttributeHash = attribute2.hash;
-            did = configService.get<string>("testAdminDid");
+            [did] = configService.get<string>("testAdminKid").split("#");
           } else {
             // updateIssuer: add attribute2
             attribute = attribute4;
-            did = configService.get<string>("testAdminDid");
+            [did] = configService.get<string>("testAdminKid").split("#");
           }
           break;
         default:
