@@ -103,15 +103,11 @@ describe("Policies (e2e)", () => {
     );
 
     // Generate a valid Client JWT (SIOP) for the tests
-    const didRegistry = `${configService.get<string>(
-      "didRegistryApiUrl"
-    )}/identifiers`;
-
     testUserAccessToken = await requestSiopJwt({
-      didRegistry,
-      clientDid: configService.get<string>("testAdminDid"),
+      clientKid: configService.get<string>("testAdminKid"),
       clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+      trustedAppsRegistryUrl: `${configService.get<string>("tarApiUrl")}`,
     });
 
     ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
@@ -128,23 +124,23 @@ describe("Policies (e2e)", () => {
       expect(response.body).toStrictEqual(
         expect.objectContaining({
           self: expect.stringContaining(
-            "/trusted-schemas-registry/v1/policies?page[after]=1&page[size]=10"
+            "/trusted-schemas-registry/v2/policies?page[after]=1&page[size]=10"
           ) as string,
           items: expect.arrayContaining([]) as string[],
           total: expect.any(Number) as number,
           pageSize: expect.any(Number) as number,
           links: expect.objectContaining({
             first: expect.stringContaining(
-              "/trusted-schemas-registry/v1/policies?page[after]=1&page[size]=10"
+              "/trusted-schemas-registry/v2/policies?page[after]=1&page[size]=10"
             ) as string,
             prev: expect.stringContaining(
-              "/trusted-schemas-registry/v1/policies?page[after]=1&page[size]=10"
+              "/trusted-schemas-registry/v2/policies?page[after]=1&page[size]=10"
             ) as string,
             next: expect.stringContaining(
-              "/trusted-schemas-registry/v1/policies?page[after]="
+              "/trusted-schemas-registry/v2/policies?page[after]="
             ) as string,
             last: expect.stringContaining(
-              "/trusted-schemas-registry/v1/policies?page[after]="
+              "/trusted-schemas-registry/v2/policies?page[after]="
             ) as string,
           }) as PaginatedList<PolicyLink>["links"],
         })
@@ -208,7 +204,7 @@ describe("Policies (e2e)", () => {
       expect(response.body).toStrictEqual(
         expect.objectContaining({
           self: expect.stringContaining(
-            `/trusted-schemas-registry/v1/policies/${encodeURIComponent(
+            `/trusted-schemas-registry/v2/policies/${encodeURIComponent(
               policyId
             )}/revisions?page[after]=1&page[size]=10`
           ) as string,
@@ -223,22 +219,22 @@ describe("Policies (e2e)", () => {
           pageSize: expect.any(Number) as number,
           links: expect.objectContaining({
             first: expect.stringContaining(
-              `/trusted-schemas-registry/v1/policies/${encodeURIComponent(
+              `/trusted-schemas-registry/v2/policies/${encodeURIComponent(
                 policyId
               )}/revisions?page[after]=1&page[size]=10`
             ) as string,
             prev: expect.stringContaining(
-              `/trusted-schemas-registry/v1/policies/${encodeURIComponent(
+              `/trusted-schemas-registry/v2/policies/${encodeURIComponent(
                 policyId
               )}/revisions?page[after]=1&page[size]=10`
             ) as string,
             next: expect.stringContaining(
-              `/trusted-schemas-registry/v1/policies/${encodeURIComponent(
+              `/trusted-schemas-registry/v2/policies/${encodeURIComponent(
                 policyId
               )}/revisions?page[after]=`
             ) as string,
             last: expect.stringContaining(
-              `/trusted-schemas-registry/v1/policies/${encodeURIComponent(
+              `/trusted-schemas-registry/v2/policies/${encodeURIComponent(
                 policyId
               )}/revisions?page[after]=`
             ) as string,

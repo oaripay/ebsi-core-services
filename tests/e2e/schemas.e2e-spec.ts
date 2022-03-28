@@ -102,15 +102,11 @@ describe("Schemas (e2e)", () => {
     );
 
     // Generate a valid Client JWT (SIOP) for the tests
-    const didRegistry = `${configService.get<string>(
-      "didRegistryApiUrl"
-    )}/identifiers`;
-
     testUserAccessToken = await requestSiopJwt({
-      didRegistry,
-      clientDid: configService.get<string>("testAdminDid"),
+      clientKid: configService.get<string>("testAdminKid"),
       clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+      trustedAppsRegistryUrl: `${configService.get<string>("tarApiUrl")}`,
     });
 
     ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;

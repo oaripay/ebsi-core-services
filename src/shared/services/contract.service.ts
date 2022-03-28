@@ -8,7 +8,7 @@ import axios, { AxiosError, AxiosResponse } from "axios";
 import { randomUUID } from "crypto";
 import { ApiConfig } from "../../config/configuration";
 import { SchemaSCRegistry, SchemaSCRegistry__factory } from "../../contracts";
-import { prefixWith0x, logAxiosError } from "../utils";
+import { logAxiosError } from "../utils";
 
 // Refresh the token if it expires in less than 10 seconds
 const REFRESH_LIMIT = 10 * 1000;
@@ -37,12 +37,10 @@ export class ContractService {
       "authorisationApiUrl"
     );
 
-    const kid = this.configService.get<string>("apiKid");
-    const privKey = this.configService.get<string>("apiPrivateKey");
-
-    this.agent = new Agent(privKey, {
-      issuer: this.configService.get<string>("apiName"),
-      kid,
+    this.agent = new Agent({
+      privateKey: configService.get<string>("apiPrivateKey"),
+      name: configService.get<string>("apiName"),
+      trustedAppsRegistry: `${configService.get<string>("tarApiUrl")}/apps`,
     });
   }
 
@@ -58,7 +56,7 @@ export class ContractService {
   private async getAccessToken() {
     const nonce = randomUUID();
 
-    const requestComponent = await this.agent.createRequestPayload(
+    const requestComponent = await this.agent.createRequest(
       this.configService.get<string>("ledgerApiName"),
       { nonce }
     );
@@ -70,10 +68,9 @@ export class ContractService {
         AxiosResponse<AkeResponse>
       >(`${this.authorisationApiUrl}/oauth2-sessions`, requestComponent);
 
-      const accessToken = await this.agent.verifyAuthenticationResponse(
-        res.data,
-        nonce
-      );
+      const accessToken = await this.agent.verifyAkeResponse(res.data, {
+        nonce,
+      });
 
       const { payload } = decodeJWT(accessToken);
       this.accessTokenExp = payload.exp;
@@ -129,8 +126,7 @@ export class ContractService {
       this.setupProvider(remoteLedgerApi, token);
     }
 
-    this.ethersWallet = new ethers.Wallet(
-      prefixWith0x(this.configService.get<string>("apiPrivateKey")),
+    this.ethersWallet = ethers.Wallet.createRandom().connect(
       this.ethersProvider
     );
 
