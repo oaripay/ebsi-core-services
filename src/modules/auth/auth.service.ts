@@ -1,40 +1,26 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { JWTPayload, decodeJWT } from "did-jwt";
-import { Session as OAuth2Session } from "@cef-ebsi/oauth2-auth";
-import { Session as SiopSession } from "@cef-ebsi/siop-auth";
+import { verifyJwtTar as verifyOAuth2Token } from "@cef-ebsi/oauth2-auth";
+import { verifyJwtTar as verifySiopToken } from "@cef-ebsi/siop-auth";
 import { UnauthorizedError } from "@cef-ebsi/problem-details-errors";
 import { AppInfo, ClientInfo, SubjectInfo } from "./auth.interface";
 import { ApiConfig } from "../../config/configuration";
 
 @Injectable()
 export class AuthService {
-  private authorisationApiDid: string;
-
   private authorisationApiName: string;
 
-  private siopSession: SiopSession;
-
-  private oauth2Session: OAuth2Session;
+  private trustedAppsRegistry: string;
 
   constructor(configService: ConfigService<ApiConfig>) {
-    this.authorisationApiDid = configService.get<string>("authorisationApiDid");
     this.authorisationApiName = configService.get<string>(
       "authorisationApiName"
     );
 
-    const domain = configService.get<string>("domain");
-    const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
-
-    this.siopSession = new SiopSession({
-      didRegistry: `${domain}${apiUrlPrefix}/identifiers`,
-    });
-    this.oauth2Session = new OAuth2Session("undefined", {
-      appName: configService.get<string>("apiName"),
-      tarProvider: `${configService.get<string>(
-        "trustedAppsRegistryApiUrl"
-      )}/apps`,
-    });
+    this.trustedAppsRegistry = `${configService.get<string>(
+      "trustedAppsRegistryApiUrl"
+    )}/apps`;
   }
 
   async validateToken(bearerToken: string): Promise<SubjectInfo> {
@@ -69,10 +55,12 @@ export class AuthService {
     let payload: JWTPayload;
 
     try {
-      payload = await this.oauth2Session.verifyAccessToken(
-        bearerToken,
-        this.authorisationApiName
-      );
+      payload = (
+        await verifyOAuth2Token(bearerToken, {
+          trustedAppsRegistry: this.trustedAppsRegistry,
+          op: this.authorisationApiName,
+        })
+      ).payload;
     } catch (e) {
       let message = "unkown error";
 
@@ -94,10 +82,12 @@ export class AuthService {
     let payload: JWTPayload;
 
     try {
-      payload = await this.siopSession.verifyAccessToken(
-        bearerToken,
-        this.authorisationApiDid
-      );
+      payload = (
+        await verifySiopToken(bearerToken, {
+          trustedAppsRegistry: this.trustedAppsRegistry,
+          audience: "ebsi-core-services",
+        })
+      ).payload;
     } catch (e) {
       let message = "unkown error";
 

@@ -3,65 +3,73 @@ import { randomUUID } from "node:crypto";
 import axios, { AxiosResponse } from "axios";
 import {
   Agent as SiopAgent,
-  DidAuthResponseMode,
   AkeResponse,
+  encode,
+  verifyJwtTar,
 } from "@cef-ebsi/siop-auth";
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import canonicalize from "canonicalize";
-import { base64url } from "multiformats/bases/base64";
-import type { JWK } from "jose";
+import { exportJWK, generateKeyPair, importJWK } from "jose";
 import { createVP } from "./verifiablePresentation";
 import { createVerifiableAuthorisation } from "./verifiableAuthorisation";
-import { prefixWith0x } from "../../src/shared/utils/strings.utils";
 
 export const requestSiopJwt = async ({
-  didRegistry,
-  clientDid,
+  clientKid,
   clientPrivateKey,
   authorisationApiUrl,
+  trustedAppsRegistryUrl,
 }: {
-  didRegistry: string;
-  clientDid: string;
+  clientKid: string;
   clientPrivateKey: string;
   authorisationApiUrl: string;
+  trustedAppsRegistryUrl: string;
 }): Promise<string> => {
+  const alg = "ES256K";
+  const encryptionKeyPair = await generateKeyPair(alg);
+  const publicEncryptionKeyJwk = await exportJWK(encryptionKeyPair.publicKey);
+  const privateEncryptionKeyJwk = await exportJWK(encryptionKeyPair.privateKey);
+
   const siopAgent = new SiopAgent({
-    privateKey: prefixWith0x(clientPrivateKey),
-    didRegistry,
+    privateKey: await importJWK(
+      encode.privateKey.fromHextoJWK(clientPrivateKey),
+      alg
+    ),
+    kid: clientKid,
+    alg,
+    siopV2: true,
   });
 
   // 1. First, the client calls /authentication-requests
   const authenticationRequestsResponse = await axios.post<
     { scope: string },
-    AxiosResponse<{ uri: string }>
+    AxiosResponse<string>
   >(`${authorisationApiUrl}/authentication-requests`, {
     scope: "openid did_authn",
   });
 
   // 2. The client verifies the response
-  const { uri } = authenticationRequestsResponse.data;
+  const uri = authenticationRequestsResponse.data;
 
-  const uriDecoded = new URLSearchParams(uri.replace("openid://?", ""));
-
-  const payload = await siopAgent.verifyAuthenticationRequest(
-    uriDecoded.get("request")
-  );
+  const urlParams = new URLSearchParams(uri.replace("openid://?", ""));
+  const params = Object.fromEntries(urlParams);
+  Object.keys(params).forEach((k) => {
+    params[k] = decodeURIComponent(params[k]);
+  });
+  const { payload } = await verifyJwtTar(params.request, {
+    trustedAppsRegistry: `${trustedAppsRegistryUrl}/apps`,
+  });
 
   // 3. The client creates an authentication response and gets an ID Token
   const nonce = randomUUID();
 
-  const authenticationResponse = await siopAgent.createAuthenticationResponse({
-    did: clientDid,
+  const authenticationResponse = await siopAgent.createResponse({
     nonce,
-    redirectUri: payload.client_id,
-    responseMode: DidAuthResponseMode.FORM_POST,
+    redirectUri: payload.client_id as string,
+    claims: {
+      encryption_key: publicEncryptionKeyJwk,
+    },
+    responseMode: "form_post",
   });
 
-  const authResponseDecoded = new URLSearchParams(
-    authenticationResponse.bodyEncoded ?? ""
-  );
-
-  const idToken = authResponseDecoded.get("id_token");
+  const { idToken } = authenticationResponse;
 
   // 4. The client call /siop-sessions with the ID Token
   const siopSessionsResponse = await axios.post<
@@ -78,9 +86,14 @@ export const requestSiopJwt = async ({
   );
 
   // 5. Finally, the client verifies the SIOP authentication response and gets an access token
-  const accessToken = await siopAgent.verifyAuthenticationResponse(
+  const accessToken = await SiopAgent.verifyAkeResponse(
     siopSessionsResponse.data,
-    nonce
+    {
+      nonce,
+      privateEncryptionKeyJwk,
+      trustedAppsRegistry: `${trustedAppsRegistryUrl}/apps`,
+      alg,
+    }
   );
 
   return accessToken;
@@ -88,83 +101,125 @@ export const requestSiopJwt = async ({
 
 // Get SIOP JWT as a new (unregistered) user
 export const requestNewUserSiopJwt = async ({
-  didRegistry,
-  clientDid,
+  clientKid,
   clientPrivateKey,
   authorisationApiUrl,
-  trustedIssuersRegistryApiUrl,
   authorisationCredentialSchema,
   usersOnboardingApiPrivateKey,
   usersOnboardingApiDid,
+  trustedAppsRegistryUrl,
+  ebsiEnv,
 }: {
-  didRegistry: string;
-  clientDid: string;
+  clientKid: string;
   clientPrivateKey: string;
   authorisationApiUrl: string;
-  trustedIssuersRegistryApiUrl: string;
   authorisationCredentialSchema: string;
   usersOnboardingApiPrivateKey: string;
   usersOnboardingApiDid: string;
+  trustedAppsRegistryUrl: string;
+  ebsiEnv: "local" | "test" | "conformance" | "pilot" | "prod";
 }): Promise<string> => {
-  const publicKeyEncryption = new EbsiWallet(clientPrivateKey).getPublicKey({
-    format: "jwk",
-  }) as JWK;
   const verifiableCredential = await createVerifiableAuthorisation(
-    clientDid,
+    clientKid.split("#")[0],
     authorisationCredentialSchema,
     usersOnboardingApiPrivateKey,
     usersOnboardingApiDid,
-    didRegistry
+    ebsiEnv === "local" ? "test" : ebsiEnv
   );
 
   const nonce = randomUUID();
 
   const verifiablePresentation = await createVP({
     vc: verifiableCredential,
-    didRegistry,
-    trustedIssuersRegistryApiUrl,
-    clientDid,
+    clientKid,
     clientPrivateKey,
+    audience: "",
+    ebsiEnv: ebsiEnv === "local" ? "test" : ebsiEnv,
   });
 
-  const canonicalizedVP = base64url.baseEncode(
-    Buffer.from(canonicalize(verifiablePresentation))
-  );
+  const alg = "ES256K";
+  const encryptionKeyPair = await generateKeyPair(alg);
+  const publicEncryptionKeyJwk = await exportJWK(encryptionKeyPair.publicKey);
+  const privateEncryptionKeyJwk = await exportJWK(encryptionKeyPair.privateKey);
 
   const agent = new SiopAgent({
-    privateKey: prefixWith0x(clientPrivateKey),
-    didRegistry,
+    privateKey: await importJWK(
+      encode.privateKey.fromHextoJWK(clientPrivateKey),
+      alg
+    ),
+    kid: clientKid,
+    alg,
+    siopV2: true,
   });
 
-  const authenticationResponse = await agent.createAuthenticationResponse({
-    did: clientDid,
+  const authenticationResponse = await agent.createResponse({
     nonce,
     redirectUri: "/siop-sessions",
-    responseMode: DidAuthResponseMode.FORM_POST,
+    responseMode: "form_post",
     claims: {
-      verified_claims: canonicalizedVP,
-      encryption_key: publicKeyEncryption,
+      encryption_key: publicEncryptionKeyJwk,
+    },
+    _vp_token: {
+      presentation_submission: {
+        // The presentation_submission object MUST contain an id property.
+        // The value of this property MUST be a unique identifier, such as a UUID.
+        id: randomUUID(),
+        // The presentation_submission object MUST contain a definition_id property.
+        // The value of this property MUST be the id value of a valid Presentation Definition.
+        definition_id: randomUUID(),
+        // The presentation_submission object MUST include a descriptor_map property.
+        // The value of this property MUST be an array of Input Descriptor Mapping Objects, composed as follows:
+        descriptor_map: [
+          {
+            // The descriptor_map object MUST include an id property.
+            // The value of this property MUST be a string that matches the id property of the Input Descriptor in the Presentation Definition that this Presentation Submission is related to.
+            id: randomUUID(),
+            // The descriptor_map object MUST include a format property.
+            // The value of this property MUST be a string that matches one of the Claim Format Designation. This denotes the data format of the Claim.
+            format: "jwt_vp",
+            // The descriptor_map object MUST include a path property.
+            // The value of this property MUST be a JSONPath string expression. The path property indicates the Claim submitted in relation to the identified Input Descriptor, when executed against the top-level of the object the Presentation Submission is embedded within.
+            path: "$",
+            // The object MAY include a path_nested object to indicate the presence of a multi-Claim envelope format.
+            // This means the Claim indicated is to be decoded separately from its parent enclosure.
+            path_nested: {
+              id: "onboarding-input-id",
+              format: "jwt_vc",
+              path: "$.vp.verifiableCredential[0]",
+            },
+          },
+        ],
+      },
     },
   });
 
-  const authResponseDecoded = new URLSearchParams(
-    authenticationResponse.bodyEncoded
+  const { idToken } = authenticationResponse;
+
+  // 4. The client call /siop-sessions with the ID Token
+  const siopSessionsResponse = await axios.post<
+    string,
+    AxiosResponse<AkeResponse>
+  >(
+    `${authorisationApiUrl}/siop-sessions`,
+    new URLSearchParams({
+      id_token: idToken,
+      vp_token: verifiablePresentation,
+    }).toString(),
+    {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    }
   );
 
-  let idToken = authResponseDecoded.get("id_token");
-
-  if (Array.isArray(idToken)) {
-    [idToken] = idToken;
-  }
-
-  const siopSessionsResponse = await axios.post<
-    { id_token: string },
-    AxiosResponse<AkeResponse>
-  >(`${authorisationApiUrl}/siop-sessions`, { id_token: idToken });
-
-  const accessToken = await agent.verifyAuthenticationResponse(
+  const accessToken = await SiopAgent.verifyAkeResponse(
     siopSessionsResponse.data,
-    nonce
+    {
+      nonce,
+      privateEncryptionKeyJwk,
+      trustedAppsRegistry: `${trustedAppsRegistryUrl}/apps`,
+      alg,
+    }
   );
 
   return accessToken;

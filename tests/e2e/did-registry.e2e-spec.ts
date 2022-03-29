@@ -17,6 +17,7 @@ import type { FastifyInstance } from "fastify";
 import canonicalize from "canonicalize";
 import { useContainer } from "class-validator";
 import { HashName } from "multihashes";
+import type { DIDDocument } from "did-resolver";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
@@ -72,7 +73,7 @@ interface SupertestJsonRpcResponse {
 }
 
 interface DidDocumentDataset {
-  didDocument: { [x: string]: unknown };
+  didDocument: DIDDocument;
   didDocumentBuffer: Buffer;
   canonicalizedDidDocument: string;
   canonicalizedDidDocumentHash: string;
@@ -255,7 +256,7 @@ describe("DID Registry (e2e)", () => {
 
     // Generate test data
     didMethod = prepareDidMethod();
-    newUserDid = createDid().replace("did:ebsi", didMethod.methodName);
+    newUserDid = createDid();
 
     newDidDocument = prepareDidDocument(
       newUserDid,
@@ -269,28 +270,24 @@ describe("DID Registry (e2e)", () => {
     );
 
     // Generate valid Client JWTs (SIOP) for the tests
-    const domain = configService.get<string>("domain");
-    const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
-    const didRegistry = `${domain}${apiUrlPrefix}/identifiers`;
-
     existingUserAccessToken = await requestSiopJwt({
-      didRegistry,
-      clientDid: configService.get<string>("testClientDid"),
+      clientKid: configService.get<string>("testClientKid"),
       clientPrivateKey: configService.get<string>("testClientPrivateKey"),
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+      trustedAppsRegistryUrl: configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      ),
     });
 
     const newUserPrivateKey = crypto.randomBytes(32).toString("hex");
     newUserWallet = new ethers.Wallet(`0x${newUserPrivateKey}`);
 
+    const newUserKid = newDidDocument.didDocument.verificationMethod[0].id;
+
     newUserAccessToken = await requestNewUserSiopJwt({
-      didRegistry,
-      clientDid: newUserDid,
+      clientKid: newUserKid,
       clientPrivateKey: `0x${newUserPrivateKey}`,
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
-      trustedIssuersRegistryApiUrl: configService.get<string>(
-        "trustedIssuersRegistryApiUrl"
-      ),
       authorisationCredentialSchema: configService.get<string>(
         "authorisationCredentialSchema"
       ),
@@ -298,6 +295,12 @@ describe("DID Registry (e2e)", () => {
         "usersOnboardingApiPrivateKey"
       ),
       usersOnboardingApiDid: configService.get<string>("usersOnboardingApiDid"),
+      trustedAppsRegistryUrl: configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      ),
+      ebsiEnv: configService.get<
+        "local" | "test" | "conformance" | "pilot" | "prod"
+      >("ebsiEnv"),
     });
 
     apiAccessToken = await getAccessToken(configService);

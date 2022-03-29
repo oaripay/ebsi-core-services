@@ -1,13 +1,12 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import { HttpServer, ValidationPipe } from "@nestjs/common";
+import { HttpServer, ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
-import { Logger } from "@nestjs/common/services/logger.service";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { ApiConfig } from "../../src/config/configuration";
@@ -15,10 +14,11 @@ import { getServer } from "../utils/getServer";
 
 jest.setTimeout(60000);
 
-describe("/did-registry/v2 (generic tests)", () => {
+describe("/did-registry/v3 (generic tests)", () => {
   let app: NestFastifyApplication;
   let server: HttpServer | string;
   let apiUrlPrefix = "";
+  let trustedAppsRegistryApiUrl: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -46,6 +46,10 @@ describe("/did-registry/v2 (generic tests)", () => {
     if (process.env.TEST_ENV === "remote") {
       apiUrlPrefix = configService.get<string>("apiUrlPrefix");
     }
+
+    trustedAppsRegistryApiUrl = configService.get<string>(
+      "trustedAppsRegistryApiUrl"
+    );
   });
 
   describe("GET /health", () => {
@@ -108,8 +112,7 @@ describe("/did-registry/v2 (generic tests)", () => {
         .send();
 
       expect(response.body).toStrictEqual({
-        detail:
-          "Invalid JWT: The token algorithm must be 'ES256K'. Received 'HS256'",
+        detail: `Invalid JWT: JWT with invalid kid. It should be hosted at ${trustedAppsRegistryApiUrl}/apps`,
         status: 401,
         title: "Unauthorized",
         type: "about:blank",

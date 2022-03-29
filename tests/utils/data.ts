@@ -3,6 +3,7 @@
  */
 import crypto from "crypto";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
+import type { DIDDocument } from "did-resolver";
 
 /**
  * Creates a random EBSI DID.
@@ -22,7 +23,7 @@ export const createDid = (): string => {
  * @param did - Any DID
  * @returns A DID Document for the given DID
  */
-export const createDidDocument = (did: string): { [x: string]: unknown } => {
+export const createDidDocument = (did: string): DIDDocument => {
   return {
     "@context": "https://www.w3.org/ns/did/v1",
     id: did,

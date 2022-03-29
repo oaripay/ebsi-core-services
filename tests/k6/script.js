@@ -12,7 +12,7 @@ export const options = {
 };
 
 export default function loadTesting() {
-  const pathname = "/did-registry/v2/identifiers";
+  const pathname = "/did-registry/v3/identifiers";
 
   group(pathname, () => {
     const url = `${BASE_URL}${pathname}`;

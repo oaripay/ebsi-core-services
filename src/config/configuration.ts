@@ -5,28 +5,25 @@ import Joi from "joi";
 export interface ApiConfig {
   apiPort: number;
   apiPrivateKey: string;
-  apiKid: string;
   apiUrlPrefix: string;
   apiName: string;
-  authorisationApiDid: string;
   authorisationApiName: string;
   authorisationApiUrl: string;
   contractAddr: string;
   domain: string;
+  ebsiEnv: "local" | "test" | "conformance" | "pilot" | "prod";
   localOrigin: string;
   logLevel: string;
   ledgerApiUrl: string;
   ledgerApiName: string;
   externalEbsiApiHealthCheck: string;
   trustedAppsRegistryApiUrl: string;
-  trustedIssuersRegistryApiUrl: string;
   authorisationCredentialSchema: string;
   usersOnboardingApiDid: string;
   usersOnboardingApiPrivateKey: string;
-  testAppName: string;
   testAppKid: string;
   testAppPrivateKey: string;
-  testClientDid: string;
+  testClientKid: string;
   testClientPrivateKey: string;
 }
 
@@ -34,59 +31,49 @@ export interface ApiConfig {
 const defaultConfig = {
   local: {
     DOMAIN: "https://api.test.intebsi.xyz",
-    LEDGER_API_URL: "https://api.test.intebsi.xyz/ledger/v2",
+    LEDGER_API_URL: "https://api.test.intebsi.xyz/ledger/v3",
     HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
     LOG_LEVEL: "debug",
     TRUSTED_APPS_REGISTRY_API_URL:
-      "https://api.test.intebsi.xyz/trusted-apps-registry/v2",
-    TRUSTED_ISSUERS_REGISTRY_API_URL:
-      "https://api.test.intebsi.xyz/trusted-issuers-registry/v2",
-    AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v1",
+      "https://api.test.intebsi.xyz/trusted-apps-registry/v3",
+    AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v2",
   },
   test: {
     DOMAIN: "https://api.test.intebsi.xyz",
-    LEDGER_API_URL: "https://api.test.intebsi.xyz/ledger/v2",
+    LEDGER_API_URL: "https://api.test.intebsi.xyz/ledger/v3",
     HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
     LOG_LEVEL: "info",
     TRUSTED_APPS_REGISTRY_API_URL:
-      "https://api.test.intebsi.xyz/trusted-apps-registry/v2",
-    TRUSTED_ISSUERS_REGISTRY_API_URL:
-      "https://api.test.intebsi.xyz/trusted-issuers-registry/v2",
-    AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v1",
+      "https://api.test.intebsi.xyz/trusted-apps-registry/v3",
+    AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v2",
   },
   conformance: {
     DOMAIN: "https://api.conformance.intebsi.xyz",
-    LEDGER_API_URL: "https://api.conformance.intebsi.xyz/ledger/v2",
+    LEDGER_API_URL: "https://api.conformance.intebsi.xyz/ledger/v3",
     HEALTH_CHECK: "https://api.conformance.intebsi.xyz/docs/",
     LOG_LEVEL: "info",
     TRUSTED_APPS_REGISTRY_API_URL:
-      "https://api.conformance.intebsi.xyz/trusted-apps-registry/v2",
-    TRUSTED_ISSUERS_REGISTRY_API_URL:
-      "https://api.conformance.intebsi.xyz/trusted-issuers-registry/v2",
+      "https://api.conformance.intebsi.xyz/trusted-apps-registry/v3",
     AUTHORISATION_API_URL:
-      "https://api.conformance.intebsi.xyz/authorisation/v1",
+      "https://api.conformance.intebsi.xyz/authorisation/v2",
   },
   pilot: {
     DOMAIN: "https://api.preprod.ebsi.eu",
-    LEDGER_API_URL: "https://api.preprod.ebsi.eu/ledger/v2",
+    LEDGER_API_URL: "https://api.preprod.ebsi.eu/ledger/v3",
     HEALTH_CHECK: "https://api.preprod.ebsi.eu/docs/",
     LOG_LEVEL: "warn",
     TRUSTED_APPS_REGISTRY_API_URL:
-      "https://api.preprod.ebsi.eu/trusted-apps-registry/v2",
-    TRUSTED_ISSUERS_REGISTRY_API_URL:
-      "https://api.preprod.ebsi.eu/trusted-issuers-registry/v2",
-    AUTHORISATION_API_URL: "https://api.preprod.ebsi.eu/authorisation/v1",
+      "https://api.preprod.ebsi.eu/trusted-apps-registry/v3",
+    AUTHORISATION_API_URL: "https://api.preprod.ebsi.eu/authorisation/v2",
   },
   prod: {
     DOMAIN: "https://api.ebsi.eu",
-    LEDGER_API_URL: "https://api.ebsi.eu/ledger/v2",
+    LEDGER_API_URL: "https://api.ebsi.eu/ledger/v3",
     HEALTH_CHECK: "https://api.ebsi.eu/docs/",
     LOG_LEVEL: "error",
     TRUSTED_APPS_REGISTRY_API_URL:
-      "https://api.ebsi.eu/trusted-apps-registry/v2",
-    TRUSTED_ISSUERS_REGISTRY_API_URL:
-      "https://api.ebsi.eu/trusted-issuers-registry/v2",
-    AUTHORISATION_API_URL: "https://api.ebsi.eu/authorisation/v1",
+      "https://api.ebsi.eu/trusted-apps-registry/v3",
+    AUTHORISATION_API_URL: "https://api.ebsi.eu/authorisation/v2",
   },
 };
 
@@ -99,10 +86,8 @@ export const loadConfig = (): ApiConfig => {
   return {
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
     apiPrivateKey: process.env.API_PRIVATE_KEY,
-    apiKid: process.env.API_KID,
-    apiName: process.env.API_NAME || "did-registry-api",
-    apiUrlPrefix: process.env.API_URL_PREFIX || "/did-registry/v2",
-    authorisationApiDid: process.env.AUTHORISATION_API_DID,
+    apiName: process.env.API_NAME,
+    apiUrlPrefix: process.env.API_URL_PREFIX || "/did-registry/v3",
     authorisationApiName:
       process.env.AUTHORISATION_API_NAME || "authorisation-api",
     authorisationApiUrl:
@@ -110,6 +95,7 @@ export const loadConfig = (): ApiConfig => {
       defaultConfig[EBSI_ENV].AUTHORISATION_API_URL,
     contractAddr: process.env.CONTRACT_ADDR,
     domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
+    ebsiEnv: EBSI_ENV,
     localOrigin: process.env.LOCAL_ORIGIN || "",
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     ledgerApiUrl:
@@ -120,18 +106,14 @@ export const loadConfig = (): ApiConfig => {
     trustedAppsRegistryApiUrl:
       process.env.TRUSTED_APPS_REGISTRY_API_URL ||
       defaultConfig[EBSI_ENV].TRUSTED_APPS_REGISTRY_API_URL,
-    trustedIssuersRegistryApiUrl:
-      process.env.TRUSTED_ISSUERS_REGISTRY_API_URL ||
-      defaultConfig[EBSI_ENV].TRUSTED_ISSUERS_REGISTRY_API_URL,
     authorisationCredentialSchema:
       process.env.AUTHORISATION_CREDENTIAL_SCHEMA || "",
     usersOnboardingApiDid: process.env.USERS_ONBOARDING_API_DID || "",
     usersOnboardingApiPrivateKey:
       process.env.USERS_ONBOARDING_API_PRIVATE_KEY || "",
-    testAppName: process.env.TEST_APP_NAME,
     testAppKid: process.env.TEST_APP_KID,
     testAppPrivateKey: process.env.TEST_APP_PRIVATE_KEY,
-    testClientDid: process.env.TEST_CLIENT_DID,
+    testClientKid: process.env.TEST_CLIENT_KID,
     testClientPrivateKey: process.env.TEST_CLIENT_PRIVATE_KEY,
   };
 };
@@ -155,13 +137,10 @@ export const ApiConfigModule = ConfigModule.forRoot({
     API_PORT: Joi.string().default("3000"),
     API_PRIVATE_KEY: Joi.string().required(),
     API_URL_PREFIX: Joi.string(),
-    API_KID: Joi.string().uri().required(),
-    API_NAME: Joi.string(),
-    AUTHORISATION_API_DID: Joi.string().required(),
+    API_NAME: Joi.string().required(),
     AUTHORISATION_API_NAME: Joi.string(),
     AUTHORISATION_API_URL: Joi.string().uri(),
     TRUSTED_APPS_REGISTRY_API_URL: Joi.string().uri(),
-    TRUSTED_ISSUERS_REGISTRY_API_URL: Joi.string().uri(),
     LOG_LEVEL: Joi.string().valid(
       "silent",
       "error",
@@ -179,10 +158,9 @@ export const ApiConfigModule = ConfigModule.forRoot({
     AUTHORISATION_CREDENTIAL_SCHEMA: Joi.string(),
     USERS_ONBOARDING_API_DID: Joi.string(),
     USERS_ONBOARDING_API_PRIVATE_KEY: Joi.string(),
-    TEST_APP_NAME: Joi.string(),
     TEST_APP_KID: Joi.string().uri(),
     TEST_APP_PRIVATE_KEY: Joi.string(),
-    TEST_CLIENT_DID: Joi.string(),
+    TEST_CLIENT_KID: Joi.string(),
     TEST_CLIENT_PRIVATE_KEY: Joi.string(),
   }),
 });

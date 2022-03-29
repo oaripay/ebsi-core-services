@@ -1,6 +1,6 @@
 version: "3.7"
 
 services:
-  did-registry-api:
+  did-registry-api-v3:
     build: ../..
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/did-registry-api:conformance_ebsiint-3843-tpr-updates_v2.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/did-registry-api-v3:conformance_ebsiint-3995-auth-updates_v3.0.0

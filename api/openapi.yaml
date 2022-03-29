@@ -16,7 +16,7 @@ info:
     * [DID Registry API Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/DID+Registry+API)
     * [DID Registry Smart Contract Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/DID+Registry+Smart+Contract)
     * [Code Repository](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/did-registry-api/browse)
-  version: 2.0.0
+  version: 3.0.0
   termsOfService: /docs/terms
   contact:
     name: EBSI Support - Service Desk
@@ -25,13 +25,13 @@ info:
     name: EUPL-1.2
     url: https://joinup.ec.europa.eu/page/eupl-text-11-12
 paths:
-  /did-registry/v2/identifiers:
+  /did-registry/v3/identifiers:
     get:
       tags:
         - DID Documents
       summary: List identifiers
       description: Returns a list of identifiers.
-      operationId: get-did-registry-v2-identifiers
+      operationId: get-did-registry-v3-identifiers
       parameters:
         - in: query
           name: page[after]
@@ -84,92 +84,92 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/did-registry/v2/identifiers?page[after]=3&page[size]=10
+                    self: https://api.test.intebsi.xyz/did-registry/v3/identifiers?page[after]=3&page[size]=10
                     items:
                       - did: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
-                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                        href: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
                       - did: did:ebsi:zZssKY2QbbKEqVRgMP1iCLr
-                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:zZssKY2QbbKEqVRgMP1iCLr
+                        href: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:zZssKY2QbbKEqVRgMP1iCLr
                       - did: did:ebsi:zb3EMmQSCWZHvFSrBTuoXsv
-                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:zb3EMmQSCWZHvFSrBTuoXsv
+                        href: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:zb3EMmQSCWZHvFSrBTuoXsv
                       - did: did:ebsi:zwkvdg7fEoiWnLm8zXWxcHf
-                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:zwkvdg7fEoiWnLm8zXWxcHf
+                        href: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:zwkvdg7fEoiWnLm8zXWxcHf
                       - did: did:ebsi:ziu9WCB3mDWMLVpF8GfEMG8
-                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:ziu9WCB3mDWMLVpF8GfEMG8
+                        href: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:ziu9WCB3mDWMLVpF8GfEMG8
                       - did: did:ebsi:znrtw6tCorGWkUoAHiSPuz6
-                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:znrtw6tCorGWkUoAHiSPuz6
+                        href: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:znrtw6tCorGWkUoAHiSPuz6
                       - did: did:ebsi:zqEozSTPA46JgCeP8d9XFGZ
-                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:zqEozSTPA46JgCeP8d9XFGZ
+                        href: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:zqEozSTPA46JgCeP8d9XFGZ
                       - did: did:ebsi:z25a4Dcp8K7SULVfUCw4fFb7
-                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:z25a4Dcp8K7SULVfUCw4fFb7
+                        href: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:z25a4Dcp8K7SULVfUCw4fFb7
                       - did: did:ebsi:z239Np1bLCJiJLdkaSqq9XxV
-                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:z239Np1bLCJiJLdkaSqq9XxV
+                        href: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:z239Np1bLCJiJLdkaSqq9XxV
                       - did: did:ebsi:z23ETkVyJGeLWysGD11s2Jof
-                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:z23ETkVyJGeLWysGD11s2Jof
+                        href: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:z23ETkVyJGeLWysGD11s2Jof
                     total: 124
                     pageSize: 10
                     links:
-                      first: https://api.test.intebsi.xyz/did-registry/v2/identifiers?page[after]=1&page[size]=10
-                      prev: https://api.test.intebsi.xyz/did-registry/v2/identifiers?page[after]=2&page[size]=10
-                      next: https://api.test.intebsi.xyz/did-registry/v2/identifiers?page[after]=4&page[size]=10
-                      last: https://api.test.intebsi.xyz/did-registry/v2/identifiers?page[after]=13&page[size]=10
+                      first: https://api.test.intebsi.xyz/did-registry/v3/identifiers?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/did-registry/v3/identifiers?page[after]=2&page[size]=10
+                      next: https://api.test.intebsi.xyz/did-registry/v3/identifiers?page[after]=4&page[size]=10
+                      last: https://api.test.intebsi.xyz/did-registry/v3/identifiers?page[after]=13&page[size]=10
                 "[test] Filter by controller":
                   value:
-                    self: https://api.test.intebsi.xyz/did-registry/v2/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                    self: https://api.test.intebsi.xyz/did-registry/v3/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
                     items:
                       - did: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
-                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                        href: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.test.intebsi.xyz/did-registry/v2/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
-                      prev: https://api.test.intebsi.xyz/did-registry/v2/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
-                      next: https://api.test.intebsi.xyz/did-registry/v2/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
-                      last: https://api.test.intebsi.xyz/did-registry/v2/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                      first: https://api.test.intebsi.xyz/did-registry/v3/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                      prev: https://api.test.intebsi.xyz/did-registry/v3/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                      next: https://api.test.intebsi.xyz/did-registry/v3/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                      last: https://api.test.intebsi.xyz/did-registry/v3/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/did-registry/v2/identifiers?page[after]=3&page[size]=10
+                    self: https://api.preprod.ebsi.eu/did-registry/v3/identifiers?page[after]=3&page[size]=10
                     items:
                       - did: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
                       - did: did:ebsi:zZssKY2QbbKEqVRgMP1iCLr
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:zZssKY2QbbKEqVRgMP1iCLr
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:zZssKY2QbbKEqVRgMP1iCLr
                       - did: did:ebsi:zb3EMmQSCWZHvFSrBTuoXsv
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:zb3EMmQSCWZHvFSrBTuoXsv
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:zb3EMmQSCWZHvFSrBTuoXsv
                       - did: did:ebsi:zwkvdg7fEoiWnLm8zXWxcHf
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:zwkvdg7fEoiWnLm8zXWxcHf
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:zwkvdg7fEoiWnLm8zXWxcHf
                       - did: did:ebsi:ziu9WCB3mDWMLVpF8GfEMG8
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:ziu9WCB3mDWMLVpF8GfEMG8
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:ziu9WCB3mDWMLVpF8GfEMG8
                       - did: did:ebsi:znrtw6tCorGWkUoAHiSPuz6
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:znrtw6tCorGWkUoAHiSPuz6
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:znrtw6tCorGWkUoAHiSPuz6
                       - did: did:ebsi:zqEozSTPA46JgCeP8d9XFGZ
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:zqEozSTPA46JgCeP8d9XFGZ
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:zqEozSTPA46JgCeP8d9XFGZ
                       - did: did:ebsi:z25a4Dcp8K7SULVfUCw4fFb7
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:z25a4Dcp8K7SULVfUCw4fFb7
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25a4Dcp8K7SULVfUCw4fFb7
                       - did: did:ebsi:z239Np1bLCJiJLdkaSqq9XxV
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:z239Np1bLCJiJLdkaSqq9XxV
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z239Np1bLCJiJLdkaSqq9XxV
                       - did: did:ebsi:z23ETkVyJGeLWysGD11s2Jof
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:z23ETkVyJGeLWysGD11s2Jof
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z23ETkVyJGeLWysGD11s2Jof
                     total: 124
                     pageSize: 10
                     links:
-                      first: https://api.preprod.ebsi.eu/did-registry/v2/identifiers?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/did-registry/v2/identifiers?page[after]=2&page[size]=10
-                      next: https://api.preprod.ebsi.eu/did-registry/v2/identifiers?page[after]=4&page[size]=10
-                      last: https://api.preprod.ebsi.eu/did-registry/v2/identifiers?page[after]=13&page[size]=10
+                      first: https://api.preprod.ebsi.eu/did-registry/v3/identifiers?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/did-registry/v3/identifiers?page[after]=2&page[size]=10
+                      next: https://api.preprod.ebsi.eu/did-registry/v3/identifiers?page[after]=4&page[size]=10
+                      last: https://api.preprod.ebsi.eu/did-registry/v3/identifiers?page[after]=13&page[size]=10
                 "[pilot] Filter by controller":
                   value:
-                    self: https://api.preprod.ebsi.eu/did-registry/v2/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                    self: https://api.preprod.ebsi.eu/did-registry/v3/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
                     items:
                       - did: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.preprod.ebsi.eu/did-registry/v2/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
-                      prev: https://api.preprod.ebsi.eu/did-registry/v2/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
-                      next: https://api.preprod.ebsi.eu/did-registry/v2/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
-                      last: https://api.preprod.ebsi.eu/did-registry/v2/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                      first: https://api.preprod.ebsi.eu/did-registry/v3/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                      prev: https://api.preprod.ebsi.eu/did-registry/v3/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                      next: https://api.preprod.ebsi.eu/did-registry/v3/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                      last: https://api.preprod.ebsi.eu/did-registry/v3/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
         "400":
           description: Bad Request Error
           content:
@@ -191,13 +191,13 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /did-registry/v2/identifiers/{did}:
+  /did-registry/v3/identifiers/{did}:
     get:
       tags:
         - DID Documents
       summary: Get a DID Document
       description: Gets the DID Document corresponding to the DID.
-      operationId: get-did-registry-v2-identifier
+      operationId: get-did-registry-v3-identifier
       parameters:
         - in: path
           name: did
@@ -274,13 +274,13 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /did-registry/v2/identifiers/{did}/versions:
+  /did-registry/v3/identifiers/{did}/versions:
     get:
       tags:
         - DID Documents
       summary: List DID Document versions
       description: Returns a list of DID Document versions.
-      operationId: get-did-registry-v2-identifiers-versions
+      operationId: get-did-registry-v3-identifiers-versions
       parameters:
         - in: query
           name: page[after]
@@ -339,30 +339,30 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
+                    self: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
                     items:
                       - versionId: "0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a"
-                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a
+                        href: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
-                      prev: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
-                      next: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
-                      last: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
+                      first: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
+                      last: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
+                    self: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
                     items:
                       - versionId: "0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c"
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
-                      next: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
-                      last: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
+                      first: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -398,13 +398,13 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /did-registry/v2/identifiers/{did}/versions/{versionId}:
+  /did-registry/v3/identifiers/{did}/versions/{versionId}:
     get:
       tags:
         - DID Documents
       summary: Get a DID Document by version ID
       description: Gets a DID Document based on its version ID
-      operationId: get-did-registry-v2-identifier-version
+      operationId: get-did-registry-v3-identifier-version
       parameters:
         - in: path
           name: did
@@ -496,13 +496,13 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /did-registry/v2/identifiers/{did}/versions/{versionId}/metadata:
+  /did-registry/v3/identifiers/{did}/versions/{versionId}/metadata:
     get:
       tags:
         - DID Documents
       summary: List DID Document metadata
       description: Returns a list of DID Document metadata.
-      operationId: get-did-registry-v2-identifiers-versions-metadata
+      operationId: get-did-registry-v3-identifiers-versions-metadata
       parameters:
         - in: query
           name: page[after]
@@ -572,30 +572,30 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
+                    self: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
                     items:
                       - metadataId: "0xb5ed423b79dd39df26194f708414e394eb924638a0b8e8e0a09c760dc7cdc607"
-                        href: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata/0xb5ed423b79dd39df26194f708414e394eb924638a0b8e8e0a09c760dc7cdc607
+                        href: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata/0xb5ed423b79dd39df26194f708414e394eb924638a0b8e8e0a09c760dc7cdc607
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
-                      prev: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
-                      next: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
-                      last: https://api.test.intebsi.xyz/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
+                      first: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
+                      last: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
+                    self: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
                     items:
                       - metadataId: "0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c"
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
-                      next: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
-                      last: https://api.preprod.ebsi.eu/did-registry/v2/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
+                      first: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -638,13 +638,13 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /did-registry/v2/identifiers/{did}/versions/{versionId}/metadata/{metadataId}:
+  /did-registry/v3/identifiers/{did}/versions/{versionId}/metadata/{metadataId}:
     get:
       tags:
         - DID Documents
       summary: Get DID Document metadata
       description: Returns the DID Document metadata based on their ID.
-      operationId: get-did-registry-v2-identifier-version-metadata
+      operationId: get-did-registry-v3-identifier-version-metadata
       parameters:
         - in: path
           name: did
@@ -734,13 +734,13 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /did-registry/v2/did-methods:
+  /did-registry/v3/did-methods:
     get:
       tags:
         - DID Methods
       summary: List DID Methods
       description: Returns a list of DID Methods.
-      operationId: get-did-registry-v2-did-methods
+      operationId: get-did-registry-v3-did-methods
       parameters:
         - in: query
           name: page[after]
@@ -786,66 +786,66 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/did-registry/v2/did-methods?page[after]=3&page[size]=10
+                    self: https://api.test.intebsi.xyz/did-registry/v3/did-methods?page[after]=3&page[size]=10
                     items:
                       - name: did:ebsi
-                        href: https://api.test.intebsi.xyz/did-registry/v2/did-methods/did:ebsi
+                        href: https://api.test.intebsi.xyz/did-registry/v3/did-methods/did:ebsi
                       - name: did:ebsi-test
-                        href: https://api.test.intebsi.xyz/did-registry/v2/did-methods/did:ebsi-test
+                        href: https://api.test.intebsi.xyz/did-registry/v3/did-methods/did:ebsi-test
                       - name: did:ebsi-effcfaf56ab23298
-                        href: https://api.test.intebsi.xyz/did-registry/v2/did-methods/did:ebsi-effcfaf56ab23298
+                        href: https://api.test.intebsi.xyz/did-registry/v3/did-methods/did:ebsi-effcfaf56ab23298
                       - name: did:ebsi-34b4051863371e10
-                        href: https://api.test.intebsi.xyz/did-registry/v2/did-methods/did:ebsi-34b4051863371e10
+                        href: https://api.test.intebsi.xyz/did-registry/v3/did-methods/did:ebsi-34b4051863371e10
                       - name: did:ebsi-4392f352e015af86
-                        href: https://api.test.intebsi.xyz/did-registry/v2/did-methods/did:ebsi-4392f352e015af86
+                        href: https://api.test.intebsi.xyz/did-registry/v3/did-methods/did:ebsi-4392f352e015af86
                       - name: did:ebsi-9000f11e6a81c952
-                        href: https://api.test.intebsi.xyz/did-registry/v2/did-methods/did:ebsi-9000f11e6a81c952
+                        href: https://api.test.intebsi.xyz/did-registry/v3/did-methods/did:ebsi-9000f11e6a81c952
                       - name: did:ebsi-73158904a7bbf8ce
-                        href: https://api.test.intebsi.xyz/did-registry/v2/did-methods/did:ebsi-73158904a7bbf8ce
+                        href: https://api.test.intebsi.xyz/did-registry/v3/did-methods/did:ebsi-73158904a7bbf8ce
                       - name: did:ebsi-b4a3ce2c7ec8f597
-                        href: https://api.test.intebsi.xyz/did-registry/v2/did-methods/did:ebsi-b4a3ce2c7ec8f597
+                        href: https://api.test.intebsi.xyz/did-registry/v3/did-methods/did:ebsi-b4a3ce2c7ec8f597
                       - name: did:ebsi-99d7d5d8309b968e
-                        href: https://api.test.intebsi.xyz/did-registry/v2/did-methods/did:ebsi-99d7d5d8309b968e
+                        href: https://api.test.intebsi.xyz/did-registry/v3/did-methods/did:ebsi-99d7d5d8309b968e
                       - name: did:ebsi-bc94b4834d703edb
-                        href: https://api.test.intebsi.xyz/did-registry/v2/did-methods/did:ebsi-bc94b4834d703edb
+                        href: https://api.test.intebsi.xyz/did-registry/v3/did-methods/did:ebsi-bc94b4834d703edb
                     total: 124
                     pageSize: 10
                     links:
-                      first: https://api.test.intebsi.xyz/did-registry/v2/did-methods?page[after]=1&page[size]=10
-                      prev: https://api.test.intebsi.xyz/did-registry/v2/did-methods?page[after]=2&page[size]=10
-                      next: https://api.test.intebsi.xyz/did-registry/v2/did-methods?page[after]=4&page[size]=10
-                      last: https://api.test.intebsi.xyz/did-registry/v2/did-methods?page[after]=13&page[size]=10
+                      first: https://api.test.intebsi.xyz/did-registry/v3/did-methods?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/did-registry/v3/did-methods?page[after]=2&page[size]=10
+                      next: https://api.test.intebsi.xyz/did-registry/v3/did-methods?page[after]=4&page[size]=10
+                      last: https://api.test.intebsi.xyz/did-registry/v3/did-methods?page[after]=13&page[size]=10
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/did-registry/v2/did-methods?page[after]=3&page[size]=10
+                    self: https://api.preprod.ebsi.eu/did-registry/v3/did-methods?page[after]=3&page[size]=10
                     items:
                       - name: did:ebsi
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-methods/did:ebsi
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/did-methods/did:ebsi
                       - name: did:ebsi-test
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-methods/did:ebsi-test
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/did-methods/did:ebsi-test
                       - name: did:ebsi-effcfaf56ab23298
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-methods/did:ebsi-effcfaf56ab23298
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/did-methods/did:ebsi-effcfaf56ab23298
                       - name: did:ebsi-34b4051863371e10
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-methods/did:ebsi-34b4051863371e10
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/did-methods/did:ebsi-34b4051863371e10
                       - name: did:ebsi-4392f352e015af86
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-methods/did:ebsi-4392f352e015af86
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/did-methods/did:ebsi-4392f352e015af86
                       - name: did:ebsi-9000f11e6a81c952
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-methods/did:ebsi-9000f11e6a81c952
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/did-methods/did:ebsi-9000f11e6a81c952
                       - name: did:ebsi-73158904a7bbf8ce
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-methods/did:ebsi-73158904a7bbf8ce
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/did-methods/did:ebsi-73158904a7bbf8ce
                       - name: did:ebsi-b4a3ce2c7ec8f597
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-methods/did:ebsi-b4a3ce2c7ec8f597
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/did-methods/did:ebsi-b4a3ce2c7ec8f597
                       - name: did:ebsi-99d7d5d8309b968e
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-methods/did:ebsi-99d7d5d8309b968e
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/did-methods/did:ebsi-99d7d5d8309b968e
                       - name: did:ebsi-bc94b4834d703edb
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-methods/did:ebsi-bc94b4834d703edb
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/did-methods/did:ebsi-bc94b4834d703edb
                     total: 124
                     pageSize: 10
                     links:
-                      first: https://api.preprod.ebsi.eu/did-registry/v2/did-methods?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/did-registry/v2/did-methods?page[after]=2&page[size]=10
-                      next: https://api.preprod.ebsi.eu/did-registry/v2/did-methods?page[after]=4&page[size]=10
-                      last: https://api.preprod.ebsi.eu/did-registry/v2/did-methods?page[after]=13&page[size]=10
+                      first: https://api.preprod.ebsi.eu/did-registry/v3/did-methods?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/did-registry/v3/did-methods?page[after]=2&page[size]=10
+                      next: https://api.preprod.ebsi.eu/did-registry/v3/did-methods?page[after]=4&page[size]=10
+                      last: https://api.preprod.ebsi.eu/did-registry/v3/did-methods?page[after]=13&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -867,13 +867,13 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /did-registry/v2/did-methods/{name}:
+  /did-registry/v3/did-methods/{name}:
     get:
       tags:
         - DID Methods
       summary: Get a DID Method
       description: Gets a DID Method based on its name.
-      operationId: get-did-registry-v2-did-method
+      operationId: get-did-registry-v3-did-method
       parameters:
         - name: name
           in: path
@@ -941,13 +941,13 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /did-registry/v2/did-timestamps:
+  /did-registry/v3/did-timestamps:
     get:
       tags:
         - DID Timestamps
       summary: List DID Timestamps
       description: Returns a list of DID Timestamps.
-      operationId: get-did-registry-v2-did-timestamps
+      operationId: get-did-registry-v3-did-timestamps
       parameters:
         - in: query
           name: page[after]
@@ -1003,92 +1003,92 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps?page[after]=3&page[size]=10
+                    self: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps?page[after]=3&page[size]=10
                     items:
                       - timestampId: uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
-                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
+                        href: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps/uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
                       - timestampId: uzMRQ0TI4Vxo2gHIrcVLKLYOnBQ4t1ZkZYyT2QVyNgKo
-                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/uzMRQ0TI4Vxo2gHIrcVLKLYOnBQ4t1ZkZYyT2QVyNgKo
+                        href: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps/uzMRQ0TI4Vxo2gHIrcVLKLYOnBQ4t1ZkZYyT2QVyNgKo
                       - timestampId: uLy3HmncmAorLT-iay2y_mbzYLHa-ww53HM6VSQlYaHE
-                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/uLy3HmncmAorLT-iay2y_mbzYLHa-ww53HM6VSQlYaHE
+                        href: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps/uLy3HmncmAorLT-iay2y_mbzYLHa-ww53HM6VSQlYaHE
                       - timestampId: urqQNspg0BqR8XCqmXt2sRZnvuhyeaNM6O-lA7OznRN8
-                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/urqQNspg0BqR8XCqmXt2sRZnvuhyeaNM6O-lA7OznRN8
+                        href: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps/urqQNspg0BqR8XCqmXt2sRZnvuhyeaNM6O-lA7OznRN8
                       - timestampId: ugcOHT5tMm04KBRefXxewebFzZJcuer2k8faZhdOUymc
-                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/ugcOHT5tMm04KBRefXxewebFzZJcuer2k8faZhdOUymc
+                        href: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps/ugcOHT5tMm04KBRefXxewebFzZJcuer2k8faZhdOUymc
                       - timestampId: u5BbCzBKnFO-FjzmFwbUUhdktTYOMqLlR7mV5C2Y9Exo
-                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/u5BbCzBKnFO-FjzmFwbUUhdktTYOMqLlR7mV5C2Y9Exo
+                        href: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps/u5BbCzBKnFO-FjzmFwbUUhdktTYOMqLlR7mV5C2Y9Exo
                       - timestampId: umoafX3iynkFfL1PygxbEDnx6IOGVwya5flZ_EVs5Ark
-                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/umoafX3iynkFfL1PygxbEDnx6IOGVwya5flZ_EVs5Ark
+                        href: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps/umoafX3iynkFfL1PygxbEDnx6IOGVwya5flZ_EVs5Ark
                       - timestampId: u3qxc1zktQQ6yRtz3Se127ORLivKYjlgDw23PCDNVUkI
-                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/u3qxc1zktQQ6yRtz3Se127ORLivKYjlgDw23PCDNVUkI
+                        href: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps/u3qxc1zktQQ6yRtz3Se127ORLivKYjlgDw23PCDNVUkI
                       - timestampId: urfWWoYSy9vHeq-IMQiJAr79Yx3dJ-9wvReEcvycbsGs
-                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/urfWWoYSy9vHeq-IMQiJAr79Yx3dJ-9wvReEcvycbsGs
+                        href: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps/urfWWoYSy9vHeq-IMQiJAr79Yx3dJ-9wvReEcvycbsGs
                       - timestampId: udgAv5lWYXKCBLp3T26uMKJpXdX0vg-FxNnVuoCQBZeM
-                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/udgAv5lWYXKCBLp3T26uMKJpXdX0vg-FxNnVuoCQBZeM
+                        href: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps/udgAv5lWYXKCBLp3T26uMKJpXdX0vg-FxNnVuoCQBZeM
                     total: 124
                     pageSize: 10
                     links:
-                      first: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps?page[after]=1&page[size]=10
-                      prev: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps?page[after]=2&page[size]=10
-                      next: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps?page[after]=4&page[size]=10
-                      last: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps?page[after]=13&page[size]=10
+                      first: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps?page[after]=2&page[size]=10
+                      next: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps?page[after]=4&page[size]=10
+                      last: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps?page[after]=13&page[size]=10
                 "[test] Filter by identifier and version ID":
                   value:
-                    self: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps?identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
+                    self: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps?identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
                     items:
                       - timestampId: uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
-                        href: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps/uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
+                        href: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps/uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
-                      prev: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
-                      next: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
-                      last: https://api.test.intebsi.xyz/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
+                      first: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
+                      prev: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
+                      next: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
+                      last: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps?page[after]=3&page[size]=10
+                    self: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps?page[after]=3&page[size]=10
                     items:
                       - timestampId: uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps/uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
                       - timestampId: uzMRQ0TI4Vxo2gHIrcVLKLYOnBQ4t1ZkZYyT2QVyNgKo
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/uzMRQ0TI4Vxo2gHIrcVLKLYOnBQ4t1ZkZYyT2QVyNgKo
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps/uzMRQ0TI4Vxo2gHIrcVLKLYOnBQ4t1ZkZYyT2QVyNgKo
                       - timestampId: uLy3HmncmAorLT-iay2y_mbzYLHa-ww53HM6VSQlYaHE
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/uLy3HmncmAorLT-iay2y_mbzYLHa-ww53HM6VSQlYaHE
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps/uLy3HmncmAorLT-iay2y_mbzYLHa-ww53HM6VSQlYaHE
                       - timestampId: urqQNspg0BqR8XCqmXt2sRZnvuhyeaNM6O-lA7OznRN8
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/urqQNspg0BqR8XCqmXt2sRZnvuhyeaNM6O-lA7OznRN8
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps/urqQNspg0BqR8XCqmXt2sRZnvuhyeaNM6O-lA7OznRN8
                       - timestampId: ugcOHT5tMm04KBRefXxewebFzZJcuer2k8faZhdOUymc
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/ugcOHT5tMm04KBRefXxewebFzZJcuer2k8faZhdOUymc
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps/ugcOHT5tMm04KBRefXxewebFzZJcuer2k8faZhdOUymc
                       - timestampId: u5BbCzBKnFO-FjzmFwbUUhdktTYOMqLlR7mV5C2Y9Exo
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/u5BbCzBKnFO-FjzmFwbUUhdktTYOMqLlR7mV5C2Y9Exo
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps/u5BbCzBKnFO-FjzmFwbUUhdktTYOMqLlR7mV5C2Y9Exo
                       - timestampId: umoafX3iynkFfL1PygxbEDnx6IOGVwya5flZ_EVs5Ark
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/umoafX3iynkFfL1PygxbEDnx6IOGVwya5flZ_EVs5Ark
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps/umoafX3iynkFfL1PygxbEDnx6IOGVwya5flZ_EVs5Ark
                       - timestampId: u3qxc1zktQQ6yRtz3Se127ORLivKYjlgDw23PCDNVUkI
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/u3qxc1zktQQ6yRtz3Se127ORLivKYjlgDw23PCDNVUkI
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps/u3qxc1zktQQ6yRtz3Se127ORLivKYjlgDw23PCDNVUkI
                       - timestampId: urfWWoYSy9vHeq-IMQiJAr79Yx3dJ-9wvReEcvycbsGs
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/urfWWoYSy9vHeq-IMQiJAr79Yx3dJ-9wvReEcvycbsGs
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps/urfWWoYSy9vHeq-IMQiJAr79Yx3dJ-9wvReEcvycbsGs
                       - timestampId: udgAv5lWYXKCBLp3T26uMKJpXdX0vg-FxNnVuoCQBZeM
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/udgAv5lWYXKCBLp3T26uMKJpXdX0vg-FxNnVuoCQBZeM
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps/udgAv5lWYXKCBLp3T26uMKJpXdX0vg-FxNnVuoCQBZeM
                     total: 124
                     pageSize: 10
                     links:
-                      first: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps?page[after]=2&page[size]=10
-                      next: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps?page[after]=4&page[size]=10
-                      last: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps?page[after]=13&page[size]=10
+                      first: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps?page[after]=2&page[size]=10
+                      next: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps?page[after]=4&page[size]=10
+                      last: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps?page[after]=13&page[size]=10
                 "[pilot] Filter by identifier and version ID":
                   value:
-                    self: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps?identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
+                    self: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps?identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
                     items:
                       - timestampId: uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps/uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps/uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
-                      prev: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
-                      next: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
-                      last: https://api.preprod.ebsi.eu/did-registry/v2/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
+                      first: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
+                      prev: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
+                      next: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
+                      last: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
         "400":
           description: Bad Request Error
           content:
@@ -1110,13 +1110,13 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /did-registry/v2/did-timestamps/{timestampId}:
+  /did-registry/v3/did-timestamps/{timestampId}:
     get:
       tags:
         - DID Timestamps
       summary: Get a DID Timestamp
       description: Gets a DID Timestamp based on its ID.
-      operationId: get-did-registry-v2-did-timestamp
+      operationId: get-did-registry-v3-did-timestamp
       parameters:
         - in: path
           name: timestampId
@@ -1173,11 +1173,11 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /did-registry/v2/hash-algorithms:
+  /did-registry/v3/hash-algorithms:
     get:
       tags:
         - Hash Algorithms
-      operationId: get-did-registry-v2-hash-algorithms
+      operationId: get-did-registry-v3-hash-algorithms
       summary: List hash algorithms
       description: Returns a list of available hash algorithms.
       parameters:
@@ -1225,66 +1225,66 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/did-registry/v2/hash-algorithms?page[after]=1&page[size]=10
+                    self: https://api.test.intebsi.xyz/did-registry/v3/hash-algorithms?page[after]=1&page[size]=10
                     items:
                       - hashAlgorithmId: 0
-                        href: https://api.test.intebsi.xyz/did-registry/v2/hash-algorithms/0
+                        href: https://api.test.intebsi.xyz/did-registry/v3/hash-algorithms/0
                       - hashAlgorithmId: 1
-                        href: https://api.test.intebsi.xyz/did-registry/v2/hash-algorithms/1
+                        href: https://api.test.intebsi.xyz/did-registry/v3/hash-algorithms/1
                       - hashAlgorithmId: 2
-                        href: https://api.test.intebsi.xyz/did-registry/v2/hash-algorithms/2
+                        href: https://api.test.intebsi.xyz/did-registry/v3/hash-algorithms/2
                       - hashAlgorithmId: 3
-                        href: https://api.test.intebsi.xyz/did-registry/v2/hash-algorithms/3
+                        href: https://api.test.intebsi.xyz/did-registry/v3/hash-algorithms/3
                       - hashAlgorithmId: 4
-                        href: https://api.test.intebsi.xyz/did-registry/v2/hash-algorithms/4
+                        href: https://api.test.intebsi.xyz/did-registry/v3/hash-algorithms/4
                       - hashAlgorithmId: 5
-                        href: https://api.test.intebsi.xyz/did-registry/v2/hash-algorithms/5
+                        href: https://api.test.intebsi.xyz/did-registry/v3/hash-algorithms/5
                       - hashAlgorithmId: 6
-                        href: https://api.test.intebsi.xyz/did-registry/v2/hash-algorithms/6
+                        href: https://api.test.intebsi.xyz/did-registry/v3/hash-algorithms/6
                       - hashAlgorithmId: 7
-                        href: https://api.test.intebsi.xyz/did-registry/v2/hash-algorithms/7
+                        href: https://api.test.intebsi.xyz/did-registry/v3/hash-algorithms/7
                       - hashAlgorithmId: 8
-                        href: https://api.test.intebsi.xyz/did-registry/v2/hash-algorithms/8
+                        href: https://api.test.intebsi.xyz/did-registry/v3/hash-algorithms/8
                       - hashAlgorithmId: 9
-                        href: https://api.test.intebsi.xyz/did-registry/v2/hash-algorithms/9
+                        href: https://api.test.intebsi.xyz/did-registry/v3/hash-algorithms/9
                     total: 124
                     pageSize: 10
                     links:
-                      first: https://api.test.intebsi.xyz/did-registry/v2/hash-algorithms?page[after]=1&page[size]=10
-                      prev: https://api.test.intebsi.xyz/did-registry/v2/hash-algorithms?page[after]=1&page[size]=10
-                      next: https://api.test.intebsi.xyz/did-registry/v2/hash-algorithms?page[after]=2&page[size]=10
-                      last: https://api.test.intebsi.xyz/did-registry/v2/hash-algorithms?page[after]=13&page[size]=10
+                      first: https://api.test.intebsi.xyz/did-registry/v3/hash-algorithms?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/did-registry/v3/hash-algorithms?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/did-registry/v3/hash-algorithms?page[after]=2&page[size]=10
+                      last: https://api.test.intebsi.xyz/did-registry/v3/hash-algorithms?page[after]=13&page[size]=10
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/did-registry/v2/hash-algorithms?page[after]=1&page[size]=10
+                    self: https://api.preprod.ebsi.eu/did-registry/v3/hash-algorithms?page[after]=1&page[size]=10
                     items:
                       - hashAlgorithmId: 0
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/hash-algorithms/0
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/hash-algorithms/0
                       - hashAlgorithmId: 1
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/hash-algorithms/1
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/hash-algorithms/1
                       - hashAlgorithmId: 2
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/hash-algorithms/2
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/hash-algorithms/2
                       - hashAlgorithmId: 3
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/hash-algorithms/3
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/hash-algorithms/3
                       - hashAlgorithmId: 4
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/hash-algorithms/4
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/hash-algorithms/4
                       - hashAlgorithmId: 5
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/hash-algorithms/5
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/hash-algorithms/5
                       - hashAlgorithmId: 6
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/hash-algorithms/6
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/hash-algorithms/6
                       - hashAlgorithmId: 7
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/hash-algorithms/7
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/hash-algorithms/7
                       - hashAlgorithmId: 8
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/hash-algorithms/8
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/hash-algorithms/8
                       - hashAlgorithmId: 9
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/hash-algorithms/9
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/hash-algorithms/9
                     total: 124
                     pageSize: 10
                     links:
-                      first: https://api.preprod.ebsi.eu/did-registry/v2/hash-algorithms?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/did-registry/v2/hash-algorithms?page[after]=1&page[size]=10
-                      next: https://api.preprod.ebsi.eu/did-registry/v2/hash-algorithms?page[after]=2&page[size]=10
-                      last: https://api.preprod.ebsi.eu/did-registry/v2/hash-algorithms?page[after]=13&page[size]=10
+                      first: https://api.preprod.ebsi.eu/did-registry/v3/hash-algorithms?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/did-registry/v3/hash-algorithms?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/did-registry/v3/hash-algorithms?page[after]=2&page[size]=10
+                      last: https://api.preprod.ebsi.eu/did-registry/v3/hash-algorithms?page[after]=13&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -1306,11 +1306,11 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /did-registry/v2/hash-algorithms/{hashAlgorithmId}:
+  /did-registry/v3/hash-algorithms/{hashAlgorithmId}:
     get:
       tags:
         - Hash Algorithms
-      operationId: get-did-registry-v2-hash-algorithms-hash-algorithm-id
+      operationId: get-did-registry-v3-hash-algorithms-hash-algorithm-id
       summary: Get a hash algorithm
       description: Returns a hash algorithm based on its ID.
       parameters:
@@ -1365,11 +1365,11 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /did-registry/v2/policies:
+  /did-registry/v3/policies:
     get:
       summary: List policies
       description: Returns all policies.
-      operationId: get-did-registry-v2-policies
+      operationId: get-did-registry-v3-policies
       tags:
         - Policies
       parameters:
@@ -1417,66 +1417,66 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/did-registry/v2/policies?page[after]=3&page[size]=10
+                    self: https://api.test.intebsi.xyz/did-registry/v3/policies?page[after]=3&page[size]=10
                     items:
                       - policyId: policy-test-2021-03-30T14:10:56.932Z
-                        href: https://api.test.intebsi.xyz/did-registry/v2/policies/policy-test-2021-03-30T14:10:56.932Z
+                        href: https://api.test.intebsi.xyz/did-registry/v3/policies/policy-test-2021-03-30T14:10:56.932Z
                       - policyId: policy-test-2021-03-30T14:20:38.342Z
-                        href: https://api.test.intebsi.xyz/did-registry/v2/policies/policy-test-2021-03-30T14:20:38.342Z
+                        href: https://api.test.intebsi.xyz/did-registry/v3/policies/policy-test-2021-03-30T14:20:38.342Z
                       - policyId: policy-test-2021-03-31T09:02:21.597Z
-                        href: https://api.test.intebsi.xyz/did-registry/v2/policies/policy-test-2021-03-31T09:02:21.597Z
+                        href: https://api.test.intebsi.xyz/did-registry/v3/policies/policy-test-2021-03-31T09:02:21.597Z
                       - policyId: policy-test-2021-03-31T09:06:53.267Z
-                        href: https://api.test.intebsi.xyz/did-registry/v2/policies/policy-test-2021-03-31T09:06:53.267Z
+                        href: https://api.test.intebsi.xyz/did-registry/v3/policies/policy-test-2021-03-31T09:06:53.267Z
                       - policyId: policy-test-2021-03-31T14:03:47.592Z
-                        href: https://api.test.intebsi.xyz/did-registry/v2/policies/policy-test-2021-03-31T14:03:47.592Z
+                        href: https://api.test.intebsi.xyz/did-registry/v3/policies/policy-test-2021-03-31T14:03:47.592Z
                       - policyId: policy-test-2021-03-31T14:20:04.214Z
-                        href: https://api.test.intebsi.xyz/did-registry/v2/policies/policy-test-2021-03-31T14:20:04.214Z
+                        href: https://api.test.intebsi.xyz/did-registry/v3/policies/policy-test-2021-03-31T14:20:04.214Z
                       - policyId: policy-test-2021-04-01T09:29:47.881Z
-                        href: https://api.test.intebsi.xyz/did-registry/v2/policies/policy-test-2021-04-01T09:29:47.881Z
+                        href: https://api.test.intebsi.xyz/did-registry/v3/policies/policy-test-2021-04-01T09:29:47.881Z
                       - policyId: policy-test-2021-04-01T10:15:04.663Z
-                        href: https://api.test.intebsi.xyz/did-registry/v2/policies/policy-test-2021-04-01T10:15:04.663Z
+                        href: https://api.test.intebsi.xyz/did-registry/v3/policies/policy-test-2021-04-01T10:15:04.663Z
                       - policyId: policy-test-2021-04-01T10:38:18.641Z
-                        href: https://api.test.intebsi.xyz/did-registry/v2/policies/policy-test-2021-04-01T10:38:18.641Z
+                        href: https://api.test.intebsi.xyz/did-registry/v3/policies/policy-test-2021-04-01T10:38:18.641Z
                       - policyId: policy-test-2021-04-06T07:06:47.387Z
-                        href: https://api.test.intebsi.xyz/did-registry/v2/policies/policy-test-2021-04-06T07:06:47.387Z
+                        href: https://api.test.intebsi.xyz/did-registry/v3/policies/policy-test-2021-04-06T07:06:47.387Z
                     total: 124
                     pageSize: 10
                     links:
-                      first: https://api.test.intebsi.xyz/did-registry/v2/policies?page[after]=1&page[size]=10
-                      prev: https://api.test.intebsi.xyz/did-registry/v2/policies?page[after]=2&page[size]=10
-                      next: https://api.test.intebsi.xyz/did-registry/v2/policies?page[after]=4&page[size]=10
-                      last: https://api.test.intebsi.xyz/did-registry/v2/policies?page[after]=13&page[size]=10
+                      first: https://api.test.intebsi.xyz/did-registry/v3/policies?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/did-registry/v3/policies?page[after]=2&page[size]=10
+                      next: https://api.test.intebsi.xyz/did-registry/v3/policies?page[after]=4&page[size]=10
+                      last: https://api.test.intebsi.xyz/did-registry/v3/policies?page[after]=13&page[size]=10
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/did-registry/v2/policies?page[after]=3&page[size]=10
+                    self: https://api.preprod.ebsi.eu/did-registry/v3/policies?page[after]=3&page[size]=10
                     items:
                       - policyId: policy-test-2021-03-30T14:10:56.932Z
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/policies/policy-test-2021-03-30T14:10:56.932Z
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/policies/policy-test-2021-03-30T14:10:56.932Z
                       - policyId: policy-test-2021-03-30T14:20:38.342Z
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/policies/policy-test-2021-03-30T14:20:38.342Z
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/policies/policy-test-2021-03-30T14:20:38.342Z
                       - policyId: policy-test-2021-03-31T09:02:21.597Z
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/policies/policy-test-2021-03-31T09:02:21.597Z
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/policies/policy-test-2021-03-31T09:02:21.597Z
                       - policyId: policy-test-2021-03-31T09:06:53.267Z
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/policies/policy-test-2021-03-31T09:06:53.267Z
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/policies/policy-test-2021-03-31T09:06:53.267Z
                       - policyId: policy-test-2021-03-31T14:03:47.592Z
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/policies/policy-test-2021-03-31T14:03:47.592Z
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/policies/policy-test-2021-03-31T14:03:47.592Z
                       - policyId: policy-test-2021-03-31T14:20:04.214Z
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/policies/policy-test-2021-03-31T14:20:04.214Z
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/policies/policy-test-2021-03-31T14:20:04.214Z
                       - policyId: policy-test-2021-04-01T09:29:47.881Z
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/policies/policy-test-2021-04-01T09:29:47.881Z
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/policies/policy-test-2021-04-01T09:29:47.881Z
                       - policyId: policy-test-2021-04-01T10:15:04.663Z
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/policies/policy-test-2021-04-01T10:15:04.663Z
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/policies/policy-test-2021-04-01T10:15:04.663Z
                       - policyId: policy-test-2021-04-01T10:38:18.641Z
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/policies/policy-test-2021-04-01T10:38:18.641Z
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/policies/policy-test-2021-04-01T10:38:18.641Z
                       - policyId: policy-test-2021-04-06T07:06:47.387Z
-                        href: https://api.preprod.ebsi.eu/did-registry/v2/policies/policy-test-2021-04-06T07:06:47.387Z
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/policies/policy-test-2021-04-06T07:06:47.387Z
                     total: 124
                     pageSize: 10
                     links:
-                      first: https://api.preprod.ebsi.eu/did-registry/v2/policies?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/did-registry/v2/policies?page[after]=2&page[size]=10
-                      next: https://api.preprod.ebsi.eu/did-registry/v2/policies?page[after]=4&page[size]=10
-                      last: https://api.preprod.ebsi.eu/did-registry/v2/policies?page[after]=13&page[size]=10
+                      first: https://api.preprod.ebsi.eu/did-registry/v3/policies?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/did-registry/v3/policies?page[after]=2&page[size]=10
+                      next: https://api.preprod.ebsi.eu/did-registry/v3/policies?page[after]=4&page[size]=10
+                      last: https://api.preprod.ebsi.eu/did-registry/v3/policies?page[after]=13&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -1498,11 +1498,11 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /did-registry/v2/policies/{policyId}:
+  /did-registry/v3/policies/{policyId}:
     get:
       summary: Get a policy
       description: Returns a policy based on its ID.
-      operationId: get-did-registry-v2-policy
+      operationId: get-did-registry-v3-policy
       tags:
         - Policies
       parameters:
@@ -1555,11 +1555,11 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /did-registry/v2/policies/{policyId}/revisions:
+  /did-registry/v3/policies/{policyId}/revisions:
     get:
       summary: List policy revisions
       description: Returns a list of policy revisions.
-      operationId: get-did-registry-v2-policy-revisions
+      operationId: get-did-registry-v3-policy-revisions
       tags:
         - Policies
       parameters:
@@ -1606,7 +1606,7 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/did-registry/v2/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
+                    self: https://api.test.intebsi.xyz/did-registry/v3/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
                     items:
                       - policyId: policy-test-2021-03-30T14:10:56.932Z
                         policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiJmNjA4Y2QwY2FlYmQwMjUzZTNhMGI4ZjgzNmQwMzhkNSJ9
@@ -1617,13 +1617,13 @@ paths:
                     total: 2
                     pageSize: 10
                     links:
-                      first: https://api.test.intebsi.xyz/did-registry/v2/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
-                      prev: https://api.test.intebsi.xyz/did-registry/v2/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
-                      next: https://api.test.intebsi.xyz/did-registry/v2/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
-                      last: https://api.test.intebsi.xyz/did-registry/v2/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
+                      first: https://api.test.intebsi.xyz/did-registry/v3/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/did-registry/v3/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/did-registry/v3/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
+                      last: https://api.test.intebsi.xyz/did-registry/v3/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/did-registry/v2/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
+                    self: https://api.preprod.ebsi.eu/did-registry/v3/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
                     items:
                       - policyId: policy-test-2021-03-30T14:10:56.932Z
                         policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiJmNjA4Y2QwY2FlYmQwMjUzZTNhMGI4ZjgzNmQwMzhkNSJ9
@@ -1634,10 +1634,10 @@ paths:
                     total: 2
                     pageSize: 10
                     links:
-                      first: https://api.preprod.ebsi.eu/did-registry/v2/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/did-registry/v2/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
-                      next: https://api.preprod.ebsi.eu/did-registry/v2/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
-                      last: https://api.preprod.ebsi.eu/did-registry/v2/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
+                      first: https://api.preprod.ebsi.eu/did-registry/v3/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/did-registry/v3/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/did-registry/v3/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/did-registry/v3/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -1668,9 +1668,9 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /did-registry/v2/jsonrpc:
+  /did-registry/v3/jsonrpc:
     post:
-      operationId: post-did-registry-v2-jsonrpc
+      operationId: post-did-registry-v3-jsonrpc
       tags:
         - JSON-RPC
       summary: JSON-RPC API

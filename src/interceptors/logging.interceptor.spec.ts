@@ -1,18 +1,29 @@
 import crypto from "crypto";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import { INestApplication, ValidationPipe } from "@nestjs/common";
+import { INestApplication, ValidationPipe, Logger } from "@nestjs/common";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
-import { Session as SiopSession } from "@cef-ebsi/siop-auth";
 import { createJWT, ES256KSigner } from "did-jwt";
-import { Logger } from "@nestjs/common/services/logger.service";
+import { JWTVerifyResult } from "jose";
 import { AppModule } from "../app.module";
 import { AllExceptionsFilter } from "../filters/http-exception.filter";
 import { createDid } from "../../tests/utils/data";
+
+jest.mock("@cef-ebsi/siop-auth", () => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const originalModule = jest.requireActual("@cef-ebsi/siop-auth");
+
+  return {
+    __esModule: true,
+    ...originalModule,
+    verifyJwtTar: async () =>
+      Promise.resolve({ payload: {} } as JWTVerifyResult),
+  };
+});
 
 jest.setTimeout(60000);
 
@@ -117,11 +128,6 @@ describe("Logging interceptor", () => {
   describe("POST /jsonrpc with bad payload", () => {
     it("should log the request and response", async () => {
       expect.assertions(2);
-
-      // Mock access token verification
-      jest
-        .spyOn(SiopSession.prototype, "verifyAccessToken")
-        .mockImplementation(async () => Promise.resolve({}));
 
       const controllerDid = createDid();
       const userAccessToken = await createJWT(

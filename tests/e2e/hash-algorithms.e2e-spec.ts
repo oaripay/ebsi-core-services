@@ -108,15 +108,13 @@ describe("HashAlgorithms (e2e)", () => {
     );
 
     // Generate a valid Client JWT (SIOP) for the tests
-    const domain = configService.get<string>("domain");
-    const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
-    const didRegistry = `${domain}${apiUrlPrefix}/identifiers`;
-
     testUserAccessToken = await requestSiopJwt({
-      didRegistry,
-      clientDid: configService.get<string>("testClientDid"),
+      clientKid: configService.get<string>("testClientKid"),
       clientPrivateKey: configService.get<string>("testClientPrivateKey"),
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+      trustedAppsRegistryUrl: configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      ),
     });
 
     apiAccessToken = await getAccessToken(configService);

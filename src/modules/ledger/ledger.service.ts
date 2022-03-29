@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
 import { InternalServerError } from "@cef-ebsi/problem-details-errors";
 import { decodeJWT } from "did-jwt";
@@ -5,13 +6,12 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import axios, { AxiosError, AxiosResponse } from "axios";
-import { randomUUID } from "crypto";
 import { ApiConfig } from "../../config/configuration";
 import {
   DidRegistry,
   DidRegistry__factory,
 } from "../../contracts/did-registry";
-import { prefixWith0x, logAxiosError } from "../../shared/utils";
+import { logAxiosError } from "../../shared/utils";
 
 // Refresh the token if it expires in less than 10 seconds
 const REFRESH_LIMIT = 10 * 1000;
@@ -40,12 +40,12 @@ export class LedgerService {
       "authorisationApiUrl"
     );
 
-    const kid = this.configService.get<string>("apiKid");
-    const privKey = this.configService.get<string>("apiPrivateKey");
-
-    this.agent = new Agent(privKey, {
-      issuer: this.configService.get<string>("apiName"),
-      kid,
+    this.agent = new Agent({
+      privateKey: this.configService.get<string>("apiPrivateKey"),
+      name: this.configService.get<string>("apiName"),
+      trustedAppsRegistry: `${this.configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      )}/apps`,
     });
   }
 
@@ -61,7 +61,7 @@ export class LedgerService {
   private async getAccessToken() {
     const nonce = randomUUID();
 
-    const requestComponent = await this.agent.createRequestPayload(
+    const requestComponent = await this.agent.createRequest(
       this.configService.get<string>("ledgerApiName"),
       { nonce }
     );
@@ -73,10 +73,9 @@ export class LedgerService {
         AxiosResponse<AkeResponse>
       >(`${this.authorisationApiUrl}/oauth2-sessions`, requestComponent);
 
-      const accessToken = await this.agent.verifyAuthenticationResponse(
-        res.data,
-        nonce
-      );
+      const accessToken = await this.agent.verifyAkeResponse(res.data, {
+        nonce,
+      });
 
       const { payload } = decodeJWT(accessToken);
       this.accessTokenExp = payload.exp;
@@ -132,14 +131,9 @@ export class LedgerService {
       this.setupProvider(remoteLedgerApi, token);
     }
 
-    this.ethersWallet = new ethers.Wallet(
-      prefixWith0x(this.configService.get<string>("apiPrivateKey")),
-      this.ethersProvider
-    );
-
     this.didRegistryContract = DidRegistry__factory.connect(
       this.didRegistryAddress,
-      this.ethersWallet
+      this.ethersProvider
     );
   }
 
