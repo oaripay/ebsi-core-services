@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import axios, { AxiosError } from "axios";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
@@ -9,14 +10,11 @@ import {
 } from "@nestjs/common";
 import { ethers } from "ethers";
 import type { FastifyInstance } from "fastify";
-import { Session as SiopSession } from "@cef-ebsi/siop-auth";
-import {
-  Session as Oauth2Session,
-  JWTPayload as PayloadOauth2,
-} from "@cef-ebsi/oauth2-auth";
+import * as OAuth2Lib from "@cef-ebsi/oauth2-auth";
+import * as SiopLib from "@cef-ebsi/siop-auth";
+import type { JwtTarVefifyResult } from "@cef-ebsi/oauth2-auth";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import crypto from "crypto";
-import { JWTPayload } from "did-jwt";
+import type { JWTVerifyResult } from "jose";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -45,6 +43,28 @@ import { Timestamp, Timestamp__factory } from "../../contracts/timestamp";
 import { setupTestEnv } from "../../../tests/utils/timestamp";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { LedgerService } from "../../shared/services/ledger.service";
+
+jest.mock("@cef-ebsi/oauth2-auth", () => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const originalModule = jest.requireActual("@cef-ebsi/oauth2-auth");
+
+  return {
+    __esModule: true,
+    ...originalModule,
+    verifyJwtTar: jest.fn(),
+  };
+});
+
+jest.mock("@cef-ebsi/siop-auth", () => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const originalModule = jest.requireActual("@cef-ebsi/siop-auth");
+
+  return {
+    __esModule: true,
+    ...originalModule,
+    verifyJwtTar: jest.fn(),
+  };
+});
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -216,19 +236,9 @@ describe("JsonRpc Module", () => {
         });
       }
 
-      // accessing apps in TAR by name
-      if (url.includes("/apps?name")) {
-        if (!url.includes(testApp.name)) {
-          return Promise.resolve({ data: { items: [] } });
-        }
-        return Promise.resolve({
-          data: { items: [{ href: `/apps/${testApp.id}` }] },
-        });
-      }
-
       // accessing apps in TAR by id
       if (url.includes("/apps/")) {
-        if (!url.includes(testApp.id)) {
+        if (!url.includes(testApp.name)) {
           throw new Error("App not found");
         }
         return Promise.resolve({
@@ -257,23 +267,36 @@ describe("JsonRpc Module", () => {
     });
 
     jest
-      .spyOn(SiopSession.prototype, "verifyAccessToken")
-      .mockImplementation((token: string): Promise<JWTPayload> => {
-        if (token === testAdmin.token)
+      .spyOn(SiopLib, "verifyJwtTar")
+      .mockImplementation((token: string): Promise<JWTVerifyResult> => {
+        if (token === testAdmin.token) {
           return Promise.resolve({
-            sub: testAdmin.did,
-            login_hint: "did_siop",
-          });
-        if (token === testUser.token)
-          return Promise.resolve({ sub: testUser.did, login_hint: "did_siop" });
-        throw new Error("verifyAccessToken failed (siop)");
+            payload: {
+              sub: testAdmin.did,
+              login_hint: "did_siop",
+            },
+          } as unknown as JWTVerifyResult);
+        }
+
+        if (token === testUser.token) {
+          return Promise.resolve({
+            payload: { sub: testUser.did, login_hint: "did_siop" },
+          } as unknown as JWTVerifyResult);
+        }
+
+        return Promise.reject(new Error("verifyJwtTar failed (siop)"));
       });
 
     jest
-      .spyOn(Oauth2Session.prototype, "verifyAccessToken")
-      .mockImplementation((token: string): Promise<PayloadOauth2> => {
-        if (token === testApp.token)
-          return Promise.resolve({ sub: testApp.name });
+      .spyOn(OAuth2Lib, "verifyJwtTar")
+      .mockImplementation((token: string): Promise<JwtTarVefifyResult> => {
+        if (token === testApp.token) {
+          return Promise.resolve({
+            payload: { sub: testApp.name },
+          } as JwtTarVefifyResult);
+        }
+
+        return Promise.reject(new Error("verifyJwtTar failed (siop)"));
         throw new Error("verifyAccessToken failed (oauth2)");
       });
 
@@ -299,7 +322,7 @@ describe("JsonRpc Module", () => {
       expect(response.body).toStrictEqual({
         title: "Unauthorized",
         status: 401,
-        detail: "verifyAccessToken failed (siop)",
+        detail: "verifyJwtTar failed (siop)",
         type: "about:blank",
       });
       expect(response.status).toBe(401);
@@ -2240,10 +2263,12 @@ describe("JsonRpc Module", () => {
             ],
             id: "45",
           });
+
         // blocknumber needed to compute the recordid
         if (method === "timestampRecordHashes") {
           blockNumber = await provider.getBlockNumber();
         }
+
         expect(responseSend.body).toStrictEqual({
           jsonrpc: "2.0",
           id: "45",

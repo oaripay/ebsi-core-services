@@ -137,19 +137,9 @@ export class JsonRpcService {
     }
 
     // Get and verify the ethereum address from the Trusted Apps Registry
-    let response = await axios.get(
-      `${this.trustedAppsRegistry}/apps?name=${user.sub}`
+    const response = await axios.get(
+      `${this.trustedAppsRegistry}/apps/${user.sub}`
     );
-
-    const { items } = response.data as { items: { href: string }[] };
-
-    if (items.length === 0) {
-      throw new Error(`App ${user.sub} not found in the Trusted Apps Registry`);
-    }
-
-    const { href } = items[0];
-
-    response = await axios.get(href);
 
     const { publicKeys } = response.data as { publicKeys: string[] };
 
@@ -161,6 +151,7 @@ export class JsonRpcService {
           "pem",
           "raw"
         );
+
         return ethers.utils.computeAddress(`0x${publicKeyHex}`).toLowerCase();
       } catch (error) {
         return "0x0000000000000000000000000000000000000000";

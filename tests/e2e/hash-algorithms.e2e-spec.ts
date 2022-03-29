@@ -27,7 +27,7 @@ import { HashAlgorithmLink } from "../../src/modules/hash-algorithms/hash-algori
 import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x } from "../../src/shared/utils";
 import { getAccessToken, waitToBeMined } from "../utils/waitToBeMined";
-import { siopAuthentication } from "../utils/auth";
+import { requestSiopJwt } from "../utils/auth";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -75,18 +75,15 @@ const validHashAlgorithms: Record<
 describe("HashAlgorithms (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer;
-
   let testAdmin: {
-    did: string;
+    kid: string;
     privateKey: string;
     wallet: ethers.Wallet;
     token?: string;
   };
-
   let testUser: {
-    did: string;
+    kid: string;
     privateKey: string;
-    wallet: ethers.Wallet;
     token?: string;
   };
   let apiAccessToken: string;
@@ -112,26 +109,41 @@ describe("HashAlgorithms (e2e)", () => {
 
     const configService =
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+    const authorisationApiUrl = configService.get<string>(
+      "authorisationApiUrl"
+    );
+    const trustedAppsRegistryApiUrl = configService.get<string>(
+      "trustedAppsRegistryApiUrl"
+    );
 
     const configAdmin = configService.get<{
-      did: string;
+      kid: string;
       privateKey: string;
     }>("testAdmin");
-    const configUser = configService.get<{
-      did: string;
+
+    testUser = configService.get<{
+      kid: string;
       privateKey: string;
     }>("testUser");
+
     testAdmin = {
       ...configAdmin,
       wallet: new ethers.Wallet(prefixWith0x(configAdmin.privateKey)),
     };
-    testUser = {
-      ...configUser,
-      wallet: new ethers.Wallet(prefixWith0x(configUser.privateKey)),
-    };
 
-    testUser.token = await siopAuthentication(testUser);
-    testAdmin.token = await siopAuthentication(testAdmin);
+    testUser.token = await requestSiopJwt({
+      clientKid: testUser.kid,
+      clientPrivateKey: testUser.privateKey,
+      authorisationApiUrl,
+      trustedAppsRegistryApiUrl,
+    });
+
+    testAdmin.token = await requestSiopJwt({
+      clientKid: testAdmin.kid,
+      clientPrivateKey: testAdmin.privateKey,
+      authorisationApiUrl,
+      trustedAppsRegistryApiUrl,
+    });
 
     apiAccessToken = await getAccessToken(configService);
     ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
@@ -393,7 +405,7 @@ describe("HashAlgorithms (e2e)", () => {
       error: {
         code: -32600,
         message: `The DID ${
-          testUser.did
+          testUser.kid.split("#")[0]
         } is not controlled by the address ${testAdmin.wallet.address.toLowerCase()}`,
       },
     });

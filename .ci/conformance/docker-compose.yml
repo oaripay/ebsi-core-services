@@ -1,6 +1,6 @@
 version: "3.7"
 
 services:
-  timestamp-api:
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/timestamp-api:conformance_ebsiint-3844-tpr-updates_v2.0.0
+  timestamp-api-v3:
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/timestamp-api-v3:conformance_ebsiint-4000-auth_v3.0.0
     build: ../..

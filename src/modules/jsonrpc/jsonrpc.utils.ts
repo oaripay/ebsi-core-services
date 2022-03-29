@@ -51,7 +51,7 @@ export function formatEthersSignature(
     v: Number(v),
     recoveryParam: null,
     _vs: null,
-  };
+  } as ethers.Signature;
 }
 
 type JsonRpcDtos =

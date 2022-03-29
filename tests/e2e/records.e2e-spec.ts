@@ -39,7 +39,7 @@ import {
 import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x, multibase } from "../../src/shared/utils";
 import { getAccessToken, waitToBeMined } from "../utils/waitToBeMined";
-import { siopAuthentication } from "../utils/auth";
+import { requestSiopJwt } from "../utils/auth";
 import { PaginatedList } from "../../src/shared/interfaces";
 
 interface SupertestJsonRpcResponse {
@@ -68,14 +68,14 @@ describe("Records (e2e)", () => {
   let blockNumber2 = 0;
 
   let testAdmin: {
-    did: string;
+    kid: string;
     privateKey: string;
     wallet: ethers.Wallet;
     token?: string;
   };
 
   let testUser: {
-    did: string;
+    kid: string;
     privateKey: string;
     wallet: ethers.Wallet;
     token?: string;
@@ -103,15 +103,22 @@ describe("Records (e2e)", () => {
 
     const configService =
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+    const authorisationApiUrl = configService.get<string>(
+      "authorisationApiUrl"
+    );
+    const trustedAppsRegistryApiUrl = configService.get<string>(
+      "trustedAppsRegistryApiUrl"
+    );
 
     const configAdmin = configService.get<{
-      did: string;
+      kid: string;
       privateKey: string;
     }>("testAdmin");
     const configUser = configService.get<{
-      did: string;
+      kid: string;
       privateKey: string;
     }>("testUser");
+
     testAdmin = {
       ...configAdmin,
       wallet: new ethers.Wallet(prefixWith0x(configAdmin.privateKey)),
@@ -121,8 +128,19 @@ describe("Records (e2e)", () => {
       wallet: new ethers.Wallet(prefixWith0x(configUser.privateKey)),
     };
 
-    testUser.token = await siopAuthentication(testUser);
-    testAdmin.token = await siopAuthentication(testAdmin);
+    testUser.token = await requestSiopJwt({
+      clientKid: testUser.kid,
+      clientPrivateKey: testUser.privateKey,
+      authorisationApiUrl,
+      trustedAppsRegistryApiUrl,
+    });
+
+    testAdmin.token = await requestSiopJwt({
+      clientKid: testAdmin.kid,
+      clientPrivateKey: testAdmin.privateKey,
+      authorisationApiUrl,
+      trustedAppsRegistryApiUrl,
+    });
 
     // During the tests, we'll use the last hash algorithm
     const getHashAlgorithmsResponse = await request(server).get(
@@ -851,7 +869,7 @@ describe("Records (e2e)", () => {
       error: {
         code: -32600,
         message: `The DID ${
-          testUser.did
+          testUser.kid.split("#")[0]
         } is not controlled by the address ${testAdmin.wallet.address.toLowerCase()}`,
       },
     });
@@ -942,7 +960,7 @@ describe("Records (e2e)", () => {
       expect((response.body as { items: string }).items).not.toHaveLength(0);
       expect(response.status).toBe(200);
       const responseLast = await request(server).get(
-        (response.body as PaginatedList<unknown>).links.last.split("v2")[1]
+        (response.body as PaginatedList<unknown>).links.last.split("v3")[1]
       );
 
       const { recordId } = (responseLast.body as { items: string }).items[

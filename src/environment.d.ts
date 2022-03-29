@@ -7,10 +7,8 @@ declare global {
       API_PRIVATE_KEY: string;
       API_PORT?: string;
       API_URL_PREFIX?: string;
-      API_NAME?: string;
-      API_KID: string;
+      API_NAME: string;
       AUTHORISATION_API_NAME?: string;
-      AUTHORISATION_API_DID?: string;
       AUTHORISATION_API_URL?: string;
       LEDGER_API_NAME?: string;
       LEDGER_API_URL?: string;
@@ -21,9 +19,9 @@ declare global {
       DOMAIN?: string;
       LOCAL_ORIGIN?: string;
       HEALTH_CHECK?: string;
-      TEST_ADMIN_DID?: string;
+      TEST_ADMIN_KID?: string;
       TEST_ADMIN_PRIVATE_KEY?: string;
-      TEST_USER_DID?: string;
+      TEST_USER_KID?: string;
       TEST_USER_PRIVATE_KEY?: string;
       TEST_APP_NAME?: string;
       TEST_APP_PRIVATE_KEY?: string;

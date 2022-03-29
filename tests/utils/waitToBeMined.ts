@@ -1,6 +1,6 @@
+import { randomUUID } from "node:crypto";
 import axios, { AxiosResponse } from "axios";
 import { Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
-import { randomUUID } from "crypto";
 import { ConfigService } from "@nestjs/config";
 import { TransactionReceipt } from "@ethersproject/abstract-provider";
 import { ApiConfig } from "../../src/config/configuration";
@@ -11,15 +11,19 @@ export interface TransactionReceiptBesu extends TransactionReceipt {
 
 export async function getAccessToken(configService: ConfigService<ApiConfig>) {
   const authorisationApiUrl = configService.get<string>("authorisationApiUrl");
-  const privKey = configService.get<string>("apiPrivateKey");
+  const trustedAppsRegistry = `${configService.get<string>(
+    "trustedAppsRegistryApiUrl"
+  )}/apps`;
+  const privateKey = configService.get<string>("apiPrivateKey");
 
   const nonce = randomUUID();
-  const agent = new Agent(privKey, {
-    issuer: configService.get<string>("apiName"),
-    kid: configService.get<string>("apiKid"),
+  const agent = new Agent({
+    privateKey,
+    name: configService.get<string>("apiName"),
+    trustedAppsRegistry,
   });
 
-  const requestComponent = await agent.createRequestPayload(
+  const requestComponent = await agent.createRequest(
     configService.get<string>("ledgerApiName"),
     { nonce }
   );
@@ -29,7 +33,7 @@ export async function getAccessToken(configService: ConfigService<ApiConfig>) {
     AxiosResponse<AkeResponse>
   >(`${authorisationApiUrl}/oauth2-sessions`, requestComponent);
 
-  const accessToken = await agent.verifyAuthenticationResponse(res.data, nonce);
+  const accessToken = await agent.verifyAkeResponse(res.data, { nonce });
 
   return accessToken;
 }

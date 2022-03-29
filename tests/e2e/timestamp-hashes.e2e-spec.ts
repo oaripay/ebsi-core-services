@@ -32,7 +32,7 @@ import {
   multihashEncode,
 } from "../../src/shared/utils";
 import { getAccessToken, waitToBeMined } from "../utils/waitToBeMined";
-import { oauth2Authentication, siopAuthentication } from "../utils/auth";
+import { requestOAuth2Jwt, requestSiopJwt } from "../utils/auth";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -55,14 +55,14 @@ describe("Timestamp (e2e)", () => {
   let ledgerApi: string;
 
   let testAdmin: {
-    did: string;
+    kid: string;
     privateKey: string;
     wallet: ethers.Wallet;
     token?: string;
   };
 
   let testUser: {
-    did: string;
+    kid: string;
     privateKey: string;
     wallet: ethers.Wallet;
     token?: string;
@@ -95,13 +95,19 @@ describe("Timestamp (e2e)", () => {
 
     const configService =
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+    const authorisationApiUrl = configService.get<string>(
+      "authorisationApiUrl"
+    );
+    const trustedAppsRegistryApiUrl = configService.get<string>(
+      "trustedAppsRegistryApiUrl"
+    );
 
     const configAdmin = configService.get<{
-      did: string;
+      kid: string;
       privateKey: string;
     }>("testAdmin");
     const configUser = configService.get<{
-      did: string;
+      kid: string;
       privateKey: string;
     }>("testUser");
     const configApp = configService.get<{
@@ -121,9 +127,26 @@ describe("Timestamp (e2e)", () => {
       wallet: new ethers.Wallet(prefixWith0x(configApp.privateKey)),
     };
 
-    testUser.token = await siopAuthentication(testUser);
-    testAdmin.token = await siopAuthentication(testAdmin);
-    testApp.token = await oauth2Authentication(testApp);
+    testUser.token = await requestSiopJwt({
+      clientKid: testUser.kid,
+      clientPrivateKey: testUser.privateKey,
+      authorisationApiUrl,
+      trustedAppsRegistryApiUrl,
+    });
+
+    testAdmin.token = await requestSiopJwt({
+      clientKid: testAdmin.kid,
+      clientPrivateKey: testAdmin.privateKey,
+      authorisationApiUrl,
+      trustedAppsRegistryApiUrl,
+    });
+
+    testApp.token = await requestOAuth2Jwt({
+      trustedAppPrivateKey: testApp.privateKey,
+      trustedAppName: testApp.name,
+      trustedAppsRegistryApiUrl,
+      authorisationApiUrl,
+    });
 
     // During the tests, we'll use the last hash algorithm
     const getHashAlgorithmsResponse = await request(server).get(
@@ -161,7 +184,9 @@ describe("Timestamp (e2e)", () => {
       .update(crypto.randomBytes(32).toString("hex"), "hex")
       .digest()
       .toString("hex")}`;
+
     apiAccessToken = await getAccessToken(configService);
+
     ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
   });
 
@@ -429,7 +454,7 @@ describe("Timestamp (e2e)", () => {
           error: {
             code: -32600,
             message: `The DID ${
-              testUser.did
+              testUser.kid.split("#")[0]
             } is not controlled by the address ${testAdmin.wallet.address.toLowerCase()}`,
           },
         });

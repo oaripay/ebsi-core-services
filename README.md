@@ -44,9 +44,9 @@ You can choose to run the project locally with your own Node.js environment, or 
 
 First, create an `.env.local` file locally. You can duplicate the content of `.env` or only set the variables that you want to change.
 
-Please note that you need to fill the `API_PRIVATE_KEY` (secp256k1 elliptic curve private keys in hexadecimal), `API_KID` (kid pointing to trusted apps registry api), `AUTHORISATION_API_DID` and `CONTRACT_ADDR`.
+Please note that you need to fill the `API_PRIVATE_KEY` (secp256k1 elliptic curve private keys in hexadecimal), `API_NAME` (as registered in the Trusted Apps Registry), and `CONTRACT_ADDR`.
 
-For e2e testing, you must also set an admin regitered as administrator in the Trusted Apps Registry (`TEST_ADMIN_DID`, `TEST_ADMIN_PRIVATE_KEY`) and a user registered in the Did Registry (`TEST_USER_DID`, `TEST_USER_PRIVATE_KEY`).
+For e2e testing, you must also set an admin regitered as administrator in the Trusted Apps Registry (`TEST_ADMIN_KID`, `TEST_ADMIN_PRIVATE_KEY`) and a user registered in the Did Registry (`TEST_USER_KID`, `TEST_USER_PRIVATE_KEY`).
 
 After cloning the repository, make sure to update the submodules:
 
@@ -84,7 +84,7 @@ And then you can serve the production build with:
 yarn start:prod
 ```
 
-You can now open http://localhost:3000/timestamp/v2/health. If everything's working correctly, then you should see `"status":"ok"`.
+You can now open http://localhost:3000/timestamp/v3/health. If everything's working correctly, then you should see `"status":"ok"`.
 
 ### Run with Docker
 
@@ -94,7 +94,7 @@ After creating the `.env.local` file, run:
 docker-compose up --build
 ```
 
-Check http://localhost:3000/timestamp/v2/health to see if it's working.
+Check http://localhost:3000/timestamp/v3/health to see if it's working.
 
 ## Linting
 
@@ -178,7 +178,7 @@ yarn audit
 
 ## Testing
 
-Reminder: for e2e tests you must set an admin regitered as administrator in the Trusted Apps Registry (`TEST_ADMIN_DID`, `TEST_ADMIN_PRIVATE_KEY`) and a user registered in the Did Registry (`TEST_USER_DID`, `TEST_USER_PRIVATE_KEY`).
+Reminder: for e2e tests you must set an admin regitered as administrator in the Trusted Apps Registry (`TEST_ADMIN_KID`, `TEST_ADMIN_PRIVATE_KEY`) and a user registered in the Did Registry (`TEST_USER_KID`, `TEST_USER_PRIVATE_KEY`).
 
 Run all the tests:
 

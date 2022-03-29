@@ -12,7 +12,7 @@ export const options = {
 };
 
 export default function loadTesting() {
-  const pathname = "/timestamp/v2/hash-algorithms";
+  const pathname = "/timestamp/v3/hash-algorithms";
 
   group(pathname, () => {
     const url = `${BASE_URL}${pathname}`;

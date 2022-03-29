@@ -8,7 +8,7 @@ import { decodeJWT } from "did-jwt";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import { ApiConfig } from "../../config/configuration";
 import { Timestamp, Timestamp__factory } from "../../contracts/timestamp";
-import { prefixWith0x, logAxiosError } from "../utils";
+import { logAxiosError } from "../utils";
 
 // Refresh the token if it expires in less than 10 seconds
 const REFRESH_LIMIT = 10 * 1000;
@@ -16,8 +16,6 @@ const REFRESH_LIMIT = 10 * 1000;
 @Injectable()
 export class LedgerService {
   private readonly logger = new Logger(LedgerService.name);
-
-  private ethersWallet: string | ethers.Signer | ethers.providers.Provider;
 
   private ethersProvider:
     | ethers.providers.Provider
@@ -39,12 +37,12 @@ export class LedgerService {
       "authorisationApiUrl"
     );
 
-    const kid = this.configService.get<string>("apiKid");
-    const privKey = this.configService.get<string>("apiPrivateKey");
-
-    this.agent = new Agent(privKey, {
-      issuer: this.configService.get<string>("apiName"),
-      kid,
+    this.agent = new Agent({
+      privateKey: this.configService.get<string>("apiPrivateKey"),
+      name: this.configService.get<string>("apiName"),
+      trustedAppsRegistry: `${this.configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      )}/apps`,
     });
   }
 
@@ -60,7 +58,7 @@ export class LedgerService {
   private async getAccessToken() {
     const nonce = randomUUID();
 
-    const requestComponent = await this.agent.createRequestPayload(
+    const requestComponent = await this.agent.createRequest(
       this.configService.get<string>("ledgerApiName"),
       { nonce }
     );
@@ -72,10 +70,9 @@ export class LedgerService {
         AxiosResponse<AkeResponse>
       >(`${this.authorisationApiUrl}/oauth2-sessions`, requestComponent);
 
-      const accessToken = await this.agent.verifyAuthenticationResponse(
-        res.data,
-        nonce
-      );
+      const accessToken = await this.agent.verifyAkeResponse(res.data, {
+        nonce,
+      });
 
       const { payload } = decodeJWT(accessToken);
       this.accessTokenExp = payload.exp;
@@ -131,14 +128,9 @@ export class LedgerService {
       this.setupProvider(remoteLedgerApi, token);
     }
 
-    this.ethersWallet = new ethers.Wallet(
-      prefixWith0x(this.configService.get<string>("apiPrivateKey")),
-      this.ethersProvider
-    );
-
     this.timestampContract = Timestamp__factory.connect(
       this.timestampAddress,
-      this.ethersWallet
+      this.ethersProvider
     );
   }
 
