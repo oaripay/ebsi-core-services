@@ -74,15 +74,13 @@ describe("Files (e2e)", () => {
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
 
     // Generate valid Client JWT (SIOP) for the tests
-    const didRegistry = `${configService.get<string>(
-      "didRegistryApiUrl"
-    )}/identifiers`;
-
     testUserAccessToken = await requestSiopJwt({
-      didRegistry,
-      clientDid: configService.get<string>("testClientDid"),
+      clientKid: configService.get<string>("testClientKid"),
       clientPrivateKey: configService.get<string>("testClientPrivateKey"),
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+      trustedAppsRegistryApiUrl: configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      ),
     });
   });
 
@@ -313,7 +311,7 @@ describe("Files (e2e)", () => {
         items: expect.arrayContaining([]) as string[],
         links: expect.objectContaining({}) as unknown,
         pageSize: 12,
-        self: "https://api.test.intebsi.xyz/storage/v2/stores/distributed/files?page[size]=12",
+        self: "https://api.test.intebsi.xyz/storage/v3/stores/distributed/files?page[size]=12",
       });
       expect(response.status).toBe(200);
     });
@@ -332,11 +330,11 @@ describe("Files (e2e)", () => {
         ]) as string[],
         links: {
           next: expect.stringMatching(
-            /^https:\/\/api\.test\.intebsi\.xyz\/storage\/v2\/stores\/distributed\/files\?page\[after\]=.*&page\[size\]=2/
+            /^https:\/\/api\.test\.intebsi\.xyz\/storage\/v3\/stores\/distributed\/files\?page\[after\]=.*&page\[size\]=2/
           ) as string,
         },
         pageSize: 2,
-        self: "https://api.test.intebsi.xyz/storage/v2/stores/distributed/files?page[size]=2",
+        self: "https://api.test.intebsi.xyz/storage/v3/stores/distributed/files?page[size]=2",
       });
       expect((response.body as { items: string[] }).items).toHaveLength(2);
       expect(response.status).toBe(200);

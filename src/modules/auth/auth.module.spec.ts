@@ -6,7 +6,8 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { Session, JWTPayload } from "@cef-ebsi/oauth2-auth";
+import * as OAuth2Lib from "@cef-ebsi/oauth2-auth";
+import type { JwtTarVefifyResult } from "@cef-ebsi/oauth2-auth";
 import { AuthModule } from "./auth.module";
 import { AuthService } from "./auth.service";
 import { JwtCacheService } from "./jwt-cache.service";
@@ -15,15 +16,23 @@ jest.mock("did-jwt", () => ({
   decodeJWT: jest.fn(),
 }));
 
+jest.mock("@cef-ebsi/oauth2-auth", () => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const originalModule = jest.requireActual("@cef-ebsi/oauth2-auth");
+
+  return {
+    __esModule: true,
+    ...originalModule,
+    verifyJwtTar: jest.fn(),
+  };
+});
+
 describe("Auth Module", () => {
   let app: INestApplication;
   let authService: AuthService;
   let jwtCacheService: JwtCacheService;
 
-  const mockVerifyAccessToken = jest.spyOn(
-    Session.prototype,
-    "verifyAccessToken"
-  );
+  const mockVerifyAccessToken = jest.spyOn(OAuth2Lib, "verifyJwtTar");
   const mockDecodeJwt = jest.spyOn(DidJwt, "decodeJWT");
 
   beforeAll(async () => {
@@ -60,7 +69,10 @@ describe("Auth Module", () => {
 
       // Prepare mocks
       mockVerifyAccessToken.mockImplementation(
-        async (): Promise<JWTPayload> => Promise.resolve(jwtPayload)
+        async (): Promise<JwtTarVefifyResult> =>
+          Promise.resolve({
+            payload: jwtPayload,
+          } as unknown as JwtTarVefifyResult)
       );
 
       mockDecodeJwt.mockImplementation(() => ({
@@ -125,7 +137,10 @@ describe("Auth Module", () => {
 
       // Update mocks
       mockVerifyAccessToken.mockImplementation(
-        async (): Promise<JWTPayload> => Promise.resolve(jwtPayload)
+        async (): Promise<JwtTarVefifyResult> =>
+          Promise.resolve({
+            payload: jwtPayload,
+          } as unknown as JwtTarVefifyResult)
       );
 
       mockDecodeJwt.mockImplementation(() => ({
@@ -169,7 +184,10 @@ describe("Auth Module", () => {
       dateSpy.mockImplementation(() => futureNow * 1000);
 
       mockVerifyAccessToken.mockImplementation(
-        async (): Promise<JWTPayload> => Promise.resolve(jwtPayload)
+        async (): Promise<JwtTarVefifyResult> =>
+          Promise.resolve({
+            payload: jwtPayload,
+          } as unknown as JwtTarVefifyResult)
       );
 
       mockDecodeJwt.mockImplementation(() => ({

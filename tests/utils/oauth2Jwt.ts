@@ -1,40 +1,47 @@
-import { Agent as OAuth2Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
+import {
+  Agent as OAuth2Agent,
+  AkeResponse as OAuth2AkeResponse,
+} from "@cef-ebsi/oauth2-auth";
 import axios, { AxiosResponse } from "axios";
 import { randomUUID } from "crypto";
 
-export const requestOAuth2Jwt = async ({
-  testAppPrivateKey,
-  testAppName,
-  testAppKid,
-  targetApiName,
+export async function requestOAuth2Jwt({
+  trustedAppPrivateKey,
+  trustedAppName,
+  trustedAppsRegistryApiUrl,
   authorisationApiUrl,
 }: {
-  testAppPrivateKey: string;
-  testAppName: string;
-  testAppKid: string;
-  targetApiName: string;
+  trustedAppPrivateKey: string;
+  trustedAppName: string;
+  trustedAppsRegistryApiUrl: string;
   authorisationApiUrl: string;
-}): Promise<string> => {
+}): Promise<string> {
   const nonce = randomUUID();
-  const oauth2Agent = new OAuth2Agent(testAppPrivateKey, {
-    issuer: testAppName,
-    kid: testAppKid,
+
+  const agent = new OAuth2Agent({
+    privateKey: trustedAppPrivateKey,
+    name: trustedAppName,
+    trustedAppsRegistry: `${trustedAppsRegistryApiUrl}/apps`,
   });
 
-  const oauth2RequestComponent = await oauth2Agent.createRequestPayload(
-    targetApiName,
+  const authRequest = await agent.createRequest("storage-api", {
+    nonce,
+  });
+
+  const oauth2SessionsResponse = await axios.post<
+    string,
+    AxiosResponse<OAuth2AkeResponse>
+  >(
+    `${authorisationApiUrl}/oauth2-sessions`,
+    new URLSearchParams(authRequest).toString(),
     {
-      nonce,
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
     }
   );
 
-  // Send request payload to Authorisation API
-  const oauth2Response = await axios.post<
-    typeof oauth2RequestComponent,
-    AxiosResponse<AkeResponse>
-  >(`${authorisationApiUrl}/oauth2-sessions`, oauth2RequestComponent);
-
-  return oauth2Agent.verifyAuthenticationResponse(oauth2Response.data, nonce);
-};
+  return agent.verifyAkeResponse(oauth2SessionsResponse.data, { nonce });
+}
 
 export default requestOAuth2Jwt;

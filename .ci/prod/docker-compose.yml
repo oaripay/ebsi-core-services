@@ -1,6 +1,6 @@
 version: "3.7"
 
 services:
-  storage-api:
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/storage-api:prod_ebsiint-3819-deps-update_v2.0.0
+  storage-api-v3:
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/storage-api-v3:prod_ebsiint-3999-auth-update_v3.0.0
     build: ../..

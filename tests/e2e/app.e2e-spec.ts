@@ -12,7 +12,7 @@ import { fastifyAdapterConfig } from "../../src/config/server.config";
 
 jest.setTimeout(60000);
 
-describe("/storage/v2 (generic tests)", () => {
+describe("/storage/v3 (generic tests)", () => {
   let app: NestFastifyApplication;
 
   beforeAll(async () => {

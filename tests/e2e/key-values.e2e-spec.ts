@@ -53,15 +53,13 @@ describe("Key-Values (e2e)", () => {
     server = app.getHttpServer() as HttpServer;
 
     // Generate a valid Client JWT (SIOP) for the tests
-    const didRegistry = `${configService.get<string>(
-      "didRegistryApiUrl"
-    )}/identifiers`;
-
     testUserAccessToken = await requestSiopJwt({
-      didRegistry,
-      clientDid: configService.get<string>("testClientDid"),
+      clientKid: configService.get<string>("testClientKid"),
       clientPrivateKey: configService.get<string>("testClientPrivateKey"),
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+      trustedAppsRegistryApiUrl: configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      ),
     });
   });
 
@@ -191,11 +189,11 @@ describe("Key-Values (e2e)", () => {
         ]) as string[],
         links: {
           next: expect.stringMatching(
-            /^https:\/\/api\.test\.intebsi\.xyz\/storage\/v2\/stores\/distributed\/key-values\?page\[after\]=.*&page\[size\]=2/
+            /^https:\/\/api\.test\.intebsi\.xyz\/storage\/v3\/stores\/distributed\/key-values\?page\[after\]=.*&page\[size\]=2/
           ) as string,
         },
         pageSize: 2,
-        self: "https://api.test.intebsi.xyz/storage/v2/stores/distributed/key-values?page[size]=2",
+        self: "https://api.test.intebsi.xyz/storage/v3/stores/distributed/key-values?page[size]=2",
       });
       expect((response.body as { items: string[] }).items).toHaveLength(2);
       expect(response.status).toBe(200);

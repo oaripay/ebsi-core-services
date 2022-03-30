@@ -42,11 +42,12 @@ describe("JsonRpc Module", () => {
 
     // Generate a valid JWT for the tests
     accessToken = await requestOAuth2Jwt({
-      testAppKid: configService.get<string>("testAppKid"),
-      testAppName: configService.get<string>("testAppName"),
-      testAppPrivateKey: configService.get<string>("testAppPrivateKey"),
-      targetApiName: configService.get<string>("apiName"),
+      trustedAppName: configService.get<string>("testAppName"),
+      trustedAppPrivateKey: configService.get<string>("testAppPrivateKey"),
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+      trustedAppsRegistryApiUrl: configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      ),
     });
   });
 
@@ -86,8 +87,9 @@ describe("JsonRpc Module", () => {
       .send();
 
     expect(response.body).toStrictEqual({
-      detail:
-        "Invalid JWT: The token algorithm must be 'ES256K'. Received 'HS256'",
+      detail: `Invalid JWT: JWT with invalid kid. It should be hosted at ${configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      )}/apps`,
       status: 401,
       title: "Unauthorized",
       type: "about:blank",
