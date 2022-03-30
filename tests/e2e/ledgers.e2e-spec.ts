@@ -106,21 +106,22 @@ describe("Ledgers (e2e)", () => {
     );
 
     // Generate a valid Client JWT (SIOP) for the tests
-    const didRegistry = `${configService.get<string>(
-      "didRegistryApiUrl"
-    )}/identifiers`;
-
     testAdminAccessToken = await requestSiopJwt({
-      didRegistry,
-      clientDid: configService.get<string>("testAdminDid"),
+      clientKid: configService.get<string>("testAdminKid"),
       clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+      trustedAppsRegistryApiUrl: configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      ),
     });
+
     testUserAccessToken = await requestSiopJwt({
-      didRegistry,
-      clientDid: configService.get<string>("testUserDid"),
+      clientKid: configService.get<string>("testUserKid"),
       clientPrivateKey: configService.get<string>("testUserPrivateKey"),
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+      trustedAppsRegistryApiUrl: configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      ),
     });
 
     apiAccessToken = await getAccessToken(configService);

@@ -1,7 +1,7 @@
 version: "3.7"
 
 services:
-  trusted-ledgers-sc-registry-api:
+  trusted-ledgers-sc-registry-api-v2:
     build: .
     env_file:
       - .env

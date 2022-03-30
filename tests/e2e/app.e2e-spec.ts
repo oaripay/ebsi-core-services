@@ -1,26 +1,28 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import { ValidationPipe } from "@nestjs/common";
+import { HttpServer, ValidationPipe, Logger } from "@nestjs/common";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
+import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
-import { Logger } from "@nestjs/common/services/logger.service";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
+import { ApiConfig } from "../../src/config/configuration";
 
 jest.setTimeout(60000);
 
-describe("/trusted-ledgers-smart-contracts-registry/v1 (generic tests)", () => {
-  let app: NestFastifyApplication;
+describe("/trusted-ledgers-smart-contracts-registry/v2 (generic tests)", () => {
+  let server: HttpServer;
+  let configService: ConfigService<ApiConfig>;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
 
-    app = moduleFixture.createNestApplication<NestFastifyApplication>(
+    const app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter()
     );
     app.useGlobalFilters(new AllExceptionsFilter());
@@ -32,12 +34,15 @@ describe("/trusted-ledgers-smart-contracts-registry/v1 (generic tests)", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    server = app.getHttpServer() as HttpServer;
+
+    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
   });
 
   describe("GET /health", () => {
     it("should return ok", async () => {
       expect.assertions(2);
-      const response = await request(app.getHttpServer()).get(`/health`);
+      const response = await request(server).get(`/health`);
 
       expect(response.body).toStrictEqual({
         details: { "ebsi-apis": { status: "up" } },
@@ -52,7 +57,7 @@ describe("/trusted-ledgers-smart-contracts-registry/v1 (generic tests)", () => {
   describe("GET /bad-method", () => {
     it("should return error 404", async () => {
       expect.assertions(2);
-      const response = await request(app.getHttpServer()).get("/bad-method");
+      const response = await request(server).get("/bad-method");
 
       expect(response.body).toStrictEqual({
         title: "Not Found",
@@ -68,9 +73,7 @@ describe("/trusted-ledgers-smart-contracts-registry/v1 (generic tests)", () => {
     it("should reject a POST without JWT", async () => {
       expect.assertions(3);
 
-      const response = await request(app.getHttpServer())
-        .post("/jsonrpc")
-        .send();
+      const response = await request(server).post("/jsonrpc").send();
 
       expect(response.body).toStrictEqual({
         detail: "Invalid or missing JWT",
@@ -87,7 +90,7 @@ describe("/trusted-ledgers-smart-contracts-registry/v1 (generic tests)", () => {
     it("should reject a POST with an invalid token", async () => {
       expect.assertions(3);
 
-      const response = await request(app.getHttpServer())
+      const response = await request(server)
         .post("/jsonrpc")
         .auth(
           "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJpc3MiOiJhbnkifQ.eiwf-6rtNV0oWpFidRTlcY6oLBpV0l2tEkCs5FNoIxY",
@@ -96,8 +99,9 @@ describe("/trusted-ledgers-smart-contracts-registry/v1 (generic tests)", () => {
         .send();
 
       expect(response.body).toStrictEqual({
-        detail:
-          "Invalid JWT: not_supported: No supported signature types for algorithm HS256",
+        detail: `Invalid JWT: JWT with invalid kid. It should be hosted at ${configService.get<string>(
+          "trustedAppsRegistryApiUrl"
+        )}/apps`,
         status: 401,
         title: "Unauthorized",
         type: "about:blank",

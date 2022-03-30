@@ -12,7 +12,7 @@ export const options = {
 };
 
 export default function loadTesting() {
-  const pathname = "/trusted-ledgers-smart-contracts-registry/v1/ledgers";
+  const pathname = "/trusted-ledgers-smart-contracts-registry/v2/ledgers";
 
   group(pathname, () => {
     const url = `${BASE_URL}${pathname}`;

@@ -95,15 +95,13 @@ describe("Smart contracts (e2e)", () => {
     smartContractInfoId = ethers.utils.sha256(scInfo);
 
     // Generate a valid Client JWT (SIOP) for the tests
-    const didRegistry = `${configService.get<string>(
-      "didRegistryApiUrl"
-    )}/identifiers`;
-
     testUserAccessToken = await requestSiopJwt({
-      didRegistry,
-      clientDid: configService.get<string>("testAdminDid"),
+      clientKid: configService.get<string>("testAdminKid"),
       clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+      trustedAppsRegistryApiUrl: configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      ),
     });
 
     apiAccessToken = await getAccessToken(configService);

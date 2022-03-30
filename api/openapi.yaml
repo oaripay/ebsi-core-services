@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Trusted Ledgers & Smart Contracts Registry API
-  version: 1.0.0
+  version: 2.0.0
   description: |
     Trusted Ledgers & Smart Contracts Registry (TLSCR) API is an EBSI core service. It enables us
     to interact with the Trusted Ledgers & Smart Contracts Registry - Smart Contract to
@@ -25,9 +25,9 @@ info:
     name: EUPL-1.2
     url: https://joinup.ec.europa.eu/page/eupl-text-11-12
 paths:
-  /trusted-ledgers-smart-contracts-registry/v1/ledgers:
+  /trusted-ledgers-smart-contracts-registry/v2/ledgers:
     get:
-      operationId: get-trusted-ledgers-smart-contracts-registry-v1-ledgers
+      operationId: get-trusted-ledgers-smart-contracts-registry-v2-ledgers
       summary: List ledgers
       description: Returns a list of ledgers.
       tags:
@@ -84,34 +84,34 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/ledgers?page[after]=1&page[size]=10
+                    self: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v2/ledgers?page[after]=1&page[size]=10
                     items:
                       - ledgerInfoId: "0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57"
-                        href: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/ledgers/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57
+                        href: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v2/ledgers/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57
                       - ledgerInfoId: "0x0cd81662c95df9643238abdbfc15b6f23c7754fcb8d1cc6be909e2525b550b44"
-                        href: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/ledgers/0x0cd81662c95df9643238abdbfc15b6f23c7754fcb8d1cc6be909e2525b550b44
+                        href: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v2/ledgers/0x0cd81662c95df9643238abdbfc15b6f23c7754fcb8d1cc6be909e2525b550b44
                     total: 2
                     pageSize: 10
                     links:
-                      first: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/ledgers?page[after]=1&page[size]=10
-                      prev: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/ledgers?page[after]=1&page[size]=10
-                      next: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/ledgers?page[after]=1&page[size]=10
-                      last: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/ledgers?page[after]=1&page[size]=10
+                      first: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v2/ledgers?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v2/ledgers?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v2/ledgers?page[after]=1&page[size]=10
+                      last: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v2/ledgers?page[after]=1&page[size]=10
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v1/ledgers?page[after]=1&page[size]=10
+                    self: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers?page[after]=1&page[size]=10
                     items:
                       - ledgerInfoId: "0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57"
-                        href: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v1/ledgers/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57
+                        href: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57
                       - ledgerInfoId: "0x0cd81662c95df9643238abdbfc15b6f23c7754fcb8d1cc6be909e2525b550b44"
-                        href: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v1/ledgers/0x0cd81662c95df9643238abdbfc15b6f23c7754fcb8d1cc6be909e2525b550b44
+                        href: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers/0x0cd81662c95df9643238abdbfc15b6f23c7754fcb8d1cc6be909e2525b550b44
                     total: 2
                     pageSize: 10
                     links:
-                      first: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v1/ledgers?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v1/ledgers?page[after]=1&page[size]=10
-                      next: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v1/ledgers?page[after]=1&page[size]=10
-                      last: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v1/ledgers?page[after]=1&page[size]=10
+                      first: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers?page[after]=1&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -133,9 +133,9 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /trusted-ledgers-smart-contracts-registry/v1/ledgers/{ledgerInfoId}:
+  /trusted-ledgers-smart-contracts-registry/v2/ledgers/{ledgerInfoId}:
     get:
-      operationId: get-trusted-ledgers-smart-contracts-registry-v1-ledger
+      operationId: get-trusted-ledgers-smart-contracts-registry-v2-ledger
       summary: Get a ledger info
       description: Returns a trusted ledger info identified by its ID.
       tags:
@@ -198,9 +198,9 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /trusted-ledgers-smart-contracts-registry/v1/ledgers/{ledgerInfoId}/revisions:
+  /trusted-ledgers-smart-contracts-registry/v2/ledgers/{ledgerInfoId}/revisions:
     get:
-      operationId: get-trusted-ledgers-smart-contracts-registry-v1-ledger-revisions
+      operationId: get-trusted-ledgers-smart-contracts-registry-v2-ledger-revisions
       summary: List revisions
       description: Returns a list of revisions for a specific LedgerInfo.
       tags:
@@ -254,30 +254,30 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/ledgers/0x50c4e3d7e0e9c588c0ab7b72747b10bdeab48efa9e375bf9e9b67fe91a0c64f2/revisions?page[after]=1&page[size]=10
+                    self: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v2/ledgers/0x50c4e3d7e0e9c588c0ab7b72747b10bdeab48efa9e375bf9e9b67fe91a0c64f2/revisions?page[after]=1&page[size]=10
                     items:
                       - revisionHash: "0x50c4e3d7e0e9c588c0ab7b72747b10bdeab48efa9e375bf9e9b67fe91a0c64f2"
-                        href: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/ledgers/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57/revisions/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57
+                        href: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v2/ledgers/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57/revisions/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/ledgers/0x50c4e3d7e0e9c588c0ab7b72747b10bdeab48efa9e375bf9e9b67fe91a0c64f2/revisions?page[after]=1&page[size]=10
-                      prev: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/ledgers/0x50c4e3d7e0e9c588c0ab7b72747b10bdeab48efa9e375bf9e9b67fe91a0c64f2/revisions?page[after]=1&page[size]=10
-                      next: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/ledgers/0x50c4e3d7e0e9c588c0ab7b72747b10bdeab48efa9e375bf9e9b67fe91a0c64f2/revisions?page[after]=1&page[size]=10
-                      last: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/ledgers/0x50c4e3d7e0e9c588c0ab7b72747b10bdeab48efa9e375bf9e9b67fe91a0c64f2/revisions?page[after]=1&page[size]=10
+                      first: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v2/ledgers/0x50c4e3d7e0e9c588c0ab7b72747b10bdeab48efa9e375bf9e9b67fe91a0c64f2/revisions?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v2/ledgers/0x50c4e3d7e0e9c588c0ab7b72747b10bdeab48efa9e375bf9e9b67fe91a0c64f2/revisions?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v2/ledgers/0x50c4e3d7e0e9c588c0ab7b72747b10bdeab48efa9e375bf9e9b67fe91a0c64f2/revisions?page[after]=1&page[size]=10
+                      last: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v2/ledgers/0x50c4e3d7e0e9c588c0ab7b72747b10bdeab48efa9e375bf9e9b67fe91a0c64f2/revisions?page[after]=1&page[size]=10
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v1/ledgers/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57/revisions?page[after]=1&page[size]=10
+                    self: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57/revisions?page[after]=1&page[size]=10
                     items:
                       - revisionHash: "0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57"
-                        href: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v1/ledgers/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57/revisions/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57
+                        href: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57/revisions/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v1/ledgers/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57/revisions?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v1/ledgers/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57/revisions?page[after]=1&page[size]=10
-                      next: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v1/ledgers/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57/revisions?page[after]=1&page[size]=10
-                      last: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v1/ledgers/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57/revisions?page[after]=1&page[size]=10
+                      first: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57/revisions?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57/revisions?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57/revisions?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57/revisions?page[after]=1&page[size]=10
         "400":
           description: Bad Request
           content:
@@ -313,9 +313,9 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /trusted-ledgers-smart-contracts-registry/v1/ledgers/{ledgerInfoId}/revisions/{revisionHash}:
+  /trusted-ledgers-smart-contracts-registry/v2/ledgers/{ledgerInfoId}/revisions/{revisionHash}:
     get:
-      operationId: get-trusted-ledgers-smart-contracts-registry-v1-ledger-revision
+      operationId: get-trusted-ledgers-smart-contracts-registry-v2-ledger-revision
       summary: Get a revision
       description: Returns the revision corresponding to the given hash.
       tags:
@@ -395,9 +395,9 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /trusted-ledgers-smart-contracts-registry/v1/smart-contracts:
+  /trusted-ledgers-smart-contracts-registry/v2/smart-contracts:
     get:
-      operationId: get-trusted-ledgers-smart-contracts-registry-v1-smart-contracts
+      operationId: get-trusted-ledgers-smart-contracts-registry-v2-smart-contracts
       summary: List smart contracts
       description: Returns a list of smart contracts.
       tags:
@@ -454,50 +454,50 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/smart-contracts?page[after]=1&page[size]=10
+                    self: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v2/smart-contracts?page[after]=1&page[size]=10
                     items:
                       - smartContractInfoId: "0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed"
-                        href: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed
+                        href: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed
                       - smartContractInfoId: "0x2bcd6e0ff362b35b9cd510a0f1deaaeda18cfa0a3f20d477b738c57d506e0da9"
-                        href: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/smart-contracts/0x2bcd6e0ff362b35b9cd510a0f1deaaeda18cfa0a3f20d477b738c57d506e0da9
+                        href: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0x2bcd6e0ff362b35b9cd510a0f1deaaeda18cfa0a3f20d477b738c57d506e0da9
                       - smartContractInfoId: "0x72d1f36bffd10b2760b6c57da3c886d39689e04a23b5a75d3be6ad2e99195d7e"
-                        href: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/smart-contracts/0x72d1f36bffd10b2760b6c57da3c886d39689e04a23b5a75d3be6ad2e99195d7e
+                        href: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0x72d1f36bffd10b2760b6c57da3c886d39689e04a23b5a75d3be6ad2e99195d7e
                       - smartContractInfoId: "0x63117ba242c0bd812b689200e0f80e805cbc13feb351aa20798e8fb8d5a7ddea"
-                        href: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/smart-contracts/0x63117ba242c0bd812b689200e0f80e805cbc13feb351aa20798e8fb8d5a7ddea
+                        href: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0x63117ba242c0bd812b689200e0f80e805cbc13feb351aa20798e8fb8d5a7ddea
                       - smartContractInfoId: "0xf8e665a36a7e87846b0cc64abf03454c5a3f2c201b66ac8bbc96d7dea44c9f0c"
-                        href: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/smart-contracts/0xf8e665a36a7e87846b0cc64abf03454c5a3f2c201b66ac8bbc96d7dea44c9f0c
+                        href: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xf8e665a36a7e87846b0cc64abf03454c5a3f2c201b66ac8bbc96d7dea44c9f0c
                       - smartContractInfoId: "0xf09fb81d126b8b0b11e7be8e096cf7f2c2421c53e860b07f46c46f3c7dd50f93"
-                        href: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/smart-contracts/0xf09fb81d126b8b0b11e7be8e096cf7f2c2421c53e860b07f46c46f3c7dd50f93
+                        href: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xf09fb81d126b8b0b11e7be8e096cf7f2c2421c53e860b07f46c46f3c7dd50f93
                     total: 6
                     pageSize: 10
                     links:
-                      first: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/smart-contracts?page[after]=1&page[size]=10
-                      prev: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/smart-contracts?page[after]=1&page[size]=10
-                      next: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/smart-contracts?page[after]=1&page[size]=10
-                      last: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/smart-contracts?page[after]=1&page[size]=10
+                      first: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v2/smart-contracts?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v2/smart-contracts?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v2/smart-contracts?page[after]=1&page[size]=10
+                      last: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v2/smart-contracts?page[after]=1&page[size]=10
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v1/smart-contracts?page[after]=1&page[size]=10
+                    self: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts?page[after]=1&page[size]=10
                     items:
                       - smartContractInfoId: "0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed"
-                        href: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v1/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed
+                        href: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed
                       - smartContractInfoId: "0x2bcd6e0ff362b35b9cd510a0f1deaaeda18cfa0a3f20d477b738c57d506e0da9"
-                        href: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v1/smart-contracts/0x2bcd6e0ff362b35b9cd510a0f1deaaeda18cfa0a3f20d477b738c57d506e0da9
+                        href: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0x2bcd6e0ff362b35b9cd510a0f1deaaeda18cfa0a3f20d477b738c57d506e0da9
                       - smartContractInfoId: "0x72d1f36bffd10b2760b6c57da3c886d39689e04a23b5a75d3be6ad2e99195d7e"
-                        href: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v1/smart-contracts/0x72d1f36bffd10b2760b6c57da3c886d39689e04a23b5a75d3be6ad2e99195d7e
+                        href: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0x72d1f36bffd10b2760b6c57da3c886d39689e04a23b5a75d3be6ad2e99195d7e
                       - smartContractInfoId: "0x63117ba242c0bd812b689200e0f80e805cbc13feb351aa20798e8fb8d5a7ddea"
-                        href: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v1/smart-contracts/0x63117ba242c0bd812b689200e0f80e805cbc13feb351aa20798e8fb8d5a7ddea
+                        href: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0x63117ba242c0bd812b689200e0f80e805cbc13feb351aa20798e8fb8d5a7ddea
                       - smartContractInfoId: "0xf8e665a36a7e87846b0cc64abf03454c5a3f2c201b66ac8bbc96d7dea44c9f0c"
-                        href: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v1/smart-contracts/0xf8e665a36a7e87846b0cc64abf03454c5a3f2c201b66ac8bbc96d7dea44c9f0c
+                        href: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xf8e665a36a7e87846b0cc64abf03454c5a3f2c201b66ac8bbc96d7dea44c9f0c
                       - smartContractInfoId: "0xf09fb81d126b8b0b11e7be8e096cf7f2c2421c53e860b07f46c46f3c7dd50f93"
-                        href: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v1/smart-contracts/0xf09fb81d126b8b0b11e7be8e096cf7f2c2421c53e860b07f46c46f3c7dd50f93
+                        href: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xf09fb81d126b8b0b11e7be8e096cf7f2c2421c53e860b07f46c46f3c7dd50f93
                     total: 6
                     pageSize: 10
                     links:
-                      first: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v1/smart-contracts?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v1/smart-contracts?page[after]=1&page[size]=10
-                      next: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v1/smart-contracts?page[after]=1&page[size]=10
-                      last: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v1/smart-contracts?page[after]=1&page[size]=10
+                      first: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts?page[after]=1&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -519,9 +519,9 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /trusted-ledgers-smart-contracts-registry/v1/smart-contracts/{smartContractInfoId}:
+  /trusted-ledgers-smart-contracts-registry/v2/smart-contracts/{smartContractInfoId}:
     get:
-      operationId: get-trusted-ledgers-smart-contracts-registry-v1-smart-contract
+      operationId: get-trusted-ledgers-smart-contracts-registry-v2-smart-contract
       summary: Get a smart contract info
       description: Returns a trusted smart contract info identified by its ID.
       tags:
@@ -587,9 +587,9 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /trusted-ledgers-smart-contracts-registry/v1/smart-contracts/{smartContractInfoId}/revisions:
+  /trusted-ledgers-smart-contracts-registry/v2/smart-contracts/{smartContractInfoId}/revisions:
     get:
-      operationId: get-trusted-ledgers-smart-contracts-registry-v1-smart-contract-revisions
+      operationId: get-trusted-ledgers-smart-contracts-registry-v2-smart-contract-revisions
       summary: List revisions
       description: Returns a list of revisions for a specific SmartContractInfo.
       tags:
@@ -643,30 +643,30 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions?page[after]=1&page[size]=10
+                    self: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions?page[after]=1&page[size]=10
                     items:
                       - revisionHash: "0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed"
-                        href: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed
+                        href: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions?page[after]=1&page[size]=10
-                      prev: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions?page[after]=1&page[size]=10
-                      next: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions?page[after]=1&page[size]=10
-                      last: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v1/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions?page[after]=1&page[size]=10
+                      first: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions?page[after]=1&page[size]=10
+                      last: https://api.test.intebsi.xyz/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions?page[after]=1&page[size]=10
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v1/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions?page[after]=1&page[size]=10
+                    self: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions?page[after]=1&page[size]=10
                     items:
                       - revisionHash: "0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed"
-                        href: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v1/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed
+                        href: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v1/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v1/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions?page[after]=1&page[size]=10
-                      next: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v1/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions?page[after]=1&page[size]=10
-                      last: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v1/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions?page[after]=1&page[size]=10
+                      first: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions?page[after]=1&page[size]=10
         "400":
           description: Bad Request
           content:
@@ -702,9 +702,9 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /trusted-ledgers-smart-contracts-registry/v1/smart-contracts/{smartContractInfoId}/revisions/{revisionHash}:
+  /trusted-ledgers-smart-contracts-registry/v2/smart-contracts/{smartContractInfoId}/revisions/{revisionHash}:
     get:
-      operationId: get-trusted-ledgers-smart-contracts-registry-v1-smart-contract-revision
+      operationId: get-trusted-ledgers-smart-contracts-registry-v2-smart-contract-revision
       summary: Get a revision
       description: Returns the revision corresponding to the given hash.
       tags:
@@ -787,7 +787,7 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /trusted-ledgers-smart-contracts-registry/v1/jsonrpc:
+  /trusted-ledgers-smart-contracts-registry/v2/jsonrpc:
     post:
       operationId: post-trusted-ledgers-smart-contracts-registry-v2-jsonrpc
       summary: JSON-RPC API
