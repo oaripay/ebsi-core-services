@@ -37,6 +37,7 @@ import {
   createAuthenticationResponseJose,
   getKeyByAlg,
 } from "../utils/didAuth";
+import { getServer } from "../utils/getServer";
 
 function prefix0x(value: string): string {
   return value.startsWith("0x") ? value : `0x${value}`;
@@ -44,7 +45,7 @@ function prefix0x(value: string): string {
 
 describe("Authorisation (e2e)", () => {
   let app: INestApplication;
-  let server: HttpServer;
+  let server: HttpServer | string;
   let trustedAppsRegistry: string;
   let authorisationCredentialSchema: string;
   let onboardingApiPrivateKey: string;
@@ -81,10 +82,9 @@ describe("Authorisation (e2e)", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
 
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
-
+    server = getServer(app, configService);
     const testAppName = configService.get<string>("testAppName");
     const testAppPrivateKey = configService.get<string>("testAppPrivateKey");
     const testIssuerDid = configService.get<string>("testIssuerDid");

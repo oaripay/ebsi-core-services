@@ -28,6 +28,7 @@ declare global {
       TEST_CLIENT_PRIVATE_KEY?: string;
       TEST_ISSUER_DID?: string;
       TEST_ISSUER_PRIVATE_KEY?: string;
+      TEST_ENV?: string;
     }
   }
 }
