@@ -1,6 +1,6 @@
+import crypto from "node:crypto";
 import axios from "axios";
 import request from "supertest";
-import crypto from "crypto";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
 import {
@@ -16,7 +16,8 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { createJWT, ES256KSigner } from "did-jwt";
-import { Session as SiopSession } from "@cef-ebsi/siop-auth";
+import * as SiopLib from "@cef-ebsi/siop-auth";
+import type { JWTVerifyResult } from "jose";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcService } from "./jsonrpc.service";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
@@ -41,6 +42,17 @@ import { ApiConfig } from "../../config/configuration";
 import { LedgerService } from "../../shared/services/ledger.service";
 import { ATTRIBUTE_OPERATIONS } from "../policies/policies.interface";
 import { createPolicy } from "../../../tests/utils/data";
+
+jest.mock("@cef-ebsi/siop-auth", () => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const originalModule = jest.requireActual("@cef-ebsi/siop-auth");
+
+  return {
+    __esModule: true,
+    ...originalModule,
+    verifyJwtTar: jest.fn(),
+  };
+});
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -175,9 +187,10 @@ describe("JsonRpc Module", () => {
 
     // Mock reject JWT
     const verifyAccessTokenSpy = jest
-      .spyOn(SiopSession.prototype, "verifyAccessToken")
-      .mockImplementation(async () =>
-        Promise.reject(new Error("error message"))
+      .spyOn(SiopLib, "verifyJwtTar")
+      .mockImplementation(
+        async (): Promise<JWTVerifyResult> =>
+          Promise.reject(new Error("error message"))
       );
 
     const response = await request(server)
@@ -195,19 +208,24 @@ describe("JsonRpc Module", () => {
     expect(
       (response.headers as { "content-type": string })["content-type"]
     ).toStrictEqual(expect.stringContaining("application/problem+json"));
-    expect(verifyAccessTokenSpy).toHaveBeenCalledWith(
-      userAccessToken,
-      configService.get("authorisationApiDid")
-    );
+    expect(verifyAccessTokenSpy).toHaveBeenCalledWith(userAccessToken, {
+      audience: "ebsi-core-services",
+      trustedAppsRegistry: `${configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      )}/apps`,
+    });
   });
 
   it("should throw Bad Request for a bad JSON-RPC call", async () => {
     expect.assertions(2);
 
     // Mock access token verification
-    jest
-      .spyOn(SiopSession.prototype, "verifyAccessToken")
-      .mockImplementation(async () => Promise.resolve(userAccessTokenPayload));
+    jest.spyOn(SiopLib, "verifyJwtTar").mockImplementation(
+      async (): Promise<JWTVerifyResult> =>
+        Promise.resolve({
+          payload: userAccessTokenPayload,
+        } as unknown as JWTVerifyResult)
+    );
 
     const response = await request(server)
       .post("/jsonrpc")
@@ -231,9 +249,12 @@ describe("JsonRpc Module", () => {
     const { opType, policyConditions, policyName, description } = policy1;
 
     // Mock access token verification
-    jest
-      .spyOn(SiopSession.prototype, "verifyAccessToken")
-      .mockImplementation(async () => Promise.resolve(userAccessTokenPayload));
+    jest.spyOn(SiopLib, "verifyJwtTar").mockImplementation(
+      async (): Promise<JWTVerifyResult> =>
+        Promise.resolve({
+          payload: userAccessTokenPayload,
+        } as unknown as JWTVerifyResult)
+    );
 
     const transaction = {
       from: wallet.address,
@@ -293,9 +314,12 @@ describe("JsonRpc Module", () => {
     expect.assertions(2);
 
     // Mock access token verification
-    jest
-      .spyOn(SiopSession.prototype, "verifyAccessToken")
-      .mockImplementation(async () => Promise.resolve(userAccessTokenPayload));
+    jest.spyOn(SiopLib, "verifyJwtTar").mockImplementation(
+      async (): Promise<JWTVerifyResult> =>
+        Promise.resolve({
+          payload: userAccessTokenPayload,
+        } as unknown as JWTVerifyResult)
+    );
 
     const response = await request(server)
       .post("/jsonrpc")
@@ -326,11 +350,12 @@ describe("JsonRpc Module", () => {
     const signer = ethers.Wallet.createRandom();
 
     // Mock access token verification
-    jest
-      .spyOn(SiopSession.prototype, "verifyAccessToken")
-      .mockImplementation(async () =>
-        Promise.resolve(defaultSignerSiopAccessTokenPayload)
-      );
+    jest.spyOn(SiopLib, "verifyJwtTar").mockImplementation(
+      async (): Promise<JWTVerifyResult> =>
+        Promise.resolve({
+          payload: defaultSignerSiopAccessTokenPayload,
+        } as unknown as JWTVerifyResult)
+    );
 
     // The DID is not controlled by the signer
     jest
@@ -416,11 +441,12 @@ describe("JsonRpc Module", () => {
     expect.assertions(4);
 
     // Mock access token verification
-    jest
-      .spyOn(SiopSession.prototype, "verifyAccessToken")
-      .mockImplementation(async () =>
-        Promise.resolve(defaultSignerSiopAccessTokenPayload)
-      );
+    jest.spyOn(SiopLib, "verifyJwtTar").mockImplementation(
+      async (): Promise<JWTVerifyResult> =>
+        Promise.resolve({
+          payload: defaultSignerSiopAccessTokenPayload,
+        } as unknown as JWTVerifyResult)
+    );
 
     let param: JsonRpcParams = null;
 
@@ -528,11 +554,12 @@ describe("JsonRpc Module", () => {
       expect.assertions(4);
 
       // Mock access token verification
-      jest
-        .spyOn(SiopSession.prototype, "verifyAccessToken")
-        .mockImplementation(async () =>
-          Promise.resolve(defaultSignerSiopAccessTokenPayload)
-        );
+      jest.spyOn(SiopLib, "verifyJwtTar").mockImplementation(
+        async (): Promise<JWTVerifyResult> =>
+          Promise.resolve({
+            payload: defaultSignerSiopAccessTokenPayload,
+          } as unknown as JWTVerifyResult)
+      );
 
       let param: JsonRpcParams = null;
 
@@ -697,11 +724,12 @@ describe("JsonRpc Module", () => {
       expect.assertions(2);
 
       // Mock access token verification
-      jest
-        .spyOn(SiopSession.prototype, "verifyAccessToken")
-        .mockImplementation(async () =>
-          Promise.resolve(defaultSignerSiopAccessTokenPayload)
-        );
+      jest.spyOn(SiopLib, "verifyJwtTar").mockImplementation(
+        async (): Promise<JWTVerifyResult> =>
+          Promise.resolve({
+            payload: defaultSignerSiopAccessTokenPayload,
+          } as unknown as JWTVerifyResult)
+      );
 
       const signer = ethers.Wallet.createRandom();
 
@@ -819,11 +847,12 @@ describe("JsonRpc Module", () => {
 
     it(`should throw an Invalid Request error for bad use of ${method}`, async () => {
       // Mock access token verification
-      jest
-        .spyOn(SiopSession.prototype, "verifyAccessToken")
-        .mockImplementation(async () =>
-          Promise.resolve(defaultSignerSiopAccessTokenPayload)
-        );
+      jest.spyOn(SiopLib, "verifyJwtTar").mockImplementation(
+        async (): Promise<JWTVerifyResult> =>
+          Promise.resolve({
+            payload: defaultSignerSiopAccessTokenPayload,
+          } as unknown as JWTVerifyResult)
+      );
 
       const signer = ethers.Wallet.createRandom();
 
@@ -1116,11 +1145,12 @@ describe("JsonRpc Module", () => {
       expect.assertions(6);
 
       // Mock access token verification
-      jest
-        .spyOn(SiopSession.prototype, "verifyAccessToken")
-        .mockImplementation(async () =>
-          Promise.resolve(defaultSignerSiopAccessTokenPayload)
-        );
+      jest.spyOn(SiopLib, "verifyJwtTar").mockImplementation(
+        async (): Promise<JWTVerifyResult> =>
+          Promise.resolve({
+            payload: defaultSignerSiopAccessTokenPayload,
+          } as unknown as JWTVerifyResult)
+      );
 
       const signer = ethers.Wallet.createRandom();
 

@@ -7,12 +7,24 @@ import {
 } from "@nestjs/platform-fastify";
 import { HttpService } from "@nestjs/axios";
 import type { FastifyInstance } from "fastify";
-import { Session as SiopSession } from "@cef-ebsi/siop-auth";
+import type { JWTVerifyResult } from "jose";
 import { of } from "rxjs";
 import { AppModule } from "../app.module";
 import { AllExceptionsFilter } from "../filters/http-exception.filter";
 
 jest.setTimeout(60000);
+
+jest.mock("@cef-ebsi/siop-auth", () => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const originalModule = jest.requireActual("@cef-ebsi/siop-auth");
+
+  return {
+    __esModule: true,
+    ...originalModule,
+    verifyJwtTar: async () =>
+      Promise.resolve({ payload: {} } as JWTVerifyResult),
+  };
+});
 
 describe("Logging interceptor", () => {
   let app: INestApplication;
@@ -110,13 +122,6 @@ describe("Logging interceptor", () => {
 
       const token =
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
-
-      // Mock access token verification
-      jest
-        .spyOn(SiopSession.prototype, "verifyAccessToken")
-        .mockImplementation(async () =>
-          Promise.resolve({ sub: "did:ebsi:any" })
-        );
 
       await request(app.getHttpServer())
         .post("/jsonrpc")

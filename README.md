@@ -30,7 +30,7 @@ Trusted Policies Registry API is an iterface to manage policies residing at Poli
 You can choose to run the project locally with your own Node.js environment, or you can use Docker Compose to run it.
 First, create an `.env.local` file locally. You can duplicate the content of `.env` or only set the variables that you want to change.
 Please note that you need to fill the API_PRIVATE_KEY environment variable with secp256k1 elliptic curve private keys in hexadecimal.
-You must at least set `API_PRIVATE_KEY`, `API_KID`, `CONTRACT_ADDR`, `AUTHORISATION_API_DID` and `EBSI_ENV` to run the API.
+You must at least set `API_NAME`, `API_PRIVATE_KEY`, `CONTRACT_ADDR`, and `EBSI_ENV` to run the API.
 
 After cloning the repository, make sure to update the submodules:
 
@@ -160,7 +160,7 @@ yarn audit
 
 ## Testing
 
-Reminder: you need to set `API_PRIVATE_KEY`, `TEST_USER_DID`, `TEST_USER_PRIVATE_KEY`, `TEST_ADMIN_DID` and `TEST_ADMIN_PRIVATE_KEY` (preferably in `.env.test.local`) before running the e2e tests!
+Reminder: you need to set `API_PRIVATE_KEY`, `TEST_USER_KID`, `TEST_USER_PRIVATE_KEY`, `TEST_ADMIN_KID` and `TEST_ADMIN_PRIVATE_KEY` (preferably in `.env.test.local`) before running the e2e tests!
 
 Run all the tests:
 

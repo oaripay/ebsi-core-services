@@ -103,22 +103,22 @@ describe("Policies (e2e)", () => {
     );
 
     // Generate a valid Client JWT (SIOP) for the tests
-    const didRegistry = `${configService.get<string>(
-      "didRegistryApiUrl"
-    )}/identifiers`;
-
     testUserAccessToken = await requestSiopJwt({
-      didRegistry,
-      clientDid: configService.get<string>("testUserDid"),
+      clientKid: configService.get<string>("testUserKid"),
       clientPrivateKey: configService.get<string>("testUserPrivateKey"),
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+      trustedAppsRegistryApiUrl: configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      ),
     });
 
     testAdminAccessToken = await requestSiopJwt({
-      didRegistry,
-      clientDid: configService.get<string>("testAdminDid"),
+      clientKid: configService.get<string>("testAdminKid"),
       clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+      trustedAppsRegistryApiUrl: configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      ),
     });
   });
 
@@ -152,7 +152,9 @@ describe("Policies (e2e)", () => {
         .send();
 
       expect(response.body).toStrictEqual({
-        detail: "Invalid JWT: invalid_jwt: JWT iss is required",
+        detail: `Invalid JWT: JWT with invalid kid. It should be hosted at ${configService.get<string>(
+          "trustedAppsRegistryApiUrl"
+        )}/apps`,
         status: 401,
         title: "Unauthorized",
         type: "about:blank",
@@ -279,9 +281,9 @@ describe("Policies (e2e)", () => {
       expect(responseSend.body).toStrictEqual({
         error: {
           code: -32600,
-          message: `The DID ${configService.get<string>(
-            "testAdminDid"
-          )} is not controlled by the address ${signer.address}`,
+          message: `The DID ${
+            configService.get<string>("testAdminKid").split("#")[0]
+          } is not controlled by the address ${signer.address}`,
         },
         id: "45",
         jsonrpc: "2.0",
@@ -1297,23 +1299,23 @@ describe("Policies (e2e)", () => {
       expect(response.body).toStrictEqual(
         expect.objectContaining({
           self: expect.stringContaining(
-            "/trusted-policies-registry/v1/policies?page[after]=1&page[size]=10"
+            "/trusted-policies-registry/v2/policies?page[after]=1&page[size]=10"
           ) as string,
           items: expect.arrayContaining([]) as string[],
           total: expect.any(Number) as number,
           pageSize: expect.any(Number) as number,
           links: expect.objectContaining({
             first: expect.stringContaining(
-              "/trusted-policies-registry/v1/policies?page[after]=1&page[size]=10"
+              "/trusted-policies-registry/v2/policies?page[after]=1&page[size]=10"
             ) as string,
             prev: expect.stringContaining(
-              "/trusted-policies-registry/v1/policies?page[after]=1&page[size]=10"
+              "/trusted-policies-registry/v2/policies?page[after]=1&page[size]=10"
             ) as string,
             next: expect.stringContaining(
-              "/trusted-policies-registry/v1/policies?page[after]="
+              "/trusted-policies-registry/v2/policies?page[after]="
             ) as string,
             last: expect.stringContaining(
-              "/trusted-policies-registry/v1/policies?page[after]="
+              "/trusted-policies-registry/v2/policies?page[after]="
             ) as string,
           }) as PaginatedList<PolicyLink>["links"],
         })
