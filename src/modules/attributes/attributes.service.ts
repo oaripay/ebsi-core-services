@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { Injectable, Logger } from "@nestjs/common";
 import {
   BadRequestError,
@@ -7,7 +8,6 @@ import {
 } from "@cef-ebsi/problem-details-errors";
 import { ConfigService } from "@nestjs/config";
 import axios, { AxiosError, AxiosResponse } from "axios";
-import { randomUUID } from "crypto";
 import jsonpatch, { Operation } from "fast-json-patch";
 import { decodeJWT } from "did-jwt";
 import { Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
@@ -60,10 +60,13 @@ export class AttributesService {
     this.authorisationApiUrl = this.configService.get<string>(
       "authorisationApiUrl"
     );
-    const privKey = this.configService.get<string>("apiPrivateKey");
-    this.agent = new Agent(privKey, {
-      issuer: this.configService.get<string>("apiName"),
-      kid: this.configService.get<string>("apiKid"),
+
+    this.agent = new Agent({
+      privateKey: this.configService.get<string>("apiPrivateKey"),
+      name: this.configService.get<string>("apiName"),
+      trustedAppsRegistry: `${this.configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      )}/apps`,
     });
   }
 
@@ -79,7 +82,7 @@ export class AttributesService {
   private async getAccessToken() {
     const nonce = randomUUID();
 
-    const requestComponent = await this.agent.createRequestPayload(
+    const requestComponent = await this.agent.createRequest(
       this.configService.get<string>("storageApiName"),
       { nonce }
     );
@@ -91,10 +94,9 @@ export class AttributesService {
         AxiosResponse<AkeResponse>
       >(`${this.authorisationApiUrl}/oauth2-sessions`, requestComponent);
 
-      const accessToken = await this.agent.verifyAuthenticationResponse(
-        res.data,
-        nonce
-      );
+      const accessToken = await this.agent.verifyAkeResponse(res.data, {
+        nonce,
+      });
 
       const { payload } = decodeJWT(accessToken);
       this.accessTokenExp = payload.exp;

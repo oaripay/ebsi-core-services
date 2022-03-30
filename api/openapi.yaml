@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Proxy Data Hub API
-  version: 2.0.0
+  version: 3.0.0
   description: |
     Proxy Data API is a Core Service of the EBSI platform providing the
     capability of securely storing data controlled by the owner.
@@ -20,7 +20,7 @@ servers:
   - url: "https://api.ebsi.xyz"
     description: EBSI Testing Environment
 paths:
-  "/proxy-data-hub/v2/attributes":
+  "/proxy-data-hub/v3/attributes":
     get:
       summary: List attributes
       description: Retrieves attributes from the Proxy Data Hub.
@@ -48,7 +48,7 @@ paths:
                 Get Attributes:
                   value:
                     items:
-                      - storageUri: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
+                      - storageUri: "https://api.test.intebsi.xyz/storage/v3/stores/distributed"
                         hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
                         did: "did:ebsi:zub5ZZUfHLLptCduwEy8xRj"
                         visibility: private
@@ -56,7 +56,7 @@ paths:
                         contentType: application/ld+json
                         data: "<bytes for base64url>"
                         dataLabel: document
-                      - storageUri: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
+                      - storageUri: "https://api.test.intebsi.xyz/storage/v3/stores/distributed"
                         hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
                         did: "did:ebsi:zub5ZZUfHLLptCduwEy8xRj"
                         visibility: private
@@ -67,10 +67,10 @@ paths:
                     total: 13
                     pageSize: 2
                     links:
-                      first: "/proxy-data-hub/v2/attributes?page[after]=0&page[size]=2"
-                      prev: "/proxy-data-hub/v2/attributes?page[after]=2&page[size]=2"
-                      next: "/proxy-data-hub/v2/attributes?page[after]=4&page[size]=2"
-                      last: "/proxy-data-hub/v2/attributes?page[after]=13&page[size]=2"
+                      first: "/proxy-data-hub/v3/attributes?page[after]=0&page[size]=2"
+                      prev: "/proxy-data-hub/v3/attributes?page[after]=2&page[size]=2"
+                      next: "/proxy-data-hub/v3/attributes?page[after]=4&page[size]=2"
+                      last: "/proxy-data-hub/v3/attributes?page[after]=13&page[size]=2"
         "400":
           description: Bad Request
           content:
@@ -112,7 +112,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
       security:
         - bearerAuth: []
-      operationId: get-proxy-data-hub-v2-attributes-did
+      operationId: get-proxy-data-hub-v3-attributes-did
       parameters:
         - in: query
           name: "page[after]"
@@ -138,7 +138,7 @@ paths:
             examples:
               New Attribute:
                 value:
-                  storageUri: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
+                  storageUri: "https://api.test.intebsi.xyz/storage/v3/stores/distributed"
                   visibility: private
                   sharedWith: ""
                   did: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
@@ -157,7 +157,7 @@ paths:
               examples:
                 Created:
                   value:
-                    storageUri: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
+                    storageUri: "https://api.test.intebsi.xyz/storage/v3/stores/distributed"
                     hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
                     did: "did:ebsi:zub5ZZUfHLLptCduwEy8xRj"
                     visibility: private
@@ -206,8 +206,8 @@ paths:
                   $ref: "#/components/examples/InternalError"
       security:
         - bearerAuth: []
-      operationId: post-proxy-data-hub-v2-attributes-hash
-  "/proxy-data-hub/v2/attributes/{hash}":
+      operationId: post-proxy-data-hub-v3-attributes-hash
+  "/proxy-data-hub/v3/attributes/{hash}":
     parameters:
       - name: hash
         in: path
@@ -219,7 +219,7 @@ paths:
     get:
       summary: Get an attribute
       description: Gets an attribute identified by its hash.
-      operationId: get-proxy-data-hub-v2-private-attributes-hash
+      operationId: get-proxy-data-hub-v3-private-attributes-hash
       responses:
         "200":
           description: Success
@@ -230,7 +230,7 @@ paths:
               examples:
                 Success:
                   value:
-                    storageUri: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
+                    storageUri: "https://api.test.intebsi.xyz/storage/v3/stores/distributed"
                     hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
                     did: "did:ebsi:zub5ZZUfHLLptCduwEy8xRj"
                     visibility: private
@@ -294,7 +294,7 @@ paths:
     patch:
       summary: Patch an attribute
       description: Patches an attribute identified by its hash.
-      operationId: patch-proxy-data-hub-v2-private-attributes-hash
+      operationId: patch-proxy-data-hub-v3-private-attributes-hash
       requestBody:
         required: true
         content:
@@ -318,7 +318,7 @@ paths:
               examples:
                 Success:
                   value:
-                    storageUri: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
+                    storageUri: "https://api.test.intebsi.xyz/storage/v3/stores/distributed"
                     hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
                     did: "did:ebsi:zub5ZZUfHLLptCduwEy8xRj"
                     visibility: private
@@ -382,7 +382,7 @@ paths:
     delete:
       summary: Delete an attribute
       description: Deletes an attribute identified by its hash.
-      operationId: delete-proxy-data-hub-v2-attributes-hash
+      operationId: delete-proxy-data-hub-v3-attributes-hash
       responses:
         "204":
           description: Attribute deleted
@@ -446,7 +446,7 @@ components:
       description: Attribute
       example:
         Attribute example:
-          storageUri: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
+          storageUri: "https://api.test.intebsi.xyz/storage/v3/stores/distributed"
           hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
           did: "did:ebsi:zub5ZZUfHLLptCduwEy8xRj"
           visibility: private
@@ -459,7 +459,7 @@ components:
         storageUri:
           type: string
           description: URI of the Proxy Data Hub Storage to access
-          example: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
+          example: "https://api.test.intebsi.xyz/storage/v3/stores/distributed"
         did:
           type: string
           description: User Decentralized Identifier
@@ -489,7 +489,7 @@ components:
       title: Attribute Request
       description: Identity Attribute request for creation
       example:
-        storageUri: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
+        storageUri: "https://api.test.intebsi.xyz/storage/v3/stores/distributed"
         did: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
         visibility: private
         sharedWith: ""
@@ -501,7 +501,7 @@ components:
         storageUri:
           type: string
           description: URI of the Proxy Data Hub Storage to access
-          example: "https://api.test.intebsi.xyz/storage/v2/stores/distributed"
+          example: "https://api.test.intebsi.xyz/storage/v3/stores/distributed"
         did:
           type: string
           description: User Decentralized Identifier
@@ -644,10 +644,10 @@ components:
           description: URI of the first page
       x-examples:
         links example:
-          first: "/proxy-data-hub/v2/attributes?page[after]=0&page[size]=2"
-          prev: "/proxy-data-hub/v2/attributes?page[after]=2&page[size]=2"
-          next: "/proxy-data-hub/v2/attributes?page[after]=4&page[size]=2"
-          last: "/proxy-data-hub/v2/attributes?page[after]=13&page[size]=2"
+          first: "/proxy-data-hub/v3/attributes?page[after]=0&page[size]=2"
+          prev: "/proxy-data-hub/v3/attributes?page[after]=2&page[size]=2"
+          next: "/proxy-data-hub/v3/attributes?page[after]=4&page[size]=2"
+          last: "/proxy-data-hub/v3/attributes?page[after]=13&page[size]=2"
   examples:
     Forbidden:
       value:

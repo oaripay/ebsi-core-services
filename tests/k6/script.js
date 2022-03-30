@@ -14,8 +14,8 @@ export const options = {
 };
 
 export default function loadTesting() {
-  group("/proxy-data-hub/v2/health", () => {
-    const url = `${BASE_URL}/proxy-data-hub/v2/health`;
+  group("/proxy-data-hub/v3/health", () => {
+    const url = `${BASE_URL}/proxy-data-hub/v3/health`;
     const request = http.get(url);
     check(request, {
       Success: (r) => r.status === 200,

@@ -51,7 +51,7 @@ And then you can serve the production build with:
 yarn start:prod
 ```
 
-You can now open http://localhost:3000/proxy-data-hub/v2/health. If everything's working correctly, then you should see `"status":"ok"`.
+You can now open http://localhost:3000/proxy-data-hub/v3/health. If everything's working correctly, then you should see `"status":"ok"`.
 
 ### Run with Docker
 

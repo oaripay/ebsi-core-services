@@ -1,6 +1,6 @@
 version: "3.7"
 
 services:
-  proxy-data-hub-api:
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/proxy-data-hub-api:test_ebsiint-3903-fix-follow-redirects_v2.0.0
+  proxy-data-hub-api-v3:
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/proxy-data-hub-api-v3:test_ebsiint-3998-auth_v3.0.0
     build: ../..

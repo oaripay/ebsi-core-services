@@ -1,7 +1,7 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import { ValidationPipe, HttpServer } from "@nestjs/common";
+import { ValidationPipe, HttpServer, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
@@ -9,13 +9,12 @@ import {
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
 import { base64url } from "multiformats/bases/base64";
-import { Logger } from "@nestjs/common/services/logger.service";
 import { AppModule } from "../../src/app.module";
 import { ApiConfig, loadConfig } from "../../src/config/configuration";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { AttributeResponseObject } from "../../src/modules/attributes/attributes.interface";
 import { PaginatedList } from "../../src/shared/interfaces";
-import { siopAuthentication } from "../utils/auth";
+import { requestSiopJwt } from "../utils/auth";
 
 jest.setTimeout(120000);
 
@@ -24,14 +23,16 @@ describe("Attributes", () => {
   let server: HttpServer;
 
   let testUser1: {
-    did: string;
+    kid: string;
     privateKey: string;
+    did?: string;
     token?: string;
   };
 
   let testUser2: {
-    did: string;
+    kid: string;
     privateKey: string;
+    did?: string;
     token?: string;
   };
 
@@ -111,16 +112,38 @@ describe("Attributes", () => {
     const configService =
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
 
+    const authorisationApiUrl = configService.get<string>(
+      "authorisationApiUrl"
+    );
+    const trustedAppsRegistryApiUrl = configService.get<string>(
+      "trustedAppsRegistryApiUrl"
+    );
+
     testUser1 = configService.get<{
-      did: string;
+      kid: string;
       privateKey: string;
     }>("testUser1");
     testUser2 = configService.get<{
-      did: string;
+      kid: string;
       privateKey: string;
     }>("testUser2");
-    testUser1.token = await siopAuthentication(testUser1);
-    testUser2.token = await siopAuthentication(testUser2);
+
+    [testUser1.did] = testUser1.kid.split("#");
+    [testUser2.did] = testUser2.kid.split("#");
+
+    testUser1.token = await requestSiopJwt({
+      clientKid: testUser1.kid,
+      clientPrivateKey: testUser1.privateKey,
+      authorisationApiUrl,
+      trustedAppsRegistryApiUrl,
+    });
+
+    testUser2.token = await requestSiopJwt({
+      clientKid: testUser2.kid,
+      clientPrivateKey: testUser2.privateKey,
+      authorisationApiUrl,
+      trustedAppsRegistryApiUrl,
+    });
   });
 
   beforeEach(async () => {

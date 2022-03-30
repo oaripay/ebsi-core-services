@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import {
   Controller,
   Response,
@@ -14,7 +15,6 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type { FastifyReply } from "fastify";
-import crypto from "crypto";
 import {
   BadRequestError,
   ForbiddenError,

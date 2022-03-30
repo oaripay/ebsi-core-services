@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
 
 const CIPHER_ALGORITHM = "aes-256-ctr";
 
