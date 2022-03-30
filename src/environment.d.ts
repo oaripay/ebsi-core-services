@@ -24,6 +24,7 @@ declare global {
       TEST_APP_ID?: string;
       TEST_APP_NAME?: string;
       TEST_APP_PRIVATE_KEY?: string;
+      TEST_ENV?: string;
     }
   }
 

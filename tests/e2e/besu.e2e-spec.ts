@@ -22,12 +22,13 @@ import {
   requestOAuth2Jwt,
   requestSiopJwt,
 } from "../utils/authorisation";
+import { getServer } from "../utils/getServer";
 
 jest.setTimeout(60000);
 
 describe("POST /ledger/v3/blockchains/besu", () => {
   let app: INestApplication;
-  let server: HttpServer;
+  let server: HttpServer | string;
   let tokenOAuth2: string;
   let tokenSiop: string;
   let fakeTokenOAuth2: string;
@@ -47,10 +48,10 @@ describe("POST /ledger/v3/blockchains/besu", () => {
 
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
 
     const configService =
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+    server = getServer(app, configService);
 
     const testApp = configService.get<{
       id: string;

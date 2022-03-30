@@ -1,6 +1,12 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import { INestApplication, ValidationPipe, Logger } from "@nestjs/common";
+import {
+  HttpServer,
+  INestApplication,
+  ValidationPipe,
+  Logger,
+} from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -8,11 +14,15 @@ import {
 import type { FastifyInstance } from "fastify";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
+import { ApiConfig } from "../../src/config/configuration";
+import { getServer } from "../utils/getServer";
 
 jest.setTimeout(60000);
 
 describe("/ledger/v3 (generic tests)", () => {
   let app: INestApplication;
+  let server: HttpServer | string;
+  let apiUrlPrefix = "";
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -29,6 +39,15 @@ describe("/ledger/v3 (generic tests)", () => {
 
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+
+    const configService =
+      moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+
+    server = getServer(app, configService);
+
+    if (process.env.TEST_ENV === "remote") {
+      apiUrlPrefix = configService.get<string>("apiUrlPrefix");
+    }
   });
 
   afterAll(async () => {
@@ -38,7 +57,7 @@ describe("/ledger/v3 (generic tests)", () => {
   describe("GET /health", () => {
     it("should return ok", async () => {
       expect.assertions(2);
-      const response = await request(app.getHttpServer()).get(`/health`);
+      const response = await request(server).get(`/health`);
 
       expect(response.body).toStrictEqual({
         details: { "ebsi-apis": { status: "up" } },
@@ -53,12 +72,12 @@ describe("/ledger/v3 (generic tests)", () => {
   describe("GET /bad-method", () => {
     it("should return error 404", async () => {
       expect.assertions(2);
-      const response = await request(app.getHttpServer()).get("/bad-method");
+      const response = await request(server).get("/bad-method");
 
       expect(response.body).toStrictEqual({
         title: "Not Found",
         status: 404,
-        detail: "Cannot GET /bad-method",
+        detail: `Cannot GET ${apiUrlPrefix}/bad-method`,
         type: "about:blank",
       });
       expect(response.status).toBe(404);

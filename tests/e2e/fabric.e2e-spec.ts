@@ -12,6 +12,7 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
+import { ConfigService } from "@nestjs/config";
 import { FabricService } from "../../src/modules/fabric/fabric.service";
 import {
   Block,
@@ -22,12 +23,14 @@ import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { FabricUser } from "../utils/FabricUser";
 import { ProposalResponseBase64 } from "../../src/modules/fabric/fabric.interface";
+import { ApiConfig } from "../../src/config/configuration";
+import { getServer } from "../utils/getServer";
 
 jest.setTimeout(60000);
 
 describe("Fabric e2e tests", () => {
   let app: INestApplication;
-  let server: HttpServer;
+  let server: HttpServer | string;
   let fabricService: FabricService;
 
   beforeAll(async () => {
@@ -45,8 +48,11 @@ describe("Fabric e2e tests", () => {
 
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
 
+    const configService =
+      moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+
+    server = getServer(app, configService);
     fabricService = moduleFixture.get<FabricService>(FabricService);
   });
 
