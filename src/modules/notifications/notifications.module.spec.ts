@@ -8,9 +8,9 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
-import { Session as SiopSession } from "@cef-ebsi/siop-auth";
-import { Agent } from "@cef-ebsi/oauth2-auth";
-import { JWTPayload } from "did-jwt";
+import * as SiopLib from "@cef-ebsi/siop-auth";
+import type { JWTVerifyResult } from "jose";
+import * as OAuth2Lib from "@cef-ebsi/oauth2-auth";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import jsonwebtoken from "jsonwebtoken";
 import { NotificationsModule } from "./notifications.module";
@@ -21,6 +21,28 @@ import {
   createNotification,
   createToken,
 } from "../../../tests/utils/notifications";
+
+jest.mock("@cef-ebsi/siop-auth", () => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const originalModule = jest.requireActual("@cef-ebsi/siop-auth");
+
+  return {
+    __esModule: true,
+    ...originalModule,
+    verifyJwtTar: jest.fn(),
+  };
+});
+
+jest.mock("@cef-ebsi/oauth2-auth", () => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const originalModule = jest.requireActual("@cef-ebsi/oauth2-auth");
+
+  return {
+    __esModule: true,
+    ...originalModule,
+    verifyJwtTar: jest.fn(),
+  };
+});
 
 describe("Notifications module", () => {
   let app: INestApplication;
@@ -118,16 +140,25 @@ describe("Notifications module", () => {
     });
 
     jest
-      .spyOn(SiopSession.prototype, "verifyAccessToken")
-      .mockImplementation((token: string): Promise<JWTPayload> => {
-        if (token === sender.token) return Promise.resolve({ sub: sender.did });
-        if (token === receiver.token)
-          return Promise.resolve({ sub: receiver.did });
+      .spyOn(SiopLib, "verifyJwtTar")
+      .mockImplementation(async (token: string): Promise<JWTVerifyResult> => {
+        if (token === sender.token) {
+          return Promise.resolve({
+            payload: { sub: sender.did },
+          } as unknown as JWTVerifyResult);
+        }
+
+        if (token === receiver.token) {
+          return Promise.resolve({
+            payload: { sub: receiver.did },
+          } as unknown as JWTVerifyResult);
+        }
+
         throw new Error("verifyAccessToken failed");
       });
 
     jest
-      .spyOn(Agent.prototype, "verifyAuthenticationResponse")
+      .spyOn(OAuth2Lib.Agent.prototype, "verifyAkeResponse")
       .mockImplementation(async () => Promise.resolve(accessTokenApi));
   });
 

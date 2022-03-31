@@ -14,8 +14,8 @@ export const options = {
 };
 
 export default function loadTesting() {
-  group("/notifications/v1/health", () => {
-    const url = `${BASE_URL}/notifications/v1/health`;
+  group("/notifications/v2/health", () => {
+    const url = `${BASE_URL}/notifications/v2/health`;
     const request = http.get(url);
     check(request, {
       Success: (r) => r.status === 200,

@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Notifications API
-  version: 1.0.0
+  version: 2.0.0
   description: |
     Notifications API is an EBSI core service that helps to send async or delayed notifications by
     addressing the DID of a natural person or legal entity.
@@ -28,7 +28,7 @@ servers:
   - url: https://api.ebsi.eu
     description: EBSI Production Environment
 paths:
-  /notifications/v1/notifications:
+  /notifications/v2/notifications:
     get:
       summary: List notifications
       description: Lists all the notifications corresponding to the Bearer Token's DID.
@@ -55,7 +55,7 @@ paths:
                                     href:
                                       type: string
                                       description: URI to the specific notification with its id
-                                      example: https://api.ebsi.xyz/notifications/v1/notifications/123
+                                      example: https://api.ebsi.xyz/notifications/v2/notifications/123
                                   required:
                                     - href
                               required:
@@ -65,7 +65,7 @@ paths:
                           example:
                             _links:
                               self:
-                                href: https://api.ebsi.xyz/notifications/v1/notifications/123
+                                href: https://api.ebsi.xyz/notifications/v2/notifications/123
                   self:
                     type: string
                     description: |
@@ -87,10 +87,10 @@ paths:
                         type: string
                         description: URI of the first page
                     example:
-                      first: https://api.ebsi.xyz/notifications/v1/notifications?page[after]=1&page[size]=2
-                      prev: https://api.ebsi.xyz/notifications/v1/notifications?page[after]=2&page[size]=2
-                      next: https://api.ebsi.xyz/notifications/v1/notifications?page[after]=4&page[size]=2
-                      last: https://api.ebsi.xyz/notifications/v1/notifications?page[after]=7&page[size]=2
+                      first: https://api.ebsi.xyz/notifications/v2/notifications?page[after]=1&page[size]=2
+                      prev: https://api.ebsi.xyz/notifications/v2/notifications?page[after]=2&page[size]=2
+                      next: https://api.ebsi.xyz/notifications/v2/notifications?page[after]=4&page[size]=2
+                      last: https://api.ebsi.xyz/notifications/v2/notifications?page[after]=7&page[size]=2
                   pageSize:
                     type: integer
                     description: Maximum number of items per page.
@@ -122,7 +122,7 @@ paths:
                           jws: eyJh..Iw
                         _links:
                           self:
-                            href: /notifications/v1/notifications/123
+                            href: /notifications/v2/notifications/123
                       - schemaId: notification-001
                         type:
                           - Notification
@@ -144,15 +144,15 @@ paths:
                           jws: eyJh..Iw
                         _links:
                           self:
-                            href: https://api.ebsi.xyz/notifications/v1/notifications/124
+                            href: https://api.ebsi.xyz/notifications/v2/notifications/124
                     total: 13
                     pageSize: 2
-                    self: https://api.ebsi.xyz/notifications/v1/notifications?page[after]=3&page[size]=2
+                    self: https://api.ebsi.xyz/notifications/v2/notifications?page[after]=3&page[size]=2
                     links:
-                      first: https://api.ebsi.xyz/notifications/v1/notifications?page[after]=1&page[size]=2
-                      prev: https://api.ebsi.xyz/notifications/v1/notifications?page[after]=2&page[size]=2
-                      next: https://api.ebsi.xyz/notifications/v1/notifications?page[after]=4&page[size]=2
-                      last: https://api.ebsi.xyz/notifications/v1/notifications?page[after]=7&page[size]=2
+                      first: https://api.ebsi.xyz/notifications/v2/notifications?page[after]=1&page[size]=2
+                      prev: https://api.ebsi.xyz/notifications/v2/notifications?page[after]=2&page[size]=2
+                      next: https://api.ebsi.xyz/notifications/v2/notifications?page[after]=4&page[size]=2
+                      last: https://api.ebsi.xyz/notifications/v2/notifications?page[after]=7&page[size]=2
         "400":
           description: Bad Request
           content:
@@ -191,7 +191,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
       security:
         - bearerAuth: []
-      operationId: get-notifications-v1-notifications
+      operationId: get-notifications-v2-notifications
       parameters:
         - $ref: "#/components/parameters/conformanceHeader"
         - in: query
@@ -216,7 +216,7 @@ paths:
       description: Creates a new notification and stores it to the Decentralized Storage.
       parameters:
         - $ref: "#/components/parameters/conformanceHeader"
-      operationId: post-notifications-v1-notifications
+      operationId: post-notifications-v2-notifications
       security:
         - bearerAuth: []
       requestBody:
@@ -444,7 +444,7 @@ paths:
             Location:
               schema:
                 type: string
-                example: https://api.ebsi.xyz/notifications/v1/notifications/123
+                example: https://api.ebsi.xyz/notifications/v2/notifications/123
               description: URI to retrieve a specific notification using its identifier.
           content:
             application/json:
@@ -508,11 +508,11 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /notifications/v1/notifications/{id}:
+  /notifications/v2/notifications/{id}:
     get:
       summary: Get a notification
       description: Gets a specific notification identified by its ID.
-      operationId: get-notifications-v1-notifications-id
+      operationId: get-notifications-v2-notifications-id
       security:
         - bearerAuth: []
       parameters:
@@ -777,7 +777,7 @@ paths:
           required: true
           description: |
             ID of the notification, sha3-256 hash of the serialized notification schema.
-      operationId: delete-notifications-v1-notifications-id
+      operationId: delete-notifications-v2-notifications-id
       security:
         - bearerAuth: []
       responses:

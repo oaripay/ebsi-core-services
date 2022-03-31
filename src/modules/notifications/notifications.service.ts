@@ -62,10 +62,13 @@ export class NotificationsService {
     this.authorisationApiUrl = this.configService.get<string>(
       "authorisationApiUrl"
     );
-    const privKey = this.configService.get<string>("apiPrivateKey");
-    this.agent = new Agent(privKey, {
-      issuer: this.configService.get<string>("apiName"),
-      kid: this.configService.get<string>("apiKid"),
+
+    this.agent = new Agent({
+      privateKey: this.configService.get<string>("apiPrivateKey"),
+      name: this.configService.get<string>("apiName"),
+      trustedAppsRegistry: `${this.configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      )}/apps`,
     });
   }
 
@@ -81,7 +84,7 @@ export class NotificationsService {
   private async getAccessToken() {
     const nonce = randomUUID();
 
-    const requestComponent = await this.agent.createRequestPayload(
+    const requestComponent = await this.agent.createRequest(
       this.configService.get<string>("storageApiName"),
       { nonce }
     );
@@ -93,10 +96,9 @@ export class NotificationsService {
         AxiosResponse<AkeResponse>
       >(`${this.authorisationApiUrl}/oauth2-sessions`, requestComponent);
 
-      const accessToken = await this.agent.verifyAuthenticationResponse(
-        res.data,
-        nonce
-      );
+      const accessToken = await this.agent.verifyAkeResponse(res.data, {
+        nonce,
+      });
 
       const { payload } = decodeJWT(accessToken);
       this.accessTokenExp = payload.exp;

@@ -24,7 +24,7 @@ const notifications: NotificationResponseObject[] = [
     },
     _links: {
       self: {
-        href: "/notifications/v1/notifications/123",
+        href: "/notifications/v2/notifications/123",
       },
     },
   },
@@ -50,7 +50,7 @@ const notifications: NotificationResponseObject[] = [
     },
     _links: {
       self: {
-        href: "https://api.ebsi.xyz/notifications/v1/notifications/124",
+        href: "https://api.ebsi.xyz/notifications/v2/notifications/124",
       },
     },
   },
@@ -76,7 +76,7 @@ const notifications: NotificationResponseObject[] = [
     },
     _links: {
       self: {
-        href: "https://api.ebsi.xyz/notifications/v1/notifications/124",
+        href: "https://api.ebsi.xyz/notifications/v2/notifications/124",
       },
     },
   },

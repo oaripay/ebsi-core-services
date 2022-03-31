@@ -14,7 +14,7 @@ import { EbsiValidationPipe } from "../../src/pipes/ebsi-validation.pipe";
 import { Notification } from "../../src/modules/notifications/notifications.interface";
 import { createNotification } from "../utils/notifications";
 import { ApiConfig } from "../../src/config/configuration";
-import { siopAuthentication } from "../utils/auth";
+import { requestSiopJwt } from "../utils/auth";
 import { describeWriteOps } from "../utils/describeWriteOps";
 import { getServer } from "../utils/getServer";
 
@@ -25,14 +25,16 @@ describeWriteOps()("Notifications module (e2e)", () => {
   let server: HttpServer | string;
 
   let testUser1: {
-    did: string;
+    kid: string;
     privateKey: string;
+    did?: string;
     token?: string;
   };
 
   let testUser2: {
-    did: string;
+    kid: string;
     privateKey: string;
+    did?: string;
     token?: string;
   };
 
@@ -102,19 +104,40 @@ describeWriteOps()("Notifications module (e2e)", () => {
 
     const configService =
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+    const authorisationApiUrl = configService.get<string>(
+      "authorisationApiUrl"
+    );
+    const trustedAppsRegistryApiUrl = configService.get<string>(
+      "trustedAppsRegistryApiUrl"
+    );
 
     server = getServer(app, configService);
 
     testUser1 = configService.get<{
-      did: string;
+      kid: string;
       privateKey: string;
     }>("testUser1");
     testUser2 = configService.get<{
-      did: string;
+      kid: string;
       privateKey: string;
     }>("testUser2");
-    testUser1.token = await siopAuthentication(testUser1);
-    testUser2.token = await siopAuthentication(testUser2);
+
+    [testUser1.did] = testUser1.kid.split("#");
+    [testUser2.did] = testUser2.kid.split("#");
+
+    testUser1.token = await requestSiopJwt({
+      clientKid: testUser1.kid,
+      clientPrivateKey: testUser1.privateKey,
+      authorisationApiUrl,
+      trustedAppsRegistryApiUrl,
+    });
+
+    testUser2.token = await requestSiopJwt({
+      clientKid: testUser2.kid,
+      clientPrivateKey: testUser2.privateKey,
+      authorisationApiUrl,
+      trustedAppsRegistryApiUrl,
+    });
 
     // delete notifications of testUser1 and testUser2
     await deleteAllNotifications();
