@@ -15,12 +15,14 @@ import { Notification } from "../../src/modules/notifications/notifications.inte
 import { createNotification } from "../utils/notifications";
 import { ApiConfig } from "../../src/config/configuration";
 import { siopAuthentication } from "../utils/auth";
+import { describeWriteOps } from "../utils/describeWriteOps";
+import { getServer } from "../utils/getServer";
 
 jest.setTimeout(90000);
 
-describe("Notifications module (e2e)", () => {
+describeWriteOps()("Notifications module (e2e)", () => {
   let app: NestFastifyApplication;
-  let server: HttpServer;
+  let server: HttpServer | string;
 
   let testUser1: {
     did: string;
@@ -97,10 +99,11 @@ describe("Notifications module (e2e)", () => {
 
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
 
     const configService =
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+
+    server = getServer(app, configService);
 
     testUser1 = configService.get<{
       did: string;
