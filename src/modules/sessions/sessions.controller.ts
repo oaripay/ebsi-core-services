@@ -5,11 +5,11 @@ import { SessionToken } from "../../shared/interfaces";
 import { UserAuthentication } from "../../shared/dto";
 import SessionsService from "./sessions.service";
 
-@Controller("/")
+@Controller("/sessions")
 export class SessionsController {
   constructor(private sessionsService: SessionsService) {}
 
-  @Post("/sessions")
+  @Post("")
   async check(@Body() body: UserAuthentication): Promise<SessionToken> {
     const validatedInfo = await this.sessionsService.validateOnboarding(body);
 

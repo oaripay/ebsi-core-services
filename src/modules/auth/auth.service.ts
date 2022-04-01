@@ -8,13 +8,15 @@ import { ApiConfig } from "../../config/configuration";
 
 @Injectable()
 export default class AuthService {
-  private didResolver: string;
+  private didRegistryApiUrl: string;
 
-  private applicationDid: string;
+  private apiDid: string;
 
-  constructor(private configService: ConfigService<ApiConfig>) {
-    this.didResolver = configService.get<string>("didResolver");
-    this.applicationDid = configService.get<string>("applicationDid");
+  constructor(configService: ConfigService<ApiConfig>) {
+    this.didRegistryApiUrl = configService.get<string>("didRegistryApiUrl");
+    [this.apiDid] = configService
+      .get<string>("apiVerificationMethodKid")
+      .split("#");
   }
 
   async validateToken(token: string): Promise<JWTVerified> {
@@ -28,13 +30,13 @@ export default class AuthService {
       });
     }
 
-    if (!payload.iss || payload.iss !== this.applicationDid) {
+    if (!payload.iss || payload.iss !== this.apiDid) {
       throw new UnauthorizedError(`unexpected issuer found in session token`);
     }
 
     try {
       const resolver = new Resolver(
-        getResolver({ registry: this.didResolver })
+        getResolver({ registry: this.didRegistryApiUrl })
       );
 
       return await verifyJWT(token, { resolver });

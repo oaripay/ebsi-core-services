@@ -4,6 +4,9 @@ declare global {
     interface ProcessEnv {
       NODE_ENV: "development" | "production" | "test";
       EBSI_ENV: "local" | "test" | "conformance" | "pilot" | "prod";
+      API_PRIVATE_KEY: string;
+      API_NAME: string;
+      API_VERIFICATION_METHOD_KID: string;
       API_PORT?: string;
       API_URL_PREFIX?: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
@@ -15,14 +18,10 @@ declare global {
       RECAPTCHA_REGISTERED_HOSTNAME?: string;
       RECAPTCHA_API_KEY: string;
       AUTHORISATION?: string;
-      API_PRIVATE_KEY: string;
       HEALTH_CHECK?: string;
-      DID_RESOLVER?: string;
-      TRUSTED_APPS_REGISTRY?: string;
-      APPLICATION_ID?: string;
-      APPLICATION_DID?: string;
-      APPLICATION_VERIFICATION_METHOD_KID?: string;
-      TEST_USER_DID?: string;
+      DID_REGISTRY_API_URL?: string;
+      TRUSTED_APPS_REGISTRY_API_URL?: string;
+      TEST_USER_KID?: string;
       TEST_USER_PRIVATE_KEY?: string;
       TEST_EU_LOGIN_USERNAME?: string;
       TEST_EU_LOGIN_PASSWORD?: string;

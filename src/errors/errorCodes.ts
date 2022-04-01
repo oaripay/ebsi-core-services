@@ -1,4 +1,4 @@
-enum OnboardingErrors {
+export enum OnboardingErrors {
   UNSUPPORTED_ONBOARDING = "No supported onboarding methods were provided. Available onboarding: eu-login or recaptcha.",
   EUTICKET_NOT_RESOLVED = "Error on retrieving EU Login ticket to validate",
   ERROR_EUTICKET_VALIDATION = "Error on validating the EU Login ticket",
@@ -9,9 +9,9 @@ enum OnboardingErrors {
   ERROR_RECAPTCHA_VALIDATION = "provided recaptcha response validation failed",
   ERROR_DECODING_ID_TOKEN = "id_token could not be decoded",
 }
-enum AuthenticationErrors {
+
+export enum AuthenticationErrors {
   INVALID_SCOPE = "Invalid scope",
   ID_TOKEN_MISSING = "ID Token is missing",
   ERROR_AUTHENTICATION_REQUEST = "Error generating the authentication request",
 }
-export { OnboardingErrors, AuthenticationErrors };

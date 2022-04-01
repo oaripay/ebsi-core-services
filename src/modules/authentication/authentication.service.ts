@@ -9,7 +9,9 @@ import { ConfigService } from "@nestjs/config";
 import {
   createVerifiableCredentialJwt,
   EbsiIssuer,
+  EbsiVerifiableAttestation,
 } from "@cef-ebsi/verifiable-credential";
+import { RP, encode } from "@cef-ebsi/siop-auth";
 import { JWTDecoded } from "did-jwt/lib/JWT";
 import {
   AuhtenticationResponseRequest,
@@ -27,8 +29,7 @@ import {
   AuthenticationErrors,
 } from "../../errors/errorCodes";
 import { ApiConfig } from "../../config/configuration";
-
-import { prefix0x, prepareDidAuthRequest } from "./authentication.utils";
+import { prefix0x } from "./authentication.utils";
 
 const USERS_ONBOARDING_SCOPE = "ebsi users onboarding";
 
@@ -36,7 +37,7 @@ const USERS_ONBOARDING_SCOPE = "ebsi users onboarding";
 export default class AuthenticationService {
   private readonly logger = new Logger(AuthenticationService.name);
 
-  private didResolver: string;
+  private didRegistryApiUrl: string;
 
   private kid: string;
 
@@ -44,50 +45,88 @@ export default class AuthenticationService {
 
   private domain: string;
 
+  private apiName: string;
+
   private apiUrlPrefix: string;
 
-  private applicationDid: string;
+  private apiDid: string;
 
-  private applicationVerificationMethodKid: string;
+  private apiVerificationMethodKid: string;
 
   private authResponsesEndpoint: string;
 
+  private relyingParty: RP;
+
+  private siopSessionsUrl: string;
+
   constructor(private configService: ConfigService<ApiConfig>) {
     this.privateKey = prefix0x(this.configService.get<string>("apiPrivateKey"));
-    this.didResolver = configService.get<string>("didResolver");
+    this.didRegistryApiUrl = configService.get<string>("didRegistryApiUrl");
     this.apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
 
     const trustedAppRegistry = this.configService.get<string>(
-      "trustedAppsRegistry"
+      "trustedAppsRegistryApiUrl"
     );
     this.domain = this.configService.get<string>("domain");
-
-    const applicationId = this.configService.get<string>("applicationId");
-    this.applicationDid = this.configService.get<string>("applicationDid");
-    this.applicationVerificationMethodKid = this.configService.get<string>(
-      "applicationVerificationMethodKid"
+    [this.apiDid] = this.configService
+      .get<string>("apiVerificationMethodKid")
+      .split("#");
+    this.apiName = this.configService.get<string>("apiName");
+    this.apiVerificationMethodKid = this.configService.get<string>(
+      "apiVerificationMethodKid"
     );
-    this.kid = `${trustedAppRegistry}/${applicationId}`;
-
+    this.kid = `${trustedAppRegistry}/${this.apiName}`;
+    this.siopSessionsUrl = `${this.domain}${this.apiUrlPrefix}/authentication-responses`;
     this.authResponsesEndpoint = `${this.domain}${this.apiUrlPrefix}/authentication-responses`;
+  }
+
+  async getRelyingParty(): Promise<RP> {
+    if (this.relyingParty) {
+      return this.relyingParty;
+    }
+
+    this.relyingParty = new RP({
+      privateKey: await importJWK(
+        encode.privateKey.fromHextoJWK(this.privateKey),
+        "ES256K"
+      ),
+      alg: "ES256K",
+      name: this.apiName,
+      kid: this.kid,
+      redirectUri: this.siopSessionsUrl,
+      didRegistry: this.didRegistryApiUrl,
+    });
+
+    return this.relyingParty;
   }
 
   async startAuthentication(
     authenticationRequest: AuthenticationRequest
   ): Promise<AuthenticationResponse> {
-    if (authenticationRequest.scope !== USERS_ONBOARDING_SCOPE)
+    if (authenticationRequest.scope !== USERS_ONBOARDING_SCOPE) {
       throw new InvalidScope(AuthenticationErrors.INVALID_SCOPE);
+    }
 
-    const uri = await prepareDidAuthRequest(
-      `${this.domain}${this.apiUrlPrefix}/authentication-responses`,
-      this.privateKey,
-      this.kid,
-      this.applicationDid
-    );
-    const authenticationResponse: AuthenticationResponse = {
-      session_token: uri,
-    };
-    return authenticationResponse;
+    const rp = await this.getRelyingParty();
+
+    try {
+      const uri = await rp.createRequest({
+        // claims: {
+        //   id_token: { ...claimRequest },
+        // },
+      });
+
+      const authenticationResponse: AuthenticationResponse = {
+        session_token: uri,
+      };
+      return authenticationResponse;
+    } catch (error) {
+      throw new InvalidUserAuthentication(
+        `${AuthenticationErrors.ERROR_AUTHENTICATION_REQUEST}: ${
+          (error as Error).message
+        }`
+      );
+    }
   }
 
   async validateResponse(
@@ -114,7 +153,9 @@ export default class AuthenticationService {
 
     // Check if the DID exists
     const did = kid.split("#")[0];
-    const resolver = new Resolver(getResolver({ registry: this.didResolver }));
+    const resolver = new Resolver(
+      getResolver({ registry: this.didRegistryApiUrl })
+    );
     const result = await resolver.resolve(did);
     const { error: resError } = result.didResolutionMetadata;
 
@@ -176,8 +217,8 @@ export default class AuthenticationService {
       issuanceDate.getTime() + 1000 * 60 * 60 * 24 * 182 // 365/2 = 6 months
     );
     const issuer: EbsiIssuer = {
-      did: this.applicationDid,
-      kid: this.applicationVerificationMethodKid,
+      did: this.apiDid,
+      kid: this.apiVerificationMethodKid,
       signer: ES256KSigner(this.privateKey),
       alg: "ES256K",
     };
@@ -186,24 +227,26 @@ export default class AuthenticationService {
       "test" | "conformance" | "pilot" | "prod"
     >("ebsiEnv");
 
-    const jwt = await createVerifiableCredentialJwt(
-      {
-        "@context": ["https://www.w3.org/2018/credentials/v1"],
-        id: `vc:ebsi:authentication#${randomUUID()}`,
-        type: ["VerifiableCredential", "VerifiableAuthorisation"],
-        issuer: this.applicationDid,
-        issuanceDate: `${issuanceDate.toISOString().slice(0, -5)}Z`,
-        validFrom: `${issuanceDate.toISOString().slice(0, -5)}Z`,
-        expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
-        credentialSubject: { id: subjectDid },
-        credentialSchema: {
-          id: this.configService.get<string>("authorisationCredentialSchema"),
-          type: "FullJsonSchemaValidator2021",
-        },
+    const vc: EbsiVerifiableAttestation = {
+      "@context": ["https://www.w3.org/2018/credentials/v1"],
+      id: `vc:ebsi:authentication#${randomUUID()}`,
+      type: ["VerifiableCredential", "VerifiableAuthorisation"],
+      issuer: this.apiDid,
+      issuanceDate: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+      issued: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+      validFrom: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+      expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
+      credentialSubject: { id: subjectDid },
+      credentialSchema: {
+        id: this.configService.get<string>("authorisationCredentialSchema"),
+        type: "FullJsonSchemaValidator2021",
       },
-      issuer,
-      { ebsiEnv, skipValidation: true }
-    );
+    };
+
+    const jwt = await createVerifiableCredentialJwt(vc, issuer, {
+      ebsiEnv,
+      skipValidation: true,
+    });
 
     return {
       verifiableCredential: jwt,

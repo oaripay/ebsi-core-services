@@ -3,10 +3,11 @@ import Joi from "joi";
 
 // List here all the values that will be returned by the config factory
 export interface ApiConfig {
-  authApiName: string;
+  authorisationApiName: string;
   authorisationApiUrl: string;
   apiPort: number;
   apiName: string;
+  apiVerificationMethodKid: string;
   apiPrivateKey: string;
   apiUrlPrefix: string;
   ebsiEnv: "local" | "test" | "conformance" | "pilot" | "prod";
@@ -14,18 +15,15 @@ export interface ApiConfig {
   localOrigin: string;
   logLevel: string;
   externalEbsiApiHealthCheck: string;
-  trustedAppsRegistry: string;
-  didResolver: string;
-  applicationId: string;
-  applicationDid: string;
-  applicationVerificationMethodKid: string;
+  trustedAppsRegistryApiUrl: string;
+  didRegistryApiUrl: string;
   authorisationCredentialSchema: string;
   euloginService: string;
   euloginServiceParam: string;
   recaptchaService: string;
   recaptchaRegisteredHostname: string;
   recaptchaApiKey: string;
-  testUserDid: string;
+  testUserKid: string;
   testUserPrivateKey: string;
   testEuLoginUsername: string;
   testEuLoginPassword: string;
@@ -38,9 +36,10 @@ const defaultConfig = {
     DOMAIN: "https://api.test.intebsi.xyz",
     HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
     AUTHORISATION: "https://api.test.intebsi.xyz/authorisation/v2",
-    TRUSTED_APPS_REGISTRY:
-      "https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps",
-    DID_RESOLVER: "https://api.test.intebsi.xyz/did-registry/v2/identifiers",
+    TRUSTED_APPS_REGISTRY_API_URL:
+      "https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps",
+    DID_REGISTRY_API_URL:
+      "https://api.test.intebsi.xyz/did-registry/v2/identifiers",
     EU_LOGIN_VALIDATE_SERVICE_URL:
       "https://ecas.acceptance.ec.europa.eu/cas/TicketValidationService",
     EULOGIN_SERVICE_PARAM:
@@ -52,9 +51,10 @@ const defaultConfig = {
     DOMAIN: "https://api.test.intebsi.xyz",
     HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
     AUTHORISATION: "https://api.test.intebsi.xyz/authorisation/v2",
-    TRUSTED_APPS_REGISTRY:
-      "https://api.test.intebsi.xyz/trusted-apps-registry/v2/apps",
-    DID_RESOLVER: "https://api.test.intebsi.xyz/did-registry/v2/identifiers",
+    TRUSTED_APPS_REGISTRY_API_URL:
+      "https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps",
+    DID_REGISTRY_API_URL:
+      "https://api.test.intebsi.xyz/did-registry/v2/identifiers",
     EU_LOGIN_VALIDATE_SERVICE_URL:
       "https://ecas.ec.europa.eu/cas/TicketValidationService",
     EULOGIN_SERVICE_PARAM:
@@ -66,9 +66,9 @@ const defaultConfig = {
     DOMAIN: "https://api.conformance.intebsi.xyz",
     HEALTH_CHECK: "https://api.conformance.intebsi.xyz/docs/",
     AUTHORISATION: "https://api.conformance.intebsi.xyz/authorisation/v2",
-    TRUSTED_APPS_REGISTRY:
-      "https://api.conformance.intebsi.xyz/trusted-apps-registry/v2/apps",
-    DID_RESOLVER:
+    TRUSTED_APPS_REGISTRY_API_URL:
+      "https://api.conformance.intebsi.xyz/trusted-apps-registry/v3/apps",
+    DID_REGISTRY_API_URL:
       "https://api.conformance.intebsi.xyz/did-registry/v2/identifiers",
     EU_LOGIN_VALIDATE_SERVICE_URL:
       "https://ecas.ec.europa.eu/cas/TicketValidationService",
@@ -81,9 +81,10 @@ const defaultConfig = {
     DOMAIN: "https://api.preprod.ebsi.eu",
     HEALTH_CHECK: "https://api.preprod.ebsi.eu/docs/",
     AUTHORISATION: "https://api.preprod.ebsi.eu/authorisation/v2",
-    TRUSTED_APPS_REGISTRY:
-      "https://api.preprod.ebsi.eu/trusted-apps-registry/v2/apps",
-    DID_RESOLVER: "https://api.preprod.ebsi.eu/did-registry/v2/identifiers",
+    TRUSTED_APPS_REGISTRY_API_URL:
+      "https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps",
+    DID_REGISTRY_API_URL:
+      "https://api.preprod.ebsi.eu/did-registry/v2/identifiers",
     EU_LOGIN_VALIDATE_SERVICE_URL:
       "https://ecas.ec.europa.eu/cas/TicketValidationService",
     EULOGIN_SERVICE_PARAM:
@@ -95,8 +96,9 @@ const defaultConfig = {
     DOMAIN: "https://api.ebsi.eu",
     HEALTH_CHECK: "https://api.ebsi.eu/docs/",
     AUTHORISATION: "https://api.ebsi.eu/authorisation/v2",
-    TRUSTED_APPS_REGISTRY: "https://api.ebsi.eu/trusted-apps-registry/v2/apps",
-    DID_RESOLVER: "https://api.ebsi.eu/did-registry/v2/identifiers",
+    TRUSTED_APPS_REGISTRY_API_URL:
+      "https://api.ebsi.eu/trusted-apps-registry/v3/apps",
+    DID_REGISTRY_API_URL: "https://api.ebsi.eu/did-registry/v2/identifiers",
     EU_LOGIN_VALIDATE_SERVICE_URL:
       "https://ecas.ec.europa.eu/cas/TicketValidationService",
     EULOGIN_SERVICE_PARAM:
@@ -114,8 +116,8 @@ export const loadConfig = (): ApiConfig => {
 
   return {
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
-    apiName: "users-onboarding-api",
-    authApiName: "authorisation-api",
+    apiName: process.env.API_NAME,
+    authorisationApiName: "authorisation-api",
     authorisationApiUrl:
       process.env.AUTHORISATION || defaultConfig[EBSI_ENV].AUTHORISATION,
     apiPrivateKey: process.env.API_PRIVATE_KEY,
@@ -126,15 +128,13 @@ export const loadConfig = (): ApiConfig => {
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     externalEbsiApiHealthCheck:
       process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
-    didResolver:
-      process.env.DID_RESOLVER || defaultConfig[EBSI_ENV].DID_RESOLVER,
-    trustedAppsRegistry:
-      process.env.TRUSTED_APPS_REGISTRY ||
-      defaultConfig[EBSI_ENV].TRUSTED_APPS_REGISTRY,
-    applicationId: process.env.APPLICATION_ID,
-    applicationDid: process.env.APPLICATION_DID,
-    applicationVerificationMethodKid:
-      process.env.APPLICATION_VERIFICATION_METHOD_KID,
+    didRegistryApiUrl:
+      process.env.DID_REGISTRY_API_URL ||
+      defaultConfig[EBSI_ENV].DID_REGISTRY_API_URL,
+    trustedAppsRegistryApiUrl:
+      process.env.TRUSTED_APPS_REGISTRY_API_URL ||
+      defaultConfig[EBSI_ENV].TRUSTED_APPS_REGISTRY_API_URL,
+    apiVerificationMethodKid: process.env.API_VERIFICATION_METHOD_KID,
     authorisationCredentialSchema: process.env.AUTHORISATION_CREDENTIAL_SCHEMA,
     euloginService:
       process.env.EU_LOGIN_VALIDATE_SERVICE_URL ||
@@ -147,7 +147,7 @@ export const loadConfig = (): ApiConfig => {
       process.env.RECAPTCHA_REGISTERED_HOSTNAME ||
       defaultConfig[EBSI_ENV].RECAPTCHA_REGISTERED_HOSTNAME,
     recaptchaApiKey: process.env.RECAPTCHA_API_KEY,
-    testUserDid: process.env.TEST_USER_DID || "",
+    testUserKid: process.env.TEST_USER_KID || "",
     testUserPrivateKey: process.env.TEST_USER_PRIVATE_KEY || "",
     testEuLoginUsername: process.env.TEST_EU_LOGIN_USERNAME,
     testEuLoginPassword: process.env.TEST_EU_LOGIN_PASSWORD,
@@ -171,6 +171,8 @@ export const ApiConfigModule = ConfigModule.forRoot({
     NODE_ENV: Joi.string()
       .valid("development", "production", "test")
       .default("development"),
+    API_PRIVATE_KEY: Joi.string().required(),
+    API_NAME: Joi.string().required(),
     API_PORT: Joi.string().default("3000"),
     API_URL_PREFIX: Joi.string(),
     LOG_LEVEL: Joi.string().valid(
@@ -188,12 +190,9 @@ export const ApiConfigModule = ConfigModule.forRoot({
     RECAPTCHA_REGISTERED_HOSTNAME: Joi.string(),
     RECAPTCHA_API_KEY: Joi.string().required(),
     HEALTH_CHECK: Joi.string(),
-    API_PRIVATE_KEY: Joi.string().required(),
-    APPLICATION_ID: Joi.string().required(),
-    APPLICATION_DID: Joi.string().required(),
-    APPLICATION_VERIFICATION_METHOD_KID: Joi.string().required(),
+    API_VERIFICATION_METHOD_KID: Joi.string().required(),
     AUTHORISATION_CREDENTIAL_SCHEMA: Joi.string().required(),
-    TEST_USER_DID: Joi.string(),
+    TEST_USER_KID: Joi.string(),
     TEST_USER_PRIVATE_KEY: Joi.string(),
     TEST_EU_LOGIN_USERNAME: Joi.string(),
     TEST_EU_LOGIN_PASSWORD: Joi.string(),

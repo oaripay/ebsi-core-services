@@ -1,6 +1,6 @@
 import { URLSearchParams } from "node:url";
 import { Test, TestingModule } from "@nestjs/testing";
-import { ValidationPipe, HttpServer } from "@nestjs/common";
+import { ValidationPipe, HttpServer, Logger } from "@nestjs/common";
 import request from "supertest";
 import {
   FastifyAdapter,
@@ -8,8 +8,8 @@ import {
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
-import { Logger } from "@nestjs/common/services/logger.service";
-import { Agent, DidAuthResponseCall } from "@cef-ebsi/siop-auth";
+import { Agent, encode } from "@cef-ebsi/siop-auth";
+import { importJWK } from "jose";
 import { createFakeToken } from "../auxTests";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
@@ -85,30 +85,34 @@ describe("/onboarding/v2 authentication e2e tests", () => {
     // 1 - User create the request
     const authenticationRequest = authenticationRequestResponse.body;
 
-    const params = new URLSearchParams(authenticationRequest.session_token);
+    const urlParams = new URLSearchParams(authenticationRequest.session_token);
+    const params = Object.fromEntries(urlParams);
+    Object.keys(params).forEach((k) => {
+      params[k] = decodeURIComponent(params[k]);
+    });
 
     // 2-User creates the DID-Auth Response
-    const testUserDid = configService.get<string>("testUserDid");
+    const testUserKid = configService.get<string>("testUserKid");
     const testUserPrivateKey = prefix0x(
       configService.get<string>("testUserPrivateKey")
     );
-    const didRegistry =
-      "https://api.test.intebsi.xyz/did-registry/v2/identifiers";
 
+    const alg = "ES256K";
     const agent = new Agent({
-      privateKey: testUserPrivateKey,
-      didRegistry,
+      privateKey: await importJWK(
+        encode.privateKey.fromHextoJWK(testUserPrivateKey),
+        alg
+      ),
+      kid: testUserKid,
+      alg,
+      siopV2: true,
     });
 
-    const didAuthResponseCall: DidAuthResponseCall = {
-      did: testUserDid, // User DID
-      nonce: params.get("nonce"), // same nonce received as a Request Payload after verifying it
-      redirectUri: params.get("client_id"), // parsed URI from the DID Auth Request payload
-    };
-
-    const didAuthResponseJwt = await agent.createAuthenticationResponse(
-      didAuthResponseCall
-    );
+    const didAuthResponseJwt = await agent.createResponse({
+      nonce: params.nonce,
+      redirectUri: params.client_id,
+      responseMode: "form_post",
+    });
 
     expect(didAuthResponseJwt.urlEncoded).toBeDefined();
 
@@ -127,7 +131,13 @@ describe("/onboarding/v2 authentication e2e tests", () => {
     });
 
     // Send the request with a fakeToken
-    const fakeToken = await createFakeToken();
+    const fakeToken = await createFakeToken({
+      apiName: configService.get<string>("apiName"),
+      authorisationApiName: configService.get<string>("authorisationApiName"),
+      trustedAppsRegistryApiUrl: configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      ),
+    });
     const authenticationServerResponseWrongToken: SupertestAuthenticationResponse =
       await request(server)
         .post("/authentication-responses")

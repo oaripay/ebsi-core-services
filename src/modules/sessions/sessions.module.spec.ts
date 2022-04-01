@@ -23,6 +23,7 @@ describe("Sessions Module", () => {
   let app: INestApplication;
   let server: HttpServer;
   let configService: ConfigService<ApiConfig>;
+  let apiDid: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -33,6 +34,7 @@ describe("Sessions Module", () => {
       new FastifyAdapter()
     );
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+    [apiDid] = configService.get<string>("apiVerificationMethodKid").split("#");
 
     // Turn off logger
     Logger.overrideLogger(false);
@@ -101,7 +103,7 @@ describe("Sessions Module", () => {
       expect(decodeJWT(responseBody.Bearer).payload).toStrictEqual(
         expect.objectContaining({
           iat: expect.any(Number) as number,
-          iss: configService.get<string>("applicationDid"),
+          iss: apiDid,
           onboarding: body.onboarding,
           validatedInfo,
         })
@@ -132,7 +134,7 @@ describe("Sessions Module", () => {
       expect(decodeJWT(responseBody.Bearer).payload).toStrictEqual(
         expect.objectContaining({
           iat: expect.any(Number) as number,
-          iss: configService.get<string>("applicationDid"),
+          iss: apiDid,
           onboarding: body.onboarding,
           validatedInfo,
         })

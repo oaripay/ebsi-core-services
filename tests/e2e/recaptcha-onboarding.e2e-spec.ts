@@ -1,6 +1,6 @@
 import { URLSearchParams } from "node:url";
 import { Test, TestingModule } from "@nestjs/testing";
-import { ValidationPipe, HttpServer } from "@nestjs/common";
+import { ValidationPipe, HttpServer, Logger } from "@nestjs/common";
 import request from "supertest";
 import {
   FastifyAdapter,
@@ -8,10 +8,10 @@ import {
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
-import { Logger } from "@nestjs/common/services/logger.service";
-import { Agent, DidAuthResponseCall } from "@cef-ebsi/siop-auth";
+import { Agent, encode, verifyJwtTar } from "@cef-ebsi/siop-auth";
 import { verifyCredentialJwt } from "@cef-ebsi/verifiable-credential";
 import isCI from "is-ci";
+import { importJWK } from "jose";
 import { UserAuthentication } from "../../src/shared/dto";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
@@ -80,44 +80,45 @@ describeSkipCI("reCAPTCHA onboarding", () => {
     expect(authenticationRequest.session_token).toBeDefined();
 
     // 2 - User verifies it
-    const didRegistry =
-      "https://api.test.intebsi.xyz/did-registry/v2/identifiers";
-
+    const testUserKid = configService.get<string>("testUserKid");
     const testUserPrivateKey = prefix0x(
       configService.get<string>("testUserPrivateKey")
     );
-
+    const alg = "ES256K";
     const agent = new Agent({
-      privateKey: testUserPrivateKey,
-      didRegistry,
+      privateKey: await importJWK(
+        encode.privateKey.fromHextoJWK(testUserPrivateKey),
+        alg
+      ),
+      kid: testUserKid,
+      alg,
+      siopV2: true,
     });
 
-    const params = new URLSearchParams(authenticationRequest.session_token);
-    const didAuthRequestJwt = params.get("request");
+    const urlParams = new URLSearchParams(authenticationRequest.session_token);
+    const params = Object.fromEntries(urlParams);
+    Object.keys(params).forEach((k) => {
+      params[k] = decodeURIComponent(params[k]);
+    });
+    const didAuthRequestJwt = params.request;
 
-    const requestPayload = await agent.verifyAuthenticationRequest(
-      didAuthRequestJwt
-    );
+    const { payload: requestPayload } = await verifyJwtTar(didAuthRequestJwt, {
+      trustedAppsRegistry: configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      ),
+    });
 
-    const appDid = configService.get<string>("applicationDid");
-
-    expect(requestPayload.iss).toBe(appDid);
+    expect(requestPayload.iss).toBe(configService.get<string>("apiName"));
     expect(requestPayload.client_id).toBe(
       "https://api.test.intebsi.xyz/users-onboarding/v2/authentication-responses"
     );
 
     // 3 - Create a DID-Auth response
-    const testUserDid = configService.get<string>("testUserDid");
-
-    const didAuthResponseCall: DidAuthResponseCall = {
-      did: testUserDid, // User DID
-      nonce: params.get("nonce"), // same nonce received as a Request Payload after verifying it
-      redirectUri: params.get("client_id"), // parsed URI from the DID Auth Request payload
-    };
-
-    const didAuthResponseJwt = await agent.createAuthenticationResponse(
-      didAuthResponseCall
-    );
+    const didAuthResponseJwt = await agent.createResponse({
+      nonce: params.nonce,
+      redirectUri: params.client_id,
+      responseMode: "form_post",
+    });
 
     expect(didAuthResponseJwt.urlEncoded).toBeDefined();
 
@@ -135,16 +136,21 @@ describeSkipCI("reCAPTCHA onboarding", () => {
     const token = (response.body as SessionToken).Bearer;
     expect(token).toBeDefined();
 
-    const idToken = didAuthResponseJwt.urlEncoded.substring(
-      didAuthResponseJwt.urlEncoded.indexOf("#") + 1
-    );
+    const { idToken } = didAuthResponseJwt;
 
     // 4 - RP verifies the response and create the verifiable Authorization and creates the verifiable Authorization (requires bearer token)
     const authenticationServerResponse: SupertestAuthenticationResponse =
       await request(server)
         .post("/authentication-responses")
         .auth(token, { type: "bearer" })
-        .send(`${idToken}&state=test`); // check if state is set the api handles it
+        .send(
+          new URLSearchParams({
+            id_token: idToken,
+            // check if state is set the api handles it
+            state: "test",
+          }).toString()
+        );
+
     expect(authenticationServerResponse.status).toBe(201);
     expect(authenticationServerResponse.body).toBeDefined();
     expect(authenticationServerResponse.body).toHaveProperty(

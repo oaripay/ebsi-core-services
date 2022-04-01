@@ -1,9 +1,8 @@
-import { INestApplication } from "@nestjs/common";
+import { INestApplication, Logger } from "@nestjs/common";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { Logger } from "@nestjs/common/services/logger.service";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
@@ -26,6 +25,7 @@ describe("sessions service tests", () => {
   let configService: ConfigService<ApiConfig>;
   let sessionsService: SessionsService;
   let userEU: Buffer;
+  let apiDid: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -43,6 +43,7 @@ describe("sessions service tests", () => {
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
     sessionsService = new SessionsService(configService);
     userEU = fs.readFileSync("tests/data/ecasTicket.xml");
+    [apiDid] = configService.get<string>("apiVerificationMethodKid").split("#");
   });
 
   afterEach(() => {
@@ -306,7 +307,7 @@ describe("sessions service tests", () => {
       expect(decodeJWT(token.Bearer).payload).toStrictEqual(
         expect.objectContaining({
           iat: expect.any(Number) as number,
-          iss: configService.get<string>("applicationDid"),
+          iss: apiDid,
           exp: expect.any(Number) as number,
           onboarding: body.onboarding,
           validatedInfo,
@@ -336,7 +337,7 @@ describe("sessions service tests", () => {
       expect(decodeJWT(token.Bearer).payload).toStrictEqual(
         expect.objectContaining({
           iat: expect.any(Number) as number,
-          iss: configService.get<string>("applicationDid"),
+          iss: apiDid,
           exp: expect.any(Number) as number,
           onboarding: body.onboarding,
           validatedInfo,

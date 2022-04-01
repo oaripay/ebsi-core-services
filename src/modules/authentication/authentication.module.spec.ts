@@ -13,6 +13,7 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
+import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
 import { Resolver } from "did-resolver";
 import didJwt, { JWTVerified, createJWT, ES256KSigner } from "did-jwt";
@@ -25,10 +26,12 @@ import {
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { createFakeToken } from "../../../tests/auxTests";
 import AuthService from "../auth/auth.service";
+import { ApiConfig } from "../../config/configuration";
 
 describe("Authentication Module", () => {
   let app: INestApplication;
   let server: HttpServer;
+  let configService: ConfigService<ApiConfig>;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -47,6 +50,8 @@ describe("Authentication Module", () => {
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
+
+    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
   });
 
   afterEach(() => {
@@ -124,7 +129,15 @@ describe("Authentication Module", () => {
 
       const idToken =
         "id_token=eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6L3RydXN0ZWQtYXBwcy1yZWdpc3RyeS92Mi9hcHBzLzB4MTlkMDA0ZTdmNmVjZjI2NDUyM2UxMzY5MjRjYjY4Nzk2Y2E5ZGJmYTI1YmNhMDUzYjJmNmFmMGZjNmZkZDg4YyJ9.eyJpYXQiOjE2MTkxOTAxMzQsImV4cCI6MTYxOTE5MDQzNCwiaXNzIjoiZGlkOmVic2k6NlFZSmMzdExSaGV5ODhXUEtDMmt2NTg4djF1WjFvaWQzeWZjNUxwNUFiWUQiLCJzY29wZSI6Im9wZW5pZCBkaWRfYXV0aG4iLCJyZXNwb25zZV90eXBlIjoiaWRfdG9rZW4iLCJjbGllbnRfaWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6Ly9vbmJvYXJkaW5nL3YxL2F1dGhlbnRpY2F0aW9uLXJlc3BvbnNlcyIsInN0YXRlIjoiOWY1YzFjMTgwNjczY2NjZDM5N2Q2MmQ1Iiwibm9uY2UiOiJtNERoVUN1Q2tjNUhvR09SZFQtSTNqakRsUTlxVjFGSnhJMDZXUDUzUFNvIn0.63o7hoAL-5CeXIXAZBrt0HE0Qc_Yi8WNwSkZAovOOJO-tVTrTFYKCtDdtQZEy7rnCA9g2P5wrq013P_KO8Jpmg&state=af0ifjsldkj";
-      const fakeToken = await createFakeToken();
+
+      const fakeToken = await createFakeToken({
+        apiName: configService.get<string>("apiName"),
+        authorisationApiName: configService.get<string>("authorisationApiName"),
+        trustedAppsRegistryApiUrl: configService.get<string>(
+          "trustedAppsRegistryApiUrl"
+        ),
+      });
+
       let response = await request(server)
         .post("/authentication-responses")
         .auth(fakeToken, { type: "bearer" })

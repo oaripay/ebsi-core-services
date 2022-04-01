@@ -3,4 +3,4 @@ version: "3.7"
 services:
   users-onboarding-api-v2:
     build: ../..
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/users-onboarding-api-v2:conformance_ebsiint-3903-deps_v2.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/users-onboarding-api-v2:conformance_ebsiint-4005-auth_v2.0.0

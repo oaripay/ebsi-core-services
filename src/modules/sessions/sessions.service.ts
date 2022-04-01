@@ -1,8 +1,8 @@
+import { URLSearchParams } from "node:url";
 import { Injectable, Logger } from "@nestjs/common";
 import axios, { AxiosResponse } from "axios";
 import * as xml2js from "xml2js";
 import * as XMLprocessors from "xml2js/lib/processors";
-import querystring from "querystring";
 import { ConfigService } from "@nestjs/config";
 import { createJWT, ES256KSigner } from "did-jwt";
 import { ApiConfig } from "../../config/configuration";
@@ -39,7 +39,7 @@ type EULoginResponse = {
 export default class SessionsService {
   private readonly logger = new Logger(SessionsService.name);
 
-  private applicationDid: string;
+  private apiDid: string;
 
   private apiPrivateKey: string;
 
@@ -52,7 +52,9 @@ export default class SessionsService {
   private euloginServiceParam: string;
 
   constructor(private configService: ConfigService<ApiConfig>) {
-    this.applicationDid = this.configService.get<string>("applicationDid");
+    [this.apiDid] = this.configService
+      .get<string>("apiVerificationMethodKid")
+      .split("#");
     this.recaptchaRegisteredHostname = this.configService.get<string>(
       "recaptchaRegisteredHostname"
     );
@@ -123,13 +125,14 @@ export default class SessionsService {
   async validateTicket(
     ticket: string
   ): Promise<EULoginAuthenticationValidatedInfo> {
-    const parameters = querystring.encode({
-      service: `${encodeURI(this.euloginServiceParam)}`,
-      userDetails: true,
+    const parameters = new URLSearchParams({
+      service: this.euloginServiceParam,
+      userDetails: "true",
       assuranceLevel: ASSURANCE_LEVEL,
       ticketTypes: TICKET_TYPES,
       ticket,
-    });
+    }).toString();
+
     let userInfo: AxiosResponse;
 
     try {
@@ -162,10 +165,10 @@ export default class SessionsService {
   async validateRecaptcha(
     token: string
   ): Promise<CaptchaAuthenticationValidatedInfo> {
-    const parameters = querystring.encode({
+    const parameters = new URLSearchParams({
       secret: this.configService.get<string>("recaptchaApiKey"),
       response: token,
-    });
+    }).toString();
 
     try {
       const response = await axios.get<CaptchaAuthenticationValidatedInfo>(
@@ -177,7 +180,7 @@ export default class SessionsService {
       if (
         response.data.success &&
         response.data.hostname.includes(this.recaptchaRegisteredHostname) &&
-        response.data.score > 0.5
+        response.data.score > 0.25
       ) {
         return response.data;
       }
@@ -207,7 +210,7 @@ export default class SessionsService {
         },
         {
           alg: "ES256K",
-          issuer: this.applicationDid,
+          issuer: this.apiDid,
           signer: ES256KSigner(this.apiPrivateKey),
           canonicalize: true,
           expiresIn: 15 * 60, // 15 minutes

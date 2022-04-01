@@ -9,19 +9,16 @@ import { ConfigService } from "@nestjs/config";
 import type { JWK } from "jose";
 import { createJWT, decodeJWT, ES256KSigner } from "did-jwt";
 import EbsiWallet from "@cef-ebsi/wallet-lib";
-import type { EbsiCredentialPayload } from "@cef-ebsi/verifiable-credential";
+import type { EbsiVerifiableAttestation } from "@cef-ebsi/verifiable-credential";
 import type { FastifyInstance } from "fastify";
 import { Resolver } from "did-resolver";
-import * as authenticationModule from "./authentication.module";
+import { AuthenticationModule } from "./authentication.module";
 import { ApiConfig } from "../../config/configuration";
 import AuthenticationService from "./authentication.service";
 import {
   AuhtenticationResponseRequest,
   AuthenticationRequest,
 } from "../../shared/interfaces";
-import * as utils from "./authentication.utils";
-
-// TODO: mock Axios requests
 
 describe("authentication service tests", () => {
   let app: INestApplication;
@@ -29,7 +26,7 @@ describe("authentication service tests", () => {
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [authenticationModule.default],
+      imports: [AuthenticationModule],
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
@@ -63,21 +60,20 @@ describe("authentication service tests", () => {
 
   it("should prepare the did auth request and returns a session token", async () => {
     expect.assertions(1);
+
     const authenticationService: AuthenticationService =
       new AuthenticationService(configService);
+
     const mockedRequest: AuthenticationRequest = {
       scope: "ebsi users onboarding",
     };
-    const didAuthRequest =
-      "openid://?response_type=id_token&client_id=https%3A%2F%2Fapi.ebsi.zyz%2Faccess-tokens&scope=openid%20did_authn&request=eyJhbGciOiJIUzI1Ni...";
 
-    jest
-      .spyOn(utils, "prepareDidAuthRequest")
-      .mockResolvedValue(didAuthRequest);
     const authenticationRequest =
       await authenticationService.startAuthentication(mockedRequest);
     expect(authenticationRequest).toStrictEqual({
-      session_token: didAuthRequest,
+      session_token: expect.stringMatching(
+        /openid:\/\/\?response_type=id_token&client_id=.*%252Fusers-onboarding%252Fv2%252Fauthentication-responses&scope=openid%2520did_authn&nonce=.*&request=/
+      ) as string,
     });
   });
 
@@ -161,7 +157,7 @@ describe("authentication service tests", () => {
       did
     );
     const decodedJwt = decodeJWT(response.verifiableCredential);
-    const { vc } = decodedJwt.payload as { vc: EbsiCredentialPayload };
+    const { vc } = decodedJwt.payload as { vc: EbsiVerifiableAttestation };
 
     expect(vc["@context"]).toStrictEqual([
       "https://www.w3.org/2018/credentials/v1",
@@ -171,7 +167,9 @@ describe("authentication service tests", () => {
       "VerifiableCredential",
       "VerifiableAuthorisation",
     ]);
-    expect(vc.issuer).toBe("did:ebsi:zwC56DZdiJh8kSxbgg4fMCu");
+    expect(vc.issuer).toBe(
+      configService.get<string>("apiVerificationMethodKid").split("#")[0]
+    );
     expect(vc.issuanceDate).toBeDefined();
     expect(vc.validFrom).toBeDefined();
     expect(vc.validFrom).toBe(vc.issuanceDate);
