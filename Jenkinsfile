@@ -26,6 +26,7 @@ pipeline {
         stage('Setup') {
             steps {
                sh 'yarn install --frozen-lockfile'
+               sh 'yarn run compile'
             }
         }
         stage('Test lint') {
