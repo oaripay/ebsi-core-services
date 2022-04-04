@@ -35,7 +35,7 @@ const defaultConfig = {
     HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
     LEDGER_API_URL: "https://api.test.intebsi.xyz/ledger/v3",
     AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v2",
-    DID_REGISTRY_API_URL: "https://api.test.intebsi.xyz/did-registry/v2",
+    DID_REGISTRY_API_URL: "https://api.test.intebsi.xyz/did-registry/v3",
     TRUSTED_APPS_REGISTRY_API_URL:
       "https://api.test.intebsi.xyz/trusted-apps-registry/v3",
   },
@@ -45,7 +45,7 @@ const defaultConfig = {
     HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
     LEDGER_API_URL: "https://api.test.intebsi.xyz/ledger/v3",
     AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v2",
-    DID_REGISTRY_API_URL: "https://api.test.intebsi.xyz/did-registry/v2",
+    DID_REGISTRY_API_URL: "https://api.test.intebsi.xyz/did-registry/v3",
     TRUSTED_APPS_REGISTRY_API_URL:
       "https://api.test.intebsi.xyz/trusted-apps-registry/v3",
   },
@@ -56,7 +56,7 @@ const defaultConfig = {
     LEDGER_API_URL: "https://api.conformance.intebsi.xyz/ledger/v3",
     AUTHORISATION_API_URL:
       "https://api.conformance.intebsi.xyz/authorisation/v2",
-    DID_REGISTRY_API_URL: "https://api.conformance.intebsi.xyz/did-registry/v2",
+    DID_REGISTRY_API_URL: "https://api.conformance.intebsi.xyz/did-registry/v3",
     TRUSTED_APPS_REGISTRY_API_URL:
       "https://api.conformance.intebsi.xyz/trusted-apps-registry/v3",
   },
@@ -66,7 +66,7 @@ const defaultConfig = {
     HEALTH_CHECK: "https://api.preprod.ebsi.eu/docs/",
     LEDGER_API_URL: "https://api.preprod.ebsi.eu/ledger/v3",
     AUTHORISATION_API_URL: "https://api.preprod.ebsi.eu/authorisation/v2",
-    DID_REGISTRY_API_URL: "https://api.preprod.ebsi.eu/did-registry/v2",
+    DID_REGISTRY_API_URL: "https://api.preprod.ebsi.eu/did-registry/v3",
     TRUSTED_APPS_REGISTRY_API_URL:
       "https://api.preprod.ebsi.eu/trusted-apps-registry/v3",
   },
@@ -76,7 +76,7 @@ const defaultConfig = {
     HEALTH_CHECK: "https://api.ebsi.eu/docs/",
     LEDGER_API_URL: "https://api.ebsi.eu/ledger/v2",
     AUTHORISATION_API_URL: "https://api.ebsi.eu/authorisation/v2",
-    DID_REGISTRY_API_URL: "https://api.ebsi.eu/did-registry/v2",
+    DID_REGISTRY_API_URL: "https://api.ebsi.eu/did-registry/v3",
     TRUSTED_APPS_REGISTRY_API_URL:
       "https://api.ebsi.eu/trusted-apps-registry/v3",
   },
