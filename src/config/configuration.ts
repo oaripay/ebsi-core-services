@@ -34,7 +34,7 @@ const defaultConfig = {
     API_URL_ORIGIN: "https://api.intebsi.xyz",
     AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v2",
     STORAGE_API_URL: "https://api.test.intebsi.xyz/storage/v3",
-    DID_REGISTRY_API_URL: "https://api.test.intebsi.xyz/did-registry/v2",
+    DID_REGISTRY_API_URL: "https://api.test.intebsi.xyz/did-registry/v3",
     TRUSTED_APPS_REGISTRY_API_URL:
       "https://api.test.intebsi.xyz/trusted-apps-registry/v3",
     HEALTH_CHECK: "https://api.intebsi.xyz/docs/",
@@ -45,7 +45,7 @@ const defaultConfig = {
     API_URL_ORIGIN: "https://api.test.intebsi.xyz",
     AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v2",
     STORAGE_API_URL: "https://api.test.intebsi.xyz/storage/v3",
-    DID_REGISTRY_API_URL: "https://api.test.intebsi.xyz/did-registry/v2",
+    DID_REGISTRY_API_URL: "https://api.test.intebsi.xyz/did-registry/v3",
     TRUSTED_APPS_REGISTRY_API_URL:
       "https://api.test.intebsi.xyz/trusted-apps-registry/v3",
     HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
@@ -57,7 +57,7 @@ const defaultConfig = {
     AUTHORISATION_API_URL:
       "https://api.conformance.intebsi.xyz/authorisation/v2",
     STORAGE_API_URL: "https://api.conformance.intebsi.xyz/storage/v3",
-    DID_REGISTRY_API_URL: "https://api.conformance.intebsi.xyz/did-registry/v2",
+    DID_REGISTRY_API_URL: "https://api.conformance.intebsi.xyz/did-registry/v3",
     TRUSTED_APPS_REGISTRY_API_URL:
       "https://api.conformance.intebsi.xyz/trusted-apps-registry/v3",
     HEALTH_CHECK: "https://api.conformance.intebsi.xyz/docs/",
@@ -68,7 +68,7 @@ const defaultConfig = {
     API_URL_ORIGIN: "https://api.preprod.ebsi.eu",
     AUTHORISATION_API_URL: "https://api.preprod.ebsi.eu/authorisation/v2",
     STORAGE_API_URL: "https://api.preprod.ebsi.eu/storage/v3",
-    DID_REGISTRY_API_URL: "https://api.preprod.ebsi.eu/did-registry/v2",
+    DID_REGISTRY_API_URL: "https://api.preprod.ebsi.eu/did-registry/v3",
     TRUSTED_APPS_REGISTRY_API_URL:
       "https://api.preprod.ebsi.eu/trusted-apps-registry/v3",
     HEALTH_CHECK: "https://api.preprod.ebsi.eu/docs/",
@@ -79,7 +79,7 @@ const defaultConfig = {
     API_URL_ORIGIN: "https://api.ebsi.eu",
     AUTHORISATION_API_URL: "https://api.ebsi.eu/authorisation/v2",
     STORAGE_API_URL: "https://api.ebsi.eu/storage/v3",
-    DID_REGISTRY_API_URL: "https://api.ebsi.eu/did-registry/v2",
+    DID_REGISTRY_API_URL: "https://api.ebsi.eu/did-registry/v3",
     TRUSTED_APPS_REGISTRY_API_URL:
       "https://api.ebsi.eu/trusted-apps-registry/v3",
     HEALTH_CHECK: "https://api.ebsi.eu/docs/",
