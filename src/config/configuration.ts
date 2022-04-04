@@ -28,7 +28,7 @@ const defaultConfig = {
     HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
     LOG_LEVEL: "debug",
     AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v2",
-    DID_REGISTRY_API_URL: "https://api.test.intebsi.xyz/did-registry/v2",
+    DID_REGISTRY_API_URL: "https://api.test.intebsi.xyz/did-registry/v3",
   },
   test: {
     DOMAIN: "https://api.test.intebsi.xyz",
@@ -36,7 +36,7 @@ const defaultConfig = {
     HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
     LOG_LEVEL: "info",
     AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v2",
-    DID_REGISTRY_API_URL: "https://api.test.intebsi.xyz/did-registry/v2",
+    DID_REGISTRY_API_URL: "https://api.test.intebsi.xyz/did-registry/v3",
   },
   conformance: {
     DOMAIN: "https://api.conformance.intebsi.xyz",
@@ -45,7 +45,7 @@ const defaultConfig = {
     LOG_LEVEL: "info",
     AUTHORISATION_API_URL:
       "https://api.conformance.intebsi.xyz/authorisation/v2",
-    DID_REGISTRY_API_URL: "https://api.conformance.intebsi.xyz/did-registry/v2",
+    DID_REGISTRY_API_URL: "https://api.conformance.intebsi.xyz/did-registry/v3",
   },
   pilot: {
     DOMAIN: "https://api.preprod.ebsi.eu",
@@ -53,7 +53,7 @@ const defaultConfig = {
     HEALTH_CHECK: "https://api.preprod.ebsi.eu/docs/",
     LOG_LEVEL: "warn",
     AUTHORISATION_API_URL: "https://api.preprod.ebsi.eu/authorisation/v2",
-    DID_REGISTRY_API_URL: "https://api.preprod.ebsi.eu/did-registry/v2",
+    DID_REGISTRY_API_URL: "https://api.preprod.ebsi.eu/did-registry/v3",
   },
   prod: {
     DOMAIN: "https://api.ebsi.eu",
@@ -61,7 +61,7 @@ const defaultConfig = {
     HEALTH_CHECK: "https://api.ebsi.eu/docs/",
     LOG_LEVEL: "error",
     AUTHORISATION_API_URL: "https://api.ebsi.eu/authorisation/v2",
-    DID_REGISTRY_API_URL: "https://api.ebsi.eu/did-registry/v2",
+    DID_REGISTRY_API_URL: "https://api.ebsi.eu/did-registry/v3",
   },
 };
 
