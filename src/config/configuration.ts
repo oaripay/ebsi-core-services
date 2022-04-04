@@ -38,9 +38,9 @@ const defaultConfig = {
     TRUSTED_APPS_REGISTRY:
       "https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps",
     TRUSTED_ISSUERS_REGISTRY:
-      "https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers",
+      "https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers",
     HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
-    DID_REGISTRY: "https://api.test.intebsi.xyz/did-registry/v2/identifiers",
+    DID_REGISTRY: "https://api.test.intebsi.xyz/did-registry/v3/identifiers",
   },
   test: {
     LOG_LEVEL: "info",
@@ -48,9 +48,9 @@ const defaultConfig = {
     TRUSTED_APPS_REGISTRY:
       "https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps",
     TRUSTED_ISSUERS_REGISTRY:
-      "https://api.test.intebsi.xyz/trusted-issuers-registry/v2/issuers",
+      "https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers",
     HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
-    DID_REGISTRY: "https://api.test.intebsi.xyz/did-registry/v2/identifiers",
+    DID_REGISTRY: "https://api.test.intebsi.xyz/did-registry/v3/identifiers",
   },
   conformance: {
     LOG_LEVEL: "info",
@@ -58,10 +58,10 @@ const defaultConfig = {
     TRUSTED_APPS_REGISTRY:
       "https://api.conformance.intebsi.xyz/trusted-apps-registry/v3/apps",
     TRUSTED_ISSUERS_REGISTRY:
-      "https://api.conformance.intebsi.xyz/trusted-issuers-registry/v2/issuers",
+      "https://api.conformance.intebsi.xyz/trusted-issuers-registry/v3/issuers",
     HEALTH_CHECK: "https://api.conformance.intebsi.xyz/docs/",
     DID_REGISTRY:
-      "https://api.conformance.intebsi.xyz/did-registry/v2/identifiers",
+      "https://api.conformance.intebsi.xyz/did-registry/v3/identifiers",
   },
   pilot: {
     LOG_LEVEL: "warn",
@@ -69,18 +69,18 @@ const defaultConfig = {
     TRUSTED_APPS_REGISTRY:
       "https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps",
     TRUSTED_ISSUERS_REGISTRY:
-      "https://api.preprod.ebsi.eu/trusted-issuers-registry/v2/issuers",
+      "https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/issuers",
     HEALTH_CHECK: "https://api.preprod.ebsi.eu/docs/",
-    DID_REGISTRY: "https://api.preprod.ebsi.eu/did-registry/v2/identifiers",
+    DID_REGISTRY: "https://api.preprod.ebsi.eu/did-registry/v3/identifiers",
   },
   prod: {
     LOG_LEVEL: "error",
     DOMAIN: "https://api.ebsi.eu",
     TRUSTED_APPS_REGISTRY: "https://api.ebsi.eu/trusted-apps-registry/v3/apps",
     TRUSTED_ISSUERS_REGISTRY:
-      "https://api.ebsi.eu/trusted-issuers-registry/v2/issuers",
+      "https://api.ebsi.eu/trusted-issuers-registry/v3/issuers",
     HEALTH_CHECK: "https://api.ebsi.eu/docs/",
-    DID_REGISTRY: "https://api.ebsi.eu/did-registry/v2/identifiers",
+    DID_REGISTRY: "https://api.ebsi.eu/did-registry/v3/identifiers",
   },
 };
 
