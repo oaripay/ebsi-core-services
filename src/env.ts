@@ -32,30 +32,30 @@ const basename = (
 
 const defaultConfig: { [index: string]: ApiConfig } = {
   local: {
-    REACT_APP_WALLET: "http://localhost:3000/users-onboarding",
+    REACT_APP_WALLET: "http://localhost:3000/users-onboarding/v2",
     REACT_APP_EULOGIN: "https://ecas.acceptance.ec.europa.eu/cas",
-    REACT_APP_API_URL: "http://localhost:3002/users-onboarding/v1",
+    REACT_APP_API_URL: "http://localhost:3002/users-onboarding/v2",
   },
   test: {
-    REACT_APP_WALLET: "https://app.test.intebsi.xyz/users-onboarding",
+    REACT_APP_WALLET: "https://app.test.intebsi.xyz/users-onboarding/v2",
     REACT_APP_EULOGIN: "https://ecas.ec.europa.eu/cas",
-    REACT_APP_API_URL: "https://api.test.intebsi.xyz/users-onboarding/v1",
+    REACT_APP_API_URL: "https://api.test.intebsi.xyz/users-onboarding/v2",
   },
   conformance: {
-    REACT_APP_WALLET: "https://app.conformance.intebsi.xyz/users-onboarding",
+    REACT_APP_WALLET: "https://app.conformance.intebsi.xyz/users-onboarding/v2",
     REACT_APP_EULOGIN: "https://ecas.ec.europa.eu/cas",
     REACT_APP_API_URL:
-      "https://api.conformance.intebsi.xyz/users-onboarding/v1",
+      "https://api.conformance.intebsi.xyz/users-onboarding/v2",
   },
   pilot: {
-    REACT_APP_WALLET: "https://app.preprod.ebsi.eu/users-onboarding",
+    REACT_APP_WALLET: "https://app.preprod.ebsi.eu/users-onboarding/v2",
     REACT_APP_EULOGIN: "https://ecas.ec.europa.eu/cas",
-    REACT_APP_API_URL: "https://api.preprod.ebsi.eu/users-onboarding/v1",
+    REACT_APP_API_URL: "https://api.preprod.ebsi.eu/users-onboarding/v2",
   },
   prod: {
-    REACT_APP_WALLET: "https://app.ebsi.eu/users-onboarding",
+    REACT_APP_WALLET: "https://app.ebsi.eu/users-onboarding/v2",
     REACT_APP_EULOGIN: "https://ecas.ec.europa.eu/cas",
-    REACT_APP_API_URL: "https://api.ebsi.eu/users-onboarding/v1",
+    REACT_APP_API_URL: "https://api.ebsi.eu/users-onboarding/v2",
   },
 };
 

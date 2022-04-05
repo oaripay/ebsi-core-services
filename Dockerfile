@@ -11,7 +11,7 @@
 #
 
 ## Stage 1: install dependencies and copy files
-FROM node:16.13.2-alpine3.15@sha256:2f50f4a428f8b5280817c9d4d896dbee03f072e93f4e0c70b90cc84bd1fcfe0d as base
+FROM node:16.14.2-alpine3.15@sha256:32f64135e74ec4dc5d63cc36318444f1d801cd23c44253124f7eccb52c4b89c5 as base
 WORKDIR /usr/src/app
 COPY ./package.json /usr/src/app/package.json
 COPY ./yarn.lock /usr/src/app/yarn.lock
@@ -33,7 +33,7 @@ RUN chown -R nginx:nginx /app && chmod -R 755 /app && \
   touch /var/run/nginx.pid && \
   chown -R nginx:nginx /var/run/nginx.pid
 USER nginx
-COPY --from=base /usr/src/app/build /app/users-onboarding
+COPY --from=base /usr/src/app/build /app/users-onboarding/v2
 COPY nginx/nginx.conf /etc/nginx/nginx.conf
 EXPOSE 8080
 CMD ["nginx", "-g", "daemon off;"]

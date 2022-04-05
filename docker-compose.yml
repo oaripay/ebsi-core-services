@@ -3,7 +3,7 @@
 version: "3.7"
 
 services:
-  demo:
+  users-onboarding-web-client-v2:
     build:
       context: .
       args:

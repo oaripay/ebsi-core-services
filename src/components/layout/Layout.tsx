@@ -19,7 +19,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         menu={{
           title: "Menu",
           close: "Close",
-          siteName: "EBSI Users Onboarding Service",
+          siteName: "EBSI Users Onboarding Service v2",
           menuLink: "/",
           items: [],
         }}
