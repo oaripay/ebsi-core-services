@@ -39,7 +39,7 @@ const defaultConfig = {
     TRUSTED_APPS_REGISTRY_API_URL:
       "https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps",
     DID_REGISTRY_API_URL:
-      "https://api.test.intebsi.xyz/did-registry/v2/identifiers",
+      "https://api.test.intebsi.xyz/did-registry/v3/identifiers",
     EU_LOGIN_VALIDATE_SERVICE_URL:
       "https://ecas.acceptance.ec.europa.eu/cas/TicketValidationService",
     EULOGIN_SERVICE_PARAM:
@@ -54,7 +54,7 @@ const defaultConfig = {
     TRUSTED_APPS_REGISTRY_API_URL:
       "https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps",
     DID_REGISTRY_API_URL:
-      "https://api.test.intebsi.xyz/did-registry/v2/identifiers",
+      "https://api.test.intebsi.xyz/did-registry/v3/identifiers",
     EU_LOGIN_VALIDATE_SERVICE_URL:
       "https://ecas.ec.europa.eu/cas/TicketValidationService",
     EULOGIN_SERVICE_PARAM:
@@ -69,7 +69,7 @@ const defaultConfig = {
     TRUSTED_APPS_REGISTRY_API_URL:
       "https://api.conformance.intebsi.xyz/trusted-apps-registry/v3/apps",
     DID_REGISTRY_API_URL:
-      "https://api.conformance.intebsi.xyz/did-registry/v2/identifiers",
+      "https://api.conformance.intebsi.xyz/did-registry/v3/identifiers",
     EU_LOGIN_VALIDATE_SERVICE_URL:
       "https://ecas.ec.europa.eu/cas/TicketValidationService",
     EULOGIN_SERVICE_PARAM:
@@ -84,7 +84,7 @@ const defaultConfig = {
     TRUSTED_APPS_REGISTRY_API_URL:
       "https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps",
     DID_REGISTRY_API_URL:
-      "https://api.preprod.ebsi.eu/did-registry/v2/identifiers",
+      "https://api.preprod.ebsi.eu/did-registry/v3/identifiers",
     EU_LOGIN_VALIDATE_SERVICE_URL:
       "https://ecas.ec.europa.eu/cas/TicketValidationService",
     EULOGIN_SERVICE_PARAM:
@@ -98,7 +98,7 @@ const defaultConfig = {
     AUTHORISATION: "https://api.ebsi.eu/authorisation/v2",
     TRUSTED_APPS_REGISTRY_API_URL:
       "https://api.ebsi.eu/trusted-apps-registry/v3/apps",
-    DID_REGISTRY_API_URL: "https://api.ebsi.eu/did-registry/v2/identifiers",
+    DID_REGISTRY_API_URL: "https://api.ebsi.eu/did-registry/v3/identifiers",
     EU_LOGIN_VALIDATE_SERVICE_URL:
       "https://ecas.ec.europa.eu/cas/TicketValidationService",
     EULOGIN_SERVICE_PARAM:
