@@ -31,7 +31,7 @@ const defaultConfig = {
     DOMAIN: "https://api.test.intebsi.xyz",
     HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
     AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v2",
-    DID_REGISTRY_API_URL: "https://api.test.intebsi.xyz/did-registry/v2",
+    DID_REGISTRY_API_URL: "https://api.test.intebsi.xyz/did-registry/v3",
     LEDGER_API_URL: "https://api.test.intebsi.xyz/ledger/v3",
     TRUSTED_APPS_REGISTRY_API_URL:
       "https://api.test.intebsi.xyz/trusted-apps-registry/v3",
@@ -41,7 +41,7 @@ const defaultConfig = {
     DOMAIN: "https://api.test.intebsi.xyz",
     HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
     AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v2",
-    DID_REGISTRY_API_URL: "https://api.test.intebsi.xyz/did-registry/v2",
+    DID_REGISTRY_API_URL: "https://api.test.intebsi.xyz/did-registry/v3",
     LEDGER_API_URL: "https://api.test.intebsi.xyz/ledger/v3",
     TRUSTED_APPS_REGISTRY_API_URL:
       "https://api.test.intebsi.xyz/trusted-apps-registry/v3",
@@ -52,7 +52,7 @@ const defaultConfig = {
     HEALTH_CHECK: "https://api.conformance.intebsi.xyz/docs/",
     AUTHORISATION_API_URL:
       "https://api.conformance.intebsi.xyz/authorisation/v2",
-    DID_REGISTRY_API_URL: "https://api.conformance.intebsi.xyz/did-registry/v2",
+    DID_REGISTRY_API_URL: "https://api.conformance.intebsi.xyz/did-registry/v3",
     LEDGER_API_URL: "https://api.conformance.intebsi.xyz/ledger/v3",
     TRUSTED_APPS_REGISTRY_API_URL:
       "https://api.conformance.intebsi.xyz/trusted-apps-registry/v3",
@@ -62,7 +62,7 @@ const defaultConfig = {
     DOMAIN: "https://api.preprod.ebsi.eu",
     HEALTH_CHECK: "https://api.preprod.ebsi.eu/docs/",
     AUTHORISATION_API_URL: "https://api.preprod.ebsi.eu/authorisation/v2",
-    DID_REGISTRY_API_URL: "https://api.preprod.ebsi.eu/did-registry/v2",
+    DID_REGISTRY_API_URL: "https://api.preprod.ebsi.eu/did-registry/v3",
     LEDGER_API_URL: "https://api.preprod.ebsi.eu/ledger/v3",
     TRUSTED_APPS_REGISTRY_API_URL:
       "https://api.preprod.ebsi.eu/trusted-apps-registry/v3",
@@ -72,7 +72,7 @@ const defaultConfig = {
     DOMAIN: "https://api.ebsi.eu",
     HEALTH_CHECK: "https://api.ebsi.eu/docs/",
     AUTHORISATION_API_URL: "https://api.ebsi.eu/authorisation/v2",
-    DID_REGISTRY_API_URL: "https://api.ebsi.eu/did-registry/v2",
+    DID_REGISTRY_API_URL: "https://api.ebsi.eu/did-registry/v3",
     LEDGER_API_URL: "https://api.ebsi.eu/ledger/v3",
     TRUSTED_APPS_REGISTRY_API_URL:
       "https://api.ebsi.eu/trusted-apps-registry/v3",

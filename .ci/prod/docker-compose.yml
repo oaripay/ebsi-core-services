@@ -3,4 +3,4 @@ version: "3.7"
 services:
   trusted-policies-registry-api-v2:
     build: ../..
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/trusted-policies-registry-api-v2:prod_ebsiint-4003-auth-updates_v2.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/trusted-policies-registry-api-v2:prod_ebsiint-3981-nodejs-update_v2.0.0
