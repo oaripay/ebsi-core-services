@@ -1,4 +1,4 @@
-![EBSI Logo](https://ec.europa.eu/cefdigital/wiki/images/logo/default-space-logo.svg)
+![EBSI Logo](https://ec.europa.eu/digital-building-blocks/wikis/images/logo/default-space-logo.svg)
 
 # Users Onboarding Web Client
 
@@ -26,7 +26,7 @@ It has been developed using Create-React-App.
 Clone the repository and move to the project directory
 
 ```sh
-git clone https://ec.europa.eu/cefdigital/code/scm/ebsi/users-onboarding-web-client.git
+git clone https://ec.europa.eu/digital-building-blocks/code/scm/ebsi/users-onboarding-web-client.git
 cd users-onboarding-web-client
 ```
 

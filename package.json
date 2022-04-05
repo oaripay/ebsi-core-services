@@ -8,7 +8,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "audit": "audit-ci --skip-dev --moderate -a 1059620",
+    "audit": "audit-ci --skip-dev --moderate -a 1067278 1067280 1067323 1067342 1064864",
     "analyze": "source-map-explorer 'build/static/js/*.js'",
     "compress": "precompress build",
     "lint-staged": "lint-staged",
@@ -173,8 +173,8 @@
         "hidden": true
       }
     ],
-    "commitUrlFormat": "https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-web-client/commits/{{hash}}",
-    "issueUrlFormat": "https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-web-client/pull-requests/{{id}}/overview",
-    "compareUrlFormat": "https://ec.europa.eu/cefdigital/code/projects/EBSI/repos/users-onboarding-web-client/compare/diff?targetBranch=refs%2Ftags%2F{{previousTag}}&sourceBranch=refs%2Ftags%2F{{currentTag}}&targetRepoId=406"
+    "commitUrlFormat": "https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-web-client/commits/{{hash}}",
+    "issueUrlFormat": "https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-web-client/pull-requests/{{id}}/overview",
+    "compareUrlFormat": "https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-web-client/compare/diff?targetBranch=refs%2Ftags%2F{{previousTag}}&sourceBranch=refs%2Ftags%2F{{currentTag}}&targetRepoId=406"
   }
 }

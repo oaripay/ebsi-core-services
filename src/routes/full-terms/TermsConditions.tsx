@@ -492,7 +492,7 @@ export const TermsConditions: React.FunctionComponent = () => {
           See:{" "}
           <a
             className="ecl-link"
-            href="https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/Minimum+Technical+Requirements+for+an+EBSI+v1.0+NODE+Deployment"
+            href="https://ec.europa.eu/digital-building-blocks/wikis/display/CEFDIGITAL/Minimum+Technical+Requirements+for+an+EBSI+v1.0+NODE+Deployment"
           >
             Minimum Technical Requirements for an EBSI v2.0 NODE Deployment
             within Member States or Institutions
@@ -508,7 +508,7 @@ export const TermsConditions: React.FunctionComponent = () => {
           Blocks Web Site &gt;{" "}
           <a
             className="ecl-link"
-            href="https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/EBSI"
+            href="https://ec.europa.eu/digital-building-blocks/wikis/display/EBSI/Home"
           >
             EBSI
           </a>{" "}
@@ -554,7 +554,7 @@ export const TermsConditions: React.FunctionComponent = () => {
                 the Node Information Policy located at:{" "}
                 <a
                   className="ecl-link"
-                  href="https://ec.europa.eu/cefdigital/wiki/pages/viewpage.action?pageId=189432828"
+                  href="https://ec.europa.eu/digital-building-blocks/wikis/pages/viewpage.action?pageId=189432828"
                 >
                   5 - EBSI v2 Node Operator Terms &amp; Conditions
                 </a>
