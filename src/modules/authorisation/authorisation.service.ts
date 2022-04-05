@@ -18,6 +18,7 @@ import type {
   AkeResponse as SiopAkeResponse,
 } from "@cef-ebsi/siop-auth";
 import {
+  EbsiEnvConfiguration,
   EbsiVerifiableAttestation,
   VerifiedCredential,
   verifyCredentialJwt,
@@ -185,6 +186,21 @@ export class AuthorisationService {
             // Verify VC
             verifiedVc = await verifyCredentialJwt(verifiableCredential, {
               ebsiEnv,
+              // todo: remove ebsiEnvConfig after libraries are updated
+              ...(ebsiEnv === "test" && {
+                ebsiEnvConfig: {
+                  didRegistry:
+                    "https://api.test.intebsi.xyz/did-registry/v3/identifiers",
+                  trustedIssuersRegistry:
+                    "https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers",
+                  trustedSchemasRegistry:
+                    "https://api.test.intebsi.xyz/trusted-schemas-registry/v2/schemas",
+                  ebsiVerifiableAttestationSchemaUrl:
+                    "https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x28d76954924d1c4747a4f1f9e3e9edc9ca965efbf8ff20e4339c2bf2323a5773",
+                  ebsiVerifiablePresentationSchemaUrl:
+                    "https://api.test.intebsi.xyz/trusted-schemas-registry/v2/schemas/0x7e53dd8c85ffdbf0fff15599e887d6221ab02982d24d857aae1b3d2cc294f048",
+                } as EbsiEnvConfiguration,
+              }),
             });
           } catch (e) {
             if (e instanceof Error) {
