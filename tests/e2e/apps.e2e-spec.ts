@@ -46,6 +46,8 @@ import LedgerService from "../../src/modules/ledger/ledger.service";
 import { waitToBeMined } from "../utils/waitToBeMined";
 import { PaginatedList } from "../../src/shared/interfaces";
 import { requestSiopJwt } from "../utils/siopJwt";
+import { describeWriteOps } from "../utils/describeWriteOps";
+import { getServer } from "../utils/getServer";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -91,7 +93,7 @@ type JsonRpcParams =
 
 describe("Apps (e2e)", () => {
   let app: INestApplication;
-  let server: HttpServer;
+  let server: HttpServer | string;
   let ledgerService: LedgerService;
   let adminTestWallet: ethers.Wallet;
   let adminUserAccessToken: string;
@@ -133,10 +135,10 @@ describe("Apps (e2e)", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
 
     const configService =
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+    server = getServer(app, configService);
 
     adminTestWallet = new ethers.Wallet(
       prefixWith0x(configService.get("testAdminPrivateKey"))
@@ -442,7 +444,7 @@ describe("Apps (e2e)", () => {
     });
   });
 
-  describe.each([
+  describeWriteOps().each([
     "insertApp",
     "insertAppAdministrator",
     "deleteAppAdministrator",
@@ -555,7 +557,7 @@ describe("Apps (e2e)", () => {
     });
   });
 
-  describe.each([
+  describeWriteOps().each([
     "insertApp",
     "insertAppPublicKey",
     "updateAppPublicKey",

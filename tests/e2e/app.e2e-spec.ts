@@ -11,10 +11,13 @@ import { ConfigService } from "@nestjs/config";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { ApiConfig } from "../../src/config/configuration";
+import { describeWriteOps } from "../utils/describeWriteOps";
+import { getServer } from "../utils/getServer";
 
 describe("TAR API (generic tests)", () => {
   let app: NestFastifyApplication;
-  let server: HttpServer;
+  let server: HttpServer | string;
+  let apiUrlPrefix = "";
   let trustedAppsRegistryUrl: string;
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -34,7 +37,12 @@ describe("TAR API (generic tests)", () => {
     )}${configService.get<string>("apiUrlPrefix")}`;
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+
+    server = getServer(app, configService);
+
+    if (process.env.TEST_ENV === "remote") {
+      apiUrlPrefix = configService.get<string>("apiUrlPrefix");
+    }
   });
 
   afterAll(async () => {
@@ -64,14 +72,14 @@ describe("TAR API (generic tests)", () => {
       expect(response.body).toStrictEqual({
         title: "Not Found",
         status: 404,
-        detail: "Cannot GET /bad-method",
+        detail: `Cannot GET ${apiUrlPrefix}/bad-method`,
         type: "about:blank",
       });
       expect(response.status).toBe(404);
     });
   });
 
-  describe("POST /jsonrpc", () => {
+  describeWriteOps()("POST /jsonrpc", () => {
     it("should reject a POST without JWT", async () => {
       expect.assertions(3);
 
