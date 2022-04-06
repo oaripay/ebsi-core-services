@@ -15,7 +15,8 @@ import {
   SignJWT,
 } from "jose";
 import type { JWK } from "jose";
-import { createJWT, ES256KSigner } from "did-jwt";
+import KeyEncoder from "key-encoder";
+import { createJWT, decodeJWT, ES256KSigner } from "did-jwt";
 import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
@@ -165,9 +166,38 @@ describe("Authorisation (e2e)", () => {
       expect(query.get("nonce")).toBeDefined();
       expect(query.get("request")).toBeDefined();
 
-      const { publicKeyObject } = await getPublicKey(
-        configService.get("apiPrivateKey")
-      );
+      let publicKeyObject: crypto.KeyObject;
+
+      if (process.env.TEST_ENV !== "remote") {
+        publicKeyObject = (
+          await getPublicKey(configService.get("apiPrivateKey"))
+        ).publicKeyObject;
+      } else {
+        // When running the tests on the remote API, we need to get the public key from TAR
+        const { payload } = decodeJWT(query.get("request"));
+        const { iss } = payload;
+
+        const appInfo = await request(trustedAppsRegistry).get(`/${iss}`);
+
+        // Note: we assume the first key was used (might not always be true)
+        const publicKeyBase64 = (
+          appInfo.body as unknown as { publicKeys: string[] }
+        ).publicKeys[0];
+
+        const keyEncoder = new KeyEncoder("secp256k1");
+
+        const publicKeyHex = keyEncoder.encodePublic(
+          Buffer.from(publicKeyBase64, "base64").toString("utf-8"),
+          "pem",
+          "raw"
+        );
+
+        publicKeyObject = (await importJWK(
+          encode.publicKey.fromHextoJWK(publicKeyHex),
+          "ES256K"
+        )) as crypto.KeyObject;
+      }
+
       const verification = await jwtVerify(
         query.get("request"),
         publicKeyObject
@@ -184,7 +214,7 @@ describe("Authorisation (e2e)", () => {
           "/authorisation/v2/siop-sessions"
         ) as string,
         response_mode: "post",
-        iss: apiName,
+        iss: expect.stringMatching(/^authorisation-api_/) as string,
         claims: expect.objectContaining({}) as { id_token: unknown },
       });
     });
@@ -306,10 +336,12 @@ describe("Authorisation (e2e)", () => {
           ake1_nonce: nonce,
           ake1_enc_payload: expect.any(String) as string,
           kid: trustedApp.kid,
-          iss: apiName,
+          iss: expect.stringMatching(/^authorisation-api_/) as string,
         }) as Ake1SigPayload,
         ake1_jws_detached: expect.stringContaining("..") as string, // payload removed from the JWT
-        kid: apiKid,
+        kid: expect.stringMatching(
+          `${trustedAppsRegistry}/authorisation-api_`
+        ) as string,
       });
       expect(response.status).toBe(200);
 
@@ -670,9 +702,11 @@ describe("Authorisation (e2e)", () => {
             did: expect.any(String) as string,
             iat: expect.any(Number) as number,
             exp: expect.any(Number) as number,
-            iss: apiName,
+            iss: expect.stringMatching(/^authorisation-api_/) as string,
           }) as Ake1SigPayload,
-          kid: apiKid,
+          kid: expect.stringMatching(
+            `${trustedAppsRegistry}/authorisation-api_`
+          ) as string,
         });
         expect(
           (
