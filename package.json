@@ -21,7 +21,7 @@
     "test": "jest --runInBand",
     "test:watch": "jest --watch",
     "test:unit": "jest --testPathIgnorePatterns=e2e",
-    "test:e2e": "jest --testPathPattern=e2e --runInBand",
+    "test:e2e": "jest --testPathPattern=tests/e2e --runInBand",
     "test:ci": "yarn test:unit --coverage --reporters=default --reporters=jest-sonar",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "prepare": "husky install"

@@ -15,10 +15,13 @@ import type { FastifyInstance } from "fastify";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { ApiConfig } from "../../src/config/configuration";
+import { getServer } from "../utils/getServer";
+import { describeWriteOps } from "../utils/describeWriteOps";
 
 describe("App Module (e2e)", () => {
   let app: INestApplication;
-  let server: HttpServer;
+  let server: HttpServer | string;
+  let apiUrlPrefix = "";
   let trustedAppsRegistryUrl: string;
 
   beforeAll(async () => {
@@ -40,7 +43,12 @@ describe("App Module (e2e)", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+
+    server = getServer(app, configService);
+
+    if (process.env.TEST_ENV === "remote") {
+      apiUrlPrefix = configService.get<string>("apiUrlPrefix");
+    }
   });
 
   it(`(GET) /health`, async () => {
@@ -55,7 +63,7 @@ describe("App Module (e2e)", () => {
     expect(response.status).toBe(200);
   });
 
-  describe("POST /jsonrpc", () => {
+  describeWriteOps()("POST /jsonrpc", () => {
     it("should reject a POST without JWT", async () => {
       expect.assertions(3);
 
@@ -107,7 +115,7 @@ describe("App Module (e2e)", () => {
       expect(response.body).toStrictEqual({
         title: "Not Found",
         status: 404,
-        detail: "Cannot GET /bad-method",
+        detail: `Cannot GET ${apiUrlPrefix}/bad-method`,
         type: "about:blank",
       });
       expect(response.status).toBe(404);

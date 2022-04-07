@@ -31,6 +31,8 @@ import { prefixWith0x } from "../../src/shared/utils";
 import { PaginatedList } from "../../src/shared/interfaces";
 import { requestSiopJwt } from "../utils/siopJwt";
 import { UnsignedTransaction } from "../../src/modules/jsonrpc/dto";
+import { describeWriteOps } from "../utils/describeWriteOps";
+import { getServer } from "../utils/getServer";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -65,7 +67,7 @@ interface AttributeObjectWithData extends AttributeObject {
 
 describe("Issuers (e2e)", () => {
   let app: INestApplication;
-  let server: HttpServer;
+  let server: HttpServer | string;
   let configService: ConfigService<ApiConfig>;
   let userTestWallet: ethers.Wallet;
   let adminTestWallet: ethers.Wallet;
@@ -120,9 +122,9 @@ describe("Issuers (e2e)", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
 
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+    server = getServer(app, configService);
 
     userTestWallet = new ethers.Wallet(
       prefixWith0x(configService.get("testUserPrivateKey"))
@@ -581,7 +583,7 @@ describe("Issuers (e2e)", () => {
     });
   });
 
-  describe.each([
+  describeWriteOps().each([
     "insertIssuer",
     "updateIssuer",
     "updateIssuer(test update attribute)",
@@ -633,7 +635,7 @@ describe("Issuers (e2e)", () => {
     });
   });
 
-  describe.each([
+  describeWriteOps().each([
     "insertIssuer",
     "updateIssuer",
     "updateIssuer(test update attribute)",

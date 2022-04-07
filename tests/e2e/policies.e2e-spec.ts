@@ -29,6 +29,8 @@ import { PaginatedList } from "../../src/shared/interfaces";
 import { generateMultihash } from "../../src/shared/utils/multihash.utils";
 import { requestSiopJwt } from "../utils/siopJwt";
 import { UnsignedTransaction } from "../../src/modules/jsonrpc/dto";
+import { describeWriteOps } from "../utils/describeWriteOps";
+import { getServer } from "../utils/getServer";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -54,7 +56,7 @@ jest.setTimeout(60000);
 
 describe("Policies (e2e)", () => {
   let app: INestApplication;
-  let server: HttpServer;
+  let server: HttpServer | string;
   let configService: ConfigService<ApiConfig>;
   let adminTestWallet: ethers.Wallet;
   let testUserAccessToken: string;
@@ -96,9 +98,10 @@ describe("Policies (e2e)", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
 
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+
+    server = getServer(app, configService);
 
     adminTestWallet = new ethers.Wallet(
       prefixWith0x(configService.get("testAdminPrivateKey"))
@@ -297,7 +300,7 @@ describe("Policies (e2e)", () => {
     });
   });
 
-  describe.each(["insertPolicy", "updatePolicy"])(
+  describeWriteOps().each(["insertPolicy", "updatePolicy"])(
     "/jsonrpc - method: %s",
     (method: string) => {
       it(`should return a new unsigned transaction`, async () => {
@@ -340,7 +343,7 @@ describe("Policies (e2e)", () => {
     }
   );
 
-  describe.each(["insertPolicy", "updatePolicy"])(
+  describeWriteOps().each(["insertPolicy", "updatePolicy"])(
     "/jsonrpc - send transaction for %s",
     (method: string) => {
       it("should insert a new policy", async () => {
