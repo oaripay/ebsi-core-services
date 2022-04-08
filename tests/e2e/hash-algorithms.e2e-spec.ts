@@ -28,6 +28,8 @@ import { ApiConfig } from "../../src/config/configuration";
 import { prefixWith0x } from "../../src/shared/utils";
 import { getAccessToken, waitToBeMined } from "../utils/waitToBeMined";
 import { requestSiopJwt } from "../utils/auth";
+import { describeWriteOps } from "../utils/describeWriteOps";
+import { getServer } from "../utils/getServer";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -74,7 +76,7 @@ const validHashAlgorithms: Record<
 
 describe("HashAlgorithms (e2e)", () => {
   let app: INestApplication;
-  let server: HttpServer;
+  let server: HttpServer | string;
   let testAdmin: {
     kid: string;
     privateKey: string;
@@ -105,10 +107,12 @@ describe("HashAlgorithms (e2e)", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
 
     const configService =
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+
+    server = getServer(app, configService);
+
     const authorisationApiUrl = configService.get<string>(
       "authorisationApiUrl"
     );
@@ -224,7 +228,7 @@ describe("HashAlgorithms (e2e)", () => {
     });
   });
 
-  describe.each(["insertHashAlgorithm", "updateHashAlgorithm"])(
+  describeWriteOps().each(["insertHashAlgorithm", "updateHashAlgorithm"])(
     "/jsonrpc - send transaction for %s",
     (method: string) => {
       it("should work", async () => {

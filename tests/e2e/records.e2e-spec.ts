@@ -41,6 +41,8 @@ import { prefixWith0x, multibase } from "../../src/shared/utils";
 import { getAccessToken, waitToBeMined } from "../utils/waitToBeMined";
 import { requestSiopJwt } from "../utils/auth";
 import { PaginatedList } from "../../src/shared/interfaces";
+import { describeWriteOps } from "../utils/describeWriteOps";
+import { getServer } from "../utils/getServer";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -58,7 +60,7 @@ type JsonRpcParams =
 
 describe("Records (e2e)", () => {
   let app: INestApplication;
-  let server: HttpServer;
+  let server: HttpServer | string;
   let hashAlgorithmId: number;
   let hashAlgorithMultihash: HashName;
   let hashValue1: string;
@@ -99,10 +101,11 @@ describe("Records (e2e)", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
 
     const configService =
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+    server = getServer(app, configService);
+
     const authorisationApiUrl = configService.get<string>(
       "authorisationApiUrl"
     );
@@ -376,7 +379,7 @@ describe("Records (e2e)", () => {
     });
   });
 
-  describe.each([
+  describeWriteOps().each([
     "timestampRecordHashes",
     "timestampVersionHashes",
     "timestampRecordVersionHashes",
@@ -877,7 +880,7 @@ describe("Records (e2e)", () => {
   });
 
   // Tests to verify that only record owners can update the records
-  describe.each([
+  describeWriteOps().each([
     "insertRecordOwner",
     "insertRecordVersionInfo",
     "detachRecordVersionHash",

@@ -33,6 +33,8 @@ import {
 } from "../../src/shared/utils";
 import { getAccessToken, waitToBeMined } from "../utils/waitToBeMined";
 import { requestOAuth2Jwt, requestSiopJwt } from "../utils/auth";
+import { describeWriteOps } from "../utils/describeWriteOps";
+import { getServer } from "../utils/getServer";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -46,7 +48,7 @@ type JsonRpcParams =
 
 describe("Timestamp (e2e)", () => {
   let app: INestApplication;
-  let server: HttpServer;
+  let server: HttpServer | string;
   let hashAlgorithmId: number;
   let hashAlgorithMultihash: HashName;
   let hashValue1: string;
@@ -91,10 +93,10 @@ describe("Timestamp (e2e)", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
 
     const configService =
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+    server = getServer(app, configService);
     const authorisationApiUrl = configService.get<string>(
       "authorisationApiUrl"
     );
@@ -190,7 +192,7 @@ describe("Timestamp (e2e)", () => {
     ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
   });
 
-  describe.each(["timestampHashes"])(
+  describeWriteOps().each(["timestampHashes"])(
     "/jsonrpc - send transaction for %s",
     (method: string) => {
       it("should work", async () => {
@@ -590,28 +592,32 @@ describe("Timestamp (e2e)", () => {
   });
 
   describe("GET /timestamps/{timestampId}", () => {
-    it("should return a specific timestamp", async () => {
-      expect.assertions(2);
+    describeWriteOps()("Test requiring actual data", () => {
+      it("should return a specific timestamp", async () => {
+        expect.assertions(2);
 
-      const timestampId = multibase.base64url.encode(
-        multihashEncode(
-          ethers.utils.sha256(hashValue1).replace(/^0x/, ""),
-          "sha2-256",
-          32
-        )
-      );
+        const timestampId = multibase.base64url.encode(
+          multihashEncode(
+            ethers.utils.sha256(hashValue1).replace(/^0x/, ""),
+            "sha2-256",
+            32
+          )
+        );
 
-      const response = await request(server).get(`/timestamps/${timestampId}`);
+        const response = await request(server).get(
+          `/timestamps/${timestampId}`
+        );
 
-      expect(response.body).toStrictEqual({
-        blockNumber: expect.any(Number) as number,
-        timestamp: expect.any(String) as string,
-        data: expect.stringContaining("0x") as string,
-        hash: expect.any(String) as string,
-        timestampedBy: expect.stringContaining("0x") as string,
-        transactionHash: expect.stringContaining("0x") as string,
+        expect(response.body).toStrictEqual({
+          blockNumber: expect.any(Number) as number,
+          timestamp: expect.any(String) as string,
+          data: expect.stringContaining("0x") as string,
+          hash: expect.any(String) as string,
+          timestampedBy: expect.stringContaining("0x") as string,
+          transactionHash: expect.stringContaining("0x") as string,
+        });
+        expect(response.status).toBe(200);
       });
-      expect(response.status).toBe(200);
     });
 
     it("should throw an error if the record is not found", async () => {

@@ -25,6 +25,8 @@ declare global {
       TEST_USER_PRIVATE_KEY?: string;
       TEST_APP_NAME?: string;
       TEST_APP_PRIVATE_KEY?: string;
+      TEST_ENV?: string;
+      TEST_ENABLE_WRITE_OPS?: string;
     }
   }
 

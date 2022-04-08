@@ -1,6 +1,7 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { HttpServer, ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -9,10 +10,13 @@ import type { FastifyInstance } from "fastify";
 import { Logger } from "@nestjs/common/services/logger.service";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
+import { ApiConfig } from "../../src/config/configuration";
+import { getServer } from "../utils/getServer";
 
 describe("/timestamp/v3 (generic tests)", () => {
   let app: NestFastifyApplication;
-  let server: HttpServer;
+  let server: HttpServer | string;
+  let apiUrlPrefix = "";
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -29,7 +33,15 @@ describe("/timestamp/v3 (generic tests)", () => {
 
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+
+    const configService =
+      moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+
+    server = getServer(app, configService);
+
+    if (process.env.TEST_ENV === "remote") {
+      apiUrlPrefix = configService.get<string>("apiUrlPrefix");
+    }
   });
 
   describe("GET /health", () => {
@@ -55,7 +67,7 @@ describe("/timestamp/v3 (generic tests)", () => {
       expect(response.body).toStrictEqual({
         title: "Not Found",
         status: 404,
-        detail: "Cannot GET /bad-method",
+        detail: `Cannot GET ${apiUrlPrefix}/bad-method`,
         type: "about:blank",
       });
       expect(response.status).toBe(404);
