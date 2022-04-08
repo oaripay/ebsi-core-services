@@ -97,6 +97,7 @@ export default class AppController {
       case "insertDidController": {
         const transaction =
           await this.jsonRpcService.buildTransactionInsertDidController(
+            subject.sub,
             body as RequestInsertDidControllerDto,
             id
           );
@@ -105,6 +106,7 @@ export default class AppController {
       case "updateDidController": {
         const transaction =
           await this.jsonRpcService.buildTransactionUpdateDidController(
+            subject.sub,
             body as RequestUpdateDidControllerDto,
             id
           );
@@ -113,6 +115,7 @@ export default class AppController {
       case "revokeDidController": {
         const transaction =
           await this.jsonRpcService.buildTransactionRevokeDidController(
+            subject.sub,
             body as RequestRevokeDidControllerDto,
             id
           );

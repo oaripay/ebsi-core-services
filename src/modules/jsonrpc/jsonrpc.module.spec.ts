@@ -709,10 +709,7 @@ describe("JsonRpc Module", () => {
         Promise.resolve({ payload: {} } as JWTVerifyResult)
       );
 
-      const checkDidDocumentSpy = jest.spyOn(
-        jsonRpcService,
-        "checkDidDocument"
-      );
+      const checkDidSpy = jest.spyOn(jsonRpcService, "checkDid");
 
       const responseSend = await request(server)
         .post("/jsonrpc")
@@ -733,8 +730,8 @@ describe("JsonRpc Module", () => {
           id: "45",
         });
 
-      expect(checkDidDocumentSpy).toHaveBeenCalledTimes(1);
-      expect(checkDidDocumentSpy).toHaveBeenCalledWith(
+      expect(checkDidSpy).toHaveBeenCalledTimes(1);
+      expect(checkDidSpy).toHaveBeenCalledWith(
         newUserDid,
         identifier,
         didVersionInfo
@@ -1691,6 +1688,18 @@ describe("JsonRpc Module", () => {
             expectedErrorMessage: "notBefore must not be less than 0",
           });
 
+          testSetup.push({
+            params: {
+              from: signer.address,
+              identifier: `0x${Buffer.from(newUserDid).toString("hex")}`,
+              newControllerId: ethers.Wallet.createRandom().address,
+              notBefore: 0,
+              notAfter: 3232818053700,
+            } as InsertDidControllerParam,
+            expectedErrorMessage: `Identifier ${newUserDid} doesn't match JWT's DID ${adminDid}`,
+            accessToken: adminAccessToken,
+          });
+
           break;
         }
         case "revokeDidController": {
@@ -1719,6 +1728,16 @@ describe("JsonRpc Module", () => {
               identifier: `0x${Buffer.from(newUserDid).toString("hex")}`,
             } as RevokeDidControllerParam,
             expectedErrorMessage: "oldControllerId must be an Ethereum address",
+          });
+
+          testSetup.push({
+            params: {
+              from: signer.address,
+              identifier: `0x${Buffer.from(newUserDid).toString("hex")}`,
+              oldControllerId: ethers.Wallet.createRandom().address,
+            } as RevokeDidControllerParam,
+            expectedErrorMessage: `Identifier ${newUserDid} doesn't match JWT's DID ${adminDid}`,
+            accessToken: adminAccessToken,
           });
 
           break;

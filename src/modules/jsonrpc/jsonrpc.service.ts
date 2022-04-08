@@ -164,11 +164,7 @@ export class JsonRpcService {
     }
   }
 
-  checkDidDocument(
-    clientId: string,
-    identifier: string,
-    didDocument: string
-  ): void {
+  checkDid(clientId: string, identifier: string, didDocument?: string): void {
     const identifierUtf8 = Buffer.from(
       remove0xPrefix(identifier),
       "hex"
@@ -180,6 +176,8 @@ export class JsonRpcService {
         `Identifier ${identifierUtf8} doesn't match JWT's DID ${clientId}`
       );
     }
+
+    if (!didDocument) return;
 
     // Check if DID Document's "id" matches with the JWT's DID
     const parsedDidDocument = JSON.parse(
@@ -276,44 +274,33 @@ export class JsonRpcService {
       case "insertDidDocument": {
         const castArgs = args as unknown as ArgsInsertDidDocument;
         await validateClass(ArgsInsertDidDocument, castArgs);
-        this.checkDidDocument(
-          clientId,
-          castArgs.identifier,
-          castArgs.didVersionInfo
-        );
+        this.checkDid(clientId, castArgs.identifier, castArgs.didVersionInfo);
         await this.checkHash(castArgs.hashAlgorithmId, castArgs.hashValue);
         break;
       }
       case "updateDidDocument": {
         const castArgs = args as unknown as ArgsUpdateDidDocument;
         await validateClass(ArgsUpdateDidDocument, castArgs);
-        this.checkDidDocument(
-          clientId,
-          castArgs.identifier,
-          castArgs.didVersionInfo
-        );
+        this.checkDid(clientId, castArgs.identifier, castArgs.didVersionInfo);
         await this.checkHash(castArgs.hashAlgorithmId, castArgs.hashValue);
         break;
       }
       case "insertDidController": {
-        await validateClass(
-          ArgsInsertDidController,
-          args as unknown as ArgsInsertDidController
-        );
+        const castArgs = args as unknown as ArgsInsertDidController;
+        await validateClass(ArgsInsertDidController, castArgs);
+        this.checkDid(clientId, castArgs.identifier);
         break;
       }
       case "updateDidController": {
-        await validateClass(
-          ArgsUpdateDidController,
-          args as unknown as ArgsUpdateDidController
-        );
+        const castArgs = args as unknown as ArgsUpdateDidController;
+        await validateClass(ArgsUpdateDidController, castArgs);
+        this.checkDid(clientId, castArgs.identifier);
         break;
       }
       case "revokeDidController": {
-        await validateClass(
-          ArgsRevokeDidController,
-          args as unknown as ArgsRevokeDidController
-        );
+        const castArgs = args as unknown as ArgsRevokeDidController;
+        await validateClass(ArgsRevokeDidController, castArgs);
+        this.checkDid(clientId, castArgs.identifier);
         break;
       }
       case "insertDidMethod": {
@@ -333,22 +320,14 @@ export class JsonRpcService {
       case "appendDidDocumentVersionHash": {
         const castArgs = args as unknown as ArgsAppendDidDocumentVersionHash;
         await validateClass(ArgsAppendDidDocumentVersionHash, castArgs);
-        this.checkDidDocument(
-          clientId,
-          castArgs.identifier,
-          castArgs.didVersionInfo
-        );
+        this.checkDid(clientId, castArgs.identifier, castArgs.didVersionInfo);
         await this.checkHash(castArgs.hashAlgorithmId, castArgs.hashValue);
         break;
       }
       case "detachDidDocumentVersionHash": {
         const castArgs = args as unknown as ArgsDetachDidDocumentVersionHash;
         await validateClass(ArgsDetachDidDocumentVersionHash, castArgs);
-        this.checkDidDocument(
-          clientId,
-          castArgs.identifier,
-          castArgs.didVersionInfo
-        );
+        this.checkDid(clientId, castArgs.identifier, castArgs.didVersionInfo);
         await this.checkHash(castArgs.hashAlgorithmId, castArgs.hashValue);
         break;
       }
@@ -356,22 +335,14 @@ export class JsonRpcService {
         const castArgs =
           args as unknown as ArgsAppendDidDocumentVersionMetadata;
         await validateClass(ArgsAppendDidDocumentVersionMetadata, castArgs);
-        this.checkDidDocument(
-          clientId,
-          castArgs.identifier,
-          castArgs.didVersionInfo
-        );
+        this.checkDid(clientId, castArgs.identifier, castArgs.didVersionInfo);
         break;
       }
       case "detachDidDocumentVersionMetadata": {
         const castArgs =
           args as unknown as ArgsDetachDidDocumentVersionMetadata;
         await validateClass(ArgsDetachDidDocumentVersionMetadata, castArgs);
-        this.checkDidDocument(
-          clientId,
-          castArgs.identifier,
-          castArgs.didVersionInfo
-        );
+        this.checkDid(clientId, castArgs.identifier, castArgs.didVersionInfo);
         break;
       }
       default:
@@ -547,7 +518,7 @@ export class JsonRpcService {
         didVersionMetadata,
       } = body.params[0];
 
-      this.checkDidDocument(clientId, identifier, didVersionInfo);
+      this.checkDid(clientId, identifier, didVersionInfo);
       await this.checkHash(hashAlgorithmId, hashValue);
 
       const data = (
@@ -587,7 +558,7 @@ export class JsonRpcService {
         didVersionMetadata,
       } = body.params[0];
 
-      this.checkDidDocument(clientId, identifier, didVersionInfo);
+      this.checkDid(clientId, identifier, didVersionInfo);
       await this.checkHash(hashAlgorithmId, hashValue);
 
       const data = (
@@ -610,6 +581,7 @@ export class JsonRpcService {
   }
 
   async buildTransactionInsertDidController(
+    clientId: string,
     body: RequestInsertDidControllerDto,
     id?: number | string
   ): Promise<UnsignedTransaction> {
@@ -618,6 +590,8 @@ export class JsonRpcService {
 
       const { from, identifier, newControllerId, notBefore, notAfter } =
         body.params[0];
+
+      this.checkDid(clientId, identifier);
 
       const data = (
         await this.ledgerService.getContract()
@@ -636,6 +610,7 @@ export class JsonRpcService {
   }
 
   async buildTransactionUpdateDidController(
+    clientId: string,
     body: RequestUpdateDidControllerDto,
     id?: number | string
   ): Promise<UnsignedTransaction> {
@@ -644,6 +619,8 @@ export class JsonRpcService {
 
       const { from, identifier, newControllerId, notBefore, notAfter } =
         body.params[0];
+
+      this.checkDid(clientId, identifier);
 
       const data = (
         await this.ledgerService.getContract()
@@ -662,6 +639,7 @@ export class JsonRpcService {
   }
 
   async buildTransactionRevokeDidController(
+    clientId: string,
     body: RequestRevokeDidControllerDto,
     id?: number | string
   ): Promise<UnsignedTransaction> {
@@ -669,6 +647,8 @@ export class JsonRpcService {
       await validateClass(RequestRevokeDidControllerDto, body);
 
       const { from, identifier, oldControllerId } = body.params[0];
+
+      this.checkDid(clientId, identifier);
 
       const data = (
         await this.ledgerService.getContract()
@@ -775,7 +755,7 @@ export class JsonRpcService {
         didVersionInfo,
       } = body.params[0];
 
-      this.checkDidDocument(clientId, identifier, didVersionInfo);
+      this.checkDid(clientId, identifier, didVersionInfo);
       await this.checkHash(hashAlgorithmId, hashValue);
 
       const data = (
@@ -806,7 +786,7 @@ export class JsonRpcService {
       const { from, identifier, hashAlgorithmId, hashValue, didVersionInfo } =
         body.params[0];
 
-      this.checkDidDocument(clientId, identifier, didVersionInfo);
+      this.checkDid(clientId, identifier, didVersionInfo);
       await this.checkHash(hashAlgorithmId, hashValue);
 
       const data = (
@@ -836,7 +816,7 @@ export class JsonRpcService {
       const { from, identifier, didVersionInfo, didVersionMetadata } =
         body.params[0];
 
-      this.checkDidDocument(clientId, identifier, didVersionInfo);
+      this.checkDid(clientId, identifier, didVersionInfo);
 
       const data = (
         await this.ledgerService.getContract()
@@ -864,7 +844,7 @@ export class JsonRpcService {
       const { from, identifier, didVersionInfo, didVersionMetadata } =
         body.params[0];
 
-      this.checkDidDocument(clientId, identifier, didVersionInfo);
+      this.checkDid(clientId, identifier, didVersionInfo);
 
       const data = (
         await this.ledgerService.getContract()
