@@ -10,12 +10,15 @@ import type { FastifyInstance } from "fastify";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { ApiConfig } from "../../src/config/configuration";
+import { getServer } from "../utils/getServer";
+import { describeWriteOps } from "../utils/describeWriteOps";
 
 jest.setTimeout(60000);
 
 describe("/trusted-ledgers-smart-contracts-registry/v2 (generic tests)", () => {
-  let server: HttpServer;
-  let configService: ConfigService<ApiConfig>;
+  let server: HttpServer | string;
+  let apiUrlPrefix = "";
+  let trustedAppsRegistryApiUrl = "";
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -34,9 +37,18 @@ describe("/trusted-ledgers-smart-contracts-registry/v2 (generic tests)", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
 
-    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+    const configService =
+      moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+
+    trustedAppsRegistryApiUrl = configService.get<string>(
+      "trustedAppsRegistryApiUrl"
+    );
+    server = getServer(app, configService);
+
+    if (process.env.TEST_ENV === "remote") {
+      apiUrlPrefix = configService.get<string>("apiUrlPrefix");
+    }
   });
 
   describe("GET /health", () => {
@@ -62,14 +74,14 @@ describe("/trusted-ledgers-smart-contracts-registry/v2 (generic tests)", () => {
       expect(response.body).toStrictEqual({
         title: "Not Found",
         status: 404,
-        detail: "Cannot GET /bad-method",
+        detail: `Cannot GET ${apiUrlPrefix}/bad-method`,
         type: "about:blank",
       });
       expect(response.status).toBe(404);
     });
   });
 
-  describe("POST /jsonrpc", () => {
+  describeWriteOps()("POST /jsonrpc", () => {
     it("should reject a POST without JWT", async () => {
       expect.assertions(3);
 
@@ -97,11 +109,8 @@ describe("/trusted-ledgers-smart-contracts-registry/v2 (generic tests)", () => {
           { type: "bearer" }
         )
         .send();
-
       expect(response.body).toStrictEqual({
-        detail: `Invalid JWT: JWT with invalid kid. It should be hosted at ${configService.get<string>(
-          "trustedAppsRegistryApiUrl"
-        )}/apps`,
+        detail: `Invalid JWT: JWT with invalid kid. It should be hosted at ${trustedAppsRegistryApiUrl}/apps`,
         status: 401,
         title: "Unauthorized",
         type: "about:blank",
