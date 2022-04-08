@@ -19,6 +19,8 @@ import {
 import { byteLength } from "../../src/shared/utils";
 import { ApiConfig } from "../../src/config/configuration";
 import { requestSiopJwt } from "../utils";
+import { describeWriteOps } from "../utils/describeWriteOps";
+import { getServer } from "../utils/getServer";
 
 jest.setTimeout(60000);
 
@@ -26,7 +28,7 @@ const BASE_URL = "/stores/distributed/files";
 
 describe("Files (e2e)", () => {
   let app: NestFastifyApplication;
-  let server: HttpServer;
+  let server: HttpServer | string;
   let configService: ConfigService<ApiConfig>;
   let testUserAccessToken: string;
 
@@ -70,8 +72,9 @@ describe("Files (e2e)", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+    server = getServer(app, configService);
 
     // Generate valid Client JWT (SIOP) for the tests
     testUserAccessToken = await requestSiopJwt({
@@ -88,7 +91,7 @@ describe("Files (e2e)", () => {
     await app.close();
   });
 
-  describe(`POST ${BASE_URL}`, () => {
+  describeWriteOps()(`POST ${BASE_URL}`, () => {
     it("should throw an error if there's no JWT", async () => {
       expect.assertions(2);
 
@@ -398,23 +401,25 @@ describe("Files (e2e)", () => {
       expect(response.status).toBe(404);
     });
 
-    it("should return the file corresponding to the hash", async () => {
-      expect.assertions(3);
+    describeWriteOps()("Test requiring actual data", () => {
+      it("should return the file corresponding to the hash", async () => {
+        expect.assertions(3);
 
-      const response = await request(server)
-        .get(`${BASE_URL}/${hash1}`)
-        .auth(testUserAccessToken, { type: "bearer" })
-        .send();
+        const response = await request(server)
+          .get(`${BASE_URL}/${hash1}`)
+          .auth(testUserAccessToken, { type: "bearer" })
+          .send();
 
-      expect(response.text).toStrictEqual(file1.toString());
-      expect((response as { header: unknown[] }).header).toStrictEqual(
-        expect.objectContaining({
-          "content-type": "text/plain",
-          "content-disposition": "attachment; filename=file.txt",
-          "content-length": `${byteLength(file1)}`,
-        })
-      );
-      expect(response.status).toBe(200);
+        expect(response.text).toStrictEqual(file1.toString());
+        expect((response as { header: unknown[] }).header).toStrictEqual(
+          expect.objectContaining({
+            "content-type": "text/plain",
+            "content-disposition": "attachment; filename=file.txt",
+            "content-length": `${byteLength(file1)}`,
+          })
+        );
+        expect(response.status).toBe(200);
+      });
     });
   });
 
@@ -452,26 +457,27 @@ describe("Files (e2e)", () => {
       });
       expect(response.status).toBe(404);
     });
+    describeWriteOps()("Test requiring actual data", () => {
+      it("should return the metadata corresponding to the hash", async () => {
+        expect.assertions(2);
 
-    it("should return the metadata corresponding to the hash", async () => {
-      expect.assertions(2);
+        const response = await request(server)
+          .get(`${BASE_URL}/${hash1}/metadata`)
+          .auth(testUserAccessToken, { type: "bearer" })
+          .send();
 
-      const response = await request(server)
-        .get(`${BASE_URL}/${hash1}/metadata`)
-        .auth(testUserAccessToken, { type: "bearer" })
-        .send();
-
-      // The metadata also contains the mimetype and filename extracted from the upload request
-      expect(response.body).toStrictEqual({
-        filename: "file.txt",
-        mimetype: "text/plain",
-        ...metadata1,
+        // The metadata also contains the mimetype and filename extracted from the upload request
+        expect(response.body).toStrictEqual({
+          filename: "file.txt",
+          mimetype: "text/plain",
+          ...metadata1,
+        });
+        expect(response.status).toBe(200);
       });
-      expect(response.status).toBe(200);
     });
   });
 
-  describe(`PATCH ${BASE_URL}/{hash}`, () => {
+  describeWriteOps()(`PATCH ${BASE_URL}/{hash}`, () => {
     it("should throw an error 400 when the hash is not hexadecimal", async () => {
       expect.assertions(2);
 
@@ -624,7 +630,7 @@ describe("Files (e2e)", () => {
     });
   });
 
-  describe(`DELETE ${BASE_URL}/{hash}`, () => {
+  describeWriteOps()(`DELETE ${BASE_URL}/{hash}`, () => {
     it("should throw a 400 when the hash is malformed", async () => {
       expect.assertions(2);
 
@@ -641,7 +647,7 @@ describe("Files (e2e)", () => {
       });
       expect(response.status).toBe(400);
     });
-
+    /* eslint-disable-next-line jest/no-identical-title */
     it("should throw a 404 when the hash doesn't exist", async () => {
       expect.assertions(2);
 

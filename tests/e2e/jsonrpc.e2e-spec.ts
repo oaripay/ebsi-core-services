@@ -13,10 +13,12 @@ import { AppModule } from "../../src/app.module";
 import { fastifyAdapterConfig } from "../../src/config/server.config";
 import { ApiConfig } from "../../src/config/configuration";
 import { requestOAuth2Jwt } from "../utils";
+import { describeWriteOps } from "../utils/describeWriteOps";
+import { getServer } from "../utils/getServer";
 
-describe("JsonRpc Module", () => {
+describeWriteOps()("JsonRpc Module", () => {
   let app: NestFastifyApplication;
-  let server: HttpServer;
+  let server: HttpServer | string;
   let configService: ConfigService<ApiConfig>;
 
   let accessToken: string;
@@ -37,8 +39,9 @@ describe("JsonRpc Module", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+    server = getServer(app, configService);
 
     // Generate a valid JWT for the tests
     accessToken = await requestOAuth2Jwt({
@@ -192,7 +195,7 @@ describe("JsonRpc Module", () => {
     ["delete from attribute_storage where hash = ?", attributeHash],
   ];
 
-  describe.each(queries)("calling %j", (...args) => {
+  describeWriteOps().each(queries)("calling %j", (...args) => {
     it("should proxy a call to cassandra", async () => {
       expect.assertions(2);
       const response = await request(server)

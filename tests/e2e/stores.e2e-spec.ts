@@ -6,14 +6,17 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
+import { ConfigService } from "@nestjs/config";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { STORES } from "../../src/modules/stores/stores.constants";
 import { fastifyAdapterConfig } from "../../src/config/server.config";
+import { getServer } from "../utils/getServer";
+import { ApiConfig } from "../../src/config/configuration";
 
 describe("Stores (e2e)", () => {
   let app: NestFastifyApplication;
-  let server: HttpServer;
+  let server: HttpServer | string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -31,7 +34,10 @@ describe("Stores (e2e)", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+
+    const configService =
+      moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+    server = getServer(app, configService);
   });
 
   describe("GET /stores", () => {

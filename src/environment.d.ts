@@ -50,6 +50,8 @@ declare global {
       CASSANDRA_CONTACT_POINTS?: string;
       CASSANDRA_LOCAL_DATACENTER?: string;
       CASSANDRA_KEYSPACE?: string;
+      TEST_ENV?: string;
+      TEST_ENABLE_WRITE_OPS?: string;
     }
   }
 }
