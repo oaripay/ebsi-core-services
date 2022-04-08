@@ -24,6 +24,8 @@ declare global {
       TEST_ADMIN_PRIVATE_KEY: string;
       TEST_USER_KID: string;
       TEST_USER_PRIVATE_KEY: string;
+      TEST_ENV?: string;
+      TEST_ENABLE_WRITE_OPS?: string;
     }
   }
 

@@ -42,6 +42,8 @@ import { createPolicy } from "../utils/data";
 import { requestSiopJwt } from "../utils/siopJwt";
 import { waitToBeMined } from "../utils/waitToBeMined";
 import { LedgerService } from "../../src/shared/services/ledger.service";
+import { describeWriteOps } from "../utils/describeWriteOps";
+import { getServer } from "../utils/getServer";
 
 interface SupertestPoliciesResponse {
   status: number;
@@ -65,7 +67,7 @@ jest.setTimeout(180000);
 
 describe("Policies (e2e)", () => {
   let app: INestApplication;
-  let server: HttpServer;
+  let server: HttpServer | string;
   let configService: ConfigService<ApiConfig>;
   let ledgerService: LedgerService;
   let adminTestWallet: ethers.Wallet;
@@ -93,10 +95,11 @@ describe("Policies (e2e)", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
 
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
+
+    server = getServer(app, configService);
 
     adminTestWallet = new ethers.Wallet(
       prefixWith0x(configService.get("testAdminPrivateKey"))
@@ -381,363 +384,365 @@ describe("Policies (e2e)", () => {
       "deactivatePolicy",
       "activatePolicy",
     ])("/jsonrpc with method %s", (method: string) => {
-      it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction", async () => {
-        expect.assertions(7);
+      describeWriteOps()("(test writing data on the ledger)", () => {
+        it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction", async () => {
+          expect.assertions(7);
 
-        let param: JsonRpcParams = null;
+          let param: JsonRpcParams = null;
 
-        // Get number of existing policies
-        const response: SupertestPoliciesResponse = await request(server).get(
-          "/policies"
-        );
-        // Update last policy
-        const lastPolicyId = `${response.body.total - 1}`;
+          // Get number of existing policies
+          const response: SupertestPoliciesResponse = await request(server).get(
+            "/policies"
+          );
+          // Update last policy
+          const lastPolicyId = `${response.body.total - 1}`;
 
-        // Use test account, as defined in hardhat.config.ts
-        const signer = adminTestWallet;
+          // Use test account, as defined in hardhat.config.ts
+          const signer = adminTestWallet;
 
-        switch (method) {
-          case "insertPolicy": {
-            const { opType, policyConditions, policyName, description } =
-              policy1;
-            param = {
-              from: signer.address,
-              opType,
-              policyConditions,
-              policyName,
-              description,
-            } as InsertPolicyParam;
-            break;
+          switch (method) {
+            case "insertPolicy": {
+              const { opType, policyConditions, policyName, description } =
+                policy1;
+              param = {
+                from: signer.address,
+                opType,
+                policyConditions,
+                policyName,
+                description,
+              } as InsertPolicyParam;
+              break;
+            }
+            case "updatePolicy": {
+              const { opType, policyName, description } = policy2;
+              param = {
+                from: signer.address,
+                policyName,
+                opType,
+                description,
+              } as UpdatePolicyParam;
+              break;
+            }
+            case "addPolicyConditions": {
+              const { policyConditions, policyName } = policy3;
+              param = {
+                from: signer.address,
+                policyName,
+                policyConditions,
+              } as AddPolicyConditionsParam;
+              break;
+            }
+            case "deletePolicyCondition": {
+              const { policyName } = policy1;
+              param = {
+                from: signer.address,
+                policyName,
+                policyConditionId: "2",
+              } as DeletePolicyConditionParam;
+              break;
+            }
+            case "deactivatePolicy": {
+              const { policyName } = policy1;
+              param = {
+                from: signer.address,
+                policyName,
+              } as DeactivatePolicyParam;
+              break;
+            }
+            case "activatePolicy": {
+              const { policyName } = policy1;
+              param = {
+                from: signer.address,
+                policyName,
+              } as ActivatePolicyParam;
+              break;
+            }
+            default: {
+              throw new Error(`Test Error: Invalid method ${method}`);
+            }
           }
-          case "updatePolicy": {
-            const { opType, policyName, description } = policy2;
-            param = {
-              from: signer.address,
-              policyName,
-              opType,
-              description,
-            } as UpdatePolicyParam;
-            break;
-          }
-          case "addPolicyConditions": {
-            const { policyConditions, policyName } = policy3;
-            param = {
-              from: signer.address,
-              policyName,
-              policyConditions,
-            } as AddPolicyConditionsParam;
-            break;
-          }
-          case "deletePolicyCondition": {
-            const { policyName } = policy1;
-            param = {
-              from: signer.address,
-              policyName,
-              policyConditionId: "2",
-            } as DeletePolicyConditionParam;
-            break;
-          }
-          case "deactivatePolicy": {
-            const { policyName } = policy1;
-            param = {
-              from: signer.address,
-              policyName,
-            } as DeactivatePolicyParam;
-            break;
-          }
-          case "activatePolicy": {
-            const { policyName } = policy1;
-            param = {
-              from: signer.address,
-              policyName,
-            } as ActivatePolicyParam;
-            break;
-          }
-          default: {
-            throw new Error(`Test Error: Invalid method ${method}`);
-          }
-        }
 
-        const responseBuild: SupertestJsonRpcResponse = await request(server)
-          .post("/jsonrpc")
-          .auth(testAdminAccessToken, { type: "bearer" })
-          .send({
+          const responseBuild: SupertestJsonRpcResponse = await request(server)
+            .post("/jsonrpc")
+            .auth(testAdminAccessToken, { type: "bearer" })
+            .send({
+              jsonrpc: "2.0",
+              method,
+              params: [param],
+              id: 231,
+            });
+
+          expect(responseBuild.body).toStrictEqual({
             jsonrpc: "2.0",
-            method,
-            params: [param],
             id: 231,
+            result: {
+              chainId: expect.any(String) as string,
+              data: expect.any(String) as string,
+              from: param.from,
+              gasLimit: expect.any(String) as string,
+              gasPrice: expect.any(String) as string,
+              nonce: expect.any(String) as string,
+              to: expect.any(String) as string,
+              value: "0x0",
+            },
           });
+          expect(responseBuild.status).toBe(200);
 
-        expect(responseBuild.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: 231,
-          result: {
-            chainId: expect.any(String) as string,
-            data: expect.any(String) as string,
-            from: param.from,
-            gasLimit: expect.any(String) as string,
-            gasPrice: expect.any(String) as string,
-            nonce: expect.any(String) as string,
-            to: expect.any(String) as string,
-            value: "0x0",
-          },
-        });
-        expect(responseBuild.status).toBe(200);
+          const unsignedTransaction = responseBuild.body.result;
+          const uTx = formatEthersUnsignedTransaction(
+            JSON.parse(
+              JSON.stringify(unsignedTransaction)
+            ) as unknown as UnsignedTransaction
+          );
+          uTx.chainId = Number(uTx.chainId);
+          const sgnTx = await signer.signTransaction(uTx);
+          const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
-        const unsignedTransaction = responseBuild.body.result;
-        const uTx = formatEthersUnsignedTransaction(
-          JSON.parse(
-            JSON.stringify(unsignedTransaction)
-          ) as unknown as UnsignedTransaction
-        );
-        uTx.chainId = Number(uTx.chainId);
-        const sgnTx = await signer.signTransaction(uTx);
-        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+          const responseSend: SupertestJsonRpcResponse = await request(server)
+            .post("/jsonrpc")
+            .auth(testAdminAccessToken, { type: "bearer" })
+            .send({
+              jsonrpc: "2.0",
+              method: "sendSignedTransaction",
+              params: [
+                {
+                  protocol: "eth",
+                  unsignedTransaction,
+                  r,
+                  s,
+                  v: `0x${Number(v).toString(16)}`,
+                  signedRawTransaction: sgnTx,
+                },
+              ],
+              id: "45",
+            });
 
-        const responseSend: SupertestJsonRpcResponse = await request(server)
-          .post("/jsonrpc")
-          .auth(testAdminAccessToken, { type: "bearer" })
-          .send({
+          expect(responseSend.body).toStrictEqual({
             jsonrpc: "2.0",
-            method: "sendSignedTransaction",
-            params: [
-              {
-                protocol: "eth",
-                unsignedTransaction,
-                r,
-                s,
-                v: `0x${Number(v).toString(16)}`,
-                signedRawTransaction: sgnTx,
-              },
-            ],
             id: "45",
+            result: expect.any(String) as string,
           });
+          expect(responseSend.status).toBe(200);
 
-        expect(responseSend.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: "45",
-          result: expect.any(String) as string,
+          // Wait to be mined
+          const receipt = await waitToBeMined(
+            ledgerService,
+            responseSend.body.result as string
+          );
+          expect(receipt.status).toBe(1);
+
+          // Check if policy has been inserted/updated correctly
+          let expectedResponseBody: unknown;
+          let actualResponse: SupertestPoliciesResponse;
+
+          switch (method) {
+            case "insertPolicy": {
+              const { opType, policyConditions, policyName, description } =
+                policy1;
+
+              // Get number of existing policies
+              const getPoliciesResponse: SupertestPoliciesResponse =
+                await request(server).get("/policies");
+
+              const policyId = `${getPoliciesResponse.body.total - 1}`;
+
+              // Expected response
+              expectedResponseBody = {
+                policyId: `${policyId}`,
+                operationType: OPERATION_TYPES[opType],
+                policyConditions: policyConditions.map((condition) => ({
+                  attributeName: condition.attributeName,
+                  attributeOperation:
+                    ATTRIBUTE_OPERATIONS[condition.attributeOperation],
+                  name: condition.name,
+                  typeOfValue: ATTRIBUTE_TYPES[condition.typeOfValue],
+                  value: condition.expectedValue,
+                })),
+                policyName,
+                description,
+                status: true,
+              } as PolicyResponseObject;
+
+              // Actual response
+              actualResponse = await request(server).get(
+                `/policies/${policyName}`
+              );
+
+              break;
+            }
+            case "updatePolicy": {
+              const { policyConditions } = policy1;
+              const { opType, policyName, description } = policy2;
+
+              // Expected response
+              expectedResponseBody = {
+                policyId: `${lastPolicyId}`,
+                operationType: OPERATION_TYPES[opType],
+                policyConditions: policyConditions.map((condition) => ({
+                  attributeName: condition.attributeName,
+                  attributeOperation:
+                    ATTRIBUTE_OPERATIONS[condition.attributeOperation],
+                  name: condition.name,
+                  typeOfValue: ATTRIBUTE_TYPES[condition.typeOfValue],
+                  value: condition.expectedValue,
+                })),
+                policyName,
+                description,
+                status: true,
+              } as PolicyResponseObject;
+
+              // Actual response
+              actualResponse = await request(server).get(
+                `/policies/${policyName}`
+              );
+
+              break;
+            }
+            case "addPolicyConditions": {
+              const { policyConditions } = policy1;
+              const { opType, policyName, description } = policy2;
+              const { policyConditions: newPolicyConditions } = policy3;
+
+              // Expected response
+              expectedResponseBody = {
+                policyId: `${lastPolicyId}`,
+                operationType: OPERATION_TYPES[opType],
+                policyConditions: [
+                  ...policyConditions,
+                  ...newPolicyConditions,
+                ].map((condition) => ({
+                  attributeName: condition.attributeName,
+                  attributeOperation:
+                    ATTRIBUTE_OPERATIONS[condition.attributeOperation],
+                  name: condition.name,
+                  typeOfValue: ATTRIBUTE_TYPES[condition.typeOfValue],
+                  value: condition.expectedValue,
+                })),
+                policyName,
+                description,
+                status: true,
+              } as PolicyResponseObject;
+
+              // Actual response
+              actualResponse = await request(server).get(
+                `/policies/${policyName}`
+              );
+
+              break;
+            }
+            case "deletePolicyCondition": {
+              const { policyConditions } = policy1;
+              const { opType, policyName, description } = policy2;
+              const { policyConditions: newPolicyConditions } = policy3;
+
+              // Remove condition with conditionId = "2"
+              // I.e. move last item to index = 2, then remove last item
+              const conditions = [...policyConditions, ...newPolicyConditions];
+              conditions.splice(2, 1, conditions[conditions.length - 1]);
+              conditions.pop();
+
+              // Expected response
+              expectedResponseBody = {
+                policyId: `${lastPolicyId}`,
+                operationType: OPERATION_TYPES[opType],
+                policyConditions: conditions.map((condition) => ({
+                  attributeName: condition.attributeName,
+                  attributeOperation:
+                    ATTRIBUTE_OPERATIONS[condition.attributeOperation],
+                  name: condition.name,
+                  typeOfValue: ATTRIBUTE_TYPES[condition.typeOfValue],
+                  value: condition.expectedValue,
+                })),
+                policyName,
+                description,
+                status: true,
+              } as PolicyResponseObject;
+
+              // Actual response
+              actualResponse = await request(server).get(
+                `/policies/${policyName}`
+              );
+
+              break;
+            }
+            case "deactivatePolicy": {
+              const { policyConditions } = policy1;
+              const { opType, policyName, description } = policy2;
+              const { policyConditions: newPolicyConditions } = policy3;
+
+              // Remove condition with conditionId = "2"
+              // I.e. move last item to index = 2, then remove last item
+              const conditions = [...policyConditions, ...newPolicyConditions];
+              conditions.splice(2, 1, conditions[conditions.length - 1]);
+              conditions.pop();
+
+              // Expected response
+              expectedResponseBody = {
+                policyId: `${lastPolicyId}`,
+                operationType: OPERATION_TYPES[opType],
+                policyConditions: conditions.map((condition) => ({
+                  attributeName: condition.attributeName,
+                  attributeOperation:
+                    ATTRIBUTE_OPERATIONS[condition.attributeOperation],
+                  name: condition.name,
+                  typeOfValue: ATTRIBUTE_TYPES[condition.typeOfValue],
+                  value: condition.expectedValue,
+                })),
+                policyName,
+                description,
+                status: false,
+              } as PolicyResponseObject;
+
+              // Actual response
+              actualResponse = await request(server).get(
+                `/policies/${policyName}`
+              );
+
+              break;
+            }
+            case "activatePolicy": {
+              const { policyConditions } = policy1;
+              const { opType, policyName, description } = policy2;
+              const { policyConditions: newPolicyConditions } = policy3;
+
+              // Remove condition with conditionId = "2"
+              // I.e. move last item to index = 2, then remove last item
+              const conditions = [...policyConditions, ...newPolicyConditions];
+              conditions.splice(2, 1, conditions[conditions.length - 1]);
+              conditions.pop();
+
+              // Expected response
+              expectedResponseBody = {
+                policyId: `${lastPolicyId}`,
+                operationType: OPERATION_TYPES[opType],
+                policyConditions: conditions.map((condition) => ({
+                  attributeName: condition.attributeName,
+                  attributeOperation:
+                    ATTRIBUTE_OPERATIONS[condition.attributeOperation],
+                  name: condition.name,
+                  typeOfValue: ATTRIBUTE_TYPES[condition.typeOfValue],
+                  value: condition.expectedValue,
+                })),
+                policyName,
+                description,
+                status: true,
+              } as PolicyResponseObject;
+
+              // Actual response
+              actualResponse = await request(server).get(
+                `/policies/${policyName}`
+              );
+
+              break;
+            }
+            default: {
+              break;
+            }
+          }
+
+          expect(actualResponse.body).toStrictEqual(expectedResponseBody);
+          expect(actualResponse.status).toBe(200);
         });
-        expect(responseSend.status).toBe(200);
-
-        // Wait to be mined
-        const receipt = await waitToBeMined(
-          ledgerService,
-          responseSend.body.result as string
-        );
-        expect(receipt.status).toBe(1);
-
-        // Check if policy has been inserted/updated correctly
-        let expectedResponseBody: unknown;
-        let actualResponse: SupertestPoliciesResponse;
-
-        switch (method) {
-          case "insertPolicy": {
-            const { opType, policyConditions, policyName, description } =
-              policy1;
-
-            // Get number of existing policies
-            const getPoliciesResponse: SupertestPoliciesResponse =
-              await request(server).get("/policies");
-
-            const policyId = `${getPoliciesResponse.body.total - 1}`;
-
-            // Expected response
-            expectedResponseBody = {
-              policyId: `${policyId}`,
-              operationType: OPERATION_TYPES[opType],
-              policyConditions: policyConditions.map((condition) => ({
-                attributeName: condition.attributeName,
-                attributeOperation:
-                  ATTRIBUTE_OPERATIONS[condition.attributeOperation],
-                name: condition.name,
-                typeOfValue: ATTRIBUTE_TYPES[condition.typeOfValue],
-                value: condition.expectedValue,
-              })),
-              policyName,
-              description,
-              status: true,
-            } as PolicyResponseObject;
-
-            // Actual response
-            actualResponse = await request(server).get(
-              `/policies/${policyName}`
-            );
-
-            break;
-          }
-          case "updatePolicy": {
-            const { policyConditions } = policy1;
-            const { opType, policyName, description } = policy2;
-
-            // Expected response
-            expectedResponseBody = {
-              policyId: `${lastPolicyId}`,
-              operationType: OPERATION_TYPES[opType],
-              policyConditions: policyConditions.map((condition) => ({
-                attributeName: condition.attributeName,
-                attributeOperation:
-                  ATTRIBUTE_OPERATIONS[condition.attributeOperation],
-                name: condition.name,
-                typeOfValue: ATTRIBUTE_TYPES[condition.typeOfValue],
-                value: condition.expectedValue,
-              })),
-              policyName,
-              description,
-              status: true,
-            } as PolicyResponseObject;
-
-            // Actual response
-            actualResponse = await request(server).get(
-              `/policies/${policyName}`
-            );
-
-            break;
-          }
-          case "addPolicyConditions": {
-            const { policyConditions } = policy1;
-            const { opType, policyName, description } = policy2;
-            const { policyConditions: newPolicyConditions } = policy3;
-
-            // Expected response
-            expectedResponseBody = {
-              policyId: `${lastPolicyId}`,
-              operationType: OPERATION_TYPES[opType],
-              policyConditions: [
-                ...policyConditions,
-                ...newPolicyConditions,
-              ].map((condition) => ({
-                attributeName: condition.attributeName,
-                attributeOperation:
-                  ATTRIBUTE_OPERATIONS[condition.attributeOperation],
-                name: condition.name,
-                typeOfValue: ATTRIBUTE_TYPES[condition.typeOfValue],
-                value: condition.expectedValue,
-              })),
-              policyName,
-              description,
-              status: true,
-            } as PolicyResponseObject;
-
-            // Actual response
-            actualResponse = await request(server).get(
-              `/policies/${policyName}`
-            );
-
-            break;
-          }
-          case "deletePolicyCondition": {
-            const { policyConditions } = policy1;
-            const { opType, policyName, description } = policy2;
-            const { policyConditions: newPolicyConditions } = policy3;
-
-            // Remove condition with conditionId = "2"
-            // I.e. move last item to index = 2, then remove last item
-            const conditions = [...policyConditions, ...newPolicyConditions];
-            conditions.splice(2, 1, conditions[conditions.length - 1]);
-            conditions.pop();
-
-            // Expected response
-            expectedResponseBody = {
-              policyId: `${lastPolicyId}`,
-              operationType: OPERATION_TYPES[opType],
-              policyConditions: conditions.map((condition) => ({
-                attributeName: condition.attributeName,
-                attributeOperation:
-                  ATTRIBUTE_OPERATIONS[condition.attributeOperation],
-                name: condition.name,
-                typeOfValue: ATTRIBUTE_TYPES[condition.typeOfValue],
-                value: condition.expectedValue,
-              })),
-              policyName,
-              description,
-              status: true,
-            } as PolicyResponseObject;
-
-            // Actual response
-            actualResponse = await request(server).get(
-              `/policies/${policyName}`
-            );
-
-            break;
-          }
-          case "deactivatePolicy": {
-            const { policyConditions } = policy1;
-            const { opType, policyName, description } = policy2;
-            const { policyConditions: newPolicyConditions } = policy3;
-
-            // Remove condition with conditionId = "2"
-            // I.e. move last item to index = 2, then remove last item
-            const conditions = [...policyConditions, ...newPolicyConditions];
-            conditions.splice(2, 1, conditions[conditions.length - 1]);
-            conditions.pop();
-
-            // Expected response
-            expectedResponseBody = {
-              policyId: `${lastPolicyId}`,
-              operationType: OPERATION_TYPES[opType],
-              policyConditions: conditions.map((condition) => ({
-                attributeName: condition.attributeName,
-                attributeOperation:
-                  ATTRIBUTE_OPERATIONS[condition.attributeOperation],
-                name: condition.name,
-                typeOfValue: ATTRIBUTE_TYPES[condition.typeOfValue],
-                value: condition.expectedValue,
-              })),
-              policyName,
-              description,
-              status: false,
-            } as PolicyResponseObject;
-
-            // Actual response
-            actualResponse = await request(server).get(
-              `/policies/${policyName}`
-            );
-
-            break;
-          }
-          case "activatePolicy": {
-            const { policyConditions } = policy1;
-            const { opType, policyName, description } = policy2;
-            const { policyConditions: newPolicyConditions } = policy3;
-
-            // Remove condition with conditionId = "2"
-            // I.e. move last item to index = 2, then remove last item
-            const conditions = [...policyConditions, ...newPolicyConditions];
-            conditions.splice(2, 1, conditions[conditions.length - 1]);
-            conditions.pop();
-
-            // Expected response
-            expectedResponseBody = {
-              policyId: `${lastPolicyId}`,
-              operationType: OPERATION_TYPES[opType],
-              policyConditions: conditions.map((condition) => ({
-                attributeName: condition.attributeName,
-                attributeOperation:
-                  ATTRIBUTE_OPERATIONS[condition.attributeOperation],
-                name: condition.name,
-                typeOfValue: ATTRIBUTE_TYPES[condition.typeOfValue],
-                value: condition.expectedValue,
-              })),
-              policyName,
-              description,
-              status: true,
-            } as PolicyResponseObject;
-
-            // Actual response
-            actualResponse = await request(server).get(
-              `/policies/${policyName}`
-            );
-
-            break;
-          }
-          default: {
-            break;
-          }
-        }
-
-        expect(actualResponse.body).toStrictEqual(expectedResponseBody);
-        expect(actualResponse.status).toBe(200);
       });
 
       it("should accept a request without id", async () => {
