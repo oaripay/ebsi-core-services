@@ -15,12 +15,14 @@ import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { AttributeResponseObject } from "../../src/modules/attributes/attributes.interface";
 import { PaginatedList } from "../../src/shared/interfaces";
 import { requestSiopJwt } from "../utils/auth";
+import { describeWriteOps } from "../utils/describeWriteOps";
+import { getServer } from "../utils/getServer";
 
 jest.setTimeout(120000);
 
-describe("Attributes", () => {
+describeWriteOps()("Attributes", () => {
   let app: NestFastifyApplication;
-  let server: HttpServer;
+  let server: HttpServer | string;
 
   let testUser1: {
     kid: string;
@@ -107,10 +109,10 @@ describe("Attributes", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
 
     const configService =
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+    server = getServer(app, configService);
 
     const authorisationApiUrl = configService.get<string>(
       "authorisationApiUrl"
