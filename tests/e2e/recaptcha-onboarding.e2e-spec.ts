@@ -22,6 +22,7 @@ import {
   VerifiableAuthorization,
 } from "../../src/shared/interfaces";
 import { prefix0x } from "../../src/modules/authentication/authentication.utils";
+import { getServer } from "../utils/getServer";
 
 interface SupertestAuthenticationRequestResponse {
   status: number;
@@ -44,7 +45,7 @@ const describeSkipCI = isCI ? describe.skip : describe;
  */
 describeSkipCI("reCAPTCHA onboarding", () => {
   let app: NestFastifyApplication;
-  let server: HttpServer;
+  let server: HttpServer | string;
   let configService: ConfigService<ApiConfig>;
 
   beforeAll(async () => {
@@ -57,7 +58,6 @@ describeSkipCI("reCAPTCHA onboarding", () => {
     );
     app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe());
-    server = app.getHttpServer() as HttpServer;
 
     Logger.overrideLogger(false);
 
@@ -65,6 +65,7 @@ describeSkipCI("reCAPTCHA onboarding", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
 
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+    server = getServer(app, configService);
   });
 
   it("should allow any user passing reCAPTCHA test to onboard", async () => {
