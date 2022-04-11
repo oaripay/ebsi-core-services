@@ -21,6 +21,8 @@ declare global {
       TEST_ADMIN_KID?: string;
       TEST_ADMIN_PRIVATE_KEY?: string;
       TEST_VA_SCHEMA_URL?: string;
+      TEST_ENV?: string;
+      TEST_ENABLE_WRITE_OPS?: string;
     }
   }
 
