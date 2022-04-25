@@ -74,6 +74,7 @@ describe("Issuers", () => {
   });
 
   beforeEach(async () => {
+    [userWithDid, issuer] = await ethers.getSigners();
     const paginationFactory = await ethers.getContractFactory("Pagination", {});
     const paginationLib = await paginationFactory.deploy();
 
