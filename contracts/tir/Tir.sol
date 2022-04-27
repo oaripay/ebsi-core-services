@@ -38,6 +38,10 @@ contract Tir is Initializable, TirDetailed, IssuerDetailed, TirPolicyDetailed {
             // unit tests. see tests/testAddress.ts
             tprAddress = 0xb2a560271ce08135e245F490b8794794A13a1208;
             didrAddress = 0xf6080028519B49D94C846bd34e30f72586E3F5d5;
+        } else if (id == 7176) {
+            // unit tests. see tests/testAddress.ts
+            tprAddress = 0x88aaea75E5D6965B526Cf2D940De22f4Ee314760;
+            didrAddress = 0x1D35980117DF109dbDfD57c0858FeeC61b7F52EB;
         }
 
         ds.trustedPolicyRegistry = IPolicyRegistry(tprAddress);
