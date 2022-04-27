@@ -7,7 +7,7 @@
   "scripts": {
     "fork": "hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/GVQRQezmyi7tO268bhIl5CSo6lM9ubfp --fork-block-number 11095000",
     "prettier-format": "prettier --write '**/*.{js,json,md,sol}'",
-    "compile": "hardhat compile",
+    "compile": "mkdir -p src/abi; hardhat --config hardhat.config.compiler.ts compile",
     "coverage": "hardhat coverage --testfiles 'tests/*.ts'",
     "lint": "yarn run lint:prettier && yarn lint:eslint && yarn lint:tsc",
     "lint:eslint": "eslint . --ext .js,.ts",
