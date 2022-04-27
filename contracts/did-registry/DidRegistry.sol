@@ -47,6 +47,9 @@ contract DidRegistry is
         } else if (id == 31337) {
             // unit tests. see tests/testAddress.ts
             tprAddress = 0xb2a560271ce08135e245F490b8794794A13a1208;
+        } else if (id == 7176) {
+            // SBSI TPR Address
+            tprAddress = 0x88aaea75E5D6965B526Cf2D940De22f4Ee314760;
         }
 
         hs.trustedPolicyRegistry = IPolicyRegistry(tprAddress);
