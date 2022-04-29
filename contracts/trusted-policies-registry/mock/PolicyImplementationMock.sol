@@ -3,4 +3,7 @@ pragma solidity ^0.8.9;
 
 import "../PolicyListManagement.sol";
 
-contract PolicyImplementationMock is PolicyListManagement {}
+// solhint-disable-next-line no-empty-blocks
+contract PolicyImplementationMock is PolicyListManagement {
+
+}
