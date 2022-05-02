@@ -16,7 +16,7 @@ pipeline {
                   parentCredentials: true,
                   recursiveSubmodules: true,
                   reference: '',
-                  trackingSubmodules: false
+                  trackingSubmodules: true
               ]],
               submoduleCfg: [],
               userRemoteConfigs: scm.userRemoteConfigs
