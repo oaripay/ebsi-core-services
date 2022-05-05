@@ -50,6 +50,9 @@ contract DidRegistry is
         } else if (id == 7176) {
             // SBSI TPR Address
             tprAddress = 0x88aaea75E5D6965B526Cf2D940De22f4Ee314760;
+        } else if (id == 6177) {
+            // PROD TPR Address
+            tprAddress = 0x18B271cCb08704d0F819284637225e31fF0B5EA9;
         }
 
         hs.trustedPolicyRegistry = IPolicyRegistry(tprAddress);
