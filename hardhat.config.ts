@@ -18,7 +18,8 @@ import "@nomiclabs/hardhat-etherscan";
 const mnemonicPath = `${__dirname}/.secret.mnemonic`;
 const privKeyPath = `${__dirname}/.secret.privatekey`;
 let mnemonic = "test test test test test test test test test test test junk";
-let privKey = "";
+let privKey =
+  "0x6a41084b4e952f85d4ea71f1af325fa9925f98befd72f8a12534c67b5679fe0e";
 try {
   mnemonic = fs.readFileSync(mnemonicPath).toString().trim();
   privKey = fs.readFileSync(privKeyPath).toString().trim();
