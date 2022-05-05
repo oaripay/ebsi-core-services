@@ -18,10 +18,6 @@
 	path = contracts/trusted-schemas-registry-ethereum-sc
 	url = https://ec.europa.eu/digital-building-blocks/code/scm/ebsi/trusted-schemas-registry-ethereum-sc.git
 	branch = develop
-[submodule "contracts/trusted-sc-registry-ethereum-sc"]
-	path = contracts/trusted-sc-registry-ethereum-sc
-	url = https://ec.europa.eu/digital-building-blocks/code/scm/ebsi/trusted-sc-registry-ethereum-sc.git
-	branch = develop
 [submodule "contracts/bootstrap-ethereum-sc"]
 	path = contracts/bootstrap-ethereum-sc
 	url = https://ec.europa.eu/digital-building-blocks/code/scm/ebsi/bootstrap-ethereum-sc
