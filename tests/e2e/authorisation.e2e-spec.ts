@@ -12,6 +12,7 @@ import {
   generateKeyPair,
   importJWK,
   jwtVerify,
+  JWTVerifyResult,
   SignJWT,
 } from "jose";
 import type { JWK } from "jose";
@@ -166,12 +167,14 @@ describe("Authorisation (e2e)", () => {
       expect(query.get("nonce")).toBeDefined();
       expect(query.get("request")).toBeDefined();
 
-      let publicKeyObject: crypto.KeyObject;
+      let verification: JWTVerifyResult;
 
       if (process.env.TEST_ENV !== "remote") {
-        publicKeyObject = (
-          await getPublicKey(configService.get("apiPrivateKey"))
-        ).publicKeyObject;
+        const { publicKeyObject } = await getPublicKey(
+          configService.get("apiPrivateKey")
+        );
+
+        verification = await jwtVerify(query.get("request"), publicKeyObject);
       } else {
         // When running the tests on the remote API, we need to get the public key from TAR
         const { payload } = decodeJWT(query.get("request"));
@@ -179,29 +182,39 @@ describe("Authorisation (e2e)", () => {
 
         const appInfo = await request(trustedAppsRegistry).get(`/${iss}`);
 
-        // Note: we assume the first key was used (might not always be true)
-        const publicKeyBase64 = (
-          appInfo.body as unknown as { publicKeys: string[] }
-        ).publicKeys[0];
+        const { publicKeys } = appInfo.body as unknown as {
+          publicKeys: string[];
+        };
 
         const keyEncoder = new KeyEncoder("secp256k1");
 
-        const publicKeyHex = keyEncoder.encodePublic(
-          Buffer.from(publicKeyBase64, "base64").toString("utf-8"),
-          "pem",
-          "raw"
+        const verificationResults = await Promise.all(
+          publicKeys.map(async (publicKeyBase64) => {
+            try {
+              const publicKeyHex = keyEncoder.encodePublic(
+                Buffer.from(publicKeyBase64, "base64").toString("utf-8"),
+                "pem",
+                "raw"
+              );
+
+              const publicKeyObject = (await importJWK(
+                encode.publicKey.fromHextoJWK(publicKeyHex),
+                "ES256K"
+              )) as crypto.KeyObject;
+
+              const res = await jwtVerify(
+                query.get("request"),
+                publicKeyObject
+              );
+              return res;
+            } catch (e) {
+              return null;
+            }
+          })
         );
 
-        publicKeyObject = (await importJWK(
-          encode.publicKey.fromHextoJWK(publicKeyHex),
-          "ES256K"
-        )) as crypto.KeyObject;
+        [verification] = verificationResults.filter((res) => res);
       }
-
-      const verification = await jwtVerify(
-        query.get("request"),
-        publicKeyObject
-      );
 
       expect(verification.payload).toStrictEqual({
         iat: expect.any(Number) as number,
