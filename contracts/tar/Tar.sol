@@ -51,6 +51,10 @@ contract Tar is
             // unit tests. see tests/testAddress.ts
             tprAddress = 0x88aaea75E5D6965B526Cf2D940De22f4Ee314760;
             didrAddress = 0x1D35980117DF109dbDfD57c0858FeeC61b7F52EB;
+        } else if (id == 6177) {
+            // unit tests. see tests/testAddress.ts
+            tprAddress = 0x18B271cCb08704d0F819284637225e31fF0B5EA9;
+            didrAddress = 0xeF719c562a30E5865159F673FB40497981980e1B;
         }
 
         ts.trustedPolicyRegistry = IPolicyRegistry(tprAddress);
