@@ -8,6 +8,7 @@ declare global {
       API_URL_PREFIX?: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
       DOMAIN?: string;
+      LOCAL_ORIGIN?: string;
       HEALTH_CHECK?: string;
       ENCRYPTION_SECRET: string;
       // Authorisation API
