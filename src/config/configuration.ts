@@ -10,6 +10,7 @@ export interface ApiConfig {
   apiName: string;
   logLevel: string;
   domain: string;
+  localOrigin: string;
   externalEbsiApiHealthCheck: string;
   encryptionSecret: string;
   // Authorisation API
@@ -95,6 +96,7 @@ export const loadConfig = (): ApiConfig => {
     apiName: process.env.API_NAME || "storage-api",
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
+    localOrigin: process.env.LOCAL_ORIGIN || "",
     externalEbsiApiHealthCheck:
       process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
     encryptionSecret: process.env.ENCRYPTION_SECRET,
@@ -151,6 +153,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "debug"
     ),
     DOMAIN: Joi.string().uri(),
+    LOCAL_ORIGIN: Joi.string().uri(),
     HEALTH_CHECK: Joi.string(),
     ENCRYPTION_SECRET: Joi.string().required(),
     // Authorisation API
