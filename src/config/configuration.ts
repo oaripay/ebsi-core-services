@@ -11,6 +11,7 @@ export interface ApiConfig {
   contractAddr: string;
   didRegistryApiUrl: string;
   domain: string;
+  localOrigin: string;
   logLevel: string;
   besuRpcNode: string;
   externalEbsiApiHealthCheck: string;
@@ -77,6 +78,7 @@ export const loadConfig = (): ApiConfig => {
     apiUrlPrefix: process.env.API_URL_PREFIX || "/trusted-apps-registry/v3",
     apiName: process.env.API_NAME || "trusted-apps-registry-api",
     domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
+    localOrigin: process.env.LOCAL_ORIGIN || "",
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     externalEbsiApiHealthCheck:
       process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
@@ -131,6 +133,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "debug"
     ),
     DOMAIN: Joi.string().uri(),
+    LOCAL_ORIGIN: Joi.string().uri(),
     HEALTH_CHECK: Joi.string(),
     // Ledger
     BESU_RPC_NODE: Joi.string().uri(),

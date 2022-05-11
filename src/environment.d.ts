@@ -7,6 +7,7 @@ declare global {
       API_PORT?: string;
       API_URL_PREFIX?: string;
       DOMAIN?: string;
+      LOCAL_ORIGIN?: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
       BESU_RPC_NODE?: string;
       CONTRACT_ADDR: string;
