@@ -184,26 +184,14 @@ paths:
                 type: object
                 properties:
                   verifiableCredential:
-                    type: object
-                    description: This field contains the Verifiable Credential requested, i.e. the Verifiable Authorisation
+                    type: string
+                    description: |
+                      This field contains the Verifiable Credential requested, i.e. the Verifiable
+                      Authorisation, as a VC JWT.
               examples:
                 Success:
                   value:
-                    verifiableCredential:
-                      credentialSubject:
-                        id: "did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ"
-                        issuer:
-                          id: "did:ebsi:zwC56DZdiJh8kSxbgg4fMCu"
-                        issuanceDate: "2021-04-26T15:55:02Z"
-                        "@context":
-                          - "https://www.w3.org/2018/credentials/v1"
-                        type: VerifiableCredential
-                        proof:
-                          type: EcdsaSecp256k1Signature2019
-                          created: "2021-04-26T15:55:02Z"
-                          proofPurpose: assertionMethod
-                          verificationMethod: "did:ebsi:zwC56DZdiJh8kSxbgg4fMCu#keys-1"
-                          jws: 351Oed421iLbLLJjINWF_EAXN6EaBk1AJUqbpHqpv7TZOA7PnCmgyurvPVvjjmw
+                    verifiableCredential: eyJraWQiOiJkaWQ6ZWJzaTp6d0M1NkRaZGlKaDhrU3hiZ2c0Zk1DdSNrZXlzLTEiLCJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QifQ.eyJpYXQiOjE2NTI4NjU5NTEsImV4cCI6MTY2ODU5MDc1MSwidmMiOnsiQGNvbnRleHQiOlsiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZGVudGlhbHMvdjEiXSwiaWQiOiJ2YzplYnNpOmF1dGhlbnRpY2F0aW9uI2QyZDUxOTVjLTM2NjEtNDU0Ni04MzI3LTkyOGRjNGMzNzg3MSIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJWZXJpZmlhYmxlQXV0aG9yaXNhdGlvbiJdLCJpc3N1ZXIiOiJkaWQ6ZWJzaTp6d0M1NkRaZGlKaDhrU3hiZ2c0Zk1DdSIsImlzc3VhbmNlRGF0ZSI6IjIwMjItMDUtMThUMDk6MjU6NTFaIiwiaXNzdWVkIjoiMjAyMi0wNS0xOFQwOToyNTo1MVoiLCJ2YWxpZEZyb20iOiIyMDIyLTA1LTE4VDA5OjI1OjUxWiIsImV4cGlyYXRpb25EYXRlIjoiMjAyMi0xMS0xNlQwOToyNTo1MVoiLCJjcmVkZW50aWFsU3ViamVjdCI6eyJpZCI6ImRpZDplYnNpOnoyNTZhc0JXbUhCc2oyWk5WeEc1TWhrcCJ9LCJjcmVkZW50aWFsU2NoZW1hIjp7ImlkIjoiaHR0cHM6Ly9hcGkudGVzdC5pbnRlYnNpLnh5ei90cnVzdGVkLXNjaGVtYXMtcmVnaXN0cnkvdjEvc2NoZW1hcy8weDI4ZDc2OTU0OTI0ZDFjNDc0N2E0ZjFmOWUzZTllZGM5Y2E5NjVlZmJmOGZmMjBlNDMzOWMyYmYyMzIzYTU3NzMiLCJ0eXBlIjoiRnVsbEpzb25TY2hlbWFWYWxpZGF0b3IyMDIxIn19LCJqdGkiOiJ2YzplYnNpOmF1dGhlbnRpY2F0aW9uI2QyZDUxOTVjLTM2NjEtNDU0Ni04MzI3LTkyOGRjNGMzNzg3MSIsInN1YiI6ImRpZDplYnNpOnoyNTZhc0JXbUhCc2oyWk5WeEc1TWhrcCIsImlzcyI6ImRpZDplYnNpOnp3QzU2RFpkaUpoOGtTeGJnZzRmTUN1IiwibmJmIjoxNjUyODY1OTUxfQ.W-AIPH-mB3pVokvbIn_HSp7dm65UzSHBfps8fCoaqddm9rY2xfNvcJSSKAmmjJQtFv7AdVNr4HXfbwMegoe2gg
         "400":
           $ref: "#/components/responses/400"
         "404":
