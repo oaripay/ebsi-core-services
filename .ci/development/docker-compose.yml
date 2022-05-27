@@ -6,4 +6,4 @@ services:
       context: ../..
       args:
         REACT_APP_REGISTRY_ADDRESS: ${REACT_APP_REGISTRY_ADDRESS}
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/trusted-apps-registry-web-client:v0.0.18
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/trusted-apps-registry-web-client:v0.0.19
