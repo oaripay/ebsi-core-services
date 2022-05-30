@@ -5,7 +5,7 @@ import type {
   ServiceEndpoint,
 } from "did-resolver";
 
-export const schemaVerificationMethod = Joi.object<VerificationMethod>({
+export const verificationMethodSchema = Joi.object<VerificationMethod>({
   id: Joi.string().required(),
   type: Joi.string().required(),
   controller: Joi.string().required(),
@@ -33,42 +33,45 @@ export const schemaVerificationMethod = Joi.object<VerificationMethod>({
   ethereumAddress: Joi.string(),
 }).required();
 
-export const schemaDidDocument = Joi.object<DIDDocument>({
-  "@context": Joi.alternatives()
-    .try(
-      Joi.array()
-        .min(1)
-        .ordered(Joi.string().valid("https://www.w3.org/ns/did/v1").required())
-        .required(),
-      Joi.string().valid("https://www.w3.org/ns/did/v1").required()
-    )
-    .required(),
+export const contextSchema = Joi.alternatives()
+  .try(
+    Joi.array()
+      .min(1)
+      .items(Joi.string().uri())
+      .ordered(Joi.string().valid("https://www.w3.org/ns/did/v1").required())
+      .required(),
+    Joi.string().valid("https://www.w3.org/ns/did/v1").required()
+  )
+  .required();
+
+export const didDocumentSchema = Joi.object<DIDDocument>({
+  "@context": contextSchema,
   id: Joi.string().required(),
   alsoKnownAs: Joi.array().items(Joi.string()),
   controller: Joi.alternatives().try(
     Joi.array().items(Joi.string()),
     Joi.string()
   ),
-  verificationMethod: Joi.array().items(schemaVerificationMethod),
+  verificationMethod: Joi.array().items(verificationMethodSchema),
   authentication: Joi.alternatives().try(
     Joi.array().items(Joi.string()),
-    Joi.array().items(schemaVerificationMethod)
+    Joi.array().items(verificationMethodSchema)
   ),
   assertionMethod: Joi.alternatives().try(
     Joi.array().items(Joi.string()),
-    Joi.array().items(schemaVerificationMethod)
+    Joi.array().items(verificationMethodSchema)
   ),
   keyAgreement: Joi.alternatives().try(
     Joi.array().items(Joi.string()),
-    Joi.array().items(schemaVerificationMethod)
+    Joi.array().items(verificationMethodSchema)
   ),
   capabilityInvocation: Joi.alternatives().try(
     Joi.array().items(Joi.string()),
-    Joi.array().items(schemaVerificationMethod)
+    Joi.array().items(verificationMethodSchema)
   ),
   capabilityDelegation: Joi.alternatives().try(
     Joi.array().items(Joi.string()),
-    Joi.array().items(schemaVerificationMethod)
+    Joi.array().items(verificationMethodSchema)
   ),
   service: Joi.array().items(
     Joi.object<ServiceEndpoint>({
@@ -81,10 +84,10 @@ export const schemaDidDocument = Joi.object<DIDDocument>({
   /**
    * @deprecated
    */
-  publicKey: Joi.array().items(schemaVerificationMethod),
+  publicKey: Joi.array().items(verificationMethodSchema),
 }).unknown();
 
 export const isDidDocument = (input: unknown): input is DIDDocument => {
-  const validation = schemaDidDocument.validate(input);
+  const validation = didDocumentSchema.validate(input);
   return !validation.error;
 };

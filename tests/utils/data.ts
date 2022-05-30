@@ -25,12 +25,17 @@ export const createDid = (): string => {
  */
 export const createDidDocument = (did: string): DIDDocument => {
   return {
-    "@context": "https://www.w3.org/ns/did/v1",
+    "@context": [
+      "https://www.w3.org/ns/did/v1",
+      "https://w3id.org/security/suites/jws-2020/v1",
+      "https://w3id.org/security/suites/ed25519-2020/v1",
+      "https://w3id.org/security/suites/secp256k1-2019/v1",
+    ],
     id: did,
     verificationMethod: [
       {
         id: `${did}#${crypto.randomBytes(32).toString("hex")}`,
-        type: "Ed25519VerificationKey2018",
+        type: "Ed25519VerificationKey2020",
         controller: did,
         publicKeyBase58: "H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV",
       },
