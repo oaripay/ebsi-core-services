@@ -18,8 +18,8 @@ contract PolicyRegistry is
     UserAttributesManagement,
     PolicyEngine
 {
-    function initialize(uint256 version) public initializer {
-        _onInitialize(version);
+    function initialize(uint256 _version) public initializer {
+        _onInitialize(_version);
     }
 
     function _onInitialize(uint256 _version) internal initializer {

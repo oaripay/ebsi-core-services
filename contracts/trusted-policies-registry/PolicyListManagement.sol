@@ -415,11 +415,11 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
         policyName = policy.policyName;
         opType = policy.opType;
         status = policy.status;
-        PolicyCondition[] memory policyConditions = new PolicyCondition[](
+        PolicyCondition[] memory _policyConditions = new PolicyCondition[](
             policy.policyConditionsCount
         );
         for (uint256 i; i < policy.policyConditionsCount; i++) {
-            policyConditions[i] = policy.policyConditions[i];
+            _policyConditions[i] = policy.policyConditions[i];
         }
         return (
             policyId,
@@ -427,7 +427,7 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
             policyName,
             opType,
             status,
-            policyConditions
+            _policyConditions
         );
     }
 
