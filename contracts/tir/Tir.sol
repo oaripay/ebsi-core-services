@@ -11,8 +11,8 @@ import "./TirPolicyDetailed.sol";
  *
  */
 contract Tir is Initializable, TirDetailed, IssuerDetailed, TirPolicyDetailed {
-    function initialize(uint256 version) public initializer {
-        TirDetailed.init(version);
+    function initialize(uint256 _version) public initializer {
+        TirDetailed.init(_version);
     }
 
     function setRegistryAddresses() public {
