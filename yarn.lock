@@ -1033,10 +1033,10 @@
   dependencies:
     ajv "^6.12.6"
 
-"@grpc/grpc-js@^1.3.4":
-  version "1.5.4"
-  resolved "https://registry.yarnpkg.com/@grpc/grpc-js/-/grpc-js-1.5.4.tgz#dd0237ad7df80a7a24766fe516d7e4a22cb4855e"
-  integrity sha512-+nJTOsqpFAXnfFrMZ7Too4XXZ/J9O+8jYvSoaunupoC7I7b9H4iex1BRsbTdOmiowfPGJrWit7jUPmbENSUSpw==
+"@grpc/grpc-js@1.5.3":
+  version "1.5.3"
+  resolved "https://registry.yarnpkg.com/@grpc/grpc-js/-/grpc-js-1.5.3.tgz#fe78a40eab4e21a6044ff6f23798f712ea352a8f"
+  integrity sha512-q0xgaZ3ymUM+ZOhe1hdocVSdKHCnJ6llLSXcP+MqMXMyYPUZ3mzQOCxZ3Zkg+QZ7sZ950sn7hvueQrIJZumPZg==
   dependencies:
     "@grpc/proto-loader" "^0.6.4"
     "@types/node" ">=12.12.47"
@@ -2851,15 +2851,6 @@ array.prototype.flat@^1.2.5:
     define-properties "^1.1.3"
     es-abstract "^1.19.0"
 
-array.prototype.flatmap@^1.2.5:
-  version "1.2.5"
-  resolved "https://registry.yarnpkg.com/array.prototype.flatmap/-/array.prototype.flatmap-1.2.5.tgz#908dc82d8a406930fdf38598d51e7411d18d4446"
-  integrity sha512-08u6rVyi1Lj7oqWbS9nUxliETrtIROT4XGTA4D/LWGten6E3ocm7cy9SIrmNHOL5XVbVuckUp3X6Xyg8/zpvHA==
-  dependencies:
-    call-bind "^1.0.0"
-    define-properties "^1.1.3"
-    es-abstract "^1.19.0"
-
 arrify@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/arrify/-/arrify-1.0.1.tgz#898508da2226f380df904728456849c1501a4b0d"
@@ -2924,9 +2915,9 @@ async@^1.4.0:
   integrity sha1-7GphrlZIDAw8skHJVhjiCJL5Zyo=
 
 async@^2.4.0:
-  version "2.6.3"
-  resolved "https://registry.yarnpkg.com/async/-/async-2.6.3.tgz#d72625e2344a3656e3a3ad4fa749fa83299d82ff"
-  integrity sha512-zflvls11DCy+dQWzTW2dzuilv8Z5X/pjfmZOWba6TNIVDm+2UDaJmXSOXlasHKfNBs8oo3M0aT50fDEWfKZjXg==
+  version "2.6.4"
+  resolved "https://registry.yarnpkg.com/async/-/async-2.6.4.tgz#706b7ff6084664cd7eae713f6f965433b5504221"
+  integrity sha512-mzo5dfJYwAn29PeiJ0zvwTo04zj8HDJj0Mn8TD7sno7q12prdbnasKJHhkm2c1LgrhlJ0teaea8860oxi51mGA==
   dependencies:
     lodash "^4.17.14"
 
@@ -2955,20 +2946,19 @@ atomic-sleep@^1.0.0:
   resolved "https://registry.yarnpkg.com/atomic-sleep/-/atomic-sleep-1.0.0.tgz#eb85b77a601fc932cfe432c5acd364a9e2c9075b"
   integrity sha512-kNOjDqAh7px0XWNI+4QbzoiR/nTkHAWNud2uvnJquD1/x5a7EQZMJT0AczqK0Qn67oY/TTQ1LbUKajZpp3I9tQ==
 
-audit-ci@^5.1.2:
-  version "5.1.2"
-  resolved "https://registry.yarnpkg.com/audit-ci/-/audit-ci-5.1.2.tgz#2e9a6c23c8511d8f79f6fde18d042ebc1bdec881"
-  integrity sha512-FNBbo4ycoHxcS7ruNNkq3LB+fZ4UWDd0QUNAva7Ae/F/Y45BBA7ZfHPSr5Fr+tS2+eqSwxToeFRRnw2Tp2PE8Q==
+audit-ci@^6.3.0:
+  version "6.3.0"
+  resolved "https://registry.yarnpkg.com/audit-ci/-/audit-ci-6.3.0.tgz#7c9048fda4e7ff93d44edd11920d1a7cd1805f56"
+  integrity sha512-rVCn4J7SUMQw2A21E3PPLzMz70A5RqWIx5BzvuU0iKeEGuuC6vGE00eeo4mFEnr439WdvI9i2lCXnmgABqLSeQ==
   dependencies:
     JSONStream "^1.3.5"
-    array.prototype.flatmap "^1.2.5"
     cross-spawn "^7.0.3"
     escape-string-regexp "^4.0.0"
     event-stream "4.0.1"
     jju "^1.4.0"
     readline-transform "1.0.0"
     semver "^7.0.0"
-    yargs "^16.0.0"
+    yargs "^17.0.0"
 
 avvio@^7.1.2:
   version "7.2.2"
@@ -4930,14 +4920,14 @@ eyes@0.1.x:
   resolved "https://registry.yarnpkg.com/eyes/-/eyes-0.1.8.tgz#62cf120234c683785d902348a800ef3e0cc20bc0"
   integrity sha1-Ys8SAjTGg3hdkCNIqADvPgzCC8A=
 
-fabric-common@2.2.11, fabric-common@^2.2.11:
-  version "2.2.11"
-  resolved "https://registry.yarnpkg.com/fabric-common/-/fabric-common-2.2.11.tgz#8c1ba312f507a42853603ae9f41c57d251d518eb"
-  integrity sha512-VDZUXSoTkgXA4axOONCF93DkFzDaqN0wfKnUTa36Y1Dkk5iSZFdH5iqCroAmerrKg71yGlkiBN7DsD7QWl9McA==
+fabric-common@2.2.12, fabric-common@^2.2.12:
+  version "2.2.12"
+  resolved "https://registry.yarnpkg.com/fabric-common/-/fabric-common-2.2.12.tgz#d292c90c5c5235c910a3f909f7e30b73fe4da304"
+  integrity sha512-FQSr9hAxwPP+NLMG+AvEPq+JoC5PMZ2ujvizr6eCEiKBpvZ2eDobirVGzC8tXSOeRclO64Xejjz3w6Hi69OczA==
   dependencies:
     callsite "^1.0.0"
     elliptic "^6.5.4"
-    fabric-protos "2.2.11"
+    fabric-protos "2.2.12"
     js-sha3 "^0.8.0"
     jsrsasign "^10.4.1"
     long "^4.0.0"
@@ -4949,22 +4939,22 @@ fabric-common@2.2.11, fabric-common@^2.2.11:
   optionalDependencies:
     pkcs11js "^1.0.6"
 
-fabric-network@^2.2.11:
-  version "2.2.11"
-  resolved "https://registry.yarnpkg.com/fabric-network/-/fabric-network-2.2.11.tgz#5b48f465d0f09e322d56c767ee063c53e445c071"
-  integrity sha512-YikiBMK0O9Ve+5vZkEOkiz/eXCBzJFh0Ik9MigpjRam86E64NOpNzjMZbCfeas91+O5HPJrO5+zfjEHw7vWsIg==
+fabric-network@^2.2.12:
+  version "2.2.12"
+  resolved "https://registry.yarnpkg.com/fabric-network/-/fabric-network-2.2.12.tgz#cbbff46f8bb3de95ca527a63ec8865f283ff6dab"
+  integrity sha512-rftgzWTqpXTDpEnNu21vqE0/QqYJlqrFC6acUI6FQ3yq9XS+zdEODbeI+n8abROfov9NH5VNxEr6k/PRojAE4g==
   dependencies:
-    fabric-common "2.2.11"
-    fabric-protos "2.2.11"
+    fabric-common "2.2.12"
+    fabric-protos "2.2.12"
     long "^4.0.0"
     nano "^9.0.3"
 
-fabric-protos@2.2.11, fabric-protos@^2.2.11:
-  version "2.2.11"
-  resolved "https://registry.yarnpkg.com/fabric-protos/-/fabric-protos-2.2.11.tgz#fb0ee623639da485e1b67dfcbd83ec5ab029171d"
-  integrity sha512-haWUubqMLccIyBdmhx4ueKCe7rJgr/zln7iDF+BM7Im48K/a76VmWdddm+QGgWI0Bbk1RA1KfLOdwdb/gSGiSg==
+fabric-protos@2.2.12, fabric-protos@^2.2.12:
+  version "2.2.12"
+  resolved "https://registry.yarnpkg.com/fabric-protos/-/fabric-protos-2.2.12.tgz#7e6bbca12bc66af476f2a4f148ac624bb3985a41"
+  integrity sha512-nJ2qtw0r+RQhQ2JcQH+wjAFredWQK33sNFppWsm1/GgtLC/xDc1vJSg1pGm/3cyTMyUvCKHRbFe9yzT9rRvKdQ==
   dependencies:
-    "@grpc/grpc-js" "^1.3.4"
+    "@grpc/grpc-js" "1.5.3"
     "@grpc/proto-loader" "^0.6.2"
     protobufjs "^6.11.2"
 
@@ -7544,9 +7534,9 @@ natural-compare@^1.4.0:
   integrity sha1-Sr6/7tdUHywnrPspvbvRXI1bpPc=
 
 nconf@^0.11.2:
-  version "0.11.3"
-  resolved "https://registry.yarnpkg.com/nconf/-/nconf-0.11.3.tgz#4ee545019c53f1037ca57d696836feede3c49163"
-  integrity sha512-iYsAuDS9pzjVMGIzJrGE0Vk3Eh8r/suJanRAnWGBd29rVS2XtSgzcAo5l6asV3e4hH2idVONHirg1efoBOslBg==
+  version "0.11.4"
+  resolved "https://registry.yarnpkg.com/nconf/-/nconf-0.11.4.tgz#7f925d27569738a2a10c3ba4b56310c8821b308b"
+  integrity sha512-YaDR846q11JnG1vTrhJ0QIlhiGY6+W1bgWtReG9SS3vkTl3AoNwFvUItdhG6/ZjGCfWpUVuRTNEBTDAQ3nWhGw==
   dependencies:
     async "^1.4.0"
     ini "^2.0.0"
