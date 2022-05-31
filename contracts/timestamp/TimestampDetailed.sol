@@ -18,8 +18,8 @@ contract TimestampDetailed is Initializable, TimestampStorage {
      * @dev Sets the values for `operator`,   and `version`.
      */
 
-    function init(uint256 version) public initializer {
-        _onInitialize(version);
+    function init(uint256 _version) public initializer {
+        _onInitialize(_version);
     }
 
     function setTrustedPoliciesRegistryAddress() public {
@@ -48,9 +48,9 @@ contract TimestampDetailed is Initializable, TimestampStorage {
         hs.trustedPolicyRegistry = IPolicyRegistry(tprAddress);
     }
 
-    function _onInitialize(uint256 version) internal initializer {
+    function _onInitialize(uint256 _version) internal initializer {
         Timestamps storage ts = TimestampStorage.timestampStorage();
-        ts._version = version;
+        ts._version = _version;
     }
 
     /**
