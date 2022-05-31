@@ -45,5 +45,5 @@ contract PauserRole is Initializable {
         emit PauserRemoved(account);
     }
 
-    uint256[50] private ______gap;
+    uint256[50] private ______gapRole;
 }
