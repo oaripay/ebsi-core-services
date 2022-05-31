@@ -17,8 +17,8 @@ contract SchemaSCRegistry is
     SchemaPolicyDetailed,
     Initializable
 {
-    function initialize(uint256 version) public initializer {
-        _onInitialize(version);
+    function initialize(uint256 _version) public initializer {
+        _onInitialize(_version);
     }
 
     function setTrustedPoliciesRegistryAddress() public {
