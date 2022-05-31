@@ -11,13 +11,13 @@ contract TarDetailed is Initializable, TarStorage {
      * @dev Sets the values for `operator`,   and `version`.
      */
 
-    function init(uint256 version) public initializer {
-        _onInitialize(version);
+    function init(uint256 _version) public initializer {
+        _onInitialize(_version);
     }
 
-    function _onInitialize(uint256 version) internal initializer {
+    function _onInitialize(uint256 _version) internal initializer {
         Tar storage ds = TarStorage.tarStorage();
-        ds._version = version;
+        ds._version = _version;
     }
 
     /**

@@ -20,8 +20,8 @@ contract Tar is
     RevocationDetailed,
     AuthorizationDetailed
 {
-    function initialize(uint256 version) public initializer {
-        TarDetailed.init(version);
+    function initialize(uint256 _version) public initializer {
+        TarDetailed.init(_version);
     }
 
     function setRegistryAddresses() public {
