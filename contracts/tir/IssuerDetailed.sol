@@ -53,7 +53,7 @@ abstract contract IssuerDetailed is IssuerStorage {
             "attribute is already stored"
         );
 
-        assert(iss.attributesStore[firstAttrHash].revisionHashes.length == 0);
+        require(iss.attributesStore[firstAttrHash].revisionHashes.length == 0);
 
         // store a link between this hash to the did to easily retrieve it
         ds.attributeMetadataStore[firstAttrHash] = AttributeMetadata(
@@ -117,7 +117,7 @@ abstract contract IssuerDetailed is IssuerStorage {
         Entity storage iss = ds.issuerStore[did];
         require(iss.attributes.length > 0, "issuer does not exist");
 
-        assert(iss.attributesStore[newAttrHash].revisionHashes.length == 0);
+        require(iss.attributesStore[newAttrHash].revisionHashes.length == 0);
 
         // store a link between this hash to the did to easily retrieve it
         ds.attributeMetadataStore[newAttrHash] = AttributeMetadata(
@@ -179,7 +179,7 @@ abstract contract IssuerDetailed is IssuerStorage {
         bytes32 firstAttrHash = ds
             .attributeMetadataStore[lastVersHash]
             .attributeId;
-        assert(iss.attributesStore[firstAttrHash].revisionHashes.length > 0);
+        require(iss.attributesStore[firstAttrHash].revisionHashes.length > 0);
         bytes32 newAttrHash = sha256(attributeData);
         require(
             keccak256(bytes(ds.attributeMetadataStore[newAttrHash].did)) ==
