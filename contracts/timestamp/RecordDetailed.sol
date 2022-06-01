@@ -315,7 +315,7 @@ contract RecordDetailed is RecordStorage {
         Timestamps storage ts = timestampStorage();
         hashAlgorithmIds = new uint256[](timestampIds.length);
         hashValues = new bytes[](timestampIds.length);
-        for (uint256 i; i < timestampIds.length; i++) {
+        for (uint256 i = 0; i < timestampIds.length; i++) {
             hashAlgorithmIds[i] = ts
                 .timestampsStore[timestampIds[i]]
                 .hash

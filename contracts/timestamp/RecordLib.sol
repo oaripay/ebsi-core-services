@@ -29,7 +29,7 @@ library RecordLib {
         returns (bool)
     {
         string memory ownerIdStr = ownerId.convertToString();
-        for (uint256 i; i < ownerIds.length; i++) {
+        for (uint256 i = 0; i < ownerIds.length; i++) {
             if (
                 keccak256(abi.encodePacked(ownerIds[i])) ==
                 keccak256(abi.encodePacked(ownerIdStr))
@@ -71,7 +71,7 @@ library RecordLib {
             r.totalVersions
         ];
 
-        for (uint256 i; i < timestampIds.length; i++) {
+        for (uint256 i = 0; i < timestampIds.length; i++) {
             vd.timestampsIds.push(timestampIds[i]);
             // add this new timestampId to the record list
             rs.timestampIdToRecordId[timestampIds[i]].push(recordIds[0]);
@@ -113,7 +113,7 @@ library RecordLib {
         r.owners[ownerId] = RecordStorage.OwnerInfo(block.timestamp, 0, false);
         RecordStorage.VersionDetails storage vd = r.versionsStore[0];
 
-        for (uint256 i; i < timestampIds.length; i++) {
+        for (uint256 i = 0; i < timestampIds.length; i++) {
             // add this new timestampId to the record list
             rs.timestampIdToRecordId[timestampIds[i]].push(recordId);
             // that timestamp is a first registered version for this new record
@@ -159,7 +159,7 @@ library RecordLib {
         RecordStorage.VersionDetails storage vd = r.versionsStore[
             r.totalVersions
         ];
-        for (uint256 i; i < timestampIds.length; i++) {
+        for (uint256 i = 0; i < timestampIds.length; i++) {
             vd.timestampsIds.push(timestampIds[i]);
             // add this new timestampId to the record list
 
@@ -199,7 +199,7 @@ library RecordLib {
             "sender is not listed as owner"
         );
 
-        for (uint256 i; i < timestampIds.length; i++) {
+        for (uint256 i = 0; i < timestampIds.length; i++) {
             // add this new timestampId to the record list
             rs.timestampIdToRecordId[timestampIds[i]].push(recordId);
             // add the timestampId to the version detail
