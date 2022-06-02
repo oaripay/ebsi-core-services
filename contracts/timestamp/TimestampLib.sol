@@ -34,13 +34,13 @@ library TimestampLib {
 
         timestampIds = new bytes32[](hashAlgorithmIds.length);
         for (uint256 i = 0; i < hashAlgorithmIds.length; i++) {
+            require(hashValues[i].length > 0, "hashValue empty");
             bytes32 tsId = sha256(hashValues[i]);
             timestampIds[i] = tsId;
             require(
                 hs.infoStore[hashAlgorithmIds[i]].outputLength > 0,
                 "hashAlgo unknown"
             );
-            require(hashValues[i].length > 0, "hashValue empty");
             // insert only if it doesn't exist
             if (ts.timestampsStore[tsId].hash.value.length == 0) {
                 ts.timestampsStore[tsId] = TimestampStorage.Timestamp(
