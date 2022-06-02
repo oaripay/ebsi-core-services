@@ -31,7 +31,7 @@ function randomHash(): string {
 }
 
 describe("Issuers", () => {
-  let tir: Tir;
+  let tir: Contract;
   let userWithDid: SignerWithAddress;
   let issuer: SignerWithAddress;
   let policyContractMock: Contract;
@@ -83,7 +83,8 @@ describe("Issuers", () => {
         Pagination: paginationLib.address,
       },
     });
-    tir = (await contractFactory.deploy()) as Tir;
+    tir = await contractFactory.deploy();
+    await tir.deployed();
     await tir.initialize(42);
     await tir.setRegistryAddresses();
     const initialVersion = await tir.version();

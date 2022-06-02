@@ -3,7 +3,7 @@ import { ethers } from "hardhat";
 import crypto from "crypto";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
-import { Tir } from "../src/types";
+import { Contract } from "ethers";
 
 const num = ethers.BigNumber.from;
 
@@ -26,7 +26,7 @@ function randomPolicyName(): string {
 }
 
 describe("Policies", () => {
-  let ts: Tir;
+  let ts: Contract;
   let admin: SignerWithAddress;
   let user: SignerWithAddress;
 
@@ -50,7 +50,7 @@ describe("Policies", () => {
         Pagination: paginationLib.address,
       },
     });
-    ts = (await contractFactory.deploy()) as Tir;
+    ts = await contractFactory.deploy();
     await ts.initialize(42);
     const initialVersion = await ts.version();
     expect(initialVersion).to.equal(42);
