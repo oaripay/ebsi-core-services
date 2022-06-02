@@ -2,5 +2,5 @@ node {
     stage('Clone repo') {
         checkout scm
     }
-    ebsi_deploy("clone_repo": false)
+    ebsi_fast_deploy("clone_repo": false)
 }
