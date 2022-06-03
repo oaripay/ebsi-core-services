@@ -1,4 +1,4 @@
-import { FastifyMultipartAttactFieldsToBodyOptions } from "fastify-multipart";
+import { FastifyMultipartAttactFieldsToBodyOptions } from "@fastify/multipart";
 
 // https://www.fastify.io/docs/latest/Server
 export const fastifyAdapterConfig = {
