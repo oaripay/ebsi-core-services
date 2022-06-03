@@ -21,7 +21,7 @@ node {
             if (env.BRANCH_NAME == 'conformance') {
                 ebsi_conformance_deploy("clone_repo": false)
             } else {
-                ebsi_fast_deploy("clone_repo": false)
+                ebsi_deploy("clone_repo": false)
             }
         }
     } catch (e) {
