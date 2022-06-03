@@ -15,7 +15,7 @@ export function logAxiosError(
     logger.error({
       data: error.response.data,
       status: error.response.status,
-      headers: error.response.headers as unknown,
+      headers: error.response.headers,
     });
   } else if (error.request) {
     // The request was made but no response was received
