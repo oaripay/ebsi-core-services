@@ -23,7 +23,7 @@ import didJwt, { createJWT, ES256KSigner } from "did-jwt";
 import type { DIDDocument } from "did-resolver";
 import EbsiWallet from "@cef-ebsi/wallet-lib";
 import * as vcLib from "@cef-ebsi/verifiable-credential";
-import type { VerifiedCredential } from "@cef-ebsi/verifiable-credential";
+import type { EbsiVerifiableAttestation } from "@cef-ebsi/verifiable-credential";
 import { AuthorisationModule } from "./authorisation.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import {
@@ -174,7 +174,7 @@ describe("Authorisation Module", () => {
         response.text.replace("openid://?", "")
       );
 
-      expect(query.get("scope")).toBe(encodeURIComponent("openid did_authn"));
+      expect(query.get("scope")).toBe("openid did_authn");
       expect(query.get("response_type")).toBe("id_token");
       expect(query.get("client_id")).toBeDefined();
       expect(query.get("nonce")).toBeDefined();
@@ -803,7 +803,11 @@ describe("Authorisation Module", () => {
           {
             issuer: allowedIssuer,
             signer: ES256KSigner(
-              EbsiWallet.generateKeyPair({ format: "hex" }).privateKey as string
+              Buffer.from(
+                EbsiWallet.generateKeyPair({ format: "hex" })
+                  .privateKey as string,
+                "hex"
+              )
             ),
           }
         );
@@ -822,7 +826,9 @@ describe("Authorisation Module", () => {
           },
           {
             issuer: client.did,
-            signer: ES256KSigner(client.privateKeyHexES256K),
+            signer: ES256KSigner(
+              Buffer.from(client.privateKeyHexES256K.replace(/^0x/, ""), "hex")
+            ),
           }
         );
 
@@ -907,14 +913,11 @@ describe("Authorisation Module", () => {
             } as AxiosResponse<DIDDocument>)
         );
 
-        jest.spyOn(vcLib, "verifyCredentialJwt").mockImplementation(async () =>
-          Promise.resolve({
-            payload: {
-              sub: client.did,
-              vc: mockedCredential,
-            },
-          } as unknown as VerifiedCredential)
-        );
+        jest
+          .spyOn(vcLib, "verifyCredentialJwt")
+          .mockImplementation(async () =>
+            Promise.resolve(mockedCredential as EbsiVerifiableAttestation)
+          );
 
         const response = await request(server)
           .post("/siop-sessions")

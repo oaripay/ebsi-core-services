@@ -19,7 +19,6 @@ import type {
 } from "@cef-ebsi/siop-auth";
 import {
   EbsiVerifiableAttestation,
-  VerifiedCredential,
   verifyCredentialJwt,
 } from "@cef-ebsi/verifiable-credential";
 import type { EbsiVerifiablePresentation } from "@cef-ebsi/verifiable-presentation";
@@ -176,14 +175,13 @@ export class AuthorisationService {
             });
           }
 
-          let verifiedVc: VerifiedCredential;
           try {
             const ebsiEnv = this.configService.get<
               "test" | "conformance" | "pilot" | "prod"
             >("ebsiEnv");
 
             // Verify VC
-            verifiedVc = await verifyCredentialJwt(verifiableCredential, {
+            await verifyCredentialJwt(verifiableCredential, {
               ebsiEnv,
             });
           } catch (e) {
@@ -199,7 +197,8 @@ export class AuthorisationService {
           }
 
           // Ideally, we should check if verifiedVc.payload.vc is of type EbsiVerifiableAttestation
-          const { vc, sub } = verifiedVc.payload as {
+          const { payload } = decodeJWT(verifiableCredential);
+          const { vc, sub } = payload as {
             sub: string;
             vc: EbsiVerifiableAttestation;
           };

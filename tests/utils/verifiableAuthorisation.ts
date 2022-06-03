@@ -1,11 +1,12 @@
+import { randomUUID } from "node:crypto";
 import {
   createVerifiableCredentialJwt,
   EbsiIssuer,
   EbsiVerifiableAttestation,
-  JWT,
 } from "@cef-ebsi/verifiable-credential";
-import { ES256KSigner } from "did-jwt";
-import { randomUUID } from "crypto";
+import { ec as EC } from "elliptic";
+import { base64url } from "multiformats/bases/base64";
+import { bytes } from "multiformats";
 
 export async function createVerifiableAuthorisationJwt(
   subjectDid: string,
@@ -13,16 +14,31 @@ export async function createVerifiableAuthorisationJwt(
   privateKey: string,
   applicationDid: string,
   ebsiEnv: "test" | "conformance" | "pilot" | "prod"
-): Promise<JWT> {
+): Promise<string> {
   const issuanceDate = new Date();
   const expirationDate = new Date(
     issuanceDate.getTime() + 1000 * 60 * 60 * 24 * 182 // 365/2 = 6 months
   );
 
+  const ec = new EC("secp256k1");
+  const hex = privateKey.replace(/^0x/, "");
+  const pubPoint = ec.keyFromPrivate(hex, "hex").getPublic();
+  const issuerPublicKeyJwk = {
+    kty: "EC",
+    crv: "secp256k1",
+    x: base64url.baseEncode(pubPoint.getX().toBuffer("be", 32)),
+    y: base64url.baseEncode(pubPoint.getY().toBuffer("be", 32)),
+  };
+  const issuerPrivateKeyJwk = {
+    ...issuerPublicKeyJwk,
+    d: base64url.baseEncode(bytes.fromHex(hex)),
+  };
+
   const issuer: EbsiIssuer = {
     did: applicationDid,
     kid: `${applicationDid}#keys-1`,
-    signer: ES256KSigner(privateKey),
+    publicKeyJwk: issuerPublicKeyJwk,
+    privateKeyJwk: issuerPrivateKeyJwk,
     alg: "ES256K",
   };
 

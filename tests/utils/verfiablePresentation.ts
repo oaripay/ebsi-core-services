@@ -1,19 +1,19 @@
 import { createVerifiablePresentationJwt } from "@cef-ebsi/verifiable-presentation";
 import type {
   EbsiIssuer,
-  JWT,
   EbsiVerifiablePresentation,
 } from "@cef-ebsi/verifiable-presentation";
-import { ES256KSigner, Signer, EdDSASigner } from "did-jwt";
+import { calculateJwkThumbprint, JWK } from "jose";
 
 export async function createVpJwt(
   holderDid: string,
-  holderPrivateKey: string,
-  vc: JWT,
+  holderPublicKeyJwk: JWK,
+  holderPrivateKeyJwk: JWK,
+  vc: string,
   audience: string,
   ebsiEnv: "test" | "conformance" | "pilot" | "prod",
-  alg: "ES256K" | "EdDSA" = "ES256K"
-): Promise<JWT> {
+  alg: "ES256" | "ES256K" | "EdDSA" = "ES256K"
+): Promise<string> {
   const presentation: EbsiVerifiablePresentation = {
     "@context": ["https://www.w3.org/2018/credentials/v1"],
     type: ["VerifiablePresentation"],
@@ -21,23 +21,19 @@ export async function createVpJwt(
     holder: holderDid,
   };
 
-  let vpSigner: Signer;
-  if (alg === "ES256K") {
-    vpSigner = ES256KSigner(holderPrivateKey);
-  } else {
-    vpSigner = EdDSASigner(holderPrivateKey);
-  }
+  const thumbprint = await calculateJwkThumbprint(holderPublicKeyJwk);
 
-  const issuer: EbsiIssuer = {
+  const holder: EbsiIssuer = {
     did: holderDid,
-    kid: `${holderDid}#keys-1`,
-    signer: vpSigner,
-    alg: alg === "ES256K" ? "ES256K" : "EdDSA",
+    kid: `${holderDid}#${thumbprint}`,
+    alg,
+    publicKeyJwk: holderPublicKeyJwk,
+    privateKeyJwk: holderPrivateKeyJwk,
   };
 
   const jwt = await createVerifiablePresentationJwt(
     presentation,
-    issuer,
+    holder,
     audience,
     {
       ebsiEnv,
