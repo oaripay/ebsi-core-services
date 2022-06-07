@@ -34,7 +34,7 @@ library TarPolicyLib {
         TarPolicyStoreLib.PolicyDetails storage p = ds.policyStore[policyId];
         require(p.revisionHashes.length == 0, "pol exist");
 
-        assert(ds.revisions[firstPolicyHash].length == 0);
+        require(ds.revisions[firstPolicyHash].length == 0, "pol data exist");
 
         // store a link between this policyId to the policy to easily retrieve it
         // store the version hash and data for this policy
@@ -58,11 +58,7 @@ library TarPolicyLib {
         require(p.revisionHashes.length > 0, "pol unknown");
         bytes32 newPolicyHash = sha256(policyData);
 
-        require(
-            keccak256(bytes(ds.revisions[newPolicyHash])) ==
-                keccak256(bytes("")),
-            "pol data exist"
-        );
+        require(ds.revisions[newPolicyHash].length == 0, "pol data exist");
 
         // store a link between this policyId to the policy to easily retrieve it
         // store the version hash and data for this attribute
@@ -96,11 +92,7 @@ library TarPolicyLib {
         TarPolicyStoreLib.Policies storage ds,
         bytes32 revisionHash
     ) public view returns (bytes memory) {
-        require(
-            keccak256(bytes(ds.revisions[revisionHash])) !=
-                keccak256(bytes("")),
-            "pol data unknown"
-        );
+        require(ds.revisions[revisionHash].length > 0, "pol data unknown");
 
         return ds.revisions[revisionHash];
     }

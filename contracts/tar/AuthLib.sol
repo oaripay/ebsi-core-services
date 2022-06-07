@@ -251,10 +251,13 @@ library AuthLib {
             .authorizedApplicationId;
         authorizedAppName = apps.appStore[authorizedAppId].applicationName;
         // authorization must have been linked to an app and an authorizedApp
-        assert(keccak256(bytes(authorizedAppName)) != keccak256(bytes("")));
+        require(
+            keccak256(bytes(authorizedAppName)) != keccak256(bytes("")),
+            "auth app unknown"
+        );
         applicationId = auths.authorizationStore[authorizationId].applicationId;
         name = apps.appStore[applicationId].applicationName;
-        assert(keccak256(bytes(name)) != keccak256(bytes("")));
+        require(keccak256(bytes(name)) != keccak256(bytes("")), "app unknown");
         iss = auths.authorizationStore[authorizationId].iss;
         status = auths.authorizationStore[authorizationId].status;
         permissions = auths.authorizationStore[authorizationId].permissions;
