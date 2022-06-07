@@ -42,6 +42,7 @@ jest.mock("@cef-ebsi/siop-auth", () => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const originalModule = jest.requireActual("@cef-ebsi/siop-auth");
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return {
     __esModule: true,
     ...originalModule,
@@ -129,12 +130,16 @@ describe("JsonRpc Module", () => {
     adminAccessTokenPayload = { sub: adminDid };
     adminAccessToken = await createJWT(adminAccessTokenPayload, {
       issuer: "any",
-      signer: ES256KSigner(adminWallet.privateKey.replace("0x", "")),
+      signer: ES256KSigner(
+        Buffer.from(adminWallet.privateKey.replace(/^0x/, ""), "hex")
+      ),
     });
     userAccessTokenPayload = { sub: userDid };
     userAccessToken = await createJWT(userAccessTokenPayload, {
       issuer: "any",
-      signer: ES256KSigner(userWallet.privateKey.replace("0x", "")),
+      signer: ES256KSigner(
+        Buffer.from(userWallet.privateKey.replace(/^0x/, ""), "hex")
+      ),
     });
   });
 
