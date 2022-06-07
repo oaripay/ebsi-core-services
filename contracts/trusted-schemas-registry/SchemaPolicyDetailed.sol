@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: EUPL V1.2
 // solhint-disable-next-line max-line-length
 
-pragma solidity ^0.8.0;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.12;
 // solhint-disable-next-line max-line-length
 import "../trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/upgradeability/Initializable.sol";
 import "./SchemaPolicyStorage.sol";

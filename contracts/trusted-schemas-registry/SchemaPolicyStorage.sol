@@ -2,8 +2,7 @@
 
 // solhint-disable max-line-length
 
-pragma solidity ^0.8.0;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.12;
 
 contract SchemaPolicyStorage {
     // The state variables we care about.

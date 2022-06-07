@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: EUPL V1.2
 
-pragma solidity ^0.8.0;
+pragma solidity 0.8.12;
 
 import "./SchemaStorage.sol";
 // solhint-disable max-line-length
