@@ -3,7 +3,7 @@
   "version": "2.0.0-rc.7",
   "license": "EUPL-1.2",
   "scripts": {
-    "audit": "audit-ci --moderate --skip-dev -a GHSA-5fg8-2547-mr8q",
+    "audit": "audit-ci --moderate --skip-dev",
     "build": "nest build -p tsconfig.production.json",
     "clinic:doctor": "yarn build && clinic doctor -- node dist/main",
     "clinic:bubbleprof": "yarn build && clinic bubbleprof -- node dist/main",
@@ -31,6 +31,7 @@
   "dependencies": {
     "@cef-ebsi/problem-details-errors": "^2.0.0-alpha.0",
     "@cef-ebsi/siop-auth": "^2.0.0-alpha.0",
+    "@fastify/helmet": "^8.1.0",
     "@nestjs/axios": "^0.0.8",
     "@nestjs/common": "^8.4.6",
     "@nestjs/config": "^2.1.0",
@@ -43,7 +44,6 @@
     "class-validator": "^0.13.2",
     "did-jwt": "^6.1.0",
     "ethers": "^5.6.8",
-    "fastify-helmet": "^7.1.0",
     "joi": "^17.6.0",
     "jose": "^4.8.1",
     "multiformats": "^9.6.5",

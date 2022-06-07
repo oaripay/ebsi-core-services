@@ -5,7 +5,7 @@ import {
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
 import { ValidationPipe } from "@nestjs/common";
-import { fastifyHelmet } from "fastify-helmet";
+import fastifyHelmet from "@fastify/helmet";
 import { AppModule } from "./app.module";
 import { AllExceptionsFilter } from "./filters/http-exception.filter";
 import { createLogger, consoleTransport } from "./logger/logger";
@@ -53,7 +53,6 @@ async function bootstrap(): Promise<void> {
 
   app.setGlobalPrefix(apiUrlPrefix);
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   await app.register(fastifyHelmet);
 
   app.useGlobalFilters(new AllExceptionsFilter());
