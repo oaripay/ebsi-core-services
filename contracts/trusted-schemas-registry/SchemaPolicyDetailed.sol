@@ -30,11 +30,10 @@ abstract contract SchemaPolicyDetailed is SchemaPolicyStorage {
     function insertPolicy(string calldata policyId, bytes calldata policyData)
         external
     {
-        bytes32 firstPolicyHash = sha256(policyData);
-
         Policies storage ds = schemaPolicyStorage();
         PolicyDetails storage p = ds.policyStore[policyId];
         require(p.revisionHashes.length == 0, "policy already exist");
+        bytes32 firstPolicyHash = sha256(policyData);
 
         assert(ds.revisions[firstPolicyHash].length == 0);
 
@@ -60,8 +59,7 @@ abstract contract SchemaPolicyDetailed is SchemaPolicyStorage {
         bytes32 newPolicyHash = sha256(policyData);
 
         require(
-            keccak256(bytes(ds.revisions[newPolicyHash])) ==
-                keccak256(bytes("")),
+            ds.revisions[newPolicyHash].length == 0,
             "policy data is already stored"
         );
 
@@ -102,8 +100,7 @@ abstract contract SchemaPolicyDetailed is SchemaPolicyStorage {
     {
         Policies storage ds = schemaPolicyStorage();
         require(
-            keccak256(bytes(ds.revisions[revisionHash])) !=
-                keccak256(bytes("")),
+            ds.revisions[revisionHash].length > 0,
             "policy data does not exist"
         );
 
