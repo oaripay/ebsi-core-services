@@ -261,6 +261,9 @@ describe("Besu Module", () => {
         error: {
           code: -32602,
           message: "Expected exactly 1 arguments and got 0",
+          data: {
+            message: "Expected exactly 1 arguments and got 0",
+          },
         },
       });
       expect(response.status).toBe(400);

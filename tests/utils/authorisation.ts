@@ -42,7 +42,7 @@ export async function createFakeToken({
       {
         alg: "ES256K",
         issuer: EbsiWallet.createDid(),
-        signer: ES256KSigner(crypto.randomBytes(32).toString("hex")),
+        signer: ES256KSigner(crypto.randomBytes(32)),
       },
       {
         kid,
@@ -64,7 +64,7 @@ export async function createFakeToken({
     {
       alg: "ES256K",
       issuer: authorisationApiName,
-      signer: ES256KSigner(crypto.randomBytes(32).toString("hex")),
+      signer: ES256KSigner(crypto.randomBytes(32)),
     },
     {
       kid,
