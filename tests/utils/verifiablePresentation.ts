@@ -1,7 +1,7 @@
 import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
 import type { EbsiVerifiablePresentation } from "@cef-ebsi/verifiable-presentation";
 import { createVerifiablePresentationJwt } from "@cef-ebsi/verifiable-presentation";
-import { ES256KSigner } from "did-jwt";
+import { encode } from "./data";
 
 export async function createVP({
   vc,
@@ -24,9 +24,13 @@ export async function createVP({
     holder: clientDid,
   };
 
+  const privateKeyJwk = encode.privateKey.fromHexToJWK(clientPrivateKey);
+  const { d, ...publicKeyJwk } = privateKeyJwk;
+
   const issuer: EbsiIssuer = {
     did: clientDid,
-    signer: ES256KSigner(clientPrivateKey),
+    privateKeyJwk,
+    publicKeyJwk,
     alg: "ES256K",
     kid: clientKid,
   };

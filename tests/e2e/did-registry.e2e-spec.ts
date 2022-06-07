@@ -1008,7 +1008,7 @@ describe("DID Registry (e2e)", () => {
 
   describe("GET /identifiers/{did}", () => {
     it("should return a specific identifier", async () => {
-      expect.assertions(3);
+      expect.assertions(4);
 
       const response = await request(server).get(
         `/identifiers/${lastIdentifier.did}`
@@ -1016,7 +1016,6 @@ describe("DID Registry (e2e)", () => {
 
       expect(response.body).toStrictEqual(
         expect.objectContaining({
-          "@context": "https://www.w3.org/ns/did/v1",
           id: expect.stringContaining("did:") as string,
           verificationMethod: expect.arrayContaining([
             expect.objectContaining({
@@ -1027,6 +1026,9 @@ describe("DID Registry (e2e)", () => {
           ]) as unknown[],
         })
       );
+      expect(
+        response.body as { "@context": string | string[] }["@context"]
+      ).toBeDefined();
       expect(response.status).toBe(200);
       expect(
         (response.headers as { "content-type": string })["content-type"]
@@ -1200,7 +1202,7 @@ describe("DID Registry (e2e)", () => {
 
   describe("GET /identifiers/{did}/versions/{versionId}", () => {
     it("should return a specific DID document version", async () => {
-      expect.assertions(3);
+      expect.assertions(4);
 
       const { did } = lastIdentifier;
       const { versionId } = lastVersion;
@@ -1211,7 +1213,6 @@ describe("DID Registry (e2e)", () => {
 
       expect(response.body).toStrictEqual(
         expect.objectContaining({
-          "@context": "https://www.w3.org/ns/did/v1",
           id: expect.stringContaining("did:") as string,
           verificationMethod: expect.arrayContaining([
             expect.objectContaining({
@@ -1222,6 +1223,9 @@ describe("DID Registry (e2e)", () => {
           ]) as unknown[],
         })
       );
+      expect(
+        response.body as { "@context": string | string[] }["@context"]
+      ).toBeDefined();
       expect(response.status).toBe(200);
       expect(
         (response.headers as { "content-type": string })["content-type"]

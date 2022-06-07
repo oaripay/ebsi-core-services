@@ -4,7 +4,7 @@ import {
   EbsiIssuer,
   EbsiVerifiableAttestation,
 } from "@cef-ebsi/verifiable-credential";
-import { ES256KSigner } from "did-jwt";
+import { encode } from "./data";
 
 export async function createVerifiableAuthorisation(
   subjectDid: string,
@@ -34,9 +34,13 @@ export async function createVerifiableAuthorisation(
     },
   };
 
+  const privateKeyJwk = encode.privateKey.fromHexToJWK(privateKey);
+  const { d, ...publicKeyJwk } = privateKeyJwk;
+
   const issuer: EbsiIssuer = {
     did: applicationDid,
-    signer: ES256KSigner(privateKey),
+    privateKeyJwk,
+    publicKeyJwk,
     alg: "ES256K",
     kid: `${applicationDid}#keys-1`,
   };

@@ -17,6 +17,7 @@ jest.mock("@cef-ebsi/siop-auth", () => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const originalModule = jest.requireActual("@cef-ebsi/siop-auth");
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return {
     __esModule: true,
     ...originalModule,
@@ -134,7 +135,7 @@ describe("Logging interceptor", () => {
         { sub: controllerDid, login_hint: "did_siop" },
         {
           issuer: "any",
-          signer: ES256KSigner(crypto.randomBytes(32).toString("hex")),
+          signer: ES256KSigner(crypto.randomBytes(32)),
         }
       );
 
