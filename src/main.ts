@@ -5,7 +5,7 @@ import {
 } from "@nestjs/platform-fastify";
 import { ValidationPipe, NestMiddleware } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { fastifyHelmet } from "fastify-helmet";
+import fastifyHelmet from "@fastify/helmet";
 import { AppModule } from "./app.module";
 import { AllExceptionsFilter } from "./filters/http-exception.filter";
 import { createLogger, consoleTransport } from "./logger/logger";
