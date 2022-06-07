@@ -196,7 +196,7 @@ describe("JsonRpc Module", () => {
     userAccessTokenPayload = { sub: adminDid };
     userAccessToken = await createJWT(userAccessTokenPayload, {
       issuer: "any",
-      signer: ES256KSigner(crypto.randomBytes(32).toString("hex")),
+      signer: ES256KSigner(crypto.randomBytes(32)),
     });
 
     defaultSignerSiopAccessTokenPayload = {
@@ -206,7 +206,7 @@ describe("JsonRpc Module", () => {
       defaultSignerSiopAccessTokenPayload,
       {
         issuer: "any",
-        signer: ES256KSigner(crypto.randomBytes(32).toString("hex")),
+        signer: ES256KSigner(crypto.randomBytes(32)),
       }
     );
   });
