@@ -19,6 +19,7 @@ module.exports = {
   moduleNameMapper: {
     "^jose/(.*)$": "<rootDir>/node_modules/jose/dist/node/cjs/$1",
   },
+  resolver: "<rootDir>/jest-resolver.js",
   // Puppeteer config
   // Un-comment the following lines to see the browser window
   // launch: {

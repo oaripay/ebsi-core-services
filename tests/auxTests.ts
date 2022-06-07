@@ -27,7 +27,7 @@ export async function createFakeToken({
     {
       alg: "ES256K",
       issuer: authorisationApiName,
-      signer: ES256KSigner(crypto.randomBytes(32).toString("hex")),
+      signer: ES256KSigner(crypto.randomBytes(32)),
       canonicalize: true,
     },
     {

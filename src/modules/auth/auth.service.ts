@@ -1,7 +1,14 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { UnauthorizedError } from "@cef-ebsi/problem-details-errors";
-import { decodeJWT, JWTPayload, JWTVerified, verifyJWT } from "did-jwt";
+import {
+  importJWK,
+  jwtVerify,
+  decodeJwt,
+  decodeProtectedHeader,
+  ProtectedHeaderParameters,
+  JWTPayload,
+} from "jose";
 import { Resolver } from "did-resolver";
 import { getResolver } from "@cef-ebsi/ebsi-did-resolver";
 import { ApiConfig } from "../../config/configuration";
@@ -19,11 +26,13 @@ export default class AuthService {
       .split("#");
   }
 
-  async validateToken(token: string): Promise<JWTVerified> {
+  async validateToken(token: string): Promise<void> {
     let payload: JWTPayload;
+    let header: ProtectedHeaderParameters;
 
     try {
-      payload = decodeJWT(token).payload;
+      payload = decodeJwt(token);
+      header = decodeProtectedHeader(token);
     } catch (error) {
       throw new UnauthorizedError(UnauthorizedError.defaultTitle, {
         detail: `Invalid Authorisation Token: ${(error as Error).message}`,
@@ -31,7 +40,7 @@ export default class AuthService {
     }
 
     if (!payload.iss || payload.iss !== this.apiDid) {
-      throw new UnauthorizedError(`unexpected issuer found in session token`);
+      throw new UnauthorizedError(`Unexpected issuer found in session token`);
     }
 
     try {
@@ -39,7 +48,29 @@ export default class AuthService {
         getResolver({ registry: this.didRegistryApiUrl })
       );
 
-      return await verifyJWT(token, { resolver });
+      if (!header.kid || typeof header.kid !== "string") {
+        throw new Error(`Invalid JWT kid`);
+      }
+
+      const { kid } = header;
+
+      const didDoc = await resolver.resolve(kid);
+
+      if (!didDoc.didDocument) {
+        throw new Error(`Can't find DID document related to ${kid}`);
+      }
+
+      const publicKeyJwk = didDoc.didDocument.verificationMethod.find(
+        (vm) => vm.id === kid
+      )?.publicKeyJwk;
+
+      if (!publicKeyJwk) {
+        throw new Error(`Can't find verification method related to ${kid}`);
+      }
+
+      const publicKey = await importJWK(publicKeyJwk, "ES256K");
+
+      await jwtVerify(token, publicKey);
     } catch (error) {
       throw new UnauthorizedError(UnauthorizedError.defaultTitle, {
         detail: (error as Error).message,

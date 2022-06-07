@@ -59,7 +59,7 @@ describe("authentication service tests", () => {
   });
 
   it("should prepare the did auth request and returns a session token", async () => {
-    expect.assertions(1);
+    expect.assertions(5);
 
     const authenticationService: AuthenticationService =
       new AuthenticationService(configService);
@@ -70,11 +70,16 @@ describe("authentication service tests", () => {
 
     const authenticationRequest =
       await authenticationService.startAuthentication(mockedRequest);
-    expect(authenticationRequest).toStrictEqual({
-      session_token: expect.stringMatching(
-        /openid:\/\/\?response_type=id_token&client_id=.*%252Fusers-onboarding%252Fv2%252Fauthentication-responses&scope=openid%2520did_authn&nonce=.*&request=/
-      ) as string,
-    });
+
+    const { searchParams } = new URL(authenticationRequest.session_token);
+
+    expect(searchParams.get("response_type")).toBe("id_token");
+    expect(searchParams.get("client_id")).toStrictEqual(
+      expect.stringContaining("/users-onboarding/v2/authentication-responses")
+    );
+    expect(searchParams.get("scope")).toBe("openid did_authn");
+    expect(searchParams.get("nonce")).toStrictEqual(expect.any(String));
+    expect(searchParams.get("request")).toStrictEqual(expect.any(String));
   });
 
   it("should validate the response", async () => {
@@ -82,7 +87,7 @@ describe("authentication service tests", () => {
     const authenticationService: AuthenticationService =
       new AuthenticationService(configService);
     const kid = "did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ#key-1";
-    const privateKey = crypto.randomBytes(32).toString("hex");
+    const privateKey = crypto.randomBytes(32);
     const jwk = new EbsiWallet(privateKey).getPublicKey({
       format: "jwk",
     }) as JWK;

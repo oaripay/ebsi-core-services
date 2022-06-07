@@ -1,8 +1,18 @@
 import { randomUUID } from "node:crypto";
 import { Injectable, Logger } from "@nestjs/common";
-import { compactVerify, importJWK } from "jose";
+import {
+  compactVerify,
+  decodeJwt,
+  decodeProtectedHeader,
+  importJWK,
+  JWTPayload,
+  jwtVerify,
+  ProtectedHeaderParameters,
+} from "jose";
+import { ec as EC } from "elliptic";
 import type { JWK } from "jose";
-import { decodeJWT, ES256KSigner, verifyJWT } from "did-jwt";
+import { bytes } from "multiformats";
+import { base64url } from "multiformats/bases/base64";
 import { Resolver } from "did-resolver";
 import { getResolver } from "@cef-ebsi/ebsi-did-resolver";
 import { ConfigService } from "@nestjs/config";
@@ -12,7 +22,6 @@ import {
   EbsiVerifiableAttestation,
 } from "@cef-ebsi/verifiable-credential";
 import { RP, encode } from "@cef-ebsi/siop-auth";
-import { JWTDecoded } from "did-jwt/lib/JWT";
 import {
   AuhtenticationResponseRequest,
   AuthenticationRequest,
@@ -53,6 +62,10 @@ export default class AuthenticationService {
 
   private apiVerificationMethodKid: string;
 
+  private apiPublicKeyJwk: JWK;
+
+  private apiPrivateKeyJwk: JWK;
+
   private authResponsesEndpoint: string;
 
   private relyingParty: RP;
@@ -78,6 +91,20 @@ export default class AuthenticationService {
     this.kid = `${trustedAppRegistry}/${this.apiName}`;
     this.siopSessionsUrl = `${this.domain}${this.apiUrlPrefix}/authentication-responses`;
     this.authResponsesEndpoint = `${this.domain}${this.apiUrlPrefix}/authentication-responses`;
+
+    const hexPrivateKey = this.privateKey.replace(/^0x/, "");
+    const ec = new EC("secp256k1");
+    const apiPubPoint = ec.keyFromPrivate(hexPrivateKey, "hex").getPublic();
+    this.apiPublicKeyJwk = {
+      kty: "EC",
+      crv: "secp256k1",
+      x: base64url.baseEncode(apiPubPoint.getX().toBuffer("be", 32)),
+      y: base64url.baseEncode(apiPubPoint.getY().toBuffer("be", 32)),
+    };
+    this.apiPrivateKeyJwk = {
+      ...this.apiPublicKeyJwk,
+      d: base64url.baseEncode(bytes.fromHex(hexPrivateKey)),
+    };
   }
 
   async getRelyingParty(): Promise<RP> {
@@ -135,16 +162,19 @@ export default class AuthenticationService {
     if (!responseRequest.id_token)
       throw new InvalidResponse(AuthenticationErrors.ID_TOKEN_MISSING);
     const idToken = responseRequest.id_token;
-    let decodedIdToken: JWTDecoded;
+    let idTokenHeader: ProtectedHeaderParameters;
+    let idTokenPayload: JWTPayload;
+
     try {
-      decodedIdToken = decodeJWT(idToken);
+      idTokenPayload = decodeJwt(idToken);
+      idTokenHeader = decodeProtectedHeader(idToken);
     } catch (error) {
       throw new InvalidUserAuthentication(
         `${OnboardingErrors.ERROR_DECODING_ID_TOKEN}: ${error as string}`
       );
     }
 
-    const { kid } = decodedIdToken.header;
+    const { kid } = idTokenHeader;
 
     if (typeof kid !== "string" || kid === "")
       throw new InvalidUserAuthentication(
@@ -156,6 +186,7 @@ export default class AuthenticationService {
     const resolver = new Resolver(
       getResolver({ registry: this.didRegistryApiUrl })
     );
+
     const result = await resolver.resolve(did);
     const { error: resError } = result.didResolutionMetadata;
 
@@ -167,26 +198,34 @@ export default class AuthenticationService {
       }
 
       try {
-        await verifyJWT(idToken, {
-          resolver,
-          callbackUrl: this.authResponsesEndpoint,
-        });
+        const publicKeyJwk = result.didDocument.verificationMethod.find(
+          (vm) => vm.id === kid
+        )?.publicKeyJwk;
+
+        if (!publicKeyJwk) {
+          throw new Error(`Can't find verification method related to ${kid}`);
+        }
+
+        const publicKey = await importJWK(publicKeyJwk, "ES256K");
+
+        await jwtVerify(idToken, publicKey, {});
       } catch (error) {
         throw new InvalidUserAuthentication((error as Error).message);
       }
+
       return did;
     }
 
     // The DID does not exist: Check the signature of the JWT using the
     // public key defined in sub_jwk
-    if (!decodedIdToken.payload.sub_jwk) {
+    if (!idTokenPayload.sub_jwk || typeof idTokenPayload.sub_jwk !== "object") {
       throw new InvalidUserAuthentication(OnboardingErrors.MISSING_SUB_JWK);
     }
 
     try {
       const publicKey = await importJWK({
         alg: "ES256",
-        ...decodedIdToken.payload.sub_jwk,
+        ...idTokenPayload.sub_jwk,
       } as JWK);
 
       const { payload, protectedHeader } = await compactVerify(
@@ -216,10 +255,12 @@ export default class AuthenticationService {
     const expirationDate = new Date(
       issuanceDate.getTime() + 1000 * 60 * 60 * 24 * 182 // 365/2 = 6 months
     );
+
     const issuer: EbsiIssuer = {
       did: this.apiDid,
       kid: this.apiVerificationMethodKid,
-      signer: ES256KSigner(this.privateKey),
+      publicKeyJwk: this.apiPublicKeyJwk,
+      privateKeyJwk: this.apiPrivateKeyJwk,
       alg: "ES256K",
     };
 

@@ -1,10 +1,13 @@
 import { URLSearchParams } from "node:url";
 import { Injectable, Logger } from "@nestjs/common";
 import axios, { AxiosResponse } from "axios";
+import { ec as EC } from "elliptic";
+import { bytes } from "multiformats";
+import { base64url } from "multiformats/bases/base64";
 import * as xml2js from "xml2js";
 import * as XMLprocessors from "xml2js/lib/processors";
 import { ConfigService } from "@nestjs/config";
-import { createJWT, ES256KSigner } from "did-jwt";
+import { importJWK, JWK, SignJWT } from "jose";
 import { ApiConfig } from "../../config/configuration";
 import { InvalidSession, InvalidUserAuthentication } from "../../errors";
 import { UserAuthentication } from "../../shared/dto";
@@ -39,9 +42,13 @@ type EULoginResponse = {
 export default class SessionsService {
   private readonly logger = new Logger(SessionsService.name);
 
+  private apiKid: string;
+
   private apiDid: string;
 
-  private apiPrivateKey: string;
+  private apiPrivateKeyHex: string;
+
+  private apiPrivateKeyJwk: JWK;
 
   private recaptchaService: string;
 
@@ -52,9 +59,8 @@ export default class SessionsService {
   private euloginServiceParam: string;
 
   constructor(private configService: ConfigService<ApiConfig>) {
-    [this.apiDid] = this.configService
-      .get<string>("apiVerificationMethodKid")
-      .split("#");
+    this.apiKid = this.configService.get<string>("apiVerificationMethodKid");
+    [this.apiDid] = this.apiKid.split("#");
     this.recaptchaRegisteredHostname = this.configService.get<string>(
       "recaptchaRegisteredHostname"
     );
@@ -64,8 +70,22 @@ export default class SessionsService {
       "euloginServiceParam"
     );
 
-    this.apiPrivateKey = this.configService.get<string>("apiPrivateKey");
+    this.apiPrivateKeyHex = this.configService.get<string>("apiPrivateKey");
     this.recaptchaService = this.configService.get<string>("recaptchaService");
+
+    const hexPrivateKey = this.apiPrivateKeyHex.replace(/^0x/, "");
+    const ec = new EC("secp256k1");
+    const apiPubPoint = ec.keyFromPrivate(hexPrivateKey, "hex").getPublic();
+    const apiPublicKeyJwk = {
+      kty: "EC",
+      crv: "secp256k1",
+      x: base64url.baseEncode(apiPubPoint.getX().toBuffer("be", 32)),
+      y: base64url.baseEncode(apiPubPoint.getY().toBuffer("be", 32)),
+    };
+    this.apiPrivateKeyJwk = {
+      ...apiPublicKeyJwk,
+      d: base64url.baseEncode(bytes.fromHex(hexPrivateKey)),
+    };
   }
 
   async validateOnboarding(
@@ -203,19 +223,21 @@ export default class SessionsService {
       | CaptchaAuthenticationValidatedInfo
   ): Promise<SessionToken> {
     try {
-      const token = await createJWT(
-        {
-          onboarding: userAuthentication.onboarding,
-          validatedInfo,
-        },
-        {
+      const apiPrivateKey = await importJWK(this.apiPrivateKeyJwk, "ES256K");
+      const token = await new SignJWT({
+        onboarding: userAuthentication.onboarding,
+        validatedInfo,
+      })
+        .setProtectedHeader({
           alg: "ES256K",
-          issuer: this.apiDid,
-          signer: ES256KSigner(this.apiPrivateKey),
-          canonicalize: true,
-          expiresIn: 15 * 60, // 15 minutes
-        }
-      );
+          typ: "JWT",
+          kid: this.apiKid,
+        })
+        .setIssuer(this.apiDid)
+        .setIssuedAt()
+        .setExpirationTime("15m") // 15 minutes
+        .sign(apiPrivateKey);
+
       return { Bearer: token };
     } catch (error) {
       if (error instanceof Error) {

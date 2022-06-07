@@ -150,7 +150,7 @@ describe("/onboarding/v2 authentication e2e tests", () => {
     expect(authenticationServerResponseWrongToken.status).toBe(401);
     expect(authenticationServerResponseWrongToken.body).toStrictEqual({
       status: 401,
-      title: "unexpected issuer found in session token",
+      title: "Unexpected issuer found in session token",
       type: "about:blank",
     });
   });

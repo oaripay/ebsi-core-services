@@ -1,7 +1,8 @@
-import request from "supertest";
 import crypto from "node:crypto";
+import request from "supertest";
 import { UnauthorizedError } from "@cef-ebsi/problem-details-errors";
 import { Test, TestingModule } from "@nestjs/testing";
+import * as jose from "jose";
 import type { JWK } from "jose";
 import {
   INestApplication,
@@ -15,8 +16,8 @@ import {
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
-import { Resolver } from "did-resolver";
-import didJwt, { JWTVerified, createJWT, ES256KSigner } from "did-jwt";
+import { JsonWebKey, Resolver } from "did-resolver";
+import { createJWT, ES256KSigner } from "did-jwt";
 import EbsiWallet from "@cef-ebsi/wallet-lib";
 import { AuthenticationModule } from "./authentication.module";
 import {
@@ -145,7 +146,7 @@ describe("Authentication Module", () => {
       const responseBody = response.body as UnauthorizedError;
 
       expect(responseBody.title).toBe(
-        "unexpected issuer found in session token"
+        "Unexpected issuer found in session token"
       );
       expect(response.status).toBe(401);
 
@@ -157,7 +158,7 @@ describe("Authentication Module", () => {
       expect(response.body).toStrictEqual({
         title: "Unauthorized",
         detail:
-          "Invalid Authorisation Token: invalid_argument: Incorrect format JWT",
+          "Invalid Authorisation Token: Only JWTs using Compact JWS serialization can be decoded",
         status: 401,
         type: "about:blank",
       });
@@ -167,9 +168,7 @@ describe("Authentication Module", () => {
     it("should reject bad requests", async () => {
       expect.assertions(2);
 
-      jest
-        .spyOn(AuthService.prototype, "validateToken")
-        .mockResolvedValue({} as JWTVerified);
+      jest.spyOn(AuthService.prototype, "validateToken").mockResolvedValue();
 
       const response = await request(server)
         .post("/authentication-responses")
@@ -185,7 +184,7 @@ describe("Authentication Module", () => {
       expect(response.status).toBe(400);
     });
 
-    it("should reject a request with a token with an existing did but bad signature", async () => {
+    it("should reject a request with a token with an existing DID but no verification method as JWK", async () => {
       const did = EbsiWallet.createDid();
       const privateKey = crypto.randomBytes(32).toString("hex");
       const publicKey = new EbsiWallet(privateKey).getPublicKey({
@@ -195,17 +194,15 @@ describe("Authentication Module", () => {
         {},
         {
           issuer: "https://self-issued.me",
-          signer: ES256KSigner(crypto.randomBytes(32).toString("hex")),
+          signer: ES256KSigner(crypto.randomBytes(32)),
         },
         {
           kid: `${did}#keys-1`,
         }
       );
 
-      // Mock access token verification
-      jest
-        .spyOn(AuthService.prototype, "validateToken")
-        .mockResolvedValue({} as JWTVerified);
+      // Mock access token verification with invalid verification method ("publicKeyJWK" instead of publicKeyJwk)
+      jest.spyOn(AuthService.prototype, "validateToken").mockResolvedValue();
 
       const didResolved = {
         didResolutionMetadata: {
@@ -213,12 +210,15 @@ describe("Authentication Module", () => {
         },
         didDocumentMetadata: {},
         didDocument: {
-          "@context": "https://www.w3.org/ns/did/v1",
+          "@context": [
+            "https://www.w3.org/ns/did/v1",
+            "https://w3id.org/security/suites/jws-2020/v1",
+          ],
           id: did,
           verificationMethod: [
             {
               id: `${did}#keys-1`,
-              type: "EcdsaSecp256k1VerificationKey2019",
+              type: "JsonWebKey2020",
               controller: did,
               publicKeyJWK: publicKey,
             },
@@ -228,17 +228,13 @@ describe("Authentication Module", () => {
 
       jest.spyOn(Resolver.prototype, "resolve").mockResolvedValue(didResolved);
 
-      jest
-        .spyOn(didJwt, "verifyJWT")
-        .mockRejectedValue(new Error("invalid signature"));
-
       const response = await request(server)
         .post("/authentication-responses")
         .auth("token", { type: "bearer" })
         .send({ id_token: idToken });
 
       expect(response.body).toStrictEqual({
-        title: "invalid signature",
+        title: `Can't find verification method related to ${did}#keys-1`,
         status: 400,
         type: "about:blank",
       });
@@ -252,9 +248,7 @@ describe("Authentication Module", () => {
         "eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJkaWQ6ZWJzaTp6MjU2YXNCV21IQnNqMlpOVnhHNU1oa3Aja2V5LTEifQ.eyJpYXQiOjE2NDMwMzg0NTYsImV4cCI6MTY0MzAzODc1NiwiaXNzIjoiaHR0cHM6Ly9zZWxmLWlzc3VlZC5tZSIsInN1YiI6IlI3cmlHcUkwN0pGV2Y3MnU0bE44RWt4RGJ1NEpTQXZ2WVFBdzNJX2NGUWsiLCJhdWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6L3VzZXJzLW9uYm9hcmRpbmcvdjEvYXV0aGVudGljYXRpb24tcmVzcG9uc2VzIiwibm9uY2UiOiI5NzgxMWQ4ZC1jYjg0LTQzNGUtODRkZC0xMTNjY2YzOWFiZWIiLCJzdWJfandrIjp7Imt0eSI6IkVDIiwiY3J2Ijoic2VjcDI1NmsxIiwieCI6IjN2RzQ5ODB3WGNiLW4yRHlSNEdMU290X1dNQ1d0bF9ibldVc0NreDRONVUiLCJ5IjoiVC1abE5feUFnOTRCZlZOOVUtRUNnaDlTblJ6T2Zjam41WlJWdWJ0MjVyayIsImtpZCI6ImRpZDplYnNpOnoyNTZhc0JXbUhCc2oyWk5WeEc1TWhrcCNrZXktMSJ9LCJkaWQiOiJkaWQ6ZWJzaTp6MjU2YXNCV21IQnNqMlpOVnhHNU1oa3AifQ.nDssH_Rx4OJJH85YcUpZ_n4quQ9bxd3aPFzHpBaUjyoScZ9Ur_c9cwcvZ0gC-UfeDt10Wv3CCCmitUr9T0xJBA";
 
       // Mock access token verification
-      jest
-        .spyOn(AuthService.prototype, "validateToken")
-        .mockResolvedValue({} as JWTVerified);
+      jest.spyOn(AuthService.prototype, "validateToken").mockResolvedValue();
 
       jest.spyOn(Resolver.prototype, "resolve").mockResolvedValue({
         didResolutionMetadata: {
@@ -287,7 +281,7 @@ describe("Authentication Module", () => {
         {},
         {
           issuer: "https://self-issued.me",
-          signer: ES256KSigner(crypto.randomBytes(32).toString("hex")),
+          signer: ES256KSigner(crypto.randomBytes(32)),
         },
         {
           kid: `${did}#keys-1`,
@@ -295,9 +289,7 @@ describe("Authentication Module", () => {
       );
 
       // Mock access token verification
-      jest
-        .spyOn(AuthService.prototype, "validateToken")
-        .mockResolvedValue({} as JWTVerified);
+      jest.spyOn(AuthService.prototype, "validateToken").mockResolvedValue();
 
       const didResolved = {
         didResolutionMetadata: {
@@ -305,14 +297,17 @@ describe("Authentication Module", () => {
         },
         didDocumentMetadata: {},
         didDocument: {
-          "@context": "https://www.w3.org/ns/did/v1",
+          "@context": [
+            "https://www.w3.org/ns/did/v1",
+            "https://w3id.org/security/suites/jws-2020/v1",
+          ],
           id: did,
           verificationMethod: [
             {
               id: `${did}#keys-1`,
-              type: "EcdsaSecp256k1VerificationKey2019",
+              type: "JsonWebKey2020",
               controller: did,
-              publicKeyJWK: publicKey,
+              publicKeyJwk: publicKey as JsonWebKey,
             },
           ],
         },
@@ -320,19 +315,9 @@ describe("Authentication Module", () => {
 
       jest.spyOn(Resolver.prototype, "resolve").mockResolvedValue(didResolved);
 
-      jest.spyOn(didJwt, "verifyJWT").mockResolvedValue(
-        Promise.resolve({
-          payload: {},
-          didResolutionResult: didResolved,
-          issuer: "issuer",
-          signer: {
-            id: "id",
-            type: "type",
-            controller: "controller",
-          },
-          jwt: idToken,
-        })
-      );
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      jest.spyOn(jose, "jwtVerify").mockResolvedValue({});
 
       const response = await request(server)
         .post("/authentication-responses")
