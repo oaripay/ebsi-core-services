@@ -382,10 +382,10 @@
     multiformats "^9.6.5"
     uuid "^8.3.2"
 
-"@cef-ebsi/verifiable-credential@^2.0.0-alpha.2":
-  version "2.0.0-alpha.2"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-credential/-/verifiable-credential-2.0.0-alpha.2.tgz#382b50634cf7767e5c1e515fe5f950f66fb931a3"
-  integrity sha512-xym61ztjIUB/5z0IbeoM+3IvfU1/etZbVfxdQNQNcFYvtKTyWyfPqH7uoKLbA6RwWl+DP9ovIGOtLKGsv7RZgQ==
+"@cef-ebsi/verifiable-credential@^2.0.0-alpha.3":
+  version "2.0.0-alpha.3"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-credential/-/verifiable-credential-2.0.0-alpha.3.tgz#7fa844eee5e69685df6f16d56fef8dc511cf22a9"
+  integrity sha512-ajMb+CxO6alppSXYPtLpckCoWYlJTcHYKG3nmdjqKlqusVwMuwyEe/vO45lAnLa+VYK8n5RThxl1djP+DiCfCQ==
   dependencies:
     "@cef-ebsi/ebsi-did-resolver" "^2.0.0-alpha.2"
     "@transmute/json-web-signature" "^0.7.0-unstable.60"
@@ -399,13 +399,13 @@
     mem "^8.1.1"
     multiformats "^9.6.5"
 
-"@cef-ebsi/verifiable-presentation@^2.0.0-alpha.1":
-  version "2.0.0-alpha.1"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-presentation/-/verifiable-presentation-2.0.0-alpha.1.tgz#47bc9806037afbe624e6dfa3c987e49d0241a021"
-  integrity sha512-IMwPs+U1yplHV3Z8/KyTlVLuefROt6XN/bZAo+hHbYRH/NQgXlvulK1ACUCNYzZUlPJG1DfpPP9yMKVcLEijSA==
+"@cef-ebsi/verifiable-presentation@^2.0.0-alpha.2":
+  version "2.0.0-alpha.2"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-presentation/-/verifiable-presentation-2.0.0-alpha.2.tgz#905607373f2bd3ea241f14fd23a4cf1b2796aa52"
+  integrity sha512-wQTQEG7VWZSImBS4haesMlMaiLSoOOVJ8wi8z0XbgiX3ds2oDc1QMznUq24F0nDKr5l9iVjqwiwXhRlV9Qwkaw==
   dependencies:
     "@cef-ebsi/ebsi-did-resolver" "^2.0.0-alpha.2"
-    "@cef-ebsi/verifiable-credential" "^2.0.0-alpha.2"
+    "@cef-ebsi/verifiable-credential" "^2.0.0-alpha.3"
     "@transmute/json-web-signature" "^0.7.0-unstable.60"
     "@transmute/vc.js" "^0.7.0-unstable.60"
     axios "^0.27.2"
