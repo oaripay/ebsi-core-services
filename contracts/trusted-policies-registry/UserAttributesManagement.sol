@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: EUPL V1.2
-pragma solidity ^0.8.9;
-pragma experimental ABIEncoderV2;
+pragma solidity 0.8.12;
 
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";

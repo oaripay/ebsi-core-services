@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: EUPL V1.2
-pragma solidity ^0.8.9;
+pragma solidity 0.8.12;
 
 /**
  * @title example of stored values on a SC with pause functionality.
