@@ -34,7 +34,7 @@ abstract contract UserAttributesManagement is
             attributes.length == values.length,
             "Policy: invalid attr length"
         );
-        for (uint256 i; i < attributes.length; i++) {
+        for (uint256 i = 0; i < attributes.length; i++) {
             require(
                 ps.userAttributes[user][attributes[i]].length == 0,
                 "Attribute already defined"
@@ -79,7 +79,7 @@ abstract contract UserAttributesManagement is
         ps.userAttributes[user][attribute] = new bytes(0);
         uint256 length = ps.listOfUserAttributes[user].length;
 
-        for (uint256 i; i < length; i++) {
+        for (uint256 i = 0; i < length; i++) {
             if (
                 keccak256(abi.encodePacked(ps.listOfUserAttributes[user][i])) ==
                 keccak256(abi.encodePacked(attribute))

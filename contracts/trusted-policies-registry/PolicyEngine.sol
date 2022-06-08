@@ -40,7 +40,7 @@ abstract contract PolicyEngine is PolicyStorage {
             if (policy.policyConditionsCount == 0) {
                 return false;
             }
-            for (uint256 i; i < policy.policyConditionsCount; i++) {
+            for (uint256 i = 0; i < policy.policyConditionsCount; i++) {
                 bytes memory userAttrValue = ps.userAttributes[user][
                     policy.policyConditions[i].attributeName
                 ];

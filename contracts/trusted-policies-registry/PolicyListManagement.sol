@@ -68,7 +68,7 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
             ps.policyNameToPolicyId[policyName] = policyId;
             ps.policyNameDefined[policyName] = true;
             ps.descriptionToPolicyIds[description].push(policyId);
-            for (uint256 i; i < policyConditions.length; i++) {
+            for (uint256 i = 0; i < policyConditions.length; i++) {
                 require(
                     bytes(policyConditions[i].attributeName).length > 0,
                     string(
@@ -201,7 +201,7 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
         require(ps.policyCount > policyId, "Policy: invalid policy");
         Policy storage policy = ps.policies[policyId];
         require(policy.status, "Policy: policy inactive");
-        for (uint256 i; i < policyConditions.length; i++) {
+        for (uint256 i = 0; i < policyConditions.length; i++) {
             require(
                 bytes(policyConditions[i].attributeName).length > 0,
                 string(
@@ -240,7 +240,7 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
             policy.policyConditionsCount - 1
         ];
 
-        bytes memory zeroBytes;
+        bytes memory zeroBytes = "";
         policy.policyConditions[
             policy.policyConditionsCount - 1
         ] = PolicyCondition(
@@ -278,7 +278,7 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
         ) {
             // update index for registry
             for (
-                uint256 i;
+                uint256 i = 0;
                 i < ps.descriptionToPolicyIds[oldDescription].length;
                 i++
             ) {
@@ -357,7 +357,7 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
         );
         string[] memory itemsStrings = new string[](itemsUint.length);
 
-        for (uint256 i; i < itemsUint.length; i++) {
+        for (uint256 i = 0; i < itemsUint.length; i++) {
             itemsStrings[i] = ps.policies[itemsUint[i]].policyName;
         }
         return (itemsStrings, total, howMany, prev, next);
@@ -417,7 +417,7 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
         PolicyCondition[] memory _policyConditions = new PolicyCondition[](
             policy.policyConditionsCount
         );
-        for (uint256 i; i < policy.policyConditionsCount; i++) {
+        for (uint256 i = 0; i < policy.policyConditionsCount; i++) {
             _policyConditions[i] = policy.policyConditions[i];
         }
         return (
@@ -446,7 +446,7 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
         returns (uint256[] memory byPolicyName, uint256[] memory byDescription)
     {
         PolicyContractStorage storage ps = policyStorage();
-        uint256 length;
+        uint256 length = 0;
         if (ps.policyNameDefined[searchString]) {
             length = 1;
         }
