@@ -164,6 +164,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     DID_REGISTRY: Joi.string().uri(),
     AUTHORISATION_CREDENTIAL_SCHEMA: Joi.string().required(),
     HEALTH_CHECK: Joi.string().uri(),
+    // Test specific variables
     TEST_APP_NAME: Joi.string(),
     TEST_APP_PRIVATE_KEY: Joi.string(),
     TEST_CLIENT_DID: Joi.string(),
