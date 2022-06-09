@@ -2,7 +2,7 @@ version: "3.7"
 
 services:
   users-onboarding-web-client-v2:
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/users-onboarding-web-client-v2:prod_ebsiint-3981-update-urls_v2.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/users-onboarding-web-client-v2:prod_ebsiint-4252-bump-dependencies_v2.0.0
     build:
       context: ../..
       args:
