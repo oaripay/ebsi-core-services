@@ -20,6 +20,7 @@ declare global {
       DOMAIN?: string;
       LOCAL_ORIGIN?: string;
       HEALTH_CHECK?: string;
+      // Test variables
       TEST_USER_DID_1?: string;
       TEST_USER_PRIVATE_KEY_1?: string;
       TEST_USER_DID_2?: string;
