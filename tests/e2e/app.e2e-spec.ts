@@ -38,7 +38,7 @@ describe("AppController (e2e)", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
 
     const configService =
-      moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
 
     server = getServer(app, configService);
 

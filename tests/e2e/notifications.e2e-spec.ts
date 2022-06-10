@@ -27,15 +27,15 @@ describeWriteOps()("Notifications module (e2e)", () => {
   let testUser1: {
     kid: string;
     privateKey: string;
-    did?: string;
-    token?: string;
+    did: string;
+    token: string;
   };
 
   let testUser2: {
     kid: string;
     privateKey: string;
-    did?: string;
-    token?: string;
+    did: string;
+    token: string;
   };
 
   let expectedNotifications: Notification[];
@@ -103,7 +103,7 @@ describeWriteOps()("Notifications module (e2e)", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
 
     const configService =
-      moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
     const authorisationApiUrl = configService.get<string>(
       "authorisationApiUrl"
     );
@@ -113,31 +113,37 @@ describeWriteOps()("Notifications module (e2e)", () => {
 
     server = getServer(app, configService);
 
-    testUser1 = configService.get<{
+    const configTestUser1 = configService.get<{
       kid: string;
       privateKey: string;
     }>("testUser1");
-    testUser2 = configService.get<{
+
+    testUser1 = {
+      ...configTestUser1,
+      did: configTestUser1.kid.split("#")[0],
+      token: await requestSiopJwt({
+        clientKid: configTestUser1.kid,
+        clientPrivateKey: configTestUser1.privateKey,
+        authorisationApiUrl,
+        trustedAppsRegistryApiUrl,
+      }),
+    };
+
+    const configTestUser2 = configService.get<{
       kid: string;
       privateKey: string;
     }>("testUser2");
 
-    [testUser1.did] = testUser1.kid.split("#");
-    [testUser2.did] = testUser2.kid.split("#");
-
-    testUser1.token = await requestSiopJwt({
-      clientKid: testUser1.kid,
-      clientPrivateKey: testUser1.privateKey,
-      authorisationApiUrl,
-      trustedAppsRegistryApiUrl,
-    });
-
-    testUser2.token = await requestSiopJwt({
-      clientKid: testUser2.kid,
-      clientPrivateKey: testUser2.privateKey,
-      authorisationApiUrl,
-      trustedAppsRegistryApiUrl,
-    });
+    testUser2 = {
+      ...configTestUser2,
+      did: configTestUser2.kid.split("#")[0],
+      token: await requestSiopJwt({
+        clientKid: configTestUser2.kid,
+        clientPrivateKey: configTestUser2.privateKey,
+        authorisationApiUrl,
+        trustedAppsRegistryApiUrl,
+      }),
+    };
 
     // delete notifications of testUser1 and testUser2
     await deleteAllNotifications();

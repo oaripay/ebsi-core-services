@@ -1,3 +1,4 @@
+import { randomInt } from "node:crypto";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { classToPlain } from "class-transformer";
@@ -127,7 +128,7 @@ export class NotificationsService {
       jsonrpc: "2.0",
       method: "cassandra_call",
       params,
-      id: Math.trunc(Math.random() * 1000),
+      id: randomInt(0, 1000),
     };
 
     const opts = {
