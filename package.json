@@ -3,7 +3,7 @@
   "version": "2.0.0-rc.8",
   "license": "EUPL-1.2",
   "scripts": {
-    "audit": "audit-ci --skip-dev --moderate -a GHSA-fwr7-v2mv-hh25",
+    "audit": "audit-ci --skip-dev --moderate",
     "prebuild": "rimraf dist",
     "build": "nest build -p tsconfig.production.json",
     "start": "nest start",
@@ -25,8 +25,8 @@
     "prepare": "is-ci || husky install"
   },
   "dependencies": {
-    "@cef-ebsi/oauth2-auth": "^1.0.0-alpha.17",
-    "@cef-ebsi/problem-details-errors": "^1.0.0-alpha.11",
+    "@cef-ebsi/oauth2-auth": "^1.0.0",
+    "@cef-ebsi/problem-details-errors": "^1.0.0",
     "@ethereumjs/common": "^2.6.1",
     "@ethereumjs/tx": "^3.5.0",
     "@nestjs/axios": "^0.0.4",
@@ -53,7 +53,7 @@
     "ws": "^7.5.3"
   },
   "devDependencies": {
-    "@cef-ebsi/siop-auth": "^1.0.0-alpha.10",
+    "@cef-ebsi/siop-auth": "^1.0.0",
     "@commitlint/cli": "^16.1.0",
     "@commitlint/config-conventional": "^16.0.0",
     "@nestjs/cli": "^8.2.0",

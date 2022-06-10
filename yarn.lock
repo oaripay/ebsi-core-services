@@ -364,19 +364,19 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@cef-ebsi/ebsi-did-resolver@^1.0.0-alpha.5":
-  version "1.0.0-alpha.5"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/ebsi-did-resolver/-/ebsi-did-resolver-1.0.0-alpha.5.tgz#8eaa04871f476b31bb2bf3f111fedf4cee0a0931"
-  integrity sha512-JCWYr9WVFebi3t0tLXQrOjhnlSHTibSBMWq0mjTmRfi4uR+jmbvuY3BvLo7068CyUz/KEkB1DJ53q3c9hQtAcw==
+"@cef-ebsi/ebsi-did-resolver@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/ebsi-did-resolver/-/ebsi-did-resolver-1.0.0.tgz#bec9066664a2794999038f8984f5fbf019fe9237"
+  integrity sha512-WoW4fip4azwBn4ccfEDDmCgKShfBhPqHzULXnNm+SIJ1RK/HVqbmn0yfeqoR9x1diWnnDBtsZzRxvc0b66KcDA==
   dependencies:
-    "@cef-ebsi/problem-details-errors" "^1.0.0-alpha.11"
+    "@cef-ebsi/problem-details-errors" "^1.0.0"
     axios "^0.24.0"
     did-resolver "^3.1.5"
 
-"@cef-ebsi/oauth2-auth@^1.0.0-alpha.17":
-  version "1.0.0-alpha.17"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/oauth2-auth/-/oauth2-auth-1.0.0-alpha.17.tgz#a51133b3b4d3c50f87359ba59c05f75d568abaff"
-  integrity sha512-RFKcq3RJwJ1XlzLVaKK8n5P/VWwxBkovObm8gpk05O7m9z6vYEK314CtkP8vwWYLJR+2lB2R3jeM81vFJk4srQ==
+"@cef-ebsi/oauth2-auth@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/oauth2-auth/-/oauth2-auth-1.0.0.tgz#962d61865997ec80f2fc27c6d2752132fda2bb13"
+  integrity sha512-ZSyE75/3Tt66T7aRdw/gU5wC4BBStRYEOhoGtZOtD3X1xfGg8VatgN6LBBVX3g9F6eBllov3YFeEpJoihih4dw==
   dependencies:
     axios "^0.24.0"
     did-jwt "^5.12.4"
@@ -387,18 +387,18 @@
     multiformats "^9.6.2"
     uuid "^8.3.1"
 
-"@cef-ebsi/problem-details-errors@^1.0.0-alpha.11":
-  version "1.0.0-alpha.11"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/problem-details-errors/-/problem-details-errors-1.0.0-alpha.11.tgz#352e76ff2c039008f7fde3b446e6fe7b46b3879e"
-  integrity sha512-zL+sH5Zyi8D09SIlkkk+nS8vOWMH/eHZ4TnfFmL3TsAvy9/I6EHgdw4gUffyh0xCFNXyFVkNLvU2a91SEWFNoQ==
+"@cef-ebsi/problem-details-errors@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/problem-details-errors/-/problem-details-errors-1.0.0.tgz#bfcbd40090ba58c5323257ffbced98bdbfc394d8"
+  integrity sha512-EXgYdsb1p9TySN+0s7BtuRuf5roOmtCl+M8OHk/TD8Kq7n2jbuOd0DvveWOrB9MrCLMddhIKNSWnUJQykP0ksw==
 
-"@cef-ebsi/siop-auth@^1.0.0-alpha.10":
-  version "1.0.0-alpha.10"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/siop-auth/-/siop-auth-1.0.0-alpha.10.tgz#993d4c6b706839aab97a847a442af0c65d386ba9"
-  integrity sha512-NdZUWKFjSDAK+5/WpHyrV+NZgsCnje2VV+0iEqf7ziHjATyEvWqi6L7Dw/lnCRnvE6uqhZEu71EsdCeRfjFt5g==
+"@cef-ebsi/siop-auth@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/siop-auth/-/siop-auth-1.0.0.tgz#67b0287e40c9437a498e7b6188ddb17b8b2f237d"
+  integrity sha512-gqrtvQ8fOH2lQRjiNZ7nesVYiOyE1eLl/K75bQgm0Y9nyaghR6V3Ny8DZXdf1PZmMvQs8kwps0v6TwiWmgK0Pw==
   dependencies:
-    "@cef-ebsi/ebsi-did-resolver" "^1.0.0-alpha.5"
-    "@cef-ebsi/wallet-lib" "^1.0.0-rc.6"
+    "@cef-ebsi/ebsi-did-resolver" "^1.0.0"
+    "@cef-ebsi/wallet-lib" "^1.0.0"
     did-jwt "^5.12.4"
     did-resolver "^3.1.5"
     elliptic "^6.5.4"
@@ -408,10 +408,10 @@
     multiformats "^9.6.2"
     uuid "^8.3.2"
 
-"@cef-ebsi/wallet-lib@^1.0.0-rc.6":
-  version "1.0.0-rc.6"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/wallet-lib/-/wallet-lib-1.0.0-rc.6.tgz#b7fadb72bbd93f0a24ba5f98e72fe4dd2d76d680"
-  integrity sha512-5Ni0CJP0BX7yKD7qyBuBw5zvP7XcajQd/iK6nC/ema7mSn9W5Ce3lKNTh0kDkoIEoDbhf6+/MLg+DGO94Pss2w==
+"@cef-ebsi/wallet-lib@^1.0.0":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/wallet-lib/-/wallet-lib-1.0.1.tgz#122b99dd886b5c55ecf023be3d2deb6b0c434651"
+  integrity sha512-3hDk5tTiQBLIivDtNoFb9zALuIjHfwwBVSFc8Uk4S9kDXY+Glr/4xwirvjkUa6bWP4aWq0S1pmHA9GMvomm60g==
   dependencies:
     "@ethersproject/providers" "^5.5.2"
     "@ethersproject/random" "^5.5.1"
