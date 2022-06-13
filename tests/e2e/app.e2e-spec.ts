@@ -37,7 +37,7 @@ describe("/authorisation/v2 (generic tests)", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
 
     const configService =
-      moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
 
     server = getServer(app, configService);
 

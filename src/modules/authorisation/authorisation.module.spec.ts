@@ -613,7 +613,9 @@ describe("Authorisation Module", () => {
         expect(response.body).toStrictEqual({
           status: 400,
           title: "Invalid ID Token",
-          detail: "not found",
+          detail: `Unable to resolve ${clientDid}. Error: notFound. Message: not found | Registry used: ${configService.get<string>(
+            "didRegistry"
+          )}`,
           type: "about:blank",
         });
         expect(response.status).toBe(400);

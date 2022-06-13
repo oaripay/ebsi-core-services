@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import type { AxiosError } from "axios";
+import axios from "axios";
 import {
   BadRequestError,
   InternalServerError,
@@ -310,19 +310,21 @@ export class AuthorisationService {
       );
     } catch (error) {
       if (error instanceof Error) {
-        if (error.message === "Internal Server Error") {
+        if (
+          error.message === "Internal Server Error" ||
+          error.message.includes("Error: internalServerError")
+        ) {
           throw new InternalServerError();
         }
 
-        const axiosError = error as AxiosError;
-        if (axiosError.isAxiosError) {
-          if (typeof axiosError.response.data !== "object") {
+        if (axios.isAxiosError(error)) {
+          if (typeof error.response.data !== "object") {
             throw new BadRequestError("Invalid ID Token", {
-              detail: axiosError.response.data as string,
+              detail: error.response.data as string,
             });
           }
 
-          const response = axiosError.response.data as {
+          const response = error.response.data as {
             status: number;
             title: string;
             type?: string;

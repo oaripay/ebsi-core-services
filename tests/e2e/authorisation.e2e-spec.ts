@@ -63,7 +63,7 @@ describe("Authorisation (e2e)", () => {
     privateKey: string;
     did: string;
   };
-  let configService: ConfigService<ApiConfig>;
+  let configService: ConfigService<ApiConfig, true>;
   let ebsiEnv: "test" | "conformance" | "pilot" | "prod";
   // Fake audience used for the creation of the VP JWT (not checked by the API)
   const audience = "authorisation-api";
@@ -85,7 +85,8 @@ describe("Authorisation (e2e)", () => {
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
 
-    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
     server = getServer(app, configService);
     const testAppName = configService.get<string>("testAppName");
     const testAppPrivateKey = configService.get<string>("testAppPrivateKey");
@@ -167,17 +168,19 @@ describe("Authorisation (e2e)", () => {
       expect(query.get("nonce")).toBeDefined();
       expect(query.get("request")).toBeDefined();
 
-      let verification: JWTVerifyResult;
+      const queryRequest = query.get("request") || "";
+
+      let verification: JWTVerifyResult | null;
 
       if (process.env.TEST_ENV !== "remote") {
         const { publicKeyObject } = await getPublicKey(
           configService.get("apiPrivateKey")
         );
 
-        verification = await jwtVerify(query.get("request"), publicKeyObject);
+        verification = await jwtVerify(queryRequest, publicKeyObject);
       } else {
         // When running the tests on the remote API, we need to get the public key from TAR
-        const { payload } = decodeJWT(query.get("request"));
+        const { payload } = decodeJWT(queryRequest);
         const { iss } = payload;
 
         const appInfo = await request(trustedAppsRegistry).get(`/${iss}`);
@@ -202,10 +205,7 @@ describe("Authorisation (e2e)", () => {
                 "ES256K"
               )) as crypto.KeyObject;
 
-              const res = await jwtVerify(
-                query.get("request"),
-                publicKeyObject
-              );
+              const res = await jwtVerify(queryRequest, publicKeyObject);
               return res;
             } catch (e) {
               return null;
@@ -214,6 +214,10 @@ describe("Authorisation (e2e)", () => {
         );
 
         [verification] = verificationResults.filter((res) => res);
+      }
+
+      if (!verification) {
+        throw new Error("No verification result found");
       }
 
       expect(verification.payload).toStrictEqual({
@@ -516,7 +520,9 @@ describe("Authorisation (e2e)", () => {
         expect(response.body).toStrictEqual({
           title: "Invalid ID Token",
           status: 400,
-          detail: `Identifier ${randomDid} not found`,
+          detail: `Unable to resolve ${randomDid}. Error: notFound. Message: Identifier ${randomDid} not found | Registry used: ${configService.get<string>(
+            "didRegistry"
+          )}`,
           type: "about:blank",
         });
         expect(response.status).toBe(400);
@@ -602,7 +608,7 @@ describe("Authorisation (e2e)", () => {
         expect(response.body).toStrictEqual({
           title: "Invalid ID Token",
           status: 400,
-          detail: `["did must be a valid DID"]`,
+          detail: `Unable to resolve did:ebsi:bad-did. Error: invalidDid. Message: The method-specific identifier must start with "z" (multibase base58btc-encoded)`,
           type: "about:blank",
         });
         expect(response.status).toBe(400);
@@ -694,7 +700,7 @@ describe("Authorisation (e2e)", () => {
 
         const authenticationResponse = await agent.createResponse({
           nonce,
-          redirectUri: uriDecoded.get("client_id"),
+          redirectUri: uriDecoded.get("client_id") || "",
           claims: {
             encryption_key: publicEncryptionKeyJwk,
           },
@@ -883,6 +889,7 @@ describe("Authorisation (e2e)", () => {
               encode.privateKey.fromHextoJWK(privateKeyHexEncryption),
               "ES256K"
             ),
+            kid: `${did}#keys-1`,
             alg: "ES256K",
             siopV2: true,
           });
@@ -1004,6 +1011,7 @@ describe("Authorisation (e2e)", () => {
           "ES256K"
         ),
         alg: "ES256K",
+        kid: `${did}#keys-1`,
         siopV2: true,
       });
 
