@@ -25,6 +25,7 @@
     "prepare": "husky install"
   },
   "dependencies": {
+    "@cef-ebsi/ebsi-did-resolver": "^2.0.0-alpha.2",
     "@cef-ebsi/oauth2-auth": "^2.0.0-alpha.0",
     "@cef-ebsi/problem-details-errors": "^2.0.0-alpha.0",
     "@cef-ebsi/siop-auth": "^2.0.0-alpha.0",

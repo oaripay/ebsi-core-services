@@ -1,4 +1,4 @@
-import { randomInt } from "node:crypto";
+import { createHash, randomInt, randomUUID } from "node:crypto";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { classToPlain } from "class-transformer";
@@ -8,8 +8,8 @@ import {
   InternalServerError,
 } from "@cef-ebsi/problem-details-errors";
 import axios, { AxiosError, AxiosResponse } from "axios";
-import crypto, { randomUUID } from "crypto";
 import { decodeJWT } from "did-jwt";
+import { validate as validateDid } from "@cef-ebsi/ebsi-did-resolver";
 import { Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
 import { CreateNotificationDto } from "./dto/create-notification.dto";
 import { ApiConfig } from "../../config/configuration";
@@ -167,18 +167,20 @@ export class NotificationsService {
         new Date(issuanceDate).getTime() + FIVE_DAYS
       ).toISOString();
 
-    // verify if "to" is in the did registry
-    try {
-      await axios.get(`${this.didRegistryApiUrl}/identifiers/${to}`);
-    } catch (error) {
-      throw new BadRequestError(`${to} is not registered in the DID Registry`);
+    const recipientDidVersion = validateDid(to);
+    if (recipientDidVersion === 1) {
+      // verify if "to" is in the DID Registry (LE only)
+      try {
+        await axios.get(`${this.didRegistryApiUrl}/identifiers/${to}`);
+      } catch (error) {
+        throw new BadRequestError(
+          `${to} is not registered in the DID Registry`
+        );
+      }
     }
 
     // Generate ID
-    const id = crypto
-      .createHash("sha3-256")
-      .update(message, "utf8")
-      .digest("hex");
+    const id = createHash("sha3-256").update(message, "utf8").digest("hex");
 
     // calculate ttl
     const ttl = Math.trunc(

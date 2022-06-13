@@ -8,6 +8,7 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { EbsiValidationPipe } from "../../src/pipes/ebsi-validation.pipe";
@@ -172,7 +173,7 @@ describeWriteOps()("Notifications module (e2e)", () => {
   });
 
   describe("POST /notifications", () => {
-    it("should create a notification", async () => {
+    it("should create a notification (LE to LE)", async () => {
       expect.assertions(3);
 
       const notification = expectedNotifications[10];
@@ -196,6 +197,33 @@ describeWriteOps()("Notifications module (e2e)", () => {
         })
       );
     });
+
+    it("should create a notification (LE to NP)", async () => {
+      expect.assertions(3);
+
+      const naturalPersonDid = EbsiWallet.createDid("NATURAL_PERSON");
+      const notification = createNotification(testUser2.did, naturalPersonDid);
+      const notificationId = crypto
+        .createHash("sha3-256")
+        .update(JSON.stringify(notification), "utf8")
+        .digest("hex");
+
+      const response = await request(server)
+        .post("/notifications")
+        .auth(testUser2.token, { type: "bearer" })
+        .send(notification);
+
+      expect(response.body).toStrictEqual(notification);
+      expect(response.status).toBe(201);
+      expect(response.headers).toStrictEqual(
+        expect.objectContaining({
+          location: expect.stringContaining(
+            `/notifications/${notificationId}`
+          ) as string,
+        })
+      );
+    });
+
     it("should reject invalid payloads", async () => {
       expect.assertions(4);
 
@@ -248,8 +276,10 @@ describeWriteOps()("Notifications module (e2e)", () => {
 
   describe("GET /notifications", () => {
     let nextPage = "";
+
     it("should return a list of notifications", async () => {
       expect.assertions(2);
+
       const response = await request(server)
         .get("/notifications")
         .auth(testUser1.token, { type: "bearer" })
@@ -266,13 +296,16 @@ describeWriteOps()("Notifications module (e2e)", () => {
           ) as string,
         },
       });
+
       const { next } = (response.body as { links: { next: string } }).links;
       [nextPage] = next.split("page[after]=")[1].split("&");
+
       expect(response.status).toBe(200);
     });
 
     it("should return the next page with only 1 notification", async () => {
       expect.assertions(2);
+
       const pageSize = 10;
       const response = await request(server)
         .get(`/notifications?page[after]=${nextPage}&page[size]=${pageSize}`)
@@ -295,6 +328,7 @@ describeWriteOps()("Notifications module (e2e)", () => {
   describe("GET /notifications/{id}", () => {
     it("should return specified notification", async () => {
       expect.assertions(2);
+
       const [notification] = expectedNotifications;
       const notificationId = crypto
         .createHash("sha3-256")
@@ -326,7 +360,7 @@ describeWriteOps()("Notifications module (e2e)", () => {
       expect(response.status).toBe(404);
     });
 
-    it("should throw NotFoundError if specified notification does not match receiver", async () => {
+    it("should throw NotFoundError if specified notification does not match recipient", async () => {
       expect.assertions(2);
       const [notification] = expectedNotifications;
       const notificationId = crypto
@@ -423,6 +457,7 @@ describeWriteOps()("Notifications module (e2e)", () => {
 
     it("should throw NotFoundError when deleting a with notification that does not exist", async () => {
       expect.assertions(2);
+
       const response = await request(server)
         .delete(`/notifications/fakeId`)
         .auth(testUser1.token, { type: "bearer" })

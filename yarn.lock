@@ -331,7 +331,7 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@cef-ebsi/ebsi-did-resolver@^2.0.0-alpha.1":
+"@cef-ebsi/ebsi-did-resolver@^2.0.0-alpha.1", "@cef-ebsi/ebsi-did-resolver@^2.0.0-alpha.2":
   version "2.0.0-alpha.2"
   resolved "https://registry.yarnpkg.com/@cef-ebsi/ebsi-did-resolver/-/ebsi-did-resolver-2.0.0-alpha.2.tgz#fd21b31f227936b329c513cf194da8de02125829"
   integrity sha512-W3KlrlpVPyEJf+PRE72P7C1p+GNgjlhFamo10P6MpTmunzxOUXiN+Rr2r9pjN6shGsMksLGzbILO/sJPaCowdQ==

@@ -67,16 +67,22 @@ describe("Notifications module", () => {
   }
 
   const didSender = EbsiWallet.createDid();
-  const didReceiver = EbsiWallet.createDid();
+  const legalEntityRecipientDid = EbsiWallet.createDid("LEGAL_ENTITY");
+  const naturalPersonRecipientDid = EbsiWallet.createDid("NATURAL_PERSON");
 
   const sender = {
     did: didSender,
     token: createToken(didSender),
   };
 
-  const receiver = {
-    did: didReceiver,
-    token: createToken(didReceiver),
+  const legalEntityRecipient = {
+    did: legalEntityRecipientDid,
+    token: createToken(legalEntityRecipientDid),
+  };
+
+  const naturalPersonRecipient = {
+    did: naturalPersonRecipientDid,
+    token: createToken(naturalPersonRecipientDid),
   };
 
   const accessTokenApi = jsonwebtoken.sign(
@@ -110,7 +116,7 @@ describe("Notifications module", () => {
     server = app.getHttpServer() as HttpServer;
 
     jest.spyOn(axios, "get").mockImplementation(async (url) => {
-      if (url.includes(sender.did) || url.includes(receiver.did))
+      if (url.includes(sender.did) || url.includes(legalEntityRecipient.did))
         return Promise.resolve({
           data: {
             document: "did document",
@@ -150,9 +156,9 @@ describe("Notifications module", () => {
           } as unknown as JWTVerifyResult);
         }
 
-        if (token === receiver.token) {
+        if (token === legalEntityRecipient.token) {
           return Promise.resolve({
-            payload: { sub: receiver.did },
+            payload: { sub: legalEntityRecipient.did },
           } as unknown as JWTVerifyResult);
         }
 
@@ -191,10 +197,44 @@ describe("Notifications module", () => {
   });
 
   describe("POST /notifications", () => {
-    it("should accept a valid payload", async () => {
+    it("should accept a valid payload with a LE as recipient", async () => {
       expect.assertions(3);
 
-      const notification = createNotification(sender.did, receiver.did);
+      const notification = createNotification(
+        sender.did,
+        legalEntityRecipient.did
+      );
+
+      const notificationId = crypto
+        .createHash("sha3-256")
+        .update(JSON.stringify(notification), "utf8")
+        .digest("hex");
+
+      modifyResponse = cassandraResponse([]);
+
+      const response = await request(server)
+        .post("/notifications")
+        .auth(sender.token, { type: "bearer" })
+        .send(notification);
+
+      expect(response.body).toStrictEqual(notification);
+      expect(response.status).toBe(201);
+      expect(response.headers).toStrictEqual(
+        expect.objectContaining({
+          location: expect.stringContaining(
+            `/notifications/${notificationId}`
+          ) as string,
+        })
+      );
+    });
+
+    it("should accept a valid payload with a NP as recipient", async () => {
+      expect.assertions(3);
+
+      const notification = createNotification(
+        sender.did,
+        naturalPersonRecipient.did
+      );
 
       const notificationId = crypto
         .createHash("sha3-256")
@@ -220,13 +260,13 @@ describe("Notifications module", () => {
     });
 
     it("should reject invalid payloads", async () => {
-      expect.assertions(12);
+      expect.assertions(14);
 
       let notification: Notification;
       let response: request.Response;
 
       // Invalid date
-      notification = createNotification(sender.did, receiver.did);
+      notification = createNotification(sender.did, legalEntityRecipient.did);
       notification.expirationDate = "2019-11-17T14:00:00W";
 
       response = await request(server)
@@ -248,7 +288,7 @@ describe("Notifications module", () => {
       expect(response.status).toBe(400);
 
       // Invalid from
-      notification = createNotification(sender.did, receiver.did);
+      notification = createNotification(sender.did, legalEntityRecipient.did);
       notification.from = "Joe";
 
       response = await request(server)
@@ -267,8 +307,28 @@ describe("Notifications module", () => {
       });
       expect(response.status).toBe(400);
 
+      // Invalid to
+      notification = createNotification(sender.did, legalEntityRecipient.did);
+      notification.to = "did:ebsi:xyz";
+
+      response = await request(server)
+        .post("/notifications")
+        .auth(sender.token, { type: "bearer" })
+        .send(notification);
+
+      expect(response.body).toStrictEqual({
+        detail: "Your request parameters didn't validate.",
+        "invalid-params": {
+          to: ["to must be a valid DID string"],
+        },
+        status: 400,
+        title: "Validation Error",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+
       // Invalid proof: bad nested properties
-      notification = createNotification(sender.did, receiver.did);
+      notification = createNotification(sender.did, legalEntityRecipient.did);
       notification.proof = {
         fake: "no proof here",
       } as unknown as Notification["proof"];
@@ -312,7 +372,7 @@ describe("Notifications module", () => {
       expect(response.status).toBe(400);
 
       // Invalid proof: not object
-      notification = createNotification(sender.did, receiver.did);
+      notification = createNotification(sender.did, legalEntityRecipient.did);
       notification.proof =
         "not object but string" as unknown as Notification["proof"];
 
@@ -337,7 +397,7 @@ describe("Notifications module", () => {
       expect(response.status).toBe(400);
 
       // Invalid proof: null
-      notification = createNotification(sender.did, receiver.did);
+      notification = createNotification(sender.did, legalEntityRecipient.did);
       notification.proof = null as unknown as Notification["proof"];
 
       response = await request(server)
@@ -362,7 +422,7 @@ describe("Notifications module", () => {
       expect(response.status).toBe(400);
 
       // Expiration date greater than 5 days
-      notification = createNotification(sender.did, receiver.did);
+      notification = createNotification(sender.did, legalEntityRecipient.did);
       notification.expirationDate = new Date(
         new Date(notification.issuanceDate).getTime() + 6 * 86400 * 1000
       ).toISOString();
@@ -384,15 +444,22 @@ describe("Notifications module", () => {
   });
 
   describe("GET /notifications", () => {
-    it("should return a list of notification", async () => {
+    it("should return a list of notification (LE)", async () => {
       expect.assertions(2);
+
       const resultNotifications = [
         {
-          notification: createNotification(sender.did, receiver.did),
+          notification: createNotification(
+            sender.did,
+            legalEntityRecipient.did
+          ),
           id: "id1",
         },
         {
-          notification: createNotification(sender.did, receiver.did),
+          notification: createNotification(
+            sender.did,
+            legalEntityRecipient.did
+          ),
           id: "id2",
         },
       ];
@@ -416,8 +483,9 @@ describe("Notifications module", () => {
 
       const response = await request(server)
         .get("/notifications")
-        .auth(receiver.token, { type: "bearer" })
+        .auth(legalEntityRecipient.token, { type: "bearer" })
         .send();
+
       expect(response.body).toStrictEqual({
         self: expect.stringContaining("/notifications?page[size]=10") as string,
         items: resultNotifications
@@ -451,7 +519,10 @@ describe("Notifications module", () => {
       expect.assertions(2);
       const resultNotifications = [
         {
-          notification: createNotification(sender.did, receiver.did),
+          notification: createNotification(
+            sender.did,
+            legalEntityRecipient.did
+          ),
           id: "id1",
         },
       ];
@@ -471,7 +542,7 @@ describe("Notifications module", () => {
 
       const response = await request(server)
         .get(`/notifications/${notificationId}`)
-        .auth(receiver.token, { type: "bearer" })
+        .auth(legalEntityRecipient.token, { type: "bearer" })
         .send();
 
       expect(response.body).toStrictEqual(resultNotifications[0].notification);
@@ -487,7 +558,7 @@ describe("Notifications module", () => {
 
       const response = await request(server)
         .get(`/notifications/${notificationId}`)
-        .auth(receiver.token, { type: "bearer" })
+        .auth(legalEntityRecipient.token, { type: "bearer" })
         .send();
 
       expect(response.body).toStrictEqual({
@@ -499,12 +570,16 @@ describe("Notifications module", () => {
       expect(response.status).toBe(404);
     });
   });
+
   describe("DELETE /notifications/{id}", () => {
     it("should delete the notification", async () => {
       expect.assertions(2);
       const resultNotifications = [
         {
-          notification: createNotification(sender.did, receiver.did),
+          notification: createNotification(
+            sender.did,
+            legalEntityRecipient.did
+          ),
           id: "id1",
         },
       ];
@@ -521,7 +596,7 @@ describe("Notifications module", () => {
 
       const response = await request(server)
         .delete("/notifications/123")
-        .auth(receiver.token, { type: "bearer" })
+        .auth(legalEntityRecipient.token, { type: "bearer" })
         .send();
       expect(response.body).toStrictEqual({});
       expect(response.status).toBe(204);
