@@ -183,7 +183,7 @@ library DidRecordLib {
         pure
         returns (bool)
     {
-        for (uint256 i; i < ctrlIds.length; i++) {
+        for (uint256 i = 0; i < ctrlIds.length; i++) {
             if (ctrlIds[i] == ctrlId) {
                 return true;
             }
@@ -196,7 +196,7 @@ library DidRecordLib {
         address existingElement,
         address newElement
     ) internal returns (bool) {
-        for (uint256 i; i < array.length; i++) {
+        for (uint256 i = 0; i < array.length; i++) {
             if (array[i] == existingElement) {
                 array[i] = newElement;
                 return true;
@@ -322,7 +322,7 @@ library DidRecordLib {
         address[] storage array,
         address elementToBeRemoved
     ) internal returns (bool) {
-        for (uint256 i; i < array.length; i++) {
+        for (uint256 i = 0; i < array.length; i++) {
             if (array[i] == elementToBeRemoved) {
                 array[i] = array[array.length - 1];
                 array.pop();
@@ -336,7 +336,7 @@ library DidRecordLib {
         bytes32[] storage array,
         bytes32 elementToBeRemoved
     ) internal returns (bool) {
-        for (uint256 i; i < array.length; i++) {
+        for (uint256 i = 0; i < array.length; i++) {
             if (array[i] == elementToBeRemoved) {
                 array[i] = array[array.length - 1];
                 array.pop();
@@ -350,7 +350,7 @@ library DidRecordLib {
         bytes[] storage array,
         bytes memory elementToBeRemoved
     ) internal returns (bool) {
-        for (uint256 i; i < array.length; i++) {
+        for (uint256 i = 0; i < array.length; i++) {
             if (keccak256(array[i]) == keccak256(elementToBeRemoved)) {
                 array[i] = array[array.length - 1];
                 array.pop();
