@@ -25,8 +25,8 @@
     "prepare": "is-ci || husky install"
   },
   "dependencies": {
-    "@cef-ebsi/oauth2-auth": "^2.0.0-alpha.0",
-    "@cef-ebsi/problem-details-errors": "^2.0.0-alpha.0",
+    "@cef-ebsi/oauth2-auth": "^2.0.0",
+    "@cef-ebsi/problem-details-errors": "^2.0.0",
     "@ethereumjs/common": "^2.6.4",
     "@ethereumjs/tx": "^3.5.2",
     "@fastify/helmet": "^8.1.0",
@@ -53,8 +53,8 @@
     "ws": "^8.7.0"
   },
   "devDependencies": {
-    "@cef-ebsi/siop-auth": "^2.0.0-alpha.0",
-    "@cef-ebsi/wallet-lib": "^2.0.0-alpha.0",
+    "@cef-ebsi/siop-auth": "^2.0.0",
+    "@cef-ebsi/wallet-lib": "^2.0.0",
     "@commitlint/cli": "^17.0.2",
     "@commitlint/config-conventional": "^17.0.2",
     "@nestjs/cli": "^8.2.6",
