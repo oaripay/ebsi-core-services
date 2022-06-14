@@ -26,9 +26,9 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
-    "@cef-ebsi/oauth2-auth": "^2.0.0-alpha.0",
-    "@cef-ebsi/problem-details-errors": "2.0.0-alpha.0",
-    "@cef-ebsi/siop-auth": "^2.0.0-alpha.0",
+    "@cef-ebsi/oauth2-auth": "^2.0.0",
+    "@cef-ebsi/problem-details-errors": "2.0.0",
+    "@cef-ebsi/siop-auth": "^2.0.0",
     "@fastify/helmet": "^8.1.0",
     "@nestjs/axios": "^0.0.8",
     "@nestjs/common": "^8.4.6",
@@ -54,9 +54,9 @@
     "winston": "^3.7.2"
   },
   "devDependencies": {
-    "@cef-ebsi/verifiable-credential": "2.0.0-alpha.2",
-    "@cef-ebsi/verifiable-presentation": "2.0.0-alpha.1",
-    "@cef-ebsi/wallet-lib": "^2.0.0-alpha.0",
+    "@cef-ebsi/verifiable-credential": "2.0.0",
+    "@cef-ebsi/verifiable-presentation": "2.0.0",
+    "@cef-ebsi/wallet-lib": "^2.0.0",
     "@commitlint/cli": "^17.0.2",
     "@commitlint/config-conventional": "^17.0.2",
     "@ethersproject/abstract-provider": "^5.6.1",
