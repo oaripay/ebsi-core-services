@@ -331,21 +331,21 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@cef-ebsi/ebsi-did-resolver@^2.0.0-alpha.1":
-  version "2.0.0-alpha.2"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/ebsi-did-resolver/-/ebsi-did-resolver-2.0.0-alpha.2.tgz#fd21b31f227936b329c513cf194da8de02125829"
-  integrity sha512-W3KlrlpVPyEJf+PRE72P7C1p+GNgjlhFamo10P6MpTmunzxOUXiN+Rr2r9pjN6shGsMksLGzbILO/sJPaCowdQ==
+"@cef-ebsi/ebsi-did-resolver@^2.0.0", "@cef-ebsi/ebsi-did-resolver@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/ebsi-did-resolver/-/ebsi-did-resolver-2.0.1.tgz#84e7723bcbcac4e79502e95ee6783135f8d66395"
+  integrity sha512-ofb/AYHEs9hGX5kP0kIjMEoln05zGhKu8GcjFtB9PLHl0jzFo4w2VV3sE1Qsw+46hYeGGVVtgGUS0iui8X2NfQ==
   dependencies:
-    "@cef-ebsi/problem-details-errors" "^2.0.0-alpha.0"
+    "@cef-ebsi/problem-details-errors" "^2.0.0"
     axios "^0.27.2"
     did-resolver "^3.2.0"
     jose "^4.8.1"
     multiformats "^9.6.5"
 
-"@cef-ebsi/oauth2-auth@^2.0.0-alpha.0":
-  version "2.0.0-alpha.0"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/oauth2-auth/-/oauth2-auth-2.0.0-alpha.0.tgz#0e46512f12297b124ea17ae4893819bbc1f698ed"
-  integrity sha512-9+OQ4SNJ282ahE0ChBpAsRnoMvRFwkXgzFXF5nT3EpX8yRl6VVq/qlQfMY+H/XD7e0kVRmiZCjcIhILZ4YGIdg==
+"@cef-ebsi/oauth2-auth@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/oauth2-auth/-/oauth2-auth-2.0.0.tgz#1e23f3f3e9e065ebea3a33b3d97cbb29ad51cf6e"
+  integrity sha512-bdi5wHQlkfOeSBEtVuxLEo9n3GKf9KJT8wEwa/2h21AiC7pNHrFvPj88tXKijj5YrJQ2n4BLQdS9AhHjeOffEQ==
   dependencies:
     axios "^0.27.2"
     did-jwt "^6.1.0"
@@ -356,16 +356,17 @@
     multiformats "^9.6.5"
     uuid "^8.3.1"
 
-"@cef-ebsi/problem-details-errors@^2.0.0-alpha.0":
-  version "2.0.0-alpha.0"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/problem-details-errors/-/problem-details-errors-2.0.0-alpha.0.tgz#d529fd6ac90a06a09c1def26f52fdee224c63c4b"
-  integrity sha512-G8Qg+21THxKlIEa86kVhDthb77PrEW+oq3I+lT0rtGjwcZJZoz1b4aqfy7yEz5pt71qkEinmWvwDV4akOQh6NA==
+"@cef-ebsi/problem-details-errors@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/problem-details-errors/-/problem-details-errors-2.0.0.tgz#263540432d593d5b1a0f017ebd00a3886a55d766"
+  integrity sha512-7Y2263+S7o6yenstSDzMscei/sOwwqTm8YSky+GSvjM13BMgNnfJdDfhUu5qgvEsz99e7sHiColvanGTQgnu8g==
 
-"@cef-ebsi/siop-auth@^2.0.0-alpha.0":
-  version "2.0.0-alpha.0"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/siop-auth/-/siop-auth-2.0.0-alpha.0.tgz#e561d82674f7a5ac16e7fca7a3302bf717fe8795"
-  integrity sha512-QyKZHh9+LJ2f4TefS1hXH4wZ2MMcnWWivmc0OP9MJperGdCWtzJ0gM3n+3nJVpzvIZe9axxLyayIgGcW5GbrfA==
+"@cef-ebsi/siop-auth@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/siop-auth/-/siop-auth-2.0.0.tgz#497c114c010baa91f484b75ad5ea80ef9bc69e1e"
+  integrity sha512-1iVH5pWNmyhjHta5lCMhuPDHT5BmYjnv1EJHGvDSF/70OJXrtzQpTqiIO+B2q3LaKG/3O8mXwBS2U7gFORGT+w==
   dependencies:
+    "@cef-ebsi/ebsi-did-resolver" "^2.0.1"
     axios "^0.27.2"
     did-jwt "^6.1.0"
     did-resolver "^3.2.0"
@@ -377,16 +378,16 @@
     multiformats "^9.6.5"
     uuid "^8.3.2"
 
-"@cef-ebsi/wallet-lib@^2.0.0-alpha.0":
-  version "2.0.0-alpha.0"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/wallet-lib/-/wallet-lib-2.0.0-alpha.0.tgz#bd3729ece4582defdd2b8ad91a508f605909609e"
-  integrity sha512-GQMdiflymeu88PF9WKA8EIo1LJPxtzyMcHaU7A0WVTrQgNhbxtGyKENvbJA+ufrhUnhsNKJClz6taAntuqsRSA==
+"@cef-ebsi/wallet-lib@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/wallet-lib/-/wallet-lib-2.0.0.tgz#3683edf5c4b11929f3280f36ea2ddc5e757df3e6"
+  integrity sha512-mD/XA6SO/qsiwe9T9F8YIrWOq/+4sMwc4Uoyf69KNfTcPaOQzkCXhCzl2gpjxrXpcQkgzcfE5t8dUop9vzYtqQ==
   dependencies:
-    "@cef-ebsi/ebsi-did-resolver" "^2.0.0-alpha.1"
+    "@cef-ebsi/ebsi-did-resolver" "^2.0.0"
     "@ethersproject/providers" "^5.6.8"
     "@ethersproject/random" "^5.6.1"
     bn.js "^5.2.1"
-    did-jwt "^6.1.0"
+    did-jwt "^6.1.2"
     elliptic "^6.5.4"
     js-sha3 "^0.8.0"
     key-encoder "^2.0.3"
@@ -4460,10 +4461,10 @@ dezalgo@1.0.3:
     asap "^2.0.0"
     wrappy "1"
 
-did-jwt@^6.1.0:
-  version "6.1.0"
-  resolved "https://registry.yarnpkg.com/did-jwt/-/did-jwt-6.1.0.tgz#75cb339f218e9d6a46e53bdbea7e35cef7502b10"
-  integrity sha512-NPv18017jVuuKIaM3T/4E5CmRWbc+9a4r+ggKEuiXu3u49q7IbqFEcgEibPXBPC5fgqpyECKN3i8EmjGuQouFg==
+did-jwt@^6.1.0, did-jwt@^6.1.2:
+  version "6.1.2"
+  resolved "https://registry.yarnpkg.com/did-jwt/-/did-jwt-6.1.2.tgz#adef6c3264ae4bcecac5d2cab5de8f3a3024ca03"
+  integrity sha512-OkXsk5zUi2uwSWh2WiaGCLEPKon9HDfMT3mmUp0r7jFgyNWiEFTP9oCLYJq/SaVkKRZsImehrnd0+Ku9ivUvsw==
   dependencies:
     "@stablelib/ed25519" "^1.0.2"
     "@stablelib/random" "^1.0.1"
@@ -4472,16 +4473,16 @@ did-jwt@^6.1.0:
     "@stablelib/xchacha20poly1305" "^1.0.1"
     bech32 "^2.0.0"
     canonicalize "^1.0.8"
-    did-resolver "^3.1.5"
+    did-resolver "^3.2.2"
     elliptic "^6.5.4"
     js-sha3 "^0.8.0"
-    multiformats "^9.6.4"
+    multiformats "^9.6.5"
     uint8arrays "^3.0.0"
 
-did-resolver@^3.1.5, did-resolver@^3.2.0:
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/did-resolver/-/did-resolver-3.2.1.tgz#b2da0ffc6706162a48adfae3257ec33096f4393a"
-  integrity sha512-Kid+Ex5tdl/jS9en1QqOPgs2m/yUn8jKzo6y3aZodu//UZcw8JzHdw7/E6myv0mz9HIAL50wdmkI6jxXQsHBwg==
+did-resolver@^3.2.0, did-resolver@^3.2.2:
+  version "3.2.2"
+  resolved "https://registry.yarnpkg.com/did-resolver/-/did-resolver-3.2.2.tgz#6f4e252a810f785d1b28a10265fad6dffee25158"
+  integrity sha512-Eeo2F524VM5N3W4GwglZrnul2y6TLTwMQP3In62JdG34NZoqihYyOZLk+5wUW8sSgvIYIcJM8Dlt3xsdKZZ3tg==
 
 diff-sequences@^27.5.1:
   version "27.5.1"
@@ -7713,7 +7714,7 @@ ms@2.1.3, ms@^2.1.1:
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.3.tgz#574c8138ce1d2b5861f0b44579dbadd60c6615b2"
   integrity sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==
 
-multiformats@^9.4.2, multiformats@^9.6.4, multiformats@^9.6.5:
+multiformats@^9.4.2, multiformats@^9.6.5:
   version "9.6.5"
   resolved "https://registry.yarnpkg.com/multiformats/-/multiformats-9.6.5.tgz#f2d894a26664b454a90abf5a8911b7e39195db80"
   integrity sha512-vMwf/FUO+qAPvl3vlSZEgEVFY/AxeZq5yg761ScF3CZsXgmTi/HGkicUiNN0CI4PW8FiY2P0OLklOcmQjdQJhw==
