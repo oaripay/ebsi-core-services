@@ -7,7 +7,7 @@ import {
   BadRequestError,
   InternalServerError,
 } from "@cef-ebsi/problem-details-errors";
-import axios, { AxiosError, AxiosResponse } from "axios";
+import axios, { AxiosResponse } from "axios";
 import { decodeJWT } from "did-jwt";
 import { validate as validateDid } from "@cef-ebsi/ebsi-did-resolver";
 import { Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
@@ -107,8 +107,8 @@ export class NotificationsService {
       return accessToken;
     } catch (err) {
       if (err instanceof Error) {
-        if ((err as AxiosError).isAxiosError) {
-          logAxiosError(err as AxiosError, this.logger);
+        if (axios.isAxiosError(err)) {
+          logAxiosError(err, this.logger);
         } else {
           this.logger.error(err.message, err.stack);
         }
