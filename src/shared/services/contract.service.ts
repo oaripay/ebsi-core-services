@@ -4,7 +4,7 @@ import { decodeJWT } from "did-jwt";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
-import axios, { AxiosError, AxiosResponse } from "axios";
+import axios, { AxiosResponse } from "axios";
 import { randomUUID } from "crypto";
 import { ApiConfig } from "../../config/configuration";
 import { SchemaSCRegistry, SchemaSCRegistry__factory } from "../../contracts";
@@ -78,8 +78,8 @@ export class ContractService {
       return accessToken;
     } catch (err) {
       if (err instanceof Error) {
-        if ((err as AxiosError).isAxiosError) {
-          logAxiosError(err as AxiosError, this.logger);
+        if (axios.isAxiosError(err)) {
+          logAxiosError(err, this.logger);
         } else {
           this.logger.error(err.message, err.stack);
         }
