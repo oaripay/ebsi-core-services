@@ -6,10 +6,11 @@ import {
 } from "@nestjs/platform-fastify";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
-import type { JWK } from "jose";
+import { calculateJwkThumbprint, exportJWK, generateKeyPair, JWK } from "jose";
 import { createJWT, decodeJWT, ES256KSigner } from "did-jwt";
 import EbsiWallet from "@cef-ebsi/wallet-lib";
 import type { EbsiVerifiableAttestation } from "@cef-ebsi/verifiable-credential";
+import { Agent } from "@cef-ebsi/siop-auth";
 import type { FastifyInstance } from "fastify";
 import { Resolver } from "did-resolver";
 import { AuthenticationModule } from "./authentication.module";
@@ -82,7 +83,7 @@ describe("authentication service tests", () => {
     expect(searchParams.get("request")).toStrictEqual(expect.any(String));
   });
 
-  it("should validate the response", async () => {
+  it("should validate the response for legal entities", async () => {
     expect.assertions(1);
     const authenticationService: AuthenticationService =
       new AuthenticationService(configService);
@@ -118,6 +119,41 @@ describe("authentication service tests", () => {
     ).resolves.not.toThrow();
   });
 
+  it("should validate the response for natural persons", async () => {
+    expect.assertions(1);
+    const authenticationService: AuthenticationService =
+      new AuthenticationService(configService);
+    const keyPair = await generateKeyPair("ES256K");
+    const publicKeyJwkAgent = await exportJWK(keyPair.publicKey);
+    const thumbprint = await calculateJwkThumbprint(
+      publicKeyJwkAgent,
+      "sha256"
+    );
+    const subjectIdentifier = Buffer.from(thumbprint, "base64");
+    const kidAgent = `${EbsiWallet.createDid(
+      "NATURAL_PERSON",
+      subjectIdentifier
+    )}#${thumbprint}`;
+    const agent = new Agent({
+      privateKey: keyPair.privateKey,
+      alg: "ES256K",
+      kid: kidAgent,
+      siopV2: true,
+    });
+    const { idToken } = await agent.createResponse(
+      {
+        redirectUri: "/authentication-responses",
+      },
+      {
+        syntaxType: "did_subject",
+      }
+    );
+
+    await expect(
+      authenticationService.validateResponse({ id_token: idToken })
+    ).resolves.not.toThrow();
+  });
+
   it("should throw an error if the id_token can not be decoded", async () => {
     expect.assertions(1);
     const authenticationService: AuthenticationService =
@@ -134,9 +170,19 @@ describe("authentication service tests", () => {
     expect.assertions(1);
     const authenticationService: AuthenticationService =
       new AuthenticationService(configService);
-    const mockedAuthRequest = {
-      id_token:
-        "eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6L3RydXN0ZWQtYXBwcy1yZWdpc3RyeS92Mi9hcHBzLzB4MTlkMDA0ZTdmNmVjZjI2NDUyM2UxMzY5MjRjYjY4Nzk2Y2E5ZGJmYTI1YmNhMDUzYjJmNmFmMGZjNmZkZDg4YyJ9.eyJpYXQiOjE2MTkxOTAxMzQsImV4cCI6MTYxOTE5MDQzNCwiaXNzIjoiZGlkOmVic2k6NlFZSmMzdExSaGV5ODhXUEtDMmt2NTg4djF1WjFvaWQzeWZjNUxwNUFiWUQiLCJzY29wZSI6Im9wZW5pZCBkaWRfYXV0aG4iLCJyZXNwb25zZV90eXBlIjoiaWRfdG9rZW4iLCJjbGllbnRfaWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6Ly9vbmJvYXJkaW5nL3YxL2F1dGhlbnRpY2F0aW9uLXJlc3BvbnNlcyIsInN0YXRlIjoiOWY1YzFjMTgwNjczY2NjZDM5N2Q2MmQ1Iiwibm9uY2UiOiJtNERoVUN1Q2tjNUhvR09SZFQtSTNqakRsUTlxVjFGSnhJMDZXUDUzUFNvIn0.63o7hoAL-5CeXIXAZBrt0HE0Qc_Yi8WNwSkZAovOOJO-tVTrTFYKCtDdtQZEy7rnCA9g2P5wrq013P_KO8Jpmg",
+    const kid = "did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ#key-1";
+    const privateKey = crypto.randomBytes(32);
+    const mockedAuthRequest: AuhtenticationResponseRequest = {
+      id_token: await createJWT(
+        {},
+        {
+          issuer: "https://self-issued.me",
+          signer: ES256KSigner(privateKey),
+        },
+        {
+          kid,
+        }
+      ),
     };
 
     jest.spyOn(Resolver.prototype, "resolve").mockResolvedValue({

@@ -13,8 +13,8 @@ import { ec as EC } from "elliptic";
 import type { JWK } from "jose";
 import { bytes } from "multiformats";
 import { base64url } from "multiformats/bases/base64";
-import { Resolver } from "did-resolver";
-import { getResolver } from "@cef-ebsi/ebsi-did-resolver";
+import { JsonWebKey, Resolver } from "did-resolver";
+import { getResolver, validate } from "@cef-ebsi/ebsi-did-resolver";
 import { ConfigService } from "@nestjs/config";
 import {
   createVerifiableCredentialJwt,
@@ -38,7 +38,7 @@ import {
   AuthenticationErrors,
 } from "../../errors/errorCodes";
 import { ApiConfig } from "../../config/configuration";
-import { prefix0x } from "./authentication.utils";
+import { addAlgToJwk, prefix0x } from "./authentication.utils";
 
 const USERS_ONBOARDING_SCOPE = "ebsi users onboarding";
 
@@ -184,49 +184,65 @@ export default class AuthenticationService {
     // Check if the DID exists
     const did = kid.split("#")[0];
     const resolver = new Resolver(
-      getResolver({ registry: this.didRegistryApiUrl })
+      getResolver({
+        registry: this.didRegistryApiUrl,
+        ...(idTokenHeader.jwk && {
+          naturalPersonJwks: [idTokenHeader.jwk as JsonWebKey],
+        }),
+      })
     );
 
     const result = await resolver.resolve(did);
     const { error: resError } = result.didResolutionMetadata;
 
-    if (!resError || resError !== "notFound") {
-      if (!result.didDocument) {
-        throw new InvalidUserAuthentication(
-          result.didResolutionMetadata.message as string
-        );
-      }
+    const didVersion = validate(did);
+    let jwk: JsonWebKey;
 
-      try {
-        const publicKeyJwk = result.didDocument.verificationMethod.find(
-          (vm) => vm.id === kid
-        )?.publicKeyJwk;
-
-        if (!publicKeyJwk) {
-          throw new Error(`Can't find verification method related to ${kid}`);
+    if (didVersion === 1) {
+      // DID Version 1: Legal Entity
+      if (!resError || resError !== "notFound") {
+        if (!result.didDocument) {
+          throw new InvalidUserAuthentication(
+            result.didResolutionMetadata.message as string
+          );
         }
 
-        const publicKey = await importJWK(publicKeyJwk, "ES256K");
+        try {
+          const publicKeyJwk = result.didDocument.verificationMethod.find(
+            (vm) => vm.id === kid
+          )?.publicKeyJwk;
 
-        await jwtVerify(idToken, publicKey, {});
-      } catch (error) {
-        throw new InvalidUserAuthentication((error as Error).message);
+          if (!publicKeyJwk) {
+            throw new Error(`Can't find verification method related to ${kid}`);
+          }
+
+          const publicKey = await importJWK(publicKeyJwk, "ES256K");
+
+          await jwtVerify(idToken, publicKey, {});
+        } catch (error) {
+          throw new InvalidUserAuthentication((error as Error).message);
+        }
+
+        return did;
       }
 
-      return did;
-    }
+      // The DID does not exist: Check the signature of the JWT using the
+      // public key defined in sub_jwk
+      if (
+        !idTokenPayload.sub_jwk ||
+        typeof idTokenPayload.sub_jwk !== "object"
+      ) {
+        throw new InvalidUserAuthentication(OnboardingErrors.MISSING_SUB_JWK);
+      }
 
-    // The DID does not exist: Check the signature of the JWT using the
-    // public key defined in sub_jwk
-    if (!idTokenPayload.sub_jwk || typeof idTokenPayload.sub_jwk !== "object") {
-      throw new InvalidUserAuthentication(OnboardingErrors.MISSING_SUB_JWK);
+      jwk = idTokenPayload.sub_jwk as JsonWebKey;
+    } else {
+      // DID Version 2: Natural Person
+      jwk = idTokenHeader.jwk as JsonWebKey;
     }
 
     try {
-      const publicKey = await importJWK({
-        alg: "ES256",
-        ...idTokenPayload.sub_jwk,
-      } as JWK);
+      const publicKey = await importJWK(addAlgToJwk(jwk));
 
       const { payload, protectedHeader } = await compactVerify(
         idToken,

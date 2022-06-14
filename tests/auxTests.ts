@@ -36,4 +36,31 @@ export async function createFakeToken({
   );
 }
 
-export default createFakeToken;
+export async function generateTokenWebAppOnboarding(
+  kidOnboarding: string,
+  privateKeyOnboarding: string
+): Promise<string> {
+  const didOnboarding = kidOnboarding.split("#")[0];
+
+  const jwtOpts = {
+    alg: "ES256K",
+    issuer: didOnboarding,
+    signer: ES256KSigner(Buffer.from(privateKeyOnboarding, "hex")),
+  };
+
+  const header = {
+    kid: kidOnboarding,
+  };
+
+  const payloadCaptcha = {
+    onboarding: "recaptcha",
+    validatedInfo: {
+      success: true,
+      challenge_ts: "2021-05-12T14:14:20Z",
+      score: 0.9,
+      action: "login",
+    },
+  };
+
+  return createJWT(payloadCaptcha, jwtOpts, header);
+}

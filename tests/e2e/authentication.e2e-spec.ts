@@ -1,4 +1,5 @@
 import { URLSearchParams } from "node:url";
+import EbsiWallet from "@cef-ebsi/wallet-lib";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ValidationPipe, HttpServer, Logger } from "@nestjs/common";
 import request from "supertest";
@@ -9,8 +10,13 @@ import {
 import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
 import { Agent, encode } from "@cef-ebsi/siop-auth";
-import { importJWK } from "jose";
-import { createFakeToken } from "../auxTests";
+import {
+  calculateJwkThumbprint,
+  exportJWK,
+  generateKeyPair,
+  importJWK,
+} from "jose";
+import { createFakeToken, generateTokenWebAppOnboarding } from "../auxTests";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { ApiConfig } from "../../src/config/configuration";
@@ -35,6 +41,7 @@ describe("/onboarding/v2 authentication e2e tests", () => {
   let app: NestFastifyApplication;
   let server: HttpServer | string;
   let configService: ConfigService<ApiConfig>;
+  let tokenWebApp: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -54,6 +61,85 @@ describe("/onboarding/v2 authentication e2e tests", () => {
 
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
     server = getServer(app, configService);
+    tokenWebApp = await generateTokenWebAppOnboarding(
+      configService.get("apiVerificationMethodKid"),
+      configService.get("apiPrivateKey")
+    );
+  });
+
+  it("should receive a verifiable authorisation - Legal entity", async () => {
+    expect.assertions(2);
+
+    const keyPair = await generateKeyPair("ES256K");
+    const kidAgent = `${EbsiWallet.createDid()}#keys-1`;
+    const agent = new Agent({
+      privateKey: keyPair.privateKey,
+      alg: "ES256K",
+      kid: kidAgent,
+      siopV2: true,
+    });
+    const { idToken } = await agent.createResponse(
+      {
+        redirectUri: "/authentication-responses",
+      },
+      {
+        syntaxType: "jwk_thumbprint_subject",
+      }
+    );
+
+    const response: SupertestAuthenticationResponse = await request(server)
+      .post("/authentication-responses")
+      .auth(tokenWebApp, { type: "bearer" })
+      .send({
+        id_token: idToken,
+      });
+
+    expect(response.body).toStrictEqual({
+      verifiableCredential: expect.any(String) as string,
+    });
+    expect(response.status).toBe(201);
+  });
+
+  it("should receive a verifiable authorisation - Natural person", async () => {
+    expect.assertions(2);
+
+    const keyPair = await generateKeyPair("ES256K");
+    const publicKeyJwkAgent = await exportJWK(keyPair.publicKey);
+    const thumbprint = await calculateJwkThumbprint(
+      publicKeyJwkAgent,
+      "sha256"
+    );
+    const subjectIdentifier = Buffer.from(thumbprint, "base64");
+    const kidAgent = `${EbsiWallet.createDid(
+      "NATURAL_PERSON",
+      subjectIdentifier
+    )}#${thumbprint}`;
+    const agent = new Agent({
+      privateKey: keyPair.privateKey,
+      alg: "ES256K",
+      kid: kidAgent,
+      siopV2: true,
+    });
+    const { idToken } = await agent.createResponse(
+      {
+        redirectUri: "/authentication-responses",
+      },
+      {
+        syntaxType: "did_subject",
+      }
+    );
+
+    const response: SupertestAuthenticationResponse = await request(server)
+      .post("/authentication-responses")
+      .auth(tokenWebApp, { type: "bearer" })
+      .send({
+        id_token: idToken,
+      });
+
+    expect(response.body).toStrictEqual({
+      verifiableCredential: expect.any(String) as string,
+    });
+    expect(response.status).toBe(201);
   });
 
   it("should test the response from startAuthentication is correct", async () => {
