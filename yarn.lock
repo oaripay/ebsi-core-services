@@ -331,10 +331,21 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@cef-ebsi/oauth2-auth@^2.0.0-alpha.0":
-  version "2.0.0-alpha.0"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/oauth2-auth/-/oauth2-auth-2.0.0-alpha.0.tgz#0e46512f12297b124ea17ae4893819bbc1f698ed"
-  integrity sha512-9+OQ4SNJ282ahE0ChBpAsRnoMvRFwkXgzFXF5nT3EpX8yRl6VVq/qlQfMY+H/XD7e0kVRmiZCjcIhILZ4YGIdg==
+"@cef-ebsi/ebsi-did-resolver@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/ebsi-did-resolver/-/ebsi-did-resolver-2.0.1.tgz#84e7723bcbcac4e79502e95ee6783135f8d66395"
+  integrity sha512-ofb/AYHEs9hGX5kP0kIjMEoln05zGhKu8GcjFtB9PLHl0jzFo4w2VV3sE1Qsw+46hYeGGVVtgGUS0iui8X2NfQ==
+  dependencies:
+    "@cef-ebsi/problem-details-errors" "^2.0.0"
+    axios "^0.27.2"
+    did-resolver "^3.2.0"
+    jose "^4.8.1"
+    multiformats "^9.6.5"
+
+"@cef-ebsi/oauth2-auth@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/oauth2-auth/-/oauth2-auth-2.0.0.tgz#1e23f3f3e9e065ebea3a33b3d97cbb29ad51cf6e"
+  integrity sha512-bdi5wHQlkfOeSBEtVuxLEo9n3GKf9KJT8wEwa/2h21AiC7pNHrFvPj88tXKijj5YrJQ2n4BLQdS9AhHjeOffEQ==
   dependencies:
     axios "^0.27.2"
     did-jwt "^6.1.0"
@@ -345,16 +356,17 @@
     multiformats "^9.6.5"
     uuid "^8.3.1"
 
-"@cef-ebsi/problem-details-errors@^2.0.0-alpha.0":
-  version "2.0.0-alpha.0"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/problem-details-errors/-/problem-details-errors-2.0.0-alpha.0.tgz#d529fd6ac90a06a09c1def26f52fdee224c63c4b"
-  integrity sha512-G8Qg+21THxKlIEa86kVhDthb77PrEW+oq3I+lT0rtGjwcZJZoz1b4aqfy7yEz5pt71qkEinmWvwDV4akOQh6NA==
+"@cef-ebsi/problem-details-errors@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/problem-details-errors/-/problem-details-errors-2.0.0.tgz#263540432d593d5b1a0f017ebd00a3886a55d766"
+  integrity sha512-7Y2263+S7o6yenstSDzMscei/sOwwqTm8YSky+GSvjM13BMgNnfJdDfhUu5qgvEsz99e7sHiColvanGTQgnu8g==
 
-"@cef-ebsi/siop-auth@^2.0.0-alpha.0":
-  version "2.0.0-alpha.0"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/siop-auth/-/siop-auth-2.0.0-alpha.0.tgz#e561d82674f7a5ac16e7fca7a3302bf717fe8795"
-  integrity sha512-QyKZHh9+LJ2f4TefS1hXH4wZ2MMcnWWivmc0OP9MJperGdCWtzJ0gM3n+3nJVpzvIZe9axxLyayIgGcW5GbrfA==
+"@cef-ebsi/siop-auth@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/siop-auth/-/siop-auth-2.0.0.tgz#497c114c010baa91f484b75ad5ea80ef9bc69e1e"
+  integrity sha512-1iVH5pWNmyhjHta5lCMhuPDHT5BmYjnv1EJHGvDSF/70OJXrtzQpTqiIO+B2q3LaKG/3O8mXwBS2U7gFORGT+w==
   dependencies:
+    "@cef-ebsi/ebsi-did-resolver" "^2.0.1"
     axios "^0.27.2"
     did-jwt "^6.1.0"
     did-resolver "^3.2.0"

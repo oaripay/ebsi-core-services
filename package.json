@@ -28,9 +28,9 @@
     "prepare": "is-ci || husky install"
   },
   "dependencies": {
-    "@cef-ebsi/oauth2-auth": "^2.0.0-alpha.0",
-    "@cef-ebsi/problem-details-errors": "^2.0.0-alpha.0",
-    "@cef-ebsi/siop-auth": "^2.0.0-alpha.0",
+    "@cef-ebsi/oauth2-auth": "^2.0.0",
+    "@cef-ebsi/problem-details-errors": "^2.0.0",
+    "@cef-ebsi/siop-auth": "^2.0.0",
     "@fastify/helmet": "^8.1.0",
     "@fastify/multipart": "^6.0.0",
     "@nestjs/axios": "^0.0.8",
