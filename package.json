@@ -26,9 +26,9 @@
     "prepare": "is-ci || husky install"
   },
   "dependencies": {
-    "@cef-ebsi/oauth2-auth": "^2.0.0-alpha.0",
-    "@cef-ebsi/problem-details-errors": "^2.0.0-alpha.0",
-    "@cef-ebsi/siop-auth": "^2.0.0-alpha.0",
+    "@cef-ebsi/oauth2-auth": "^2.0.0",
+    "@cef-ebsi/problem-details-errors": "^2.0.0",
+    "@cef-ebsi/siop-auth": "^2.0.0",
     "@fastify/helmet": "^8.1.0",
     "@nestjs/axios": "^0.0.8",
     "@nestjs/common": "^8.4.6",
@@ -39,7 +39,7 @@
     "axios": "^0.27.2",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.13.2",
-    "did-jwt": "^6.1.0",
+    "did-jwt": "^6.1.2",
     "ethers": "^5.6.8",
     "joi": "^17.6.0",
     "key-encoder": "^2.0.3",
@@ -51,7 +51,7 @@
     "winston": "^3.7.2"
   },
   "devDependencies": {
-    "@cef-ebsi/wallet-lib": "^2.0.0-alpha.0",
+    "@cef-ebsi/wallet-lib": "^2.0.0",
     "@commitlint/cli": "^17.0.2",
     "@commitlint/config-conventional": "^17.0.2",
     "@ethersproject/abstract-provider": "^5.6.1",
