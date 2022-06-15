@@ -12,7 +12,7 @@ library SafeAddArray {
      *
      */
     function add(bytes32[] storage array, bytes32 value) internal {
-        for (uint256 i; i < array.length; i++) {
+        for (uint256 i = 0; i < array.length; i++) {
             if (array[i] == value) {
                 return;
             }
@@ -22,7 +22,7 @@ library SafeAddArray {
 
     function add(string[] storage array, string memory value) internal {
         bytes32 hashValue = keccak256(bytes(value));
-        for (uint256 i; i < array.length; i++) {
+        for (uint256 i = 0; i < array.length; i++) {
             if (keccak256(bytes(array[i])) == hashValue) {
                 return;
             }
