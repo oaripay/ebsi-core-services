@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [3.0.0-rc.0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/proxy-data-hub-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.8&sourceBranch=refs%2Ftags%2Fv3.0.0-rc.0&targetRepoId=252) (2022-06-08)
+
+### ⚠ BREAKING CHANGES
+
+- releases Proxy Data Hub API v3.
+
+### 🐛 Bug Fixes
+
+- update Node.js to v16.14.2 ([#73](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/proxy-data-hub-api/pull-requests/73/overview)) - EBSIINT-3981 ([b648f05](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/proxy-data-hub-api/commits/b648f05f9463394f8219d2cede451e344e0adf5e))
+
+### 🚀 Features
+
+- bump dependencies ([#75](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/proxy-data-hub-api/pull-requests/75/overview)) - EBSIINT-4229 ([8ea2630](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/proxy-data-hub-api/commits/8ea2630a5dc2b7194f4d6095d33704f636918f50))
+- update libs, use Authorisation API v2, Storage API v3 and TAR API v3 ([#72](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/proxy-data-hub-api/pull-requests/72/overview)) - EBSIINT-3998 ([8b3a268](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/proxy-data-hub-api/commits/8b3a268b4bd37db060f1d667bef059e389de6303))
+
 ## [2.0.0-rc.8](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/proxy-data-hub-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.7&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.8&targetRepoId=252) (2022-03-16)
 
 ### 🚀 Features
