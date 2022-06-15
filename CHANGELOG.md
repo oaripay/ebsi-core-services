@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.0-rc.0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-web-client/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.4&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.0&targetRepoId=406) (2022-06-15)
+
+### ⚠ BREAKING CHANGES
+
+- uses Users Onboarding API v2.
+
+### 🐛 Bug Fixes
+
+- update Node.js version to v14.18.1 ([#35](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-web-client/pull-requests/35/overview)) - EBSIINT-3432 ([5ea13e9](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-web-client/commits/5ea13e950312530841ef6db60e9997fb7d06de22))
+
+### 🚀 Features
+
+- bump dependencies - EBSIINT-4252 ([63d163d](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-web-client/commits/63d163d79ef725951dc6d652a2e106c999b29593))
+- use Users Onboarding API v2 ([#40](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-web-client/pull-requests/40/overview)) - EBSIINT-3981 ([a779047](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-web-client/commits/a779047537b0a8f0ddb8a324cea2eac7fbb80c51))
+
 ## [1.0.0-rc.4](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-web-client/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.3&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.4&targetRepoId=406) (2021-06-28)
 
 ### 🐛 Bug Fixes
