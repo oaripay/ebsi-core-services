@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.9](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.8&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.9&targetRepoId=244) (2022-06-08)
+
+### 🐛 Bug Fixes
+
+- bump protobufjs ([#119](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/119/overview)) - EBSIINT-4241 ([88cbb8d](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/88cbb8d55183c378ce5ab0aae339b21f96e5dcd2))
+- fix advisory GHSA-6xwr-q98w-rvg7 ([#117](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/117/overview)) - EBSIINT-4213 ([87bfee0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/87bfee08e5d5be6cb08a8c3b4abb0448e5de7e11))
+
 ## [2.0.0-rc.8](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.7&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.8&targetRepoId=244) (2022-03-16)
 
 ### 🚀 Features
