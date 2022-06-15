@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/authorisation-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.14&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.0&targetRepoId=359) (2022-06-08)
+
+### 🐛 Bug Fixes
+
+- temporary fix new urls in verifyCredentialJwt ([#96](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/authorisation-api/pull-requests/96/overview)) - EBSIINT-4023 ([bcf7786](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/authorisation-api/commits/bcf778607c45c9d42dc8a4f5c5f4bcfca3df22dd))
+- update Node.js to v16.14.2 ([#95](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/authorisation-api/pull-requests/95/overview)) - EBSIINT-3981 ([3fb510e](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/authorisation-api/commits/3fb510e3d6052ed1f2277e118046edf4411cfb19))
+- update VC lib, support latest APIs ([#97](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/authorisation-api/pull-requests/97/overview)) - EBSIINT-4037 ([36eeb9f](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/authorisation-api/commits/36eeb9fc4fc430e5809020daddd258dc89699492))
+
+### 🚀 Features
+
+- bump dependencies ([#103](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/authorisation-api/pull-requests/103/overview)) - EBSIINT-4225 ([044a457](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/authorisation-api/commits/044a45790ee61d3793991a14c1b5bd74cfe4be53))
+- log requests and responses ([#78](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/authorisation-api/pull-requests/78/overview)) - EBSIINT-3651 ([21187b2](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/authorisation-api/commits/21187b29a40b4364fd21a9d58643285fbc7daf17))
+- use new EBSI VC and VP libraries ([#87](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/authorisation-api/pull-requests/87/overview)) - EBSIINT-3791 ([582625c](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/authorisation-api/commits/582625c85798fba52145601224ec23413c5d2865))
+
 ## [1.0.0-rc.14](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/authorisation-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.13&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.14&targetRepoId=359) (2021-12-06)
 
 ## [1.0.0-rc.13](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/authorisation-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.12&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.13&targetRepoId=359) (2021-11-15)
