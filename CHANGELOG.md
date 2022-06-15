@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [3.0.0-rc.0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/storage-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.8&sourceBranch=refs%2Ftags%2Fv3.0.0-rc.0&targetRepoId=245) (2022-06-08)
+
+### ⚠ BREAKING CHANGES
+
+- releases Storage API v3.
+
+### 🐛 Bug Fixes
+
+- update Node.js to v16.14.2 ([#84](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/storage-api/pull-requests/84/overview)) - EBSIINT-3981 ([e7d5652](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/storage-api/commits/e7d5652132fe0ba1bdb21b308f5479409e9dec13))
+
+### 🚀 Features
+
+- bump dependencies - EBSIINT-4230 ([27720ff](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/storage-api/commits/27720ff6bcb773669045bf124fbb1fe41831c95a))
+- setup axios requests interceptor ([#87](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/storage-api/pull-requests/87/overview)) - EBSIINT-4146 ([0578f35](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/storage-api/commits/0578f35e017d1c8c116fb5230441c27e47f6093f))
+- update libs, use Authorisation API v2 and TAR v3 ([#83](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/storage-api/pull-requests/83/overview)) - EBSIINT-3999 ([58fe8e9](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/storage-api/commits/58fe8e9c1596761d7ab69711ef98a81327de6039))
+
 ## [2.0.0-rc.8](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/storage-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.7&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.8&targetRepoId=245) (2022-03-16)
 
 ### 🚀 Features
