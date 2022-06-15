@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [3.0.0-rc.0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.8&sourceBranch=refs%2Ftags%2Fv3.0.0-rc.0&targetRepoId=244) (2022-06-08)
+
+### ⚠ BREAKING CHANGES
+
+- releases Ledger API v3.
+
+### 🐛 Bug Fixes
+
+- bump protobufjs ([#118](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/118/overview)) - EBSIINT-4241 ([5e942ec](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/5e942ec77ee5c7a222a3acf7e09f244b0145255f))
+- update nconf version, fix GHSA-6xwr-q98w-rvg7 ([#113](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/113/overview)) - EBSIINT-4121 ([3905b73](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/3905b73f40479a6a67fd2854e092b42ccb444149))
+- update Node.js to v16.14.2 ([#111](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/111/overview)) - EBSIINT-3981 ([4973ff4](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/4973ff40d5fa993967b9d9b422d869f9d675d194))
+
+### 🚀 Features
+
+- bump dependencies - EBSIINT-4227 ([666d827](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/666d8277cef585df723a6b325933dc66c773764d))
+- update libs, use Authorisation API v2 and TAR v3 ([#105](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/105/overview)) - EBSIINT-3996 ([25927bf](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/25927bf4ed60666151f3ed1e943f330ea2c94957))
+
 ## [2.0.0-rc.8](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.7&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.8&targetRepoId=244) (2022-03-16)
 
 ### 🚀 Features
