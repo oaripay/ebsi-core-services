@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.7&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.0&targetRepoId=387) (2022-06-08)
+
+### ⚠ BREAKING CHANGES
+
+- releases TLSCR API v2.
+
+### 🐛 Bug Fixes
+
+- update Node.js to v16.14.2 ([#62](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/pull-requests/62/overview)) - EBSIINT-3981 ([7d22552](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/commits/7d22552625b6e9d904499ae4a095e58663160426))
+
+### 🚀 Features
+
+- bump dependencies ([#66](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/pull-requests/66/overview)) - EBSIINT-4234 ([f849249](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/commits/f8492491cf4759f2c2b6216d374e05e13f4c466a))
+- update libs, use Authorisation API v2, Ledger API v3 and TAR v3 ([#61](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/pull-requests/61/overview)) - EBSIINT-4002 ([b3ccecd](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/commits/b3ccecd3d4a875ac2de9210ab80f5cddab6daf00))
+
 ## [1.0.0-rc.7](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.6&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.7&targetRepoId=387) (2022-03-16)
 
 ### 🚀 Features
