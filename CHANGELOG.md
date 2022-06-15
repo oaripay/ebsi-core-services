@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [3.0.0-rc.0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-apps-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.7&sourceBranch=refs%2Ftags%2Fv3.0.0-rc.0&targetRepoId=248) (2022-06-08)
+
+### ⚠ BREAKING CHANGES
+
+- integrate TPR, appName, insertApp and revoked info changes (#96) - EBSIINT-3845
+
+### 🐛 Bug Fixes
+
+- fix /:applicationName/authorizations response ([#101](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-apps-registry-api/pull-requests/101/overview)) - EBSIINT-3970 ([4cec7f9](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-apps-registry-api/commits/4cec7f9645ae4a791b1697cff970fa7befd4a367))
+- fix href links and update siop library ([#100](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-apps-registry-api/pull-requests/100/overview)) - EBSIINT-3970 ([814c01f](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-apps-registry-api/commits/814c01f8b46f7ce7003d120460dcaf6524493524))
+- update Node.js to v16.14.2 ([#110](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-apps-registry-api/pull-requests/110/overview)) - EBSIINT-3981 ([7984315](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-apps-registry-api/commits/79843156958b1830c653dcaad28236b73ba7e834))
+
+### 🚀 Features
+
+- bump dependencies ([#118](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-apps-registry-api/pull-requests/118/overview)) - EBSIINT-4232 ([74e8383](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-apps-registry-api/commits/74e83832fdbd352a6eca227ef643400d428a4c56))
+- integrate TPR, appName, insertApp and revoked info changes ([#96](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-apps-registry-api/pull-requests/96/overview)) - EBSIINT-3845 ([aa77c16](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-apps-registry-api/commits/aa77c1631a8f46c0ce4add766d36d92f24bb4a76))
+- log requests and responses ([#90](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-apps-registry-api/pull-requests/90/overview)) - EBSIINT-3651 ([8aa50b8](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-apps-registry-api/commits/8aa50b8cc51b839faad2bbf83f01e1cc7a7f90db))
+- setup axios requests interceptor ([#114](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-apps-registry-api/pull-requests/114/overview)) - EBSIINT-4148 ([f91ed86](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-apps-registry-api/commits/f91ed8607385799a4107f1323f4d474879093e6c))
+- use Authorisation API v2 ([#102](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-apps-registry-api/pull-requests/102/overview)) - EBSIINT-3992 ([f314f00](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-apps-registry-api/commits/f314f0082813c0461b87542821532d33342a9ece))
+
 ## [2.0.0-rc.7](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-apps-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.6&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.7&targetRepoId=248) (2021-12-06)
 
 ### 🚀 Features
