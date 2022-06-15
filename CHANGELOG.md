@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [3.0.0-rc.0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/did-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.9&sourceBranch=refs%2Ftags%2Fv3.0.0-rc.0&targetRepoId=234) (2022-06-08)
+
+### ⚠ BREAKING CHANGES
+
+- releases DIDR API v3
+
+### 🐛 Bug Fixes
+
+- check DID in missing functions ([#142](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/did-registry-api/pull-requests/142/overview)) - EBSIINT-3984 ([13eb95d](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/did-registry-api/commits/13eb95d6ef3ef456741b6858c8b7cb9bd6265ecc))
+- fix DID Document's `[@context](https://ec.europa.eu/context)` validation ([#144](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/did-registry-api/pull-requests/144/overview)) - EBSIINT-4203 ([a57b096](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/did-registry-api/commits/a57b096a8505825f47f89add85e54aaf868d4b43))
+- update Node.js to v16.14.2 ([#140](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/did-registry-api/pull-requests/140/overview)) - EBSIINT-3981 ([c9220b8](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/did-registry-api/commits/c9220b8e942d7f4961e07f1ea5992b9a902f0a24))
+
+### 🚀 Features
+
+- bump dependencies - EBSIINT-4226 ([0ee8f5f](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/did-registry-api/commits/0ee8f5f2dfa0cec970283e8557c58f668f2fa15e))
+- update libs, use Authorisation API v2, Ledger v3 and TAR v3 - EBSIINT-3995 ([3f82ed5](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/did-registry-api/commits/3f82ed5cb7e018adac79e92f8c5f1c2a79c55aa7))
+
 ## [2.0.0-rc.9](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/did-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.8&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.9&targetRepoId=234) (2022-03-16)
 
 ### 🚀 Features
