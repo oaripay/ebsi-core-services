@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.9](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/storage-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.8&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.9&targetRepoId=245) (2022-06-08)
+
+### 🚀 Features
+
+- setup axios requests interceptor ([#86](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/storage-api/pull-requests/86/overview)) - EBSIINT-4145 ([b90cf6c](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/storage-api/commits/b90cf6cdb80fada54e00ee5fabe859722336ce02))
+
 ## [2.0.0-rc.8](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/storage-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.7&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.8&targetRepoId=245) (2022-03-16)
 
 ### 🚀 Features
