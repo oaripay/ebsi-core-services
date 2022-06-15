@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [3.0.0-rc.0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/timestamp-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.10&sourceBranch=refs%2Ftags%2Fv3.0.0-rc.0&targetRepoId=247) (2022-06-08)
+
+### ⚠ BREAKING CHANGES
+
+- releases Timestamp API v3.
+
+### 🐛 Bug Fixes
+
+- update Node.js to v16.14.2 ([#109](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/timestamp-api/pull-requests/109/overview)) - EBSIINT-3981 ([179478d](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/timestamp-api/commits/179478d161285d07cc79d19e7e7b2f2d7a01c789))
+
+### 🚀 Features
+
+- bump dependencies ([#113](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/timestamp-api/pull-requests/113/overview)) - EBSIINT-4231 ([378dfa0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/timestamp-api/commits/378dfa01faa1fab4a7baa6db1289893db70bbe14))
+- update libs, use Authorisation API v2, Ledger API v3 and TAR v3 ([#108](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/timestamp-api/pull-requests/108/overview)) - EBSIINT-4000 ([b7b11f0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/timestamp-api/commits/b7b11f0cd10565a8190cb2a013097f09e371b590))
+
 ## [2.0.0-rc.10](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/timestamp-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.9&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.10&targetRepoId=247) (2022-03-16)
 
 ### 🚀 Features
