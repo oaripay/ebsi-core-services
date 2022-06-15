@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/notifications-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.8&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.0&targetRepoId=318) (2022-06-08)
+
+### ⚠ BREAKING CHANGES
+
+- releases Notifications API v2.
+
+### 🐛 Bug Fixes
+
+- update Node.js to v16.14.2 ([#68](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/notifications-api/pull-requests/68/overview)) - EBSIINT-3981 ([1152cf9](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/notifications-api/commits/1152cf9994950eb2c8199bc2ec4247670e82cd99))
+
+### 🚀 Features
+
+- bump dependencies - EBSIINT-4228 ([8c612c0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/notifications-api/commits/8c612c00e8f338baeae39610a4b3a15d44193118))
+- update libs, use Authorisation API v2, Storage API v3 and TAR API v3 ([#66](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/notifications-api/pull-requests/66/overview)) - EBSIINT-3997 ([a5aa83f](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/notifications-api/commits/a5aa83fec04149e2af4e87065f08185f5ba47c69))
+
 ## [1.0.0-rc.8](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/notifications-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.7&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.8&targetRepoId=318) (2022-03-16)
 
 ### 🚀 Features
