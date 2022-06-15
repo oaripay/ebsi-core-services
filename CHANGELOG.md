@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.10&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.0&targetRepoId=234) (2022-06-09)
+
+### ⚠ BREAKING CHANGES
+
+- the API returns a VC JWT now
+
+### 🐛 Bug Fixes
+
+- update Node.js to v16.14.2 ([#78](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-api/pull-requests/78/overview)) - EBSIINT-3981 ([261bac8](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-api/commits/261bac8f400eff2b432f1be8f8524827a2a4c465))
+- update VC lib, support latest APIs ([#79](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-api/pull-requests/79/overview)) - EBSIINT-4037 ([36d3c23](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-api/commits/36d3c233c339a0094c7b26b09b3bb947b88c2abf))
+
+### 🚀 Features
+
+- bump dependencies ([#84](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-api/pull-requests/84/overview)) - EBSIINT-4237 ([802008b](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-api/commits/802008b1ba0f74092e0f2ad73645c418d1928359))
+- intercept and log requests and responses ([#62](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-api/pull-requests/62/overview)) - EBSIINT-3651 ([651c43b](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-api/commits/651c43bcf5761fcc1393d45b9c51e6e97628e0fb))
+- update libs, use TAR API v3 ([#77](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-api/pull-requests/77/overview)) - EBSIINT-4005 ([5e4b5b8](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-api/commits/5e4b5b88a75af9d47c4989897d761d8f9cfce0a5))
+- upgrade VC and VP libraries ([#68](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-api/pull-requests/68/overview)) - EBSIINT-3794 ([f59942b](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-api/commits/f59942b46a9587335380da03d8fd8be848581106))
+
 ## [1.0.0-rc.10](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.9&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.10&targetRepoId=234) (2021-12-06)
 
 ## [1.0.0-rc.9](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.8&sourceBranch=refs%2Ftags%2Fv1.0.0-rc.9&targetRepoId=234) (2021-11-16)
