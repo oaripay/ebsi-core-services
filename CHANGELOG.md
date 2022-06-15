@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-policies-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.0&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.0&targetRepoId=234) (2022-06-09)
+
+### ⚠ BREAKING CHANGES
+
+- releases TPR API v2.
+
+### 🐛 Bug Fixes
+
+- update Node.js to v16.14.2 ([#19](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-policies-registry-api/pull-requests/19/overview)) - EBSIINT-3981 ([9f0346a](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-policies-registry-api/commits/9f0346a8ae5ac30fb2c540f79296f56e11e929c8))
+
+### 🚀 Features
+
+- bump dependencies - EBSIINT-4235 ([94af7b4](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-policies-registry-api/commits/94af7b4fdf204f783a9a33d510bd46758ac0b793))
+- update libs, use Authorisation API v2 and Ledger API v3 ([#18](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-policies-registry-api/pull-requests/18/overview)) - EBSIINT-4003 ([4900812](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-policies-registry-api/commits/4900812c208d09e36000b8979897d169f15dbaa7))
+
 ## 1.0.0-rc.0 (2022-03-16)
 
 Initial release.
