@@ -23,20 +23,21 @@ library Address {
      *  - an address where a contract will be created
      *  - an address where a contract lived, but was destroyed
      * ====
+     *
+     * [IMPORTANT]
+     * ====
+     * You shouldn't rely on `isContract` to protect against flash loan attacks!
+     *
+     * Preventing calls from contracts is highly discouraged. It breaks composability, breaks support for smart wallets
+     * like Gnosis Safe, and does not provide security since it can be circumvented by calling from a contract
+     * constructor.
+     * ====
      */
     function isContract(address account) internal view returns (bool) {
-        // According to EIP-1052, 0x0 is the value returned for not-yet created accounts
-        // and 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470 is returned
-        // for accounts without code, i.e. `keccak256('')`
-        bytes32 codehash;
+        // This method relies on extcodesize/address.code.length, which returns 0
+        // for contracts in construction, since the code is only stored at the end
+        // of the constructor execution.
 
-
-            bytes32 accountHash
-         = 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;
-        // solhint-disable-next-line no-inline-assembly
-        assembly {
-            codehash := extcodehash(account)
-        }
-        return (codehash != accountHash && codehash != 0x0);
+        return account.code.length > 0;
     }
 }
