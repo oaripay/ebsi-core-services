@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [3.0.0-rc.0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-issuers-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.9&sourceBranch=refs%2Ftags%2Fv3.0.0-rc.0&targetRepoId=251) (2022-06-08)
+
+### ⚠ BREAKING CHANGES
+
+- update libs, use Authorisation API v2 and TAR v3 (#92) - EBSIINT-4001
+
+### 🐛 Bug Fixes
+
+- update Node.js to v16.14.2 ([#96](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-issuers-registry-api/pull-requests/96/overview)) - EBSIINT-3981 ([d25415f](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-issuers-registry-api/commits/d25415fa2fe087d6e4ee4eafc4c9757f805e4b1d))
+
+### 🚀 Features
+
+- bump dependencies ([#100](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-issuers-registry-api/pull-requests/100/overview)) - EBSIINT-4233 ([333c50f](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-issuers-registry-api/commits/333c50ffab9f0a875559d53f74449306c8da3273))
+- update libs, use Authorisation API v2 and TAR v3 ([#92](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-issuers-registry-api/pull-requests/92/overview)) - EBSIINT-4001 ([12285f3](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-issuers-registry-api/commits/12285f38d6ad9ac979fad0ac0e9b85e186811332))
+
 ## [2.0.0-rc.9](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-issuers-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.8&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.9&targetRepoId=251) (2022-03-16)
 
 ### 🚀 Features
