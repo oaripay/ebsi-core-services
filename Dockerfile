@@ -13,6 +13,8 @@ FROM base
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=builder /app/dist dist
+# Image version tag is extracted from the following file
+COPY .ci .ci
 RUN mkdir -p /app/wallet
 # Uncomment the following line to run Ledger API locally
 # COPY wallet wallet

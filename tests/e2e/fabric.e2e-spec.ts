@@ -7,6 +7,7 @@ import {
   Logger,
   HttpServer,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -18,6 +19,7 @@ import {
   Transaction,
   PaginatedList,
 } from "../../src/modules/fabric/interfaces";
+import { ApiConfig } from "../../src/config/configuration";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { FabricUser } from "../utils/FabricUser";
@@ -38,7 +40,10 @@ describe("Fabric e2e tests", () => {
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter()
     );
-    app.useGlobalFilters(new AllExceptionsFilter());
+    const configService =
+      moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     Logger.overrideLogger(false);

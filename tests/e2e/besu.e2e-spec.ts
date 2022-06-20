@@ -39,7 +39,10 @@ describe("POST /ledger/v2/blockchains/besu", () => {
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter()
     );
-    app.useGlobalFilters(new AllExceptionsFilter());
+    const configService =
+      moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe());
 
     Logger.overrideLogger(false);
@@ -48,8 +51,6 @@ describe("POST /ledger/v2/blockchains/besu", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
 
-    const configService =
-      moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
     const testApp = configService.get<{
       id: string;
       name: string;

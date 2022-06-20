@@ -1,6 +1,7 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication, ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -9,6 +10,7 @@ import type { FastifyInstance } from "fastify";
 import { Logger } from "@nestjs/common/services/logger.service";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
+import { ApiConfig } from "../../src/config/configuration";
 
 jest.setTimeout(60000);
 
@@ -23,7 +25,10 @@ describe("/ledger/v2 (generic tests)", () => {
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter()
     );
-    app.useGlobalFilters(new AllExceptionsFilter());
+
+    const configService =
+      moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe());
 
     Logger.overrideLogger(false);

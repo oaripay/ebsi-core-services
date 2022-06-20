@@ -6,6 +6,7 @@ import { HealthModule } from "./modules/health/health.module";
 import { BesuModule } from "./modules/besu/besu.module";
 import { FabricModule } from "./modules/fabric/fabric.module";
 import { LoggingInterceptor } from "./interceptors/logging.interceptor";
+import { VersionInterceptor } from "./interceptors/version.interceptor";
 
 @Module({
   imports: [
@@ -19,6 +20,10 @@ import { LoggingInterceptor } from "./interceptors/logging.interceptor";
     {
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: VersionInterceptor,
     },
   ],
 })

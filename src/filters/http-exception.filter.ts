@@ -7,6 +7,7 @@ import {
   BadRequestException,
   ForbiddenException,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   ProblemDetailsError,
   InternalServerError,
@@ -16,6 +17,7 @@ import {
 } from "@cef-ebsi/problem-details-errors";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { AxiosError } from "axios";
+import { ApiConfig } from "../config/configuration";
 import {
   JsonRpcError,
   InvalidRequestJsonRpcError,
@@ -26,11 +28,24 @@ import {
 export class AllExceptionsFilter implements ExceptionFilter {
   private readonly logger = new Logger(AllExceptionsFilter.name);
 
+  private tag: string;
+
+  constructor(configService: ConfigService<ApiConfig>) {
+    if (process.env.EBSI_ENV === "test") {
+      this.tag = configService.get<string>("dockerContainerTag");
+    }
+  }
+
   catch(err: Error, host: ArgumentsHost): FastifyReply {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<FastifyReply>();
     const request = ctx.getRequest<FastifyRequest>();
     const { url } = request;
+
+    if (this.tag) {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      response.header("EBSI-Image-Tag", this.tag);
+    }
 
     if (
       err instanceof JsonRpcError ||
