@@ -29,7 +29,7 @@ contract OwnedUpgradeabilityProxy is
         bytes memory _data
     ) public payable {
         require(_implementation() == address(0), "implementation must be zero");
-        InitializableUpgradeabilityProxy.initialize(_logic, _data);
+        initialize(_logic, _data);
         //assert(ADMIN_SLOT == bytes32(uint256(keccak256("eip1967.proxy.admin")) - 1));
         _setAdmin(_admin);
         emit Initialized(_admin, _logic);

@@ -10,14 +10,16 @@ import "./AnchorDetailed.sol";
  *
  */
 contract Anchor is Initializable, AnchorDetailed, Pausable {
+    constructor() {}
+
     function initialize(
-        bytes32[] memory fields,
-        string memory name,
-        string memory symbol,
-        uint8 decimals,
+        bytes32[] memory _fields,
+        string memory _name,
+        string memory _symbol,
+        uint8 _decimals,
         address[] memory pausers
     ) public initializer {
-        AnchorDetailed._onInitialize(fields, name, symbol, decimals);
+        AnchorDetailed._onInitialize(_fields, _name, _symbol, _decimals);
 
         Pausable.initialize(address(this));
         _removePauser(address(this));

@@ -13,6 +13,8 @@ contract AnchorV1 is Anchor {
     }
     Role[] private _roles;
 
+    constructor() Anchor() {}
+
     function setRole(bytes32[] memory role) external {
         _roles.push(Role({bearer: role}));
     }
