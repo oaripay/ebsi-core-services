@@ -10,3 +10,6 @@
 !yarn.lock
 !src
 !wallet
+
+# The image tag information is used in the service
+!.ci

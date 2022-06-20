@@ -10,6 +10,7 @@ import {
   Logger,
   HttpServer,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
 import {
   FastifyAdapter,
@@ -23,6 +24,7 @@ import { BesuModule } from "./besu.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { BesuService } from "./besu.service";
 import { createFakeToken } from "../../../tests/utils/authorisation";
+import { ApiConfig } from "../../config/configuration";
 
 jest.mock("@cef-ebsi/oauth2-auth", () => ({
   verifyJwtTar: jest.fn(),
@@ -35,6 +37,7 @@ describe("Besu Module", () => {
   let besuService: BesuService;
   let tokenOAuth2: string;
   let tokenSiop: string;
+  let configService: ConfigService<ApiConfig>;
   const ganachePort = 8547; // 8546 might already be used for ssh port forwarding
 
   const mockAuthOAuth2 = jest.spyOn(OAuth2lib, "verifyJwtTar");
@@ -64,7 +67,8 @@ describe("Besu Module", () => {
       // Turn off logger
       Logger.overrideLogger(false);
 
-      app.useGlobalFilters(new AllExceptionsFilter());
+      configService = app.get<ConfigService<ApiConfig>>(ConfigService);
+      app.useGlobalFilters(new AllExceptionsFilter(configService));
       app.useGlobalPipes(new ValidationPipe({ transform: true }));
       await app.init();
       await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();

@@ -6,6 +6,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { AxiosError } from "axios";
 import {
   FastifyAdapter,
@@ -14,6 +15,7 @@ import {
 import type { FastifyInstance } from "fastify";
 import { ProblemDetailsError } from "@cef-ebsi/problem-details-errors";
 import { AllExceptionsFilter } from "./http-exception.filter";
+import { ApiConfig } from "../config/configuration";
 
 const mockGetResponse = jest.fn().mockImplementation(() => ({
   code: jest.fn().mockImplementation((code: number) => ({
@@ -54,11 +56,12 @@ const mockArgumentsHost = {
 describe("All exception filter tests", () => {
   let app: INestApplication;
   let service: AllExceptionsFilter;
+  let configService: ConfigService<ApiConfig>;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [],
-      providers: [AllExceptionsFilter],
+      providers: [AllExceptionsFilter, ConfigService],
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
@@ -68,7 +71,7 @@ describe("All exception filter tests", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    app.useGlobalFilters(new AllExceptionsFilter());
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();

@@ -32,16 +32,17 @@ describe("/ledger/v3 (generic tests)", () => {
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter()
     );
-    app.useGlobalFilters(new AllExceptionsFilter());
+
+    const configService =
+      moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe());
 
     Logger.overrideLogger(false);
 
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-
-    const configService =
-      moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
 
     server = getServer(app, configService);
 
