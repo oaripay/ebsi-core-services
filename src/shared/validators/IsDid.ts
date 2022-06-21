@@ -1,9 +1,9 @@
+import { validate as validateDid } from "@cef-ebsi/ebsi-did-resolver";
 import {
   registerDecorator,
   buildMessage,
   ValidationOptions,
 } from "class-validator";
-import { base58btc } from "multiformats/bases/base58";
 
 export function IsDid(validationOptions?: ValidationOptions) {
   return (object: unknown, propertyName: string): void => {
@@ -25,25 +25,13 @@ export function IsDid(validationOptions?: ValidationOptions) {
 
           // EBSI DID Validation
           const methodPrefix = "did:ebsi:";
-          const version = 0x01;
-          const byteLength = 16;
 
           // Don't check method specific identifier if it's not an EBSI DID
           if (!value.startsWith(methodPrefix)) return true;
 
-          const methodSpecificIdentifier = value.substr(methodPrefix.length);
-
           try {
-            const decodedIdentifier = base58btc.decode(
-              methodSpecificIdentifier
-            );
-
-            return (
-              // The first byte must be the version identifier
-              decodedIdentifier[0] === version &&
-              // The length must be 17 bytes (1+ 16)
-              decodedIdentifier.length === 1 + byteLength
-            );
+            validateDid(value);
+            return true;
           } catch (e) {
             // Unable to decode multibase base58 string
             return false;

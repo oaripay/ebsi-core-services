@@ -7,18 +7,20 @@ import {
   encode,
   verifyJwtTar,
 } from "@cef-ebsi/siop-auth";
-import { exportJWK, generateKeyPair, importJWK } from "jose";
+import { exportJWK, generateKeyPair, importJWK, JWK } from "jose";
 
 export const requestSiopJwt = async ({
   clientKid,
   clientPrivateKey,
   authorisationApiUrl,
   trustedAppsRegistryApiUrl,
+  syntaxType = "jwk_thumbprint_subject",
 }: {
   clientKid: string;
-  clientPrivateKey: string;
+  clientPrivateKey: string | JWK;
   authorisationApiUrl: string;
   trustedAppsRegistryApiUrl: string;
+  syntaxType?: "jwk_thumbprint_subject" | "did_subject";
 }): Promise<string> => {
   const alg = "ES256K";
   const encryptionKeyPair = await generateKeyPair(alg);
@@ -27,7 +29,9 @@ export const requestSiopJwt = async ({
 
   const siopAgent = new SiopAgent({
     privateKey: await importJWK(
-      encode.privateKey.fromHextoJWK(clientPrivateKey),
+      typeof clientPrivateKey === "string"
+        ? encode.privateKey.fromHextoJWK(clientPrivateKey)
+        : clientPrivateKey,
       alg
     ),
     kid: clientKid,
@@ -47,27 +51,33 @@ export const requestSiopJwt = async ({
   const uri = authenticationRequestsResponse.data;
 
   const urlParams = new URLSearchParams(uri.replace("openid://?", ""));
-  const params = Object.fromEntries(urlParams);
-  Object.keys(params).forEach((k) => {
-    params[k] = decodeURIComponent(params[k]);
-  });
-  const { payload } = await verifyJwtTar(params.request, {
+
+  const { payload } = await verifyJwtTar(urlParams.get("request") || "", {
     trustedAppsRegistry: `${trustedAppsRegistryApiUrl}/apps`,
   });
 
   // 3. The client creates an authentication response and gets an ID Token
   const nonce = randomUUID();
 
-  const authenticationResponse = await siopAgent.createResponse({
-    nonce,
-    redirectUri: payload.client_id as string,
-    claims: {
-      encryption_key: publicEncryptionKeyJwk,
+  const authenticationResponse = await siopAgent.createResponse(
+    {
+      nonce,
+      redirectUri: payload.client_id as string,
+      claims: {
+        encryption_key: publicEncryptionKeyJwk,
+      },
     },
-    responseMode: "form_post",
-  });
+    {
+      responseMode: "form_post",
+      syntaxType,
+    }
+  );
 
   const { idToken } = authenticationResponse;
+
+  if (!idToken) {
+    throw new Error("Missing idToken");
+  }
 
   // 4. The client call /siop-sessions with the ID Token
   const siopSessionsResponse = await axios.post<
