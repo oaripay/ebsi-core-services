@@ -18,7 +18,7 @@ describe("HealthController", () => {
   let app: NestFastifyApplication;
   let server: HttpServer;
   let httpService: HttpService;
-  let configService: ConfigService<ApiConfig>;
+  let configService: ConfigService<ApiConfig, true>;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -28,13 +28,13 @@ describe("HealthController", () => {
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter()
     );
-    app.useGlobalFilters(new AllExceptionsFilter());
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe());
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
-
-    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
 
     httpService = await moduleFixture.resolve<HttpService>(HttpService);
   });

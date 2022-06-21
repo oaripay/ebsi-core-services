@@ -82,7 +82,7 @@ async function createClient(alg: string) {
 describe("Authorisation Module", () => {
   let app: INestApplication;
   let server: HttpServer;
-  let configService: ConfigService<ApiConfig>;
+  let configService: ConfigService<ApiConfig, true>;
   let apiPrivateKey: string;
 
   beforeAll(async () => {
@@ -97,14 +97,17 @@ describe("Authorisation Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    app.useGlobalFilters(new AllExceptionsFilter());
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+    apiPrivateKey = configService.get("apiPrivateKey");
+
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
 
-    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
-    apiPrivateKey = configService.get("apiPrivateKey");
+    server = app.getHttpServer() as HttpServer;
   });
 
   beforeEach(() => {

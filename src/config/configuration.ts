@@ -1,5 +1,6 @@
 import { ConfigModule } from "@nestjs/config";
 import Joi from "joi";
+import { getDockerTag } from "../shared/utils";
 
 // List here all the values that will be returned by the config factory
 export interface ApiConfig {
@@ -28,6 +29,7 @@ export interface ApiConfig {
   testClientPrivateKeysBase64: string;
   testIssuerDid: string;
   testIssuerPrivateKey: string;
+  dockerContainerTag: string;
 }
 
 // Example of default values to be used, depending on the environment
@@ -89,6 +91,7 @@ const defaultConfig = {
 // should have already been validated by Joi in src/app.module.ts
 export const loadConfig = (): ApiConfig => {
   const { EBSI_ENV } = process.env;
+  const dockerContainerTag = getDockerTag(EBSI_ENV);
 
   return {
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
@@ -123,6 +126,7 @@ export const loadConfig = (): ApiConfig => {
       process.env.TEST_CLIENT_PRIVATE_KEYS_BASE64 || "",
     testIssuerDid: process.env.TEST_ISSUER_DID || "",
     testIssuerPrivateKey: process.env.TEST_ISSUER_PRIVATE_KEY || "",
+    dockerContainerTag,
   };
 };
 
