@@ -9,7 +9,9 @@ export interface TransactionReceiptBesu extends TransactionReceipt {
   revertReason: string;
 }
 
-export async function getAccessToken(configService: ConfigService<ApiConfig>) {
+export async function getAccessToken(
+  configService: ConfigService<ApiConfig, true>
+) {
   const authorisationApiUrl = configService.get<string>("authorisationApiUrl");
   const trustedAppsRegistry = `${configService.get<string>(
     "trustedAppsRegistryApiUrl"

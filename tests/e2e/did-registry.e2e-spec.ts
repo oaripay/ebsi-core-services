@@ -109,7 +109,7 @@ const multihashToNodeHashAlg: { [Key in HashName]?: string } = {
 describe("DID Registry (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer | string;
-  let configService: ConfigService<ApiConfig>;
+  let configService: ConfigService<ApiConfig, true>;
   let hashAlgorithMultihash: HashName;
   let hashAlgorithOutputLength: number;
   let existingUserWallet: ethers.Wallet;
@@ -224,12 +224,14 @@ describe("DID Registry (e2e)", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    app.useGlobalFilters(new AllExceptionsFilter());
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
 
-    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
     server = getServer(app, configService);
 
     existingUserWallet = new ethers.Wallet(

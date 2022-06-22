@@ -28,18 +28,15 @@ describe("/did-registry/v3 (generic tests)", () => {
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter()
     );
-    app.useGlobalFilters(new AllExceptionsFilter());
-    app.useGlobalPipes(new ValidationPipe());
+    const configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
+    app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     Logger.overrideLogger(false);
 
-    app.useGlobalFilters(new AllExceptionsFilter());
-    app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-
-    const configService =
-      moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
 
     server = getServer(app, configService);
 

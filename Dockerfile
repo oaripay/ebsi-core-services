@@ -15,6 +15,8 @@ FROM base
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=builder /app/dist dist
+# Image version tag is extracted from the following file
+COPY .ci .ci
 RUN chown node:node /app
 USER node
 CMD [ "node", "dist/main" ]

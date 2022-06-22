@@ -13,3 +13,6 @@
 !src
 src/contracts
 !submodules/did-registry-ethereum-sc/contracts
+
+# The image tag information is used in the service
+!.ci

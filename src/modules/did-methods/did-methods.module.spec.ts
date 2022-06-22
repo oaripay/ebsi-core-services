@@ -6,6 +6,7 @@ import {
   Logger,
   HttpServer,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -18,6 +19,7 @@ import { DidRegistry__factory } from "../../contracts/did-registry";
 import { setupTestEnv } from "../../../tests/utils/didRegistry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { LedgerService } from "../ledger/ledger.service";
+import { ApiConfig } from "../../config/configuration";
 
 jest.setTimeout(120000);
 
@@ -28,6 +30,7 @@ describe("DidMethods Module", () => {
   let server: HttpServer;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
   let ledgerService: LedgerService;
+  let configService: ConfigService<ApiConfig, true>;
 
   beforeAll(async () => {
     // Spin up test blockchain (hardhat)
@@ -52,8 +55,11 @@ describe("DidMethods Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    app.useGlobalFilters(new AllExceptionsFilter());
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;

@@ -11,6 +11,7 @@ import { PoliciesModule } from "./modules/policies/policies.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { LedgerModule } from "./modules/ledger/ledger.module";
 import { LoggingInterceptor } from "./interceptors/logging.intereceptor";
+import { VersionInterceptor } from "./interceptors/version.interceptor";
 
 @Module({
   imports: [
@@ -29,6 +30,10 @@ import { LoggingInterceptor } from "./interceptors/logging.intereceptor";
     {
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: VersionInterceptor,
     },
   ],
 })
