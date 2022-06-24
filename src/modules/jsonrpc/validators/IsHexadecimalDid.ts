@@ -6,7 +6,7 @@ import {
   ValidationArguments,
 } from "class-validator";
 import DidMethodsService from "../../did-methods/did-methods.service";
-import { isDid } from "../../../shared/validators";
+import { isDidV1 } from "../../../shared/validators";
 
 export const IS_HEXADECIMAL_DID = "isHexadecimalDid";
 
@@ -31,7 +31,7 @@ export class IsHexadecimalDidRule implements ValidatorConstraintInterface {
     const utf8Value = Buffer.from(value.substr(2), "hex").toString("utf8");
 
     // It must be a DID, i.e "did:xxx:xxx"
-    if (!isDid(utf8Value)) return false;
+    if (!isDidV1(utf8Value)) return false;
 
     // Check in DID Registry if the method ("did:xxx") is registered
     try {
@@ -50,7 +50,7 @@ export class IsHexadecimalDidRule implements ValidatorConstraintInterface {
   }
 
   defaultMessage(args: ValidationArguments): string {
-    return `${args.property} must be a valid DID encoded in hexadecimal`;
+    return `${args.property} must be a valid DID v1 encoded in hexadecimal`;
   }
 }
 

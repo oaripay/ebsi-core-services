@@ -347,6 +347,17 @@
     jose "^4.8.1"
     multiformats "^9.6.5"
 
+"@cef-ebsi/ebsi-did-resolver@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/ebsi-did-resolver/-/ebsi-did-resolver-2.0.1.tgz#84e7723bcbcac4e79502e95ee6783135f8d66395"
+  integrity sha512-ofb/AYHEs9hGX5kP0kIjMEoln05zGhKu8GcjFtB9PLHl0jzFo4w2VV3sE1Qsw+46hYeGGVVtgGUS0iui8X2NfQ==
+  dependencies:
+    "@cef-ebsi/problem-details-errors" "^2.0.0"
+    axios "^0.27.2"
+    did-resolver "^3.2.0"
+    jose "^4.8.1"
+    multiformats "^9.6.5"
+
 "@cef-ebsi/oauth2-auth@^2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@cef-ebsi/oauth2-auth/-/oauth2-auth-2.0.0.tgz#1e23f3f3e9e065ebea3a33b3d97cbb29ad51cf6e"

@@ -1,6 +1,6 @@
 import { buildMessage, ValidateBy, ValidationOptions } from "class-validator";
 import { isHexadecimalJson } from "./IsHexadecimalJson";
-import { isDid, isDidDocument } from "../../../shared/validators";
+import { isDidV1, isDidDocument } from "../../../shared/validators";
 
 export const IS_HEXADECIMAL_JSON_LD_DID_DOCUMENT =
   "isHexadecimalJsonLdDidDocument";
@@ -23,7 +23,7 @@ export function isHexadecimalJsonLdDidDocument(value: unknown): boolean {
     if (!didDocument || !isDidDocument(didDocument)) return false;
 
     // JSON-LD DID document "id" property MUST be a DID. (currently not checked by the validator)
-    if (!isDid(didDocument.id)) {
+    if (!isDidV1(didDocument.id)) {
       return false;
     }
 
@@ -46,7 +46,7 @@ export function IsHexadecimalJsonLdDidDocument(
         validate: (value) => isHexadecimalJsonLdDidDocument(value),
         defaultMessage: buildMessage(
           (eachPrefix) =>
-            `${eachPrefix}$property must be a DID document encoded in hexadecimal`,
+            `${eachPrefix}$property must be a DID document encoded in hexadecimal with a valid DID v1`,
           validationOptions
         ),
       },

@@ -27,6 +27,7 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
+    "@cef-ebsi/ebsi-did-resolver": "^2.0.1",
     "@cef-ebsi/oauth2-auth": "^2.0.0",
     "@cef-ebsi/problem-details-errors": "2.0.0",
     "@cef-ebsi/siop-auth": "^2.0.0",

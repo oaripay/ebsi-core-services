@@ -1070,7 +1070,7 @@ describe("DID Registry (e2e)", () => {
       expect(response.body).toStrictEqual({
         title: "Bad Request",
         status: 400,
-        detail: '["did must be a valid DID"]',
+        detail: '["did must be a valid DID v1"]',
         type: "about:blank",
       });
       expect(response.status).toBe(400);
@@ -1144,7 +1144,7 @@ describe("DID Registry (e2e)", () => {
       expect(response.body).toStrictEqual({
         title: "Bad Request",
         status: 400,
-        detail: '["did must be a valid DID"]',
+        detail: '["did must be a valid DID v1"]',
         type: "about:blank",
       });
       expect(response.status).toBe(400);
@@ -1277,7 +1277,7 @@ describe("DID Registry (e2e)", () => {
       expect(response.body).toStrictEqual({
         title: "Bad Request",
         status: 400,
-        detail: '["did must be a valid DID"]',
+        detail: '["did must be a valid DID v1"]',
         type: "about:blank",
       });
       expect(response.status).toBe(400);
@@ -1430,7 +1430,7 @@ describe("DID Registry (e2e)", () => {
       expect(response.body).toStrictEqual({
         title: "Bad Request",
         status: 400,
-        detail: '["did must be a valid DID"]',
+        detail: '["did must be a valid DID v1"]',
         type: "about:blank",
       });
       expect(response.status).toBe(400);
@@ -1527,7 +1527,7 @@ describe("DID Registry (e2e)", () => {
       expect(response.body).toStrictEqual({
         title: "Bad Request",
         status: 400,
-        detail: '["did must be a valid DID"]',
+        detail: '["did must be a valid DID v1"]',
         type: "about:blank",
       });
       expect(response.status).toBe(400);

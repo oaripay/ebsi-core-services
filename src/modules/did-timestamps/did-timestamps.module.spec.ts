@@ -314,7 +314,7 @@ describe("DidTimestamps Module", () => {
       expect(response1.body).toStrictEqual({
         title: "Bad Request",
         status: 400,
-        detail: '["identifier must be a valid DID"]',
+        detail: '["identifier must be a valid DID v1"]',
         type: "about:blank",
       });
       expect(response1.status).toBe(400);

@@ -18,6 +18,7 @@ import { createJWT, ES256KSigner } from "did-jwt";
 import * as OAuth2Lib from "@cef-ebsi/oauth2-auth";
 import * as SiopLib from "@cef-ebsi/siop-auth";
 import type { JwtTarVefifyResult } from "@cef-ebsi/oauth2-auth";
+import EbsiWallet from "@cef-ebsi/wallet-lib";
 import canonicalize from "canonicalize";
 import { useContainer } from "class-validator";
 import type { JWTVerifyResult } from "jose";
@@ -160,8 +161,7 @@ describe("JsonRpc Module", () => {
   let adminSigner: ethers.Wallet;
   let adminDid: string;
   let newUserDid: string;
-  const badControllerDid =
-    "did:unregistered-method:0xb9c5714089478a327f09197987f16f9e5d936e8a";
+  const badControllerDid = EbsiWallet.createDid();
 
   const multihashToNodeHashAlg: Partial<Record<HashName, string>> = {
     "sha2-256": "sha256",
@@ -1552,7 +1552,7 @@ describe("JsonRpc Module", () => {
               didVersionMetadata,
             } as InsertDidDocumentParam,
             expectedErrorMessage:
-              "didVersionInfo must be a DID document encoded in hexadecimal",
+              "didVersionInfo must be a DID document encoded in hexadecimal with a valid DID v1",
             accessToken: newUserAccessToken,
           });
 
@@ -1574,7 +1574,7 @@ describe("JsonRpc Module", () => {
               didVersionMetadata,
             } as InsertDidDocumentParam,
             expectedErrorMessage:
-              "didVersionInfo must be a DID document encoded in hexadecimal",
+              "didVersionInfo must be a DID document encoded in hexadecimal with a valid DID v1",
             accessToken: newUserAccessToken,
           });
 
@@ -1594,7 +1594,7 @@ describe("JsonRpc Module", () => {
               didVersionMetadata,
             } as InsertDidDocumentParam,
             expectedErrorMessage:
-              "didVersionInfo must be a DID document encoded in hexadecimal",
+              "didVersionInfo must be a DID document encoded in hexadecimal with a valid DID v1",
             accessToken: newUserAccessToken,
           });
 
@@ -1668,7 +1668,7 @@ describe("JsonRpc Module", () => {
               notAfter: 3232818053700,
             } as InsertDidControllerParam,
             expectedErrorMessage:
-              "identifier must be a valid DID encoded in hexadecimal",
+              "identifier must be a valid DID v1 encoded in hexadecimal",
           });
 
           testSetup.push({
@@ -1715,7 +1715,7 @@ describe("JsonRpc Module", () => {
               oldControllerId: ethers.Wallet.createRandom().address,
             } as RevokeDidControllerParam,
             expectedErrorMessage:
-              "identifier must be a valid DID encoded in hexadecimal",
+              "identifier must be a valid DID v1 encoded in hexadecimal",
           });
 
           testSetup.push({
@@ -1969,7 +1969,7 @@ describe("JsonRpc Module", () => {
               timestampData,
             } as AppendDidDocumentVersionHashParam,
             expectedErrorMessage:
-              "didVersionInfo must be a DID document encoded in hexadecimal",
+              "didVersionInfo must be a DID document encoded in hexadecimal with a valid DID v1",
             accessToken: newUserAccessToken,
           });
 
@@ -2016,7 +2016,7 @@ describe("JsonRpc Module", () => {
               didVersionInfo: "0x1234ab",
             } as DetachDidDocumentVersionParam,
             expectedErrorMessage:
-              "didVersionInfo must be a DID document encoded in hexadecimal",
+              "didVersionInfo must be a DID document encoded in hexadecimal with a valid DID v1",
             accessToken: newUserAccessToken,
           });
 
@@ -2053,7 +2053,7 @@ describe("JsonRpc Module", () => {
               didVersionMetadata,
             } as AppendDidDocumentVersionMetadataParam,
             expectedErrorMessage:
-              "identifier must be a valid DID encoded in hexadecimal",
+              "identifier must be a valid DID v1 encoded in hexadecimal",
             accessToken: newUserAccessToken,
           });
 
@@ -2065,7 +2065,7 @@ describe("JsonRpc Module", () => {
               didVersionMetadata,
             } as AppendDidDocumentVersionMetadataParam,
             expectedErrorMessage:
-              "didVersionInfo must be a DID document encoded in hexadecimal",
+              "didVersionInfo must be a DID document encoded in hexadecimal with a valid DID v1",
             accessToken: newUserAccessToken,
           });
 
@@ -2537,7 +2537,9 @@ describe("JsonRpc Module", () => {
     });
   });
 
-  it("should throw an error if the did method is not registered", async () => {
+  // TODO: This test doesn't make sense because the API only accepts "did:ebsi" (isDidV1).
+  // Consider removing this logic from the API
+  it.skip("should throw an error if the did method is not registered", async () => {
     expect.assertions(2);
     const testMethod = "insertDidDocument";
 
@@ -2585,7 +2587,7 @@ describe("JsonRpc Module", () => {
       error: {
         code: -32600,
         message: expect.stringContaining(
-          "identifier must be a valid DID encoded in hexadecimal"
+          "identifier must be a valid DID v1 encoded in hexadecimal"
         ) as string,
       },
       id: 231,

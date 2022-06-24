@@ -1,11 +1,11 @@
 import { IsNumber, IsOptional } from "class-validator";
 import { Type } from "class-transformer";
-import { IsDid } from "../../../shared/validators";
+import { IsDidV1 } from "../../../shared/validators";
 import { PaginationQuery } from "../../../shared/dto";
 
 export class GetTimestampsQueryDto extends PaginationQuery {
   @IsOptional()
-  @IsDid()
+  @IsDidV1()
   identifier?: string;
 
   @IsOptional()

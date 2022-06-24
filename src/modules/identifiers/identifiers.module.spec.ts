@@ -410,7 +410,7 @@ describe("Identifiers Module", () => {
       expect(response.body).toStrictEqual({
         title: "Bad Request",
         status: 400,
-        detail: '["did must be a valid DID"]',
+        detail: '["did must be a valid DID v1"]',
         type: "about:blank",
       });
       expect(response.status).toBe(400);
@@ -603,7 +603,7 @@ describe("Identifiers Module", () => {
       expect(response.body).toStrictEqual({
         title: "Bad Request",
         status: 400,
-        detail: '["did must be a valid DID"]',
+        detail: '["did must be a valid DID v1"]',
         type: "about:blank",
       });
       expect(response.status).toBe(400);
@@ -718,7 +718,7 @@ describe("Identifiers Module", () => {
       expect(response.body).toStrictEqual({
         title: "Bad Request",
         status: 400,
-        detail: '["did must be a valid DID"]',
+        detail: '["did must be a valid DID v1"]',
         type: "about:blank",
       });
       expect(response.status).toBe(400);
@@ -998,7 +998,7 @@ describe("Identifiers Module", () => {
       expect(response.body).toStrictEqual({
         title: "Bad Request",
         status: 400,
-        detail: '["did must be a valid DID"]',
+        detail: '["did must be a valid DID v1"]',
         type: "about:blank",
       });
       expect(response.status).toBe(400);
@@ -1108,7 +1108,7 @@ describe("Identifiers Module", () => {
       expect(response.body).toStrictEqual({
         title: "Bad Request",
         status: 400,
-        detail: '["did must be a valid DID"]',
+        detail: '["did must be a valid DID v1"]',
         type: "about:blank",
       });
       expect(response.status).toBe(400);
