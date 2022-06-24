@@ -1,11 +1,11 @@
 import { IsHexadecimal } from "class-validator";
-import { IsDid } from "../../../../shared/validators";
+import { IsDidV1 } from "../../../../shared/validators";
 
 export class ArgsDeleteAppAdministrator {
   @IsHexadecimal()
   applicationId: string;
 
-  @IsDid()
+  @IsDidV1()
   administratorId: string;
 }
 

@@ -919,7 +919,7 @@ describe("JsonRpc Module", () => {
           } as InsertAppAdministratorParam;
 
           expectedErrorMessage3 =
-            "property params[0].administratorId has failed the following constraints: isDid";
+            "property params[0].administratorId has failed the following constraints: isDidV1";
 
           break;
         case "deleteAppAdministrator":
@@ -949,7 +949,7 @@ describe("JsonRpc Module", () => {
           } as DeleteAppAdministratorParam;
 
           expectedErrorMessage3 =
-            "property params[0].administratorId has failed the following constraints: isDid";
+            "property params[0].administratorId has failed the following constraints: isDidV1";
 
           break;
         case "insertAppInfo":
