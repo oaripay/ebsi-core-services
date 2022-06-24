@@ -6,6 +6,10 @@ import {
 import { Test, TestingModule } from "@nestjs/testing";
 import type { FastifyInstance } from "fastify";
 import { ConfigService } from "@nestjs/config";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
+import { bases } from "multiformats/basics";
+import { generateKeyPair, importJWK, JWK, SignJWT, KeyLike } from "jose";
+import axios from "axios";
 import * as authModule from "./auth.module";
 import { ApiConfig } from "../../config/configuration";
 import AuthService from "./auth.service";
@@ -13,6 +17,12 @@ import AuthService from "./auth.service";
 describe("auth module tests", () => {
   let app: INestApplication;
   let configService: ConfigService<ApiConfig>;
+  let eos: {
+    privateKey: Uint8Array | KeyLike;
+    publicKeyJwk: JWK;
+    did: string;
+    kid: string;
+  };
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -26,6 +36,53 @@ describe("auth module tests", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
 
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+
+    const privateKeyHex = configService.get<string>("apiPrivateKey");
+    const publicKeyJwk = new EbsiWallet(privateKeyHex).getPublicKey({
+      format: "jwk",
+    }) as JWK;
+    const privateKeyJwk = {
+      ...publicKeyJwk,
+      d: bases.base64url.baseEncode(Buffer.from(privateKeyHex, "hex")),
+    };
+    const kid = configService.get<string>("apiVerificationMethodKid");
+    eos = {
+      privateKey: await importJWK(privateKeyJwk, "ES256K"),
+      publicKeyJwk,
+      did: kid.split("#")[0],
+      kid,
+    };
+
+    jest.spyOn(axios, "get").mockImplementation((url: string) => {
+      if (
+        url.includes(
+          `${configService.get<string>("didRegistryApiUrl")}/${eos.did}`
+        )
+      ) {
+        return Promise.resolve({
+          data: {
+            "@context": [
+              "https://www.w3.org/ns/did/v1",
+              "https://w3id.org/security/suites/jws-2020/v1",
+            ],
+            id: eos.did,
+            verificationMethod: [
+              {
+                id: eos.kid,
+                type: "JsonWebKey2020",
+                controller: eos.did,
+                publicKeyJwk: eos.publicKeyJwk,
+              },
+            ],
+            authentication: [eos.kid],
+            assertionMethod: [eos.kid],
+          },
+          status: 200,
+        });
+      }
+
+      throw new Error(`Unmocked Axios request: ${url}`);
+    });
   });
 
   afterAll(async () => {
@@ -36,13 +93,55 @@ describe("auth module tests", () => {
     await app.close();
   });
 
-  it("should throw an error if the token to validate is wrong", async () => {
-    expect.assertions(1);
+  it("should validate a token", async () => {
+    const payloadCaptcha = {
+      onboarding: "recaptcha",
+      validatedInfo: {
+        success: true,
+        challenge_ts: "2021-05-12T14:14:20Z",
+        score: 0.9,
+        action: "login",
+      },
+    };
+
+    const token = await new SignJWT(payloadCaptcha)
+      .setProtectedHeader({
+        alg: "ES256K",
+        typ: "JWT",
+        kid: eos.kid,
+      })
+      .setIssuer(eos.did)
+      .sign(eos.privateKey);
+
     const authService: AuthService = new AuthService(configService);
-    const token =
-      "eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6L3RydXN0ZWQtYXBwcy1yZWdpc3RyeS92Mi9hcHBzLzB4MTlkMDA0ZTdmNmVjZjI2NDUyM2UxMzY5MjRjYjY4Nzk2Y2E5ZGJmYTI1YmNhMDUzYjJmNmFmMGZjNmZkZDg4YyJ9.eyJpYXQiOjE2MTkxOTAxMzQsImV4cCI6MTYxOTE5MDQzNCwiaXNzIjoiZGlkOmVic2k6NlFZSmMzdExSaGV5ODhXUEtDMmt2NTg4djF1WjFvaWQzeWZjNUxwNUFiWUQiLCJzY29wZSI6Im9wZW5pZCBkaWRfYXV0aG4iLCJyZXNwb25zZV90eXBlIjoiaWRfdG9rZW4iLCJjbGllbnRfaWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6Ly9vbmJvYXJkaW5nL3YxL2F1dGhlbnRpY2F0aW9uLXJlc3BvbnNlcyIsInN0YXRlIjoiOWY1YzFjMTgwNjczY2NjZDM5N2Q2MmQ1Iiwibm9uY2UiOiJtNERoVUN1Q2tjNUhvR09SZFQtSTNqakRsUTlxVjFGSnhJMDZXUDUzUFNvIn0.63o7hoAL-5CeXIXAZBrt0HE0Qc_Yi8WNwSkZAovOOJO-tVTrTFYKCtDdtQZEy7rnCA9g2P5wrq013P_KO8Jpmg";
+    await expect(authService.validateToken(token)).resolves.not.toThrow();
+  });
+
+  it("should throw an error if the token to validate is wrong", async () => {
+    expect.assertions(2);
+    const authService: AuthService = new AuthService(configService);
+    let token = await new SignJWT({})
+      .setProtectedHeader({
+        alg: "ES256K",
+        typ: "JWT",
+        kid: eos.kid,
+      })
+      .setIssuer(EbsiWallet.createDid())
+      .sign(eos.privateKey);
     await expect(authService.validateToken(token)).rejects.toThrow(
       "Unexpected issuer found in session token"
+    );
+
+    token = await new SignJWT({})
+      .setProtectedHeader({
+        alg: "ES256K",
+        typ: "JWT",
+        kid: eos.kid,
+      })
+      .setIssuer(eos.did)
+      .sign((await generateKeyPair("ES256K")).privateKey);
+    await expect(authService.validateToken(token)).rejects.toThrow(
+      "Unauthorized"
     );
   });
 });

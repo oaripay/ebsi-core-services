@@ -135,25 +135,16 @@ export default class AuthenticationService {
     }
 
     const rp = await this.getRelyingParty();
+    const uri = await rp.createRequest({
+      // claims: {
+      //   id_token: { ...claimRequest },
+      // },
+    });
 
-    try {
-      const uri = await rp.createRequest({
-        // claims: {
-        //   id_token: { ...claimRequest },
-        // },
-      });
-
-      const authenticationResponse: AuthenticationResponse = {
-        session_token: uri,
-      };
-      return authenticationResponse;
-    } catch (error) {
-      throw new InvalidUserAuthentication(
-        `${AuthenticationErrors.ERROR_AUTHENTICATION_REQUEST}: ${
-          (error as Error).message
-        }`
-      );
-    }
+    const authenticationResponse: AuthenticationResponse = {
+      session_token: uri,
+    };
+    return authenticationResponse;
   }
 
   async validateResponse(

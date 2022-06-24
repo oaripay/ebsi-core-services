@@ -7,6 +7,7 @@ import {
 import { Test, TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
 import { calculateJwkThumbprint, exportJWK, generateKeyPair, JWK } from "jose";
+import * as jose from "jose";
 import { createJWT, decodeJWT, ES256KSigner } from "did-jwt";
 import EbsiWallet from "@cef-ebsi/wallet-lib";
 import type { EbsiVerifiableAttestation } from "@cef-ebsi/verifiable-credential";
@@ -24,6 +25,7 @@ import {
 describe("authentication service tests", () => {
   let app: INestApplication;
   let configService: ConfigService<ApiConfig>;
+  let authenticationService: AuthenticationService;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -37,6 +39,8 @@ describe("authentication service tests", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
 
     configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+
+    authenticationService = new AuthenticationService(configService);
   });
 
   afterAll(async () => {
@@ -49,8 +53,6 @@ describe("authentication service tests", () => {
 
   it("should throw an error if the scope is not the required", async () => {
     expect.assertions(1);
-    const authenticationService: AuthenticationService =
-      new AuthenticationService(configService);
     const mockedRequest: AuthenticationRequest = {
       scope: "wrong scope",
     };
@@ -59,11 +61,21 @@ describe("authentication service tests", () => {
     ).rejects.toThrow("Bad Request");
   });
 
+  it("should save relying party data in memory", async () => {
+    expect.assertions(1);
+    const authService = new AuthenticationService(configService);
+
+    const mockImportJwk = jest.spyOn(jose, "importJWK").mock;
+    const mockedRequest: AuthenticationRequest = {
+      scope: "ebsi users onboarding",
+    };
+    await authService.startAuthentication(mockedRequest);
+    await authService.startAuthentication(mockedRequest);
+    expect(mockImportJwk.calls).toHaveLength(1);
+  });
+
   it("should prepare the did auth request and returns a session token", async () => {
     expect.assertions(5);
-
-    const authenticationService: AuthenticationService =
-      new AuthenticationService(configService);
 
     const mockedRequest: AuthenticationRequest = {
       scope: "ebsi users onboarding",
@@ -85,8 +97,6 @@ describe("authentication service tests", () => {
 
   it("should validate the response for legal entities", async () => {
     expect.assertions(1);
-    const authenticationService: AuthenticationService =
-      new AuthenticationService(configService);
     const kid = "did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ#key-1";
     const privateKey = crypto.randomBytes(32);
     const jwk = new EbsiWallet(privateKey).getPublicKey({
@@ -121,8 +131,6 @@ describe("authentication service tests", () => {
 
   it("should validate the response for natural persons", async () => {
     expect.assertions(1);
-    const authenticationService: AuthenticationService =
-      new AuthenticationService(configService);
     const keyPair = await generateKeyPair("ES256K");
     const publicKeyJwkAgent = await exportJWK(keyPair.publicKey);
     const thumbprint = await calculateJwkThumbprint(
@@ -156,8 +164,6 @@ describe("authentication service tests", () => {
 
   it("should throw an error if the id_token can not be decoded", async () => {
     expect.assertions(1);
-    const authenticationService: AuthenticationService =
-      new AuthenticationService(configService);
     const mockedAuthRequest = {
       id_token: "badtoken",
     };
@@ -166,10 +172,31 @@ describe("authentication service tests", () => {
     ).rejects.toThrow("id_token could not be decoded");
   });
 
+  it("should throw an error for invalid kid", async () => {
+    expect.assertions(1);
+    const privateKey = crypto.randomBytes(32);
+    const jwk = new EbsiWallet(privateKey).getPublicKey({
+      format: "jwk",
+    }) as JWK;
+    const mockedAuthRequest: AuhtenticationResponseRequest = {
+      id_token: await createJWT(
+        { sub_jwk: jwk },
+        {
+          issuer: "https://self-issued.me",
+          signer: ES256KSigner(privateKey),
+        }
+      ),
+    };
+
+    await expect(
+      authenticationService.validateResponse(mockedAuthRequest)
+    ).rejects.toThrow(
+      "id_token could not be decoded: kid not present in the headers"
+    );
+  });
+
   it("should throw an error if the validation of the response is not ok", async () => {
     expect.assertions(1);
-    const authenticationService: AuthenticationService =
-      new AuthenticationService(configService);
     const kid = "did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ#key-1";
     const privateKey = crypto.randomBytes(32);
     const mockedAuthRequest: AuhtenticationResponseRequest = {
@@ -201,8 +228,6 @@ describe("authentication service tests", () => {
 
   it("should createVerifiableAuthorisation", async () => {
     expect.assertions(13);
-    const authenticationService: AuthenticationService =
-      new AuthenticationService(configService);
     const did = "did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ";
     const response = await authenticationService.createVerifiableAuthorisation(
       did
