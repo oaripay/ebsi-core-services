@@ -13,27 +13,10 @@ export function IsDid(validationOptions?: ValidationOptions) {
       propertyName,
       validator: {
         validate(value: string) {
-          if (
-            !(
-              typeof value === "string" &&
-              value.split(":").length >= 3 &&
-              value.substring(0, 4) === "did:"
-            )
-          ) {
-            return false;
-          }
-
-          // EBSI DID Validation
-          const methodPrefix = "did:ebsi:";
-
-          // Don't check method specific identifier if it's not an EBSI DID
-          if (!value.startsWith(methodPrefix)) return true;
-
           try {
             validateDid(value);
             return true;
           } catch (e) {
-            // Unable to decode multibase base58 string
             return false;
           }
         },
