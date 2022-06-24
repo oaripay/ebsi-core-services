@@ -2,5 +2,5 @@ version: "3.7"
 
 services:
   timestamp-api-v3:
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/timestamp-api-v3:prod_ebsiint-4283-bump-ebsi-dependencies_v3.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/timestamp-api-v3:prod_ebsiint-4349-only-ebsi-dids_v3.0.0
     build: ../..
