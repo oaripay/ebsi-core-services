@@ -6,7 +6,7 @@ import {
 } from "class-validator";
 import { base58btc } from "multiformats/bases/base58";
 
-export const IS_SCHEMA_ID = "isDid";
+export const IS_SCHEMA_ID = "isSchemaId";
 
 export const isSchemaId = (value: unknown) => {
   if (typeof value !== "string") return false;
