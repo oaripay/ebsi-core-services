@@ -13,25 +13,12 @@ export function IsDid(validationOptions?: ValidationOptions) {
       propertyName,
       validator: {
         validate(value: string) {
-          if (
-            typeof value !== "string" ||
-            value.split(":").length < 3 ||
-            value.substring(0, 4) !== "did:"
-          ) {
+          try {
+            validate(value);
+            return true;
+          } catch (e) {
             return false;
           }
-
-          // Check if the EBSI DID is valid
-          if (value.startsWith("did:ebsi:")) {
-            try {
-              validate(value);
-              return true;
-            } catch (e) {
-              return false;
-            }
-          }
-
-          return true;
         },
         defaultMessage: buildMessage(
           (eachPrefix) => `${eachPrefix}$property must be a valid DID string`,
