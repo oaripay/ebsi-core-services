@@ -4,7 +4,6 @@ import {
   IsOptional,
   Matches,
   Min,
-  Validate,
 } from "class-validator";
 import {
   IsHexadecimalDidRule,
@@ -14,7 +13,7 @@ import {
 
 export class ArgsUpdateDidDocument {
   // Consumer calling function must convert Base58 DID identifier into bytes in hex format
-  @Validate(IsHexadecimalDidRule)
+  @IsHexadecimalDidRule()
   identifier: string;
 
   // The hash algorithm id used to compute the hashValue.

@@ -23,10 +23,6 @@ import {
   ArgsUpdateDidController,
   RequestRevokeDidControllerDto,
   ArgsRevokeDidController,
-  RequestInsertDidMethodDto,
-  ArgsInsertDidMethod,
-  RequestUpdateDidMethodDto,
-  ArgsUpdateDidMethod,
   ArgsAppendDidDocumentVersionHash,
   RequestAppendDidDocumentVersionHashDto,
   ArgsDetachDidDocumentVersionHash,
@@ -301,20 +297,6 @@ export class JsonRpcService {
         const castArgs = args as unknown as ArgsRevokeDidController;
         await validateClass(ArgsRevokeDidController, castArgs);
         this.checkDid(clientId, castArgs.identifier);
-        break;
-      }
-      case "insertDidMethod": {
-        await validateClass(
-          ArgsInsertDidMethod,
-          args as unknown as ArgsInsertDidMethod
-        );
-        break;
-      }
-      case "updateDidMethod": {
-        await validateClass(
-          ArgsUpdateDidMethod,
-          args as unknown as ArgsUpdateDidMethod
-        );
         break;
       }
       case "appendDidDocumentVersionHash": {
@@ -655,80 +637,6 @@ export class JsonRpcService {
       ).interface.encodeFunctionData("revokeDidController", [
         identifier,
         oldControllerId.toLowerCase(),
-      ]);
-      return await this.buildTransaction(from, data);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
-      throw error;
-    }
-  }
-
-  async buildTransactionInsertDidMethod(
-    body: RequestInsertDidMethodDto,
-    id?: number | string
-  ): Promise<UnsignedTransaction> {
-    try {
-      await validateClass(RequestInsertDidMethodDto, body);
-
-      const {
-        from,
-        methodName,
-        ledgerName,
-        methodSpec,
-        methodSpecHash,
-        notBefore,
-        notAfter,
-        status,
-      } = body.params[0];
-
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("insertDidMethod", [
-        methodName,
-        ledgerName,
-        methodSpec,
-        methodSpecHash,
-        notBefore,
-        notAfter,
-        status,
-      ]);
-      return await this.buildTransaction(from, data);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
-      throw error;
-    }
-  }
-
-  async buildTransactionUpdateDidMethod(
-    body: RequestUpdateDidMethodDto,
-    id?: number | string
-  ): Promise<UnsignedTransaction> {
-    try {
-      await validateClass(RequestUpdateDidMethodDto, body);
-
-      const {
-        from,
-        methodName,
-        ledgerName,
-        methodSpec,
-        methodSpecHash,
-        notBefore,
-        notAfter,
-        status,
-      } = body.params[0];
-
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("updateDidMethod", [
-        methodName,
-        ledgerName,
-        methodSpec,
-        methodSpecHash,
-        notBefore,
-        notAfter,
-        status,
       ]);
       return await this.buildTransaction(from, data);
     } catch (err) {

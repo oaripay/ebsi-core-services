@@ -8,13 +8,13 @@ import { DidRegistry } from "../../contracts/did-registry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 describe("formatIdentifiers", () => {
-  const didMethods = {
+  const identifiers = {
     prev: ethers.BigNumber.from("1"),
     next: ethers.BigNumber.from("3"),
     items: [
-      `0x${Buffer.from("ebsi:besu").toString("hex")}`,
-      `0x${Buffer.from("ebsi:besu-test").toString("hex")}`,
-      `0x${Buffer.from("ebsi:besu-test-2").toString("hex")}`,
+      `0x${Buffer.from("did:ebsi:z224tCapjMEJEdLU6n1iG2yH").toString("hex")}`,
+      `0x${Buffer.from("did:ebsi:zsG1AGXCuZ46tSAE2UT6kdE").toString("hex")}`,
+      `0x${Buffer.from("did:ebsi:zjNQGmQjYQ6Wo3o5A7QnjR9").toString("hex")}`,
     ],
     total: ethers.BigNumber.from("42"),
     howMany: ethers.BigNumber.from("3"),
@@ -26,19 +26,19 @@ describe("formatIdentifiers", () => {
     const page = 3;
     const pageSize = 2;
 
-    expect(formatIdentifiers(didMethods, page, pageSize, "")).toStrictEqual({
+    expect(formatIdentifiers(identifiers, page, pageSize, "")).toStrictEqual({
       items: [
         {
-          did: "ebsi:besu",
-          href: "/ebsi:besu",
+          did: "did:ebsi:z224tCapjMEJEdLU6n1iG2yH",
+          href: "/did:ebsi:z224tCapjMEJEdLU6n1iG2yH",
         },
         {
-          did: "ebsi:besu-test",
-          href: "/ebsi:besu-test",
+          did: "did:ebsi:zsG1AGXCuZ46tSAE2UT6kdE",
+          href: "/did:ebsi:zsG1AGXCuZ46tSAE2UT6kdE",
         },
         {
-          did: "ebsi:besu-test-2",
-          href: "/ebsi:besu-test-2",
+          did: "did:ebsi:zjNQGmQjYQ6Wo3o5A7QnjR9",
+          href: "/did:ebsi:zjNQGmQjYQ6Wo3o5A7QnjR9",
         },
       ],
       links: {
@@ -55,7 +55,7 @@ describe("formatIdentifiers", () => {
 });
 
 describe("formatVersions", () => {
-  const didMethods = {
+  const versions = {
     prev: ethers.BigNumber.from("1"),
     next: ethers.BigNumber.from("3"),
     items: [
@@ -74,42 +74,42 @@ describe("formatVersions", () => {
     const pageSize = 2;
     const validAt = new Date().toISOString();
 
-    expect(
-      formatVersions(didMethods, page, pageSize, "", validAt)
-    ).toStrictEqual({
-      items: [
-        {
-          versionId: "0x656273693a62657375",
-          href: "/0x656273693a62657375",
+    expect(formatVersions(versions, page, pageSize, "", validAt)).toStrictEqual(
+      {
+        items: [
+          {
+            versionId: "0x656273693a62657375",
+            href: "/0x656273693a62657375",
+          },
+          {
+            versionId: "0x656273693a626573752d74657374",
+            href: "/0x656273693a626573752d74657374",
+          },
+          {
+            versionId: "0x656273693a626573752d746573742d32",
+            href: "/0x656273693a626573752d746573742d32",
+          },
+        ],
+        links: {
+          first: `?page[after]=1&page[size]=${pageSize}&valid-at=${validAt}`,
+          last: `?page[after]=21&page[size]=${pageSize}&valid-at=${validAt}`,
+          next: `?page[after]=${
+            page + 1
+          }&page[size]=${pageSize}&valid-at=${validAt}`,
+          prev: `?page[after]=${
+            page - 1
+          }&page[size]=${pageSize}&valid-at=${validAt}`,
         },
-        {
-          versionId: "0x656273693a626573752d74657374",
-          href: "/0x656273693a626573752d74657374",
-        },
-        {
-          versionId: "0x656273693a626573752d746573742d32",
-          href: "/0x656273693a626573752d746573742d32",
-        },
-      ],
-      links: {
-        first: `?page[after]=1&page[size]=${pageSize}&valid-at=${validAt}`,
-        last: `?page[after]=21&page[size]=${pageSize}&valid-at=${validAt}`,
-        next: `?page[after]=${
-          page + 1
-        }&page[size]=${pageSize}&valid-at=${validAt}`,
-        prev: `?page[after]=${
-          page - 1
-        }&page[size]=${pageSize}&valid-at=${validAt}`,
-      },
-      pageSize,
-      self: `?page[after]=${page}&page[size]=${pageSize}&valid-at=${validAt}`,
-      total: 42,
-    });
+        pageSize,
+        self: `?page[after]=${page}&page[size]=${pageSize}&valid-at=${validAt}`,
+        total: 42,
+      }
+    );
   });
 });
 
 describe("formatMetadata", () => {
-  const didMethods = {
+  const metadata = {
     prev: ethers.BigNumber.from("1"),
     next: ethers.BigNumber.from("3"),
     items: [
@@ -127,7 +127,7 @@ describe("formatMetadata", () => {
     const page = 3;
     const pageSize = 2;
 
-    expect(formatMetadata(didMethods, page, pageSize, "")).toStrictEqual({
+    expect(formatMetadata(metadata, page, pageSize, "")).toStrictEqual({
       items: [
         {
           metadataId: "0x656273693a62657375",

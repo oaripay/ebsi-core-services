@@ -8,12 +8,7 @@ import canonicalize from "canonicalize";
 import { HashName } from "multihashes";
 import { mergeMap, toArray } from "rxjs/operators";
 import { DidRegistry } from "../../src/contracts/did-registry";
-import {
-  createDid,
-  createDidDocument,
-  createDidMethod,
-  createMetadata,
-} from "./data";
+import { createDid, createDidDocument, createMetadata } from "./data";
 
 interface DidDocument {
   did: string;
@@ -27,21 +22,6 @@ interface DidDocument {
   timestampDataBuffer: Buffer;
   didVersionMetadata: { [x: string]: unknown };
   didVersionMetadataBuffer: Buffer;
-}
-
-interface DidMethod {
-  methodName: string;
-  ledgerName: string;
-  didMethods: { [x: string]: unknown }[];
-  didMethodsBuffer: Buffer[];
-  canonicalizedDidMethods: string[];
-  canonicalizedDidMethodsBuffer: Buffer[];
-  canonicalizedDidMethodsHash: string[];
-  methodSpec: string[];
-  methodSpecHash: string[];
-  notBefore: number;
-  notAfter: number;
-  status: number;
 }
 
 interface HashAlgorithmObject {
@@ -220,55 +200,6 @@ export async function insertDidDocument(
   };
 }
 
-export async function insertDidMethod(
-  contract: DidRegistry,
-  methodName = `did:${crypto.randomBytes(8).toString("hex")}`
-): Promise<DidMethod> {
-  const didMethod = createDidMethod();
-
-  const didMethodBuffer = Buffer.from(JSON.stringify(didMethod));
-
-  // Canonicalize DID Method
-  const canonicalizedDidMethod = canonicalize(didMethod);
-
-  const canonicalizedDidMethodBuffer = Buffer.from(canonicalizedDidMethod);
-  const canonicalizedDidMethodHash = ethers.utils.sha256(
-    canonicalizedDidMethodBuffer
-  );
-
-  const ledgerName = "ebsi-besu";
-  const methodSpec = [didMethodBuffer].map((b) => `0x${b.toString("hex")}`);
-  const methodSpecHash = [canonicalizedDidMethodHash];
-  const notBefore = 1616408985883;
-  const notAfter = 3232818053700;
-  const status = 1;
-
-  await contract.insertDidMethod(
-    methodName,
-    ledgerName,
-    methodSpec,
-    methodSpecHash,
-    notBefore,
-    notAfter,
-    status
-  );
-
-  return {
-    methodName,
-    ledgerName,
-    didMethods: [didMethod],
-    didMethodsBuffer: [didMethodBuffer],
-    canonicalizedDidMethods: [canonicalizedDidMethod],
-    canonicalizedDidMethodsBuffer: [canonicalizedDidMethodBuffer],
-    canonicalizedDidMethodsHash: [canonicalizedDidMethodHash],
-    methodSpec,
-    methodSpecHash,
-    notBefore,
-    notAfter,
-    status,
-  };
-}
-
 export async function insertPolicy(
   contract: DidRegistry
 ): Promise<PolicyObject> {
@@ -336,7 +267,6 @@ export async function insertHashAlgorithm(
 }
 
 export interface SetupOptions {
-  didMethodsTotal?: number;
   didDocuments?: number;
   hashAlgorithmsTotal?: number;
   policiesTotal?: number;
@@ -345,7 +275,6 @@ export interface SetupOptions {
 
 export async function setupTestEnv(
   opts: SetupOptions = {
-    didMethodsTotal: 1,
     didDocuments: 1,
     hashAlgorithmsTotal: 1,
     policiesTotal: 1,
@@ -355,7 +284,6 @@ export async function setupTestEnv(
   provider: ethers.providers.JsonRpcProvider;
   didRegistryContract: DidRegistry;
   policyContractMock: Contract;
-  didMethods: DidMethod[];
   didDocuments: DidDocument[];
   defaultController: ethers.Wallet;
   hashAlgorithms: HashAlgorithmObject[];
@@ -375,13 +303,6 @@ export async function setupTestEnv(
       .fill(0)
       .map((i: number) => insertHashAlgorithm(didRegistryContract, i))
   );
-
-  const didMethods = await Promise.all([
-    insertDidMethod(didRegistryContract, "did:ebsi"),
-    ...Array(Math.max(0, (opts.didMethodsTotal ?? 0) - 1))
-      .fill(0)
-      .map(() => insertDidMethod(didRegistryContract)),
-  ]);
 
   const defaultController = ethers.Wallet.createRandom();
 
@@ -435,7 +356,6 @@ export async function setupTestEnv(
     provider: ethersProvider,
     didRegistryContract,
     policyContractMock,
-    didMethods,
     didDocuments,
     defaultController,
     hashAlgorithms,

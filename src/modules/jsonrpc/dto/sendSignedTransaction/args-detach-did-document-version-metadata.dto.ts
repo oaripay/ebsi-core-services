@@ -1,4 +1,4 @@
-import { Matches, Validate } from "class-validator";
+import { Matches } from "class-validator";
 import {
   IsHexadecimalDidRule,
   IsHexadecimalJson,
@@ -7,7 +7,7 @@ import {
 
 export class ArgsDetachDidDocumentVersionMetadata {
   // Consumer calling function must convert Base58 DID identifier into bytes in hex format
-  @Validate(IsHexadecimalDidRule)
+  @IsHexadecimalDidRule()
   identifier: string;
 
   // Stringified JSON DID Document (hex-encoded)

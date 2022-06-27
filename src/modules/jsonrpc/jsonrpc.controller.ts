@@ -15,8 +15,6 @@ import {
   RequestUpdateDidDocumentDto,
   RequestUpdateDidControllerDto,
   RequestRevokeDidControllerDto,
-  RequestInsertDidMethodDto,
-  RequestUpdateDidMethodDto,
   RequestAppendDidDocumentVersionHashDto,
   RequestDetachDidDocumentVersionHashDto,
   RequestAppendDidDocumentVersionMetadataDto,
@@ -117,22 +115,6 @@ export default class AppController {
           await this.jsonRpcService.buildTransactionRevokeDidController(
             subject.sub,
             body as RequestRevokeDidControllerDto,
-            id
-          );
-        return formatJsonRpcResponse(transaction, id);
-      }
-      case "insertDidMethod": {
-        const transaction =
-          await this.jsonRpcService.buildTransactionInsertDidMethod(
-            body as RequestInsertDidMethodDto,
-            id
-          );
-        return formatJsonRpcResponse(transaction, id);
-      }
-      case "updateDidMethod": {
-        const transaction =
-          await this.jsonRpcService.buildTransactionUpdateDidMethod(
-            body as RequestUpdateDidMethodDto,
             id
           );
         return formatJsonRpcResponse(transaction, id);

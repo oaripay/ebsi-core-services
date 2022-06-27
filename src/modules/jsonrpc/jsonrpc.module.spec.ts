@@ -36,8 +36,6 @@ import {
   UpdateDidDocumentParam,
   UpdateDidControllerParam,
   RevokeDidControllerParam,
-  InsertDidMethodParam,
-  UpdateDidMethodParam,
   AppendDidDocumentVersionHashParam,
   DetachDidDocumentVersionParam,
   AppendDidDocumentVersionMetadataParam,
@@ -55,7 +53,6 @@ import {
   createDid,
   createDidDocument,
   createMetadata,
-  createDidMethod,
 } from "../../../tests/utils/data";
 import { ApiConfig } from "../../config/configuration";
 import { LedgerService } from "../ledger/ledger.service";
@@ -100,8 +97,6 @@ type JsonRpcParams =
   | InsertDidControllerParam
   | UpdateDidControllerParam
   | RevokeDidControllerParam
-  | InsertDidMethodParam
-  | UpdateDidMethodParam
   | AppendDidDocumentVersionHashParam
   | DetachDidDocumentVersionParam
   | AppendDidDocumentVersionMetadataParam
@@ -114,14 +109,6 @@ interface DidDocumentDataset {
   canonicalizedDidDocumentHash: string;
   timestampDataBuffer: Buffer;
   didVersionMetadataBuffer: Buffer;
-}
-
-interface DidMethodDataset {
-  didMethods: { [x: string]: unknown }[];
-  didMethodsBuffer: Buffer[];
-  canonicalizedDidMethods: string[];
-  canonicalizedDidMethodsBuffer: Buffer[];
-  canonicalizedDidMethodsHash: string[];
 }
 
 jest.setTimeout(300000);
@@ -212,34 +199,10 @@ describe("JsonRpc Module", () => {
     };
   };
 
-  const prepareDidMethod = (): DidMethodDataset => {
-    const didMethod = createDidMethod();
-
-    const didMethodBuffer = Buffer.from(JSON.stringify(didMethod));
-
-    // Canonicalize DID Method
-    const canonicalizedDidMethod = canonicalize(didMethod);
-
-    const canonicalizedDidMethodBuffer = Buffer.from(canonicalizedDidMethod);
-    const canonicalizedDidMethodHash = ethers.utils.sha256(
-      canonicalizedDidMethodBuffer
-    );
-
-    return {
-      didMethods: [didMethod],
-      didMethodsBuffer: [didMethodBuffer],
-      canonicalizedDidMethods: [canonicalizedDidMethod],
-      canonicalizedDidMethodsBuffer: [canonicalizedDidMethodBuffer],
-      canonicalizedDidMethodsHash: [canonicalizedDidMethodHash],
-    };
-  };
-
   let didDocument: DidDocumentDataset;
   let updatedDidDocument: DidDocumentDataset;
   let didDocumentInvalidMethod: DidDocumentDataset;
   const controllers: ethers.Wallet[] = [];
-
-  let didMethod: DidMethodDataset;
 
   const mockAuthOAuth2 = jest.spyOn(OAuth2Lib, "verifyJwtTar");
   const mockAuthSiop = jest.spyOn(SiopLib, "verifyJwtTar");
@@ -294,7 +257,6 @@ describe("JsonRpc Module", () => {
       badControllerDid,
       firstAlgMultihash
     );
-    didMethod = prepareDidMethod();
 
     // Mock Contract service
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
@@ -755,7 +717,6 @@ describe("JsonRpc Module", () => {
 
   // Tests to be repeated for every method
   describe.each([
-    "insertDidMethod",
     "insertHashAlgorithm",
     "updateHashAlgorithm",
     "insertPolicy",
@@ -765,7 +726,6 @@ describe("JsonRpc Module", () => {
     "insertDidController",
     "updateDidController",
     "revokeDidController",
-    "updateDidMethod",
     "appendDidDocumentVersionHash",
     "appendDidDocumentVersionHash(with optional params)",
     "detachDidDocumentVersionHash",
@@ -935,38 +895,6 @@ describe("JsonRpc Module", () => {
           } as RevokeDidControllerParam;
 
           accessToken = newUserAccessToken;
-
-          break;
-        }
-        case "insertDidMethod": {
-          param = {
-            from: signer.address,
-            methodName: `did:${crypto.randomBytes(8).toString("hex")}`,
-            ledgerName: "ebsi-besu",
-            methodSpec: didMethod.didMethodsBuffer.map(
-              (b) => `0x${b.toString("hex")}`
-            ),
-            methodSpecHash: didMethod.canonicalizedDidMethodsHash,
-            notBefore: 1616408985883,
-            notAfter: 3232818053700,
-            status: 1,
-          } as InsertDidMethodParam;
-
-          break;
-        }
-        case "updateDidMethod": {
-          param = {
-            from: signer.address,
-            methodName: "did:ebsi",
-            ledgerName: "ebsi-besu-2",
-            methodSpec: didMethod.didMethodsBuffer.map(
-              (b) => `0x${b.toString("hex")}`
-            ),
-            methodSpecHash: didMethod.canonicalizedDidMethodsHash,
-            notBefore: 1616408985883,
-            notAfter: 3232818053700,
-            status: 1,
-          } as UpdateDidMethodParam;
 
           break;
         }
@@ -1256,38 +1184,6 @@ describe("JsonRpc Module", () => {
           } as RevokeDidControllerParam;
 
           accessToken = newUserAccessToken;
-
-          break;
-        }
-        case "insertDidMethod": {
-          param = {
-            from: signer.address,
-            methodName: "did:ebsi",
-            ledgerName: "ebsi-besu",
-            methodSpec: didMethod.didMethodsBuffer.map(
-              (b) => `0x${b.toString("hex")}`
-            ),
-            methodSpecHash: didMethod.canonicalizedDidMethodsHash,
-            notBefore: 1616408985883,
-            notAfter: 3232818053700,
-            status: 1,
-          } as InsertDidMethodParam;
-
-          break;
-        }
-        case "updateDidMethod": {
-          param = {
-            from: signer.address,
-            methodName: "did:ebsi",
-            ledgerName: "ebsi-besu-2",
-            methodSpec: didMethod.didMethodsBuffer.map(
-              (b) => `0x${b.toString("hex")}`
-            ),
-            methodSpecHash: didMethod.canonicalizedDidMethodsHash,
-            notBefore: 1616408985883,
-            notAfter: 3232818053700,
-            status: 1,
-          } as UpdateDidMethodParam;
 
           break;
         }
@@ -1747,193 +1643,6 @@ describe("JsonRpc Module", () => {
 
           break;
         }
-        case "insertDidMethod": {
-          // methodSpec doesn't start with "0x"
-          testSetup.push({
-            params: {
-              from: signer.address,
-              methodName: "did:ebsi",
-              ledgerName: "ebsi-besu",
-              methodSpec: ["abc"],
-              methodSpecHash: didMethod.canonicalizedDidMethodsHash,
-              notBefore: 1616408985883,
-              notAfter: 3232818053700,
-              status: 1,
-            } as InsertDidMethodParam,
-            expectedErrorMessage: "each methodSpec must start with 0x",
-          });
-
-          // methodSpec isn't a valid JSON document encoded in hexadecimal
-          testSetup.push({
-            params: {
-              from: signer.address,
-              methodName: "did:ebsi",
-              ledgerName: "ebsi-besu",
-              methodSpec: ["0x"],
-              methodSpecHash: didMethod.canonicalizedDidMethodsHash,
-              notBefore: 1616408985883,
-              notAfter: 3232818053700,
-              status: 1,
-            } as InsertDidMethodParam,
-            expectedErrorMessage:
-              "each methodSpec must be a valid JSON document encoded in hexadecimal",
-          });
-
-          // methodSpecHash doesn't start with 0x
-          testSetup.push({
-            params: {
-              from: signer.address,
-              methodName: "did:ebsi",
-              ledgerName: "ebsi-besu",
-              methodSpec: didMethod.didMethodsBuffer.map(
-                (b) => `0x${b.toString("hex")}`
-              ),
-              methodSpecHash: ["abcd"],
-              notBefore: 1616408985883,
-              notAfter: 3232818053700,
-              status: 1,
-            } as InsertDidMethodParam,
-            expectedErrorMessage: "each methodSpecHash must start with 0x",
-          });
-
-          // methodSpecHash is not a valid hexadecimal number
-          testSetup.push({
-            params: {
-              from: signer.address,
-              methodName: "did:ebsi",
-              ledgerName: "ebsi-besu",
-              methodSpec: didMethod.didMethodsBuffer.map(
-                (b) => `0x${b.toString("hex")}`
-              ),
-              methodSpecHash: ["0xzz"],
-              notBefore: 1616408985883,
-              notAfter: 3232818053700,
-              status: 1,
-            } as InsertDidMethodParam,
-            expectedErrorMessage:
-              "each value in methodSpecHash must be a hexadecimal number",
-          });
-
-          // status must be comprised between 1 and 3
-          testSetup.push({
-            params: {
-              from: signer.address,
-              methodName: "did:ebsi",
-              ledgerName: "ebsi-besu",
-              methodSpec: didMethod.didMethodsBuffer.map(
-                (b) => `0x${b.toString("hex")}`
-              ),
-              methodSpecHash: didMethod.canonicalizedDidMethodsHash,
-              notBefore: 1616408985883,
-              notAfter: 3232818053700,
-              status: 4,
-            } as InsertDidMethodParam,
-            expectedErrorMessage: "status must not be greater than 3",
-          });
-
-          // notBefore/notAfter must be greater than 0
-          testSetup.push({
-            params: {
-              from: signer.address,
-              methodName: "did:ebsi",
-              ledgerName: "ebsi-besu",
-              methodSpec: didMethod.didMethodsBuffer.map(
-                (b) => `0x${b.toString("hex")}`
-              ),
-              methodSpecHash: didMethod.canonicalizedDidMethodsHash,
-              notBefore: 1616408985883,
-              notAfter: -1,
-              status: 2,
-            } as InsertDidMethodParam,
-            expectedErrorMessage: "notAfter must not be less than 0",
-          });
-
-          // methodName not starting with "did:"
-          testSetup.push({
-            params: {
-              from: signer.address,
-              methodName: "method",
-              ledgerName: "ebsi-besu",
-              methodSpec: didMethod.didMethodsBuffer.map(
-                (b) => `0x${b.toString("hex")}`
-              ),
-              methodSpecHash: didMethod.canonicalizedDidMethodsHash,
-              notBefore: 1616408985883,
-              notAfter: -3232818053700,
-              status: 21,
-            } as InsertDidMethodParam,
-            expectedErrorMessage: "methodName must start with 'did:'",
-          });
-
-          break;
-        }
-        case "updateDidMethod": {
-          testSetup.push({
-            params: {
-              from: signer.address,
-              methodName: "did:ebsi",
-              ledgerName: "ebsi-besu-2",
-              methodSpec: ["0x"],
-              methodSpecHash: didMethod.canonicalizedDidMethodsHash,
-              notBefore: 1616408985883,
-              notAfter: 3232818053700,
-              status: 1,
-            } as UpdateDidMethodParam,
-            expectedErrorMessage:
-              "each methodSpec must be a valid JSON document encoded in hexadecimal",
-          });
-
-          testSetup.push({
-            params: {
-              from: signer.address,
-              methodName: "did:ebsi",
-              ledgerName: "ebsi-besu2",
-              methodSpec: didMethod.didMethodsBuffer.map(
-                (b) => `0x${b.toString("hex")}`
-              ),
-              methodSpecHash: didMethod.canonicalizedDidMethodsHash,
-              notBefore: 1616408985883,
-              notAfter: 3232818053700,
-              status: 4,
-            } as UpdateDidMethodParam,
-            expectedErrorMessage: "status must not be greater than 3",
-          });
-
-          testSetup.push({
-            params: {
-              from: signer.address,
-              methodName: "did:ebsi",
-              ledgerName: "ebsi-besu2",
-              methodSpec: didMethod.didMethodsBuffer.map(
-                (b) => `0x${b.toString("hex")}`
-              ),
-              methodSpecHash: didMethod.canonicalizedDidMethodsHash,
-              notBefore: 1616408985883,
-              notAfter: -1,
-              status: 1,
-            } as UpdateDidMethodParam,
-            expectedErrorMessage: "notAfter must not be less than 0",
-          });
-
-          // Test with an invalid method name (not starting with "did:")
-          testSetup.push({
-            params: {
-              from: signer.address,
-              methodName: "method",
-              ledgerName: "ebsi-besu2",
-              methodSpec: didMethod.didMethodsBuffer.map(
-                (b) => `0x${b.toString("hex")}`
-              ),
-              methodSpecHash: didMethod.canonicalizedDidMethodsHash,
-              notBefore: 1616408985883,
-              notAfter: 3232818053700,
-              status: 1,
-            } as InsertDidMethodParam,
-            expectedErrorMessage: "methodName must start with 'did:'",
-          });
-
-          break;
-        }
         case "appendDidDocumentVersionHash": {
           const {
             didDocumentBuffer,
@@ -2271,64 +1980,6 @@ describe("JsonRpc Module", () => {
 
           break;
         }
-        case "insertDidMethod": {
-          param1 = {
-            from: signer.address,
-            methodName: "did:ebsi",
-            ledgerName: "ebsi-besu",
-            methodSpec: didMethod.didMethodsBuffer.map(
-              (b) => `0x${b.toString("hex")}`
-            ),
-            methodSpecHash: didMethod.canonicalizedDidMethodsHash,
-            notBefore: 1616408985883,
-            notAfter: 3232818053700,
-            status: 1,
-          } as InsertDidMethodParam;
-
-          param2 = {
-            from: signer.address,
-            methodName: "did:ebsi",
-            ledgerName: "ebsi-besu",
-            methodSpec: didMethod.didMethodsBuffer.map(
-              (b) => `0x${b.toString("hex")}`
-            ),
-            methodSpecHash: didMethod.canonicalizedDidMethodsHash,
-            notBefore: 1616408985883,
-            notAfter: 3232818053700,
-            status: 2,
-          } as InsertDidMethodParam;
-
-          break;
-        }
-        case "updateDidMethod": {
-          param1 = {
-            from: signer.address,
-            methodName: "did:ebsi",
-            ledgerName: "ebsi-besu-2",
-            methodSpec: didMethod.didMethodsBuffer.map(
-              (b) => `0x${b.toString("hex")}`
-            ),
-            methodSpecHash: didMethod.canonicalizedDidMethodsHash,
-            notBefore: 1616408985883,
-            notAfter: 3232818053700,
-            status: 1,
-          } as UpdateDidMethodParam;
-
-          param2 = {
-            from: signer.address,
-            methodName: "did:ebsi",
-            ledgerName: "ebsi-besu-xx",
-            methodSpec: didMethod.didMethodsBuffer.map(
-              (b) => `0x${b.toString("hex")}`
-            ),
-            methodSpecHash: didMethod.canonicalizedDidMethodsHash,
-            notBefore: 1616408985883,
-            notAfter: 3232818053700,
-            status: 1,
-          } as UpdateDidMethodParam;
-
-          break;
-        }
         case "appendDidDocumentVersionHash": {
           const {
             didDocumentBuffer,
@@ -2535,64 +2186,5 @@ describe("JsonRpc Module", () => {
       });
       expect(responseSend1.status).toBe(400);
     });
-  });
-
-  // TODO: This test doesn't make sense because the API only accepts "did:ebsi" (isDidV1).
-  // Consider removing this logic from the API
-  it.skip("should throw an error if the did method is not registered", async () => {
-    expect.assertions(2);
-    const testMethod = "insertDidDocument";
-
-    // Mock access token verification
-    mockAuthSiop.mockImplementation(async () =>
-      Promise.resolve({ payload: {} } as JWTVerifyResult)
-    );
-
-    const signer = adminSigner;
-    const {
-      didDocumentBuffer,
-      canonicalizedDidDocumentHash,
-      timestampDataBuffer,
-      didVersionMetadataBuffer,
-    } = didDocumentInvalidMethod;
-
-    const identifier = `0x${Buffer.from(badControllerDid).toString("hex")}`;
-    const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
-    const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
-    const didVersionMetadata = `0x${didVersionMetadataBuffer.toString("hex")}`;
-
-    controllers.push(signer);
-
-    const param: JsonRpcParams = {
-      from: signer.address,
-      identifier,
-      hashAlgorithmId: 0,
-      hashValue: canonicalizedDidDocumentHash,
-      didVersionInfo,
-      timestampData,
-      didVersionMetadata,
-    } as InsertDidDocumentParam;
-
-    const responseBuild: SupertestJsonRpcResponse = await request(server)
-      .post("/jsonrpc")
-      .auth(adminAccessToken, { type: "bearer" })
-      .send({
-        jsonrpc: "2.0",
-        method: testMethod,
-        params: [param],
-        id: 231,
-      });
-
-    expect(responseBuild.body).toStrictEqual({
-      error: {
-        code: -32600,
-        message: expect.stringContaining(
-          "identifier must be a valid DID v1 encoded in hexadecimal"
-        ) as string,
-      },
-      id: 231,
-      jsonrpc: "2.0",
-    });
-    expect(responseBuild.status).toBe(400);
   });
 });

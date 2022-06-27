@@ -22,10 +22,6 @@ import {
   RequestUpdateDidControllerDto,
   ArgsRevokeDidController,
   RequestRevokeDidControllerDto,
-  ArgsInsertDidMethod,
-  RequestInsertDidMethodDto,
-  ArgsUpdateDidMethod,
-  RequestUpdateDidMethodDto,
   ArgsAppendDidDocumentVersionHash,
   RequestAppendDidDocumentVersionHashDto,
   ArgsDetachDidDocumentVersionHash,
@@ -85,10 +81,6 @@ type JsonRpcDtos =
   | RequestUpdateDidControllerDto
   | ArgsRevokeDidController
   | RequestRevokeDidControllerDto
-  | ArgsInsertDidMethod
-  | RequestInsertDidMethodDto
-  | ArgsUpdateDidMethod
-  | RequestUpdateDidMethodDto
   | ArgsAppendDidDocumentVersionHash
   | RequestAppendDidDocumentVersionHashDto
   | ArgsDetachDidDocumentVersionHash

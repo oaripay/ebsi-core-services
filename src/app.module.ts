@@ -3,7 +3,6 @@ import { APP_INTERCEPTOR } from "@nestjs/core";
 import { ApiConfigModule } from "./config/configuration";
 import { HealthModule } from "./modules/health/health.module";
 import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module";
-import { DidMethodsModule } from "./modules/did-methods/did-methods.module";
 import { DidTimestampsModule } from "./modules/did-timestamps/did-timestamps.module";
 import { HashAlgorithmsModule } from "./modules/hash-algorithms/hash-algorithms.module";
 import { IdentifiersModule } from "./modules/identifiers/identifiers.module";
@@ -20,7 +19,6 @@ import { VersionInterceptor } from "./interceptors/version.interceptor";
     LedgerModule,
     HealthModule,
     JsonRpcModule,
-    DidMethodsModule,
     DidTimestampsModule,
     HashAlgorithmsModule,
     IdentifiersModule,

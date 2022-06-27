@@ -33,7 +33,7 @@ import { ApiConfig } from "../../config/configuration";
 @Controller("/identifiers")
 export default class IdentifiersController {
   constructor(
-    private didMethodsService: IdentifiersService,
+    private identifiersService: IdentifiersService,
     private configService: ConfigService<ApiConfig>
   ) {}
 
@@ -41,7 +41,7 @@ export default class IdentifiersController {
   async getIdentifiers(
     @Query() query: GetIdentifiersDto
   ): Promise<PaginatedList<DidLink>> {
-    const didMethods = await this.didMethodsService.getIdentifiers(
+    const identifiers = await this.identifiersService.getIdentifiers(
       query["page[after]"],
       query["page[size]"],
       query.controller
@@ -52,7 +52,7 @@ export default class IdentifiersController {
     const baseUrl = `${domain}${apiUrlPrefix}/identifiers`;
 
     return formatIdentifiers(
-      didMethods,
+      identifiers,
       query["page[after]"],
       query["page[size]"],
       baseUrl,
@@ -68,7 +68,7 @@ export default class IdentifiersController {
   ): Promise<{ [x: string]: unknown }> {
     const { did } = params;
 
-    const identifier = await this.didMethodsService.getIdentifier(did);
+    const identifier = await this.identifiersService.getIdentifier(did);
 
     if (accept === "application/did+json") {
       const { "@context": context, ...otherProps } = identifier;
@@ -85,7 +85,7 @@ export default class IdentifiersController {
   ): Promise<PaginatedList<VersionIdLink>> {
     const { did } = params;
 
-    const didMethods = await this.didMethodsService.getIdentifiersVersions(
+    const identifiers = await this.identifiersService.getIdentifiersVersions(
       did,
       query["page[after]"],
       query["page[size]"],
@@ -97,7 +97,7 @@ export default class IdentifiersController {
     const baseUrl = `${domain}${apiUrlPrefix}/identifiers/${did}/versions`;
 
     return formatVersions(
-      didMethods,
+      identifiers,
       query["page[after]"],
       query["page[size]"],
       baseUrl,
@@ -113,10 +113,8 @@ export default class IdentifiersController {
   ): Promise<{ [x: string]: unknown }> {
     const { did, versionId } = params;
 
-    const identifierVersion = await this.didMethodsService.getIdentifierVersion(
-      did,
-      versionId
-    );
+    const identifierVersion =
+      await this.identifiersService.getIdentifierVersion(did, versionId);
 
     if (accept === "application/did+json") {
       const { "@context": context, ...otherProps } = identifierVersion;
@@ -133,8 +131,8 @@ export default class IdentifiersController {
   ): Promise<PaginatedList<MetadataIdLink>> {
     const { did, versionId } = params;
 
-    const didMethods =
-      await this.didMethodsService.getIdentifiersVersionsMetadata(
+    const identifiers =
+      await this.identifiersService.getIdentifiersVersionsMetadata(
         did,
         versionId,
         query["page[after]"],
@@ -146,7 +144,7 @@ export default class IdentifiersController {
     const baseUrl = `${domain}${apiUrlPrefix}/identifiers/${did}/versions/${versionId}/metadata`;
 
     return formatMetadata(
-      didMethods,
+      identifiers,
       query["page[after]"],
       query["page[size]"],
       baseUrl
@@ -159,7 +157,7 @@ export default class IdentifiersController {
     @Param() params: GetIdentifierVersionMetadataParamsDto
   ): Promise<{ [x: string]: unknown }> {
     const { did, versionId, metadataId } = params;
-    return this.didMethodsService.getIdentifierVersionMetadata(
+    return this.identifiersService.getIdentifierVersionMetadata(
       did,
       versionId,
       metadataId

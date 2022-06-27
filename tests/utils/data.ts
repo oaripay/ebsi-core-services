@@ -136,25 +136,6 @@ export const createMetadata = (): { [x: string]: unknown } => ({
   meta: crypto.randomBytes(32).toString("hex"),
 });
 
-/**
- * Generates a random DID Method object.
- *
- * @returns A random DID Method object
- */
-export const createDidMethod = (): { [x: string]: unknown } => ({
-  // DID method name.
-  methodName: crypto.randomBytes(32).toString("hex"),
-
-  // DID method id computation description.
-  methodSpecificIdGeneration: crypto.randomBytes(64).toString("hex"),
-
-  // DID method id encoding description.
-  methodSpecificIdEncoding: crypto.randomBytes(32).toString("hex"),
-
-  // description: Method version.
-  version: 1,
-});
-
 const { base64url } = bases;
 
 const ec = new EC("secp256k1");

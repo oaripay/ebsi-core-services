@@ -23,15 +23,12 @@ import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
-import { prefixWith0x } from "../../src/shared/utils";
 import { getAccessToken, waitToBeMined } from "../utils/waitToBeMined";
 import {
   InsertDidControllerParam,
   InsertDidDocumentParam,
-  InsertDidMethodParam,
   RevokeDidControllerParam,
   UpdateDidDocumentParam,
-  UpdateDidMethodParam,
   AppendDidDocumentVersionHashParam,
   DetachDidDocumentVersionParam,
   AppendDidDocumentVersionMetadataParam,
@@ -39,18 +36,12 @@ import {
   UpdateDidControllerParam,
   UnsignedTransaction,
 } from "../../src/modules/jsonrpc/dto";
-import { DidMethodResponseObject } from "../../src/modules/did-methods/did-methods.interface";
 import {
   DidTimestampResponseObject,
   TimestampLink,
 } from "../../src/modules/did-timestamps/did-timestamps.interface";
-import {
-  createDid,
-  createDidDocument,
-  createMetadata,
-  createDidMethod,
-} from "../utils/data";
-import { requestNewUserSiopJwt, requestSiopJwt } from "../utils/siopJwt";
+import { createDid, createDidDocument, createMetadata } from "../utils/data";
+import { requestNewUserSiopJwt } from "../utils/siopJwt";
 import { describeWriteOps } from "../utils/describeWriteOps";
 import { getServer } from "../utils/getServer";
 
@@ -58,8 +49,6 @@ type JsonRpcParams =
   | InsertDidDocumentParam
   | InsertDidControllerParam
   | RevokeDidControllerParam
-  | InsertDidMethodParam
-  | UpdateDidMethodParam
   | AppendDidDocumentVersionHashParam
   | DetachDidDocumentVersionParam
   | AppendDidDocumentVersionMetadataParam
@@ -83,20 +72,6 @@ interface DidDocumentDataset {
   didVersionMetadataBuffer: Buffer;
 }
 
-interface DidMethodDataset {
-  methodName: string;
-  ledgerName: string;
-  didMethods: { [x: string]: unknown }[];
-  didMethodsBuffer: Buffer[];
-  canonicalizedDidMethods: string[];
-  canonicalizedDidMethodsHash: string[];
-  methodSpec: string[];
-  methodSpecHash: string[];
-  notBefore: number;
-  notAfter: number;
-  status: number;
-}
-
 const multihashToNodeHashAlg: { [Key in HashName]?: string } = {
   "sha2-256": "sha256",
   "sha2-512": "sha512",
@@ -112,8 +87,6 @@ describe("DID Registry (e2e)", () => {
   let configService: ConfigService<ApiConfig, true>;
   let hashAlgorithMultihash: HashName;
   let hashAlgorithOutputLength: number;
-  let existingUserWallet: ethers.Wallet;
-  let existingUserAccessToken: string;
   let newUserWallet: ethers.Wallet;
   let newUserAccessToken: string;
   let apiAccessToken: string;
@@ -167,43 +140,6 @@ describe("DID Registry (e2e)", () => {
     };
   };
 
-  const prepareDidMethod = (): DidMethodDataset => {
-    const methodName = `did:ebsi-${crypto.randomBytes(8).toString("hex")}`;
-    const didMethod = createDidMethod();
-
-    const didMethodBuffer = Buffer.from(JSON.stringify(didMethod));
-
-    // Canonicalize DID Method
-    const canonicalizedDidMethod = canonicalize(didMethod);
-
-    const canonicalizedDidMethodBuffer = Buffer.from(canonicalizedDidMethod);
-    const canonicalizedDidMethodHash = ethers.utils.sha256(
-      canonicalizedDidMethodBuffer
-    );
-
-    const ledgerName = "ebsi-besu";
-    const methodSpec = [didMethodBuffer].map((b) => `0x${b.toString("hex")}`);
-    const methodSpecHash = [canonicalizedDidMethodHash];
-    const notBefore = 1616408985883;
-    const notAfter = 3232818053700;
-    const status = 1;
-
-    return {
-      methodName,
-      ledgerName,
-      didMethods: [didMethod],
-      didMethodsBuffer: [didMethodBuffer],
-      canonicalizedDidMethods: [canonicalizedDidMethod],
-      canonicalizedDidMethodsHash: [canonicalizedDidMethodHash],
-      methodSpec,
-      methodSpecHash,
-      notBefore,
-      notAfter,
-      status,
-    };
-  };
-
-  let didMethod: DidMethodDataset;
   let newUserDid: string;
   let newDidDocument: DidDocumentDataset;
   let updatedDidDocument: DidDocumentDataset;
@@ -234,10 +170,6 @@ describe("DID Registry (e2e)", () => {
 
     server = getServer(app, configService);
 
-    existingUserWallet = new ethers.Wallet(
-      prefixWith0x(configService.get("testClientPrivateKey"))
-    );
-
     // During the tests, we'll use the last hash algorithm
     const getHashAlgorithmsResponse = await request(server).get(
       "/hash-algorithms"
@@ -257,7 +189,6 @@ describe("DID Registry (e2e)", () => {
         .outputLengthBits / 8;
 
     // Generate test data
-    didMethod = prepareDidMethod();
     newUserDid = createDid();
 
     newDidDocument = prepareDidDocument(
@@ -270,16 +201,6 @@ describe("DID Registry (e2e)", () => {
       hashAlgorithMultihash,
       hashAlgorithOutputLength
     );
-
-    // Generate valid Client JWTs (SIOP) for the tests
-    existingUserAccessToken = await requestSiopJwt({
-      clientKid: configService.get<string>("testClientKid"),
-      clientPrivateKey: configService.get<string>("testClientPrivateKey"),
-      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
-      trustedAppsRegistryUrl: configService.get<string>(
-        "trustedAppsRegistryApiUrl"
-      ),
-    });
 
     const newUserPrivateKey = crypto.randomBytes(32).toString("hex");
     newUserWallet = new ethers.Wallet(`0x${newUserPrivateKey}`);
@@ -350,13 +271,11 @@ describe("DID Registry (e2e)", () => {
   });
 
   describeWriteOps().each([
-    "insertDidMethod",
     "insertDidDocument",
     "updateDidDocument",
     "insertDidController",
     "updateDidController",
     "revokeDidController",
-    "updateDidMethod",
     "appendDidDocumentVersionHash",
     "detachDidDocumentVersionHash",
     "appendDidDocumentVersionMetadata",
@@ -367,7 +286,7 @@ describe("DID Registry (e2e)", () => {
 
       let params: JsonRpcParams = null;
       let signer = newUserWallet;
-      let accessToken = newUserAccessToken;
+      const accessToken = newUserAccessToken;
 
       switch (method) {
         case "insertDidDocument": {
@@ -461,44 +380,6 @@ describe("DID Registry (e2e)", () => {
             identifier,
             oldControllerId: controllers[controllers.length - 1].address,
           } as RevokeDidControllerParam;
-          break;
-        }
-        case "insertDidMethod": {
-          signer = existingUserWallet;
-          accessToken = existingUserAccessToken;
-
-          params = {
-            from: signer.address,
-            methodName: didMethod.methodName,
-            ledgerName: didMethod.ledgerName,
-            methodSpec: didMethod.didMethodsBuffer.map(
-              (b) => `0x${b.toString("hex")}`
-            ),
-            methodSpecHash: didMethod.canonicalizedDidMethodsHash,
-            notBefore: didMethod.notBefore,
-            notAfter: didMethod.notAfter,
-            status: didMethod.status,
-          } as InsertDidMethodParam;
-
-          break;
-        }
-        case "updateDidMethod": {
-          signer = existingUserWallet;
-          accessToken = existingUserAccessToken;
-
-          params = {
-            from: signer.address,
-            methodName: didMethod.methodName,
-            ledgerName: "ebsi-besu-2",
-            methodSpec: didMethod.didMethodsBuffer.map(
-              (b) => `0x${b.toString("hex")}`
-            ),
-            methodSpecHash: didMethod.canonicalizedDidMethodsHash,
-            notBefore: didMethod.notBefore,
-            notAfter: didMethod.notAfter,
-            status: didMethod.status,
-          } as UpdateDidMethodParam;
-
           break;
         }
         case "appendDidDocumentVersionHash": {
@@ -629,264 +510,6 @@ describe("DID Registry (e2e)", () => {
         responseSend.body.result as string
       );
       expect(receipt.status).toBe(1);
-    });
-  });
-
-  describeWriteOps().each(["insertDidMethod", "updateDidMethod"])(
-    "/jsonrpc - special authorization for %s",
-    (method: string) => {
-      it("should send the transaction but the SC should reject no authorized users", async () => {
-        expect.assertions(5);
-
-        const signer = newUserWallet;
-        const accessToken = newUserAccessToken;
-        let params: JsonRpcParams = null;
-
-        switch (method) {
-          case "insertDidMethod": {
-            params = {
-              from: signer.address,
-              methodName: didMethod.methodName,
-              ledgerName: didMethod.ledgerName,
-              methodSpec: didMethod.didMethodsBuffer.map(
-                (b) => `0x${b.toString("hex")}`
-              ),
-              methodSpecHash: didMethod.canonicalizedDidMethodsHash,
-              notBefore: didMethod.notBefore,
-              notAfter: didMethod.notAfter,
-              status: didMethod.status,
-            } as InsertDidMethodParam;
-
-            break;
-          }
-          case "updateDidMethod": {
-            params = {
-              from: signer.address,
-              methodName: didMethod.methodName,
-              ledgerName: "ebsi-besu-2",
-              methodSpec: didMethod.didMethodsBuffer.map(
-                (b) => `0x${b.toString("hex")}`
-              ),
-              methodSpecHash: didMethod.canonicalizedDidMethodsHash,
-              notBefore: didMethod.notBefore,
-              notAfter: didMethod.notAfter,
-              status: didMethod.status,
-            } as UpdateDidMethodParam;
-
-            break;
-          }
-          default:
-            throw new Error(`Test Error: Invalid method ${method}`);
-        }
-
-        const responseBuild: SupertestJsonRpcResponse = await request(server)
-          .post("/jsonrpc")
-          .auth(accessToken, { type: "bearer" })
-          .send({
-            jsonrpc: "2.0",
-            method,
-            params: [params],
-            id: 231,
-          });
-
-        expect(responseBuild.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: 231,
-          result: {
-            chainId: expect.any(String) as string,
-            data: expect.any(String) as string,
-            from: signer.address,
-            gasLimit: expect.any(String) as string,
-            gasPrice: expect.any(String) as string,
-            nonce: expect.any(String) as string,
-            to: expect.any(String) as string,
-            value: expect.any(String) as string,
-          },
-        });
-        expect(responseBuild.status).toBe(200);
-
-        const unsignedTransaction = responseBuild.body.result;
-        const uTx = formatEthersUnsignedTransaction(
-          JSON.parse(
-            JSON.stringify(unsignedTransaction)
-          ) as unknown as UnsignedTransaction
-        );
-        uTx.chainId = Number(uTx.chainId);
-        const sgnTx = await signer.signTransaction(uTx);
-        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
-
-        const responseSend: SupertestJsonRpcResponse = await request(server)
-          .post("/jsonrpc")
-          .auth(accessToken, { type: "bearer" })
-          .send({
-            jsonrpc: "2.0",
-            method: "sendSignedTransaction",
-            params: [
-              {
-                protocol: "eth",
-                unsignedTransaction,
-                r,
-                s,
-                v: `0x${Number(v).toString(16)}`,
-                signedRawTransaction: sgnTx,
-              },
-            ],
-            id: "45",
-          });
-
-        expect(responseSend.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: "45",
-          result: expect.any(String) as string,
-        });
-        expect(responseSend.status).toBe(200);
-
-        // wait to be mined
-        const receipt = await waitToBeMined(
-          ledgerApi,
-          apiAccessToken,
-          responseSend.body.result as string
-        );
-        receipt.revertReason = Buffer.from(receipt.revertReason.slice(2), "hex")
-          .toString()
-          .replace(/[^a-zA-Z:' ]/g, "");
-        expect(receipt).toStrictEqual(
-          expect.objectContaining({
-            status: 0,
-            revertReason: expect.stringContaining(
-              `Policy error: sender doesn't have the attribute DIDR:${method}`
-            ) as string,
-          })
-        );
-      });
-    }
-  );
-
-  describe("GET /did-methods", () => {
-    it("should return a paginated collection of DID methods", async () => {
-      expect.assertions(2);
-
-      const response = await request(server).get("/did-methods");
-
-      const total =
-        ((response.body as { [x: string]: unknown })?.total as number) ?? 0;
-
-      expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/did-methods?page[after]=1&page[size]=10"
-        ) as string,
-        items: expect.arrayContaining([
-          {
-            name: expect.any(String) as string,
-            href: expect.stringContaining("/did-methods/") as string,
-          },
-        ]) as Array<string>,
-        total: expect.any(Number) as number,
-        pageSize: 10,
-        links: {
-          first: expect.stringContaining(
-            "/did-methods?page[after]=1&page[size]=10"
-          ) as string,
-          prev: expect.stringContaining(
-            "/did-methods?page[after]=1&page[size]=10"
-          ) as string,
-          next: expect.stringContaining(
-            `/did-methods?page[after]=${total > 10 ? 2 : 1}&page[size]=10`
-          ) as string,
-          last: expect.stringContaining(
-            `/did-methods?page[after]=${Math.ceil(total / 10)}&page[size]=10`
-          ) as string,
-        },
-      });
-      expect(response.status).toBe(200);
-    });
-
-    it("should throw a Bad Request for bad pagination", async () => {
-      expect.assertions(8);
-
-      const response1 = await request(server).get(
-        "/did-methods?page[size]=100"
-      );
-      expect(response1.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
-        detail: '["page[size] must not be greater than 50"]',
-        type: "about:blank",
-      });
-      expect(response1.status).toBe(400);
-
-      const response2 = await request(server).get("/did-methods?page[size]=0");
-      expect(response2.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
-        detail: '["page[size] must not be less than 1"]',
-        type: "about:blank",
-      });
-      expect(response2.status).toBe(400);
-
-      const response3 = await request(server).get("/did-methods?page[after]=0");
-      expect(response3.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
-        detail: '["page[after] must not be less than 1"]',
-        type: "about:blank",
-      });
-      expect(response3.status).toBe(400);
-
-      const response4 = await request(server).get(
-        "/did-methods?page[after]=abc"
-      );
-      expect(response4.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
-        detail:
-          '["page[after] must not be less than 1","page[after] must be a number conforming to the specified constraints"]',
-        type: "about:blank",
-      });
-      expect(response4.status).toBe(400);
-    });
-  });
-
-  describe("GET /did-methods/{did}", () => {
-    it("should return a specific DID Method", async () => {
-      expect.assertions(2);
-
-      const getAllDidMethods = await request(server).get("/did-methods");
-      const { items } = getAllDidMethods.body as {
-        items: {
-          name: string;
-          href: string;
-        }[];
-      };
-
-      const response = await request(server).get(
-        `/did-methods/${items[0].name}`
-      );
-
-      expect(response.body).toStrictEqual({
-        methodName: items[0].name,
-        ledgerName: expect.any(String) as string,
-        status: expect.any(Number) as number,
-        methodSpec: expect.arrayContaining([]) as string[],
-        methodSpecHash: expect.arrayContaining([]) as string[],
-        notAfter: expect.any(Number) as number,
-        notBefore: expect.any(Number) as number,
-      } as DidMethodResponseObject);
-      expect(response.status).toBe(200);
-    });
-
-    it("should throw an error if the DID Method is not found", async () => {
-      expect.assertions(2);
-
-      const response = await request(server).get("/did-methods/no-did-method");
-
-      expect(response.body).toStrictEqual({
-        title: "DID Method Not Found",
-        status: 404,
-        detail: "DID Method no-did-method not found",
-        type: "about:blank",
-      });
-      expect(response.status).toBe(404);
     });
   });
 
@@ -1093,7 +716,7 @@ describe("DID Registry (e2e)", () => {
   });
 
   describe("GET /identifiers/{did}/versions", () => {
-    it("should return a paginated collection of DID methods", async () => {
+    it("should return a paginated collection of versions", async () => {
       expect.assertions(2);
 
       const { did } = lastIdentifier;

@@ -3,14 +3,12 @@ import { ApiConfigModule } from "../../config/configuration";
 import JsonRpcController from "./jsonrpc.controller";
 import { JsonRpcService } from "./jsonrpc.service";
 import { AuthModule } from "../auth/auth.module";
-import DidMethodsService from "../did-methods/did-methods.service";
-import { IsHexadecimalDidRule } from "./validators";
 import { LedgerModule } from "../ledger/ledger.module";
 
 @Module({
   imports: [ApiConfigModule, AuthModule, LedgerModule],
   controllers: [JsonRpcController],
-  providers: [Logger, JsonRpcService, DidMethodsService, IsHexadecimalDidRule],
+  providers: [Logger, JsonRpcService],
 })
 export class JsonRpcModule {}
 
