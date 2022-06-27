@@ -5,6 +5,7 @@ import { NotificationsModule } from "./modules/notifications/notifications.modul
 import { HealthModule } from "./modules/health/health.module";
 import { ApiConfigModule } from "./config/configuration";
 import { LoggingInterceptor } from "./interceptors/logging.interceptor";
+import { VersionInterceptor } from "./interceptors/version.interceptor";
 
 @Module({
   imports: [ApiConfigModule, NotificationsModule, HealthModule],
@@ -13,6 +14,10 @@ import { LoggingInterceptor } from "./interceptors/logging.interceptor";
     {
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: VersionInterceptor,
     },
   ],
 })

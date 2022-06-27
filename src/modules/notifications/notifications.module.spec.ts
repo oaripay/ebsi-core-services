@@ -3,6 +3,7 @@ import axios from "axios";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication, Logger, HttpServer } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -21,6 +22,7 @@ import {
   createNotification,
   createToken,
 } from "../../../tests/utils/notifications";
+import { ApiConfig } from "../../config/configuration";
 
 jest.mock("@cef-ebsi/siop-auth", () => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -52,6 +54,7 @@ describe("Notifications module", () => {
   let selectCountResponse: CassandraResponse;
   let selectResponse: CassandraResponse;
   let modifyResponse: CassandraResponse;
+  let configService: ConfigService<ApiConfig, true>;
 
   function cassandraResponse(rows: unknown[], pageState: string = null) {
     return {
@@ -109,7 +112,10 @@ describe("Notifications module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    app.useGlobalFilters(new AllExceptionsFilter());
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new EbsiValidationPipe());
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();

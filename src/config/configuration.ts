@@ -1,5 +1,6 @@
 import { ConfigModule } from "@nestjs/config";
 import Joi from "joi";
+import { getDockerTag } from "../shared/utils";
 
 export interface ApiConfig {
   apiPrivateKey: string;
@@ -24,6 +25,7 @@ export interface ApiConfig {
     kid: string;
     privateKey: string;
   };
+  dockerContainerTag: string;
 }
 
 // Default values to be used, depending on the environment
@@ -89,6 +91,7 @@ const defaultConfig = {
 // Config factory
 export const loadConfig = (): ApiConfig => {
   const { EBSI_ENV } = process.env;
+  const dockerContainerTag = getDockerTag(EBSI_ENV);
 
   return {
     apiPrivateKey: process.env.API_PRIVATE_KEY,
@@ -121,6 +124,7 @@ export const loadConfig = (): ApiConfig => {
       kid: process.env.TEST_USER_KID_2,
       privateKey: process.env.TEST_USER_PRIVATE_KEY_2,
     },
+    dockerContainerTag,
   };
 };
 

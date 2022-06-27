@@ -8,3 +8,6 @@
 !tsconfig.json
 !yarn.lock
 !src
+
+# The image tag information is used in the service
+!.ci
