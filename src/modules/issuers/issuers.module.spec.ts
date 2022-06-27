@@ -287,7 +287,7 @@ describe("Issuers Module", () => {
       const response = await request(server).get("/issuers/not-a-did");
 
       expect(response.body).toStrictEqual({
-        detail: '["did must be a valid DID"]',
+        detail: '["did must be a valid DID v1"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -301,7 +301,7 @@ describe("Issuers Module", () => {
       const response = await request(server).get("/issuers/did:ebsi:z1234");
 
       expect(response.body).toStrictEqual({
-        detail: '["did must be a valid DID"]',
+        detail: '["did must be a valid DID v1"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -374,7 +374,7 @@ describe("Issuers Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail: '["did must be a valid DID"]',
+        detail: '["did must be a valid DID v1"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -390,7 +390,7 @@ describe("Issuers Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail: '["did must be a valid DID"]',
+        detail: '["did must be a valid DID v1"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -453,7 +453,7 @@ describe("Issuers Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail: '["did must be a valid DID"]',
+        detail: '["did must be a valid DID v1"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -469,7 +469,7 @@ describe("Issuers Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail: '["did must be a valid DID"]',
+        detail: '["did must be a valid DID v1"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -681,7 +681,7 @@ describe("Issuers Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail: '["did must be a valid DID"]',
+        detail: '["did must be a valid DID v1"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -697,7 +697,7 @@ describe("Issuers Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail: '["did must be a valid DID"]',
+        detail: '["did must be a valid DID v1"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",

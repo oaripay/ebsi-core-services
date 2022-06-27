@@ -1,8 +1,8 @@
 import { IsHexadecimal } from "class-validator";
-import { IsDid } from "../../validators";
+import { IsDidV1 } from "../../../../shared/validators";
 
 export class ArgsInsertIssuer {
-  @IsDid()
+  @IsDidV1()
   did: string;
 
   @IsHexadecimal()

@@ -647,7 +647,7 @@ describe("JsonRpc Module", () => {
 
           delete (param2 as InsertIssuerParam).did;
           expectedErrorMessage2 =
-            "property params[0].did has failed the following constraints: isDid";
+            "property params[0].did has failed the following constraints: isDidV1";
 
           param3.from = "bad address";
           expectedErrorMessage3 =

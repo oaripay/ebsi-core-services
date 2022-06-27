@@ -1,7 +1,7 @@
-import { IsDid } from "../../../shared/validators";
+import { IsDidV1 } from "../../../shared/validators";
 
 export class GetIssuerParamsDto {
-  @IsDid()
+  @IsDidV1()
   "did": string;
 }
 

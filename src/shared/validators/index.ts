@@ -1,1 +1,1 @@
-export * from "./IsDid";
+export * from "./IsDidV1";

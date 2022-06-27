@@ -1,18 +1,18 @@
 import { buildMessage, ValidateBy, ValidationOptions } from "class-validator";
-import { isDid } from "../utils/isDid";
+import { isDidV1 } from "../utils/isDidV1";
 
-export const IS_DID = "isDid";
+export const IS_DID_V1 = "isDidV1";
 
-export function IsDid(
+export function IsDidV1(
   validationOptions?: ValidationOptions
 ): PropertyDecorator {
   return ValidateBy(
     {
-      name: IS_DID,
+      name: IS_DID_V1,
       validator: {
-        validate: isDid,
+        validate: isDidV1,
         defaultMessage: buildMessage(
-          (eachPrefix) => `${eachPrefix}$property must be a valid DID`,
+          (eachPrefix) => `${eachPrefix}$property must be a valid DID v1`,
           validationOptions
         ),
       },
