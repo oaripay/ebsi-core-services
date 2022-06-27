@@ -61,7 +61,7 @@ Make sure you have an instance of cassandra running and configure the connection
 docker-compose up --build
 ```
 
-Check http://localhost:3000/proxy-data-hub/v1/health to see if it's working.
+Check http://localhost:3000/proxy-data-hub/v3/health to see if it's working.
 
 ## Linting
 

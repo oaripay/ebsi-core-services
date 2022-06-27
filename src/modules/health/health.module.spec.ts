@@ -14,7 +14,7 @@ import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { ApiConfig } from "../../config/configuration";
 import { HealthModule } from "./health.module";
 
-describe("HealthController", () => {
+describe("Health module", () => {
   let app: NestFastifyApplication;
   let server: HttpServer;
   let httpService: HttpService;
@@ -28,6 +28,7 @@ describe("HealthController", () => {
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter()
     );
+
     configService =
       moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
 

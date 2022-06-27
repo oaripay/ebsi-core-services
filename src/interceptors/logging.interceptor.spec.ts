@@ -1,6 +1,7 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication, ValidationPipe, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { of } from "rxjs";
 import { HttpService } from "@nestjs/axios";
 import {
@@ -11,6 +12,7 @@ import type { FastifyInstance } from "fastify";
 import type { JWTVerifyResult } from "jose";
 import { AppModule } from "../app.module";
 import { AllExceptionsFilter } from "../filters/http-exception.filter";
+import { ApiConfig } from "../config/configuration";
 
 jest.setTimeout(120000);
 
@@ -30,6 +32,7 @@ jest.mock("@cef-ebsi/siop-auth", () => {
 describe("Logging interceptor", () => {
   let app: INestApplication;
   let httpService: HttpService;
+  let configService: ConfigService<ApiConfig, true>;
 
   const mockedLogger = {
     log: jest.fn(),
@@ -45,7 +48,8 @@ describe("Logging interceptor", () => {
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter()
     );
-    app.useGlobalFilters(new AllExceptionsFilter());
+    configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe());
 
     Logger.overrideLogger(mockedLogger);
