@@ -39,7 +39,7 @@ interface JsonrpcCall {
 describe("Attributes Module", () => {
   let app: INestApplication;
   let server: HttpServer;
-  let configService: ConfigService<ApiConfig>;
+  let configService: ConfigService<ApiConfig, true>;
   const mockAxios = jest.spyOn(axios, "post");
 
   const accessTokenApi = jsonwebtoken.sign({}, "secret", {
@@ -99,13 +99,15 @@ describe("Attributes Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    app.useGlobalFilters(new AllExceptionsFilter());
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
 
-    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
     domain = configService.get("domain");
     apiUrlPrefix = configService.get("apiUrlPrefix");
     storageApiUrl = configService.get("storageApiUrl");

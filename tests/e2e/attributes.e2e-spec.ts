@@ -22,6 +22,7 @@ jest.setTimeout(120000);
 describe("Attributes", () => {
   let app: NestFastifyApplication;
   let server: HttpServer;
+  let configService: ConfigService<ApiConfig, true>;
 
   let testUser1: {
     did: string;
@@ -102,14 +103,14 @@ describe("Attributes", () => {
 
     Logger.overrideLogger(false);
 
-    app.useGlobalFilters(new AllExceptionsFilter());
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
-
-    const configService =
-      moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
 
     testUser1 = configService.get<{
       did: string;
