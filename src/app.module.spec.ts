@@ -1,6 +1,7 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication, HttpServer, ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -9,10 +10,12 @@ import type { FastifyInstance } from "fastify";
 import { ethers } from "ethers";
 import { AppModule } from "./app.module";
 import { AllExceptionsFilter } from "./filters/http-exception.filter";
+import { ApiConfig } from "./config/configuration";
 
 describe("App Module", () => {
   let app: INestApplication;
   let server: HttpServer;
+  let configService: ConfigService<ApiConfig, true>;
 
   beforeAll(async () => {
     // Mock WebSocketProvider
@@ -33,7 +36,10 @@ describe("App Module", () => {
       new FastifyAdapter()
     );
 
-    app.useGlobalFilters(new AllExceptionsFilter());
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     await app.init();

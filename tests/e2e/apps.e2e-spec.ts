@@ -101,6 +101,7 @@ describe("Apps (e2e)", () => {
   let userAccessToken: string;
   let besuRpcNode: string;
   let didAppAdmin: string;
+  let configService: ConfigService<ApiConfig, true>;
 
   const publicKeyRaw = `-----BEGIN ${crypto.randomBytes(12).toString("hex")}`;
   const publicKeyBuffer = Buffer.from(publicKeyRaw, "utf8");
@@ -131,13 +132,15 @@ describe("Apps (e2e)", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    app.useGlobalFilters(new AllExceptionsFilter());
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
 
-    const configService =
-      moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
     server = getServer(app, configService);
 
     adminTestWallet = new ethers.Wallet(

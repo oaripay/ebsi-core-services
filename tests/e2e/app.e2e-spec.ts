@@ -27,14 +27,18 @@ describe("TAR API (generic tests)", () => {
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter()
     );
-    app.useGlobalFilters(new AllExceptionsFilter());
-    app.useGlobalPipes(new ValidationPipe());
+
     const configService =
-      moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
+    app.useGlobalPipes(new ValidationPipe());
+
     Logger.overrideLogger(false);
     trustedAppsRegistryUrl = `${configService.get<string>(
       "domain"
     )}${configService.get<string>("apiUrlPrefix")}`;
+
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
 

@@ -7,6 +7,7 @@ import {
   ValidationPipe,
   Logger,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import crypto from "crypto";
 import type { FastifyInstance } from "fastify";
@@ -41,6 +42,7 @@ import { Tar, Tar__factory } from "../../contracts";
 import { setupTestEnv } from "../../../tests/utils/tar";
 import LedgerService from "../ledger/ledger.service";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
+import { ApiConfig } from "../../config/configuration";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -89,6 +91,7 @@ describe("JsonRpc Module", () => {
   let userAccessTokenPayload: { [x: string]: unknown };
   let defaultSignerSiopAccessToken: string;
   let defaultSignerSiopAccessTokenPayload: { [x: string]: unknown };
+  let configService: ConfigService<ApiConfig, true>;
 
   function createPolicy() {
     const policyId = `policy-test-${crypto.randomBytes(16).toString("hex")}`;
@@ -146,8 +149,12 @@ describe("JsonRpc Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    app.useGlobalFilters(new AllExceptionsFilter());
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;

@@ -3,4 +3,4 @@ version: "3.7"
 services:
   trusted-apps-registry-v3:
     build: ../..
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/trusted-apps-registry-v3:test_ebsiint-4351-only-ebsi-did_v3.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/trusted-apps-registry-v3:test_ebsiint-4363-docker-version-tag-info_v3.0.0
