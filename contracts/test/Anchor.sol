@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: EUPL V1.2
-pragma solidity ^0.8.0;
+pragma solidity 0.8.12;
 
 import "../bootstrap-ethereum-sc/contracts/utils/upgradeability/Initializable.sol";
 import "../bootstrap-ethereum-sc/contracts/utils/pausable/Pausable.sol";
