@@ -1,6 +1,7 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger, HttpServer } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
 import {
   FastifyAdapter,
@@ -9,10 +10,12 @@ import {
 import { StoresModule } from "./stores.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { STORES } from "./stores.constants";
+import { ApiConfig } from "../../config/configuration";
 
 describe("Stores Module", () => {
   let app: NestFastifyApplication;
   let server: HttpServer;
+  let configService: ConfigService<ApiConfig, true>;
 
   beforeAll(async () => {
     // Start server
@@ -27,10 +30,14 @@ describe("Stores Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    app.useGlobalFilters(new AllExceptionsFilter());
+    configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
+
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+
     server = app.getHttpServer() as HttpServer;
   });
 

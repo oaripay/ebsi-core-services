@@ -8,6 +8,7 @@ import { StoresModule } from "./modules/stores/stores.module";
 import { FilesModule } from "./modules/files/files.module";
 import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module";
 import { LoggingInterceptor } from "./interceptors/logging.interceptor";
+import { VersionInterceptor } from "./interceptors/version.interceptor";
 
 @Module({
   imports: [
@@ -23,6 +24,10 @@ import { LoggingInterceptor } from "./interceptors/logging.interceptor";
     {
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: VersionInterceptor,
     },
   ],
 })

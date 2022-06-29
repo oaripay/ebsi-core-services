@@ -23,7 +23,7 @@ describe("JsonRpc Module", () => {
   let server: HttpServer;
   let mockCassandra: jest.SpyInstance;
   let cassandraService: CassandraService;
-  let configService: ConfigService<ApiConfig>;
+  let configService: ConfigService<ApiConfig, true>;
   let authService: AuthService;
 
   beforeAll(async () => {
@@ -53,14 +53,17 @@ describe("JsonRpc Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    app.useGlobalFilters(new AllExceptionsFilter());
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
 
     cassandraService = moduleFixture.get<CassandraService>(CassandraService);
-    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
     authService = moduleFixture.get<AuthService>(AuthService);
   });
 

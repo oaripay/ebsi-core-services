@@ -1,10 +1,10 @@
 import { ConfigModule } from "@nestjs/config";
 import Joi from "joi";
+import { getDockerTag } from "../shared/utils";
 
 // List here all the values that will be returned by the config factory
 export interface ApiConfig {
   // Storage API
-  apiPrivateKey: string;
   apiPort: number;
   apiUrlPrefix: string;
   apiName: string;
@@ -27,6 +27,7 @@ export interface ApiConfig {
   testAppKid: string;
   testClientDid: string;
   testClientPrivateKey: string;
+  dockerContainerTag: string;
 }
 
 // Example of default values to be used, depending on the environment
@@ -88,9 +89,9 @@ const defaultConfig = {
 // should have already been validated by Joi in src/app.module.ts
 export const loadConfig = (): ApiConfig => {
   const { EBSI_ENV } = process.env;
+  const dockerContainerTag = getDockerTag(EBSI_ENV);
 
   return {
-    apiPrivateKey: process.env.API_PRIVATE_KEY,
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
     apiUrlPrefix: process.env.API_URL_PREFIX || "/storage/v2",
     apiName: process.env.API_NAME || "storage-api",
@@ -121,6 +122,7 @@ export const loadConfig = (): ApiConfig => {
     testAppKid: process.env.TEST_APP_KID,
     testClientDid: process.env.TEST_CLIENT_DID,
     testClientPrivateKey: process.env.TEST_CLIENT_PRIVATE_KEY,
+    dockerContainerTag,
   };
 };
 
@@ -140,7 +142,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
     NODE_ENV: Joi.string()
       .valid("development", "production", "test")
       .default("development"),
-    API_PRIVATE_KEY: Joi.string().required(),
     API_PORT: Joi.string().default("3000"),
     API_URL_PREFIX: Joi.string(),
     API_NAME: Joi.string(),

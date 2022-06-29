@@ -30,7 +30,7 @@ describe("Files Module", () => {
   let server: HttpServer;
   let filesRepository: FilesRepository;
   let cassandraService: CassandraService;
-  let configService: ConfigService<ApiConfig>;
+  let configService: ConfigService<ApiConfig, true>;
 
   const mockedFileFind = jest.fn();
   const mockedFileInsert = jest.fn();
@@ -97,15 +97,18 @@ describe("Files Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    app.useGlobalFilters(new AllExceptionsFilter());
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
 
     filesRepository = moduleFixture.get<FilesRepository>(FilesRepository);
     cassandraService = moduleFixture.get<CassandraService>(CassandraService);
-    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
   });
 
   afterEach(() => {

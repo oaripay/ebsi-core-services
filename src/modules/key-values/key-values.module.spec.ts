@@ -26,7 +26,7 @@ describe("Key-Values Module", () => {
   let app: NestFastifyApplication;
   let server: HttpServer;
   let cassandraService: CassandraService;
-  let configService: ConfigService<ApiConfig>;
+  let configService: ConfigService<ApiConfig, true>;
 
   const mockedKeyValueFind = jest.fn();
   const mockedKeyValueInsert = jest.fn();
@@ -91,14 +91,16 @@ describe("Key-Values Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    app.useGlobalFilters(new AllExceptionsFilter());
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
 
     cassandraService = moduleFixture.get<CassandraService>(CassandraService);
-    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
   });
 
   afterEach(() => {

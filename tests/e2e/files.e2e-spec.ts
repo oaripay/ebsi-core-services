@@ -27,7 +27,7 @@ const BASE_URL = "/stores/distributed/files";
 describe("Files (e2e)", () => {
   let app: NestFastifyApplication;
   let server: HttpServer;
-  let configService: ConfigService<ApiConfig>;
+  let configService: ConfigService<ApiConfig, true>;
   let testUserAccessToken: string;
 
   const file1 = crypto.randomBytes(256);
@@ -61,17 +61,17 @@ describe("Files (e2e)", () => {
 
     await app.register(fastifyMultipart, fastifyMultipartConfig);
 
-    app.useGlobalFilters(new AllExceptionsFilter());
-    app.useGlobalPipes(new ValidationPipe());
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
+    app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     Logger.overrideLogger(false);
 
-    app.useGlobalFilters(new AllExceptionsFilter());
-    app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
-    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
 
     // Generate valid Client JWT (SIOP) for the tests
     const didRegistry = `${configService.get<string>(

@@ -22,7 +22,7 @@ const BASE_URL = "/stores/distributed/key-values";
 describe("Key-Values (e2e)", () => {
   let app: NestFastifyApplication;
   let server: HttpServer;
-  let configService: ConfigService<ApiConfig>;
+  let configService: ConfigService<ApiConfig, true>;
   let testUserAccessToken: string;
 
   const key = `key-${crypto.randomBytes(16).toString("hex")}`;
@@ -39,14 +39,13 @@ describe("Key-Values (e2e)", () => {
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter(fastifyAdapterConfig)
     );
-    app.useGlobalFilters(new AllExceptionsFilter());
-    app.useGlobalPipes(new ValidationPipe());
 
-    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
 
     Logger.overrideLogger(false);
 
-    app.useGlobalFilters(new AllExceptionsFilter());
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
