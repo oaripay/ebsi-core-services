@@ -6,11 +6,10 @@ import { testTprAddress } from "./testAddress";
 
 describe("Timestamp Hashes", () => {
   let ts: DidRegistry;
-  let admin: SignerWithAddress;
   let user: SignerWithAddress;
 
   before(async () => {
-    [admin, user] = await ethers.getSigners();
+    [, user] = await ethers.getSigners();
     const policyRegistryFactory = await ethers.getContractFactory(
       "PolicyRegistryMock"
     );
@@ -33,13 +32,6 @@ describe("Timestamp Hashes", () => {
     );
     const didTimestampLib = await didTimestampFactory.deploy();
 
-    const didMethodFactory = await ethers.getContractFactory("DidMethodLib", {
-      libraries: {
-        Pagination: paginationLib.address,
-      },
-    });
-    const didMethodLib = await didMethodFactory.deploy();
-
     const didRecordFactory = await ethers.getContractFactory("DidRecordLib", {
       libraries: {
         Pagination: paginationLib.address,
@@ -58,7 +50,6 @@ describe("Timestamp Hashes", () => {
       libraries: {
         HashAlgoLib: hashAlgoLib.address,
         DidTimestampLib: didTimestampLib.address,
-        DidMethodLib: didMethodLib.address,
         DidRecordLib: didRecordLib.address,
         DidPolicyLib: policyLib.address,
       },
@@ -78,6 +69,8 @@ describe("Timestamp Hashes", () => {
     await ts.insertHashAlgorithm(256, "sha-256", "oid", 1, "sha2-256");
     await ts.insertHashAlgorithm(512, "sha-512", "oid2", 1, "sha2-512");
     await ts.insertHashAlgorithm(256, "sha3-256", "oid3", 1, "sha3-256");
+
+    ts = ts.connect(user);
   });
 
   it("getDidTimestamp should succeed", async () => {
@@ -87,7 +80,7 @@ describe("Timestamp Hashes", () => {
     const r1 = await ts.getDidTimestamp(hash1);
     expect(r1.hash.value).to.equal(ethers.utils.hexlify(hash1));
     expect(r1.hash.algorithm).to.equal(0);
-    expect(r1.timestampedBy).to.equal(admin.address);
+    expect(r1.timestampedBy).to.equal(user.address);
     expect(r1.data).to.equal(
       ethers.utils.hexlify(ethers.utils.toUtf8Bytes("btc"))
     );
@@ -101,7 +94,7 @@ describe("Timestamp Hashes", () => {
     const r1 = await ts.getDidTimestamp(hash1);
     expect(r1.hash.value).to.equal(ethers.utils.hexlify(hash1));
     expect(r1.hash.algorithm).to.equal(0);
-    expect(r1.timestampedBy).to.equal(admin.address);
+    expect(r1.timestampedBy).to.equal(user.address);
     expect(ethers.utils.hexlify(r1.data)).to.equal(ethers.utils.hexlify([]));
     expect(r1.blockNumber).to.equal(blockNumber + 1);
   });
@@ -123,7 +116,7 @@ describe("Timestamp Hashes", () => {
     const r1 = await ts.getDidTimestampById(ethers.utils.sha256(hash1));
     expect(r1.hash.value).to.equal(ethers.utils.hexlify(hash1));
     expect(r1.hash.algorithm).to.equal(0);
-    expect(r1.timestampedBy).to.equal(admin.address);
+    expect(r1.timestampedBy).to.equal(user.address);
     expect(ethers.utils.hexlify(r1.data)).to.equal(ethers.utils.hexlify([]));
     expect(r1.blockNumber).to.equal(blockNumber + 1);
   });
@@ -136,7 +129,7 @@ describe("Timestamp Hashes", () => {
     const r1 = await ts.getDidTimestampById(ethers.utils.sha256(hash1));
     expect(r1.hash.value).to.equal(ethers.utils.hexlify(hash1));
     expect(r1.hash.algorithm).to.equal(1);
-    expect(r1.timestampedBy).to.equal(admin.address);
+    expect(r1.timestampedBy).to.equal(user.address);
     expect(r1.data).to.equal(
       ethers.utils.hexlify(ethers.utils.toUtf8Bytes("btc"))
     );

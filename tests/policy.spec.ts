@@ -1,18 +1,23 @@
 /* eslint-disable no-await-in-loop */
 import { ethers } from "hardhat";
+import { BigNumber } from "ethers";
 import crypto from "crypto";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { DidRegistry } from "../src/types";
 
-const num = ethers.BigNumber.from;
+const num = (a: number) => BigNumber.from(a).toString();
 
 function getEthObject(o: unknown): Record<string, unknown> {
   const obj = o as string[] & Record<string, unknown>;
   const keys = Object.keys(obj);
   const result: Record<string, unknown> = {};
   keys.forEach((k, i) => {
-    if (i >= keys.length / 2) result[k] = obj[k];
+    if (i >= keys.length / 2) {
+      const b = obj[k] as BigNumber;
+      if (b._isBigNumber) result[k] = b.toString();
+      else result[k] = obj[k];
+    }
   });
   return result;
 }
@@ -27,7 +32,6 @@ function randomPolicyName(): string {
 
 describe("Policies", () => {
   let ts: DidRegistry;
-  let admin: SignerWithAddress;
   let user: SignerWithAddress;
 
   const policyName = randomPolicyName();
@@ -41,7 +45,7 @@ describe("Policies", () => {
   );
 
   beforeEach(async () => {
-    [admin, user] = await ethers.getSigners();
+    [, user] = await ethers.getSigners();
     const paginationFactory = await ethers.getContractFactory("Pagination", {});
     const paginationLib = await paginationFactory.deploy();
 
@@ -52,13 +56,6 @@ describe("Policies", () => {
       "DidTimestampLib"
     );
     const didTimestampLib = await didTimestampFactory.deploy();
-
-    const didMethodFactory = await ethers.getContractFactory("DidMethodLib", {
-      libraries: {
-        Pagination: paginationLib.address,
-      },
-    });
-    const didMethodLib = await didMethodFactory.deploy();
 
     const didRecordFactory = await ethers.getContractFactory("DidRecordLib", {
       libraries: {
@@ -78,7 +75,6 @@ describe("Policies", () => {
       libraries: {
         HashAlgoLib: hashAlgoLib.address,
         DidTimestampLib: didTimestampLib.address,
-        DidMethodLib: didMethodLib.address,
         DidRecordLib: didRecordLib.address,
         DidPolicyLib: policyLib.address,
       },

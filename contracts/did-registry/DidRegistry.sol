@@ -6,7 +6,6 @@ import "../trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc
 import "./DidStorage.sol";
 import "./HashAlgoDetailed.sol";
 import "./DidPolicyDetailed.sol";
-import "./DidMethodDetailed.sol";
 import "./DidTimestampDetailed.sol";
 import "./DidRecordDetailed.sol";
 
@@ -18,7 +17,6 @@ contract DidRegistry is
     DidStorage,
     HashAlgoDetailed,
     DidPolicyDetailed,
-    DidMethodDetailed,
     DidTimestampDetailed,
     DidRecordDetailed,
     Initializable
@@ -29,7 +27,6 @@ contract DidRegistry is
 
     function setTrustedPoliciesRegistryAddress() public {
         HashAlgos storage hs = hashAlgoStorage();
-        Methods storage ds = didMethodStorage();
 
         uint256 id;
         assembly {
@@ -56,7 +53,6 @@ contract DidRegistry is
         }
 
         hs.trustedPolicyRegistry = IPolicyRegistry(tprAddress);
-        ds.trustedPolicyRegistry = IPolicyRegistry(tprAddress);
     }
 
     function _onInitialize(uint256 _version) internal initializer {

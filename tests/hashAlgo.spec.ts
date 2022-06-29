@@ -30,13 +30,6 @@ describe("Hash Algorithm", () => {
     );
     const didTimestampLib = await didTimestampFactory.deploy();
 
-    const didMethodFactory = await ethers.getContractFactory("DidMethodLib", {
-      libraries: {
-        Pagination: paginationLib.address,
-      },
-    });
-    const didMethodLib = await didMethodFactory.deploy();
-
     const didRecordFactory = await ethers.getContractFactory("DidRecordLib", {
       libraries: {
         Pagination: paginationLib.address,
@@ -55,7 +48,6 @@ describe("Hash Algorithm", () => {
       libraries: {
         HashAlgoLib: hashAlgoLib.address,
         DidTimestampLib: didTimestampLib.address,
-        DidMethodLib: didMethodLib.address,
         DidRecordLib: didRecordLib.address,
         DidPolicyLib: policyLib.address,
       },
