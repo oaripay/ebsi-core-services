@@ -22,7 +22,7 @@ contract PolicyRegistry is
         _onInitialize(_version);
     }
 
-    function _onInitialize(uint256 _version) internal initializer {
+    function _onInitialize(uint256 _version) internal onlyInitializing {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(OPERATOR_ROLE, msg.sender);
         PolicyContractStorage storage ps = PolicyStorage.policyStorage();
