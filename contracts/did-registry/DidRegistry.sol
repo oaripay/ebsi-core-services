@@ -2,7 +2,7 @@
 pragma solidity 0.8.12;
 
 // solhint-disable-next-line max-line-length
-import "../trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/upgradeability/Initializable.sol";
+import "../bootstrap-ethereum-sc/contracts/utils/upgradeability/Initializable.sol";
 import "./DidStorage.sol";
 import "./HashAlgoDetailed.sol";
 import "./DidPolicyDetailed.sol";
@@ -55,7 +55,7 @@ contract DidRegistry is
         hs.trustedPolicyRegistry = IPolicyRegistry(tprAddress);
     }
 
-    function _onInitialize(uint256 _version) internal initializer {
+    function _onInitialize(uint256 _version) internal onlyInitializing {
         TSC storage ts = DidStorage.tscStorage();
         ts.version = _version;
     }

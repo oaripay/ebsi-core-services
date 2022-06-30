@@ -5,6 +5,7 @@ import crypto from "crypto";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { DidRegistry } from "../src/types";
+import { contractFactoryPagination } from "./contractFactories";
 
 const num = (a: number) => BigNumber.from(a).toString();
 
@@ -46,7 +47,10 @@ describe("Policies", () => {
 
   beforeEach(async () => {
     [, user] = await ethers.getSigners();
-    const paginationFactory = await ethers.getContractFactory("Pagination", {});
+    const paginationFactory = await ethers.getContractFactory(
+      contractFactoryPagination,
+      {}
+    );
     const paginationLib = await paginationFactory.deploy();
 
     const hashAlgoFactory = await ethers.getContractFactory("HashAlgoLib", {});

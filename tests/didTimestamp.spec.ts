@@ -3,6 +3,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { DidRegistry } from "../src/types";
 import { testTprAddress } from "./testAddress";
+import { contractFactoryPagination } from "./contractFactories";
 
 describe("Timestamp Hashes", () => {
   let ts: DidRegistry;
@@ -22,7 +23,10 @@ describe("Timestamp Hashes", () => {
   });
 
   beforeEach(async () => {
-    const paginationFactory = await ethers.getContractFactory("Pagination", {});
+    const paginationFactory = await ethers.getContractFactory(
+      contractFactoryPagination,
+      {}
+    );
     const paginationLib = await paginationFactory.deploy();
     const hashAlgoFactory = await ethers.getContractFactory("HashAlgoLib", {});
     const hashAlgoLib = await hashAlgoFactory.deploy();
