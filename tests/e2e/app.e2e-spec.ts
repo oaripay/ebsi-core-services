@@ -34,12 +34,13 @@ describe("App Module (e2e)", () => {
     );
 
     const configService =
-      moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+
     trustedAppsRegistryUrl = `${configService.get<string>("tarApiUrl")}`;
     // Turn off logger
     Logger.overrideLogger(false);
 
-    app.useGlobalFilters(new AllExceptionsFilter());
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();

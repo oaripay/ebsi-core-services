@@ -7,6 +7,7 @@ import {
   Logger,
   HttpServer,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import crypto from "crypto";
 import type { FastifyInstance } from "fastify";
@@ -34,6 +35,7 @@ import { Tir } from "../../contracts";
 import { setupTestEnv } from "../../../tests/utils/tir";
 import { LedgerService } from "../../shared/services/ledger.service";
 import { AttributeObject } from "../issuers/issuers.interface";
+import { ApiConfig } from "../../config/configuration";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -207,7 +209,10 @@ describe("JsonRpc Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    app.useGlobalFilters(new AllExceptionsFilter());
+    const configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();

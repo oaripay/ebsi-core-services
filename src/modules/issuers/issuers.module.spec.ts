@@ -6,6 +6,7 @@ import {
   Logger,
   HttpServer,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import {
   FastifyAdapter,
@@ -19,6 +20,7 @@ import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { setupTestEnv } from "../../../tests/utils/tir";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { LedgerService } from "../../shared/services/ledger.service";
+import { ApiConfig } from "../../config/configuration";
 
 jest.setTimeout(90000);
 
@@ -28,6 +30,7 @@ describe("Issuers Module", () => {
   let app: INestApplication;
   let server: HttpServer;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
+  let configService: ConfigService<ApiConfig, true>;
   const randomDid = EbsiWallet.createDid();
 
   beforeAll(async () => {
@@ -48,10 +51,15 @@ describe("Issuers Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    app.useGlobalFilters(new AllExceptionsFilter());
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+
     server = app.getHttpServer() as HttpServer;
 
     // Mock TIR contract
