@@ -28,18 +28,17 @@ describe("/trusted-ledgers-smart-contracts-registry/v2 (generic tests)", () => {
     const app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter()
     );
-    app.useGlobalFilters(new AllExceptionsFilter());
-    app.useGlobalPipes(new ValidationPipe());
 
     Logger.overrideLogger(false);
 
-    app.useGlobalFilters(new AllExceptionsFilter());
+    const configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-
-    const configService =
-      moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
 
     trustedAppsRegistryApiUrl = configService.get<string>(
       "trustedAppsRegistryApiUrl"

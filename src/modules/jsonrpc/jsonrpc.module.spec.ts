@@ -87,7 +87,7 @@ describe("JsonRpc Module", () => {
   let app: INestApplication;
   let server: HttpServer;
   let ledgerScRegistryContract: LedgerSCRegistry;
-  let configService: ConfigService<ApiConfig>;
+  let configService: ConfigService<ApiConfig, true>;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
   let userAccessToken: string;
   let userAccessTokenPayload: { [x: string]: unknown };
@@ -117,13 +117,17 @@ describe("JsonRpc Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    app.useGlobalFilters(new AllExceptionsFilter());
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+
     server = app.getHttpServer() as HttpServer;
 
-    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
     contractService = moduleFixture.get<ContractService>(ContractService);
 
     // Generate JWTs
