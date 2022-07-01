@@ -2,8 +2,8 @@
 pragma solidity 0.8.12;
 
 // solhint-disable-next-line max-line-length
-import "../did-registry-ethereum-sc/contracts/trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
 import "./TirPolicyStorage.sol";
+import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
 
 // solhint-disable-next-line indent
 abstract contract TirPolicyDetailed is TirPolicyStorage {

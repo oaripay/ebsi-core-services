@@ -6,6 +6,8 @@ import { Contract } from "ethers";
 import { Tir } from "../src/types";
 import { testDidrAddress, testTprAddress } from "./testAddress";
 
+const paginationPath =
+  "contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol:Pagination";
 const num = ethers.BigNumber.from;
 
 function getEthObject(o: unknown): Record<string, unknown> {
@@ -75,7 +77,10 @@ describe("Issuers", () => {
 
   beforeEach(async () => {
     [userWithDid, issuer] = await ethers.getSigners();
-    const paginationFactory = await ethers.getContractFactory("Pagination", {});
+    const paginationFactory = await ethers.getContractFactory(
+      paginationPath,
+      {}
+    );
     const paginationLib = await paginationFactory.deploy();
 
     const contractFactory = await ethers.getContractFactory("Tir", {

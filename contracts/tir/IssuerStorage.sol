@@ -2,8 +2,7 @@
 pragma solidity 0.8.12;
 import "./AttributeStorage.sol";
 import "../did-registry-ethereum-sc/contracts/did-registry/interfaces/IDidRegistry.sol";
-// solhint-disable-next-line max-line-length
-import "../did-registry-ethereum-sc/contracts/trusted-policies-registry-ethereum-sc/contracts/trusted-policies-registry/interfaces/IPolicyRegistry.sol";
+import "../trusted-policies-registry-ethereum-sc/contracts/trusted-policies-registry/interfaces/IPolicyRegistry.sol";
 
 contract IssuerStorage is AttributeStorage {
     // The state variables we care about.
