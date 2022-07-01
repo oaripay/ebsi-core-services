@@ -1,6 +1,8 @@
 artifacts
 cache
 contracts/did-registry-ethereum-sc
+contracts/bootstrap-ethereum-sc
+contracts/trusted-policies-registry-ethereum-sc
 coverage
 node_modules
 src

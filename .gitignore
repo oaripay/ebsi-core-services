@@ -9,3 +9,4 @@ build
 *log
 all.sol
 .secret*
+.env

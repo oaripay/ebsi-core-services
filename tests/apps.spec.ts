@@ -5,7 +5,8 @@ import { Contract } from "ethers";
 import { Tar } from "../src/types";
 import { testDidrAddress, testTprAddress } from "./testAddress";
 import { FactoryOptions } from "hardhat/types";
-
+const paginationPath =
+  "contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol:Pagination";
 const num = ethers.BigNumber.from;
 const getAppId = (name: string) =>
   ethers.utils.sha256(ethers.utils.toUtf8Bytes(name));
@@ -108,7 +109,7 @@ describe("Trusted Apps", () => {
       const contract = await factory.deploy();
       return contract.address;
     };
-    const Pagination = await deployContract("Pagination");
+    const Pagination = await deployContract(paginationPath);
     const contractFactory = await ethers.getContractFactory("Tar", {
       libraries: {
         AppLib: await deployContract("AppLib", {

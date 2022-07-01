@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: EUPL V1.2
 pragma solidity 0.8.12;
 
-// solhint-disable-next-line max-line-length
-import "../did-registry-ethereum-sc/contracts/trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
 import "./TarPolicyStorage.sol";
+import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
 
 library TarPolicyLib {
     using Pagination for bytes32[];

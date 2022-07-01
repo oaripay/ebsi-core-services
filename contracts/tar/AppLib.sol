@@ -2,10 +2,10 @@
 pragma solidity 0.8.12;
 
 // solhint-disable-next-line max-line-length
-import "../did-registry-ethereum-sc/contracts/trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
 import "./AppStorage.sol";
 import "./AppStoreLib.sol";
 import "./AdminAuthLib.sol";
+import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
 
 library AppLib {
     using Pagination for string[];

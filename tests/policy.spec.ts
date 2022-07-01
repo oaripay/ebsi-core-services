@@ -5,7 +5,8 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { FactoryOptions } from "hardhat/types";
 import { expect } from "chai";
 import { Tar } from "../src/types";
-
+const paginationPath =
+  "contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol:Pagination";
 const num = ethers.BigNumber.from;
 
 function getEthObject(o: unknown): Record<string, unknown> {
@@ -50,7 +51,7 @@ describe("Policies", () => {
       const contract = await factory.deploy();
       return contract.address;
     };
-    const Pagination = await deployContract("Pagination");
+    const Pagination = await deployContract(paginationPath);
     const contractFactory = await ethers.getContractFactory("Tar", {
       libraries: {
         AppLib: await deployContract("AppLib", {
