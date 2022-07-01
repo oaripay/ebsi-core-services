@@ -2,10 +2,10 @@
 
 pragma solidity 0.8.12;
 // solhint-disable-next-line max-line-length
-import "../trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/upgradeability/Initializable.sol";
 import "./SchemaSCStorage.sol";
 import "./SchemaDetailed.sol";
 import "./SchemaPolicyDetailed.sol";
+import "../bootstrap-ethereum-sc/contracts/utils/upgradeability/Initializable.sol";
 
 /**
  * @title example of stored values on a SC with pause functionality.
@@ -48,7 +48,7 @@ contract SchemaSCRegistry is
         ss.trustedPolicyRegistry = IPolicyRegistry(tprAddress);
     }
 
-    function _onInitialize(uint256 _version) internal initializer {
+    function _onInitialize(uint256 _version) internal onlyInitializing {
         TSC storage ts = SchemaSCStorage.tscStorage();
         ts.version = _version;
     }

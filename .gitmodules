@@ -2,3 +2,7 @@
 	path = contracts/trusted-policies-registry-ethereum-sc
 	url = https://ec.europa.eu/digital-building-blocks/code/scm/ebsi/trusted-policies-registry-ethereum-sc.git
 	branch = "develop"
+[submodule "contracts/bootstrap-ethereum-sc"]
+	path = contracts/bootstrap-ethereum-sc
+	url = https://ec.europa.eu/digital-building-blocks/code/scm/ebsi/bootstrap-ethereum-sc.git
+	branch = "main"

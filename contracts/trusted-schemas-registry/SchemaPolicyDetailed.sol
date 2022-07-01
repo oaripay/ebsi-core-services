@@ -2,11 +2,8 @@
 // solhint-disable-next-line max-line-length
 
 pragma solidity 0.8.12;
-// solhint-disable-next-line max-line-length
-import "../trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/upgradeability/Initializable.sol";
 import "./SchemaPolicyStorage.sol";
-// solhint-disable-next-line max-line-length
-import "../trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
+import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
 
 abstract contract SchemaPolicyDetailed is SchemaPolicyStorage {
     using Pagination for bytes32[];
