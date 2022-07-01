@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "./HashAlgoStorage.sol";
-import "../trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
+import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
 
 library HashAlgoLib {
     using Pagination for uint256;

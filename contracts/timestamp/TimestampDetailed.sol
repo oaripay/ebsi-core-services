@@ -2,7 +2,7 @@
 pragma solidity 0.8.12;
 
 // solhint-disable-next-line max-line-length
-import "../trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/upgradeability/Initializable.sol";
+import "../bootstrap-ethereum-sc/contracts/utils/upgradeability/Initializable.sol";
 import "./TimestampLib.sol";
 import "./HashAlgoLib.sol";
 
@@ -19,7 +19,7 @@ contract TimestampDetailed is Initializable, TimestampStorage {
      * @dev Sets the values for `operator`,   and `version`.
      */
 
-    function init(uint256 _version) public initializer {
+    function init(uint256 _version) public onlyInitializing {
         _onInitialize(_version);
     }
 
@@ -49,7 +49,7 @@ contract TimestampDetailed is Initializable, TimestampStorage {
         hs.trustedPolicyRegistry = IPolicyRegistry(tprAddress);
     }
 
-    function _onInitialize(uint256 _version) internal initializer {
+    function _onInitialize(uint256 _version) internal onlyInitializing {
         Timestamps storage ts = TimestampStorage.timestampStorage();
         ts._version = _version;
     }

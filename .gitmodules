@@ -5,3 +5,4 @@
 [submodule "contracts/bootstrap-ethereum-sc"]
 	path = contracts/bootstrap-ethereum-sc
 	url = https://ec.europa.eu/digital-building-blocks/code/scm/ebsi/bootstrap-ethereum-sc.git
+  branch = main

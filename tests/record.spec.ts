@@ -49,7 +49,7 @@ describe("Record Hashes", () => {
     });
     ts = await contractFactory.deploy();
 
-    await ts.init(42);
+    await ts.initialize(42);
     await ts.setTrustedPoliciesRegistryAddress();
     const initialVersion = await ts.version();
     expect(initialVersion).to.equal(42);
