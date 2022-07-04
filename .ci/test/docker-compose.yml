@@ -3,4 +3,4 @@ version: "3.7"
 services:
   trusted-policies-registry-api-v2:
     build: ../..
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/trusted-policies-registry-api-v2:test_ebsiint-4287-bump-ebsi-dependencies_v2.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/trusted-policies-registry-api-v2:test_ebsiint-4331-update-hardhat_v2.0.0
