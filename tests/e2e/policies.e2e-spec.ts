@@ -68,7 +68,7 @@ jest.setTimeout(180000);
 describe("Policies (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer | string;
-  let configService: ConfigService<ApiConfig>;
+  let configService: ConfigService<ApiConfig, true>;
   let ledgerService: LedgerService;
   let adminTestWallet: ethers.Wallet;
   let testAdminAccessToken: string;
@@ -91,12 +91,15 @@ describe("Policies (e2e)", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    app.useGlobalFilters(new AllExceptionsFilter());
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
 
-    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
     server = getServer(app, configService);

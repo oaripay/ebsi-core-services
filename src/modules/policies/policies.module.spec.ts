@@ -6,6 +6,7 @@ import {
   Logger,
   HttpServer,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -21,6 +22,7 @@ import {
   ATTRIBUTE_TYPES,
   OPERATION_TYPES,
 } from "./policies.interface";
+import { ApiConfig } from "../../config/configuration";
 
 jest.setTimeout(90000);
 
@@ -30,6 +32,7 @@ describe("Policies Module", () => {
   let app: INestApplication;
   let server: HttpServer;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
+  let configService: ConfigService<ApiConfig, true>;
 
   beforeAll(async () => {
     // Spin up test blockchain (ganache)
@@ -49,10 +52,15 @@ describe("Policies Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    app.useGlobalFilters(new AllExceptionsFilter());
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+
     server = app.getHttpServer() as HttpServer;
 
     // Mock contract

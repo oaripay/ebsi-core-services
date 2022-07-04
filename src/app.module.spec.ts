@@ -1,6 +1,7 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger, HttpServer } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
 import {
   FastifyAdapter,
@@ -8,10 +9,17 @@ import {
 } from "@nestjs/platform-fastify";
 import { AppModule } from "./app.module";
 import { AllExceptionsFilter } from "./filters/http-exception.filter";
+import { ApiConfig } from "./config/configuration";
+
+interface ResponseHeaders {
+  "ebsi-image-tag"?: string;
+  [key: string]: string;
+}
 
 describe("App Module", () => {
   let app: NestFastifyApplication;
   let server: HttpServer;
+  let configService: ConfigService<ApiConfig, true>;
 
   beforeAll(async () => {
     // Start server
@@ -26,10 +34,14 @@ describe("App Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    app.useGlobalFilters(new AllExceptionsFilter());
+    configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
+
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+
     server = app.getHttpServer() as HttpServer;
   });
 
@@ -53,7 +65,26 @@ describe("App Module", () => {
         title: "Not Found",
         type: "about:blank",
       });
+
       expect(response.status).toBe(404);
+    });
+
+    it("should provide EBSI image version/tag in headers", async () => {
+      expect.assertions(2);
+      const response = await request(server).get("/heal").send();
+      const headers = response.header as ResponseHeaders;
+      expect(headers).toHaveProperty("ebsi-image-tag");
+      expect(headers["ebsi-image-tag"].startsWith("test_")).toBe(true);
+    });
+  });
+
+  describe("GET /health", () => {
+    it("should provide EBSI image version/tag in headers", async () => {
+      expect.assertions(2);
+      const response = await request(server).get("/health").send();
+      const headers = response.header as ResponseHeaders;
+      expect(headers).toHaveProperty("ebsi-image-tag");
+      expect(headers["ebsi-image-tag"].startsWith("test_")).toBe(true);
     });
   });
 });
