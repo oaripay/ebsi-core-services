@@ -8,6 +8,7 @@ import {
   Logger,
   HttpServer,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import type { FastifyInstance } from "fastify";
 import {
@@ -43,6 +44,7 @@ import {
 } from "../../../tests/utils/data";
 import { ContractService } from "../../shared/services/contract.service";
 import { computeId } from "../../shared/utils";
+import { ApiConfig } from "../../config/configuration";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -91,6 +93,7 @@ describe("JsonRpc Module", () => {
   let userAccessTokenPayload: { [x: string]: unknown };
   let defaultSignerSiopAccessToken: string;
   let defaultSignerSiopAccessTokenPayload: { [x: string]: unknown };
+  let configService: ConfigService<ApiConfig, true>;
 
   const adminDid = createDid();
 
@@ -183,10 +186,15 @@ describe("JsonRpc Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    app.useGlobalFilters(new AllExceptionsFilter());
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+
     server = app.getHttpServer() as HttpServer;
 
     jsonRpcService = moduleFixture.get<JsonRpcService>(JsonRpcService);

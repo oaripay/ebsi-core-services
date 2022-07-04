@@ -8,11 +8,11 @@ import {
   Logger,
   HttpServer,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
 import { AppModule } from "../../src/app.module";
 import { ApiConfig } from "../../src/config/configuration";
@@ -91,13 +91,15 @@ describe("Policies (e2e)", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    app.useGlobalFilters(new AllExceptionsFilter());
+    const configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
 
-    const configService =
-      moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
     server = getServer(app, configService);
 
     adminTestWallet = new ethers.Wallet(

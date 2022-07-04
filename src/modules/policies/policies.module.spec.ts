@@ -6,6 +6,7 @@ import {
   Logger,
   HttpServer,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -17,6 +18,7 @@ import { generateMultihash } from "../../shared/utils";
 import { setupTestEnv } from "../../../tests/utils/schemaRegistry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { ContractService } from "../../shared/services/contract.service";
+import { ApiConfig } from "../../config/configuration";
 
 const POLICIES_TOTAL = 12;
 const POLICIES_REVISIONS_TOTAL = 5;
@@ -26,6 +28,7 @@ describe("Policies Module", () => {
   let server: HttpServer;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
   let contractService: ContractService;
+  let configService: ConfigService<ApiConfig, true>;
 
   beforeAll(async () => {
     // Spin up test blockchain (ganache)
@@ -47,10 +50,15 @@ describe("Policies Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    app.useGlobalFilters(new AllExceptionsFilter());
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+
     server = app.getHttpServer() as HttpServer;
 
     // Mock TSR contract
