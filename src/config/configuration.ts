@@ -1,5 +1,6 @@
 import { ConfigModule } from "@nestjs/config";
 import Joi from "joi";
+import { getDockerTag } from "../shared/utils";
 
 // List here all the values that will be returned by the config factory
 export interface ApiConfig {
@@ -28,6 +29,7 @@ export interface ApiConfig {
   testEuLoginUsername: string;
   testEuLoginPassword: string;
   testRecaptchaToken: string;
+  dockerContainerTag: string;
 }
 
 // Example of default values to be used, depending on the environment
@@ -43,7 +45,7 @@ const defaultConfig = {
     EU_LOGIN_VALIDATE_SERVICE_URL:
       "https://ecas.acceptance.ec.europa.eu/cas/TicketValidationService",
     EULOGIN_SERVICE_PARAM:
-      "http://localhost:3000/users-onboarding/authentication",
+      "http://localhost:3000/users-onboarding/v2/authentication",
     RECAPTCHA_REGISTERED_HOSTNAME: "localhost",
     LOG_LEVEL: "debug",
   },
@@ -58,7 +60,7 @@ const defaultConfig = {
     EU_LOGIN_VALIDATE_SERVICE_URL:
       "https://ecas.ec.europa.eu/cas/TicketValidationService",
     EULOGIN_SERVICE_PARAM:
-      "https://app.test.intebsi.xyz/users-onboarding/authentication",
+      "https://app.test.intebsi.xyz/users-onboarding/v2/authentication",
     RECAPTCHA_REGISTERED_HOSTNAME: "intebsi.xyz",
     LOG_LEVEL: "info",
   },
@@ -73,7 +75,7 @@ const defaultConfig = {
     EU_LOGIN_VALIDATE_SERVICE_URL:
       "https://ecas.ec.europa.eu/cas/TicketValidationService",
     EULOGIN_SERVICE_PARAM:
-      "https://app.conformance.intebsi.xyz/users-onboarding/authentication",
+      "https://app.conformance.intebsi.xyz/users-onboarding/v2/authentication",
     RECAPTCHA_REGISTERED_HOSTNAME: "intebsi.xyz",
     LOG_LEVEL: "info",
   },
@@ -88,7 +90,7 @@ const defaultConfig = {
     EU_LOGIN_VALIDATE_SERVICE_URL:
       "https://ecas.ec.europa.eu/cas/TicketValidationService",
     EULOGIN_SERVICE_PARAM:
-      "https://app.preprod.ebsi.eu/users-onboarding/authentication",
+      "https://app.preprod.ebsi.eu/users-onboarding/v2/authentication",
     RECAPTCHA_REGISTERED_HOSTNAME: "ebsi.eu",
     LOG_LEVEL: "warn",
   },
@@ -102,7 +104,7 @@ const defaultConfig = {
     EU_LOGIN_VALIDATE_SERVICE_URL:
       "https://ecas.ec.europa.eu/cas/TicketValidationService",
     EULOGIN_SERVICE_PARAM:
-      "https://app.ebsi.eu/users-onboarding/authentication",
+      "https://app.ebsi.eu/users-onboarding/v2/authentication",
     RECAPTCHA_REGISTERED_HOSTNAME: "ebsi.eu",
     LOG_LEVEL: "error",
   },
@@ -113,6 +115,7 @@ const defaultConfig = {
 // should have already been validated by Joi in src/app.module.ts
 export const loadConfig = (): ApiConfig => {
   const { EBSI_ENV } = process.env;
+  const dockerContainerTag = getDockerTag(EBSI_ENV);
 
   return {
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
@@ -152,6 +155,7 @@ export const loadConfig = (): ApiConfig => {
     testEuLoginUsername: process.env.TEST_EU_LOGIN_USERNAME,
     testEuLoginPassword: process.env.TEST_EU_LOGIN_PASSWORD,
     testRecaptchaToken: process.env.TEST_RECAPTCHA_TOKEN,
+    dockerContainerTag,
   };
 };
 

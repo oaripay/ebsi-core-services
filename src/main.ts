@@ -24,12 +24,13 @@ async function bootstrap(): Promise<void> {
     { logger }
   );
 
-  const configService = app.get<ConfigService<ApiConfig>>(ConfigService);
+  const configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
   const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
   const port = configService.get<number>("apiPort");
   const logLevel = configService.get<string>("logLevel");
   const domain = configService.get<string>("domain");
   const localOrigin = configService.get<string>("localOrigin");
+  const dockerContainerTag = configService.get<string>("dockerContainerTag");
 
   // Set logger level
   if (logLevel === "silent") {
@@ -44,6 +45,7 @@ async function bootstrap(): Promise<void> {
 - API_URL_PREFIX:${apiUrlPrefix}
 - API_PORT:${port}
 - LOG_LEVEL: ${logLevel}
+- Docker container tag: ${dockerContainerTag}
 `,
     "main"
   );
@@ -55,7 +57,7 @@ async function bootstrap(): Promise<void> {
 
   await app.register(fastifyHelmet);
 
-  app.useGlobalFilters(new AllExceptionsFilter());
+  app.useGlobalFilters(new AllExceptionsFilter(configService));
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
   // Setup axios interceptors

@@ -46,7 +46,7 @@ const describeSkipCI = isCI ? describe.skip : describe;
 describeSkipCI("reCAPTCHA onboarding", () => {
   let app: NestFastifyApplication;
   let server: HttpServer | string;
-  let configService: ConfigService<ApiConfig>;
+  let configService: ConfigService<ApiConfig, true>;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -56,7 +56,11 @@ describeSkipCI("reCAPTCHA onboarding", () => {
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter()
     );
-    app.useGlobalFilters(new AllExceptionsFilter());
+
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe());
 
     Logger.overrideLogger(false);
@@ -64,7 +68,6 @@ describeSkipCI("reCAPTCHA onboarding", () => {
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
 
-    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
     server = getServer(app, configService);
   });
 

@@ -40,7 +40,7 @@ interface SupertestAuthenticationResponse {
 describe("/onboarding/v2 authentication e2e tests", () => {
   let app: NestFastifyApplication;
   let server: HttpServer | string;
-  let configService: ConfigService<ApiConfig>;
+  let configService: ConfigService<ApiConfig, true>;
   let tokenWebApp: string;
 
   beforeAll(async () => {
@@ -51,7 +51,11 @@ describe("/onboarding/v2 authentication e2e tests", () => {
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter()
     );
-    app.useGlobalFilters(new AllExceptionsFilter());
+
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe());
 
     Logger.overrideLogger(false);
@@ -59,7 +63,6 @@ describe("/onboarding/v2 authentication e2e tests", () => {
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
 
-    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
     server = getServer(app, configService);
     tokenWebApp = await generateTokenWebAppOnboarding(
       configService.get("apiVerificationMethodKid"),

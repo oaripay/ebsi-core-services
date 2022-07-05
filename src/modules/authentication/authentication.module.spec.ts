@@ -32,7 +32,7 @@ import { ApiConfig } from "../../config/configuration";
 describe("Authentication Module", () => {
   let app: INestApplication;
   let server: HttpServer;
-  let configService: ConfigService<ApiConfig>;
+  let configService: ConfigService<ApiConfig, true>;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -46,13 +46,15 @@ describe("Authentication Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    app.useGlobalFilters(new AllExceptionsFilter());
+    configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
+
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
 
-    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+    server = app.getHttpServer() as HttpServer;
   });
 
   afterEach(() => {

@@ -38,7 +38,7 @@ interface SupertestAuthenticationResponse {
 describe("EU Login onboarding", () => {
   let app: NestFastifyApplication;
   let server: HttpServer | string;
-  let configService: ConfigService<ApiConfig>;
+  let configService: ConfigService<ApiConfig, true>;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -48,7 +48,11 @@ describe("EU Login onboarding", () => {
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter()
     );
-    app.useGlobalFilters(new AllExceptionsFilter());
+
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe());
 
     Logger.overrideLogger(false);
@@ -56,7 +60,6 @@ describe("EU Login onboarding", () => {
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
 
-    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
     server = getServer(app, configService);
   });
 
@@ -67,14 +70,14 @@ describe("EU Login onboarding", () => {
     const euLoginUsername = configService.get<string>("testEuLoginUsername");
     const euLoginPassword = configService.get<string>("testEuLoginPassword");
 
-    // Let all the requests pass except https://app.test.intebsi.xyz/users-onboarding/authentication?ticket=...
+    // Let all the requests pass except https://app.test.intebsi.xyz/users-onboarding/v2/authentication?ticket=...
     await page.setRequestInterception(true);
     page.on("request", (req: HTTPRequest) => {
       if (
         !req
           .url()
           .startsWith(
-            "https://app.test.intebsi.xyz/users-onboarding/authentication?ticket="
+            "https://app.test.intebsi.xyz/users-onboarding/v2/authentication?ticket="
           )
       ) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
@@ -82,7 +85,7 @@ describe("EU Login onboarding", () => {
       }
     });
 
-    await page.goto("https://app.test.intebsi.xyz/users-onboarding");
+    await page.goto("https://app.test.intebsi.xyz/users-onboarding/v2");
 
     await expect(page).toMatch("Welcome to the Test environment");
 
@@ -114,7 +117,7 @@ describe("EU Login onboarding", () => {
       req
         .url()
         .startsWith(
-          "https://app.test.intebsi.xyz/users-onboarding/authentication?ticket="
+          "https://app.test.intebsi.xyz/users-onboarding/v2/authentication?ticket="
         )
     );
 
@@ -123,7 +126,7 @@ describe("EU Login onboarding", () => {
     const ticket = httpReq
       .url()
       .replace(
-        "https://app.test.intebsi.xyz/users-onboarding/authentication?ticket=",
+        "https://app.test.intebsi.xyz/users-onboarding/v2/authentication?ticket=",
         ""
       );
 

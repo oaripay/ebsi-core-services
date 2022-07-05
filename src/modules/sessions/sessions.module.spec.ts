@@ -22,7 +22,7 @@ import SessionsService from "./sessions.service";
 describe("Sessions Module", () => {
   let app: INestApplication;
   let server: HttpServer;
-  let configService: ConfigService<ApiConfig>;
+  let configService: ConfigService<ApiConfig, true>;
   let apiDid: string;
 
   beforeAll(async () => {
@@ -33,16 +33,21 @@ describe("Sessions Module", () => {
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter()
     );
-    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+
     [apiDid] = configService.get<string>("apiVerificationMethodKid").split("#");
 
     // Turn off logger
     Logger.overrideLogger(false);
 
-    app.useGlobalFilters(new AllExceptionsFilter());
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+
     server = app.getHttpServer() as HttpServer;
   });
 

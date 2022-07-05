@@ -5,6 +5,7 @@ import { HealthModule } from "./modules/health/health.module";
 import { SessionsModule } from "./modules/sessions/sessions.module";
 import { AuthenticationModule } from "./modules/authentication/authentication.module";
 import { LoggingInterceptor } from "./interceptors/logging.intereceptor";
+import { VersionInterceptor } from "./interceptors/version.interceptor";
 
 @Module({
   imports: [
@@ -17,6 +18,10 @@ import { LoggingInterceptor } from "./interceptors/logging.intereceptor";
     {
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: VersionInterceptor,
     },
   ],
 })
