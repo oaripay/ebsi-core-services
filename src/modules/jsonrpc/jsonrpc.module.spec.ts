@@ -8,6 +8,7 @@ import {
   HttpServer,
   Logger,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import type { FastifyInstance } from "fastify";
 import * as OAuth2Lib from "@cef-ebsi/oauth2-auth";
@@ -43,6 +44,7 @@ import { Timestamp, Timestamp__factory } from "../../contracts/timestamp";
 import { setupTestEnv } from "../../../tests/utils/timestamp";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { LedgerService } from "../../shared/services/ledger.service";
+import { ApiConfig } from "../../config/configuration";
 
 jest.mock("@cef-ebsi/oauth2-auth", () => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -104,6 +106,7 @@ const axiosError = (status: number, message: string): AxiosError =>
 
 describe("JsonRpc Module", () => {
   let app: INestApplication;
+  let configService: ConfigService<ApiConfig, true>;
   let server: HttpServer;
   let timestampContract: Timestamp;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
@@ -204,7 +207,9 @@ describe("JsonRpc Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    app.useGlobalFilters(new AllExceptionsFilter());
+    configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
+
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();

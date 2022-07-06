@@ -6,6 +6,7 @@
     "audit": "audit-ci --moderate --skip-dev",
     "prebuild": "rimraf dist",
     "build": "nest build -p tsconfig.production.json",
+    "clean": "rimraf artifacts cache src/contracts",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
@@ -16,7 +17,7 @@
     "lint:eslint": "eslint . --ext .js,.ts ",
     "lint:tsc": "tsc --noEmit --incremental false",
     "lint:prettier": "prettier . --check",
-    "postinstall": "hardhat compile",
+    "postinstall": "yarn run clean && hardhat compile",
     "release": "standard-version",
     "test": "jest --runInBand",
     "test:watch": "jest --watch",
@@ -48,7 +49,8 @@
     "nest-winston": "^1.6.2",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.5.5",
-    "winston": "^3.7.2"
+    "winston": "^3.7.2",
+    "yaml": "^2.1.1"
   },
   "devDependencies": {
     "@cef-ebsi/wallet-lib": "^2.0.0",

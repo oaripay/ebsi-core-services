@@ -2,5 +2,5 @@ version: "3.7"
 
 services:
   timestamp-api-v3:
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/timestamp-api-v3:pilot_ebsiint-4331-update-hardhat_v3.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/timestamp-api-v3:pilot_ebsiint-4433-docker-version-tag-info_v3.0.0
     build: ../..

@@ -6,6 +6,7 @@ import {
   HttpServer,
   Logger,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import crypto from "crypto";
 import {
   FastifyAdapter,
@@ -21,6 +22,7 @@ import { setupTestEnv, insertHash } from "../../../tests/utils/timestamp";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { multibase, multihashEncode } from "../../shared/utils";
 import { LedgerService } from "../../shared/services/ledger.service";
+import { ApiConfig } from "../../config/configuration";
 
 const HASHES_TOTAL = 3;
 
@@ -30,6 +32,7 @@ describe("Timestamps Module", () => {
   let timestampContract: Timestamp;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
   let ledgerService: LedgerService;
+  let configService: ConfigService<ApiConfig, true>;
 
   beforeAll(async () => {
     // Spin up test blockchain (hardhat)
@@ -55,7 +58,9 @@ describe("Timestamps Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    app.useGlobalFilters(new AllExceptionsFilter());
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
