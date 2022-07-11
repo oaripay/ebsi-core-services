@@ -1,7 +1,8 @@
+/* eslint-disable no-restricted-syntax */
+/* eslint-disable no-await-in-loop */
 import { task } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
-import { ethers } from "hardhat";
-import { DidRegistry, Tar, Tir } from "../src/types";
+import { Tar } from "../src/types";
 
 // follows ETH/BTC's BIP 39 protocol
 // https://iancoleman.io/bip39/
@@ -33,10 +34,11 @@ task(
 
     const appId = await ts.getAppByName(taskArgs.app);
     console.log("app id ", appId);
-    let authAppIds = [];
+    let authAppIds: string[] = [];
 
     if (taskArgs.auth || taskArgs.auth !== "all") {
       const auth = taskArgs.auth.split(",");
+
       for (const appName of auth) {
         authAppIds.push((await ts.getAppByName(appName)).applicationId);
       }
@@ -51,7 +53,6 @@ task(
       console.log("processing auth :", authAppId);
       // get auth
       try {
-        // eslint-disable-next-line no-await-in-loop
         const authorizations = await ts.getAuthorizations(
           appId.applicationId,
           authAppId,
@@ -59,10 +60,11 @@ task(
           50
         );
         console.log("Authorizations: ", authorizations);
+
         for (const auth of authorizations.items) {
           const contractAuth = await ts.getAuthorizationById(auth);
           // console.log("contract auth :", contractAuth);
-          if (contractAuth.status == 0) {
+          if (contractAuth.status === 0) {
             // status needs to be moved to 1
             await (
               await ts.updateAuthorization(

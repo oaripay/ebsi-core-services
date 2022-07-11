@@ -4,7 +4,7 @@
 // When running the script with `hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
 import { ethers, deployments } from "hardhat";
-import { OwnedUpgradeabilityProxy } from "src/types/OwnedUpgradeabilityProxy";
+import { OwnedUpgradeabilityProxy } from "../../src/types";
 
 async function main() {
   // This can run only after Timestamp have been deployed with a proxy

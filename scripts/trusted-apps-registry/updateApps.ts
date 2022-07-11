@@ -1,6 +1,5 @@
-import crypto from "crypto";
 import { ethers } from "hardhat";
-import { Tar } from "src/types/Tar";
+import { Tar } from "../../src/types";
 import { getPublicKey, getPublicKeyId } from "../../utils/publicKey";
 
 /* eslint-disable @typescript-eslint/ban-ts-comment */
@@ -14,10 +13,6 @@ interface App {
   status: number;
   privateKeyHex?: string;
   publicKeyPem?: string;
-}
-
-function randomAddress() {
-  return `0x${crypto.randomBytes(20).toString("hex")}`;
 }
 
 async function appExist(tar: Tar, app: App) {
@@ -99,9 +94,7 @@ async function updateApp(tar: Tar, app: App) {
       return;
     }
 
-    await (
-      await tar.updateApp(oldApp.appIdByPublicKey, app.name, app.domain)
-    ).wait(1);
+    await (await tar.updateApp(oldApp.appIdByPublicKey, app.domain)).wait(1);
 
     if (sameName) {
       console.log(`Domain of '${app.name}' was updated`);
@@ -131,17 +124,7 @@ async function updateApp(tar: Tar, app: App) {
   }
 
   // New App
-  await (
-    await tar.insertApp(
-      app.name,
-      app.domain,
-      administratorId,
-      publicKeyHex,
-      app.status,
-      0,
-      0
-    )
-  ).wait(1);
+  await (await tar.insertApp(app.name, app.domain, administratorId)).wait(1);
   console.log(`New app '${app.name}' created`);
 }
 
@@ -150,7 +133,11 @@ async function main() {
   const [, admin] = await ethers.getSigners();
 
   const proxyAddress = "0xb16BCbd9C6d4628200f420048B6Bcb7E22e3f24D";
-  const tar: Tar = (await ethers.getContractAt("Tar", proxyAddress, admin)) as Tar;
+  const tar: Tar = (await ethers.getContractAt(
+    "Tar",
+    proxyAddress,
+    admin
+  )) as Tar;
 
   /* eslint-disable no-await-in-loop */
   // await in loop must be used to use different consecutive nonces in the transactions

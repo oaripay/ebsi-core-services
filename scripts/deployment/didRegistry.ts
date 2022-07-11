@@ -37,11 +37,6 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
       DidTimestampLib: didTimestampLib.address,
     },
   });
-  const didMethodLib = await deployments.deploy("DidMethodLib", {
-    ...optsPagination,
-    contract:
-      "contracts/did-registry-ethereum-sc/contracts/did-registry/DidMethodLib.sol:DidMethodLib",
-  });
 
   const didPolicyLib = await deployments.deploy("DidPolicyLib", {
     ...opts,
@@ -64,7 +59,6 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
       "contracts/did-registry-ethereum-sc/contracts/did-registry/DidRegistry.sol:DidRegistry",
     libraries: {
       DidRecordLib: didRecordLib.address,
-      DidMethodLib: didMethodLib.address,
       HashAlgoLib: hashAlgoLib.address,
       DidTimestampLib: didTimestampLib.address,
       Pagination: pagination.address,
@@ -83,6 +77,5 @@ func.dependencies = [
   "HashAlgoLib",
   "DidTimestampLib",
   "DidRecordLib",
-  "DidMethodLib",
   "Pagination",
 ];

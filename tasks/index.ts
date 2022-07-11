@@ -9,7 +9,6 @@ import "./tx";
 import "./changeImplementation";
 import "./changeOwnership";
 import "./initializeProxy";
-import "./insertAdministrator";
 import "./addHashAlgo";
 import "./fixTarStatus";
 import "./insertTSRSchema";

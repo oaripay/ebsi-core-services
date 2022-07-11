@@ -1,8 +1,7 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 
-import { LedgerSCRegistry } from "../../src/types/LedgerSCRegistry";
-import { OwnedUpgradeabilityProxy } from "../../src/types/OwnedUpgradeabilityProxy";
+import { LedgerSCRegistry, OwnedUpgradeabilityProxy } from "../../src/types";
 
 const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const { deployments, getNamedAccounts, ethers } = hre;
@@ -27,8 +26,10 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
   const ledgerLib = await deployments.deploy("LedgerLib", optsPagination);
   const scLib = await deployments.deploy("SmartContractLib", optsPagination);
-  const op = await deployments.deploy("OwnedUpgradeabilityProxy", opts);
-
+  const op = await deployments.deploy("TrustedLedgerProxy", {
+    ...opts,
+    contract: "OwnedUpgradeabilityProxy",
+  });
   const proxyfactory = await ethers.getContractFactory(
     "OwnedUpgradeabilityProxy"
   );
@@ -61,19 +62,22 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   try {
     initialVersion = await tsCtr.version();
   } catch {
-    deployments.log("InitialVersion:", initialVersion);
-    // encode the initialize function of the SC to setup some variables
-    const initializeData = tsCtr.interface.encodeFunctionData("initialize", [
-      ethers.utils.hexlify(1),
-    ]);
-    deployments.log("Initializing with:", initializeData);
-
-    const receipt = await proxyCtr["initialize(address,address,bytes)"](
-      ts.address,
-      deployer,
-      initializeData
-    );
-    deployments.log("Initialization receipt hash:", receipt.hash);
+    try {
+      deployments.log("InitialVersion:", initialVersion);
+      // encode the initialize function of the SC to setup some variables
+      const initializeData = tsCtr.interface.encodeFunctionData("initialize", [
+        ethers.utils.hexlify(1),
+      ]);
+      deployments.log("Initializing with:", initializeData);
+      const receipt = await proxyCtr["initialize(address,address,bytes)"](
+        ts.address,
+        deployer,
+        initializeData
+      );
+      deployments.log("Initialization receipt hash:", receipt.hash);
+    } catch (e) {
+      console.log(e);
+    }
   } finally {
     deployments.log("Proxy initialized");
   }

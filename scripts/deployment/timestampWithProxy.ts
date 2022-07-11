@@ -1,8 +1,7 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 
-import { Timestamp } from "../../src/types/Timestamp";
-import { OwnedUpgradeabilityProxy } from "../../src/types/OwnedUpgradeabilityProxy";
+import { Timestamp, OwnedUpgradeabilityProxy } from "../../src/types";
 
 const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const { deployments, getNamedAccounts, ethers } = hre;

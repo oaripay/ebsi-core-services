@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import parseJwk from "jose/jwk/parse";
+import { importJWK } from "jose";
 import { ec as EC } from "elliptic";
 import { ethers } from "hardhat";
 
@@ -17,9 +17,7 @@ export function getPublicKeyId(publicKeyPem: string): string {
   return ethers.utils.sha256(Buffer.from(publicKeyPem, "utf8"));
 }
 
-export async function getPublicKey(
-  _privateKey: string
-): Promise<{
+export async function getPublicKey(_privateKey: string): Promise<{
   publicKeyObject: crypto.KeyObject;
   publicKeyPem: string;
   publicKeyHex: string;
@@ -30,7 +28,7 @@ export async function getPublicKey(
   const ec = new EC("secp256k1");
   const privKey = ec.keyFromPrivate(privateKey);
   const pubPoint = privKey.getPublic();
-  const publicKey = await parseJwk(
+  const publicKey = await importJWK(
     {
       kty: "EC",
       crv: "secp256k1",

@@ -1,7 +1,6 @@
 import { task } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
-import { ethers } from "hardhat";
-import { DidRegistry, Tir } from "../src/types";
+import { DidRegistry } from "../src/types";
 
 // follows ETH/BTC's BIP 39 protocol
 // https://iancoleman.io/bip39/
@@ -11,11 +10,11 @@ task(
   "Add alg hash",
   async (taskArgs: { proxy: string; contract: string }, { ethers }) => {
     const [deployer, admin] = await ethers.getSigners();
-    const ts = await ethers.getContractAt(
+    const ts = (await ethers.getContractAt(
       taskArgs.contract,
       taskArgs.proxy,
       admin
-    );
+    )) as DidRegistry;
 
     console.log(
       `deployer:${deployer.address}

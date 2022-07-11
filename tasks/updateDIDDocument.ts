@@ -1,8 +1,5 @@
 import { task } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
-import { ethers } from "hardhat";
-import canonicalize from "canonicalize";
-import { readFile } from "fs/promises";
 import { DidRegistry } from "../src/types";
 
 // follows ETH/BTC's BIP 39 protocol
@@ -31,7 +28,7 @@ task(
     console.log(initialVersion);
     console.log("initialVersion:", initialVersion.toString());
 
-    const network = await ethers.provider.getNetwork();
+    // const network = await ethers.provider.getNetwork();
 
     try {
       await (

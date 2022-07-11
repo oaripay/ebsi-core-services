@@ -1,7 +1,7 @@
-import { task, types } from "hardhat/config";
+import { task } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
 import { BigNumber } from "ethers";
-import { OwnedUpgradeabilityProxy } from "../src/types/OwnedUpgradeabilityProxy";
+import { OwnedUpgradeabilityProxy } from "../src/types";
 
 task("initProxy", "init proxy with implementation")
   .addParam("proxy", "The proxy address")
@@ -45,6 +45,7 @@ task("initProxy", "init proxy with implementation")
             IMPLEMENTATION_SLOT
           )
         ).toHexString();
+        // eslint-disable-next-line no-empty
       } catch (e) {}
       console.log(`Proxy admin address: ${adminAddr}`);
       // the implementation is in the next storage slot as it is part of the same struct
@@ -56,6 +57,7 @@ task("initProxy", "init proxy with implementation")
             BigNumber.from(IMPLEMENTATION_SLOT).add(1)
           )
         ).toHexString();
+        // eslint-disable-next-line no-empty
       } catch (e) {}
       console.log(
         `Proxy current implementation address: ${implementationAddr}`

@@ -1,7 +1,6 @@
 import { ethers, deployments } from "hardhat";
 import { BigNumber } from "ethers";
-import { LedgerSCRegistry } from "../../src/types/LedgerSCRegistry";
-import { OwnedUpgradeabilityProxy } from "../../src/types/OwnedUpgradeabilityProxy";
+import { LedgerSCRegistry, OwnedUpgradeabilityProxy } from "../../src/types";
 
 async function main() {
   const proxyDeployedAddr = `0x7FC3C7805095a6863243bFc73Da563A1E1CA2763`;
@@ -54,17 +53,14 @@ async function main() {
     proxyCtr.address
   ) as LedgerSCRegistry;
 
-  const initializeData = trustedRegistryThroughProxy.interface.encodeFunctionData(
-    "setVersion",
-    [BigNumber.from(version).add(1)]
-  );
+  const initializeData =
+    trustedRegistryThroughProxy.interface.encodeFunctionData("setVersion", [
+      BigNumber.from(version).add(1),
+    ]);
 
   console.log("Initializing with:", initializeData);
   const receipt = await (
-    await proxyCtr["upgradeToAndCall(address,bytes)"](
-      ts.address,
-      initializeData
-    )
+    await proxyCtr.upgradeToAndCall(ts.address, initializeData)
   ).wait(1);
 
   const newImplementationAddr = BigNumber.from(

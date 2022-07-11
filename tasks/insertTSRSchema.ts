@@ -1,6 +1,5 @@
 import { task } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
-import { ethers } from "hardhat";
 import canonicalize from "canonicalize";
 import { readdir, readFile } from "fs/promises";
 import { SchemaSCRegistry } from "../src/types";

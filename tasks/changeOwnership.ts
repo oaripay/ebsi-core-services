@@ -1,7 +1,7 @@
 import { task, types } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
 import { BigNumber } from "ethers";
-import { OwnedUpgradeabilityProxy } from "../src/types/OwnedUpgradeabilityProxy";
+import { OwnedUpgradeabilityProxy } from "../src/types";
 
 task("changeOwnership", "change proxy implementation")
   .addParam("proxy", "The proxy address")

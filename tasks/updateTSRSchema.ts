@@ -1,6 +1,5 @@
 import { task } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
-import { ethers } from "hardhat";
 import canonicalize from "canonicalize";
 import { readFile } from "fs/promises";
 import { SchemaSCRegistry } from "../src/types";
@@ -43,9 +42,9 @@ task(
     )}`;
 
     try {
-      await (await tsr.updateSchema(taskArgs.schema, schemaHex, schema)).wait(
-        1
-      );
+      await (
+        await tsr.updateSchema(taskArgs.schema, schemaHex, schema)
+      ).wait(1);
       console.log(
         `Schema ${taskArgs.file} updated on networkId ${network.chainId} at id: ${taskArgs.schema}`
       );

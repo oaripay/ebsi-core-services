@@ -1,7 +1,7 @@
 import { task, types } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
 import { BigNumber } from "ethers";
-import { OwnedUpgradeabilityProxy } from "../src/types/OwnedUpgradeabilityProxy";
+import { OwnedUpgradeabilityProxy } from "../src/types";
 
 task("changeImplementation", "change proxy implementation")
   .addParam("proxy", "The proxy address")
@@ -92,16 +92,11 @@ task("changeImplementation", "change proxy implementation")
           `will upgrade and increment version with data: ${initializeData}`
         );
         receipt = await (
-          await proxyCtr["upgradeToAndCall(address,bytes)"](
-            ts.address,
-            initializeData
-          )
+          await proxyCtr.upgradeToAndCall(ts.address, initializeData)
         ).wait(1);
       } else {
         console.log(`will upgrade to: ${ts.address}`);
-        receipt = await (await proxyCtr["upgradeTo(address)"](ts.address)).wait(
-          1
-        );
+        receipt = await (await proxyCtr.upgradeTo(ts.address)).wait(1);
       }
 
       const newImplementationAddr = BigNumber.from(

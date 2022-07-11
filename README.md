@@ -145,7 +145,6 @@ STORAGE = Storage of version location from the appendix below
            | Timestamp             	| Timestamp        	| diamond.standard.timestamp.storage                      	|
            | PolicyRegisty         	| PolicyRegistry   	| diamond.standard.policy.registry.storage                 	|
 
-
 ## Scripts
 
 you can run scripts with the following command `hardhat --network <networkName> run <script>`.
@@ -170,6 +169,7 @@ yarn hardhat --network local run scripts/trusted-apps-registry/updateApps.ts
 ```
 npx hardhat --network localWithData fixTarStatus --proxy <PROXY OF TAR> --app <APP_TO_BE_UPDATED> --auth <APP_AUTH>
 ```
+
 Note:
 PROXY OF TAR: address of the proxy of TAR
 APP_TO_BE_UPDATED: the name of the app to be updated, i.e. : users-onboarding-api
@@ -215,6 +215,7 @@ Add new administrators to the desired Registries (registries must implement `ins
 ```
 npx hardhat --network localWithData insertAdministrator --proxy PROXY_ADDRESS --contract CONTRACT_ARTIFACT
 ```
+
 ### Insert Administrator Appendix
 
            | App Name              	| Deployment Tag   	| Contract ABI artifact                             	|
@@ -226,7 +227,7 @@ npx hardhat --network localWithData insertAdministrator --proxy PROXY_ADDRESS --
 Add the default hash algorithms to the ledgers (contract ABIs: `DidRegistry`, `Timestamp`)
 
 ```
-npx hardhat --network localWithData addHashAlgo --proxy PROXY_ADDRESS --contract CONTRACT 
+npx hardhat --network localWithData addHashAlgo --proxy PROXY_ADDRESS --contract CONTRACT
 ```
 
 # Hardhat console
