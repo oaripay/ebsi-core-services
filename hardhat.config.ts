@@ -1,5 +1,4 @@
 import "@nomiclabs/hardhat-waffle";
-import "@nomiclabs/hardhat-solhint";
 import "@typechain/hardhat";
 import "hardhat-abi-exporter";
 import "solidity-coverage";
