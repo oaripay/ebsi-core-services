@@ -44,7 +44,8 @@ library SchemaLib {
             "Schema already registered"
         );
 
-        //Compute the SHA2-256 hash of the schema and verify that is not already registered (in the Schema Revisions Store)
+        // Compute the SHA2-256 hash of the schema and verify
+        // that is not already registered (in the Schema Revisions Store)
         require(
             (ss.schemaRevisionStore[schemaRevisionId]).length == 0,
             "Revision already exist."
@@ -137,7 +138,8 @@ library SchemaLib {
     }
 
     /**
-     * @dev getLatestSchemaRevisionMetadataByRevisionId returns schema revision metadata for the given schema revision id.
+     * @dev getLatestSchemaRevisionMetadataByRevisionId returns schema revision metadata for
+     * the given schema revision id.
      */
     function getLatestSchemaRevisionMetadataByRevisionId(
         SchemaStorage.Schemas storage ss,
@@ -182,7 +184,8 @@ library SchemaLib {
             ss.schemaIdToRevisionIds[schemaId].length > 0,
             "Schema not registered"
         );
-        //Compute the SHA2-256 hash of the schema and verify that is not already registered (in the Schema Revisions Store)
+        // Compute the SHA2-256 hash of the schema and verify
+        // that is not already registered (in the Schema Revisions Store)
         require(
             (ss.schemaRevisionStore[schemaRevisionId]).length == 0,
             "Revision exist"
@@ -251,7 +254,8 @@ library SchemaLib {
     }
 
     /**
-     * @dev getSchemaRevisionMetadataIds returns a paginated list of schema revision metadata ids, for a specific SchemaRevisionId
+     * @dev getSchemaRevisionMetadataIds returns a paginated list of schema revision metadata ids,
+     * for a specific SchemaRevisionId
      */
     function getSchemaRevisionMetadataIds(
         SchemaStorage.Schemas storage ss,
@@ -282,7 +286,8 @@ library SchemaLib {
     }
 
     /**
-     * @dev getSchemaRevisionMetadataByMetadataId returns schema revision metadata for the given schema revision metadata id.
+     * @dev getSchemaRevisionMetadataByMetadataId returns schema revision metadata
+     * for the given schema revision metadata id.
      */
     function getSchemaRevisionMetadataByMetadataId(
         SchemaStorage.Schemas storage ss,
