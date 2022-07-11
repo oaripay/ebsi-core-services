@@ -1,4 +1,12 @@
 {
   "extends": "solhint:default",
-  "excludedFiles": ["**/contracts/did-registry-ethereum-sc"]
+  "rules": {
+    "compiler-version": ["error", "0.8.12"],
+    "no-inline-assembly": "off"
+  },
+  "excludedFiles": [
+    "**/contracts/did-registry-ethereum-sc",
+    "**/contracts/trusted-policies-registry-ethereum-sc",
+    "**/contracts/bootstrap-ethereum-sc"
+  ]
 }

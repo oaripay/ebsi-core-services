@@ -3,7 +3,6 @@ import crypto from "crypto";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { Contract } from "ethers";
-import { Tir } from "../src/types";
 import { testDidrAddress, testTprAddress } from "./testAddress";
 
 const paginationPath =
