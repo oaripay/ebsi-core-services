@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.1](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/authorisation-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.0&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.1&targetRepoId=359) (2022-07-06)
+
+### 🚀 Features
+
+- display docker image tag in api header on test ([#114](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/authorisation-api/pull-requests/114/overview)) - EBSIINT-4320 ([11adbe3](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/authorisation-api/commits/11adbe3ed1d5f7d19feaaf912a82749f0d2064c9))
+
 ## [2.0.0-rc.0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/authorisation-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.14&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.0&targetRepoId=359) (2022-06-08)
 
 ### 🐛 Bug Fixes
