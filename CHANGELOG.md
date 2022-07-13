@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [3.0.0-rc.1](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/timestamp-api/compare/diff?targetBranch=refs%2Ftags%2Fv3.0.0-rc.0&sourceBranch=refs%2Ftags%2Fv3.0.0-rc.1&targetRepoId=247) (2022-07-06)
+
+### 🐛 Bug Fixes
+
+- accept only EBSI DIDs ([#124](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/timestamp-api/pull-requests/124/overview)) - EBSIINT-4349 ([f504ad7](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/timestamp-api/commits/f504ad741a54415bfcfb0e33b7730cf9154336cd))
+
+### 🚀 Features
+
+- show docker tag version info ([#129](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/timestamp-api/pull-requests/129/overview)) - EBSIINT-4433 ([eb1cd7f](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/timestamp-api/commits/eb1cd7f31e449ba6deb540b53a79a82831299a91))
+
 ## [3.0.0-rc.0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/timestamp-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.10&sourceBranch=refs%2Ftags%2Fv3.0.0-rc.0&targetRepoId=247) (2022-06-08)
 
 ### ⚠ BREAKING CHANGES
