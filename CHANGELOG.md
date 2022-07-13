@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.10](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.9&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.10&targetRepoId=244) (2022-07-06)
+
+### 🚀 Features
+
+- display version header in api v2 ([#127](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/127/overview)) - EBSIINT-4242 ([6db22ec](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/6db22ecb30cef9d3a68e5c5c6937176e9741bf93))
+
+### 🐛 Bug Fixes
+
+- fix jsrsasign vulnerability ([#135](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/135/overview)) - EBSIINT-4370 ([3189b75](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/3189b750765e5c48df49bc8090131af965b8914e))
+
 ## [2.0.0-rc.9](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.8&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.9&targetRepoId=244) (2022-06-08)
 
 ### 🐛 Bug Fixes
