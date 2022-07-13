@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.1](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.0&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.1&targetRepoId=387) (2022-07-06)
+
+### 🐛 Bug Fixes
+
+- accept only EBSI DIDs ([#77](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/pull-requests/77/overview)) - EBSIINT-4353 ([b5e3782](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/commits/b5e3782a7df79f2b07dd28efde0fabfb49fff804))
+
+### 🚀 Features
+
+- show docker tag version info ([#79](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/pull-requests/79/overview)) - EBSIINT-4365 ([f3a169a](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/commits/f3a169aab4968beb81cfa703ec207f2d251ba5dd))
+
 ## [2.0.0-rc.0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.7&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.0&targetRepoId=387) (2022-06-08)
 
 ### ⚠ BREAKING CHANGES
