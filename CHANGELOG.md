@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.1](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.0&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.1&targetRepoId=234) (2022-07-06)
+
+### 🚀 Features
+
+- show docker tag version info ([#97](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-api/pull-requests/97/overview)) - EBSIINT-4368 ([f9e4221](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-api/commits/f9e422125c1d83f2dc609489a8a759a4b4d1f2fc))
+
 ## [2.0.0-rc.0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.10&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.0&targetRepoId=234) (2022-06-09)
 
 ### ⚠ BREAKING CHANGES
