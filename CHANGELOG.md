@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [3.0.0-rc.1](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-apps-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv3.0.0-rc.0&sourceBranch=refs%2Ftags%2Fv3.0.0-rc.1&targetRepoId=248) (2022-07-06)
+
+### 🐛 Bug Fixes
+
+- accept only EBSI DIDs ([#130](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-apps-registry-api/pull-requests/130/overview)) - EBSIINT-4351 ([cc6db02](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-apps-registry-api/commits/cc6db02c60bd7caf2435a399ac0d663d0bbd0c34))
+
+### 🚀 Features
+
+- show docker version tag info ([#131](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-apps-registry-api/pull-requests/131/overview)) - EBSIINT-4363 ([26b9594](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-apps-registry-api/commits/26b95944c993239545d9f39507b4441dfd1a0454))
+
 ## [3.0.0-rc.0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-apps-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.7&sourceBranch=refs%2Ftags%2Fv3.0.0-rc.0&targetRepoId=248) (2022-06-08)
 
 ### ⚠ BREAKING CHANGES
