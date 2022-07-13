@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.10](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/storage-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.9&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.10&targetRepoId=245) (2022-07-06)
+
+### 🚀 Features
+
+- display docker version tag info v2 ([#102](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/storage-api/pull-requests/102/overview)) - EBSIINT-4362 ([a524829](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/storage-api/commits/a524829a647c64afff2ad5f647c8a4bdad8fbe80))
+
 ## [2.0.0-rc.9](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/storage-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.8&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.9&targetRepoId=245) (2022-06-08)
 
 ### 🚀 Features

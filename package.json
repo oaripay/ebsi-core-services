@@ -1,6 +1,6 @@
 {
   "private": true,
-  "version": "2.0.0-rc.9",
+  "version": "2.0.0-rc.10",
   "license": "EUPL-1.2",
   "scripts": {
     "audit": "audit-ci --moderate --skip-dev",
@@ -101,5 +101,8 @@
     "reportPath": "coverage",
     "reportFile": "test-reporter.xml",
     "indent": 4
+  },
+  "resolutions": {
+    "@nestjs/cli/@angular-devkit/schematics-cli/minimist": "1.2.6"
   }
 }
