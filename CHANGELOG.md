@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [3.0.0-rc.1](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/proxy-data-hub-api/compare/diff?targetBranch=refs%2Ftags%2Fv3.0.0-rc.0&sourceBranch=refs%2Ftags%2Fv3.0.0-rc.1&targetRepoId=252) (2022-07-06)
+
+### 🐛 Bug Fixes
+
+- accept only EBSI DIDs ([#86](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/proxy-data-hub-api/pull-requests/86/overview)) - EBSIINT-4348 ([145593b](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/proxy-data-hub-api/commits/145593b8e092d0017e5439682da908391c86ad23))
+
+### 🚀 Features
+
+- allow natural persons to store data ([#85](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/proxy-data-hub-api/pull-requests/85/overview)) - EBSIINT-4328 ([ddbca79](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/proxy-data-hub-api/commits/ddbca79c0828b67b9aa8725540e3ad500c7e90f8))
+- display docker version tag info ([#87](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/proxy-data-hub-api/pull-requests/87/overview)) - EBSIINT-4361 ([8d3ce29](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/proxy-data-hub-api/commits/8d3ce299ee022d3a1941de7b02ba4802d34931a5))
+
 ## [3.0.0-rc.0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/proxy-data-hub-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.8&sourceBranch=refs%2Ftags%2Fv3.0.0-rc.0&targetRepoId=252) (2022-06-08)
 
 ### ⚠ BREAKING CHANGES
