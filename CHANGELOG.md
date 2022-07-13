@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [3.0.0-rc.1](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv3.0.0-rc.0&sourceBranch=refs%2Ftags%2Fv3.0.0-rc.1&targetRepoId=244) (2022-07-06)
+
+### 🚀 Features
+
+- show docker image tag as response header on TEST environment ([#125](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/125/overview)) - EBSIINT-4242 ([2036f21](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/2036f215533bc135b1ad61283bf4cf6f2b2420d9))
+
+### 🐛 Bug Fixes
+
+- vulnerabilities, update deps ([#137](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/137/overview)) - EBSIINT-4332 ([5d0001a](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/5d0001a159d7c41fd5afe089ed00d27e7a033e0f))
+
 ## [3.0.0-rc.0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.8&sourceBranch=refs%2Ftags%2Fv3.0.0-rc.0&targetRepoId=244) (2022-06-08)
 
 ### ⚠ BREAKING CHANGES
