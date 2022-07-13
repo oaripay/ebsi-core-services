@@ -29,9 +29,9 @@ contract AuthorizationDetailed is AuthorizationStorage {
      * @dev insert an authorization
      */
     function insertAuthorization(
-        string calldata name,
-        string calldata authorizedAppName,
-        string calldata iss,
+        string memory name,
+        string memory authorizedAppName,
+        string memory iss,
         AppStoreLib.Status status,
         uint8 permissions,
         uint256 notBefore,

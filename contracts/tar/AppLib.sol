@@ -384,14 +384,19 @@ library AppLib {
             .administrators
             .length;
         uint256 indexToBeDeleted = adminLength;
-        for (uint256 i = 0; i < adminLength; i++) {
-            if (
-                keccak256(bytes(admins[i])) == keccak256(bytes(administratorId))
-            ) {
-                indexToBeDeleted = i;
-                break;
+        {
+            // scope to reduce stack
+            for (uint256 i = 0; i < adminLength; i++) {
+                if (
+                    keccak256(bytes(admins[i])) ==
+                    keccak256(bytes(administratorId))
+                ) {
+                    indexToBeDeleted = i;
+                    break;
+                }
             }
         }
+
         require(indexToBeDeleted != adminLength, "no admin");
         // if index to be deleted is not the last index, swap position.
         if (indexToBeDeleted < adminLength - 1) {

@@ -34,9 +34,9 @@ library AuthLib {
     function insertAuthorization(
         AuthStoreLib.Authorizations storage auths,
         AppStoreLib.Applications storage apps,
-        string calldata name,
-        string calldata authorizedAppName,
-        string calldata iss,
+        string memory name,
+        string memory authorizedAppName,
+        string memory iss,
         AppStoreLib.Status status,
         uint8 permissions,
         uint256 notBefore,
