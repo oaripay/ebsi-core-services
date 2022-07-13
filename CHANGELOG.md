@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [3.0.0-rc.1](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/did-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv3.0.0-rc.0&sourceBranch=refs%2Ftags%2Fv3.0.0-rc.1&targetRepoId=234) (2022-07-06)
+
+### 🚀 Features
+
+- show docker version tag in header for test env ([#149](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/did-registry-api/pull-requests/149/overview)) - EBSIINT-4321 ([701647b](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/did-registry-api/commits/701647bfda331f08f4af94a887665cbde44f3b4b))
+
+### 🐛 Bug Fixes
+
+- accept only EBSI DIDs ([#156](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/did-registry-api/pull-requests/156/overview)) - EBSIINT-4346 ([a411b2c](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/did-registry-api/commits/a411b2cf383c43d8570794552aba8d6db445df9e))
+- remove did-methods ([#157](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/did-registry-api/pull-requests/157/overview)) - EBSIINT-4358 ([27b9aea](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/did-registry-api/commits/27b9aea9d92385f00fb946adf1102df0d08d9413))
+
 ## [3.0.0-rc.0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/did-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.9&sourceBranch=refs%2Ftags%2Fv3.0.0-rc.0&targetRepoId=234) (2022-06-08)
 
 ### ⚠ BREAKING CHANGES
