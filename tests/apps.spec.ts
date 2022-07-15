@@ -5,6 +5,7 @@ import { Contract } from "ethers";
 import { Tar } from "../src/types";
 import { testDidrAddress, testTprAddress } from "./testAddress";
 import { FactoryOptions } from "hardhat/types";
+
 const paginationPath =
   "contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol:Pagination";
 const num = ethers.BigNumber.from;
@@ -294,6 +295,28 @@ describe("Trusted Apps", () => {
     });
   });
 
+  it("should revert if no new data", async () => {
+    await policyContractMock.setPolicyResult(false);
+
+    const info = crypto.randomBytes(32);
+    const infoId = ethers.utils.sha256(info);
+    await expect(tar.insertAppInfo(app.id, info)).to.emit(
+      tar,
+      "ApplicationInfoUpdated"
+    );
+
+    const extraPubKey = crypto.randomBytes(40);
+    const extraPubKeyId = ethers.utils.sha256(extraPubKey);
+    await expect(tar.insertAppPublicKey(app.id, extraPubKey, 0, 0, 0)).to.emit(
+      tar,
+      "PublicKeyAdded"
+    );
+
+    await expect(tar.updateAppPublicKey(extraPubKeyId, 0, 0)).to.revertedWith(
+      "No new data for update"
+    );
+  });
+
   it("should update info/publickeys of the app by app admin", async () => {
     await policyContractMock.setPolicyResult(false);
 
@@ -415,6 +438,22 @@ describe("Trusted Apps", () => {
       prev: num(1),
       next: num(1),
     });
+  });
+
+  it("should revert if update has no new data", async () => {
+    await policyContractMock.setPolicyResult(false);
+    await expect(
+      tar.insertAuthorization(app.name, app2.name, "did:me", 0, 0, 0, 0)
+    ).to.emit(tar, "AddNewAuthorization");
+    const authId = calcAuthorizationId(
+      getAppId(app.name),
+      getAppId(app2.name),
+      "did:me",
+      0
+    );
+    await expect(tar.updateAuthorization(authId, 0, 0, 0)).to.revertedWith(
+      "No new data for update"
+    );
   });
 
   it("should insert/update authorizations by app admin", async () => {

@@ -129,6 +129,17 @@ library AuthLib {
             appId
         );
 
+        AuthStoreLib.Authorization memory auth = auths.authorizationStore[
+            authorizationId
+        ];
+
+        require(
+            auth.status != status ||
+                auth.permissions != permissions ||
+                auth.notAfter != notAfter,
+            "No new data for update"
+        );
+
         auths.authorizationStore[authorizationId].status = status;
         auths.authorizationStore[authorizationId].permissions = permissions;
         auths.authorizationStore[authorizationId].notAfter = notAfter;

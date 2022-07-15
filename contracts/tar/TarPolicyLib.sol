@@ -54,6 +54,7 @@ library TarPolicyLib {
     ) external {
         TarPolicyStoreLib.PolicyDetails storage p = ds.policyStore[policyId];
         require(p.revisionHashes.length > 0, "pol unknown");
+        require(policyData.length > 0, "policy data not defined");
         bytes32 newPolicyHash = sha256(policyData);
 
         require(ds.revisions[newPolicyHash].length == 0, "pol data exist");

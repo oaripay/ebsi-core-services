@@ -72,6 +72,18 @@ describe("Policies", () => {
     expect(ts.address).to.properAddress;
   });
 
+  it("should revert if policy data is empty", async () => {
+    const tsUser = ts.connect(user);
+    await expect(tsUser.insertPolicy(policyName, policyData1)).to.emit(
+      ts,
+      "AddNewPolicy"
+    );
+
+    await expect(ts.updatePolicy(policyName, "0x")).to.be.revertedWith(
+      "policy data not defined"
+    );
+  });
+
   it("should insert/update a policy as user", async () => {
     // insert policy
     const tsUser = ts.connect(user);

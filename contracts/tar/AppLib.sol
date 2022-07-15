@@ -487,6 +487,15 @@ library AppLib {
             appId
         );
 
+        AppStoreLib.PublicKey memory publicKey = apps.publicKeyStore[
+            publicKeyId
+        ];
+
+        require(
+            status != publicKey.status || notAfter != publicKey.notAfter,
+            "No new data for update"
+        );
+
         apps.publicKeyStore[publicKeyId].status = status;
         apps.publicKeyStore[publicKeyId].notAfter = notAfter;
         emit PublicKeyUpdated(publicKeyId, status, notAfter);
