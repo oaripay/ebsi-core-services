@@ -37,14 +37,6 @@ contract PolicyRegistry is
         return ps.version;
     }
 
-    /**
-     * @dev Returns the version of the Timestamp SC
-     */
-    function setVersion(uint256 _version) public {
-        PolicyContractStorage storage ps = PolicyStorage.policyStorage();
-        ps.version = _version;
-    }
-
     function admin() external returns (address) {
         DiamondStorage storage ms = diamondStorage();
         return ms.proxyAdmin;
