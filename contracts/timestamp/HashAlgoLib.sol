@@ -47,7 +47,9 @@ library HashAlgoLib {
         );
         require(outputLength > 0, "outputLength==0");
         require(uint256(status) > 0, "status==0");
+        require(bytes(ianaName).length > 0, "ianaName unknown");
         uint256 hashId = hs.hashAlgorithms.numberOfAlgorithms;
+
         // Add an entry to the hashAlgorithms.id enum. Value is the ianaName
         hs.hashAlgorithms.id[hashId] = ianaName;
         // Store the hashAlgorithmInfo in the hashAlgorighmInfoStore[id]
@@ -98,6 +100,14 @@ library HashAlgoLib {
         require(
             bytes(hs.hashAlgorithms.id[hashAlgorithmId]).length > 0,
             "hashAlgorithmId unknown"
+        );
+        require(bytes(ianaName).length > 0, "ianaName unknown");
+        require(
+            keccak256(abi.encodePacked((ianaName))) !=
+                keccak256(
+                    abi.encodePacked((hs.hashAlgorithms.id[hashAlgorithmId]))
+                ),
+            "ianaName value already set"
         );
 
         // Add an entry to the hashAlgorithms.id enum. Value is the ianaName

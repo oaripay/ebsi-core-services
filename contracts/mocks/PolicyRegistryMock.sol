@@ -13,6 +13,8 @@ contract PolicyRegistryMock {
     }
 
     function setPolicyResult(bool newPolicyResult) external {
-        policyResult = newPolicyResult;
+        if(policyResult != newPolicyResult){
+            policyResult = newPolicyResult;        
+        }        
     }
 }

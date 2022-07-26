@@ -111,6 +111,10 @@ describe("Hash Algorithm", () => {
     await expect(
       ts.insertHashAlgorithm(1, "SHA256", "oid", 0, "")
     ).to.be.revertedWith("status==0");
+
+    await expect(
+      ts.insertHashAlgorithm(256, "", "oid", 1, "")
+    ).to.be.revertedWith("ianaName unknown");
   });
   it("insertHashAlgorithm should work", async () => {
     await expect(
@@ -140,6 +144,44 @@ describe("Hash Algorithm", () => {
     await expect(
       ts.updateHashAlgorithm(0, 1, "SHA256", "oid", 1, "")
     ).to.be.revertedWith("hashAlgorithmId unknown");
+  });
+  it("updateHashAlgorithm should revert for empty ianaName", async () => {
+    await expect(ts.insertHashAlgorithm(256, "SHA256", "oid", 1, "")).to.emit(
+      ts,
+      "AddNewHashAlgo"
+    );
+    await expect(
+      ts.insertHashAlgorithm(512, "SHA3-512", "oid2", 1, "")
+    ).to.emit(ts, "AddNewHashAlgo");
+    const receipt = await ts.getHashAlgorithmById(1);
+    expect(receipt.outputLength).to.equal(512);
+    expect(receipt.ianaName).to.equal("SHA3-512");
+    expect(receipt.oid).to.equal("oid2");
+    expect(receipt.status).to.equal(1);
+    expect(receipt.multiHash).to.equal("");
+
+    await expect(
+      ts.updateHashAlgorithm(1, 1024, "", "oid3", 2, "")
+    ).to.be.revertedWith("ianaName unknown");
+  });
+  it("updateHashAlgorithm should fail for ianaName having the same value", async () => {
+    await expect(ts.insertHashAlgorithm(256, "SHA256", "oid", 1, "")).to.emit(
+      ts,
+      "AddNewHashAlgo"
+    );
+    await expect(
+      ts.insertHashAlgorithm(512, "SHA3-512", "oid2", 1, "")
+    ).to.emit(ts, "AddNewHashAlgo");
+    const receipt = await ts.getHashAlgorithmById(1);
+    expect(receipt.outputLength).to.equal(512);
+    expect(receipt.ianaName).to.equal("SHA3-512");
+    expect(receipt.oid).to.equal("oid2");
+    expect(receipt.status).to.equal(1);
+    expect(receipt.multiHash).to.equal("");
+
+    await expect(
+      ts.updateHashAlgorithm(1, 1024, "SHA3-512", "oid3", 2, "")
+    ).to.be.revertedWith("ianaName value already set");
   });
   it("updateHashAlgorithm should work", async () => {
     await expect(ts.insertHashAlgorithm(256, "SHA256", "oid", 1, "")).to.emit(
