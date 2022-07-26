@@ -117,6 +117,7 @@ describe("JsonRpc Module", () => {
   let app: INestApplication;
   let server: HttpServer;
   let didRegistryContract: DidRegistry;
+  let didRegistryContractAddress: string;
   let configService: ConfigService<ApiConfig, true>;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
   let ledgerService: LedgerService;
@@ -212,9 +213,15 @@ describe("JsonRpc Module", () => {
     testEnv = await setupTestEnv({
       didDocuments: 2,
     });
-    didRegistryContract = testEnv.didRegistryContract;
 
-    // Mock DidRegistry and TAR contract
+    didRegistryContract = testEnv.didRegistryContract;
+    didRegistryContractAddress = didRegistryContract.address;
+
+    jest
+      .spyOn(LedgerService.prototype, "getContractAddress")
+      .mockImplementation(() => didRegistryContract.address);
+
+    // Mock DidRegistry contract
     jest
       .spyOn(DidRegistry__factory, "connect")
       .mockImplementation(() => didRegistryContract);
@@ -449,7 +456,7 @@ describe("JsonRpc Module", () => {
 
     const transaction = {
       from: wallet.address,
-      to: didRegistryContract.address,
+      to: didRegistryContractAddress,
       data: didRegistryContract.interface.encodeFunctionData("insertPolicy", [
         "policy abc",
         "0x000000",
@@ -653,7 +660,7 @@ describe("JsonRpc Module", () => {
 
       const transaction = {
         from,
-        to: didRegistryContract.address,
+        to: didRegistryContractAddress,
         data,
         value: "0x0",
         nonce: ethers.BigNumber.from(nonceInt).toHexString(),

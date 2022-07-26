@@ -57,12 +57,16 @@ export class JsonRpcService {
 
   private chainId: string = null;
 
+  private contractAddress: string;
+
   private algIdsToOutputLength: Record<
     number,
     { outputLength: number; exp: number }
   > = {};
 
-  constructor(private ledgerService: LedgerService) {}
+  constructor(private ledgerService: LedgerService) {
+    this.contractAddress = ledgerService.getContractAddress();
+  }
 
   async getChainId(): Promise<string> {
     if (!this.chainId) {
@@ -79,7 +83,9 @@ export class JsonRpcService {
   ): Promise<ethers.BigNumber> {
     const { from, to, data, value } = transaction;
 
-    return (await this.ledgerService.getContract()).provider.estimateGas({
+    return (
+      await this.ledgerService.getContract({ protectedMethod: true })
+    ).provider.estimateGas({
       from,
       to,
       data,
@@ -203,35 +209,34 @@ export class JsonRpcService {
       signature
     );
 
-    if (serializedTransactionSigned !== signedRawTransaction)
+    if (serializedTransactionSigned !== signedRawTransaction) {
       throw new Error(
         `The unsigned transaction + signature (${serializedTransactionSigned}) does not match with the signedRawTransaction (${signedRawTransaction})`
       );
+    }
 
     // recover address used to sign
     const digest = ethers.utils.keccak256(serializedTransaction);
     const signer = ethers.utils.recoverAddress(digest, signature);
 
-    if (signer.toLowerCase() !== unsignedTransaction.from.toLowerCase())
+    if (signer.toLowerCase() !== unsignedTransaction.from.toLowerCase()) {
       throw new Error(
         `The signer of the transaction (${signer}) does not match with unsignedTransaction.from (${unsignedTransaction.from}) `
       );
+    }
 
     const chainId = await this.getChainId();
-    if (unsignedTransaction.chainId !== chainId)
+    if (unsignedTransaction.chainId !== chainId) {
       throw new Error(
         `Invalid unsignedTransaction.chainId. Expected ${chainId}. Received ${unsignedTransaction.chainId}`
       );
+    }
 
-    if (
-      unsignedTransaction.to !==
-      (await this.ledgerService.getContract()).address
-    )
+    if (unsignedTransaction.to !== this.contractAddress) {
       throw new Error(
-        `Invalid unsignedTransaction.to. Expected ${
-          (await this.ledgerService.getContract()).address
-        }. Received ${unsignedTransaction.to}`
+        `Invalid unsignedTransaction.to. Expected ${this.contractAddress}. Received ${unsignedTransaction.to}`
       );
+    }
 
     // verify function and parameters enconded in unsignedTransaction.data
     const { args, functionFragment } = (
@@ -349,7 +354,7 @@ export class JsonRpcService {
 
     const unsignedTransaction: UnsignedTransaction = {
       from,
-      to: (await this.ledgerService.getContract()).address,
+      to: this.contractAddress,
       data: params,
       value: "0x0",
       nonce: ethers.BigNumber.from(nonceInt).toHexString(),
@@ -792,7 +797,7 @@ export class JsonRpcService {
       }
 
       const tx = await (
-        await this.ledgerService.getContract()
+        await this.ledgerService.getContract({ protectedMethod: true })
       ).provider.sendTransaction(request.signedRawTransaction);
       return tx.hash;
     } catch (err) {
