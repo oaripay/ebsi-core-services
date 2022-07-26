@@ -26,7 +26,7 @@ contract HashAlgoStorage {
     struct HashAlgos {
         // id of the hash algo =>  HashAlgo
         mapping(uint256 => HashAlgoInfo) infoStore;
-        // list of revoked application id
+        // list of hash algorithms types (id => hash) along with the number of total hashes
         Algos hashAlgorithms;
         IPolicyRegistry trustedPolicyRegistry;
     }

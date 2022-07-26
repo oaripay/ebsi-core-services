@@ -8,8 +8,11 @@ import "./RecordDetailed.sol";
 import "./HashAlgoDetailed.sol";
 
 /**
- * @title example of stored values on a SC with pause functionality.
- *
+ * @title Timestamp Smart Contract
+ * @dev Initializable -> Indicates the contract will be initialized by an external function
+ * @dev RecordDetailed -> Indicates that the contract is storing all detailed records.
+ * @dev TimestampDetailed -> Indicates that the contract timestamps are being stored with all its details.
+ * @dev HashAlgoDetailed -> Indicates that the contract is allowed to store and manipulate hashes.
  */
 contract Timestamp is
     Initializable,
