@@ -17,11 +17,13 @@ const REFRESH_LIMIT = 10 * 1000;
 export class LedgerService {
   private readonly logger = new Logger(LedgerService.name);
 
-  private ethersWallet: string | ethers.Signer | ethers.providers.Provider;
-
   private ethersProvider: ethers.providers.JsonRpcProvider;
 
+  private ethersProviderWithoutToken: ethers.providers.JsonRpcProvider;
+
   private tirContract: Tir;
+
+  private publicMethodsTirContract: Tir;
 
   private tirAddress: string;
 
@@ -30,6 +32,12 @@ export class LedgerService {
   private agent: Agent;
 
   private authorisationApiUrl: string;
+
+  private domain: string;
+
+  private localOrigin: string;
+
+  private remoteLedgerApi: string;
 
   constructor(private configService: ConfigService<ApiConfig>) {
     this.tirAddress = this.configService.get<string>(
@@ -44,6 +52,12 @@ export class LedgerService {
       name: configService.get<string>("apiName"),
       trustedAppsRegistry: `${configService.get<string>("tarApiUrl")}/apps`,
     });
+
+    this.domain = this.configService.get<string>("domain");
+    this.localOrigin = this.configService.get<string>("localOrigin");
+    this.remoteLedgerApi = `${this.configService.get<string>(
+      "ledgerApiUrl"
+    )}/blockchains/besu`;
   }
 
   private async checkSession(): Promise<void> {
@@ -92,52 +106,81 @@ export class LedgerService {
     }
   }
 
-  private setupProvider(url: string, token: string) {
-    this.ethersProvider = new ethers.providers.JsonRpcProvider({
-      url,
-      headers: {
-        authorization: `Bearer ${token}`,
-      },
-    });
+  private setupProvider(url: string, token?: string) {
+    if (token) {
+      this.ethersProvider = new ethers.providers.JsonRpcProvider({
+        url,
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      });
+    } else {
+      this.ethersProviderWithoutToken = new ethers.providers.JsonRpcProvider({
+        url,
+      });
+    }
   }
 
-  private async refreshConnection() {
-    const token = await this.getAccessToken();
-
-    const domain = this.configService.get<string>("domain");
-    const localOrigin = this.configService.get<string>("localOrigin");
-    const remoteLedgerApi = `${this.configService.get<string>(
-      "ledgerApiUrl"
-    )}/blockchains/besu`;
-
-    if (domain && localOrigin) {
+  private async connectProvider(token?: string) {
+    if (this.domain && this.localOrigin) {
       try {
-        const localUrl = remoteLedgerApi.replace(domain, localOrigin);
+        const localUrl = this.remoteLedgerApi.replace(
+          this.domain,
+          this.localOrigin
+        );
         this.logger.debug(`Trying to connect to local Ledger API: ${localUrl}`);
         this.setupProvider(localUrl, token);
         await this.ethersProvider.getNetwork();
         this.logger.debug("Connected to local Ledger API");
       } catch (e) {
         this.logger.debug(
-          `Falling back to remote Ledger API: ${remoteLedgerApi}`
+          `Falling back to remote Ledger API: ${this.remoteLedgerApi}`
         );
-        this.setupProvider(remoteLedgerApi, token);
+        this.setupProvider(this.remoteLedgerApi, token);
       }
     } else {
-      this.logger.debug(`Using remote Ledger API: ${remoteLedgerApi}`);
-      this.setupProvider(remoteLedgerApi, token);
+      this.logger.debug(`Using remote Ledger API: ${this.remoteLedgerApi}`);
+      this.setupProvider(this.remoteLedgerApi, token);
     }
-
-    this.ethersWallet = ethers.Wallet.createRandom().connect(
-      this.ethersProvider
-    );
-
-    this.tirContract = Tir__factory.connect(this.tirAddress, this.ethersWallet);
   }
 
-  async getContract(): Promise<Tir> {
-    await this.checkSession();
-    return this.tirContract;
+  private async refreshConnection() {
+    const token = await this.getAccessToken();
+
+    await this.connectProvider(token);
+
+    this.tirContract = Tir__factory.connect(
+      this.tirAddress,
+      this.ethersProvider
+    );
+  }
+
+  private async getPublicMethodsTirContract() {
+    if (this.publicMethodsTirContract) {
+      return this.publicMethodsTirContract;
+    }
+
+    await this.connectProvider();
+
+    this.publicMethodsTirContract = Tir__factory.connect(
+      this.tirAddress,
+      this.ethersProviderWithoutToken
+    );
+
+    return this.publicMethodsTirContract;
+  }
+
+  async getContract({ protectedMethod = false } = {}): Promise<Tir> {
+    if (protectedMethod) {
+      await this.checkSession();
+      return this.tirContract;
+    }
+
+    return this.getPublicMethodsTirContract();
+  }
+
+  getContractAddress() {
+    return this.tirAddress;
   }
 }
 

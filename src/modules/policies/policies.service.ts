@@ -66,13 +66,7 @@ export class PoliciesService {
       contract.getPolicyByHash(hash)
     );
 
-    let policies: AsyncReturnType<Tir["getPolicyByHash"]>[];
-
-    try {
-      policies = await Promise.all(getPoliciesByRevisions);
-    } catch (e) {
-      throw new Error("ach");
-    }
+    const policies = await Promise.all(getPoliciesByRevisions);
 
     return {
       items: revisions.items.map((hash, index) => ({

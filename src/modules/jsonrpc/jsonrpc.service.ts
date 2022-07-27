@@ -41,11 +41,14 @@ export class JsonRpcService {
 
   private didRegistry: string;
 
+  private contractAddress: string;
+
   constructor(
     configService: ConfigService<ApiConfig>,
     private ledgerService: LedgerService
   ) {
     this.didRegistry = configService.get<string>("didRegistryApiUrl");
+    this.contractAddress = ledgerService.getContractAddress();
   }
 
   async getChainId(): Promise<string> {
@@ -63,7 +66,9 @@ export class JsonRpcService {
   ): Promise<ethers.BigNumber> {
     const { from, to, data, value } = transaction;
 
-    return (await this.ledgerService.getContract()).provider.estimateGas({
+    return (
+      await this.ledgerService.getContract({ protectedMethod: true })
+    ).provider.estimateGas({
       from,
       to,
       data,
@@ -132,20 +137,17 @@ export class JsonRpcService {
       );
 
     const chainId = await this.getChainId();
-    if (unsignedTransaction.chainId !== chainId)
+    if (unsignedTransaction.chainId !== chainId) {
       throw new Error(
         `Invalid unsignedTransaction.chainId. Expected ${chainId}. Received ${unsignedTransaction.chainId}`
       );
+    }
 
-    if (
-      unsignedTransaction.to !==
-      (await this.ledgerService.getContract()).address
-    )
+    if (unsignedTransaction.to !== this.contractAddress) {
       throw new Error(
-        `Invalid unsignedTransaction.to. Expected ${
-          (await this.ledgerService.getContract()).address
-        }. Received ${unsignedTransaction.to}`
+        `Invalid unsignedTransaction.to. Expected ${this.contractAddress}. Received ${unsignedTransaction.to}`
       );
+    }
 
     // verify function and parameters enconded in unsignedTransaction.data
     const { args, functionFragment } = (
@@ -204,7 +206,7 @@ export class JsonRpcService {
 
     const unsignedTransaction: UnsignedTransaction = {
       from,
-      to: (await this.ledgerService.getContract()).address,
+      to: this.contractAddress,
       data: params,
       value: "0x0",
       nonce: ethers.BigNumber.from(nonceInt).toHexString(),
@@ -217,6 +219,7 @@ export class JsonRpcService {
 
     try {
       gasEstimation = await this.estimateGas(unsignedTransaction);
+
       // Multiply by 1.4
       unsignedTransaction.gasLimit = gasEstimation
         .mul(14)
@@ -357,7 +360,7 @@ export class JsonRpcService {
       }
 
       const tx = await (
-        await this.ledgerService.getContract()
+        await this.ledgerService.getContract({ protectedMethod: true })
       ).provider.sendTransaction(request.signedRawTransaction);
       return tx.hash;
     } catch (err) {

@@ -76,6 +76,7 @@ describe("JsonRpc Module", () => {
   let app: INestApplication;
   let server: HttpServer;
   let tirContract: Tir;
+  let tirContractAddress: string;
   let jsonRpcService: JsonRpcService;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
   let ledgerService: LedgerService;
@@ -196,6 +197,11 @@ describe("JsonRpc Module", () => {
     });
 
     tirContract = testEnv.tirContract;
+    tirContractAddress = tirContract.address;
+
+    jest
+      .spyOn(LedgerService.prototype, "getContractAddress")
+      .mockImplementation(() => tirContract.address);
 
     // Start server
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -342,7 +348,7 @@ describe("JsonRpc Module", () => {
 
     const transaction = {
       from: wallet.address,
-      to: tirContract.address,
+      to: tirContractAddress,
       data: tirContract.interface.encodeFunctionData("getPolicy", ["policy1"]),
       value: "0x00",
       nonce: "0x00",
