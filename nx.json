@@ -3,7 +3,7 @@
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
   "npmScope": "@ebsi/core-services",
   "affected": {
-    "defaultBase": "main"
+    "defaultBase": "develop"
   },
   "tasksRunnerOptions": {
     "default": {
