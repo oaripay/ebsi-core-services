@@ -1,0 +1,10 @@
+version: "3.7"
+
+services:
+  authorisation-api-v2:
+    build: .
+    env_file:
+      - .env
+      - .env.local
+    ports:
+      - "${API_PORT:-3000}:${API_PORT:-3000}"

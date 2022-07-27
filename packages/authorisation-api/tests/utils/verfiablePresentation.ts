@@ -1,0 +1,47 @@
+import { createVerifiablePresentationJwt } from "@cef-ebsi/verifiable-presentation";
+import type {
+  EbsiIssuer,
+  EbsiVerifiablePresentation,
+} from "@cef-ebsi/verifiable-presentation";
+import { calculateJwkThumbprint, JWK } from "jose";
+
+export async function createVpJwt(
+  holderDid: string,
+  holderPublicKeyJwk: JWK,
+  holderPrivateKeyJwk: JWK,
+  vc: string,
+  audience: string,
+  ebsiEnv: "test" | "conformance" | "pilot" | "prod",
+  alg: "ES256" | "ES256K" | "EdDSA" = "ES256K"
+): Promise<string> {
+  const presentation: EbsiVerifiablePresentation = {
+    "@context": ["https://www.w3.org/2018/credentials/v1"],
+    type: ["VerifiablePresentation"],
+    verifiableCredential: [vc],
+    holder: holderDid,
+  };
+
+  const thumbprint = await calculateJwkThumbprint(holderPublicKeyJwk);
+
+  const holder: EbsiIssuer = {
+    did: holderDid,
+    kid: `${holderDid}#${thumbprint}`,
+    alg,
+    publicKeyJwk: holderPublicKeyJwk,
+    privateKeyJwk: holderPrivateKeyJwk,
+  };
+
+  const jwt = await createVerifiablePresentationJwt(
+    presentation,
+    holder,
+    audience,
+    {
+      ebsiEnv,
+      skipValidation: true,
+    }
+  );
+
+  return jwt;
+}
+
+export default createVpJwt;
