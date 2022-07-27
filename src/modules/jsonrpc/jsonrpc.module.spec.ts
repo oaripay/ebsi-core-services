@@ -169,6 +169,10 @@ describe("JsonRpc Module", () => {
     timestampContract = testEnv.timestampContract;
     provider = testEnv.provider;
 
+    jest
+      .spyOn(LedgerService.prototype, "getContractAddress")
+      .mockImplementation(() => timestampContract.address);
+
     const multihashToNodeHashAlg: Partial<Record<HashName, string>> = {
       "sha2-256": "sha256",
       "sha2-512": "sha512",
