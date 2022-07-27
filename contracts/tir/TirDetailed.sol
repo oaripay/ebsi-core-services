@@ -15,7 +15,9 @@ contract TirDetailed is Initializable, TirStorage {
 
     function _onInitialize(uint256 _version) internal onlyInitializing {
         Tir storage ds = TirStorage.tirStorage();
-        ds._version = _version;
+        if (_version != ds._version) {
+            ds._version = _version;
+        }
     }
 
     /**
@@ -24,11 +26,6 @@ contract TirDetailed is Initializable, TirStorage {
     function version() public view returns (uint256) {
         Tir storage ds = tirStorage();
         return ds._version;
-    }
-
-    function setVersion(uint256 _version) public {
-        Tir storage ds = tirStorage();
-        ds._version = _version;
     }
 
     uint256[50] private ______gap;
