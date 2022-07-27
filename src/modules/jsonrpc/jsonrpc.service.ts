@@ -43,11 +43,14 @@ export class JsonRpcService {
 
   private didRegistry: string;
 
+  private contractAddress: string;
+
   constructor(
-    private configService: ConfigService<ApiConfig>,
+    configService: ConfigService<ApiConfig>,
     private contractService: ContractService
   ) {
     this.didRegistry = configService.get<string>("didRegistryApiUrl");
+    this.contractAddress = contractService.getContractAddress();
   }
 
   async getChainId(): Promise<string> {
@@ -69,7 +72,9 @@ export class JsonRpcService {
   ): Promise<ethers.BigNumber> {
     const { from, to, data, value } = transaction;
 
-    return (await this.contractService.getContract()).provider.estimateGas({
+    return (
+      await this.contractService.getContract({ protectedMethod: true })
+    ).provider.estimateGas({
       from,
       to,
       data,
@@ -155,14 +160,9 @@ export class JsonRpcService {
       );
     }
 
-    if (
-      unsignedTransaction.to !==
-      (await this.contractService.getContract()).address
-    ) {
+    if (unsignedTransaction.to !== this.contractAddress) {
       throw new Error(
-        `Invalid unsignedTransaction.to. Expected ${
-          (await this.contractService.getContract()).address
-        }. Received ${unsignedTransaction.to}`
+        `Invalid unsignedTransaction.to. Expected ${this.contractAddress}. Received ${unsignedTransaction.to}`
       );
     }
 
@@ -239,7 +239,7 @@ export class JsonRpcService {
 
     const unsignedTransaction: UnsignedTransaction = {
       from,
-      to: (await this.contractService.getContract()).address,
+      to: this.contractAddress,
       data: params,
       value: "0x0",
       nonce: ethers.BigNumber.from(nonceInt).toHexString(),
@@ -401,7 +401,7 @@ export class JsonRpcService {
       await this.checkWritePermission(signer, clientId);
 
       const tx = await (
-        await this.contractService.getContract()
+        await this.contractService.getContract({ protectedMethod: true })
       ).provider.sendTransaction(request.signedRawTransaction);
       return tx.hash;
     } catch (err) {

@@ -174,6 +174,10 @@ describe("JsonRpc Module", () => {
     schemasRegistryContract = testEnv.schemasRegistryContract;
     policies = testEnv.policies;
 
+    jest
+      .spyOn(ContractService.prototype, "getContractAddress")
+      .mockImplementation(() => schemasRegistryContract.address);
+
     // Start server
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [JsonRpcModule],
