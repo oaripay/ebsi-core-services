@@ -105,6 +105,10 @@ describe("JsonRpc Module", () => {
     testEnv = await setupTestEnv();
     ledgerScRegistryContract = testEnv.ledgerScRegistryContract;
 
+    jest
+      .spyOn(ContractService.prototype, "getContractAddress")
+      .mockImplementation(() => ledgerScRegistryContract.address);
+
     // Start server
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [JsonRpcModule],

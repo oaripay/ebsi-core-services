@@ -17,13 +17,15 @@ const REFRESH_LIMIT = 10 * 1000;
 export class ContractService {
   private readonly logger = new Logger(ContractService.name);
 
-  private ethersWallet: string | ethers.Signer | ethers.providers.Provider;
-
   private ethersProvider: ethers.providers.JsonRpcProvider;
 
-  private tirContract: LedgerSCRegistry;
+  private ethersProviderWithoutToken: ethers.providers.JsonRpcProvider;
 
-  private tirAddress: string;
+  private tlscrContract: LedgerSCRegistry;
+
+  private publicMethodsTlscrContract: LedgerSCRegistry;
+
+  private tlscrAddress: string;
 
   private accessTokenExp: number;
 
@@ -31,8 +33,14 @@ export class ContractService {
 
   private authorisationApiUrl: string;
 
+  private domain: string;
+
+  private localOrigin: string;
+
+  private remoteLedgerApi: string;
+
   constructor(private configService: ConfigService<ApiConfig>) {
-    this.tirAddress = this.configService.get<string>("contractAddr");
+    this.tlscrAddress = this.configService.get<string>("contractAddr");
     this.authorisationApiUrl = this.configService.get<string>(
       "authorisationApiUrl"
     );
@@ -44,6 +52,12 @@ export class ContractService {
         "trustedAppsRegistryApiUrl"
       )}/apps`,
     });
+
+    this.domain = this.configService.get<string>("domain");
+    this.localOrigin = this.configService.get<string>("localOrigin");
+    this.remoteLedgerApi = `${this.configService.get<string>(
+      "ledgerApiUrl"
+    )}/blockchains/besu`;
   }
 
   private async checkSession(): Promise<void> {
@@ -92,51 +106,83 @@ export class ContractService {
     }
   }
 
-  private setupProvider(url: string, token: string) {
-    this.ethersProvider = new ethers.providers.JsonRpcProvider({
-      url,
-      headers: {
-        authorization: `Bearer ${token}`,
-      },
-    });
+  private setupProvider(url: string, token?: string) {
+    if (token) {
+      this.ethersProvider = new ethers.providers.JsonRpcProvider({
+        url,
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      });
+    } else {
+      this.ethersProviderWithoutToken = new ethers.providers.JsonRpcProvider({
+        url,
+      });
+    }
   }
 
-  private async refreshConnection() {
-    const token = await this.getAccessToken();
-
-    const domain = this.configService.get<string>("domain");
-    const localOrigin = this.configService.get<string>("localOrigin");
-    const remoteLedgerApi = `${this.configService.get<string>(
-      "ledgerApiUrl"
-    )}/blockchains/besu`;
-
-    if (domain && localOrigin) {
+  private async connectProvider(token?: string) {
+    if (this.domain && this.localOrigin) {
       try {
-        const localUrl = remoteLedgerApi.replace(domain, localOrigin);
+        const localUrl = this.remoteLedgerApi.replace(
+          this.domain,
+          this.localOrigin
+        );
         this.logger.debug(`Trying to connect to local Ledger API: ${localUrl}`);
         this.setupProvider(localUrl, token);
         await this.ethersProvider.getNetwork();
         this.logger.debug("Connected to local Ledger API");
       } catch (e) {
         this.logger.debug(
-          `Falling back to remote Ledger API: ${remoteLedgerApi}`
+          `Falling back to remote Ledger API: ${this.remoteLedgerApi}`
         );
-        this.setupProvider(remoteLedgerApi, token);
+        this.setupProvider(this.remoteLedgerApi, token);
       }
     } else {
-      this.logger.debug(`Using remote Ledger API: ${remoteLedgerApi}`);
-      this.setupProvider(remoteLedgerApi, token);
+      this.logger.debug(`Using remote Ledger API: ${this.remoteLedgerApi}`);
+      this.setupProvider(this.remoteLedgerApi, token);
     }
+  }
 
-    this.tirContract = LedgerSCRegistry__factory.connect(
-      this.tirAddress,
+  private async refreshConnection() {
+    const token = await this.getAccessToken();
+
+    await this.connectProvider(token);
+
+    this.tlscrContract = LedgerSCRegistry__factory.connect(
+      this.tlscrAddress,
       this.ethersProvider
     );
   }
 
-  async getContract(): Promise<LedgerSCRegistry> {
-    await this.checkSession();
-    return this.tirContract;
+  private async getPublicMethodsTlscrContract() {
+    if (this.publicMethodsTlscrContract) {
+      return this.publicMethodsTlscrContract;
+    }
+
+    await this.connectProvider();
+
+    this.publicMethodsTlscrContract = LedgerSCRegistry__factory.connect(
+      this.tlscrAddress,
+      this.ethersProviderWithoutToken
+    );
+
+    return this.publicMethodsTlscrContract;
+  }
+
+  async getContract({
+    protectedMethod = false,
+  } = {}): Promise<LedgerSCRegistry> {
+    if (protectedMethod) {
+      await this.checkSession();
+      return this.tlscrContract;
+    }
+
+    return this.getPublicMethodsTlscrContract();
+  }
+
+  getContractAddress() {
+    return this.tlscrAddress;
   }
 }
 
