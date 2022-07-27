@@ -2,7 +2,9 @@
   "name": "@ebsi/core-services",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "build:all": "nx run-many --target=build --all"
+  },
   "private": true,
   "dependencies": {},
   "devDependencies": {
