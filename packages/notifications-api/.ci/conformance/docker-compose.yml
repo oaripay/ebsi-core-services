@@ -1,0 +1,6 @@
+version: "3.7"
+
+services:
+  notifications-api-v2:
+    build: ../..
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/notifications-api-v2:conformance_ebsiint-4322-version-header_v2.0.0

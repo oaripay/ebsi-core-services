@@ -1,0 +1,61 @@
+pipeline {
+    agent any
+    stages {
+        stage('Setup') {
+            steps {
+                nodejs(nodeJSInstallationName: '16.13.0') {
+                    sh 'yarn install --frozen-lockfile'
+                    sh 'yarn run audit'
+                }
+            }
+        }
+        stage('Lint') {
+            steps {
+                nodejs(nodeJSInstallationName: '16.13.0') {
+                    sh 'yarn lint'
+                }
+            }
+        }
+        stage('Unit test') {
+            environment {
+                API_PRIVATE_KEY='0xc2cdf0a8b0a83b35ace53f097b5e6e6a0a1f2d40535eff1cf434f52a43d59d8f'
+            }
+            steps {
+                nodejs(nodeJSInstallationName: '16.13.0') {
+                    sh 'yarn test:ci'
+                }
+            }
+        }
+        stage ('Lint Dockerfile') {
+            agent {
+                docker {
+                    image 'hadolint/hadolint:latest-debian'
+                    reuseNode 'true'
+                }
+            }
+            steps {
+                sh 'hadolint Dockerfile'
+            }
+        }
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('LocalSonar'){
+                    sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=notifications-api -Dsonar.projectVersion=1.0 -Dsonar.projectKey=notifications-api -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}"
+                }
+            }
+        }
+        stage('Quality Gate') {
+            steps {
+                waitForQualityGate abortPipeline: true
+            }
+        }
+    }
+    post {
+        always {
+            cleanWs()
+            dir("${env.WORKSPACE}@script") {
+                deleteDir()
+            }
+        }
+    }
+}
