@@ -33,7 +33,7 @@ abstract contract TirPolicyDetailed is TirPolicyStorage {
         PolicyDetails storage p = ds.policyStore[policyId];
         require(p.revisionHashes.length == 0, "policy already exist");
 
-        assert(ds.revisions[firstPolicyHash].length == 0);
+        require(ds.revisions[firstPolicyHash].length == 0);
 
         // store a link between this policyId to the policy to easily retrieve it
         // store the version hash and data for this policy
