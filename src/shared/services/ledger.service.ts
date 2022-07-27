@@ -19,7 +19,11 @@ export class LedgerService {
 
   private ethersProvider: ethers.providers.JsonRpcProvider;
 
+  private ethersProviderWithoutToken: ethers.providers.JsonRpcProvider;
+
   private tprContract: PolicyRegistry;
+
+  private publicMethodsTprContract: PolicyRegistry;
 
   private tprAddress: string;
 
@@ -28,6 +32,12 @@ export class LedgerService {
   private agent: Agent;
 
   private authorisationApiUrl: string;
+
+  private domain: string;
+
+  private localOrigin: string;
+
+  private remoteLedgerApi: string;
 
   constructor(private configService: ConfigService<ApiConfig>) {
     this.tprAddress = this.configService.get<string>("contractAddr");
@@ -42,6 +52,12 @@ export class LedgerService {
         "trustedAppsRegistryApiUrl"
       )}/apps`,
     });
+
+    this.domain = this.configService.get<string>("domain");
+    this.localOrigin = this.configService.get<string>("localOrigin");
+    this.remoteLedgerApi = `${this.configService.get<string>(
+      "ledgerApiUrl"
+    )}/blockchains/besu`;
   }
 
   private async checkSession(): Promise<void> {
@@ -90,41 +106,48 @@ export class LedgerService {
     }
   }
 
-  private setupProvider(url: string, token: string) {
-    this.ethersProvider = new ethers.providers.JsonRpcProvider({
-      url,
-      headers: {
-        authorization: `Bearer ${token}`,
-      },
-    });
+  private setupProvider(url: string, token?: string) {
+    if (token) {
+      this.ethersProvider = new ethers.providers.JsonRpcProvider({
+        url,
+        headers: {
+          authorization: `Bearer ${token}`,
+        },
+      });
+    } else {
+      this.ethersProviderWithoutToken = new ethers.providers.JsonRpcProvider({
+        url,
+      });
+    }
   }
 
-  private async refreshConnection() {
-    const token = await this.getAccessToken();
-
-    const domain = this.configService.get<string>("domain");
-    const localOrigin = this.configService.get<string>("localOrigin");
-    const remoteLedgerApi = `${this.configService.get<string>(
-      "ledgerApiUrl"
-    )}/blockchains/besu`;
-
-    if (domain && localOrigin) {
+  private async connectProvider(token?: string) {
+    if (this.domain && this.localOrigin) {
       try {
-        const localUrl = remoteLedgerApi.replace(domain, localOrigin);
+        const localUrl = this.remoteLedgerApi.replace(
+          this.domain,
+          this.localOrigin
+        );
         this.logger.debug(`Trying to connect to local Ledger API: ${localUrl}`);
         this.setupProvider(localUrl, token);
         await this.ethersProvider.getNetwork();
         this.logger.debug("Connected to local Ledger API");
       } catch (e) {
         this.logger.debug(
-          `Falling back to remote Ledger API: ${remoteLedgerApi}`
+          `Falling back to remote Ledger API: ${this.remoteLedgerApi}`
         );
-        this.setupProvider(remoteLedgerApi, token);
+        this.setupProvider(this.remoteLedgerApi, token);
       }
     } else {
-      this.logger.debug(`Using remote Ledger API: ${remoteLedgerApi}`);
-      this.setupProvider(remoteLedgerApi, token);
+      this.logger.debug(`Using remote Ledger API: ${this.remoteLedgerApi}`);
+      this.setupProvider(this.remoteLedgerApi, token);
     }
+  }
+
+  private async refreshConnection() {
+    const token = await this.getAccessToken();
+
+    await this.connectProvider(token);
 
     this.tprContract = PolicyRegistry__factory.connect(
       this.tprAddress,
@@ -132,9 +155,32 @@ export class LedgerService {
     );
   }
 
-  async getContract(): Promise<PolicyRegistry> {
-    await this.checkSession();
-    return this.tprContract;
+  private async getPublicMethodsTprContract() {
+    if (this.publicMethodsTprContract) {
+      return this.publicMethodsTprContract;
+    }
+
+    await this.connectProvider();
+
+    this.publicMethodsTprContract = PolicyRegistry__factory.connect(
+      this.tprAddress,
+      this.ethersProviderWithoutToken
+    );
+
+    return this.publicMethodsTprContract;
+  }
+
+  async getContract({ protectedMethod = false } = {}): Promise<PolicyRegistry> {
+    if (protectedMethod) {
+      await this.checkSession();
+      return this.tprContract;
+    }
+
+    return this.getPublicMethodsTprContract();
+  }
+
+  getContractAddress() {
+    return this.tprAddress;
   }
 }
 

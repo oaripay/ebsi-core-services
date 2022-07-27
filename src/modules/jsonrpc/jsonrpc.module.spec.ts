@@ -93,6 +93,10 @@ describe("JsonRpc Module", () => {
     testEnv = await setupTestEnv();
     policiesRegistryContract = testEnv.policiesRegistryContract;
 
+    jest
+      .spyOn(LedgerService.prototype, "getContractAddress")
+      .mockImplementation(() => policiesRegistryContract.address);
+
     // Start server
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [JsonRpcModule],
