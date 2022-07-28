@@ -1,0 +1,20 @@
+node_modules
+
+# Buidler files
+cache
+artifacts
+abi
+typechain
+src
+# Coverage
+coverage
+coverage.json
+
+# Local settings
+config.ts
+
+# IDE settings
+.idea/
+
+.env
+.secret*
