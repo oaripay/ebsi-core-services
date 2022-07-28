@@ -1,6 +1,6 @@
+import "@typechain/hardhat";
 import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-solhint";
-import "hardhat-typechain";
 import "hardhat-abi-exporter";
 import "solidity-coverage";
 import { HardhatUserConfig, task } from "hardhat/config";
