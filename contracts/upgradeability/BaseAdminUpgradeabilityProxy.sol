@@ -88,6 +88,10 @@ abstract contract BaseAdminUpgradeabilityProxy is BaseUpgradeabilityProxy {
         payable
         ifAdmin
     {
+        require(
+            newImplementation != address(0),
+            "newImp. address can't be zero"
+        );
         _upgradeTo(newImplementation);
         (bool success, ) = newImplementation.delegatecall(data);
         require(success, "upgrade&call delegatecall failed");
@@ -106,6 +110,7 @@ abstract contract BaseAdminUpgradeabilityProxy is BaseUpgradeabilityProxy {
      * @param newAdmin Address of the new proxy admin.
      */
     function _setAdmin(address newAdmin) internal {
+        require(newAdmin != address(0), "newAdmin address can't be zero");
         DiamondStorage storage ms = diamondStorage();
         ms.proxyAdmin = newAdmin;
     }

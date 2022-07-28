@@ -22,6 +22,7 @@ abstract contract InitializableUpgradeabilityProxy is BaseUpgradeabilityProxy {
         payable
         virtual
     {
+        require(_logic != address(0), "_logic address can't be zero");
         require(_implementation() == address(0), "implementation must be zero");
         assert(
             DIAMOND_STORAGE_POSITION ==

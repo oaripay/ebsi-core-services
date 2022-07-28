@@ -28,6 +28,8 @@ contract OwnedUpgradeabilityProxy is
         address _admin,
         bytes memory _data
     ) public payable {
+        require(_logic != address(0), "_logic address can't be zero");
+        require(_admin != address(0), "_admin address can't be zero");
         require(_implementation() == address(0), "implementation must be zero");
         initialize(_logic, _data);
         //assert(ADMIN_SLOT == bytes32(uint256(keccak256("eip1967.proxy.admin")) - 1));

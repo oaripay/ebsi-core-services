@@ -502,6 +502,28 @@ describe("upgrade and call", () => {
           initializeData(anchorOwner),
           { from: proxyAdmin }
         ),
+        "newImp. address can't be zero"
+      );
+    });
+  });
+
+  describe("when the new implementation is not a contract", () => {
+    it("reverts", async () => {
+      expect.assertions(0);
+      const [proxyOwner, tirOperator, proxyAdmin, anchorOwner] = accounts;
+      const { proxy } = await setupProxy(
+        initializeData(anchorOwner),
+        proxyOwner,
+        proxyAdmin,
+        tirOperator,
+        anchorOwner
+      );
+
+      await expectRevert(
+        // it is used proxyOwner just to use an address that is not a contract but also non-zero
+        proxy.upgradeToAndCall(proxyOwner, initializeData(anchorOwner), {
+          from: proxyAdmin,
+        }),
         "implementation must be contract"
       );
     });
