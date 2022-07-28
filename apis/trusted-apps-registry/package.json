@@ -1,4 +1,5 @@
 {
+   "name": "@ebsiint-api/trusted-apps-registry",
   "private": true,
   "version": "3.0.0-rc.1",
   "license": "EUPL-1.2",
@@ -30,6 +31,7 @@
     "prepare": "is-ci || husky install"
   },
   "dependencies": {
+    "@ebsiint-sc/trusted-apps-registry": "^2.0.0",
     "@cef-ebsi/ebsi-did-resolver": "^2.0.1",
     "@cef-ebsi/problem-details-errors": "^2.0.0",
     "@cef-ebsi/siop-auth": "^2.0.0",
@@ -59,6 +61,9 @@
   },
   "devDependencies": {
     "@cef-ebsi/wallet-lib": "^2.0.0",
+    "@ethersproject/abi": "^5.4.7",
+    "@ethersproject/bytes": "^5.4.7",
+    "@ethersproject/providers": "^5.4.7",
     "@commitlint/cli": "^17.0.2",
     "@commitlint/config-conventional": "^17.0.2",
     "@ethersproject/abstract-provider": "^5.6.1",
@@ -69,8 +74,8 @@
     "@openzeppelin/contracts": "^4.6.0",
     "@stoplight/spectral-cli": "^6.4.1",
     "@tsconfig/node16": "^1.0.2",
-    "@typechain/ethers-v5": "^10.0.0",
-    "@typechain/hardhat": "^6.0.0",
+    "@typechain/ethers-v5": "^10.1.0",
+    "@typechain/hardhat": "^6.1.2",
     "@types/jest": "^28.1.0",
     "@types/k6": "^0.37.0",
     "@types/node": "^17.0.23",
@@ -102,7 +107,7 @@
     "ts-jest": "^28.0.4",
     "ts-node": "^10.8.0",
     "tsconfig-paths": "^4.0.0",
-    "typechain": "^8.0.0",
+    "typechain": "^8.1.0",
     "typescript": "4.6.4"
   },
   "jestSonar": {
