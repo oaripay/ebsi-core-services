@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: EUPL V1.2
 pragma solidity 0.8.12;
 
-import "../bootstrap-ethereum-sc/contracts/utils/upgradeability/Initializable.sol";
+import "@ebsiint-sc/bootstrap/contracts/utils/upgradeability/Initializable.sol";
 import "./PolicyStorage.sol";
 import "./PolicyListManagement.sol";
 import "./UserAttributesManagement.sol";
@@ -35,14 +35,6 @@ contract PolicyRegistry is
     function version() public view returns (uint256) {
         PolicyContractStorage storage ps = PolicyStorage.policyStorage();
         return ps.version;
-    }
-
-    /**
-     * @dev Returns the version of the Timestamp SC
-     */
-    function setVersion(uint256 _version) public {
-        PolicyContractStorage storage ps = PolicyStorage.policyStorage();
-        ps.version = _version;
     }
 
     function admin() external returns (address) {

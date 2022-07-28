@@ -3,6 +3,7 @@ import { Contract } from "ethers";
 import { expect } from "chai";
 import { DidRegistry } from "../src/types";
 import { testTprAddress } from "./testAddress";
+import { contractFactoryPagination } from "./contractFactories";
 
 describe("Hash Algorithm", () => {
   let ts: DidRegistry;
@@ -20,7 +21,10 @@ describe("Hash Algorithm", () => {
   });
 
   beforeEach(async () => {
-    const paginationFactory = await ethers.getContractFactory("Pagination", {});
+    const paginationFactory = await ethers.getContractFactory(
+      contractFactoryPagination,
+      {}
+    );
     const paginationLib = await paginationFactory.deploy();
     const hashAlgoFactory = await ethers.getContractFactory("HashAlgoLib", {});
     const hashAlgoLib = await hashAlgoFactory.deploy();
@@ -29,13 +33,6 @@ describe("Hash Algorithm", () => {
       "DidTimestampLib"
     );
     const didTimestampLib = await didTimestampFactory.deploy();
-
-    const didMethodFactory = await ethers.getContractFactory("DidMethodLib", {
-      libraries: {
-        Pagination: paginationLib.address,
-      },
-    });
-    const didMethodLib = await didMethodFactory.deploy();
 
     const didRecordFactory = await ethers.getContractFactory("DidRecordLib", {
       libraries: {
@@ -55,7 +52,6 @@ describe("Hash Algorithm", () => {
       libraries: {
         HashAlgoLib: hashAlgoLib.address,
         DidTimestampLib: didTimestampLib.address,
-        DidMethodLib: didMethodLib.address,
         DidRecordLib: didRecordLib.address,
         DidPolicyLib: policyLib.address,
       },

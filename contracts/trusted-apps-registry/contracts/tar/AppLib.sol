@@ -5,7 +5,7 @@ pragma solidity 0.8.12;
 import "./AppStorage.sol";
 import "./AppStoreLib.sol";
 import "./AdminAuthLib.sol";
-import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
+import "@ebsiint-sc/bootstrap/contracts/utils/Pagination.sol";
 
 library AppLib {
     using Pagination for string[];
@@ -485,6 +485,15 @@ library AppLib {
             apps,
             "TAR:updateAppPublicKey",
             appId
+        );
+
+        AppStoreLib.PublicKey memory publicKey = apps.publicKeyStore[
+            publicKeyId
+        ];
+
+        require(
+            status != publicKey.status || notAfter != publicKey.notAfter,
+            "No new data for update"
         );
 
         apps.publicKeyStore[publicKeyId].status = status;

@@ -4,8 +4,8 @@ pragma solidity 0.8.12;
 import "./AuthStoreLib.sol";
 import "./AppStoreLib.sol";
 import "./AdminAuthLib.sol";
-import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
-import "../bootstrap-ethereum-sc/contracts/utils/SafeAddArray.sol";
+import "@ebsiint-sc/bootstrap/contracts/utils/Pagination.sol";
+import "@ebsiint-sc/bootstrap/contracts/utils/SafeAddArray.sol";
 
 library AuthLib {
     using Pagination for bytes32[];
@@ -127,6 +127,17 @@ library AuthLib {
             apps,
             "TAR:updateAuthorization",
             appId
+        );
+
+        AuthStoreLib.Authorization memory auth = auths.authorizationStore[
+            authorizationId
+        ];
+
+        require(
+            auth.status != status ||
+                auth.permissions != permissions ||
+                auth.notAfter != notAfter,
+            "No new data for update"
         );
 
         auths.authorizationStore[authorizationId].status = status;

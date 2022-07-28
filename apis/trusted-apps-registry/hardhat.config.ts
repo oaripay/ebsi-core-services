@@ -23,11 +23,11 @@ const config: HardhatUserConfig = {
       },
     },
   },
-  paths: {
-    sources: "./submodules/trusted-apps-registry-ethereum-sc/contracts",
-    cache: "./cache",
-    artifacts: "./artifacts",
-  },
+  // paths: {
+  //   sources: "./submodules/trusted-apps-registry-ethereum-sc/contracts",
+  //   cache: "./cache",
+  //   artifacts: "./artifacts",
+  // },
 };
 
 export default config;

@@ -3,14 +3,17 @@ pragma solidity 0.8.12;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-import "../bootstrap-ethereum-sc/contracts/utils/upgradeability/Initializable.sol";
+import "@ebsiint-sc/bootstrap/contracts/utils/upgradeability/Initializable.sol";
 import "./PolicyStorage.sol";
-import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
+import "@ebsiint-sc/bootstrap/contracts/utils/Pagination.sol";
 import "./Roles.sol";
 
 abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
     using Pagination for uint256;
 
+    /**
+     * Events
+     */
     event PolicyInserted(
         uint256 indexed policyId,
         string policyName,
@@ -38,6 +41,10 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
 
     /**
      * @dev insert an Policy
+     * @param opType OPERATION_TYPE type of operation in the policy AND|OR
+     * @param policyConditions PolicyCondition[] policy conditions to be checked
+     * @param policyName string
+     * @param description string
      */
     function insertPolicy(
         OPERATION_TYPE opType,
@@ -93,6 +100,8 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
 
     /**
      * @dev add a new policy's condition (by policy name)
+     * @param policyName string
+     * @param policyConditions PolicyCondition[]
      */
     function addPolicyConditions(
         string calldata policyName,
@@ -103,6 +112,8 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
 
     /**
      * @dev add a new policy's condition (by policy id)
+     * @param policyId uint256
+     * @param policyConditions PolicyCondition[]
      */
     function addPolicyConditions(
         uint256 policyId,
@@ -113,6 +124,8 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
 
     /**
      * @dev delete a policy condition (by policy name)
+     * @param policyName string
+     * @param policyConditionId uint256
      */
     function deletePolicyCondition(
         string calldata policyName,
@@ -123,6 +136,8 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
 
     /**
      * @dev delete a policy condition (by policy id)
+     * @param policyId uint256
+     * @param policyConditionId uint256
      */
     function deletePolicyCondition(uint256 policyId, uint256 policyConditionId)
         external
@@ -133,6 +148,9 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
 
     /**
      * @dev update a policy (by policy name)
+     * @param policyName string
+     * @param opType OPERATION_TYPE
+     * @param description string
      */
     function updatePolicy(
         string calldata policyName,
@@ -144,6 +162,9 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
 
     /**
      * @dev update a policy (by policy id)
+     * @param policyId uint256
+     * @param opType OPERATION_TYPE
+     * @param description string
      */
     function updatePolicy(
         uint256 policyId,
@@ -155,6 +176,7 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
 
     /**
      * @dev deactivate a policy (by policy name)
+     * @param policyName string
      */
     function deactivatePolicy(string calldata policyName)
         external
@@ -165,6 +187,7 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
 
     /**
      * @dev deactivate a policy (by policy id)
+     * @param policyId uint256
      */
     function deactivatePolicy(uint256 policyId)
         external
@@ -175,6 +198,7 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
 
     /**
      * @dev activate a policy (by policy name)
+     * @param policyName string
      */
     function activatePolicy(string calldata policyName)
         external
@@ -185,6 +209,7 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
 
     /**
      * @dev activate a policy (by policy id)
+     * @param policyId uint256
      */
     function activatePolicy(uint256 policyId) external onlyRole(OPERATOR_ROLE) {
         _activatePolicy(policyId);
@@ -192,6 +217,11 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
 
     // INTERNAL SETTERS
 
+    /**
+     * @dev add a new policy's condition (by policy id)
+     * @param policyId uint256
+     * @param policyConditions PolicyCondition[]
+     */
     function _addPolicyConditions(
         uint256 policyId,
         PolicyCondition[] calldata policyConditions
@@ -223,6 +253,11 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
         }
     }
 
+    /**
+     * @dev delete policy Condition by policy Id and Condition Id
+     * @param policyId uint256
+     * @param policyConditionId uint256
+     */
     function _deletePolicyCondition(uint256 policyId, uint256 policyConditionId)
         internal
     {
@@ -259,6 +294,12 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
         );
     }
 
+    /**
+     * @dev update a policy operation type and description by policy Id
+     * @param policyId uint256
+     * @param opType OPERATION_TYPE
+     * @param description string
+     */
     function _updatePolicy(
         uint256 policyId,
         OPERATION_TYPE opType,
@@ -297,6 +338,11 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
         emit PolicyUpdated(policyId, oldDescription, description);
     }
 
+    /**
+     * @dev deactivate a policy by id
+     * @param policyId uint256
+     */
+
     function _deactivatePolicy(uint256 policyId) internal {
         PolicyContractStorage storage ps = policyStorage();
         require(policyId < ps.policyCount, "Policy: invalid policy");
@@ -306,6 +352,10 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
         emit PolicyDeactivated(policyId);
     }
 
+    /**
+     * @dev activate a policy by id
+     * @param policyId uint256
+     */
     function _activatePolicy(uint256 policyId) internal {
         PolicyContractStorage storage ps = policyStorage();
         require(policyId < ps.policyCount, "Policy: invalid policy");
@@ -317,6 +367,11 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
 
     // GETTERS
 
+    /**
+     * @dev get policies paginated
+     * @param page uint256
+     * @param pageSize uint256
+     */
     function getPolicies(uint256 page, uint256 pageSize)
         external
         view
@@ -335,6 +390,11 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
         return ps.policyCount.paginate(page, pageSize);
     }
 
+    /**
+     * @dev get policy names paginated
+     * @param page uint256
+     * @param pageSize uint256
+     */
     function getPolicyNames(uint256 page, uint256 pageSize)
         external
         view
@@ -363,6 +423,10 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
         return (itemsStrings, total, howMany, prev, next);
     }
 
+    /**
+     * @dev get policy by id
+     * @param _policyId uint256
+     */
     function getPolicy(uint256 _policyId)
         external
         view
@@ -378,6 +442,10 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
         return _getPolicy(_policyId);
     }
 
+    /**
+     * @dev get policy by policy name
+     * @param _policyName string
+     */
     function getPolicy(string calldata _policyName)
         external
         view
@@ -393,6 +461,12 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
         return _getPolicy(_getPolicyId(_policyName));
     }
 
+    // INTERNAL
+
+    /**
+     * @dev get policy by id
+     * @param _policyId uint256
+     */
     function _getPolicy(uint256 _policyId)
         internal
         view
@@ -430,6 +504,10 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
         );
     }
 
+    /**
+     * @dev get policy by name
+     * @param policyName string
+     */
     function _getPolicyId(string calldata policyName)
         internal
         view
@@ -439,6 +517,11 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
         require(ps.policyNameDefined[policyName], "Policy: invalid policy");
         return ps.policyNameToPolicyId[policyName];
     }
+
+    /**
+     * @dev search a policy by string
+     * @param searchString string
+     */
 
     function searchPolicy(string calldata searchString)
         external
