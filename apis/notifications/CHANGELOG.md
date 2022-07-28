@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.1](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/notifications-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.0&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.1&targetRepoId=318) (2022-07-06)
+
+### 🐛 Bug Fixes
+
+- accept only EBSI DIDs ([#88](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/notifications-api/pull-requests/88/overview)) - EBSIINT-4347 ([2c30f18](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/notifications-api/commits/2c30f18de96b4e189e84cac61129e3af0f7c2826))
+
+### 🚀 Features
+
+- show docker version tag in header for test env ([#79](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/notifications-api/pull-requests/79/overview)) - EBSIINT-4322 ([a789ad8](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/notifications-api/commits/a789ad8386a39be3b22ed30c87b536a8fc436c1d))
+
 ## [2.0.0-rc.0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/notifications-api/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.8&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.0&targetRepoId=318) (2022-06-08)
 
 ### ⚠ BREAKING CHANGES
