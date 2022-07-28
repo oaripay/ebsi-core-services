@@ -22,6 +22,13 @@ abstract contract UserAttributesManagement is
 
     // insert user attributes
 
+    /**
+     * @dev insert user attributes (defined on a policy condition)
+     * @param user address
+     * @param attributes array of strings
+     * @param values array of bytes (that will be casted later)
+     */
+
     function insertUserAttributes(
         address user,
         string[] calldata attributes,
@@ -49,6 +56,10 @@ abstract contract UserAttributesManagement is
         }
     }
 
+    /**
+     * @dev update user attributes (defined on a policy condition)
+     */
+
     function updateUserAttribute(
         address user,
         string calldata attribute,
@@ -64,6 +75,10 @@ abstract contract UserAttributesManagement is
         ps.userAttributes[user][attribute] = value;
         emit UserAttributeUpdated(user, attribute, value);
     }
+
+    /**
+     * @dev delete user attributes (defined on a policy condition)
+     */
 
     function deleteUserAttribute(address user, string calldata attribute)
         external
@@ -96,6 +111,10 @@ abstract contract UserAttributesManagement is
         }
     }
 
+    /**
+     * @dev get defined user attributes paginated
+     */
+
     function getUsers(uint256 page, uint256 pageSize)
         external
         view
@@ -113,6 +132,10 @@ abstract contract UserAttributesManagement is
         PolicyContractStorage storage ps = policyStorage();
         return ps.addresses.paginate(page, pageSize);
     }
+
+    /**
+     * @dev get attributes of a defined user
+     */
 
     function getUserAttributes(
         address user,
@@ -140,6 +163,10 @@ abstract contract UserAttributesManagement is
         );
         return ps.listOfUserAttributes[user].paginate(page, pageSize);
     }
+
+    /**
+     * @dev get specific user attribute
+     */
 
     function getUserAttribute(address user, string calldata attribute)
         external

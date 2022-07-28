@@ -6,6 +6,14 @@ import "./PolicyStorage.sol";
 import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
 
 abstract contract PolicyEngine is PolicyStorage {
+    // Viewer functions
+
+    /**
+     * @dev Check if an user has a policy by policy id
+     * @param policyId uint256
+     * @param user address
+     * @return bool
+     */
     function checkPolicy(uint256 policyId, address user)
         external
         view
@@ -14,6 +22,12 @@ abstract contract PolicyEngine is PolicyStorage {
         return _checkPolicy(policyId, user);
     }
 
+    /**
+     * @dev Check if an user has a policy by policy name (unique)
+     * @param policyName string
+     * @param user address
+     * @return bool
+     */
     function checkPolicy(string calldata policyName, address user)
         external
         view
@@ -23,6 +37,14 @@ abstract contract PolicyEngine is PolicyStorage {
         require(ps.policyNameDefined[policyName], "policy does not exists");
         return _checkPolicy(ps.policyNameToPolicyId[policyName], user);
     }
+
+    // Internal functions
+    /**
+     * @dev internal - Check if an user has a policy by policy id
+     * @param policyId uint256
+     * @param user address
+     * @return bool
+     */
 
     function _checkPolicy(uint256 policyId, address user)
         internal
@@ -104,6 +126,13 @@ abstract contract PolicyEngine is PolicyStorage {
         return false;
     }
 
+    /**
+     * @dev internal - cast a bytes to address
+     * @param _bytes bytes
+     * @param _start uint256
+     * @return address
+     */
+
     function toAddress(bytes memory _bytes, uint256 _start)
         internal
         pure
@@ -122,6 +151,12 @@ abstract contract PolicyEngine is PolicyStorage {
         return tempAddress;
     }
 
+    /**
+     * @dev internal - cast a bytes to uint
+     * @param _bytes bytes
+     * @param _start uint256
+     * @return uint256
+     */
     function toUint256(bytes memory _bytes, uint256 _start)
         internal
         pure
@@ -136,6 +171,13 @@ abstract contract PolicyEngine is PolicyStorage {
 
         return tempUint;
     }
+
+    /**
+     * @dev internal - cast a bytes to bytes32
+     * @param _bytes bytes
+     * @param _start uint256
+     * @return bytes32
+     */
 
     function toBytes32(bytes memory _bytes, uint256 _start)
         internal
@@ -152,6 +194,12 @@ abstract contract PolicyEngine is PolicyStorage {
         return tempBytes32;
     }
 
+    /**
+     * @dev internal - cast a bytes to bool
+     * @param _bytes bytes
+     * @param _start uint256
+     * @return bool
+     */
     function toBool(bytes memory _bytes, uint256 _start)
         internal
         pure
