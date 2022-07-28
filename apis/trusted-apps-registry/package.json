@@ -31,6 +31,7 @@
     "prepare": "is-ci || husky install"
   },
   "dependencies": {
+    "@ebsiint-sc/trusted-apps-registry": "^2.0.0",
     "@cef-ebsi/problem-details-errors": "^1.0.0",
     "@nestjs/axios": "0.0.4",
     "@nestjs/common": "^8.2.6",

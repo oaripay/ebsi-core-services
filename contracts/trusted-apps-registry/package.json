@@ -52,6 +52,9 @@
     "typescript": "^4.3.5"
   },
   "dependencies": {
+    "@ebsiint-sc/bootstrap": "^1.0.0",
+    "@ebsiint-sc/did-registry": "^1.0.0",
+    "@ebsiint-sc/trusted-policies-registry": "^1.0.0",
     "@openzeppelin/contracts": "^4.4.2"
   }
 }
