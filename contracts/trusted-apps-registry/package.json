@@ -5,6 +5,7 @@
   "private": "true",
   "description": "Trusted Apps Registry",
   "scripts": {
+    "clean": "rimraf artifacts cache src/contracts",
     "fork": "hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/GVQRQezmyi7tO268bhIl5CSo6lM9ubfp --fork-block-number 11095000",
     "compile": "hardhat compile",
     "coverage": "hardhat coverage --testfiles 'tests/*.ts'",
@@ -43,6 +44,7 @@
     "lint-staged": "^12.2.0",
     "prettier": "^2.3.2",
     "prettier-plugin-solidity": "^1.0.0-beta.13",
+    "rimraf": "^3.0.2",
     "solhint": "^3.3.6",
     "solhint-plugin-prettier": "^0.0.5",
     "solidity-coverage": "^0.7.18",

@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "clean": "rimraf artifacts cache src/contracts",
     "test": "hardhat test",
     "compile": "hardhat compile",
     "coverage": "npx hardhat coverage --network coverage",
@@ -52,6 +53,7 @@
     "lint-staged": "^11.0.0",
     "prettier": "^2.3.2",
     "prettier-plugin-solidity": "^1.0.0-beta.13",
+    "rimraf": "^3.0.2",
     "solhint": "^3.3.6",
     "solhint-plugin-prettier": "^0.0.5",
     "solidity-coverage": "^0.7.16",

@@ -4,6 +4,7 @@
   "main": "index.js",
   "license": "EUPL-1.2",
   "scripts": {
+    "clean": "rimraf artifacts cache src/contracts",
     "fork": "hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/GVQRQezmyi7tO268bhIl5CSo6lM9ubfp --fork-block-number 11095000",
     "prettier-format": "prettier --write '**/*.{ts,json,md,sol}'",
     "compile": "hardhat compile",
@@ -42,6 +43,7 @@
     "lint-staged": "^12.3.4",
     "prettier": "^2.5.1",
     "prettier-plugin-solidity": "^1.0.0-beta.19",
+    "rimraf": "^3.0.2",
     "solhint": "^3.3.7",
     "solhint-plugin-prettier": "^0.0.5",
     "solidity-coverage": "^0.7.20",

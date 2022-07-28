@@ -11,10 +11,9 @@ import * as fs from "fs";
 
 const mnemonicPath = `${__dirname}/.secret.mnemonic`;
 let mnemonic = "test test test test test test test test test test test junk";
-try {
+if (fs.existsSync(mnemonicPath)) {
+  console.log(".secret.mnemonic exists and will be used");
   mnemonic = fs.readFileSync(mnemonicPath).toString().trim();
-} catch (err) {
-  console.error(err);
 }
 
 // This is a sample Buidler task. To learn how to create your own go to
