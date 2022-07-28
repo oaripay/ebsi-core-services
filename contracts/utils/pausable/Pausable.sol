@@ -30,7 +30,7 @@ contract Pausable is Initializable, PauserRole {
      * @dev Initializes the contract in unpaused state. Assigns the Pauser role
      * to the deployer.
      */
-    function initialize(address sender) public override initializer {
+    function initialize(address sender) public override onlyInitializing {
         PauserRole.initialize(sender);
 
         _paused = false;
