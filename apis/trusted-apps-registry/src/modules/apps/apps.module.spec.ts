@@ -7,6 +7,7 @@ import {
   ValidationPipe,
   Logger,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import crypto from "crypto";
 import {
   FastifyAdapter,
@@ -27,6 +28,7 @@ import { setupTestEnv } from "../../../tests/utils/tar";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { PaginatedList } from "../../shared/interfaces";
 import LedgerService from "../ledger/ledger.service";
+import { ApiConfig } from "../../config/configuration";
 
 jest.setTimeout(300000);
 
@@ -56,6 +58,7 @@ describe("Apps Module", () => {
   let app: INestApplication;
   let server: HttpServer;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
+  let configService: ConfigService<ApiConfig, true>;
 
   describe.each(["http://127.0.0.1", "ws://127.0.0.1"])(
     "with LedgerService connecting to %s",
@@ -102,8 +105,12 @@ describe("Apps Module", () => {
         // Turn off logger
         Logger.overrideLogger(false);
 
-        app.useGlobalFilters(new AllExceptionsFilter());
+        configService =
+          moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+
+        app.useGlobalFilters(new AllExceptionsFilter(configService));
         app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
         await app.init();
         await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
         server = app.getHttpServer() as HttpServer;
@@ -216,8 +223,12 @@ describe("Apps Module", () => {
       // Turn off logger
       Logger.overrideLogger(false);
 
-      app.useGlobalFilters(new AllExceptionsFilter());
+      configService =
+        moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+
+      app.useGlobalFilters(new AllExceptionsFilter(configService));
       app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
       await app.init();
       await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
       server = app.getHttpServer() as HttpServer;
