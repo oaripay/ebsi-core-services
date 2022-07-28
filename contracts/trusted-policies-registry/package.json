@@ -1,5 +1,5 @@
 {
-  "name": "timestamp-ethereum-sc",
+  "name": "@ebsiint-sc/trusted-policies-registry",
   "version": "1.0.0",
   "main": "index.js",
   "license": "EUPL-1.2",
