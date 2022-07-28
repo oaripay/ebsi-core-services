@@ -1,0 +1,4 @@
+[submodule "submodules/trusted-apps-registry-ethereum-sc"]
+	path = submodules/trusted-apps-registry-ethereum-sc
+	url = https://ec.europa.eu/digital-building-blocks/code/scm/ebsi/trusted-apps-registry-ethereum-sc.git
+	branch = develop
