@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: EUPL V1.2
-pragma solidity ^0.8.0;
+pragma solidity 0.8.12;
 
-import "../trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
+import "@ebsiint-sc/bootstrap/contracts/utils/Pagination.sol";
 import "./DidTimestampStorage.sol";
 import "./HashAlgoStorage.sol";
 

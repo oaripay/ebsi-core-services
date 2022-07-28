@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: EUPL V1.2
-pragma solidity ^0.8.0;
+pragma solidity 0.8.12;
 
 // solhint-disable-next-line max-line-length
-import "../trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/upgradeability/Initializable.sol";
+import "@ebsiint-sc/bootstrap/contracts/utils/upgradeability/Initializable.sol";
 import "./DidStorage.sol";
 import "./HashAlgoDetailed.sol";
 import "./DidPolicyDetailed.sol";
-import "./DidMethodDetailed.sol";
 import "./DidTimestampDetailed.sol";
 import "./DidRecordDetailed.sol";
 
@@ -18,7 +17,6 @@ contract DidRegistry is
     DidStorage,
     HashAlgoDetailed,
     DidPolicyDetailed,
-    DidMethodDetailed,
     DidTimestampDetailed,
     DidRecordDetailed,
     Initializable
@@ -29,7 +27,6 @@ contract DidRegistry is
 
     function setTrustedPoliciesRegistryAddress() public {
         HashAlgos storage hs = hashAlgoStorage();
-        Methods storage ds = didMethodStorage();
 
         uint256 id;
         assembly {
@@ -56,10 +53,9 @@ contract DidRegistry is
         }
 
         hs.trustedPolicyRegistry = IPolicyRegistry(tprAddress);
-        ds.trustedPolicyRegistry = IPolicyRegistry(tprAddress);
     }
 
-    function _onInitialize(uint256 _version) internal initializer {
+    function _onInitialize(uint256 _version) internal onlyInitializing {
         TSC storage ts = DidStorage.tscStorage();
         ts.version = _version;
     }
