@@ -1,0 +1,18 @@
+// SPDX-License-Identifier: EUPL V1.2
+pragma solidity 0.8.12;
+
+/**
+ * @title example of stored values on a SC with pause functionality.
+ *
+ */
+interface IPolicyRegistry {
+    function checkPolicy(string calldata policyName, address user)
+        external
+        view
+        returns (bool);
+
+    function checkPolicy(uint256 policyId, address user)
+        external
+        view
+        returns (bool);
+}
