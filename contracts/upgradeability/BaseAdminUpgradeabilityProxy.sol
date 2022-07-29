@@ -112,6 +112,7 @@ abstract contract BaseAdminUpgradeabilityProxy is BaseUpgradeabilityProxy {
     function _setAdmin(address newAdmin) internal {
         require(newAdmin != address(0), "newAdmin address can't be zero");
         DiamondStorage storage ms = diamondStorage();
+        require(ms.proxyAdmin != newAdmin, "admin is the same");
         ms.proxyAdmin = newAdmin;
     }
 

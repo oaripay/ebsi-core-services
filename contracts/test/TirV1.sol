@@ -10,7 +10,9 @@ import "./tir/Tir.sol";
 contract TirV1 is Tir {
     function init2(uint256 newVersion) public {
         Tir storage ds = tirStorage();
-        ds._version = newVersion;
+        if (ds._version != newVersion) {
+            ds._version = newVersion;
+        }
     }
 
     function getDidLast() public view returns (string memory) {

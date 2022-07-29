@@ -32,7 +32,7 @@ abstract contract AnchorDetailed is Initializable {
         string memory _name,
         string memory _symbol,
         uint8 _decimals
-    ) internal initializer {
+    ) internal onlyInitializing {
         storedFields = _fields;
         name = _name;
         symbol = _symbol;

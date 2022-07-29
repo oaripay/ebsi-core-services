@@ -26,7 +26,12 @@ contract TirV2Breaking is TirV1, TirStorageV1Breaking {
 
     function setMessage(string calldata message) public {
         TirModel2 storage ds = tirStorage2();
-        ds.message = message;
+        if (
+            keccak256(abi.encodePacked(ds.message)) !=
+            keccak256(abi.encodePacked(message))
+        ) {
+            ds.message = message;
+        }
     }
 
     function getMessage() public view returns (string memory) {

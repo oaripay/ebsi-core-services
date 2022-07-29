@@ -9,13 +9,15 @@ contract TirDetailed is Initializable, TirStorage {
      * @dev Sets the values for  `version`.
      */
 
-    function initialize(uint256 version) public initializer {
+    function initialize(uint256 version) public onlyInitializing {
         _onInitialize(version);
     }
 
-    function _onInitialize(uint256 version) internal initializer {
+    function _onInitialize(uint256 version) internal onlyInitializing {
         Tir storage ds = TirStorage.tirStorage();
-        ds._version = version;
+        if (ds._version != version) {
+            ds._version = version;
+        }
     }
 
     /**
