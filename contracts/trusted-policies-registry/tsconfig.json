@@ -15,7 +15,8 @@
     "incremental": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "noImplicitAny": false, // Tests are full of these in the context of using any for index type, appeared after upgrading typechain toolchain
   },
   "include": ["./scripts", "./tests", "./src", ",./helpers"],
   "files": ["./hardhat.config.ts"],
