@@ -6,7 +6,7 @@ import { ethers } from "ethers";
 import { range } from "rxjs";
 import { mergeMap, toArray } from "rxjs/operators";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { Tar } from "@ebsiint-sc/trusted-apps-registry/contracts-trusted-apps-registry";
+import { Tar } from "@ebsiint-sc/trusted-apps-registry";
 
 interface User {
   wallet: ethers.Wallet;
