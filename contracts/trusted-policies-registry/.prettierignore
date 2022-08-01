@@ -1,8 +1,0 @@
-coverage
-node_modules
-build
-cache
-artifacts
-contracts/bootstrap-ethereum-sc
-README.md
-coverage.json
