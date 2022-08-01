@@ -3,7 +3,7 @@ import {
   PolicyRevisions,
   PolicyResponseObject,
 } from "./policies.interface";
-import { Tar } from "../../contracts";
+import { Tar } from "@ebsiint-sc/trusted-apps-registry/src/types";
 import { PaginatedList } from "../../shared/interfaces";
 import { paginate } from "../../shared/utils";
 import { AsyncReturnType } from "../../shared/types/async-return-type";

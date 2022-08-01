@@ -5,7 +5,7 @@ import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import type WebSocket from "ws";
 import { ApiConfig } from "../../config/configuration";
-import { Tar, Tar__factory } from "../../contracts";
+import { Tar, Tar__factory } from "@ebsiint-sc/trusted-apps-registry/src/types";
 
 const EXPECTED_PONG_BACK = 15000;
 const KEEP_ALIVE_CHECK_INTERVAL = 7500;

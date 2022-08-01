@@ -6,6 +6,7 @@
   "scripts": {
     "clean": "rimraf artifacts cache src/contracts",
     "test": "hardhat test",
+    "build": "hardhat compile",
     "compile": "hardhat compile",
     "coverage": "npx hardhat coverage --network coverage",
     "lint": "yarn run lint:prettier && yarn run lint:eslint && npm run lint:sol",

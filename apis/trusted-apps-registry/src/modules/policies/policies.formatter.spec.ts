@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import { formatPolicies, formatRevisions } from "./policies.formatter";
-import { Tar } from "../../contracts";
+import { Tar } from "@ebsiint-sc/trusted-apps-registry/src/types";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import PoliciesService from "./policies.service";
 

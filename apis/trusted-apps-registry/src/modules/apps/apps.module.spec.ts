@@ -23,7 +23,7 @@ import {
   PublicKeyResponseObject,
 } from "./apps.interface";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { Tar__factory } from "../../contracts";
+import { Tar__factory } from "@ebsiint-sc/trusted-apps-registry/src/types";
 import { setupTestEnv } from "../../../tests/utils/tar";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { PaginatedList } from "../../shared/interfaces";
