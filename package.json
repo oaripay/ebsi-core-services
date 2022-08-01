@@ -8,7 +8,7 @@
     "lint": "nx run-many --target=lint --all",
     "test": "nx run-many --target=test --all",
     "start:tar-api": "NODE_ENV=test yarn workspace @ebsiint-api/trusted-apps-registry run start",
-    "postinstall": "yarn run clean && yarn run compile"
+    "postinstall": "yarn run clean && yarn run build"
   },
   "private": true,
   "dependencies": {},
