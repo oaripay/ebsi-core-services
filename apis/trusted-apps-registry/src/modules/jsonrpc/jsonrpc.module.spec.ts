@@ -38,7 +38,7 @@ import {
 } from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { Tar, Tar__factory } from "@ebsiint-sc/trusted-apps-registry/src/types";
+import { Tar, Tar__factory } from "@ebsiint-sc/trusted-apps-registry";
 import { setupTestEnv } from "../../../tests/utils/tar";
 import LedgerService from "../ledger/ledger.service";
 import { AsyncReturnType } from "../../shared/types/async-return-type";

@@ -10,3 +10,5 @@ build
 all.sol
 .secret*
 .env
+
+dist

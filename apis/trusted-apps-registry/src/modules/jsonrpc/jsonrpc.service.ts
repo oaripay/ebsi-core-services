@@ -39,7 +39,7 @@ import {
   validateClass,
 } from "./jsonrpc.utils";
 import LedgerService from "../ledger/ledger.service";
-import { Tar } from "@ebsiint-sc/trusted-apps-registry/src/types";
+import { Tar } from "@ebsiint-sc/trusted-apps-registry";
 import { ApiConfig } from "../../config/configuration";
 
 function getErrorMessage(error: unknown) {
