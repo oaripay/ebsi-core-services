@@ -11,7 +11,6 @@
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
-    "lint-staged": "lint-staged",
     "lint": "yarn lint:openapi && yarn lint:eslint && yarn lint:tsc && yarn lint:prettier",
     "lint:openapi": "spectral lint api/openapi.yaml",
     "lint:eslint": "eslint . --ext .js,.ts ",
@@ -22,8 +21,7 @@
     "test:watch": "jest --watch",
     "test:unit": "jest --testPathIgnorePatterns=e2e",
     "test:e2e": "jest --testPathPattern=tests/e2e --runInBand",
-    "test:ci": "yarn test:unit --coverage --reporters=default --reporters=jest-sonar",
-    "prepare": "is-ci || husky install"
+    "test:ci": "yarn test:unit --coverage --reporters=default --reporters=jest-sonar"
   },
   "dependencies": {
     "@cef-ebsi/oauth2-auth": "^2.0.0",
@@ -53,12 +51,9 @@
   },
   "devDependencies": {
     "@cef-ebsi/wallet-lib": "^2.0.0",
-    "@commitlint/cli": "^17.0.2",
-    "@commitlint/config-conventional": "^17.0.2",
     "@nestjs/cli": "^8.2.6",
     "@nestjs/schematics": "^8.0.11",
     "@nestjs/testing": "^8.4.6",
-    "@stoplight/spectral-cli": "^6.4.1",
     "@tsconfig/node16": "^1.0.2",
     "@types/elliptic": "^6.4.14",
     "@types/jest": "28.1.1",
@@ -78,12 +73,9 @@
     "eslint-plugin-jest": "^26.5.3",
     "eslint-plugin-prettier": "^4.0.0",
     "ethers": "^5.6.9",
-    "husky": "^8.0.1",
-    "is-ci": "^3.0.1",
     "jest": "^28.1.1",
     "jest-sonar": "^0.2.12",
     "key-encoder": "^2.0.3",
-    "lint-staged": "^13.0.1",
     "nock": "^13.2.6",
     "prettier": "^2.6.2",
     "rimraf": "^3.0.2",
