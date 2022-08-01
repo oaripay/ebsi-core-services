@@ -6,7 +6,7 @@
   "scripts": {
     "audit": "audit-ci --moderate --skip-dev",
     "build": "nest build -p tsconfig.production.json",
-    "clean": "rimraf artifacts cache src/contracts",
+    "clean": "rimraf cache",
     "clinic:doctor": "yarn build && clinic doctor -- node dist/main",
     "clinic:bubbleprof": "yarn build && clinic bubbleprof -- node dist/main",
     "clinic:flame": "yarn build && clinic flame -- node dist/main",
@@ -16,7 +16,6 @@
     "lint:openapi": "spectral lint api/openapi.yaml",
     "lint:prettier": "prettier . --check",
     "lint:tsc": "tsc --noEmit --incremental false",
-    "postinstall": "yarn run clean && hardhat compile",
     "prebuild": "rimraf dist",
     "release": "standard-version",
     "start": "nest start",

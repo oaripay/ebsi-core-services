@@ -7,7 +7,7 @@
   "main": "dist/src/types/index.js",
   "types": "dist/src/types/index.d.ts",
   "scripts": {
-    "clean": "rimraf artifacts cache src/contracts dist",
+    "clean": "rimraf artifacts cache src dist",
     "fork": "hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/GVQRQezmyi7tO268bhIl5CSo6lM9ubfp --fork-block-number 11095000",
     "build": "yarn compile",
     "compile": "hardhat compile && yarn tsc",

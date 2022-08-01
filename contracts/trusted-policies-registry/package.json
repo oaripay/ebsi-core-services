@@ -5,7 +5,7 @@
   "types": "dist/src/types/index.d.ts",
   "license": "EUPL-1.2",
   "scripts": {
-    "clean": "rimraf artifacts cache src/contracts dist",
+    "clean": "rimraf artifacts cache src dist",
     "fork": "hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/GVQRQezmyi7tO268bhIl5CSo6lM9ubfp --fork-block-number 11095000",
     "prettier-format": "prettier --write '**/*.{ts,json,md,sol}'",
     "build": "yarn compile",

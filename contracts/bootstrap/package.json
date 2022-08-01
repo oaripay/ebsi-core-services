@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "clean": "rimraf artifacts cache src/contracts dist",
+    "clean": "rimraf artifacts cache src dist",
     "test": "hardhat test",
     "build": "yarn compile",
     "compile": "hardhat compile && yarn tsc",
