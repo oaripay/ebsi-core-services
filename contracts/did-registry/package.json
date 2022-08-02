@@ -49,5 +49,40 @@
     "@ebsiint-sc/bootstrap": "^1.0.0",
     "@ebsiint-sc/trusted-policies-registry": "^1.0.0",
     "@openzeppelin/contracts": "^4.4.2"
+  },
+  "nx": {
+    "namedInputs": {
+      "default": [
+        "{projectRoot}/contracts",
+        "{projectRoot}/scripts"
+      ],
+      "prod": [
+        "!{projectRoot}/tests/*.spec.ts"
+      ]
+    },
+    "targets": {
+      "build": {
+        "inputs": [
+          "prod",
+          "^prod"
+        ],
+        "outputs": [
+          "dist"
+        ],
+        "dependsOn": [
+          "^build"
+        ]
+      },
+      "test": {
+        "inputs": [
+          "default",
+          "^prod"
+        ],
+        "outputs": [],
+        "dependsOn": [
+          "build"
+        ]
+      }
+    }
   }
 }
