@@ -7,7 +7,8 @@ import "../bootstrap-ethereum-sc/contracts/utils/upgradeability/Initializable.so
 
 contract TarDetailed is Initializable, TarStorage {
     /**
-     * @dev Sets the values for `operator`,   and `version`.
+     * @dev initialize the contract with the version
+     * @param _version uint256
      */
 
     function init(uint256 _version) public onlyInitializing {
@@ -25,13 +26,5 @@ contract TarDetailed is Initializable, TarStorage {
     function version() public view returns (uint256) {
         Tar storage ds = tarStorage();
         return ds._version;
-    }
-
-    /**
-     * @dev Returns the version of the Timestamp SC
-     */
-    function setVersion(uint256 _version) public {
-        Tar storage ds = tarStorage();
-        ds._version = _version;
     }
 }
