@@ -55,12 +55,15 @@ export class JsonRpcService {
 
   private contractAddress: string;
 
+  private timeout: number;
+
   constructor(
     configService: ConfigService<ApiConfig>,
     private ledgerService: LedgerService
   ) {
     this.didRegistry = configService.get<string>("didRegistryApiUrl");
     this.contractAddress = ledgerService.getContractAddress();
+    this.timeout = configService.get<number>("requestTimeout");
   }
 
   async getChainId(): Promise<string> {
@@ -103,7 +106,8 @@ export class JsonRpcService {
       items: { did: string }[];
       total: number;
     }>(
-      `${this.didRegistry}/identifiers?controller=${controllerAddress}&page[size]=${pageSize}&page[after]=${currentPage}`
+      `${this.didRegistry}/identifiers?controller=${controllerAddress}&page[size]=${pageSize}&page[after]=${currentPage}`,
+      { timeout: this.timeout }
     );
 
     // Check if DID is in the list

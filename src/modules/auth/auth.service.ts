@@ -10,10 +10,13 @@ import { ApiConfig } from "../../config/configuration";
 export class AuthService {
   private trustedAppsRegistry: string;
 
+  private timeout: number;
+
   constructor(configService: ConfigService<ApiConfig>) {
     this.trustedAppsRegistry = `${configService.get<string>(
       "trustedAppsRegistryApiUrl"
     )}/apps`;
+    this.timeout = configService.get<number>("requestTimeout");
   }
 
   async validateSiopToken(bearerToken: string): Promise<ClientInfo> {
@@ -25,6 +28,7 @@ export class AuthService {
         await verifySiopToken(bearerToken, {
           trustedAppsRegistry: this.trustedAppsRegistry,
           audience: "ebsi-core-services",
+          timeout: this.timeout,
         })
       ).payload;
     } catch (e) {

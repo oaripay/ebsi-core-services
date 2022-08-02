@@ -15,6 +15,7 @@ declare global {
       DOMAIN?: string;
       LOCAL_ORIGIN?: string;
       HEALTH_CHECK?: string;
+      REQUEST_TIMEOUT?: string;
       // Ledger & SC
       LEDGER_API_URL: string;
       LEDGER_API_NAME: string;

@@ -15,6 +15,7 @@ export interface ApiConfig {
   localOrigin: string;
   logLevel: string;
   externalEbsiApiHealthCheck: string;
+  requestTimeout: number;
   // Ledger & SC
   ledgerApiUrl: string;
   ledgerApiName: string;
@@ -108,6 +109,7 @@ export const loadConfig = (): ApiConfig => {
     trustedAppsRegistryApiUrl:
       process.env.TRUSTED_APPS_REGISTRY_API_URL ||
       defaultConfig[EBSI_ENV].TRUSTED_APPS_REGISTRY_API_URL,
+    requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     // Ledger & SC
     ledgerApiUrl:
       process.env.LEDGER_API_URL || defaultConfig[EBSI_ENV].LEDGER_API_URL,
@@ -156,6 +158,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     DOMAIN: Joi.string().uri(),
     LOCAL_ORIGIN: Joi.string().uri(),
     HEALTH_CHECK: Joi.string(),
+    REQUEST_TIMEOUT: Joi.string(),
     // Ledger & SC
     CONTRACT_ADDR: Joi.string().required(),
     LEDGER_API_URL: Joi.string().uri(),

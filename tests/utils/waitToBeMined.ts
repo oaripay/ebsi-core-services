@@ -7,6 +7,7 @@ export const waitToBeMined = async (
 ): Promise<ethers.providers.TransactionReceipt> => {
   let mined = false;
   let receipt: ethers.providers.TransactionReceipt;
+
   /* eslint-disable no-await-in-loop */
   while (!mined) {
     await new Promise((resolve) => {

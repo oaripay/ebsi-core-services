@@ -14,7 +14,7 @@ import {
   BadRequestError,
 } from "@cef-ebsi/problem-details-errors";
 import type { FastifyReply } from "fastify";
-import { AxiosError } from "axios";
+import axios from "axios";
 import { InvalidRequestJsonRpcError } from "../modules/jsonrpc/errors";
 import { ApiConfig } from "../config/configuration";
 
@@ -70,33 +70,32 @@ export class AllExceptionsFilter implements ExceptionFilter {
     } else if (err instanceof ProblemDetailsError) {
       problemError = err;
     } else {
-      if ((err as AxiosError).isAxiosError) {
+      if (axios.isAxiosError(err)) {
         // Properly log error, https://github.com/axios/axios#handling-errors
-        const error = err as AxiosError<unknown>;
-        this.logger.error("Axios error intercepted.", error.stack);
-        if (error.response) {
+        this.logger.error("Axios error intercepted.", err.stack);
+        if (err.response) {
           // The request was made and the server responded with a status code
           // that falls out of the range of 2xx
           this.logger.error({
-            data: error.response.data,
-            status: error.response.status,
-            headers: error.response.headers as unknown,
+            data: err.response.data,
+            status: err.response.status,
+            headers: err.response.headers as unknown,
           });
-        } else if (error.request) {
+        } else if (err.request) {
           // The request was made but no response was received
           // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
           // http.ClientRequest in node.js
           this.logger.error({
-            request: error.request as unknown,
+            request: err.request as unknown,
           });
         } else {
           // Something happened in setting up the request that triggered an Error
           this.logger.error({
-            message: error.message,
+            message: err.message,
           });
         }
 
-        this.logger.error(error.toJSON());
+        this.logger.error(err.toJSON());
       } else {
         this.logger.error(err.message, err.stack);
       }
