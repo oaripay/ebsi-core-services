@@ -68,6 +68,7 @@ export const waitToBeMined = async (
 ): Promise<TransactionReceiptBesu> => {
   let mined = false;
   let receipt: TransactionReceiptBesu;
+
   /* eslint-disable no-await-in-loop */
   while (!mined) {
     await new Promise((resolve) => {
@@ -77,6 +78,8 @@ export const waitToBeMined = async (
     mined = !!receipt;
   }
 
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   return receipt;
 };
 
