@@ -6,7 +6,7 @@ import "./IssuerDetailed.sol";
 import "./TirPolicyDetailed.sol";
 
 /**
- * @title example of stored values on a SC with pause functionality.
+ * @title Trusted Issuers Registry Smart Contract
  *
  */
 contract Tir is Initializable, TirDetailed, IssuerDetailed, TirPolicyDetailed {
