@@ -31,10 +31,10 @@ contract OwnedUpgradeabilityProxy is
         require(_logic != address(0), "_logic address can't be zero");
         require(_admin != address(0), "_admin address can't be zero");
         require(_implementation() == address(0), "implementation must be zero");
+        emit Initialized(_admin, _logic);
         initialize(_logic, _data);
         //assert(ADMIN_SLOT == bytes32(uint256(keccak256("eip1967.proxy.admin")) - 1));
         _setAdmin(_admin);
-        emit Initialized(_admin, _logic);
     }
 
     event Initialized(address admin, address _logic);
