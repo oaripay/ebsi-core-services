@@ -1,7 +1,7 @@
-coverage*
-dist
+coverage
 node_modules
 build
+dist
 cache
 artifacts
-contracts/**/src
+src

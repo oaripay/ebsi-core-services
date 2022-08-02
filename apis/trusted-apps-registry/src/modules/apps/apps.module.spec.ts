@@ -1,3 +1,4 @@
+import { describe } from "@jest/globals";
 import request from "supertest";
 import { ethers } from "ethers";
 import { Test, TestingModule } from "@nestjs/testing";
@@ -14,6 +15,7 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
+import { Tar__factory } from "@ebsiint-sc/trusted-apps-registry";
 import { AppsModule } from "./apps.module";
 import {
   AppLink,
@@ -23,7 +25,6 @@ import {
   PublicKeyResponseObject,
 } from "./apps.interface";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { Tar__factory } from "@ebsiint-sc/trusted-apps-registry";
 import { setupTestEnv } from "../../../tests/utils/tar";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { PaginatedList } from "../../shared/interfaces";

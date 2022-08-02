@@ -1,11 +1,4 @@
-import {
-  beforeEach,
-  beforeAll,
-  afterAll,
-  describe,
-  expect,
-  it,
-} from "@jest/globals";
+import { describe } from "@jest/globals";
 import axios from "axios";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
@@ -26,6 +19,7 @@ import {
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { createJWT, ES256KSigner } from "did-jwt";
 import { JWTVerifyResult } from "jose";
+import { Tar, Tar__factory } from "@ebsiint-sc/trusted-apps-registry";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcService } from "./jsonrpc.service";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
@@ -46,7 +40,6 @@ import {
 } from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { Tar, Tar__factory } from "@ebsiint-sc/trusted-apps-registry";
 import { setupTestEnv } from "../../../tests/utils/tar";
 import LedgerService from "../ledger/ledger.service";
 import { AsyncReturnType } from "../../shared/types/async-return-type";

@@ -1,8 +1,8 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { NotFoundError } from "@cef-ebsi/problem-details-errors";
 import { ethers } from "ethers";
-import LedgerService from "../ledger/ledger.service";
 import { Tar } from "@ebsiint-sc/trusted-apps-registry";
+import LedgerService from "../ledger/ledger.service";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import {
   AppResponseObject,

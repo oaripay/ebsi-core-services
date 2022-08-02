@@ -6,4 +6,5 @@ contracts/trusted-policies-registry-ethereum-sc
 coverage
 node_modules
 src
+coverage.json
 dist

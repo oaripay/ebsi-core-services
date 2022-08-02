@@ -108,7 +108,7 @@ export async function deployTarContract(): Promise<Tar> {
   await tarContract.initialize(1);
   await tarContract.setRegistryAddresses();
 
-  return tarContract;
+  return tarContract as Tar;
 }
 
 export async function insertPolicy(contract: Tar): Promise<PolicyObject> {

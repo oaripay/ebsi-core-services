@@ -13,10 +13,10 @@ import {
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
 import { ethers } from "ethers";
+import { Tar__factory } from "@ebsiint-sc/trusted-apps-registry";
 import { PoliciesModule } from "./policies.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { generateMultihash } from "../../shared/utils";
-import { Tar__factory } from "@ebsiint-sc/trusted-apps-registry";
 import { setupTestEnv } from "../../../tests/utils/tar";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { ApiConfig } from "../../config/configuration";
