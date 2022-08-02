@@ -4,7 +4,7 @@ import { decodeJWT } from "did-jwt";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
-import axios, { AxiosError, AxiosResponse } from "axios";
+import axios, { AxiosResponse } from "axios";
 import { randomUUID } from "crypto";
 import { ApiConfig } from "../../config/configuration";
 import { LedgerSCRegistry, LedgerSCRegistry__factory } from "../../contracts";
@@ -39,6 +39,8 @@ export class ContractService {
 
   private remoteLedgerApi: string;
 
+  private timeout: number;
+
   constructor(private configService: ConfigService<ApiConfig>) {
     this.tlscrAddress = this.configService.get<string>("contractAddr");
     this.authorisationApiUrl = this.configService.get<string>(
@@ -58,6 +60,7 @@ export class ContractService {
     this.remoteLedgerApi = `${this.configService.get<string>(
       "ledgerApiUrl"
     )}/blockchains/besu`;
+    this.timeout = configService.get<number>("requestTimeout");
   }
 
   private async checkSession(): Promise<void> {
@@ -82,10 +85,13 @@ export class ContractService {
       const res = await axios.post<
         typeof requestComponent,
         AxiosResponse<AkeResponse>
-      >(`${this.authorisationApiUrl}/oauth2-sessions`, requestComponent);
+      >(`${this.authorisationApiUrl}/oauth2-sessions`, requestComponent, {
+        timeout: this.timeout,
+      });
 
       const accessToken = await this.agent.verifyAkeResponse(res.data, {
         nonce,
+        timeout: this.timeout,
       });
 
       const { payload } = decodeJWT(accessToken);
@@ -94,8 +100,8 @@ export class ContractService {
       return accessToken;
     } catch (err) {
       if (err instanceof Error) {
-        if ((err as AxiosError).isAxiosError) {
-          logAxiosError(err as AxiosError, this.logger);
+        if (axios.isAxiosError(err)) {
+          logAxiosError(err, this.logger);
         } else {
           this.logger.error(err.message, err.stack);
         }
@@ -113,10 +119,12 @@ export class ContractService {
         headers: {
           authorization: `Bearer ${token}`,
         },
+        timeout: this.timeout,
       });
     } else {
       this.ethersProviderWithoutToken = new ethers.providers.JsonRpcProvider({
         url,
+        timeout: this.timeout,
       });
     }
   }

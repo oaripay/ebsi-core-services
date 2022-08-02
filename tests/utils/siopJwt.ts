@@ -69,6 +69,10 @@ export const requestSiopJwt = async ({
 
   const { idToken } = authenticationResponse;
 
+  if (!idToken) {
+    throw new Error("ID Token is missing in the authentication response");
+  }
+
   // 4. The client call /siop-sessions with the ID Token
   const siopSessionsResponse = await axios.post<
     string,

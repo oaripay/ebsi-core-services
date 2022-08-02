@@ -78,6 +78,8 @@ export const waitToBeMined = async (
     mined = !!receipt;
   }
 
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   return receipt;
 };
 
