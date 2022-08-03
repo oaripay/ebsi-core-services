@@ -2,5 +2,5 @@ version: "3.7"
 
 services:
   authorisation-api-v2:
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/authorisation-api-v2:prod_ebsiint-4439-fix-vulnerability_v2.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/authorisation-api-v2:prod_ebsiint-4529-request-timeout_v2.0.0
     build: ../..
