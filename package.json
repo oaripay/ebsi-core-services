@@ -6,8 +6,11 @@
     "clean": "nx run-many --target=clean --all",
     "build": "nx run-many --target=build --all",
     "lint": "nx run-many --target=lint --all",
-    "lint-staged": "lint-staged",
     "test": "nx run-many --target=test --all",
+    "build:affected": "nx affected --target=build",
+    "lint:affected": "nx affected --target=lint",
+    "test:affected": "nx affected --target=test",
+    "lint-staged": "lint-staged",
     "prepare": "is-ci || husky install"
   },
   "private": true,
