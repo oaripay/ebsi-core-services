@@ -12,6 +12,7 @@ declare global {
       LEDGER_API_URL?: string;
       LEDGER_API_NAME?: string;
       HEALTH_CHECK?: string;
+      REQUEST_TIMEOUT?: string;
       AUTHORISATION_API_URL?: string;
       DID_REGISTRY_API_URL?: string;
       TRUSTED_APPS_REGISTRY_API_URL?: string;

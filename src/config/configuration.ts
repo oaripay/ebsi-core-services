@@ -12,6 +12,7 @@ export interface ApiConfig {
   localOrigin: string;
   logLevel: string;
   externalEbsiApiHealthCheck: string;
+  requestTimeout: number;
   // Ledger & SC
   ledgerApiUrl: string;
   ledgerApiName: string;
@@ -101,6 +102,7 @@ export const loadConfig = (): ApiConfig => {
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     externalEbsiApiHealthCheck:
       process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
+    requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     // Ledger & SC
     ledgerApiUrl:
       process.env.LEDGER_API_URL || defaultConfig[EBSI_ENV].LEDGER_API_URL,
@@ -157,6 +159,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     HEALTH_CHECK: Joi.string(),
     DOMAIN: Joi.string(),
     LOCAL_ORIGIN: Joi.string().uri(),
+    REQUEST_TIMEOUT: Joi.string(),
     // Ledger & SC
     CONTRACT_ADDR: Joi.string().required(),
     LEDGER_API_URL: Joi.string().uri(),
