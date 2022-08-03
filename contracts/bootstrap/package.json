@@ -77,6 +77,16 @@
           "^build"
         ]
       },
+      "lint": {
+        "inputs": [
+          "default"
+        ],
+        "outputs": [],
+        "dependsOn": [
+          "^build",
+          "build"
+        ]
+      },
       "test": {
         "inputs": [
           "default",
