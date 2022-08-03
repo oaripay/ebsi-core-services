@@ -54,6 +54,8 @@ export class AuthorisationService {
 
   private onboardingAllowlist: string[];
 
+  private timeout: number;
+
   constructor(private configService: ConfigService<ApiConfig>) {
     const domain = this.configService.get<string>("domain");
     const urlPrefix = this.configService.get<string>("apiUrlPrefix");
@@ -71,6 +73,7 @@ export class AuthorisationService {
     this.authorisationCredentialSchema = this.configService.get<string>(
       "authorisationCredentialSchema"
     );
+    this.timeout = configService.get<number>("requestTimeout");
 
     this.oauth2RP = new OAuth2RP({
       privateKey: this.configService.get<string>("apiPrivateKey"),
@@ -144,6 +147,7 @@ export class AuthorisationService {
     try {
       resVerification = await verifyJwtTar(body.clientAssertion, {
         trustedAppsRegistry: this.trustedAppsRegistry,
+        timeout: this.timeout,
       });
     } catch (e) {
       if (e instanceof Error) {
@@ -183,6 +187,7 @@ export class AuthorisationService {
             // Verify VC
             await verifyCredentialJwt(verifiableCredential, {
               ebsiEnv,
+              timeout: this.timeout,
             });
           } catch (e) {
             if (e instanceof Error) {
@@ -301,6 +306,7 @@ export class AuthorisationService {
 
           const { didDocument } = await verifyJwtDid(body.id_token, {
             didRegistry: this.didRegistry,
+            timeout: this.timeout,
           });
 
           const did = didDocument?.id ?? "";
