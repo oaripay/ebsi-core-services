@@ -15,6 +15,8 @@ export class AuthService {
 
   private authorisationApiName: string;
 
+  private timeout: number;
+
   constructor(
     private cache: JwtCacheService,
     configService: ConfigService<ApiConfig>
@@ -25,6 +27,7 @@ export class AuthService {
     this.trustedAppsRegistry = `${configService.get<string>(
       "trustedAppsRegistryApiUrl"
     )}/apps`;
+    this.timeout = configService.get<number>("requestTimeout");
   }
 
   storeJwt(
@@ -78,6 +81,7 @@ export class AuthService {
       await verifyJwtTar(token, {
         trustedAppsRegistry: this.trustedAppsRegistry,
         op: this.authorisationApiName,
+        timeout: this.timeout,
       });
 
       // Try to store valid JWT in cache

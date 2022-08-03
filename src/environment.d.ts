@@ -19,6 +19,7 @@ declare global {
       TRUSTED_APPS_REGISTRY_API_URL?: string;
       AUTHORISATION_API_URL?: string;
       HEALTH_CHECK?: string;
+      REQUEST_TIMEOUT?: string;
       TEST_USER_KID?: string;
       TEST_USER_PRIVATE_KEY?: string;
       TEST_APP_ID?: string;

@@ -62,7 +62,8 @@ describe("Health Module", () => {
       const response = await request(server).get("/health").send();
 
       expect(spy).toHaveBeenCalledWith(
-        configService.get("externalEbsiApiHealthCheck")
+        configService.get("externalEbsiApiHealthCheck"),
+        { timeout: expect.any(Number) as number }
       );
       expect(response.body).toStrictEqual({
         details: status,

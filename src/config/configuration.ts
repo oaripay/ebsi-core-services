@@ -22,6 +22,7 @@ export interface ApiConfig {
   authorisationApiName: string;
   authorisationApiUrl: string; // Only used in e2e tests
   trustedAppsRegistryApiUrl: string;
+  requestTimeout: number;
   testUser: {
     kid: string;
     privateKey: string;
@@ -111,6 +112,7 @@ export const loadConfig = (): ApiConfig => {
       defaultConfig[EBSI_ENV].AUTHORISATION_API_URL,
     externalEbsiApiHealthCheck:
       process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
+    requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     testUser: {
       kid: process.env.TEST_USER_KID,
       privateKey: process.env.TEST_USER_PRIVATE_KEY,
@@ -178,6 +180,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TRUSTED_APPS_REGISTRY_API_URL: Joi.string().uri(),
     AUTHORISATION_API_URL: Joi.string().uri(),
     HEALTH_CHECK: Joi.string(),
+    REQUEST_TIMEOUT: Joi.string(),
     TEST_USER_KID: Joi.string(),
     TEST_USER_PRIVATE_KEY: Joi.string(),
     TEST_APP_ID: Joi.string(),

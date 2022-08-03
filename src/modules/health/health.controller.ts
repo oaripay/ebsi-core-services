@@ -14,17 +14,23 @@ import { ApiConfig } from "../../config/configuration";
 export class HealthController {
   private readonly logger = new Logger(HealthController.name);
 
+  private timeout: number;
+
   constructor(
     private health: HealthCheckService,
     private configService: ConfigService<ApiConfig>
-  ) {}
+  ) {
+    this.timeout = configService.get<number>("requestTimeout");
+  }
 
   private async pingUrl(
     key: string,
     url: string
   ): Promise<HealthIndicatorResult> {
     try {
-      await axios.get(url);
+      await axios.get(url, {
+        timeout: this.timeout,
+      });
       return {
         [key]: {
           status: "up",
