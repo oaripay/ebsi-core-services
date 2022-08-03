@@ -16,6 +16,7 @@ export interface ApiConfig {
   localOrigin: string;
   logLevel: string;
   externalEbsiApiHealthCheck: string;
+  requestTimeout: number;
   trustedAppsRegistryApiUrl: string;
   didRegistryApiUrl: string;
   authorisationCredentialSchema: string;
@@ -131,6 +132,7 @@ export const loadConfig = (): ApiConfig => {
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     externalEbsiApiHealthCheck:
       process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
+    requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     didRegistryApiUrl:
       process.env.DID_REGISTRY_API_URL ||
       defaultConfig[EBSI_ENV].DID_REGISTRY_API_URL,
@@ -189,6 +191,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     ),
     DOMAIN: Joi.string().uri(),
     LOCAL_ORIGIN: Joi.string().uri(),
+    REQUEST_TIMEOUT: Joi.string(),
     EU_LOGIN_VALIDATE_SERVICE_URL: Joi.string().uri(),
     RECAPTCHA_SERVICE_URL: Joi.string().uri(),
     RECAPTCHA_REGISTERED_HOSTNAME: Joi.string(),

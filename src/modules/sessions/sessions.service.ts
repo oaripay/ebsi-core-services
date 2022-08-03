@@ -58,6 +58,8 @@ export default class SessionsService {
 
   private euloginServiceParam: string;
 
+  private timeout: number;
+
   constructor(private configService: ConfigService<ApiConfig>) {
     this.apiKid = this.configService.get<string>("apiVerificationMethodKid");
     [this.apiDid] = this.apiKid.split("#");
@@ -86,6 +88,7 @@ export default class SessionsService {
       ...apiPublicKeyJwk,
       d: base64url.baseEncode(bytes.fromHex(hexPrivateKey)),
     };
+    this.timeout = configService.get<number>("requestTimeout");
   }
 
   async validateOnboarding(
@@ -156,7 +159,9 @@ export default class SessionsService {
     let userInfo: AxiosResponse;
 
     try {
-      userInfo = await axios.get(`${this.euloginService}?${parameters}`);
+      userInfo = await axios.get(`${this.euloginService}?${parameters}`, {
+        timeout: this.timeout,
+      });
     } catch (error) {
       if (error instanceof Error) {
         throw new InvalidUserAuthentication(error.message);
@@ -192,7 +197,8 @@ export default class SessionsService {
 
     try {
       const response = await axios.get<CaptchaAuthenticationValidatedInfo>(
-        `${this.recaptchaService}/siteverify?${parameters}`
+        `${this.recaptchaService}/siteverify?${parameters}`,
+        { timeout: this.timeout }
       );
 
       // score ranges from 0 to 1 where 0 is a bot an 1 is a human

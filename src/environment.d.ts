@@ -19,6 +19,7 @@ declare global {
       RECAPTCHA_API_KEY: string;
       AUTHORISATION?: string;
       HEALTH_CHECK?: string;
+      REQUEST_TIMEOUT?: string;
       DID_REGISTRY_API_URL?: string;
       TRUSTED_APPS_REGISTRY_API_URL?: string;
       TEST_USER_KID?: string;

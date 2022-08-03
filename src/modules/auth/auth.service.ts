@@ -19,11 +19,14 @@ export default class AuthService {
 
   private apiDid: string;
 
+  private timeout: number;
+
   constructor(configService: ConfigService<ApiConfig>) {
     this.didRegistryApiUrl = configService.get<string>("didRegistryApiUrl");
     [this.apiDid] = configService
       .get<string>("apiVerificationMethodKid")
       .split("#");
+    this.timeout = configService.get<number>("requestTimeout");
   }
 
   async validateToken(token: string): Promise<void> {
@@ -54,7 +57,9 @@ export default class AuthService {
 
       const { kid } = header;
 
-      const didDoc = await resolver.resolve(kid);
+      const didDoc = await resolver.resolve(kid, {
+        timeout: this.timeout,
+      });
 
       if (!didDoc.didDocument) {
         throw new Error(`Can't find DID document related to ${kid}`);

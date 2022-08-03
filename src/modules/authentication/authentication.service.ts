@@ -66,11 +66,11 @@ export default class AuthenticationService {
 
   private apiPrivateKeyJwk: JWK;
 
-  private authResponsesEndpoint: string;
-
   private relyingParty: RP;
 
   private siopSessionsUrl: string;
+
+  private timeout: number;
 
   constructor(private configService: ConfigService<ApiConfig>) {
     this.privateKey = prefix0x(this.configService.get<string>("apiPrivateKey"));
@@ -90,7 +90,6 @@ export default class AuthenticationService {
     );
     this.kid = `${trustedAppRegistry}/${this.apiName}`;
     this.siopSessionsUrl = `${this.domain}${this.apiUrlPrefix}/authentication-responses`;
-    this.authResponsesEndpoint = `${this.domain}${this.apiUrlPrefix}/authentication-responses`;
 
     const hexPrivateKey = this.privateKey.replace(/^0x/, "");
     const ec = new EC("secp256k1");
@@ -105,6 +104,7 @@ export default class AuthenticationService {
       ...this.apiPublicKeyJwk,
       d: base64url.baseEncode(bytes.fromHex(hexPrivateKey)),
     };
+    this.timeout = configService.get<number>("requestTimeout");
   }
 
   async getRelyingParty(): Promise<RP> {
@@ -183,7 +183,9 @@ export default class AuthenticationService {
       })
     );
 
-    const result = await resolver.resolve(did);
+    const result = await resolver.resolve(did, {
+      timeout: this.timeout,
+    });
     const { error: resError } = result.didResolutionMetadata;
 
     const didVersion = validate(did);
@@ -294,6 +296,7 @@ export default class AuthenticationService {
     const jwt = await createVerifiableCredentialJwt(vc, issuer, {
       ebsiEnv,
       skipValidation: true,
+      timeout: this.timeout,
     });
 
     return {
