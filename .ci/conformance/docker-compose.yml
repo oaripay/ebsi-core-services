@@ -2,5 +2,5 @@ version: "3.7"
 
 services:
   proxy-data-hub-api-v3:
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/proxy-data-hub-api-v3:conformance_ebsiint-4361-docker-tag-info_v3.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/proxy-data-hub-api-v3:conformance_ebsiint-4529-request-timeout_v3.0.0
     build: ../..

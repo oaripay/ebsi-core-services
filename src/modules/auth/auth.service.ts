@@ -9,10 +9,13 @@ import { ApiConfig } from "../../config/configuration";
 export class AuthService {
   private trustedAppsRegistry: string;
 
+  private timeout: number;
+
   constructor(configService: ConfigService<ApiConfig>) {
     this.trustedAppsRegistry = `${configService.get<string>(
       "trustedAppsRegistryApiUrl"
     )}/apps`;
+    this.timeout = configService.get<number>("requestTimeout");
   }
 
   async validateToken(token: string): Promise<JWTPayload> {
@@ -21,6 +24,7 @@ export class AuthService {
         await verifyJwtTar(token, {
           trustedAppsRegistry: this.trustedAppsRegistry,
           audience: "ebsi-core-services",
+          timeout: this.timeout,
         })
       ).payload;
     } catch (error) {

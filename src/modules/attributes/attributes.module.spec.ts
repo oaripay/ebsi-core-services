@@ -76,6 +76,7 @@ describe("Attributes Module", () => {
     headers: {
       Authorization: `Bearer ${accessTokenApi}`,
     },
+    timeout: expect.any(Number) as number,
   };
 
   const testUser = {
@@ -205,7 +206,10 @@ describe("Attributes Module", () => {
       expect(mockAxios).toHaveBeenNthCalledWith(
         numberCall,
         expect.stringContaining("/oauth2-sessions"),
-        expect.objectContaining({}) as { clientAssertion: string }
+        expect.objectContaining({}) as { clientAssertion: string },
+        {
+          timeout: expect.any(Number) as number,
+        }
       );
 
       numberCall += 1;

@@ -17,6 +17,7 @@ declare global {
       DOMAIN?: string;
       LOCAL_ORIGIN?: string;
       HEALTH_CHECK?: string;
+      REQUEST_TIMEOUT?: string;
       TEST_USER_KID_1?: string;
       TEST_USER_PRIVATE_KEY_1?: string;
       TEST_USER_KID_2?: string;
