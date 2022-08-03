@@ -12,7 +12,7 @@ pipeline {
         stage('Lint') {
             steps {
                 nodejs(nodeJSInstallationName: '16.13.0') {
-                    sh 'yarn lint:affected'
+                    sh 'yarn lint'
                 }
             }
         }
@@ -22,7 +22,7 @@ pipeline {
             }
             steps {
                 nodejs(nodeJSInstallationName: '16.13.0') {
-                    sh 'yarn test:affected'
+                    sh 'yarn test'
                 }
             }
         }
