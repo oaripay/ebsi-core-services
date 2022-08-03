@@ -1,0 +1,38 @@
+pipeline {
+    agent any
+    stages {
+        stage('Setup') {
+            steps {
+                nodejs(nodeJSInstallationName: '16.13.0') {
+                    sh 'yarn install --frozen-lockfile'
+                    sh 'yarn run audit'
+                }
+            }
+        }
+        stage('Lint') {
+            steps {
+                nodejs(nodeJSInstallationName: '16.13.0') {
+                    sh 'yarn lint:affected'
+                }
+            }
+        }
+        stage('Unit tests') {
+            environment {
+                API_PRIVATE_KEY=credentials('API_AUTHORISATION_PRIVATE_KEY')
+            }
+            steps {
+                nodejs(nodeJSInstallationName: '16.13.0') {
+                    sh 'yarn test:affected'
+                }
+            }
+        }
+    }
+    post {
+        always {
+            cleanWs()
+            dir("${env.WORKSPACE}@script") {
+                deleteDir()
+            }
+        }
+    }
+}
