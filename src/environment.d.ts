@@ -16,6 +16,7 @@ declare global {
       CONTRACT_ADDR: string;
       DOMAIN?: string;
       LOCAL_ORIGIN?: string;
+      REQUEST_TIMEOUT?: string;
       TRUSTED_APPS_REGISTRY_API_URL?: string;
       AUTHORISATION_CREDENTIAL_SCHEMA?: string;
       USERS_ONBOARDING_API_DID?: string;

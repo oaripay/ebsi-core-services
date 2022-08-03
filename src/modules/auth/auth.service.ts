@@ -13,6 +13,8 @@ export class AuthService {
 
   private trustedAppsRegistry: string;
 
+  private timeout: number;
+
   constructor(configService: ConfigService<ApiConfig>) {
     this.authorisationApiName = configService.get<string>(
       "authorisationApiName"
@@ -21,6 +23,8 @@ export class AuthService {
     this.trustedAppsRegistry = `${configService.get<string>(
       "trustedAppsRegistryApiUrl"
     )}/apps`;
+
+    this.timeout = configService.get<number>("requestTimeout");
   }
 
   async validateToken(bearerToken: string): Promise<SubjectInfo> {
@@ -59,6 +63,7 @@ export class AuthService {
         await verifyOAuth2Token(bearerToken, {
           trustedAppsRegistry: this.trustedAppsRegistry,
           op: this.authorisationApiName,
+          timeout: this.timeout,
         })
       ).payload;
     } catch (e) {
@@ -86,6 +91,7 @@ export class AuthService {
         await verifySiopToken(bearerToken, {
           trustedAppsRegistry: this.trustedAppsRegistry,
           audience: "ebsi-core-services",
+          timeout: this.timeout,
         })
       ).payload;
     } catch (e) {

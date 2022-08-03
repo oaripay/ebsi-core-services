@@ -392,6 +392,7 @@ describe("JsonRpc Module", () => {
       trustedAppsRegistry: `${configService.get<string>(
         "trustedAppsRegistryApiUrl"
       )}/apps`,
+      timeout: expect.any(Number) as number,
     });
   });
 
@@ -423,6 +424,7 @@ describe("JsonRpc Module", () => {
       trustedAppsRegistry: `${configService.get<string>(
         "trustedAppsRegistryApiUrl"
       )}/apps`,
+      timeout: expect.any(Number) as number,
     });
   });
 
