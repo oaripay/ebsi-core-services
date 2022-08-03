@@ -175,6 +175,7 @@ describe("Key-Values Module", () => {
         trustedAppsRegistry: `${configService.get<string>(
           "trustedAppsRegistryApiUrl"
         )}/apps`,
+        timeout: expect.any(Number) as number,
       });
     });
 
@@ -211,6 +212,7 @@ describe("Key-Values Module", () => {
         trustedAppsRegistry: `${configService.get<string>(
           "trustedAppsRegistryApiUrl"
         )}/apps`,
+        timeout: expect.any(Number) as number,
       });
     });
 

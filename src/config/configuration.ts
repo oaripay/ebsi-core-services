@@ -11,6 +11,7 @@ export interface ApiConfig {
   domain: string;
   localOrigin: string;
   externalEbsiApiHealthCheck: string;
+  requestTimeout: number;
   encryptionSecret: string;
   // Authorisation API
   authorisationApiName: string;
@@ -89,6 +90,7 @@ export const loadConfig = (): ApiConfig => {
     localOrigin: process.env.LOCAL_ORIGIN || "",
     externalEbsiApiHealthCheck:
       process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
+    requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     encryptionSecret: process.env.ENCRYPTION_SECRET,
     authorisationApiName:
       process.env.AUTHORISATION_API_NAME || "authorisation-api",
@@ -137,6 +139,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     DOMAIN: Joi.string().uri(),
     LOCAL_ORIGIN: Joi.string().uri(),
     HEALTH_CHECK: Joi.string(),
+    REQUEST_TIMEOUT: Joi.string(),
     ENCRYPTION_SECRET: Joi.string().required(),
     // Authorisation API
     AUTHORISATION_API_NAME: Joi.string(),

@@ -16,6 +16,8 @@ export class AuthService {
 
   private trustedAppsRegistry: string;
 
+  private timeout: number;
+
   constructor(
     private cache: JwtCacheService,
     configService: ConfigService<ApiConfig>
@@ -27,6 +29,8 @@ export class AuthService {
     this.trustedAppsRegistry = `${configService.get<string>(
       "trustedAppsRegistryApiUrl"
     )}/apps`;
+
+    this.timeout = configService.get<number>("requestTimeout");
   }
 
   storeJwt(
@@ -69,6 +73,7 @@ export class AuthService {
       const { payload } = await verifyOAuth2Token(bearerToken, {
         trustedAppsRegistry: this.trustedAppsRegistry,
         op: this.authorisationApiName,
+        timeout: this.timeout,
       });
 
       // Try to store valid JWT in cache
@@ -99,6 +104,7 @@ export class AuthService {
         await verifySiopToken(bearerToken, {
           trustedAppsRegistry: this.trustedAppsRegistry,
           audience: "ebsi-core-services",
+          timeout: this.timeout,
         })
       ).payload;
     } catch (e) {

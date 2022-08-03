@@ -182,6 +182,7 @@ describe("Files Module", () => {
         trustedAppsRegistry: `${configService.get<string>(
           "trustedAppsRegistryApiUrl"
         )}/apps`,
+        timeout: expect.any(Number) as number,
       });
     });
 
@@ -218,6 +219,7 @@ describe("Files Module", () => {
         trustedAppsRegistry: `${configService.get<string>(
           "trustedAppsRegistryApiUrl"
         )}/apps`,
+        timeout: expect.any(Number) as number,
       });
     });
 
