@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "license": "EUPL-1.2",
   "scripts": {
+    "audit": "nx run-many --target=audit --all",
     "clean": "nx run-many --target=clean --all",
     "build": "nx run-many --target=build --all",
     "lint": "nx run-many --target=lint --all",
