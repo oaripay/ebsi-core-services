@@ -144,6 +144,16 @@
         "dependsOn": [
           "build"
         ]
+      },
+      "test:ci": {
+        "inputs": [
+          "default",
+          "^prod"
+        ],
+        "outputs": [],
+        "dependsOn": [
+          "build"
+        ]
       }
     }
   },

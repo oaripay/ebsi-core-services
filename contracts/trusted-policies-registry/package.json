@@ -16,7 +16,8 @@
     "lint:eslint": "eslint . --ext .js,.ts",
     "lint:tsc": "tsc --noEmit --incremental false",
     "lint:prettier": "prettier . --check",
-    "test": "hardhat compile && hardhat test"
+    "test": "hardhat compile && hardhat test",
+    "test:ci": "hardhat compile && hardhat test && yarn coverage"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.5",
@@ -84,6 +85,16 @@
         ]
       },
       "test": {
+        "inputs": [
+          "default",
+          "^prod"
+        ],
+        "outputs": [],
+        "dependsOn": [
+          "build"
+        ]
+      },
+      "test:ci": {
         "inputs": [
           "default",
           "^prod"

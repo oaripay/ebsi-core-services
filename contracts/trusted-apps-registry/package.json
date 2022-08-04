@@ -2,7 +2,7 @@
   "name": "@ebsiint-sc/trusted-apps-registry",
   "version": "2.0.0",
   "license": "EUPL-1.2",
-  "private": "true",
+  "private": true,
   "description": "Trusted Apps Registry",
   "main": "dist/src/types/index.js",
   "types": "dist/src/types/index.d.ts",
@@ -18,7 +18,7 @@
     "lint:tsc": "tsc --noEmit --incremental false",
     "lint:prettier": "prettier . --check",
     "test": "hardhat compile && hardhat test",
-    "prepare": "husky install"
+    "test:ci": "hardhat compile && hardhat test && yarn coverage"
   },
   "devDependencies": {
     "@ethersproject/abi": "^5.4.7",
@@ -91,6 +91,16 @@
         ]
       },
       "test": {
+        "inputs": [
+          "default",
+          "^prod"
+        ],
+        "outputs": [],
+        "dependsOn": [
+          "build"
+        ]
+      },
+      "test:ci": {
         "inputs": [
           "default",
           "^prod"

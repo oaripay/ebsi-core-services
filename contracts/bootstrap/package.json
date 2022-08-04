@@ -5,7 +5,6 @@
   "main": "index.js",
   "scripts": {
     "clean": "rimraf artifacts cache src dist",
-    "test": "hardhat test",
     "build": "yarn compile",
     "compile": "hardhat compile && yarn tsc",
     "coverage": "npx hardhat coverage --network coverage",
@@ -13,7 +12,8 @@
     "lint:prettier": "prettier . --check",
     "lint:eslint": "eslint . --ext .js,.ts",
     "lint:sol": "solhint --max-warnings 0 \"contracts/**/*.sol\"",
-    "prepare": "husky install"
+    "test": "hardhat test",
+    "test:ci": "hardhat compile && hardhat test && yarn coverage"
   },
   "license": "EUPL-1.2",
   "devDependencies": {
@@ -88,6 +88,16 @@
         ]
       },
       "test": {
+        "inputs": [
+          "default",
+          "^prod"
+        ],
+        "outputs": [],
+        "dependsOn": [
+          "build"
+        ]
+      },
+      "test:ci": {
         "inputs": [
           "default",
           "^prod"
