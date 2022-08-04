@@ -9,17 +9,10 @@ pipeline {
                 }
             }
         }
-        // stage('Lint') {
-        //     steps {
-        //         nodejs(nodeJSInstallationName: '16.13.0') {
-        //             sh 'yarn lint'
-        //         }
-        //     }
-        // }
-        stage('Lint only affected') {
+        stage('Lint') {
             steps {
                 nodejs(nodeJSInstallationName: '16.13.0') {
-                    sh 'yarn nx affected --target=lint --base=origin/nx --parallel'
+                    sh 'yarn lint'
                 }
             }
         }
