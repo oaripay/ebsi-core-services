@@ -37,7 +37,6 @@ import {
   validateClass,
 } from "./jsonrpc.utils";
 import { LedgerService } from "../../shared/services/ledger.service";
-import RecordsService from "../records/records.service";
 import { ApiConfig } from "../../config/configuration";
 import { UserInfo } from "../auth/auth.interface";
 
@@ -62,16 +61,18 @@ export class JsonRpcService {
     { outputLength: number; exp: number }
   > = {};
 
+  private timeout: number;
+
   constructor(
     private configService: ConfigService<ApiConfig>,
-    private ledgerService: LedgerService,
-    private recordsService: RecordsService
+    private ledgerService: LedgerService
   ) {
     this.trustedAppsRegistry = this.configService.get<string>(
       "trustedAppsRegistryApiUrl"
     );
     this.didRegistry = this.configService.get<string>("didRegistryApiUrl");
     this.contractAddress = ledgerService.getContractAddress();
+    this.timeout = configService.get<number>("requestTimeout");
   }
 
   async getChainId(): Promise<string> {
@@ -110,7 +111,8 @@ export class JsonRpcService {
       items: { did: string }[];
       total: number;
     }>(
-      `${this.didRegistry}/identifiers?controller=${controllerAddress}&page[size]=${pageSize}&page[after]=${currentPage}`
+      `${this.didRegistry}/identifiers?controller=${controllerAddress}&page[size]=${pageSize}&page[after]=${currentPage}`,
+      { timeout: this.timeout }
     );
 
     // Check if DID is in the list
@@ -143,7 +145,8 @@ export class JsonRpcService {
 
     // Get and verify the ethereum address from the Trusted Apps Registry
     const response = await axios.get(
-      `${this.trustedAppsRegistry}/apps/${user.sub}`
+      `${this.trustedAppsRegistry}/apps/${user.sub}`,
+      { timeout: this.timeout }
     );
 
     const { publicKeys } = response.data as { publicKeys: string[] };

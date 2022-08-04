@@ -19,6 +19,7 @@ export interface ApiConfig {
   localOrigin: string;
   logLevel: string;
   externalEbsiApiHealthCheck: string;
+  requestTimeout: number;
   testAdmin: {
     kid: string;
     privateKey: string;
@@ -121,6 +122,7 @@ export const loadConfig = (): ApiConfig => {
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     externalEbsiApiHealthCheck:
       process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
+    requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     testAdmin: {
       kid: process.env.TEST_ADMIN_KID,
       privateKey: process.env.TEST_ADMIN_PRIVATE_KEY,
@@ -176,6 +178,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     DID_REGISTRY_API_URL: Joi.string().uri(),
     HEALTH_CHECK: Joi.string(),
     CONTRACT_ADDR: Joi.string(),
+    REQUEST_TIMEOUT: Joi.string(),
     TEST_ADMIN_KID: Joi.string(),
     TEST_ADMIN_PRIVATE_KEY: Joi.string(),
     TEST_USER_KID: Joi.string(),
