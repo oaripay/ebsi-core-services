@@ -14,7 +14,7 @@ pipeline {
                   GIT_COMMIT_HASH = sh (script: "git log -n 1 --pretty=format:'%H'", returnStdout: true)
                 }
                 nodejs(nodeJSInstallationName: '16.13.0') {
-                    sh "yarn nx affected --target=lint --base=$GIT_COMMIT_HASH --head=HEAD --parallel"
+                    sh "yarn nx affected --target=lint --base=origin/nx --head=${GIT_COMMIT_HASH} --parallel"
                 }
             }
         }
