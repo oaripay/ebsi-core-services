@@ -10,10 +10,13 @@ import { ApiConfig } from "../../config/configuration";
 export class AuthService {
   private tarAppsRegistry: string;
 
+  private timeout: number;
+
   constructor(configService: ConfigService<ApiConfig>) {
     this.tarAppsRegistry = `${configService.get<string>(
       "domain"
     )}${configService.get<string>("apiUrlPrefix")}/apps`;
+    this.timeout = configService.get<number>("requestTimeout");
   }
 
   async validateSiopToken(bearerToken: string): Promise<ClientInfo> {
@@ -24,6 +27,7 @@ export class AuthService {
       const verifiedJwt = await verifyJwtTar(bearerToken, {
         trustedAppsRegistry: this.tarAppsRegistry,
         audience: "ebsi-core-services",
+        timeout: this.timeout,
       });
       payload = verifiedJwt.payload;
     } catch (e) {

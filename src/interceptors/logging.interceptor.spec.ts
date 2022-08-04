@@ -94,7 +94,6 @@ describe("Logging interceptor", () => {
       expect(mockedLogger.log).toHaveBeenNthCalledWith(
         calls - 1,
         {
-          body: null,
           headers: {
             "accept-encoding": "gzip, deflate",
             connection: "close",
