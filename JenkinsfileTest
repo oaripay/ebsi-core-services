@@ -9,13 +9,13 @@ pipeline {
                 }
             }
         }
-        stage('Lint') {
-            steps {
-                nodejs(nodeJSInstallationName: '16.13.0') {
-                    sh 'yarn lint'
-                }
-            }
-        }
+        // stage('Lint') {
+        //     steps {
+        //         nodejs(nodeJSInstallationName: '16.13.0') {
+        //             sh 'yarn lint'
+        //         }
+        //     }
+        // }
         stage('Lint only affected') {
             steps {
                 nodejs(nodeJSInstallationName: '16.13.0') {
