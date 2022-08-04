@@ -11,7 +11,7 @@ pipeline {
         stage('Lint') {
             steps {
                 nodejs(nodeJSInstallationName: '16.13.0') {
-                    sh "yarn nx affected --target=lint --base=origin/nx --head=HEAD --parallel"
+                    sh "yarn lint"
                 }
             }
         }
