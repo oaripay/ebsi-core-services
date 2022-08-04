@@ -28,7 +28,7 @@ contract DidPolicyDetailed is DidPolicyStorage {
     }
 
     /**
-     * @dev add a new policy's attribute
+     * @dev add a new policy's attribute.
      */
     function updatePolicy(string calldata policyId, bytes calldata policyData)
         external
