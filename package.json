@@ -6,8 +6,11 @@
     "audit": "nx run-many --target=audit --all",
     "clean": "nx run-many --target=clean --all",
     "build": "yarn nx affected --target=build --parallel",
+    "build:all": "nx run-many --target=build --all",
     "lint": "yarn nx affected --target=lint --parallel",
+    "lint:all": "nx run-many --target=lint --all",
     "test": "yarn nx affected --target=test --parallel",
+    "test:all": "nx run-many --target=test --all",
     "lint-staged": "lint-staged",
     "prepare": "is-ci || husky install"
   },

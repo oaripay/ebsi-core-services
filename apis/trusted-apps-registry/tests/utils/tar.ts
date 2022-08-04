@@ -6,7 +6,11 @@ import { ethers } from "ethers";
 import { range } from "rxjs";
 import { mergeMap, toArray } from "rxjs/operators";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { Tar } from "@ebsiint-sc/trusted-apps-registry";
+import {
+  Tar,
+  PolicyRegistryMock__factory,
+  DidRegistryMock__factory,
+} from "@ebsiint-sc/trusted-apps-registry";
 
 interface User {
   wallet: ethers.Wallet;
@@ -57,9 +61,8 @@ export async function deployTarContract(): Promise<Tar> {
   const testTprAddress = "0xb2a560271ce08135e245F490b8794794A13a1208";
   const testDidrAddress = "0xf6080028519B49D94C846bd34e30f72586E3F5d5";
 
-  const policyRegistryFactory = await hre.ethers.getContractFactory(
-    "PolicyRegistryMock"
-  );
+  const signer = hre.ethers.provider.getSigner();
+  const policyRegistryFactory = new PolicyRegistryMock__factory(signer);
   const tempPolicyContract = await policyRegistryFactory.deploy();
   await tempPolicyContract.deployed();
   const bytecode = await hre.ethers.provider.getCode(
@@ -72,9 +75,7 @@ export async function deployTarContract(): Promise<Tar> {
   const policyContractMock = policyRegistryFactory.attach(testTprAddress);
   await policyContractMock.setPolicyResult(true);
 
-  const didRegistryFactory = await hre.ethers.getContractFactory(
-    "DidRegistryMock"
-  );
+  const didRegistryFactory = new DidRegistryMock__factory(signer);
   const tempDidContract = await didRegistryFactory.deploy();
   await tempDidContract.deployed();
   const bytecodeDid = await hre.ethers.provider.getCode(

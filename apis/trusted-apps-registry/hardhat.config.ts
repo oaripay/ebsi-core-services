@@ -10,12 +10,8 @@ const config: HardhatUserConfig = {
       hardfork: "berlin",
     },
   },
-  typechain: {
-    outDir: "src/contracts",
-    target: "ethers-v5",
-  },
   solidity: {
-    version: "0.8.9",
+    version: "0.8.12",
     settings: {
       optimizer: {
         enabled: true,
@@ -23,11 +19,6 @@ const config: HardhatUserConfig = {
       },
     },
   },
-  // paths: {
-  //   sources: "./submodules/trusted-apps-registry-ethereum-sc/contracts",
-  //   cache: "./cache",
-  //   artifacts: "./artifacts",
-  // },
 };
 
 export default config;
