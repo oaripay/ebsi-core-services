@@ -16,6 +16,13 @@ pipeline {
                 }
             }
         }
+        stage('Lint only affected') {
+            steps {
+                nodejs(nodeJSInstallationName: '16.13.0') {
+                    sh 'yarn nx affected --target=lint --base=origin/nx --parallel'
+                }
+            }
+        }
         stage('Unit tests') {
             environment {
                 API_PRIVATE_KEY=credentials('API_AUTHORISATION_PRIVATE_KEY')
