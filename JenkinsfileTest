@@ -1,63 +1,67 @@
 pipeline {
-    agent any
-    stages {
-        stage('Setup') {
-            steps {
-                nodejs(nodeJSInstallationName: '16.13.0') {
-                    sh 'yarn install --frozen-lockfile'
-                }
-            }
+  agent any
+
+  stages {
+
+    stage('Setup') {
+      steps {
+        nodejs(nodeJSInstallationName: '16.13.0') {
+          sh 'yarn install --frozen-lockfile'
         }
-        script {
-            GIT_BRANCH = sh(returnStdout: true, script: 'git rev-parse --abbrev-ref HEAD').trim()
-        }
-        when {
-            expression { GIT_BRANCH == 'nx' }
-        }
-        stage('Lint all') {
-            steps {
-                nodejs(nodeJSInstallationName: '16.13.0') {
-                    sh "yarn lint:all"
-                }
-            }
-        }
-        stage('Lint') {
-            steps {
-                nodejs(nodeJSInstallationName: '16.13.0') {
-                    sh "yarn lint"
-                }
-            }
-        }
-        when {
-            expression { GIT_BRANCH == 'nx' }
-        }
-        stage('Unit tests all') {
-            environment {
-                API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
-            }
-            steps {
-                nodejs(nodeJSInstallationName: '16.13.0') {
-                    sh 'yarn test:all'
-                }
-            }
-        }
-        stage('Unit tests') {
-            environment {
-                API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
-            }
-            steps {
-                nodejs(nodeJSInstallationName: '16.13.0') {
-                    sh 'yarn test'
-                }
-            }
-        }
+      }
     }
-    post {
-        always {
-            cleanWs()
-            dir("${env.WORKSPACE}@script") {
-                deleteDir()
-            }
+
+    stage('Lint all') {
+      when {
+        branch 'nx'
+      }
+      steps {
+        nodejs(nodeJSInstallationName: '16.13.0') {
+          sh "yarn lint:all"
         }
+      }
     }
+
+    stage('Lint') {
+      steps {
+        nodejs(nodeJSInstallationName: '16.13.0') {
+          sh "yarn lint"
+        }
+      }
+    }
+
+    stage('Unit tests all') {
+      when {
+        branch 'nx'
+      }
+      environment {
+        API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
+      }
+      steps {
+        nodejs(nodeJSInstallationName: '16.13.0') {
+          sh 'yarn test:all'
+        }
+      }
+    }
+
+    stage('Unit tests') {
+      environment {
+        API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
+      }
+      steps {
+        nodejs(nodeJSInstallationName: '16.13.0') {
+          sh 'yarn test'
+        }
+      }
+    }
+  }
+
+  post {
+    always {
+      cleanWs()
+      dir("${env.WORKSPACE}@script") {
+        deleteDir()
+      }
+    }
+  }
 }
