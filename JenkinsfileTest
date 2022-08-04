@@ -22,7 +22,7 @@ pipeline {
       }
     }
 
-    stage('Lint') {
+    stage('Lint affected') {
       steps {
         nodejs(nodeJSInstallationName: '16.13.0') {
           sh "yarn lint"
@@ -30,7 +30,7 @@ pipeline {
       }
     }
 
-    stage('Unit tests all') {
+    stage('Unit test all') {
       when {
         branch 'nx'
       }
@@ -44,7 +44,7 @@ pipeline {
       }
     }
 
-    stage('Unit tests') {
+    stage('Unit test affected') {
       environment {
         API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
       }
