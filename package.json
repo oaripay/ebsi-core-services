@@ -12,25 +12,27 @@
     "test": "yarn nx affected --target=test:ci --parallel",
     "test:all": "nx run-many --target=test:ci --all",
     "lint-staged": "lint-staged",
-    "prepare": "is-ci || husky install"
+    "prepare": "is-ci || husky install",
+    "postinstall": "patch-package"
   },
   "private": true,
-  "dependencies": {},
   "devDependencies": {
-    "nx": "14.4.3",
+    "@commitlint/cli": "^17.0.2",
+    "@commitlint/config-conventional": "^17.0.2",
     "@nrwl/cli": "14.4.3",
     "@nrwl/workspace": "14.4.3",
-    "typescript": "~4.7.2",
-    "is-ci": "^3.0.1",
-    "husky": "^8.0.1",
-    "lint-staged": "^13.0.3",
     "@stoplight/spectral-cli": "^6.4.1",
-    "prettier-plugin-solidity": "^1.0.0-beta.13",
+    "husky": "^8.0.1",
+    "is-ci": "^3.0.1",
+    "lint-staged": "^13.0.3",
+    "nx": "14.4.3",
+    "patch-package": "^6.4.7",
+    "postinstall-postinstall": "^2.1.0",
     "prettier": "^2.7.1",
+    "prettier-plugin-solidity": "^1.0.0-beta.13",
     "solhint": "^3.3.7",
     "solhint-plugin-prettier": "^0.0.5",
-    "@commitlint/cli": "^17.0.2",
-    "@commitlint/config-conventional": "^17.0.2"
+    "typescript": "~4.7.2"
   },
   "workspaces": [
     "apis/**",
