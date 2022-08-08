@@ -12,8 +12,7 @@
     "test": "yarn nx affected --target=test:ci --parallel",
     "test:all": "nx run-many --target=test:ci --all",
     "lint-staged": "lint-staged",
-    "prepare": "is-ci || husky install",
-    "postinstall": "patch-package"
+    "prepare": "is-ci || husky install"
   },
   "private": true,
   "devDependencies": {
@@ -26,8 +25,6 @@
     "is-ci": "^3.0.1",
     "lint-staged": "^13.0.3",
     "nx": "14.4.3",
-    "patch-package": "^6.4.7",
-    "postinstall-postinstall": "^2.1.0",
     "prettier": "^2.7.1",
     "prettier-plugin-solidity": "^1.0.0-beta.13",
     "solhint": "^3.3.7",

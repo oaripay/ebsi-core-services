@@ -39,7 +39,6 @@ pipeline {
       }
       steps {
         nodejs(nodeJSInstallationName: '16.13.0') {
-          sh 'yarn patch-package'
           sh 'yarn test:all'
         }
       }
