@@ -1,10 +1,20 @@
 pipeline {
   agent any
 
+  options {
+    // This is required if you want to clean before build
+    skipDefaultCheckout(true)
+  }
+
   stages {
 
     stage('Setup') {
       steps {
+        // Clean before build
+        cleanWs()
+        // We need to explicitly checkout from SCM here
+        checkout scm
+
         nodejs(nodeJSInstallationName: '16.13.0') {
           sh 'yarn install --frozen-lockfile'
         }
@@ -56,12 +66,12 @@ pipeline {
     }
   }
 
-  post {
-    cleanup {
-      cleanWs()
-      dir("${env.WORKSPACE}@script") {
-        deleteDir()
-      }
-    }
-  }
+  // post {
+  //   cleanup {
+  //     cleanWs()
+  //     dir("${env.WORKSPACE}@script") {
+  //       deleteDir()
+  //     }
+  //   }
+  // }
 }
