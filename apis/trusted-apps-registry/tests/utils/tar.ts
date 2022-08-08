@@ -1,6 +1,5 @@
 import hre from "hardhat";
 import "@nomiclabs/hardhat-ethers";
-import { FactoryOptions } from "hardhat/types";
 import crypto from "crypto";
 import { ethers } from "ethers";
 import { range } from "rxjs";
@@ -10,7 +9,13 @@ import {
   Tar,
   PolicyRegistryMock__factory,
   DidRegistryMock__factory,
+  TarPolicyLib__factory,
+  RevocationLib__factory,
+  AuthLib__factory,
+  AppLib__factory,
+  Tar__factory,
 } from "@ebsiint-sc/trusted-apps-registry";
+import PaginationArtifact from "@ebsiint-sc/bootstrap/artifacts/contracts/utils/Pagination.sol/Pagination.json";
 
 interface User {
   wallet: ethers.Wallet;
@@ -47,15 +52,6 @@ interface AuthorizationObject {
   notAfter: number;
 }
 
-const deployContract = async (
-  name: string,
-  opts: FactoryOptions = {}
-): Promise<string> => {
-  const factory = await hre.ethers.getContractFactory(name, opts);
-  const contract = await factory.deploy();
-  return contract.address;
-};
-
 export async function deployTarContract(): Promise<Tar> {
   // mock trusted policies registry
   const testTprAddress = "0xb2a560271ce08135e245F490b8794794A13a1208";
@@ -88,28 +84,63 @@ export async function deployTarContract(): Promise<Tar> {
   const didContractMock = didRegistryFactory.attach(testDidrAddress);
   await didContractMock.setDidResult(true);
 
-  const paginationAddress = await deployContract("Pagination");
+  const paginationFactory = await hre.ethers.getContractFactoryFromArtifact(
+    PaginationArtifact,
+    signer
+  );
+  const paginationContract = await paginationFactory.deploy();
+  await paginationContract.deployed();
 
-  const linkLibPagination = {
-    libraries: {
-      Pagination: paginationAddress,
+  // Deploy AppLib
+  const appLibFactory = new AppLib__factory(
+    {
+      "@ebsiint-sc/bootstrap/contracts/utils/Pagination.sol:Pagination":
+        paginationContract.address,
     },
-  };
+    signer
+  );
+  const appLibContract = await appLibFactory.deploy();
+  await appLibContract.deployed();
 
-  const tarFactory = await hre.ethers.getContractFactory("Tar", {
-    libraries: {
-      AppLib: await deployContract("AppLib", linkLibPagination),
-      AuthLib: await deployContract("AuthLib"),
-      TarPolicyLib: await deployContract("TarPolicyLib", linkLibPagination),
-      RevocationLib: await deployContract("RevocationLib"),
+  // Deploy AuthLib
+  const authLibFactory = new AuthLib__factory(signer);
+  const authLibContract = await authLibFactory.deploy();
+  await authLibContract.deployed();
+
+  // Deploy TarPolicyLib
+  const tarPolicyLibFactory = new TarPolicyLib__factory(
+    {
+      "@ebsiint-sc/bootstrap/contracts/utils/Pagination.sol:Pagination":
+        paginationContract.address,
     },
-  });
+    signer
+  );
+  const tarPolicyLibContract = await tarPolicyLibFactory.deploy();
+  await tarPolicyLibContract.deployed();
+
+  // Deploy RevocationLib
+  const revocationLibFactory = new RevocationLib__factory(signer);
+  const revocationLibContract = await revocationLibFactory.deploy();
+  await revocationLibContract.deployed();
+
+  // Deploy Tar
+  const tarFactory = new Tar__factory(
+    {
+      "contracts/tar/AppLib.sol:AppLib": appLibContract.address,
+      "contracts/tar/AuthLib.sol:AuthLib": authLibContract.address,
+      "contracts/tar/TarPolicyLib.sol:TarPolicyLib":
+        tarPolicyLibContract.address,
+      "contracts/tar/RevocationLib.sol:RevocationLib":
+        revocationLibContract.address,
+    },
+    signer
+  );
 
   const tarContract = await tarFactory.deploy();
   await tarContract.initialize(1);
   await tarContract.setRegistryAddresses();
 
-  return tarContract as Tar;
+  return tarContract;
 }
 
 export async function insertPolicy(contract: Tar): Promise<PolicyObject> {

@@ -1,5 +1,4 @@
 /* eslint-disable import/no-extraneous-dependencies */
-import "@typechain/hardhat";
 import "@nomiclabs/hardhat-ethers";
 import { HardhatUserConfig } from "hardhat/config";
 
