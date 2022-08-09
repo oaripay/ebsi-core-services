@@ -21,8 +21,7 @@
     "test:watch": "jest --watch",
     "test:unit": "jest --testPathIgnorePatterns=e2e",
     "test:e2e": "jest --testPathPattern=tests/e2e",
-    "test:ci": "yarn test:unit --coverage --reporters=default --reporters=jest-sonar",
-    "prepare": "husky install"
+    "test:ci": "yarn test:unit --coverage --reporters=default --reporters=jest-sonar"
   },
   "dependencies": {
     "@cef-ebsi/ebsi-did-resolver": "^2.0.0",

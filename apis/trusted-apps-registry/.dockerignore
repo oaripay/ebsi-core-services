@@ -11,8 +11,6 @@
 !yarn.lock
 !scripts
 !src
-src/contracts
-!submodules/trusted-apps-registry-ethereum-sc/contracts
-!submodules/trusted-apps-registry-ethereum-sc/package.json
-!submodules/trusted-apps-registry-ethereum-sc/yarn.lock
-!submodules/trusted-apps-registry-ethereum-sc/truffle-config.js
+
+# The image tag information is used in the service
+!.ci
