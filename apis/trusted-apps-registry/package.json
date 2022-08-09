@@ -28,8 +28,7 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
-    "@ebsiint-sc/bootstrap": "*",
-    "@ebsiint-sc/trusted-apps-registry": "^2.0.0",
+    "@ebsiint-sc/trusted-apps-registry": "file:../../contracts/trusted-apps-registry",
     "@cef-ebsi/ebsi-did-resolver": "^2.0.1",
     "@cef-ebsi/problem-details-errors": "^2.0.0",
     "@cef-ebsi/siop-auth": "^2.0.0",
@@ -59,6 +58,7 @@
     "yaml": "^2.1.1"
   },
   "devDependencies": {
+    "@ebsiint-sc/bootstrap": "file:../../contracts/bootstrap",
     "@cef-ebsi/wallet-lib": "^2.0.0",
     "@ethersproject/abi": "^5.4.7",
     "@ethersproject/bytes": "^5.4.7",

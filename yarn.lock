@@ -900,6 +900,16 @@
     ky "^0.25.1"
     ky-universal "^0.8.2"
 
+"@ebsiint-sc/bootstrap@file:contracts/bootstrap":
+  version "1.0.0"
+
+"@ebsiint-sc/trusted-apps-registry@file:contracts/trusted-apps-registry":
+  version "2.0.0"
+  dependencies:
+    "@ebsiint-sc/bootstrap" "^1.0.0"
+    "@ebsiint-sc/did-registry" "^1.0.0"
+    "@ebsiint-sc/trusted-policies-registry" "^1.0.0"
+
 "@ensdomains/ens@^0.4.4":
   version "0.4.5"
   resolved "https://registry.yarnpkg.com/@ensdomains/ens/-/ens-0.4.5.tgz#e0aebc005afdc066447c6e22feb4eda89a5edbfc"
