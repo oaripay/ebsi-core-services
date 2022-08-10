@@ -79,7 +79,6 @@
         ],
         "outputs": [],
         "dependsOn": [
-          "^build",
           "build"
         ]
       },

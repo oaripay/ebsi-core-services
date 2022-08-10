@@ -80,7 +80,6 @@
         ],
         "outputs": [],
         "dependsOn": [
-          "^build",
           "build"
         ]
       },
