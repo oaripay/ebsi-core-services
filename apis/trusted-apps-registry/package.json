@@ -10,6 +10,8 @@
     "clinic:doctor": "yarn build && clinic doctor -- node dist/main",
     "clinic:bubbleprof": "yarn build && clinic bubbleprof -- node dist/main",
     "clinic:flame": "yarn build && clinic flame -- node dist/main",
+    "docker:build": "./scripts/build-docker.sh",
+    "docker:start": "docker-compose up",
     "lint": "yarn lint:openapi && yarn lint:eslint && yarn lint:tsc && yarn lint:prettier",
     "lint:eslint": "eslint . --ext .js,.ts ",
     "lint:openapi": "spectral lint api/openapi.yaml",
@@ -121,6 +123,23 @@
         ],
         "dependsOn": [
           "^build"
+        ]
+      },
+      "docker:build": {
+        "inputs": [
+          "prod",
+          "^prod"
+        ],
+        "outputs": [],
+        "dependsOn": [
+          "build"
+        ]
+      },
+      "docker:start": {
+        "inputs": [],
+        "outputs": [],
+        "dependsOn": [
+          "docker:build"
         ]
       },
       "lint": {

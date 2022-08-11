@@ -14,3 +14,7 @@
 
 # The image tag information is used in the service
 !.ci
+
+# Monorepo
+!contracts
+!dist

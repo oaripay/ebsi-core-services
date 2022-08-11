@@ -30,6 +30,25 @@ pipeline {
       }
     }
 
+    stage('Build all docker images') {
+      when {
+        branch 'nx'
+      }
+      steps {
+        nodejs(nodeJSInstallationName: '16.13.0') {
+          sh "yarn build-docker:all"
+        }
+      }
+    }
+
+    stage('Build docker images affected') {
+      steps {
+        nodejs(nodeJSInstallationName: '16.13.0') {
+          sh "yarn build-docker"
+        }
+      }
+    }
+
     stage('Unit test all') {
       when {
         branch 'nx'

@@ -5,11 +5,13 @@
   "scripts": {
     "audit": "nx run-many --target=audit --all",
     "clean": "nx run-many --target=clean --all",
-    "build": "yarn nx affected --target=build --parallel",
+    "build": "nx affected --target=build --parallel",
     "build:all": "nx run-many --target=build --all",
-    "lint": "yarn nx affected --target=lint --parallel",
+    "build-docker": "nx affected --target=docker:build --parallel",
+    "build-docker:all": "nx run-many --target=docker:build --all",
+    "lint": "nx affected --target=lint --parallel",
     "lint:all": "nx run-many --target=lint --all",
-    "test": "yarn nx affected --target=test:ci --parallel",
+    "test": "nx affected --target=test:ci --parallel",
     "test:all": "nx run-many --target=test:ci --all",
     "lint-staged": "lint-staged",
     "prepare": "is-ci || husky install"
