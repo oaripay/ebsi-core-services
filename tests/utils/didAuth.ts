@@ -7,12 +7,13 @@ export async function getKeyByAlg(
   keys: {
     type: string;
     id: string;
+    alg?: string;
     privateKeyJwk: JWK;
     publicKeyJwk?: JWK;
     privateKeyEncryptionJwk?: JWK;
     publicKeyEncryptionJwk?: JWK;
   }[],
-  alg: string
+  alg: "ES256K" | "ES256" | "RS256" | "EdDSA"
 ): Promise<{
   type: string;
   id: string;
@@ -30,7 +31,7 @@ export async function getKeyByAlg(
     RS256: "RsaVerificationKey2018",
     EdDSA: "Ed25519VerificationKey2018",
   };
-  const keyObject = keys.find((p) => p.type === types[alg]);
+  const keyObject = keys.find((p) => p.type === types[alg] || p.alg === alg);
   const privateKeyEncryption = await importJWK(
     keyObject.privateKeyEncryptionJwk ?? keyObject.privateKeyJwk,
     alg
