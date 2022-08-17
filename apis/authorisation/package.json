@@ -116,16 +116,6 @@
           "^build"
         ]
       },
-      "docker:build": {
-        "inputs": [
-          "prod",
-          "^prod"
-        ],
-        "outputs": [],
-        "dependsOn": [
-          "build"
-        ]
-      },
       "docker:start": {
         "inputs": [],
         "outputs": [],

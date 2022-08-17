@@ -1,20 +1,16 @@
-FROM node:16.14.2-alpine3.15@sha256:32f64135e74ec4dc5d63cc36318444f1d801cd23c44253124f7eccb52c4b89c5 as base
+FROM core-services as builder
+
+FROM builder as preparer
 WORKDIR /app
-COPY package.json ./
-RUN yarn install --silent --production && yarn cache clean
+COPY --from=builder /workspace/apis/notifications/package.json package.json
+COPY --from=builder /workspace/apis/notifications/dist dist
+COPY --from=builder /workspace/apis/notifications/.ci .ci
 
-FROM base as builder
-RUN yarn install --silent && yarn cache clean
-COPY nest-cli.json tsconfig*.json ./
-COPY src src
-RUN yarn build
-
-FROM base
+FROM preparer as runner
 WORKDIR /app
 ENV NODE_ENV=production
-COPY --from=builder /app/dist dist
-# Image version tag is extracted from the following file
-COPY .ci .ci
+# This is required for nestjs runtime.
+RUN yarn install && yarn cache clean
 RUN chown node:node /app
 USER node
 CMD [ "node", "dist/main" ]

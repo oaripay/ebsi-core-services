@@ -36,7 +36,7 @@ pipeline {
       }
       steps {
         nodejs(nodeJSInstallationName: '16.13.0') {
-          sh "yarn build-docker:all"
+          sh "yarn docker-build:all"
         }
       }
     }
@@ -44,7 +44,8 @@ pipeline {
     stage('Build docker images affected') {
       steps {
         nodejs(nodeJSInstallationName: '16.13.0') {
-          sh "yarn build-docker"
+          sh "yarn docker-build" // build the docker builder image "core-services"
+          sh "yarn docker-build:affected" // build services' docker images from the builder
         }
       }
     }
