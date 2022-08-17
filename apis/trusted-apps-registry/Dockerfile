@@ -4,6 +4,7 @@ RUN apk update && apk add --no-cache jq=1.6-r1
 
 FROM builder as preparer
 WORKDIR /app
+COPY --from=builder /workspace/yarn.lock yarn.lock
 COPY --from=builder /workspace/apis/trusted-apps-registry/package.json package.json
 # Copy original and correct paths to build artifacts from workspace dependencies.
 COPY package.json ./package-copy.json
@@ -24,7 +25,7 @@ FROM preparer as runner
 WORKDIR /app
 ENV NODE_ENV=production
 # This is required for nestjs runtime.
-RUN yarn install && yarn cache clean
+RUN yarn install --production --ignore-scripts && yarn cache clean
 RUN chown node:node /app
 USER node
 CMD [ "node", "dist/main" ]
