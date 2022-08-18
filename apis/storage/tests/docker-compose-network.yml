@@ -1,0 +1,53 @@
+version: "2.4"
+
+services:
+  cassandradb:
+    image: cassandra:latest
+    container_name: cassandra-node1
+    ports:
+      - "7000:7000"
+      - "9042:9042"
+    environment:
+      - CASSANDRA_BROADCAST_ADDRESS=cassandradb
+      - CASSANDRA_CLUSTER_NAME=c1
+      - CASSANDRA_DC=datacenter1
+      - CASSANDRA_RACK=rack1
+      - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
+    healthcheck:
+      test: ["CMD-SHELL", "[ $$(nodetool statusgossip) = running ]"]
+      interval: 3s
+      timeout: 10s
+      retries: 10
+  cassandradb2:
+    image: cassandra:latest
+    container_name: cassandra-node2
+    environment:
+      - CASSANDRA_SEEDS=cassandradb
+      - CASSANDRA_BROADCAST_ADDRESS=cassandradb2
+      - CASSANDRA_CLUSTER_NAME=c1
+      - CASSANDRA_DC=datacenter2
+      - CASSANDRA_RACK=rack2
+      - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
+    healthcheck:
+      test: ["CMD-SHELL", "[ $$(nodetool statusgossip) = running ]"]
+      interval: 3s
+      timeout: 10s
+      retries: 10
+    depends_on:
+      cassandradb:
+        condition: service_healthy
+    restart: always
+  cassandradb3:
+    image: cassandra:latest
+    container_name: cassandra-node3
+    environment:
+      - CASSANDRA_SEEDS=cassandradb
+      - CASSANDRA_BROADCAST_ADDRESS=cassandradb3
+      - CASSANDRA_CLUSTER_NAME=c1
+      - CASSANDRA_DC=datacenter2
+      - CASSANDRA_RACK=rack2
+      - CASSANDRA_ENDPOINT_SNITCH=GossipingPropertyFileSnitch
+    depends_on:
+      cassandradb2:
+        condition: service_healthy
+    restart: always
