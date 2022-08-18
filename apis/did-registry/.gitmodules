@@ -1,4 +1,0 @@
-[submodule "submodules/did-registry-ethereum-sc"]
-	path = submodules/did-registry-ethereum-sc
-	url = https://ec.europa.eu/digital-building-blocks/code/scm/ebsi/did-registry-ethereum-sc.git
-	branch = EBSIINT-2818-did-registry-sc

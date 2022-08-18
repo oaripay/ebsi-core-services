@@ -1,4 +1,0 @@
-[submodule "submodules/timestamp-ethereum-sc"]
-	path = submodules/timestamp-ethereum-sc
-	url = https://ec.europa.eu/digital-building-blocks/code/scm/ebsi/timestamp-ethereum-sc.git
-	branch = develop

@@ -1,4 +1,0 @@
-[submodule "submodules/trusted-issuers-registry-ethereum-sc"]
-	path = submodules/trusted-issuers-registry-ethereum-sc
-	url = https://ec.europa.eu/digital-building-blocks/code/scm/ebsi/trusted-issuers-registry-ethereum-sc.git
-  branch = develop

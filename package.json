@@ -1,6 +1,7 @@
 {
   "name": "@ebsi/core-services",
   "version": "0.0.0",
+  "private": true,
   "license": "EUPL-1.2",
   "scripts": {
     "audit": "nx run-many --target=audit --all",
@@ -17,10 +18,9 @@
     "lint-staged": "lint-staged",
     "prepare": "is-ci || husky install"
   },
-  "private": true,
   "devDependencies": {
-    "@commitlint/cli": "^17.0.2",
-    "@commitlint/config-conventional": "^17.0.2",
+    "@commitlint/cli": "^17.0.3",
+    "@commitlint/config-conventional": "^17.0.3",
     "@nrwl/cli": "14.4.3",
     "@nrwl/workspace": "14.4.3",
     "@stoplight/spectral-cli": "^6.4.1",
@@ -29,7 +29,9 @@
     "lint-staged": "^13.0.3",
     "nx": "14.4.3",
     "prettier": "^2.7.1",
-    "prettier-plugin-solidity": "^1.0.0-beta.13",
+    "prettier-plugin-solidity": "^1.0.0-beta.19",
+    "rimraf": "^3.0.2",
+    "standard-version": "^9.5.0",
     "solhint": "^3.3.7",
     "solhint-plugin-prettier": "^0.0.5",
     "typescript": "4.7.4"
