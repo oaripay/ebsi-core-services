@@ -1,29 +1,3 @@
-<<<<<<< HEAD
-# Common
-build
-coverage
-dist
-node_modules
-yarn-error.log
-.env*.local
-*.log
-*log
-.idea
-
-# SC
-.clinic
-.secret*
-# Assets built by hardhat, previously only `src` in SC repos
-contracts/*/src
-config.ts
-abi
-all.sol
-artifacts
-cache
-coverage.json
-key/private.pem
-typechain
-=======
 coverage
 dist
 node_modules
@@ -31,4 +5,3 @@ peerOrganizations
 .env*.local
 yarn-error.log
 wallet
->>>>>>> ledger-api/v2/develop
