@@ -440,7 +440,7 @@ describe("Authorisation Module", () => {
     });
   });
 
-  describe.each(["ES256K", "ES256", "RS256", "EdDSA"])(
+  describe.each(["ES256K", "ES256", "RS256", "EdDSA"] as const)(
     "POST /siop-sessions with alg %s",
     (alg) => {
       it("should reject bad requests", async () => {
