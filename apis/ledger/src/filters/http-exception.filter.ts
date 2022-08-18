@@ -1,0 +1,163 @@
+import {
+  ExceptionFilter,
+  Catch,
+  ArgumentsHost,
+  Logger,
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+} from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import {
+  ProblemDetailsError,
+  InternalServerError,
+  NotFoundError,
+  BadRequestError,
+  ForbiddenError,
+} from "@cef-ebsi/problem-details-errors";
+import type { FastifyReply, FastifyRequest } from "fastify";
+import { AxiosError } from "axios";
+import { ApiConfig } from "../config/configuration";
+import {
+  JsonRpcError,
+  InvalidRequestJsonRpcError,
+  InternalJsonRpcError,
+} from "../modules/fabric/errors";
+
+@Catch()
+export class AllExceptionsFilter implements ExceptionFilter {
+  private readonly logger = new Logger(AllExceptionsFilter.name);
+
+  private tag: string;
+
+  constructor(configService: ConfigService<ApiConfig>) {
+    if (process.env.EBSI_ENV === "test") {
+      this.tag = configService.get<string>("dockerContainerTag");
+    }
+  }
+
+  catch(err: Error, host: ArgumentsHost): FastifyReply {
+    const ctx = host.switchToHttp();
+    const response = ctx.getResponse<FastifyReply>();
+    const request = ctx.getRequest<FastifyRequest>();
+    const { url } = request;
+
+    if (this.tag) {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      response.header("EBSI-Image-Tag", this.tag);
+    }
+
+    if (
+      err instanceof JsonRpcError ||
+      url.includes("/blockchains/fabric/jsonrpc")
+    ) {
+      let jsonRpcError: JsonRpcError;
+      if (err instanceof JsonRpcError) {
+        jsonRpcError = err;
+      } else {
+        const id = (request.body as { id: string | number })?.id ?? null;
+
+        let detail = err.message;
+        if (
+          err instanceof BadRequestException ||
+          err instanceof NotFoundException
+        ) {
+          const resp = err.getResponse();
+          if (typeof resp === "object") {
+            const { message } = resp as { message: string };
+            if (message) {
+              if (typeof message === "string") detail = message;
+              else detail = JSON.stringify(message);
+            }
+          }
+          jsonRpcError = new InvalidRequestJsonRpcError(detail, id);
+        } else {
+          this.logger.error(err.message, err.stack);
+          jsonRpcError = new InternalJsonRpcError(
+            "The server encountered an internal error and was unable to complete your request",
+            id
+          );
+        }
+      }
+      this.logger.debug(jsonRpcError.toString());
+      return response
+        .code(jsonRpcError.status)
+        .type("application/json")
+        .send(jsonRpcError.toJSON());
+    }
+
+    let problemError: ProblemDetailsError;
+
+    if (err instanceof NotFoundException) {
+      problemError = new NotFoundError(NotFoundError.defaultTitle, {
+        detail: err.message,
+      });
+    } else if (err instanceof ForbiddenException) {
+      problemError = new ForbiddenError(ForbiddenError.defaultTitle, {
+        detail: err.message,
+      });
+    } else if (err instanceof BadRequestException) {
+      let detail = err.message;
+      const resp = err.getResponse();
+      if (typeof resp === "object") {
+        const { message } = resp as { message: string };
+        if (message) {
+          if (typeof message === "string") detail = message;
+          else detail = JSON.stringify(message);
+        }
+      }
+      problemError = new BadRequestError(BadRequestError.defaultTitle, {
+        detail,
+      });
+    } else if (err instanceof ProblemDetailsError) {
+      problemError = err;
+    } else {
+      if ((err as AxiosError).isAxiosError) {
+        // Properly log error, https://github.com/axios/axios#handling-errors
+        const error = err as AxiosError<unknown>;
+        this.logger.error("Axios error intercepted.", error.stack);
+        if (error.response) {
+          // The request was made and the server responded with a status code
+          // that falls out of the range of 2xx
+          this.logger.error({
+            data: error.response.data,
+            status: error.response.status,
+            headers: error.response.headers as unknown,
+          });
+        } else if (error.request) {
+          // The request was made but no response was received
+          // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+          // http.ClientRequest in node.js
+          this.logger.error({
+            request: error.request as unknown,
+          });
+        } else {
+          // Something happened in setting up the request that triggered an Error
+          this.logger.error({
+            message: error.message,
+          });
+        }
+
+        this.logger.error(error.toJSON());
+      } else {
+        this.logger.error(err.message, err.stack);
+      }
+
+      problemError = new InternalServerError(undefined, {
+        detail:
+          "The server encountered an internal error and was unable to complete your request",
+      });
+    }
+
+    this.logger.debug(
+      `${problemError.toString()}: ${problemError.detail || "No detail"}`
+    );
+
+    return response
+      .code(problemError.status)
+      .type("application/problem+json")
+      .send(problemError.toJSON());
+  }
+}
+
+export default AllExceptionsFilter;

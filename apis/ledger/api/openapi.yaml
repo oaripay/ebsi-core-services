@@ -1,0 +1,1222 @@
+openapi: 3.0.3
+info:
+  title: Ledger API
+  version: 2.0.0
+  description: |
+    Ledger API service gives use case applications access to all the
+    available blockchain protocol interfaces and capabilities provided by the
+    ledger nodes software running on MS hosted nodes.
+
+    The Ledger API is a Core Service of the EBSI platform providing access to
+    the EBSI Ledger Protocol(s) and Smart Contracts services running at the
+    lower layer Chain & Storage.
+
+    EBSI Ledger API provides capabilities to interact with Hyperledger Besu and
+    Fabric ledgers. As a remark, for EBSI v2, in order to interact with the
+    Fabric node clients, consumers must install the Fabric SDK kit because
+    Fabric ledgers has not a full feature set natively exposed by a REST API.
+    Only a limited set of features are exposed.
+
+    For more information see:
+
+    - [Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/Ledger+API)
+    - [Code Repository](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/browse)
+  license:
+    name: EUPL-1.2
+    url: https://joinup.ec.europa.eu/page/eupl-text-11-12
+  contact:
+    name: EBSI Support - Service Desk
+    url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11
+  termsOfService: /docs/terms
+paths:
+  /ledger/v2/blockchains/besu:
+    post:
+      operationId: post-ledger-v2-blockchains-besu
+      tags:
+        - Hyperledger Besu
+      summary: Besu JSON-RPC API
+      description: |
+        Hyperledger Besu Ethereum Enterprise Client JSON-RPC API.
+        For some protected methods, the endpoint requires authentication via the Authorisation API.
+        It accepts OAuth2 tokens (for Trusted Apps) or SIOP tokens (for DIDs).
+        The protected methods are:
+          - eth_sendRawTransaction
+          - eth_estimateGas
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        description: |
+          The body follows the
+          [JSON-RPC 2.0 specification](https://www.jsonrpc.org/specification).
+          It requires the following fields:
+
+          - **jsonrpc**: Must be exactly "2.0"
+          - **method**: Hyperledger Besu JSON-RPC native method that is invoked. The
+          list of available methods can be found in the Ledger API technical specifications
+          [List of JSON-RPC methods](https://ec.europa.eu/digital-building-blocks/wikis/x/V4iWFQ).
+          - **params**: Array of parameters.
+          - **id**: Identifier established by the client.
+        content:
+          application/json:
+            schema:
+              required:
+                - jsonrpc
+                - id
+                - method
+                - params
+              type: object
+              properties:
+                jsonrpc:
+                  description: Must be exactly "2.0"
+                  type: string
+                method:
+                  description: Besu JSON-RPC native method to be invoked
+                  type: string
+                params:
+                  description: Array of parameters
+                  type: array
+                  items:
+                    oneOf:
+                      - type: boolean
+                      - type: object
+                      - type: string
+                id:
+                  description: Identifier established by the client
+                  type: integer
+                  example: 1
+            examples:
+              Get Block:
+                value:
+                  jsonrpc: "2.0"
+                  method: eth_getBlockByNumber
+                  params:
+                    - "123456"
+                    - true
+                  id: 1
+              Get Transaction:
+                value:
+                  jsonrpc: "2.0"
+                  method: eth_getTransactionByHash
+                  params:
+                    - "0x88df016429689c079f3b2f6ad39fa052532c56795b733da78a91ebe6a713944b"
+                  id: 1
+              Send Transaction:
+                value:
+                  jsonrpc: "2.0"
+                  method: eth_sendRawTransaction
+                  params:
+                    - "---signed raw transation---"
+                  id: 1
+      responses:
+        "200":
+          description: Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonRpcResponse"
+              examples:
+                Get Block:
+                  value:
+                    jsonrpc: "2.0"
+                    id: 1
+                    result:
+                      number: "0x1e240"
+                      hash: "0x266bd6a41047c0929ebedd56cae148caab0d20a23aa1895bb95524a300ef9187"
+                      parentHash: "0x705094eb8ca67929254bedaff973d254311d72a38dc2b95a8711682f034fd3b4"
+                      nonce: "0x0000000000000000"
+                      sha3Uncles: "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347"
+                      logsBloom: "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+                      transactionsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421"
+                      stateRoot: "0x4b7559720ae8af08782bcadc07c94243ceaf5fe1d7ee0914d76ad37969791dc4"
+                      receiptsRoot: "0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421"
+                      miner: "0x7df7b640d9c4c24f563a7d5702499521255fc165"
+                      difficulty: "0x1"
+                      totalDifficulty: "0x1e241"
+                      extraData: "0xf90148a00000000000000000000000000000000000000000000000000000000000000000f854947df7b640d9c4c24f563a7d5702499521255fc165949d2375d1b45b54603a365e23e0197c0a7a8150c894da316adfafdfe6c627e9429176954f25e4a2fb8e94f618d305b3cc3e7181937da874ad07d6f2d67c10808400000000f8c9b841e5e6da6c913c81673972889aeaf5b1dc1b4ae3070ed9dcc3a9e8d7de36a7f778694ff632bdc8fd8964e6b95e592eb17132f8eeb42ebd8044e3646bc7d7154fde01b841e7d6e72d7423f1eb9ba5448fd7c4c2f2770a668bdf187aa3a330e708bf369cf1645ea3d2f03924125509c3aaaef01c1efd8c26122abcd7c96ba080f391d1db6801b841c30e22e5549ed4b06ab8a9f19cd1b41d250e06e5229b945475f2616b9c6eb3a9325a9ea57926da4081a33279a78fab219f803ed638300378e819bb6ffc60479100"
+                      size: "0x350"
+                      gasLimit: "0x1fffffffffffff"
+                      gasUsed: "0x0"
+                      timestamp: "0x5e7b16f4"
+                      uncles: []
+                      transactions: []
+                Get Transaction:
+                  value:
+                    jsonrpc: "2.0"
+                    id: 1
+                    result:
+                      blockHash: "0x1d59ff54b1eb26b013ce3cb5fc9dab3705b415a67127a003c3e61eb445bb8df2"
+                      blockNumber: "0x5daf3b"
+                      from: "0xa7d9ddbe1f17865597fbd27ec712455208b6b76d"
+                      gas: "0xc350"
+                      gasPrice: "0x0"
+                      hash: "0x88df016429689c079f3b2f6ad39fa052532c56795b733da78a91ebe6a713944b"
+                      input: "0x68656c6c6f21"
+                      nonce: "0x15"
+                      to: "0xf02c1c8e6114b1dbe8937a39260b5b0a374432bb"
+                      transactionIndex: "0x41"
+                      value: "0xf3dbb76162000"
+                      v: "0x25"
+                      r: "0x1b5e176d927f8e9ab405058b2d2457392da3e20f328b16ddabcebc33eaac5fea"
+                      s: "0x4ba69724e8f69de52f0125ad8b3c5c2cef33019bac3249e2c0a2192766d1721c"
+                Send Transaction:
+                  value:
+                    jsonrpc: "2.0"
+                    id: 1
+                    result: "0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Bad Request:
+                  $ref: "#/components/examples/BadRequest"
+                Invalid Token:
+                  $ref: "#/components/examples/InvalidToken"
+                Method Disabled:
+                  $ref: "#/components/examples/MethodDisabled"
+                Invalid Method:
+                  $ref: "#/components/examples/MethodNoExists"
+        "401":
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Unauthorized:
+                  $ref: "#/components/examples/NoAnonymous"
+        "403":
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Forbidden:
+                  $ref: "#/components/examples/BesuPermissions"
+                Deployment Forbidden:
+                  $ref: "#/components/examples/NoDeploySC"
+  /ledger/v2/blockchains/fabric/jsonrpc:
+    post:
+      operationId: post-ledger-v2-blockchains-fabric-jsonrpc
+      tags:
+        - Hyperledger Fabric
+      summary: Fabric JSON-RPC API
+      description: Hyperledger Fabric JSON-RPC API
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        description: |
+          The body follows the
+          [JSON-RPC 2.0 specification](https://www.jsonrpc.org/specification).
+          It requires the following fields:
+
+          - **jsonrpc**: Must be exactly "2.0"
+          - **method**: Method invoked. It must be "readContract"
+          - **params**: Array of parameters.
+          - **id**: Identifier established by the client.
+        content:
+          application/json:
+            schema:
+              required:
+                - jsonrpc
+                - id
+                - method
+                - params
+              type: object
+              properties:
+                jsonrpc:
+                  description: Must be exactly "2.0"
+                  type: string
+                method:
+                  description: JSON-RPC method to be invoked
+                  type: string
+                params:
+                  description: Array of parameters
+                  type: array
+                  items:
+                    oneOf:
+                      - type: boolean
+                      - type: object
+                      - type: string
+                id:
+                  description: Identifier established by the client
+                  type: integer
+                  example: 1
+            examples:
+              Read Contract:
+                value:
+                  jsonrpc: "2.0"
+                  id: 1
+                  method: "readContract"
+                  params:
+                    - channelName: "iossdrpocchannel"
+                      contractName: "iossdrpociossvatid"
+                      fcn: "checkIossVatIdExists"
+                      args: ["ABCDEF123456"]
+              Send Proposal:
+                value:
+                  jsonrpc: "2.0"
+                  id: 1
+                  method: "sendProposal"
+                  params:
+                    - channelName: "iossdrpocchannel"
+                      contractName: "iossdrpociossvatid"
+                      action:
+                        init: false
+                        transientMap:
+                          iossvatid: eyJpb3NzdmF0aWQiOiIwNWY0OWQ1ZWE3OGEifQ==
+                        transactionId: e35bb106916bc1c9338a811cae2fdcd5b6d9a10fa70248588a61d6d3bdbf780b
+                        args:
+                          - cmVnaXN0ZXJJb3NzVmF0SWQ=
+                          - MjAyMS0xMC0xMw==
+                          - MjAyMS0xMC0xNQ==
+                          - MjAyMS0xMC0xMyAxNToyMDo0NQ==
+                          - OTlhOTNhZDctYjk4OC00ZWRkLWE1MzgtNDk3YmI3YWE2MzA4
+                          - Nzk4NTllYmMyOTE4M2UzNzBmZGE=
+                        fcn: registerIossVatId
+                        header:
+                          signature_header: CugIChF...
+                          channel_header: CAMQARoMCM...
+                        proposal:
+                          header: Cn4IAxABG...
+                          payload: CpsBCpgBCA...
+                      payload: CogKCn4IAxABGgwIzfKbiw...
+                      signature: MEUCIQC/rRRItmu3HcgS+...
+              Commit Transaction:
+                value:
+                  jsonrpc: "2.0"
+                  id: 1
+                  method: commitTransaction
+                  params:
+                    - channelName: "iossdrpocchannel"
+                      contractName: "iossdrpociossvatid"
+                      action:
+                        init: false
+                        payload:
+                          header:
+                            signature_header: CugIChF...
+                            channel_header: CAMQARoMCM...
+                          data: PeMY4e...
+                      payload: CogKCn4IAxABGgwIzfKbiw...
+                      signature: MEUCIQC/rRRItmu3HcgS+...
+                      transactionId: fed4...
+      responses:
+        "200":
+          description: Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonRpcResponse"
+              examples:
+                Read Contract:
+                  value:
+                    jsonrpc: "2.0"
+                    id: 1
+                    result: RVhJU1RT
+                Send Proposal:
+                  value:
+                    jsonrpc: "2.0"
+                    id: 1
+                    result:
+                      - endorsement:
+                          endorser: 4eME...
+                          signature: MU/raH+...
+                        payload: CapMr...
+                        response:
+                          message: ""
+                          payload: ""
+                Commit Transaction:
+                  value:
+                    jsonrpc: "2.0"
+                    id: 1
+                    result: OK
+                Invalid Request:
+                  $ref: "#/components/examples/InvalidRequestJsonRpcError"
+                Method Not Found:
+                  $ref: "#/components/examples/MethodNotFoundJsonRpcError"
+                Internal Error:
+                  $ref: "#/components/examples/InternalJsonRpcError"
+  /ledger/v2/blockchains/fabric/channels:
+    get:
+      tags:
+        - Hyperledger Fabric
+      summary: List channels
+      description: Returns a list of all the available EBSI Fabric channels.
+      operationId: get-ledger-v2-blockchains-fabric-channels
+      parameters:
+        - in: query
+          name: page[after]
+          description: Cursor that points to the end of the page of data that has been returned.
+          schema:
+            type: string
+        - in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: URI of the current page
+                  items:
+                    type: array
+                    description: List of channel names.
+                    items:
+                      $ref: "#/components/schemas/Channel"
+                  links:
+                    $ref: "#/components/schemas/Links"
+                  total:
+                    type: integer
+                    description: Total number of pages in a collection.
+                  pageSize:
+                    type: integer
+                    description: Number of items to be return per page.
+              examples:
+                "[test] Get Available Channels":
+                  value:
+                    self: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
+                    items:
+                      - iossdrpocchannel
+                    total: 1
+                    pageSize: 10
+                    links:
+                      first: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
+                      last: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
+                "[pilot] Get Available Channels":
+                  value:
+                    self: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
+                    items:
+                      - iossdrpocchannel
+                    total: 1
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
+        "500":
+          description: Internal Server Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /ledger/v2/blockchains/fabric/channels/{channel}:
+    get:
+      tags:
+        - Hyperledger Fabric
+      summary: Check if a channel exists
+      description: Check if a channel exists.
+      operationId: get-ledger-v2-blockchains-fabric-channel
+      parameters:
+        - in: path
+          name: channel
+          description: Fabric channel name.
+          required: true
+          schema:
+            type: string
+          example: iossdrpocchannel
+      responses:
+        "204":
+          description: Success. Channel exists.
+        "400":
+          description: Bad request. The format of the {channel} parameter is not valid.
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Invalid {channel} Parameter:
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: '["channelName must match /^[a-z][a-z0-9.-]*$/ regular expression"]'
+        "404":
+          description: Channel {channel} not found
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Channel Not Found:
+                  value:
+                    detail: Channel {channel} not found
+                    status: 404
+                    title: Not Found
+                    type: about:blank
+        "500":
+          description: Internal Server Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /ledger/v2/blockchains/fabric/channels/{channel}/blocks:
+    get:
+      tags:
+        - Hyperledger Fabric
+      description:
+        Returns a list of blocks of the channel {channel}. By default API
+        returns the last 10 (or less) blocks.
+      summary: List blocks
+      operationId: get-ledger-v2-blockchains-fabric-channel-blocks
+      parameters:
+        - in: path
+          name: channel
+          required: true
+          description: Fabric channel name.
+          schema:
+            type: string
+          example: iossdrpocchannel
+        - in: query
+          name: page[after]
+          description: Cursor that points to the end of the page of data that has been returned.
+          schema:
+            type: string
+        - in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: URI of the current page
+                  items:
+                    type: array
+                    description: List of blocks.
+                    items:
+                      $ref: "#/components/schemas/Block"
+                  links:
+                    $ref: "#/components/schemas/Links"
+                  total:
+                    type: integer
+                    description: " Total number of pages in a collection."
+                  pageSize:
+                    type: integer
+                    description: Number of items to be return per page.
+              examples:
+                "[test] Get blocks of the specified channel":
+                  value:
+                    items:
+                      - blockNum: 2
+                        channelName: iossdrpocchannel
+                        timestamp: "2021-04-19T15:31:24.171Z"
+                        dataHash: u7M31dYSv2CpWpVRpawl4UGT1irVWOzbq89REhPk8UXg
+                        prevHash: unE65jUnBOb7RWlSfq01RBHnLOKUPbAWS49k-Wyd5yDI
+                        txCount: 1
+                        txIds:
+                          - 66a762803f2391308b5ecf4138d331755ca2a92ddedcd97ccbfb7d8f5376e9a1
+                      - blockNum: 1
+                        channelName: iossdrpocchannel
+                        timestamp: "2021-04-19T15:30:20.605Z"
+                        dataHash: uc1VkhnnZEXktj5JYFDrFVPcq5cZfuosxEsUshRL54Ko
+                        prevHash: uu3tt8skxg4CYflGSB8bJUfFkG_dztp9RbLPSDjU9D4Y
+                        txCount: 1
+                        txIds:
+                          - d8528c14575ac3d9170df9b9a5e0dc3b2a7b420e23702a345183024fe320dfd8
+                      - blockNum: 0
+                        channelName: iossdrpocchannel
+                        timestamp: "2021-04-19T15:20:43.000Z"
+                        dataHash: uYPaaVY4xpLO1eu7B09NxFY9tX2-w41vQi3Okdj8Gugs
+                        prevHash: u
+                        txCount: 0
+                        txIds: []
+                    total: 3
+                    pageSize: 10
+                    self: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
+                    links:
+                      first: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channel/iossdrpocchannel/blocks?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
+                      last: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
+                "[pilot] Get blocks of the specified channel":
+                  value:
+                    items:
+                      - blockNum: 2
+                        channelName: iossdrpocchannel
+                        timestamp: "2021-04-19T15:31:24.171Z"
+                        dataHash: u7M31dYSv2CpWpVRpawl4UGT1irVWOzbq89REhPk8UXg
+                        prevHash: unE65jUnBOb7RWlSfq01RBHnLOKUPbAWS49k-Wyd5yDI
+                        txCount: 1
+                        txIds:
+                          - 66a762803f2391308b5ecf4138d331755ca2a92ddedcd97ccbfb7d8f5376e9a1
+                      - blockNum: 1
+                        channelName: iossdrpocchannel
+                        timestamp: "2021-04-19T15:30:20.605Z"
+                        dataHash: uc1VkhnnZEXktj5JYFDrFVPcq5cZfuosxEsUshRL54Ko
+                        prevHash: uu3tt8skxg4CYflGSB8bJUfFkG_dztp9RbLPSDjU9D4Y
+                        txCount: 1
+                        txIds:
+                          - d8528c14575ac3d9170df9b9a5e0dc3b2a7b420e23702a345183024fe320dfd8
+                      - blockNum: 0
+                        channelName: iossdrpocchannel
+                        timestamp: "2021-04-19T15:20:43.000Z"
+                        dataHash: uYPaaVY4xpLO1eu7B09NxFY9tX2-w41vQi3Okdj8Gugs
+                        prevHash: u
+                        txCount: 0
+                        txIds: []
+                    total: 3
+                    pageSize: 10
+                    self: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
+                    links:
+                      first: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channel/iossdrpocchannel/blocks?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
+        "400":
+          description: Bad request. The format of the {channel} parameter is not valid.
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Invalid {channel} Parameter:
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: '["channelName must match /^[a-z][a-z0-9.-]*$/ regular expression"]'
+        "404":
+          description: Channel {channel} not found
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Channel Not Found:
+                  value:
+                    detail: Channel {channel} not found
+                    status: 404
+                    title: Not Found
+                    type: about:blank
+        "500":
+          description: Internal Server Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /ledger/v2/blockchains/fabric/channels/{channel}/blocks/{blockNumber}:
+    get:
+      tags:
+        - Hyperledger Fabric
+      summary: Get a block
+      description: Returns the block for the specified channel and block number.
+      operationId: get-ledger-v2-blockchains-fabric-channel-block
+      parameters:
+        - in: path
+          name: channel
+          required: true
+          description: Fabric channel name.
+          schema:
+            type: string
+          example: iossdrpocchannel
+        - in: path
+          name: blockNumber
+          required: true
+          description: Block number.
+          schema:
+            type: string
+          example: "0"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Block"
+              examples:
+                Success:
+                  value:
+                    blockNum: 0
+                    channelName: iossdrpocchannel
+                    timestamp: "2021-04-19T15:20:43.000Z"
+                    dataHash: uYPaaVY4xpLO1eu7B09NxFY9tX2-w41vQi3Okdj8Gugs
+                    prevHash: u
+                    txCount: 0
+                    txIds: []
+        "400":
+          description: Bad request. The format of the {channel} or {blockNumber} parameter is not valid.
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Invalid {channel} Parameter:
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: '["channelName must match /^[a-z][a-z0-9.-]*$/ regular expression"]'
+                Invalid {blockNumber} Parameter:
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: '["blockNumber must be a number string"]'
+        "404":
+          description: Channel or block not found
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Channel Not Found:
+                  value:
+                    detail: Channel {channel} not found
+                    status: 404
+                    title: Not Found
+                    type: about:blank
+                Block Not Found:
+                  value:
+                    detail: Block {blockNumber} not found
+                    status: 404
+                    title: Not Found
+                    type: about:blank
+        "500":
+          description: Internal Server Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /ledger/v2/blockchains/fabric/channels/{channel}/transactions:
+    get:
+      tags:
+        - Hyperledger Fabric
+      summary: List transactions
+      description:
+        Returns a list of transactions of the channel {channel}. By default,
+        the API returns the last 10 (or less) transactions.
+      operationId: get-ledger-v2-blockchains-fabric-channel-transactions
+      parameters:
+        - in: path
+          name: channel
+          required: true
+          description: Fabric channel name.
+          schema:
+            type: string
+          example: iossdrpocchannel
+        - in: query
+          name: page[after]
+          description: Cursor that points to the end of the page of data that has been returned.
+          schema:
+            type: string
+        - in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: URI of the current page
+                  items:
+                    type: array
+                    description: List of transactions.
+                    items:
+                      $ref: "#/components/schemas/Transaction"
+                  links:
+                    $ref: "#/components/schemas/Links"
+                  total:
+                    type: integer
+                    description: " Total number of pages in a collection."
+                  pageSize:
+                    type: integer
+                    description: Number of items to be return per page.
+              examples:
+                "[test] Get transactions of the specified channel":
+                  value:
+                    items:
+                      - txId: 2778b2cdeae04ceda9544ad02407f9086910643238738eef04e9c1dd22d00809
+                        type: ENDORSER_TRANSACTION
+                        timestamp: "2021-04-19T15:31:58.872Z"
+                        channelId: iossdrpocchannel
+                        creatorMspId: FRCSTIOSSDRPOCMSP
+                        blockNum: 6
+                        validationCode: 0
+                        actions:
+                          - chaincodeId: "_lifecycle"
+                            proposalHash: uBQzye8ESWKwg3RQu6oWYCEWAo5mRqirxyAs8bracLX8
+                            response:
+                              status: 200,
+                              message: ""
+                              payload:
+                                type: "Buffer"
+                                data: []
+                            endorsersMspId: [null]
+                      - txId: 66a762803f2391308b5ecf4138d331755ca2a92ddedcd97ccbfb7d8f5376e9a1
+                        type: ENDORSER_TRANSACTION
+                        timestamp: "2021-04-19T15:31:24.171Z"
+                        channelId: iossdrpocchannel
+                        creatorMspId: FRCSTIOSSDRPOCMSP
+                        blockNum: 5
+                        validationCode: 0
+                        actions:
+                          - chaincodeId: "_lifecycle"
+                            proposalHash: uOfs4RhtSideuAbcPzbOB_hb53YXqKqd7W3K6oROQmWQ
+                            response:
+                              status: 200
+                              message: ""
+                              payload:
+                                type: "Buffer"
+                                data: []
+                            endorsersMspId: [null]
+                    pageSize: 2
+                    self: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/transactions?page[after]=7&page[size]=10
+                    links:
+                      first: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/transactions?page[after]=7&page[size]=2
+                      next: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/transactions?page[after]=566a762803f2391308b5ecf4138d331755ca2a92ddedcd97ccbfb7d8f5376e9a1&page[size]=2
+                "[pilot] Get transactions of the specified channel":
+                  value:
+                    items:
+                      - txId: 2778b2cdeae04ceda9544ad02407f9086910643238738eef04e9c1dd22d00809
+                        type: ENDORSER_TRANSACTION
+                        timestamp: "2021-04-19T15:31:58.872Z"
+                        channelId: iossdrpocchannel
+                        creatorMspId: FRCSTIOSSDRPOCMSP
+                        blockNum: 6
+                        validationCode: 0
+                        actions:
+                          - chaincodeId: "_lifecycle"
+                            proposalHash: uBQzye8ESWKwg3RQu6oWYCEWAo5mRqirxyAs8bracLX8
+                            response:
+                              status: 200,
+                              message: ""
+                              payload:
+                                type: "Buffer"
+                                data: []
+                            endorsersMspId: [null]
+                      - txId: 66a762803f2391308b5ecf4138d331755ca2a92ddedcd97ccbfb7d8f5376e9a1
+                        type: ENDORSER_TRANSACTION
+                        timestamp: "2021-04-19T15:31:24.171Z"
+                        channelId: iossdrpocchannel
+                        creatorMspId: FRCSTIOSSDRPOCMSP
+                        blockNum: 5
+                        validationCode: 0
+                        actions:
+                          - chaincodeId: "_lifecycle"
+                            proposalHash: uOfs4RhtSideuAbcPzbOB_hb53YXqKqd7W3K6oROQmWQ
+                            response:
+                              status: 200
+                              message: ""
+                              payload:
+                                type: "Buffer"
+                                data: []
+                            endorsersMspId: [null]
+                    pageSize: 2
+                    self: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/transactions?page[after]=7&page[size]=10
+                    links:
+                      first: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/transactions?page[after]=7&page[size]=2
+                      next: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/transactions?page[after]=566a762803f2391308b5ecf4138d331755ca2a92ddedcd97ccbfb7d8f5376e9a1&page[size]=2
+        "400":
+          description: Bad request. The format of the {channel} parameter is not valid.
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Invalid {channel} Parameter:
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: '["channelName must match /^[a-z][a-z0-9.-]*$/ regular expression"]'
+        "404":
+          description: Channel {channel} not found
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Channel Not Found:
+                  value:
+                    detail: Channel {channel} not found
+                    status: 404
+                    title: Not Found
+                    type: about:blank
+        "500":
+          description: Internal Server Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /ledger/v2/blockchains/fabric/channels/{channel}/transactions/{transactionId}:
+    get:
+      tags:
+        - Hyperledger Fabric
+      summary: Get a transaction
+      description: Returns the transaction of the channel {channel} specified by its transaction ID.
+      operationId: get-ledger-v2-blockchains-fabric-channel-transaction
+      parameters:
+        - in: path
+          name: channel
+          required: true
+          description: Fabric channel name.
+          schema:
+            type: string
+          example: iossdrpocchannel
+        - in: path
+          name: transactionId
+          required: true
+          description: Transaction ID.
+          schema:
+            type: string
+          example: 2778b2cdeae04ceda9544ad02407f9086910643238738eef04e9c1dd22d00809
+        - in: query
+          name: page[after]
+          description: Cursor that points to the end of the page of data that has been returned.
+          schema:
+            type: string
+        - in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+              examples:
+                Transaction found:
+                  value:
+                    txId: 2778b2cdeae04ceda9544ad02407f9086910643238738eef04e9c1dd22d00809
+                    type: ENDORSER_TRANSACTION
+                    timestamp: "2021-04-19T15:31:58.872Z"
+                    channelId: iossdrpocchannel
+                    creatorMspId: FRCSTIOSSDRPOCMSP
+                    validationCode: 0
+                    actions:
+                      - chaincodeId: "_lifecycle"
+                        proposalHash: uBQzye8ESWKwg3RQu6oWYCEWAo5mRqirxyAs8bracLX8
+                        response:
+                          status: 200,
+                          message: ""
+                          payload:
+                            type: "Buffer"
+                            data: []
+                        endorsersMspId: [null]
+        "400":
+          description: Bad request. The format of the {channel} parameter is not valid.
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Invalid {channel} Parameter:
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: '["channelName must match /^[a-z][a-z0-9.-]*$/ regular expression"]'
+                Invalid {transactionId} Parameter:
+                  value:
+                    title: Bad request
+                    status: 400
+                    detail: '["transactionId must be a hexadecimal number"]'
+        "404":
+          description: Channel {channel} or transaction {transactionId} not found
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Channel Not Found:
+                  value:
+                    detail: Channel {channel} not found
+                    status: 404
+                    title: Not Found
+                    type: about:blank
+                Transaction Not Found:
+                  value:
+                    detail: Transaction ${transactionId} not found
+                    status: 404
+                    title: Not Found
+                    type: about:blank
+        "500":
+          description: Internal Server Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+components:
+  schemas:
+    JsonRpcResponse:
+      title: JSON-RPC Response
+      type: object
+      properties:
+        jsonrpc:
+          description: Must be exactly "2.0"
+          type: string
+        id:
+          description: Same identifier established by the client in the call
+          type: integer
+        result:
+          description: Result of the call
+          oneOf:
+            - type: array
+            - type: boolean
+            - type: object
+            - type: string
+        error:
+          description: Error details
+          type: object
+          properties:
+            code:
+              description: Error code
+              type: integer
+            message:
+              description: Error message
+              type: string
+    ProblemDetails:
+      title: Problem Details
+      description: A [Problem Details](https://datatracker.ietf.org/doc/html/rfc7807) object.
+      type: object
+      properties:
+        type:
+          type: string
+          format: uri
+          description: |
+            An absolute URI that identifies the problem type. When dereferenced,
+            it SHOULD provide human-readable documentation for the problem type.
+          default: about:blank
+        title:
+          type: string
+          description: |
+            A short summary of the problem type.
+          example: Internal Server Error
+        status:
+          type: integer
+          format: int32
+          description: |
+            The HTTP status code generated by the origin server for this occurrence of the problem.
+          minimum: 400
+          maximum: 600
+          example: 500
+        detail:
+          type: string
+          description: |
+            A human readable explanation specific to this occurrence of the problem.
+          example: Connection timeout
+        instance:
+          type: string
+          format: uri
+          description: |
+            An absolute URI that identifies the specific occurrence of the problem.
+            It may or may not yield further information if dereferenced.
+    Block:
+      title: Hyperledger Fabric Block
+      type: object
+      properties:
+        blockNum:
+          type: integer
+          description: Block number
+        txCount:
+          type: integer
+          description: Transactions count
+        txIds:
+          type: array
+          description: Array of transactions IDs
+          items:
+            type: string
+        dataHash:
+          type: string
+          description: Data hash
+        prevHash:
+          type: string
+          description: Previous hash
+        channelName:
+          type: string
+          description: Channel name
+        timestamp:
+          type: string
+          description: Block creation time
+      description: Hyperledger Fabric block data model
+    Transaction:
+      title: Hyperledger Fabric Transaction
+      type: object
+      properties:
+        txId:
+          type: string
+          description: Transaction ID
+        type:
+          type: string
+          description: Type
+        timestamp:
+          type: string
+          description: Timestamp
+        channelId:
+          type: string
+          description: Channel ID
+        creatorMspId:
+          type: string
+          description: Creator MSP ID
+        blockNum:
+          type: integer
+          description: Block number
+        validationCode:
+          type: number
+          description: Transaction validation code
+        actions:
+          type: array
+          description: Actions
+          items:
+            type: object
+            properties:
+              chaincodeId:
+                type: string
+              proposalHash:
+                type: string
+              response:
+                type: object
+              endorsersMspId:
+                type: array
+                items:
+                  type: string
+                  nullable: true
+              creatorMspId:
+                type: string
+    Channel:
+      title: Hyperledger Fabric Channel
+      description: Hyperledger Fabric channel data model
+      type: string
+    Links:
+      title: Links
+      description: Links model used for pagination
+      type: object
+      properties:
+        last:
+          type: string
+          description: URI of the last page
+        prev:
+          type: string
+          description: URI of the previous page
+        next:
+          type: string
+          description: URI of the next page
+        first:
+          type: string
+          description: URI of the first page
+  examples:
+    BesuPermissions:
+      value:
+        title: Forbidden
+        status: 403
+        detail: The method 'eth_sendRawTransaction' needs besu permissions
+        type: about:blank
+    NoDeploySC:
+      value:
+        title: Forbidden
+        status: 403
+        detail: Deployment of new smart contracts is not allowed
+        type: about:blank
+    NoAnonymous:
+      value:
+        title: Unauthorized
+        status: 401
+        detail: The method 'eth_sendRawTransaction' is not available for anonymous access
+        type: about:blank
+    MethodDisabled:
+      value:
+        title: Bad Request
+        status: 400
+        detail: The method 'eth_compileSolidity' is currently disabled
+        type: about:blank
+    MethodNoExists:
+      value:
+        title: Bad Request
+        status: 400
+        detail: The method {method} does not exist
+        type: about:blank
+    BadRequest:
+      value:
+        title: Bad Request
+        status: 400
+        detail: Bad request.
+        type: about:blank
+    InvalidToken:
+      value:
+        title: Invalid Token
+        status: 400
+        detail: Token has expired. Max age of a token is 15 min.
+        type: about:blank
+    InternalError:
+      value:
+        title: Internal Server Error
+        status: 500
+        detail: The server encountered an internal error and was unable to complete your request.
+        type: about:blank
+    InvalidRequestJsonRpcError:
+      value:
+        jsonrpc: "2.0"
+        id: 1
+        error:
+          code: -32600
+          message: Validations Errors
+    MethodNotFoundJsonRpcError:
+      value:
+        jsonrpc: "2.0"
+        id: 1
+        error:
+          code: -32601
+          message: Method Not Found
+    InternalJsonRpcError:
+      value:
+        jsonrpc: "2.0"
+        id: 1
+        error:
+          code: -32603
+          message: The server encountered an internal error and was unable to complete your request
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+servers:
+  - url: "http://localhost"
+    description: Local Computer Environment
+  - url: "https://api.preprod.ebsi.eu"
+    description: EBSI Pre-production Environment
+  - url: "https://api.ebsi.eu"
+    description: EBSI Production Environment
