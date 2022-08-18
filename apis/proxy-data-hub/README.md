@@ -51,7 +51,7 @@ And then you can serve the production build with:
 yarn start:prod
 ```
 
-You can now open http://localhost:3000/proxy-data-hub/v1/health. If everything's working correctly, then you should see `"status":"ok"`.
+You can now open http://localhost:3000/proxy-data-hub/v3/health. If everything's working correctly, then you should see `"status":"ok"`.
 
 ### Run with Docker
 
@@ -61,7 +61,7 @@ Make sure you have an instance of cassandra running and configure the connection
 docker-compose up --build
 ```
 
-Check http://localhost:3000/proxy-data-hub/v1/health to see if it's working.
+Check http://localhost:3000/proxy-data-hub/v3/health to see if it's working.
 
 ## Linting
 

@@ -14,7 +14,7 @@ import {
   BadRequestError,
 } from "@cef-ebsi/problem-details-errors";
 import type { FastifyReply } from "fastify";
-import { AxiosError } from "axios";
+import axios from "axios";
 import { logAxiosError } from "../shared/utils";
 import { ApiConfig } from "../config/configuration";
 
@@ -61,8 +61,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
     } else if (err instanceof ProblemDetailsError) {
       problemError = err;
     } else {
-      if ((err as AxiosError).isAxiosError) {
-        logAxiosError(err as AxiosError, this.logger);
+      if (axios.isAxiosError(err)) {
+        logAxiosError(err, this.logger);
       } else {
         this.logger.error(err.message, err.stack);
       }

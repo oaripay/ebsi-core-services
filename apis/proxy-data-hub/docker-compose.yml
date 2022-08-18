@@ -1,7 +1,7 @@
 version: "3.7"
 
 services:
-  proxy-data-hub-api:
+  proxy-data-hub-api-v3:
     build: .
     env_file:
       - .env

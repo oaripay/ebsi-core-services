@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import {
@@ -12,11 +13,10 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import EbsiWallet from "@cef-ebsi/wallet-lib";
-import crypto from "crypto";
 import { base64url } from "multiformats/bases/base64";
-import { Session as SiopSession } from "@cef-ebsi/siop-auth";
-import { Agent } from "@cef-ebsi/oauth2-auth";
-import { JWTPayload } from "did-jwt";
+import type { JWTVerifyResult } from "jose";
+import * as SiopLib from "@cef-ebsi/siop-auth";
+import * as OAuth2Lib from "@cef-ebsi/oauth2-auth";
 import jsonwebtoken from "jsonwebtoken";
 import type { FastifyInstance } from "fastify";
 import axios from "axios";
@@ -28,6 +28,30 @@ import {
   AttributeResponseObject,
 } from "./attributes.interface";
 import { encrypt, multihashEncode } from "../../shared/utils";
+
+jest.mock("@cef-ebsi/siop-auth", () => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const originalModule = jest.requireActual("@cef-ebsi/siop-auth");
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return {
+    __esModule: true,
+    ...originalModule,
+    verifyJwtTar: jest.fn(),
+  };
+});
+
+jest.mock("@cef-ebsi/oauth2-auth", () => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const originalModule = jest.requireActual("@cef-ebsi/oauth2-auth");
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return {
+    __esModule: true,
+    ...originalModule,
+    verifyJwtTar: jest.fn(),
+  };
+});
 
 interface JsonrpcCall {
   jsonrpc: "2.0";
@@ -52,6 +76,7 @@ describe("Attributes Module", () => {
     headers: {
       Authorization: `Bearer ${accessTokenApi}`,
     },
+    timeout: expect.any(Number) as number,
   };
 
   const testUser = {
@@ -125,15 +150,19 @@ describe("Attributes Module", () => {
     });
 
     jest
-      .spyOn(SiopSession.prototype, "verifyAccessToken")
-      .mockImplementation((token: string): Promise<JWTPayload> => {
-        if (token === testUser.token)
-          return Promise.resolve({ sub: testUser.did });
-        throw new Error("verifyAccessToken failed");
+      .spyOn(SiopLib, "verifyJwtTar")
+      .mockImplementation(async (token: string): Promise<JWTVerifyResult> => {
+        if (token === testUser.token) {
+          return Promise.resolve({
+            payload: { sub: testUser.did },
+          } as unknown as JWTVerifyResult);
+        }
+
+        return Promise.reject(new Error("verifyAccessToken failed"));
       });
 
     jest
-      .spyOn(Agent.prototype, "verifyAuthenticationResponse")
+      .spyOn(OAuth2Lib.Agent.prototype, "verifyAkeResponse")
       .mockImplementation(async () => Promise.resolve(accessTokenApi));
   });
 
@@ -177,7 +206,10 @@ describe("Attributes Module", () => {
       expect(mockAxios).toHaveBeenNthCalledWith(
         numberCall,
         expect.stringContaining("/oauth2-sessions"),
-        expect.objectContaining({}) as { clientAssertion: string }
+        expect.objectContaining({}) as { clientAssertion: string },
+        {
+          timeout: expect.any(Number) as number,
+        }
       );
 
       numberCall += 1;

@@ -4,7 +4,7 @@ node {
             checkout scm
         }
         stage('Deploy') {
-            if (env.BRANCH_NAME == 'v2/conformance') {
+            if (env.BRANCH_NAME == 'conformance') {
                 ebsi_conformance_deploy("clone_repo": false)
             } else {
                 ebsi_fast_deploy("clone_repo": false)

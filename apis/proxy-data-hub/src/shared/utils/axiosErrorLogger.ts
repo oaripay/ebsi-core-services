@@ -1,11 +1,8 @@
 import { Logger } from "@nestjs/common";
-import { AxiosError } from "axios";
+import axios from "axios";
 
-export function logAxiosError(
-  error: AxiosError<unknown>,
-  logger: Logger
-): void {
-  if (!error || !(error instanceof Error) || !error.isAxiosError) return;
+export function logAxiosError(error: unknown, logger: Logger): void {
+  if (!error || !axios.isAxiosError(error)) return;
 
   logger.error("Axios error intercepted.", error.stack);
 
@@ -15,7 +12,7 @@ export function logAxiosError(
     logger.error({
       data: error.response.data,
       status: error.response.status,
-      headers: error.response.headers as unknown,
+      headers: error.response.headers,
     });
   } else if (error.request) {
     // The request was made but no response was received

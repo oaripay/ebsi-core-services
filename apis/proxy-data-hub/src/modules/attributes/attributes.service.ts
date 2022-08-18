@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { Injectable, Logger } from "@nestjs/common";
 import {
   BadRequestError,
@@ -6,8 +7,7 @@ import {
   InternalServerError,
 } from "@cef-ebsi/problem-details-errors";
 import { ConfigService } from "@nestjs/config";
-import axios, { AxiosError, AxiosResponse } from "axios";
-import { randomUUID } from "crypto";
+import axios, { AxiosResponse } from "axios";
 import jsonpatch, { Operation } from "fast-json-patch";
 import { decodeJWT } from "did-jwt";
 import { Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
@@ -41,6 +41,8 @@ export class AttributesService {
 
   private storageApiUrl: string;
 
+  private storageApiName: string;
+
   private storageUri: string;
 
   private accessTokenExp: number;
@@ -51,20 +53,25 @@ export class AttributesService {
 
   private authorisationApiUrl: string;
 
-  constructor(private configService: ConfigService<ApiConfig>) {
-    this.secret = this.configService.get<string>("encryptionSecret");
-    this.storageApiUrl = this.configService.get<string>("storageApiUrl");
+  private timeout: number;
+
+  constructor(configService: ConfigService<ApiConfig>) {
+    this.secret = configService.get<string>("encryptionSecret");
+    this.storageApiUrl = configService.get<string>("storageApiUrl");
     this.storageUri = `${this.storageApiUrl}/stores/distributed`;
+    this.storageApiName = configService.get<string>("storageApiName");
     this.urlJsonrpcStorage = `${this.storageApiUrl}/stores/distributed/jsonrpc`;
 
-    this.authorisationApiUrl = this.configService.get<string>(
-      "authorisationApiUrl"
-    );
-    const privKey = this.configService.get<string>("apiPrivateKey");
-    this.agent = new Agent(privKey, {
-      issuer: this.configService.get<string>("apiName"),
-      kid: this.configService.get<string>("apiKid"),
+    this.authorisationApiUrl = configService.get<string>("authorisationApiUrl");
+
+    this.agent = new Agent({
+      privateKey: configService.get<string>("apiPrivateKey"),
+      name: configService.get<string>("apiName"),
+      trustedAppsRegistry: `${configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      )}/apps`,
     });
+    this.timeout = configService.get<number>("requestTimeout");
   }
 
   async checkSession(): Promise<void> {
@@ -79,8 +86,8 @@ export class AttributesService {
   private async getAccessToken() {
     const nonce = randomUUID();
 
-    const requestComponent = await this.agent.createRequestPayload(
-      this.configService.get<string>("storageApiName"),
+    const requestComponent = await this.agent.createRequest(
+      this.storageApiName,
       { nonce }
     );
 
@@ -89,12 +96,14 @@ export class AttributesService {
       const res = await axios.post<
         typeof requestComponent,
         AxiosResponse<AkeResponse>
-      >(`${this.authorisationApiUrl}/oauth2-sessions`, requestComponent);
+      >(`${this.authorisationApiUrl}/oauth2-sessions`, requestComponent, {
+        timeout: this.timeout,
+      });
 
-      const accessToken = await this.agent.verifyAuthenticationResponse(
-        res.data,
-        nonce
-      );
+      const accessToken = await this.agent.verifyAkeResponse(res.data, {
+        nonce,
+        timeout: this.timeout,
+      });
 
       const { payload } = decodeJWT(accessToken);
       this.accessTokenExp = payload.exp;
@@ -102,8 +111,8 @@ export class AttributesService {
       return accessToken;
     } catch (err) {
       if (err instanceof Error) {
-        if ((err as AxiosError).isAxiosError) {
-          logAxiosError(err as AxiosError, this.logger);
+        if (axios.isAxiosError(err)) {
+          logAxiosError(err, this.logger);
         } else {
           this.logger.error(err.message, err.stack);
         }
@@ -130,6 +139,7 @@ export class AttributesService {
       headers: {
         Authorization: `Bearer ${this.accessToken}`,
       },
+      timeout: this.timeout,
     };
 
     const response: AxiosResponseJsonRpc = await axios.post(

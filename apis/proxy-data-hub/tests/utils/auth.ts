@@ -1,62 +1,110 @@
 import { URLSearchParams } from "node:url";
-import crypto from "node:crypto";
-import request from "supertest";
-import { DidAuthResponseMode, Agent, AkeResponse } from "@cef-ebsi/siop-auth";
-import EbsiWallet from "@cef-ebsi/wallet-lib";
-import { loadConfig } from "../../src/config/configuration";
+import { randomUUID } from "node:crypto";
+import axios, { AxiosResponse } from "axios";
+import {
+  Agent as SiopAgent,
+  AkeResponse as SiopAkeResponse,
+  encode,
+  verifyJwtTar,
+} from "@cef-ebsi/siop-auth";
+import { exportJWK, generateKeyPair, importJWK, JWK } from "jose";
 
-const prefixWith0x = (key: string): string =>
-  key.startsWith("0x") ? key : `0x${key}`;
+export const requestSiopJwt = async ({
+  clientKid,
+  clientPrivateKey,
+  authorisationApiUrl,
+  trustedAppsRegistryApiUrl,
+  syntaxType = "jwk_thumbprint_subject",
+}: {
+  clientKid: string;
+  clientPrivateKey: string | JWK;
+  authorisationApiUrl: string;
+  trustedAppsRegistryApiUrl: string;
+  syntaxType?: "jwk_thumbprint_subject" | "did_subject";
+}): Promise<string> => {
+  const alg = "ES256K";
+  const encryptionKeyPair = await generateKeyPair(alg);
+  const publicEncryptionKeyJwk = await exportJWK(encryptionKeyPair.publicKey);
+  const privateEncryptionKeyJwk = await exportJWK(encryptionKeyPair.privateKey);
 
-const { authorisationApiUrl, didRegistryApiUrl } = loadConfig();
-
-const createUser = () => ({
-  privateKey: crypto.randomBytes(32).toString("hex"),
-  did: EbsiWallet.createDid(),
-});
-
-export async function siopAuthentication(
-  user: {
-    privateKey: string;
-    did: string;
-  } = createUser()
-): Promise<string> {
-  const agent = new Agent({
-    privateKey: prefixWith0x(user.privateKey),
-    didRegistry: `${didRegistryApiUrl}/identifiers`,
+  const siopAgent = new SiopAgent({
+    privateKey: await importJWK(
+      typeof clientPrivateKey === "string"
+        ? encode.privateKey.fromHextoJWK(clientPrivateKey)
+        : clientPrivateKey,
+      alg
+    ),
+    kid: clientKid,
+    alg,
+    siopV2: true,
   });
 
-  let response = await request(authorisationApiUrl)
-    .post("/authentication-requests")
-    .send({
-      scope: "openid did_authn",
-    });
+  // 1. First, the client calls /authentication-requests
+  const authenticationRequestsResponse = await axios.post<
+    { scope: string },
+    AxiosResponse<string>
+  >(`${authorisationApiUrl}/authentication-requests`, {
+    scope: "openid did_authn",
+  });
 
-  const uriDecoded = new URLSearchParams(
-    (response.body as { uri: string }).uri.replace("openid://?", "")
+  // 2. The client verifies the response
+  const uri = authenticationRequestsResponse.data;
+
+  const urlParams = new URLSearchParams(uri.replace("openid://?", ""));
+
+  const { payload } = await verifyJwtTar(urlParams.get("request") || "", {
+    trustedAppsRegistry: `${trustedAppsRegistryApiUrl}/apps`,
+  });
+
+  // 3. The client creates an authentication response and gets an ID Token
+  const nonce = randomUUID();
+
+  const authenticationResponse = await siopAgent.createResponse(
+    {
+      nonce,
+      redirectUri: payload.client_id as string,
+      claims: {
+        encryption_key: publicEncryptionKeyJwk,
+      },
+    },
+    {
+      responseMode: "form_post",
+      syntaxType,
+    }
   );
 
-  await agent.verifyAuthenticationRequest(uriDecoded.get("request"));
+  const { idToken } = authenticationResponse;
 
-  const nonce = crypto.randomBytes(10).toString("base64");
+  if (!idToken) {
+    throw new Error("Missing idToken");
+  }
 
-  const didAuthJwt = await agent.createAuthenticationResponse({
-    did: user.did,
-    nonce,
-    redirectUri: uriDecoded.get("client_id"),
-    responseMode: DidAuthResponseMode.FORM_POST,
-  });
+  // 4. The client call /siop-sessions with the ID Token
+  const siopSessionsResponse = await axios.post<
+    string,
+    AxiosResponse<SiopAkeResponse>
+  >(
+    `${authorisationApiUrl}/siop-sessions`,
+    new URLSearchParams({ id_token: idToken }).toString(),
+    {
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+    }
+  );
 
-  response = await request(authorisationApiUrl)
-    .post("/siop-sessions")
-    .send(didAuthJwt.bodyEncoded);
-
-  const accessToken = await agent.verifyAuthenticationResponse(
-    response.body as AkeResponse,
-    nonce
+  // 5. Finally, the client verifies the SIOP authentication response and gets an access token
+  const accessToken = await SiopAgent.verifyAkeResponse(
+    siopSessionsResponse.data,
+    {
+      nonce,
+      privateEncryptionKeyJwk,
+      trustedAppsRegistry: `${trustedAppsRegistryApiUrl}/apps`,
+      alg,
+    }
   );
 
   return accessToken;
-}
+};
 
-export default siopAuthentication;
+export default requestSiopJwt;

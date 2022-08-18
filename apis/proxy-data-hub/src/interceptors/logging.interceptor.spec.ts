@@ -1,6 +1,6 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import { INestApplication, ValidationPipe } from "@nestjs/common";
+import { INestApplication, ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { of } from "rxjs";
 import { HttpService } from "@nestjs/axios";
@@ -9,13 +9,25 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
-import { Logger } from "@nestjs/common/services/logger.service";
-import { Session as SiopSession } from "@cef-ebsi/siop-auth";
+import type { JWTVerifyResult } from "jose";
 import { AppModule } from "../app.module";
 import { AllExceptionsFilter } from "../filters/http-exception.filter";
 import { ApiConfig } from "../config/configuration";
 
 jest.setTimeout(120000);
+
+jest.mock("@cef-ebsi/siop-auth", () => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const originalModule = jest.requireActual("@cef-ebsi/siop-auth");
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return {
+    __esModule: true,
+    ...originalModule,
+    verifyJwtTar: async () =>
+      Promise.resolve({ payload: {} } as JWTVerifyResult),
+  };
+});
 
 describe("Logging interceptor", () => {
   let app: INestApplication;
@@ -70,7 +82,6 @@ describe("Logging interceptor", () => {
       expect(mockedLogger.log).toHaveBeenNthCalledWith(
         calls - 1,
         {
-          body: null,
           headers: {
             "accept-encoding": "gzip, deflate",
             connection: "close",
@@ -112,10 +123,6 @@ describe("Logging interceptor", () => {
   describe("POST /attributes with bad payload", () => {
     it("should log the request and response", async () => {
       expect.assertions(2);
-
-      jest
-        .spyOn(SiopSession.prototype, "verifyAccessToken")
-        .mockImplementation(() => Promise.resolve({ sub: "did:ebsi:any" }));
 
       await request(app.getHttpServer())
         .post("/attributes")
