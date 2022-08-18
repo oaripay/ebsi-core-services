@@ -1,0 +1,7 @@
+coverage
+node_modules
+build
+cache
+artifacts
+contracts/bootstrap-ethereum-sc
+contracts/trusted-policies-registry-ethereum-sc
