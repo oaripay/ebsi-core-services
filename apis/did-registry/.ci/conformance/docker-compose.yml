@@ -1,0 +1,6 @@
+version: "3.7"
+
+services:
+  did-registry-api-v3:
+    build: ../..
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/did-registry-api-v3:conformance_ebsiint-4529-request-timeout_v3.0.0

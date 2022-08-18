@@ -1,0 +1,33 @@
+/* eslint-disable import/no-extraneous-dependencies */
+import "@typechain/hardhat";
+import "@nomiclabs/hardhat-ethers";
+import { HardhatUserConfig } from "hardhat/config";
+
+const config: HardhatUserConfig = {
+  defaultNetwork: "hardhat",
+  networks: {
+    hardhat: {
+      hardfork: "berlin",
+    },
+  },
+  typechain: {
+    outDir: "src/contracts/did-registry",
+    target: "ethers-v5",
+  },
+  solidity: {
+    version: "0.8.9",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 10,
+      },
+    },
+  },
+  paths: {
+    sources: "./submodules/did-registry-ethereum-sc/contracts",
+    cache: "./cache",
+    artifacts: "./artifacts",
+  },
+};
+
+export default config;

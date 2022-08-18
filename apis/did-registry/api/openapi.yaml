@@ -1,0 +1,2154 @@
+openapi: 3.0.3
+info:
+  title: DID Registry API
+  description: |
+    DID Registry is a generic core service of the EBSI platform providing the capability of
+    resolving EBSI Decentralised Identifiers (DIDs).
+
+    It enables consumers to interact with the DID Registry SC to:
+    - Insert a DID/DID Document
+    - Update a DID Document
+    - Revoke a DID/DID Controlling keys
+    - Resolve a DID (and obtain a DID Document)
+    - Resolve a version of a DID Document at a certain point in time
+
+    For more information see:
+    * [DID Registry API Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/DID+Registry+API)
+    * [DID Registry Smart Contract Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/DID+Registry+Smart+Contract)
+    * [Code Repository](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/did-registry-api/browse)
+  version: 3.0.0
+  termsOfService: /docs/terms
+  contact:
+    name: EBSI Support - Service Desk
+    url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11
+  license:
+    name: EUPL-1.2
+    url: https://joinup.ec.europa.eu/page/eupl-text-11-12
+paths:
+  /did-registry/v3/identifiers:
+    get:
+      tags:
+        - DID Documents
+      summary: List identifiers
+      description: Returns a list of identifiers.
+      operationId: get-did-registry-v3-identifiers
+      parameters:
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+          schema:
+            type: integer
+        - in: query
+          name: controller
+          description: Filter by controller ID (Ethereum address).
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: Absolute path to the collection (consult)
+                  items:
+                    type: array
+                    description: List of identifiers
+                    items:
+                      type: object
+                      properties:
+                        did:
+                          type: string
+                          description: A unique record id = DID User
+                        href:
+                          type: string
+                          description: Link to the resource
+                  total:
+                    type: integer
+                    description: Total number of items across all pages.
+                  pageSize:
+                    type: integer
+                    description: |
+                      Maximum number of items per page. For the last page, its value should be
+                      independent of the number of actually returned items.
+                  links:
+                    $ref: "#/components/schemas/Links"
+              examples:
+                "[test] Success":
+                  value:
+                    self: https://api.test.intebsi.xyz/did-registry/v3/identifiers?page[after]=3&page[size]=10
+                    items:
+                      - did: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                        href: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                      - did: did:ebsi:zZssKY2QbbKEqVRgMP1iCLr
+                        href: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:zZssKY2QbbKEqVRgMP1iCLr
+                      - did: did:ebsi:zb3EMmQSCWZHvFSrBTuoXsv
+                        href: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:zb3EMmQSCWZHvFSrBTuoXsv
+                      - did: did:ebsi:zwkvdg7fEoiWnLm8zXWxcHf
+                        href: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:zwkvdg7fEoiWnLm8zXWxcHf
+                      - did: did:ebsi:ziu9WCB3mDWMLVpF8GfEMG8
+                        href: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:ziu9WCB3mDWMLVpF8GfEMG8
+                      - did: did:ebsi:znrtw6tCorGWkUoAHiSPuz6
+                        href: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:znrtw6tCorGWkUoAHiSPuz6
+                      - did: did:ebsi:zqEozSTPA46JgCeP8d9XFGZ
+                        href: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:zqEozSTPA46JgCeP8d9XFGZ
+                      - did: did:ebsi:z25a4Dcp8K7SULVfUCw4fFb7
+                        href: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:z25a4Dcp8K7SULVfUCw4fFb7
+                      - did: did:ebsi:z239Np1bLCJiJLdkaSqq9XxV
+                        href: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:z239Np1bLCJiJLdkaSqq9XxV
+                      - did: did:ebsi:z23ETkVyJGeLWysGD11s2Jof
+                        href: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:z23ETkVyJGeLWysGD11s2Jof
+                    total: 124
+                    pageSize: 10
+                    links:
+                      first: https://api.test.intebsi.xyz/did-registry/v3/identifiers?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/did-registry/v3/identifiers?page[after]=2&page[size]=10
+                      next: https://api.test.intebsi.xyz/did-registry/v3/identifiers?page[after]=4&page[size]=10
+                      last: https://api.test.intebsi.xyz/did-registry/v3/identifiers?page[after]=13&page[size]=10
+                "[test] Filter by controller":
+                  value:
+                    self: https://api.test.intebsi.xyz/did-registry/v3/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                    items:
+                      - did: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                        href: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                    total: 1
+                    pageSize: 10
+                    links:
+                      first: https://api.test.intebsi.xyz/did-registry/v3/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                      prev: https://api.test.intebsi.xyz/did-registry/v3/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                      next: https://api.test.intebsi.xyz/did-registry/v3/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                      last: https://api.test.intebsi.xyz/did-registry/v3/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/did-registry/v3/identifiers?page[after]=3&page[size]=10
+                    items:
+                      - did: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                      - did: did:ebsi:zZssKY2QbbKEqVRgMP1iCLr
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:zZssKY2QbbKEqVRgMP1iCLr
+                      - did: did:ebsi:zb3EMmQSCWZHvFSrBTuoXsv
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:zb3EMmQSCWZHvFSrBTuoXsv
+                      - did: did:ebsi:zwkvdg7fEoiWnLm8zXWxcHf
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:zwkvdg7fEoiWnLm8zXWxcHf
+                      - did: did:ebsi:ziu9WCB3mDWMLVpF8GfEMG8
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:ziu9WCB3mDWMLVpF8GfEMG8
+                      - did: did:ebsi:znrtw6tCorGWkUoAHiSPuz6
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:znrtw6tCorGWkUoAHiSPuz6
+                      - did: did:ebsi:zqEozSTPA46JgCeP8d9XFGZ
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:zqEozSTPA46JgCeP8d9XFGZ
+                      - did: did:ebsi:z25a4Dcp8K7SULVfUCw4fFb7
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25a4Dcp8K7SULVfUCw4fFb7
+                      - did: did:ebsi:z239Np1bLCJiJLdkaSqq9XxV
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z239Np1bLCJiJLdkaSqq9XxV
+                      - did: did:ebsi:z23ETkVyJGeLWysGD11s2Jof
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z23ETkVyJGeLWysGD11s2Jof
+                    total: 124
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/did-registry/v3/identifiers?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/did-registry/v3/identifiers?page[after]=2&page[size]=10
+                      next: https://api.preprod.ebsi.eu/did-registry/v3/identifiers?page[after]=4&page[size]=10
+                      last: https://api.preprod.ebsi.eu/did-registry/v3/identifiers?page[after]=13&page[size]=10
+                "[pilot] Filter by controller":
+                  value:
+                    self: https://api.preprod.ebsi.eu/did-registry/v3/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                    items:
+                      - did: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                    total: 1
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/did-registry/v3/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                      prev: https://api.preprod.ebsi.eu/did-registry/v3/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                      next: https://api.preprod.ebsi.eu/did-registry/v3/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                      last: https://api.preprod.ebsi.eu/did-registry/v3/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+        "400":
+          description: Bad Request Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /did-registry/v3/identifiers/{did}:
+    get:
+      tags:
+        - DID Documents
+      summary: Get a DID Document
+      description: Gets the DID Document corresponding to the DID.
+      operationId: get-did-registry-v3-identifier
+      parameters:
+        - in: path
+          name: did
+          description: |
+            A DID to be resolved.
+            [conformance description] The API supports the following EBSI conformance tests:
+            - A user wallet checks if the DID is correctly included in the DID Registry (CT ONBOARD_063)
+          required: true
+          schema:
+            type: string
+          examples:
+            "[test] DID":
+              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+            "[pilot] DID":
+              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+      responses:
+        "200":
+          description: Success. A user wallet gets DID resolution (CT ONBOARD_063)
+          content:
+            application/did+ld+json:
+              schema:
+                $ref: "#/components/schemas/DIDDocument"
+              examples:
+                "[test] Success":
+                  value:
+                    "@context":
+                      - https://www.w3.org/ns/did/v1
+                    id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                    verificationMethod:
+                      - controller: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                        id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH#vm-3
+                        type: EcdsaSecp256k1RecoveryMethod2020
+                        publicKeyBase58: H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV
+                "[pilot] Success":
+                  value:
+                    "@context": https://w3id.org/did/v1
+                    id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                    verificationMethod:
+                      - id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH#keys-1
+                        type: Secp256k1VerificationKey2018
+                        controller: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                        publicKeyHex: 04f9139fbd3b9780863b17e8390934a1017fc8d0f18b84f02acb04f24c9cae261e45745c6507881509b9e6d837329153ea75fafb2c1a5d504702d04f1e22a80ecc
+                    authentication:
+                      - did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                    assertionMethod:
+                      - did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH#keys-1
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Invalid {did} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {did} parameter is not valid
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /did-registry/v3/identifiers/{did}/versions:
+    get:
+      tags:
+        - DID Documents
+      summary: List DID Document versions
+      description: Returns a list of DID Document versions.
+      operationId: get-did-registry-v3-identifiers-versions
+      parameters:
+        - in: query
+          name: page[after]
+          description: Cursor that points to the end of the page of data that has been returned.
+          schema:
+            type: string
+        - in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+          schema:
+            type: integer
+        - in: path
+          name: did
+          description: A DID to be resolved.
+          required: true
+          schema:
+            type: string
+          examples:
+            "[test] DID":
+              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+            "[pilot] DID":
+              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: Absolute path to the collection (consult)
+                  items:
+                    type: array
+                    description: List of DID Document versions
+                    items:
+                      type: object
+                      properties:
+                        versionId:
+                          type: string
+                          description: A unique version id.
+                        href:
+                          type: string
+                          description: Link to the resource
+                  total:
+                    type: integer
+                    description: Total number of items across all pages.
+                  pageSize:
+                    type: integer
+                    description: |
+                      Maximum number of items per page. For the last page, its value should be
+                      independent of the number of actually returned items.
+                  links:
+                    $ref: "#/components/schemas/Links"
+              examples:
+                "[test] Success":
+                  value:
+                    self: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
+                    items:
+                      - versionId: "0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a"
+                        href: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a
+                    total: 1
+                    pageSize: 10
+                    links:
+                      first: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
+                      last: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
+                    items:
+                      - versionId: "0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c"
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c
+                    total: 1
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
+        "400":
+          description: Bad Request Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+                Invalid {did} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {did} parameter is not valid
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /did-registry/v3/identifiers/{did}/versions/{versionId}:
+    get:
+      tags:
+        - DID Documents
+      summary: Get a DID Document by version ID
+      description: Gets a DID Document based on its version ID
+      operationId: get-did-registry-v3-identifier-version
+      parameters:
+        - in: path
+          name: did
+          description: A DID to be resolved.
+          required: true
+          schema:
+            type: string
+          examples:
+            "[test] DID":
+              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+            "[pilot] DID":
+              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+        - in: path
+          name: versionId
+          description: A unique version ID.
+          required: true
+          schema:
+            type: string
+          examples:
+            "[test] Version ID":
+              value: "0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a"
+            "[pilot] Version ID":
+              value: "0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/did+ld+json:
+              schema:
+                $ref: "#/components/schemas/DIDDocument"
+              examples:
+                "[test] Success":
+                  value:
+                    "@context":
+                      - https://www.w3.org/ns/did/v1
+                    id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                    verificationMethod:
+                      - controller: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                        id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH#vm-3
+                        type: EcdsaSecp256k1RecoveryMethod2020
+                        publicKeyBase58: H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV
+                "[pilot] Success":
+                  value:
+                    "@context": https://w3id.org/did/v1
+                    id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                    verificationMethod:
+                      - id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH#keys-1
+                        type: Secp256k1VerificationKey2018
+                        controller: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                        publicKeyHex: 04f9139fbd3b9780863b17e8390934a1017fc8d0f18b84f02acb04f24c9cae261e45745c6507881509b9e6d837329153ea75fafb2c1a5d504702d04f1e22a80ecc
+                    authentication:
+                      - did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                    assertionMethod:
+                      - did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH#keys-1
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Invalid {did} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {did} parameter is not valid
+                Invalid {versionId} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {versionId} parameter is not valid
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
+                Version ID Not Found:
+                  $ref: "#/components/examples/NotFound"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /did-registry/v3/identifiers/{did}/versions/{versionId}/metadata:
+    get:
+      tags:
+        - DID Documents
+      summary: List DID Document metadata
+      description: Returns a list of DID Document metadata.
+      operationId: get-did-registry-v3-identifiers-versions-metadata
+      parameters:
+        - in: query
+          name: page[after]
+          description: Cursor that points to the end of the page of data that has been returned.
+          schema:
+            type: string
+        - in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+          schema:
+            type: integer
+        - in: path
+          name: did
+          description: A DID to be resolved.
+          required: true
+          schema:
+            type: string
+          examples:
+            "[test] DID":
+              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+            "[pilot] DID":
+              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+        - in: path
+          name: versionId
+          description: A unique version ID.
+          required: true
+          schema:
+            type: string
+          examples:
+            "[test] Version ID":
+              value: "0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a"
+            "[pilot] Version ID":
+              value: "0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: Absolute path to the collection (consult)
+                  items:
+                    type: array
+                    description: List of DID Document versions
+                    items:
+                      type: object
+                      properties:
+                        metadataId:
+                          type: string
+                          description: A unique metadata id.
+                        href:
+                          type: string
+                          description: Link to the resource.
+                  total:
+                    type: integer
+                    description: Total number of items across all pages.
+                  pageSize:
+                    type: integer
+                    description: |
+                      Maximum number of items per page. For the last page, its value should be
+                      independent of the number of actually returned items.
+                  links:
+                    $ref: "#/components/schemas/Links"
+              examples:
+                "[test] Success":
+                  value:
+                    self: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
+                    items:
+                      - metadataId: "0xb5ed423b79dd39df26194f708414e394eb924638a0b8e8e0a09c760dc7cdc607"
+                        href: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata/0xb5ed423b79dd39df26194f708414e394eb924638a0b8e8e0a09c760dc7cdc607
+                    total: 1
+                    pageSize: 10
+                    links:
+                      first: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
+                      last: https://api.test.intebsi.xyz/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
+                    items:
+                      - metadataId: "0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c"
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c
+                    total: 1
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
+        "400":
+          description: Bad Request Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+                Invalid {did} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {did} parameter is not valid
+                Invalid {versionId} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {versionId} parameter is not valid
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
+                Version ID Not Found:
+                  $ref: "#/components/examples/NotFound"
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /did-registry/v3/identifiers/{did}/versions/{versionId}/metadata/{metadataId}:
+    get:
+      tags:
+        - DID Documents
+      summary: Get DID Document metadata
+      description: Returns the DID Document metadata based on their ID.
+      operationId: get-did-registry-v3-identifier-version-metadata
+      parameters:
+        - in: path
+          name: did
+          description: A DID to be resolved.
+          required: true
+          schema:
+            type: string
+          examples:
+            "[test] DID":
+              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+            "[pilot] DID":
+              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+        - in: path
+          name: versionId
+          description: A unique version ID.
+          required: true
+          schema:
+            type: string
+          examples:
+            "[test] Version ID":
+              value: "0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a"
+            "[pilot] Version ID":
+              value: "0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c"
+        - in: path
+          name: metadataId
+          description: A unique metadata ID.
+          required: true
+          schema:
+            type: string
+          examples:
+            "[test] Metadata ID":
+              value: "0xb5ed423b79dd39df26194f708414e394eb924638a0b8e8e0a09c760dc7cdc607"
+            "[pilot] Metadata ID":
+              value: "0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DIDDocumentMetadata"
+              examples:
+                Success:
+                  value:
+                    key: value
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Invalid {did} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {did} parameter is not valid
+                Invalid {versionId} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {versionId} parameter is not valid
+                Invalid {metadataId} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {metadataId} parameter is not valid
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
+                Version ID Not Found:
+                  $ref: "#/components/examples/NotFound"
+                Metadata ID Not Found:
+                  $ref: "#/components/examples/NotFound"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /did-registry/v3/did-timestamps:
+    get:
+      tags:
+        - DID Timestamps
+      summary: List DID Timestamps
+      description: Returns a list of DID Timestamps.
+      operationId: get-did-registry-v3-did-timestamps
+      parameters:
+        - in: query
+          name: page[after]
+          description: Cursor that points to the end of the page of data that has been returned.
+          schema:
+            type: string
+        - in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+          schema:
+            type: integer
+        - in: query
+          name: identifier
+          description: DID, e.g. "did:ebsi:zZssKY2QbbKEqVRgMP1iCLr"
+          schema:
+            type: string
+        - in: query
+          name: version-id
+          description: Version ID (number)
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: URI to DID Timestamp
+                  items:
+                    type: array
+                    description: List of DID Timestamps
+                    items:
+                      type: object
+                      properties:
+                        timestampId:
+                          type: string
+                          description: Multi-base64url encoded sha256(hash)
+                        href:
+                          type: string
+                          description: Link to the resource
+                  total:
+                    type: integer
+                    description: Total number of items in a collection
+                  pageSize:
+                    type: integer
+                    description: Number of items to be returned per page
+                  links:
+                    $ref: "#/components/schemas/Links"
+              examples:
+                "[test] Success":
+                  value:
+                    self: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps?page[after]=3&page[size]=10
+                    items:
+                      - timestampId: uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
+                        href: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps/uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
+                      - timestampId: uzMRQ0TI4Vxo2gHIrcVLKLYOnBQ4t1ZkZYyT2QVyNgKo
+                        href: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps/uzMRQ0TI4Vxo2gHIrcVLKLYOnBQ4t1ZkZYyT2QVyNgKo
+                      - timestampId: uLy3HmncmAorLT-iay2y_mbzYLHa-ww53HM6VSQlYaHE
+                        href: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps/uLy3HmncmAorLT-iay2y_mbzYLHa-ww53HM6VSQlYaHE
+                      - timestampId: urqQNspg0BqR8XCqmXt2sRZnvuhyeaNM6O-lA7OznRN8
+                        href: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps/urqQNspg0BqR8XCqmXt2sRZnvuhyeaNM6O-lA7OznRN8
+                      - timestampId: ugcOHT5tMm04KBRefXxewebFzZJcuer2k8faZhdOUymc
+                        href: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps/ugcOHT5tMm04KBRefXxewebFzZJcuer2k8faZhdOUymc
+                      - timestampId: u5BbCzBKnFO-FjzmFwbUUhdktTYOMqLlR7mV5C2Y9Exo
+                        href: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps/u5BbCzBKnFO-FjzmFwbUUhdktTYOMqLlR7mV5C2Y9Exo
+                      - timestampId: umoafX3iynkFfL1PygxbEDnx6IOGVwya5flZ_EVs5Ark
+                        href: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps/umoafX3iynkFfL1PygxbEDnx6IOGVwya5flZ_EVs5Ark
+                      - timestampId: u3qxc1zktQQ6yRtz3Se127ORLivKYjlgDw23PCDNVUkI
+                        href: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps/u3qxc1zktQQ6yRtz3Se127ORLivKYjlgDw23PCDNVUkI
+                      - timestampId: urfWWoYSy9vHeq-IMQiJAr79Yx3dJ-9wvReEcvycbsGs
+                        href: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps/urfWWoYSy9vHeq-IMQiJAr79Yx3dJ-9wvReEcvycbsGs
+                      - timestampId: udgAv5lWYXKCBLp3T26uMKJpXdX0vg-FxNnVuoCQBZeM
+                        href: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps/udgAv5lWYXKCBLp3T26uMKJpXdX0vg-FxNnVuoCQBZeM
+                    total: 124
+                    pageSize: 10
+                    links:
+                      first: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps?page[after]=2&page[size]=10
+                      next: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps?page[after]=4&page[size]=10
+                      last: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps?page[after]=13&page[size]=10
+                "[test] Filter by identifier and version ID":
+                  value:
+                    self: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps?identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
+                    items:
+                      - timestampId: uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
+                        href: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps/uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
+                    total: 1
+                    pageSize: 10
+                    links:
+                      first: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
+                      prev: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
+                      next: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
+                      last: https://api.test.intebsi.xyz/did-registry/v3/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps?page[after]=3&page[size]=10
+                    items:
+                      - timestampId: uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps/uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
+                      - timestampId: uzMRQ0TI4Vxo2gHIrcVLKLYOnBQ4t1ZkZYyT2QVyNgKo
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps/uzMRQ0TI4Vxo2gHIrcVLKLYOnBQ4t1ZkZYyT2QVyNgKo
+                      - timestampId: uLy3HmncmAorLT-iay2y_mbzYLHa-ww53HM6VSQlYaHE
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps/uLy3HmncmAorLT-iay2y_mbzYLHa-ww53HM6VSQlYaHE
+                      - timestampId: urqQNspg0BqR8XCqmXt2sRZnvuhyeaNM6O-lA7OznRN8
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps/urqQNspg0BqR8XCqmXt2sRZnvuhyeaNM6O-lA7OznRN8
+                      - timestampId: ugcOHT5tMm04KBRefXxewebFzZJcuer2k8faZhdOUymc
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps/ugcOHT5tMm04KBRefXxewebFzZJcuer2k8faZhdOUymc
+                      - timestampId: u5BbCzBKnFO-FjzmFwbUUhdktTYOMqLlR7mV5C2Y9Exo
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps/u5BbCzBKnFO-FjzmFwbUUhdktTYOMqLlR7mV5C2Y9Exo
+                      - timestampId: umoafX3iynkFfL1PygxbEDnx6IOGVwya5flZ_EVs5Ark
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps/umoafX3iynkFfL1PygxbEDnx6IOGVwya5flZ_EVs5Ark
+                      - timestampId: u3qxc1zktQQ6yRtz3Se127ORLivKYjlgDw23PCDNVUkI
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps/u3qxc1zktQQ6yRtz3Se127ORLivKYjlgDw23PCDNVUkI
+                      - timestampId: urfWWoYSy9vHeq-IMQiJAr79Yx3dJ-9wvReEcvycbsGs
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps/urfWWoYSy9vHeq-IMQiJAr79Yx3dJ-9wvReEcvycbsGs
+                      - timestampId: udgAv5lWYXKCBLp3T26uMKJpXdX0vg-FxNnVuoCQBZeM
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps/udgAv5lWYXKCBLp3T26uMKJpXdX0vg-FxNnVuoCQBZeM
+                    total: 124
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps?page[after]=2&page[size]=10
+                      next: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps?page[after]=4&page[size]=10
+                      last: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps?page[after]=13&page[size]=10
+                "[pilot] Filter by identifier and version ID":
+                  value:
+                    self: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps?identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
+                    items:
+                      - timestampId: uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps/uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
+                    total: 1
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
+                      prev: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
+                      next: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
+                      last: https://api.preprod.ebsi.eu/did-registry/v3/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
+        "400":
+          description: Bad Request Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /did-registry/v3/did-timestamps/{timestampId}:
+    get:
+      tags:
+        - DID Timestamps
+      summary: Get a DID Timestamp
+      description: Gets a DID Timestamp based on its ID.
+      operationId: get-did-registry-v3-did-timestamp
+      parameters:
+        - in: path
+          name: timestampId
+          schema:
+            type: string
+          examples:
+            "[test] Timestamp ID":
+              value: uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
+            # TODO: Once the API is updated in preprod, update this example
+            "[pilot] Timestamp ID":
+              value: uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
+          required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DIDTimestamp"
+              examples:
+                Success:
+                  value:
+                    hash: mEiD/Gq2wzGn9aN0XOJT2SHJ7ZjrLMgcwEEm7dhns8Yd2Lg
+                    timestampedBy: "0x9139869907de5bA6Cd38AB08e84c72188bce25c0"
+                    blockNumber: 1577582
+                    data: "0x7b2264617461223a2274657374227d"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Invalid {name} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {name} parameter is not valid
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /did-registry/v3/hash-algorithms:
+    get:
+      tags:
+        - Hash Algorithms
+      operationId: get-did-registry-v3-hash-algorithms
+      summary: List hash algorithms
+      description: Returns a list of available hash algorithms.
+      parameters:
+        - in: query
+          name: page[after]
+          description: Cursor that points to the end of the page of data that has been returned.
+          schema:
+            type: string
+        - in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: URI to hash algorithms
+                  items:
+                    type: array
+                    description: List of hash algorithms
+                    items:
+                      type: object
+                      properties:
+                        hashAlgorithmId:
+                          type: number
+                          description: ID of the hash algorithm
+                        href:
+                          type: string
+                          description: Link to the resource
+                  total:
+                    type: integer
+                    description: Total number of items in a collection
+                  pageSize:
+                    type: integer
+                    description: Number of items to be returned per page
+                  links:
+                    $ref: "#/components/schemas/Links"
+              examples:
+                "[test] Success":
+                  value:
+                    self: https://api.test.intebsi.xyz/did-registry/v3/hash-algorithms?page[after]=1&page[size]=10
+                    items:
+                      - hashAlgorithmId: 0
+                        href: https://api.test.intebsi.xyz/did-registry/v3/hash-algorithms/0
+                      - hashAlgorithmId: 1
+                        href: https://api.test.intebsi.xyz/did-registry/v3/hash-algorithms/1
+                      - hashAlgorithmId: 2
+                        href: https://api.test.intebsi.xyz/did-registry/v3/hash-algorithms/2
+                      - hashAlgorithmId: 3
+                        href: https://api.test.intebsi.xyz/did-registry/v3/hash-algorithms/3
+                      - hashAlgorithmId: 4
+                        href: https://api.test.intebsi.xyz/did-registry/v3/hash-algorithms/4
+                      - hashAlgorithmId: 5
+                        href: https://api.test.intebsi.xyz/did-registry/v3/hash-algorithms/5
+                      - hashAlgorithmId: 6
+                        href: https://api.test.intebsi.xyz/did-registry/v3/hash-algorithms/6
+                      - hashAlgorithmId: 7
+                        href: https://api.test.intebsi.xyz/did-registry/v3/hash-algorithms/7
+                      - hashAlgorithmId: 8
+                        href: https://api.test.intebsi.xyz/did-registry/v3/hash-algorithms/8
+                      - hashAlgorithmId: 9
+                        href: https://api.test.intebsi.xyz/did-registry/v3/hash-algorithms/9
+                    total: 124
+                    pageSize: 10
+                    links:
+                      first: https://api.test.intebsi.xyz/did-registry/v3/hash-algorithms?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/did-registry/v3/hash-algorithms?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/did-registry/v3/hash-algorithms?page[after]=2&page[size]=10
+                      last: https://api.test.intebsi.xyz/did-registry/v3/hash-algorithms?page[after]=13&page[size]=10
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/did-registry/v3/hash-algorithms?page[after]=1&page[size]=10
+                    items:
+                      - hashAlgorithmId: 0
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/hash-algorithms/0
+                      - hashAlgorithmId: 1
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/hash-algorithms/1
+                      - hashAlgorithmId: 2
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/hash-algorithms/2
+                      - hashAlgorithmId: 3
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/hash-algorithms/3
+                      - hashAlgorithmId: 4
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/hash-algorithms/4
+                      - hashAlgorithmId: 5
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/hash-algorithms/5
+                      - hashAlgorithmId: 6
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/hash-algorithms/6
+                      - hashAlgorithmId: 7
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/hash-algorithms/7
+                      - hashAlgorithmId: 8
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/hash-algorithms/8
+                      - hashAlgorithmId: 9
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/hash-algorithms/9
+                    total: 124
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/did-registry/v3/hash-algorithms?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/did-registry/v3/hash-algorithms?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/did-registry/v3/hash-algorithms?page[after]=2&page[size]=10
+                      last: https://api.preprod.ebsi.eu/did-registry/v3/hash-algorithms?page[after]=13&page[size]=10
+        "400":
+          description: Bad Request Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /did-registry/v3/hash-algorithms/{hashAlgorithmId}:
+    get:
+      tags:
+        - Hash Algorithms
+      operationId: get-did-registry-v3-hash-algorithms-hash-algorithm-id
+      summary: Get a hash algorithm
+      description: Returns a hash algorithm based on its ID.
+      parameters:
+        - in: path
+          name: hashAlgorithmId
+          schema:
+            type: string
+          example: "1"
+          required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HashAlgorithm"
+              examples:
+                Success:
+                  value:
+                    outputLengthBits: 256
+                    ianaName: sha-256
+                    oid: "2.16.840.1.101.3.4.2.1"
+                    status: active
+                    multihash: sha2-256
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Invalid {hashAlgorithmId} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {hashAlgorithmId} parameter is not valid
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Hash algortihm Not Found:
+                  $ref: "#/components/examples/NotFound"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /did-registry/v3/policies:
+    get:
+      summary: List policies
+      description: Returns all policies.
+      operationId: get-did-registry-v3-policies
+      tags:
+        - Policies
+      parameters:
+        - in: query
+          name: page[after]
+          description: Cursor that points to the end of the page of data that has been returned.
+          schema:
+            type: string
+        - in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: URI to policies
+                  items:
+                    type: array
+                    description: List of policies
+                    items:
+                      type: object
+                      properties:
+                        policyId:
+                          type: string
+                          description: ID of the policy
+                        href:
+                          type: string
+                          description: Link to the resource
+                  total:
+                    type: integer
+                    description: Total number of items in a collection
+                  pageSize:
+                    type: integer
+                    description: Number of items to be returned per page
+                  links:
+                    $ref: "#/components/schemas/Links"
+              examples:
+                "[test] Success":
+                  value:
+                    self: https://api.test.intebsi.xyz/did-registry/v3/policies?page[after]=3&page[size]=10
+                    items:
+                      - policyId: policy-test-2021-03-30T14:10:56.932Z
+                        href: https://api.test.intebsi.xyz/did-registry/v3/policies/policy-test-2021-03-30T14:10:56.932Z
+                      - policyId: policy-test-2021-03-30T14:20:38.342Z
+                        href: https://api.test.intebsi.xyz/did-registry/v3/policies/policy-test-2021-03-30T14:20:38.342Z
+                      - policyId: policy-test-2021-03-31T09:02:21.597Z
+                        href: https://api.test.intebsi.xyz/did-registry/v3/policies/policy-test-2021-03-31T09:02:21.597Z
+                      - policyId: policy-test-2021-03-31T09:06:53.267Z
+                        href: https://api.test.intebsi.xyz/did-registry/v3/policies/policy-test-2021-03-31T09:06:53.267Z
+                      - policyId: policy-test-2021-03-31T14:03:47.592Z
+                        href: https://api.test.intebsi.xyz/did-registry/v3/policies/policy-test-2021-03-31T14:03:47.592Z
+                      - policyId: policy-test-2021-03-31T14:20:04.214Z
+                        href: https://api.test.intebsi.xyz/did-registry/v3/policies/policy-test-2021-03-31T14:20:04.214Z
+                      - policyId: policy-test-2021-04-01T09:29:47.881Z
+                        href: https://api.test.intebsi.xyz/did-registry/v3/policies/policy-test-2021-04-01T09:29:47.881Z
+                      - policyId: policy-test-2021-04-01T10:15:04.663Z
+                        href: https://api.test.intebsi.xyz/did-registry/v3/policies/policy-test-2021-04-01T10:15:04.663Z
+                      - policyId: policy-test-2021-04-01T10:38:18.641Z
+                        href: https://api.test.intebsi.xyz/did-registry/v3/policies/policy-test-2021-04-01T10:38:18.641Z
+                      - policyId: policy-test-2021-04-06T07:06:47.387Z
+                        href: https://api.test.intebsi.xyz/did-registry/v3/policies/policy-test-2021-04-06T07:06:47.387Z
+                    total: 124
+                    pageSize: 10
+                    links:
+                      first: https://api.test.intebsi.xyz/did-registry/v3/policies?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/did-registry/v3/policies?page[after]=2&page[size]=10
+                      next: https://api.test.intebsi.xyz/did-registry/v3/policies?page[after]=4&page[size]=10
+                      last: https://api.test.intebsi.xyz/did-registry/v3/policies?page[after]=13&page[size]=10
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/did-registry/v3/policies?page[after]=3&page[size]=10
+                    items:
+                      - policyId: policy-test-2021-03-30T14:10:56.932Z
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/policies/policy-test-2021-03-30T14:10:56.932Z
+                      - policyId: policy-test-2021-03-30T14:20:38.342Z
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/policies/policy-test-2021-03-30T14:20:38.342Z
+                      - policyId: policy-test-2021-03-31T09:02:21.597Z
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/policies/policy-test-2021-03-31T09:02:21.597Z
+                      - policyId: policy-test-2021-03-31T09:06:53.267Z
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/policies/policy-test-2021-03-31T09:06:53.267Z
+                      - policyId: policy-test-2021-03-31T14:03:47.592Z
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/policies/policy-test-2021-03-31T14:03:47.592Z
+                      - policyId: policy-test-2021-03-31T14:20:04.214Z
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/policies/policy-test-2021-03-31T14:20:04.214Z
+                      - policyId: policy-test-2021-04-01T09:29:47.881Z
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/policies/policy-test-2021-04-01T09:29:47.881Z
+                      - policyId: policy-test-2021-04-01T10:15:04.663Z
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/policies/policy-test-2021-04-01T10:15:04.663Z
+                      - policyId: policy-test-2021-04-01T10:38:18.641Z
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/policies/policy-test-2021-04-01T10:38:18.641Z
+                      - policyId: policy-test-2021-04-06T07:06:47.387Z
+                        href: https://api.preprod.ebsi.eu/did-registry/v3/policies/policy-test-2021-04-06T07:06:47.387Z
+                    total: 124
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/did-registry/v3/policies?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/did-registry/v3/policies?page[after]=2&page[size]=10
+                      next: https://api.preprod.ebsi.eu/did-registry/v3/policies?page[after]=4&page[size]=10
+                      last: https://api.preprod.ebsi.eu/did-registry/v3/policies?page[after]=13&page[size]=10
+        "400":
+          description: Bad Request Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /did-registry/v3/policies/{policyId}:
+    get:
+      summary: Get a policy
+      description: Returns a policy based on its ID.
+      operationId: get-did-registry-v3-policy
+      tags:
+        - Policies
+      parameters:
+        - in: path
+          name: policyId
+          schema:
+            type: string
+          example: policy-test-2021-03-30T14:10:56.932Z
+          required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Policy"
+              examples:
+                Success:
+                  value:
+                    policyId: policy-test-2021-03-30T14:10:56.932Z
+                    policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI4OTM5MzlhNDFjNTk4ZDY0MGFhZTg2ZWM2ZDcyYjdlYyJ9
+                    hash: f1220964f27ad52f670ad05100697287424749e9ceba571811585e318f4c54944543e
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Invalid {policyId} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {policyId} parameter is not valid
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /did-registry/v3/policies/{policyId}/revisions:
+    get:
+      summary: List policy revisions
+      description: Returns a list of policy revisions.
+      operationId: get-did-registry-v3-policy-revisions
+      tags:
+        - Policies
+      parameters:
+        - in: path
+          name: policyId
+          schema:
+            type: string
+          example: policy-test-2021-03-30T14:10:56.932Z
+          required: true
+        - in: query
+          name: page[after]
+          description: Cursor that points to the end of the page of data that has been returned.
+          schema:
+            type: string
+        - in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: URI to policies
+                  items:
+                    type: array
+                    description: List of policies
+                    items:
+                      $ref: "#/components/schemas/Policy"
+                  total:
+                    type: integer
+                    description: Total number of items in a collection
+                  pageSize:
+                    type: integer
+                    description: Number of items to be returned per page
+                  links:
+                    $ref: "#/components/schemas/Links"
+              examples:
+                "[test] Success":
+                  value:
+                    self: https://api.test.intebsi.xyz/did-registry/v3/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
+                    items:
+                      - policyId: policy-test-2021-03-30T14:10:56.932Z
+                        policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiJmNjA4Y2QwY2FlYmQwMjUzZTNhMGI4ZjgzNmQwMzhkNSJ9
+                        hash: f122061ab0dc3883b253cb675fe9b8a4715378d86745edd2ff29c72af1359d6dc6661
+                      - policyId: policy-test-2021-03-30T14:10:56.932Z
+                        policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI4OTM5MzlhNDFjNTk4ZDY0MGFhZTg2ZWM2ZDcyYjdlYyJ9
+                        hash: f1220964f27ad52f670ad05100697287424749e9ceba571811585e318f4c54944543e
+                    total: 2
+                    pageSize: 10
+                    links:
+                      first: https://api.test.intebsi.xyz/did-registry/v3/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/did-registry/v3/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/did-registry/v3/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
+                      last: https://api.test.intebsi.xyz/did-registry/v3/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/did-registry/v3/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
+                    items:
+                      - policyId: policy-test-2021-03-30T14:10:56.932Z
+                        policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiJmNjA4Y2QwY2FlYmQwMjUzZTNhMGI4ZjgzNmQwMzhkNSJ9
+                        hash: f122061ab0dc3883b253cb675fe9b8a4715378d86745edd2ff29c72af1359d6dc6661
+                      - policyId: policy-test-2021-03-30T14:10:56.932Z
+                        policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI4OTM5MzlhNDFjNTk4ZDY0MGFhZTg2ZWM2ZDcyYjdlYyJ9
+                        hash: f1220964f27ad52f670ad05100697287424749e9ceba571811585e318f4c54944543e
+                    total: 2
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/did-registry/v3/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/did-registry/v3/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/did-registry/v3/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/did-registry/v3/policies/policy-test-2021-03-30T14:10:56.932Z/revisions?page[after]=1&page[size]=10
+        "400":
+          description: Bad Request Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /did-registry/v3/jsonrpc:
+    post:
+      operationId: post-did-registry-v3-jsonrpc
+      tags:
+        - JSON-RPC
+      summary: JSON-RPC API
+      description: |
+        The JSON-RPC API provides methods assisting the construction of blockchain transactions and
+        interaction with the ledger, i.e. write operation on ledger.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: header
+          name: Conformance
+          description: |
+            The header MUST be used ONLY for the EBSI conformance testing.
+            - Type: string
+            - Format: UUID V4
+
+            The header is used to log the activities. See Conformance testing header section in the [documentation](https://ec.europa.eu/digital-building-blocks/wikis/x/5YDwG).
+          required: false
+          schema:
+            type: string
+            format: uuid
+          example: edb60e02-398d-4b62-8028-85710b2476a5
+      requestBody:
+        required: true
+        description: |
+          The body follows the
+          [JSON-RPC 2.0 specification](https://www.jsonrpc.org/specification).
+
+          It requires the following fields:
+
+          - **jsonrpc**: must be exactly "2.0"
+          - **method**: method to be invoked
+          - **params**: method parameters
+          - **id**: identifier established by the client
+
+          ### API Methods
+
+          #### insertPolicy
+
+          Call to build an unsigned transaction to insert a policy in the registry.
+
+          Parameters:
+          - **from**: Ethereum address of the signer
+          - **policyId**: Policy Id
+          - **policyData**: Policy data. This field must be a JSON stringified and converted into hex string
+
+          #### updatePolicy
+
+          Call to build an unsigned transaction to update a policy.
+
+          Parameters:
+          - **from**: Ethereum address of the signer
+          - **policyId**: Policy Id
+          - **policyData**: Policy data. This field must be a JSON stringified and converted into hex string
+
+          #### insertHashAlgorithm
+
+          Call to build an unsigned transaction to insert a new hash algorithm.
+          This method requires the "DIDR:insertHashAlgorithm" attribute in the TPR.
+
+          Parameters:
+          - **from**: Ethereum address of the signer
+          - **outputLength**: hash output length (in bits)
+          - **ianaName**: IANA name of the hash algorithm
+          - **oid**: object identifier (OID)
+          - **status**: status of the algorithm (1 = active, 2 = revoked)
+          - **multihash**: multihash name
+
+          #### updateHashAlgorithm
+
+          Call to build an unsigned transaction to update an existing hash algorithm.
+          This method requires the "DIDR:updateHashAlgorithm" attribute in the TPR.
+
+          Parameters:
+          - **from**: Ethereum address of the signer
+          - **hashAlgorithmId**: ID of the hash algorithm to update
+          - **outputLength**: hash output length (in bits)
+          - **ianaName**: IANA name of the hash algorithm
+          - **oid**: object identifier (ODI)
+          - **status**: status of the algorithm (1 = active, 2 = revoked)
+          - **multihash**: multihash name
+
+          #### insertDidDocument
+
+          Call to build an unsigned transaction to insert a new DID Document.
+
+          Parameters:
+          - **from**: Ethereum address of the signer
+          - **identifier**: DID identifier (hexadecimal)
+          - **hashAlgorithmId**: ID of the hash algorithm used to hash the DID Document
+          - **hashValue**: hash of the canonicalized DID Document
+          - **didVersionInfo**: stringified JSON DID Document (hex-encoded)
+          - **timestampData**: data to be added to the timestamp (stringified JSON encoded in hexadecimal)
+          - **didVersionMetadata**: DID Document metadata (stringified JSON encoded in hexadecimal)
+
+          #### updateDidDocument
+
+          Call to build an unsigned transaction to update an existing DID Document.
+
+          Parameters:
+          - **from**: Ethereum address of the signer
+          - **identifier**: DID identifier (hexadecimal)
+          - **hashAlgorithmId**: ID of the hash algorithm used to hash the DID Document
+          - **hashValue**: hash of the canonicalized DID Document
+          - **didVersionInfo**: stringified JSON DID Document (hex-encoded)
+          - **timestampData**: data to be added to the timestamp (stringified JSON encoded in hexadecimal)
+          - **didVersionMetadata**: DID Document metadata (stringified JSON encoded in hexadecimal)
+
+          #### insertDidController
+
+          Call to build an unsigned transaction to insert a new DID Controller to an existing DID Document.
+
+          Parameters:
+          - **from**: Ethereum address of the signer
+          - **identifier**: DID identifier (hexadecimal)
+          - **newControllerId**: Ethereum address of the new controller (hex-encoded)
+          - **notBefore**: timestamp before which the controller is not valid
+          - **notAfter**: timetstamp after which the controller is not valid anymore
+
+          #### updateDidController
+
+          Call to build an unsigned transaction to update an existing DID Controller.
+
+          Parameters:
+          - **from**: Ethereum address of the signer
+          - **identifier**: DID identifier (hexadecimal)
+          - **newControllerId**: Ethereum address of the controller to be updated (hex-encoded)
+          - **notBefore**: timestamp before which the controller is not valid
+          - **notAfter**: timetstamp after which the controller is not valid anymore
+
+          #### revokeDidController
+
+          Call to build an unsigned transaction to revoke an existing DID Controller.
+
+          Parameters:
+          - **from**: Ethereum address of the signer
+          - **identifier**: DID (hexadecimal)
+          - **oldControllerId**: Ethereum address of the controller to be revoked (hex-encoded)
+
+          #### appendDidDocumentVersionHash
+
+          Call to build an unsigned transaction to append a new type of hash for given DID Doc version.
+
+          Parameters:
+          - **from**: Ethereum address of the signer
+          - **identifier**: DID identifier (hexadecimal)
+          - **hashAlgorithmId**: The new hash algorithm id used to compute the new hashValue of an existing DID Doc version
+          - **hashValue**: new hash value of an existing DID Doc version
+          - **didVersionInfo**: DID Document content (stringified JSON encoded in hexadecimal)
+          - **timestampData** (optional): additional timestamping data. If set, it should be serialized JSON-LD file. The data can be added only at the timestamp.
+
+          #### detachDidDocumentVersionHash
+
+          Call to build an unsigned transaction to detach an existing hash for a given DID Doc version.
+
+          Parameters:
+          - **from**: Ethereum address of the signer
+          - **identifier**: DID identifier (hexadecimal)
+          - **hashAlgorithmId**: The new hash algorithm id used to compute the new hashValue of an existing DID Doc version
+          - **hashValue**: new hash value of an existing DID Doc version
+          - **didVersionInfo**: DID Document content (stringified JSON encoded in hexadecimal)
+
+          #### appendDidDocumentVersionMetadata
+
+          Call to build an unsigned transaction to append a new metadata for given DID Doc version.
+
+          Parameters:
+          - **from**: Ethereum address of the signer
+          - **identifier**: DID identifier (hexadecimal)
+          - **didVersionInfo**: DID Document content (stringified JSON encoded in hexadecimal)
+          - **didVersionMetadata**: DID Document Version Metadata content (stringified JSON encoded in hexadecimal)
+
+          #### detachDidDocumentVersionMetadata
+
+          Call to build an unsigned transaction to detaches an existing metadata for given DID Doc version.
+
+          Parameters:
+          - **from**: Ethereum address of the signer
+          - **identifier**: DID identifier (hexadecimal)
+          - **didVersionInfo**: DID Document content (stringified JSON encoded in hexadecimal)
+          - **didVersionMetadata**: DID Document Version Metadata content (stringified JSON encoded in hexadecimal)
+
+          #### sendSignedTransaction
+
+          Call to send a signed transaction to the blockchain.
+
+          [conformance description]
+
+          ### [EBSI conformance testing](https://ec.europa.eu/digital-building-blocks/wikis/x/5YDwG)
+
+          The API supports the following EBSI conformance tests:
+
+          - Construct a blockchain transaction to register a DID (CT ONBOARD_061)
+          - Broadcast a signed blockchain transaction to register a DID (CT ONBOARD_062)
+        content:
+          application/json:
+            schema:
+              required:
+                - jsonrpc
+                - id
+                - method
+                - params
+              type: object
+              properties:
+                jsonrpc:
+                  description: Must be exactly "2.0"
+                  type: string
+                method:
+                  description: Method that needs to be invoked
+                  type: string
+                params:
+                  description: Array of parameters
+                  type: array
+                  items:
+                    type: object
+                id:
+                  description: Identifier established by the client
+                  type: integer
+                  example: 1
+            examples:
+              "[conformance] ct1_did_01":
+                summary: Build blockchain transaction to register a DID Document (CT ONBOARD_061)
+                description: |
+                  EBSI conformance test: Build blockchain transaction to register a DID Document (DID_01).
+
+                  A successful response (HTTP 200) means that the service (wallet) can:
+
+                    - create an [EBSI-compliant DID](https://ec.europa.eu/digital-building-blocks/wikis/x/x4XyGQ)
+                    - create an [EBSI-compliant DID Document](https://ec.europa.eu/digital-building-blocks/wikis/x/x4XyGQ)
+
+                value:
+                  jsonrpc: "2.0"
+                  method: insertDidDocument
+                  params:
+                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                      identifier: "0x6469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e"
+                      hashAlgorithmId: 0
+                      hashValue: "0xf0fcfaf89af366f278900538f074eba8469408b1c54451e4ff4660a379e7e8f5"
+                      didVersionInfo: "0x7b2240636f6e74657874223a2268747470733a2f2f7777772e77332e6f72672f6e732f6469642f7631222c226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c22766572696669636174696f6e4d6574686f64223a5b7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235a43326a58544f36743452353031626643587633527861725a795562645032775f70734c774d7559366563222c2274797065223a2245643235353139566572696669636174696f6e4b657932303138222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b6579426173653538223a22483343324156764c4d7636676d4d4e616d337556416a5a70666b634a437744776e5a6e367a3377586d715056227d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e237a5133736850326d57735a59576776674d31316e656e58525478394c3179694a4b6d6b6639646658374e614d4b62317058222c2274797065223a224563647361536563703235366b31566572696669636174696f6e4b657932303139222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b6579426173653538223a2264356357325235334e4854546b76374551535952385978614b78374d56436363686a6d4b354567434e58786f227d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235f517130554c3246713635315130466a643654766e59452d666148694f70526c50565163595f2d74413441222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224f4b50222c22637276223a2245643235353139222c2278223a225643706f324c4d4c686e3669576b75384d4b76534c67325a416f432d6e6c4f79505651614f334678566551227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e237a364c536e6a61677a686538446636675a6d726f5733776a44643758514c77417559667761345a6554424347466f5963222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224f4b50222c22637276223a22583235353139222c2278223a2270455f6d473039387264516a59334d4b4b324435535551365a4f45573361365a3654375a3453676e7a4345227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e2334535a2d5374587270355964345f347278485654435954487974347a7950664e3166497559736d366b3341222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22736563703235366b31222c2278223a225a3459334e4e4f7876304a36744367714f42466e486e615a684a46364c64756c54377a38412d3244355f38222c2279223a22693561324e744a6f554b586b4c6d3671386e4f457539574f6b736f3141673646545554366b5f4c4d6e476b227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e236e3463512d495f576b484d637758424a613749486b597538434d66644e635a4b6e4b734f726e484c704673222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a22525341222c2265223a2241514142222c226e223a226f6d777343314171456b3677687678794f6c74434657686553517676314d45787535524c434d54346a566b396b684a4b76384a654d5857653362574861746a50736b646632646c61476b5735516a744f6e554b4c3734326d76723474436c644b5333554c49615431684a496e4d4848786a32676375624f366545656741435134515375394c4f30482d4c4d5f4c3344735241424237516a61384865637079757370573154755f4462717863536e77656e64616d774c3532563137654b686c4f34755877763248466c78756646484d304b6d434a756a494b7941786a445f6d33715f5f496948555648443174444945764c50684739417a736e336a3935642d736149675a7a504c685146694b6c754776736a72536b595535705856574973562d42326a744c65654c433134586359785744554a3071566f70786b4276646c4552634e746746346476573458303045486a3476436c6a4677227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235f544b7a4876326a464979766454474631447367776e67666467335348365470447630546131614f456b77222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d323536222c2278223a2233384d3146447473374f65613775726d7365697567475737745763336d4c704a6836724b653778494e5a38222c2279223a226e44515736585a37625f7532537939736c6f66594c6c473033734f456f7567334930614150513065787334227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e233877675266593373576d7a6f65414c2d37382d6f414c4e764e6a36375a6c5178643173735f4e5831685a59222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d333834222c2278223a22476e4c6c366d4474693761325655495a50357736706352583871356e764549674233515f355249327039465f51567361416c444e37494736384a6e3064535f46222c2279223a226a7134516f41484b69497a657a44703838735f637853505874755859466c697543476e646755345170386c3931787a44317370436d46497a5167566a71766350227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e234e6a5136595f5a4d6a3649554b5f586b67434477744b486c4e545554566a45594f575a74786870316e2d45222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d353231222c2278223a2241566c5a4732334c795859776c626a6247504d785a62486d4a704453752d497670754b6967454e32707a675774536f2d2d5277642d6e37386e72576e5a7a6544633138374c6e3371486c77354c524772583471674c512d79222c2279223a22414e4962466552645048663157594d43556a63507a2d5a6865635a4679624f714c494a6a564f6c4c4554483775506c79473067456f4d576e495a58685156797050795f48745569557a646e53455041796c59684842545832227d7d5d7d"
+                      timestampData: "0x7b2264617461223a2274657374222c2272223a2239333133313465363232633231613635227d"
+                      didVersionMetadata: "0x7b226d657461223a2238313239336463633863623537623930663835383662396237343139333530653636316166623530663563633461656666376632643532373863623530353562227d"
+                  id: 1
+              "[conformance] ct1_did_02":
+                summary: Send blockchain transaction to register a DID Document (CT ONBOARD_062)
+                description: >
+                  EBSI conformance test: Send blockchain transaction to register a DID Document (DID_02).
+
+                  A successful response (HTTP 200) means that the service (wallet) can:
+
+                    - create an [EBSI-compliant DID](https://ec.europa.eu/digital-building-blocks/wikis/x/x4XyGQ)
+                    - create an [EBSI-compliant DID Document](https://ec.europa.eu/digital-building-blocks/wikis/x/x4XyGQ)
+                    - [create signed blockchain transaction]()
+
+                value:
+                  jsonrpc: "2.0"
+                  method: sendSignedTransaction
+                  id: 1
+                  params:
+                    - protocol: eth
+                      unsignedTransaction:
+                        from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                        to: "0xFde86148db58f57787C06BeAf63a9c3f789357b3"
+                        data: 0x0000...
+                        nonce: "0x00"
+                        chainId: "0x1b3b"
+                        gasLimit: "0x10000"
+                        gasPrice: "0x00"
+                        value: "0x00"
+                      r: 0x...
+                      s: 0x...
+                      v: 0x...
+                      signedRawTransaction: "--- signed raw transaction ---"
+              Build tx to insertPolicy:
+                value:
+                  jsonrpc: "2.0"
+                  method: insertPolicy
+                  id: 1
+                  params:
+                    - from: "0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7"
+                      policyId: policy-test-2021-03-30T14:10:56.932Z
+                      policyData: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a223832663965313262313636363665313134303661383738643364653266333465227d"
+              Build tx to updatePolicy:
+                value:
+                  jsonrpc: "2.0"
+                  method: updatePolicy
+                  id: 1
+                  params:
+                    - from: "0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7"
+                      policyId: policy-test-2021-03-30T14:10:56.932Z
+                      policyData: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a223832663965313262313636363665313134303661383738643364653266333465227d"
+              Build tx to insertHashAlgorithm:
+                value:
+                  jsonrpc: "2.0"
+                  method: insertHashAlgorithm
+                  id: 1
+                  params:
+                    - from: "0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7"
+                      outputLength: 256
+                      ianaName: sha-256
+                      oid: "2.16.840.1.101.3.4.2.1"
+                      status: 1
+                      multihash: sha2-256
+              Build tx to updateHashAlgorithm:
+                value:
+                  jsonrpc: "2.0"
+                  method: updateHashAlgorithm
+                  id: 1
+                  params:
+                    - from: "0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7"
+                      hashAlgorithmId: 3
+                      outputLength: 256
+                      ianaName: sha-256
+                      oid: "2.16.840.1.101.3.4.2.1"
+                      status: 2
+                      multihash: sha2-256
+              Build tx to insertDidDocument:
+                value:
+                  jsonrpc: "2.0"
+                  method: insertDidDocument
+                  id: 1
+                  params:
+                    - from: "0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7"
+                      identifier: "0x6469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e"
+                      hashAlgorithmId: 0
+                      hashValue: "0xf0fcfaf89af366f278900538f074eba8469408b1c54451e4ff4660a379e7e8f5"
+                      didVersionInfo: "0x7b2240636f6e74657874223a2268747470733a2f2f7777772e77332e6f72672f6e732f6469642f7631222c226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c22766572696669636174696f6e4d6574686f64223a5b7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235a43326a58544f36743452353031626643587633527861725a795562645032775f70734c774d7559366563222c2274797065223a2245643235353139566572696669636174696f6e4b657932303138222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b6579426173653538223a22483343324156764c4d7636676d4d4e616d337556416a5a70666b634a437744776e5a6e367a3377586d715056227d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e237a5133736850326d57735a59576776674d31316e656e58525478394c3179694a4b6d6b6639646658374e614d4b62317058222c2274797065223a224563647361536563703235366b31566572696669636174696f6e4b657932303139222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b6579426173653538223a2264356357325235334e4854546b76374551535952385978614b78374d56436363686a6d4b354567434e58786f227d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235f517130554c3246713635315130466a643654766e59452d666148694f70526c50565163595f2d74413441222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224f4b50222c22637276223a2245643235353139222c2278223a225643706f324c4d4c686e3669576b75384d4b76534c67325a416f432d6e6c4f79505651614f334678566551227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e237a364c536e6a61677a686538446636675a6d726f5733776a44643758514c77417559667761345a6554424347466f5963222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224f4b50222c22637276223a22583235353139222c2278223a2270455f6d473039387264516a59334d4b4b324435535551365a4f45573361365a3654375a3453676e7a4345227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e2334535a2d5374587270355964345f347278485654435954487974347a7950664e3166497559736d366b3341222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22736563703235366b31222c2278223a225a3459334e4e4f7876304a36744367714f42466e486e615a684a46364c64756c54377a38412d3244355f38222c2279223a22693561324e744a6f554b586b4c6d3671386e4f457539574f6b736f3141673646545554366b5f4c4d6e476b227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e236e3463512d495f576b484d637758424a613749486b597538434d66644e635a4b6e4b734f726e484c704673222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a22525341222c2265223a2241514142222c226e223a226f6d777343314171456b3677687678794f6c74434657686553517676314d45787535524c434d54346a566b396b684a4b76384a654d5857653362574861746a50736b646632646c61476b5735516a744f6e554b4c3734326d76723474436c644b5333554c49615431684a496e4d4848786a32676375624f366545656741435134515375394c4f30482d4c4d5f4c3344735241424237516a61384865637079757370573154755f4462717863536e77656e64616d774c3532563137654b686c4f34755877763248466c78756646484d304b6d434a756a494b7941786a445f6d33715f5f496948555648443174444945764c50684739417a736e336a3935642d736149675a7a504c685146694b6c754776736a72536b595535705856574973562d42326a744c65654c433134586359785744554a3071566f70786b4276646c4552634e746746346476573458303045486a3476436c6a4677227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235f544b7a4876326a464979766454474631447367776e67666467335348365470447630546131614f456b77222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d323536222c2278223a2233384d3146447473374f65613775726d7365697567475737745763336d4c704a6836724b653778494e5a38222c2279223a226e44515736585a37625f7532537939736c6f66594c6c473033734f456f7567334930614150513065787334227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e233877675266593373576d7a6f65414c2d37382d6f414c4e764e6a36375a6c5178643173735f4e5831685a59222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d333834222c2278223a22476e4c6c366d4474693761325655495a50357736706352583871356e764549674233515f355249327039465f51567361416c444e37494736384a6e3064535f46222c2279223a226a7134516f41484b69497a657a44703838735f637853505874755859466c697543476e646755345170386c3931787a44317370436d46497a5167566a71766350227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e234e6a5136595f5a4d6a3649554b5f586b67434477744b486c4e545554566a45594f575a74786870316e2d45222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d353231222c2278223a2241566c5a4732334c795859776c626a6247504d785a62486d4a704453752d497670754b6967454e32707a675774536f2d2d5277642d6e37386e72576e5a7a6544633138374c6e3371486c77354c524772583471674c512d79222c2279223a22414e4962466552645048663157594d43556a63507a2d5a6865635a4679624f714c494a6a564f6c4c4554483775506c79473067456f4d576e495a58685156797050795f48745569557a646e53455041796c59684842545832227d7d5d7d"
+                      timestampData: "0x7b2264617461223a2274657374222c2272223a2239333133313465363232633231613635227d"
+                      didVersionMetadata: "0x7b226d657461223a2238313239336463633863623537623930663835383662396237343139333530653636316166623530663563633461656666376632643532373863623530353562227d"
+              Build tx to updateDidDocument:
+                value:
+                  jsonrpc: "2.0"
+                  method: updateDidDocument
+                  id: 1
+                  params:
+                    - from: "0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7"
+                      identifier: "0x6469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e"
+                      hashAlgorithmId: 0
+                      hashValue: "0xf0fcfaf89af366f278900538f074eba8469408b1c54451e4ff4660a379e7e8f5"
+                      didVersionInfo: "0x7b2240636f6e74657874223a2268747470733a2f2f7777772e77332e6f72672f6e732f6469642f7631222c226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c22766572696669636174696f6e4d6574686f64223a5b7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235a43326a58544f36743452353031626643587633527861725a795562645032775f70734c774d7559366563222c2274797065223a2245643235353139566572696669636174696f6e4b657932303138222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b6579426173653538223a22483343324156764c4d7636676d4d4e616d337556416a5a70666b634a437744776e5a6e367a3377586d715056227d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e237a5133736850326d57735a59576776674d31316e656e58525478394c3179694a4b6d6b6639646658374e614d4b62317058222c2274797065223a224563647361536563703235366b31566572696669636174696f6e4b657932303139222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b6579426173653538223a2264356357325235334e4854546b76374551535952385978614b78374d56436363686a6d4b354567434e58786f227d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235f517130554c3246713635315130466a643654766e59452d666148694f70526c50565163595f2d74413441222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224f4b50222c22637276223a2245643235353139222c2278223a225643706f324c4d4c686e3669576b75384d4b76534c67325a416f432d6e6c4f79505651614f334678566551227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e237a364c536e6a61677a686538446636675a6d726f5733776a44643758514c77417559667761345a6554424347466f5963222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224f4b50222c22637276223a22583235353139222c2278223a2270455f6d473039387264516a59334d4b4b324435535551365a4f45573361365a3654375a3453676e7a4345227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e2334535a2d5374587270355964345f347278485654435954487974347a7950664e3166497559736d366b3341222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22736563703235366b31222c2278223a225a3459334e4e4f7876304a36744367714f42466e486e615a684a46364c64756c54377a38412d3244355f38222c2279223a22693561324e744a6f554b586b4c6d3671386e4f457539574f6b736f3141673646545554366b5f4c4d6e476b227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e236e3463512d495f576b484d637758424a613749486b597538434d66644e635a4b6e4b734f726e484c704673222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a22525341222c2265223a2241514142222c226e223a226f6d777343314171456b3677687678794f6c74434657686553517676314d45787535524c434d54346a566b396b684a4b76384a654d5857653362574861746a50736b646632646c61476b5735516a744f6e554b4c3734326d76723474436c644b5333554c49615431684a496e4d4848786a32676375624f366545656741435134515375394c4f30482d4c4d5f4c3344735241424237516a61384865637079757370573154755f4462717863536e77656e64616d774c3532563137654b686c4f34755877763248466c78756646484d304b6d434a756a494b7941786a445f6d33715f5f496948555648443174444945764c50684739417a736e336a3935642d736149675a7a504c685146694b6c754776736a72536b595535705856574973562d42326a744c65654c433134586359785744554a3071566f70786b4276646c4552634e746746346476573458303045486a3476436c6a4677227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235f544b7a4876326a464979766454474631447367776e67666467335348365470447630546131614f456b77222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d323536222c2278223a2233384d3146447473374f65613775726d7365697567475737745763336d4c704a6836724b653778494e5a38222c2279223a226e44515736585a37625f7532537939736c6f66594c6c473033734f456f7567334930614150513065787334227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e233877675266593373576d7a6f65414c2d37382d6f414c4e764e6a36375a6c5178643173735f4e5831685a59222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d333834222c2278223a22476e4c6c366d4474693761325655495a50357736706352583871356e764549674233515f355249327039465f51567361416c444e37494736384a6e3064535f46222c2279223a226a7134516f41484b69497a657a44703838735f637853505874755859466c697543476e646755345170386c3931787a44317370436d46497a5167566a71766350227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e234e6a5136595f5a4d6a3649554b5f586b67434477744b486c4e545554566a45594f575a74786870316e2d45222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d353231222c2278223a2241566c5a4732334c795859776c626a6247504d785a62486d4a704453752d497670754b6967454e32707a675774536f2d2d5277642d6e37386e72576e5a7a6544633138374c6e3371486c77354c524772583471674c512d79222c2279223a22414e4962466552645048663157594d43556a63507a2d5a6865635a4679624f714c494a6a564f6c4c4554483775506c79473067456f4d576e495a58685156797050795f48745569557a646e53455041796c59684842545832227d7d5d7d"
+                      timestampData: "0x7b2264617461223a2274657374222c2272223a2261333961386663303334373663336133227d"
+                      didVersionMetadata: "0x7b226d657461223a2266363432653135343161363435656534363530613338323537363165646566393465333037316265316237633735396336383833346663336637323363613838227d"
+              Build tx to insertDidController:
+                value:
+                  jsonrpc: "2.0"
+                  method: insertDidController
+                  id: 1
+                  params:
+                    - from: "0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7"
+                      identifier: "0x6469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e"
+                      newControllerId: "0x40596101548f3D74714E6Eb66c4774c83F57Dd1d"
+                      notBefore: 1616408985883
+                      notAfter: 3232818053700
+              Build tx to updateDidController:
+                value:
+                  jsonrpc: "2.0"
+                  method: updateDidController
+                  id: 1
+                  params:
+                    - from: "0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7"
+                      identifier: "0x6469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e"
+                      newControllerId: "0x40596101548f3D74714E6Eb66c4774c83F57Dd1d"
+                      notBefore: 1616408985883
+                      notAfter: 3232818053700
+              Build tx to revokeDidController:
+                value:
+                  jsonrpc: "2.0"
+                  method: revokeDidController
+                  id: 1
+                  params:
+                    - from: "0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7"
+                      identifier: "0x6469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e"
+                      oldControllerId: "0x40596101548f3D74714E6Eb66c4774c83F57Dd1d"
+              Build tx to appendDidDocumentVersionHash:
+                value:
+                  jsonrpc: "2.0"
+                  method: appendDidDocumentVersionHash
+                  id: 1
+                  params:
+                    - from: "0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7"
+                      identifier: "0x6469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e"
+                      hashAlgorithmId: 0
+                      hashValue: "0xf0fcfaf89af366f278900538f074eba8469408b1c54451e4ff4660a379e7e8f5"
+                      didVersionInfo: "0x7b2240636f6e74657874223a2268747470733a2f2f7777772e77332e6f72672f6e732f6469642f7631222c226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c22766572696669636174696f6e4d6574686f64223a5b7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235a43326a58544f36743452353031626643587633527861725a795562645032775f70734c774d7559366563222c2274797065223a2245643235353139566572696669636174696f6e4b657932303138222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b6579426173653538223a22483343324156764c4d7636676d4d4e616d337556416a5a70666b634a437744776e5a6e367a3377586d715056227d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e237a5133736850326d57735a59576776674d31316e656e58525478394c3179694a4b6d6b6639646658374e614d4b62317058222c2274797065223a224563647361536563703235366b31566572696669636174696f6e4b657932303139222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b6579426173653538223a2264356357325235334e4854546b76374551535952385978614b78374d56436363686a6d4b354567434e58786f227d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235f517130554c3246713635315130466a643654766e59452d666148694f70526c50565163595f2d74413441222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224f4b50222c22637276223a2245643235353139222c2278223a225643706f324c4d4c686e3669576b75384d4b76534c67325a416f432d6e6c4f79505651614f334678566551227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e237a364c536e6a61677a686538446636675a6d726f5733776a44643758514c77417559667761345a6554424347466f5963222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224f4b50222c22637276223a22583235353139222c2278223a2270455f6d473039387264516a59334d4b4b324435535551365a4f45573361365a3654375a3453676e7a4345227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e2334535a2d5374587270355964345f347278485654435954487974347a7950664e3166497559736d366b3341222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22736563703235366b31222c2278223a225a3459334e4e4f7876304a36744367714f42466e486e615a684a46364c64756c54377a38412d3244355f38222c2279223a22693561324e744a6f554b586b4c6d3671386e4f457539574f6b736f3141673646545554366b5f4c4d6e476b227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e236e3463512d495f576b484d637758424a613749486b597538434d66644e635a4b6e4b734f726e484c704673222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a22525341222c2265223a2241514142222c226e223a226f6d777343314171456b3677687678794f6c74434657686553517676314d45787535524c434d54346a566b396b684a4b76384a654d5857653362574861746a50736b646632646c61476b5735516a744f6e554b4c3734326d76723474436c644b5333554c49615431684a496e4d4848786a32676375624f366545656741435134515375394c4f30482d4c4d5f4c3344735241424237516a61384865637079757370573154755f4462717863536e77656e64616d774c3532563137654b686c4f34755877763248466c78756646484d304b6d434a756a494b7941786a445f6d33715f5f496948555648443174444945764c50684739417a736e336a3935642d736149675a7a504c685146694b6c754776736a72536b595535705856574973562d42326a744c65654c433134586359785744554a3071566f70786b4276646c4552634e746746346476573458303045486a3476436c6a4677227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235f544b7a4876326a464979766454474631447367776e67666467335348365470447630546131614f456b77222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d323536222c2278223a2233384d3146447473374f65613775726d7365697567475737745763336d4c704a6836724b653778494e5a38222c2279223a226e44515736585a37625f7532537939736c6f66594c6c473033734f456f7567334930614150513065787334227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e233877675266593373576d7a6f65414c2d37382d6f414c4e764e6a36375a6c5178643173735f4e5831685a59222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d333834222c2278223a22476e4c6c366d4474693761325655495a50357736706352583871356e764549674233515f355249327039465f51567361416c444e37494736384a6e3064535f46222c2279223a226a7134516f41484b69497a657a44703838735f637853505874755859466c697543476e646755345170386c3931787a44317370436d46497a5167566a71766350227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e234e6a5136595f5a4d6a3649554b5f586b67434477744b486c4e545554566a45594f575a74786870316e2d45222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d353231222c2278223a2241566c5a4732334c795859776c626a6247504d785a62486d4a704453752d497670754b6967454e32707a675774536f2d2d5277642d6e37386e72576e5a7a6544633138374c6e3371486c77354c524772583471674c512d79222c2279223a22414e4962466552645048663157594d43556a63507a2d5a6865635a4679624f714c494a6a564f6c4c4554483775506c79473067456f4d576e495a58685156797050795f48745569557a646e53455041796c59684842545832227d7d5d7d"
+                      timestampData: "0x7b2264617461223a2274657374222c2272223a2261333961386663303334373663336133227d"
+              Build tx to detachDidDocumentVersionHash:
+                value:
+                  jsonrpc: "2.0"
+                  method: detachDidDocumentVersionHash
+                  id: 1
+                  params:
+                    - from: "0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7"
+                      identifier: "0x6469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e"
+                      hashAlgorithmId: 0
+                      hashValue: "0xf0fcfaf89af366f278900538f074eba8469408b1c54451e4ff4660a379e7e8f5"
+                      didVersionInfo: "0x7b2240636f6e74657874223a2268747470733a2f2f7777772e77332e6f72672f6e732f6469642f7631222c226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c22766572696669636174696f6e4d6574686f64223a5b7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235a43326a58544f36743452353031626643587633527861725a795562645032775f70734c774d7559366563222c2274797065223a2245643235353139566572696669636174696f6e4b657932303138222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b6579426173653538223a22483343324156764c4d7636676d4d4e616d337556416a5a70666b634a437744776e5a6e367a3377586d715056227d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e237a5133736850326d57735a59576776674d31316e656e58525478394c3179694a4b6d6b6639646658374e614d4b62317058222c2274797065223a224563647361536563703235366b31566572696669636174696f6e4b657932303139222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b6579426173653538223a2264356357325235334e4854546b76374551535952385978614b78374d56436363686a6d4b354567434e58786f227d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235f517130554c3246713635315130466a643654766e59452d666148694f70526c50565163595f2d74413441222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224f4b50222c22637276223a2245643235353139222c2278223a225643706f324c4d4c686e3669576b75384d4b76534c67325a416f432d6e6c4f79505651614f334678566551227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e237a364c536e6a61677a686538446636675a6d726f5733776a44643758514c77417559667761345a6554424347466f5963222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224f4b50222c22637276223a22583235353139222c2278223a2270455f6d473039387264516a59334d4b4b324435535551365a4f45573361365a3654375a3453676e7a4345227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e2334535a2d5374587270355964345f347278485654435954487974347a7950664e3166497559736d366b3341222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22736563703235366b31222c2278223a225a3459334e4e4f7876304a36744367714f42466e486e615a684a46364c64756c54377a38412d3244355f38222c2279223a22693561324e744a6f554b586b4c6d3671386e4f457539574f6b736f3141673646545554366b5f4c4d6e476b227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e236e3463512d495f576b484d637758424a613749486b597538434d66644e635a4b6e4b734f726e484c704673222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a22525341222c2265223a2241514142222c226e223a226f6d777343314171456b3677687678794f6c74434657686553517676314d45787535524c434d54346a566b396b684a4b76384a654d5857653362574861746a50736b646632646c61476b5735516a744f6e554b4c3734326d76723474436c644b5333554c49615431684a496e4d4848786a32676375624f366545656741435134515375394c4f30482d4c4d5f4c3344735241424237516a61384865637079757370573154755f4462717863536e77656e64616d774c3532563137654b686c4f34755877763248466c78756646484d304b6d434a756a494b7941786a445f6d33715f5f496948555648443174444945764c50684739417a736e336a3935642d736149675a7a504c685146694b6c754776736a72536b595535705856574973562d42326a744c65654c433134586359785744554a3071566f70786b4276646c4552634e746746346476573458303045486a3476436c6a4677227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235f544b7a4876326a464979766454474631447367776e67666467335348365470447630546131614f456b77222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d323536222c2278223a2233384d3146447473374f65613775726d7365697567475737745763336d4c704a6836724b653778494e5a38222c2279223a226e44515736585a37625f7532537939736c6f66594c6c473033734f456f7567334930614150513065787334227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e233877675266593373576d7a6f65414c2d37382d6f414c4e764e6a36375a6c5178643173735f4e5831685a59222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d333834222c2278223a22476e4c6c366d4474693761325655495a50357736706352583871356e764549674233515f355249327039465f51567361416c444e37494736384a6e3064535f46222c2279223a226a7134516f41484b69497a657a44703838735f637853505874755859466c697543476e646755345170386c3931787a44317370436d46497a5167566a71766350227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e234e6a5136595f5a4d6a3649554b5f586b67434477744b486c4e545554566a45594f575a74786870316e2d45222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d353231222c2278223a2241566c5a4732334c795859776c626a6247504d785a62486d4a704453752d497670754b6967454e32707a675774536f2d2d5277642d6e37386e72576e5a7a6544633138374c6e3371486c77354c524772583471674c512d79222c2279223a22414e4962466552645048663157594d43556a63507a2d5a6865635a4679624f714c494a6a564f6c4c4554483775506c79473067456f4d576e495a58685156797050795f48745569557a646e53455041796c59684842545832227d7d5d7d"
+              Build tx to appendDidDocumentVersionMetadata:
+                value:
+                  jsonrpc: "2.0"
+                  method: appendDidDocumentVersionMetadata
+                  id: 1
+                  params:
+                    - from: "0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7"
+                      identifier: "0x6469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e"
+                      didVersionInfo: "0x7b2240636f6e74657874223a2268747470733a2f2f7777772e77332e6f72672f6e732f6469642f7631222c226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c22766572696669636174696f6e4d6574686f64223a5b7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235a43326a58544f36743452353031626643587633527861725a795562645032775f70734c774d7559366563222c2274797065223a2245643235353139566572696669636174696f6e4b657932303138222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b6579426173653538223a22483343324156764c4d7636676d4d4e616d337556416a5a70666b634a437744776e5a6e367a3377586d715056227d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e237a5133736850326d57735a59576776674d31316e656e58525478394c3179694a4b6d6b6639646658374e614d4b62317058222c2274797065223a224563647361536563703235366b31566572696669636174696f6e4b657932303139222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b6579426173653538223a2264356357325235334e4854546b76374551535952385978614b78374d56436363686a6d4b354567434e58786f227d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235f517130554c3246713635315130466a643654766e59452d666148694f70526c50565163595f2d74413441222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224f4b50222c22637276223a2245643235353139222c2278223a225643706f324c4d4c686e3669576b75384d4b76534c67325a416f432d6e6c4f79505651614f334678566551227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e237a364c536e6a61677a686538446636675a6d726f5733776a44643758514c77417559667761345a6554424347466f5963222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224f4b50222c22637276223a22583235353139222c2278223a2270455f6d473039387264516a59334d4b4b324435535551365a4f45573361365a3654375a3453676e7a4345227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e2334535a2d5374587270355964345f347278485654435954487974347a7950664e3166497559736d366b3341222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22736563703235366b31222c2278223a225a3459334e4e4f7876304a36744367714f42466e486e615a684a46364c64756c54377a38412d3244355f38222c2279223a22693561324e744a6f554b586b4c6d3671386e4f457539574f6b736f3141673646545554366b5f4c4d6e476b227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e236e3463512d495f576b484d637758424a613749486b597538434d66644e635a4b6e4b734f726e484c704673222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a22525341222c2265223a2241514142222c226e223a226f6d777343314171456b3677687678794f6c74434657686553517676314d45787535524c434d54346a566b396b684a4b76384a654d5857653362574861746a50736b646632646c61476b5735516a744f6e554b4c3734326d76723474436c644b5333554c49615431684a496e4d4848786a32676375624f366545656741435134515375394c4f30482d4c4d5f4c3344735241424237516a61384865637079757370573154755f4462717863536e77656e64616d774c3532563137654b686c4f34755877763248466c78756646484d304b6d434a756a494b7941786a445f6d33715f5f496948555648443174444945764c50684739417a736e336a3935642d736149675a7a504c685146694b6c754776736a72536b595535705856574973562d42326a744c65654c433134586359785744554a3071566f70786b4276646c4552634e746746346476573458303045486a3476436c6a4677227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235f544b7a4876326a464979766454474631447367776e67666467335348365470447630546131614f456b77222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d323536222c2278223a2233384d3146447473374f65613775726d7365697567475737745763336d4c704a6836724b653778494e5a38222c2279223a226e44515736585a37625f7532537939736c6f66594c6c473033734f456f7567334930614150513065787334227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e233877675266593373576d7a6f65414c2d37382d6f414c4e764e6a36375a6c5178643173735f4e5831685a59222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d333834222c2278223a22476e4c6c366d4474693761325655495a50357736706352583871356e764549674233515f355249327039465f51567361416c444e37494736384a6e3064535f46222c2279223a226a7134516f41484b69497a657a44703838735f637853505874755859466c697543476e646755345170386c3931787a44317370436d46497a5167566a71766350227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e234e6a5136595f5a4d6a3649554b5f586b67434477744b486c4e545554566a45594f575a74786870316e2d45222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d353231222c2278223a2241566c5a4732334c795859776c626a6247504d785a62486d4a704453752d497670754b6967454e32707a675774536f2d2d5277642d6e37386e72576e5a7a6544633138374c6e3371486c77354c524772583471674c512d79222c2279223a22414e4962466552645048663157594d43556a63507a2d5a6865635a4679624f714c494a6a564f6c4c4554483775506c79473067456f4d576e495a58685156797050795f48745569557a646e53455041796c59684842545832227d7d5d7d"
+                      didVersionMetadata: "0x7b226d657461223a2266363432653135343161363435656534363530613338323537363165646566393465333037316265316237633735396336383833346663336637323363613838227d"
+              Build tx to detachDidDocumentVersionMetadata:
+                value:
+                  jsonrpc: "2.0"
+                  method: detachDidDocumentVersionMetadata
+                  id: 1
+                  params:
+                    - from: "0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7"
+                      identifier: "0x6469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e"
+                      didVersionInfo: "0x7b2240636f6e74657874223a2268747470733a2f2f7777772e77332e6f72672f6e732f6469642f7631222c226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c22766572696669636174696f6e4d6574686f64223a5b7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235a43326a58544f36743452353031626643587633527861725a795562645032775f70734c774d7559366563222c2274797065223a2245643235353139566572696669636174696f6e4b657932303138222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b6579426173653538223a22483343324156764c4d7636676d4d4e616d337556416a5a70666b634a437744776e5a6e367a3377586d715056227d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e237a5133736850326d57735a59576776674d31316e656e58525478394c3179694a4b6d6b6639646658374e614d4b62317058222c2274797065223a224563647361536563703235366b31566572696669636174696f6e4b657932303139222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b6579426173653538223a2264356357325235334e4854546b76374551535952385978614b78374d56436363686a6d4b354567434e58786f227d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235f517130554c3246713635315130466a643654766e59452d666148694f70526c50565163595f2d74413441222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224f4b50222c22637276223a2245643235353139222c2278223a225643706f324c4d4c686e3669576b75384d4b76534c67325a416f432d6e6c4f79505651614f334678566551227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e237a364c536e6a61677a686538446636675a6d726f5733776a44643758514c77417559667761345a6554424347466f5963222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224f4b50222c22637276223a22583235353139222c2278223a2270455f6d473039387264516a59334d4b4b324435535551365a4f45573361365a3654375a3453676e7a4345227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e2334535a2d5374587270355964345f347278485654435954487974347a7950664e3166497559736d366b3341222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22736563703235366b31222c2278223a225a3459334e4e4f7876304a36744367714f42466e486e615a684a46364c64756c54377a38412d3244355f38222c2279223a22693561324e744a6f554b586b4c6d3671386e4f457539574f6b736f3141673646545554366b5f4c4d6e476b227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e236e3463512d495f576b484d637758424a613749486b597538434d66644e635a4b6e4b734f726e484c704673222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a22525341222c2265223a2241514142222c226e223a226f6d777343314171456b3677687678794f6c74434657686553517676314d45787535524c434d54346a566b396b684a4b76384a654d5857653362574861746a50736b646632646c61476b5735516a744f6e554b4c3734326d76723474436c644b5333554c49615431684a496e4d4848786a32676375624f366545656741435134515375394c4f30482d4c4d5f4c3344735241424237516a61384865637079757370573154755f4462717863536e77656e64616d774c3532563137654b686c4f34755877763248466c78756646484d304b6d434a756a494b7941786a445f6d33715f5f496948555648443174444945764c50684739417a736e336a3935642d736149675a7a504c685146694b6c754776736a72536b595535705856574973562d42326a744c65654c433134586359785744554a3071566f70786b4276646c4552634e746746346476573458303045486a3476436c6a4677227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235f544b7a4876326a464979766454474631447367776e67666467335348365470447630546131614f456b77222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d323536222c2278223a2233384d3146447473374f65613775726d7365697567475737745763336d4c704a6836724b653778494e5a38222c2279223a226e44515736585a37625f7532537939736c6f66594c6c473033734f456f7567334930614150513065787334227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e233877675266593373576d7a6f65414c2d37382d6f414c4e764e6a36375a6c5178643173735f4e5831685a59222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d333834222c2278223a22476e4c6c366d4474693761325655495a50357736706352583871356e764549674233515f355249327039465f51567361416c444e37494736384a6e3064535f46222c2279223a226a7134516f41484b69497a657a44703838735f637853505874755859466c697543476e646755345170386c3931787a44317370436d46497a5167566a71766350227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e234e6a5136595f5a4d6a3649554b5f586b67434477744b486c4e545554566a45594f575a74786870316e2d45222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d353231222c2278223a2241566c5a4732334c795859776c626a6247504d785a62486d4a704453752d497670754b6967454e32707a675774536f2d2d5277642d6e37386e72576e5a7a6544633138374c6e3371486c77354c524772583471674c512d79222c2279223a22414e4962466552645048663157594d43556a63507a2d5a6865635a4679624f714c494a6a564f6c4c4554483775506c79473067456f4d576e495a58685156797050795f48745569557a646e53455041796c59684842545832227d7d5d7d"
+                      didVersionMetadata: "0x7b226d657461223a2266363432653135343161363435656534363530613338323537363165646566393465333037316265316237633735396336383833346663336637323363613838227d"
+              Send Transaction:
+                value:
+                  jsonrpc: "2.0"
+                  method: sendSignedTransaction
+                  id: 1
+                  params:
+                    - protocol: eth
+                      unsignedTransaction:
+                        from: "0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7"
+                        to: "0xFde86148db58f57787C06BeAf63a9c3f789357b3"
+                        data: "0x0000..."
+                        nonce: "0x00"
+                        chainId: "0x1b3b"
+                        gasLimit: "0x10000"
+                        gasPrice: "0x00"
+                        value: "0x00"
+                      r: "0x..."
+                      s: "0x..."
+                      v: "0x..."
+                      signedRawTransaction: "--- signed raw transaction ---"
+              Send Transaction (DEPRECATED):
+                description: |
+                  THIS METHOD IS DEPRECATED! Use "sendSignedTransaction" instead.
+                  Call to send a signed transaction to the blockchain.
+                value:
+                  jsonrpc: "2.0"
+                  method: signedTransaction
+                  id: 1
+                  params:
+                    - protocol: eth
+                      unsignedTransaction:
+                        from: "0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7"
+                        to: "0xFde86148db58f57787C06BeAf63a9c3f789357b3"
+                        data: "0x0000..."
+                        nonce: "0x00"
+                        chainId: "0x1b3b"
+                        gasLimit: "0x10000"
+                        gasPrice: "0x00"
+                        value: "0x00"
+                      r: "0x..."
+                      s: "0x..."
+                      v: "0x..."
+                      signedRawTransaction: "--- signed raw transaction ---"
+      responses:
+        "200":
+          description: Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonRpcResponse"
+              examples:
+                Build unsigned blockchain transaction to register a DID:
+                  value:
+                    jsonrpc: "2.0"
+                    id: 1
+                    result:
+                      from: "0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7"
+                      to: "0xFde86148db58f57787C06BeAf63a9c3f789357b3"
+                      data: "0x0000..."
+                      nonce: "0x00"
+                      chainId: "0x1b3b"
+                      gasLimit: "0x10000"
+                      gasPrice: "0x00"
+                      value: "0x00"
+                Build tx:
+                  value:
+                    jsonrpc: "2.0"
+                    id: 1
+                    result:
+                      from: "0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7"
+                      to: "0xFde86148db58f57787C06BeAf63a9c3f789357b3"
+                      data: "0x0000..."
+                      nonce: "0x00"
+                      chainId: "0x1b3b"
+                      gasLimit: "0x10000"
+                      gasPrice: "0x00"
+                      value: "0x00"
+                Send a transaction:
+                  value:
+                    jsonrpc: "2.0"
+                    id: 1
+                    result: "0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Bad Request:
+                  $ref: "#/components/examples/BadRequest"
+components:
+  schemas:
+    ProblemDetails:
+      title: Problem Details
+      description: A [Problem Details](https://datatracker.ietf.org/doc/html/rfc7807) object.
+      type: object
+      properties:
+        type:
+          type: string
+          format: uri
+          description: |
+            An absolute URI that identifies the problem type. When dereferenced,
+            it SHOULD provide human-readable documentation for the problem type.
+          default: about:blank
+        title:
+          type: string
+          description: |
+            A short summary of the problem type.
+          example: Internal Server Error
+        status:
+          type: integer
+          format: int32
+          description: |
+            The HTTP status code generated by the origin server for this occurrence of the problem.
+          minimum: 400
+          maximum: 600
+          example: 500
+        detail:
+          type: string
+          description: |
+            A human readable explanation specific to this occurrence of the problem.
+          example: Connection timeout
+        instance:
+          type: string
+          format: uri
+          description: |
+            An absolute URI that identifies the specific occurrence of the problem.
+            It may or may not yield further information if dereferenced.
+    Links:
+      title: Links
+      description: Links model used for pagination
+      type: object
+      properties:
+        last:
+          type: string
+          description: URI of the last page
+        prev:
+          type: string
+          description: URI of the previous page
+        next:
+          type: string
+          description: URI of the next page
+        first:
+          type: string
+          description: URI of the first page
+    Attribute:
+      title: Attribute
+      description: Generic attribute model
+      type: object
+      properties:
+        hash:
+          type: string
+          description: sha256 hash of the payload
+        body:
+          description: Base64 encoded content
+    DIDDocument:
+      title: DID Document
+      description: DID Document as a JSON-LD document
+      type: object
+      additionalProperties: true
+      properties:
+        "@context":
+          description: DID Document @context
+          oneOf:
+            - type: string
+              format: uri
+            - type: array
+              items:
+                type: string
+                format: uri
+    DIDDocumentMetadata:
+      title: DID Document metadata
+      description: DID Document metadata as a JSON document
+      type: object
+    DIDTimestamp:
+      title: DID Timestamp
+      description: DID Timestamp
+      type: object
+      additionalProperties: true
+      properties:
+        hash:
+          type: string
+          description: Multihash encoded in multibase base64
+        timestampedBy:
+          type: string
+          description: Address of the transaction signer that timestamped the information.
+        blockNumber:
+          type: number
+          description: Number of the block in which the hash has been timestamped.
+        data:
+          type: string
+          description: Additional timestamp data.
+    HashAlgorithm:
+      title: Hash algorithm
+      type: object
+      properties:
+        outputLengthBits:
+          type: number
+          description: Hash algorithm output length in bits. 0 if the output length if variable.
+        ianaName:
+          type: string
+          description: Hash algorithm IANA name.
+        oid:
+          type: string
+          description: Object identifier.
+        status:
+          type: string
+          description: Status of the algorithm (active, revoked).
+        multihash:
+          type: string
+          description: Multihash name
+    Policy:
+      title: Policy
+      description: Policy data model
+      type: object
+      properties:
+        policyId:
+          type: string
+          description: Unique policy ID
+        policy:
+          type: string
+          description: Base64 encoded policy
+        hash:
+          type: string
+          description: Multihash of the policy, encoded in multibase base16
+    JsonRpcResponse:
+      title: JSON-RPC Response
+      type: object
+      properties:
+        jsonrpc:
+          description: Must be exactly "2.0"
+          type: string
+        id:
+          description: Same identifier established by the client in the call
+          type: integer
+        result:
+          description: Result of the call
+          oneOf:
+            - type: object
+            - type: string
+  examples:
+    BadRequest:
+      value:
+        title: Bad request
+        status: 400
+        detail: Bad request
+    NotFound:
+      value:
+        title: Not found
+        status: 404
+        detail: Not found
+    InternalError:
+      value:
+        title: Internal error
+        status: 500
+        detail: Internal error
+  securitySchemes:
+    bearerAuth:
+      description: >
+
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+servers:
+  - url: "http://localhost"
+    description: Local Computer Environment
+  - url: "https://api.test.intebsi.xyz"
+    description: EBSI Test Environment
+  - url: "https://api.preprod.ebsi.eu"
+    description: EBSI Pre-production Environment
+  - url: "https://api.ebsi.eu"
+    description: EBSI Production Environment
