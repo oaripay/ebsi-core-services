@@ -16,8 +16,8 @@ export const options = {
 };
 
 export default function loadTesting() {
-  group("/storage/v2/stores", () => {
-    const url = `${BASE_URL}/storage/v2/stores`;
+  group("/storage/v3/stores", () => {
+    const url = `${BASE_URL}/storage/v3/stores`;
     const request = http.get(url);
     check(request, {
       Success: (r) => r.status === 200,

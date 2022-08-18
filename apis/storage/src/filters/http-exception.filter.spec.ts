@@ -61,10 +61,8 @@ describe("All exception filter tests", () => {
     Logger.overrideLogger(false);
 
     configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
-
     app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
-
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     service = moduleFixture.get<AllExceptionsFilter>(AllExceptionsFilter);

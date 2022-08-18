@@ -1,22 +1,22 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger, HttpServer } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
+import { ConfigService } from "@nestjs/config";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { STORES } from "../../src/modules/stores/stores.constants";
 import { fastifyAdapterConfig } from "../../src/config/server.config";
+import { getServer } from "../utils/getServer";
 import { ApiConfig } from "../../src/config/configuration";
 
 describe("Stores (e2e)", () => {
   let app: NestFastifyApplication;
-  let server: HttpServer;
-  let configService: ConfigService<ApiConfig, true>;
+  let server: HttpServer | string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -30,7 +30,7 @@ describe("Stores (e2e)", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    configService =
+    const configService =
       moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
 
     app.useGlobalFilters(new AllExceptionsFilter(configService));
@@ -38,7 +38,8 @@ describe("Stores (e2e)", () => {
 
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+
+    server = getServer(app, configService);
   });
 
   describe("GET /stores", () => {

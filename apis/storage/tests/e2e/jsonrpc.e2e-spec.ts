@@ -13,10 +13,12 @@ import { AppModule } from "../../src/app.module";
 import { fastifyAdapterConfig } from "../../src/config/server.config";
 import { ApiConfig } from "../../src/config/configuration";
 import { requestOAuth2Jwt } from "../utils";
+import { describeWriteOps } from "../utils/describeWriteOps";
+import { getServer } from "../utils/getServer";
 
-describe("JsonRpc Module", () => {
+describeWriteOps()("JsonRpc Module", () => {
   let app: NestFastifyApplication;
-  let server: HttpServer;
+  let server: HttpServer | string;
   let configService: ConfigService<ApiConfig, true>;
 
   let accessToken: string;
@@ -41,15 +43,17 @@ describe("JsonRpc Module", () => {
 
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+
+    server = getServer(app, configService);
 
     // Generate a valid JWT for the tests
     accessToken = await requestOAuth2Jwt({
-      testAppKid: configService.get<string>("testAppKid"),
-      testAppName: configService.get<string>("testAppName"),
-      testAppPrivateKey: configService.get<string>("testAppPrivateKey"),
-      targetApiName: configService.get<string>("apiName"),
+      trustedAppName: configService.get<string>("testAppName"),
+      trustedAppPrivateKey: configService.get<string>("testAppPrivateKey"),
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+      trustedAppsRegistryApiUrl: configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      ),
     });
   });
 
@@ -89,8 +93,9 @@ describe("JsonRpc Module", () => {
       .send();
 
     expect(response.body).toStrictEqual({
-      detail:
-        "Invalid JWT: The token algorithm must be 'ES256K'. Received 'HS256'",
+      detail: `Invalid JWT: JWT with invalid kid. It should be hosted at ${configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      )}/apps`,
       status: 401,
       title: "Unauthorized",
       type: "about:blank",
@@ -193,7 +198,7 @@ describe("JsonRpc Module", () => {
     ["delete from attribute_storage where hash = ?", attributeHash],
   ];
 
-  describe.each(queries)("calling %j", (...args) => {
+  describeWriteOps().each(queries)("calling %j", (...args) => {
     it("should proxy a call to cassandra", async () => {
       expect.assertions(2);
       const response = await request(server)

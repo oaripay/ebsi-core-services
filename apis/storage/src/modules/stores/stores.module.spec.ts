@@ -2,6 +2,7 @@ import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger, HttpServer } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+
 import type { FastifyInstance } from "fastify";
 import {
   FastifyAdapter,
@@ -30,14 +31,13 @@ describe("Stores Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
 
     app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
-
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-
     server = app.getHttpServer() as HttpServer;
   });
 

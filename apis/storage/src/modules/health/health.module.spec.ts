@@ -25,6 +25,7 @@ describe("Health Module", () => {
       imports: [HealthModule],
     }).compile();
     Logger.overrideLogger(false);
+
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter()
     );
@@ -34,7 +35,6 @@ describe("Health Module", () => {
 
     app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe());
-
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;

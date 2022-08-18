@@ -8,7 +8,8 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import axios from "axios";
-import { Session } from "@cef-ebsi/oauth2-auth";
+import * as OAuth2Lib from "@cef-ebsi/oauth2-auth";
+import type { JwtTarVefifyResult } from "@cef-ebsi/oauth2-auth";
 import { Client, types } from "cassandra-driver";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
@@ -17,6 +18,18 @@ import { ApiConfig } from "../../config/configuration";
 import { AuthService } from "../auth/auth.service";
 
 jest.mock("cassandra-driver");
+
+jest.mock("@cef-ebsi/oauth2-auth", () => {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const originalModule = jest.requireActual("@cef-ebsi/oauth2-auth");
+
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+  return {
+    __esModule: true,
+    ...originalModule,
+    verifyJwtTar: jest.fn(),
+  };
+});
 
 describe("JsonRpc Module", () => {
   let app: NestFastifyApplication;
@@ -58,7 +71,6 @@ describe("JsonRpc Module", () => {
 
     app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
-
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
@@ -95,7 +107,7 @@ describe("JsonRpc Module", () => {
     expect.assertions(4);
 
     const verifyAccessTokenSpy = jest
-      .spyOn(Session.prototype, "verifyAccessToken")
+      .spyOn(OAuth2Lib, "verifyJwtTar")
       .mockImplementation(async () =>
         Promise.reject(new Error("error message"))
       );
@@ -115,10 +127,13 @@ describe("JsonRpc Module", () => {
     expect(
       (response.headers as { "content-type": string })["content-type"]
     ).toStrictEqual(expect.stringContaining("application/problem+json"));
-    expect(verifyAccessTokenSpy).toHaveBeenCalledWith(
-      "jwt",
-      configService.get("authorisationApiName")
-    );
+    expect(verifyAccessTokenSpy).toHaveBeenCalledWith("jwt", {
+      op: configService.get<string>("authorisationApiName"),
+      trustedAppsRegistry: `${configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      )}/apps`,
+      timeout: expect.any(Number) as number,
+    });
   });
 
   it("should throw Bad Request for a bad JSON-RPC call", async () => {
@@ -126,8 +141,10 @@ describe("JsonRpc Module", () => {
 
     // Mock access token verification
     jest
-      .spyOn(Session.prototype, "verifyAccessToken")
-      .mockImplementation(async () => Promise.resolve({}));
+      .spyOn(OAuth2Lib, "verifyJwtTar")
+      .mockImplementation(async () =>
+        Promise.resolve({ payload: {} } as JwtTarVefifyResult)
+      );
 
     const response = await request(server)
       .post("/stores/distributed/jsonrpc")

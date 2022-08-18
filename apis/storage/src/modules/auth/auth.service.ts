@@ -1,8 +1,8 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { decodeJWT, JWTPayload } from "did-jwt";
-import { Session as OAuth2Session } from "@cef-ebsi/oauth2-auth";
-import { Session as SiopSession } from "@cef-ebsi/siop-auth";
+import { verifyJwtTar as verifyOAuth2Token } from "@cef-ebsi/oauth2-auth";
+import { verifyJwtTar as verifySiopToken } from "@cef-ebsi/siop-auth";
 import { UnauthorizedError } from "@cef-ebsi/problem-details-errors";
 import { AppInfo, ClientInfo } from "./auth.interface";
 import { ApiConfig } from "../../config/configuration";
@@ -12,41 +12,25 @@ import { JwtCacheService } from "./jwt-cache.service";
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
-  private authorisationApiDid: string;
-
   private authorisationApiName: string;
 
-  private siopSession: SiopSession;
+  private trustedAppsRegistry: string;
 
-  private oauth2Session: OAuth2Session;
+  private timeout: number;
 
   constructor(
     private cache: JwtCacheService,
     configService: ConfigService<ApiConfig>
   ) {
-    this.authorisationApiDid = configService.get<string>("authorisationApiDid");
     this.authorisationApiName = configService.get<string>(
       "authorisationApiName"
     );
 
-    // Instantiate SiopSession
-    const didRegistry = `${configService.get<string>(
-      "didRegistryApiUrl"
-    )}/identifiers`;
-
-    this.siopSession = new SiopSession({ didRegistry });
-
-    // Instantiate OAuth2Session
-    const apiName = configService.get<string>("apiName");
-    const tarProvider = `${configService.get<string>(
-      "trustedAppsRegistry"
+    this.trustedAppsRegistry = `${configService.get<string>(
+      "trustedAppsRegistryApiUrl"
     )}/apps`;
 
-    // In the future: remove " " when privateKey becomes optional
-    this.oauth2Session = new OAuth2Session(" ", {
-      appName: apiName,
-      tarProvider,
-    });
+    this.timeout = configService.get<number>("requestTimeout");
   }
 
   storeJwt(
@@ -86,10 +70,11 @@ export class AuthService {
 
     try {
       this.logger.debug(`Verifying token: ${bearerToken}`);
-      const payload = await this.oauth2Session.verifyAccessToken(
-        bearerToken,
-        this.authorisationApiName
-      );
+      const { payload } = await verifyOAuth2Token(bearerToken, {
+        trustedAppsRegistry: this.trustedAppsRegistry,
+        op: this.authorisationApiName,
+        timeout: this.timeout,
+      });
 
       // Try to store valid JWT in cache
       this.storeJwt(bearerToken, now, payload.exp, requestHost);
@@ -115,10 +100,13 @@ export class AuthService {
     let payload: JWTPayload;
 
     try {
-      payload = await this.siopSession.verifyAccessToken(
-        bearerToken,
-        this.authorisationApiDid
-      );
+      payload = (
+        await verifySiopToken(bearerToken, {
+          trustedAppsRegistry: this.trustedAppsRegistry,
+          audience: "ebsi-core-services",
+          timeout: this.timeout,
+        })
+      ).payload;
     } catch (e) {
       let message = "unkown error";
 

@@ -14,6 +14,8 @@ import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { fastifyAdapterConfig } from "../../src/config/server.config";
 import { ApiConfig } from "../../src/config/configuration";
 import { requestSiopJwt } from "../utils/siopJwt";
+import { describeWriteOps } from "../utils/describeWriteOps";
+import { getServer } from "../utils/getServer";
 
 jest.setTimeout(60000);
 
@@ -21,7 +23,7 @@ const BASE_URL = "/stores/distributed/key-values";
 
 describe("Key-Values (e2e)", () => {
   let app: NestFastifyApplication;
-  let server: HttpServer;
+  let server: HttpServer | string;
   let configService: ConfigService<ApiConfig, true>;
   let testUserAccessToken: string;
 
@@ -47,20 +49,19 @@ describe("Key-Values (e2e)", () => {
 
     app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    server = getServer(app, configService);
 
     // Generate a valid Client JWT (SIOP) for the tests
-    const didRegistry = `${configService.get<string>(
-      "didRegistryApiUrl"
-    )}/identifiers`;
-
     testUserAccessToken = await requestSiopJwt({
-      didRegistry,
-      clientDid: configService.get<string>("testClientDid"),
+      clientKid: configService.get<string>("testClientKid"),
       clientPrivateKey: configService.get<string>("testClientPrivateKey"),
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+      trustedAppsRegistryApiUrl: configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      ),
     });
   });
 
@@ -68,7 +69,7 @@ describe("Key-Values (e2e)", () => {
     await app.close();
   });
 
-  describe(`PUT ${BASE_URL}/{key}`, () => {
+  describeWriteOps()(`PUT ${BASE_URL}/{key}`, () => {
     it("should throw an error if there's no JWT", async () => {
       expect.assertions(2);
 
@@ -190,11 +191,13 @@ describe("Key-Values (e2e)", () => {
         ]) as string[],
         links: {
           next: expect.stringMatching(
-            /^https:\/\/api\.test\.intebsi\.xyz\/storage\/v2\/stores\/distributed\/key-values\?page\[after\]=.*&page\[size\]=2/
+            /\/stores\/distributed\/key-values\?page\[after\]=.*&page\[size\]=2/
           ) as string,
         },
         pageSize: 2,
-        self: "https://api.test.intebsi.xyz/storage/v2/stores/distributed/key-values?page[size]=2",
+        self: expect.stringContaining(
+          "/stores/distributed/key-values?page[size]=2"
+        ) as string,
       });
       expect((response.body as { items: string[] }).items).toHaveLength(2);
       expect(response.status).toBe(200);
@@ -249,20 +252,22 @@ describe("Key-Values (e2e)", () => {
       expect(response.status).toBe(404);
     });
 
-    it("should return the value corresponding to the key", async () => {
-      expect.assertions(2);
+    describeWriteOps()("(test requiring actual data)", () => {
+      it("should return the value corresponding to the key", async () => {
+        expect.assertions(2);
 
-      const response = await request(server)
-        .get(`${BASE_URL}/${key}`)
-        .auth(testUserAccessToken, { type: "bearer" })
-        .send();
+        const response = await request(server)
+          .get(`${BASE_URL}/${key}`)
+          .auth(testUserAccessToken, { type: "bearer" })
+          .send();
 
-      expect(response.text).toStrictEqual(value2);
-      expect(response.status).toBe(200);
+        expect(response.text).toStrictEqual(value2);
+        expect(response.status).toBe(200);
+      });
     });
   });
 
-  describe(`DELETE ${BASE_URL}/{key}`, () => {
+  describeWriteOps()(`DELETE ${BASE_URL}/{key}`, () => {
     it("should throw a 404 when the key doesn't exist", async () => {
       expect.assertions(2);
 

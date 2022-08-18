@@ -9,7 +9,7 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
-import fastifyMultipart from "fastify-multipart";
+import fastifyMultipart from "@fastify/multipart";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import {
@@ -19,6 +19,8 @@ import {
 import { byteLength } from "../../src/shared/utils";
 import { ApiConfig } from "../../src/config/configuration";
 import { requestSiopJwt } from "../utils";
+import { describeWriteOps } from "../utils/describeWriteOps";
+import { getServer } from "../utils/getServer";
 
 jest.setTimeout(60000);
 
@@ -26,7 +28,7 @@ const BASE_URL = "/stores/distributed/files";
 
 describe("Files (e2e)", () => {
   let app: NestFastifyApplication;
-  let server: HttpServer;
+  let server: HttpServer | string;
   let configService: ConfigService<ApiConfig, true>;
   let testUserAccessToken: string;
 
@@ -61,28 +63,26 @@ describe("Files (e2e)", () => {
 
     await app.register(fastifyMultipart, fastifyMultipartConfig);
 
+    Logger.overrideLogger(false);
+
     configService =
       moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
-
     app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
-    Logger.overrideLogger(false);
-
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+
+    server = getServer(app, configService);
 
     // Generate valid Client JWT (SIOP) for the tests
-    const didRegistry = `${configService.get<string>(
-      "didRegistryApiUrl"
-    )}/identifiers`;
-
     testUserAccessToken = await requestSiopJwt({
-      didRegistry,
-      clientDid: configService.get<string>("testClientDid"),
+      clientKid: configService.get<string>("testClientKid"),
       clientPrivateKey: configService.get<string>("testClientPrivateKey"),
       authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+      trustedAppsRegistryApiUrl: configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      ),
     });
   });
 
@@ -90,7 +90,7 @@ describe("Files (e2e)", () => {
     await app.close();
   });
 
-  describe(`POST ${BASE_URL}`, () => {
+  describeWriteOps()(`POST ${BASE_URL}`, () => {
     it("should throw an error if there's no JWT", async () => {
       expect.assertions(2);
 
@@ -313,7 +313,9 @@ describe("Files (e2e)", () => {
         items: expect.arrayContaining([]) as string[],
         links: expect.objectContaining({}) as unknown,
         pageSize: 12,
-        self: "https://api.test.intebsi.xyz/storage/v2/stores/distributed/files?page[size]=12",
+        self: expect.stringContaining(
+          "/stores/distributed/files?page[size]=12"
+        ) as string,
       });
       expect(response.status).toBe(200);
     });
@@ -332,11 +334,13 @@ describe("Files (e2e)", () => {
         ]) as string[],
         links: {
           next: expect.stringMatching(
-            /^https:\/\/api\.test\.intebsi\.xyz\/storage\/v2\/stores\/distributed\/files\?page\[after\]=.*&page\[size\]=2/
+            /\/stores\/distributed\/files\?page\[after\]=.*&page\[size\]=2/
           ) as string,
         },
         pageSize: 2,
-        self: "https://api.test.intebsi.xyz/storage/v2/stores/distributed/files?page[size]=2",
+        self: expect.stringContaining(
+          "/stores/distributed/files?page[size]=2"
+        ) as string,
       });
       expect((response.body as { items: string[] }).items).toHaveLength(2);
       expect(response.status).toBe(200);
@@ -400,23 +404,25 @@ describe("Files (e2e)", () => {
       expect(response.status).toBe(404);
     });
 
-    it("should return the file corresponding to the hash", async () => {
-      expect.assertions(3);
+    describeWriteOps()("Test requiring actual data", () => {
+      it("should return the file corresponding to the hash", async () => {
+        expect.assertions(3);
 
-      const response = await request(server)
-        .get(`${BASE_URL}/${hash1}`)
-        .auth(testUserAccessToken, { type: "bearer" })
-        .send();
+        const response = await request(server)
+          .get(`${BASE_URL}/${hash1}`)
+          .auth(testUserAccessToken, { type: "bearer" })
+          .send();
 
-      expect(response.text).toStrictEqual(file1.toString());
-      expect((response as { header: unknown[] }).header).toStrictEqual(
-        expect.objectContaining({
-          "content-type": "text/plain",
-          "content-disposition": "attachment; filename=file.txt",
-          "content-length": `${byteLength(file1)}`,
-        })
-      );
-      expect(response.status).toBe(200);
+        expect(response.text).toStrictEqual(file1.toString());
+        expect((response as { header: unknown[] }).header).toStrictEqual(
+          expect.objectContaining({
+            "content-type": "text/plain",
+            "content-disposition": "attachment; filename=file.txt",
+            "content-length": `${byteLength(file1)}`,
+          })
+        );
+        expect(response.status).toBe(200);
+      });
     });
   });
 
@@ -454,26 +460,27 @@ describe("Files (e2e)", () => {
       });
       expect(response.status).toBe(404);
     });
+    describeWriteOps()("Test requiring actual data", () => {
+      it("should return the metadata corresponding to the hash", async () => {
+        expect.assertions(2);
 
-    it("should return the metadata corresponding to the hash", async () => {
-      expect.assertions(2);
+        const response = await request(server)
+          .get(`${BASE_URL}/${hash1}/metadata`)
+          .auth(testUserAccessToken, { type: "bearer" })
+          .send();
 
-      const response = await request(server)
-        .get(`${BASE_URL}/${hash1}/metadata`)
-        .auth(testUserAccessToken, { type: "bearer" })
-        .send();
-
-      // The metadata also contains the mimetype and filename extracted from the upload request
-      expect(response.body).toStrictEqual({
-        filename: "file.txt",
-        mimetype: "text/plain",
-        ...metadata1,
+        // The metadata also contains the mimetype and filename extracted from the upload request
+        expect(response.body).toStrictEqual({
+          filename: "file.txt",
+          mimetype: "text/plain",
+          ...metadata1,
+        });
+        expect(response.status).toBe(200);
       });
-      expect(response.status).toBe(200);
     });
   });
 
-  describe(`PATCH ${BASE_URL}/{hash}`, () => {
+  describeWriteOps()(`PATCH ${BASE_URL}/{hash}`, () => {
     it("should throw an error 400 when the hash is not hexadecimal", async () => {
       expect.assertions(2);
 
@@ -626,7 +633,7 @@ describe("Files (e2e)", () => {
     });
   });
 
-  describe(`DELETE ${BASE_URL}/{hash}`, () => {
+  describeWriteOps()(`DELETE ${BASE_URL}/{hash}`, () => {
     it("should throw a 400 when the hash is malformed", async () => {
       expect.assertions(2);
 
@@ -643,7 +650,7 @@ describe("Files (e2e)", () => {
       });
       expect(response.status).toBe(400);
     });
-
+    /* eslint-disable-next-line jest/no-identical-title */
     it("should throw a 404 when the hash doesn't exist", async () => {
       expect.assertions(2);
 

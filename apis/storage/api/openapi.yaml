@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Storage API
-  version: 2.0.0
+  version: 3.0.0
   description: |
     The Storage API is a generic supporting Core Service of the EBSI platform
     providing access to the Off-chain Storage services of the lower layer Chain &
@@ -32,11 +32,11 @@ info:
     name: EUPL-1.2
     url: https://joinup.ec.europa.eu/page/eupl-text-11-12
 paths:
-  /storage/v2/stores:
+  /storage/v3/stores:
     get:
       tags:
         - Stores
-      operationId: get-storage-v2-stores
+      operationId: get-storage-v3-stores
       summary: List stores
       description: Returns a list of available stores.
       security:
@@ -89,15 +89,15 @@ paths:
                     total: 4
                     pageSize: 10
                     links:
-                      first: /storage/v2/stores?page[after]=1&page[size]=10
-                      prev: /storage/v2/stores?page[after]=1&page[size]=10
-                      next: /storage/v2/stores?page[after]=1&page[size]=10
-                      last: /storage/v2/stores?page[after]=1&page[size]=10
-  /storage/v2/stores/{store}:
+                      first: /storage/v3/stores?page[after]=1&page[size]=10
+                      prev: /storage/v3/stores?page[after]=1&page[size]=10
+                      next: /storage/v3/stores?page[after]=1&page[size]=10
+                      last: /storage/v3/stores?page[after]=1&page[size]=10
+  /storage/v3/stores/{store}:
     get:
       tags:
         - Stores
-      operationId: get-storage-v2-stores-distributed
+      operationId: get-storage-v3-stores-distributed
       summary: Check if a store exists
       description: Checks if a store exists.
       security:
@@ -145,9 +145,9 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /storage/v2/stores/distributed/jsonrpc:
+  /storage/v3/stores/distributed/jsonrpc:
     post:
-      operationId: post-storage-v2-stores-distributed-jsonrpc
+      operationId: post-storage-v3-stores-distributed-jsonrpc
       tags:
         - Proxy
       summary: Proxy calls to Cassandra
@@ -314,11 +314,11 @@ paths:
               examples:
                 Forbidden:
                   $ref: "#/components/examples/Forbidden"
-  /storage/v2/stores/distributed/files:
+  /storage/v3/stores/distributed/files:
     get:
       tags:
         - File Storage
-      operationId: get-storage-v2-stores-distributed-files
+      operationId: get-storage-v3-stores-distributed-files
       summary: List files
       description: Gets a list of files stored in the distributed store.
       security:
@@ -376,10 +376,10 @@ paths:
                     total: 13
                     pageSize: 2
                     links:
-                      first: /storage/v2/stores/distributed/files?page[after]=1&page[size]=2
-                      prev: /storage/v2/stores/distributed/files?page[after]=2&page[size]=2
-                      next: /storage/v2/stores/distributed/files?page[after]=4&page[size]=2
-                      last: /storage/v2/stores/distributed/files?page[after]=7&page[size]=2
+                      first: /storage/v3/stores/distributed/files?page[after]=1&page[size]=2
+                      prev: /storage/v3/stores/distributed/files?page[after]=2&page[size]=2
+                      next: /storage/v3/stores/distributed/files?page[after]=4&page[size]=2
+                      last: /storage/v3/stores/distributed/files?page[after]=7&page[size]=2
         "400":
           description: Bad Request
           content:
@@ -434,7 +434,7 @@ paths:
     post:
       tags:
         - File Storage
-      operationId: post-storage-v2-stores-distributed-files
+      operationId: post-storage-v3-stores-distributed-files
       summary: Store a file
       description: Stores a file to the distributed storage.
       security:
@@ -543,11 +543,11 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /storage/v2/stores/distributed/files/{hash}:
+  /storage/v3/stores/distributed/files/{hash}:
     get:
       tags:
         - File Storage
-      operationId: get-storage-v2-stores-distributed-files-hash
+      operationId: get-storage-v3-stores-distributed-files-hash
       summary: Get a file
       description: Gets a file identified by its hash.
       security:
@@ -621,7 +621,7 @@ paths:
     patch:
       tags:
         - File Storage
-      operationId: patch-storage-v2-store-distributed-files-hash
+      operationId: patch-storage-v3-store-distributed-files-hash
       summary: Patch a file's metadata
       description: Applies a patch to the file's metadata.
       security:
@@ -796,7 +796,7 @@ paths:
     delete:
       tags:
         - File Storage
-      operationId: delete-storage-v2-stores-distributed-files-hash
+      operationId: delete-storage-v3-stores-distributed-files-hash
       summary: Delete a file
       description: Deletes a file identified by its hash.
       security:
@@ -862,11 +862,11 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /storage/v2/stores/distributed/files/{hash}/metadata:
+  /storage/v3/stores/distributed/files/{hash}/metadata:
     get:
       tags:
         - File Storage
-      operationId: get-storage-v2-stores-distributed-files-hash-metadata
+      operationId: get-storage-v3-stores-distributed-files-hash-metadata
       summary: Get a file's metadata
       description: Gets a file's metadata.
       security:
@@ -943,11 +943,11 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /storage/v2/stores/distributed/key-values:
+  /storage/v3/stores/distributed/key-values:
     get:
       tags:
         - Key-Value Storage
-      operationId: get-storage-v2-stores-distributed-key-values
+      operationId: get-storage-v3-stores-distributed-key-values
       summary: List key-values
       description: Gets the list of key-values by store.
       security:
@@ -990,7 +990,7 @@ paths:
                     description: Links model used for pagination with Cassandra
                     x-examples:
                       Links:
-                        next: /storage/v2/stores?page[after]=4&page[size]=abc123
+                        next: /storage/v3/stores?page[after]=4&page[size]=abc123
                   pageSize:
                     type: integer
                     description: Number of items to be returned per page
@@ -1002,7 +1002,7 @@ paths:
                       - key2
                     pageSize: 2
                     links:
-                      next: /storage/v2/stores/distributed/key-values?page[after]=4&page[size]=2
+                      next: /storage/v3/stores/distributed/key-values?page[after]=4&page[size]=2
         "400":
           description: Bad request
           content:
@@ -1045,11 +1045,11 @@ paths:
                     title: Not Found
                     status: 404
                     detail: Not found
-  /storage/v2/stores/distributed/key-values/{key}:
+  /storage/v3/stores/distributed/key-values/{key}:
     put:
       tags:
         - Key-Value Storage
-      operationId: put-storage-v2-stores-distributed-key-values-key
+      operationId: put-storage-v3-stores-distributed-key-values-key
       summary: Add or update a value
       description: Creates a new entry or updates an existing one.
       security:
@@ -1177,7 +1177,7 @@ paths:
     get:
       tags:
         - Key-Value Storage
-      operationId: get-storage-v2-stores-distributed-key-values-key
+      operationId: get-storage-v3-stores-distributed-key-values-key
       summary: Get value
       description: Gets the value associated with the key.
       security:
@@ -1253,7 +1253,7 @@ paths:
     delete:
       tags:
         - Key-Value Storage
-      operationId: delete-storage-v2-stores-distributed-key-values-key
+      operationId: delete-storage-v3-stores-distributed-key-values-key
       summary: Delete a key-value
       description: Deletes a key-value
       security:
@@ -1355,10 +1355,10 @@ components:
           description: URI of the first page
       x-examples:
         Links:
-          first: /storage/v2/stores?page[after]=1&page[size]=2
-          prev: /storage/v2/stores?page[after]=2&page[size]=2
-          next: /storage/v2/stores?page[after]=4&page[size]=2
-          last: /storage/v2/stores?page[after]=13&page[size]=2
+          first: /storage/v3/stores?page[after]=1&page[size]=2
+          prev: /storage/v3/stores?page[after]=2&page[size]=2
+          next: /storage/v3/stores?page[after]=4&page[size]=2
+          last: /storage/v3/stores?page[after]=13&page[size]=2
     ProblemDetails:
       title: Problem Details
       description: A [Problem Details](https://datatracker.ietf.org/doc/html/rfc7807) object.
