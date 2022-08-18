@@ -1,0 +1,560 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+
+import { Injectable, Logger } from "@nestjs/common";
+import axios from "axios";
+import { ethers } from "ethers";
+import { ConfigService } from "@nestjs/config";
+import { ProblemDetailsError } from "@cef-ebsi/problem-details-errors";
+import {
+  RequestInsertPolicyDto,
+  RequestUpdatePolicyDto,
+  RequestAddPolicyConditionsDto,
+  RequestDeletePolicyConditionDto,
+  RequestActivatePolicyDto,
+  RequestDeactivatePolicyDto,
+  RequestInsertUserAttributesDto,
+  RequestUpdateUserAttributeDto,
+  RequestDeleteUserAttributeDto,
+  ArgsInsertPolicy,
+  ArgsUpdatePolicy,
+  ArgsAddPolicyConditions,
+  ArgsDeletePolicyCondition,
+  ArgsActivatePolicy,
+  ArgsDeactivatePolicy,
+  ArgsInsertUserAttributes,
+  ArgsUpdateUserAttribute,
+  ArgsDeleteUserAttribute,
+  UnsignedTransaction,
+  SignedTransactionParam,
+  RequestSendSignedTransactionDto,
+} from "./dto";
+import { InvalidRequestJsonRpcError } from "./errors";
+import {
+  formatEthersUnsignedTransaction,
+  formatEthersSignature,
+  validateClass,
+} from "./jsonrpc.utils";
+import { LedgerService } from "../../shared/services/ledger.service";
+import { ApiConfig } from "../../config/configuration";
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof ProblemDetailsError && error.detail) {
+    return error.detail;
+  }
+
+  return (error as Error).message;
+}
+
+@Injectable()
+export class JsonRpcService {
+  private readonly logger = new Logger(JsonRpcService.name);
+
+  private chainId: string = null;
+
+  private didRegistry: string;
+
+  private contractAddress: string;
+
+  private timeout: number;
+
+  constructor(
+    configService: ConfigService<ApiConfig>,
+    private ledgerService: LedgerService
+  ) {
+    this.didRegistry = configService.get<string>("didRegistryApiUrl");
+    this.contractAddress = ledgerService.getContractAddress();
+    this.timeout = configService.get<number>("requestTimeout");
+  }
+
+  async getChainId(): Promise<string> {
+    if (!this.chainId) {
+      const { chainId } = await (
+        await this.ledgerService.getContract()
+      ).provider.getNetwork();
+      this.chainId = ethers.BigNumber.from(chainId).toHexString();
+    }
+    return this.chainId;
+  }
+
+  async getBlockNumber(): Promise<number> {
+    return (await this.ledgerService.getContract()).provider.getBlockNumber();
+  }
+
+  async estimateGas(
+    transaction: UnsignedTransaction
+  ): Promise<ethers.BigNumber> {
+    const { from, to, data, value } = transaction;
+
+    return (
+      await this.ledgerService.getContract({ protectedMethod: true })
+    ).provider.estimateGas({
+      from,
+      to,
+      data,
+      value,
+    });
+  }
+
+  async isDidControlledByAddress(
+    did: string,
+    controllerAddress: string,
+    currentPage = 1
+  ): Promise<boolean> {
+    const pageSize = 50;
+
+    const { data } = await axios.get<{
+      items: { did: string }[];
+      total: number;
+    }>(
+      `${this.didRegistry}/identifiers?controller=${controllerAddress}&page[size]=${pageSize}&page[after]=${currentPage}`,
+      { timeout: this.timeout }
+    );
+
+    // Check if DID is in the list
+    if (data.items.map((item) => item.did).includes(did)) {
+      return true;
+    }
+
+    // Recursive call if there are more pages
+    if (currentPage * pageSize < data.total) {
+      return this.isDidControlledByAddress(
+        did,
+        controllerAddress,
+        currentPage + 1
+      );
+    }
+
+    return false;
+  }
+
+  async checkDidOwnership(address: string, clientId: string): Promise<void> {
+    // Check DID Registry
+    if (!(await this.isDidControlledByAddress(clientId, address))) {
+      throw new Error(
+        `The DID ${clientId} is not controlled by the address ${address}`
+      );
+    }
+  }
+
+  async verifyTransaction(
+    param: SignedTransactionParam
+  ): Promise<{ signer: string; functionName: string }> {
+    const { unsignedTransaction, r, s, v, signedRawTransaction } = param;
+
+    const unsignedTx = formatEthersUnsignedTransaction(unsignedTransaction);
+    const signature = formatEthersSignature(r, s, v);
+
+    // Serialize transaction with and without signature
+    const serializedTransaction = ethers.utils.serializeTransaction(unsignedTx);
+    const serializedTransactionSigned = ethers.utils.serializeTransaction(
+      unsignedTx,
+      signature
+    );
+
+    if (serializedTransactionSigned !== signedRawTransaction)
+      throw new Error(
+        `The unsigned transaction + signature (${serializedTransactionSigned}) does not match with the signedRawTransaction (${signedRawTransaction})`
+      );
+
+    // recover address used to sign
+    const digest = ethers.utils.keccak256(serializedTransaction);
+    const signer = ethers.utils.recoverAddress(digest, signature);
+
+    if (signer.toLowerCase() !== unsignedTransaction.from.toLowerCase())
+      throw new Error(
+        `The signer of the transaction (${signer}) does not match with unsignedTransaction.from (${unsignedTransaction.from}) `
+      );
+
+    const chainId = await this.getChainId();
+    if (unsignedTransaction.chainId !== chainId)
+      throw new Error(
+        `Invalid unsignedTransaction.chainId. Expected ${chainId}. Received ${unsignedTransaction.chainId}`
+      );
+
+    if (unsignedTransaction.to !== this.contractAddress)
+      throw new Error(
+        `Invalid unsignedTransaction.to. Expected ${this.contractAddress}. Received ${unsignedTransaction.to}`
+      );
+
+    // verify function and parameters enconded in unsignedTransaction.data
+    const { args, functionFragment } = (
+      await this.ledgerService.getContract()
+    ).interface.parseTransaction(unsignedTransaction);
+
+    switch (functionFragment.name) {
+      case "insertPolicy": {
+        await validateClass(
+          ArgsInsertPolicy,
+          args as unknown as ArgsInsertPolicy
+        );
+        break;
+      }
+      case "updatePolicy": {
+        await validateClass(
+          ArgsUpdatePolicy,
+          args as unknown as ArgsUpdatePolicy
+        );
+        break;
+      }
+      case "addPolicyConditions": {
+        await validateClass(
+          ArgsAddPolicyConditions,
+          args as unknown as ArgsAddPolicyConditions
+        );
+        break;
+      }
+      case "deletePolicyCondition": {
+        await validateClass(
+          ArgsDeletePolicyCondition,
+          args as unknown as ArgsDeletePolicyCondition
+        );
+        break;
+      }
+      case "activatePolicy": {
+        await validateClass(
+          ArgsActivatePolicy,
+          args as unknown as ArgsActivatePolicy
+        );
+        break;
+      }
+      case "deactivatePolicy": {
+        await validateClass(
+          ArgsDeactivatePolicy,
+          args as unknown as ArgsDeactivatePolicy
+        );
+        break;
+      }
+      case "insertUserAttributes": {
+        await validateClass(
+          ArgsInsertUserAttributes,
+          args as unknown as ArgsInsertUserAttributes
+        );
+        break;
+      }
+      case "updateUserAttribute": {
+        await validateClass(
+          ArgsUpdateUserAttribute,
+          args as unknown as ArgsUpdateUserAttribute
+        );
+        break;
+      }
+      case "deleteUserAttribute": {
+        await validateClass(
+          ArgsDeleteUserAttribute,
+          args as unknown as ArgsDeleteUserAttribute
+        );
+        break;
+      }
+      default:
+        throw new Error(
+          `The function name ${functionFragment.name} can not be used in this context`
+        );
+    }
+
+    return {
+      signer,
+      functionName: functionFragment.name,
+    };
+  }
+
+  async buildTransaction(
+    from: string,
+    params: string
+  ): Promise<UnsignedTransaction> {
+    const nonceInt = await (
+      await this.ledgerService.getContract()
+    ).provider.getTransactionCount(from);
+
+    const unsignedTransaction: UnsignedTransaction = {
+      from,
+      to: this.contractAddress,
+      data: params,
+      value: "0x0",
+      nonce: ethers.BigNumber.from(nonceInt).toHexString(),
+      chainId: await this.getChainId(),
+      gasLimit: "0x1000000",
+      gasPrice: "0x0",
+    };
+
+    let gasEstimation: string | ethers.BigNumber = "unset";
+
+    try {
+      gasEstimation = await this.estimateGas(unsignedTransaction);
+      // Multiply by 1.4
+      unsignedTransaction.gasLimit = gasEstimation
+        .mul(14)
+        .div(10)
+        .toHexString();
+    } catch (error) {
+      this.logger.warn(
+        `Gas could not be estimated.${
+          gasEstimation === "unset"
+            ? ""
+            : `Received ${gasEstimation.toString()}.`
+        } Using 0x1000000`
+      );
+      unsignedTransaction.gasLimit = "0x1000000";
+    }
+
+    return unsignedTransaction;
+  }
+
+  async buildTransactionInsertPolicy(
+    body: RequestInsertPolicyDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestInsertPolicyDto, body);
+      const { from, opType, policyConditions, policyName, description } =
+        body.params[0];
+
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData("insertPolicy", [
+        opType,
+        policyConditions,
+        policyName,
+        description,
+      ]);
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionUpdatePolicy(
+    body: RequestUpdatePolicyDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestUpdatePolicyDto, body);
+      const { from, policyId, opType, policyName, description } =
+        body.params[0];
+      const functionSig = policyName
+        ? "updatePolicy(string,uint8,string)"
+        : "updatePolicy(uint256,uint8,string)";
+
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData(
+        // @ts-ignore
+        functionSig,
+        [policyName ?? policyId, opType, description]
+      );
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionAddPolicyConditions(
+    body: RequestAddPolicyConditionsDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestAddPolicyConditionsDto, body);
+      const { from, policyId, policyName, policyConditions } = body.params[0];
+      const functionSig = policyName
+        ? "addPolicyConditions(string,(string,string,uint8,bytes,uint8)[])"
+        : "addPolicyConditions(uint256,(string,string,uint8,bytes,uint8)[])";
+
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData(
+        // @ts-ignore
+        functionSig,
+        [policyName ?? policyId, policyConditions]
+      );
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionDeletePolicyCondition(
+    body: RequestDeletePolicyConditionDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestDeletePolicyConditionDto, body);
+      const { from, policyId, policyName, policyConditionId } = body.params[0];
+      const functionSig = policyName
+        ? "deletePolicyCondition(string,uint256)"
+        : "deletePolicyCondition(uint256,uint256)";
+
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData(
+        // @ts-ignore
+        functionSig,
+        [policyName ?? policyId, policyConditionId]
+      );
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionActivatePolicy(
+    body: RequestActivatePolicyDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestActivatePolicyDto, body);
+      const { from, policyId, policyName } = body.params[0];
+      const functionSig = policyName
+        ? "activatePolicy(string)"
+        : "activatePolicy(uint256)";
+
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData(
+        // @ts-ignore
+        functionSig,
+        [policyName ?? policyId]
+      );
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionDeactivatePolicy(
+    body: RequestDeactivatePolicyDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestDeactivatePolicyDto, body);
+      const { from, policyId, policyName } = body.params[0];
+      const functionSig = policyName
+        ? "deactivatePolicy(string)"
+        : "deactivatePolicy(uint256)";
+
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData(
+        // @ts-ignore
+        functionSig,
+        [policyName ?? policyId]
+      );
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionInsertUserAttributes(
+    body: RequestInsertUserAttributesDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestInsertUserAttributesDto, body);
+      const { from, address, attributeNames, attributeValues } = body.params[0];
+
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData("insertUserAttributes", [
+        address,
+        attributeNames,
+        attributeValues,
+      ]);
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionUpdateUserAttribute(
+    body: RequestUpdateUserAttributeDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestUpdateUserAttributeDto, body);
+      const { from, address, attributeName, attributeValue } = body.params[0];
+
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData("updateUserAttribute", [
+        address,
+        attributeName,
+        attributeValue,
+      ]);
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionDeleteUserAttribute(
+    body: RequestDeleteUserAttributeDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestDeleteUserAttributeDto, body);
+      const { from, address, attributeName } = body.params[0];
+
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData("deleteUserAttribute", [
+        address,
+        attributeName,
+      ]);
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async sendTransaction(
+    clientId: string,
+    body: RequestSendSignedTransactionDto,
+    id?: number | string
+  ): Promise<string> {
+    try {
+      await validateClass(RequestSendSignedTransactionDto, body);
+
+      const request = body.params[0];
+      const { signer } = await this.verifyTransaction(request);
+
+      await this.checkDidOwnership(signer, clientId);
+
+      const tx = await (
+        await this.ledgerService.getContract({ protectedMethod: true })
+      ).provider.sendTransaction(request.signedRawTransaction);
+      return tx.hash;
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+}
+
+export default { JsonRpcService };
