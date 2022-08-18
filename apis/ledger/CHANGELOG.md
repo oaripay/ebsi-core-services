@@ -2,22 +2,32 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
-## [2.0.0-rc.10](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.9&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.10&targetRepoId=244) (2022-07-06)
+## [3.0.0-rc.1](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv3.0.0-rc.0&sourceBranch=refs%2Ftags%2Fv3.0.0-rc.1&targetRepoId=244) (2022-07-06)
 
 ### 🚀 Features
 
-- display version header in api v2 ([#127](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/127/overview)) - EBSIINT-4242 ([6db22ec](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/6db22ecb30cef9d3a68e5c5c6937176e9741bf93))
+- show docker image tag as response header on TEST environment ([#125](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/125/overview)) - EBSIINT-4242 ([2036f21](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/2036f215533bc135b1ad61283bf4cf6f2b2420d9))
 
 ### 🐛 Bug Fixes
 
-- fix jsrsasign vulnerability ([#135](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/135/overview)) - EBSIINT-4370 ([3189b75](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/3189b750765e5c48df49bc8090131af965b8914e))
+- vulnerabilities, update deps ([#137](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/137/overview)) - EBSIINT-4332 ([5d0001a](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/5d0001a159d7c41fd5afe089ed00d27e7a033e0f))
 
-## [2.0.0-rc.9](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.8&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.9&targetRepoId=244) (2022-06-08)
+## [3.0.0-rc.0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.8&sourceBranch=refs%2Ftags%2Fv3.0.0-rc.0&targetRepoId=244) (2022-06-08)
+
+### ⚠ BREAKING CHANGES
+
+- releases Ledger API v3.
 
 ### 🐛 Bug Fixes
 
-- bump protobufjs ([#119](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/119/overview)) - EBSIINT-4241 ([88cbb8d](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/88cbb8d55183c378ce5ab0aae339b21f96e5dcd2))
-- fix advisory GHSA-6xwr-q98w-rvg7 ([#117](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/117/overview)) - EBSIINT-4213 ([87bfee0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/87bfee08e5d5be6cb08a8c3b4abb0448e5de7e11))
+- bump protobufjs ([#118](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/118/overview)) - EBSIINT-4241 ([5e942ec](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/5e942ec77ee5c7a222a3acf7e09f244b0145255f))
+- update nconf version, fix GHSA-6xwr-q98w-rvg7 ([#113](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/113/overview)) - EBSIINT-4121 ([3905b73](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/3905b73f40479a6a67fd2854e092b42ccb444149))
+- update Node.js to v16.14.2 ([#111](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/111/overview)) - EBSIINT-3981 ([4973ff4](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/4973ff40d5fa993967b9d9b422d869f9d675d194))
+
+### 🚀 Features
+
+- bump dependencies - EBSIINT-4227 ([666d827](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/666d8277cef585df723a6b325933dc66c773764d))
+- update libs, use Authorisation API v2 and TAR v3 ([#105](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/105/overview)) - EBSIINT-3996 ([25927bf](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/25927bf4ed60666151f3ed1e943f330ea2c94957))
 
 ## [2.0.0-rc.8](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.7&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.8&targetRepoId=244) (2022-03-16)
 

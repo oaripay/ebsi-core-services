@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Ledger API
-  version: 2.0.0
+  version: 3.0.0
   description: |
     Ledger API service gives use case applications access to all the
     available blockchain protocol interfaces and capabilities provided by the
@@ -29,9 +29,9 @@ info:
     url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11
   termsOfService: /docs/terms
 paths:
-  /ledger/v2/blockchains/besu:
+  /ledger/v3/blockchains/besu:
     post:
-      operationId: post-ledger-v2-blockchains-besu
+      operationId: post-ledger-v3-blockchains-besu
       tags:
         - Hyperledger Besu
       summary: Besu JSON-RPC API
@@ -199,9 +199,9 @@ paths:
                   $ref: "#/components/examples/BesuPermissions"
                 Deployment Forbidden:
                   $ref: "#/components/examples/NoDeploySC"
-  /ledger/v2/blockchains/fabric/jsonrpc:
+  /ledger/v3/blockchains/fabric/jsonrpc:
     post:
-      operationId: post-ledger-v2-blockchains-fabric-jsonrpc
+      operationId: post-ledger-v3-blockchains-fabric-jsonrpc
       tags:
         - Hyperledger Fabric
       summary: Fabric JSON-RPC API
@@ -341,13 +341,13 @@ paths:
                   $ref: "#/components/examples/MethodNotFoundJsonRpcError"
                 Internal Error:
                   $ref: "#/components/examples/InternalJsonRpcError"
-  /ledger/v2/blockchains/fabric/channels:
+  /ledger/v3/blockchains/fabric/channels:
     get:
       tags:
         - Hyperledger Fabric
       summary: List channels
       description: Returns a list of all the available EBSI Fabric channels.
-      operationId: get-ledger-v2-blockchains-fabric-channels
+      operationId: get-ledger-v3-blockchains-fabric-channels
       parameters:
         - in: query
           name: page[after]
@@ -386,28 +386,28 @@ paths:
               examples:
                 "[test] Get Available Channels":
                   value:
-                    self: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
+                    self: https://api.test.intebsi.xyz/ledger/v3/blockchains/fabric/channels?page[after]=1&page[size]=10
                     items:
                       - iossdrpocchannel
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
-                      prev: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
-                      next: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
-                      last: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
+                      first: https://api.test.intebsi.xyz/ledger/v3/blockchains/fabric/channels?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/ledger/v3/blockchains/fabric/channels?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/ledger/v3/blockchains/fabric/channels?page[after]=1&page[size]=10
+                      last: https://api.test.intebsi.xyz/ledger/v3/blockchains/fabric/channels?page[after]=1&page[size]=10
                 "[pilot] Get Available Channels":
                   value:
-                    self: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
+                    self: https://api.preprod.ebsi.eu/ledger/v3/blockchains/fabric/channels?page[after]=1&page[size]=10
                     items:
                       - iossdrpocchannel
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
-                      next: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
-                      last: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels?page[after]=1&page[size]=10
+                      first: https://api.preprod.ebsi.eu/ledger/v3/blockchains/fabric/channels?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/ledger/v3/blockchains/fabric/channels?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/ledger/v3/blockchains/fabric/channels?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/ledger/v3/blockchains/fabric/channels?page[after]=1&page[size]=10
         "500":
           description: Internal Server Error
           content:
@@ -417,13 +417,13 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /ledger/v2/blockchains/fabric/channels/{channel}:
+  /ledger/v3/blockchains/fabric/channels/{channel}:
     get:
       tags:
         - Hyperledger Fabric
       summary: Check if a channel exists
       description: Check if a channel exists.
-      operationId: get-ledger-v2-blockchains-fabric-channel
+      operationId: get-ledger-v3-blockchains-fabric-channel
       parameters:
         - in: path
           name: channel
@@ -469,7 +469,7 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /ledger/v2/blockchains/fabric/channels/{channel}/blocks:
+  /ledger/v3/blockchains/fabric/channels/{channel}/blocks:
     get:
       tags:
         - Hyperledger Fabric
@@ -477,7 +477,7 @@ paths:
         Returns a list of blocks of the channel {channel}. By default API
         returns the last 10 (or less) blocks.
       summary: List blocks
-      operationId: get-ledger-v2-blockchains-fabric-channel-blocks
+      operationId: get-ledger-v3-blockchains-fabric-channel-blocks
       parameters:
         - in: path
           name: channel
@@ -549,12 +549,12 @@ paths:
                         txIds: []
                     total: 3
                     pageSize: 10
-                    self: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
+                    self: https://api.test.intebsi.xyz/ledger/v3/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
                     links:
-                      first: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
-                      prev: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channel/iossdrpocchannel/blocks?page[after]=1&page[size]=10
-                      next: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
-                      last: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
+                      first: https://api.test.intebsi.xyz/ledger/v3/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
+                      prev: https://api.test.intebsi.xyz/ledger/v3/blockchains/fabric/channel/iossdrpocchannel/blocks?page[after]=1&page[size]=10
+                      next: https://api.test.intebsi.xyz/ledger/v3/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
+                      last: https://api.test.intebsi.xyz/ledger/v3/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
                 "[pilot] Get blocks of the specified channel":
                   value:
                     items:
@@ -583,12 +583,12 @@ paths:
                         txIds: []
                     total: 3
                     pageSize: 10
-                    self: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
+                    self: https://api.preprod.ebsi.eu/ledger/v3/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
                     links:
-                      first: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channel/iossdrpocchannel/blocks?page[after]=1&page[size]=10
-                      next: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
-                      last: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
+                      first: https://api.preprod.ebsi.eu/ledger/v3/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/ledger/v3/blockchains/fabric/channel/iossdrpocchannel/blocks?page[after]=1&page[size]=10
+                      next: https://api.preprod.ebsi.eu/ledger/v3/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
+                      last: https://api.preprod.ebsi.eu/ledger/v3/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
         "400":
           description: Bad request. The format of the {channel} parameter is not valid.
           content:
@@ -623,13 +623,13 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /ledger/v2/blockchains/fabric/channels/{channel}/blocks/{blockNumber}:
+  /ledger/v3/blockchains/fabric/channels/{channel}/blocks/{blockNumber}:
     get:
       tags:
         - Hyperledger Fabric
       summary: Get a block
       description: Returns the block for the specified channel and block number.
-      operationId: get-ledger-v2-blockchains-fabric-channel-block
+      operationId: get-ledger-v3-blockchains-fabric-channel-block
       parameters:
         - in: path
           name: channel
@@ -707,7 +707,7 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /ledger/v2/blockchains/fabric/channels/{channel}/transactions:
+  /ledger/v3/blockchains/fabric/channels/{channel}/transactions:
     get:
       tags:
         - Hyperledger Fabric
@@ -715,7 +715,7 @@ paths:
       description:
         Returns a list of transactions of the channel {channel}. By default,
         the API returns the last 10 (or less) transactions.
-      operationId: get-ledger-v2-blockchains-fabric-channel-transactions
+      operationId: get-ledger-v3-blockchains-fabric-channel-transactions
       parameters:
         - in: path
           name: channel
@@ -797,10 +797,10 @@ paths:
                                 data: []
                             endorsersMspId: [null]
                     pageSize: 2
-                    self: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/transactions?page[after]=7&page[size]=10
+                    self: https://api.test.intebsi.xyz/ledger/v3/blockchains/fabric/channels/iossdrpocchannel/transactions?page[after]=7&page[size]=10
                     links:
-                      first: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/transactions?page[after]=7&page[size]=2
-                      next: https://api.test.intebsi.xyz/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/transactions?page[after]=566a762803f2391308b5ecf4138d331755ca2a92ddedcd97ccbfb7d8f5376e9a1&page[size]=2
+                      first: https://api.test.intebsi.xyz/ledger/v3/blockchains/fabric/channels/iossdrpocchannel/transactions?page[after]=7&page[size]=2
+                      next: https://api.test.intebsi.xyz/ledger/v3/blockchains/fabric/channels/iossdrpocchannel/transactions?page[after]=566a762803f2391308b5ecf4138d331755ca2a92ddedcd97ccbfb7d8f5376e9a1&page[size]=2
                 "[pilot] Get transactions of the specified channel":
                   value:
                     items:
@@ -839,10 +839,10 @@ paths:
                                 data: []
                             endorsersMspId: [null]
                     pageSize: 2
-                    self: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/transactions?page[after]=7&page[size]=10
+                    self: https://api.preprod.ebsi.eu/ledger/v3/blockchains/fabric/channels/iossdrpocchannel/transactions?page[after]=7&page[size]=10
                     links:
-                      first: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/transactions?page[after]=7&page[size]=2
-                      next: https://api.preprod.ebsi.eu/ledger/v2/blockchains/fabric/channels/iossdrpocchannel/transactions?page[after]=566a762803f2391308b5ecf4138d331755ca2a92ddedcd97ccbfb7d8f5376e9a1&page[size]=2
+                      first: https://api.preprod.ebsi.eu/ledger/v3/blockchains/fabric/channels/iossdrpocchannel/transactions?page[after]=7&page[size]=2
+                      next: https://api.preprod.ebsi.eu/ledger/v3/blockchains/fabric/channels/iossdrpocchannel/transactions?page[after]=566a762803f2391308b5ecf4138d331755ca2a92ddedcd97ccbfb7d8f5376e9a1&page[size]=2
         "400":
           description: Bad request. The format of the {channel} parameter is not valid.
           content:
@@ -877,13 +877,13 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
-  /ledger/v2/blockchains/fabric/channels/{channel}/transactions/{transactionId}:
+  /ledger/v3/blockchains/fabric/channels/{channel}/transactions/{transactionId}:
     get:
       tags:
         - Hyperledger Fabric
       summary: Get a transaction
       description: Returns the transaction of the channel {channel} specified by its transaction ID.
-      operationId: get-ledger-v2-blockchains-fabric-channel-transaction
+      operationId: get-ledger-v3-blockchains-fabric-channel-transaction
       parameters:
         - in: path
           name: channel

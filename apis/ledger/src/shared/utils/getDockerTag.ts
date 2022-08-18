@@ -24,7 +24,7 @@ export function getDockerTag(environment: string): string {
   const dockerComposeFile = fs.readFileSync(filePath, "utf-8");
 
   const file = yaml.parse(dockerComposeFile) as DockerComposeFile;
-  const { image } = file.services["ledger-api"];
+  const { image } = file.services["ledger-api-v3"];
   const imageParts = image.split(":");
   const tag = imageParts[imageParts.length - 1];
 

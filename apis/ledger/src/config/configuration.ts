@@ -6,7 +6,6 @@ import { getDockerTag } from "../shared/utils";
 export interface ApiConfig {
   apiPort: number;
   apiUrlPrefix: string;
-  apiName: string;
   logLevel: string;
   externalEbsiApiHealthCheck: string;
   besuRpcNode: string;
@@ -21,12 +20,11 @@ export interface ApiConfig {
   domain: string;
   localOrigin: string;
   authorisationApiName: string;
-  authorisationApiDid: string;
-  authorisationApiUrl: string;
+  authorisationApiUrl: string; // Only used in e2e tests
   trustedAppsRegistryApiUrl: string;
-  didRegistryApiUrl: string;
+  requestTimeout: number;
   testUser: {
-    did: string;
+    kid: string;
     privateKey: string;
   };
   testApp: {
@@ -42,47 +40,42 @@ const defaultConfig = {
   local: {
     LOG_LEVEL: "debug",
     DOMAIN: "https://api.test.intebsi.xyz",
-    AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v1",
+    AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v2",
     TRUSTED_APPS_REGISTRY_API_URL:
-      "https://api.test.intebsi.xyz/trusted-apps-registry/v2",
-    DID_REGISTRY_API_URL: "https://api.test.intebsi.xyz/did-registry/v2",
+      "https://api.test.intebsi.xyz/trusted-apps-registry/v3",
     HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
   },
   test: {
     LOG_LEVEL: "info",
     DOMAIN: "https://api.test.intebsi.xyz",
-    AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v1",
+    AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v2",
     TRUSTED_APPS_REGISTRY_API_URL:
-      "https://api.test.intebsi.xyz/trusted-apps-registry/v2",
-    DID_REGISTRY_API_URL: "https://api.test.intebsi.xyz/did-registry/v2",
+      "https://api.test.intebsi.xyz/trusted-apps-registry/v3",
     HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
   },
   conformance: {
     LOG_LEVEL: "info",
     DOMAIN: "https://api.conformance.intebsi.xyz",
     AUTHORISATION_API_URL:
-      "https://api.conformance.intebsi.xyz/authorisation/v1",
+      "https://api.conformance.intebsi.xyz/authorisation/v2",
     TRUSTED_APPS_REGISTRY_API_URL:
-      "https://api.conformance.intebsi.xyz/trusted-apps-registry/v2",
-    DID_REGISTRY_API_URL: "https://api.conformance.intebsi.xyz/did-registry/v2",
+      "https://api.conformance.intebsi.xyz/trusted-apps-registry/v3",
     HEALTH_CHECK: "https://api.conformance.intebsi.xyz/docs/",
   },
   pilot: {
     LOG_LEVEL: "warn",
     DOMAIN: "https://api.preprod.ebsi.eu",
-    AUTHORISATION_API_URL: "https://api.preprod.ebsi.eu/authorisation/v1",
+    AUTHORISATION_API_URL: "https://api.preprod.ebsi.eu/authorisation/v2",
     TRUSTED_APPS_REGISTRY_API_URL:
-      "https://api.preprod.ebsi.eu/trusted-apps-registry/v2",
-    DID_REGISTRY_API_URL: "https://api.preprod.ebsi.eu/did-registry/v2",
+      "https://api.preprod.ebsi.eu/trusted-apps-registry/v3",
     HEALTH_CHECK: "https://api.preprod.ebsi.eu/docs/",
   },
   prod: {
     LOG_LEVEL: "error",
     DOMAIN: "https://api.ebsi.eu",
-    AUTHORISATION_API_URL: "https://api.ebsi.eu/authorisation/v1",
+    AUTHORISATION_API_URL: "https://api.ebsi.eu/authorisation/v2",
     TRUSTED_APPS_REGISTRY_API_URL:
-      "https://api.ebsi.eu/trusted-apps-registry/v2",
-    DID_REGISTRY_API_URL: "https://api.ebsi.eu/did-registry/v2",
+      "https://api.ebsi.eu/trusted-apps-registry/v3",
     HEALTH_CHECK: "https://api.ebsi.eu/docs/",
   },
 };
@@ -96,8 +89,7 @@ export const loadConfig = (): ApiConfig => {
 
   return {
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
-    apiUrlPrefix: process.env.API_URL_PREFIX || "/ledger/v2",
-    apiName: process.env.API_NAME || "ledger-api",
+    apiUrlPrefix: process.env.API_URL_PREFIX || "/ledger/v3",
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     besuRpcNode: process.env.BESU_RPC_NODE,
     fabric: {
@@ -113,19 +105,16 @@ export const loadConfig = (): ApiConfig => {
     trustedAppsRegistryApiUrl:
       process.env.TRUSTED_APPS_REGISTRY_API_URL ||
       defaultConfig[EBSI_ENV].TRUSTED_APPS_REGISTRY_API_URL,
-    didRegistryApiUrl:
-      process.env.DID_REGISTRY_API_URL ||
-      defaultConfig[EBSI_ENV].DID_REGISTRY_API_URL,
     authorisationApiName:
       process.env.AUTHORISATION_API_NAME || "authorisation-api",
-    authorisationApiDid: process.env.AUTHORISATION_API_DID,
     authorisationApiUrl:
       process.env.AUTHORISATION_API_URL ||
       defaultConfig[EBSI_ENV].AUTHORISATION_API_URL,
     externalEbsiApiHealthCheck:
       process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
+    requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     testUser: {
-      did: process.env.TEST_USER_DID,
+      kid: process.env.TEST_USER_KID,
       privateKey: process.env.TEST_USER_PRIVATE_KEY,
     },
     testApp: {
@@ -155,7 +144,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
       .default("development"),
     API_PORT: Joi.string().default("3000"),
     API_URL_PREFIX: Joi.string(),
-    API_NAME: Joi.string(),
     AUTHORISATION_API_NAME: Joi.string(),
     LOG_LEVEL: Joi.string().valid(
       "silent",
@@ -190,10 +178,10 @@ export const ApiConfigModule = ConfigModule.forRoot({
     DOMAIN: Joi.string().uri(),
     LOCAL_ORIGIN: Joi.string().uri(),
     TRUSTED_APPS_REGISTRY_API_URL: Joi.string().uri(),
-    DID_REGISTRY_API_URL: Joi.string().uri(),
     AUTHORISATION_API_URL: Joi.string().uri(),
     HEALTH_CHECK: Joi.string(),
-    TEST_USER_DID: Joi.string(),
+    REQUEST_TIMEOUT: Joi.string(),
+    TEST_USER_KID: Joi.string(),
     TEST_USER_PRIVATE_KEY: Joi.string(),
     TEST_APP_ID: Joi.string(),
     TEST_APP_NAME: Joi.string(),

@@ -13,20 +13,22 @@ import {
 import type { FastifyInstance } from "fastify";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { ApiConfig } from "../../src/config/configuration";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import {
   createFakeToken,
-  oauth2Authentication,
-  siopAuthentication,
+  requestOAuth2Jwt,
+  requestSiopJwt,
 } from "../utils/authorisation";
+import { getServer } from "../utils/getServer";
 
 jest.setTimeout(60000);
 
-describe("POST /ledger/v2/blockchains/besu", () => {
+describe("POST /ledger/v3/blockchains/besu", () => {
   let app: INestApplication;
-  let server: HttpServer;
+  let server: HttpServer | string;
   let tokenOAuth2: string;
   let tokenSiop: string;
   let fakeTokenOAuth2: string;
@@ -39,6 +41,7 @@ describe("POST /ledger/v2/blockchains/besu", () => {
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter()
     );
+
     const configService =
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
 
@@ -49,7 +52,8 @@ describe("POST /ledger/v2/blockchains/besu", () => {
 
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+
+    server = getServer(app, configService);
 
     const testApp = configService.get<{
       id: string;
@@ -57,14 +61,36 @@ describe("POST /ledger/v2/blockchains/besu", () => {
       privateKey: string;
     }>("testApp");
 
-    const testUser = configService.get<{
-      did: string;
-      privateKey: string;
-    }>("testUser");
+    const testUser = configService.get<ApiConfig["testUser"]>("testUser");
 
-    tokenOAuth2 = await oauth2Authentication(testApp);
-    tokenSiop = await siopAuthentication(testUser);
-    fakeTokenOAuth2 = await createFakeToken("oauth2", true);
+    tokenOAuth2 = await requestOAuth2Jwt({
+      trustedAppName: testApp.name,
+      trustedAppPrivateKey: testApp.privateKey,
+      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+      trustedAppsRegistryApiUrl: configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      ),
+    });
+
+    tokenSiop = await requestSiopJwt({
+      clientKid: testUser.kid,
+      clientPrivateKey: testUser.privateKey,
+      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
+      trustedAppsRegistryApiUrl: configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      ),
+    });
+
+    fakeTokenOAuth2 = await createFakeToken({
+      loginHint: "oauth2",
+      authorisationApiName: configService.get<string>("authorisationApiName"),
+      trustedAppsRegistryApiUrl: configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      ),
+      testUserDid: EbsiWallet.createDid(),
+      testAppName: testApp.name,
+      useKidAuthApi: true,
+    });
   });
 
   afterAll(async () => {
@@ -92,7 +118,9 @@ describe("POST /ledger/v2/blockchains/besu", () => {
     expect(response.body).toStrictEqual({
       title: "Unauthorized",
       status: 401,
-      detail: "token validation failed",
+      detail: expect.stringContaining(
+        "JWT could not be validated with the public keys of 'authorisation-api'"
+      ) as string,
       type: "about:blank",
     });
     expect(response.status).toBe(401);
@@ -152,8 +180,7 @@ describe("POST /ledger/v2/blockchains/besu", () => {
 
     expect(response.body).toStrictEqual({
       jsonrpc: "2.0",
-      // https://ec.europa.eu/digital-building-blocks/wikis/display/BLOCKCHAININT/RFC+-+Ethereum+Genesis+File+for+the+new+Main-NET+and+Pilot-Net
-      result: "0x181f", // 6175
+      result: expect.any(String) as string,
       id: "42",
     });
     expect(response.status).toBe(200);

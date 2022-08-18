@@ -69,7 +69,11 @@ export class BesuService implements OnModuleDestroy {
 
   private chainId: number;
 
-  constructor(private configService: ConfigService<ApiConfig>) {}
+  private timeout: number;
+
+  constructor(private configService: ConfigService<ApiConfig>) {
+    this.timeout = configService.get<number>("requestTimeout");
+  }
 
   initBesuProvider(): void {
     const besuRpcNode = this.getBesuRpcNode();
@@ -83,6 +87,7 @@ export class BesuService implements OnModuleDestroy {
       const { origin, pathname, username, password } = new URL(besuRpcNode);
       this.ethersProvider = new ethers.providers.JsonRpcProvider({
         url: `${origin}${pathname}`,
+        timeout: this.timeout,
         ...(username &&
           password && {
             user: username,

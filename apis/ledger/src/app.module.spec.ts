@@ -56,11 +56,11 @@ describe("App Module", () => {
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter()
     );
+    configService = app.get<ConfigService<ApiConfig>>(ConfigService);
 
     // Turn off logger
     Logger.overrideLogger(false);
 
-    configService = app.get<ConfigService<ApiConfig>>(ConfigService);
     app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();

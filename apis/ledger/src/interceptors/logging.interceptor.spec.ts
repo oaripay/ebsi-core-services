@@ -1,16 +1,15 @@
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import { INestApplication, ValidationPipe } from "@nestjs/common";
+import { INestApplication, ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { of } from "rxjs";
-import { HttpService } from "@nestjs/axios";
+import { HealthIndicatorResult } from "@nestjs/terminus";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
-import { Logger } from "@nestjs/common/services/logger.service";
-import { JWTPayload, Session as OAuth2Session } from "@cef-ebsi/oauth2-auth";
+import type { JwtTarVefifyResult } from "@cef-ebsi/oauth2-auth";
+import axios from "axios";
 import { AppModule } from "../app.module";
 import { AllExceptionsFilter } from "../filters/http-exception.filter";
 import { createFakeToken } from "../../tests/utils/authorisation";
@@ -19,9 +18,14 @@ import { ApiConfig } from "../config/configuration";
 
 jest.setTimeout(120000);
 
+jest.mock("@cef-ebsi/oauth2-auth", () => ({
+  // In the following tests, we assume that the OAuth2 JWT is valid
+  verifyJwtTar: async (): Promise<JwtTarVefifyResult> =>
+    Promise.resolve({} as JwtTarVefifyResult),
+}));
+
 describe("Logging interceptor", () => {
   let app: INestApplication;
-  let httpService: HttpService;
   let configService: ConfigService<ApiConfig>;
 
   const mockedLogger = {
@@ -71,8 +75,6 @@ describe("Logging interceptor", () => {
 
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-
-    httpService = await moduleFixture.resolve<HttpService>(HttpService);
   });
 
   afterEach(() => {
@@ -83,11 +85,11 @@ describe("Logging interceptor", () => {
     it("should log the request and response", async () => {
       expect.assertions(2);
 
-      jest
-        .spyOn(httpService, "request")
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        .mockImplementation(() => of({}));
+      const status = { "ebsi-apis": { status: "up" } } as HealthIndicatorResult;
+
+      jest.spyOn(axios, "get").mockImplementation(() => {
+        return Promise.resolve(status);
+      });
 
       await request(app.getHttpServer()).get("/health");
 
@@ -97,7 +99,6 @@ describe("Logging interceptor", () => {
       expect(mockedLogger.log).toHaveBeenNthCalledWith(
         calls - 1,
         {
-          body: null,
           headers: {
             "accept-encoding": "gzip, deflate",
             connection: "close",
@@ -140,13 +141,13 @@ describe("Logging interceptor", () => {
     it("should log the request and response", async () => {
       expect.assertions(2);
 
-      jest
-        .spyOn(OAuth2Session.prototype, "verifyAccessToken")
-        .mockImplementation(
-          async (): Promise<JWTPayload> => Promise.resolve({ sub: "user" })
-        );
-
-      const tokenOAuth2 = await createFakeToken("oauth2");
+      const tokenOAuth2 = await createFakeToken({
+        trustedAppsRegistryApiUrl: "",
+        loginHint: "oauth2",
+        authorisationApiName: "authorisation-api",
+        testAppName: "test-app",
+        useKidAuthApi: false,
+      });
 
       await request(app.getHttpServer())
         .post("/blockchains/besu")

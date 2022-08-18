@@ -7,29 +7,30 @@ import {
   Logger,
   HttpServer,
 } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
+import { ConfigService } from "@nestjs/config";
 import { FabricService } from "../../src/modules/fabric/fabric.service";
 import {
   Block,
   Transaction,
   PaginatedList,
 } from "../../src/modules/fabric/interfaces";
-import { ApiConfig } from "../../src/config/configuration";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { FabricUser } from "../utils/FabricUser";
 import { ProposalResponseBase64 } from "../../src/modules/fabric/fabric.interface";
+import { ApiConfig } from "../../src/config/configuration";
+import { getServer } from "../utils/getServer";
 
 jest.setTimeout(60000);
 
 describe("Fabric e2e tests", () => {
   let app: INestApplication;
-  let server: HttpServer;
+  let server: HttpServer | string;
   let fabricService: FabricService;
 
   beforeAll(async () => {
@@ -40,6 +41,7 @@ describe("Fabric e2e tests", () => {
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter()
     );
+
     const configService =
       moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
 
@@ -50,8 +52,8 @@ describe("Fabric e2e tests", () => {
 
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
 
+    server = getServer(app, configService);
     fabricService = moduleFixture.get<FabricService>(FabricService);
   });
 
@@ -63,7 +65,7 @@ describe("Fabric e2e tests", () => {
     await app.close();
   });
 
-  describe("GET /ledger/v2/blockchains/fabric/channels", () => {
+  describe("GET /ledger/v3/blockchains/fabric/channels", () => {
     it("should return a list of available channels", async () => {
       expect.assertions(2);
 
@@ -108,7 +110,7 @@ describe("Fabric e2e tests", () => {
     });
   });
 
-  describe("GET /ledger/v2/blockchains/fabric/channels/{channel}", () => {
+  describe("GET /ledger/v3/blockchains/fabric/channels/{channel}", () => {
     it("should return 204 if the channel exists", async () => {
       expect.assertions(2);
 
@@ -162,7 +164,7 @@ describe("Fabric e2e tests", () => {
     });
   });
 
-  describe("GET /ledger/v2/blockchains/fabric/channels/{channel}/blocks", () => {
+  describe("GET /ledger/v3/blockchains/fabric/channels/{channel}/blocks", () => {
     it("should return 400 if the channel parameter is not formatted correctly", async () => {
       expect.assertions(2);
 
@@ -248,7 +250,7 @@ describe("Fabric e2e tests", () => {
     });
   });
 
-  describe("GET /ledger/v2/blockchains/fabric/channels/{channel}/blocks/{blockNum}", () => {
+  describe("GET /ledger/v3/blockchains/fabric/channels/{channel}/blocks/{blockNum}", () => {
     it("should return 400 if the channel parameter is not formatted correctly", async () => {
       expect.assertions(2);
 
@@ -354,7 +356,7 @@ describe("Fabric e2e tests", () => {
     });
   });
 
-  describe("GET /ledger/v2/blockchains/fabric/channels/{channel}/transactions", () => {
+  describe("GET /ledger/v3/blockchains/fabric/channels/{channel}/transactions", () => {
     it("should return 400 if the channel parameter is not formatted correctly", async () => {
       expect.assertions(2);
 
@@ -498,7 +500,7 @@ describe("Fabric e2e tests", () => {
     });
   });
 
-  describe("GET /ledger/v2/blockchains/fabric/channels/{channel}/transactions/{transactionId}", () => {
+  describe("GET /ledger/v3/blockchains/fabric/channels/{channel}/transactions/{transactionId}", () => {
     let validTransactionId: string;
 
     beforeAll(async () => {
@@ -630,7 +632,7 @@ describe("Fabric e2e tests", () => {
     });
   });
 
-  describe("GET /ledger/v2/blockchains/fabric/jsonrpc", () => {
+  describe("GET /ledger/v3/blockchains/fabric/jsonrpc", () => {
     it("should read a contract", async () => {
       expect.assertions(2);
       const response = await request(server)

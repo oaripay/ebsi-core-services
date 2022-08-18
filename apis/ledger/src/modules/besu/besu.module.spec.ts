@@ -16,14 +16,19 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { Session as SiopSession } from "@cef-ebsi/siop-auth";
-import { JWTPayload, Session as OAuth2Session } from "@cef-ebsi/oauth2-auth";
+import * as OAuth2lib from "@cef-ebsi/oauth2-auth";
+import type { JwtTarVefifyResult } from "@cef-ebsi/oauth2-auth";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { ethers } from "ethers";
 import { BesuModule } from "./besu.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { BesuService } from "./besu.service";
 import { createFakeToken } from "../../../tests/utils/authorisation";
 import { ApiConfig } from "../../config/configuration";
+
+jest.mock("@cef-ebsi/oauth2-auth", () => ({
+  verifyJwtTar: jest.fn(),
+}));
 
 describe("Besu Module", () => {
   let app: INestApplication;
@@ -34,11 +39,8 @@ describe("Besu Module", () => {
   let tokenSiop: string;
   let configService: ConfigService<ApiConfig>;
   const ganachePort = 8547; // 8546 might already be used for ssh port forwarding
-  const mockAuthOAuth2 = jest.spyOn(
-    OAuth2Session.prototype,
-    "verifyAccessToken"
-  );
-  const mockAuthSiop = jest.spyOn(SiopSession.prototype, "verifyAccessToken");
+
+  const mockAuthOAuth2 = jest.spyOn(OAuth2lib, "verifyJwtTar");
 
   describe.each([
     `http://127.0.0.1:${ganachePort}`,
@@ -74,8 +76,20 @@ describe("Besu Module", () => {
 
       besuService = moduleFixture.get<BesuService>(BesuService);
 
-      tokenOAuth2 = await createFakeToken("oauth2");
-      tokenSiop = await createFakeToken("did_siop");
+      tokenOAuth2 = await createFakeToken({
+        trustedAppsRegistryApiUrl: "",
+        loginHint: "oauth2",
+        authorisationApiName: "authorisation-api",
+        testAppName: "test-app",
+        useKidAuthApi: false,
+      });
+      tokenSiop = await createFakeToken({
+        trustedAppsRegistryApiUrl: "",
+        loginHint: "did_siop",
+        authorisationApiName: "authorisation-api",
+        testUserDid: EbsiWallet.createDid(),
+        useKidAuthApi: false,
+      });
     });
 
     beforeEach(() => {
@@ -85,19 +99,10 @@ describe("Besu Module", () => {
 
       // mock libraries
       mockAuthOAuth2.mockImplementation(
-        async (): Promise<JWTPayload> =>
+        async (): Promise<JwtTarVefifyResult> =>
           Promise.reject(
             new Error(
               "Forgot to implement the mock for OAuth2 verifyAccessToken?"
-            )
-          )
-      );
-
-      mockAuthSiop.mockImplementation(
-        async (): Promise<JWTPayload> =>
-          Promise.reject(
-            new Error(
-              "Forgot to implement the mock for Siop verifyAccessToken?"
             )
           )
       );
@@ -127,7 +132,7 @@ describe("Besu Module", () => {
       expect(response.status).toBe(403);
 
       mockAuthOAuth2.mockImplementation(
-        async (): Promise<JWTPayload> =>
+        async (): Promise<JwtTarVefifyResult> =>
           Promise.reject(new Error("Mocked error"))
       );
 
@@ -149,7 +154,8 @@ describe("Besu Module", () => {
       expect.assertions(2);
 
       mockAuthOAuth2.mockImplementation(
-        async (): Promise<JWTPayload> => Promise.resolve({ sub: "user" })
+        async (): Promise<JwtTarVefifyResult> =>
+          Promise.resolve({ payload: { sub: "user" } } as JwtTarVefifyResult)
       );
 
       const response = await request(server)
@@ -171,7 +177,8 @@ describe("Besu Module", () => {
       expect.assertions(2);
 
       mockAuthOAuth2.mockImplementation(
-        async (): Promise<JWTPayload> => Promise.resolve({ sub: "user" })
+        async (): Promise<JwtTarVefifyResult> =>
+          Promise.resolve({ payload: { sub: "user" } } as JwtTarVefifyResult)
       );
 
       const response = await request(server)
@@ -238,7 +245,8 @@ describe("Besu Module", () => {
       expect.assertions(2);
 
       mockAuthOAuth2.mockImplementation(
-        async (): Promise<JWTPayload> => Promise.resolve({ sub: "user" })
+        async (): Promise<JwtTarVefifyResult> =>
+          Promise.resolve({ payload: { sub: "user" } } as JwtTarVefifyResult)
       );
 
       const response = await request(server)
@@ -257,6 +265,9 @@ describe("Besu Module", () => {
         error: {
           code: -32602,
           message: "Expected exactly 1 arguments and got 0",
+          data: {
+            message: "Expected exactly 1 arguments and got 0",
+          },
         },
       });
       expect(response.status).toBe(400);
@@ -289,7 +300,8 @@ describe("Besu Module", () => {
       expect.assertions(2);
 
       mockAuthOAuth2.mockImplementation(
-        async (): Promise<JWTPayload> => Promise.resolve({ sub: "user" })
+        async (): Promise<JwtTarVefifyResult> =>
+          Promise.resolve({ payload: { sub: "user" } } as JwtTarVefifyResult)
       );
 
       const wallet = ethers.Wallet.createRandom();
@@ -329,7 +341,8 @@ describe("Besu Module", () => {
       expect.assertions(2);
 
       mockAuthOAuth2.mockImplementation(
-        async (): Promise<JWTPayload> => Promise.resolve({ sub: "user" })
+        async (): Promise<JwtTarVefifyResult> =>
+          Promise.resolve({ payload: { sub: "user" } } as JwtTarVefifyResult)
       );
 
       const response = await request(server)
@@ -356,7 +369,8 @@ describe("Besu Module", () => {
       expect.assertions(2);
 
       mockAuthOAuth2.mockImplementation(
-        async (): Promise<JWTPayload> => Promise.resolve({ sub: "user" })
+        async (): Promise<JwtTarVefifyResult> =>
+          Promise.resolve({ payload: { sub: "user" } } as JwtTarVefifyResult)
       );
 
       let provider: ethers.providers.JsonRpcProvider;
@@ -406,7 +420,8 @@ describe("Besu Module", () => {
       expect.assertions(3);
 
       mockAuthOAuth2.mockImplementation(
-        async (): Promise<JWTPayload> => Promise.resolve({ sub: "user" })
+        async (): Promise<JwtTarVefifyResult> =>
+          Promise.resolve({ payload: { sub: "user" } } as JwtTarVefifyResult)
       );
 
       // Fails to retrieve chainId
@@ -440,7 +455,8 @@ describe("Besu Module", () => {
       expect.assertions(2);
 
       mockAuthOAuth2.mockImplementation(
-        async (): Promise<JWTPayload> => Promise.resolve({ sub: "user" })
+        async (): Promise<JwtTarVefifyResult> =>
+          Promise.resolve({ payload: { sub: "user" } } as JwtTarVefifyResult)
       );
 
       jest.spyOn(besuService, "send").mockImplementation(() => {
@@ -471,7 +487,8 @@ describe("Besu Module", () => {
       expect.assertions(2);
 
       mockAuthOAuth2.mockImplementation(
-        async (): Promise<JWTPayload> => Promise.resolve({ sub: "user" })
+        async (): Promise<JwtTarVefifyResult> =>
+          Promise.resolve({ payload: { sub: "user" } } as JwtTarVefifyResult)
       );
 
       // Let's say Besu answers with an error
@@ -507,7 +524,8 @@ describe("Besu Module", () => {
       expect.assertions(2);
 
       mockAuthOAuth2.mockImplementation(
-        async (): Promise<JWTPayload> => Promise.resolve({ sub: "user" })
+        async (): Promise<JwtTarVefifyResult> =>
+          Promise.resolve({ payload: { sub: "user" } } as JwtTarVefifyResult)
       );
 
       // Let's say Besu answers with an error

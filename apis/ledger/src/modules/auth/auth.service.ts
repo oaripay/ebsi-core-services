@@ -1,7 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { decodeJWT } from "did-jwt";
-import { Session as OAuth2Session } from "@cef-ebsi/oauth2-auth";
+import { verifyJwtTar } from "@cef-ebsi/oauth2-auth";
 import { UnauthorizedError } from "@cef-ebsi/problem-details-errors";
 import { ApiConfig } from "../../config/configuration";
 import { JwtCacheService } from "./jwt-cache.service";
@@ -11,27 +11,23 @@ import { Payload } from "./auth.interface";
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
-  private authorisationApiDid: string;
+  private trustedAppsRegistry: string;
 
   private authorisationApiName: string;
 
-  private oauth2Session: OAuth2Session;
+  private timeout: number;
 
   constructor(
     private cache: JwtCacheService,
     configService: ConfigService<ApiConfig>
   ) {
-    this.authorisationApiDid = configService.get<string>("authorisationApiDid");
     this.authorisationApiName = configService.get<string>(
       "authorisationApiName"
     );
-
-    this.oauth2Session = new OAuth2Session("undefined", {
-      appName: configService.get<string>("apiName"),
-      tarProvider: `${configService.get<string>(
-        "trustedAppsRegistryApiUrl"
-      )}/apps`,
-    });
+    this.trustedAppsRegistry = `${configService.get<string>(
+      "trustedAppsRegistryApiUrl"
+    )}/apps`;
+    this.timeout = configService.get<number>("requestTimeout");
   }
 
   storeJwt(
@@ -82,10 +78,11 @@ export class AuthService {
         );
       }
 
-      await this.oauth2Session.verifyAccessToken(
-        token,
-        this.authorisationApiName
-      );
+      await verifyJwtTar(token, {
+        trustedAppsRegistry: this.trustedAppsRegistry,
+        op: this.authorisationApiName,
+        timeout: this.timeout,
+      });
 
       // Try to store valid JWT in cache
       this.storeJwt(token, now, payload.exp, requestHost);
