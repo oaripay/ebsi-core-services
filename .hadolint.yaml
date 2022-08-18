@@ -1,4 +1,0 @@
-ignored:
-  - DL3018
-  - DL3059 # allow loose version package on apk installation
-  - DL3006 # allow starting from core-services without specific tag

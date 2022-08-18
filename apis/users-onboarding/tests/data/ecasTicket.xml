@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<cas:serviceResponse xmlns:cas="https://ecas.ec.europa.eu/cas/schemas"
+                     server="EU Login ACCEPTANCE_GENESIS version 7.2.1.32041 - 29/10/2019 - 13:57"
+                     date="2019-11-04T09:38:04.525+01:00"
+                     version="5.8">
+  <cas:authenticationSuccess>
+    <cas:user>evatest</cas:user>
+    <cas:departmentNumber>TEST.D.0.000</cas:departmentNumber>
+    <cas:email>Eva.Test@test.test</cas:email>
+    <cas:employeeNumber>00000000</cas:employeeNumber>
+    <cas:employeeType>a</cas:employeeType>
+    <cas:firstName>Eva</cas:firstName>
+    <cas:lastName>TEST</cas:lastName>
+    <cas:domain>eu.europa.ec</cas:domain>
+    <cas:domainUsername>evatest</cas:domainUsername>
+    <cas:telephoneNumber>00000</cas:telephoneNumber>
+    <cas:locale>en</cas:locale>
+    <cas:assuranceLevel>00</cas:assuranceLevel>
+    <cas:uid>evatest</cas:uid>
+    <cas:orgId>000000</cas:orgId>
+    <cas:teleworkingPriority>false</cas:teleworkingPriority>
+    <cas:groups number="0"/>
+    <cas:strengths number="1">
+      <cas:strength>STRONG</cas:strength>
+    </cas:strengths>
+    <cas:authenticationFactors number="1">
+      <cas:moniker>evatest@test.test</cas:moniker>
+    </cas:authenticationFactors>
+    <cas:loginDate>2019-11-04T09:33:27.888+01:00</cas:loginDate>
+    <cas:sso>false</cas:sso>
+    <cas:ticketType>SERVICE</cas:ticketType>
+  </cas:authenticationSuccess>
+</cas:serviceResponse>
