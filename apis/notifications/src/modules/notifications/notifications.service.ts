@@ -38,6 +38,8 @@ export class NotificationsService {
 
   private storageApiUrl: string;
 
+  private storageApiName: string;
+
   private didRegistryApiUrl: string;
 
   private accessTokenExp: number;
@@ -50,24 +52,26 @@ export class NotificationsService {
 
   private notificationsUrl: string;
 
-  constructor(private configService: ConfigService<ApiConfig>) {
-    this.secret = this.configService.get<string>("encryptionSecret");
-    this.storageApiUrl = this.configService.get("storageApiUrl");
+  private timeout: number;
+
+  constructor(configService: ConfigService<ApiConfig>) {
+    this.secret = configService.get<string>("encryptionSecret");
+    this.storageApiUrl = configService.get("storageApiUrl");
+    this.storageApiName = configService.get<string>("storageApiName");
     this.urlJsonrpcStorage = `${this.storageApiUrl}/stores/distributed/jsonrpc`;
-    this.didRegistryApiUrl = this.configService.get("didRegistryApiUrl");
+    this.didRegistryApiUrl = configService.get("didRegistryApiUrl");
+    this.timeout = configService.get<number>("requestTimeout");
 
     const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
     const domain = configService.get<string>("domain");
     this.notificationsUrl = `${domain}${apiUrlPrefix}/notifications`;
 
-    this.authorisationApiUrl = this.configService.get<string>(
-      "authorisationApiUrl"
-    );
+    this.authorisationApiUrl = configService.get<string>("authorisationApiUrl");
 
     this.agent = new Agent({
-      privateKey: this.configService.get<string>("apiPrivateKey"),
-      name: this.configService.get<string>("apiName"),
-      trustedAppsRegistry: `${this.configService.get<string>(
+      privateKey: configService.get<string>("apiPrivateKey"),
+      name: configService.get<string>("apiName"),
+      trustedAppsRegistry: `${configService.get<string>(
         "trustedAppsRegistryApiUrl"
       )}/apps`,
     });
@@ -86,7 +90,7 @@ export class NotificationsService {
     const nonce = randomUUID();
 
     const requestComponent = await this.agent.createRequest(
-      this.configService.get<string>("storageApiName"),
+      this.storageApiName,
       { nonce }
     );
 
@@ -95,10 +99,13 @@ export class NotificationsService {
       const res = await axios.post<
         typeof requestComponent,
         AxiosResponse<AkeResponse>
-      >(`${this.authorisationApiUrl}/oauth2-sessions`, requestComponent);
+      >(`${this.authorisationApiUrl}/oauth2-sessions`, requestComponent, {
+        timeout: this.timeout,
+      });
 
       const accessToken = await this.agent.verifyAkeResponse(res.data, {
         nonce,
+        timeout: this.timeout,
       });
 
       const { payload } = decodeJWT(accessToken);
@@ -135,6 +142,7 @@ export class NotificationsService {
       headers: {
         Authorization: `Bearer ${this.accessToken}`,
       },
+      timeout: this.timeout,
     };
 
     const response: AxiosResponseJsonRpc = await axios.post(
@@ -171,7 +179,9 @@ export class NotificationsService {
     if (recipientDidVersion === 1) {
       // verify if "to" is in the DID Registry (LE only)
       try {
-        await axios.get(`${this.didRegistryApiUrl}/identifiers/${to}`);
+        await axios.get(`${this.didRegistryApiUrl}/identifiers/${to}`, {
+          timeout: this.timeout,
+        });
       } catch (error) {
         throw new BadRequestError(
           `${to} is not registered in the DID Registry`
