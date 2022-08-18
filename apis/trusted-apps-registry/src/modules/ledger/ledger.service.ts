@@ -20,7 +20,11 @@ export default class LedgerService implements OnModuleDestroy {
 
   private reconnectWebSocket = true;
 
-  constructor(private configService: ConfigService<ApiConfig>) {}
+  private timeout: number;
+
+  constructor(private configService: ConfigService<ApiConfig>) {
+    this.timeout = configService.get<number>("requestTimeout");
+  }
 
   initProvider(): void {
     const besuRpcNode = this.getBesuRpcNode();
@@ -40,6 +44,7 @@ export default class LedgerService implements OnModuleDestroy {
             user: username,
             password,
           }),
+        timeout: this.timeout,
       });
     } else {
       this.ethersProvider = new ethers.providers.WebSocketProvider(besuRpcNode);
@@ -95,12 +100,8 @@ export default class LedgerService implements OnModuleDestroy {
       }
     }
 
-    const ethersWallet = ethers.Wallet.createRandom().connect(
-      this.ethersProvider
-    );
-
     const tarAddress = this.configService.get<string>("contractAddr");
-    this.tarContract = Tar__factory.connect(tarAddress, ethersWallet);
+    this.tarContract = Tar__factory.connect(tarAddress, this.ethersProvider);
     this.tarContract.on("error", (err) => this.logger.error(err));
   }
 

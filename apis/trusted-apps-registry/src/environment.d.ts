@@ -15,6 +15,7 @@ declare global {
       AUTHORISATION_API_NAME?: string;
       AUTHORISATION_API_URL?: string;
       DID_REGISTRY_API_URL?: string;
+      REQUEST_TIMEOUT?: string;
       TEST_ADMIN_DID?: string;
       TEST_ADMIN_PRIVATE_KEY?: string;
       TEST_USER_DID?: string;

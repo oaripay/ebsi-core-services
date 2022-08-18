@@ -16,6 +16,7 @@ export interface ApiConfig {
   logLevel: string;
   besuRpcNode: string;
   externalEbsiApiHealthCheck: string;
+  requestTimeout: number;
   testAdminDid: string;
   testAdminPrivateKey: string;
   testUserDid: string;
@@ -85,6 +86,7 @@ export const loadConfig = (): ApiConfig => {
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     externalEbsiApiHealthCheck:
       process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
+    requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     // Ledger & SC
     besuRpcNode:
       process.env.BESU_RPC_NODE || defaultConfig[EBSI_ENV].BESU_RPC_NODE,
@@ -139,6 +141,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     DOMAIN: Joi.string().uri(),
     LOCAL_ORIGIN: Joi.string().uri(),
     HEALTH_CHECK: Joi.string(),
+    REQUEST_TIMEOUT: Joi.string(),
     // Ledger
     BESU_RPC_NODE: Joi.string().uri(),
     CONTRACT_ADDR: Joi.string().required(),
