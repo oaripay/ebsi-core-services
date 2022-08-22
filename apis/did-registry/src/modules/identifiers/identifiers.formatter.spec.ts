@@ -1,10 +1,10 @@
 import { ethers } from "ethers";
+import { DidRegistry } from "@ebsiint-sc/did-registry";
 import {
   formatIdentifiers,
   formatVersions,
   formatMetadata,
 } from "./identifiers.formatter";
-import { DidRegistry } from "../../contracts/did-registry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 describe("formatIdentifiers", () => {

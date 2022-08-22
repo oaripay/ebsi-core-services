@@ -4,10 +4,10 @@ import {
   NotFoundError,
 } from "@cef-ebsi/problem-details-errors";
 import { HashName } from "multihashes";
+import { DidRegistry } from "@ebsiint-sc/did-registry";
 import { multibase, multihashEncode } from "../../shared/utils";
 import { DidTimestampResponseObject } from "./did-timestamps.interface";
 import { LedgerService } from "../ledger/ledger.service";
-import { DidRegistry } from "../../contracts/did-registry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 @Injectable()

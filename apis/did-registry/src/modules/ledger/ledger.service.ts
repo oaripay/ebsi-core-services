@@ -6,11 +6,8 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import axios, { AxiosResponse } from "axios";
+import { DidRegistry, DidRegistry__factory } from "@ebsiint-sc/did-registry";
 import { ApiConfig } from "../../config/configuration";
-import {
-  DidRegistry,
-  DidRegistry__factory,
-} from "../../contracts/did-registry";
 import { logAxiosError } from "../../shared/utils";
 
 // Refresh the token if it expires in less than 10 seconds

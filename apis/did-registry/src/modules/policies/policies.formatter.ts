@@ -1,9 +1,9 @@
+import { DidRegistry } from "@ebsiint-sc/did-registry";
 import {
   PolicyLink,
   PolicyRevisions,
   PolicyResponseObject,
 } from "./policies.interface";
-import { DidRegistry } from "../../contracts/did-registry";
 import { PaginatedList } from "../../shared/interfaces";
 import { paginate } from "../../shared/utils";
 import { AsyncReturnType } from "../../shared/types/async-return-type";

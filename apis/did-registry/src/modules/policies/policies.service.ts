@@ -1,7 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { NotFoundError } from "@cef-ebsi/problem-details-errors";
+import { DidRegistry } from "@ebsiint-sc/did-registry";
 import { LedgerService } from "../ledger/ledger.service";
-import { DidRegistry } from "../../contracts/did-registry";
 import { multihashEncode, multibase } from "../../shared/utils";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { PolicyRevisions } from "./policies.interface";

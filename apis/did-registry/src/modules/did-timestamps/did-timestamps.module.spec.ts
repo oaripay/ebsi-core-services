@@ -13,13 +13,13 @@ import {
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
 import { ethers } from "ethers";
+import { DidRegistry__factory } from "@ebsiint-sc/did-registry";
 import { DidTimestampsModule } from "./did-timestamps.module";
 import {
   DidTimestampResponseObject,
   TimestampLink,
 } from "./did-timestamps.interface";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { DidRegistry__factory } from "../../contracts/did-registry";
 import { setupTestEnv } from "../../../tests/utils/didRegistry";
 import { createDid } from "../../../tests/utils/data";
 import { AsyncReturnType } from "../../shared/types/async-return-type";

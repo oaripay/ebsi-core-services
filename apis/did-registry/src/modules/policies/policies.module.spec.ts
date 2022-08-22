@@ -12,10 +12,10 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
+import { DidRegistry__factory } from "@ebsiint-sc/did-registry";
 import { PoliciesModule } from "./policies.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { multihashEncode, multibase } from "../../shared/utils";
-import { DidRegistry__factory } from "../../contracts/did-registry";
 import { setupTestEnv } from "../../../tests/utils/didRegistry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { LedgerService } from "../ledger/ledger.service";

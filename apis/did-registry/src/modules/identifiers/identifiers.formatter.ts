@@ -1,3 +1,4 @@
+import { DidRegistry } from "@ebsiint-sc/did-registry";
 import {
   DidLink,
   MetadataIdLink,
@@ -5,7 +6,6 @@ import {
 } from "./identifiers.interface";
 import { PaginatedList } from "../../shared/interfaces";
 import { paginate, remove0xPrefix } from "../../shared/utils";
-import { DidRegistry } from "../../contracts/did-registry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 export function formatIdentifiers(

@@ -12,12 +12,9 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
+import { DidRegistry, DidRegistry__factory } from "@ebsiint-sc/did-registry";
 import { HashAlgorithmsModule } from "./hash-algorithms.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import {
-  DidRegistry,
-  DidRegistry__factory,
-} from "../../contracts/did-registry";
 import { setupTestEnv } from "../../../tests/utils/didRegistry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { LedgerService } from "../ledger/ledger.service";

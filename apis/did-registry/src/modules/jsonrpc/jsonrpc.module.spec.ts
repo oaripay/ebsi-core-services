@@ -1,3 +1,4 @@
+import { describe } from "@jest/globals";
 import request from "supertest";
 import crypto from "crypto";
 import { Test, TestingModule } from "@nestjs/testing";
@@ -23,6 +24,7 @@ import canonicalize from "canonicalize";
 import { useContainer } from "class-validator";
 import type { JWTVerifyResult } from "jose";
 import type { HashName } from "multihashes";
+import { DidRegistry, DidRegistry__factory } from "@ebsiint-sc/did-registry";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import {
@@ -43,10 +45,6 @@ import {
 } from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import {
-  DidRegistry,
-  DidRegistry__factory,
-} from "../../contracts/did-registry";
 import { setupTestEnv } from "../../../tests/utils/didRegistry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import {

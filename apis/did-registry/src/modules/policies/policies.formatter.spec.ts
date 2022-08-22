@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
+import { DidRegistry } from "@ebsiint-sc/did-registry";
 import { formatPolicies, formatRevisions } from "./policies.formatter";
-import { DidRegistry } from "../../contracts/did-registry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { PoliciesService } from "./policies.service";
 

@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
-import { formatHashAlgorithms } from "./hash-algorithms.formatter";
 import { Timestamp } from "../../contracts/timestamp";
+import { formatHashAlgorithms } from "./hash-algorithms.formatter";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 describe("formatHashAlgorithms", () => {

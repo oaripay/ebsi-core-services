@@ -1,3 +1,4 @@
+import { describe } from "@jest/globals";
 import { TextDecoder } from "node:util";
 import { multibase } from "./multibase.utils";
 

@@ -1,7 +1,7 @@
+import { DidRegistry } from "@ebsiint-sc/did-registry";
 import { HashAlgorithmLink } from "./hash-algorithms.interface";
 import { PaginatedList } from "../../shared/interfaces";
 import { paginate } from "../../shared/utils";
-import { DidRegistry } from "../../contracts/did-registry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 export function formatHashAlgorithms(

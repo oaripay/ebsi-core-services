@@ -1,3 +1,4 @@
+import { describe } from "@jest/globals";
 import crypto from "crypto";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
@@ -14,9 +15,9 @@ import {
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
 import { ethers } from "ethers";
+import { DidRegistry__factory } from "@ebsiint-sc/did-registry";
 import { IdentifiersModule } from "./identifiers.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { DidRegistry__factory } from "../../contracts/did-registry";
 import { setupTestEnv } from "../../../tests/utils/didRegistry";
 import { createDid } from "../../../tests/utils/data";
 import { AsyncReturnType } from "../../shared/types/async-return-type";

@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
+import { DidRegistry } from "@ebsiint-sc/did-registry";
 import { formatHashAlgorithms } from "./hash-algorithms.formatter";
-import { DidRegistry } from "../../contracts/did-registry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 describe("formatHashAlgorithms", () => {
