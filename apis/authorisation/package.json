@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@cef-ebsi/oauth2-auth": "^2.1.1",
-    "@cef-ebsi/problem-details-errors": "2.0.0",
+    "@cef-ebsi/problem-details-errors": "^2.0.0",
     "@cef-ebsi/siop-auth": "^2.1.0",
     "@cef-ebsi/verifiable-credential": "^2.1.0",
     "@cef-ebsi/verifiable-presentation": "^2.1.0",
@@ -42,7 +42,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.13.2",
     "did-jwt": "^6.2.1",
-    "joi": "^17.5.0",
+    "joi": "^17.6.0",
     "jose": "^4.8.3",
     "multiformats": "^9.7.1",
     "nest-winston": "^1.7.0",
