@@ -517,6 +517,7 @@ describe("Authorisation Module", () => {
         jest.spyOn(didJwt, "verifyJWT").mockImplementation(async () =>
           Promise.resolve({
             payload,
+            verified: true,
             didResolutionResult: {
               didDocument: {
                 id: client.did,
@@ -720,6 +721,7 @@ describe("Authorisation Module", () => {
         jest.spyOn(didJwt, "verifyJWT").mockImplementation(async () =>
           Promise.resolve({
             payload,
+            verified: true,
             didResolutionResult: {
               didDocument: client.didDocument,
               didDocumentMetadata: {},
@@ -893,6 +895,7 @@ describe("Authorisation Module", () => {
         jest.spyOn(didJwt, "verifyJWT").mockImplementation(async () =>
           Promise.resolve({
             payload,
+            verified: true,
             didResolutionResult: {
               didDocument: {
                 id: client.did,
