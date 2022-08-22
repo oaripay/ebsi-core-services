@@ -2,7 +2,7 @@
 pragma solidity 0.8.12;
 
 import "./TimestampStorage.sol";
-import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
+import "@ebsiint-sc/bootstrap/contracts/utils/Pagination.sol";
 
 library TimestampLib {
     using Pagination for bytes32[];

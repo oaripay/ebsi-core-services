@@ -3,7 +3,7 @@
 
 pragma solidity 0.8.12;
 import "./SchemaPolicyStorage.sol";
-import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
+import "@ebsiint-sc/bootstrap/contracts/utils/Pagination.sol";
 
 abstract contract SchemaPolicyDetailed is SchemaPolicyStorage {
     using Pagination for bytes32[];

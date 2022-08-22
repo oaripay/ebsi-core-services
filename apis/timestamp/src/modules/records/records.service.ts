@@ -6,7 +6,7 @@ import {
 } from "@cef-ebsi/problem-details-errors";
 import { LedgerService } from "../../shared/services/ledger.service";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
-import { Timestamp } from "../../contracts/timestamp";
+import { Timestamp } from "@ebsiint-sc/timestamp";
 import {
   InfoObject,
   RecordResponseObject,

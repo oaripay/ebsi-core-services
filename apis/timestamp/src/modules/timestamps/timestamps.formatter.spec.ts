@@ -2,7 +2,7 @@ import crypto from "crypto";
 import { ethers } from "ethers";
 import { formatTimestamps } from "./timestamps.formatter";
 import { multibase, multihashEncode } from "../../shared/utils";
-import { Timestamp } from "../../contracts/timestamp";
+import { Timestamp } from "@ebsiint-sc/timestamp";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 describe("formatTimestamps", () => {

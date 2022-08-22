@@ -7,7 +7,7 @@ import { Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
 import { decodeJWT } from "did-jwt";
 import axios, { AxiosResponse } from "axios";
 import { ApiConfig } from "../../config/configuration";
-import { Timestamp, Timestamp__factory } from "../../contracts/timestamp";
+import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp";
 import { logAxiosError } from "../utils";
 
 // Refresh the token if it expires in less than 10 seconds

@@ -2,11 +2,11 @@
 pragma solidity 0.8.12;
 
 import "./RecordStorage.sol";
-import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
-import "../bootstrap-ethereum-sc/contracts/utils/StringManip.sol";
+import "@ebsiint-sc/bootstrap/contracts/utils/Pagination.sol";
+import "@ebsiint-sc/bootstrap/contracts/utils/StringManip.sol";
+import "@ebsiint-sc/bootstrap/contracts/utils/SafeAddArray.sol";
 import "./TimestampLib.sol";
 import "./TimestampStorage.sol";
-import "../bootstrap-ethereum-sc/contracts/utils/SafeAddArray.sol";
 
 library RecordLib {
     using Pagination for bytes32[];

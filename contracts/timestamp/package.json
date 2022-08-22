@@ -2,19 +2,23 @@
   "name": "@ebsiint-sc/timestamp",
   "private": true,
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/src/types/index.js",
+  "types": "dist/src/types/index.d.ts",
   "license": "EUPL-1.2",
   "scripts": {
+    "clean": "rimraf artifacts cache src dist",
     "fork": "hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/GVQRQezmyi7tO268bhIl5CSo6lM9ubfp --fork-block-number 11095000",
     "prettier-format": "prettier --write '**/*.{js,json,md,sol}'",
-    "compile": "hardhat compile",
+    "build": "yarn compile",
+    "compile": "hardhat compile && yarn tsc",
     "coverage": "hardhat coverage --testfiles 'tests/*.ts'",
     "lint": "yarn run lint:prettier && yarn lint:eslint && yarn lint:tsc && yarn run lint:sol",
     "lint:sol": "solhint -c .solhint.json 'contracts/**/*.sol'",
     "lint:eslint": "eslint . --ext .js,.ts",
     "lint:tsc": "tsc --noEmit --incremental false",
     "lint:prettier": "prettier . --check",
-    "test": "hardhat compile && hardhat test"
+    "test": "hardhat compile && hardhat test",
+    "test:ci": "hardhat compile && hardhat test && yarn coverage"
   },
   "devDependencies": {
     "@ethersproject/abi": "^5.4.7",
@@ -49,5 +53,59 @@
     "@ebsiint-sc/bootstrap": "^1.0.0",
     "@ebsiint-sc/trusted-policies-registry": "^1.0.0",
     "@openzeppelin/contracts": "^4.4.1"
+  },
+  "nx": {
+    "namedInputs": {
+      "default": [
+        "{projectRoot}/contracts",
+        "{projectRoot}/scripts"
+      ],
+      "prod": [
+        "!{projectRoot}/tests/*.spec.ts"
+      ]
+    },
+    "targets": {
+      "build": {
+        "inputs": [
+          "prod",
+          "^prod"
+        ],
+        "outputs": [
+          "dist"
+        ],
+        "dependsOn": [
+          "^build"
+        ]
+      },
+      "lint": {
+        "inputs": [
+          "default"
+        ],
+        "outputs": [],
+        "dependsOn": [
+          "build"
+        ]
+      },
+      "test": {
+        "inputs": [
+          "default",
+          "^prod"
+        ],
+        "outputs": [],
+        "dependsOn": [
+          "build"
+        ]
+      },
+      "test:ci": {
+        "inputs": [
+          "default",
+          "^prod"
+        ],
+        "outputs": [],
+        "dependsOn": [
+          "build"
+        ]
+      }
+    }
   }
 }

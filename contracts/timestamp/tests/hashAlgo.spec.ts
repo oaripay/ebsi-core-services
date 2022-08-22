@@ -1,7 +1,8 @@
 import { ethers, waffle, network } from "hardhat";
 import { Contract } from "ethers";
 import { expect } from "chai";
-import StringManipArtifact from "../artifacts/contracts/trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/StringManip.sol/StringManip.json";
+import StringManipArtifact from "@ebsiint-sc/bootstrap/artifacts/contracts/utils/StringManip.sol/StringManip.json";
+
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { testTprAddress } from "./testAddress";
 

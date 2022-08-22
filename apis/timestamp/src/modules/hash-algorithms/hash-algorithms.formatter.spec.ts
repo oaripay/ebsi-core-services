@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { Timestamp } from "../../contracts/timestamp";
+import { Timestamp } from "@ebsiint-sc/timestamp";
 import { formatHashAlgorithms } from "./hash-algorithms.formatter";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 

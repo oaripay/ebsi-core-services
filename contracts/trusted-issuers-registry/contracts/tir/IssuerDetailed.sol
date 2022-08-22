@@ -3,7 +3,7 @@ pragma solidity 0.8.12;
 
 // solhint-disable-next-line max-line-length
 import "./IssuerStorage.sol";
-import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
+import "@ebsiint-sc/bootstrap/contracts/utils/Pagination.sol";
 
 // solhint-disable-next-line indent
 abstract contract IssuerDetailed is IssuerStorage {

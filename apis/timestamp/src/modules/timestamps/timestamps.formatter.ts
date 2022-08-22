@@ -1,7 +1,7 @@
 import { TimestampLink } from "./timestamps.interface";
 import { PaginatedList } from "../../shared/interfaces";
 import { paginate, multibase, multihashEncode } from "../../shared/utils";
-import { Timestamp } from "../../contracts/timestamp";
+import { Timestamp } from "@ebsiint-sc/timestamp";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 export function formatTimestamps(

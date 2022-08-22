@@ -5,7 +5,7 @@ pragma solidity 0.8.12;
 import "./SchemaSCStorage.sol";
 import "./SchemaDetailed.sol";
 import "./SchemaPolicyDetailed.sol";
-import "../bootstrap-ethereum-sc/contracts/utils/upgradeability/Initializable.sol";
+import "@ebsiint-sc/bootstrap/contracts/utils/upgradeability/Initializable.sol";
 
 /**
  * @title example of stored values on a SC with pause functionality.

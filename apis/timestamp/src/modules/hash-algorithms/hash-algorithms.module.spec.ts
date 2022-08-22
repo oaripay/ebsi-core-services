@@ -14,7 +14,7 @@ import {
 import type { FastifyInstance } from "fastify";
 import { HashAlgorithmsModule } from "./hash-algorithms.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { Timestamp, Timestamp__factory } from "../../contracts/timestamp";
+import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp";
 import { setupTestEnv } from "../../../tests/utils/timestamp";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { LedgerService } from "../../shared/services/ledger.service";

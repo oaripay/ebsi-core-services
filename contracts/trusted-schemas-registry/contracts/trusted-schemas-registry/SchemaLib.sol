@@ -3,7 +3,7 @@
 pragma solidity 0.8.12;
 
 import "./SchemaStorage.sol";
-import "../bootstrap-ethereum-sc/contracts/utils/Pagination.sol";
+import "@ebsiint-sc/bootstrap/contracts/utils/Pagination.sol";
 
 library SchemaLib {
     using Pagination for bytes32[];

@@ -2,7 +2,7 @@
 pragma solidity 0.8.12;
 
 // solhint-disable-next-line max-line-length
-import "../bootstrap-ethereum-sc/contracts/utils/upgradeability/Initializable.sol";
+import "@ebsiint-sc/bootstrap/contracts/utils/upgradeability/Initializable.sol";
 import "./TimestampDetailed.sol";
 import "./RecordDetailed.sol";
 import "./HashAlgoDetailed.sol";

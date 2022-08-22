@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: EUPL V1.2
 pragma solidity 0.8.12;
-import "../trusted-policies-registry-ethereum-sc/contracts/trusted-policies-registry/interfaces/IPolicyRegistry.sol";
+import "@ebsiint-sc/trusted-policies-registry/contracts/trusted-policies-registry/interfaces/IPolicyRegistry.sol";
 
 contract HashAlgoStorage {
     // The state variables we care about.

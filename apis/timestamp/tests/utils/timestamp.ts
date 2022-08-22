@@ -3,7 +3,7 @@ import "@nomiclabs/hardhat-ethers";
 import { ContractTransaction, Contract, ethers } from "ethers";
 import crypto from "crypto";
 import { HashName } from "multihashes";
-import { Timestamp } from "../../src/contracts/timestamp";
+import { Timestamp } from "@ebsiint-sc/timestamp";
 
 interface HashAlgorithmObject {
   outputLength: number;

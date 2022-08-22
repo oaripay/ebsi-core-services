@@ -2,7 +2,7 @@
 pragma solidity 0.8.12;
 
 import "./TirStorage.sol";
-import "../bootstrap-ethereum-sc/contracts/utils/upgradeability/Initializable.sol";
+import "@ebsiint-sc/bootstrap/contracts/utils/upgradeability/Initializable.sol";
 
 contract TirDetailed is Initializable, TirStorage {
     /**
