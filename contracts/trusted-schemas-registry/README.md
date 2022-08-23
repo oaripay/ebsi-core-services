@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Trusted Smart Contract Registry
 
 ![Logo of the project](https://ec.europa.eu/digital-building-blocks/wiki/images/logo/default-space-logo.svg)
@@ -25,7 +24,7 @@ Install dependencies:
 
 ```sh
 yarn install
-git submodule update --init 
+git submodule update --init
 ```
 
 ## Building
@@ -76,6 +75,3 @@ You may obtain a copy of the Licence at:
 - https://joinup.ec.europa.eu/page/eupl-text-11-12
 
 Unless required by applicable law or agreed to in writing, software distributed under the Licence is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the Licence for the specific language governing permissions and limitations under the Licence.
-=======
-Read me 
->>>>>>> develop

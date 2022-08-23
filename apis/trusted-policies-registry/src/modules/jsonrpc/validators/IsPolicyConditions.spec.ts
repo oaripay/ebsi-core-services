@@ -1,3 +1,4 @@
+import { describe } from "@jest/globals";
 import {
   ATTRIBUTE_OPERATIONS,
   ATTRIBUTE_TYPES,

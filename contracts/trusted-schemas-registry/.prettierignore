@@ -1,9 +1,7 @@
-coverage
-node_modules
-build
-cache
 artifacts
-contracts/bootstrap-ethereum-sc
-contracts/trusted-policies-registry-ethereum-sc
-README.md
+cache
+coverage
 coverage.json
+dist
+node_modules
+src

@@ -4,7 +4,13 @@ import crypto from "node:crypto";
 import { Contract, ethers } from "ethers";
 import { range } from "rxjs";
 import { mergeMap, toArray } from "rxjs/operators";
-import { SchemaSCRegistry } from "../../src/contracts";
+import {
+  PolicyRegistryMock__factory,
+  SchemaLib__factory,
+  SchemaSCRegistry,
+  SchemaSCRegistry__factory,
+} from "@ebsiint-sc/trusted-schemas-registry";
+import PaginationArtifact from "@ebsiint-sc/bootstrap/artifacts/contracts/utils/Pagination.sol/Pagination.json";
 import { createDid, createSchema } from "./data";
 import { computeId } from "../../src/shared/utils/jsonSchema.utils";
 
@@ -148,10 +154,10 @@ export async function deploySchemasRegistryContract(): Promise<{
   schemasRegistryContract: SchemaSCRegistry;
   policyContractMock: Contract;
 }> {
+  const signer = hre.ethers.provider.getSigner();
+
   const testTprAddress = "0xb2a560271ce08135e245F490b8794794A13a1208";
-  const policyRegistryFactory = await hre.ethers.getContractFactory(
-    "PolicyRegistryMock"
-  );
+  const policyRegistryFactory = new PolicyRegistryMock__factory(signer);
   const tempPolicyContract = await policyRegistryFactory.deploy();
   await tempPolicyContract.deployed();
   const bytecode = await hre.ethers.provider.getCode(
@@ -162,30 +168,37 @@ export async function deploySchemasRegistryContract(): Promise<{
     bytecode,
   ]);
   const policyContractMock = policyRegistryFactory.attach(testTprAddress);
+  await policyContractMock.setPolicyResult(true);
 
-  const paginationFactory = await hre.ethers.getContractFactory("Pagination");
-  const pagination = await paginationFactory.deploy();
+  const paginationFactory = await hre.ethers.getContractFactoryFromArtifact(
+    PaginationArtifact,
+    signer
+  );
+  const paginationContract = await paginationFactory.deploy();
+  await paginationContract.deployed();
 
-  const schemaLibFactory = await hre.ethers.getContractFactory("SchemaLib", {
-    libraries: {
-      Pagination: pagination.address,
+  const schemaLibFactory = new SchemaLib__factory(
+    {
+      "@ebsiint-sc/bootstrap/contracts/utils/Pagination.sol:Pagination":
+        paginationContract.address,
     },
-  });
+    signer
+  );
   const schemaLib = await schemaLibFactory.deploy();
 
-  const schemasRegistryFactory = await hre.ethers.getContractFactory(
-    "SchemaSCRegistry",
+  const schemasRegistryFactory = new SchemaSCRegistry__factory(
     {
-      libraries: {
-        SchemaLib: schemaLib.address,
-        Pagination: pagination.address,
-      },
-    }
+      "contracts/trusted-schemas-registry/SchemaLib.sol:SchemaLib":
+        schemaLib.address,
+      "@ebsiint-sc/bootstrap/contracts/utils/Pagination.sol:Pagination":
+        paginationContract.address,
+    },
+    signer
   );
+
   const schemasRegistry = await schemasRegistryFactory.deploy();
   await schemasRegistry.initialize(1);
   await schemasRegistry.setTrustedPoliciesRegistryAddress();
-  await policyContractMock.setPolicyResult(true);
 
   return { schemasRegistryContract: schemasRegistry, policyContractMock };
 }

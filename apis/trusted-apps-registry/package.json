@@ -27,10 +27,11 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
+    "@ebsiint-sc/bootstrap": "^1.0.0",
+    "@ebsiint-sc/trusted-apps-registry": "^2.0.0",
     "@cef-ebsi/ebsi-did-resolver": "^2.1.0",
     "@cef-ebsi/problem-details-errors": "^2.0.0",
     "@cef-ebsi/siop-auth": "^2.1.0",
-    "@ebsiint-sc/trusted-apps-registry": "^2.0.0",
     "@fastify/helmet": "^9.1.0",
     "@nestjs/axios": "^0.1.0",
     "@nestjs/common": "^9.0.8",
@@ -56,7 +57,6 @@
   },
   "devDependencies": {
     "@cef-ebsi/wallet-lib": "^2.0.0",
-    "@ebsiint-sc/bootstrap": "^1.0.0",
     "@ethersproject/abi": "^5.4.7",
     "@ethersproject/abstract-provider": "^5.6.1",
     "@ethersproject/bytes": "^5.4.7",

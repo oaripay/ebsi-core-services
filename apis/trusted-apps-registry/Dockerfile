@@ -8,7 +8,7 @@ COPY --from=builder /workspace/yarn.lock yarn.lock
 COPY --from=builder /workspace/apis/trusted-apps-registry/package.json package.json
 # Copy original and correct paths to build artifacts from workspace dependencies.
 COPY package.json ./package-copy.json
-RUN < ./package-copy.json jq '.devDependencies."@ebsiint-sc/bootstrap" = "file:./contracts/bootstrap" | .dependencies."@ebsiint-sc/trusted-apps-registry" = "file:./contracts/trusted-apps-registry"' > package.json
+RUN < ./package-copy.json jq '.dependencies."@ebsiint-sc/bootstrap" = "file:./contracts/bootstrap" | .dependencies."@ebsiint-sc/trusted-apps-registry" = "file:./contracts/trusted-apps-registry"' > package.json
 
 COPY --from=builder /workspace/apis/trusted-apps-registry/dist dist
 COPY --from=builder /workspace/apis/trusted-apps-registry/.ci .ci

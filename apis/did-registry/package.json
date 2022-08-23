@@ -26,6 +26,7 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
+    "@ebsiint-sc/bootstrap": "^1.0.0",
     "@ebsiint-sc/did-registry": "^1.0.0",
     "@cef-ebsi/ebsi-did-resolver": "^2.1.0",
     "@cef-ebsi/oauth2-auth": "^2.1.1",
@@ -58,7 +59,6 @@
     "yaml": "^2.1.1"
   },
   "devDependencies": {
-    "@ebsiint-sc/bootstrap": "^1.0.0",
     "@cef-ebsi/verifiable-credential": "2.1.0",
     "@cef-ebsi/verifiable-presentation": "2.1.0",
     "@cef-ebsi/wallet-lib": "^2.0.0",

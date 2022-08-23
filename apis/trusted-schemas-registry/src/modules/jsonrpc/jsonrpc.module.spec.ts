@@ -1,3 +1,4 @@
+import { describe } from "@jest/globals";
 import axios from "axios";
 import request from "supertest";
 import crypto from "crypto";
@@ -18,6 +19,7 @@ import {
 import { createJWT, ES256KSigner } from "did-jwt";
 import nock from "nock";
 import { JWTVerifyResult } from "jose";
+import { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcService } from "./jsonrpc.service";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
@@ -31,7 +33,6 @@ import {
 } from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry";
 import {
   PolicyObject,
   setupTestEnv,

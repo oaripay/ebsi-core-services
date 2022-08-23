@@ -1,0 +1,34 @@
+pipeline {
+  agent any
+
+  stages {
+
+    stage('Setup') {
+      steps {
+        nodejs(nodeJSInstallationName: '16.13.0') {
+          sh 'yarn install --frozen-lockfile'
+        }
+      }
+    }
+
+    stage('Lint all') {
+      when {
+        branch 'nx'
+      }
+      steps {
+        nodejs(nodeJSInstallationName: '16.13.0') {
+          sh "yarn lint:all"
+        }
+      }
+    }
+  }
+
+  post {
+    always {
+      cleanWs()
+      dir("${env.WORKSPACE}@script") {
+        deleteDir()
+      }
+    }
+  }
+}

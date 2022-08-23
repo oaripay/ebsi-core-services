@@ -1,6 +1,3 @@
-artifacts
-cache
 coverage
 dist
-submodules
-src/contracts
+node_modules

@@ -4,7 +4,11 @@ import crypto from "crypto";
 import { ethers } from "ethers";
 import { range } from "rxjs";
 import { mergeMap, toArray } from "rxjs/operators";
-import { PolicyRegistry } from "../../src/contracts";
+import {
+  PolicyRegistry,
+  PolicyRegistry__factory,
+} from "@ebsiint-sc/trusted-policies-registry";
+import PaginationArtifact from "@ebsiint-sc/bootstrap/artifacts/contracts/utils/Pagination.sol/Pagination.json";
 import {
   ATTRIBUTE_OPERATIONS,
   ATTRIBUTE_TYPES,
@@ -145,16 +149,20 @@ export async function insertUser(
 }
 
 export async function deployPoliciesRegistryContract(): Promise<PolicyRegistry> {
-  const paginationFactory = await hre.ethers.getContractFactory("Pagination");
-  const pagination = await paginationFactory.deploy();
+  const signer = hre.ethers.provider.getSigner();
+  const paginationFactory = await hre.ethers.getContractFactoryFromArtifact(
+    PaginationArtifact,
+    signer
+  );
+  const paginationContract = await paginationFactory.deploy();
+  await paginationContract.deployed();
 
-  const policiesRegistryFactory = await hre.ethers.getContractFactory(
-    "PolicyRegistry",
+  const policiesRegistryFactory = new PolicyRegistry__factory(
     {
-      libraries: {
-        Pagination: pagination.address,
-      },
-    }
+      "@ebsiint-sc/bootstrap/contracts/utils/Pagination.sol:Pagination":
+        paginationContract.address,
+    },
+    signer
   );
   const policiesRegistry = await policiesRegistryFactory.deploy();
   await policiesRegistry.initialize(1);
