@@ -2,8 +2,8 @@
   "name": "@ebsiint-sc/timestamp",
   "private": true,
   "version": "1.0.0",
-  "main": "dist/src/types/index.js",
-  "types": "dist/src/types/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "license": "EUPL-1.2",
   "scripts": {
     "clean": "rimraf artifacts cache src dist",

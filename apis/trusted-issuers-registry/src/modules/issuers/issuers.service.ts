@@ -1,8 +1,8 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { NotFoundError } from "@cef-ebsi/problem-details-errors";
+import { Tir } from "@ebsiint-sc/trusted-issuers-registry";
 import { LedgerService } from "../../shared/services/ledger.service";
 import { AttributeObject, IssuerResponseObject } from "./issuers.interface";
-import { Tir } from "../../contracts";
 import { prefixWith0x } from "../../shared/utils";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 

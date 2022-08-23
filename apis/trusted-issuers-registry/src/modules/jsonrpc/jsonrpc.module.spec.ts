@@ -18,6 +18,7 @@ import {
 import { createJWT, ES256KSigner } from "did-jwt";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { JWTVerifyResult } from "jose";
+import { Tir } from "@ebsiint-sc/trusted-issuers-registry";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import { JsonRpcService } from "./jsonrpc.service";
@@ -31,7 +32,6 @@ import {
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
-import { Tir } from "../../contracts";
 import { setupTestEnv } from "../../../tests/utils/tir";
 import { LedgerService } from "../../shared/services/ledger.service";
 import { AttributeObject } from "../issuers/issuers.interface";

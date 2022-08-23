@@ -31,7 +31,7 @@ import {
 } from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { SchemaSCRegistry } from "../../contracts";
+import { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry";
 import {
   PolicyObject,
   setupTestEnv,

@@ -3,7 +3,7 @@ import { FactoryOptions } from "hardhat/types";
 import "@nomiclabs/hardhat-ethers";
 import { Contract, ethers } from "ethers";
 import crypto from "crypto";
-import { LedgerSCRegistry } from "../../src/contracts";
+import { LedgerSCRegistry } from "@ebsiint-sc/trusted-ledgers-regitry";
 
 interface LedgerInfoObject {
   ledgerName: string;

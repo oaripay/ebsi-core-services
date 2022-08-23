@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
+import { Tir } from "@ebsiint-sc/trusted-issuers-registry";
 import { formatPolicies, formatRevisions } from "./policies.formatter";
-import { Tir } from "../../contracts";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { PoliciesService } from "./policies.service";
 

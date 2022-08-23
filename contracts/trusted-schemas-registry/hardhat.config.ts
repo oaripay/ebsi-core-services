@@ -1,5 +1,6 @@
-import "@nomiclabs/hardhat-waffle";
 import "@typechain/hardhat";
+import "@nomiclabs/hardhat-waffle";
+import "@nomiclabs/hardhat-solhint";
 import "hardhat-abi-exporter";
 import "solidity-coverage";
 import { HardhatUserConfig, task } from "hardhat/config";
@@ -10,12 +11,13 @@ import * as fs from "fs";
 // when running yarn test
 
 const mnemonicPath = `${__dirname}/.secret.mnemonic`;
+
 let mnemonic = "test test test test test test test test test test test junk";
-try {
+if (fs.existsSync(mnemonicPath)) {
+  console.log(".secret.mnemonic exists and will be used");
   mnemonic = fs.readFileSync(mnemonicPath).toString().trim();
-} catch (err) {
-  console.error(err);
 }
+
 task("accounts", "Prints the list of accounts", async (args, hre) => {
   const accounts = await hre.ethers.getSigners();
   accounts.forEach((account) => console.log(account.address));

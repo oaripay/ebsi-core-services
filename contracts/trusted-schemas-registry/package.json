@@ -2,7 +2,8 @@
   "name": "@ebsiint-sc/trusted-schemas-registry",
   "private": true,
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "license": "EUPL-1.2",
   "scripts": {
     "clean": "rimraf artifacts cache src dist",

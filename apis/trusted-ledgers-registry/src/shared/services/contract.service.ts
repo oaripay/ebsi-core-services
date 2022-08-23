@@ -6,8 +6,11 @@ import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import axios, { AxiosResponse } from "axios";
 import { randomUUID } from "crypto";
+import {
+  LedgerSCRegistry,
+  LedgerSCRegistry__factory,
+} from "@ebsiint-sc/trusted-ledgers-regitry";
 import { ApiConfig } from "../../config/configuration";
-import { LedgerSCRegistry, LedgerSCRegistry__factory } from "../../contracts";
 import { logAxiosError } from "../utils";
 
 // Refresh the token if it expires in less than 10 seconds

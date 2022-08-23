@@ -6,8 +6,8 @@ import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import axios, { AxiosResponse } from "axios";
 import { randomUUID } from "crypto";
+import { Tir, Tir__factory } from "@ebsiint-sc/trusted-issuers-registry";
 import { ApiConfig } from "../../config/configuration";
-import { Tir, Tir__factory } from "../../contracts";
 import { logAxiosError } from "../utils";
 
 // Refresh the token if it expires in less than 10 seconds

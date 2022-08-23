@@ -4,7 +4,7 @@ import {
   InternalServerError,
   NotFoundError,
 } from "@cef-ebsi/problem-details-errors";
-import { PolicyRegistry } from "../../contracts";
+import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry";
 import { LedgerService } from "../../shared/services/ledger.service";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import {

@@ -11,6 +11,7 @@ import * as fs from "fs";
 // when running yarn test
 
 const mnemonicPath = `${__dirname}/.secret.mnemonic`;
+
 let mnemonic = "test test test test test test test test test test test junk";
 if (fs.existsSync(mnemonicPath)) {
   console.log(".secret.mnemonic exists and will be used");

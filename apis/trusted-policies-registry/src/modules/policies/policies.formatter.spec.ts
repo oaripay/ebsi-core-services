@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
+import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry";
 import { formatPolicies } from "./policies.formatter";
-import { PolicyRegistry } from "../../contracts";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 describe("formatPolicies", () => {

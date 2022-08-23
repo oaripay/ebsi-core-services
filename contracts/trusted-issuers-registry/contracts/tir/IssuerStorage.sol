@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: EUPL V1.2
 pragma solidity 0.8.12;
 import "./AttributeStorage.sol";
-import "../did-registry-ethereum-sc/contracts/did-registry/interfaces/IDidRegistry.sol";
-import "../trusted-policies-registry-ethereum-sc/contracts/trusted-policies-registry/interfaces/IPolicyRegistry.sol";
+import "@ebsiint-sc/did-registry/contracts/did-registry/interfaces/IDidRegistry.sol";
+import "@ebsiint-sc/trusted-policies-registry/contracts/trusted-policies-registry/interfaces/IPolicyRegistry.sol";
 
 contract IssuerStorage is AttributeStorage {
     // The state variables we care about.

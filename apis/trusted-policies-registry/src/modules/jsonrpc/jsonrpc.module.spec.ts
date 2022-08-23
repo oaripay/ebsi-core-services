@@ -18,6 +18,7 @@ import {
 import { createJWT, ES256KSigner } from "did-jwt";
 import * as SiopLib from "@cef-ebsi/siop-auth";
 import type { JWTVerifyResult } from "jose";
+import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcService } from "./jsonrpc.service";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
@@ -35,7 +36,6 @@ import {
 } from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { PolicyRegistry } from "../../contracts";
 import { setupTestEnv } from "../../../tests/utils/trustedPoliciesRegistry";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { ApiConfig } from "../../config/configuration";

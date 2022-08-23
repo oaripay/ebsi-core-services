@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "license": "EUPL-1.2",
   "private": true,
-  "main": "dist/src/types/index.js",
-  "types": "dist/src/types/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "clean": "rimraf artifacts cache src dist",
     "fork": "hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/GVQRQezmyi7tO268bhIl5CSo6lM9ubfp --fork-block-number 11095000",

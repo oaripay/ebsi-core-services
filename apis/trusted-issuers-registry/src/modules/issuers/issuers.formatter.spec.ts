@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
+import { Tir } from "@ebsiint-sc/trusted-issuers-registry";
 import { formatIssuers, formatAttributes } from "./issuers.formatter";
 import { AttributeObject } from "./issuers.interface";
-import { Tir } from "../../contracts";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 describe("formatIssuers", () => {

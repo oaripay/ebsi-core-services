@@ -3,7 +3,7 @@ import {
   PolicyRevisions,
   PolicyResponseObject,
 } from "./policies.interface";
-import { SchemaSCRegistry } from "../../contracts";
+import { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry";
 import { PaginatedList } from "../../shared/interfaces";
 import { paginate } from "../../shared/utils";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
