@@ -30,25 +30,25 @@ pipeline {
       }
     }
 
-    stage('Build all docker images') {
-      when {
-        branch 'nx'
-      }
-      steps {
-        nodejs(nodeJSInstallationName: '16.13.0') {
-          sh "yarn docker-build:all"
-        }
-      }
-    }
+    // stage('Build all docker images') {
+    //   when {
+    //     branch 'nx'
+    //   }
+    //   steps {
+    //     nodejs(nodeJSInstallationName: '16.13.0') {
+    //       sh "yarn docker-build:all"
+    //     }
+    //   }
+    // }
 
-    stage('Build docker images affected') {
-      steps {
-        nodejs(nodeJSInstallationName: '16.13.0') {
-          sh "yarn docker-build" // build the docker builder image "core-services"
-          sh "yarn docker-build:affected" // build services' docker images from the builder
-        }
-      }
-    }
+    // stage('Build docker images affected') {
+    //   steps {
+    //     nodejs(nodeJSInstallationName: '16.13.0') {
+    //       sh "yarn docker-build" // build the docker builder image "core-services"
+    //       sh "yarn docker-build:affected" // build services' docker images from the builder
+    //     }
+    //   }
+    // }
 
     stage('Unit test all') {
       when {
