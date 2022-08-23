@@ -1,3 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const path = require("path");
+
 module.exports = {
   preset: "ts-jest",
   testTimeout: 150000,
@@ -13,4 +16,5 @@ module.exports = {
   coverageDirectory: "./coverage/",
   collectCoverageFrom: ["src/**/*.(t|j)s", "!**/*.d.ts", "!src/main.ts"],
   coverageReporters: ["text", "lcov", "json", "clover", "cobertura"],
+  resolver: path.resolve(__dirname, "../../jest-resolver.js"),
 };

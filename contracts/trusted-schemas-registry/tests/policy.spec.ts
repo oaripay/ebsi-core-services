@@ -5,9 +5,6 @@ import { expect } from "chai";
 import { SchemaSCRegistry } from "../src/types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
-const paginationPath =
-  "contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol:Pagination";
-
 const num = ethers.BigNumber.from;
 
 function getEthObject(o: unknown): Record<string, unknown> {
@@ -46,10 +43,7 @@ describe("SchemaPolicies", () => {
 
   beforeEach(async () => {
     [user] = await ethers.getSigners();
-    const paginationFactory = await ethers.getContractFactory(
-      paginationPath,
-      {}
-    );
+    const paginationFactory = await ethers.getContractFactory("Pagination", {});
     const pagination = await paginationFactory.deploy();
 
     const schemaLibFactory = await ethers.getContractFactory("SchemaLib", {

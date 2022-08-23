@@ -1,3 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const path = require("path");
+
 module.exports = {
   preset: "ts-jest",
   testEnvironment: "node",
@@ -20,5 +23,5 @@ module.exports = {
   moduleNameMapper: {
     "^jose/(.*)$": "<rootDir>/node_modules/jose/dist/node/cjs/$1",
   },
-  resolver: "<rootDir>/jest-resolver.js",
+  resolver: path.resolve(__dirname, "../../jest-resolver.js"),
 };

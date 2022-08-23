@@ -3,10 +3,7 @@ import { Tir } from "../src/types";
 import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry";
 
 async function main() {
-  const paginationFactory = await ethers.getContractFactory(
-    "../contracts/did-registry-ethereum-sc/contracts/trusted-policies-registry-ethereum-sc/contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol:Pagination",
-    {}
-  );
+  const paginationFactory = await ethers.getContractFactory("Pagination", {});
   const pagination = await paginationFactory.deploy();
   const policyRegistryFactory = await ethers.getContractFactory(
     "PolicyRegistry",

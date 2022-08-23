@@ -4,8 +4,6 @@ import { expect } from "chai";
 import { SchemaSCRegistry } from "../src/types";
 import { testTprAddress } from "./testAddress";
 
-const paginationPath =
-  "contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol:Pagination";
 describe("Schema", () => {
   let ts: Contract;
   let policyContractMock: Contract;
@@ -21,10 +19,7 @@ describe("Schema", () => {
   });
 
   beforeEach(async () => {
-    const paginationFactory = await ethers.getContractFactory(
-      paginationPath,
-      {}
-    );
+    const paginationFactory = await ethers.getContractFactory("Pagination", {});
     const pagination = await paginationFactory.deploy();
 
     const schemaLibFactory = await ethers.getContractFactory("SchemaLib", {
