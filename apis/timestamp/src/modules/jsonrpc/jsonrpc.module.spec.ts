@@ -1,3 +1,4 @@
+import { describe } from "@jest/globals";
 import crypto from "node:crypto";
 import axios, { AxiosError } from "axios";
 import request from "supertest";
@@ -21,6 +22,7 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { HashName } from "multihashes";
+import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp";
 import { multibase } from "../../shared/utils";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
@@ -40,7 +42,6 @@ import {
 } from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp";
 import { setupTestEnv } from "../../../tests/utils/timestamp";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { LedgerService } from "../../shared/services/ledger.service";

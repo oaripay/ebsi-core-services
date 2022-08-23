@@ -1,7 +1,7 @@
+import { Timestamp } from "@ebsiint-sc/timestamp";
 import { HashAlgorithmLink } from "./hash-algorithms.interface";
 import { PaginatedList } from "../../shared/interfaces";
 import { paginate } from "../../shared/utils";
-import { Timestamp } from "@ebsiint-sc/timestamp";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 export function formatHashAlgorithms(

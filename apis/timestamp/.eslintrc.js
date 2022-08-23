@@ -18,4 +18,12 @@ module.exports = {
     // Nest specific rules
     "class-methods-use-this": "off",
   },
+  overrides: [
+    {
+      files: ["tests/**/*.ts", "src/**/*.spec.ts"],
+      rules: {
+        "@typescript-eslint/no-unsafe-call": "off",
+      },
+    },
+  ],
 };

@@ -14,10 +14,10 @@ import {
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
 import { ethers } from "ethers";
+import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp";
 import { TimestampsModule } from "./timestamps.module";
 import { TimestampLink } from "./timestamps.interface";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp";
 import { setupTestEnv, insertHash } from "../../../tests/utils/timestamp";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { multibase, multihashEncode } from "../../shared/utils";

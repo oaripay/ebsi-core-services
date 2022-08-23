@@ -40,6 +40,7 @@
     "class-validator": "^0.13.2",
     "did-resolver": "^3.2.2",
     "elliptic": "^6.5.4",
+    "is-ci": "^3.0.1",
     "joi": "^17.6.0",
     "jose": "^4.8.3",
     "multiformats": "^9.7.1",

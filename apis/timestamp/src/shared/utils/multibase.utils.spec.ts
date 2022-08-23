@@ -1,3 +1,4 @@
+import { describe } from "@jest/globals";
 import { multibase } from "./multibase.utils";
 
 const bases: Record<
