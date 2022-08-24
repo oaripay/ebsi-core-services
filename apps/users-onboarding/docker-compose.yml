@@ -1,0 +1,15 @@
+# This is an example docker-compose.yml that shows you how to run the project locally
+# It is not meant to be used as is in production
+version: "3.7"
+
+services:
+  users-onboarding-web-client-v2:
+    build:
+      context: .
+      args:
+        # Required
+        PUBLIC_URL: ${PUBLIC_URL}
+        REACT_APP_EBSI_ENV: ${REACT_APP_EBSI_ENV}
+        REACT_APP_CAPTCHA_KEY: ${REACT_APP_CAPTCHA_KEY}
+    ports:
+      - "8080:8080"

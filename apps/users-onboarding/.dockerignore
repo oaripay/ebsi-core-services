@@ -1,0 +1,12 @@
+# Ignore all by default
+*
+
+# Exceptions
+
+!./public
+!./scripts
+!./src
+!./nginx/nginx.conf
+!./package.json
+!./tsconfig*.json
+!./yarn.lock
