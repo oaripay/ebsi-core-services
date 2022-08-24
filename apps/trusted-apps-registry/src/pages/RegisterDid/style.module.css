@@ -1,3 +1,4 @@
+/* stylelint-disable-next-line selector-class-pattern */
 .scrollableList {
   height: 500px;
   overflow-y: scroll;
