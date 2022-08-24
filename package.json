@@ -39,6 +39,7 @@
   },
   "workspaces": [
     "apis/**",
-    "contracts/**"
+    "contracts/**",
+    "tools/**"
   ]
 }

@@ -1,9 +1,9 @@
 {
-  "name": "@ebsiint-sc/trusted-ledgers-regitry",
+  "name": "@ebsiint-sc/trusted-ledgers-registry",
   "version": "1.0.0",
   "license": "EUPL-1.2",
   "private": true,
-  "main": "dist/index.js",
+  "main": "dist/index.d.ts",
   "types": "dist/index.d.ts",
   "scripts": {
     "clean": "rimraf artifacts cache src dist",

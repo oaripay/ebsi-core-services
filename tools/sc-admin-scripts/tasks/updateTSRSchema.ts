@@ -1,0 +1,60 @@
+import { task } from "hardhat/config";
+import "@nomiclabs/hardhat-waffle";
+import canonicalize from "canonicalize";
+import { readFile } from "fs/promises";
+import { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry";
+
+// follows ETH/BTC's BIP 39 protocol
+// https://iancoleman.io/bip39/
+// and matches the one hardhat uses when using { accounts: { mnemonic }}
+task(
+  "updateSchema",
+  "Update existing schema in TSR Contract ",
+  async (
+    taskArgs: { proxy: string; schema: string; file: string },
+    // eslint-disable-next-line @typescript-eslint/no-shadow
+    { ethers }
+  ) => {
+    const [deployer, admin] = await ethers.getSigners();
+    const tsr: SchemaSCRegistry = await ethers.getContractAt(
+      "SchemaSCRegistry",
+      taskArgs.proxy,
+      admin
+    );
+
+    console.log(
+      `deployer:${deployer.address}
+     admin:${admin.address}`
+    );
+    const initialVersion = await tsr.version();
+    console.log(initialVersion);
+    console.log("initialVersion:", initialVersion.toString());
+
+    const network = await ethers.provider.getNetwork();
+
+    const jsonFile = await readFile(
+      `${__dirname}/../schemas/json-schemas/${taskArgs.file}`
+    );
+    const json = canonicalize(JSON.parse(jsonFile.toString()));
+    const schema = ethers.utils.toUtf8Bytes(json);
+    const schemaHex = `0x${Buffer.from(JSON.stringify(json), "utf-8").toString(
+      "hex"
+    )}`;
+
+    try {
+      await (
+        await tsr.updateSchema(taskArgs.schema, schemaHex, schema)
+      ).wait(1);
+      console.log(
+        `Schema ${taskArgs.file} updated on networkId ${network.chainId} at id: ${taskArgs.schema}`
+      );
+    } catch (e) {
+      console.log(
+        `There is no schema ${taskArgs.file} registered on networkId ${network.chainId} at id: ${taskArgs.schema}`
+      );
+    }
+  }
+)
+  .addParam("proxy", "Proxy Address")
+  .addParam("schema", "Schema Address Hash")
+  .addParam("file", "file name from schemas/json-schemas");

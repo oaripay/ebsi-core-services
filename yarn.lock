@@ -2605,7 +2605,7 @@
     find-up "^4.1.0"
     fs-extra "^8.1.0"
 
-"@openzeppelin/contracts@^4.4.1", "@openzeppelin/contracts@^4.4.2", "@openzeppelin/contracts@^4.5.0", "@openzeppelin/contracts@^4.7.2":
+"@openzeppelin/contracts@^4.4.0", "@openzeppelin/contracts@^4.4.1", "@openzeppelin/contracts@^4.4.2", "@openzeppelin/contracts@^4.5.0", "@openzeppelin/contracts@^4.7.2":
   version "4.7.3"
   resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-4.7.3.tgz#939534757a81f8d69cc854c7692805684ff3111e"
   integrity sha512-dGRS0agJzu8ybo44pCIf3xBaPQN/65AIXNgK8+4gzKd5kbvlqyxryUYVLJv7fK98Seyd2hDZzVEHSWAh0Bt1Yw==
@@ -4138,6 +4138,13 @@
     fs-extra "^9.1.0"
     lodash "^4.17.15"
 
+"@typechain/truffle-v5@^8.0.1":
+  version "8.0.1"
+  resolved "https://registry.yarnpkg.com/@typechain/truffle-v5/-/truffle-v5-8.0.1.tgz#41cf405cde54e63197eb35938a83e2d89e4c14bd"
+  integrity sha512-rCMoFhqebUijiWWraZgm/J3Zl8PDkTiSXFVJYQo26iBqJIco9FgZdqUoMUrilJR5zj5c8FlKBxOUxh0UJ5t3vA==
+  dependencies:
+    lodash "^4.17.15"
+
 "@types/abstract-leveldown@*":
   version "7.2.0"
   resolved "https://registry.yarnpkg.com/@types/abstract-leveldown/-/abstract-leveldown-7.2.0.tgz#f055979a99f7654e84d6b8e6267419e9c4cfff87"
@@ -4556,9 +4563,9 @@
     form-data "^3.0.0"
 
 "@types/node@*", "@types/node@>=12", "@types/node@>=12.12.47", "@types/node@>=13.7.0", "@types/node@>=8":
-  version "18.7.9"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-18.7.9.tgz#180bfc495c91dc62573967edf047e15dbdce1491"
-  integrity sha512-0N5Y1XAdcl865nDdjbO0m3T6FdmQ4ijE89/urOHLREyTXbpMWbSafx9y7XIsgWGtwUP2iYTinLyyW3FatAxBLQ==
+  version "18.7.13"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-18.7.13.tgz#23e6c5168333480d454243378b69e861ab5c011a"
+  integrity sha512-46yIhxSe5xEaJZXWdIBP7GU4HDTG8/eo0qd9atdiL+lFpA03y8KS+lkTN834TWJj5767GbWv4n/P6efyTFt1Dw==
 
 "@types/node@^10.0.3", "@types/node@^10.1.0":
   version "10.17.60"
@@ -4571,9 +4578,9 @@
   integrity sha512-J8xLz7q2OFulZ2cyGTLE1TbbZcjpno7FaN6zdJNrgAdrJ+DZzh/uFR6YrTb4C+nXakvud8Q4+rbhoIWlYQbUFQ==
 
 "@types/node@^16.11.12", "@types/node@^16.11.6":
-  version "16.11.52"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-16.11.52.tgz#d797437435455f237800c171d05639f0335c37b9"
-  integrity sha512-GnstYouCa9kbYokBCWEVrszJ1P2rGAQpKrqACHKuixkaT8XGu8nsqHvEUIGqDs5vwtsJ7LrYqnPDKRD1V+M39A==
+  version "16.11.56"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-16.11.56.tgz#dcbb617669481e158e0f1c6204d1c768cd675901"
+  integrity sha512-aFcUkv7EddxxOa/9f74DINReQ/celqH8DiB3fRYgVDM2Xm5QJL8sl80QKuAnGvwAsMn+H3IFA6WCrQh1CY7m1A==
 
 "@types/node@^8.0.0":
   version "8.10.66"
@@ -8606,7 +8613,7 @@ dezalgo@1.0.3:
     asap "^2.0.0"
     wrappy "1"
 
-did-jwt@^6.1.0, did-jwt@^6.1.2, did-jwt@^6.2.1:
+did-jwt@^6.1.0, did-jwt@^6.1.2, did-jwt@^6.2.0, did-jwt@^6.2.1:
   version "6.6.0"
   resolved "https://registry.yarnpkg.com/did-jwt/-/did-jwt-6.6.0.tgz#e7c932f7e3ff992b15aef7db3d530c81fb34902d"
   integrity sha512-qSjXEEHS4fSbBHRCC/ObDzPVkCVvuXIfIiGWa03HNRr85gGkbxzBrxUsUbXfXo1CuzeCqmmZpK4nM4VWlZh6bQ==
@@ -11634,7 +11641,12 @@ hardhat-abi-exporter@^2.9.0:
     "@ethersproject/abi" "^5.5.0"
     delete-empty "^3.0.0"
 
-hardhat-deploy@^0.11.10:
+hardhat-deploy-ethers@^0.3.0-beta.13:
+  version "0.3.0-beta.13"
+  resolved "https://registry.yarnpkg.com/hardhat-deploy-ethers/-/hardhat-deploy-ethers-0.3.0-beta.13.tgz#b96086ff768ddf69928984d5eb0a8d78cfca9366"
+  integrity sha512-PdWVcKB9coqWV1L7JTpfXRCI91Cgwsm7KLmBcwZ8f0COSm1xtABHZTyz3fvF6p42cTnz1VM0QnfDvMFlIRkSNw==
+
+hardhat-deploy@^0.11.10, hardhat-deploy@^0.11.11:
   version "0.11.12"
   resolved "https://registry.yarnpkg.com/hardhat-deploy/-/hardhat-deploy-0.11.12.tgz#323e05ecd8e6c80a9193b9c6f6c8ecbb6abfbe47"
   integrity sha512-Wv0BqzwW4mz78raxkfQtBbkhZwZTRWXwRbEwgkTUimD3MX/0Z9+D4O+s1zHJlG0zwZvJMbwxPOrOHQm4NZ3JAQ==
@@ -11661,6 +11673,60 @@ hardhat-gas-reporter@^1.0.4:
     array-uniq "1.0.3"
     eth-gas-reporter "^0.2.24"
     sha1 "^1.1.1"
+
+hardhat@2.10.1:
+  version "2.10.1"
+  resolved "https://registry.yarnpkg.com/hardhat/-/hardhat-2.10.1.tgz#37fdc0c96d6a5d16b322269db2ad8f9f115c4046"
+  integrity sha512-0FN9TyCtn7Lt25SB2ei2G7nA2rZjP+RN6MvFOm+zYwherxLZNo6RbD8nDz88eCbhRapevmXqOiL2nM8INKsjmA==
+  dependencies:
+    "@ethereumjs/block" "^3.6.2"
+    "@ethereumjs/blockchain" "^5.5.2"
+    "@ethereumjs/common" "^2.6.4"
+    "@ethereumjs/tx" "^3.5.1"
+    "@ethereumjs/vm" "^5.9.0"
+    "@ethersproject/abi" "^5.1.2"
+    "@metamask/eth-sig-util" "^4.0.0"
+    "@sentry/node" "^5.18.1"
+    "@solidity-parser/parser" "^0.14.2"
+    "@types/bn.js" "^5.1.0"
+    "@types/lru-cache" "^5.1.0"
+    abort-controller "^3.0.0"
+    adm-zip "^0.4.16"
+    aggregate-error "^3.0.0"
+    ansi-escapes "^4.3.0"
+    chalk "^2.4.2"
+    chokidar "^3.4.0"
+    ci-info "^2.0.0"
+    debug "^4.1.1"
+    enquirer "^2.3.0"
+    env-paths "^2.2.0"
+    ethereum-cryptography "^1.0.3"
+    ethereumjs-abi "^0.6.8"
+    ethereumjs-util "^7.1.4"
+    find-up "^2.1.0"
+    fp-ts "1.19.3"
+    fs-extra "^7.0.1"
+    glob "7.2.0"
+    immutable "^4.0.0-rc.12"
+    io-ts "1.10.4"
+    lodash "^4.17.11"
+    merkle-patricia-tree "^4.2.4"
+    mnemonist "^0.38.0"
+    mocha "^10.0.0"
+    p-map "^4.0.0"
+    qs "^6.7.0"
+    raw-body "^2.4.1"
+    resolve "1.17.0"
+    semver "^6.3.0"
+    slash "^3.0.0"
+    solc "0.7.3"
+    source-map-support "^0.5.13"
+    stacktrace-parser "^0.1.10"
+    "true-case-path" "^2.2.1"
+    tsort "0.0.1"
+    undici "^5.4.0"
+    uuid "^8.3.2"
+    ws "^7.4.6"
 
 hardhat@^2.10.1:
   version "2.10.2"
