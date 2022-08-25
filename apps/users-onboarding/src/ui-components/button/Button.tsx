@@ -1,4 +1,3 @@
-/* eslint-disable react/jsx-props-no-spreading */
 import React from "react";
 import PropTypes, { ValidationMap } from "prop-types";
 import classnames from "classnames";
@@ -56,7 +55,6 @@ export const Button: React.FC<ButtonProps> = ({
   return (
     <button
       {...props}
-      // eslint-disable-next-line react/button-has-type
       type={type}
       className={classNames}
       disabled={disabled ?? false}

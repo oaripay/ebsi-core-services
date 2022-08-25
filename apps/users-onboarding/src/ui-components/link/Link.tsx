@@ -1,4 +1,3 @@
-/* eslint-disable react/jsx-props-no-spreading */
 import React from "react";
 import {
   Link as RouterLink,
@@ -27,7 +26,6 @@ export interface LinkProps extends RouterLinkProps {
 
 export const Link: React.FC<LinkProps> = ({
   variant,
-  // eslint-disable-next-line react/prop-types
   to,
   label,
   ariaLabel,

@@ -1,4 +1,3 @@
-/* eslint-disable react/jsx-props-no-spreading */
 import React, { useEffect, useState, useCallback, MouseEvent } from "react";
 import { Link as RouterLink } from "react-router-dom";
 import PropTypes from "prop-types";

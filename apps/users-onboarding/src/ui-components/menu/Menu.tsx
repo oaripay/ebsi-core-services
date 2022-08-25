@@ -1,4 +1,3 @@
-/* eslint-disable react/jsx-props-no-spreading */
 import React, { useState, useCallback, useEffect, MouseEvent } from "react";
 import { useLocation } from "react-router-dom";
 import PropTypes from "prop-types";
@@ -61,7 +60,6 @@ export const Menu: React.FC<MenuProps> = ({
   const isMobileMenuDisplayed = isMobile && isOpen;
 
   return (
-    // eslint-disable-next-line jsx-a11y/role-supports-aria-props
     <nav
       {...props}
       className={classNames}
