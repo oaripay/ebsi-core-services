@@ -1,5 +1,5 @@
 {
-  "name": "@ebsiint-apps/trusted-apps-registry",
+  "name": "@ebsiint-apps/registries-manager",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
