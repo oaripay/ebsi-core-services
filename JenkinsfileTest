@@ -73,8 +73,9 @@ pipeline {
   //         sh 'yarn test'
   //       }
   //     }
-  //   }
-  // }
+
+    }
+  }
 
   post {
     always {
