@@ -11,35 +11,35 @@ pipeline {
       }
     }
 
-    // stage('Lint all') {
-    //   when {
-    //     branch 'nx'
-    //   }
-    //   steps {
-    //     nodejs(nodeJSInstallationName: '16.13.0') {
-    //       sh "yarn lint:all"
-    //     }
-    //   }
-    // }
-
-    stage('Lint affected') {
-      steps {
-        nodejs(nodeJSInstallationName: '16.13.0') {
-          sh "yarn lint"
-        }
-      }
-    }
-
-    stage('Build all docker images') {
+    stage('Lint all') {
       when {
         branch 'nx'
       }
       steps {
         nodejs(nodeJSInstallationName: '16.13.0') {
-          sh "yarn docker-build:all"
+          sh "yarn lint:all"
         }
       }
     }
+
+    // stage('Lint affected') {
+    //   steps {
+    //     nodejs(nodeJSInstallationName: '16.13.0') {
+    //       sh "yarn lint"
+    //     }
+    //   }
+    // }
+
+    // stage('Build all docker images') {
+    //   when {
+    //     branch 'nx'
+    //   }
+    //   steps {
+    //     nodejs(nodeJSInstallationName: '16.13.0') {
+    //       sh "yarn docker-build:all"
+    //     }
+    //   }
+    // }
 
     // stage('Build docker images affected') {
     //   steps {
@@ -50,31 +50,31 @@ pipeline {
     //   }
     // }
 
-    stage('Unit test all') {
-      when {
-        branch 'nx'
-      }
-      environment {
-        API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
-      }
-      steps {
-        nodejs(nodeJSInstallationName: '16.13.0') {
-          sh 'yarn test:all'
-        }
-      }
-    }
+  //   stage('Unit test all') {
+  //     when {
+  //       branch 'nx'
+  //     }
+  //     environment {
+  //       API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
+  //     }
+  //     steps {
+  //       nodejs(nodeJSInstallationName: '16.13.0') {
+  //         sh 'yarn test:all'
+  //       }
+  //     }
+  //   }
 
-    stage('Unit test affected') {
-      environment {
-        API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
-      }
-      steps {
-        nodejs(nodeJSInstallationName: '16.13.0') {
-          sh 'yarn test'
-        }
-      }
-    }
-  }
+  //   stage('Unit test affected') {
+  //     environment {
+  //       API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
+  //     }
+  //     steps {
+  //       nodejs(nodeJSInstallationName: '16.13.0') {
+  //         sh 'yarn test'
+  //       }
+  //     }
+  //   }
+  // }
 
   post {
     always {
