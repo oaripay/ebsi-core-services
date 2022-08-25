@@ -7,6 +7,8 @@
     "audit": "audit-ci --skip-dev --moderate",
     "prebuild": "rimraf dist",
     "build": "nest build -p tsconfig.production.json",
+    "docker:build": "docker build . -t ledger-api-v3",
+    "docker:start": "docker-compose up",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",

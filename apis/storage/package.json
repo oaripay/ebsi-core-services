@@ -7,6 +7,8 @@
     "audit": "audit-ci --moderate --skip-dev",
     "prebuild": "rimraf dist",
     "build": "nest build -p tsconfig.production.json",
+    "docker:build": "docker build . -t storage-api-v3",
+    "docker:start": "docker-compose up",
     "configure:cassandra": "yarn configure:cassandra:keyspace && yarn configure:cassandra:tables",
     "configure:cassandra:keyspace": "yarn dotenv -c test ./scripts/createKeyspace.sh",
     "configure:cassandra:tables": "yarn dotenv -c test ./scripts/createTables.sh",

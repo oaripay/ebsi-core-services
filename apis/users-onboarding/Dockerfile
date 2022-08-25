@@ -1,19 +1,16 @@
-FROM node:16.14.2-alpine3.15@sha256:32f64135e74ec4dc5d63cc36318444f1d801cd23c44253124f7eccb52c4b89c5 as base
-WORKDIR /app
-COPY package.json yarn.lock ./
-RUN yarn install --frozen-lockfile --silent --production --ignore-scripts && yarn cache clean
+# Create reference to core-services
+FROM core-services as builder
 
-FROM base as builder
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
-RUN yarn install --frozen-lockfile --silent && yarn cache clean
-COPY nest-cli.json tsconfig*.json ./
-COPY src src
-RUN yarn build
-
-FROM base
+FROM node:16.14.2-alpine3.15@sha256:32f64135e74ec4dc5d63cc36318444f1d801cd23c44253124f7eccb52c4b89c5
 WORKDIR /app
+COPY --from=builder /app/yarn.lock yarn.lock
+COPY --from=builder /app/apis/users-onboarding/package.json package.json
+COPY --from=builder /app/apis/users-onboarding/dist dist
+COPY --from=builder /app/apis/users-onboarding/.ci .ci
 ENV NODE_ENV=production
-COPY --from=builder /app/dist dist
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
+# This is required for nestjs runtime.
+RUN yarn install --production --frozen-lockfile --ignore-scripts && yarn cache clean
 RUN chown node:node /app
 USER node
 CMD [ "node", "dist/main" ]

@@ -6,7 +6,6 @@
   "scripts": {
     "audit": "audit-ci --moderate --skip-dev",
     "build": "nest build -p tsconfig.production.json",
-    "clean": "rimraf artifacts cache src/contracts",
     "docker:build": "docker build . -t trusted-apps-registry-api",
     "docker:start": "docker-compose up",
     "lint": "yarn lint:openapi && yarn lint:eslint && yarn lint:tsc && yarn lint:prettier",

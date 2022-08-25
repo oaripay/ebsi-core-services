@@ -5,6 +5,7 @@
   "description": "Proxy Smart Contract",
   "main": "dist/index.d.ts",
   "types": "dist/index.d.ts",
+  "license": "EUPL-1.2",
   "scripts": {
     "clean": "rimraf build src dist coverage",
     "prettier-format": "prettier --write '**/*.{js,json,md,sol}'",
@@ -19,8 +20,6 @@
     "test": "truffle compile && jest --verbose",
     "test:ci": "yarn run test"
   },
-  "author": "",
-  "license": "EUPL-1.2",
   "dependencies": {
     "@ebsiint-sc/bootstrap": "^1.0.0",
     "@truffle/hdwallet-provider": "^1.2.1",

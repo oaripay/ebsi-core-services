@@ -7,6 +7,8 @@
     "audit": "audit-ci --moderate --skip-dev -a GHSA-5fg8-2547-mr8q",
     "prebuild": "rimraf dist",
     "build": "nest build -p tsconfig.production.json",
+    "docker:build": "docker build . -t users-onboarding-api-v2",
+    "docker:start": "docker-compose up",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",

@@ -20,6 +20,11 @@
     "test": "hardhat compile && hardhat test",
     "test:ci": "hardhat compile && hardhat test && yarn coverage"
   },
+  "dependencies": {
+    "@ebsiint-sc/bootstrap": "^1.0.0",
+    "@ebsiint-sc/trusted-policies-registry": "^1.0.0",
+    "@openzeppelin/contracts": "^4.4.1"
+  },
   "devDependencies": {
     "@ethersproject/abi": "^5.4.7",
     "@ethersproject/bytes": "^5.4.7",
@@ -46,11 +51,6 @@
     "ts-generator": "^0.1.1",
     "ts-node": "^10.9.1",
     "typechain": "^8.1.0"
-  },
-  "dependencies": {
-    "@ebsiint-sc/bootstrap": "^1.0.0",
-    "@ebsiint-sc/trusted-policies-registry": "^1.0.0",
-    "@openzeppelin/contracts": "^4.4.1"
   },
   "nx": {
     "namedInputs": {
