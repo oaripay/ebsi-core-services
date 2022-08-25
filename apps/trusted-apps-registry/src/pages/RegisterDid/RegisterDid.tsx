@@ -15,8 +15,8 @@ export default function RegisterDid() {
   const { registerDid, insertDidAs, walletAddress } = useDidRegister();
   const { identifier } = useRegisterDidContext();
 
-  function DidAsAdministratorMessage() {
-    return didAsAdministrator ? (
+  const DidAsAdministratorMessage = () =>
+    didAsAdministrator ? (
       <Alert
         message="DID Administrator already defined"
         type="info"
@@ -26,7 +26,6 @@ export default function RegisterDid() {
     ) : (
       <></>
     );
-  }
 
   return (
     <Space direction="vertical" className="content-container" size="middle">

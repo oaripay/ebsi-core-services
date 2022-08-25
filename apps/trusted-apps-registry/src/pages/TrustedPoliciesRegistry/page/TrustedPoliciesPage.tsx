@@ -1,6 +1,6 @@
 import React, { ReactElement, useEffect, useState } from "react";
 import { Space, Tabs } from "antd";
-import { useParams } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import usePolicies from "../usePolicies";
 import PoliciesTab from "../tabs/PoliciesTab";
 import UsersTab from "../tabs/UsersTab";
@@ -11,9 +11,10 @@ export default function TrustedPoliciesPage(): ReactElement {
   useEffect(() => {
     getPolicies();
   }, [getPolicies]);
-  const { state }: { state?: { showAttributes: boolean } } = useParams();
+  const { location }: { location: { state?: { showAttributes: boolean } } } =
+    useHistory();
   const [activeKey, setActiveKey] = useState(
-    state?.showAttributes ? "users" : "policies"
+    location.state?.showAttributes ? "users" : "policies"
   );
 
   return (

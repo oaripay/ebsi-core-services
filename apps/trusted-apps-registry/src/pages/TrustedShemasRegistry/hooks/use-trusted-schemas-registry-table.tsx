@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Button, Tooltip } from "antd";
-import { useNavigate } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import { EyeOutlined } from "@ant-design/icons";
 import useTrustedSchemasRegistry from "./use-trusted-schemas-registry";
 import { PAGE_SIZE, DEFAULT_PAGE } from "../constants";
@@ -18,7 +18,7 @@ export default function useTrustedSchemasRegistryTable() {
   const [totalItems, setTotalItems] = useState(0);
   const [page, setPage] = useState(DEFAULT_PAGE);
   const [dataSource, setDataSource] = useState<TableDataType[]>([]);
-  const navigate = useNavigate();
+  const { push } = useHistory();
 
   const columns = [
     {
@@ -50,7 +50,7 @@ export default function useTrustedSchemasRegistryTable() {
       render: ({ id }: { id: string }) => (
         <Button
           onClick={() =>
-            navigate(
+            push(
               config.routes.trustedSchemaRegistryRevision.replace(
                 ":schemaId",
                 id

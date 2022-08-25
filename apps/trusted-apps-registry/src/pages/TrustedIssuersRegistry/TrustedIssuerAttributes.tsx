@@ -1,7 +1,7 @@
 import React, { ReactElement, useEffect, useMemo, useState } from "react";
 import { Button, Space, Table } from "antd";
 import { LeftOutlined, PlusOutlined } from "@ant-design/icons";
-import { useNavigate } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import Paragraph from "antd/es/typography/Paragraph";
 import { PAGE_SIZE } from "./constants";
 import useTrustedIssuersAttributesTable from "./hooks/use-trusted-issuers-attributes-table";
@@ -40,7 +40,7 @@ export default function TrustedIssuerAttributes(props: PropType): ReactElement {
     attribute: "",
   });
 
-  const navigate = useNavigate();
+  const { push } = useHistory();
 
   useEffect(() => {
     initTotal(did);
@@ -121,7 +121,7 @@ export default function TrustedIssuerAttributes(props: PropType): ReactElement {
         attribute={modalRevision.attribute}
         loadTableData={() => loadAttributesWithRevision(did)}
       />
-      <Button onClick={() => navigate(config.routes.trustedIssuersRegistry)}>
+      <Button onClick={() => push(config.routes.trustedIssuersRegistry)}>
         <LeftOutlined />
         Back to listing
       </Button>

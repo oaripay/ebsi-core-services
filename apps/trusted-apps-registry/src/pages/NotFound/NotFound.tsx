@@ -1,10 +1,10 @@
 import { Button, Result, Row, Space } from "antd";
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import { config } from "../../config";
 
 export default function NotFound() {
-  const navigate = useNavigate();
+  const history = useHistory();
   return (
     <Space direction="vertical" className="content-container" size="middle">
       <Row justify="center" align="middle">
@@ -15,9 +15,7 @@ export default function NotFound() {
           extra={
             <Button
               type="primary"
-              onClick={() =>
-                navigate(config.routes.registerDid, { replace: true })
-              }
+              onClick={() => history.replace(config.routes.registerDid)}
             >
               Back Home
             </Button>

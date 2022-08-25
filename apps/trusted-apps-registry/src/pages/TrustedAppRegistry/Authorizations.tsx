@@ -1,6 +1,6 @@
 import React, { ReactElement, useEffect, useMemo } from "react";
 import { Button, Row, Space, Table, Tooltip } from "antd";
-import { useNavigate, useParams } from "react-router-dom";
+import { useHistory, useParams } from "react-router-dom";
 import {
   EditOutlined,
   LeftOutlined,
@@ -90,7 +90,7 @@ export default function Authorizations(): ReactElement {
     loadTableData(id);
     initTotal(id);
   }, [id, initTotal, loadTableData]);
-  const navigate = useNavigate();
+  const { push } = useHistory();
 
   return (
     <Space direction="vertical" size="middle" className="content-container">
@@ -98,7 +98,7 @@ export default function Authorizations(): ReactElement {
       <ModalInsertAuth />
       <InfoCard />
       <Row justify="space-between">
-        <Button onClick={() => navigate(config.routes.trustedAppsRegistry)}>
+        <Button onClick={() => push(config.routes.trustedAppsRegistry)}>
           <LeftOutlined />
           Back to listing
         </Button>

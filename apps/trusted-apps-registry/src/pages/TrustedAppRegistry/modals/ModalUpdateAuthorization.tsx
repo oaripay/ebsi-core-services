@@ -82,7 +82,11 @@ export function ModalUpdateAuthorization() {
                   form.resetFields();
                   notification.info({
                     message: "Transaction",
-                    description: <p>A transaction has been broadcasted.</p>,
+                    description: (
+                      <>
+                        <p>A transaction has been broadcasted.</p>
+                      </>
+                    ),
                   });
                 })
                 .catch(() => {

@@ -99,7 +99,9 @@ export default function ModalInsertAuth(): ReactElement {
                         notification.info({
                           message: "Transaction",
                           description: (
-                            <p>A transaction has been broadcasted.</p>
+                            <>
+                              <p>A transaction has been broadcasted.</p>
+                            </>
                           ),
                         });
                       })

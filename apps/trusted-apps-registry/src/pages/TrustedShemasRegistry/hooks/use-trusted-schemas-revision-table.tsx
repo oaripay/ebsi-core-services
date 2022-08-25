@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Button } from "antd";
-import { useNavigate, useParams } from "react-router-dom";
+import { useHistory, useParams } from "react-router-dom";
 import { EyeOutlined } from "@ant-design/icons";
 import { DEFAULT_PAGE, PAGE_SIZE } from "../constants";
 import useTrustedSchemasRevision from "./use-trusted-schemas-revision";
@@ -19,7 +19,7 @@ export default function useTrustedSchemasRevisionTable() {
   const { schemaId }: { schemaId: string } = useParams();
   const { loadData, hasErrorLoadingData, loadSchemaRevisionById } =
     useTrustedSchemasRevision();
-  const navigate = useNavigate();
+  const { push } = useHistory();
 
   const loadTableData = useCallback(async () => {
     if (schemaId) {
@@ -73,7 +73,7 @@ export default function useTrustedSchemasRevisionTable() {
         return (
           <Button
             onClick={() => {
-              navigate(
+              push(
                 config.routes.trustedSchemaRegistryRevisionMetadata.replace(
                   ":revisionId",
                   idMetadata

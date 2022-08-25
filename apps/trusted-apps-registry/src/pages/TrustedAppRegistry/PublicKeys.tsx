@@ -1,6 +1,6 @@
 import React, { ReactElement, useEffect, useMemo } from "react";
 import { Button, Col, Row, Space, Table } from "antd";
-import { useNavigate, useParams } from "react-router-dom";
+import { useHistory, useParams } from "react-router-dom";
 import { EditOutlined, LeftOutlined, PlusOutlined } from "@ant-design/icons";
 import { PAGE_SIZE } from "../TrustedIssuersRegistry/constants";
 import { useTrustedAppPublicKeysHook } from "./use-trusted-app-public-keys.hook";
@@ -22,7 +22,7 @@ export default function PublicKeys(): ReactElement {
 
   const { id } = useParams();
 
-  const navigate = useNavigate();
+  const { push } = useHistory();
 
   useEffect(() => {
     loadTableData(id);
@@ -43,24 +43,26 @@ export default function PublicKeys(): ReactElement {
         key: "actions",
         render: (data: { publicKey: string }) => {
           return (
-            <Button
-              title="Update an existing public key"
-              type="link"
-              className="m-l-4 p-0"
-              onClick={async () => {
-                const details = await getAppDetails(id);
-                setUpdateAppPublicKey({
-                  show: true,
-                  data: {
-                    publicKey: data.publicKey,
-                    id,
-                    name: details.name,
-                  },
-                });
-              }}
-            >
-              <EditOutlined />
-            </Button>
+            <>
+              <Button
+                title="Update an existing public key"
+                type="link"
+                className="m-l-4 p-0"
+                onClick={async () => {
+                  const details = await getAppDetails(id);
+                  setUpdateAppPublicKey({
+                    show: true,
+                    data: {
+                      publicKey: data.publicKey,
+                      id,
+                      name: details.name,
+                    },
+                  });
+                }}
+              >
+                <EditOutlined />
+              </Button>
+            </>
           );
         },
       },
@@ -71,7 +73,7 @@ export default function PublicKeys(): ReactElement {
     <Space direction="vertical" size="middle" className="content-container">
       <InfoCard />
       <Row justify="space-between">
-        <Button onClick={() => navigate(config.routes.trustedAppsRegistry)}>
+        <Button onClick={() => push(config.routes.trustedAppsRegistry)}>
           <LeftOutlined />
           Back to listing
         </Button>

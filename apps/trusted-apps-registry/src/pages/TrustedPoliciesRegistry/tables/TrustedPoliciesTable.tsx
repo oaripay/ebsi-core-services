@@ -118,36 +118,38 @@ export default function TrustedPoliciesTable({
       title: "Actions",
       render: (values: InitialValuesNewEditPolicy) => {
         return (
-          <Space direction="vertical">
-            <Button
-              type="primary"
-              disabled={!values.status}
-              onClick={() => {
-                showEditModal({
-                  ...values,
-                  id: values.id,
-                });
-              }}
-            >
-              <Tooltip title="Edit policy">
-                Edit Policy <EditOutlined />
-              </Tooltip>
-            </Button>
-            <Button
-              disabled={values.status}
-              onClick={() => {
-                activatePolicy(values.id);
-              }}
-            >
-              Activate policy
-            </Button>
-            <Button
-              disabled={!values.status}
-              onClick={() => deactivatePolicy(values.id)}
-            >
-              Deactivate policy
-            </Button>
-          </Space>
+          <>
+            <Space direction="vertical">
+              <Button
+                type="primary"
+                disabled={!values.status}
+                onClick={() => {
+                  showEditModal({
+                    ...values,
+                    id: values.id,
+                  });
+                }}
+              >
+                <Tooltip title="Edit policy">
+                  Edit Policy <EditOutlined />
+                </Tooltip>
+              </Button>
+              <Button
+                disabled={values.status}
+                onClick={() => {
+                  activatePolicy(values.id);
+                }}
+              >
+                Activate policy
+              </Button>
+              <Button
+                disabled={!values.status}
+                onClick={() => deactivatePolicy(values.id)}
+              >
+                Deactivate policy
+              </Button>
+            </Space>
+          </>
         );
       },
     },

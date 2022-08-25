@@ -84,64 +84,70 @@ export default function InsertUserAttributesForm({
         </Form.Item>
         <Form.List name="attributesWithValues">
           {(fields, { add, remove }) => (
-            <Space direction="vertical" className="w-100">
-              {fields.map(({ key, name, fieldKey }) => (
-                <Collapse
-                  accordion
-                  key={key}
-                  destroyInactivePanel
-                  activeKey={activeKey}
-                  onChange={(keyToSet: string | string[]) =>
-                    setActiveKey(keyToSet)
-                  }
-                >
-                  <Collapse.Panel header={`Attribute ${name}`} key={name}>
-                    <Form.Item
-                      name={[name, "attribute"]}
-                      fieldKey={[fieldKey, "attribute"]}
-                      label="Attribute"
-                      rules={[{ required: true, message: "Field is required" }]}
-                    >
-                      <Input />
-                    </Form.Item>
-                    <Form.Item
-                      name={[name, "value"]}
-                      fieldKey={[fieldKey, "value"]}
-                      label="Value"
-                      rules={[{ required: true, message: "Field is required" }]}
-                    >
-                      <Input />
-                    </Form.Item>
-                  </Collapse.Panel>
-                </Collapse>
-              ))}
-              <Row justify="space-between">
-                <Col>
-                  <Button
-                    type="dashed"
-                    onClick={() => {
-                      add();
-                      setActiveKey(`${fields.length}`);
-                    }}
-                    block
-                    icon={<PlusOutlined />}
+            <>
+              <Space direction="vertical" className="w-100">
+                {fields.map(({ key, name, fieldKey }) => (
+                  <Collapse
+                    accordion
+                    key={key}
+                    destroyInactivePanel
+                    activeKey={activeKey}
+                    onChange={(keyToSet: string | string[]) =>
+                      setActiveKey(keyToSet)
+                    }
                   >
-                    Add new attribute
-                  </Button>
-                </Col>
-                <Col>
-                  <Button
-                    type="dashed"
-                    disabled={fields.length === 1}
-                    onClick={() => remove(fields.length - 1)}
-                    block
-                    icon={<MinusOutlined />}
-                  >
-                    Remove last attribute
-                  </Button>
-                </Col>
-              </Row>
-            </Space>
+                    <Collapse.Panel header={`Attribute ${name}`} key={name}>
+                      <Form.Item
+                        name={[name, "attribute"]}
+                        fieldKey={[fieldKey, "attribute"]}
+                        label="Attribute"
+                        rules={[
+                          { required: true, message: "Field is required" },
+                        ]}
+                      >
+                        <Input />
+                      </Form.Item>
+                      <Form.Item
+                        name={[name, "value"]}
+                        fieldKey={[fieldKey, "value"]}
+                        label="Value"
+                        rules={[
+                          { required: true, message: "Field is required" },
+                        ]}
+                      >
+                        <Input />
+                      </Form.Item>
+                    </Collapse.Panel>
+                  </Collapse>
+                ))}
+                <Row justify="space-between">
+                  <Col>
+                    <Button
+                      type="dashed"
+                      onClick={() => {
+                        add();
+                        setActiveKey(`${fields.length}`);
+                      }}
+                      block
+                      icon={<PlusOutlined />}
+                    >
+                      Add new attribute
+                    </Button>
+                  </Col>
+                  <Col>
+                    <Button
+                      type="dashed"
+                      disabled={fields.length === 1}
+                      onClick={() => remove(fields.length - 1)}
+                      block
+                      icon={<MinusOutlined />}
+                    >
+                      Remove last attribute
+                    </Button>
+                  </Col>
+                </Row>
+              </Space>
+            </>
           )}
         </Form.List>
         <Form.Item name="id" className="d-none">

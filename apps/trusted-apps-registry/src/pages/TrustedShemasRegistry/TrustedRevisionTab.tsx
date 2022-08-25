@@ -1,6 +1,6 @@
 import React, { ReactElement, useCallback } from "react";
 import { Alert, Button, Space, Table } from "antd";
-import { useNavigate, useParams } from "react-router-dom";
+import { useHistory, useParams } from "react-router-dom";
 import { LeftOutlined } from "@ant-design/icons";
 import { useForm } from "antd/es/form/Form";
 
@@ -22,7 +22,7 @@ export default function TrustedRevisionTab(): ReactElement {
     page,
     loadTableData,
   } = useTrustedSchemasRevisionTable();
-  const navigate = useNavigate();
+  const { push } = useHistory();
   const params: { schemaId: string } = useParams();
   const [form] = useForm();
   const { updateSchema } = useTrustedSchemasRegistry();
@@ -44,7 +44,7 @@ export default function TrustedRevisionTab(): ReactElement {
   return (
     <Space direction="vertical">
       <Space>
-        <Button onClick={() => navigate(config.routes.trustedSchemaRegistry)}>
+        <Button onClick={() => push(config.routes.trustedSchemaRegistry)}>
           <LeftOutlined /> Back to schema listing
         </Button>
         <AddRevision form={form} submit={submit} schemaId={params.schemaId} />
