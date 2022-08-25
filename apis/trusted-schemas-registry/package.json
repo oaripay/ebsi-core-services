@@ -12,7 +12,6 @@
     "lint:openapi": "spectral lint api/openapi.yaml",
     "lint:prettier": "prettier . --check",
     "lint:tsc": "tsc --noEmit --incremental false",
-    "postinstall": "yarn run clean && hardhat compile",
     "prebuild": "rimraf dist",
     "release": "standard-version",
     "start": "nest start",

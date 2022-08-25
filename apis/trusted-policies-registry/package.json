@@ -17,7 +17,6 @@
     "lint:openapi": "spectral lint api/openapi.yaml",
     "lint:tsc": "tsc --noEmit --incremental false",
     "lint:prettier": "prettier . --check",
-    "postinstall": "yarn run clean && hardhat compile",
     "release": "standard-version",
     "test": "jest --runInBand",
     "test:watch": "jest --watch",
