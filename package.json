@@ -40,7 +40,6 @@
   "workspaces": [
     "apis/**",
     "apps/**",
-    "contracts/**",
-    "tools/**"
+    "contracts/**"
   ]
 }
