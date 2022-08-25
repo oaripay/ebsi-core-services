@@ -13,7 +13,7 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
-import { LedgerSCRegistry } from "@ebsiint-sc/trusted-ledgers-regitry";
+import { LedgerSCRegistry } from "@ebsiint-sc/trusted-ledgers-registry";
 import { SmartContractsModule } from "./smart-contracts.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { setupTestEnv } from "../../../tests/utils/ledgerScRegistry";

@@ -8,7 +8,7 @@ import {
   LedgerSCRegistry__factory,
   PolicyRegistryMock__factory,
   SmartContractLib__factory,
-} from "@ebsiint-sc/trusted-ledgers-regitry";
+} from "@ebsiint-sc/trusted-ledgers-registry";
 
 interface LedgerInfoObject {
   ledgerName: string;
