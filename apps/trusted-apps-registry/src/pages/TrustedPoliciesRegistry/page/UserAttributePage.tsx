@@ -1,7 +1,7 @@
 import React, { ReactElement, useEffect } from "react";
 import { Button, Space } from "antd";
 import { LeftOutlined } from "@ant-design/icons";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import UserAttributesTable from "../tables/UserAttributesTable";
 import useUserAttributes from "../useUserAttributes";
 import { config } from "../../../config";
@@ -12,7 +12,7 @@ export default function UserAttributePage({
   address: string;
 }): ReactElement {
   const { getUserAttributes } = useUserAttributes();
-  const { push } = useHistory();
+  const navigate = useNavigate();
 
   useEffect(() => {
     getUserAttributes(address);
@@ -23,7 +23,9 @@ export default function UserAttributePage({
       <h3>{address}</h3>
       <Button
         onClick={() =>
-          push(config.routes.trustedPoliciesRegistry, { showAttributes: true })
+          navigate(config.routes.trustedPoliciesRegistry, {
+            state: { showAttributes: true },
+          })
         }
       >
         <LeftOutlined /> Back to policies

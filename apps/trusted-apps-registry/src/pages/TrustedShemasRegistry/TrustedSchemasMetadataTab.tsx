@@ -1,7 +1,7 @@
 import { Alert, Button, Space, Table } from "antd";
 import { LeftOutlined } from "@ant-design/icons";
 import React, { useCallback } from "react";
-import { useHistory, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useForm } from "antd/es/form/Form";
 import { config } from "../../config";
 import { PAGE_SIZE } from "../TrustedIssuersRegistry/constants";
@@ -11,7 +11,7 @@ import { useModalContext } from "./Modal.context";
 import useTrustedSchemasRegistry from "./hooks/use-trusted-schemas-registry";
 
 export default function TrustedSchemasMetadataTab() {
-  const { push } = useHistory();
+  const navigate = useNavigate();
   const params: { revisionId: string } = useParams();
   const {
     hasErrorLoadingData,
@@ -43,7 +43,7 @@ export default function TrustedSchemasMetadataTab() {
   return (
     <Space direction="vertical">
       <Space>
-        <Button onClick={() => push(config.routes.trustedSchemaRegistry)}>
+        <Button onClick={() => navigate(config.routes.trustedSchemaRegistry)}>
           <LeftOutlined /> Back to schema listing
         </Button>
         <AddMetadata

@@ -1,7 +1,7 @@
 import { Button, Space, Tooltip } from "antd";
 import React, { useCallback } from "react";
 import { EditOutlined } from "@ant-design/icons/lib";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { useAppContext } from "../../AppContext";
 import { useTrustedAppHook } from "./use-trusted-app.hook";
@@ -16,7 +16,7 @@ export function useTableHook() {
     setEditModal,
   } = useAppContext();
   const { getApplications } = useTrustedAppHook();
-  const { push } = useHistory();
+  const navigate = useNavigate();
 
   const loadTableData = useCallback(() => {
     if (!searchedTerm) {
@@ -54,7 +54,7 @@ export function useTableHook() {
           <Space>
             <Button
               onClick={() => {
-                push(
+                navigate(
                   config.routes.trustedAppsRegistryPublicKeys.replace(
                     ":id",
                     params.id
@@ -66,7 +66,7 @@ export function useTableHook() {
             </Button>
             <Button
               onClick={() => {
-                push(
+                navigate(
                   config.routes.trustedAppsRegistryAuthorizations.replace(
                     ":id",
                     params.id

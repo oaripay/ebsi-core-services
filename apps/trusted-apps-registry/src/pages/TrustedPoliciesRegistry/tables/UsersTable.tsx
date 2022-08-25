@@ -1,13 +1,13 @@
 import React, { ReactElement } from "react";
 import { Button, Space, Table } from "antd";
 import { EyeOutlined } from "@ant-design/icons";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useTrustedPoliciesUsersContext } from "../PoliciesUsers.context";
 import { config } from "../../../config";
 
 export default function UsersTable(): ReactElement {
   const { users, loading } = useTrustedPoliciesUsersContext();
-  const { push } = useHistory();
+  const navigate = useNavigate();
 
   const columns = [
     {
@@ -27,7 +27,7 @@ export default function UsersTable(): ReactElement {
           <Space direction="vertical">
             <Button
               onClick={() => {
-                push(
+                navigate(
                   config.routes.trustedPoliciesRegistryAttributes.replace(
                     ":address",
                     prop.address

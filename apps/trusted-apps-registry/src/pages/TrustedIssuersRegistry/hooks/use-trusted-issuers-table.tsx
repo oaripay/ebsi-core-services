@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { Button } from "antd";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 import { useEthersHook } from "../../../hooks/use-ethers.hook";
 import { PAGE_SIZE } from "../constants";
@@ -17,7 +17,7 @@ export default function useTrustedIssuersTable() {
   const { trustedIssuersContract } = useEthersHook();
   const { getTotal } = useTotalTrustedIssuer();
 
-  const { push } = useHistory();
+  const navigate = useNavigate();
 
   const loadTableData = useCallback(async () => {
     if (!trustedIssuersContract) {
@@ -55,7 +55,7 @@ export default function useTrustedIssuersTable() {
           return (
             <Button
               onClick={() =>
-                push(`${config.routes.trustedIssuersRegistry}/${did}`)
+                navigate(`${config.routes.trustedIssuersRegistry}/${did}`)
               }
             >
               Show attributes
@@ -64,7 +64,7 @@ export default function useTrustedIssuersTable() {
         },
       },
     ],
-    [push]
+    [navigate]
   );
 
   return {

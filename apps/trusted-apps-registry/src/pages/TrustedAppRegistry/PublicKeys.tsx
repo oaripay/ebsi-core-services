@@ -1,6 +1,6 @@
 import React, { ReactElement, useEffect, useMemo } from "react";
 import { Button, Col, Row, Space, Table } from "antd";
-import { useHistory, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { EditOutlined, LeftOutlined, PlusOutlined } from "@ant-design/icons";
 import { PAGE_SIZE } from "../TrustedIssuersRegistry/constants";
 import { useTrustedAppPublicKeysHook } from "./use-trusted-app-public-keys.hook";
@@ -22,7 +22,7 @@ export default function PublicKeys(): ReactElement {
 
   const { id } = useParams();
 
-  const { push } = useHistory();
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadTableData(id);
@@ -71,7 +71,7 @@ export default function PublicKeys(): ReactElement {
     <Space direction="vertical" size="middle" className="content-container">
       <InfoCard />
       <Row justify="space-between">
-        <Button onClick={() => push(config.routes.trustedAppsRegistry)}>
+        <Button onClick={() => navigate(config.routes.trustedAppsRegistry)}>
           <LeftOutlined />
           Back to listing
         </Button>
