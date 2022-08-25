@@ -30,6 +30,17 @@ pipeline {
       }
     }
 
+    stage('Build the builder image') {
+      when {
+        branch 'nx'
+      }
+      steps {
+        nodejs(nodeJSInstallationName: '16.13.0') {
+          sh "yarn docker-build"
+        }
+      }
+    }
+
     // stage('Build all docker images') {
     //   when {
     //     branch 'nx'

@@ -10,7 +10,7 @@ services:
   storage-api-v3:
     build: .
     env_file:
-      - .env
+      - .env.default
       - .env.local
     ports:
       - "${API_PORT:-3000}:${API_PORT:-3000}"

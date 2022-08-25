@@ -58,7 +58,7 @@ For more information see:
 
 You can choose to run the project locally with your own Node.js environment, or you can use Docker Compose to run it.
 
-First, create an `.env.local` file locally. You can duplicate the content of `.env` or only set the variables that you want to change.
+First, create an `.env.local` file locally. You can duplicate the content of `.env.default` or only set the variables that you want to change.
 
 You must at least set `EBSI_ENV` to run the API. For e2e testing, you must also set `TEST_APP_NAME`, `TEST_APP_PRIVATE_KEY`, `TEST_CLIENT_KID` and `TEST_CLIENT_PRIVATE_KEY`.
 
