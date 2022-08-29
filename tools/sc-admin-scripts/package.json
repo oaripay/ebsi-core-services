@@ -27,7 +27,7 @@
     "@ebsiint-sc/trusted-policies-registry": "^1.0.0",
     "@ebsiint-sc/trusted-schemas-registry": "^1.0.0",
     "@openzeppelin/contracts": "^4.4.0",
-    "did-jwt": "^6.2.0",
+    "did-jwt": "^6.2.1",
     "elliptic": "^6.5.4"
   },
   "devDependencies": {
