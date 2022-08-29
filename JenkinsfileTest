@@ -11,41 +11,41 @@ pipeline {
       }
     }
 
-    // stage('Lint') {
-    //   when {
-    //     branch 'nx'
-    //   }
-    //   steps {
-    //     nodejs(nodeJSInstallationName: '16.13.0') {
-    //       sh "yarn lint:all"
-    //     }
-    //   }
-    // }
-
-    stage('Build docker images') {
+    stage('Lint') {
       when {
         branch 'nx'
       }
       steps {
         nodejs(nodeJSInstallationName: '16.13.0') {
-          sh "yarn docker-build:all"
+          sh "yarn lint:all"
         }
       }
     }
 
-    // stage('Test') {
+    // stage('Build docker images') {
     //   when {
     //     branch 'nx'
     //   }
-    //   environment {
-    //     API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
-    //   }
     //   steps {
     //     nodejs(nodeJSInstallationName: '16.13.0') {
-    //       sh 'yarn test:all'
+    //       sh "yarn docker-build:all"
     //     }
     //   }
     // }
+
+    stage('Test') {
+      when {
+        branch 'nx'
+      }
+      environment {
+        API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
+      }
+      steps {
+        nodejs(nodeJSInstallationName: '16.13.0') {
+          sh 'yarn test:all'
+        }
+      }
+    }
   }
 
   post {

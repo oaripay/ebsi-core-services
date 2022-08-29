@@ -19,6 +19,11 @@ module.exports = {
     "!src/main.ts",
     "!**/*.d.ts",
   ],
+  globals: {
+    "ts-jest": {
+      tsconfig: "tsconfig.test.json",
+    },
+  },
   coverageReporters: ["text", "lcov", "json", "clover", "cobertura"],
   resolver: path.resolve(__dirname, "../../jest-resolver.js"),
 };
