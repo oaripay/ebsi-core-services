@@ -37,6 +37,7 @@
     "react-scripts": "4.0.3"
   },
   "devDependencies": {
+    "@babel/plugin-proposal-optional-chaining": "^7.18.9",
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
     "@types/bs58": "^4.0.1",

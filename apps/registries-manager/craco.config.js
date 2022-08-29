@@ -2,6 +2,9 @@ const path = require("path");
 const CracoLessPlugin = require("craco-less");
 
 module.exports = {
+  babel: {
+    plugins: [["@babel/plugin-proposal-optional-chaining"]],
+  },
   plugins: [
     {
       plugin: CracoLessPlugin,
