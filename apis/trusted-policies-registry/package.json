@@ -26,9 +26,9 @@
     "test:ci": "yarn test:unit --coverage --reporters=default --reporters=jest-sonar"
   },
   "dependencies": {
-    "@cef-ebsi/oauth2-auth": "^2.1.1",
-    "@cef-ebsi/problem-details-errors": "^2.0.0",
-    "@cef-ebsi/siop-auth": "^2.1.0",
+    "@cef-ebsi/oauth2-auth": "2.1.1",
+    "@cef-ebsi/problem-details-errors": "2.0.0",
+    "@cef-ebsi/siop-auth": "2.1.0",
     "@ebsiint-sc/trusted-policies-registry": "^1.0.0",
     "@ebsiint-sc/bootstrap": "^1.0.0",
     "@fastify/helmet": "^9.1.0",

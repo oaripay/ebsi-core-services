@@ -27,9 +27,9 @@
   },
   "dependencies": {
     "@ebsiint-sc/trusted-ledgers-registry": "^1.0.0",
-    "@cef-ebsi/oauth2-auth": "^2.1.1",
-    "@cef-ebsi/problem-details-errors": "^2.0.0",
-    "@cef-ebsi/siop-auth": "^2.1.0",
+    "@cef-ebsi/oauth2-auth": "2.1.1",
+    "@cef-ebsi/problem-details-errors": "2.0.0",
+    "@cef-ebsi/siop-auth": "2.1.0",
     "@fastify/helmet": "^9.1.0",
     "@nestjs/axios": "^0.1.0",
     "@nestjs/common": "^9.0.8",
