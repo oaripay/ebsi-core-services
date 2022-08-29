@@ -8,7 +8,7 @@ RUN apk add --update --no-cache \
 FROM base AS builder-admin
 WORKDIR /usr/src/app
 COPY ./package*.json .
-COPY ./yarn.lock .
+# COPY ./yarn.lock .
 RUN yarn
 COPY ./ .
 ARG REACT_APP_REGISTRY_ADDRESS
