@@ -14,7 +14,7 @@ yarn-error.log
 .secret*
 # Assets built by hardhat, previously only `src` in SC repos
 contracts/*/src
-config.ts
+# config.ts
 abi
 all.sol
 artifacts
