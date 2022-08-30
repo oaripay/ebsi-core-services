@@ -7,7 +7,6 @@
     "audit": "audit-ci --moderate --skip-dev",
     "build": "nest build -p tsconfig.production.json",
     "docker:build": "docker build . -t trusted-schemas-registry-api-v2",
-    "docker:start": "docker-compose up",
     "lint": "yarn lint:openapi && yarn lint:eslint && yarn lint:tsc && yarn lint:prettier",
     "lint:eslint": "eslint . --ext .js,.ts ",
     "lint:openapi": "spectral lint api/openapi.yaml",

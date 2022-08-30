@@ -33,7 +33,21 @@ pipeline {
     //   }
     // }
 
-    stage('Test') {
+    // stage('Test') {
+    //   when {
+    //     branch 'nx'
+    //   }
+    //   environment {
+    //     API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
+    //   }
+    //   steps {
+    //     nodejs(nodeJSInstallationName: '16.13.0') {
+    //       sh 'yarn test:all'
+    //     }
+    //   }
+    // }
+
+    stage('Build tar-api') {
       when {
         branch 'nx'
       }
@@ -42,7 +56,7 @@ pipeline {
       }
       steps {
         nodejs(nodeJSInstallationName: '16.13.0') {
-          sh 'yarn test:all'
+          sh 'yarn docker-build:tar-api'
         }
       }
     }

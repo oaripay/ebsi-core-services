@@ -8,7 +8,6 @@
     "start": "SKIP_PREFLIGHT_CHECK=true craco start",
     "build": "SKIP_PREFLIGHT_CHECK=true craco build",
     "docker:build": "docker build . -t registries-manager",
-    "docker:start": "docker-compose up",
     "test": "craco test",
     "eject": "react-scripts eject",
     "lint:css": "stylelint \"./src/**/*.css\"",

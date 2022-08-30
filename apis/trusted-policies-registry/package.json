@@ -8,7 +8,6 @@
     "prebuild": "rimraf dist",
     "build": "nest build -p tsconfig.production.json",
     "docker:build": "docker build . -t trusted-policies-registry-api-v2",
-    "docker:start": "docker-compose up",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
