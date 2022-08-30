@@ -2,6 +2,16 @@ pipeline {
   agent any
 
   stages {
+    stage('Fetch main branch') {
+      when {
+        not {
+          branch 'nx'
+        }
+      }
+      steps {
+        sh 'git fetch origin nx:nx'
+      }
+    }
 
     stage('Setup') {
       steps {
@@ -11,43 +21,29 @@ pipeline {
       }
     }
 
-    // stage('Lint') {
-    //   when {
-    //     branch 'nx'
-    //   }
-    //   steps {
-    //     nodejs(nodeJSInstallationName: '16.13.0') {
-    //       sh "yarn lint:all"
-    //     }
-    //   }
-    // }
+    stage('Lint') {
+      when {
+        branch 'nx'
+      }
+      steps {
+        nodejs(nodeJSInstallationName: '16.13.0') {
+          sh "yarn lint:all"
+        }
+      }
+    }
 
-    // stage('Build docker images') {
-    //   when {
-    //     branch 'nx'
-    //   }
-    //   steps {
-    //     nodejs(nodeJSInstallationName: '16.13.0') {
-    //       sh "yarn docker-build:all"
-    //     }
-    //   }
-    // }
+    stage('Build docker images') {
+      when {
+        branch 'nx'
+      }
+      steps {
+        nodejs(nodeJSInstallationName: '16.13.0') {
+          sh "yarn docker-build:all"
+        }
+      }
+    }
 
-    // stage('Test') {
-    //   when {
-    //     branch 'nx'
-    //   }
-    //   environment {
-    //     API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
-    //   }
-    //   steps {
-    //     nodejs(nodeJSInstallationName: '16.13.0') {
-    //       sh 'yarn test:all'
-    //     }
-    //   }
-    // }
-
-    stage('Build tar-api') {
+    stage('Test') {
       when {
         branch 'nx'
       }
@@ -56,7 +52,21 @@ pipeline {
       }
       steps {
         nodejs(nodeJSInstallationName: '16.13.0') {
-          sh 'yarn docker-build:tar-api'
+          sh 'yarn test:all'
+        }
+      }
+    }
+
+    stage('Check changesets status') {
+      when {
+        // Only check changes when not in the main branch
+        not {
+          branch 'nx'
+        }
+      }
+      steps {
+        nodejs(nodeJSInstallationName: '16.13.0') {
+          sh 'yarn changeset status --since=nx'
         }
       }
     }

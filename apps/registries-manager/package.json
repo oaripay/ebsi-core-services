@@ -7,7 +7,7 @@
     "audit": "audit-ci --moderate --skip-dev -a 1747 1751",
     "start": "SKIP_PREFLIGHT_CHECK=true craco start",
     "build": "SKIP_PREFLIGHT_CHECK=true craco build",
-    "docker:build": "docker build . -t registries-manager",
+    "docker:build": "docker build . -t ebsi/registries-manager:${GIT_COMMIT} --build-arg DOCKER_TAG=${GIT_COMMIT}",
     "test": "craco test",
     "eject": "react-scripts eject",
     "lint:css": "stylelint \"./src/**/*.css\"",

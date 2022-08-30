@@ -11,7 +11,6 @@
     "docker-build:core": "docker build . -t ebsi/core-services:${GIT_COMMIT}",
     "docker-build:affected": "yarn docker-build:core && nx affected --target=docker:build --parallel",
     "docker-build:all": "yarn docker-build:core && nx run-many --target=docker:build --all",
-    "docker-build:tar-api": "yarn docker-build:core && nx docker:build @ebsiint-api/trusted-apps-registry",
     "lint": "nx affected --target=lint --parallel",
     "lint:all": "nx run-many --target=lint --all",
     "test": "nx affected --target=test:ci --parallel",
@@ -20,6 +19,8 @@
     "prepare": "is-ci || husky install"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.24.3",
+    "@changesets/types": "^5.1.0",
     "@commitlint/cli": "^17.0.3",
     "@commitlint/config-conventional": "^17.0.3",
     "@nrwl/cli": "14.4.3",

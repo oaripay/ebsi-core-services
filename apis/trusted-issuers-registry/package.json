@@ -7,7 +7,7 @@
     "audit": "audit-ci --moderate --skip-dev",
     "prebuild": "rimraf dist",
     "build": "nest build -p tsconfig.production.json",
-    "docker:build": "docker build . -t trusted-issuers-registry-api-v3",
+    "docker:build": "docker build . -t ebsi/trusted-issuers-registry-api-v3:${GIT_COMMIT} --build-arg DOCKER_TAG=${GIT_COMMIT}",
     "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",

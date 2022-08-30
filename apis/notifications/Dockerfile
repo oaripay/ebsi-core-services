@@ -1,5 +1,6 @@
 # Create reference to core-services
-FROM core-services as builder
+ARG DOCKER_TAG=latest
+FROM ebsi/core-services:$DOCKER_TAG as builder
 
 FROM node:16.14.2-alpine3.15@sha256:32f64135e74ec4dc5d63cc36318444f1d801cd23c44253124f7eccb52c4b89c5
 WORKDIR /app

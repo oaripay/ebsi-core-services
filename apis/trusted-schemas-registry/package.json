@@ -6,7 +6,7 @@
   "scripts": {
     "audit": "audit-ci --moderate --skip-dev",
     "build": "nest build -p tsconfig.production.json",
-    "docker:build": "docker build . -t trusted-schemas-registry-api-v2",
+    "docker:build": "docker build . -t ebsi/trusted-schemas-registry-api-v2:${GIT_COMMIT} --build-arg DOCKER_TAG=${GIT_COMMIT}",
     "lint": "yarn lint:openapi && yarn lint:eslint && yarn lint:tsc && yarn lint:prettier",
     "lint:eslint": "eslint . --ext .js,.ts ",
     "lint:openapi": "spectral lint api/openapi.yaml",
