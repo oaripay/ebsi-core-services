@@ -260,6 +260,10 @@ describe("JsonRpc Module", () => {
 
   afterAll(async () => {
     nock.enableNetConnect();
+    // Avoid jest open handle error
+    await new Promise<void>((resolve) => {
+      setTimeout(() => resolve(), 500);
+    });
     await app.close();
   });
 

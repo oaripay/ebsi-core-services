@@ -170,6 +170,10 @@ describeWriteOps()("Notifications module (e2e)", () => {
   });
 
   afterAll(async () => {
+    // Avoid jest open handle error
+    await new Promise<void>((resolve) => {
+      setTimeout(() => resolve(), 500);
+    });
     await app.close();
   });
 

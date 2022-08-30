@@ -22,6 +22,11 @@ module.exports = {
     "!src/contracts/**/*",
   ],
   coverageReporters: ["text", "lcov", "json", "clover", "cobertura"],
+  globals: {
+    "ts-jest": {
+      tsconfig: "tsconfig.test.json",
+    },
+  },
   testTimeout: 60000,
   resolver: path.resolve(__dirname, "../../jest-resolver.js"),
 };

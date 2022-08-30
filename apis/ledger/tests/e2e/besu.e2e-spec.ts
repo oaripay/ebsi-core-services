@@ -94,6 +94,10 @@ describe("POST /ledger/v3/blockchains/besu", () => {
   });
 
   afterAll(async () => {
+    // Avoid jest open handle error
+    await new Promise<void>((resolve) => {
+      setTimeout(() => resolve(), 500);
+    });
     await app.close();
   });
 

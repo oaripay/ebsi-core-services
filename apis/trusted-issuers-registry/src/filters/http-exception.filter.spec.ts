@@ -76,6 +76,7 @@ describe("All exception filter tests", () => {
     await new Promise<void>((resolve) => {
       setTimeout(() => resolve(), 500);
     });
+
     await app.close();
   });
 

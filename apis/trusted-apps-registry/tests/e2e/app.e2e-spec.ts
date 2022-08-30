@@ -50,6 +50,10 @@ describe("TAR API (generic tests)", () => {
   });
 
   afterAll(async () => {
+    // Avoid jest open handle error
+    await new Promise<void>((resolve) => {
+      setTimeout(() => resolve(), 500);
+    });
     await app.close();
   });
 
