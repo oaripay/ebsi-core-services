@@ -1,12 +1,11 @@
 import { ethers } from "hardhat";
 import { expect } from "chai";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { describe } from "mocha";
 import { PolicyRegistry } from "../src/types";
 
 describe("UserAttributesManagement", () => {
   let snapshotId: string;
-  let policyContract: PolicyRegistry;
+  let policyContract: any;
   let user: SignerWithAddress;
   let user2: SignerWithAddress;
 
