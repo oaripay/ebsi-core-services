@@ -28,6 +28,7 @@
     "@stoplight/spectral-cli": "^6.5.0",
     "husky": "^8.0.1",
     "is-ci": "^3.0.1",
+    "jest": "^28.1.3",
     "lint-staged": "^13.0.3",
     "nx": "14.4.3",
     "prettier": "^2.7.1",

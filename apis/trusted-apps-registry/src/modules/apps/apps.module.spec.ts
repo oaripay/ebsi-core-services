@@ -31,8 +31,6 @@ import { PaginatedList } from "../../shared/interfaces";
 import LedgerService from "../ledger/ledger.service";
 import { ApiConfig } from "../../config/configuration";
 
-jest.setTimeout(120000);
-
 interface SupertestAppsResponse {
   status: number;
   body: PaginatedList<AppLink>;

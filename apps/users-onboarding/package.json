@@ -119,13 +119,6 @@
       "last 1 safari version"
     ]
   },
-  "jest": {
-    "collectCoverageFrom": [
-      "src/**/*.{js,jsx,ts,tsx}",
-      "!src/env.js",
-      "!src/index.js"
-    ]
-  },
   "standard-version": {
     "skip": {
       "commit": true,
