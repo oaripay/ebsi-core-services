@@ -54,6 +54,8 @@ pipeline {
         nodejs(nodeJSInstallationName: '16.13.0') {
           // sh 'yarn test:all'
           sh 'yarn nx test:ci @ebsiint-api/trusted-apps-registry'
+          sh 'yarn nx test:ci @ebsiint-api/trusted-policies-registry'
+          sh 'yarn nx test:ci @ebsiint-api/timestamp'
         }
       }
     }
