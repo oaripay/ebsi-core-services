@@ -11,17 +11,17 @@ import { ethers } from "ethers";
 import { range } from "rxjs";
 import { mergeMap, toArray } from "rxjs/operators";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-// import { Tar } from "../../src/contracts";
 import {
   Tar,
-  // PolicyRegistryMock__factory,
-  // DidRegistryMock__factory,
-  // TarPolicyLib__factory,
-  // RevocationLib__factory,
-  // AuthLib__factory,
-  // AppLib__factory,
-  // Tar__factory,
+  PolicyRegistryMock__factory,
+  DidRegistryMock__factory,
+  TarPolicyLib__factory,
+  RevocationLib__factory,
+  AuthLib__factory,
+  AppLib__factory,
+  Tar__factory,
 } from "@ebsiint-sc/trusted-apps-registry";
+import PaginationArtifact from "@ebsiint-sc/bootstrap/artifacts/contracts/utils/Pagination.sol/Pagination.json";
 
 interface User {
   wallet: ethers.Wallet;
@@ -67,7 +67,7 @@ const deployContract = async (
   return contract.address;
 };
 
-export async function deployTarContract(): Promise<Tar> {
+export async function deployTarContract0(): Promise<Tar> {
   // mock trusted policies registry
   const testTprAddress = "0xb2a560271ce08135e245F490b8794794A13a1208";
   const testDidrAddress = "0xf6080028519B49D94C846bd34e30f72586E3F5d5";
@@ -124,6 +124,97 @@ export async function deployTarContract(): Promise<Tar> {
   await tarContract.setRegistryAddresses();
 
   return tarContract as Tar;
+}
+
+export async function deployTarContract1(): Promise<Tar> {
+  // mock trusted policies registry
+  const testTprAddress = "0xb2a560271ce08135e245F490b8794794A13a1208";
+  const testDidrAddress = "0xf6080028519B49D94C846bd34e30f72586E3F5d5";
+
+  const signer = hre.ethers.provider.getSigner();
+  const policyRegistryFactory = new PolicyRegistryMock__factory(signer);
+  const tempPolicyContract = await policyRegistryFactory.deploy();
+  await tempPolicyContract.deployed();
+  const bytecode = await hre.ethers.provider.getCode(
+    tempPolicyContract.address
+  );
+  await hre.network.provider.send("hardhat_setCode", [
+    testTprAddress,
+    bytecode,
+  ]);
+  const policyContractMock = policyRegistryFactory.attach(testTprAddress);
+  await policyContractMock.setPolicyResult(true);
+
+  const didRegistryFactory = new DidRegistryMock__factory(signer);
+  const tempDidContract = await didRegistryFactory.deploy();
+  await tempDidContract.deployed();
+  const bytecodeDid = await hre.ethers.provider.getCode(
+    tempDidContract.address
+  );
+  await hre.network.provider.send("hardhat_setCode", [
+    testDidrAddress,
+    bytecodeDid,
+  ]);
+  const didContractMock = didRegistryFactory.attach(testDidrAddress);
+  await didContractMock.setDidResult(true);
+
+  const paginationFactory = await hre.ethers.getContractFactoryFromArtifact(
+    PaginationArtifact,
+    signer
+  );
+  const paginationContract = await paginationFactory.deploy();
+  await paginationContract.deployed();
+
+  // Deploy AppLib
+  const appLibFactory = new AppLib__factory(
+    {
+      "@ebsiint-sc/bootstrap/contracts/utils/Pagination.sol:Pagination":
+        paginationContract.address,
+    },
+    signer
+  );
+  const appLibContract = await appLibFactory.deploy();
+  await appLibContract.deployed();
+
+  // Deploy AuthLib
+  const authLibFactory = new AuthLib__factory(signer);
+  const authLibContract = await authLibFactory.deploy();
+  await authLibContract.deployed();
+
+  // Deploy TarPolicyLib
+  const tarPolicyLibFactory = new TarPolicyLib__factory(
+    {
+      "@ebsiint-sc/bootstrap/contracts/utils/Pagination.sol:Pagination":
+        paginationContract.address,
+    },
+    signer
+  );
+  const tarPolicyLibContract = await tarPolicyLibFactory.deploy();
+  await tarPolicyLibContract.deployed();
+
+  // Deploy RevocationLib
+  const revocationLibFactory = new RevocationLib__factory(signer);
+  const revocationLibContract = await revocationLibFactory.deploy();
+  await revocationLibContract.deployed();
+
+  // Deploy Tar
+  const tarFactory = new Tar__factory(
+    {
+      "contracts/tar/AppLib.sol:AppLib": appLibContract.address,
+      "contracts/tar/AuthLib.sol:AuthLib": authLibContract.address,
+      "contracts/tar/TarPolicyLib.sol:TarPolicyLib":
+        tarPolicyLibContract.address,
+      "contracts/tar/RevocationLib.sol:RevocationLib":
+        revocationLibContract.address,
+    },
+    signer
+  );
+
+  const tarContract = await tarFactory.deploy();
+  await tarContract.initialize(1);
+  await tarContract.setRegistryAddresses();
+
+  return tarContract;
 }
 
 export async function insertPolicy(contract: Tar): Promise<PolicyObject> {
@@ -188,7 +279,7 @@ export async function insertApp(contract: Tar): Promise<AppObject> {
   await contract.insertApp(name, domain, appAdministrator);
 
   const t1 = performance.now();
-  console.log(`$App ${name} inserted in ${t1 - t0} milliseconds`);
+  console.log(`App ${name} inserted in ${t1 - t0} milliseconds`);
 
   await contract.insertAppPublicKey(
     applicationId,
@@ -199,15 +290,15 @@ export async function insertApp(contract: Tar): Promise<AppObject> {
   );
 
   const t2 = performance.now();
-  console.log(`$App ${name} public key inserted in ${t2 - t1} milliseconds`);
+  console.log(`App ${name} public key inserted in ${t2 - t1} milliseconds`);
 
   await contract.insertAppInfo(applicationId, bufferInfo);
 
   const t3 = performance.now();
-  console.log(`$App ${name} info inserted in ${t3 - t2} milliseconds`);
+  console.log(`App ${name} info inserted in ${t3 - t2} milliseconds`);
 
   const tf = performance.now();
-  console.log(`$Total for app ${name} = ${tf - t0} milliseconds`);
+  console.log(`Total for app ${name} = ${tf - t0} milliseconds`);
 
   return {
     name,
@@ -278,8 +369,10 @@ export async function setupTestEnv(
   console.log(opts);
   const ethersProvider = hre.ethers.provider;
 
-  // Deploy contract
-  const tarContract = await deployTarContract();
+  // Deploy contract (original way)
+  // const tarContract = await deployTarContract0();
+  // Deploy contract (new way)
+  const tarContract = await deployTarContract1();
 
   const t1 = performance.now();
   console.log(`Contracts deployed in ${t1 - t0} milliseconds`);
@@ -338,8 +431,6 @@ export async function setupTestEnv(
 
   const t4 = performance.now();
   console.log(`Apps created in ${t4 - t3} milliseconds`);
-  console.log(`Total time ${t4 - t0} milliseconds`);
-  process.exit(0);
 
   const authorizations = [];
   /* eslint-disable no-await-in-loop */
@@ -361,6 +452,11 @@ export async function setupTestEnv(
     authorizations.push(authsApp);
   }
   /* eslint-enable no-await-in-loop */
+
+  const t5 = performance.now();
+  console.log(`Authorizations created in ${t5 - t4} milliseconds`);
+  console.log(`Total time ${t5 - t0} milliseconds`);
+  process.exit(0);
 
   // Return test env variables
   return {

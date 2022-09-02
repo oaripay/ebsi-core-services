@@ -1,44 +1,20 @@
 /* eslint-disable import/no-extraneous-dependencies */
+import path from "node:path";
 import "@nomiclabs/hardhat-ethers";
-import { HardhatUserConfig } from "hardhat/config";
-import path from "path";
+import type { HardhatUserConfig } from "hardhat/config";
 
-console.error(
-  path.resolve(
-    require.resolve("@ebsiint-sc/trusted-apps-registry"),
-    "../../contracts"
-  )
+const tarScPath = path.resolve(
+  require.resolve("@ebsiint-sc/trusted-apps-registry"),
+  "../.." // relative to "dist/index.js"
 );
 
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   networks: {
-    hardhat: {
-      hardfork: "berlin",
-    },
-  },
-  solidity: {
-    version: "0.8.9",
-    settings: {
-      optimizer: {
-        enabled: true,
-        runs: 10,
-      },
-    },
+    hardhat: { hardfork: "berlin" },
   },
   paths: {
-    sources: path.resolve(
-      require.resolve("@ebsiint-sc/trusted-apps-registry"),
-      "../../contracts"
-    ),
-    cache: path.resolve(
-      require.resolve("@ebsiint-sc/trusted-apps-registry"),
-      "../../cache"
-    ),
-    artifacts: path.resolve(
-      require.resolve("@ebsiint-sc/trusted-apps-registry"),
-      "../../artifacts"
-    ),
+    artifacts: path.resolve(tarScPath, "./artifacts"), // necessary for things like `hre.ethers.getContractFactory("Tar")`
   },
 };
 
