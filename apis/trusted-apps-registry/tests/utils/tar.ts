@@ -152,7 +152,6 @@ export async function updatePolicy(
 }
 
 export async function insertApp(contract: Tar): Promise<AppObject> {
-  // const t0 = performance.now();
   const name = `app-${crypto.randomBytes(8).toString("hex")}`;
   const domain = 0; // "ebsi"
   const appAdministrator = EbsiWallet.createDid();
@@ -175,9 +174,6 @@ export async function insertApp(contract: Tar): Promise<AppObject> {
 
   await contract.insertApp(name, domain, appAdministrator);
 
-  // const t1 = performance.now();
-  // console.log(`App ${name} inserted in ${t1 - t0} milliseconds`);
-
   await contract.insertAppPublicKey(
     applicationId,
     bufferPublicKey,
@@ -186,16 +182,7 @@ export async function insertApp(contract: Tar): Promise<AppObject> {
     notAfter
   );
 
-  // const t2 = performance.now();
-  // console.log(`App ${name} public key inserted in ${t2 - t1} milliseconds`);
-
   await contract.insertAppInfo(applicationId, bufferInfo);
-
-  // const t3 = performance.now();
-  // console.log(`App ${name} info inserted in ${t3 - t2} milliseconds`);
-
-  // const tf = performance.now();
-  // console.log(`Total for app ${name} = ${tf - t0} milliseconds`);
 
   return {
     name,
