@@ -136,8 +136,8 @@ export const ApiConfigModule = ConfigModule.forRoot({
   envFilePath: [
     `.env.${process.env.NODE_ENV}.local`,
     `.env.${process.env.NODE_ENV}`,
-    ".env.local",
-    ".env",
+    ".env.default.local",
+    ".env.default",
   ],
   load: [loadConfig],
   validationSchema: Joi.object({
