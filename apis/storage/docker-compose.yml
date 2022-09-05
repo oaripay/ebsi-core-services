@@ -12,7 +12,7 @@ services:
     build: .
     env_file:
       - .env.default
-      - .env.local
+      - .env.default.local
     ports:
       - "${API_PORT:-3000}:${API_PORT:-3000}"
     depends_on:
