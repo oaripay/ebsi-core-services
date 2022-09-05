@@ -21,16 +21,16 @@ pipeline {
       }
     }
 
-    // stage('Lint') {
-    //   when {
-    //     branch 'nx'
-    //   }
-    //   steps {
-    //     nodejs(nodeJSInstallationName: '16.13.0') {
-    //       sh "yarn lint:all"
-    //     }
-    //   }
-    // }
+    stage('Lint') {
+      when {
+        branch 'nx'
+      }
+      steps {
+        nodejs(nodeJSInstallationName: '16.13.0') {
+          sh "yarn lint:all"
+        }
+      }
+    }
 
     // stage('Build docker images') {
     //   when {
@@ -52,10 +52,7 @@ pipeline {
       }
       steps {
         nodejs(nodeJSInstallationName: '16.13.0') {
-          // sh 'yarn test:all'
-          sh 'yarn nx test:ci @ebsiint-api/trusted-apps-registry'
-          sh 'yarn nx test:ci @ebsiint-api/trusted-policies-registry'
-          sh 'yarn nx test:ci @ebsiint-api/timestamp'
+          sh 'yarn test:all'
         }
       }
     }
