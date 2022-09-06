@@ -27,6 +27,8 @@ abstract contract AttributeStorage {
         // firstAttrHash ->  {versionHashes:[firstAttrHash, v2Hash, v3Hash ...],
         // versionData:Attr(n)v(n)Hash -> data}
         mapping(bytes32 => AttributeDetails) attributesStore;
+        // Proxying issuer's statusList(s)
         bytes32[] proxies;
+        mapping(bytes32 => bytes) proxiesStore;
     }
 }

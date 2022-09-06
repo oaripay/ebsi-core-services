@@ -332,8 +332,19 @@ abstract contract IssuerDetailed is IssuerStorage {
         Entity storage iss = ds.issuerStore[did];
 
         iss.proxies.push(firstProxyHash);
+        iss.proxiesStore[firstProxyHash] = proxyData;
 
         emit AddIssuerProxy(did, firstProxyHash);
+    }
+
+    function getIssuerProxyByHash(string memory did, bytes32 proxyIdHash)
+        public
+        view
+        returns (bytes memory proxyData)
+    {
+        Issuers storage ds = issuerStorage();
+        bytes memory _proxyData = ds.issuerStore[did].proxiesStore[proxyIdHash];
+        return _proxyData;
     }
 
     /**
