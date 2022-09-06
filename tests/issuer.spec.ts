@@ -23,6 +23,10 @@ function randomAttribute(): string {
   return `0x${crypto.randomBytes(10).toString("hex")}`;
 }
 
+function randomProxy(): string {
+  return `0x${crypto.randomBytes(10).toString("hex")}`;
+}
+
 function randomDid(): string {
   return `did:ebsi:${crypto.randomBytes(5).toString("hex")}`;
 }
@@ -41,6 +45,7 @@ describe("Issuers", () => {
   const attributeData1 = randomAttribute();
   const attributeData2 = randomAttribute();
   const attributeData3 = randomAttribute();
+  const proxyData1 = randomProxy();
   const didIssuer = "did:ebsi:issuer";
   const zeroHash = new Uint8Array(32);
 
@@ -355,5 +360,20 @@ describe("Issuers", () => {
     await expect(
       tir.getIssuerAttributeRevisions(randomHash(), 1, 10)
     ).to.be.revertedWith("attribute has not been found");
+  });
+
+  it.only("should accept new proxy records", async () => {
+    // Focus only on proxy management logic regardless of policy and did validations.
+    await policyContractMock.setPolicyResult(true);
+    await didContractMock.setDidResult(true);
+
+    // Issuer setup, attributes are irrelevant to proxy records, but required at the moment.
+    await expect(tir.addIssuerProxy(didIssuer, proxyData1)).to.emit(
+      tir,
+      "AddIssuerProxy"
+    );
+    const issuerProxies = await tir.getIssuerProxies(didIssuer);
+    expect(issuerProxies).to.be.an("array");
+    expect(issuerProxies).to.have.length(1);
   });
 });

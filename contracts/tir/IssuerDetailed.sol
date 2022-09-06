@@ -26,6 +26,7 @@ abstract contract IssuerDetailed is IssuerStorage {
         uint256 attributeVersionCount,
         uint256 attributesCount
     );
+    event AddIssuerProxy(string did, bytes32 indexed firstProxyHash);
 
     /**
      * @dev insert an Issuer
@@ -317,6 +318,37 @@ abstract contract IssuerDetailed is IssuerStorage {
         // retrieve the issuer and the attribute detail
         Entity storage iss = ds.issuerStore[i.did];
         attribData = iss.revisions[anyAttrVersHash];
+    }
+
+    /**
+     * @dev Add a proxy record to an issuer.
+     */
+    function addIssuerProxy(string calldata did, bytes calldata proxyData)
+        external
+    {
+        bytes32 firstProxyHash = sha256(proxyData);
+        Issuers storage ds = issuerStorage();
+
+        Entity storage iss = ds.issuerStore[did];
+
+        iss.proxies.push(firstProxyHash);
+
+        emit AddIssuerProxy(did, firstProxyHash);
+    }
+
+    /**
+     * @dev Return the list of proxies of a given issuer.
+     */
+    function getIssuerProxies(string memory did)
+        public
+        view
+        returns (bytes32[] memory)
+    {
+        Issuers storage ds = issuerStorage();
+
+        bytes32[] memory proxies = ds.issuerStore[did].proxies;
+
+        return proxies;
     }
 
     uint256[50] private ______gap;
