@@ -329,12 +329,10 @@ abstract contract IssuerDetailed is IssuerStorage {
     {
         bytes32 proxyId = sha256(proxyData);
         Issuers storage ds = issuerStorage();
-
         Entity storage iss = ds.issuerStore[did];
 
         iss.proxies.push(proxyId);
         iss.proxiesStore[proxyId] = proxyData;
-
         emit AddIssuerProxy(did, proxyId);
     }
 
@@ -349,12 +347,8 @@ abstract contract IssuerDetailed is IssuerStorage {
         Issuers storage ds = issuerStorage();
         Entity storage iss = ds.issuerStore[did];
 
-        bytes32 newProxyId = sha256(proxyData);
-        iss.proxiesStore[newProxyId] = proxyData;
-        iss.proxies.push(newProxyId);
-        delete iss.proxiesStore[proxyId];
-
-        emit UpdateIssuerProxy(did, newProxyId);
+        iss.proxiesStore[proxyId] = proxyData;
+        emit UpdateIssuerProxy(did, proxyId);
     }
 
     /**
@@ -366,8 +360,7 @@ abstract contract IssuerDetailed is IssuerStorage {
         returns (bytes memory proxyData)
     {
         Issuers storage ds = issuerStorage();
-        bytes memory _proxyData = ds.issuerStore[did].proxiesStore[proxyId];
-        return _proxyData;
+        return ds.issuerStore[did].proxiesStore[proxyId];
     }
 
     /**
@@ -379,10 +372,7 @@ abstract contract IssuerDetailed is IssuerStorage {
         returns (bytes32[] memory)
     {
         Issuers storage ds = issuerStorage();
-
-        bytes32[] memory proxies = ds.issuerStore[did].proxies;
-
-        return proxies;
+        return ds.issuerStore[did].proxies;
     }
 
     uint256[50] private ______gap;

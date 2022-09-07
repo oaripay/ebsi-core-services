@@ -422,6 +422,11 @@ describe("Issuers", () => {
       await expect(
         tir.updateIssuerProxy(didIssuer, proxyId, proxyData)
       ).to.emit(tir, "UpdateIssuerProxy");
+
+      // No new records should be added.
+      const issuerProxies = await tir.getIssuerProxies(didIssuer);
+      expect(issuerProxies).to.be.an("array");
+      expect(issuerProxies).to.have.length(1);
     });
   });
 });
