@@ -396,7 +396,7 @@ describe("Issuers", () => {
       );
 
       const [proxyId] = await tir.getIssuerProxies(didIssuer);
-      const proxyDataReturned = await tir.getIssuerProxyByHash(
+      const proxyDataReturned = await tir.getIssuerProxyById(
         didIssuer,
         proxyId
       );
@@ -415,12 +415,12 @@ describe("Issuers", () => {
 
       const [proxyId] = await tir.getIssuerProxies(didIssuer);
       // Get previous proxy config and change/update it.
-      let proxyData = await tir.getIssuerProxyByHash(didIssuer, proxyId);
+      let proxyData = await tir.getIssuerProxyById(didIssuer, proxyId);
 
       proxyData = randomProxy();
 
       await expect(
-        tir.updateIssuerProxy(didIssuer, proxyData, proxyId)
+        tir.updateIssuerProxy(didIssuer, proxyId, proxyData)
       ).to.emit(tir, "UpdateIssuerProxy");
     });
   });

@@ -343,8 +343,8 @@ abstract contract IssuerDetailed is IssuerStorage {
      */
     function updateIssuerProxy(
         string calldata did,
-        bytes calldata proxyData,
-        bytes32 proxyId
+        bytes32 proxyId,
+        bytes calldata proxyData
     ) external {
         Issuers storage ds = issuerStorage();
         Entity storage iss = ds.issuerStore[did];
@@ -360,7 +360,7 @@ abstract contract IssuerDetailed is IssuerStorage {
     /**
      * @dev Get proxy data by its id/hash.
      */
-    function getIssuerProxyByHash(string memory did, bytes32 proxyIdHash)
+    function getIssuerProxyById(string memory did, bytes32 proxyIdHash)
         public
         view
         returns (bytes memory proxyData)
