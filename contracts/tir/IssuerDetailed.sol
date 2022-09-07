@@ -327,15 +327,15 @@ abstract contract IssuerDetailed is IssuerStorage {
     function addIssuerProxy(string calldata did, bytes calldata proxyData)
         external
     {
-        bytes32 firstProxyHash = sha256(proxyData);
+        bytes32 proxyId = sha256(proxyData);
         Issuers storage ds = issuerStorage();
 
         Entity storage iss = ds.issuerStore[did];
 
-        iss.proxies.push(firstProxyHash);
-        iss.proxiesStore[firstProxyHash] = proxyData;
+        iss.proxies.push(proxyId);
+        iss.proxiesStore[proxyId] = proxyData;
 
-        emit AddIssuerProxy(did, firstProxyHash);
+        emit AddIssuerProxy(did, proxyId);
     }
 
     /**
