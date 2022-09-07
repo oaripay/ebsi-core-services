@@ -102,7 +102,7 @@ describe("Issuers", () => {
     expect(tir.address).to.properAddress;
   });
 
-  describe("entities", () => {
+  describe("Entities", () => {
     it("should reject no authenticated users", async () => {
       await policyContractMock.setPolicyResult(false);
       await didContractMock.setDidResult(false);
@@ -297,7 +297,7 @@ describe("Issuers", () => {
     });
   });
 
-  describe("attributes", () => {
+  describe("Attributes", () => {
     it("should update its own attributes", async () => {
       // insert issuer
       await policyContractMock.setPolicyResult(true); // enable admin
@@ -370,7 +370,7 @@ describe("Issuers", () => {
     });
   });
 
-  describe.only("Proxies", () => {
+  describe("Proxies", () => {
     it("addIssuerProxy: inserts a new proxy record", async () => {
       // Focus only on proxy management logic regardless of policy and did validations.
       await policyContractMock.setPolicyResult(true);
@@ -439,6 +439,28 @@ describe("Issuers", () => {
       const issuerProxies = await tir.getIssuerProxies(didIssuer);
       expect(issuerProxies).to.be.an("array");
       expect(issuerProxies).to.have.length(1);
+    });
+
+    it("updateIssuerProxy: permissions and policy rules", async () => {
+      await policyContractMock.setPolicyResult(true);
+      await didContractMock.setDidResult(true);
+
+      await expect(tir.addIssuerProxy(didIssuer, proxyData1)).to.emit(
+        tir,
+        "AddIssuerProxy"
+      );
+
+      const [proxyId] = await tir.getIssuerProxies(didIssuer);
+
+      // Toggle permissions
+      await policyContractMock.setPolicyResult(false);
+      await didContractMock.setDidResult(false);
+
+      await expect(
+        tir.updateIssuerProxy(didIssuer, proxyId, proxyData1)
+      ).to.be.revertedWith(
+        "Policy error: sender doesn't have the attribute TIR:updateIssuer"
+      );
     });
   });
 });

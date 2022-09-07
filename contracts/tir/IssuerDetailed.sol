@@ -354,6 +354,15 @@ abstract contract IssuerDetailed is IssuerStorage {
         bytes calldata proxyData
     ) external {
         Issuers storage ds = issuerStorage();
+
+        require(
+            ds.trustedPolicyRegistry.checkPolicy(
+                "TIR:updateIssuer",
+                msg.sender
+            ),
+            "Policy error: sender doesn't have the attribute TIR:updateIssuer"
+        );
+
         Entity storage iss = ds.issuerStore[did];
 
         iss.proxiesStore[proxyId] = proxyData;
