@@ -26,8 +26,8 @@ abstract contract IssuerDetailed is IssuerStorage {
         uint256 attributeVersionCount,
         uint256 attributesCount
     );
-    event AddIssuerProxy(string did, bytes32 indexed firstProxyHash);
-    event UpdateIssuerProxy(string did, bytes32 indexed newProxyHash);
+    event AddIssuerProxy(string did, bytes32 indexed proxyId);
+    event UpdateIssuerProxy(string did, bytes32 indexed proxyId);
 
     /**
      * @dev insert an Issuer
@@ -327,8 +327,17 @@ abstract contract IssuerDetailed is IssuerStorage {
     function addIssuerProxy(string calldata did, bytes calldata proxyData)
         external
     {
-        bytes32 proxyId = sha256(proxyData);
         Issuers storage ds = issuerStorage();
+
+        require(
+            ds.trustedPolicyRegistry.checkPolicy(
+                "TIR:updateIssuer",
+                msg.sender
+            ),
+            "Policy error: sender doesn't have the attribute TIR:updateIssuer"
+        );
+
+        bytes32 proxyId = sha256(proxyData);
         Entity storage iss = ds.issuerStore[did];
 
         iss.proxies.push(proxyId);

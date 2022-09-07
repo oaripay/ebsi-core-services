@@ -370,8 +370,8 @@ describe("Issuers", () => {
     });
   });
 
-  describe("proxies", () => {
-    it("should accept new proxy records", async () => {
+  describe.only("Proxies", () => {
+    it("addIssuerProxy: inserts a new proxy record", async () => {
       // Focus only on proxy management logic regardless of policy and did validations.
       await policyContractMock.setPolicyResult(true);
       await didContractMock.setDidResult(true);
@@ -385,7 +385,19 @@ describe("Issuers", () => {
       expect(issuerProxies).to.have.length(1);
     });
 
-    it("should be able to get existing proxy data", async () => {
+    it("addIssuerProxy: permissions and policy rules", async () => {
+      await policyContractMock.setPolicyResult(false);
+      await didContractMock.setDidResult(false);
+
+      // Adding a new proxy config
+      await expect(
+        tir.addIssuerProxy(didIssuer, proxyData1)
+      ).to.be.revertedWith(
+        "Policy error: sender doesn't have the attribute TIR:updateIssuer"
+      );
+    });
+
+    it("getIssuerProxyById: get a proxy record", async () => {
       // Focus only on proxy management logic regardless of policy and did validations.
       await policyContractMock.setPolicyResult(true);
       await didContractMock.setDidResult(true);
@@ -403,7 +415,7 @@ describe("Issuers", () => {
       expect(proxyDataReturned).to.not.eq(undefined);
     });
 
-    it("should be able to update a proxy", async () => {
+    it("updateIssuerProxy: update a specific proxy record", async () => {
       // Focus only on proxy management logic regardless of policy and did validations.
       await policyContractMock.setPolicyResult(true);
       await didContractMock.setDidResult(true);
