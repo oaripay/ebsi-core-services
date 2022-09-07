@@ -27,6 +27,7 @@ abstract contract IssuerDetailed is IssuerStorage {
         uint256 attributesCount
     );
     event AddIssuerProxy(string did, bytes32 indexed firstProxyHash);
+    event UpdateIssuerProxy(string did, bytes32 indexed newProxyHash);
 
     /**
      * @dev insert an Issuer
@@ -337,6 +338,28 @@ abstract contract IssuerDetailed is IssuerStorage {
         emit AddIssuerProxy(did, firstProxyHash);
     }
 
+    /**
+     * @dev Update a given issuer proxy.
+     */
+    function updateIssuerProxy(
+        string calldata did,
+        bytes calldata proxyData,
+        bytes32 proxyId
+    ) external {
+        Issuers storage ds = issuerStorage();
+        Entity storage iss = ds.issuerStore[did];
+
+        bytes32 newProxyId = sha256(proxyData);
+        iss.proxiesStore[newProxyId] = proxyData;
+        iss.proxies.push(newProxyId);
+        delete iss.proxiesStore[proxyId];
+
+        emit UpdateIssuerProxy(did, newProxyId);
+    }
+
+    /**
+     * @dev Get proxy data by its id/hash.
+     */
     function getIssuerProxyByHash(string memory did, bytes32 proxyIdHash)
         public
         view

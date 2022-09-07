@@ -385,7 +385,7 @@ describe("Issuers", () => {
       expect(issuerProxies).to.have.length(1);
     });
 
-    it("should get proxyData by an id of a record", async () => {
+    it("should be able to get existing proxy data", async () => {
       // Focus only on proxy management logic regardless of policy and did validations.
       await policyContractMock.setPolicyResult(true);
       await didContractMock.setDidResult(true);
@@ -401,6 +401,27 @@ describe("Issuers", () => {
         proxyId
       );
       expect(proxyDataReturned).to.not.eq(undefined);
+    });
+
+    it("should be able to update a proxy", async () => {
+      // Focus only on proxy management logic regardless of policy and did validations.
+      await policyContractMock.setPolicyResult(true);
+      await didContractMock.setDidResult(true);
+
+      await expect(tir.addIssuerProxy(didIssuer, proxyData1)).to.emit(
+        tir,
+        "AddIssuerProxy"
+      );
+
+      const [proxyId] = await tir.getIssuerProxies(didIssuer);
+      // Get previous proxy config and change/update it.
+      let proxyData = await tir.getIssuerProxyByHash(didIssuer, proxyId);
+
+      proxyData = randomProxy();
+
+      await expect(
+        tir.updateIssuerProxy(didIssuer, proxyData, proxyId)
+      ).to.emit(tir, "UpdateIssuerProxy");
     });
   });
 });
