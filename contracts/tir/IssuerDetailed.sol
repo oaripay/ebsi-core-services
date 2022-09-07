@@ -360,13 +360,13 @@ abstract contract IssuerDetailed is IssuerStorage {
     /**
      * @dev Get proxy data by its id/hash.
      */
-    function getIssuerProxyById(string memory did, bytes32 proxyIdHash)
+    function getIssuerProxyById(string memory did, bytes32 proxyId)
         public
         view
         returns (bytes memory proxyData)
     {
         Issuers storage ds = issuerStorage();
-        bytes memory _proxyData = ds.issuerStore[did].proxiesStore[proxyIdHash];
+        bytes memory _proxyData = ds.issuerStore[did].proxiesStore[proxyId];
         return _proxyData;
     }
 
