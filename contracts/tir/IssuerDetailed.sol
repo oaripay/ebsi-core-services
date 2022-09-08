@@ -333,8 +333,14 @@ abstract contract IssuerDetailed is IssuerStorage {
             ds.trustedPolicyRegistry.checkPolicy(
                 "TIR:updateIssuer",
                 msg.sender
-            ),
-            "Policy error: sender doesn't have the attribute TIR:updateIssuer"
+            ) || ds.didRegistry.checkController(bytes(did), msg.sender),
+            string(
+                abi.encodePacked(
+                    "Policy error: sender is not controller of the did ",
+                    did,
+                    " and it doesn't have the attribute TIR:updateIssuer"
+                )
+            )
         );
 
         bytes32 proxyId = sha256(bytes(proxyData));
@@ -359,8 +365,14 @@ abstract contract IssuerDetailed is IssuerStorage {
             ds.trustedPolicyRegistry.checkPolicy(
                 "TIR:updateIssuer",
                 msg.sender
-            ),
-            "Policy error: sender doesn't have the attribute TIR:updateIssuer"
+            ) || ds.didRegistry.checkController(bytes(did), msg.sender),
+            string(
+                abi.encodePacked(
+                    "Policy error: sender is not controller of the did ",
+                    did,
+                    " and it doesn't have the attribute TIR:updateIssuer"
+                )
+            )
         );
 
         Entity storage iss = ds.issuerStore[did];

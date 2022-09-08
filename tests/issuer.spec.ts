@@ -392,7 +392,7 @@ describe("Issuers", () => {
       expect(issuerProxies).to.have.length(1);
     });
 
-    it("addIssuerProxy: permissions and policy rules", async () => {
+    it("addIssuerProxy permissions: did controller and TIR:updateIssuer", async () => {
       await policyContractMock.setPolicyResult(false);
       await didContractMock.setDidResult(false);
 
@@ -400,7 +400,7 @@ describe("Issuers", () => {
       await expect(
         tir.addIssuerProxy(didIssuer, proxyData1)
       ).to.be.revertedWith(
-        "Policy error: sender doesn't have the attribute TIR:updateIssuer"
+        "Policy error: sender is not controller of the did did:ebsi:issuer and it doesn't have the attribute TIR:updateIssuer"
       );
     });
 
@@ -448,7 +448,7 @@ describe("Issuers", () => {
       expect(issuerProxies).to.have.length(1);
     });
 
-    it("updateIssuerProxy: permissions and policy rules", async () => {
+    it("updateIssuerProxy permissions: did controller and TIR:updateIssuer", async () => {
       await policyContractMock.setPolicyResult(true);
       await didContractMock.setDidResult(true);
 
@@ -466,7 +466,7 @@ describe("Issuers", () => {
       await expect(
         tir.updateIssuerProxy(didIssuer, proxyId, proxyData1)
       ).to.be.revertedWith(
-        "Policy error: sender doesn't have the attribute TIR:updateIssuer"
+        "Policy error: sender is not controller of the did did:ebsi:issuer and it doesn't have the attribute TIR:updateIssuer"
       );
     });
   });
