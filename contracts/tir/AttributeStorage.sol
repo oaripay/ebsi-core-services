@@ -29,6 +29,6 @@ abstract contract AttributeStorage {
         mapping(bytes32 => AttributeDetails) attributesStore;
         // Proxying issuer's statusList(s)
         bytes32[] proxies;
-        mapping(bytes32 => bytes) proxiesStore;
+        mapping(bytes32 => string) proxiesStore;
     }
 }

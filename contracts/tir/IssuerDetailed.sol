@@ -324,7 +324,7 @@ abstract contract IssuerDetailed is IssuerStorage {
     /**
      * @dev Add a proxy record to an issuer.
      */
-    function addIssuerProxy(string calldata did, bytes calldata proxyData)
+    function addIssuerProxy(string calldata did, string calldata proxyData)
         external
     {
         Issuers storage ds = issuerStorage();
@@ -337,7 +337,7 @@ abstract contract IssuerDetailed is IssuerStorage {
             "Policy error: sender doesn't have the attribute TIR:updateIssuer"
         );
 
-        bytes32 proxyId = sha256(proxyData);
+        bytes32 proxyId = sha256(bytes(proxyData));
         Entity storage iss = ds.issuerStore[did];
 
         iss.proxies.push(proxyId);
@@ -351,7 +351,7 @@ abstract contract IssuerDetailed is IssuerStorage {
     function updateIssuerProxy(
         string calldata did,
         bytes32 proxyId,
-        bytes calldata proxyData
+        string calldata proxyData
     ) external {
         Issuers storage ds = issuerStorage();
 
@@ -375,7 +375,7 @@ abstract contract IssuerDetailed is IssuerStorage {
     function getIssuerProxyById(string memory did, bytes32 proxyId)
         public
         view
-        returns (bytes memory proxyData)
+        returns (string memory proxyData)
     {
         Issuers storage ds = issuerStorage();
         return ds.issuerStore[did].proxiesStore[proxyId];

@@ -24,7 +24,14 @@ function randomAttribute(): string {
 }
 
 function randomProxy(): string {
-  return `0x${crypto.randomBytes(10).toString("hex")}`;
+  return Buffer.from(
+    JSON.stringify({
+      prefix: "https://localhost/my-provider/revocation/",
+      headers: { Authorization: "Bearer ABC" },
+      testSuffix: "/credentials/status/1",
+    }),
+    "utf-8"
+  ).toString("hex");
 }
 
 function randomDid(): string {
