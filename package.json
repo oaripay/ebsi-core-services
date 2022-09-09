@@ -59,7 +59,7 @@
     "@nestjs/schematics": "^9.0.1",
     "@nestjs/testing": "^9.0.8",
     "@nomiclabs/hardhat-ethers": "^2.1.0",
-    "@openzeppelin/contracts": "^4.7.2",
+    "@openzeppelin/contracts": "^4.7.3",
     "@stoplight/spectral-cli": "^6.4.2",
     "@tsconfig/node16": "^1.0.3",
     "@typechain/ethers-v5": "^10.1.0",
