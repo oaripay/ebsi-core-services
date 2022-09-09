@@ -174,8 +174,8 @@ describe("EU Login onboarding", () => {
     });
 
     expect(requestPayload.iss).toBe(configService.get<string>("apiName"));
-    expect(requestPayload.client_id).toBe(
-      "https://api.test.intebsi.xyz/users-onboarding/v2/authentication-responses"
+    expect(requestPayload.client_id).toStrictEqual(
+      expect.stringContaining("/users-onboarding/v2/authentication-responses")
     );
 
     // 3 - Create a DID-Auth response
