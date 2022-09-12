@@ -92,7 +92,8 @@ export const loadConfig = (): ApiConfig => {
     trustedIssuersRegistry:
       process.env.DOMAIN + defaultConfig[EBSI_ENV].TRUSTED_ISSUERS_REGISTRY,
     didRegistry: process.env.DOMAIN + defaultConfig[EBSI_ENV].DID_REGISTRY,
-    authorisationCredentialSchema: process.env.AUTHORISATION_CREDENTIAL_SCHEMA,
+    authorisationCredentialSchema:
+      process.env.DOMAIN + process.env.AUTHORISATION_CREDENTIAL_SCHEMA,
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     domain: process.env.DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
