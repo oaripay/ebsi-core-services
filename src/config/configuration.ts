@@ -33,42 +33,27 @@ export interface ApiConfig {
   dockerContainerTag: string;
 }
 
+const TAR_PATH = "/trusted-apps-registry/v3/apps";
+const TIR_PATH = "/trusted-issuers-registry/v3/issuers";
+const DID_REGISTRY_PATH = "/did-registry/v3/identifiers";
+const HEALTH_CHECK_PATH = "/docs/";
+
 // Example of default values to be used, depending on the environment
 const defaultConfig = {
   local: {
     LOG_LEVEL: "debug",
-    TRUSTED_APPS_REGISTRY: "/trusted-apps-registry/v3/apps",
-    TRUSTED_ISSUERS_REGISTRY: "/trusted-issuers-registry/v3/issuers",
-    HEALTH_CHECK: "/docs/",
-    DID_REGISTRY: "/did-registry/v3/identifiers",
   },
   test: {
     LOG_LEVEL: "info",
-    TRUSTED_APPS_REGISTRY: "/trusted-apps-registry/v3/apps",
-    TRUSTED_ISSUERS_REGISTRY: "/trusted-issuers-registry/v3/issuers",
-    HEALTH_CHECK: "/docs/",
-    DID_REGISTRY: "/did-registry/v3/identifiers",
   },
   conformance: {
     LOG_LEVEL: "info",
-    TRUSTED_APPS_REGISTRY: "/trusted-apps-registry/v3/apps",
-    TRUSTED_ISSUERS_REGISTRY: "/trusted-issuers-registry/v3/issuers",
-    HEALTH_CHECK: "/docs/",
-    DID_REGISTRY: "/did-registry/v3/identifiers",
   },
   pilot: {
     LOG_LEVEL: "warn",
-    TRUSTED_APPS_REGISTRY: "/trusted-apps-registry/v3/apps",
-    TRUSTED_ISSUERS_REGISTRY: "/trusted-issuers-registry/v3/issuers",
-    HEALTH_CHECK: "/docs/",
-    DID_REGISTRY: "/did-registry/v3/identifiers",
   },
   prod: {
     LOG_LEVEL: "error",
-    TRUSTED_APPS_REGISTRY: "/trusted-apps-registry/v3/apps",
-    TRUSTED_ISSUERS_REGISTRY: "/trusted-issuers-registry/v3/issuers",
-    HEALTH_CHECK: "/docs/",
-    DID_REGISTRY: "/did-registry/v3/identifiers",
   },
 };
 
@@ -87,18 +72,15 @@ export const loadConfig = (): ApiConfig => {
     ebsiEnv: EBSI_ENV,
     onboardingAllowlist: process.env.ONBOARDING_ALLOWLIST.split(","),
     onboardingApiPrivateKey: process.env.ONBOARDING_API_PRIVATE_KEY || "",
-    trustedAppsRegistry:
-      process.env.DOMAIN + defaultConfig[EBSI_ENV].TRUSTED_APPS_REGISTRY,
-    trustedIssuersRegistry:
-      process.env.DOMAIN + defaultConfig[EBSI_ENV].TRUSTED_ISSUERS_REGISTRY,
-    didRegistry: process.env.DOMAIN + defaultConfig[EBSI_ENV].DID_REGISTRY,
+    trustedAppsRegistry: process.env.DOMAIN + TAR_PATH,
+    trustedIssuersRegistry: process.env.DOMAIN + TIR_PATH,
+    didRegistry: process.env.DOMAIN + DID_REGISTRY_PATH,
     authorisationCredentialSchema:
       process.env.DOMAIN + process.env.AUTHORISATION_CREDENTIAL_SCHEMA,
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     domain: process.env.DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
-    externalEbsiApiHealthCheck:
-      process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
+    externalEbsiApiHealthCheck: process.env.HEALTH_CHECK || HEALTH_CHECK_PATH,
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     testAppName: process.env.TEST_APP_NAME || "",
     testAppPrivateKey: process.env.TEST_APP_PRIVATE_KEY || "",
