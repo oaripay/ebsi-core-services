@@ -760,9 +760,13 @@ describe("Authorisation Module", () => {
             exp: expect.any(Number) as number,
             iss: configService.get<string>("apiName"),
           }) as Ake1SigPayload,
-          kid: `https://test.intebsi.xyz/trusted-apps-registry/v3/apps/${configService.get<string>(
-            "apiName"
-          )}`,
+          kid: <string>(
+            expect.stringContaining(
+              `/trusted-apps-registry/v3/apps/${configService.get<string>(
+                "apiName"
+              )}`
+            )
+          ),
         });
         expect(response.status).toBe(200);
       });
@@ -940,9 +944,13 @@ describe("Authorisation Module", () => {
             exp: expect.any(Number) as number,
             iss: configService.get<string>("apiName"),
           }) as Ake1SigPayload,
-          kid: `https://test.intebsi.xyz/trusted-apps-registry/v3/apps/${configService.get<string>(
-            "apiName"
-          )}`,
+          kid: <string>(
+            expect.stringContaining(
+              `/trusted-apps-registry/v3/apps/${configService.get<string>(
+                "apiName"
+              )}`
+            )
+          ),
         });
         expect(response.status).toBe(200);
       });
