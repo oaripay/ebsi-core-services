@@ -184,7 +184,7 @@ export class AuthorisationService {
 
             // Verify VC
             await verifyCredentialJwt(verifiableCredential, {
-              ebsiAuthority: domain,
+              ebsiAuthority: domain.replace(/^https?:\/\//, ""), // remove http protocol scheme
               timeout: this.timeout,
             });
           } catch (e) {
