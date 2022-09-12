@@ -180,12 +180,11 @@ export class AuthorisationService {
           }
 
           try {
-            const ebsiAuthority =
-              this.configService.get<string>("ebsiAuthority");
+            const domain = this.configService.get<string>("domain");
 
             // Verify VC
             await verifyCredentialJwt(verifiableCredential, {
-              ebsiAuthority,
+              ebsiAuthority: domain,
               timeout: this.timeout,
             });
           } catch (e) {

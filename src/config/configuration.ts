@@ -8,24 +8,6 @@ export interface ApiConfig {
   apiPrivateKey: string;
   apiName: string;
   apiUrlPrefix: string;
-  /**
-   * Defines the URI authority where the EBSI APIs can be found.
-   *
-   * For more information about what the URI authority component is, read:
-   * - https://en.wikipedia.org/wiki/Uniform_Resource_Identifier#Syntax
-   * - https://developer.mozilla.org/en-US/docs/Learn/Common_questions/What_is_a_URL#authority
-   *
-   * Accepted host names:
-   * - localhost (for development purpose only)
-   * - test.intebsi.xyz
-   * - api-conformance.ebsi.eu
-   * - api-pilot.ebsi.[domain]
-   * - api-preprod.ebsi.[domain]
-   * - api.ebsi.[domain]
-   *
-   * Example: "api-preprod.ebsi.example.net"
-   */
-  ebsiAuthority: string;
   ebsiEnv: "local" | "test" | "conformance" | "pilot" | "prod";
   onboardingAllowlist: string[];
   onboardingApiPrivateKey: string; // for tests
@@ -55,52 +37,38 @@ export interface ApiConfig {
 const defaultConfig = {
   local: {
     LOG_LEVEL: "debug",
-    DOMAIN: "https://test.intebsi.xyz",
-    TRUSTED_APPS_REGISTRY:
-      "https://test.intebsi.xyz/trusted-apps-registry/v3/apps",
-    TRUSTED_ISSUERS_REGISTRY:
-      "https://test.intebsi.xyz/trusted-issuers-registry/v3/issuers",
-    HEALTH_CHECK: "https://test.intebsi.xyz/docs/",
-    DID_REGISTRY: "https://test.intebsi.xyz/did-registry/v3/identifiers",
+    TRUSTED_APPS_REGISTRY: "/trusted-apps-registry/v3/apps",
+    TRUSTED_ISSUERS_REGISTRY: "/trusted-issuers-registry/v3/issuers",
+    HEALTH_CHECK: "/docs/",
+    DID_REGISTRY: "/did-registry/v3/identifiers",
   },
   test: {
     LOG_LEVEL: "info",
-    DOMAIN: "https://test.intebsi.xyz",
-    TRUSTED_APPS_REGISTRY:
-      "https://test.intebsi.xyz/trusted-apps-registry/v3/apps",
-    TRUSTED_ISSUERS_REGISTRY:
-      "https://test.intebsi.xyz/trusted-issuers-registry/v3/issuers",
-    HEALTH_CHECK: "https://test.intebsi.xyz/docs/",
-    DID_REGISTRY: "https://test.intebsi.xyz/did-registry/v3/identifiers",
+    TRUSTED_APPS_REGISTRY: "/trusted-apps-registry/v3/apps",
+    TRUSTED_ISSUERS_REGISTRY: "/trusted-issuers-registry/v3/issuers",
+    HEALTH_CHECK: "/docs/",
+    DID_REGISTRY: "/did-registry/v3/identifiers",
   },
   conformance: {
     LOG_LEVEL: "info",
-    DOMAIN: "https://api-conformance.ebsi.eu",
-    TRUSTED_APPS_REGISTRY:
-      "https://api-conformance.ebsi.eu/trusted-apps-registry/v3/apps",
-    TRUSTED_ISSUERS_REGISTRY:
-      "https://api-conformance.ebsi.eu/trusted-issuers-registry/v3/issuers",
-    HEALTH_CHECK: "https://api-conformance.ebsi.eu/docs/",
-    DID_REGISTRY: "https://api-conformance.ebsi.eu/did-registry/v3/identifiers",
+    TRUSTED_APPS_REGISTRY: "/trusted-apps-registry/v3/apps",
+    TRUSTED_ISSUERS_REGISTRY: "/trusted-issuers-registry/v3/issuers",
+    HEALTH_CHECK: "/docs/",
+    DID_REGISTRY: "/did-registry/v3/identifiers",
   },
   pilot: {
     LOG_LEVEL: "warn",
-    DOMAIN: "https://api.preprod.ebsi.eu",
-    TRUSTED_APPS_REGISTRY:
-      "https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps",
-    TRUSTED_ISSUERS_REGISTRY:
-      "https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/issuers",
-    HEALTH_CHECK: "https://api.preprod.ebsi.eu/docs/",
-    DID_REGISTRY: "https://api.preprod.ebsi.eu/did-registry/v3/identifiers",
+    TRUSTED_APPS_REGISTRY: "/trusted-apps-registry/v3/apps",
+    TRUSTED_ISSUERS_REGISTRY: "/trusted-issuers-registry/v3/issuers",
+    HEALTH_CHECK: "/docs/",
+    DID_REGISTRY: "/did-registry/v3/identifiers",
   },
   prod: {
     LOG_LEVEL: "error",
-    DOMAIN: "https://api.ebsi.eu",
-    TRUSTED_APPS_REGISTRY: "https://api.ebsi.eu/trusted-apps-registry/v3/apps",
-    TRUSTED_ISSUERS_REGISTRY:
-      "https://api.ebsi.eu/trusted-issuers-registry/v3/issuers",
-    HEALTH_CHECK: "https://api.ebsi.eu/docs/",
-    DID_REGISTRY: "https://api.ebsi.eu/did-registry/v3/identifiers",
+    TRUSTED_APPS_REGISTRY: "/trusted-apps-registry/v3/apps",
+    TRUSTED_ISSUERS_REGISTRY: "/trusted-issuers-registry/v3/issuers",
+    HEALTH_CHECK: "/docs/",
+    DID_REGISTRY: "/did-registry/v3/identifiers",
   },
 };
 
@@ -116,21 +84,17 @@ export const loadConfig = (): ApiConfig => {
     apiPrivateKey: process.env.API_PRIVATE_KEY,
     apiName: process.env.API_NAME,
     apiUrlPrefix: process.env.API_URL_PREFIX || "/authorisation/v2",
-    ebsiAuthority: process.env.EBSI_AUTHORITY,
     ebsiEnv: EBSI_ENV,
     onboardingAllowlist: process.env.ONBOARDING_ALLOWLIST.split(","),
     onboardingApiPrivateKey: process.env.ONBOARDING_API_PRIVATE_KEY || "",
     trustedAppsRegistry:
-      process.env.TRUSTED_APPS_REGISTRY ||
-      defaultConfig[EBSI_ENV].TRUSTED_APPS_REGISTRY,
+      process.env.DOMAIN + defaultConfig[EBSI_ENV].TRUSTED_APPS_REGISTRY,
     trustedIssuersRegistry:
-      process.env.TRUSTED_ISSUERS_REGISTRY ||
-      defaultConfig[EBSI_ENV].TRUSTED_ISSUERS_REGISTRY,
-    didRegistry:
-      process.env.DID_REGISTRY || defaultConfig[EBSI_ENV].DID_REGISTRY,
+      process.env.DOMAIN + defaultConfig[EBSI_ENV].TRUSTED_ISSUERS_REGISTRY,
+    didRegistry: process.env.DOMAIN + defaultConfig[EBSI_ENV].DID_REGISTRY,
     authorisationCredentialSchema: process.env.AUTHORISATION_CREDENTIAL_SCHEMA,
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
-    domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
+    domain: process.env.DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
     externalEbsiApiHealthCheck:
       process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
@@ -179,13 +143,10 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "debug"
     ),
     // Authorisation specific variables
-    DOMAIN: Joi.string().uri(),
+    DOMAIN: Joi.string().uri().required(),
     LOCAL_ORIGIN: Joi.string().uri(),
     ONBOARDING_ALLOWLIST: Joi.string().required(),
     ONBOARDING_API_PRIVATE_KEY: Joi.string(),
-    TRUSTED_APPS_REGISTRY: Joi.string().uri(),
-    TRUSTED_ISSUERS_REGISTRY: Joi.string().uri(),
-    DID_REGISTRY: Joi.string().uri(),
     AUTHORISATION_CREDENTIAL_SCHEMA: Joi.string().required(),
     HEALTH_CHECK: Joi.string().uri(),
     REQUEST_TIMEOUT: Joi.string(),
