@@ -80,7 +80,7 @@ export const loadConfig = (): ApiConfig => {
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     domain: DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
-    externalEbsiApiHealthCheck: process.env.HEALTH_CHECK || HEALTH_CHECK_PATH,
+    externalEbsiApiHealthCheck: DOMAIN + HEALTH_CHECK_PATH,
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     testAppName: process.env.TEST_APP_NAME || "",
     testAppPrivateKey: process.env.TEST_APP_PRIVATE_KEY || "",
