@@ -28,6 +28,8 @@ declare global {
       TEST_APP_PRIVATE_KEY?: string;
       TEST_ENV?: string;
       TEST_ENABLE_WRITE_OPS?: string;
+      BLOCKSCOUT_URL?: string;
+      BLOCKSCOUT_BEARER_TOKEN?: string;
     }
   }
 
