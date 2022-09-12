@@ -35,7 +35,7 @@ export interface ApiConfig {
 
 const TAR_PATH = "/trusted-apps-registry/v3/apps";
 const TIR_PATH = "/trusted-issuers-registry/v3/issuers";
-const DID_REGISTRY_PATH = "/did-registry/v3/identifiers";
+const DIDR_PATH = "/did-registry/v3/identifiers";
 const HEALTH_CHECK_PATH = "/docs/";
 
 // Example of default values to be used, depending on the environment
@@ -74,7 +74,7 @@ export const loadConfig = (): ApiConfig => {
     onboardingApiPrivateKey: process.env.ONBOARDING_API_PRIVATE_KEY || "",
     trustedAppsRegistry: process.env.DOMAIN + TAR_PATH,
     trustedIssuersRegistry: process.env.DOMAIN + TIR_PATH,
-    didRegistry: process.env.DOMAIN + DID_REGISTRY_PATH,
+    didRegistry: process.env.DOMAIN + DIDR_PATH,
     authorisationCredentialSchema:
       process.env.DOMAIN + process.env.AUTHORISATION_CREDENTIAL_SCHEMA,
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
