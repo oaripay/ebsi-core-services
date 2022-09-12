@@ -55,34 +55,33 @@ export interface ApiConfig {
 const defaultConfig = {
   local: {
     LOG_LEVEL: "debug",
-    DOMAIN: "https://api.test.intebsi.xyz",
+    DOMAIN: "https://test.intebsi.xyz",
     TRUSTED_APPS_REGISTRY:
-      "https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps",
+      "https://test.intebsi.xyz/trusted-apps-registry/v3/apps",
     TRUSTED_ISSUERS_REGISTRY:
-      "https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers",
-    HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
-    DID_REGISTRY: "https://api.test.intebsi.xyz/did-registry/v3/identifiers",
+      "https://test.intebsi.xyz/trusted-issuers-registry/v3/issuers",
+    HEALTH_CHECK: "https://test.intebsi.xyz/docs/",
+    DID_REGISTRY: "https://test.intebsi.xyz/did-registry/v3/identifiers",
   },
   test: {
     LOG_LEVEL: "info",
-    DOMAIN: "https://api.test.intebsi.xyz",
+    DOMAIN: "https://test.intebsi.xyz",
     TRUSTED_APPS_REGISTRY:
-      "https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps",
+      "https://test.intebsi.xyz/trusted-apps-registry/v3/apps",
     TRUSTED_ISSUERS_REGISTRY:
-      "https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers",
-    HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
-    DID_REGISTRY: "https://api.test.intebsi.xyz/did-registry/v3/identifiers",
+      "https://test.intebsi.xyz/trusted-issuers-registry/v3/issuers",
+    HEALTH_CHECK: "https://test.intebsi.xyz/docs/",
+    DID_REGISTRY: "https://test.intebsi.xyz/did-registry/v3/identifiers",
   },
   conformance: {
     LOG_LEVEL: "info",
-    DOMAIN: "https://api.conformance.intebsi.xyz",
+    DOMAIN: "https://api-conformance.ebsi.eu",
     TRUSTED_APPS_REGISTRY:
-      "https://api.conformance.intebsi.xyz/trusted-apps-registry/v3/apps",
+      "https://api-conformance.ebsi.eu/trusted-apps-registry/v3/apps",
     TRUSTED_ISSUERS_REGISTRY:
-      "https://api.conformance.intebsi.xyz/trusted-issuers-registry/v3/issuers",
-    HEALTH_CHECK: "https://api.conformance.intebsi.xyz/docs/",
-    DID_REGISTRY:
-      "https://api.conformance.intebsi.xyz/did-registry/v3/identifiers",
+      "https://api-conformance.ebsi.eu/trusted-issuers-registry/v3/issuers",
+    HEALTH_CHECK: "https://api-conformance.ebsi.eu/docs/",
+    DID_REGISTRY: "https://api-conformance.ebsi.eu/did-registry/v3/identifiers",
   },
   pilot: {
     LOG_LEVEL: "warn",
