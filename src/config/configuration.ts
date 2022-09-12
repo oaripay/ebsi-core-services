@@ -61,7 +61,7 @@ const defaultConfig = {
 // Note that process.env — for which provide typings in src/environment.d.ts —
 // should have already been validated by Joi in src/app.module.ts
 export const loadConfig = (): ApiConfig => {
-  const { EBSI_ENV } = process.env;
+  const { EBSI_ENV, DOMAIN } = process.env;
   const dockerContainerTag = getDockerTag(EBSI_ENV);
 
   return {
@@ -72,13 +72,13 @@ export const loadConfig = (): ApiConfig => {
     ebsiEnv: EBSI_ENV,
     onboardingAllowlist: process.env.ONBOARDING_ALLOWLIST.split(","),
     onboardingApiPrivateKey: process.env.ONBOARDING_API_PRIVATE_KEY || "",
-    trustedAppsRegistry: process.env.DOMAIN + TAR_PATH,
-    trustedIssuersRegistry: process.env.DOMAIN + TIR_PATH,
-    didRegistry: process.env.DOMAIN + DIDR_PATH,
+    trustedAppsRegistry: DOMAIN + TAR_PATH,
+    trustedIssuersRegistry: DOMAIN + TIR_PATH,
+    didRegistry: DOMAIN + DIDR_PATH,
     authorisationCredentialSchema:
-      process.env.DOMAIN + process.env.AUTHORISATION_CREDENTIAL_SCHEMA,
+      DOMAIN + process.env.AUTHORISATION_CREDENTIAL_SCHEMA,
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
-    domain: process.env.DOMAIN,
+    domain: DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
     externalEbsiApiHealthCheck: process.env.HEALTH_CHECK || HEALTH_CHECK_PATH,
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
