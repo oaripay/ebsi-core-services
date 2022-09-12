@@ -8,6 +8,24 @@ export interface ApiConfig {
   apiPrivateKey: string;
   apiName: string;
   apiUrlPrefix: string;
+  /**
+   * Defines the URI authority where the EBSI APIs can be found.
+   *
+   * For more information about what the URI authority component is, read:
+   * - https://en.wikipedia.org/wiki/Uniform_Resource_Identifier#Syntax
+   * - https://developer.mozilla.org/en-US/docs/Learn/Common_questions/What_is_a_URL#authority
+   *
+   * Accepted host names:
+   * - localhost (for development purpose only)
+   * - test.intebsi.xyz
+   * - api-conformance.ebsi.eu
+   * - api-pilot.ebsi.[domain]
+   * - api-preprod.ebsi.[domain]
+   * - api.ebsi.[domain]
+   *
+   * Example: "api-preprod.ebsi.example.net"
+   */
+  ebsiAuthority: string;
   ebsiEnv: "local" | "test" | "conformance" | "pilot" | "prod";
   onboardingAllowlist: string[];
   onboardingApiPrivateKey: string; // for tests
@@ -99,6 +117,7 @@ export const loadConfig = (): ApiConfig => {
     apiPrivateKey: process.env.API_PRIVATE_KEY,
     apiName: process.env.API_NAME,
     apiUrlPrefix: process.env.API_URL_PREFIX || "/authorisation/v2",
+    ebsiAuthority: process.env.EBSI_AUTHORITY,
     ebsiEnv: EBSI_ENV,
     onboardingAllowlist: process.env.ONBOARDING_ALLOWLIST.split(","),
     onboardingApiPrivateKey: process.env.ONBOARDING_API_PRIVATE_KEY || "",

@@ -180,13 +180,12 @@ export class AuthorisationService {
           }
 
           try {
-            const ebsiEnv = this.configService.get<
-              "test" | "conformance" | "pilot" | "prod"
-            >("ebsiEnv");
+            const ebsiAuthority =
+              this.configService.get<string>("ebsiAuthority");
 
             // Verify VC
             await verifyCredentialJwt(verifiableCredential, {
-              ebsiEnv,
+              ebsiAuthority,
               timeout: this.timeout,
             });
           } catch (e) {
