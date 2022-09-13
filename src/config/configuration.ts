@@ -28,6 +28,10 @@ export interface ApiConfig {
   testClientKid: string;
   testClientPrivateKey: string;
   dockerContainerTag: string;
+  blockscout: {
+    url: string;
+    bearerToken: string;
+  };
 }
 
 const LEDGER_API_PATH = "/ledger/v3";
@@ -89,6 +93,10 @@ export const loadConfig = (): ApiConfig => {
     testClientKid: process.env.TEST_CLIENT_KID,
     testClientPrivateKey: process.env.TEST_CLIENT_PRIVATE_KEY,
     dockerContainerTag,
+    blockscout: {
+      url: process.env.BLOCKSCOUT_URL,
+      bearerToken: process.env.BLOCKSCOUT_BEARER_TOKEN,
+    },
   };
 };
 
@@ -134,5 +142,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_APP_PRIVATE_KEY: Joi.string(),
     TEST_CLIENT_KID: Joi.string(),
     TEST_CLIENT_PRIVATE_KEY: Joi.string(),
+    BLOCKSCOUT_URL: Joi.string(),
+    BLOCKSCOUT_BEARER_TOKEN: Joi.string(),
   }),
 });

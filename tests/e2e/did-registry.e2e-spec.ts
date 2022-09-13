@@ -91,6 +91,7 @@ describe("DID Registry (e2e)", () => {
   let newUserAccessToken: string;
   let apiAccessToken: string;
   let ledgerApi: string;
+  let sampleTransaction: string;
   let lastIdentifier: {
     did: string;
     href: string;
@@ -102,6 +103,10 @@ describe("DID Registry (e2e)", () => {
   let lastMetadata: {
     metadataId: string;
     href: string;
+  };
+  let blockscout: {
+    url: string;
+    bearerToken: string;
   };
 
   const prepareDidDocument = (
@@ -228,6 +233,12 @@ describe("DID Registry (e2e)", () => {
 
     apiAccessToken = await getAccessToken(configService);
     ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
+
+    const configBlockscout = configService.get<{
+      url: string;
+      bearerToken: string;
+    }>("blockscout");
+    blockscout = configBlockscout;
 
     // Get last identifier
     const getAllIdentifiers = await request(server).get("/identifiers");
@@ -510,6 +521,39 @@ describe("DID Registry (e2e)", () => {
         responseSend.body.result as string
       );
       expect(receipt.status).toBe(1);
+      sampleTransaction = responseSend.body.result as string;
+    });
+
+    it("should return transaction data from blockscout", async () => {
+      if (!blockscout.url || !sampleTransaction) return;
+      expect.assertions(1);
+
+      await new Promise((f) => {
+        setTimeout(f, 1500);
+      });
+
+      // check if blockscout is working properly
+      const blockscoutCheck: SupertestJsonRpcResponse = await request(
+        blockscout.url
+      )
+        .post("")
+        .set({ Authorization: blockscout.bearerToken })
+        .send({
+          query: `{transaction(hash: "${sampleTransaction}") { hash, blockNumber, value, gasUsed }}`,
+          variables: null,
+          operationName: null,
+        });
+
+      expect(blockscoutCheck.body).toStrictEqual({
+        data: {
+          transaction: {
+            blockNumber: expect.any(Number) as number,
+            gasUsed: expect.any(String) as string,
+            hash: sampleTransaction,
+            value: expect.any(String) as string,
+          },
+        },
+      });
     });
   });
 
