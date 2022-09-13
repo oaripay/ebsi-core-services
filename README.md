@@ -231,7 +231,7 @@ docker run -i loadimpact/k6 run -e JWT=xxx BASE_URL=http://host.docker.internal:
 Note: you can also use k6 to test the remote API by configuring BASE_URL:
 
 ```sh
-JWT=xxx BASE_URL=https://api.test.intebsi.xyz k6 run tests/k6/script.js --no-usage-report
+JWT=xxx BASE_URL=https://test.intebsi.xyz k6 run tests/k6/script.js --no-usage-report
 ```
 
 ## Cutting a new release

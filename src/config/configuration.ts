@@ -39,28 +39,27 @@ export interface ApiConfig {
 const defaultConfig = {
   local: {
     LOG_LEVEL: "debug",
-    DOMAIN: "https://api.test.intebsi.xyz",
-    AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v2",
+    DOMAIN: "https://test.intebsi.xyz",
+    AUTHORISATION_API_URL: "https://test.intebsi.xyz/authorisation/v2",
     TRUSTED_APPS_REGISTRY_API_URL:
-      "https://api.test.intebsi.xyz/trusted-apps-registry/v3",
-    HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
+      "https://test.intebsi.xyz/trusted-apps-registry/v3",
+    HEALTH_CHECK: "https://test.intebsi.xyz/docs/",
   },
   test: {
     LOG_LEVEL: "info",
-    DOMAIN: "https://api.test.intebsi.xyz",
-    AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v2",
+    DOMAIN: "https://test.intebsi.xyz",
+    AUTHORISATION_API_URL: "https://test.intebsi.xyz/authorisation/v2",
     TRUSTED_APPS_REGISTRY_API_URL:
-      "https://api.test.intebsi.xyz/trusted-apps-registry/v3",
-    HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
+      "https://test.intebsi.xyz/trusted-apps-registry/v3",
+    HEALTH_CHECK: "https://test.intebsi.xyz/docs/",
   },
   conformance: {
     LOG_LEVEL: "info",
-    DOMAIN: "https://api.conformance.intebsi.xyz",
-    AUTHORISATION_API_URL:
-      "https://api.conformance.intebsi.xyz/authorisation/v2",
+    DOMAIN: "https://api-conformance.ebsi.eu",
+    AUTHORISATION_API_URL: "https://api-conformance.ebsi.eu/authorisation/v2",
     TRUSTED_APPS_REGISTRY_API_URL:
-      "https://api.conformance.intebsi.xyz/trusted-apps-registry/v3",
-    HEALTH_CHECK: "https://api.conformance.intebsi.xyz/docs/",
+      "https://api-conformance.ebsi.eu/trusted-apps-registry/v3",
+    HEALTH_CHECK: "https://api-conformance.ebsi.eu/docs/",
   },
   pilot: {
     LOG_LEVEL: "warn",
