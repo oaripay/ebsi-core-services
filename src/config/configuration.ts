@@ -133,7 +133,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
     DOMAIN: Joi.string().uri().required(),
     LOCAL_ORIGIN: Joi.string().uri(),
     LEDGER_API_NAME: Joi.string(),
-    HEALTH_CHECK: Joi.string(),
     REQUEST_TIMEOUT: Joi.string(),
     AUTHORISATION_CREDENTIAL_SCHEMA: Joi.string(),
     USERS_ONBOARDING_API_DID: Joi.string(),
