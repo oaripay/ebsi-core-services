@@ -50,7 +50,7 @@ First, create an `.env.local` file locally. You can duplicate the content of `.e
 
 Please note that you need to fill the `API_PRIVATE_KEY`, `TEST_APP_PRIVATE_KEY` and `TEST_CLIENT_PRIVATE_KEY` environment variable with secp256k1 elliptic curve private keys in hexadecimal.
 
-You must at least set `API_PRIVATE_KEY`, `CONTRACT_ADDR` and `EBSI_ENV` to run the API. For e2e testing, you must also set `TEST_APP_KID`, `TEST_APP_PRIVATE_KEY`, `TEST_CLIENT_KID` and `TEST_CLIENT_PRIVATE_KEY`.
+You must at least set `API_PRIVATE_KEY`, `CONTRACT_ADDR`, `EBSI_ENV` and `DOMAIN` to run the API. For e2e testing, you must also set `TEST_APP_KID`, `TEST_APP_PRIVATE_KEY`, `TEST_CLIENT_KID` and `TEST_CLIENT_PRIVATE_KEY`.
 
 After cloning the repository, make sure to update the submodules:
 
@@ -258,7 +258,7 @@ docker run -i loadimpact/k6 run -e BASE_URL=http://host.docker.internal:3000 --n
 Note: you can also use k6 to test the remote API by configuring BASE_URL:
 
 ```sh
-BASE_URL=https://api.test.intebsi.xyz k6 run tests/k6/script.js --no-usage-report
+BASE_URL=https://test.intebsi.xyz k6 run tests/k6/script.js --no-usage-report
 ```
 
 ## Cutting a new release
