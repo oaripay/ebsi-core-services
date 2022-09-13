@@ -150,7 +150,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
     }),
     DOMAIN: Joi.string().uri().required(),
     LOCAL_ORIGIN: Joi.string().uri(),
-    HEALTH_CHECK: Joi.string(),
     REQUEST_TIMEOUT: Joi.string(),
     TEST_USER_KID: Joi.string(),
     TEST_USER_PRIVATE_KEY: Joi.string(),

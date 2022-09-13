@@ -16,7 +16,6 @@ declare global {
       FABRIC_ADMIN_XPATH_PRIVATE_KEY?: string;
       DOMAIN: string;
       LOCAL_ORIGIN?: string;
-      HEALTH_CHECK?: string;
       REQUEST_TIMEOUT?: string;
       TEST_USER_KID?: string;
       TEST_USER_PRIVATE_KEY?: string;
