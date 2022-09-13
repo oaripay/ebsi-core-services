@@ -4,29 +4,19 @@ pragma solidity 0.8.12;
 // solhint-disable-next-line max-line-length
 import "../bootstrap-ethereum-sc/contracts/utils/upgradeability/Initializable.sol";
 import "./DidStorage.sol";
-import "./HashAlgoDetailed.sol";
-import "./DidPolicyDetailed.sol";
-import "./DidTimestampDetailed.sol";
-import "./DidRecordDetailed.sol";
+import "./DidDocumentDetailed.sol";
 
 /**
  * @title example of stored values on a SC with pause functionality.
  *
  */
-contract DidRegistry is
-    DidStorage,
-    HashAlgoDetailed,
-    DidPolicyDetailed,
-    DidTimestampDetailed,
-    DidRecordDetailed,
-    Initializable
-{
+contract DidRegistry is DidStorage, DidDocumentDetailed, Initializable {
     function initialize(uint256 v) public initializer {
         _onInitialize(v);
     }
 
     function setTrustedPoliciesRegistryAddress() public {
-        HashAlgos storage hs = hashAlgoStorage();
+        DidDocuments storage ds = didDocumentStorage();
 
         uint256 id;
         assembly {
@@ -52,7 +42,7 @@ contract DidRegistry is
             tprAddress = 0x18B271cCb08704d0F819284637225e31fF0B5EA9;
         }
 
-        hs.trustedPolicyRegistry = IPolicyRegistry(tprAddress);
+        ds.trustedPolicyRegistry = IPolicyRegistry(tprAddress);
     }
 
     function _onInitialize(uint256 _version) internal onlyInitializing {
