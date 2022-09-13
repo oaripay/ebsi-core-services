@@ -7,9 +7,11 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
+import { HttpService } from "@nestjs/axios";
 import type { FastifyInstance } from "fastify";
 import { createJWT, ES256KSigner } from "did-jwt";
 import { JWTVerifyResult } from "jose";
+import { of } from "rxjs";
 import { AppModule } from "../app.module";
 import { AllExceptionsFilter } from "../filters/http-exception.filter";
 import { ApiConfig } from "../config/configuration";
@@ -32,7 +34,9 @@ jest.setTimeout(60000);
 
 describe("Logging interceptor", () => {
   let app: INestApplication;
+  let httpService: HttpService;
   let configService: ConfigService<ApiConfig, true>;
+
   const mockedLogger = {
     log: jest.fn(),
     warn: jest.fn(),
@@ -55,6 +59,8 @@ describe("Logging interceptor", () => {
 
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+
+    httpService = await moduleFixture.resolve<HttpService>(HttpService);
   });
 
   afterEach(() => {
@@ -77,6 +83,12 @@ describe("Logging interceptor", () => {
 
     it("should log the request and response", async () => {
       expect.assertions(2);
+
+      jest
+        .spyOn(httpService, "request")
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        .mockImplementation(() => of({}));
 
       await request(app.getHttpServer())
         .get(`/health`)
