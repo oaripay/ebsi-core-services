@@ -8,14 +8,10 @@ declare global {
       API_PORT?: string;
       API_URL_PREFIX?: string;
       API_NAME: string;
-      AUTHORISATION_API_URL?: string;
       STORAGE_API_NAME?: string;
-      STORAGE_API_URL?: string;
-      DID_REGISTRY_API_URL?: string;
-      TRUSTED_APPS_REGISTRY_API_URL?: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
       ENCRYPTION_SECRET: string;
-      DOMAIN?: string;
+      DOMAIN: string;
       LOCAL_ORIGIN?: string;
       HEALTH_CHECK?: string;
       REQUEST_TIMEOUT?: string;

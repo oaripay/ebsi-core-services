@@ -29,69 +29,39 @@ export interface ApiConfig {
   dockerContainerTag: string;
 }
 
+const AUTH_API_PATH = "/authorisation/v2";
+const STORAGE_API_PATH = "/storage/v3";
+const DIDR_API_PATH = "/did-registry/v3";
+const TAR_API_PATH = "/trusted-apps-registry/v3";
+const HEALTH_CHECK_PATH = "/docs/";
+
 // Default values to be used, depending on the environment
 const defaultConfig = {
   local: {
     LOG_LEVEL: "debug",
-    DOMAIN: "https://api.test.intebsi.xyz",
     API_URL_ORIGIN: "https://api.intebsi.xyz",
-    AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v2",
-    STORAGE_API_URL: "https://api.test.intebsi.xyz/storage/v3",
-    DID_REGISTRY_API_URL: "https://api.test.intebsi.xyz/did-registry/v3",
-    TRUSTED_APPS_REGISTRY_API_URL:
-      "https://api.test.intebsi.xyz/trusted-apps-registry/v3",
-    HEALTH_CHECK: "https://api.intebsi.xyz/docs/",
   },
   test: {
     LOG_LEVEL: "info",
-    DOMAIN: "https://api.test.intebsi.xyz",
-    API_URL_ORIGIN: "https://api.test.intebsi.xyz",
-    AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v2",
-    STORAGE_API_URL: "https://api.test.intebsi.xyz/storage/v3",
-    DID_REGISTRY_API_URL: "https://api.test.intebsi.xyz/did-registry/v3",
-    TRUSTED_APPS_REGISTRY_API_URL:
-      "https://api.test.intebsi.xyz/trusted-apps-registry/v3",
-    HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
+    API_URL_ORIGIN: "https://test.intebsi.xyz",
   },
   conformance: {
     LOG_LEVEL: "info",
-    DOMAIN: "https://api.conformance.intebsi.xyz",
-    API_URL_ORIGIN: "https://api.conformance.intebsi.xyz",
-    AUTHORISATION_API_URL:
-      "https://api.conformance.intebsi.xyz/authorisation/v2",
-    STORAGE_API_URL: "https://api.conformance.intebsi.xyz/storage/v3",
-    DID_REGISTRY_API_URL: "https://api.conformance.intebsi.xyz/did-registry/v3",
-    TRUSTED_APPS_REGISTRY_API_URL:
-      "https://api.conformance.intebsi.xyz/trusted-apps-registry/v3",
-    HEALTH_CHECK: "https://api.conformance.intebsi.xyz/docs/",
+    API_URL_ORIGIN: "https://api-conformance.ebsi.eu",
   },
   pilot: {
     LOG_LEVEL: "warn",
-    DOMAIN: "https://api.pilot.ebsi.xyz",
     API_URL_ORIGIN: "https://api.preprod.ebsi.eu",
-    AUTHORISATION_API_URL: "https://api.preprod.ebsi.eu/authorisation/v2",
-    STORAGE_API_URL: "https://api.preprod.ebsi.eu/storage/v3",
-    DID_REGISTRY_API_URL: "https://api.preprod.ebsi.eu/did-registry/v3",
-    TRUSTED_APPS_REGISTRY_API_URL:
-      "https://api.preprod.ebsi.eu/trusted-apps-registry/v3",
-    HEALTH_CHECK: "https://api.preprod.ebsi.eu/docs/",
   },
   prod: {
     LOG_LEVEL: "error",
-    DOMAIN: "https://api.prod.ebsi.xyz",
     API_URL_ORIGIN: "https://api.ebsi.eu",
-    AUTHORISATION_API_URL: "https://api.ebsi.eu/authorisation/v2",
-    STORAGE_API_URL: "https://api.ebsi.eu/storage/v3",
-    DID_REGISTRY_API_URL: "https://api.ebsi.eu/did-registry/v3",
-    TRUSTED_APPS_REGISTRY_API_URL:
-      "https://api.ebsi.eu/trusted-apps-registry/v3",
-    HEALTH_CHECK: "https://api.ebsi.eu/docs/",
   },
 };
 
 // Config factory
 export const loadConfig = (): ApiConfig => {
-  const { EBSI_ENV } = process.env;
+  const { EBSI_ENV, DOMAIN } = process.env;
   const dockerContainerTag = getDockerTag(EBSI_ENV);
 
   return {
@@ -100,23 +70,15 @@ export const loadConfig = (): ApiConfig => {
     encryptionSecret: process.env.ENCRYPTION_SECRET,
     apiUrlPrefix: process.env.API_URL_PREFIX || "/notifications/v2",
     apiName: process.env.API_NAME,
-    authorisationApiUrl:
-      process.env.AUTHORISATION_API_URL ||
-      defaultConfig[EBSI_ENV].AUTHORISATION_API_URL,
+    authorisationApiUrl: DOMAIN + AUTH_API_PATH,
     storageApiName: process.env.STORAGE_API_NAME || "storage-api",
-    storageApiUrl:
-      process.env.STORAGE_API_URL || defaultConfig[EBSI_ENV].STORAGE_API_URL,
-    didRegistryApiUrl:
-      process.env.DID_REGISTRY_API_URL ||
-      defaultConfig[EBSI_ENV].DID_REGISTRY_API_URL,
-    trustedAppsRegistryApiUrl:
-      process.env.TRUSTED_APPS_REGISTRY_API_URL ||
-      defaultConfig[EBSI_ENV].TRUSTED_APPS_REGISTRY_API_URL,
-    domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
+    storageApiUrl: DOMAIN + STORAGE_API_PATH,
+    didRegistryApiUrl: DOMAIN + DIDR_API_PATH,
+    trustedAppsRegistryApiUrl: DOMAIN + TAR_API_PATH,
+    domain: DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
-    externalEbsiApiHealthCheck:
-      process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
+    externalEbsiApiHealthCheck: DOMAIN + HEALTH_CHECK_PATH,
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     testUser1: {
       kid: process.env.TEST_USER_KID_1,
@@ -159,14 +121,9 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "debug"
     ),
     ENCRYPTION_SECRET: Joi.string().required(),
-    DOMAIN: Joi.string().uri(),
+    DOMAIN: Joi.string().uri().required(),
     LOCAL_ORIGIN: Joi.string().uri(),
-    AUTHORISATION_API_URL: Joi.string().uri(),
     STORAGE_API_NAME: Joi.string(),
-    STORAGE_API_URL: Joi.string().uri(),
-    DID_REGISTRY_API_URL: Joi.string().uri(),
-    TRUSTED_APPS_REGISTRY_API_URL: Joi.string().uri(),
-    HEALTH_CHECK: Joi.string(),
     REQUEST_TIMEOUT: Joi.string(),
     TEST_USER_KID_1: Joi.string(),
     TEST_USER_PRIVATE_KEY_1: Joi.string(),
