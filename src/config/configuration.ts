@@ -131,7 +131,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
     ONBOARDING_ALLOWLIST: Joi.string().required(),
     ONBOARDING_API_PRIVATE_KEY: Joi.string(),
     AUTHORISATION_CREDENTIAL_SCHEMA: Joi.string().required(),
-    HEALTH_CHECK: Joi.string().uri(),
     REQUEST_TIMEOUT: Joi.string(),
     // Test specific variables
     TEST_APP_NAME: Joi.string(),

@@ -14,7 +14,6 @@ declare global {
       AUTHORISATION_CREDENTIAL_SCHEMA: string;
       DOMAIN: string;
       LOCAL_ORIGIN?: string;
-      HEALTH_CHECK?: string;
       REQUEST_TIMEOUT?: string;
       TEST_APP_NAME?: string;
       TEST_APP_PRIVATE_KEY?: string;
