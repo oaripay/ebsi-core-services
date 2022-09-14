@@ -643,6 +643,8 @@ describe("Records (e2e)", () => {
       expect.assertions(5);
 
       let param: JsonRpcParams = null;
+
+      /* eslint-disable jest/no-conditional-expect */
       switch (method) {
         case "timestampRecordHashes": {
           param = {
