@@ -25,7 +25,9 @@ task("accounts", "Prints the list of accounts", async (args, hre) => {
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   networks: {
-    hardhat: {},
+    hardhat: {
+      accounts: { mnemonic },
+    },
     local: {
       url: `http://localhost:8545`,
       accounts: { mnemonic },

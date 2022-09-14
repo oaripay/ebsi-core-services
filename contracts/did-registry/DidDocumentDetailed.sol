@@ -7,21 +7,40 @@ import "./DidDocumentLib.sol";
 contract DidDocumentDetailed is DidDocumentStorage {
     using DidDocumentLib for DidDocuments;
 
+    event DidDocumentInserted(
+        string did,
+        string baseDocument,
+        bytes publicKey,
+        uint256 notBefore,
+        uint256 notAfter
+    );
+
     function insertDidDocument(
         string memory did,
         string memory baseDocument,
+        string memory vMethodId,
         bytes memory publicKey,
+        bool isSecp256k1,
         uint256 notBefore,
         uint256 notAfter
     ) external returns (bool) {
         DidDocuments storage ds = didDocumentStorage();
-        return
-            ds.insertDidDocument(
-                did,
-                baseDocument,
-                publicKey,
-                notBefore,
-                notAfter
-            );
+        bool result = ds.insertDidDocument(
+            did,
+            baseDocument,
+            vMethodId,
+            publicKey,
+            isSecp256k1,
+            notBefore,
+            notAfter
+        );
+        emit DidDocumentInserted(
+            did,
+            baseDocument,
+            publicKey,
+            notBefore,
+            notAfter
+        );
+        return result;
     }
 }
