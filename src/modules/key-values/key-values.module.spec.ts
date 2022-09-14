@@ -257,7 +257,7 @@ describe("Key-Values Module", () => {
           ) as string,
         },
         pageSize: 10,
-        self: "https://api.test.intebsi.xyz/storage/v3/stores/distributed/key-values?page[size]=10",
+        self: "https://test.intebsi.xyz/storage/v3/stores/distributed/key-values?page[size]=10",
       });
       expect(response.status).toBe(200);
     });

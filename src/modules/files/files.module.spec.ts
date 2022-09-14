@@ -272,7 +272,7 @@ describe("Files Module", () => {
           ) as string,
         },
         pageSize: 10,
-        self: "https://api.test.intebsi.xyz/storage/v3/stores/distributed/files?page[size]=10",
+        self: "https://test.intebsi.xyz/storage/v3/stores/distributed/files?page[size]=10",
       });
       expect(response.status).toBe(200);
       expect(mockedCassandraClientExecute).toHaveBeenCalledWith(

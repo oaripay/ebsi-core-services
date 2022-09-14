@@ -60,7 +60,7 @@ You can choose to run the project locally with your own Node.js environment, or 
 
 First, create an `.env.local` file locally. You can duplicate the content of `.env` or only set the variables that you want to change.
 
-You must at least set `EBSI_ENV` to run the API. For e2e testing, you must also set `TEST_APP_NAME`, `TEST_APP_PRIVATE_KEY`, `TEST_CLIENT_KID` and `TEST_CLIENT_PRIVATE_KEY`.
+You must at least set `EBSI_ENV` and `DOMAIN` to run the API. For e2e testing, you must also set `TEST_APP_NAME`, `TEST_APP_PRIVATE_KEY`, `TEST_CLIENT_KID` and `TEST_CLIENT_PRIVATE_KEY`.
 
 You can also define consistency desired for read/write operations in cassandra (this API is not using lightweight transactions).
 

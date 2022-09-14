@@ -26,52 +26,31 @@ export interface ApiConfig {
   dockerContainerTag: string;
 }
 
+const AUTH_API_PATH = "/authorisation/v2";
+const TAR_API_PATH = "/trusted-apps-registry/v3";
+const HEALTH_CHECK_PATH = "/docs/";
+
 // Example of default values to be used, depending on the environment
 const defaultConfig = {
   local: {
     LOG_LEVEL: "debug",
-    DOMAIN: "https://api.test.intebsi.xyz",
-    HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
     KEYSPACE: "ebsi_test",
-    TRUSTED_APPS_REGISTRY:
-      "https://api.test.intebsi.xyz/trusted-apps-registry/v3",
-    AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v2",
   },
   test: {
     LOG_LEVEL: "info",
-    DOMAIN: "https://api.test.intebsi.xyz",
-    HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
     KEYSPACE: "ebsi_test",
-    TRUSTED_APPS_REGISTRY:
-      "https://api.test.intebsi.xyz/trusted-apps-registry/v3",
-    AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v2",
   },
   conformance: {
     LOG_LEVEL: "info",
-    DOMAIN: "https://api.conformance.intebsi.xyz",
-    HEALTH_CHECK: "https://api.conformance.intebsi.xyz/docs/",
     KEYSPACE: "ebsi_test",
-    TRUSTED_APPS_REGISTRY:
-      "https://api.conformance.intebsi.xyz/trusted-apps-registry/v3",
-    AUTHORISATION_API_URL:
-      "https://api.conformance.intebsi.xyz/authorisation/v2",
   },
   pilot: {
     LOG_LEVEL: "warn",
-    DOMAIN: "https://api.preprod.ebsi.eu",
-    HEALTH_CHECK: "https://api.preprod.ebsi.eu/docs/",
     KEYSPACE: "ebsi_pilot",
-    TRUSTED_APPS_REGISTRY:
-      "https://api.preprod.ebsi.eu/trusted-apps-registry/v3",
-    AUTHORISATION_API_URL: "https://api.preprod.ebsi.eu/authorisation/v2",
   },
   prod: {
     LOG_LEVEL: "error",
-    DOMAIN: "https://api.ebsi.eu",
-    HEALTH_CHECK: "https://api.ebsi.eu/docs/",
     KEYSPACE: "ebsi_prod",
-    TRUSTED_APPS_REGISTRY: "https://api.ebsi.eu/trusted-apps-registry/v3",
-    AUTHORISATION_API_URL: "https://api.ebsi.eu/authorisation/v2",
   },
 };
 
@@ -79,28 +58,23 @@ const defaultConfig = {
 // Note that process.env — for which provide typings in src/environment.d.ts —
 // should have already been validated by Joi in src/app.module.ts
 export const loadConfig = (): ApiConfig => {
-  const { EBSI_ENV } = process.env;
+  const { EBSI_ENV, DOMAIN } = process.env;
   const dockerContainerTag = getDockerTag(EBSI_ENV);
 
   return {
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
     apiUrlPrefix: process.env.API_URL_PREFIX || "/storage/v3",
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
-    domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
+    domain: DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
-    externalEbsiApiHealthCheck:
-      process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
+    externalEbsiApiHealthCheck: DOMAIN + HEALTH_CHECK_PATH,
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     encryptionSecret: process.env.ENCRYPTION_SECRET,
     authorisationApiName:
       process.env.AUTHORISATION_API_NAME || "authorisation-api",
-    authorisationApiUrl:
-      process.env.AUTHORISATION_API_URL ||
-      defaultConfig[EBSI_ENV].AUTHORISATION_API_URL,
+    authorisationApiUrl: DOMAIN + AUTH_API_PATH,
     // TAR API
-    trustedAppsRegistryApiUrl:
-      process.env.TRUSTED_APPS_REGISTRY ||
-      defaultConfig[EBSI_ENV].TRUSTED_APPS_REGISTRY,
+    trustedAppsRegistryApiUrl: DOMAIN + TAR_API_PATH,
     // Test vars
     testAppName: process.env.TEST_APP_NAME,
     testAppPrivateKey: process.env.TEST_APP_PRIVATE_KEY,
@@ -136,16 +110,13 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "verbose",
       "debug"
     ),
-    DOMAIN: Joi.string().uri(),
+    DOMAIN: Joi.string().uri().required(),
     LOCAL_ORIGIN: Joi.string().uri(),
     HEALTH_CHECK: Joi.string(),
     REQUEST_TIMEOUT: Joi.string(),
     ENCRYPTION_SECRET: Joi.string().required(),
     // Authorisation API
     AUTHORISATION_API_NAME: Joi.string(),
-    AUTHORISATION_API_URL: Joi.string().uri(),
-    // TAR API
-    TRUSTED_APPS_REGISTRY: Joi.string().uri(),
     // Storage specific variables
     CASSANDRA_USER: Joi.string().required(),
     CASSANDRA_PASSWORD: Joi.string().required(),
