@@ -35,6 +35,7 @@ const LEDGER_API_PATH = "/ledger/v3";
 const AUTH_API_PATH = "/authorisation/v2";
 const DIDR_API_PATH = "/did-registry/v3";
 const TAR_API_PATH = "/trusted-apps-registry/v3";
+const TSR_API_PATH = "/trusted-schemas-registry/v2/schemas/";
 
 // Example of default values to be used, depending on the environment
 const defaultConfig = {
@@ -85,7 +86,7 @@ export const loadConfig = (): ApiConfig => {
     // Test vars
     testAdminKid: process.env.TEST_ADMIN_KID,
     testAdminPrivateKey: process.env.TEST_ADMIN_PRIVATE_KEY,
-    testVaSchemaUrl: process.env.TEST_VA_SCHEMA_URL,
+    testVaSchemaUrl: DOMAIN + TSR_API_PATH + process.env.TEST_VA_SCHEMA,
     dockerContainerTag,
   };
 };
@@ -127,6 +128,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
     // Test vars
     TEST_ADMIN_KID: Joi.string(),
     TEST_ADMIN_PRIVATE_KEY: Joi.string(),
-    TEST_VA_SCHEMA_URL: Joi.string(),
+    TEST_VA_SCHEMA: Joi.string(),
   }),
 });

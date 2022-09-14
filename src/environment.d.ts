@@ -16,7 +16,7 @@ declare global {
       LOCAL_ORIGIN?: string;
       TEST_ADMIN_KID?: string;
       TEST_ADMIN_PRIVATE_KEY?: string;
-      TEST_VA_SCHEMA_URL?: string;
+      TEST_VA_SCHEMA?: string;
       TEST_ENV?: string;
       TEST_ENABLE_WRITE_OPS?: string;
     }
