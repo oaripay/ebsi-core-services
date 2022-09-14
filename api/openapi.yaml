@@ -83,21 +83,21 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps?page[after]=3&page[size]=2
+                    self: https://test.intebsi.xyz/trusted-apps-registry/v3/apps?page[after]=3&page[size]=2
                     items:
                       - id: "0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909"
                         name: test-app-1
-                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps/test-app-1
+                        href: https://test.intebsi.xyz/trusted-apps-registry/v3/apps/test-app-1
                       - id: "0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854"
                         name: test-app-2
-                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps/test-app-2
+                        href: https://test.intebsi.xyz/trusted-apps-registry/v3/apps/test-app-2
                     total: 124
                     pageSize: 2
                     links:
-                      first: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps?page[after]=1&page[size]=2
-                      prev: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps?page[after]=2&page[size]=2
-                      next: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps?page[after]=4&page[size]=2
-                      last: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps?page[after]=62&page[size]=2
+                      first: https://test.intebsi.xyz/trusted-apps-registry/v3/apps?page[after]=1&page[size]=2
+                      prev: https://test.intebsi.xyz/trusted-apps-registry/v3/apps?page[after]=2&page[size]=2
+                      next: https://test.intebsi.xyz/trusted-apps-registry/v3/apps?page[after]=4&page[size]=2
+                      last: https://test.intebsi.xyz/trusted-apps-registry/v3/apps?page[after]=62&page[size]=2
                 "[pilot] Success":
                   value:
                     self: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps?page[after]=3&page[size]=2
@@ -306,19 +306,19 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/public-keys?page[after]=3&page[size]=2
+                    self: https://test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/public-keys?page[after]=3&page[size]=2
                     items:
                       - id: "0xb9f5523a132d9c22c552bf126691a0c9dfa3ba550c8de3e8409c0c21b28e0e99"
-                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/public-keys/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909
+                        href: https://test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/public-keys/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909
                       - id: "0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854"
-                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/public-keys/0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854
+                        href: https://test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/public-keys/0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854
                     total: 4
                     pageSize: 2
                     links:
-                      first: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/public-keys?page[after]=1&page[size]=2
-                      prev: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/public-keys?page[after]=2&page[size]=2
-                      next: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/public-keys?page[after]=4&page[size]=2
-                      last: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/public-keys?page[after]=62&page[size]=2
+                      first: https://test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/public-keys?page[after]=1&page[size]=2
+                      prev: https://test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/public-keys?page[after]=2&page[size]=2
+                      next: https://test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/public-keys?page[after]=4&page[size]=2
+                      last: https://test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/public-keys?page[after]=62&page[size]=2
                 "[pilot] Success":
                   value:
                     self: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/public-keys?page[after]=3&page[size]=2
@@ -527,21 +527,21 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/authorizations?page[after]=3&page[size]=2
+                    self: https://test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/authorizations?page[after]=3&page[size]=2
                     items:
                       - authorizationId: "0x62c0cd975b022bb3169a61de2ca2a3be3941d2d2b037ff5888241e33aef15d27"
                         requesterApplicationName: timestamp-api
-                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/authorizations/0x62c0cd975b022bb3169a61de2ca2a3be3941d2d2b037ff5888241e33aef15d27
+                        href: https://test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/authorizations/0x62c0cd975b022bb3169a61de2ca2a3be3941d2d2b037ff5888241e33aef15d27
                       - authorizationId: "0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854"
                         requesterApplicationName: test-app-2
-                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/authorizations/0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854
+                        href: https://test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/authorizations/0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854
                     total: 124
                     pageSize: 2
                     links:
-                      first: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/authorizations?page[after]=1&page[size]=2
-                      prev: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/authorizations?page[after]=2&page[size]=2
-                      next: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/authorizations?page[after]=4&page[size]=2
-                      last: https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/authorizations?page[after]=62&page[size]=2
+                      first: https://test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/authorizations?page[after]=1&page[size]=2
+                      prev: https://test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/authorizations?page[after]=2&page[size]=2
+                      next: https://test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/authorizations?page[after]=4&page[size]=2
+                      last: https://test.intebsi.xyz/trusted-apps-registry/v3/apps/ledger-api/authorizations?page[after]=62&page[size]=2
                 "[pilot] Success":
                   value:
                     self: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/authorizations?page[after]=3&page[size]=2
@@ -734,19 +734,19 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/trusted-apps-registry/v3/policies?page[after]=3&page[size]=2
+                    self: https://test.intebsi.xyz/trusted-apps-registry/v3/policies?page[after]=3&page[size]=2
                     items:
                       - policyId: test-policy-1
-                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v3/policies/test-policy-1
+                        href: https://test.intebsi.xyz/trusted-apps-registry/v3/policies/test-policy-1
                       - policyId: test-policy-2
-                        href: https://api.test.intebsi.xyz/trusted-apps-registry/v3/policies/test-policy-2
+                        href: https://test.intebsi.xyz/trusted-apps-registry/v3/policies/test-policy-2
                     total: 124
                     pageSize: 2
                     links:
-                      first: https://api.test.intebsi.xyz/trusted-apps-registry/v3/policies?page[after]=1&page[size]=2
-                      prev: https://api.test.intebsi.xyz/trusted-apps-registry/v3/policies?page[after]=2&page[size]=2
-                      next: https://api.test.intebsi.xyz/trusted-apps-registry/v3/policies?page[after]=4&page[size]=2
-                      last: https://api.test.intebsi.xyz/trusted-apps-registry/v3/policies?page[after]=62&page[size]=2
+                      first: https://test.intebsi.xyz/trusted-apps-registry/v3/policies?page[after]=1&page[size]=2
+                      prev: https://test.intebsi.xyz/trusted-apps-registry/v3/policies?page[after]=2&page[size]=2
+                      next: https://test.intebsi.xyz/trusted-apps-registry/v3/policies?page[after]=4&page[size]=2
+                      last: https://test.intebsi.xyz/trusted-apps-registry/v3/policies?page[after]=62&page[size]=2
                 "[pilot] Success":
                   value:
                     self: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/policies?page[after]=3&page[size]=2
@@ -891,7 +891,7 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=3&page[size]=2
+                    self: https://test.intebsi.xyz/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=3&page[size]=2
                     items:
                       - policyId: test-policy-1
                         policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
@@ -902,10 +902,10 @@ paths:
                     total: 61
                     pageSize: 2
                     links:
-                      first: https://api.test.intebsi.xyz/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=1&page[size]=2
-                      prev: https://api.test.intebsi.xyz/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=2&page[size]=2
-                      next: https://api.test.intebsi.xyz/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=4&page[size]=2
-                      last: https://api.test.intebsi.xyz/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=31&page[size]=2
+                      first: https://test.intebsi.xyz/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=1&page[size]=2
+                      prev: https://test.intebsi.xyz/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=2&page[size]=2
+                      next: https://test.intebsi.xyz/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=4&page[size]=2
+                      last: https://test.intebsi.xyz/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=31&page[size]=2
                 "[pilot] Success":
                   value:
                     self: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=3&page[size]=2
