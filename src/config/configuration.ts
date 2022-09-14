@@ -37,6 +37,7 @@ const HEALTH_CHECK_PATH = "/docs/";
 const AUTH_API_PATH = "/authorisation/v2";
 const TAR_API_PATH = "/trusted-apps-registry/v3/apps";
 const DIDR_API_PATH = "/did-registry/v3/identifiers";
+const TSR_API_PATH = "/trusted-schemas-registry/v2/schemas/";
 
 // Example of default values to be used, depending on the environment
 const defaultConfig = {
@@ -105,7 +106,8 @@ export const loadConfig = (): ApiConfig => {
     didRegistryApiUrl: DOMAIN + DIDR_API_PATH,
     trustedAppsRegistryApiUrl: DOMAIN + TAR_API_PATH,
     apiVerificationMethodKid: process.env.API_VERIFICATION_METHOD_KID,
-    authorisationCredentialSchema: process.env.AUTHORISATION_CREDENTIAL_SCHEMA,
+    authorisationCredentialSchema:
+      DOMAIN + TSR_API_PATH + process.env.AUTHORISATION_CREDENTIAL_SCHEMA,
     euloginService:
       process.env.EU_LOGIN_VALIDATE_SERVICE_URL ||
       defaultConfig[EBSI_ENV].EU_LOGIN_VALIDATE_SERVICE_URL,
