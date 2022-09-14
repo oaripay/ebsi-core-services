@@ -2,6 +2,7 @@ import { ethers, network, config } from "hardhat";
 import { expect } from "chai";
 import { DidRegistry } from "../src/types";
 import { testTprAddress } from "./testAddress";
+import { getEthObject } from "./utils";
 
 type InsertDidDocumentArgs = [
   string,
@@ -144,5 +145,38 @@ describe("Did Documents", () => {
     await expect(reg.insertDidDocument(...args)).to.be.revertedWith(
       "did already exist"
     );
+  });
+
+  it("should get a did document", async () => {
+    await reg.insertDidDocument(
+      did,
+      baseDocument,
+      vMethodId,
+      user.publicKey,
+      true,
+      notBefore,
+      notAfter
+    );
+    const didDocument = await reg.getDidDocument(did);
+    expect(getEthObject(didDocument)).to.eql({
+      baseDocument,
+      controllers: [did],
+      vMethodIds: [vMethodId],
+      vMethods: [
+        {
+          publicKey: user.publicKey,
+          isSecp256k1: true,
+          revoked: false,
+        },
+      ],
+      vRelationships: [
+        {
+          name: "capabilityInvocation",
+          vMethodId,
+          notBefore: Number(notBefore).toString(),
+          notAfter: Number(notAfter).toString(),
+        },
+      ],
+    });
   });
 });

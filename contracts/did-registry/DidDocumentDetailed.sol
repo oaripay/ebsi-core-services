@@ -43,4 +43,19 @@ contract DidDocumentDetailed is DidDocumentStorage {
         );
         return result;
     }
+
+    function getDidDocument(string memory did)
+        public
+        view
+        returns (
+            string memory baseDocument,
+            string[] memory controllers,
+            string[] memory vMethodIds,
+            DidDocumentStorage.VMethod[] memory vMethods,
+            DidDocumentStorage.VRelationship[] memory vRelationships
+        )
+    {
+        DidDocuments storage ds = didDocumentStorage();
+        return ds.getDidDocument(did);
+    }
 }

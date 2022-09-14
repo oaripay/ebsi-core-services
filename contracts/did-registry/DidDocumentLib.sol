@@ -45,4 +45,89 @@ library DidDocumentLib {
 
         return true;
     }
+
+    function getDidDocument(
+        DidDocumentStorage.DidDocuments storage ds,
+        string memory did
+    )
+        public
+        view
+        returns (
+            string memory baseDocument,
+            string[] memory controllers,
+            string[] memory vMethodIds,
+            DidDocumentStorage.VMethod[] memory vMethods,
+            DidDocumentStorage.VRelationship[] memory vRelationships
+        )
+    {
+        DidDocumentStorage.DidDocument storage d = ds.didList[did];
+        baseDocument = d.baseDocument;
+        controllers = d.controllers;
+        string[] memory vMethodIdsAux = new string[](50);
+        DidDocumentStorage.VMethod[]
+            memory vMethodsAux = new DidDocumentStorage.VMethod[](50);
+        DidDocumentStorage.VRelationship[]
+            memory vRelationshipsAux = new DidDocumentStorage.VRelationship[](
+                50
+            );
+        uint256 sizeVMethods = 0;
+        uint256 sizeVRelationships = 0;
+        for (uint256 i = 0; i < d.vRelationships.length; i++) {
+            vRelationshipsAux[sizeVRelationships] = d.vRelationships[i];
+            sizeVRelationships++;
+            bool vMethodAdded = false;
+            string memory vMethodId = d.vRelationships[i].vMethodId;
+
+            for (uint256 j = 0; j < sizeVMethods; j++) {
+                if (
+                    keccak256(bytes(vMethodId)) ==
+                    keccak256(bytes(vMethodIdsAux[j]))
+                ) {
+                    vMethodAdded = true;
+                    break;
+                }
+            }
+            if (!vMethodAdded) {
+                vMethodIdsAux[sizeVMethods] = vMethodId;
+                vMethodsAux[sizeVMethods] = d.vMethods[vMethodId];
+                sizeVMethods++;
+            }
+        }
+
+        for (uint256 i = 0; i < d.capabilityInvocations.length; i++) {
+            vRelationshipsAux[sizeVRelationships] = d.capabilityInvocations[i];
+            sizeVRelationships++;
+            bool vMethodAdded = false;
+            string memory vMethodId = d.capabilityInvocations[i].vMethodId;
+
+            for (uint256 j = 0; j < sizeVMethods; j++) {
+                if (
+                    keccak256(bytes(vMethodId)) ==
+                    keccak256(bytes(vMethodIdsAux[j]))
+                ) {
+                    vMethodAdded = true;
+                    break;
+                }
+            }
+            if (!vMethodAdded) {
+                vMethodIdsAux[sizeVMethods] = vMethodId;
+                vMethodsAux[sizeVMethods] = d.vMethods[vMethodId];
+                sizeVMethods++;
+            }
+        }
+
+        // copy auxiliar arrays to the result
+        vMethodIds = new string[](sizeVMethods);
+        vMethods = new DidDocumentStorage.VMethod[](sizeVMethods);
+        vRelationships = new DidDocumentStorage.VRelationship[](
+            sizeVRelationships
+        );
+        for (uint256 i = 0; i < sizeVMethods; i++) {
+            vMethodIds[i] = vMethodIdsAux[i];
+            vMethods[i] = vMethodsAux[i];
+        }
+        for (uint256 i = 0; i < sizeVRelationships; i++) {
+            vRelationships[i] = vRelationshipsAux[i];
+        }
+    }
 }
