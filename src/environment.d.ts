@@ -9,20 +9,13 @@ declare global {
       API_URL_PREFIX?: string;
       API_NAME: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
-      DOMAIN?: string;
+      DOMAIN: string;
       LOCAL_ORIGIN?: string;
-      HEALTH_CHECK?: string;
       REQUEST_TIMEOUT?: string;
       // Ledger & SC
-      LEDGER_API_URL?: string;
       LEDGER_API_NAME?: string;
       CONTRACT_ADDR: string;
       // Authorisation API
-      AUTHORISATION_API_URL?: string;
-      // DID Registry API
-      DID_REGISTRY_API_URL?: string;
-      // TAR API
-      TRUSTED_APPS_REGISTRY_API_URL?: string;
       // Test vars
       TEST_ADMIN_KID?: string;
       TEST_ADMIN_PRIVATE_KEY?: string;
