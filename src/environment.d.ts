@@ -15,7 +15,6 @@ declare global {
       // Ledger & SC
       LEDGER_API_NAME?: string;
       CONTRACT_ADDR: string;
-      // Authorisation API
       // Test vars
       TEST_ADMIN_KID?: string;
       TEST_ADMIN_PRIVATE_KEY?: string;
