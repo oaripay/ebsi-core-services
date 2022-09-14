@@ -102,6 +102,12 @@ describe("Apps (e2e)", () => {
   let besuRpcNode: string;
   let didAppAdmin: string;
   let configService: ConfigService<ApiConfig, true>;
+  let sampleTransaction: string;
+
+  let blockscout: {
+    url: string;
+    bearerToken: string;
+  };
 
   const publicKeyRaw = `-----BEGIN ${crypto.randomBytes(12).toString("hex")}`;
   const publicKeyBuffer = Buffer.from(publicKeyRaw, "utf8");
@@ -170,6 +176,11 @@ describe("Apps (e2e)", () => {
     });
     didAppAdmin = configService.get<string>("testAdminDid");
     besuRpcNode = configService.get("besuRpcNode");
+
+    blockscout = configService.get<{
+      url: string;
+      bearerToken: string;
+    }>("blockscout");
   });
 
   afterAll(async () => {
@@ -730,6 +741,7 @@ describe("Apps (e2e)", () => {
         responseSend.body.result as string
       );
       expect(receipt.status).toBe(1);
+      sampleTransaction = responseSend.body.result as string;
 
       /* eslint-disable jest/no-conditional-expect */
       switch (method) {
@@ -880,5 +892,37 @@ describe("Apps (e2e)", () => {
         ) as string,
       })
     );
+  });
+
+  it("should return transaction data from blockscout", async () => {
+    if (!blockscout.url || !sampleTransaction) return;
+    expect.assertions(1);
+
+    await new Promise((f) => {
+      setTimeout(f, 1500);
+    });
+
+    // check if blockscout is working properly
+    const blockscoutCheck: SupertestJsonRpcResponse = await request(
+      blockscout.url
+    )
+      .post("")
+      .set({ Authorization: blockscout.bearerToken })
+      .send({
+        query: `{transaction(hash: "${sampleTransaction}") { hash, blockNumber, value, gasUsed }}`,
+        variables: null,
+        operationName: null,
+      });
+
+    expect(blockscoutCheck.body).toStrictEqual({
+      data: {
+        transaction: {
+          blockNumber: expect.any(Number) as number,
+          gasUsed: expect.any(String) as string,
+          hash: sampleTransaction,
+          value: expect.any(String) as string,
+        },
+      },
+    });
   });
 });

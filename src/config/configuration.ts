@@ -22,6 +22,10 @@ export interface ApiConfig {
   testUserDid: string;
   testUserPrivateKey: string;
   dockerContainerTag: string;
+  blockscout: {
+    url: string;
+    bearerToken: string;
+  };
 }
 
 // Example of default values to be used, depending on the environment
@@ -107,6 +111,10 @@ export const loadConfig = (): ApiConfig => {
     testUserDid: process.env.TEST_USER_DID,
     testUserPrivateKey: process.env.TEST_USER_PRIVATE_KEY,
     dockerContainerTag,
+    blockscout: {
+      url: process.env.BLOCKSCOUT_URL,
+      bearerToken: process.env.BLOCKSCOUT_BEARER_TOKEN,
+    },
   };
 };
 
@@ -153,5 +161,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     // Test vars
     TEST_ADMIN_DID: Joi.string(),
     TEST_ADMIN_PRIVATE_KEY: Joi.string(),
+    BLOCKSCOUT_URL: Joi.string(),
+    BLOCKSCOUT_BEARER_TOKEN: Joi.string(),
   }),
 });
