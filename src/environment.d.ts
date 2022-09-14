@@ -9,7 +9,7 @@ declare global {
       DOMAIN: string;
       LOCAL_ORIGIN?: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
-      BESU_RPC_NODE?: string;
+      BESU_RPC_NODE: string;
       CONTRACT_ADDR: string;
       AUTHORISATION_API_NAME?: string;
       REQUEST_TIMEOUT?: string;

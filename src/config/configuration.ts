@@ -35,23 +35,18 @@ const HEALTH_CHECK_PATH = "/docs/";
 // Example of default values to be used, depending on the environment
 const defaultConfig = {
   local: {
-    BESU_RPC_NODE: "ws://www.test.intebsi.xyz/jsonrpc",
     LOG_LEVEL: "debug",
   },
   test: {
-    BESU_RPC_NODE: "ws://www.test.intebsi.xyz/jsonrpc",
     LOG_LEVEL: "info",
   },
   conformance: {
-    BESU_RPC_NODE: "ws://www.preprod.ebsi.eu/jsonrpc",
     LOG_LEVEL: "info",
   },
   pilot: {
-    BESU_RPC_NODE: "ws://www.preprod.ebsi.eu/jsonrpc",
     LOG_LEVEL: "warn",
   },
   prod: {
-    BESU_RPC_NODE: "ws://www.ebsi.eu/jsonrpc",
     LOG_LEVEL: "error",
   },
 };
@@ -74,8 +69,7 @@ export const loadConfig = (): ApiConfig => {
     externalEbsiApiHealthCheck: DOMAIN + HEALTH_CHECK_PATH,
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     // Ledger & SC
-    besuRpcNode:
-      process.env.BESU_RPC_NODE || defaultConfig[EBSI_ENV].BESU_RPC_NODE,
+    besuRpcNode: process.env.BESU_RPC_NODE,
     contractAddr: process.env.CONTRACT_ADDR,
     // Authorisation API
     authorisationApiName:
@@ -128,7 +122,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     LOCAL_ORIGIN: Joi.string().uri(),
     REQUEST_TIMEOUT: Joi.string(),
     // Ledger
-    BESU_RPC_NODE: Joi.string().uri(),
+    BESU_RPC_NODE: Joi.string().uri().required(),
     CONTRACT_ADDR: Joi.string().required(),
     // Authorisation API
     AUTHORISATION_API_NAME: Joi.string(),
