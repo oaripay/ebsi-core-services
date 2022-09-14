@@ -268,7 +268,7 @@ describe("Files Module", () => {
         items: rows.map((row) => row.hash),
         links: {
           next: expect.stringMatching(
-            /^https:\/\/api\.test\.intebsi\.xyz\/storage\/v3\/stores\/distributed\/files\?page\[after\]=.*&page\[size\]=10/
+            /^https:\/.test\.intebsi\.xyz\/storage\/v3\/stores\/distributed\/files\?page\[after\]=.*&page\[size\]=10/
           ) as string,
         },
         pageSize: 10,

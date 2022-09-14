@@ -253,7 +253,7 @@ describe("Key-Values Module", () => {
         items: ["key1", "key2", "key3"],
         links: {
           next: expect.stringMatching(
-            /^https:\/\/api\.test\.intebsi\.xyz\/storage\/v3\/stores\/distributed\/key-values\?page\[after\]=.*&page\[size\]=10/
+            /^https:\/.test\.intebsi\.xyz\/storage\/v3\/stores\/distributed\/key-values\?page\[after\]=.*&page\[size\]=10/
           ) as string,
         },
         pageSize: 10,
