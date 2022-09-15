@@ -14,6 +14,8 @@ type InsertDidDocumentArgs = [
   number
 ];
 
+type AddVerificationMethodArgs = [string, string, string, boolean];
+
 describe("Did Documents", () => {
   let reg: DidRegistry;
 
@@ -144,6 +146,68 @@ describe("Did Documents", () => {
 
     await expect(reg.insertDidDocument(...args)).to.be.revertedWith(
       "did already exist"
+    );
+  });
+
+  it("should add a verification method", async () => {
+    await reg.insertDidDocument(
+      did,
+      baseDocument,
+      vMethodId,
+      user.publicKey,
+      true,
+      notBefore,
+      notAfter
+    );
+    await expect(
+      reg.addVerificationMethod(
+        did,
+        "O_EWDo1JUm3glFxTw3a9f2YfeKwbLuvG9kdGrb6gzHE",
+        user.publicKey,
+        true
+      )
+    ).to.emit(reg, "VerificationMethodAdded");
+  });
+
+  it("should reject bad params of addVerificationMethod", async () => {
+    await reg.insertDidDocument(
+      did,
+      baseDocument,
+      vMethodId,
+      user.publicKey,
+      true,
+      notBefore,
+      notAfter
+    );
+
+    const newVMethodId = "O_EWDo1JUm3glFxTw3a9f2YfeKwbLuvG9kdGrb6gzHE";
+
+    const args: AddVerificationMethodArgs = [
+      did,
+      newVMethodId,
+      user.publicKey,
+      true,
+    ];
+
+    args[0] = "did:ebsi:unknown";
+    await expect(reg.addVerificationMethod(...args)).to.be.revertedWith(
+      "did doesn't exist"
+    );
+    args[0] = did;
+
+    args[1] = "";
+    await expect(reg.addVerificationMethod(...args)).to.be.revertedWith(
+      "invalid vMethodId"
+    );
+    args[1] = vMethodId;
+    await expect(reg.addVerificationMethod(...args)).to.be.revertedWith(
+      "vMethodId already exist"
+    );
+    args[1] = newVMethodId;
+
+    args[2] = "0x";
+    await expect(reg.addVerificationMethod(...args)).to.be.revertedWith(
+      "invalid publicKey"
     );
   });
 

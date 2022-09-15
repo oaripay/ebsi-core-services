@@ -46,6 +46,31 @@ library DidDocumentLib {
         return true;
     }
 
+    function addVerificationMethod(
+        DidDocumentStorage.DidDocuments storage ds,
+        string memory did,
+        string memory vMethodId,
+        bytes memory publicKey,
+        bool isSecp256k1
+    ) external returns (bool) {
+        DidDocumentStorage.DidDocument storage d = ds.didList[did];
+        require(bytes(vMethodId).length > 0, "invalid vMethodId");
+        require(publicKey.length > 0, "invalid publicKey");
+        require(bytes(d.baseDocument).length != 0, "did doesn't exist");
+        require(
+            d.vMethods[vMethodId].publicKey.length == 0,
+            "vMethodId already exist"
+        );
+
+        d.vMethods[vMethodId] = DidDocumentStorage.VMethod(
+            publicKey,
+            isSecp256k1,
+            false
+        );
+
+        return true;
+    }
+
     function getDidDocument(
         DidDocumentStorage.DidDocuments storage ds,
         string memory did

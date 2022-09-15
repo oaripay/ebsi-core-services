@@ -10,9 +10,18 @@ contract DidDocumentDetailed is DidDocumentStorage {
     event DidDocumentInserted(
         string did,
         string baseDocument,
+        string vMethodId,
         bytes publicKey,
+        bool isSecp256k1,
         uint256 notBefore,
         uint256 notAfter
+    );
+
+    event VerificationMethodAdded(
+        string did,
+        string vMethodId,
+        bytes publicKey,
+        bool isSecp256k1
     );
 
     function insertDidDocument(
@@ -37,10 +46,29 @@ contract DidDocumentDetailed is DidDocumentStorage {
         emit DidDocumentInserted(
             did,
             baseDocument,
+            vMethodId,
             publicKey,
+            isSecp256k1,
             notBefore,
             notAfter
         );
+        return result;
+    }
+
+    function addVerificationMethod(
+        string memory did,
+        string memory vMethodId,
+        bytes memory publicKey,
+        bool isSecp256k1
+    ) external returns (bool) {
+        DidDocuments storage ds = didDocumentStorage();
+        bool result = ds.addVerificationMethod(
+            did,
+            vMethodId,
+            publicKey,
+            isSecp256k1
+        );
+        emit VerificationMethodAdded(did, vMethodId, publicKey, isSecp256k1);
         return result;
     }
 
