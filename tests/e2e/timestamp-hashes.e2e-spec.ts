@@ -55,6 +55,7 @@ describe("Timestamp (e2e)", () => {
   let hashValue2: string;
   let apiAccessToken: string;
   let ledgerApi: string;
+  let sampleTransaction: string;
 
   let testAdmin: {
     kid: string;
@@ -75,6 +76,11 @@ describe("Timestamp (e2e)", () => {
     privateKey: string;
     wallet: ethers.Wallet;
     token?: string;
+  };
+
+  let blockscout: {
+    url: string;
+    bearerToken: string;
   };
 
   beforeAll(async () => {
@@ -116,6 +122,10 @@ describe("Timestamp (e2e)", () => {
       name: string;
       privateKey: string;
     }>("testApp");
+    const configBlockscout = configService.get<{
+      url: string;
+      bearerToken: string;
+    }>("blockscout");
     testAdmin = {
       ...configAdmin,
       wallet: new ethers.Wallet(prefixWith0x(configAdmin.privateKey)),
@@ -128,6 +138,7 @@ describe("Timestamp (e2e)", () => {
       ...configApp,
       wallet: new ethers.Wallet(prefixWith0x(configApp.privateKey)),
     };
+    blockscout = configBlockscout;
 
     testUser.token = await requestSiopJwt({
       clientKid: testUser.kid,
@@ -292,6 +303,7 @@ describe("Timestamp (e2e)", () => {
           responseSend.body.result as string
         );
         expect(receipt.status).toBe(1);
+        sampleTransaction = responseSend.body.result as string;
       });
 
       it("should work with empty data", async () => {
@@ -560,6 +572,32 @@ describe("Timestamp (e2e)", () => {
           responseSend.body.result as string
         );
         expect(receipt.status).toBe(1);
+      });
+      it("should return transaction data from blockscout", async () => {
+        if (!blockscout.url || !sampleTransaction) return;
+        expect.assertions(1);
+        // check if blockscout is working properly
+        const blockscoutCheck: SupertestJsonRpcResponse = await request(
+          blockscout.url
+        )
+          .post("")
+          .set({ Authorization: blockscout.bearerToken })
+          .send({
+            query: `{transaction(hash: "${sampleTransaction}") { hash, blockNumber, value, gasUsed }}`,
+            variables: null,
+            operationName: null,
+          });
+
+        expect(blockscoutCheck.body).toStrictEqual({
+          data: {
+            transaction: {
+              blockNumber: expect.any(Number) as number,
+              gasUsed: expect.any(String) as string,
+              hash: sampleTransaction,
+              value: expect.any(String) as string,
+            },
+          },
+        });
       });
     }
   );

@@ -33,6 +33,10 @@ export interface ApiConfig {
     privateKey: string;
   };
   dockerContainerTag: string;
+  blockscout: {
+    url: string;
+    bearerToken: string;
+  };
 }
 
 const AUTH_API_PATH = "/authorisation/v2";
@@ -98,6 +102,10 @@ export const loadConfig = (): ApiConfig => {
       privateKey: process.env.TEST_APP_PRIVATE_KEY,
     },
     dockerContainerTag,
+    blockscout: {
+      url: process.env.BLOCKSCOUT_URL,
+      bearerToken: process.env.BLOCKSCOUT_BEARER_TOKEN,
+    },
   };
 };
 
@@ -142,5 +150,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_USER_PRIVATE_KEY: Joi.string(),
     TEST_APP_NAME: Joi.string(),
     TEST_APP_PRIVATE_KEY: Joi.string(),
+    BLOCKSCOUT_URL: Joi.string(),
+    BLOCKSCOUT_BEARER_TOKEN: Joi.string(),
   }),
 });
