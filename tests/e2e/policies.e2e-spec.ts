@@ -73,6 +73,12 @@ describe("Policies (e2e)", () => {
   let adminTestWallet: ethers.Wallet;
   let testAdminAccessToken: string;
   let testUserAccessToken: string;
+  let sampleTransaction: string;
+
+  let blockscout: {
+    url: string;
+    bearerToken: string;
+  };
 
   const pName = `test-${crypto.randomBytes(5).toString("hex")}`;
   const policy1 = createPolicy(1, pName);
@@ -126,6 +132,11 @@ describe("Policies (e2e)", () => {
         "trustedAppsRegistryApiUrl"
       ),
     });
+
+    blockscout = configService.get<{
+      url: string;
+      bearerToken: string;
+    }>("blockscout");
   });
 
   describe("/jsonrpc", () => {
@@ -533,6 +544,7 @@ describe("Policies (e2e)", () => {
             responseSend.body.result as string
           );
           expect(receipt.status).toBe(1);
+          sampleTransaction = responseSend.body.result as string;
 
           // Check if policy has been inserted/updated correctly
           let expectedResponseBody: unknown;
@@ -745,6 +757,38 @@ describe("Policies (e2e)", () => {
 
           expect(actualResponse.body).toStrictEqual(expectedResponseBody);
           expect(actualResponse.status).toBe(200);
+        });
+
+        it("should return transaction data from blockscout", async () => {
+          if (!blockscout.url || !sampleTransaction) return;
+          expect.assertions(1);
+
+          await new Promise((f) => {
+            setTimeout(f, 1500);
+          });
+
+          // check if blockscout is working properly
+          const blockscoutCheck: SupertestJsonRpcResponse = await request(
+            blockscout.url
+          )
+            .post("")
+            .set({ Authorization: blockscout.bearerToken })
+            .send({
+              query: `{transaction(hash: "${sampleTransaction}") { hash, blockNumber, value, gasUsed }}`,
+              variables: null,
+              operationName: null,
+            });
+
+          expect(blockscoutCheck.body).toStrictEqual({
+            data: {
+              transaction: {
+                blockNumber: expect.any(Number) as number,
+                gasUsed: expect.any(String) as string,
+                hash: sampleTransaction,
+                value: expect.any(String) as string,
+              },
+            },
+          });
         });
       });
 
