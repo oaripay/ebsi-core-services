@@ -29,6 +29,10 @@ export interface ApiConfig {
   testUserKid: string;
   testUserPrivateKey: string;
   dockerContainerTag: string;
+  blockscout: {
+    url: string;
+    bearerToken: string;
+  };
 }
 
 const HEALTH_CHECK_PATH = "/docs/";
@@ -86,6 +90,10 @@ export const loadConfig = (): ApiConfig => {
     testUserKid: process.env.TEST_USER_KID,
     testUserPrivateKey: process.env.TEST_USER_PRIVATE_KEY,
     dockerContainerTag,
+    blockscout: {
+      url: process.env.BLOCKSCOUT_URL,
+      bearerToken: process.env.BLOCKSCOUT_BEARER_TOKEN,
+    },
   };
 };
 
@@ -128,5 +136,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_ADMIN_PRIVATE_KEY: Joi.string(),
     TEST_USER_KID: Joi.string(),
     TEST_USER_PRIVATE_KEY: Joi.string(),
+    BLOCKSCOUT_URL: Joi.string(),
+    BLOCKSCOUT_BEARER_TOKEN: Joi.string(),
   }),
 });
