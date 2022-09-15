@@ -81,7 +81,7 @@ export function AppProvider({
   const [updateAuthorizationState, setUpdateAuthorizationState] =
     useState(defaultParamsModal);
 
-  const basePageErr: string = "";
+  const basePageErr = "";
 
   const [pageErr, setPageErr] = useState(basePageErr);
   const [metamask, setMetamask] = useState(false);

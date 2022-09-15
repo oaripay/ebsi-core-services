@@ -40,8 +40,11 @@
     "standard-version": "^9.5.0",
     "typescript": "4.7.4"
   },
-  "workspaces": [
-    "apis/**",
-    "contracts/**"
-  ]
+  "workspaces": {
+    "packages": [
+      "apis/**",
+      "contracts/**"
+    ],
+    "nohoist": ["**/react", "**/react-dom/**", "@types/react", "@types/react-dom"]
+  }
 }
