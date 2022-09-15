@@ -13,8 +13,8 @@ type InsertDidDocumentArgs = [
   number,
   number
 ];
-
 type AddVerificationMethodArgs = [string, string, string, boolean];
+type AddVerificationRelationshipArgs = [string, string, string, number, number];
 
 describe("Did Documents", () => {
   let reg: DidRegistry;
@@ -211,7 +211,7 @@ describe("Did Documents", () => {
     );
   });
 
-  it("should get a did document", async () => {
+  it("should add a verification relationship", async () => {
     await reg.insertDidDocument(
       did,
       baseDocument,
@@ -221,19 +221,146 @@ describe("Did Documents", () => {
       notBefore,
       notAfter
     );
+    await expect(
+      reg.addVerificationRelationship(
+        did,
+        "assertionMethod",
+        vMethodId,
+        notBefore,
+        notAfter
+      )
+    ).to.emit(reg, "VerificationRelationshipAdded");
+  });
+
+  it("should reject bad params of addVerificationRelationship", async () => {
+    const name = "assertionMethod";
+    const args: AddVerificationRelationshipArgs = [
+      did,
+      name,
+      vMethodId,
+      notBefore,
+      notAfter,
+    ];
+
+    await reg.insertDidDocument(
+      did,
+      baseDocument,
+      vMethodId,
+      user.publicKey,
+      true,
+      notBefore,
+      notAfter
+    );
+
+    await reg.addVerificationRelationship(
+      did,
+      "assertionMethod",
+      vMethodId,
+      notBefore,
+      notAfter
+    );
+
+    args[0] = "";
+    await expect(reg.addVerificationRelationship(...args)).to.be.revertedWith(
+      "did doesn't exist"
+    );
+    args[0] = "did:ebsi:unknown";
+    await expect(reg.addVerificationRelationship(...args)).to.be.revertedWith(
+      "did doesn't exist"
+    );
+    args[0] = did;
+
+    args[1] = "";
+    await expect(reg.addVerificationRelationship(...args)).to.be.revertedWith(
+      "invalid name"
+    );
+    args[1] = "capabilityInvocation";
+    await expect(reg.addVerificationRelationship(...args)).to.be.revertedWith(
+      "capabilityInvocation already exist"
+    );
+    args[1] = "assertionMethod";
+    await expect(reg.addVerificationRelationship(...args)).to.be.revertedWith(
+      "relationship already exist"
+    );
+    args[1] = name;
+
+    args[2] = "";
+    await expect(reg.addVerificationRelationship(...args)).to.be.revertedWith(
+      "vMethodId doesn't exist"
+    );
+    args[2] = "unknown method";
+    await expect(reg.addVerificationRelationship(...args)).to.be.revertedWith(
+      "vMethodId doesn't exist"
+    );
+    args[2] = vMethodId;
+
+    args[3] = notAfter + 10;
+    await expect(reg.addVerificationRelationship(...args)).to.be.revertedWith(
+      "invalid dates"
+    );
+  });
+
+  it("should follow expected usage flow", async () => {
+    await reg.insertDidDocument(
+      did,
+      baseDocument,
+      vMethodId,
+      user.publicKey,
+      true,
+      notBefore,
+      notAfter
+    );
+    await reg.addVerificationRelationship(
+      did,
+      "assertionMethod",
+      vMethodId,
+      notBefore,
+      notAfter
+    );
+
+    const publicKey2 = Buffer.from(
+      '{"kty":"OKP","crv":"Ed25519","x":"dEb1y-9idZ2zR3AUTIJ_z-no_dVMHRf9qiD5GQg1zbI"}'
+    );
+    const vMethodId2 = "O_EWDo1JUm3glFxTw3a9f2YfeKwbLuvG9kdGrb6gzHE";
+    await reg.addVerificationMethod(did, vMethodId2, publicKey2, false);
+    await reg.addVerificationRelationship(
+      did,
+      "assertionMethod",
+      vMethodId2,
+      notBefore,
+      notAfter
+    );
+
     const didDocument = await reg.getDidDocument(did);
     expect(getEthObject(didDocument)).to.eql({
       baseDocument,
       controllers: [did],
-      vMethodIds: [vMethodId],
+      vMethodIds: [vMethodId, vMethodId2],
       vMethods: [
         {
           publicKey: user.publicKey,
           isSecp256k1: true,
           revoked: false,
         },
+        {
+          publicKey: `0x${publicKey2.toString("hex")}`,
+          isSecp256k1: false,
+          revoked: false,
+        },
       ],
       vRelationships: [
+        {
+          name: "assertionMethod",
+          vMethodId,
+          notBefore: Number(notBefore).toString(),
+          notAfter: Number(notAfter).toString(),
+        },
+        {
+          name: "assertionMethod",
+          vMethodId: vMethodId2,
+          notBefore: Number(notBefore).toString(),
+          notAfter: Number(notAfter).toString(),
+        },
         {
           name: "capabilityInvocation",
           vMethodId,

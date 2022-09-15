@@ -7,6 +7,14 @@ import "./DidDocumentStorage.sol";
 library DidDocumentLib {
     using Pagination for string[];
 
+    function equalStrings(string memory a, string memory b)
+        internal
+        pure
+        returns (bool)
+    {
+        return keccak256(bytes(a)) == keccak256(bytes(b));
+    }
+
     function insertDidDocument(
         DidDocumentStorage.DidDocuments storage ds,
         string memory did,
@@ -71,6 +79,71 @@ library DidDocumentLib {
         return true;
     }
 
+    function addVerificationRelationship(
+        DidDocumentStorage.DidDocuments storage ds,
+        string memory did,
+        string memory name,
+        string memory vMethodId,
+        uint256 notBefore,
+        uint256 notAfter
+    ) external returns (bool) {
+        DidDocumentStorage.DidDocument storage d = ds.didList[did];
+        require(bytes(name).length > 0, "invalid name");
+        require(notAfter == 0 || notBefore <= notAfter, "invalid dates");
+        require(bytes(d.baseDocument).length > 0, "did doesn't exist");
+        require(
+            d.vMethods[vMethodId].publicKey.length > 0,
+            "vMethodId doesn't exist"
+        );
+
+        if (equalStrings(name, "capabilityInvocation")) {
+            // is a capabilityInvocation
+
+            // check that the tuple (name, vMethodId) is unique in the relationships
+            for (uint256 i = 0; i < d.capabilityInvocations.length; i++) {
+                // "vMethodId" should be different
+                require(
+                    !equalStrings(
+                        vMethodId,
+                        d.capabilityInvocations[i].vMethodId
+                    ),
+                    "capabilityInvocation already exist"
+                );
+            }
+
+            d.capabilityInvocations.push(
+                DidDocumentStorage.VRelationship(
+                    "capabilityInvocation",
+                    vMethodId,
+                    notBefore,
+                    notAfter
+                )
+            );
+        } else {
+            // is a different verification relationship
+
+            // check that the tuple (name, vMethodId) is unique in the relationships
+            for (uint256 i = 0; i < d.vRelationships.length; i++) {
+                // either "name" or "vMethodId" should be different
+                require(
+                    !equalStrings(name, d.vRelationships[i].name) ||
+                        !equalStrings(vMethodId, d.vRelationships[i].vMethodId),
+                    "relationship already exist"
+                );
+            }
+
+            d.vRelationships.push(
+                DidDocumentStorage.VRelationship(
+                    name,
+                    vMethodId,
+                    notBefore,
+                    notAfter
+                )
+            );
+        }
+        return true;
+    }
+
     function getDidDocument(
         DidDocumentStorage.DidDocuments storage ds,
         string memory did
@@ -104,10 +177,7 @@ library DidDocumentLib {
             string memory vMethodId = d.vRelationships[i].vMethodId;
 
             for (uint256 j = 0; j < sizeVMethods; j++) {
-                if (
-                    keccak256(bytes(vMethodId)) ==
-                    keccak256(bytes(vMethodIdsAux[j]))
-                ) {
+                if (equalStrings(vMethodId, vMethodIdsAux[j])) {
                     vMethodAdded = true;
                     break;
                 }
@@ -126,10 +196,7 @@ library DidDocumentLib {
             string memory vMethodId = d.capabilityInvocations[i].vMethodId;
 
             for (uint256 j = 0; j < sizeVMethods; j++) {
-                if (
-                    keccak256(bytes(vMethodId)) ==
-                    keccak256(bytes(vMethodIdsAux[j]))
-                ) {
+                if (equalStrings(vMethodId, vMethodIdsAux[j])) {
                     vMethodAdded = true;
                     break;
                 }

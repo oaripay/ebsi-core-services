@@ -24,6 +24,14 @@ contract DidDocumentDetailed is DidDocumentStorage {
         bool isSecp256k1
     );
 
+    event VerificationRelationshipAdded(
+        string did,
+        string name,
+        string vMethodId,
+        uint256 notBefore,
+        uint256 notAfter
+    );
+
     function insertDidDocument(
         string memory did,
         string memory baseDocument,
@@ -69,6 +77,31 @@ contract DidDocumentDetailed is DidDocumentStorage {
             isSecp256k1
         );
         emit VerificationMethodAdded(did, vMethodId, publicKey, isSecp256k1);
+        return result;
+    }
+
+    function addVerificationRelationship(
+        string memory did,
+        string memory name,
+        string memory vMethodId,
+        uint256 notBefore,
+        uint256 notAfter
+    ) external returns (bool) {
+        DidDocuments storage ds = didDocumentStorage();
+        bool result = ds.addVerificationRelationship(
+            did,
+            name,
+            vMethodId,
+            notBefore,
+            notAfter
+        );
+        emit VerificationRelationshipAdded(
+            did,
+            name,
+            vMethodId,
+            notBefore,
+            notAfter
+        );
         return result;
     }
 
