@@ -141,6 +141,20 @@ library DidDocumentLib {
         return true;
     }
 
+    function updateBaseDocument(
+        DidDocumentStorage.DidDocuments storage ds,
+        string memory did,
+        string memory baseDocument
+    )
+        external
+        onlyControllerOrAuth(ds, did, "DID:updateBaseDocument")
+        returns (bool)
+    {
+        require(bytes(baseDocument).length > 0, "invalid baseDocument");
+        ds.didList[did].baseDocument = baseDocument;
+        return true;
+    }
+
     function addVerificationMethod(
         DidDocumentStorage.DidDocuments storage ds,
         string memory did,

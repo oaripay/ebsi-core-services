@@ -1,4 +1,5 @@
 import { ethers, network, config } from "hardhat";
+import { Contract } from "ethers";
 import { expect } from "chai";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { DidRegistry, PolicyRegistryMock } from "../src/types";
@@ -155,6 +156,54 @@ describe("Did Documents", () => {
     await expect(reg.insertDidDocument(...args)).to.be.revertedWith(
       "did already exist"
     );
+  });
+
+  it("should update baseDocument", async () => {
+    await reg.insertDidDocument(
+      did,
+      baseDocument,
+      vMethodId,
+      user.publicKey,
+      true,
+      notBefore,
+      notAfter
+    );
+    await expect(reg.updateBaseDocument(did, "{}")).to.emit(
+      reg,
+      "BaseDocumentUpdated"
+    );
+  });
+
+  it("should check access control for updateBaseDocument", async () => {
+    await reg.insertDidDocument(
+      did,
+      baseDocument,
+      vMethodId,
+      user.publicKey,
+      true,
+      notBefore,
+      notAfter
+    );
+
+    // restriction to user2
+    await expect(
+      reg.connect(user2).updateBaseDocument(did, "{}")
+    ).to.be.revertedWith(
+      "not controller and not authorized for policy DID:updateBaseDocument"
+    );
+
+    // user2 can update if it's in the TPR
+    await policyContractMock.setPolicyResult(true);
+    await expect(reg.connect(user2).updateBaseDocument(did, "{}")).to.emit(
+      reg,
+      "BaseDocumentUpdated"
+    );
+  });
+
+  it("should reject bad params of updateBaseDocument", async () => {
+    await expect(
+      reg.connect(user2).updateBaseDocument("did:ebsi:unknown", "{}")
+    ).to.be.revertedWith("did doesn't exist");
   });
 
   it("should add a verification method", async () => {

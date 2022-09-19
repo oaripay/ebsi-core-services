@@ -17,6 +17,8 @@ contract DidDocumentDetailed is DidDocumentStorage {
         uint256 notAfter
     );
 
+    event BaseDocumentUpdated(string did, string baseDocument);
+
     event VerificationMethodAdded(
         string did,
         string vMethodId,
@@ -60,6 +62,16 @@ contract DidDocumentDetailed is DidDocumentStorage {
             notBefore,
             notAfter
         );
+        return result;
+    }
+
+    function updateBaseDocument(string memory did, string memory baseDocument)
+        external
+        returns (bool)
+    {
+        DidDocuments storage ds = didDocumentStorage();
+        bool result = ds.updateBaseDocument(did, baseDocument);
+        emit BaseDocumentUpdated(did, baseDocument);
         return result;
     }
 
