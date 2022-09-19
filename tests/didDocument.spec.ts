@@ -1,6 +1,7 @@
 import { ethers, network, config } from "hardhat";
 import { expect } from "chai";
-import { DidRegistry } from "../src/types";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { DidRegistry, PolicyRegistryMock } from "../src/types";
 import { testTprAddress } from "./testAddress";
 import { getEthObject } from "./utils";
 
@@ -18,11 +19,13 @@ type AddVerificationRelationshipArgs = [string, string, string, number, number];
 
 describe("Did Documents", () => {
   let reg: DidRegistry;
+  let policyContractMock: PolicyRegistryMock;
 
   const acc = config.networks.hardhat.accounts as { mnemonic: string };
   const hd = ethers.utils.HDNode.fromMnemonic(acc.mnemonic);
 
   let user = new ethers.Wallet(hd.derivePath("m/44'/60'/0'/0/1").privateKey);
+  let user2: SignerWithAddress;
   const did = "did:ebsi:zpUnevx4dP2R2BvbjFEnnFF";
   const baseDocument =
     '{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/jws-2020/v1"]}';
@@ -31,9 +34,11 @@ describe("Did Documents", () => {
   const notAfter = 2000;
 
   before(async () => {
-    const [admin] = await ethers.getSigners();
+    const signers = await ethers.getSigners();
+    const admin = signers[0];
     if (!admin.provider) throw new Error("provider not defined");
     user = user.connect(admin.provider);
+    [, , user2] = signers;
 
     const policyRegistryFactory = await ethers.getContractFactory(
       "PolicyRegistryMock"
@@ -42,8 +47,10 @@ describe("Did Documents", () => {
     await tempPolicyContract.deployed();
     const bytecode = await ethers.provider.getCode(tempPolicyContract.address);
     await network.provider.send("hardhat_setCode", [testTprAddress, bytecode]);
-    const policyContractMock = policyRegistryFactory.attach(testTprAddress);
-    await policyContractMock.setPolicyResult(true);
+
+    policyContractMock = policyRegistryFactory.attach(
+      testTprAddress
+    ) as PolicyRegistryMock;
   });
 
   beforeEach(async () => {
@@ -62,6 +69,7 @@ describe("Did Documents", () => {
 
     await reg.initialize(42);
     await reg.setTrustedPoliciesRegistryAddress();
+    await policyContractMock.setPolicyResult(false);
     const initialVersion = await reg.version();
     expect(initialVersion).to.equal(42);
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
@@ -169,6 +177,45 @@ describe("Did Documents", () => {
     ).to.emit(reg, "VerificationMethodAdded");
   });
 
+  it("should check access control for addVerificationMethod", async () => {
+    await reg.insertDidDocument(
+      did,
+      baseDocument,
+      vMethodId,
+      user.publicKey,
+      true,
+      notBefore,
+      notAfter
+    );
+
+    // restriction to user2
+    await expect(
+      reg
+        .connect(user2)
+        .addVerificationMethod(
+          did,
+          "O_EWDo1JUm3glFxTw3a9f2YfeKwbLuvG9kdGrb6gzHE",
+          user.publicKey,
+          true
+        )
+    ).to.be.revertedWith(
+      "not controller and not authorized for policy DID:addVerificationMethod"
+    );
+
+    // user2 can update if it's in the TPR
+    await policyContractMock.setPolicyResult(true);
+    await expect(
+      reg
+        .connect(user2)
+        .addVerificationMethod(
+          did,
+          "O_EWDo1JUm3glFxTw3a9f2YfeKwbLuvG9kdGrb6gzHE",
+          user.publicKey,
+          true
+        )
+    ).to.emit(reg, "VerificationMethodAdded");
+  });
+
   it("should reject bad params of addVerificationMethod", async () => {
     await reg.insertDidDocument(
       did,
@@ -229,6 +276,47 @@ describe("Did Documents", () => {
         notBefore,
         notAfter
       )
+    ).to.emit(reg, "VerificationRelationshipAdded");
+  });
+
+  it("should check access control for addVerificationRelationship", async () => {
+    await reg.insertDidDocument(
+      did,
+      baseDocument,
+      vMethodId,
+      user.publicKey,
+      true,
+      notBefore,
+      notAfter
+    );
+
+    // restriction to user2
+    await expect(
+      reg
+        .connect(user2)
+        .addVerificationRelationship(
+          did,
+          "assertionMethod",
+          vMethodId,
+          notBefore,
+          notAfter
+        )
+    ).to.be.revertedWith(
+      "not controller and not authorized for policy DID:addVerificationRelationship"
+    );
+
+    // user2 can update if it's in the TPR
+    await policyContractMock.setPolicyResult(true);
+    await expect(
+      reg
+        .connect(user2)
+        .addVerificationRelationship(
+          did,
+          "assertionMethod",
+          vMethodId,
+          notBefore,
+          notAfter
+        )
     ).to.emit(reg, "VerificationRelationshipAdded");
   });
 

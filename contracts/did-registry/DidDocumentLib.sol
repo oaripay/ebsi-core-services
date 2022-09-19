@@ -15,6 +15,93 @@ library DidDocumentLib {
         return keccak256(bytes(a)) == keccak256(bytes(b));
     }
 
+    function getAddress(bytes storage publicKey)
+        internal
+        view
+        returns (address)
+    {
+        /**
+         * step 1: Remove the compression prefix (04, 03, or 02)
+         * Note: We can not use the built-in array slices (like publicKey[1:])
+         * because it is only for calldata arrays, not storage arrays.
+         * Then we have to use a loop to make the slice
+         */
+        bytes memory publicKeyWithoutPrefix = new bytes(publicKey.length - 1);
+        for (uint256 i = 1; i < publicKey.length; i++) {
+            publicKeyWithoutPrefix[i - 1] = publicKey[i];
+        }
+
+        // step 2: Evaluate keccak256 and get the latest 20 bytes
+        return address(uint160(uint256(keccak256(publicKeyWithoutPrefix))));
+    }
+
+    modifier onlyControllerOrAuth(
+        DidDocumentStorage.DidDocuments storage ds,
+        string memory did,
+        string memory tprAttribute
+    ) {
+        DidDocumentStorage.DidDocument storage d = ds.didList[did];
+
+        // check did exist
+        require(bytes(d.baseDocument).length > 0, "did doesn't exist");
+
+        bool isController = false;
+
+        // check all controllers
+        for (uint256 i = 0; i < d.controllers.length; i++) {
+            // get DID Document of the controller
+            DidDocumentStorage.DidDocument storage docController = ds.didList[
+                d.controllers[i]
+            ];
+
+            // check all capabilityInvocations
+            for (
+                uint256 j = 0;
+                j < docController.capabilityInvocations.length;
+                j++
+            ) {
+                // get vMethod
+                string storage vMethodId = docController
+                    .capabilityInvocations[j]
+                    .vMethodId;
+                DidDocumentStorage.VMethod storage vMethod = docController
+                    .vMethods[vMethodId];
+
+                // filter verification methods for secp256k1
+                if (
+                    vMethod.isSecp256k1 &&
+                    getAddress(vMethod.publicKey) == msg.sender
+                ) {
+                    isController = true;
+                    break;
+                }
+            }
+
+            if (isController) {
+                break;
+            }
+        }
+
+        if (isController) {
+            _;
+        } else {
+            bool isAuthorized = ds.trustedPolicyRegistry.checkPolicy(
+                tprAttribute,
+                msg.sender
+            );
+            require(
+                isAuthorized,
+                string(
+                    abi.encodePacked(
+                        "not controller and not authorized for policy ",
+                        tprAttribute
+                    )
+                )
+            );
+            _;
+        }
+    }
+
     function insertDidDocument(
         DidDocumentStorage.DidDocuments storage ds,
         string memory did,
@@ -60,11 +147,14 @@ library DidDocumentLib {
         string memory vMethodId,
         bytes memory publicKey,
         bool isSecp256k1
-    ) external returns (bool) {
+    )
+        external
+        onlyControllerOrAuth(ds, did, "DID:addVerificationMethod")
+        returns (bool)
+    {
         DidDocumentStorage.DidDocument storage d = ds.didList[did];
         require(bytes(vMethodId).length > 0, "invalid vMethodId");
         require(publicKey.length > 0, "invalid publicKey");
-        require(bytes(d.baseDocument).length != 0, "did doesn't exist");
         require(
             d.vMethods[vMethodId].publicKey.length == 0,
             "vMethodId already exist"
@@ -86,11 +176,14 @@ library DidDocumentLib {
         string memory vMethodId,
         uint256 notBefore,
         uint256 notAfter
-    ) external returns (bool) {
+    )
+        external
+        onlyControllerOrAuth(ds, did, "DID:addVerificationRelationship")
+        returns (bool)
+    {
         DidDocumentStorage.DidDocument storage d = ds.didList[did];
         require(bytes(name).length > 0, "invalid name");
         require(notAfter == 0 || notBefore <= notAfter, "invalid dates");
-        require(bytes(d.baseDocument).length > 0, "did doesn't exist");
         require(
             d.vMethods[vMethodId].publicKey.length > 0,
             "vMethodId doesn't exist"

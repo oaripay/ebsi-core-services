@@ -25,18 +25,24 @@ pipeline {
     }
     stage('Setup') {
       steps {
-        sh 'yarn install --frozen-lockfile'
-        sh 'yarn compile'
+        nodejs(nodeJSInstallationName: '16.13.0') {
+          sh 'yarn install --frozen-lockfile'
+          sh 'yarn compile'
+        }
       }
     }
     stage('Test Lint') {
       steps {
-        sh 'yarn run lint'
+        nodejs(nodeJSInstallationName: '16.13.0') {
+          sh 'yarn run lint'
+        }
       }
     }
     stage('Test functional') {
       steps {
-        sh 'yarn run test'
+        nodejs(nodeJSInstallationName: '16.13.0') {
+          sh 'yarn run test'
+        }
       }
     }
   }
