@@ -36,6 +36,7 @@ export interface ApiConfig {
 
 const LEDGER_API_PATH = "/ledger/v3";
 const TAR_API_PATH = "/trusted-apps-registry/v3";
+const TSR_API_PATH = "/trusted-schemas-registry/v2";
 const AUTH_API_PATH = "/authorisation/v2";
 const HEALTH_CHECK_PATH = "/docs/";
 
@@ -83,8 +84,9 @@ export const loadConfig = (): ApiConfig => {
     externalEbsiApiHealthCheck: DOMAIN + HEALTH_CHECK_PATH,
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     trustedAppsRegistryApiUrl: DOMAIN + TAR_API_PATH,
-    authorisationCredentialSchema:
-      process.env.AUTHORISATION_CREDENTIAL_SCHEMA || "",
+    authorisationCredentialSchema: `${DOMAIN}${TSR_API_PATH}/schemas/${
+      process.env.AUTHORISATION_CREDENTIAL_SCHEMA || ""
+    }`,
     usersOnboardingApiDid: process.env.USERS_ONBOARDING_API_DID || "",
     usersOnboardingApiPrivateKey:
       process.env.USERS_ONBOARDING_API_PRIVATE_KEY || "",
