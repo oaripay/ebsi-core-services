@@ -206,6 +206,89 @@ describe("Did Documents", () => {
     ).to.be.revertedWith("did doesn't exist");
   });
 
+  it("should add a controller", async () => {
+    await reg.insertDidDocument(
+      did,
+      baseDocument,
+      vMethodId,
+      user.publicKey,
+      true,
+      notBefore,
+      notAfter
+    );
+    await reg.insertDidDocument(
+      "did:ebsi:new_controller",
+      baseDocument,
+      vMethodId,
+      ethers.Wallet.createRandom().publicKey,
+      true,
+      notBefore,
+      notAfter
+    );
+    await expect(reg.addController(did, "did:ebsi:new_controller")).to.emit(
+      reg,
+      "ControllerAdded"
+    );
+  });
+
+  it("should check access control for addController", async () => {
+    await reg.insertDidDocument(
+      did,
+      baseDocument,
+      vMethodId,
+      user.publicKey,
+      true,
+      notBefore,
+      notAfter
+    );
+    await reg.insertDidDocument(
+      "did:ebsi:new_controller",
+      baseDocument,
+      vMethodId,
+      ethers.Wallet.createRandom().publicKey,
+      true,
+      notBefore,
+      notAfter
+    );
+
+    // restriction to user2
+    await expect(
+      reg.connect(user2).addController(did, "did:ebsi:new_controller")
+    ).to.be.revertedWith(
+      "not controller and not authorized for policy DID:addController"
+    );
+
+    // user2 can update if it's in the TPR
+    await policyContractMock.setPolicyResult(true);
+    await expect(
+      reg.connect(user2).addController(did, "did:ebsi:new_controller")
+    ).to.emit(reg, "ControllerAdded");
+  });
+
+  it("should reject bad params of addController", async () => {
+    await reg.insertDidDocument(
+      did,
+      baseDocument,
+      vMethodId,
+      user.publicKey,
+      true,
+      notBefore,
+      notAfter
+    );
+
+    await expect(
+      reg.addController("did:ebsi:unknown", "did:ebsi:new_controller")
+    ).to.be.revertedWith("did doesn't exist");
+
+    await expect(reg.addController(did, "did:ebsi:unknown")).to.be.revertedWith(
+      "controller doesn't exist"
+    );
+
+    await expect(reg.addController(did, did)).to.be.revertedWith(
+      "it is already a controller"
+    );
+  });
+
   it("should add a verification method", async () => {
     await reg.insertDidDocument(
       did,

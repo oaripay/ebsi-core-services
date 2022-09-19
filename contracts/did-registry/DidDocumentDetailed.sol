@@ -19,6 +19,8 @@ contract DidDocumentDetailed is DidDocumentStorage {
 
     event BaseDocumentUpdated(string did, string baseDocument);
 
+    event ControllerAdded(string did, string controller);
+
     event VerificationMethodAdded(
         string did,
         string vMethodId,
@@ -72,6 +74,16 @@ contract DidDocumentDetailed is DidDocumentStorage {
         DidDocuments storage ds = didDocumentStorage();
         bool result = ds.updateBaseDocument(did, baseDocument);
         emit BaseDocumentUpdated(did, baseDocument);
+        return result;
+    }
+
+    function addController(string memory did, string memory controller)
+        external
+        returns (bool)
+    {
+        DidDocuments storage ds = didDocumentStorage();
+        bool result = ds.addController(did, controller);
+        emit ControllerAdded(did, controller);
         return result;
     }
 

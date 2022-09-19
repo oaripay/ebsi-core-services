@@ -155,6 +155,30 @@ library DidDocumentLib {
         return true;
     }
 
+    function addController(
+        DidDocumentStorage.DidDocuments storage ds,
+        string memory did,
+        string memory controller
+    )
+        external
+        onlyControllerOrAuth(ds, did, "DID:addController")
+        returns (bool)
+    {
+        require(
+            bytes(ds.didList[controller].baseDocument).length > 0,
+            "controller doesn't exist"
+        );
+        DidDocumentStorage.DidDocument storage d = ds.didList[did];
+        for (uint256 i = 0; i < d.controllers.length; i++) {
+            require(
+                !equalStrings(d.controllers[i], controller),
+                "it is already a controller"
+            );
+        }
+        d.controllers.push(controller);
+        return true;
+    }
+
     function addVerificationMethod(
         DidDocumentStorage.DidDocuments storage ds,
         string memory did,
