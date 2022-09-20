@@ -44,6 +44,12 @@ contract DidDocumentDetailed is DidDocumentStorage {
         uint256 notAfter
     );
 
+    event VerificationMethodExpired(
+        string did,
+        string vMethodId,
+        uint256 notAfter
+    );
+
     function insertDidDocument(
         string memory did,
         string memory baseDocument,
@@ -155,6 +161,17 @@ contract DidDocumentDetailed is DidDocumentStorage {
         DidDocuments storage ds = didDocumentStorage();
         bool result = ds.revokeVerificationMethod(did, vMethodId, notAfter);
         emit VerificationMethodRevoked(did, vMethodId, notAfter);
+        return result;
+    }
+
+    function expireVerificationMethod(
+        string memory did,
+        string memory vMethodId,
+        uint256 notAfter
+    ) external returns (bool) {
+        DidDocuments storage ds = didDocumentStorage();
+        bool result = ds.expireVerificationMethod(did, vMethodId, notAfter);
+        emit VerificationMethodExpired(did, vMethodId, notAfter);
         return result;
     }
 

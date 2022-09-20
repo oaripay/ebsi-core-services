@@ -315,6 +315,7 @@ library DidDocumentLib {
             d.vMethods[vMethodId].publicKey.length > 0,
             "vMethodId doesn't exist"
         );
+        require(!d.vMethods[vMethodId].revoked, "vMethodId already revoked");
 
         for (uint256 i = 0; i < d.vRelationships.length; i++) {
             if (equalStrings(vMethodId, d.vRelationships[i].vMethodId)) {
@@ -329,6 +330,39 @@ library DidDocumentLib {
         }
 
         d.vMethods[vMethodId].revoked = true;
+
+        return true;
+    }
+
+    function expireVerificationMethod(
+        DidDocumentStorage.DidDocuments storage ds,
+        string memory did,
+        string memory vMethodId,
+        uint256 notAfter
+    )
+        external
+        onlyControllerOrAuth(ds, did, "DID:expireVerificationMethod")
+        returns (bool)
+    {
+        DidDocumentStorage.DidDocument storage d = ds.didList[did];
+        require(notAfter > block.timestamp, "invalid notAfter");
+        require(
+            d.vMethods[vMethodId].publicKey.length > 0,
+            "vMethodId doesn't exist"
+        );
+        require(!d.vMethods[vMethodId].revoked, "vMethodId already revoked");
+
+        for (uint256 i = 0; i < d.vRelationships.length; i++) {
+            if (equalStrings(vMethodId, d.vRelationships[i].vMethodId)) {
+                d.vRelationships[i].notAfter = notAfter;
+            }
+        }
+
+        for (uint256 i = 0; i < d.capabilityInvocations.length; i++) {
+            if (equalStrings(vMethodId, d.capabilityInvocations[i].vMethodId)) {
+                d.capabilityInvocations[i].notAfter = notAfter;
+            }
+        }
 
         return true;
     }

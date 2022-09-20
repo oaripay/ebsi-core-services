@@ -657,6 +657,112 @@ describe("Did Documents", () => {
     await expect(
       reg.revokeVerificationMethod(did, vMethodId, notAfter + 3600)
     ).to.be.revertedWith("invalid notAfter");
+
+    // try to revoke 2 times
+    const publicKey2 = Buffer.from(
+      '{"kty":"OKP","crv":"Ed25519","x":"dEb1y-9idZ2zR3AUTIJ_z-no_dVMHRf9qiD5GQg1zbI"}'
+    );
+    const vMethodId2 = "O_EWDo1JUm3glFxTw3a9f2YfeKwbLuvG9kdGrb6gzHE";
+    await reg.addVerificationMethod(did, vMethodId2, publicKey2, false);
+    await reg.revokeVerificationMethod(did, vMethodId2, notBefore + 1);
+    await expect(
+      reg.revokeVerificationMethod(did, vMethodId2, notBefore - 1)
+    ).to.be.revertedWith("vMethodId already revoked");
+  });
+
+  it("should expire a verification method", async () => {
+    await reg.insertDidDocument(
+      did,
+      baseDocument,
+      vMethodId,
+      user.publicKey,
+      true,
+      notBefore,
+      notAfter
+    );
+
+    await expect(
+      reg.expireVerificationMethod(did, vMethodId, notAfter + 3000)
+    ).to.emit(reg, "VerificationMethodExpired");
+
+    const didDocument = await reg.getDidDocument(did);
+    expect(getEthObject(didDocument)).to.eql({
+      baseDocument,
+      controllers: [did],
+      vMethodIds: [vMethodId],
+      vMethods: [
+        {
+          publicKey: user.publicKey,
+          isSecp256k1: true,
+          revoked: false,
+        },
+      ],
+      vRelationships: [
+        {
+          name: "capabilityInvocation",
+          vMethodId,
+          notBefore: Number(notBefore).toString(),
+          notAfter: Number(notAfter + 3000).toString(),
+        },
+      ],
+    });
+  });
+
+  it("should check access control for expireVerificationMethod", async () => {
+    await reg.insertDidDocument(
+      did,
+      baseDocument,
+      vMethodId,
+      user.publicKey,
+      true,
+      notBefore,
+      notAfter
+    );
+
+    // restriction to user2
+    await expect(
+      reg
+        .connect(user2)
+        .expireVerificationMethod(did, vMethodId, notAfter + 3000)
+    ).to.be.revertedWith(
+      "not controller and not authorized for policy DID:expireVerificationMethod"
+    );
+
+    // user2 can update if it's in the TPR
+    await policyContractMock.setPolicyResult(true);
+    await expect(
+      reg
+        .connect(user2)
+        .expireVerificationMethod(did, vMethodId, notAfter + 3000)
+    ).to.emit(reg, "VerificationMethodExpired");
+  });
+
+  it("should reject bad params of expireVerificationMethod", async () => {
+    await reg.insertDidDocument(
+      did,
+      baseDocument,
+      vMethodId,
+      user.publicKey,
+      true,
+      notBefore,
+      notAfter
+    );
+
+    await expect(
+      reg.expireVerificationMethod(
+        "did:ebsi:unknown",
+        vMethodId,
+        notBefore + 3000
+      )
+    ).to.be.revertedWith("did doesn't exist");
+
+    await expect(
+      reg.expireVerificationMethod(did, "unknown", notBefore + 3000)
+    ).to.be.revertedWith("vMethodId doesn't exist");
+
+    await expect(
+      reg.expireVerificationMethod(did, vMethodId, notBefore - 3600)
+    ).to.be.revertedWith("invalid notAfter");
   });
 
   it("should follow expected usage flow", async () => {
