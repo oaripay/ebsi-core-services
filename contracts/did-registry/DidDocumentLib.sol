@@ -179,6 +179,30 @@ library DidDocumentLib {
         return true;
     }
 
+    function revokeController(
+        DidDocumentStorage.DidDocuments storage ds,
+        string memory did,
+        string memory controller
+    )
+        external
+        onlyControllerOrAuth(ds, did, "DID:revokeController")
+        returns (bool)
+    {
+        DidDocumentStorage.DidDocument storage d = ds.didList[did];
+        bool found = false;
+        for (uint256 i = 0; i < d.controllers.length; i++) {
+            if (equalStrings(d.controllers[i], controller)) {
+                // swap with the last controller and pop the last one
+                d.controllers[d.controllers.length - 1] = d.controllers[i];
+                d.controllers.pop();
+                found = true;
+                break;
+            }
+        }
+        require(found, "controller not found");
+        return true;
+    }
+
     function addVerificationMethod(
         DidDocumentStorage.DidDocuments storage ds,
         string memory did,

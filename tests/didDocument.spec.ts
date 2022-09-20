@@ -1,5 +1,4 @@
 import { ethers, network, config } from "hardhat";
-import { Contract } from "ethers";
 import { expect } from "chai";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { DidRegistry, PolicyRegistryMock } from "../src/types";
@@ -287,6 +286,71 @@ describe("Did Documents", () => {
     await expect(reg.addController(did, did)).to.be.revertedWith(
       "it is already a controller"
     );
+  });
+
+  it("should revoke a controller", async () => {
+    await reg.insertDidDocument(
+      did,
+      baseDocument,
+      vMethodId,
+      user.publicKey,
+      true,
+      notBefore,
+      notAfter
+    );
+    await expect(reg.revokeController(did, did)).to.emit(
+      reg,
+      "ControllerRevoked"
+    );
+    await expect(reg.revokeController(did, did)).to.be.revertedWith(
+      "not controller and not authorized for policy DID:revokeController"
+    );
+  });
+
+  it("should check access control for revokeController", async () => {
+    await reg.insertDidDocument(
+      did,
+      baseDocument,
+      vMethodId,
+      user.publicKey,
+      true,
+      notBefore,
+      notAfter
+    );
+
+    // restriction to user2
+    await expect(
+      reg.connect(user2).revokeController(did, did)
+    ).to.be.revertedWith(
+      "not controller and not authorized for policy DID:revokeController"
+    );
+
+    // user2 can update if it's in the TPR
+    await policyContractMock.setPolicyResult(true);
+    await expect(reg.connect(user2).revokeController(did, did)).to.emit(
+      reg,
+      "ControllerRevoked"
+    );
+  });
+
+  it("should reject bad params of revokeController", async () => {
+    await reg.insertDidDocument(
+      did,
+      baseDocument,
+      vMethodId,
+      user.publicKey,
+      true,
+      notBefore,
+      notAfter
+    );
+
+    await expect(
+      reg.revokeController("did:ebsi:unknown", "did:ebsi:unknown")
+    ).to.be.revertedWith("did doesn't exist");
+
+    await expect(
+      reg.revokeController(did, "did:ebsi:unknown")
+    ).to.be.revertedWith("controller not found");
   });
 
   it("should add a verification method", async () => {

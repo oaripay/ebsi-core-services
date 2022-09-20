@@ -21,6 +21,8 @@ contract DidDocumentDetailed is DidDocumentStorage {
 
     event ControllerAdded(string did, string controller);
 
+    event ControllerRevoked(string did, string controller);
+
     event VerificationMethodAdded(
         string did,
         string vMethodId,
@@ -84,6 +86,16 @@ contract DidDocumentDetailed is DidDocumentStorage {
         DidDocuments storage ds = didDocumentStorage();
         bool result = ds.addController(did, controller);
         emit ControllerAdded(did, controller);
+        return result;
+    }
+
+    function revokeController(string memory did, string memory controller)
+        external
+        returns (bool)
+    {
+        DidDocuments storage ds = didDocumentStorage();
+        bool result = ds.revokeController(did, controller);
+        emit ControllerRevoked(did, controller);
         return result;
     }
 
