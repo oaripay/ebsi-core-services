@@ -30,8 +30,8 @@ describe("Did Documents", () => {
   const baseDocument =
     '{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/jws-2020/v1"]}';
   const vMethodId = "H5RhB6vyFgl2Uizk8IjL_9AkB5mfqgn5ApgfHUbkqdQ";
-  const notBefore = 1000;
-  const notAfter = 2000;
+  const notBefore = Math.floor(Date.now() / 1000);
+  const notAfter = notBefore + 3600;
 
   before(async () => {
     const signers = await ethers.getSigners();
@@ -584,6 +584,81 @@ describe("Did Documents", () => {
     );
   });
 
+  it("should revoke a verification method", async () => {
+    await reg.insertDidDocument(
+      did,
+      baseDocument,
+      vMethodId,
+      user.publicKey,
+      true,
+      notBefore,
+      notAfter
+    );
+
+    await expect(reg.revokeVerificationMethod(did, vMethodId, 3000)).to.emit(
+      reg,
+      "VerificationMethodRevoked"
+    );
+
+    const didDocument = await reg.getDidDocument(did);
+    expect(getEthObject(didDocument)).to.eql({
+      baseDocument,
+      controllers: [did],
+      vMethodIds: [],
+      vMethods: [],
+      vRelationships: [],
+    });
+  });
+
+  it("should check access control for revokeVerificationMethod", async () => {
+    await reg.insertDidDocument(
+      did,
+      baseDocument,
+      vMethodId,
+      user.publicKey,
+      true,
+      notBefore,
+      notAfter
+    );
+
+    // restriction to user2
+    await expect(
+      reg.connect(user2).revokeVerificationMethod(did, vMethodId, 3000)
+    ).to.be.revertedWith(
+      "not controller and not authorized for policy DID:revokeVerificationMethod"
+    );
+
+    // user2 can update if it's in the TPR
+    await policyContractMock.setPolicyResult(true);
+    await expect(
+      reg.connect(user2).revokeVerificationMethod(did, vMethodId, 3000)
+    ).to.emit(reg, "VerificationMethodRevoked");
+  });
+
+  it("should reject bad params of revokeVerificationMethod", async () => {
+    await reg.insertDidDocument(
+      did,
+      baseDocument,
+      vMethodId,
+      user.publicKey,
+      true,
+      notBefore,
+      notAfter
+    );
+
+    await expect(
+      reg.revokeVerificationMethod("did:ebsi:unknown", vMethodId, 3000)
+    ).to.be.revertedWith("did doesn't exist");
+
+    await expect(
+      reg.revokeVerificationMethod(did, "unknown", 3000)
+    ).to.be.revertedWith("vMethodId doesn't exist");
+
+    await expect(
+      reg.revokeVerificationMethod(did, vMethodId, notAfter + 3600)
+    ).to.be.revertedWith("invalid notAfter");
+  });
+
   it("should follow expected usage flow", async () => {
     await reg.insertDidDocument(
       did,
@@ -606,6 +681,12 @@ describe("Did Documents", () => {
       '{"kty":"OKP","crv":"Ed25519","x":"dEb1y-9idZ2zR3AUTIJ_z-no_dVMHRf9qiD5GQg1zbI"}'
     );
     const vMethodId2 = "O_EWDo1JUm3glFxTw3a9f2YfeKwbLuvG9kdGrb6gzHE";
+
+    const publicKey3 = Buffer.from(
+      '{"kty":"EC","crv":"P-256","x":"rG8XLCoehck238fGvts8Zn5_G9P5JeXTyVysKibu6qI","y":"90y-6hJf_ZKnh1nhCsc5d204xji2hhfgyPSTc6WZs6s"}'
+    );
+    const vMethodId3 = "HbSpfp_l-njw22UGE_DeWvNpx3BrCmyRLwZ7hMVVkSw";
+
     await reg.addVerificationMethod(did, vMethodId2, publicKey2, false);
     await reg.addVerificationRelationship(
       did,
@@ -615,7 +696,7 @@ describe("Did Documents", () => {
       notAfter
     );
 
-    const didDocument = await reg.getDidDocument(did);
+    let didDocument = await reg.getDidDocument(did);
     expect(getEthObject(didDocument)).to.eql({
       baseDocument,
       controllers: [did],
@@ -644,6 +725,109 @@ describe("Did Documents", () => {
           vMethodId: vMethodId2,
           notBefore: Number(notBefore).toString(),
           notAfter: Number(notAfter).toString(),
+        },
+        {
+          name: "capabilityInvocation",
+          vMethodId,
+          notBefore: Number(notBefore).toString(),
+          notAfter: Number(notAfter).toString(),
+        },
+      ],
+    });
+
+    // add a new key
+    const notBefore3 = Math.floor(Date.now() / 1000);
+    const notAfter3 = notBefore3 + 24 * 3600;
+    await reg.addVerificationMethod(did, vMethodId3, publicKey3, false);
+    await reg.addVerificationRelationship(
+      did,
+      "authentication",
+      vMethodId3,
+      notBefore3,
+      notAfter3
+    );
+
+    didDocument = await reg.getDidDocument(did);
+    expect(getEthObject(didDocument)).to.eql({
+      baseDocument,
+      controllers: [did],
+      vMethodIds: [vMethodId, vMethodId2, vMethodId3],
+      vMethods: [
+        {
+          publicKey: user.publicKey,
+          isSecp256k1: true,
+          revoked: false,
+        },
+        {
+          publicKey: `0x${publicKey2.toString("hex")}`,
+          isSecp256k1: false,
+          revoked: false,
+        },
+        {
+          publicKey: `0x${publicKey3.toString("hex")}`,
+          isSecp256k1: false,
+          revoked: false,
+        },
+      ],
+      vRelationships: [
+        {
+          name: "assertionMethod",
+          vMethodId,
+          notBefore: Number(notBefore).toString(),
+          notAfter: Number(notAfter).toString(),
+        },
+        {
+          name: "assertionMethod",
+          vMethodId: vMethodId2,
+          notBefore: Number(notBefore).toString(),
+          notAfter: Number(notAfter).toString(),
+        },
+        {
+          name: "authentication",
+          vMethodId: vMethodId3,
+          notBefore: Number(notBefore3).toString(),
+          notAfter: Number(notAfter3).toString(),
+        },
+        {
+          name: "capabilityInvocation",
+          vMethodId,
+          notBefore: Number(notBefore).toString(),
+          notAfter: Number(notAfter).toString(),
+        },
+      ],
+    });
+
+    // revoke key 2
+    await reg.revokeVerificationMethod(did, vMethodId2, notBefore + 1);
+    didDocument = await reg.getDidDocument(did);
+    expect(getEthObject(didDocument)).to.eql({
+      baseDocument,
+      controllers: [did],
+      vMethodIds: [vMethodId, vMethodId3],
+      vMethods: [
+        {
+          publicKey: user.publicKey,
+          isSecp256k1: true,
+          revoked: false,
+        },
+        {
+          publicKey: `0x${publicKey3.toString("hex")}`,
+          isSecp256k1: false,
+          revoked: false,
+        },
+      ],
+      vRelationships: [
+        {
+          name: "assertionMethod",
+          vMethodId,
+          notBefore: Number(notBefore).toString(),
+          notAfter: Number(notAfter).toString(),
+        },
+        {
+          name: "authentication",
+          vMethodId: vMethodId3,
+          notBefore: Number(notBefore3).toString(),
+          notAfter: Number(notAfter3).toString(),
         },
         {
           name: "capabilityInvocation",

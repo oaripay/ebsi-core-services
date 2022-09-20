@@ -299,6 +299,40 @@ library DidDocumentLib {
         return true;
     }
 
+    function revokeVerificationMethod(
+        DidDocumentStorage.DidDocuments storage ds,
+        string memory did,
+        string memory vMethodId,
+        uint256 notAfter
+    )
+        external
+        onlyControllerOrAuth(ds, did, "DID:revokeVerificationMethod")
+        returns (bool)
+    {
+        DidDocumentStorage.DidDocument storage d = ds.didList[did];
+        require(notAfter <= block.timestamp, "invalid notAfter");
+        require(
+            d.vMethods[vMethodId].publicKey.length > 0,
+            "vMethodId doesn't exist"
+        );
+
+        for (uint256 i = 0; i < d.vRelationships.length; i++) {
+            if (equalStrings(vMethodId, d.vRelationships[i].vMethodId)) {
+                d.vRelationships[i].notAfter = notAfter;
+            }
+        }
+
+        for (uint256 i = 0; i < d.capabilityInvocations.length; i++) {
+            if (equalStrings(vMethodId, d.capabilityInvocations[i].vMethodId)) {
+                d.capabilityInvocations[i].notAfter = notAfter;
+            }
+        }
+
+        d.vMethods[vMethodId].revoked = true;
+
+        return true;
+    }
+
     function getDidDocument(
         DidDocumentStorage.DidDocuments storage ds,
         string memory did
@@ -326,6 +360,12 @@ library DidDocumentLib {
         uint256 sizeVMethods = 0;
         uint256 sizeVRelationships = 0;
         for (uint256 i = 0; i < d.vRelationships.length; i++) {
+            if (
+                block.timestamp < d.vRelationships[i].notBefore ||
+                block.timestamp > d.vRelationships[i].notAfter
+            ) {
+                continue;
+            }
             vRelationshipsAux[sizeVRelationships] = d.vRelationships[i];
             sizeVRelationships++;
             bool vMethodAdded = false;
@@ -345,6 +385,12 @@ library DidDocumentLib {
         }
 
         for (uint256 i = 0; i < d.capabilityInvocations.length; i++) {
+            if (
+                block.timestamp < d.capabilityInvocations[i].notBefore ||
+                block.timestamp > d.capabilityInvocations[i].notAfter
+            ) {
+                continue;
+            }
             vRelationshipsAux[sizeVRelationships] = d.capabilityInvocations[i];
             sizeVRelationships++;
             bool vMethodAdded = false;
