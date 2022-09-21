@@ -137,7 +137,7 @@ describe("Did Documents", () => {
     );
   });
 
-  it("should reject insertDidDocument if the did already exist", async () => {
+  it("should reject insertDidDocument if the did already exists", async () => {
     const args: InsertDidDocumentArgs = [
       did,
       baseDocument,
@@ -153,7 +153,7 @@ describe("Did Documents", () => {
     );
 
     await expect(reg.insertDidDocument(...args)).to.be.revertedWith(
-      "did already exist"
+      "did already exists"
     );
   });
 
@@ -444,7 +444,7 @@ describe("Did Documents", () => {
     );
     args[1] = vMethodId;
     await expect(reg.addVerificationMethod(...args)).to.be.revertedWith(
-      "vMethodId already exist"
+      "vMethodId already exists"
     );
     args[1] = newVMethodId;
 
@@ -560,11 +560,11 @@ describe("Did Documents", () => {
     );
     args[1] = "capabilityInvocation";
     await expect(reg.addVerificationRelationship(...args)).to.be.revertedWith(
-      "capabilityInvocation already exist"
+      "capabilityInvocation already exists"
     );
     args[1] = "assertionMethod";
     await expect(reg.addVerificationRelationship(...args)).to.be.revertedWith(
-      "relationship already exist"
+      "relationship already exists"
     );
     args[1] = name;
 
@@ -765,6 +765,259 @@ describe("Did Documents", () => {
     ).to.be.revertedWith("invalid notAfter");
   });
 
+  it("should roll a verification method", async () => {
+    await reg.insertDidDocument(
+      did,
+      baseDocument,
+      vMethodId,
+      user.publicKey,
+      true,
+      notBefore,
+      notAfter
+    );
+
+    const publicKey2 = Buffer.from(
+      '{"kty":"OKP","crv":"Ed25519","x":"dEb1y-9idZ2zR3AUTIJ_z-no_dVMHRf9qiD5GQg1zbI"}'
+    );
+    const vMethodId2 = "O_EWDo1JUm3glFxTw3a9f2YfeKwbLuvG9kdGrb6gzHE";
+    const newNotBefore = notBefore + 2;
+    const newNotAfter = newNotBefore + 5000;
+
+    await expect(
+      reg.rollVerificationMethod(
+        did,
+        vMethodId2,
+        publicKey2,
+        false,
+        newNotBefore,
+        newNotAfter,
+        vMethodId,
+        0
+      )
+    ).to.emit(reg, "VerificationMethodRolled");
+
+    const didDocument = await reg.getDidDocument(did);
+    expect(getEthObject(didDocument)).to.eql({
+      baseDocument,
+      controllers: [did],
+      vMethodIds: [vMethodId2],
+      vMethods: [
+        {
+          publicKey: `0x${publicKey2.toString("hex")}`,
+          isSecp256k1: false,
+          revoked: false,
+        },
+      ],
+      vRelationships: [
+        {
+          name: "capabilityInvocation",
+          vMethodId: vMethodId2,
+          notBefore: Number(newNotBefore).toString(),
+          notAfter: Number(newNotAfter).toString(),
+        },
+      ],
+    });
+  });
+
+  it("should roll a verification method with a transition period", async () => {
+    await reg.insertDidDocument(
+      did,
+      baseDocument,
+      vMethodId,
+      user.publicKey,
+      true,
+      notBefore,
+      notAfter
+    );
+
+    const publicKey2 = Buffer.from(
+      '{"kty":"OKP","crv":"Ed25519","x":"dEb1y-9idZ2zR3AUTIJ_z-no_dVMHRf9qiD5GQg1zbI"}'
+    );
+    const vMethodId2 = "O_EWDo1JUm3glFxTw3a9f2YfeKwbLuvG9kdGrb6gzHE";
+    const newNotBefore = notBefore + 2;
+    const newNotAfter = newNotBefore + 5000;
+
+    await expect(
+      reg.rollVerificationMethod(
+        did,
+        vMethodId2,
+        publicKey2,
+        false,
+        newNotBefore,
+        newNotAfter,
+        vMethodId,
+        1234
+      )
+    ).to.emit(reg, "VerificationMethodRolled");
+
+    const didDocument = await reg.getDidDocument(did);
+    expect(getEthObject(didDocument)).to.eql({
+      baseDocument,
+      controllers: [did],
+      vMethodIds: [vMethodId, vMethodId2],
+      vMethods: [
+        {
+          publicKey: user.publicKey,
+          isSecp256k1: true,
+          revoked: false,
+        },
+        {
+          publicKey: `0x${publicKey2.toString("hex")}`,
+          isSecp256k1: false,
+          revoked: false,
+        },
+      ],
+      vRelationships: [
+        {
+          name: "capabilityInvocation",
+          vMethodId,
+          notBefore: Number(notBefore).toString(),
+          notAfter: Number(newNotBefore + 1234).toString(),
+        },
+        {
+          name: "capabilityInvocation",
+          vMethodId: vMethodId2,
+          notBefore: Number(newNotBefore).toString(),
+          notAfter: Number(newNotAfter).toString(),
+        },
+      ],
+    });
+  });
+
+  it("should check access controll for rollVerificationMethod", async () => {
+    await reg.insertDidDocument(
+      did,
+      baseDocument,
+      vMethodId,
+      user.publicKey,
+      true,
+      notBefore,
+      notAfter
+    );
+
+    const publicKey2 = Buffer.from(
+      '{"kty":"OKP","crv":"Ed25519","x":"dEb1y-9idZ2zR3AUTIJ_z-no_dVMHRf9qiD5GQg1zbI"}'
+    );
+    const vMethodId2 = "O_EWDo1JUm3glFxTw3a9f2YfeKwbLuvG9kdGrb6gzHE";
+
+    // restriction to user2
+    await expect(
+      reg
+        .connect(user2)
+        .rollVerificationMethod(
+          did,
+          vMethodId2,
+          publicKey2,
+          false,
+          notBefore,
+          notAfter + 3600,
+          vMethodId,
+          0
+        )
+    ).to.be.revertedWith(
+      "not controller and not authorized for policy DID:rollVerificationMethod"
+    );
+
+    // user2 can update if it's in the TPR
+    await policyContractMock.setPolicyResult(true);
+    await expect(
+      reg
+        .connect(user2)
+        .rollVerificationMethod(
+          did,
+          vMethodId2,
+          publicKey2,
+          false,
+          notBefore,
+          notAfter + 3600,
+          vMethodId,
+          0
+        )
+    ).to.emit(reg, "VerificationMethodRolled");
+  });
+
+  it("should reject bad params of rollVerificationMethod", async () => {
+    await reg.insertDidDocument(
+      did,
+      baseDocument,
+      vMethodId,
+      user.publicKey,
+      true,
+      notBefore,
+      notAfter
+    );
+
+    const publicKey2 = Buffer.from(
+      '{"kty":"OKP","crv":"Ed25519","x":"dEb1y-9idZ2zR3AUTIJ_z-no_dVMHRf9qiD5GQg1zbI"}'
+    );
+    const vMethodId2 = "O_EWDo1JUm3glFxTw3a9f2YfeKwbLuvG9kdGrb6gzHE";
+
+    await expect(
+      reg.rollVerificationMethod(
+        "did:ebsi:unknown",
+        vMethodId2,
+        publicKey2,
+        false,
+        notBefore,
+        notAfter + 3600,
+        vMethodId,
+        0
+      )
+    ).to.be.revertedWith("did doesn't exist");
+
+    await expect(
+      reg.rollVerificationMethod(
+        did,
+        vMethodId,
+        publicKey2,
+        false,
+        notBefore,
+        notAfter + 3600,
+        vMethodId,
+        0
+      )
+    ).to.be.revertedWith("vMethodId already exists");
+
+    await expect(
+      reg.rollVerificationMethod(
+        did,
+        vMethodId2,
+        "0x",
+        false,
+        notBefore,
+        notAfter + 3600,
+        vMethodId,
+        0
+      )
+    ).to.be.revertedWith("invalid publicKey");
+
+    await expect(
+      reg.rollVerificationMethod(
+        did,
+        vMethodId2,
+        publicKey2,
+        false,
+        notBefore,
+        notBefore - 1,
+        vMethodId,
+        0
+      )
+    ).to.be.revertedWith("invalid dates");
+
+    await expect(
+      reg.rollVerificationMethod(
+        did,
+        vMethodId2,
+        publicKey2,
+        false,
+        notBefore,
+        notAfter + 3600,
+        "",
+        0
+      )
+    ).to.be.revertedWith("oldVMethodId doesn't exist");
+  });
+
   it("should follow expected usage flow", async () => {
     await reg.insertDidDocument(
       did,
@@ -940,6 +1193,60 @@ describe("Did Documents", () => {
           vMethodId,
           notBefore: Number(notBefore).toString(),
           notAfter: Number(notAfter).toString(),
+        },
+      ],
+    });
+
+    // roll key1
+    const vMethodId4 = "qXMFeOMwDRe8ul_MiIffWYpD5ndjNhqfVDXhuDApBh4";
+    const notBefore4 = notBefore + 2;
+    const notAfter4 = notBefore4 + 5000;
+    const publicKey4 = ethers.Wallet.createRandom().publicKey;
+    await reg.rollVerificationMethod(
+      did,
+      vMethodId4,
+      publicKey4,
+      true,
+      notBefore4,
+      notAfter4,
+      vMethodId,
+      0
+    );
+    didDocument = await reg.getDidDocument(did);
+    expect(getEthObject(didDocument)).to.eql({
+      baseDocument,
+      controllers: [did],
+      vMethodIds: [vMethodId3, vMethodId4],
+      vMethods: [
+        {
+          publicKey: `0x${publicKey3.toString("hex")}`,
+          isSecp256k1: false,
+          revoked: false,
+        },
+        {
+          publicKey: publicKey4,
+          isSecp256k1: true,
+          revoked: false,
+        },
+      ],
+      vRelationships: [
+        {
+          name: "authentication",
+          vMethodId: vMethodId3,
+          notBefore: Number(notBefore3).toString(),
+          notAfter: Number(notAfter3).toString(),
+        },
+        {
+          name: "assertionMethod",
+          vMethodId: vMethodId4,
+          notBefore: Number(notBefore4).toString(),
+          notAfter: Number(notAfter4).toString(),
+        },
+        {
+          name: "capabilityInvocation",
+          vMethodId: vMethodId4,
+          notBefore: Number(notBefore4).toString(),
+          notAfter: Number(notAfter4).toString(),
         },
       ],
     });

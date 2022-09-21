@@ -120,7 +120,7 @@ library DidDocumentLib {
         require(isSecp256k1, "first publicKey must be for secp256k1");
         require(notAfter == 0 || notBefore <= notAfter, "invalid dates");
 
-        require(bytes(d.baseDocument).length == 0, "did already exist");
+        require(bytes(d.baseDocument).length == 0, "did already exists");
 
         d.baseDocument = baseDocument;
         d.controllers.push(did);
@@ -219,7 +219,7 @@ library DidDocumentLib {
         require(publicKey.length > 0, "invalid publicKey");
         require(
             d.vMethods[vMethodId].publicKey.length == 0,
-            "vMethodId already exist"
+            "vMethodId already exists"
         );
 
         d.vMethods[vMethodId] = DidDocumentStorage.VMethod(
@@ -262,7 +262,7 @@ library DidDocumentLib {
                         vMethodId,
                         d.capabilityInvocations[i].vMethodId
                     ),
-                    "capabilityInvocation already exist"
+                    "capabilityInvocation already exists"
                 );
             }
 
@@ -283,7 +283,7 @@ library DidDocumentLib {
                 require(
                     !equalStrings(name, d.vRelationships[i].name) ||
                         !equalStrings(vMethodId, d.vRelationships[i].vMethodId),
-                    "relationship already exist"
+                    "relationship already exists"
                 );
             }
 
@@ -361,6 +361,86 @@ library DidDocumentLib {
         for (uint256 i = 0; i < d.capabilityInvocations.length; i++) {
             if (equalStrings(vMethodId, d.capabilityInvocations[i].vMethodId)) {
                 d.capabilityInvocations[i].notAfter = notAfter;
+            }
+        }
+
+        return true;
+    }
+
+    function rollVerificationMethod(
+        DidDocumentStorage.DidDocuments storage ds,
+        DidDocumentStorage.RollArgs memory args
+    )
+        external
+        onlyControllerOrAuth(ds, args.did, "DID:rollVerificationMethod")
+        returns (bool)
+    {
+        DidDocumentStorage.DidDocument storage d = ds.didList[args.did];
+        require(bytes(args.vMethodId).length > 0, "invalid vMethodId");
+        require(args.publicKey.length > 0, "invalid publicKey");
+        require(
+            d.vMethods[args.vMethodId].publicKey.length == 0,
+            "vMethodId already exists"
+        );
+        require(
+            d.vMethods[args.oldVMethodId].publicKey.length > 0,
+            "oldVMethodId doesn't exist"
+        );
+        require(
+            args.notAfter == 0 || args.notBefore <= args.notAfter,
+            "invalid dates"
+        );
+
+        // add new verification method
+        d.vMethods[args.vMethodId] = DidDocumentStorage.VMethod(
+            args.publicKey,
+            args.isSecp256k1,
+            false
+        );
+
+        uint256 sizeVRelationships = d.vRelationships.length;
+        uint256 sizeCapabilityInvocations = d.capabilityInvocations.length;
+
+        for (uint256 i = 0; i < sizeVRelationships; i++) {
+            if (
+                equalStrings(args.oldVMethodId, d.vRelationships[i].vMethodId)
+            ) {
+                // update the previous relationship
+                d.vRelationships[i].notAfter = args.notBefore + args.duration;
+
+                // add the new relationship
+                d.vRelationships.push(
+                    DidDocumentStorage.VRelationship(
+                        d.vRelationships[i].name,
+                        args.vMethodId,
+                        args.notBefore,
+                        args.notAfter
+                    )
+                );
+            }
+        }
+
+        for (uint256 i = 0; i < sizeCapabilityInvocations; i++) {
+            if (
+                equalStrings(
+                    args.oldVMethodId,
+                    d.capabilityInvocations[i].vMethodId
+                )
+            ) {
+                // update the previous relationship
+                d.capabilityInvocations[i].notAfter =
+                    args.notBefore +
+                    args.duration;
+
+                // add the new relationship
+                d.capabilityInvocations.push(
+                    DidDocumentStorage.VRelationship(
+                        "capabilityInvocation",
+                        args.vMethodId,
+                        args.notBefore,
+                        args.notAfter
+                    )
+                );
             }
         }
 

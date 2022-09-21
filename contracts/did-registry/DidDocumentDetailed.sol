@@ -50,6 +50,17 @@ contract DidDocumentDetailed is DidDocumentStorage {
         uint256 notAfter
     );
 
+    event VerificationMethodRolled(
+        string did,
+        string vMethodId,
+        bytes publicKey,
+        bool isSecp256k1,
+        uint256 notBefore,
+        uint256 notAfter,
+        string oldVMethodId,
+        uint256 duration
+    );
+
     function insertDidDocument(
         string memory did,
         string memory baseDocument,
@@ -172,6 +183,42 @@ contract DidDocumentDetailed is DidDocumentStorage {
         DidDocuments storage ds = didDocumentStorage();
         bool result = ds.expireVerificationMethod(did, vMethodId, notAfter);
         emit VerificationMethodExpired(did, vMethodId, notAfter);
+        return result;
+    }
+
+    function rollVerificationMethod(
+        string memory did,
+        string memory vMethodId,
+        bytes memory publicKey,
+        bool isSecp256k1,
+        uint256 notBefore,
+        uint256 notAfter,
+        string memory oldVMethodId,
+        uint256 duration
+    ) external returns (bool) {
+        DidDocuments storage ds = didDocumentStorage();
+        bool result = ds.rollVerificationMethod(
+            RollArgs(
+                did,
+                vMethodId,
+                publicKey,
+                isSecp256k1,
+                notBefore,
+                notAfter,
+                oldVMethodId,
+                duration
+            )
+        );
+        emit VerificationMethodRolled(
+            did,
+            vMethodId,
+            publicKey,
+            isSecp256k1,
+            notBefore,
+            notAfter,
+            oldVMethodId,
+            duration
+        );
         return result;
     }
 

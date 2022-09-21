@@ -8,6 +8,17 @@ contract DidDocumentStorage {
     bytes32 public constant DID_DOCUMENT_DIAMOND_STORAGE_POSITION =
         keccak256("diamond.standard.diddocument.storage");
 
+    struct RollArgs {
+        string did;
+        string vMethodId;
+        bytes publicKey;
+        bool isSecp256k1;
+        uint256 notBefore;
+        uint256 notAfter;
+        string oldVMethodId;
+        uint256 duration;
+    }
+
     struct VMethod {
         bytes publicKey;
         bool isSecp256k1;
