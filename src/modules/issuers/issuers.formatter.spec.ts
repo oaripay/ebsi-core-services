@@ -1,5 +1,9 @@
 import { ethers } from "ethers";
-import { formatIssuers, formatAttributes } from "./issuers.formatter";
+import {
+  formatIssuers,
+  formatAttributes,
+  formatProxies,
+} from "./issuers.formatter";
 import { AttributeObject } from "./issuers.interface";
 import { Tir } from "../../contracts";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
@@ -146,6 +150,31 @@ describe("formatAttributes", () => {
       pageSize,
       self: `?page[after]=${page}&page[size]=${pageSize}`,
       total: attributes.length,
+    });
+  });
+});
+
+describe("formatProxies", () => {
+  const proxies = ["0xProxy1", "0xProxy2"] as AsyncReturnType<
+    Tir["getIssuerProxies"]
+  >;
+  const baseUrl = "";
+
+  it("should use the values returned by the smart contract (except pageSize)", () => {
+    expect.assertions(1);
+
+    expect(formatProxies(proxies, baseUrl)).toStrictEqual({
+      items: [
+        {
+          proxyId: "0xProxy1",
+          href: "/0xProxy1",
+        },
+        {
+          proxyId: "0xProxy2",
+          href: "/0xProxy2",
+        },
+      ],
+      total: proxies.length,
     });
   });
 });

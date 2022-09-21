@@ -14,6 +14,7 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
+import { useContainer } from "class-validator";
 import { ApiConfig } from "../../src/config/configuration";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
@@ -99,6 +100,7 @@ describe("Policies (e2e)", () => {
 
     app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
+    useContainer(app.select(AppModule), { fallbackOnErrors: true });
 
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
@@ -362,7 +364,7 @@ describe("Policies (e2e)", () => {
             policyData = policy2;
             break;
           default:
-            break;
+            throw new Error(`Invalid method ${method}`);
         }
 
         const responseBuild: SupertestJsonRpcResponse = await request(server)

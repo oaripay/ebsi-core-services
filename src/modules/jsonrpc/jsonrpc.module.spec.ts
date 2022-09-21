@@ -1,5 +1,5 @@
 import request from "supertest";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import { Test, TestingModule } from "@nestjs/testing";
 import {
   INestApplication,
@@ -17,7 +17,13 @@ import {
 } from "@nestjs/platform-fastify";
 import { createJWT, ES256KSigner } from "did-jwt";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { JWTVerifyResult } from "jose";
+import {
+  createVerifiableCredentialJwt,
+  EbsiIssuer,
+} from "@cef-ebsi/verifiable-credential";
+import * as vcLib from "@cef-ebsi/verifiable-credential";
+import { exportJWK, generateKeyPair, JWTVerifyResult } from "jose";
+import { useContainer } from "class-validator";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import { JsonRpcService } from "./jsonrpc.service";
@@ -27,6 +33,8 @@ import {
   UpdateIssuerParam,
   InsertPolicyParam,
   UpdatePolicyParam,
+  AddIssuerProxyParam,
+  UpdateIssuerProxyParam,
 } from "./dto";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
@@ -36,6 +44,7 @@ import { setupTestEnv } from "../../../tests/utils/tir";
 import { LedgerService } from "../../shared/services/ledger.service";
 import { AttributeObject } from "../issuers/issuers.interface";
 import { ApiConfig } from "../../config/configuration";
+import { StatusList2021Credential } from "../../shared/utils";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -46,7 +55,9 @@ type JsonRpcParams =
   | InsertIssuerParam
   | UpdateIssuerParam
   | InsertPolicyParam
-  | UpdatePolicyParam;
+  | UpdatePolicyParam
+  | AddIssuerProxyParam
+  | UpdateIssuerProxyParam;
 
 jest.setTimeout(90000);
 
@@ -123,11 +134,57 @@ describe("JsonRpc Module", () => {
     };
   }
 
+  function createIssuerProxy(issuerDid: string) {
+    const rawProxyData = {
+      prefix: "https://example.net",
+      headers: {
+        Authorization: `Bearer ${crypto.randomBytes(16).toString("hex")}`,
+      },
+      testSuffix: "/cred/1",
+    };
+
+    const proxyData = JSON.stringify(rawProxyData);
+    const proxyId = ethers.utils.sha256(Buffer.from(proxyData));
+
+    return {
+      issuerDid,
+      rawProxyData,
+      proxyData,
+      proxyId,
+    };
+  }
+
   const issuerV1 = createIssuer();
   const issuerV2 = createIssuer();
   const issuerV3 = createIssuer();
   const policy1 = createPolicy();
   const policy2 = createPolicy();
+  const issuerV1Proxy1 = createIssuerProxy(issuerV1.did);
+  const issuerV1Proxy2 = createIssuerProxy(issuerV1.did);
+  const issuerV1StatusList2021Credential: StatusList2021Credential = {
+    "@context": [
+      "https://www.w3.org/2018/credentials/v1",
+      "https://w3id.org/vc/status-list/2021/v1",
+    ],
+    id: `${issuerV1Proxy1.rawProxyData.prefix}${issuerV1Proxy1.rawProxyData.testSuffix}`,
+    type: ["VerifiableCredential", "StatusList2021Credential"],
+    issuer: issuerV1.did,
+    issued: "2021-04-05T14:27:40Z",
+    issuanceDate: "2021-04-05T14:27:40Z",
+    validFrom: "2021-04-05T14:27:40Z",
+    credentialSubject: {
+      id: `${issuerV1Proxy1.rawProxyData.prefix}${issuerV1Proxy1.rawProxyData.testSuffix}#list`,
+      type: "StatusList2021",
+      statusPurpose: "revocation",
+      encodedList:
+        "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
+    },
+    credentialSchema: {
+      id: "https://example.net",
+      type: "FullJsonSchemaValidator2021",
+    },
+  };
+  let issuerV1StatusList2021CredentialJwt: string;
 
   function createParam(
     method: string,
@@ -181,6 +238,23 @@ describe("JsonRpc Module", () => {
         } as UpdatePolicyParam;
         break;
       }
+      case "addIssuerProxy": {
+        param = {
+          from: signer.address,
+          did: tamper ? issuerV2.did : issuerV1Proxy1.issuerDid,
+          proxyData: issuerV1Proxy1.proxyData,
+        } as AddIssuerProxyParam;
+        break;
+      }
+      case "updateIssuerProxy": {
+        param = {
+          from: signer.address,
+          did: tamper ? issuerV2.did : issuerV1Proxy1.issuerDid,
+          proxyId: issuerV1Proxy1.proxyId,
+          proxyData: issuerV1Proxy2.proxyData,
+        } as UpdateIssuerProxyParam;
+        break;
+      }
       default:
         throw new Error(`Test Error: Invalid method ${method}`);
     }
@@ -220,6 +294,7 @@ describe("JsonRpc Module", () => {
 
     app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
+    useContainer(app.select(JsonRpcModule), { fallbackOnErrors: true });
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
@@ -248,6 +323,37 @@ describe("JsonRpc Module", () => {
     issuerV1SiopAccessTokenPayload = {
       sub: issuerV1.did,
     };
+
+    const keyPair = await generateKeyPair("ES256K");
+    const privateKeyJwk = await exportJWK(keyPair.privateKey);
+    const publicKeyJwk = await exportJWK(keyPair.publicKey);
+
+    const issuer: EbsiIssuer = {
+      did: issuerV1.did,
+      kid: `${issuerV1.did}#keys-1`,
+      publicKeyJwk,
+      privateKeyJwk,
+      alg: "ES256K",
+    };
+
+    issuerV1StatusList2021CredentialJwt = await createVerifiableCredentialJwt(
+      issuerV1StatusList2021Credential,
+      issuer,
+      {
+        ebsiAuthority: "example.net",
+        skipValidation: true,
+      }
+    );
+
+    // Mock VC Lib validation
+    jest
+      .spyOn(vcLib, "verifyCredentialJwt")
+      .mockImplementation(async (jwt: string) => {
+        if (jwt === issuerV1StatusList2021CredentialJwt)
+          return Promise.resolve(issuerV1StatusList2021Credential);
+
+        return Promise.reject(new Error("Invalid JWT"));
+      });
   });
 
   beforeEach(() => {
@@ -261,7 +367,18 @@ describe("JsonRpc Module", () => {
       throw new Error("Forgot to mock an axios call?");
     });
 
-    jest.spyOn(axios, "get").mockImplementation(() => {
+    jest.spyOn(axios, "get").mockImplementation((url: string) => {
+      if (
+        url ===
+        `${issuerV1Proxy1.rawProxyData.prefix}${issuerV1Proxy1.rawProxyData.testSuffix}`
+      ) {
+        // Mock issuer's proxy response (StatusList2021Credential)
+        return Promise.resolve({
+          status: 200,
+          data: issuerV1StatusList2021CredentialJwt,
+        } as AxiosResponse<unknown>);
+      }
+
       throw new Error("Forgot to mock an axios call?");
     });
 
@@ -520,6 +637,8 @@ describe("JsonRpc Module", () => {
     "updateIssuer",
     "updateIssuer(test update attribute)",
     "updatePolicy",
+    "addIssuerProxy",
+    "updateIssuerProxy",
   ])("/jsonrpc with method %s", (testMethod: string) => {
     const updateAttribute = testMethod.includes("(test update attribute)");
     const method = testMethod.replace("(test update attribute)", "");
@@ -595,6 +714,7 @@ describe("JsonRpc Module", () => {
           ],
           id: "45",
         });
+
       expect(responseSend.body).toStrictEqual({
         jsonrpc: "2.0",
         id: "45",
@@ -673,6 +793,20 @@ describe("JsonRpc Module", () => {
           delete (param2 as InsertPolicyParam).policyId;
           expectedErrorMessage2 =
             "property params[0].policyId has failed the following constraints: isString";
+
+          param3.from = "bad address";
+          expectedErrorMessage3 =
+            "property params[0].from has failed the following constraints: isEthereumAddress";
+          break;
+        case "addIssuerProxy":
+        case "updateIssuerProxy":
+          delete (param1 as AddIssuerProxyParam).did;
+          expectedErrorMessage1 =
+            "property params[0].did has failed the following constraints: isDidV1";
+
+          delete (param2 as AddIssuerProxyParam).proxyData;
+          expectedErrorMessage2 =
+            "property params[0].proxyData has failed the following constraints: isIssuerProxy";
 
           param3.from = "bad address";
           expectedErrorMessage3 =
@@ -765,6 +899,7 @@ describe("JsonRpc Module", () => {
           params: [param1],
           id: 231,
         });
+
       expect(responseBuild1.status).toBe(200);
       const transaction1 = responseBuild1.body.result as UnsignedTransaction;
 

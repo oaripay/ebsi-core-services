@@ -1,16 +1,34 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { NotFoundError } from "@cef-ebsi/problem-details-errors";
+import { ConfigService } from "@nestjs/config";
+import {
+  BadRequestError,
+  InternalServerError,
+  NotFoundError,
+} from "@cef-ebsi/problem-details-errors";
+import axios, { AxiosResponse } from "axios";
 import { LedgerService } from "../../shared/services/ledger.service";
-import { AttributeObject, IssuerResponseObject } from "./issuers.interface";
+import {
+  AttributeObject,
+  IssuerProxyResponseObject,
+  IssuerResponseObject,
+} from "./issuers.interface";
 import { Tir } from "../../contracts";
-import { prefixWith0x } from "../../shared/utils";
+import { isStatusList2021Credential, prefixWith0x } from "../../shared/utils";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
+import { ApiConfig } from "../../config/configuration";
 
 @Injectable()
 export class IssuersService {
   private readonly logger = new Logger(IssuersService.name);
 
-  constructor(private ledgerService: LedgerService) {}
+  private timeout: number;
+
+  constructor(
+    private ledgerService: LedgerService,
+    private configService: ConfigService<ApiConfig, true>
+  ) {
+    this.timeout = configService.get<number>("requestTimeout");
+  }
 
   async getIssuers(
     page: number,
@@ -68,6 +86,16 @@ export class IssuersService {
         return this.getAttribute(hash);
       })
     );
+  }
+
+  async assertIssuerExists(did: string): Promise<void> {
+    try {
+      await (await this.ledgerService.getContract()).getIssuer(did);
+    } catch (e) {
+      throw new NotFoundError("Issuer Not Found", {
+        detail: `Issuer ${did} not found`,
+      });
+    }
   }
 
   async getIssuer(did: string): Promise<IssuerResponseObject> {
@@ -130,6 +158,110 @@ export class IssuersService {
     );
 
     return { revisions, total: revisionHashes.total.toNumber() };
+  }
+
+  async getIssuerProxies(did: string) {
+    // Make sure the issuer exists
+    await this.assertIssuerExists(did);
+
+    let proxies: AsyncReturnType<Tir["getIssuerProxies"]>;
+
+    try {
+      proxies = await (
+        await this.ledgerService.getContract()
+      ).getIssuerProxies(did);
+    } catch (e) {
+      throw new NotFoundError("Issuer Not Found", {
+        detail: `Issuer ${did} not found`,
+      });
+    }
+
+    return proxies;
+  }
+
+  async getIssuerProxy(did: string, proxyId: string) {
+    // Make sure the issuer exists
+    await this.assertIssuerExists(did);
+
+    let proxy: string;
+    try {
+      proxy = await (
+        await this.ledgerService.getContract()
+      ).getIssuerProxyById(did, proxyId);
+
+      // Throw an error if the proxy is empty (i.e. not found)
+      if (!proxy) throw new Error();
+    } catch (e) {
+      throw new NotFoundError("Proxy Not Found", {
+        detail: `Proxy ${proxyId} of issuer ${did} can't be found`,
+      });
+    }
+
+    // Parse proxy string -> JSON Object
+    try {
+      return JSON.parse(proxy) as IssuerProxyResponseObject;
+    } catch {
+      throw new InternalServerError("Invalid Proxy", {
+        detail: "The server was unable to parse the requested proxy",
+      });
+    }
+  }
+
+  async proxyRequest(did: string, proxyId: string, url: string) {
+    // Make sure the issuer exists
+    await this.assertIssuerExists(did);
+
+    const proxy = await this.getIssuerProxy(did, proxyId);
+
+    // Extract subpath from request URL
+    const found = url.match(/\/issuers\/.*\/proxies\/\w*\/(.*)$/);
+    if (!found || !found[1]) {
+      throw new BadRequestError("Invalid Proxy", {
+        detail: "The server was unable to parse the requested proxy",
+      });
+    }
+    const subpath = found[1];
+
+    // Send request to issuer's endpoint
+    const credRequestUrl = `${proxy.prefix}/${subpath}`;
+    let res: AxiosResponse;
+    try {
+      res = await axios.get(credRequestUrl, {
+        headers: proxy.headers,
+        timeout: this.timeout,
+      });
+    } catch (e) {
+      if (e instanceof Error) {
+        this.logger.error(
+          `Status List Credential ${credRequestUrl} unreachable - ${e.message}`
+        );
+      }
+
+      throw new InternalServerError("Unreachable Status List Credential", {
+        detail: "The Status List Credential can't be retrieved",
+      });
+    }
+
+    // Validate result (must be a valid StatusList2021Credential JWT)
+    if (typeof res.data !== "string") {
+      throw new InternalServerError("Invalid Status List Credential", {
+        detail:
+          "The Status List Credential returned by the Issuer's proxy is not a JWT",
+      });
+    }
+
+    const authority = this.configService
+      .get<string>("domain")
+      .replace(/^https?:\/\//, "");
+
+    if (!(await isStatusList2021Credential(res.data, authority))) {
+      throw new InternalServerError("Invalid Status List Credential", {
+        detail:
+          "The Status List Credential returned by the Issuer's proxy is invalid",
+      });
+    }
+
+    return res.data;
   }
 }
 

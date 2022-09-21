@@ -14,10 +14,12 @@ import {
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
+import axios, { AxiosError, AxiosResponse } from "axios";
+import * as vcLib from "@cef-ebsi/verifiable-credential";
 import { IssuersModule } from "./issuers.module";
 import { AttributeObject } from "./issuers.interface";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { setupTestEnv } from "../../../tests/utils/tir";
+import { IssuerProxyObject, setupTestEnv } from "../../../tests/utils/tir";
 import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { LedgerService } from "../../shared/services/ledger.service";
 import { ApiConfig } from "../../config/configuration";
@@ -769,6 +771,434 @@ describe("Issuers Module", () => {
         type: "about:blank",
       });
       expect(response2.status).toBe(400);
+    });
+  });
+
+  describe("GET /issuers/{did}/proxies", () => {
+    it("should return the proxies of a specific issuer", async () => {
+      expect.assertions(2);
+
+      const { issuers } = testEnv;
+      const issuerDid = issuers[0].did;
+
+      const url = `/issuers/${issuerDid}/proxies`;
+
+      const response = await request(server).get(url);
+
+      const issuer1ProxyData = issuers[0].rawProxyData;
+      const issuer1ProxyId = ethers.utils.sha256(
+        Buffer.from(JSON.stringify(issuer1ProxyData))
+      );
+
+      expect(response.body).toStrictEqual({
+        items: [
+          {
+            href: expect.stringContaining(`${url}/${issuer1ProxyId}`) as string,
+            proxyId: issuer1ProxyId,
+          },
+        ],
+        total: expect.any(Number) as number,
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should throw an error if the issuer DID is not correctly formatted", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get("/issuers/not-a-did/proxies");
+
+      expect(response.body).toStrictEqual({
+        detail: '["did must be a valid DID v1"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw an error if the issuer DID is not a valid EBSI DID", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get(
+        "/issuers/did:ebsi:z1234/proxies"
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: '["did must be a valid DID v1"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw an error if the issuer is not found", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get(
+        `/issuers/${randomDid}/proxies`
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Issuer Not Found",
+        status: 404,
+        detail: `Issuer ${randomDid} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+  });
+
+  describe("GET /issuers/{did}/proxies/{proxyId}", () => {
+    let issuer1ProxyId: string;
+    let issuer1ProxyData: IssuerProxyObject;
+
+    beforeAll(() => {
+      const { issuers } = testEnv;
+      issuer1ProxyData = issuers[0].rawProxyData;
+      issuer1ProxyId = ethers.utils.sha256(
+        Buffer.from(JSON.stringify(issuer1ProxyData))
+      );
+    });
+
+    it("should return a specific proxy", async () => {
+      expect.assertions(2);
+
+      const { issuers } = testEnv;
+      const issuer1Did = issuers[0].did;
+      const url = `/issuers/${issuer1Did}/proxies/${issuer1ProxyId}`;
+
+      const response = await request(server).get(url);
+
+      expect(response.body).toStrictEqual(issuer1ProxyData);
+      expect(response.status).toBe(200);
+    });
+
+    it("should throw an error if the issuer DID is not correctly formatted", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get(
+        `/issuers/not-a-did/proxies/${issuer1ProxyId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: '["did must be a valid DID v1"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw an error if the issuer DID is not a valid EBSI DID", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get(
+        `/issuers/did:ebsi:z1234/proxies/${issuer1ProxyId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: '["did must be a valid DID v1"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw an error if the issuer is not found", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get(
+        `/issuers/${randomDid}/proxies/${issuer1ProxyId}`
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Issuer Not Found",
+        status: 404,
+        detail: `Issuer ${randomDid} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should throw an error when the proxy is not found", async () => {
+      expect.assertions(4);
+
+      const { issuers } = testEnv;
+      const issuer1Did = issuers[0].did;
+
+      // Consult a random proxy
+      const wrongProxyId =
+        "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d2";
+
+      const url = `/issuers/${issuer1Did}/proxies/${wrongProxyId}`;
+
+      const response1 = await request(server).get(url);
+
+      expect(response1.body).toStrictEqual({
+        detail: expect.stringContaining(
+          `Proxy ${wrongProxyId} of issuer ${issuer1Did} can't be found`
+        ) as string,
+        status: 404,
+        title: "Proxy Not Found",
+        type: "about:blank",
+      });
+      expect(response1.status).toBe(404);
+
+      // Consult an attribute from a different did
+      const issuer2Proxy = issuers[1].rawProxyData;
+      const issuer2ProxyId = ethers.utils.sha256(
+        Buffer.from(JSON.stringify(issuer2Proxy))
+      );
+
+      const response2 = await request(server).get(
+        `/issuers/${issuer1Did}/proxies/${issuer2ProxyId}`
+      );
+
+      expect(response2.body).toStrictEqual({
+        detail: expect.stringContaining(
+          `Proxy ${issuer2ProxyId} of issuer ${issuer1Did} can't be found`
+        ) as string,
+        status: 404,
+        title: "Proxy Not Found",
+        type: "about:blank",
+      });
+      expect(response2.status).toBe(404);
+    });
+  });
+
+  describe("GET /issuers/{did}/proxies/{proxyId}/{path}", () => {
+    let issuer1ProxyId: string;
+    let issuer1ProxyData: IssuerProxyObject;
+    const subpath = "/credentials/status/3";
+
+    beforeAll(() => {
+      const { issuers } = testEnv;
+      issuer1ProxyData = issuers[0].rawProxyData;
+      issuer1ProxyId = ethers.utils.sha256(
+        Buffer.from(JSON.stringify(issuer1ProxyData))
+      );
+    });
+
+    it("should return a specifc StatusList2021Credential (JWT)", async () => {
+      expect.assertions(2);
+
+      const { issuers } = testEnv;
+      const issuer1 = issuers[0];
+      const issuer1Did = issuer1.did;
+      const url = `/issuers/${issuer1Did}/proxies/${issuer1ProxyId}${subpath}`;
+
+      // Mock issuer's endpoint response
+      jest.spyOn(axios, "get").mockImplementation((requestUrl: string) => {
+        if (requestUrl === `${issuer1ProxyData.prefix}${subpath}`) {
+          return Promise.resolve({
+            status: 200,
+            data: "jwt",
+          });
+        }
+
+        return Promise.reject(new Error("Invalid url"));
+      });
+
+      // Mock VC Lib validation
+      jest
+        .spyOn(vcLib, "verifyCredentialJwt")
+        .mockImplementation(async (jwt: string) => {
+          if (jwt === "jwt")
+            return Promise.resolve({
+              "@context": [
+                "https://www.w3.org/2018/credentials/v1",
+                "https://w3id.org/vc/status-list/2021/v1",
+              ],
+              id: `${issuer1.rawProxyData.prefix}${issuer1.rawProxyData.testSuffix}`,
+              type: ["VerifiableCredential", "StatusList2021Credential"],
+              issuer: issuer1Did,
+              issued: "2021-04-05T14:27:40Z",
+              issuanceDate: "2021-04-05T14:27:40Z",
+              validFrom: "2021-04-05T14:27:40Z",
+              credentialSubject: {
+                id: `${issuer1.rawProxyData.prefix}${issuer1.rawProxyData.testSuffix}#list`,
+                type: "StatusList2021",
+                statusPurpose: "revocation",
+                encodedList:
+                  "H4sIAAAAAAAAA-3BMQEAAADCoPVPbQwfoAAAAAAAAAAAAAAAAAAAAIC3AYbSVKsAQAAA",
+              },
+              credentialSchema: {
+                id: "https://example.net",
+                type: "FullJsonSchemaValidator2021",
+              },
+            });
+
+          return Promise.reject(new Error("Invalid JWT"));
+        });
+
+      const response = await request(server).get(url);
+
+      expect(response.text).toBe("jwt");
+      expect(response.status).toBe(200);
+    });
+
+    it("should return an error if the issuer's endpoint respond with a 500", async () => {
+      expect.assertions(2);
+
+      const { issuers } = testEnv;
+      const issuer1 = issuers[0];
+      const issuer1Did = issuer1.did;
+      const url = `/issuers/${issuer1Did}/proxies/${issuer1ProxyId}${subpath}`;
+
+      // Mock issuer's endpoint response
+      jest.spyOn(axios, "get").mockImplementation((requestUrl: string) => {
+        if (requestUrl === `${issuer1ProxyData.prefix}${subpath}`) {
+          const error = new Error() as AxiosError<string>;
+          error.status = "500";
+          error.response = {
+            status: 500,
+            data: "Internal Server Error",
+          } as AxiosResponse<string>;
+
+          return Promise.reject(error);
+        }
+
+        return Promise.reject(new Error("Invalid url"));
+      });
+
+      const response = await request(server).get(url);
+
+      expect(response.body).toStrictEqual({
+        detail: "The Status List Credential can't be retrieved",
+        status: 500,
+        title: "Unreachable Status List Credential",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(500);
+    });
+
+    it("should return an error if the Status List VC returned by the endpoint is invalid", async () => {
+      expect.assertions(2);
+
+      const { issuers } = testEnv;
+      const issuer1Did = issuers[0].did;
+      const url = `/issuers/${issuer1Did}/proxies/${issuer1ProxyId}${subpath}`;
+
+      jest.spyOn(axios, "get").mockImplementation((requestUrl: string) => {
+        if (requestUrl === `${issuer1ProxyData.prefix}${subpath}`) {
+          return Promise.resolve({
+            status: 200,
+            data: "jwt",
+          });
+        }
+
+        return Promise.reject(new Error("Invalid url"));
+      });
+
+      jest.spyOn(vcLib, "verifyCredentialJwt").mockImplementation(async () => {
+        return Promise.reject(new Error("Invalid JWT"));
+      });
+
+      const response = await request(server).get(url);
+
+      expect(response.body).toStrictEqual({
+        title: "Invalid Status List Credential",
+        status: 500,
+        type: "about:blank",
+        detail:
+          "The Status List Credential returned by the Issuer's proxy is invalid",
+      });
+      expect(response.status).toBe(500);
+    });
+
+    it("should throw an error if the issuer DID is not correctly formatted", async () => {
+      expect.assertions(2);
+
+      const url = `/issuers/not-a-did/proxies/${issuer1ProxyId}${subpath}`;
+
+      const response = await request(server).get(url);
+
+      expect(response.body).toStrictEqual({
+        detail: '["did must be a valid DID v1"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw an error if the issuer DID is not a valid EBSI DID", async () => {
+      expect.assertions(2);
+
+      const url = `/issuers/did:ebsi:z1234/proxies/${issuer1ProxyId}${subpath}`;
+
+      const response = await request(server).get(url);
+
+      expect(response.body).toStrictEqual({
+        detail: '["did must be a valid DID v1"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw an error if the issuer is not found", async () => {
+      expect.assertions(2);
+
+      const url = `/issuers/${randomDid}/proxies/${issuer1ProxyId}${subpath}`;
+
+      const response = await request(server).get(url);
+
+      expect(response.body).toStrictEqual({
+        title: "Issuer Not Found",
+        status: 404,
+        detail: `Issuer ${randomDid} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+
+    it("should throw an error when the proxy is not found", async () => {
+      expect.assertions(4);
+
+      const { issuers } = testEnv;
+      const issuer1Did = issuers[0].did;
+
+      // Consult a random proxy
+      const wrongProxyId =
+        "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d2";
+
+      const url = `/issuers/${issuer1Did}/proxies/${wrongProxyId}${subpath}`;
+
+      const response1 = await request(server).get(url);
+
+      expect(response1.body).toStrictEqual({
+        detail: expect.stringContaining(
+          `Proxy ${wrongProxyId} of issuer ${issuer1Did} can't be found`
+        ) as string,
+        status: 404,
+        title: "Proxy Not Found",
+        type: "about:blank",
+      });
+      expect(response1.status).toBe(404);
+
+      // Consult an attribute from a different did
+      const issuer2Proxy = issuers[1].rawProxyData;
+      const issuer2ProxyId = ethers.utils.sha256(
+        Buffer.from(JSON.stringify(issuer2Proxy))
+      );
+
+      const response2 = await request(server).get(
+        `/issuers/${issuer1Did}/proxies/${issuer2ProxyId}${subpath}`
+      );
+
+      expect(response2.body).toStrictEqual({
+        detail: expect.stringContaining(
+          `Proxy ${issuer2ProxyId} of issuer ${issuer1Did} can't be found`
+        ) as string,
+        status: 404,
+        title: "Proxy Not Found",
+        type: "about:blank",
+      });
+      expect(response2.status).toBe(404);
     });
   });
 });

@@ -1,4 +1,9 @@
-import { AttributeObject, IdLink, DidLink } from "./issuers.interface";
+import {
+  AttributeObject,
+  IdLink,
+  DidLink,
+  ProxyLink,
+} from "./issuers.interface";
 import { PaginatedList } from "../../shared/interfaces";
 import { paginate } from "../../shared/utils";
 import { Tir } from "../../contracts";
@@ -48,4 +53,20 @@ export function formatRevisions(
   baseUrl: string
 ): PaginatedList<AttributeObject> {
   return paginate<AttributeObject>(revisions, baseUrl, total, page, pageSize);
+}
+
+export function formatProxies(
+  issuerProxies: AsyncReturnType<Tir["getIssuerProxies"]>,
+  baseUrl: string
+): PaginatedList<ProxyLink> {
+  const items: ProxyLink[] = issuerProxies.map((proxy) => ({
+    proxyId: proxy,
+    href: `${baseUrl}/${proxy}`,
+  }));
+  const total = items.length;
+
+  return {
+    items,
+    total,
+  };
 }

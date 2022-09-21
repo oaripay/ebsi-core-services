@@ -1,9 +1,9 @@
 export interface PaginatedList<T> {
-  self: string;
+  self?: string;
   items: T[];
   total: number;
-  pageSize: number;
-  links: {
+  pageSize?: number;
+  links?: {
     first: string;
     prev: string;
     next: string;

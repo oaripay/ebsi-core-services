@@ -13,6 +13,12 @@ export interface IssuerResponseObject {
   attributes: AttributeObject[];
 }
 
+export interface IssuerProxyResponseObject {
+  prefix: string;
+  headers: Record<string, string | number | boolean>;
+  testSuffix: string;
+}
+
 export interface IdLink {
   id: string;
   href: string;
@@ -20,5 +26,10 @@ export interface IdLink {
 
 export interface DidLink {
   did: string;
+  href: string;
+}
+
+export interface ProxyLink {
+  proxyId: string;
   href: string;
 }

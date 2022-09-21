@@ -20,6 +20,9 @@ declare global {
       TEST_ADMIN_PRIVATE_KEY?: string;
       TEST_USER_KID?: string;
       TEST_USER_PRIVATE_KEY?: string;
+      TEST_ISSUER_WITH_PROXY_KID?: string;
+      TEST_ISSUER_WITH_PROXY_PRIVATE_KEY?: string;
+      TEST_STATUS_LIST_SCHEMA_ID?: string;
       TEST_ENV?: string;
       TEST_ENABLE_WRITE_OPS?: string;
       BLOCKSCOUT_URL?: string;

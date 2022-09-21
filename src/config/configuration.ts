@@ -23,11 +23,16 @@ export interface ApiConfig {
   didRegistryApiUrl: string;
   // Trusted Apps Registry API
   tarApiUrl: string;
+  // TSR API (using in tests only)
+  trustedSchemasRegistryApiUrl: string;
   // Test variables
   testAdminKid: string;
   testAdminPrivateKey: string;
   testUserKid: string;
   testUserPrivateKey: string;
+  testIssuerWithProxyKid: string;
+  testIssuerWithProxyPrivateKey: string;
+  testStatusListSchemaId: string;
   dockerContainerTag: string;
   blockscout: {
     url: string;
@@ -40,6 +45,7 @@ const LEDGER_API_PATH = "/ledger/v3";
 const AUTH_API_PATH = "/authorisation/v2";
 const DIDR_API_PATH = "/did-registry/v3";
 const TAR_API_PATH = "/trusted-apps-registry/v3";
+const TSR_API_PATH = "/trusted-schemas-registry/v2";
 
 const defaultConfig = {
   local: {
@@ -82,13 +88,19 @@ export const loadConfig = (): ApiConfig => {
     authorisationApiUrl: DOMAIN + AUTH_API_PATH,
     // DID Registry API
     didRegistryApiUrl: DOMAIN + DIDR_API_PATH,
+    // TSR API
+    trustedSchemasRegistryApiUrl: DOMAIN + TSR_API_PATH,
     // Trusted Apps Registry API
-    tarApiUrl: TAR_API_PATH,
+    tarApiUrl: DOMAIN + TAR_API_PATH,
     // Test vars
     testAdminKid: process.env.TEST_ADMIN_KID,
     testAdminPrivateKey: process.env.TEST_ADMIN_PRIVATE_KEY,
     testUserKid: process.env.TEST_USER_KID,
+    testIssuerWithProxyKid: process.env.TEST_ISSUER_WITH_PROXY_KID,
+    testIssuerWithProxyPrivateKey:
+      process.env.TEST_ISSUER_WITH_PROXY_PRIVATE_KEY,
     testUserPrivateKey: process.env.TEST_USER_PRIVATE_KEY,
+    testStatusListSchemaId: process.env.TEST_STATUS_LIST_SCHEMA_ID,
     dockerContainerTag,
     blockscout: {
       url: process.env.BLOCKSCOUT_URL,
@@ -135,7 +147,10 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_ADMIN_KID: Joi.string(),
     TEST_ADMIN_PRIVATE_KEY: Joi.string(),
     TEST_USER_KID: Joi.string(),
+    TEST_ISSUER_WITH_PROXY_KID: Joi.string(),
+    TEST_ISSUER_WITH_PROXY_PRIVATE_KEY: Joi.string(),
     TEST_USER_PRIVATE_KEY: Joi.string(),
+    TEST_STATUS_LIST_SCHEMA_ID: Joi.string(),
     BLOCKSCOUT_URL: Joi.string(),
     BLOCKSCOUT_BEARER_TOKEN: Joi.string(),
   }),
