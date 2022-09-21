@@ -43,6 +43,7 @@ contract DidDocumentStorage {
     struct DidDocuments {
         // a collection of DID Documents
         mapping(string => DidDocument) didList;
+        string[] dids;
         IPolicyRegistry trustedPolicyRegistry;
     }
 

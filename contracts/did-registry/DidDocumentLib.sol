@@ -138,6 +138,8 @@ library DidDocumentLib {
             )
         );
 
+        ds.dids.push(did);
+
         return true;
     }
 
@@ -445,6 +447,25 @@ library DidDocumentLib {
         }
 
         return true;
+    }
+
+    function getDids(
+        DidDocumentStorage.DidDocuments storage ds,
+        uint256 page,
+        uint256 pageSize
+    )
+        public
+        view
+        returns (
+            string[] memory items,
+            uint256 total,
+            uint256 howMany,
+            uint256 prev,
+            uint256 next
+        )
+    {
+        require(pageSize <= 50, "pageSize must be <= 50");
+        return ds.dids.paginate(page, pageSize);
     }
 
     function getDidDocument(

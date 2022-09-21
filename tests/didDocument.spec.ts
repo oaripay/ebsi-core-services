@@ -4,6 +4,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { DidRegistry, PolicyRegistryMock } from "../src/types";
 import { testTprAddress } from "./testAddress";
 import { getEthObject } from "./utils";
+import { contractFactoryPagination } from "./contractFactories";
 
 type InsertDidDocumentArgs = [
   string,
@@ -54,8 +55,19 @@ describe("Did Documents", () => {
   });
 
   beforeEach(async () => {
+    const paginationFactory = await ethers.getContractFactory(
+      contractFactoryPagination,
+      {}
+    );
+    const paginationLib = await paginationFactory.deploy();
+
     const didDocumentFactory = await ethers.getContractFactory(
-      "DidDocumentLib"
+      "DidDocumentLib",
+      {
+        libraries: {
+          Pagination: paginationLib.address,
+        },
+      }
     );
     const didDocumentLib = await didDocumentFactory.deploy();
 
@@ -1016,6 +1028,46 @@ describe("Did Documents", () => {
         0
       )
     ).to.be.revertedWith("oldVMethodId doesn't exist");
+  });
+
+  it("should get a list of dids", async () => {
+    const args: InsertDidDocumentArgs = [
+      did,
+      baseDocument,
+      vMethodId,
+      user.publicKey,
+      true,
+      notBefore,
+      notAfter,
+    ];
+
+    args[0] = "did:ebsi:test1";
+    await reg.insertDidDocument(...args);
+    args[0] = "did:ebsi:test2";
+    await reg.insertDidDocument(...args);
+    args[0] = "did:ebsi:test3";
+    await reg.insertDidDocument(...args);
+    args[0] = "did:ebsi:test4";
+    await reg.insertDidDocument(...args);
+    args[0] = "did:ebsi:test5";
+    await reg.insertDidDocument(...args);
+    args[0] = "did:ebsi:test6";
+    await reg.insertDidDocument(...args);
+    args[0] = "did:ebsi:test7";
+    await reg.insertDidDocument(...args);
+
+    const dids = await reg.getDids(3, 2);
+    expect(getEthObject(dids)).to.eql({
+      items: ["did:ebsi:test5", "did:ebsi:test6"],
+      total: "7",
+      howMany: "2",
+      prev: "2",
+      next: "4",
+    });
+
+    await expect(reg.getDids(1, 51)).to.be.revertedWith(
+      "pageSize must be <= 50"
+    );
   });
 
   it("should follow expected usage flow", async () => {

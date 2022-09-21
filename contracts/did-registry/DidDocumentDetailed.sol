@@ -222,6 +222,21 @@ contract DidDocumentDetailed is DidDocumentStorage {
         return result;
     }
 
+    function getDids(uint256 page, uint256 pageSize)
+        public
+        view
+        returns (
+            string[] memory items,
+            uint256 total,
+            uint256 howMany,
+            uint256 prev,
+            uint256 next
+        )
+    {
+        DidDocuments storage ds = didDocumentStorage();
+        return ds.getDids(page, pageSize);
+    }
+
     function getDidDocument(string memory did)
         public
         view
