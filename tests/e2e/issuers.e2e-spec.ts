@@ -52,6 +52,7 @@ import {
 import { describeWriteOps } from "../utils/describeWriteOps";
 import { getServer } from "../utils/getServer";
 import { AsyncReturnType } from "../../src/shared/types/async-return-type";
+import { describeLocalTestEnvOnly } from "../utils/describeLocalTestEnvOnly";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -950,85 +951,92 @@ describe("Issuers (e2e)", () => {
 
   describe("/issuers/{did}/proxies/{proxyId}/{path}", () => {
     const path = "/creds/1";
-    let proxy: IssuerProxyResponseObject;
 
-    beforeAll(async () => {
-      // Get first proxy information
-      const response: SupertestIssuerProxyResponse = await request(server).get(
-        `/issuers/${testIssuerWithProxyDid}/proxies/${testUserWithProxyFirstProxyId}`
-      );
-      proxy = response.body;
-    });
+    // All the tests that require a mock server are run only locally
+    describeLocalTestEnvOnly()("with mocked issuer's endpoint", () => {
+      let proxy: IssuerProxyResponseObject;
 
-    afterEach(() => {
-      nock.cleanAll();
-    });
-
-    it("should return a StatusList2021Credential JWT", async () => {
-      expect.assertions(2);
-
-      // Mock issuer's endpoint response
-      const issuer = getEbsiIssuer(
-        testIssuerWithProxyPrivateKey,
-        testIssuerWithProxyDid,
-        testIssuerWithProxyKid
-      );
-      const authority = configService
-        .get<string>("domain")
-        .replace(/^https?:\/\//, "");
-      const statusList2021CredentialJwt =
-        await createStatusList2021CredentialJwt(issuer, proxy, authority);
-
-      nock(proxy.prefix)
-        .get(path)
-        .reply(200, statusList2021CredentialJwt)
-        .persist();
-
-      const response: SupertestStringResponse = await request(server).get(
-        `/issuers/${testIssuerWithProxyDid}/proxies/${testUserWithProxyFirstProxyId}${path}`
-      );
-
-      expect(response.text).toStrictEqual(statusList2021CredentialJwt);
-      expect(response.status).toBe(200);
-    });
-
-    it("should return an error 500 when the Trusted Issuer's endpoint respond with a 500", async () => {
-      expect.assertions(2);
-
-      // Mock issuer's endpoint response
-      nock(proxy.prefix).get(path).reply(500).persist();
-
-      const response = await request(server).get(
-        `/issuers/${testIssuerWithProxyDid}/proxies/${testUserWithProxyFirstProxyId}${path}`
-      );
-
-      expect(response.body).toStrictEqual({
-        detail: "The Status List Credential can't be retrieved",
-        status: 500,
-        title: "Unreachable Status List Credential",
-        type: "about:blank",
+      beforeAll(async () => {
+        // Get first proxy information
+        const response: SupertestIssuerProxyResponse = await request(
+          server
+        ).get(
+          `/issuers/${testIssuerWithProxyDid}/proxies/${testUserWithProxyFirstProxyId}`
+        );
+        proxy = response.body;
       });
-      expect(response.status).toBe(500);
-    });
 
-    it("should return an error 500 when the Trusted Issuer's endpoint respond with an invalid StatusList2021Credential", async () => {
-      expect.assertions(2);
-
-      // Mock issuer's endpoint response
-      nock(proxy.prefix).get(path).reply(200, "invalid jwt").persist();
-
-      const response = await request(server).get(
-        `/issuers/${testIssuerWithProxyDid}/proxies/${testUserWithProxyFirstProxyId}${path}`
-      );
-
-      expect(response.body).toStrictEqual({
-        detail:
-          "The Status List Credential returned by the Issuer's proxy is invalid",
-        status: 500,
-        title: "Invalid Status List Credential",
-        type: "about:blank",
+      afterEach(() => {
+        nock.cleanAll();
       });
-      expect(response.status).toBe(500);
+
+      it("should return a StatusList2021Credential JWT", async () => {
+        expect.assertions(2);
+
+        // Mock issuer's endpoint response
+        const issuer = getEbsiIssuer(
+          testIssuerWithProxyPrivateKey,
+          testIssuerWithProxyDid,
+          testIssuerWithProxyKid
+        );
+        const authority = configService
+          .get<string>("domain")
+          .replace(/^https?:\/\//, "");
+        const statusList2021CredentialJwt =
+          await createStatusList2021CredentialJwt(issuer, proxy, authority);
+
+        nock(proxy.prefix)
+          .get(path)
+          .reply(200, statusList2021CredentialJwt)
+          .persist();
+
+        const response: SupertestStringResponse = await request(server).get(
+          `/issuers/${testIssuerWithProxyDid}/proxies/${testUserWithProxyFirstProxyId}${path}`
+        );
+
+        expect(response.text).toStrictEqual(statusList2021CredentialJwt);
+        // eslint-disable-next-line jest/no-standalone-expect
+        expect(response.status).toBe(200);
+      });
+
+      it("should return an error 500 when the Trusted Issuer's endpoint respond with a 500", async () => {
+        expect.assertions(2);
+
+        // Mock issuer's endpoint response
+        nock(proxy.prefix).get(path).reply(500).persist();
+
+        const response = await request(server).get(
+          `/issuers/${testIssuerWithProxyDid}/proxies/${testUserWithProxyFirstProxyId}${path}`
+        );
+
+        expect(response.body).toStrictEqual({
+          detail: "The Status List Credential can't be retrieved",
+          status: 500,
+          title: "Unreachable Status List Credential",
+          type: "about:blank",
+        });
+        expect(response.status).toBe(500);
+      });
+
+      it("should return an error 500 when the Trusted Issuer's endpoint respond with an invalid StatusList2021Credential", async () => {
+        expect.assertions(2);
+
+        // Mock issuer's endpoint response
+        nock(proxy.prefix).get(path).reply(200, "invalid jwt").persist();
+
+        const response = await request(server).get(
+          `/issuers/${testIssuerWithProxyDid}/proxies/${testUserWithProxyFirstProxyId}${path}`
+        );
+
+        expect(response.body).toStrictEqual({
+          detail:
+            "The Status List Credential returned by the Issuer's proxy is invalid",
+          status: 500,
+          title: "Invalid Status List Credential",
+          type: "about:blank",
+        });
+        expect(response.status).toBe(500);
+      });
     });
 
     it("should throw an error if the issuer DID is not correctly formatted", async () => {
@@ -1495,171 +1503,177 @@ describe("Issuers (e2e)", () => {
     });
   });
 
-  describeWriteOps().each(["addIssuerProxy", "updateIssuerProxy"])(
-    "/jsonrpc - method: %s",
-    (method: string) => {
-      let testIssuerWithProxyWallet: ethers.Wallet;
-      let testIssuerWithProxyAccessToken: string;
+  describeLocalTestEnvOnly()("with mocked issuer's endpoint", () => {
+    describeWriteOps().each(["addIssuerProxy", "updateIssuerProxy"])(
+      "/jsonrpc - method: %s",
+      (method: string) => {
+        let testIssuerWithProxyWallet: ethers.Wallet;
+        let testIssuerWithProxyAccessToken: string;
 
-      beforeAll(async () => {
-        const authority = configService
-          .get<string>("domain")
-          .replace(/^https?:\/\//, "");
+        beforeAll(async () => {
+          const authority = configService
+            .get<string>("domain")
+            .replace(/^https?:\/\//, "");
 
-        testIssuerWithProxyWallet = new ethers.Wallet(
-          prefixWith0x(configService.get("testIssuerWithProxyPrivateKey"))
-        );
-
-        testIssuerWithProxyAccessToken = await requestSiopJwt({
-          clientKid: configService.get<string>("testIssuerWithProxyKid"),
-          clientPrivateKey: configService.get<string>(
-            "testIssuerWithProxyPrivateKey"
-          ),
-          authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
-          trustedAppsRegistryUrl: `${configService.get<string>("tarApiUrl")}`,
-        });
-
-        // Mock Trusted Issuers' endpoint
-        const issuer = getEbsiIssuer(
-          testIssuerWithProxyPrivateKey,
-          testIssuerWithProxyDid,
-          testIssuerWithProxyKid
-        );
-        const statusList2021CredentialJwt =
-          await createStatusList2021CredentialJwt(
-            issuer,
-            newIssuer1.proxy.rawProxyData,
-            authority
+          testIssuerWithProxyWallet = new ethers.Wallet(
+            prefixWith0x(configService.get("testIssuerWithProxyPrivateKey"))
           );
 
-        nock(newIssuer1.proxy.rawProxyData.prefix)
-          .get(newIssuer1.proxy.rawProxyData.testSuffix)
-          .reply(200, statusList2021CredentialJwt)
-          .persist();
-
-        nock(newIssuer2.proxy.rawProxyData.prefix)
-          .get(newIssuer2.proxy.rawProxyData.testSuffix)
-          .reply(200, statusList2021CredentialJwt)
-          .persist();
-      });
-
-      afterAll(() => {
-        nock.cleanAll();
-      });
-
-      it("should add / update the proxy", async () => {
-        expect.assertions(5);
-
-        const did = testIssuerWithProxyDid;
-        let extraTestUrl = "";
-        let extraTestExpectedResponse: unknown = {};
-        let params = {};
-
-        switch (method) {
-          case "addIssuerProxy": {
-            params = {
-              from: testIssuerWithProxyWallet.address,
-              did,
-              proxyData: newIssuer1.proxy.proxyData,
-            } as AddIssuerProxyParam;
-
-            extraTestUrl = `/issuers/${did}/proxies`;
-
-            extraTestExpectedResponse = {
-              // eslint-disable-next-line jest/no-conditional-expect
-              items: expect.arrayContaining([
-                {
-                  proxyId: newIssuer1.proxy.proxyId,
-                  // eslint-disable-next-line jest/no-conditional-expect
-                  href: expect.stringContaining(
-                    `/proxies/${newIssuer1.proxy.proxyId}`
-                  ) as string,
-                },
-              ]) as { proxyId: string; href: string }[],
-              // eslint-disable-next-line jest/no-conditional-expect
-              total: expect.any(Number) as number,
-            };
-
-            break;
-          }
-          case "updateIssuerProxy": {
-            params = {
-              from: testIssuerWithProxyWallet.address,
-              did,
-              proxyData: newIssuer2.proxy.proxyData,
-              proxyId: newIssuer1.proxy.proxyId,
-            } as UpdateIssuerProxyParam;
-
-            extraTestUrl = `/issuers/${did}/proxies/${newIssuer1.proxy.proxyId}`;
-            extraTestExpectedResponse = newIssuer2.proxy.rawProxyData;
-            break;
-          }
-          default: {
-            throw new Error(`Invalid method ${method}`);
-          }
-        }
-
-        const responseBuild: SupertestJsonRpcResponse = await request(server)
-          .post("/jsonrpc")
-          .auth(testIssuerWithProxyAccessToken, { type: "bearer" })
-          .send({
-            jsonrpc: "2.0",
-            method,
-            params: [params],
-            id: 231,
+          testIssuerWithProxyAccessToken = await requestSiopJwt({
+            clientKid: configService.get<string>("testIssuerWithProxyKid"),
+            clientPrivateKey: configService.get<string>(
+              "testIssuerWithProxyPrivateKey"
+            ),
+            authorisationApiUrl: configService.get<string>(
+              "authorisationApiUrl"
+            ),
+            trustedAppsRegistryUrl: `${configService.get<string>("tarApiUrl")}`,
           });
 
-        const unsignedTransaction = responseBuild.body.result;
-        const uTx = formatEthersUnsignedTransaction(
-          JSON.parse(
-            JSON.stringify(unsignedTransaction)
-          ) as unknown as UnsignedTransaction
-        );
-        uTx.chainId = Number(uTx.chainId);
-        const sgnTx = await testIssuerWithProxyWallet.signTransaction(uTx);
-        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+          // Mock Trusted Issuers' endpoint
+          const issuer = getEbsiIssuer(
+            testIssuerWithProxyPrivateKey,
+            testIssuerWithProxyDid,
+            testIssuerWithProxyKid
+          );
+          const statusList2021CredentialJwt =
+            await createStatusList2021CredentialJwt(
+              issuer,
+              newIssuer1.proxy.rawProxyData,
+              authority
+            );
 
-        const responseSend: SupertestJsonRpcResponse = await request(server)
-          .post("/jsonrpc")
-          .auth(testIssuerWithProxyAccessToken, { type: "bearer" })
-          .send({
-            jsonrpc: "2.0",
-            method: "sendSignedTransaction",
-            params: [
-              {
-                protocol: "eth",
-                unsignedTransaction,
-                r,
-                s,
-                v: `0x${Number(v).toString(16)}`,
-                signedRawTransaction: sgnTx,
-              },
-            ],
-            id: "45",
-          });
+          nock(newIssuer1.proxy.rawProxyData.prefix)
+            .get(newIssuer1.proxy.rawProxyData.testSuffix)
+            .reply(200, statusList2021CredentialJwt)
+            .persist();
 
-        expect(responseSend.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: "45",
-          result: expect.any(String) as string,
+          nock(newIssuer2.proxy.rawProxyData.prefix)
+            .get(newIssuer2.proxy.rawProxyData.testSuffix)
+            .reply(200, statusList2021CredentialJwt)
+            .persist();
         });
-        expect(responseSend.status).toBe(200);
 
-        // wait to be mined
-        const receipt = await waitToBeMined(
-          ledgerApi,
-          apiAccessToken,
-          responseSend.body.result as string
-        );
-        expect(receipt.status).toBe(1);
-        sampleTransaction = responseSend.body.result as string;
+        afterAll(() => {
+          nock.cleanAll();
+        });
 
-        // Extra test
-        const extraTestResponse = await request(server).get(extraTestUrl);
+        it("should add / update the proxy", async () => {
+          expect.assertions(5);
 
-        expect(extraTestResponse.body).toStrictEqual(extraTestExpectedResponse);
-        expect(extraTestResponse.status).toBe(200);
-      });
-    }
-  );
+          const did = testIssuerWithProxyDid;
+          let extraTestUrl = "";
+          let extraTestExpectedResponse: unknown = {};
+          let params = {};
+
+          switch (method) {
+            case "addIssuerProxy": {
+              params = {
+                from: testIssuerWithProxyWallet.address,
+                did,
+                proxyData: newIssuer1.proxy.proxyData,
+              } as AddIssuerProxyParam;
+
+              extraTestUrl = `/issuers/${did}/proxies`;
+
+              extraTestExpectedResponse = {
+                // eslint-disable-next-line jest/no-conditional-expect
+                items: expect.arrayContaining([
+                  {
+                    proxyId: newIssuer1.proxy.proxyId,
+                    // eslint-disable-next-line jest/no-conditional-expect
+                    href: expect.stringContaining(
+                      `/proxies/${newIssuer1.proxy.proxyId}`
+                    ) as string,
+                  },
+                ]) as { proxyId: string; href: string }[],
+                // eslint-disable-next-line jest/no-conditional-expect
+                total: expect.any(Number) as number,
+              };
+
+              break;
+            }
+            case "updateIssuerProxy": {
+              params = {
+                from: testIssuerWithProxyWallet.address,
+                did,
+                proxyData: newIssuer2.proxy.proxyData,
+                proxyId: newIssuer1.proxy.proxyId,
+              } as UpdateIssuerProxyParam;
+
+              extraTestUrl = `/issuers/${did}/proxies/${newIssuer1.proxy.proxyId}`;
+              extraTestExpectedResponse = newIssuer2.proxy.rawProxyData;
+              break;
+            }
+            default: {
+              throw new Error(`Invalid method ${method}`);
+            }
+          }
+
+          const responseBuild: SupertestJsonRpcResponse = await request(server)
+            .post("/jsonrpc")
+            .auth(testIssuerWithProxyAccessToken, { type: "bearer" })
+            .send({
+              jsonrpc: "2.0",
+              method,
+              params: [params],
+              id: 231,
+            });
+
+          const unsignedTransaction = responseBuild.body.result;
+          const uTx = formatEthersUnsignedTransaction(
+            JSON.parse(
+              JSON.stringify(unsignedTransaction)
+            ) as unknown as UnsignedTransaction
+          );
+          uTx.chainId = Number(uTx.chainId);
+          const sgnTx = await testIssuerWithProxyWallet.signTransaction(uTx);
+          const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+          const responseSend: SupertestJsonRpcResponse = await request(server)
+            .post("/jsonrpc")
+            .auth(testIssuerWithProxyAccessToken, { type: "bearer" })
+            .send({
+              jsonrpc: "2.0",
+              method: "sendSignedTransaction",
+              params: [
+                {
+                  protocol: "eth",
+                  unsignedTransaction,
+                  r,
+                  s,
+                  v: `0x${Number(v).toString(16)}`,
+                  signedRawTransaction: sgnTx,
+                },
+              ],
+              id: "45",
+            });
+
+          expect(responseSend.body).toStrictEqual({
+            jsonrpc: "2.0",
+            id: "45",
+            result: expect.any(String) as string,
+          });
+          expect(responseSend.status).toBe(200);
+
+          // wait to be mined
+          const receipt = await waitToBeMined(
+            ledgerApi,
+            apiAccessToken,
+            responseSend.body.result as string
+          );
+          expect(receipt.status).toBe(1);
+          sampleTransaction = responseSend.body.result as string;
+
+          // Extra test
+          const extraTestResponse = await request(server).get(extraTestUrl);
+
+          expect(extraTestResponse.body).toStrictEqual(
+            extraTestExpectedResponse
+          );
+          expect(extraTestResponse.status).toBe(200);
+        });
+      }
+    );
+  });
 });
