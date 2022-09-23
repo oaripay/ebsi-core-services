@@ -1192,6 +1192,73 @@ describe("Did Documents", () => {
     ).to.be.revertedWith("controller doesn't exist");
   });
 
+  it("should get a did document by timestamp", async () => {
+    const args: InsertDidDocumentArgs = [
+      did,
+      baseDocument,
+      vMethodId,
+      user.publicKey,
+      true,
+      1000,
+      2000,
+    ];
+    const vMethodId2 = "O_EWDo1JUm3glFxTw3a9f2YfeKwbLuvG9kdGrb6gzHE";
+    const publicKey2 = ethers.Wallet.createRandom().publicKey;
+    await reg.insertDidDocument(...args);
+    await reg.addVerificationMethod(did, vMethodId2, publicKey2, true);
+    await reg.addVerificationRelationship(
+      did,
+      "capabilityInvocation",
+      vMethodId2,
+      notBefore,
+      notAfter
+    );
+    const now = Math.floor(Date.now() / 1000);
+    let didDocument = await reg.getDidDocumentByTimestamp(did, 1500);
+    expect(getEthObject(didDocument)).to.eql({
+      baseDocument,
+      controllers: [did],
+      vMethodIds: [vMethodId],
+      vMethods: [
+        {
+          publicKey: user.publicKey,
+          isSecp256k1: true,
+          revoked: false,
+        },
+      ],
+      vRelationships: [
+        {
+          name: "capabilityInvocation",
+          vMethodId,
+          notBefore: "1000",
+          notAfter: "2000",
+        },
+      ],
+    });
+
+    didDocument = await reg.getDidDocumentByTimestamp(did, now);
+    expect(getEthObject(didDocument)).to.eql({
+      baseDocument,
+      controllers: [did],
+      vMethodIds: [vMethodId2],
+      vMethods: [
+        {
+          publicKey: publicKey2,
+          isSecp256k1: true,
+          revoked: false,
+        },
+      ],
+      vRelationships: [
+        {
+          name: "capabilityInvocation",
+          vMethodId: vMethodId2,
+          notBefore: Number(notBefore).toString(),
+          notAfter: Number(notAfter).toString(),
+        },
+      ],
+    });
+  });
+
   it("should follow expected usage flow", async () => {
     await reg.insertDidDocument(
       did,

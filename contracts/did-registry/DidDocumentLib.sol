@@ -472,9 +472,10 @@ library DidDocumentLib {
         return ds.dids.paginate(page, pageSize);
     }
 
-    function getDidDocument(
+    function getDidDocumentByTimestamp(
         DidDocumentStorage.DidDocuments storage ds,
-        string memory did
+        string memory did,
+        uint256 timestamp
     )
         public
         view
@@ -500,8 +501,8 @@ library DidDocumentLib {
         uint256 sizeVRelationships = 0;
         for (uint256 i = 0; i < d.vRelationships.length; i++) {
             if (
-                block.timestamp < d.vRelationships[i].notBefore ||
-                block.timestamp > d.vRelationships[i].notAfter
+                timestamp < d.vRelationships[i].notBefore ||
+                timestamp > d.vRelationships[i].notAfter
             ) {
                 continue;
             }
@@ -525,8 +526,8 @@ library DidDocumentLib {
 
         for (uint256 i = 0; i < d.capabilityInvocations.length; i++) {
             if (
-                block.timestamp < d.capabilityInvocations[i].notBefore ||
-                block.timestamp > d.capabilityInvocations[i].notAfter
+                timestamp < d.capabilityInvocations[i].notBefore ||
+                timestamp > d.capabilityInvocations[i].notAfter
             ) {
                 continue;
             }

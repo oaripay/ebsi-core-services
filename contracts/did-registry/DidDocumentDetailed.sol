@@ -282,6 +282,21 @@ contract DidDocumentDetailed is DidDocumentStorage, ControllersStorage {
         )
     {
         DidDocuments storage ds = didDocumentStorage();
-        return ds.getDidDocument(did);
+        return ds.getDidDocumentByTimestamp(did, block.timestamp);
+    }
+
+    function getDidDocumentByTimestamp(string memory did, uint256 timestamp)
+        public
+        view
+        returns (
+            string memory baseDocument,
+            string[] memory controllers,
+            string[] memory vMethodIds,
+            DidDocumentStorage.VMethod[] memory vMethods,
+            DidDocumentStorage.VRelationship[] memory vRelationships
+        )
+    {
+        DidDocuments storage ds = didDocumentStorage();
+        return ds.getDidDocumentByTimestamp(did, timestamp);
     }
 }
