@@ -35,6 +35,7 @@ export interface ApiConfig {
 
 const TAR_PATH = "/trusted-apps-registry/v3/apps";
 const TIR_PATH = "/trusted-issuers-registry/v3/issuers";
+const TSR_PATH = "/trusted-schemas-registry/v2/schemas";
 const DIDR_PATH = "/did-registry/v3/identifiers";
 const HEALTH_CHECK_PATH = "/docs/";
 
@@ -75,8 +76,7 @@ export const loadConfig = (): ApiConfig => {
     trustedAppsRegistry: DOMAIN + TAR_PATH,
     trustedIssuersRegistry: DOMAIN + TIR_PATH,
     didRegistry: DOMAIN + DIDR_PATH,
-    authorisationCredentialSchema:
-      DOMAIN + process.env.AUTHORISATION_CREDENTIAL_SCHEMA,
+    authorisationCredentialSchema: `${DOMAIN}${TSR_PATH}/${process.env.AUTHORISATION_CREDENTIAL_SCHEMA}`,
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     domain: DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",

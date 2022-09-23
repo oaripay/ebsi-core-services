@@ -2,5 +2,5 @@ version: "3.7"
 
 services:
   authorisation-api-v2:
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/authorisation-api-v2:test_ebsiint-4628-redeploy-urls_v2.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/authorisation-api-v2:test_ebsiint-4750-align-schema-id_v2.0.0
     build: ../..
