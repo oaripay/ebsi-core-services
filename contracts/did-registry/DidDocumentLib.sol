@@ -12,7 +12,10 @@ library DidDocumentLib {
         pure
         returns (bool)
     {
-        return keccak256(bytes(a)) == keccak256(bytes(b));
+        if (abi.encodePacked(a).length != abi.encodePacked(b).length) {
+            return false;
+        }
+        return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
     }
 
     function getAddress(bytes storage publicKey)
@@ -195,13 +198,14 @@ library DidDocumentLib {
         for (uint256 i = 0; i < d.controllers.length; i++) {
             if (equalStrings(d.controllers[i], controller)) {
                 // swap with the last controller and pop the last one
-                d.controllers[d.controllers.length - 1] = d.controllers[i];
+                d.controllers[i] = d.controllers[d.controllers.length - 1];
                 d.controllers.pop();
                 found = true;
                 break;
             }
         }
         require(found, "controller not found");
+
         return true;
     }
 

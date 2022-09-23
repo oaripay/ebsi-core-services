@@ -2,10 +2,13 @@
 pragma solidity 0.8.12;
 
 import "./DidDocumentStorage.sol";
+import "./ControllersStorage.sol";
 import "./DidDocumentLib.sol";
+import "./ControllersLib.sol";
 
-contract DidDocumentDetailed is DidDocumentStorage {
+contract DidDocumentDetailed is DidDocumentStorage, ControllersStorage {
     using DidDocumentLib for DidDocuments;
+    using ControllersLib for Controllers;
 
     event DidDocumentInserted(
         string did,
@@ -71,6 +74,7 @@ contract DidDocumentDetailed is DidDocumentStorage {
         uint256 notAfter
     ) external returns (bool) {
         DidDocuments storage ds = didDocumentStorage();
+        Controllers storage cs = controllersStorage();
         bool result = ds.insertDidDocument(
             did,
             baseDocument,
@@ -80,6 +84,7 @@ contract DidDocumentDetailed is DidDocumentStorage {
             notBefore,
             notAfter
         );
+        cs.addController(did, did);
         emit DidDocumentInserted(
             did,
             baseDocument,
@@ -107,7 +112,9 @@ contract DidDocumentDetailed is DidDocumentStorage {
         returns (bool)
     {
         DidDocuments storage ds = didDocumentStorage();
+        Controllers storage cs = controllersStorage();
         bool result = ds.addController(did, controller);
+        cs.addController(did, controller);
         emit ControllerAdded(did, controller);
         return result;
     }
@@ -117,7 +124,9 @@ contract DidDocumentDetailed is DidDocumentStorage {
         returns (bool)
     {
         DidDocuments storage ds = didDocumentStorage();
+        Controllers storage cs = controllersStorage();
         bool result = ds.revokeController(did, controller);
+        cs.revokeController(did, controller);
         emit ControllerRevoked(did, controller);
         return result;
     }
@@ -235,6 +244,30 @@ contract DidDocumentDetailed is DidDocumentStorage {
     {
         DidDocuments storage ds = didDocumentStorage();
         return ds.getDids(page, pageSize);
+    }
+
+    function getDidsByController(
+        string memory controller,
+        uint256 page,
+        uint256 pageSize
+    )
+        public
+        view
+        returns (
+            string[] memory items,
+            uint256 total,
+            uint256 howMany,
+            uint256 prev,
+            uint256 next
+        )
+    {
+        DidDocuments storage ds = didDocumentStorage();
+        Controllers storage cs = controllersStorage();
+        require(
+            bytes(ds.didList[controller].baseDocument).length > 0,
+            "controller doesn't exist"
+        );
+        return cs.getDidsByController(controller, page, pageSize);
     }
 
     function getDidDocument(string memory did)

@@ -71,9 +71,20 @@ describe("Did Documents", () => {
     );
     const didDocumentLib = await didDocumentFactory.deploy();
 
+    const controllersFactory = await ethers.getContractFactory(
+      "ControllersLib",
+      {
+        libraries: {
+          Pagination: paginationLib.address,
+        },
+      }
+    );
+    const controllersLib = await controllersFactory.deploy();
+
     const contractFactory = await ethers.getContractFactory("DidRegistry", {
       libraries: {
         DidDocumentLib: didDocumentLib.address,
+        ControllersLib: controllersLib.address,
       },
     });
 
@@ -310,13 +321,45 @@ describe("Did Documents", () => {
       notBefore,
       notAfter
     );
+    await reg.insertDidDocument(
+      "did:ebsi:c2",
+      baseDocument,
+      vMethodId,
+      user.publicKey,
+      true,
+      notBefore,
+      notAfter
+    );
+    await reg.addController(did, "did:ebsi:c2");
     await expect(reg.revokeController(did, did)).to.emit(
       reg,
       "ControllerRevoked"
     );
     await expect(reg.revokeController(did, did)).to.be.revertedWith(
-      "not controller and not authorized for policy DID:revokeController"
+      "controller not found"
     );
+
+    const didDocument = await reg.getDidDocument(did);
+    expect(getEthObject(didDocument)).to.eql({
+      baseDocument,
+      controllers: ["did:ebsi:c2"],
+      vMethodIds: [vMethodId],
+      vMethods: [
+        {
+          publicKey: user.publicKey,
+          isSecp256k1: true,
+          revoked: false,
+        },
+      ],
+      vRelationships: [
+        {
+          name: "capabilityInvocation",
+          vMethodId,
+          notBefore: Number(notBefore).toString(),
+          notAfter: Number(notAfter).toString(),
+        },
+      ],
+    });
   });
 
   it("should check access control for revokeController", async () => {
@@ -1068,6 +1111,85 @@ describe("Did Documents", () => {
     await expect(reg.getDids(1, 51)).to.be.revertedWith(
       "pageSize must be <= 50"
     );
+  });
+
+  it("should get dids by controller", async () => {
+    const args: InsertDidDocumentArgs = [
+      "did:ebsi:1",
+      baseDocument,
+      vMethodId,
+      user.publicKey,
+      true,
+      notBefore,
+      notAfter,
+    ];
+    await reg.insertDidDocument(...args);
+    args[0] = "did:ebsi:2";
+    await reg.insertDidDocument(...args);
+    args[0] = "did:ebsi:3";
+    await reg.insertDidDocument(...args);
+    args[0] = "did:ebsi:4";
+    await reg.insertDidDocument(...args);
+    args[0] = "did:ebsi:5";
+    await reg.insertDidDocument(...args);
+    await reg.addController("did:ebsi:3", "did:ebsi:1");
+    await reg.addController("did:ebsi:3", "did:ebsi:2");
+    await reg.addController("did:ebsi:4", "did:ebsi:2");
+    await reg.addController("did:ebsi:5", "did:ebsi:2");
+    await reg.revokeController("did:ebsi:5", "did:ebsi:2");
+
+    let dids = await reg.getDidsByController("did:ebsi:1", 1, 10);
+    expect(getEthObject(dids)).to.eql({
+      items: ["did:ebsi:1", "did:ebsi:3"],
+      total: "2",
+      howMany: "2",
+      prev: "1",
+      next: "1",
+    });
+
+    dids = await reg.getDidsByController("did:ebsi:2", 1, 10);
+    expect(getEthObject(dids)).to.eql({
+      items: ["did:ebsi:2", "did:ebsi:3", "did:ebsi:4"],
+      total: "3",
+      howMany: "3",
+      prev: "1",
+      next: "1",
+    });
+
+    dids = await reg.getDidsByController("did:ebsi:3", 1, 10);
+    expect(getEthObject(dids)).to.eql({
+      items: ["did:ebsi:3"],
+      total: "1",
+      howMany: "1",
+      prev: "1",
+      next: "1",
+    });
+
+    dids = await reg.getDidsByController("did:ebsi:4", 1, 10);
+    expect(getEthObject(dids)).to.eql({
+      items: ["did:ebsi:4"],
+      total: "1",
+      howMany: "1",
+      prev: "1",
+      next: "1",
+    });
+
+    dids = await reg.getDidsByController("did:ebsi:5", 1, 10);
+    expect(getEthObject(dids)).to.eql({
+      items: ["did:ebsi:5"],
+      total: "1",
+      howMany: "1",
+      prev: "1",
+      next: "1",
+    });
+
+    await expect(
+      reg.getDidsByController("did:ebsi:5", 1, 51)
+    ).to.be.revertedWith("pageSize must be <= 50");
+
+    await expect(
+      reg.getDidsByController("did:ebsi:unknown", 1, 10)
+    ).to.be.revertedWith("controller doesn't exist");
   });
 
   it("should follow expected usage flow", async () => {
