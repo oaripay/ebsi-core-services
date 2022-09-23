@@ -299,4 +299,22 @@ contract DidDocumentDetailed is DidDocumentStorage, ControllersStorage {
         DidDocuments storage ds = didDocumentStorage();
         return ds.getDidDocumentByTimestamp(did, timestamp);
     }
+
+    function checkController(string memory did, address controller)
+        public
+        view
+        returns (bool)
+    {
+        DidDocuments storage ds = didDocumentStorage();
+        return ds.checkController(did, controller);
+    }
+
+    function checkController(bytes memory did, address controller)
+        public
+        view
+        returns (bool)
+    {
+        DidDocuments storage ds = didDocumentStorage();
+        return ds.checkController(string(did), controller);
+    }
 }

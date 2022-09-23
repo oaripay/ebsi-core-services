@@ -38,17 +38,15 @@ library DidDocumentLib {
         return address(uint160(uint256(keccak256(publicKeyWithoutPrefix))));
     }
 
-    modifier onlyControllerOrAuth(
+    function checkController(
         DidDocumentStorage.DidDocuments storage ds,
         string memory did,
-        string memory tprAttribute
-    ) {
+        address controller
+    ) public view returns (bool) {
         DidDocumentStorage.DidDocument storage d = ds.didList[did];
 
         // check did exist
         require(bytes(d.baseDocument).length > 0, "did doesn't exist");
-
-        bool isController = false;
 
         // check all controllers
         for (uint256 i = 0; i < d.controllers.length; i++) {
@@ -73,17 +71,26 @@ library DidDocumentLib {
                 // filter verification methods for secp256k1
                 if (
                     vMethod.isSecp256k1 &&
-                    getAddress(vMethod.publicKey) == msg.sender
+                    getAddress(vMethod.publicKey) == controller
                 ) {
-                    isController = true;
-                    break;
+                    return true;
                 }
             }
-
-            if (isController) {
-                break;
-            }
         }
+        return false;
+    }
+
+    modifier onlyControllerOrAuth(
+        DidDocumentStorage.DidDocuments storage ds,
+        string memory did,
+        string memory tprAttribute
+    ) {
+        DidDocumentStorage.DidDocument storage d = ds.didList[did];
+
+        // check did exist
+        require(bytes(d.baseDocument).length > 0, "did doesn't exist");
+
+        bool isController = checkController(ds, did, msg.sender);
 
         if (isController) {
             _;

@@ -1,6 +1,5 @@
 import { ethers, network, config } from "hardhat";
 import { expect } from "chai";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { DidRegistry, PolicyRegistryMock } from "../src/types";
 import { testTprAddress } from "./testAddress";
 import { getEthObject } from "./utils";
@@ -26,7 +25,8 @@ describe("Did Documents", () => {
   const hd = ethers.utils.HDNode.fromMnemonic(acc.mnemonic);
 
   let user = new ethers.Wallet(hd.derivePath("m/44'/60'/0'/0/1").privateKey);
-  let user2: SignerWithAddress;
+  let user2 = new ethers.Wallet(hd.derivePath("m/44'/60'/0'/0/2").privateKey);
+  let user3 = new ethers.Wallet(hd.derivePath("m/44'/60'/0'/0/3").privateKey);
   const did = "did:ebsi:zpUnevx4dP2R2BvbjFEnnFF";
   const baseDocument =
     '{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/jws-2020/v1"]}';
@@ -39,7 +39,8 @@ describe("Did Documents", () => {
     const admin = signers[0];
     if (!admin.provider) throw new Error("provider not defined");
     user = user.connect(admin.provider);
-    [, , user2] = signers;
+    user2 = user2.connect(admin.provider);
+    user3 = user3.connect(admin.provider);
 
     const policyRegistryFactory = await ethers.getContractFactory(
       "PolicyRegistryMock"
@@ -1257,6 +1258,67 @@ describe("Did Documents", () => {
         },
       ],
     });
+  });
+
+  it("should check if an address is a controller", async () => {
+    const vMethodId2 = "vMethodId2";
+    const vMethodId3 = "vMethodId3";
+    await reg.insertDidDocument(
+      did,
+      baseDocument,
+      vMethodId,
+      user.publicKey,
+      true,
+      notBefore,
+      notAfter
+    );
+    await reg.insertDidDocument(
+      "did:ebsi:c2",
+      baseDocument,
+      vMethodId2,
+      user2.publicKey,
+      true,
+      notBefore,
+      notAfter
+    );
+    await reg.insertDidDocument(
+      "did:ebsi:c3",
+      baseDocument,
+      vMethodId3,
+      user3.publicKey,
+      true,
+      notBefore,
+      notAfter
+    );
+    await reg.addController(did, "did:ebsi:c2");
+    /* eslint-disable @typescript-eslint/no-unused-expressions */
+    expect(await reg["checkController(string,address)"](did, user.address)).to
+      .be.true;
+    expect(await reg["checkController(string,address)"](did, user2.address)).to
+      .be.true;
+    expect(await reg["checkController(string,address)"](did, user3.address)).to
+      .be.false;
+    expect(
+      await reg["checkController(string,address)"](
+        did,
+        ethers.Wallet.createRandom().address
+      )
+    ).to.be.false;
+
+    const didHex = `0x${Buffer.from(did).toString("hex")}`;
+    expect(await reg["checkController(bytes,address)"](didHex, user.address)).to
+      .be.true;
+    expect(await reg["checkController(bytes,address)"](didHex, user2.address))
+      .to.be.true;
+    expect(await reg["checkController(bytes,address)"](didHex, user3.address))
+      .to.be.false;
+    expect(
+      await reg["checkController(bytes,address)"](
+        didHex,
+        ethers.Wallet.createRandom().address
+      )
+    ).to.be.false;
+    /* eslint-enable @typescript-eslint/no-unused-expressions */
   });
 
   it("should follow expected usage flow", async () => {
