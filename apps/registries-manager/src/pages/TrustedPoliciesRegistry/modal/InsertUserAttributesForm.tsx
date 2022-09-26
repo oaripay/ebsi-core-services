@@ -86,7 +86,7 @@ export default function InsertUserAttributesForm({
           {(fields, { add, remove }) => (
             <>
               <Space direction="vertical" className="w-100">
-                {fields.map(({ key, name, fieldKey }) => (
+                {fields.map(({ key, name }) => (
                   <Collapse
                     accordion
                     key={key}
@@ -99,7 +99,7 @@ export default function InsertUserAttributesForm({
                     <Collapse.Panel header={`Attribute ${name}`} key={name}>
                       <Form.Item
                         name={[name, "attribute"]}
-                        fieldKey={[fieldKey, "attribute"]}
+                        key={`${key}-attribute`}
                         label="Attribute"
                         rules={[
                           { required: true, message: "Field is required" },
@@ -109,7 +109,7 @@ export default function InsertUserAttributesForm({
                       </Form.Item>
                       <Form.Item
                         name={[name, "value"]}
-                        fieldKey={[fieldKey, "value"]}
+                        key={`${key}-value`}
                         label="Value"
                         rules={[
                           { required: true, message: "Field is required" },

@@ -111,7 +111,7 @@ export default function NewEditPolicyForm(prop: PropType): ReactElement {
           <Form.List name="policyConditions">
             {(fields, { add, remove }) => (
               <Space direction="vertical" className="w-100">
-                {fields.map(({ key, name, fieldKey }) => (
+                {fields.map(({ key, name }) => (
                   <Collapse
                     accordion
                     key={key}
@@ -128,7 +128,7 @@ export default function NewEditPolicyForm(prop: PropType): ReactElement {
                       <Space direction="vertical" className="w-100" key={key}>
                         <Form.Item
                           name={[name, "name"]}
-                          fieldKey={[fieldKey, "name"]}
+                          key={`${key}-name`}
                           label="Policy condition name"
                           rules={[
                             { required: true, message: "Field is required" },
@@ -139,7 +139,7 @@ export default function NewEditPolicyForm(prop: PropType): ReactElement {
                         <Form.Item
                           label="Attribute name"
                           name={[name, "attributeName"]}
-                          fieldKey={[fieldKey, "attributeName"]}
+                          key={`${key}-attributeName`}
                           rules={[
                             { required: true, message: "Field is required" },
                           ]}
@@ -149,7 +149,7 @@ export default function NewEditPolicyForm(prop: PropType): ReactElement {
                         <Form.Item
                           label="Type of value"
                           name={[name, "typeOfValue"]}
-                          fieldKey={[fieldKey, "typeOfValue"]}
+                          key={`${key}-typeOfValue`}
                           rules={[
                             { required: true, message: "Field is required" },
                           ]}
@@ -200,7 +200,7 @@ export default function NewEditPolicyForm(prop: PropType): ReactElement {
                         <Form.Item
                           label="Value"
                           name={[name, "value"]}
-                          fieldKey={[fieldKey, "value"]}
+                          key={`${key}-value`}
                           rules={[
                             { required: true, message: "Field is required" },
                           ]}
@@ -210,7 +210,7 @@ export default function NewEditPolicyForm(prop: PropType): ReactElement {
                         <Form.Item
                           label="Attribute operation"
                           name={[name, "attributeOperation"]}
-                          fieldKey={[fieldKey, "attributeOperation"]}
+                          key={`${key}-attributeOperation`}
                           rules={[
                             { required: true, message: "Field is required" },
                           ]}
