@@ -226,9 +226,9 @@ describe("DID Registry (e2e)", () => {
       trustedAppsRegistryUrl: configService.get<string>(
         "trustedAppsRegistryApiUrl"
       ),
-      ebsiEnv: configService.get<
-        "local" | "test" | "conformance" | "pilot" | "prod"
-      >("ebsiEnv"),
+      ebsiAuthority: configService
+        .get<string>("domain")
+        .replace(/^https?:\/\//, ""),
     });
 
     apiAccessToken = await getAccessToken(configService);
