@@ -268,11 +268,13 @@ describe("Files Module", () => {
         items: rows.map((row) => row.hash),
         links: {
           next: expect.stringMatching(
-            /^https:\/.test\.intebsi\.xyz\/storage\/v3\/stores\/distributed\/files\?page\[after\]=.*&page\[size\]=10/
+            /\/stores\/distributed\/files\?page\[after\]=.*&page\[size\]=10/
           ) as string,
         },
         pageSize: 10,
-        self: "https://test.intebsi.xyz/storage/v3/stores/distributed/files?page[size]=10",
+        self: expect.stringContaining(
+          "/stores/distributed/files?page[size]=10"
+        ) as string,
       });
       expect(response.status).toBe(200);
       expect(mockedCassandraClientExecute).toHaveBeenCalledWith(

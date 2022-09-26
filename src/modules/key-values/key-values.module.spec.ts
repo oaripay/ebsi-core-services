@@ -253,11 +253,13 @@ describe("Key-Values Module", () => {
         items: ["key1", "key2", "key3"],
         links: {
           next: expect.stringMatching(
-            /^https:\/.test\.intebsi\.xyz\/storage\/v3\/stores\/distributed\/key-values\?page\[after\]=.*&page\[size\]=10/
+            /\/stores\/distributed\/key-values\?page\[after\]=.*&page\[size\]=10/
           ) as string,
         },
         pageSize: 10,
-        self: "https://test.intebsi.xyz/storage/v3/stores/distributed/key-values?page[size]=10",
+        self: expect.stringContaining(
+          "/stores/distributed/key-values?page[size]=10"
+        ) as string,
       });
       expect(response.status).toBe(200);
     });
