@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [3.0.0-rc.2](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-apps-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv3.0.0-rc.1&sourceBranch=refs%2Ftags%2Fv3.0.0-rc.2&targetRepoId=248) (2022-09-21)
+
+### 🚀 Features
+
+- add timeout to http requests ([#140](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-apps-registry-api/pull-requests/140/overview)) - EBSIINT-4529 ([f7b9835](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-apps-registry-api/commits/f7b9835827f76afe5855f2a00452665de4af3ef8))
+
+### 🐛 Bug Fixes
+
+- update vulnerable dev dependencies ([#141](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-apps-registry-api/pull-requests/141/overview)) - EBSIINT-4581 ([b064fb9](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-apps-registry-api/commits/b064fb9c42973fd13101dd164904a0573ddf65e5))
+
 ## [3.0.0-rc.1](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-apps-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv3.0.0-rc.0&sourceBranch=refs%2Ftags%2Fv3.0.0-rc.1&targetRepoId=248) (2022-07-06)
 
 ### 🐛 Bug Fixes
