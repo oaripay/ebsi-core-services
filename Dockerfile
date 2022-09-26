@@ -1,9 +1,16 @@
-FROM node:16.14.2-alpine3.15@sha256:32f64135e74ec4dc5d63cc36318444f1d801cd23c44253124f7eccb52c4b89c5
+FROM node:16.17.1-bullseye-slim@sha256:d93fb5c25db163dc795d40eabf66251a2daf6a2c6a2d21cc29930e754aef4c2c
 
 WORKDIR /app
 
 # Install build dependencies
-RUN apk add --no-cache git g++ make py3-pip python3
+RUN apt-get update && apt-get install -y \
+  bash \
+  git \
+  g++ \
+  make \
+  python3 \
+  python3-pip \
+  && rm -rf /var/lib/apt/lists/*
 
 # Copy root package.json + yarn.lock
 COPY yarn.lock package.json ./
