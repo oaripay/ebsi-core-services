@@ -3,4 +3,4 @@ version: "3.7"
 services:
   trusted-policies-registry-api-v2:
     build: ../..
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/trusted-policies-registry-api-v2:pilot_ebsiint-4628-redeploy-urls_v2.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/trusted-policies-registry-api-v2:pilot_ebsiint-4750-update-libs_v2.0.0
