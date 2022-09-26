@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.2](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/notifications-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.1&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.2&targetRepoId=318) (2022-09-21)
+
+### 🚀 Features
+
+- add timeout to http requests ([#97](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/notifications-api/pull-requests/97/overview)) - EBSIINT-4529 ([e0ea403](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/notifications-api/commits/e0ea403afc1bb3d5af9093167bcb4a9484b594eb))
+
+### 🐛 Bug Fixes
+
+- remove health check ([1a637e5](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/notifications-api/commits/1a637e56a05d6865521af7708958829be0254374))
+
 ## [2.0.0-rc.1](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/notifications-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.0&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.1&targetRepoId=318) (2022-07-06)
 
 ### 🐛 Bug Fixes
