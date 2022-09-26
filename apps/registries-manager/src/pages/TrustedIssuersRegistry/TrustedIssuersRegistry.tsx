@@ -10,7 +10,13 @@ import { useVerifyNetworkEffectHook } from "../../hooks/use-verify-network-effec
 
 export default function TrustedIssuersRegistry(): ReactElement {
   useVerifyNetworkEffectHook();
-  const { attribute } = useParams();
+
+  interface RouteParams {
+    attribute: string;
+  }
+
+  const { attribute } = useParams<RouteParams>();
+
   return (
     <Space direction="vertical" className="content-container" size="middle">
       <Col lg={12}>

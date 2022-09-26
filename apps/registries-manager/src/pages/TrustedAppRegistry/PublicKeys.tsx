@@ -20,7 +20,11 @@ export default function PublicKeys(): ReactElement {
     getAppDetails,
   } = useTrustedAppPublicKeysHook();
 
-  const { id } = useParams();
+  interface RouteParams {
+    id: string;
+  }
+
+  const { id } = useParams<RouteParams>();
 
   const { push } = useHistory();
 

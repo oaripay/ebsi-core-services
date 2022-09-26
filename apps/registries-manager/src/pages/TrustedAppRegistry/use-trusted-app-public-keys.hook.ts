@@ -12,7 +12,7 @@ export function useTrustedAppPublicKeysHook() {
   const [tableLoading, setTableLoading] = useState(false);
 
   const getTotal = useCallback(
-    async (appId: number) => {
+    async (appId: string) => {
       if (!registryContract) {
         return [];
       }
@@ -27,7 +27,7 @@ export function useTrustedAppPublicKeysHook() {
   );
 
   const initTotal = useCallback(
-    async (appId: number) => {
+    async (appId: string) => {
       const nrOfItems = await getTotal(appId);
       setTotal(nrOfItems);
     },
@@ -35,7 +35,7 @@ export function useTrustedAppPublicKeysHook() {
   );
 
   const getAppDetails = useCallback(
-    (appId: number) => {
+    (appId: string) => {
       if (!registryContract) {
         return {};
       }
@@ -45,7 +45,7 @@ export function useTrustedAppPublicKeysHook() {
   );
 
   const getPublicKeys = useCallback(
-    async (appId: number): Promise<PaginatedResponseType> => {
+    async (appId: string): Promise<PaginatedResponseType> => {
       if (!registryContract) {
         return {
           total: new BigNumber(0),
@@ -71,7 +71,7 @@ export function useTrustedAppPublicKeysHook() {
   );
 
   const loadTableData = useCallback(
-    async (appId: number) => {
+    async (appId: string) => {
       setTableLoading(true);
       const publicKeys = await getPublicKeys(appId);
       setDataSource(

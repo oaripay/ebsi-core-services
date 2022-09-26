@@ -28,7 +28,11 @@ export default function Authorizations(): ReactElement {
 
   const { setAuthorizedAppsModal, setUpdateAuthorization } = useAppContext();
 
-  const { id } = useParams();
+  interface RouteParams {
+    id: string;
+  }
+
+  const { id } = useParams<RouteParams>();
 
   const columns = useMemo(() => {
     return [
