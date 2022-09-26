@@ -26,7 +26,6 @@ COPY ./apis/trusted-schemas-registry/package.json ./apis/trusted-schemas-registr
 COPY ./apis/users-onboarding/package.json ./apis/users-onboarding/
 COPY ./contracts/bootstrap/package.json ./contracts/bootstrap/
 COPY ./contracts/did-registry/package.json ./contracts/did-registry/
-COPY ./contracts/proxy/package.json ./contracts/proxy/
 COPY ./contracts/timestamp/package.json ./contracts/timestamp/
 COPY ./contracts/trusted-apps-registry/package.json ./contracts/trusted-apps-registry/
 COPY ./contracts/trusted-issuers-registry/package.json ./contracts/trusted-issuers-registry/
