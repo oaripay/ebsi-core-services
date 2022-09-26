@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [3.0.0-rc.2](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv3.0.0-rc.1&sourceBranch=refs%2Ftags%2Fv3.0.0-rc.2&targetRepoId=244) (2022-09-21)
+
+### 🚀 Features
+
+- add timeout to http requests ([#144](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/144/overview)) - EBSIINT-4529 ([3a622dc](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/3a622dc82c3c6f8f580f41f158ac3d580a566129))
+
+### 🐛 Bug Fixes
+
+- fix vulnerability ([#147](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/pull-requests/147/overview)) - EBSIINT-4639 ([bdff691](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/bdff691534f75d0d71936d1314c3b4d6314dbef4))
+- remove health check config ([2437120](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/commits/2437120e9dd9c581124596512983d9e3de5ffa55))
+
 ## [3.0.0-rc.1](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/compare/diff?targetBranch=refs%2Ftags%2Fv3.0.0-rc.0&sourceBranch=refs%2Ftags%2Fv3.0.0-rc.1&targetRepoId=244) (2022-07-06)
 
 ### 🚀 Features

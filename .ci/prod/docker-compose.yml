@@ -2,5 +2,5 @@ version: "3.7"
 
 services:
   ledger-api-v3:
-    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/ledger-api-v3:prod_ebsiint-4628-redeploy-urls_v3.0.0
+    image: 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/ledger-api-v3:prod_ebsiint-4750-update-libs_v3.0.0
     build: ../..
