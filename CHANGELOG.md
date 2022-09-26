@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.2](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.1&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.2&targetRepoId=234) (2022-09-22)
+
+### 🚀 Features
+
+- add timeout to http requests ([#106](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-api/pull-requests/106/overview)) - EBSIINT-4529 ([47532c3](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-api/commits/47532c3554d2aa64c28471689933232069ce6831))
+
+### 🐛 Bug Fixes
+
+- fix Fastify Helmet plugin import ([#107](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-api/pull-requests/107/overview)) - EBSIINT-4529 ([3577cf1](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-api/commits/3577cf1872b598eba2ea51308ee3ed7718a84d88))
+- fixes vulnerability `GHSA-wc69-rhjr-hc9g` ([#105](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-api/pull-requests/105/overview)) - EBSIINT-4439 ([341da46](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-api/commits/341da46a936b905a04fd2d66ff61c729eebf06bc))
+
 ## [2.0.0-rc.1](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.0&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.1&targetRepoId=234) (2022-07-06)
 
 ### 🚀 Features
