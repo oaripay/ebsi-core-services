@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.2](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.1&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.2&targetRepoId=387) (2022-09-22)
+
+### 🚀 Features
+
+- add timeout to http requests ([#88](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/pull-requests/88/overview)) - EBSIINT-4529 ([742d220](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/commits/742d220317090d7a2fa0968c88e8ae03ef770097))
+
+### 🐛 Bug Fixes
+
+- remove unnecessary comment ([e0d675a](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/commits/e0d675a996b308f26006bed144cc94a569cc313b))
+
 ## [2.0.0-rc.1](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.0&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.1&targetRepoId=387) (2022-07-06)
 
 ### 🐛 Bug Fixes
