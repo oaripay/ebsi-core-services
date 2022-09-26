@@ -43,8 +43,8 @@
   "workspaces": {
     "packages": [
       "apis/**",
-      "contracts/**"
-    ],
-    "nohoist": ["**/react", "**/react-dom/**", "@types/react", "@types/react-dom"]
+      "contracts/**",
+      "apps/**"
+    ]
   }
 }
