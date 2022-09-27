@@ -33,57 +33,28 @@ export interface ApiConfig {
   dockerContainerTag: string;
 }
 
+const TAR_PATH = "/trusted-apps-registry/v3/apps";
+const TIR_PATH = "/trusted-issuers-registry/v3/issuers";
+const TSR_PATH = "/trusted-schemas-registry/v2/schemas";
+const DIDR_PATH = "/did-registry/v3/identifiers";
+const HEALTH_CHECK_PATH = "/docs/";
+
 // Example of default values to be used, depending on the environment
 const defaultConfig = {
   local: {
     LOG_LEVEL: "debug",
-    DOMAIN: "https://api.test.intebsi.xyz",
-    TRUSTED_APPS_REGISTRY:
-      "https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps",
-    TRUSTED_ISSUERS_REGISTRY:
-      "https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers",
-    HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
-    DID_REGISTRY: "https://api.test.intebsi.xyz/did-registry/v3/identifiers",
   },
   test: {
     LOG_LEVEL: "info",
-    DOMAIN: "https://api.test.intebsi.xyz",
-    TRUSTED_APPS_REGISTRY:
-      "https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps",
-    TRUSTED_ISSUERS_REGISTRY:
-      "https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers",
-    HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
-    DID_REGISTRY: "https://api.test.intebsi.xyz/did-registry/v3/identifiers",
   },
   conformance: {
     LOG_LEVEL: "info",
-    DOMAIN: "https://api.conformance.intebsi.xyz",
-    TRUSTED_APPS_REGISTRY:
-      "https://api.conformance.intebsi.xyz/trusted-apps-registry/v3/apps",
-    TRUSTED_ISSUERS_REGISTRY:
-      "https://api.conformance.intebsi.xyz/trusted-issuers-registry/v3/issuers",
-    HEALTH_CHECK: "https://api.conformance.intebsi.xyz/docs/",
-    DID_REGISTRY:
-      "https://api.conformance.intebsi.xyz/did-registry/v3/identifiers",
   },
   pilot: {
     LOG_LEVEL: "warn",
-    DOMAIN: "https://api.preprod.ebsi.eu",
-    TRUSTED_APPS_REGISTRY:
-      "https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps",
-    TRUSTED_ISSUERS_REGISTRY:
-      "https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/issuers",
-    HEALTH_CHECK: "https://api.preprod.ebsi.eu/docs/",
-    DID_REGISTRY: "https://api.preprod.ebsi.eu/did-registry/v3/identifiers",
   },
   prod: {
     LOG_LEVEL: "error",
-    DOMAIN: "https://api.ebsi.eu",
-    TRUSTED_APPS_REGISTRY: "https://api.ebsi.eu/trusted-apps-registry/v3/apps",
-    TRUSTED_ISSUERS_REGISTRY:
-      "https://api.ebsi.eu/trusted-issuers-registry/v3/issuers",
-    HEALTH_CHECK: "https://api.ebsi.eu/docs/",
-    DID_REGISTRY: "https://api.ebsi.eu/did-registry/v3/identifiers",
   },
 };
 
@@ -91,7 +62,7 @@ const defaultConfig = {
 // Note that process.env — for which provide typings in src/environment.d.ts —
 // should have already been validated by Joi in src/app.module.ts
 export const loadConfig = (): ApiConfig => {
-  const { EBSI_ENV } = process.env;
+  const { EBSI_ENV, DOMAIN } = process.env;
   const dockerContainerTag = getDockerTag(EBSI_ENV);
 
   return {
@@ -102,20 +73,14 @@ export const loadConfig = (): ApiConfig => {
     ebsiEnv: EBSI_ENV,
     onboardingAllowlist: process.env.ONBOARDING_ALLOWLIST.split(","),
     onboardingApiPrivateKey: process.env.ONBOARDING_API_PRIVATE_KEY || "",
-    trustedAppsRegistry:
-      process.env.TRUSTED_APPS_REGISTRY ||
-      defaultConfig[EBSI_ENV].TRUSTED_APPS_REGISTRY,
-    trustedIssuersRegistry:
-      process.env.TRUSTED_ISSUERS_REGISTRY ||
-      defaultConfig[EBSI_ENV].TRUSTED_ISSUERS_REGISTRY,
-    didRegistry:
-      process.env.DID_REGISTRY || defaultConfig[EBSI_ENV].DID_REGISTRY,
-    authorisationCredentialSchema: process.env.AUTHORISATION_CREDENTIAL_SCHEMA,
+    trustedAppsRegistry: DOMAIN + TAR_PATH,
+    trustedIssuersRegistry: DOMAIN + TIR_PATH,
+    didRegistry: DOMAIN + DIDR_PATH,
+    authorisationCredentialSchema: `${DOMAIN}${TSR_PATH}/${process.env.AUTHORISATION_CREDENTIAL_SCHEMA}`,
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
-    domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
+    domain: DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
-    externalEbsiApiHealthCheck:
-      process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
+    externalEbsiApiHealthCheck: DOMAIN + HEALTH_CHECK_PATH,
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     testAppName: process.env.TEST_APP_NAME || "",
     testAppPrivateKey: process.env.TEST_APP_PRIVATE_KEY || "",
@@ -161,15 +126,11 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "debug"
     ),
     // Authorisation specific variables
-    DOMAIN: Joi.string().uri(),
+    DOMAIN: Joi.string().uri().required(),
     LOCAL_ORIGIN: Joi.string().uri(),
     ONBOARDING_ALLOWLIST: Joi.string().required(),
     ONBOARDING_API_PRIVATE_KEY: Joi.string(),
-    TRUSTED_APPS_REGISTRY: Joi.string().uri(),
-    TRUSTED_ISSUERS_REGISTRY: Joi.string().uri(),
-    DID_REGISTRY: Joi.string().uri(),
     AUTHORISATION_CREDENTIAL_SCHEMA: Joi.string().required(),
-    HEALTH_CHECK: Joi.string().uri(),
     REQUEST_TIMEOUT: Joi.string(),
     // Test specific variables
     TEST_APP_NAME: Joi.string(),

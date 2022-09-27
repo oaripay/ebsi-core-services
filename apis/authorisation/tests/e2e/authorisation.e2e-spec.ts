@@ -65,6 +65,8 @@ describe("Authorisation (e2e)", () => {
   };
   let configService: ConfigService<ApiConfig, true>;
   let ebsiEnv: "test" | "conformance" | "pilot" | "prod";
+  let domain: string;
+
   // Fake audience used for the creation of the VP JWT (not checked by the API)
   const audience = "authorisation-api";
 
@@ -119,6 +121,7 @@ describe("Authorisation (e2e)", () => {
     ebsiEnv = configService.get<"test" | "conformance" | "pilot" | "prod">(
       "ebsiEnv"
     );
+    domain = configService.get<string>("domain");
   });
 
   describe("POST /authentication-requests", () => {
@@ -396,7 +399,6 @@ describe("Authorisation (e2e)", () => {
         const keyObject = await getKeyByAlg(clientPrivateKeys, alg);
 
         const clientPrivateKey = await importJWK(keyObject.privateKeyJwk, alg);
-        const domain = configService.get<string>("domain");
         const urlPrefix = configService.get<string>("apiUrlPrefix");
         const siopSessionsUrl = `${domain}${urlPrefix}/siop-sessions`;
         const nonce = randomUUID();
@@ -618,7 +620,6 @@ describe("Authorisation (e2e)", () => {
       it(`should create a SIOP session for a user that uses alg ${alg}`, async () => {
         expect.assertions(4);
 
-        const domain = configService.get<string>("domain");
         const urlPrefix = configService.get<string>("apiUrlPrefix");
         const privateKey = prefix0x(configService.get<string>("apiPrivateKey"));
         const siopSessionsUrl = `${domain}${urlPrefix}/siop-sessions`;
@@ -881,7 +882,7 @@ describe("Authorisation (e2e)", () => {
               authorisationCredentialSchema,
               onboardingApiPrivateKey,
               onboardingAllowlist[0], // must be did of onboarding api
-              ebsiEnv
+              domain
             );
 
           // 2. The client creates a verifiable presentation using the verifiable credential
@@ -1002,7 +1003,7 @@ describe("Authorisation (e2e)", () => {
         authorisationCredentialSchema,
         trustedIssuer.privateKey, // not signed by onboarding api, but by a different Trusted Issuer
         trustedIssuer.did,
-        ebsiEnv
+        domain
       );
 
       // 2. The client creates a verifiable presentation using the verifiable credential

@@ -11,13 +11,9 @@ declare global {
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
       ONBOARDING_ALLOWLIST: string;
       ONBOARDING_API_PRIVATE_KEY?: string;
-      TRUSTED_APPS_REGISTRY?: string;
-      TRUSTED_ISSUERS_REGISTRY?: string;
-      DID_REGISTRY?: string;
       AUTHORISATION_CREDENTIAL_SCHEMA: string;
-      DOMAIN?: string;
+      DOMAIN: string;
       LOCAL_ORIGIN?: string;
-      HEALTH_CHECK?: string;
       REQUEST_TIMEOUT?: string;
       TEST_APP_NAME?: string;
       TEST_APP_PRIVATE_KEY?: string;

@@ -533,6 +533,7 @@ describe("Authorisation Module", () => {
               controller: "",
             },
             jwt: "",
+            verified: true,
           })
         );
 
@@ -735,6 +736,7 @@ describe("Authorisation Module", () => {
               controller: "",
             },
             jwt: "",
+            verified: true,
           })
         );
 
@@ -762,9 +764,13 @@ describe("Authorisation Module", () => {
             exp: expect.any(Number) as number,
             iss: configService.get<string>("apiName"),
           }) as Ake1SigPayload,
-          kid: `https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps/${configService.get<string>(
-            "apiName"
-          )}`,
+          kid: <string>(
+            expect.stringContaining(
+              `/trusted-apps-registry/v3/apps/${configService.get<string>(
+                "apiName"
+              )}`
+            )
+          ),
         });
         expect(response.status).toBe(200);
       });
@@ -797,7 +803,7 @@ describe("Authorisation Module", () => {
             id: client.did,
           },
           credentialSchema: {
-            id: "https://api.test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e3234342e332e3137302e332e332e312e3734",
+            id: "https://test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e3234342e332e3137302e332e332e312e3734",
             type: "FullJsonSchemaValidator2021",
           },
           expirationDate: "2031-11-30T00:00:00Z",
@@ -911,6 +917,7 @@ describe("Authorisation Module", () => {
               controller: "",
             },
             jwt: "",
+            verified: true,
           })
         );
 
@@ -943,9 +950,13 @@ describe("Authorisation Module", () => {
             exp: expect.any(Number) as number,
             iss: configService.get<string>("apiName"),
           }) as Ake1SigPayload,
-          kid: `https://api.test.intebsi.xyz/trusted-apps-registry/v3/apps/${configService.get<string>(
-            "apiName"
-          )}`,
+          kid: <string>(
+            expect.stringContaining(
+              `/trusted-apps-registry/v3/apps/${configService.get<string>(
+                "apiName"
+              )}`
+            )
+          ),
         });
         expect(response.status).toBe(200);
       });

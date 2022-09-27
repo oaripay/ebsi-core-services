@@ -180,13 +180,11 @@ export class AuthorisationService {
           }
 
           try {
-            const ebsiEnv = this.configService.get<
-              "test" | "conformance" | "pilot" | "prod"
-            >("ebsiEnv");
+            const domain = this.configService.get<string>("domain");
 
             // Verify VC
             await verifyCredentialJwt(verifiableCredential, {
-              ebsiEnv,
+              ebsiAuthority: domain.replace(/^https?:\/\//, ""), // remove http protocol scheme
               timeout: this.timeout,
             });
           } catch (e) {

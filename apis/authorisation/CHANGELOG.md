@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.2](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/authorisation-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.1&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.2&targetRepoId=359) (2022-09-21)
+
+### 🚀 Features
+
+- add timeout to http requests ([#129](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/authorisation-api/pull-requests/129/overview)) - EBSIINT-4529 ([f50133b](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/authorisation-api/commits/f50133b3697aa1fa052ecc8f0c2de0df9341237f))
+
+### 🐛 Bug Fixes
+
+- fix Fastify Helmet plugin import ([#130](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/authorisation-api/pull-requests/130/overview)) - EBSIINT-4529 ([02fa52b](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/authorisation-api/commits/02fa52b716cb20340a244353f309d93bc96a4760))
+- fix health check path ([aa41071](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/authorisation-api/commits/aa41071916b07b1b468416b7b2e66bf86f996eda))
+- fixes vulnerability `GHSA-wc69-rhjr-hc9g` ([#128](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/authorisation-api/pull-requests/128/overview)) - EBSIINT-4439 ([ab263e8](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/authorisation-api/commits/ab263e81ddf25f06fce49901ab6dc841f01225cc))
+
 ## [2.0.0-rc.1](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/authorisation-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.0&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.1&targetRepoId=359) (2022-07-06)
 
 ### 🚀 Features

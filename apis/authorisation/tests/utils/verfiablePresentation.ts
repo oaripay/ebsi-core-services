@@ -11,7 +11,7 @@ export async function createVpJwt(
   holderPrivateKeyJwk: JWK,
   vc: string,
   audience: string,
-  ebsiEnv: "test" | "conformance" | "pilot" | "prod",
+  ebsiAuthority: string,
   alg: "ES256" | "ES256K" | "EdDSA" = "ES256K"
 ): Promise<string> {
   const presentation: EbsiVerifiablePresentation = {
@@ -36,7 +36,7 @@ export async function createVpJwt(
     holder,
     audience,
     {
-      ebsiEnv,
+      ebsiAuthority,
       skipValidation: true,
     }
   );
