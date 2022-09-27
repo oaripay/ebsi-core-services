@@ -5,11 +5,11 @@ pipeline {
     stage('Fetch main branch') {
       when {
         not {
-          branch 'nx'
+          branch 'nx-latest'
         }
       }
       steps {
-        sh 'git fetch origin nx:nx'
+        sh 'git fetch origin nx-latest:nx-latest'
       }
     }
 
@@ -23,7 +23,7 @@ pipeline {
 
     stage('Lint') {
       when {
-        branch 'nx'
+        branch 'nx-latest'
       }
       steps {
         nodejs(nodeJSInstallationName: '16.13.0') {
@@ -34,7 +34,7 @@ pipeline {
 
     stage('Build docker images') {
       when {
-        branch 'nx'
+        branch 'nx-latest'
       }
       steps {
         nodejs(nodeJSInstallationName: '16.13.0') {
