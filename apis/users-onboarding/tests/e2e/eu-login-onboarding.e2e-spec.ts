@@ -174,8 +174,8 @@ describe("EU Login onboarding", () => {
     });
 
     expect(requestPayload.iss).toBe(configService.get<string>("apiName"));
-    expect(requestPayload.client_id).toBe(
-      "https://api.test.intebsi.xyz/users-onboarding/v2/authentication-responses"
+    expect(requestPayload.client_id).toStrictEqual(
+      expect.stringContaining("/users-onboarding/v2/authentication-responses")
     );
 
     // 3 - Create a DID-Auth response
@@ -222,12 +222,12 @@ describe("EU Login onboarding", () => {
     );
 
     // 5 - Validate the Verifiable Auth
-    const ebsiEnv = configService.get<
-      "test" | "conformance" | "pilot" | "prod"
-    >("ebsiEnv");
+    const domain = configService.get<string>("domain");
     const validation = await verifyCredentialJwt(
       authenticationServerResponse.body.verifiableCredential,
-      { ebsiEnv }
+      {
+        ebsiAuthority: domain.replace(/^https?:\/\//, ""), // remove http protocol scheme
+      }
     );
     expect(validation).toBeDefined();
   });

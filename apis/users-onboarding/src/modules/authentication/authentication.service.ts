@@ -273,9 +273,7 @@ export default class AuthenticationService {
       alg: "ES256K",
     };
 
-    const ebsiEnv = this.configService.get<
-      "test" | "conformance" | "pilot" | "prod"
-    >("ebsiEnv");
+    const domain = this.configService.get<string>("domain");
 
     const vc: EbsiVerifiableAttestation = {
       "@context": ["https://www.w3.org/2018/credentials/v1"],
@@ -294,7 +292,7 @@ export default class AuthenticationService {
     };
 
     const jwt = await createVerifiableCredentialJwt(vc, issuer, {
-      ebsiEnv,
+      ebsiAuthority: domain.replace(/^https?:\/\//, ""),
       skipValidation: true,
       timeout: this.timeout,
     });
