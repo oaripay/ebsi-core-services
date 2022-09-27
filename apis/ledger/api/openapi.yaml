@@ -386,16 +386,16 @@ paths:
               examples:
                 "[test] Get Available Channels":
                   value:
-                    self: https://api.test.intebsi.xyz/ledger/v3/blockchains/fabric/channels?page[after]=1&page[size]=10
+                    self: https://test.intebsi.xyz/ledger/v3/blockchains/fabric/channels?page[after]=1&page[size]=10
                     items:
                       - iossdrpocchannel
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.test.intebsi.xyz/ledger/v3/blockchains/fabric/channels?page[after]=1&page[size]=10
-                      prev: https://api.test.intebsi.xyz/ledger/v3/blockchains/fabric/channels?page[after]=1&page[size]=10
-                      next: https://api.test.intebsi.xyz/ledger/v3/blockchains/fabric/channels?page[after]=1&page[size]=10
-                      last: https://api.test.intebsi.xyz/ledger/v3/blockchains/fabric/channels?page[after]=1&page[size]=10
+                      first: https://test.intebsi.xyz/ledger/v3/blockchains/fabric/channels?page[after]=1&page[size]=10
+                      prev: https://test.intebsi.xyz/ledger/v3/blockchains/fabric/channels?page[after]=1&page[size]=10
+                      next: https://test.intebsi.xyz/ledger/v3/blockchains/fabric/channels?page[after]=1&page[size]=10
+                      last: https://test.intebsi.xyz/ledger/v3/blockchains/fabric/channels?page[after]=1&page[size]=10
                 "[pilot] Get Available Channels":
                   value:
                     self: https://api.preprod.ebsi.eu/ledger/v3/blockchains/fabric/channels?page[after]=1&page[size]=10
@@ -549,12 +549,12 @@ paths:
                         txIds: []
                     total: 3
                     pageSize: 10
-                    self: https://api.test.intebsi.xyz/ledger/v3/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
+                    self: https://test.intebsi.xyz/ledger/v3/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
                     links:
-                      first: https://api.test.intebsi.xyz/ledger/v3/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
-                      prev: https://api.test.intebsi.xyz/ledger/v3/blockchains/fabric/channel/iossdrpocchannel/blocks?page[after]=1&page[size]=10
-                      next: https://api.test.intebsi.xyz/ledger/v3/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
-                      last: https://api.test.intebsi.xyz/ledger/v3/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
+                      first: https://test.intebsi.xyz/ledger/v3/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
+                      prev: https://test.intebsi.xyz/ledger/v3/blockchains/fabric/channel/iossdrpocchannel/blocks?page[after]=1&page[size]=10
+                      next: https://test.intebsi.xyz/ledger/v3/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
+                      last: https://test.intebsi.xyz/ledger/v3/blockchains/fabric/channels/iossdrpocchannel/blocks?page[after]=1&page[size]=10
                 "[pilot] Get blocks of the specified channel":
                   value:
                     items:
@@ -797,10 +797,10 @@ paths:
                                 data: []
                             endorsersMspId: [null]
                     pageSize: 2
-                    self: https://api.test.intebsi.xyz/ledger/v3/blockchains/fabric/channels/iossdrpocchannel/transactions?page[after]=7&page[size]=10
+                    self: https://test.intebsi.xyz/ledger/v3/blockchains/fabric/channels/iossdrpocchannel/transactions?page[after]=7&page[size]=10
                     links:
-                      first: https://api.test.intebsi.xyz/ledger/v3/blockchains/fabric/channels/iossdrpocchannel/transactions?page[after]=7&page[size]=2
-                      next: https://api.test.intebsi.xyz/ledger/v3/blockchains/fabric/channels/iossdrpocchannel/transactions?page[after]=566a762803f2391308b5ecf4138d331755ca2a92ddedcd97ccbfb7d8f5376e9a1&page[size]=2
+                      first: https://test.intebsi.xyz/ledger/v3/blockchains/fabric/channels/iossdrpocchannel/transactions?page[after]=7&page[size]=2
+                      next: https://test.intebsi.xyz/ledger/v3/blockchains/fabric/channels/iossdrpocchannel/transactions?page[after]=566a762803f2391308b5ecf4138d331755ca2a92ddedcd97ccbfb7d8f5376e9a1&page[size]=2
                 "[pilot] Get transactions of the specified channel":
                   value:
                     items:

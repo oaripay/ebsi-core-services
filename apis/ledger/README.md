@@ -45,7 +45,7 @@ For more information see:
 
 You can choose to run the project locally with your own Node.js environment, or you can use Docker Compose to run it.
 
-First, create an `.env.default.local` file locally. You can duplicate the content of `.env.default` or only set the variables that you want to change.
+First, create an `.env.local` file locally. You can duplicate the content of `.env` or only set the variables that you want to change.
 
 ### Run the project locally
 
@@ -81,7 +81,7 @@ You can now open http://localhost:3000/ledger/v3/health. If everything's working
 
 ### Run with Docker
 
-After creating the `.env.default.local` file, run:
+After creating the `.env.local` file, run:
 
 ```sh
 docker-compose up --build
@@ -231,7 +231,7 @@ docker run -i loadimpact/k6 run -e JWT=xxx BASE_URL=http://host.docker.internal:
 Note: you can also use k6 to test the remote API by configuring BASE_URL:
 
 ```sh
-JWT=xxx BASE_URL=https://api.test.intebsi.xyz k6 run tests/k6/script.js --no-usage-report
+JWT=xxx BASE_URL=https://test.intebsi.xyz k6 run tests/k6/script.js --no-usage-report
 ```
 
 ## Cutting a new release
