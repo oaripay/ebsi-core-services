@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.2](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-schemas-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.1&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.2&targetRepoId=292) (2022-09-22)
+
+### 🚀 Features
+
+- add timeout to http requests ([#101](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-schemas-registry-api/pull-requests/101/overview)) - EBSIINT-4529 ([188b705](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-schemas-registry-api/commits/188b705de652d4bf7c4b10bd63ea8d46557ca17e))
+
+### 🐛 Bug Fixes
+
+- fix Fastify Helmet plugin import ([#102](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-schemas-registry-api/pull-requests/102/overview)) - EBSIINT-4529 ([1a00298](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-schemas-registry-api/commits/1a002986b7efce1aa6f96dd95aba0e99e7709a53))
+- fixes vulnerability `GHSA-v923-w3x8-wh69` ([#99](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-schemas-registry-api/pull-requests/99/overview)) - EBSIINT-4439 ([549f7a2](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-schemas-registry-api/commits/549f7a27d7fe32694a0795743a43fad6310fde8e))
+
 ## [2.0.0-rc.1](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-schemas-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.0&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.1&targetRepoId=292) (2022-07-06)
 
 ### 🐛 Bug Fixes
