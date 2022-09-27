@@ -6,7 +6,6 @@ Trusted Apps Registry (TAR) API is an EBSI core service. It enables us to intera
 
 - manage (register/update/revoke) trusted EBSI and trusted external applications,
 - manage application authorisations,
-- manage application administrators,
 - obtain application information,
 - obtain application authorisations.
 
@@ -46,9 +45,11 @@ For more information see:
 
 You can choose to run the project locally with your own Node.js environment, or you can use Docker Compose to run it.
 
-First, create an `.env.default.local` file locally. You can duplicate the content of `.env.default` or only set the variables that you want to change.
+First, create an `.env.local` file locally. You can duplicate the content of `.env` or only set the variables that you want to change.
 
-You must at least set `CONTRACT_ADDR` and `EBSI_ENV` to run the API.
+Please note that you need to fill the `TEST_ADMIN_PRIVATE_KEY` environment variable with secp256k1 elliptic curve private keys in hexadecimal.
+
+You must at least set `CONTRACT_ADDR`, `DOMAIN`, `BESU_RPC_NODE` and `EBSI_ENV` to run the API. For e2e testing, you must also set `TEST_ADMIN_DID` and `TEST_ADMIN_PRIVATE_KEY`.
 
 After cloning the repository, make sure to update the submodules:
 
@@ -86,17 +87,17 @@ And then you can serve the production build with:
 yarn start:prod
 ```
 
-You can now open http://localhost:3000/trusted-apps-registry/v2/health. If everything's working correctly, then you should see `"status":"ok"`.
+You can now open http://localhost:3000/trusted-apps-registry/v3/health. If everything's working correctly, then you should see `"status":"ok"`.
 
 ### Run with Docker
 
-After creating the `.env.default.local` file, run:
+After creating the `.env.local` file, run:
 
 ```sh
 docker-compose up --build
 ```
 
-Check http://localhost:3000/trusted-apps-registry/v2/health to see if it's working.
+Check http://localhost:3000/trusted-apps-registry/v3/health to see if it's working.
 
 ## Linting
 
@@ -179,6 +180,8 @@ yarn audit
 ```
 
 ## Testing
+
+Reminder: you need to set `TEST_ADMIN_DID` and `TEST_ADMIN_PRIVATE_KEY` (preferably in `.env.test.local`) before running the e2e tests!
 
 Run all the tests:
 
