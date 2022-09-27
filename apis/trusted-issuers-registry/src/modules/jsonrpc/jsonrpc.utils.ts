@@ -12,22 +12,30 @@ import {
   ArgsUpdateIssuer,
   ArgsInsertPolicy,
   ArgsUpdatePolicy,
+  RequestAddIssuerProxyDto,
+  RequestUpdateIssuerProxyDto,
+  ArgsAddIssuerProxy,
+  ArgsUpdateIssuerProxy,
 } from "./dto";
 
 type JsonRpcDtos =
   | RequestInsertIssuerDto
   | RequestUpdateIssuerDto
+  | RequestAddIssuerProxyDto
+  | RequestUpdateIssuerProxyDto
   | RequestInsertPolicyDto
   | RequestUpdatePolicyDto
   | RequestSendSignedTransactionDto
   | ArgsInsertIssuer
   | ArgsUpdateIssuer
   | ArgsInsertPolicy
-  | ArgsUpdatePolicy;
+  | ArgsUpdatePolicy
+  | ArgsAddIssuerProxy
+  | ArgsUpdateIssuerProxy;
 
 export function formatEthersUnsignedTransaction(
   unsignedTransaction: UnsignedTransaction
-): ethers.UnsignedTransaction {
+): ethers.UnsignedTransaction & ethers.providers.TransactionRequest {
   return {
     to: unsignedTransaction.to,
     data: unsignedTransaction.data,

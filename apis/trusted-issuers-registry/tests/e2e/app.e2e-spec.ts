@@ -12,6 +12,7 @@ import {
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
+import { useContainer } from "class-validator";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { ApiConfig } from "../../src/config/configuration";
@@ -42,6 +43,8 @@ describe("App Module (e2e)", () => {
 
     app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
+    useContainer(app.select(AppModule), { fallbackOnErrors: true });
+
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
 

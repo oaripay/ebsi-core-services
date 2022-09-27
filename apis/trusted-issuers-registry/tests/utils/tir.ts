@@ -19,9 +19,16 @@ interface PolicyObject {
   policyHash: string;
 }
 
+export interface IssuerProxyObject {
+  prefix: string;
+  headers: Record<string, string | number | boolean>;
+  testSuffix: string;
+}
+
 interface IssuerObject {
   did: string;
   attributeData: Buffer;
+  rawProxyData: IssuerProxyObject;
 }
 
 export async function deployTirContract(): Promise<{
@@ -85,7 +92,7 @@ export async function deployTirContract(): Promise<{
 
 export async function insertIssuer(contract: Tir): Promise<IssuerObject> {
   const issuerDid = EbsiWallet.createDid();
-  const bufferAttribute = Buffer.from(
+  const attributeData = Buffer.from(
     JSON.stringify({
       "@context": {
         name: { "@id": "http://tir-api-test.org/name", "@type": "@id" },
@@ -95,11 +102,22 @@ export async function insertIssuer(contract: Tir): Promise<IssuerObject> {
     })
   );
 
-  await contract.insertIssuer(issuerDid, bufferAttribute);
+  await contract.insertIssuer(issuerDid, attributeData);
+
+  // Add proxy
+  const rawProxyData: IssuerProxyObject = {
+    prefix: "https://example.net",
+    headers: {
+      Authorization: `Bearer ${crypto.randomBytes(16).toString("hex")}`,
+    },
+    testSuffix: "/cred/1",
+  };
+  await contract.addIssuerProxy(issuerDid, JSON.stringify(rawProxyData));
 
   return {
     did: issuerDid,
-    attributeData: bufferAttribute,
+    attributeData,
+    rawProxyData,
   };
 }
 

@@ -9,6 +9,8 @@ import {
   RequestInsertPolicyDto,
   RequestUpdatePolicyDto,
   RequestSendSignedTransactionDto,
+  RequestAddIssuerProxyDto,
+  RequestUpdateIssuerProxyDto,
 } from "./dto";
 import { SiopJwtAuthGuard } from "../auth/guards";
 import { Client, ClientInfo } from "../auth/decorators";
@@ -61,6 +63,22 @@ export class JsonRpcController {
         const transaction =
           await this.jsonRpcService.buildTransactionUpdatePolicy(
             body as RequestUpdatePolicyDto,
+            id
+          );
+        return jsonRpcResponse(transaction, id);
+      }
+      case "addIssuerProxy": {
+        const transaction =
+          await this.jsonRpcService.buildTransactionAddIssuerProxy(
+            body as RequestAddIssuerProxyDto,
+            id
+          );
+        return jsonRpcResponse(transaction, id);
+      }
+      case "updateIssuerProxy": {
+        const transaction =
+          await this.jsonRpcService.buildTransactionUpdateIssuerProxy(
+            body as RequestUpdateIssuerProxyDto,
             id
           );
         return jsonRpcResponse(transaction, id);

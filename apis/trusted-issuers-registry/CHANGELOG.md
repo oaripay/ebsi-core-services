@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [3.0.0-rc.2](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-issuers-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv3.0.0-rc.1&sourceBranch=refs%2Ftags%2Fv3.0.0-rc.2&targetRepoId=251) (2022-09-22)
+
+### 🚀 Features
+
+- add timeout to http requests ([#122](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-issuers-registry-api/pull-requests/122/overview)) - EBSIINT-4529 ([6e17e57](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-issuers-registry-api/commits/6e17e57769ab8caf4c24572c0cc8c7fe35f38521))
+- implement new /proxies endpoints ([#126](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-issuers-registry-api/pull-requests/126/overview)) - EBSIINT-4633 ([1e06c26](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-issuers-registry-api/commits/1e06c2682f82d62e53eea362eec2eb9d24349028))
+
 ## [3.0.0-rc.1](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-issuers-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv3.0.0-rc.0&sourceBranch=refs%2Ftags%2Fv3.0.0-rc.1&targetRepoId=251) (2022-07-06)
 
 ### 🐛 Bug Fixes

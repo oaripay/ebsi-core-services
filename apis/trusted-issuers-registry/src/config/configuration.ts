@@ -23,70 +23,50 @@ export interface ApiConfig {
   didRegistryApiUrl: string;
   // Trusted Apps Registry API
   tarApiUrl: string;
+  // TSR API (using in tests only)
+  trustedSchemasRegistryApiUrl: string;
   // Test variables
   testAdminKid: string;
   testAdminPrivateKey: string;
   testUserKid: string;
   testUserPrivateKey: string;
+  testIssuerWithProxyKid: string;
+  testIssuerWithProxyPrivateKey: string;
+  testStatusListSchemaId: string;
   dockerContainerTag: string;
+  blockscout: {
+    url: string;
+    bearerToken: string;
+  };
 }
+
+const HEALTH_CHECK_PATH = "/docs/";
+const LEDGER_API_PATH = "/ledger/v3";
+const AUTH_API_PATH = "/authorisation/v2";
+const DIDR_API_PATH = "/did-registry/v3";
+const TAR_API_PATH = "/trusted-apps-registry/v3";
+const TSR_API_PATH = "/trusted-schemas-registry/v2";
 
 const defaultConfig = {
   local: {
-    DOMAIN: "https://api.test.intebsi.xyz",
     LOG_LEVEL: "debug",
-    HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
-    LEDGER_API_URL: "https://api.test.intebsi.xyz/ledger/v3",
-    AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v2",
-    DID_REGISTRY_API_URL: "https://api.test.intebsi.xyz/did-registry/v3",
-    TRUSTED_APPS_REGISTRY_API_URL:
-      "https://api.test.intebsi.xyz/trusted-apps-registry/v3",
   },
   test: {
-    DOMAIN: "https://api.test.intebsi.xyz",
     LOG_LEVEL: "info",
-    HEALTH_CHECK: "https://api.test.intebsi.xyz/docs/",
-    LEDGER_API_URL: "https://api.test.intebsi.xyz/ledger/v3",
-    AUTHORISATION_API_URL: "https://api.test.intebsi.xyz/authorisation/v2",
-    DID_REGISTRY_API_URL: "https://api.test.intebsi.xyz/did-registry/v3",
-    TRUSTED_APPS_REGISTRY_API_URL:
-      "https://api.test.intebsi.xyz/trusted-apps-registry/v3",
   },
   conformance: {
-    DOMAIN: "https://api.conformance.intebsi.xyz",
     LOG_LEVEL: "info",
-    HEALTH_CHECK: "https://api.conformance.intebsi.xyz/docs/",
-    LEDGER_API_URL: "https://api.conformance.intebsi.xyz/ledger/v3",
-    AUTHORISATION_API_URL:
-      "https://api.conformance.intebsi.xyz/authorisation/v2",
-    DID_REGISTRY_API_URL: "https://api.conformance.intebsi.xyz/did-registry/v3",
-    TRUSTED_APPS_REGISTRY_API_URL:
-      "https://api.conformance.intebsi.xyz/trusted-apps-registry/v3",
   },
   pilot: {
-    DOMAIN: "https://api.preprod.ebsi.eu",
     LOG_LEVEL: "warn",
-    HEALTH_CHECK: "https://api.preprod.ebsi.eu/docs/",
-    LEDGER_API_URL: "https://api.preprod.ebsi.eu/ledger/v3",
-    AUTHORISATION_API_URL: "https://api.preprod.ebsi.eu/authorisation/v2",
-    DID_REGISTRY_API_URL: "https://api.preprod.ebsi.eu/did-registry/v3",
-    TRUSTED_APPS_REGISTRY_API_URL:
-      "https://api.preprod.ebsi.eu/trusted-apps-registry/v3",
   },
   prod: {
-    DOMAIN: "https://api.ebsi.eu",
     LOG_LEVEL: "error",
-    HEALTH_CHECK: "https://api.ebsi.eu/docs/",
-    LEDGER_API_URL: "https://api.ebsi.eu/ledger/v2",
-    AUTHORISATION_API_URL: "https://api.ebsi.eu/authorisation/v2",
-    DID_REGISTRY_API_URL: "https://api.ebsi.eu/did-registry/v3",
-    TRUSTED_APPS_REGISTRY_API_URL:
-      "https://api.ebsi.eu/trusted-apps-registry/v3",
   },
 };
 
 export const loadConfig = (): ApiConfig => {
-  const { EBSI_ENV } = process.env;
+  const { EBSI_ENV, DOMAIN } = process.env;
   const dockerContainerTag = getDockerTag(EBSI_ENV);
 
   return {
@@ -95,35 +75,37 @@ export const loadConfig = (): ApiConfig => {
     apiUrlPrefix: process.env.API_URL_PREFIX || "/trusted-issuers-registry/v3",
     apiName: process.env.API_NAME,
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
-    domain: process.env.DOMAIN || defaultConfig[EBSI_ENV].DOMAIN,
+    domain: DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
-    externalEbsiApiHealthCheck:
-      process.env.HEALTH_CHECK || defaultConfig[EBSI_ENV].HEALTH_CHECK,
+    externalEbsiApiHealthCheck: DOMAIN + HEALTH_CHECK_PATH,
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     // Ledger & SC
-    ledgerApiUrl:
-      process.env.LEDGER_API_URL || defaultConfig[EBSI_ENV].LEDGER_API_URL,
+    ledgerApiUrl: DOMAIN + LEDGER_API_PATH,
     ledgerApiName: process.env.LEDGER_API_NAME || "ledger-api",
     besuTrustedIssuersRegistryAddress:
       process.env.BESU_TRUSTED_ISSUERS_REGISTRY_ADDRESS,
     // Authorisation API
-    authorisationApiUrl:
-      process.env.AUTHORISATION_API_URL ||
-      defaultConfig[EBSI_ENV].AUTHORISATION_API_URL,
+    authorisationApiUrl: DOMAIN + AUTH_API_PATH,
     // DID Registry API
-    didRegistryApiUrl:
-      process.env.DID_REGISTRY_API_URL ||
-      defaultConfig[EBSI_ENV].DID_REGISTRY_API_URL,
+    didRegistryApiUrl: DOMAIN + DIDR_API_PATH,
+    // TSR API
+    trustedSchemasRegistryApiUrl: DOMAIN + TSR_API_PATH,
     // Trusted Apps Registry API
-    tarApiUrl:
-      process.env.TRUSTED_APPS_REGISTRY_API_URL ||
-      defaultConfig[EBSI_ENV].TRUSTED_APPS_REGISTRY_API_URL,
+    tarApiUrl: DOMAIN + TAR_API_PATH,
     // Test vars
     testAdminKid: process.env.TEST_ADMIN_KID,
     testAdminPrivateKey: process.env.TEST_ADMIN_PRIVATE_KEY,
     testUserKid: process.env.TEST_USER_KID,
+    testIssuerWithProxyKid: process.env.TEST_ISSUER_WITH_PROXY_KID,
+    testIssuerWithProxyPrivateKey:
+      process.env.TEST_ISSUER_WITH_PROXY_PRIVATE_KEY,
     testUserPrivateKey: process.env.TEST_USER_PRIVATE_KEY,
+    testStatusListSchemaId: process.env.TEST_STATUS_LIST_SCHEMA_ID,
     dockerContainerTag,
+    blockscout: {
+      url: process.env.BLOCKSCOUT_URL,
+      bearerToken: process.env.BLOCKSCOUT_BEARER_TOKEN,
+    },
   };
 };
 
@@ -155,22 +137,21 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "verbose",
       "debug"
     ),
-    HEALTH_CHECK: Joi.string(),
-    DOMAIN: Joi.string(),
+    DOMAIN: Joi.string().required(),
     LOCAL_ORIGIN: Joi.string().uri(),
     REQUEST_TIMEOUT: Joi.string(),
     // Ledger & SC
     BESU_TRUSTED_ISSUERS_REGISTRY_ADDRESS: Joi.string().required(),
-    LEDGER_API_URL: Joi.string().uri(),
     LEDGER_API_NAME: Joi.string(),
-    // DID Registry API
-    DID_REGISTRY_API_URL: Joi.string().uri(),
-    // Trusted Apps Registry API
-    TRUSTED_APPS_REGISTRY_API_URL: Joi.string(),
     // Test vars
     TEST_ADMIN_KID: Joi.string(),
     TEST_ADMIN_PRIVATE_KEY: Joi.string(),
     TEST_USER_KID: Joi.string(),
+    TEST_ISSUER_WITH_PROXY_KID: Joi.string(),
+    TEST_ISSUER_WITH_PROXY_PRIVATE_KEY: Joi.string(),
     TEST_USER_PRIVATE_KEY: Joi.string(),
+    TEST_STATUS_LIST_SCHEMA_ID: Joi.string(),
+    BLOCKSCOUT_URL: Joi.string(),
+    BLOCKSCOUT_BEARER_TOKEN: Joi.string(),
   }),
 });

@@ -16,6 +16,9 @@ import {
   ArgsUpdateIssuer,
   ArgsInsertPolicy,
   ArgsUpdatePolicy,
+  RequestAddIssuerProxyDto,
+  ArgsAddIssuerProxy,
+  ArgsUpdateIssuerProxy,
 } from "./dto";
 import { InvalidRequestJsonRpcError } from "./errors";
 import {
@@ -25,6 +28,7 @@ import {
 } from "./jsonrpc.utils";
 import { prefixWith0x } from "../../shared/utils";
 import { ApiConfig } from "../../config/configuration";
+import { RequestUpdateIssuerProxyDto } from "./dto/updateIssuerProxy";
 
 function getErrorMessage(error: unknown) {
   if (error instanceof ProblemDetailsError && error.detail) {
@@ -187,6 +191,20 @@ export class JsonRpcService {
         );
         break;
       }
+      case "addIssuerProxy": {
+        await validateClass(
+          ArgsAddIssuerProxy,
+          args as unknown as ArgsAddIssuerProxy
+        );
+        break;
+      }
+      case "updateIssuerProxy": {
+        await validateClass(
+          ArgsUpdateIssuerProxy,
+          args as unknown as ArgsUpdateIssuerProxy
+        );
+        break;
+      }
       default:
         throw new Error(
           `The function name ${functionFragment.name} can not be used in this context`
@@ -239,6 +257,7 @@ export class JsonRpcService {
       );
       unsignedTransaction.gasLimit = "0x1000000";
     }
+
     return unsignedTransaction;
   }
 
@@ -346,6 +365,52 @@ export class JsonRpcService {
     }
   }
 
+  async buildTransactionAddIssuerProxy(
+    body: RequestAddIssuerProxyDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestAddIssuerProxyDto, body);
+
+      const { from, did, proxyData } = body.params[0];
+
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData("addIssuerProxy", [did, proxyData]);
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionUpdateIssuerProxy(
+    body: RequestUpdateIssuerProxyDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestUpdateIssuerProxyDto, body);
+
+      const { from, did, proxyId, proxyData } = body.params[0];
+
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData("updateIssuerProxy", [
+        did,
+        proxyId,
+        proxyData,
+      ]);
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
   async sendTransaction(
     clientId: string,
     body: RequestSendSignedTransactionDto,
@@ -355,6 +420,7 @@ export class JsonRpcService {
       await validateClass(RequestSendSignedTransactionDto, body);
 
       const request = body.params[0];
+
       const { signer } = await this.verifyTransaction(request);
 
       if (!(await this.isDidControlledByAddress(clientId, signer))) {

@@ -1,5 +1,5 @@
 import { buildMessage, ValidateBy, ValidationOptions } from "class-validator";
-import { isDidV1 } from "../utils/isDidV1";
+import { isDidV1 } from "../utils";
 
 export const IS_DID_V1 = "isDidV1";
 

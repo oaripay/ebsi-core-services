@@ -9,27 +9,24 @@ declare global {
       API_URL_PREFIX?: string;
       API_NAME?: string;
       LOG_LEVEL?: "error" | "warn" | "log" | "verbose" | "debug" | "silent";
-      DOMAIN?: string;
+      DOMAIN: string;
       LOCAL_ORIGIN?: string;
-      HEALTH_CHECK?: string;
       REQUEST_TIMEOUT?: string;
       // Ledger & SC
-      LEDGER_API_URL?: string;
       LEDGER_API_NAME?: string;
       BESU_TRUSTED_ISSUERS_REGISTRY_ADDRESS: string;
-      // Authorisation API
-      AUTHORISATION_API_URL?: string;
-      // DID Registry API
-      DID_REGISTRY_API_URL?: string;
-      // Trusted Apps Registry API
-      TRUSTED_APPS_REGISTRY_API_URL?: string;
       // Test vars
       TEST_ADMIN_KID?: string;
       TEST_ADMIN_PRIVATE_KEY?: string;
       TEST_USER_KID?: string;
       TEST_USER_PRIVATE_KEY?: string;
+      TEST_ISSUER_WITH_PROXY_KID?: string;
+      TEST_ISSUER_WITH_PROXY_PRIVATE_KEY?: string;
+      TEST_STATUS_LIST_SCHEMA_ID?: string;
       TEST_ENV?: string;
       TEST_ENABLE_WRITE_OPS?: string;
+      BLOCKSCOUT_URL?: string;
+      BLOCKSCOUT_BEARER_TOKEN?: string;
     }
   }
 

@@ -77,19 +77,19 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers
+                    self: https://test.intebsi.xyz/trusted-issuers-registry/v3/issuers
                     items:
                       - did: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
-                        href: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17
+                        href: https://test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17
                       - did: did:ebsi:zy2Qja194nGwT5tPHrRY6Ly
-                        href: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zy2Qja194nGwT5tPHrRY6Ly
+                        href: https://test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zy2Qja194nGwT5tPHrRY6Ly
                     total: 2
                     pageSize: 10
                     links:
-                      first: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers?page[after]=0&page[size]=10
-                      prev: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers?page[after]=2&page[size]=10
-                      next: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers?page[after]=4&page[size]=10
-                      last: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers?page[after]=13&page[size]=10
+                      first: https://test.intebsi.xyz/trusted-issuers-registry/v3/issuers?page[after]=0&page[size]=10
+                      prev: https://test.intebsi.xyz/trusted-issuers-registry/v3/issuers?page[after]=2&page[size]=10
+                      next: https://test.intebsi.xyz/trusted-issuers-registry/v3/issuers?page[after]=4&page[size]=10
+                      last: https://test.intebsi.xyz/trusted-issuers-registry/v3/issuers?page[after]=13&page[size]=10
                 "[pilot] Success":
                   value:
                     self: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/issuers
@@ -260,17 +260,17 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes
+                    self: https://test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes
                     items:
                       - id: 25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
-                        href: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
+                        href: https://test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes?page[after]=0&page[size]=10
-                      prev: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes?page[after]=2&page[size]=10
-                      next: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes?page[after]=4&page[size]=10
-                      last: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes?page[after]=13&page[size]=10
+                      first: https://test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes?page[after]=0&page[size]=10
+                      prev: https://test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes?page[after]=2&page[size]=10
+                      next: https://test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes?page[after]=4&page[size]=10
+                      last: https://test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes?page[after]=13&page[size]=10
                 "[pilot] Success":
                   value:
                     self: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes
@@ -465,7 +465,7 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f/revisions
+                    self: https://test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f/revisions
                     items:
                       - hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
                         body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
@@ -474,10 +474,10 @@ paths:
                     total: 2
                     pageSize: 10
                     links:
-                      first: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f/revisions?page[after]=0&page[size]=10
-                      prev: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f/revisions?page[after]=2&page[size]=10
-                      next: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f/revisions?page[after]=4&page[size]=10
-                      last: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f/revisions?page[after]=13&page[size]=10
+                      first: https://test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f/revisions?page[after]=0&page[size]=10
+                      prev: https://test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f/revisions?page[after]=2&page[size]=10
+                      next: https://test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f/revisions?page[after]=4&page[size]=10
+                      last: https://test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f/revisions?page[after]=13&page[size]=10
                 "[pilot] Success":
                   value:
                     self: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/db14d3c6ee1a499c2719a9e2c93c240105cc82545fc491f7eea15e738d45ea73/revisions
@@ -519,6 +519,249 @@ paths:
           description: Internal Server Error
           content:
             "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /trusted-issuers-registry/v3/issuers/{did}/proxies:
+    get:
+      operationId: get-trusted-issuers-registry-v3-issuers-did-proxies
+      summary: List proxies
+      description: Returns a list of proxies of a trusted issuer.
+      tags:
+        - Issuers
+      parameters:
+        - name: did
+          in: path
+          schema:
+            type: string
+          examples:
+            "[test] did":
+              description: valid test did
+              value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
+            "[pilot] did":
+              description: valid preprod did
+              value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
+          required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    description: List of proxies
+                    items:
+                      type: object
+                      properties:
+                        proxyId:
+                          type: string
+                          description: Proxy ID. (hash, sha256)
+                        href:
+                          type: string
+                          description: Link to the resource
+                  total:
+                    type: integer
+                    description: Total number of items in a collection
+              examples:
+                "[test] Success":
+                  value:
+                    items:
+                      - proxyId: 25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
+                        href: https://test.intebsi.xyz/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/proxies/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
+                    total: 1
+                "[pilot] Success":
+                  value:
+                    items:
+                      - id: db14d3c6ee1a499c2719a9e2c93c240105cc82545fc491f7eea15e738d45ea73
+                        href: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/proxies/792a056357a5369bf76fba81b458581118007dfa1fd8d9dbab029e3acc930e8b
+                    total: 1
+        "400":
+          description: Bad Request Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Invalid {did} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {did} parameter is not valid
+        "404":
+          description: Not found
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
+        "500":
+          description: Internal Server Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /trusted-issuers-registry/v3/issuers/{did}/proxies/{proxyId}:
+    get:
+      operationId: get-trusted-issuers-registry-v3-issuers-did-proxies-proxyid
+      summary: Get a proxy
+      description: Returns an issuer proxy identified by its proxy ID.
+      tags:
+        - Issuers
+      parameters:
+        - name: did
+          in: path
+          schema:
+            type: string
+          examples:
+            "[test] did":
+              description: valid test did
+              value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
+            "[pilot] did":
+              description: valid preprod did
+              value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
+          required: true
+        - name: proxyId
+          in: path
+          schema:
+            type: string
+          examples:
+            "[test] proxyId":
+              description: valid test proxyId
+              value: 25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
+            "[pilot] proxyId":
+              description: valid preprod proxyId
+              value: db14d3c6ee1a499c2719a9e2c93c240105cc82545fc491f7eea15e738d45ea73
+          required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/attributeDetails"
+              examples:
+                "Success":
+                  value:
+                    prefix: https://example.net
+                    headers:
+                      authorization: Bearer example
+                    testSuffix: /creds/1
+        "400":
+          description: Bad Request
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Invalid {did} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {did} parameter is not valid
+        "404":
+          description: Not found
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /trusted-issuers-registry/v3/issuers/{did}/proxies/{proxyId}/{path}:
+    get:
+      operationId: get-trusted-issuers-registry-v3-issuers-did-proxies-proxyid-path
+      summary: Get StatusList2021Credential
+      description: Retrieves a StatusList2021Credential JWT through the issuer's proxy.
+      tags:
+        - Issuers
+      parameters:
+        - name: did
+          in: path
+          schema:
+            type: string
+          examples:
+            "[test] did":
+              description: valid test did
+              value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
+            "[pilot] did":
+              description: valid preprod did
+              value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
+          required: true
+        - name: proxyId
+          in: path
+          schema:
+            type: string
+          examples:
+            "[test] proxyId":
+              description: valid test proxyId
+              value: 25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
+            "[pilot] proxyId":
+              description: valid preprod proxyId
+              value: db14d3c6ee1a499c2719a9e2c93c240105cc82545fc491f7eea15e738d45ea73
+          required: true
+        - name: path
+          in: path
+          schema:
+            type: string
+          examples:
+            StatusList2021Credential path:
+              description: Path to a StatusList2021Credential
+              value: /credentials/status/3
+          required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: string
+              examples:
+                "Success":
+                  value: eyJh...GRlNSJ9
+        "400":
+          description: Bad Request
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Invalid {did} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {did} parameter is not valid
+        "404":
+          description: Not found
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
               examples:
@@ -576,19 +819,19 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/policies?page[after]=3&page[size]=2
+                    self: https://test.intebsi.xyz/trusted-issuers-registry/v3/policies?page[after]=3&page[size]=2
                     items:
                       - policyId: test-policy-1
-                        href: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/policies/test-policy-1
+                        href: https://test.intebsi.xyz/trusted-issuers-registry/v3/policies/test-policy-1
                       - policyId: test-policy-2
-                        href: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/policies/test-policy-2
+                        href: https://test.intebsi.xyz/trusted-issuers-registry/v3/policies/test-policy-2
                     total: 124
                     pageSize: 2
                     links:
-                      first: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/policies?page[after]=1&page[size]=2
-                      prev: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/policies?page[after]=2&page[size]=2
-                      next: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/policies?page[after]=4&page[size]=2
-                      last: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/policies?page[after]=62&page[size]=2
+                      first: https://test.intebsi.xyz/trusted-issuers-registry/v3/policies?page[after]=1&page[size]=2
+                      prev: https://test.intebsi.xyz/trusted-issuers-registry/v3/policies?page[after]=2&page[size]=2
+                      next: https://test.intebsi.xyz/trusted-issuers-registry/v3/policies?page[after]=4&page[size]=2
+                      last: https://test.intebsi.xyz/trusted-issuers-registry/v3/policies?page[after]=62&page[size]=2
                 "[pilot] Success":
                   value:
                     self: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/policies?page[after]=3&page[size]=2
@@ -733,7 +976,7 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/policies/test-policy-1/revisions?page[after]=3&page[size]=2
+                    self: https://test.intebsi.xyz/trusted-issuers-registry/v3/policies/test-policy-1/revisions?page[after]=3&page[size]=2
                     items:
                       - policyId: test-policy-1
                         policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
@@ -744,10 +987,10 @@ paths:
                     total: 61
                     pageSize: 2
                     links:
-                      first: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/policies/test-policy-1/revisions?page[after]=1&page[size]=2
-                      prev: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/policies/test-policy-1/revisions?page[after]=2&page[size]=2
-                      next: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/policies/test-policy-1/revisions?page[after]=4&page[size]=2
-                      last: https://api.test.intebsi.xyz/trusted-issuers-registry/v3/policies/test-policy-1/revisions?page[after]=31&page[size]=2
+                      first: https://test.intebsi.xyz/trusted-issuers-registry/v3/policies/test-policy-1/revisions?page[after]=1&page[size]=2
+                      prev: https://test.intebsi.xyz/trusted-issuers-registry/v3/policies/test-policy-1/revisions?page[after]=2&page[size]=2
+                      next: https://test.intebsi.xyz/trusted-issuers-registry/v3/policies/test-policy-1/revisions?page[after]=4&page[size]=2
+                      last: https://test.intebsi.xyz/trusted-issuers-registry/v3/policies/test-policy-1/revisions?page[after]=31&page[size]=2
                 "[pilot] Success":
                   value:
                     self: https://api.preprod.ebsi.eu/trusted-issuers-registry/v3/policies/test-policy-1/revisions?page[after]=3&page[size]=2

@@ -1,5 +1,7 @@
+export * from "./args-add-issuer-proxy.dto";
 export * from "./args-insert-issuer.dto";
 export * from "./args-insert-policy.dto";
+export * from "./args-update-issuer-proxy.dto";
 export * from "./args-update-issuer.dto";
 export * from "./args-update-policy.dto";
 export * from "./request-send-signed-transaction.dto";
