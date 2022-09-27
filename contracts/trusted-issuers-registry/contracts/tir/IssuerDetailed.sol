@@ -26,6 +26,8 @@ abstract contract IssuerDetailed is IssuerStorage {
         uint256 attributeVersionCount,
         uint256 attributesCount
     );
+    event AddIssuerProxy(string did, bytes32 indexed proxyId);
+    event UpdateIssuerProxy(string did, bytes32 indexed proxyId);
 
     /**
      * @dev insert an Issuer
@@ -317,6 +319,90 @@ abstract contract IssuerDetailed is IssuerStorage {
         // retrieve the issuer and the attribute detail
         Entity storage iss = ds.issuerStore[i.did];
         attribData = iss.revisions[anyAttrVersHash];
+    }
+
+    /**
+     * @dev Add a proxy record to an issuer.
+     */
+    function addIssuerProxy(string calldata did, string calldata proxyData)
+        external
+    {
+        Issuers storage ds = issuerStorage();
+
+        require(
+            ds.trustedPolicyRegistry.checkPolicy(
+                "TIR:updateIssuer",
+                msg.sender
+            ) || ds.didRegistry.checkController(bytes(did), msg.sender),
+            string(
+                abi.encodePacked(
+                    "Policy error: sender is not controller of the did ",
+                    did,
+                    " and it doesn't have the attribute TIR:updateIssuer"
+                )
+            )
+        );
+
+        bytes32 proxyId = sha256(bytes(proxyData));
+        Entity storage iss = ds.issuerStore[did];
+
+        iss.proxies.push(proxyId);
+        iss.proxiesStore[proxyId] = proxyData;
+        emit AddIssuerProxy(did, proxyId);
+    }
+
+    /**
+     * @dev Update a given issuer proxy.
+     */
+    function updateIssuerProxy(
+        string calldata did,
+        bytes32 proxyId,
+        string calldata proxyData
+    ) external {
+        Issuers storage ds = issuerStorage();
+
+        require(
+            ds.trustedPolicyRegistry.checkPolicy(
+                "TIR:updateIssuer",
+                msg.sender
+            ) || ds.didRegistry.checkController(bytes(did), msg.sender),
+            string(
+                abi.encodePacked(
+                    "Policy error: sender is not controller of the did ",
+                    did,
+                    " and it doesn't have the attribute TIR:updateIssuer"
+                )
+            )
+        );
+
+        Entity storage iss = ds.issuerStore[did];
+
+        iss.proxiesStore[proxyId] = proxyData;
+        emit UpdateIssuerProxy(did, proxyId);
+    }
+
+    /**
+     * @dev Get proxy data by its id/hash.
+     */
+    function getIssuerProxyById(string memory did, bytes32 proxyId)
+        public
+        view
+        returns (string memory proxyData)
+    {
+        Issuers storage ds = issuerStorage();
+        return ds.issuerStore[did].proxiesStore[proxyId];
+    }
+
+    /**
+     * @dev Return the list of proxies of a given issuer.
+     */
+    function getIssuerProxies(string memory did)
+        public
+        view
+        returns (bytes32[] memory)
+    {
+        Issuers storage ds = issuerStorage();
+        return ds.issuerStore[did].proxies;
     }
 
     uint256[50] private ______gap;
