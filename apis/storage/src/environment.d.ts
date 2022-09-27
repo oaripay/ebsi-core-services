@@ -7,16 +7,12 @@ declare global {
       API_PORT?: string;
       API_URL_PREFIX?: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
-      DOMAIN?: string;
+      DOMAIN: string;
       LOCAL_ORIGIN?: string;
-      HEALTH_CHECK?: string;
       REQUEST_TIMEOUT?: string;
       ENCRYPTION_SECRET: string;
       // Authorisation API
       AUTHORISATION_API_NAME?: string;
-      AUTHORISATION_API_URL?: string;
-      // TAR API
-      TRUSTED_APPS_REGISTRY?: string;
       // Test vars
       TEST_APP_NAME?: string;
       TEST_APP_PRIVATE_KEY?: string;
