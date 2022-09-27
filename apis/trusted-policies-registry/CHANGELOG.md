@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [2.0.0-rc.2](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-policies-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.1&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.2&targetRepoId=234) (2022-09-22)
+
+### 🚀 Features
+
+- add timeout to http requests ([#45](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-policies-registry-api/pull-requests/45/overview)) - EBSIINT-4529 ([ce0a8ec](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-policies-registry-api/commits/ce0a8ecda5bce8d5131062897d66698279ba4a5b))
+
+### 🐛 Bug Fixes
+
+- fix Fastify Helmet plugin import ([#46](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-policies-registry-api/pull-requests/46/overview)) - EBSIINT-4529 ([3488b4e](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-policies-registry-api/commits/3488b4eb59322409067e38a586954b0c31e018c5))
+
 ## [2.0.0-rc.1](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-policies-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.0&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.1&targetRepoId=234) (2022-07-06)
 
 ### 🚀 Features

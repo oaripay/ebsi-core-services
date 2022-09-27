@@ -8,16 +8,10 @@ declare global {
       API_PRIVATE_KEY: string;
       API_NAME: string;
       API_URL_PREFIX?: string;
-      AUTHORISATION_API_URL?: string;
-      DID_REGISTRY_API_URL?: string;
-      TRUSTED_APPS_REGISTRY_API_URL?: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
-      DOMAIN?: string;
+      DOMAIN: string;
       LOCAL_ORIGIN?: string;
-      HEALTH_CHECK?: string;
       REQUEST_TIMEOUT?: string;
-      // Ledger & SC
-      LEDGER_API_URL: string;
       LEDGER_API_NAME: string;
       CONTRACT_ADDR: string;
       // Tests
@@ -27,6 +21,8 @@ declare global {
       TEST_USER_PRIVATE_KEY: string;
       TEST_ENV?: string;
       TEST_ENABLE_WRITE_OPS?: string;
+      BLOCKSCOUT_URL?: string;
+      BLOCKSCOUT_BEARER_TOKEN?: string;
     }
   }
 
