@@ -1,7 +1,6 @@
 {
-  "name": "@ebsiint-api/trusted-ledgers-registry",
   "private": true,
-  "version": "2.0.0-rc.1",
+  "version": "2.0.0-rc.2",
   "license": "EUPL-1.2",
   "scripts": {
     "audit": "audit-ci --moderate --skip-dev",
@@ -25,44 +24,41 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
-    "@ebsiint-sc/trusted-ledgers-registry": "^1.0.0",
-    "@cef-ebsi/oauth2-auth": "2.1.1",
-    "@cef-ebsi/problem-details-errors": "2.0.0",
-    "@cef-ebsi/siop-auth": "2.1.0",
+    "@cef-ebsi/oauth2-auth": "^2.1.3",
+    "@cef-ebsi/problem-details-errors": "^2.0.1",
+    "@cef-ebsi/siop-auth": "^2.1.2",
     "@fastify/helmet": "^9.1.0",
     "@nestjs/axios": "^0.1.0",
-    "@nestjs/common": "^9.0.8",
+    "@nestjs/common": "^9.0.7",
     "@nestjs/config": "^2.2.0",
-    "@nestjs/core": "^9.0.8",
+    "@nestjs/core": "^9.0.7",
     "@nestjs/passport": "^9.0.0",
-    "@nestjs/platform-fastify": "^9.0.8",
+    "@nestjs/platform-fastify": "^9.0.7",
     "@nestjs/terminus": "^9.1.0",
     "axios": "^0.27.2",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.13.2",
-    "did-jwt": "^6.2.1",
+    "did-jwt": "^6.8.0",
     "ethers": "^5.6.9",
-    "@jest/globals": "^28.1.3",
     "joi": "^17.6.0",
     "nest-winston": "^1.7.0",
     "passport": "^0.6.0",
     "passport-http-bearer": "^1.0.1",
-    "reflect-metadata": "^0.1.13",
+    "reflect-metadata": "^0.1.12",
     "rxjs": "^7.5.6",
     "winston": "^3.8.1",
     "yaml": "^2.1.1"
   },
   "devDependencies": {
-    "@ethersproject/abstract-provider": "^5.7.0",
-    "@ethersproject/abi": "^5.7.0",
-    "@ethersproject/bytes": "^5.7.0",
-    "@ethersproject/providers": "^5.7.0",
+    "@commitlint/cli": "^17.0.3",
+    "@commitlint/config-conventional": "^17.0.3",
+    "@ethersproject/abstract-provider": "^5.6.1",
     "@nestjs/cli": "^9.0.0",
     "@nestjs/schematics": "^9.0.1",
-    "@nestjs/testing": "^9.0.8",
+    "@nestjs/testing": "^9.0.7",
     "@nomiclabs/hardhat-ethers": "^2.1.0",
-    "@openzeppelin/contracts": "^4.7.2",
-    "@stoplight/spectral-cli": "^6.5.0",
+    "@openzeppelin/contracts": "^4.7.3",
+    "@stoplight/spectral-cli": "^6.4.2",
     "@tsconfig/node16": "^1.0.3",
     "@typechain/ethers-v5": "^10.1.0",
     "@typechain/hardhat": "^6.1.2",
@@ -71,79 +67,27 @@
     "@types/node": "^16.11.12",
     "@types/passport-http-bearer": "^1.0.37",
     "@types/supertest": "^2.0.12",
-    "@typescript-eslint/eslint-plugin": "^5.32.0",
-    "@typescript-eslint/parser": "^5.32.0",
+    "@typescript-eslint/eslint-plugin": "^5.35.1",
+    "@typescript-eslint/parser": "^5.35.1",
     "audit-ci": "^6.3.0",
-    "eslint": "^8.21.0",
+    "eslint": "^8.22.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-airbnb-typescript": "^17.0.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-import": "^2.26.0",
-    "eslint-plugin-jest": "^26.7.0",
+    "eslint-plugin-jest": "^26.8.7",
     "eslint-plugin-prettier": "^4.2.1",
     "hardhat": "^2.10.1",
-    "jest-sonar": "^0.2.12",
-    "jose": "^4.8.3",
+    "jest": "^28.1.3",
+    "jest-sonar": "^0.2.11",
+    "jose": "^4.9.3",
     "nock": "^13.2.9",
     "supertest": "^6.2.4",
-    "ts-jest": "^28.0.7",
+    "ts-jest": "^28.0.8",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.0.0",
-    "typechain": "^8.1.0"
-  },
-  "nx": {
-    "namedInputs": {
-      "default": [
-        "{projectRoot}/src",
-        "{projectRoot}/api"
-      ],
-      "prod": [
-        "!{projectRoot}/tests/**/*.ts"
-      ]
-    },
-    "targets": {
-      "build": {
-        "inputs": [
-          "prod",
-          "^prod"
-        ],
-        "outputs": [
-          "dist"
-        ],
-        "dependsOn": [
-          "^build"
-        ]
-      },
-      "lint": {
-        "inputs": [
-          "default"
-        ],
-        "outputs": [],
-        "dependsOn": [
-          "build"
-        ]
-      },
-      "test": {
-        "inputs": [
-          "default",
-          "^prod"
-        ],
-        "outputs": [],
-        "dependsOn": [
-          "build"
-        ]
-      },
-      "test:ci": {
-        "inputs": [
-          "default",
-          "^prod"
-        ],
-        "outputs": [],
-        "dependsOn": [
-          "build"
-        ]
-      }
-    }
+    "typechain": "^8.1.0",
+    "typescript": "~4.7.4"
   },
   "jestSonar": {
     "reportPath": "coverage",
