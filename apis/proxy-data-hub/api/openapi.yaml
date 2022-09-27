@@ -48,7 +48,7 @@ paths:
                 Get Attributes:
                   value:
                     items:
-                      - storageUri: "https://api.test.intebsi.xyz/storage/v3/stores/distributed"
+                      - storageUri: "https://test.intebsi.xyz/storage/v3/stores/distributed"
                         hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
                         did: "did:ebsi:zub5ZZUfHLLptCduwEy8xRj"
                         visibility: private
@@ -56,7 +56,7 @@ paths:
                         contentType: application/ld+json
                         data: "<bytes for base64url>"
                         dataLabel: document
-                      - storageUri: "https://api.test.intebsi.xyz/storage/v3/stores/distributed"
+                      - storageUri: "https://test.intebsi.xyz/storage/v3/stores/distributed"
                         hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
                         did: "did:ebsi:zub5ZZUfHLLptCduwEy8xRj"
                         visibility: private
@@ -138,7 +138,7 @@ paths:
             examples:
               New Attribute:
                 value:
-                  storageUri: "https://api.test.intebsi.xyz/storage/v3/stores/distributed"
+                  storageUri: "https://test.intebsi.xyz/storage/v3/stores/distributed"
                   visibility: private
                   sharedWith: ""
                   did: did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ
@@ -157,7 +157,7 @@ paths:
               examples:
                 Created:
                   value:
-                    storageUri: "https://api.test.intebsi.xyz/storage/v3/stores/distributed"
+                    storageUri: "https://test.intebsi.xyz/storage/v3/stores/distributed"
                     hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
                     did: "did:ebsi:zub5ZZUfHLLptCduwEy8xRj"
                     visibility: private
@@ -230,7 +230,7 @@ paths:
               examples:
                 Success:
                   value:
-                    storageUri: "https://api.test.intebsi.xyz/storage/v3/stores/distributed"
+                    storageUri: "https://test.intebsi.xyz/storage/v3/stores/distributed"
                     hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
                     did: "did:ebsi:zub5ZZUfHLLptCduwEy8xRj"
                     visibility: private
@@ -318,7 +318,7 @@ paths:
               examples:
                 Success:
                   value:
-                    storageUri: "https://api.test.intebsi.xyz/storage/v3/stores/distributed"
+                    storageUri: "https://test.intebsi.xyz/storage/v3/stores/distributed"
                     hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
                     did: "did:ebsi:zub5ZZUfHLLptCduwEy8xRj"
                     visibility: private
@@ -446,7 +446,7 @@ components:
       description: Attribute
       example:
         Attribute example:
-          storageUri: "https://api.test.intebsi.xyz/storage/v3/stores/distributed"
+          storageUri: "https://test.intebsi.xyz/storage/v3/stores/distributed"
           hash: "0x7ee0d94aab0e4f36eae85127056de08433591304a83ff8801bb9212b624f1321"
           did: "did:ebsi:zub5ZZUfHLLptCduwEy8xRj"
           visibility: private
@@ -459,7 +459,7 @@ components:
         storageUri:
           type: string
           description: URI of the Proxy Data Hub Storage to access
-          example: "https://api.test.intebsi.xyz/storage/v3/stores/distributed"
+          example: "https://test.intebsi.xyz/storage/v3/stores/distributed"
         did:
           type: string
           description: User Decentralized Identifier
@@ -489,7 +489,7 @@ components:
       title: Attribute Request
       description: Identity Attribute request for creation
       example:
-        storageUri: "https://api.test.intebsi.xyz/storage/v3/stores/distributed"
+        storageUri: "https://test.intebsi.xyz/storage/v3/stores/distributed"
         did: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
         visibility: private
         sharedWith: ""
@@ -501,7 +501,7 @@ components:
         storageUri:
           type: string
           description: URI of the Proxy Data Hub Storage to access
-          example: "https://api.test.intebsi.xyz/storage/v3/stores/distributed"
+          example: "https://test.intebsi.xyz/storage/v3/stores/distributed"
         did:
           type: string
           description: User Decentralized Identifier

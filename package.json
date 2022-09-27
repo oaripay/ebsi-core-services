@@ -2,10 +2,6 @@
   "name": "@ebsi/core-services",
   "version": "0.0.0",
   "private": true,
-<<<<<<< HEAD
-=======
-  "version": "2.0.0-rc.2",
->>>>>>> notifications-api/develop
   "license": "EUPL-1.2",
   "scripts": {
     "audit": "nx run-many --target=audit --all",

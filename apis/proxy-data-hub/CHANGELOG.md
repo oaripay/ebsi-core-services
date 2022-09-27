@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [3.0.0-rc.2](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/proxy-data-hub-api/compare/diff?targetBranch=refs%2Ftags%2Fv3.0.0-rc.1&sourceBranch=refs%2Ftags%2Fv3.0.0-rc.2&targetRepoId=252) (2022-09-21)
+
+### 🚀 Features
+
+- add timeout to http requests ([#95](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/proxy-data-hub-api/pull-requests/95/overview)) - EBSIINT-4529 ([a4dd0e2](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/proxy-data-hub-api/commits/a4dd0e24348092cf565a7ed4e56a9ceec276a728))
+
 ## [3.0.0-rc.1](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/proxy-data-hub-api/compare/diff?targetBranch=refs%2Ftags%2Fv3.0.0-rc.0&sourceBranch=refs%2Ftags%2Fv3.0.0-rc.1&targetRepoId=252) (2022-07-06)
 
 ### 🐛 Bug Fixes
