@@ -1,9 +1,13 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
 const path = require("path");
 const CracoLessPlugin = require("craco-less");
 
 module.exports = {
   babel: {
-    plugins: [["@babel/plugin-proposal-optional-chaining"]],
+    plugins: [
+      ["@babel/plugin-proposal-optional-chaining"],
+      ["@babel/plugin-proposal-nullish-coalescing-operator"],
+    ],
   },
   plugins: [
     {
