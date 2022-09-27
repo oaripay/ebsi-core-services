@@ -27,6 +27,7 @@
   "dependencies": {
     "@cef-ebsi/oauth2-auth": "^2.1.3",
     "@cef-ebsi/problem-details-errors": "^2.0.1",
+    "@jest/globals": "^28.1.3",
     "@ethereumjs/common": "^2.6.5",
     "@ethereumjs/tx": "^3.5.2",
     "@fastify/helmet": "^9.1.0",

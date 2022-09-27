@@ -533,7 +533,6 @@ describe("Authorisation Module", () => {
               controller: "",
             },
             jwt: "",
-            verified: true,
           })
         );
 
@@ -736,7 +735,6 @@ describe("Authorisation Module", () => {
               controller: "",
             },
             jwt: "",
-            verified: true,
           })
         );
 
@@ -917,7 +915,6 @@ describe("Authorisation Module", () => {
               controller: "",
             },
             jwt: "",
-            verified: true,
           })
         );
 
