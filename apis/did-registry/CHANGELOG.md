@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. 🤘
 
+## [3.0.0-rc.2](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/did-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv3.0.0-rc.1&sourceBranch=refs%2Ftags%2Fv3.0.0-rc.2&targetRepoId=234) (2022-09-21)
+
+### 🚀 Features
+
+- add timeout to http requests ([#165](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/did-registry-api/pull-requests/165/overview)) - EBSIINT-4529 ([0521ef0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/did-registry-api/commits/0521ef00fcc963b569f25eb25d15e981cdbe77cd))
+
 ## [3.0.0-rc.1](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/did-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv3.0.0-rc.0&sourceBranch=refs%2Ftags%2Fv3.0.0-rc.1&targetRepoId=234) (2022-07-06)
 
 ### 🚀 Features

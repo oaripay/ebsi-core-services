@@ -108,7 +108,7 @@ export const requestNewUserSiopJwt = async ({
   usersOnboardingApiPrivateKey,
   usersOnboardingApiDid,
   trustedAppsRegistryUrl,
-  ebsiEnv,
+  ebsiAuthority,
 }: {
   clientKid: string;
   clientPrivateKey: string;
@@ -117,14 +117,14 @@ export const requestNewUserSiopJwt = async ({
   usersOnboardingApiPrivateKey: string;
   usersOnboardingApiDid: string;
   trustedAppsRegistryUrl: string;
-  ebsiEnv: "local" | "test" | "conformance" | "pilot" | "prod";
+  ebsiAuthority: string;
 }): Promise<string> => {
   const verifiableCredential = await createVerifiableAuthorisation(
     clientKid.split("#")[0],
     authorisationCredentialSchema,
     usersOnboardingApiPrivateKey,
     usersOnboardingApiDid,
-    ebsiEnv === "local" ? "test" : ebsiEnv
+    ebsiAuthority
   );
 
   const nonce = randomUUID();
@@ -134,7 +134,7 @@ export const requestNewUserSiopJwt = async ({
     clientKid,
     clientPrivateKey,
     audience: "",
-    ebsiEnv: ebsiEnv === "local" ? "test" : ebsiEnv,
+    ebsiAuthority,
   });
 
   const alg = "ES256K";

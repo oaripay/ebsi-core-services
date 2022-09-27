@@ -8,13 +8,13 @@ export async function createVP({
   clientKid,
   clientPrivateKey,
   audience,
-  ebsiEnv,
+  ebsiAuthority,
 }: {
   vc: string;
   clientKid: string;
   clientPrivateKey: string;
   audience: string;
-  ebsiEnv: "test" | "conformance" | "pilot" | "prod";
+  ebsiAuthority: string;
 }): Promise<string> {
   const clientDid = clientKid.split("#")[0];
   const presentation: EbsiVerifiablePresentation = {
@@ -36,7 +36,7 @@ export async function createVP({
   };
 
   return createVerifiablePresentationJwt(presentation, issuer, audience, {
-    ebsiEnv,
+    ebsiAuthority,
     skipValidation: true,
   });
 }

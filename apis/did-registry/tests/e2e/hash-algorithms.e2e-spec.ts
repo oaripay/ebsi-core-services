@@ -1,4 +1,5 @@
 import { describe } from "@jest/globals";
+import { randomInt } from "node:crypto";
 import { ethers } from "ethers";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
@@ -135,8 +136,7 @@ describe("HashAlgorithms (e2e)", () => {
         switch (method) {
           case "insertHashAlgorithm": {
             const hashes = Object.keys(validHashAlgorithms);
-            const randomHash =
-              hashes[Math.floor(Math.random() * hashes.length)];
+            const randomHash = hashes[randomInt(0, hashes.length)];
 
             params = {
               from: testClientWallet.address,
@@ -154,8 +154,7 @@ describe("HashAlgorithms (e2e)", () => {
               (response.body as { total: number }).total - 1;
 
             const hashes = Object.keys(validHashAlgorithms);
-            const randomHash =
-              hashes[Math.floor(Math.random() * hashes.length)];
+            const randomHash = hashes[randomInt(0, hashes.length)];
 
             params = {
               from: testClientWallet.address,
@@ -304,7 +303,7 @@ describe("HashAlgorithms (e2e)", () => {
     it("should throw an error if the hash algorithm is not found", async () => {
       expect.assertions(2);
 
-      const hashAlgorithmId = Math.floor(Math.random() * 10000) + 10000; // some random number between 10,000 and 20,000
+      const hashAlgorithmId = randomInt(10_000, 20_000); // some random number between 10,000 and 20,000
 
       const response = await request(server).get(
         `/hash-algorithms/${hashAlgorithmId}`
