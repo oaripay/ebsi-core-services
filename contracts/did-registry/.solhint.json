@@ -1,7 +1,4 @@
 {
   "extends": "solhint:default",
-  "excludedFiles": [
-    "**/contracts/trusted-policies-registry-ethereum-sc",
-    "**/contracts/bootstrap-ethereum-sc"
-  ]
+  "excludedFiles": ["**/contracts/trusted-policies-registry-ethereum-sc"]
 }
