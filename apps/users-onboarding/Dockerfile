@@ -11,7 +11,7 @@
 #
 
 ## Stage 1: install dependencies and copy files
-FROM node:16.14.2-alpine3.15@sha256:32f64135e74ec4dc5d63cc36318444f1d801cd23c44253124f7eccb52c4b89c5 as base
+FROM node:16.17.1-alpine3.16@sha256:4e36c3dee7c32cef5bfce5bc1b5013d1c3cc542cfdefde2a545ec641e7c94243 as base
 WORKDIR /usr/src/app
 COPY ./package.json /usr/src/app/package.json
 COPY ./yarn.lock /usr/src/app/yarn.lock

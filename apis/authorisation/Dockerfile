@@ -2,7 +2,7 @@
 ARG DOCKER_TAG=latest
 FROM ebsi/core-services:$DOCKER_TAG as builder
 
-FROM node:16.14.2-alpine3.15@sha256:32f64135e74ec4dc5d63cc36318444f1d801cd23c44253124f7eccb52c4b89c5
+FROM node:16.17.1-alpine3.16@sha256:4e36c3dee7c32cef5bfce5bc1b5013d1c3cc542cfdefde2a545ec641e7c94243
 WORKDIR /app
 COPY --from=builder /app/yarn.lock yarn.lock
 COPY --from=builder /app/apis/authorisation/package.json package.json
