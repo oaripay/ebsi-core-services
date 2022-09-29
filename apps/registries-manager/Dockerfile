@@ -1,5 +1,5 @@
 # Stage 0: prepare node alpine image
-FROM node:16-alpine AS base
+FROM node:16.17.1-alpine3.16@sha256:4e36c3dee7c32cef5bfce5bc1b5013d1c3cc542cfdefde2a545ec641e7c94243 AS base
 RUN apk add --update --no-cache \
   make \
   g++
