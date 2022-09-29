@@ -5,11 +5,11 @@ pipeline {
     stage('Fetch main branch') {
       when {
         not {
-          branch 'nx'
+          branch 'nx-tests'
         }
       }
       steps {
-        sh 'git fetch origin nx:nx'
+        sh 'git fetch origin nx-tests:nx-tests'
       }
     }
 
@@ -23,7 +23,7 @@ pipeline {
 
     stage('Lint') {
       when {
-        branch 'nx'
+        branch 'nx-tests'
       }
       steps {
         nodejs(nodeJSInstallationName: '16.13.0') {
@@ -34,7 +34,7 @@ pipeline {
 
     // stage('Build docker images') {
     //   when {
-    //     branch 'nx'
+    //     branch 'nx-tests'
     //   }
     //   steps {
     //     nodejs(nodeJSInstallationName: '16.13.0') {
@@ -45,7 +45,7 @@ pipeline {
 
     stage('Test') {
       when {
-        branch 'nx'
+        branch 'nx-tests'
       }
       environment {
         API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
@@ -61,12 +61,12 @@ pipeline {
     //   when {
     //     // Only check changes when not in the main branch
     //     not {
-    //       branch 'nx'
+    //       branch 'nx-tests'
     //     }
     //   }
     //   steps {
     //     nodejs(nodeJSInstallationName: '16.13.0') {
-    //       sh 'yarn changeset status --since=nx'
+    //       sh 'yarn changeset status --since=nx-tests'
     //     }
     //   }
     // }
