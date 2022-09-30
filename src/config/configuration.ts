@@ -23,8 +23,6 @@ export interface ApiConfig {
   authorisationCredentialSchema: string;
   usersOnboardingApiDid: string;
   usersOnboardingApiPrivateKey: string;
-  testAppKid: string;
-  testAppPrivateKey: string;
   testClientKid: string;
   testClientPrivateKey: string;
   dockerContainerTag: string;
@@ -90,8 +88,6 @@ export const loadConfig = (): ApiConfig => {
     usersOnboardingApiDid: process.env.USERS_ONBOARDING_API_DID || "",
     usersOnboardingApiPrivateKey:
       process.env.USERS_ONBOARDING_API_PRIVATE_KEY || "",
-    testAppKid: process.env.TEST_APP_KID,
-    testAppPrivateKey: process.env.TEST_APP_PRIVATE_KEY,
     testClientKid: process.env.TEST_CLIENT_KID,
     testClientPrivateKey: process.env.TEST_CLIENT_PRIVATE_KEY,
     dockerContainerTag,
@@ -139,8 +135,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
     AUTHORISATION_CREDENTIAL_SCHEMA: Joi.string(),
     USERS_ONBOARDING_API_DID: Joi.string(),
     USERS_ONBOARDING_API_PRIVATE_KEY: Joi.string(),
-    TEST_APP_KID: Joi.string().uri(),
-    TEST_APP_PRIVATE_KEY: Joi.string(),
     TEST_CLIENT_KID: Joi.string(),
     TEST_CLIENT_PRIVATE_KEY: Joi.string(),
     BLOCKSCOUT_URL: Joi.string(),
