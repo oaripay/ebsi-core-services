@@ -28,7 +28,6 @@ export interface ApiConfig {
     privateKey: string;
   };
   testApp: {
-    id: string;
     name: string;
     privateKey: string;
   };
@@ -91,7 +90,6 @@ export const loadConfig = (): ApiConfig => {
       privateKey: process.env.TEST_USER_PRIVATE_KEY,
     },
     testApp: {
-      id: process.env.TEST_APP_ID,
       name: process.env.TEST_APP_NAME,
       privateKey: process.env.TEST_APP_PRIVATE_KEY,
     },
@@ -153,7 +151,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
     REQUEST_TIMEOUT: Joi.string(),
     TEST_USER_KID: Joi.string(),
     TEST_USER_PRIVATE_KEY: Joi.string(),
-    TEST_APP_ID: Joi.string(),
     TEST_APP_NAME: Joi.string(),
     TEST_APP_PRIVATE_KEY: Joi.string(),
   }),
