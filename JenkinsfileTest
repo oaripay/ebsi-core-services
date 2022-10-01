@@ -1,7 +1,12 @@
 pipeline {
   agent any
 
+  environment {
+    components="ebsi/authorisation-api-v2 ebsi/did-registry-api-v3 ebsi/ledger-api-v3 ebsi/notifications-api-v2 ebsi/proxy-data-hub-api-v3 ebsi/registries-manager ebsi/storage-api-v3 ebsi/timestamp-api-v3 ebsi/trusted-apps-registry-api ebsi/trusted-issuers-registry-api-v3 ebsi/trusted-ledgers-registry-api-v2 ebsi/trusted-policies-registry-api-v2 ebsi/trusted-schemas-registry-api-v2 ebsi/users-onboarding-api-v2"
+  }
+
   stages {
+
     stage('Fetch main branch') {
       when {
         not {
@@ -12,6 +17,7 @@ pipeline {
         sh 'git fetch origin nx:nx'
       }
     }
+
     stage('Setup') {
       steps {
         nodejs(nodeJSInstallationName: '16.17.1') {
@@ -19,6 +25,7 @@ pipeline {
         }
       }
     }
+
     stage('Lint') {
       when {
         branch 'nx'
@@ -29,6 +36,7 @@ pipeline {
         }
       }
     }
+
     stage('Build docker images') {
       when {
         branch 'nx'
@@ -39,11 +47,17 @@ pipeline {
         }
       }
     }
-/*
+
     stage('Push to ECR') {
         sh '`aws ecr get-login-password | docker login --username AWS --password-stdin 305472350643.dkr.ecr.eu-central-1.amazonaws.com`'
-        sh "/usr/local/bin/docker-compose -f .ci/${ebsi_env}/docker-compose.yml --env-file=.ci/${ebsi_env}/.env push"
+        sh "for IMG in ${components}; do \
+              printf '\n%s\n\n' \"Processing ${IMG}\" \
+              docker tag ${IMG}:${GIT_COMMIT} 305472350643.dkr.ecr.eu-central-1.amazonaws.com/${IMG}:${GIT_COMMIT} \
+              docker push 305472350643.dkr.ecr.eu-central-1.amazonaws.com/${IMG}:${GIT_COMMIT} \
+              done"
     }
+
+/*
     stage('Modify YAML & Commit') {
         withCredentials([sshUserPrivateKey(credentialsId: 'ebsi1-robot', keyFileVariable: 'PK')]) {
             def versions_file = "${ebsi_env}/versions.yaml"
