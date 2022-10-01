@@ -26,6 +26,7 @@ pipeline {
       }
     }
 
+/*
     stage('Lint') {
       when {
         branch 'nx'
@@ -36,6 +37,7 @@ pipeline {
         }
       }
     }
+*/
 
     stage('Build docker images') {
       when {
@@ -61,13 +63,14 @@ pipeline {
 
 /*
     stage('Modify YAML & Commit') {
+      steps {
         withCredentials([sshUserPrivateKey(credentialsId: 'ebsi1-robot', keyFileVariable: 'PK')]) {
             def versions_file = "${ebsi_env}/versions.yaml"
-            def fast_versions_file = "${conf_data}/deploy_${ebsi_env}/versions.yaml"
             sh "sudo su - ebsi1-robot -c 'cd ${conf_data}/${ebsi_env} && git pull'"
             sh "sudo -u ebsi1-robot /usr/bin/yq eval '.\"version_tag::${container_name}\" |= \"${container_tag}\"' --inplace ${conf_data}/${versions_file}"
             sh "sudo su - ebsi1-robot -c 'cd ${conf_data}/${ebsi_env} && git add . && git commit -am \"[auto] env:${ebsi_env} container:${container_name} tag:${container_tag}\"; git push'"
         }
+      }
     }
 */
 
