@@ -52,13 +52,14 @@ pipeline {
 
     stage('Push to ECR') {
       steps {
+        def components="ebsi/authorisation-api-v2 ebsi/did-registry-api-v3 ebsi/ledger-api-v3 ebsi/notifications-api-v2 ebsi/proxy-data-hub-api-v3 ebsi/registries-manager ebsi/storage-api-v3 ebsi/timestamp-api-v3 ebsi/trusted-apps-registry-api ebsi/trusted-issuers-registry-api-v3 ebsi/trusted-ledgers-registry-api-v2 ebsi/trusted-policies-registry-api-v2 ebsi/trusted-schemas-registry-api-v2 ebsi/users-onboarding-api-v2"
         sh '`aws ecr get-login-password | docker login --username AWS --password-stdin 305472350643.dkr.ecr.eu-central-1.amazonaws.com`'
         //sh 'for IMG in ${components}; do \
         //      printf "\n%s\n\n" "Processing ${IMG}" \
         //      docker tag ${IMG}:${GIT_COMMIT} 305472350643.dkr.ecr.eu-central-1.amazonaws.com/${IMG}:${GIT_COMMIT} \
         //      docker push 305472350643.dkr.ecr.eu-central-1.amazonaws.com/${IMG}:${GIT_COMMIT} \
         //      done'
-        sh 'for IMG in ${components}; do printf "\n%s\n\n" "Processing ${IMG}"; docker tag ${IMG}:d353c7f57656b94e1ed983bed5c66ee6063230b4 305472350643.dkr.ecr.eu-central-1.amazonaws.com/${IMG}:d353c7f57656b94e1ed983bed5c66ee6063230b4; docker push 305472350643.dkr.ecr.eu-central-1.amazonaws.com/${IMG}:d353c7f57656b94e1ed983bed5c66ee6063230b4; done'
+        sh "for IMG in ${components}; do docker tag ${IMG}:d353c7f57656b94e1ed983bed5c66ee6063230b4 305472350643.dkr.ecr.eu-central-1.amazonaws.com/${IMG}:d353c7f57656b94e1ed983bed5c66ee6063230b4; docker push 305472350643.dkr.ecr.eu-central-1.amazonaws.com/${IMG}:d353c7f57656b94e1ed983bed5c66ee6063230b4; done"
       }
     }
 
