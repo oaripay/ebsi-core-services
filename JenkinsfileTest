@@ -17,6 +17,7 @@ pipeline {
         sh 'git fetch origin nx:nx'
       }
     }
+/*
 
     stage('Setup') {
       steps {
@@ -26,7 +27,6 @@ pipeline {
       }
     }
 
-/*
     stage('Lint') {
       when {
         branch 'nx'
@@ -37,7 +37,6 @@ pipeline {
         }
       }
     }
-*/
 
     stage('Build docker images') {
       when {
@@ -49,15 +48,21 @@ pipeline {
         }
       }
     }
+*/
 
     stage('Push to ECR') {
       steps {
         sh '`aws ecr get-login-password | docker login --username AWS --password-stdin 305472350643.dkr.ecr.eu-central-1.amazonaws.com`'
-        sh "for IMG in ${components}; do \
-              printf '\n%s\n\n' \"Processing ${IMG}\" \
-              docker tag ${IMG}:${GIT_COMMIT} 305472350643.dkr.ecr.eu-central-1.amazonaws.com/${IMG}:${GIT_COMMIT} \
-              docker push 305472350643.dkr.ecr.eu-central-1.amazonaws.com/${IMG}:${GIT_COMMIT} \
-              done"
+        //sh 'for IMG in ${components}; do \
+        //      printf "\n%s\n\n" "Processing ${IMG}" \
+        //      docker tag ${IMG}:${GIT_COMMIT} 305472350643.dkr.ecr.eu-central-1.amazonaws.com/${IMG}:${GIT_COMMIT} \
+        //      docker push 305472350643.dkr.ecr.eu-central-1.amazonaws.com/${IMG}:${GIT_COMMIT} \
+        //      done'
+        sh 'for IMG in ${components}; do \
+              printf "\n%s\n\n" "Processing ${IMG}" \
+              docker tag ${IMG}:d353c7f57656b94e1ed983bed5c66ee6063230b4 305472350643.dkr.ecr.eu-central-1.amazonaws.com/${IMG}:d353c7f57656b94e1ed983bed5c66ee6063230b4 \
+              docker push 305472350643.dkr.ecr.eu-central-1.amazonaws.com/${IMG}:d353c7f57656b94e1ed983bed5c66ee6063230b4 \
+              done'
       }
     }
 
@@ -76,6 +81,7 @@ pipeline {
 
   }
 
+/*
   post {
     always {
       cleanWs()
@@ -84,4 +90,5 @@ pipeline {
       }
     }
   }
+*/
 }
