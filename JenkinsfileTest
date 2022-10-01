@@ -14,7 +14,6 @@ pipeline {
       }
     }
 
-/*
     stage('Setup') {
       steps {
         nodejs(nodeJSInstallationName: '16.17.1') {
@@ -56,7 +55,6 @@ pipeline {
         sh '/usr/local/bin/update_yaml.bash ${GIT_COMMIT}'
       }
     }
-*/
 
     stage('Deploy on network') {
       steps {
