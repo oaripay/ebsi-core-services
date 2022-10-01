@@ -14,6 +14,7 @@ pipeline {
       }
     }
 
+/*
     stage('Setup') {
       steps {
         nodejs(nodeJSInstallationName: '16.17.1') {
@@ -53,6 +54,15 @@ pipeline {
     stage('Modify YAML & Commit') {
       steps {
         sh '/usr/local/bin/update_yaml.bash ${GIT_COMMIT}'
+      }
+    }
+*/
+
+    stage('Deploy on network') {
+      steps {
+        withCredentials([sshUserPrivateKey(credentialsId: 'ebsi1-robot', keyFileVariable: 'PK')]) {
+          sh 'ssh mco /usr/local/bin/puppet_run_containers_only.sh test aio'
+        }
       }
     }
 
