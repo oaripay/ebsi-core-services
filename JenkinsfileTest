@@ -49,12 +49,14 @@ pipeline {
     }
 
     stage('Push to ECR') {
+      steps {
         sh '`aws ecr get-login-password | docker login --username AWS --password-stdin 305472350643.dkr.ecr.eu-central-1.amazonaws.com`'
         sh "for IMG in ${components}; do \
               printf '\n%s\n\n' \"Processing ${IMG}\" \
               docker tag ${IMG}:${GIT_COMMIT} 305472350643.dkr.ecr.eu-central-1.amazonaws.com/${IMG}:${GIT_COMMIT} \
               docker push 305472350643.dkr.ecr.eu-central-1.amazonaws.com/${IMG}:${GIT_COMMIT} \
               done"
+      }
     }
 
 /*
