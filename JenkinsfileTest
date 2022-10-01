@@ -13,7 +13,6 @@ pipeline {
         sh 'git fetch origin nx:nx'
       }
     }
-/*
 
     stage('Setup') {
       steps {
@@ -44,26 +43,18 @@ pipeline {
         }
       }
     }
-*/
 
     stage('Push to ECR') {
       steps {
-        sh '/usr/local/bin/update_ecr.bash d353c7f57656b94e1ed983bed5c66ee6063230b4'
+        sh '/usr/local/bin/update_ecr.bash ${GIT_COMMIT}'
       }
     }
 
-/*
     stage('Modify YAML & Commit') {
       steps {
-        withCredentials([sshUserPrivateKey(credentialsId: 'ebsi1-robot', keyFileVariable: 'PK')]) {
-            def versions_file = "${ebsi_env}/versions.yaml"
-            sh "sudo su - ebsi1-robot -c 'cd ${conf_data}/${ebsi_env} && git pull'"
-            sh "sudo -u ebsi1-robot /usr/bin/yq eval '.\"version_tag::${container_name}\" |= \"${container_tag}\"' --inplace ${conf_data}/${versions_file}"
-            sh "sudo su - ebsi1-robot -c 'cd ${conf_data}/${ebsi_env} && git add . && git commit -am \"[auto] env:${ebsi_env} container:${container_name} tag:${container_tag}\"; git push'"
-        }
+        sh '/usr/local/bin/update_yaml.bash ${GIT_COMMIT}'
       }
     }
-*/
 
   }
 
