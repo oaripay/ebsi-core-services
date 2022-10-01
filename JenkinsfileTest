@@ -51,8 +51,6 @@ pipeline {
 */
 
     stage('Push to ECR') {
-      environment {
-      }
       steps {
         sh '`aws ecr get-login-password | docker login --username AWS --password-stdin 305472350643.dkr.ecr.eu-central-1.amazonaws.com`'
 
