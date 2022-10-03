@@ -2,6 +2,7 @@ pipeline {
   agent any
 
   stages {
+
     stage('Fetch main branch') {
       when {
         not {
@@ -15,7 +16,7 @@ pipeline {
 
     stage('Setup') {
       steps {
-        nodejs(nodeJSInstallationName: '16.13.0') {
+        nodejs(nodeJSInstallationName: '16.17.1') {
           sh 'yarn install --frozen-lockfile'
         }
       }
@@ -26,7 +27,7 @@ pipeline {
         branch 'nx-tests'
       }
       steps {
-        nodejs(nodeJSInstallationName: '16.13.0') {
+        nodejs(nodeJSInstallationName: '16.17.1') {
           sh "yarn lint:all"
         }
       }
@@ -80,5 +81,5 @@ pipeline {
       }
     }
   }
-}
 
+}
