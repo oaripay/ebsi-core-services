@@ -1,17 +1,11 @@
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+/// <reference path="../../../../contracts/timestamp/src/types/hardhat.d.ts" />
 import hre from "hardhat";
 import "@nomiclabs/hardhat-ethers";
 import { ContractTransaction, Contract, ethers } from "ethers";
 import crypto from "crypto";
 import { HashName } from "multihashes";
-import {
-  HashAlgoLib__factory,
-  PolicyRegistryMock__factory,
-  RecordLib__factory,
-  Timestamp,
-  TimestampLib__factory,
-  Timestamp__factory,
-} from "@ebsiint-sc/timestamp";
-import StringManipArtifact from "@ebsiint-sc/bootstrap/artifacts/contracts/utils/StringManip.sol/StringManip.json";
+import { Timestamp } from "@ebsiint-sc/timestamp";
 
 interface HashAlgorithmObject {
   outputLength: number;
@@ -41,9 +35,9 @@ export async function deployTimestampContract(): Promise<{
   policyContractMock: Contract;
 }> {
   const testTprAddress = "0xb2a560271ce08135e245F490b8794794A13a1208";
-  const signer = hre.ethers.provider.getSigner();
-
-  const policyRegistryFactory = new PolicyRegistryMock__factory(signer);
+  const policyRegistryFactory = await hre.ethers.getContractFactory(
+    "PolicyRegistryMock"
+  );
   const tempPolicyContract = await policyRegistryFactory.deploy();
   await tempPolicyContract.deployed();
   const bytecode = await hre.ethers.provider.getCode(
@@ -54,43 +48,40 @@ export async function deployTimestampContract(): Promise<{
     bytecode,
   ]);
   const policyContractMock = policyRegistryFactory.attach(testTprAddress);
-  await policyContractMock.setPolicyResult(true);
 
   // Deploy libs
-  const stringManipFactory = await hre.ethers.getContractFactoryFromArtifact(
-    StringManipArtifact,
-    signer
-  );
+  const stringManipFactory = await hre.ethers.getContractFactory("StringManip");
   const stringManipLib = await stringManipFactory.deploy();
 
-  const haFactory = new HashAlgoLib__factory(signer);
+  const haFactory = await hre.ethers.getContractFactory("HashAlgoLib");
   const haLib = await haFactory.deploy();
 
-  const tsFactory = new TimestampLib__factory(signer);
+  const tsFactory = await hre.ethers.getContractFactory("TimestampLib", {});
   const tsLib = await tsFactory.deploy();
 
-  const rsFactory = new RecordLib__factory(
-    {
-      "@ebsiint-sc/bootstrap/contracts/utils/StringManip.sol:StringManip":
-        stringManipLib.address,
+  const rsFactory = await hre.ethers.getContractFactory("RecordLib", {
+    libraries: {
+      StringManip: stringManipLib.address,
     },
-    signer
-  );
+  });
   const rsLib = await rsFactory.deploy();
 
-  const timestampContractFactory = new Timestamp__factory(
+  const timestampContractFactory = await hre.ethers.getContractFactory(
+    "Timestamp",
     {
-      "contracts/timestamp/HashAlgoLib.sol:HashAlgoLib": haLib.address,
-      "contracts/timestamp/TimestampLib.sol:TimestampLib": tsLib.address,
-      "contracts/timestamp/RecordLib.sol:RecordLib": rsLib.address,
-    },
-    signer
+      libraries: {
+        HashAlgoLib: haLib.address,
+        TimestampLib: tsLib.address,
+        RecordLib: rsLib.address,
+      },
+    }
   );
 
   const timestampContract = await timestampContractFactory.deploy();
 
   await timestampContract.initialize(1);
   await timestampContract.setTrustedPoliciesRegistryAddress();
+  await policyContractMock.setPolicyResult(true);
 
   return { timestampContract, policyContractMock };
 }
