@@ -53,7 +53,8 @@ pipeline {
       }
       steps {
         nodejs(nodeJSInstallationName: '16.13.0') {
-          sh 'yarn test:all'
+          // sh 'yarn test:all'
+          sh 'yarn nx run-many --target=test:ci --projects=@ebsiint-api/trusted-policies-registry,@ebsiint-api/timestamp,@ebsiint-api/trusted-apps-registry'
         }
       }
     }
