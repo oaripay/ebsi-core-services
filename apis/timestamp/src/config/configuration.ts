@@ -126,7 +126,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       .valid("development", "production", "test")
       .default("development"),
     API_PORT: Joi.string().default("3000"),
-    API_PRIVATE_KEY: Joi.string().required(),
+    // API_PRIVATE_KEY: Joi.string(),
     API_URL_PREFIX: Joi.string(),
     API_NAME: Joi.string().required(),
     LOG_LEVEL: Joi.string().valid(

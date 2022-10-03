@@ -1,14 +1,13 @@
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+/// <reference path="../../../../contracts/trusted-policies-registry/src/types/hardhat.d.ts" />
 import hre from "hardhat";
 import "@nomiclabs/hardhat-ethers";
 import crypto from "crypto";
 import { ethers } from "ethers";
 import { range } from "rxjs";
 import { mergeMap, toArray } from "rxjs/operators";
-import {
-  PolicyRegistry,
-  PolicyRegistry__factory,
-} from "@ebsiint-sc/trusted-policies-registry";
-import PaginationArtifact from "@ebsiint-sc/bootstrap/artifacts/contracts/utils/Pagination.sol/Pagination.json";
+import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry";
+
 import {
   ATTRIBUTE_OPERATIONS,
   ATTRIBUTE_TYPES,
@@ -149,20 +148,16 @@ export async function insertUser(
 }
 
 export async function deployPoliciesRegistryContract(): Promise<PolicyRegistry> {
-  const signer = hre.ethers.provider.getSigner();
-  const paginationFactory = await hre.ethers.getContractFactoryFromArtifact(
-    PaginationArtifact,
-    signer
-  );
-  const paginationContract = await paginationFactory.deploy();
-  await paginationContract.deployed();
+  const paginationFactory = await hre.ethers.getContractFactory("Pagination");
+  const pagination = await paginationFactory.deploy();
 
-  const policiesRegistryFactory = new PolicyRegistry__factory(
+  const policiesRegistryFactory = await hre.ethers.getContractFactory(
+    "PolicyRegistry",
     {
-      "@ebsiint-sc/bootstrap/contracts/utils/Pagination.sol:Pagination":
-        paginationContract.address,
-    },
-    signer
+      libraries: {
+        Pagination: pagination.address,
+      },
+    }
   );
   const policiesRegistry = await policiesRegistryFactory.deploy();
   await policiesRegistry.initialize(1);

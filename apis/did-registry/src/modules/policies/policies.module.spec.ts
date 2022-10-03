@@ -41,7 +41,7 @@ describe("Policies Module", () => {
     });
     const { didRegistryContract } = testEnv;
 
-    // Mock TAR contract
+    // Mock DIDR contract
     jest
       .spyOn(DidRegistry__factory, "connect")
       .mockImplementation(() => didRegistryContract);
