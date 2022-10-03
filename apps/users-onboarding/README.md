@@ -74,7 +74,7 @@ You can find the list of customizable ARGs and ENVs in `Dockerfile`.
 
 Run the app from the base directory:
 
-Firstly, create a copy of `.env.example` and name it `.env` in this directory; change the variables if needed.
+Firstly, create a copy of `.env.example` and name it `.env.default` in this directory; change the variables if needed.
 
 When working locally, either use `REACT_APP_EBSI_ENV=local` if you run the APIs locally in parallel, or `REACT_APP_EBSI_ENV=integration` to use the online APIs.
 

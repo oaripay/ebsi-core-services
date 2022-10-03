@@ -34,7 +34,7 @@ For more information see:
 ## Getting started
 
 You can choose to run the project locally with your own Node.js environment, or you can use Docker Compose to run it.
-First, create an `.env.local` file locally. You can duplicate the content of `.env` or only set the variables that you want to change.
+First, create an `.env.default.local` file locally. You can duplicate the content of `.env.default` or only set the variables that you want to change.
 Please note that you need to fill the API_PRIVATE_KEY environment variable with secp256k1 elliptic curve private keys in hexadecimal.
 You must at least set `API_PRIVATE_KEY`, `API_NAME`, `API_VERIFICATION_METHOD_KID` and `EBSI_ENV` to run the API. For e2e testing, you must also set `TEST_USER_PRIVATE_KEY`, `TEST_USER_KID`, `TEST_EU_LOGIN_USERNAME`, `TEST_EU_LOGIN_PASSWORD`, and `TEST_RECAPTCHA_TOKEN`.
 
@@ -70,7 +70,7 @@ You can now open http://localhost:3000/authorisation/v2/health. If everything's 
 
 ### Run with Docker
 
-After creating the `.env.local` file, run:
+After creating the `.env.default.local` file, run:
 
 ```sh
 docker-compose up --build
