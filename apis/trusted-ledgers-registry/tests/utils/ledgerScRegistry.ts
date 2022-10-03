@@ -1,14 +1,11 @@
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+/// <reference path="../../../../contracts/trusted-ledgers-registry/src/types/hardhat.d.ts" />
 import hre from "hardhat";
+import { FactoryOptions } from "hardhat/types";
 import "@nomiclabs/hardhat-ethers";
 import { Contract, ethers } from "ethers";
-import crypto from "crypto";
-import {
-  LedgerLib__factory,
-  LedgerSCRegistry,
-  LedgerSCRegistry__factory,
-  PolicyRegistryMock__factory,
-  SmartContractLib__factory,
-} from "@ebsiint-sc/trusted-ledgers-registry";
+import crypto from "node:crypto";
+import { LedgerSCRegistry } from "@ebsiint-sc/trusted-ledgers-registry";
 
 interface LedgerInfoObject {
   ledgerName: string;
@@ -38,15 +35,24 @@ interface SmartContractInfoRevisionObject {
   revisionHash: string;
 }
 
+const deployContract = async (
+  name: string,
+  opts: FactoryOptions = {}
+): Promise<string> => {
+  const factory = await hre.ethers.getContractFactory(name, opts);
+  const contract = await factory.deploy();
+  return contract.address;
+};
+
 export async function deployLedgerScRegistryContract(): Promise<{
   ledgerScRegistryContract: LedgerSCRegistry;
   policyContractMock: Contract;
 }> {
-  const signer = hre.ethers.provider.getSigner();
-
   // mock trusted policies registry
   const testTprAddress = "0xb2a560271ce08135e245F490b8794794A13a1208";
-  const policyRegistryFactory = new PolicyRegistryMock__factory(signer);
+  const policyRegistryFactory = await hre.ethers.getContractFactory(
+    "PolicyRegistryMock"
+  );
   const tempPolicyContract = await policyRegistryFactory.deploy();
   await tempPolicyContract.deployed();
   const bytecode = await hre.ethers.provider.getCode(
@@ -57,32 +63,19 @@ export async function deployLedgerScRegistryContract(): Promise<{
     bytecode,
   ]);
   const policyContractMock = policyRegistryFactory.attach(testTprAddress);
-  await policyContractMock.setPolicyResult(true);
-
-  // Deploy LedgerLib
-  const ledgerLibContractFactory = new LedgerLib__factory(signer);
-  const ledgerLibContract = await ledgerLibContractFactory.deploy();
-  await ledgerLibContract.deployed();
-
-  // Deploy SmartContractLib
-  const smartContractLibContractFactory = new SmartContractLib__factory(signer);
-  const smartContractLibContract =
-    await smartContractLibContractFactory.deploy();
-  await smartContractLibContract.deployed();
-
-  const ledgersScFactory = new LedgerSCRegistry__factory(
+  const ledgersScFactory = await hre.ethers.getContractFactory(
+    "LedgerSCRegistry",
     {
-      "contracts/ledger-sc-registry/LedgerLib.sol:LedgerLib":
-        ledgerLibContract.address,
-      "contracts/ledger-sc-registry/SmartContractLib.sol:SmartContractLib":
-        smartContractLibContract.address,
-    },
-    signer
+      libraries: {
+        LedgerLib: await deployContract("LedgerLib"),
+        SmartContractLib: await deployContract("SmartContractLib"),
+      },
+    }
   );
-
   const ledgerScRegistryContract = await ledgersScFactory.deploy();
   await ledgerScRegistryContract.initialize(1);
   await ledgerScRegistryContract.setTrustedPoliciesRegistryAddress();
+  await policyContractMock.setPolicyResult(true);
 
   return { ledgerScRegistryContract, policyContractMock };
 }

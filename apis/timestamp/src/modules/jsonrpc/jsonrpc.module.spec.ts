@@ -529,7 +529,7 @@ describe("JsonRpc Module", () => {
   // Tests to be repeated for every method
   describe.each([
     "insertHashAlgorithm",
-    // "updateHashAlgorithm",
+    "updateHashAlgorithm",
     "timestampHashes",
     "timestampRecordHashes",
     "timestampVersionHashes",

@@ -1,21 +1,15 @@
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+/// <reference path="../../../../contracts/did-registry/src/types/hardhat.d.ts" />
 import hre from "hardhat";
+import { FactoryOptions } from "hardhat/types";
 import "@nomiclabs/hardhat-ethers";
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { Contract, ethers } from "ethers";
 import { range } from "rxjs";
 import canonicalize from "canonicalize";
 import { HashName } from "multihashes";
 import { mergeMap, toArray } from "rxjs/operators";
-import {
-  DidRegistry,
-  DidRegistry__factory,
-  PolicyRegistryMock__factory,
-  DidPolicyLib__factory,
-  HashAlgoLib__factory,
-  DidTimestampLib__factory,
-  DidRecordLib__factory,
-} from "@ebsiint-sc/did-registry";
-import PaginationArtifact from "@ebsiint-sc/bootstrap/artifacts/contracts/utils/Pagination.sol/Pagination.json";
+import { DidRegistry } from "@ebsiint-sc/did-registry";
 import { createDid, createDidDocument, createMetadata } from "./data";
 
 interface DidDocument {
@@ -82,16 +76,24 @@ const ianaToNodeHashAlg: Record<string, string> = {
   "sha3-512": "sha3-512",
 };
 
+const deployContract = async (
+  name: string,
+  opts: FactoryOptions = {}
+): Promise<string> => {
+  const factory = await hre.ethers.getContractFactory(name, opts);
+  const contract = await factory.deploy();
+  return contract.address;
+};
+
 export async function deployDidRegistryContract(): Promise<{
   didRegistryContract: DidRegistry;
   policyContractMock: Contract;
 }> {
-  const signer = hre.ethers.provider.getSigner();
-
   // mock trusted policies registry
   const testTprAddress = "0xb2a560271ce08135e245F490b8794794A13a1208";
-
-  const policyRegistryFactory = new PolicyRegistryMock__factory(signer);
+  const policyRegistryFactory = await hre.ethers.getContractFactory(
+    "PolicyRegistryMock"
+  );
   const tempPolicyContract = await policyRegistryFactory.deploy();
   await tempPolicyContract.deployed();
   const bytecode = await hre.ethers.provider.getCode(
@@ -102,65 +104,32 @@ export async function deployDidRegistryContract(): Promise<{
     bytecode,
   ]);
   const policyContractMock = policyRegistryFactory.attach(testTprAddress);
-  await policyContractMock.setPolicyResult(true);
 
-  const paginationFactory = await hre.ethers.getContractFactoryFromArtifact(
-    PaginationArtifact,
-    signer
-  );
-  const paginationContract = await paginationFactory.deploy();
-  await paginationContract.deployed();
-
-  // Deploy DidPolicyLib
-  const didPolicyLibContractFactory = new DidPolicyLib__factory(
-    {
-      "@ebsiint-sc/bootstrap/contracts/utils/Pagination.sol:Pagination":
-        paginationContract.address,
+  const paginationAddress = await deployContract("Pagination");
+  const linkLibPagination = {
+    libraries: {
+      Pagination: paginationAddress,
     },
-    signer
-  );
-  const didPolicyLibContract = await didPolicyLibContractFactory.deploy();
-  await didPolicyLibContract.deployed();
+  };
 
-  // Deploy HashAlgoLib
-  const hashAlgoLibContractFactory = new HashAlgoLib__factory(signer);
-  const hashAlgoLibContract = await hashAlgoLibContractFactory.deploy();
-  await hashAlgoLibContract.deployed();
-
-  // Deploy HashAlgoLib
-  const didTimestampLibContractFactory = new DidTimestampLib__factory(signer);
-  const didTimestampLibContract = await didTimestampLibContractFactory.deploy();
-  await didTimestampLibContract.deployed();
-
-  // Deploy DidRecordLib
-  const didRecordLibContractFactory = new DidRecordLib__factory(
+  const didRegistryContractFactory = await hre.ethers.getContractFactory(
+    "DidRegistry",
     {
-      "@ebsiint-sc/bootstrap/contracts/utils/Pagination.sol:Pagination":
-        paginationContract.address,
-    },
-    signer
-  );
-  const didRecordLibLibContract = await didRecordLibContractFactory.deploy();
-  await didRecordLibLibContract.deployed();
-
-  // Deploy DidRegistry
-  const didRegistryContractFactory = new DidRegistry__factory(
-    {
-      "contracts/did-registry/DidPolicyLib.sol:DidPolicyLib":
-        didPolicyLibContract.address,
-      "contracts/did-registry/HashAlgoLib.sol:HashAlgoLib":
-        hashAlgoLibContract.address,
-      "contracts/did-registry/DidTimestampLib.sol:DidTimestampLib":
-        didTimestampLibContract.address,
-      "contracts/did-registry/DidRecordLib.sol:DidRecordLib":
-        didRecordLibLibContract.address,
-    },
-    signer
+      libraries: {
+        DidPolicyLib: await deployContract("DidPolicyLib", linkLibPagination),
+        HashAlgoLib: await deployContract("HashAlgoLib"),
+        DidTimestampLib: await deployContract("DidTimestampLib"),
+        DidMethodLib: await deployContract("DidMethodLib", linkLibPagination),
+        DidRecordLib: await deployContract("DidRecordLib", linkLibPagination),
+      },
+    }
   );
 
   const didRegistryContract = await didRegistryContractFactory.deploy();
   await didRegistryContract.initialize(1);
   await didRegistryContract.setTrustedPoliciesRegistryAddress();
+
+  await policyContractMock.setPolicyResult(true);
 
   return {
     didRegistryContract,

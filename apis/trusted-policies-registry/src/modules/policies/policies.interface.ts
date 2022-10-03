@@ -1,5 +1,5 @@
 // Mappings number -> string
-// (see submodules/trusted-policies-registry-ethereum-sc/contracts/trusted-policies-registry/PolicyStorage.sol)
+// (see contracts/trusted-policies-registry/PolicyStorage.sol)
 export const ATTRIBUTE_OPERATIONS = [
   "EQUAL",
   // To be implemented: GREATER_THAN, SMALLER_THAN

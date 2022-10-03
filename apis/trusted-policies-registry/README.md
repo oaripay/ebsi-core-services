@@ -32,12 +32,6 @@ First, create an `.env.default.local` file locally. You can duplicate the conten
 Please note that you need to fill the API_PRIVATE_KEY environment variable with secp256k1 elliptic curve private keys in hexadecimal.
 You must at least set `API_NAME`, `API_PRIVATE_KEY`, `CONTRACT_ADDR`, `DOMAIN`, and `EBSI_ENV` to run the API.
 
-After cloning the repository, make sure to update the submodules:
-
-```sh
-git submodule update --init --recursive
-```
-
 ### Run the project locally
 
 Install the required libraries and packages dependencies:

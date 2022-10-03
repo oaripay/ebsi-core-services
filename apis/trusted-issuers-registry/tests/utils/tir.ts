@@ -1,17 +1,13 @@
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+/// <reference path="../../../../contracts/trusted-issuers-registry/src/types/hardhat.d.ts" />
 import hre from "hardhat";
 import "@nomiclabs/hardhat-ethers";
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { Contract, ethers } from "ethers";
 import { range } from "rxjs";
 import { mergeMap, toArray } from "rxjs/operators";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import {
-  Tir,
-  PolicyRegistryMock__factory,
-  DidRegistryMock__factory,
-  Tir__factory,
-} from "@ebsiint-sc/trusted-issuers-registry";
-import PaginationArtifact from "@ebsiint-sc/bootstrap/artifacts/contracts/utils/Pagination.sol/Pagination.json";
+import { Tir } from "@ebsiint-sc/trusted-issuers-registry";
 
 interface PolicyObject {
   policyId: string;
@@ -36,12 +32,13 @@ export async function deployTirContract(): Promise<{
   policyContractMock: Contract;
   didContractMock: Contract;
 }> {
-  const signer = hre.ethers.provider.getSigner();
-
   // mock trusted policies registry
   const testTprAddress = "0xb2a560271ce08135e245F490b8794794A13a1208";
   const testDidrAddress = "0xf6080028519B49D94C846bd34e30f72586E3F5d5";
-  const policyRegistryFactory = new PolicyRegistryMock__factory(signer);
+  const policyRegistryFactory = await hre.ethers.getContractFactory(
+    "PolicyRegistryMock"
+  );
+
   const tempPolicyContract = await policyRegistryFactory.deploy();
   await tempPolicyContract.deployed();
   const bytecode = await hre.ethers.provider.getCode(
@@ -54,7 +51,9 @@ export async function deployTirContract(): Promise<{
   const policyContractMock = policyRegistryFactory.attach(testTprAddress);
   await policyContractMock.setPolicyResult(true);
 
-  const didRegistryFactory = new DidRegistryMock__factory(signer);
+  const didRegistryFactory = await hre.ethers.getContractFactory(
+    "DidRegistryMock"
+  );
   const tempDidContract = await didRegistryFactory.deploy();
   await tempDidContract.deployed();
   const bytecodeDid = await hre.ethers.provider.getCode(
@@ -68,21 +67,14 @@ export async function deployTirContract(): Promise<{
   await didContractMock.setDidResult(true);
 
   // Deploy libs
-  const paginationFactory = await hre.ethers.getContractFactoryFromArtifact(
-    PaginationArtifact,
-    signer
-  );
-  const paginationContract = await paginationFactory.deploy();
-  await paginationContract.deployed();
+  const paginationFactory = await hre.ethers.getContractFactory("Pagination");
+  const pagination = await paginationFactory.deploy();
 
-  const tirFactory = new Tir__factory(
-    {
-      "@ebsiint-sc/bootstrap/contracts/utils/Pagination.sol:Pagination":
-        paginationContract.address,
+  const tirFactory = await hre.ethers.getContractFactory("Tir", {
+    libraries: {
+      Pagination: pagination.address,
     },
-    signer
-  );
-
+  });
   const tirContract = await tirFactory.deploy();
   await tirContract.initialize(1);
   await tirContract.setRegistryAddresses();

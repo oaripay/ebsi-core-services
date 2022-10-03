@@ -51,12 +51,6 @@ Please note that you need to fill the `TEST_ADMIN_PRIVATE_KEY` environment varia
 
 You must at least set `CONTRACT_ADDR`, `DOMAIN`, `BESU_RPC_NODE` and `EBSI_ENV` to run the API. For e2e testing, you must also set `TEST_ADMIN_DID` and `TEST_ADMIN_PRIVATE_KEY`.
 
-After cloning the repository, make sure to update the submodules:
-
-```sh
-git submodule update --init --recursive
-```
-
 ### Run the project locally
 
 Install the required libraries and packages dependencies:

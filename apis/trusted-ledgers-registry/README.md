@@ -52,12 +52,6 @@ Please note that you need to fill the `API_PRIVATE_KEY`, `TEST_ADMIN_PRIVATE_KEY
 
 You must at least set `API_PRIVATE_KEY`, `API_NAME`, `CONTRACT_ADDR`, `DOMAIN` and `EBSI_ENV` to run the API. For e2e testing, you must also set `TEST_ADMIN_PRIVATE_KEY`, `TEST_ADMIN_KID`, `TEST_USER_PRIVATE_KEY`, and `TEST_USER_KID`.
 
-After cloning the repository, make sure to update the submodules:
-
-```sh
-git submodule update --init --recursive
-```
-
 ### Run the project locally
 
 Install the required libraries and packages dependencies:

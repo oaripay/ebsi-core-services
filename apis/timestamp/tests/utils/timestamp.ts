@@ -3,7 +3,7 @@
 import hre from "hardhat";
 import "@nomiclabs/hardhat-ethers";
 import { ContractTransaction, Contract, ethers } from "ethers";
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { HashName } from "multihashes";
 import { Timestamp } from "@ebsiint-sc/timestamp";
 

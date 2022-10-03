@@ -11,9 +11,7 @@ const tprScPath = path.resolve(
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   networks: {
-    hardhat: {
-      hardfork: "berlin",
-    },
+    hardhat: { hardfork: "berlin" },
   },
   paths: {
     artifacts: path.resolve(tprScPath, "./artifacts"),

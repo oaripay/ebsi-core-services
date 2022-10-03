@@ -2,7 +2,7 @@
 /// <reference path="../../../../contracts/trusted-policies-registry/src/types/hardhat.d.ts" />
 import hre from "hardhat";
 import "@nomiclabs/hardhat-ethers";
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { ethers } from "ethers";
 import { range } from "rxjs";
 import { mergeMap, toArray } from "rxjs/operators";
