@@ -1,7 +1,5 @@
 coverage
 dist
 node_modules
-peerOrganizations
 .env*.local
 yarn-error.log
-wallet

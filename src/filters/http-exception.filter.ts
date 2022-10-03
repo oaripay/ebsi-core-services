@@ -15,14 +15,9 @@ import {
   BadRequestError,
   ForbiddenError,
 } from "@cef-ebsi/problem-details-errors";
-import type { FastifyReply, FastifyRequest } from "fastify";
+import type { FastifyReply } from "fastify";
 import { AxiosError } from "axios";
 import { ApiConfig } from "../config/configuration";
-import {
-  JsonRpcError,
-  InvalidRequestJsonRpcError,
-  InternalJsonRpcError,
-} from "../modules/fabric/errors";
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -39,51 +34,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
   catch(err: Error, host: ArgumentsHost): FastifyReply {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<FastifyReply>();
-    const request = ctx.getRequest<FastifyRequest>();
-    const { url } = request;
 
     if (this.tag) {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       response.header("EBSI-Image-Tag", this.tag);
-    }
-
-    if (
-      err instanceof JsonRpcError ||
-      url.includes("/blockchains/fabric/jsonrpc")
-    ) {
-      let jsonRpcError: JsonRpcError;
-      if (err instanceof JsonRpcError) {
-        jsonRpcError = err;
-      } else {
-        const id = (request.body as { id: string | number })?.id ?? null;
-
-        let detail = err.message;
-        if (
-          err instanceof BadRequestException ||
-          err instanceof NotFoundException
-        ) {
-          const resp = err.getResponse();
-          if (typeof resp === "object") {
-            const { message } = resp as { message: string };
-            if (message) {
-              if (typeof message === "string") detail = message;
-              else detail = JSON.stringify(message);
-            }
-          }
-          jsonRpcError = new InvalidRequestJsonRpcError(detail, id);
-        } else {
-          this.logger.error(err.message, err.stack);
-          jsonRpcError = new InternalJsonRpcError(
-            "The server encountered an internal error and was unable to complete your request",
-            id
-          );
-        }
-      }
-      this.logger.debug(jsonRpcError.toString());
-      return response
-        .code(jsonRpcError.status)
-        .type("application/json")
-        .send(jsonRpcError.toJSON());
     }
 
     let problemError: ProblemDetailsError;

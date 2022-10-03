@@ -9,11 +9,6 @@ declare global {
       AUTHORISATION_API_NAME?: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
       BESU_RPC_NODE: string;
-      FABRIC_ENABLED?: string;
-      FABRIC_USERNAME?: string;
-      FABRIC_PASSWORD?: string;
-      FABRIC_ADMIN_PEM_PRIVATE_KEY?: string;
-      FABRIC_ADMIN_XPATH_PRIVATE_KEY?: string;
       DOMAIN: string;
       LOCAL_ORIGIN?: string;
       REQUEST_TIMEOUT?: string;

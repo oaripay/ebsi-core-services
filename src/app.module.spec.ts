@@ -9,7 +9,6 @@ import {
 } from "@nestjs/platform-fastify";
 import { AppModule } from "./app.module";
 import { AllExceptionsFilter } from "./filters/http-exception.filter";
-import { FabricService } from "./modules/fabric/fabric.service";
 import { ApiConfig } from "./config/configuration";
 
 interface ResponseHeaders {
@@ -23,31 +22,6 @@ describe("App Module", () => {
   let configService: ConfigService<ApiConfig>;
 
   beforeAll(async () => {
-    // Don't load the actual config files
-    jest
-      .spyOn(FabricService, "importIdentityWallet")
-      .mockImplementation(() => ({
-        type: "X.509",
-        credentials: {
-          certificate: "",
-          privateKey: "",
-        },
-        mspId: "",
-      }));
-    jest
-      .spyOn(FabricService, "importConnectionProfile")
-      .mockImplementation(() => ({
-        channels: {},
-        client: {
-          adminCredential: {},
-        },
-        organizations: {
-          betaxiossdrpoc: {
-            adminPrivateKey: {},
-          },
-        },
-      }));
-
     // Start server
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],

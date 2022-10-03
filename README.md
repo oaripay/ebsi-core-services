@@ -8,7 +8,7 @@ Ledger API service gives use case applications access to all the available block
 
 The Ledger API is a Core Service of the EBSI platform providing access to the EBSI Ledger Protocol(s) and Smart Contracts services running at the lower layer Chain & Storage.
 
-EBSI V2 Ledger API provides capabilities to interact (Read and Write) with Hyperledger Besu and (Read-Only) for Fabric ledgers. As a remark, for EBSI v2.0, in order to interact with the Fabric node clients, consumers must install the Fabric SDK kit because Fabric ledgers has not a full feature set natively exposed by a REST API. Only a limited set of features are exposed.
+EBSI V2 Ledger API provides capabilities to interact (Read and Write) with Hyperledger Besu.
 
 As a general principle, only EBSI Core Service API, acting as JSON-RPC proxy for the end-users can have access to the Ledger API JSON RPC Proxy, meaning end-users have no direct access to the EBSI Ledgers clients software running on MS nodes.
 
