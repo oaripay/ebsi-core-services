@@ -9,6 +9,15 @@ const config: HardhatUserConfig = {
       chainId: 1337,
     },
   },
+  solidity: {
+    version: "0.8.12",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 10,
+      },
+    },
+  },
 };
 
 export default config;

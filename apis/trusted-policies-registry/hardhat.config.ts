@@ -13,6 +13,15 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: { hardfork: "berlin" },
   },
+  solidity: {
+    version: "0.8.12",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 10,
+      },
+    },
+  },
   paths: {
     artifacts: path.resolve(tprScPath, "./artifacts"),
   },
