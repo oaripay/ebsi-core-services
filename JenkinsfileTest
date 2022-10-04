@@ -6,11 +6,11 @@ pipeline {
     stage('Fetch main branch') {
       when {
         not {
-          branch 'nx-tests'
+          branch 'nx'
         }
       }
       steps {
-        sh 'git fetch origin nx-tests:nx-tests'
+        sh 'git fetch origin nx:nx'
       }
     }
 
@@ -22,9 +22,30 @@ pipeline {
       }
     }
 
+    // Case: pull request
+    stage('Lint') {
+      steps {
+        nodejs(nodeJSInstallationName: '16.17.1') {
+          sh "yarn lint"
+        }
+      }
+    }
+
+    stage('Test') {
+      environment {
+        API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
+      }
+      steps {
+        nodejs(nodeJSInstallationName: '16.17.1') {
+          sh 'yarn test'
+        }
+      }
+    }
+
+    // Case: trunk (main branch) updated
     stage('Lint') {
       when {
-        branch 'nx-tests'
+        branch 'nx'
       }
       steps {
         nodejs(nodeJSInstallationName: '16.17.1') {
@@ -33,16 +54,15 @@ pipeline {
       }
     }
 
-
     stage('Test') {
       when {
-        branch 'nx-tests'
+        branch 'nx'
       }
       environment {
         API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
       }
       steps {
-        nodejs(nodeJSInstallationName: '16.13.0') {
+        nodejs(nodeJSInstallationName: '16.17.1') {
           sh 'yarn test:all'
         }
       }
@@ -50,28 +70,44 @@ pipeline {
 
     stage('Build docker images') {
       when {
-        branch 'nx-tests'
+        branch 'nx'
       }
       steps {
-        nodejs(nodeJSInstallationName: '16.13.0') {
+        nodejs(nodeJSInstallationName: '16.17.1') {
           sh "yarn docker-build:all"
         }
       }
     }
 
-    // stage('Check changesets status') {
-    //   when {
-    //     // Only check changes when not in the main branch
-    //     not {
-    //       branch 'nx-tests'
-    //     }
-    //   }
-    //   steps {
-    //     nodejs(nodeJSInstallationName: '16.13.0') {
-    //       sh 'yarn changeset status --since=nx-tests'
-    //     }
-    //   }
-    // }
+    stage('Push to ECR') {
+      when {
+        branch 'nx'
+      }
+      steps {
+        sh '/usr/local/bin/update_ecr.bash ${GIT_COMMIT}'
+      }
+    }
+
+    stage('Modify YAML & Commit') {
+      when {
+        branch 'nx'
+      }
+      steps {
+        sh '/usr/local/bin/update_yaml.bash ${GIT_COMMIT}'
+      }
+    }
+
+    stage('Deploy on network') {
+      when {
+        branch 'nx'
+      }
+      steps {
+        withCredentials([sshUserPrivateKey(credentialsId: 'ebsi1-robot', keyFileVariable: 'PK')]) {
+          sh 'ssh mco /usr/local/bin/puppet_run_containers_only.sh test aio'
+        }
+      }
+    }
+
   }
 
   post {
