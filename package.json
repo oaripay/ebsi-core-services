@@ -14,7 +14,7 @@
     "lint": "nx affected --target=lint --parallel",
     "lint:all": "nx run-many --target=lint --all",
     "test": "nx affected --target=test:ci --parallel",
-    "test:all": "nx run-many --target=test:ci --all",
+    "test:all": "nx run-many --target=test:ci --all --parallel=1",
     "lint-staged": "lint-staged",
     "prepare": "is-ci || husky install"
   },
