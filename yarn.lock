@@ -2015,18 +2015,7 @@
     axios "^0.24.0"
     did-resolver "^3.1.5"
 
-"@cef-ebsi/ebsi-did-resolver@^2.1.1":
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/ebsi-did-resolver/-/ebsi-did-resolver-2.1.1.tgz#7de1c26b3217c2e30a3c9fa69bd0b9a0b52c9240"
-  integrity sha512-cUaAPbCCbbZMZpV1gnrZS7dzjqntMf/BjyhgGmkJnNWVuhelpreayvBwOW55vkkpzF+0HG68CTb6+9nvL5lqEA==
-  dependencies:
-    "@cef-ebsi/problem-details-errors" "^2.0.1"
-    axios "^0.27.2"
-    did-resolver "^4.0.0"
-    jose "^4.9.0"
-    multiformats "^9.7.1"
-
-"@cef-ebsi/ebsi-did-resolver@^2.1.2":
+"@cef-ebsi/ebsi-did-resolver@^2.1.1", "@cef-ebsi/ebsi-did-resolver@^2.1.2":
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/@cef-ebsi/ebsi-did-resolver/-/ebsi-did-resolver-2.1.2.tgz#0c5302679cae69794772eba996f1e714ee8763de"
   integrity sha512-dJRfoN4hk40Ua/tFIkwoneDAjqjmeEkFUuabdKGEWrOO+CfYHr+blUCd+V1BrDPJ/xdLCvJkGGMhSjD6hQAz2w==
@@ -2079,7 +2068,7 @@
     multiformats "^9.7.1"
     uuid "^8.3.2"
 
-"@cef-ebsi/verifiable-credential@3.0.0", "@cef-ebsi/verifiable-credential@^3.0.0":
+"@cef-ebsi/verifiable-credential@^3.0.0":
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-credential/-/verifiable-credential-3.0.0.tgz#e1cdc7f2becd348cf9fd12c3ce159027877749bd"
   integrity sha512-jtcmPKOKDskeXH6G1rvnHUz5e5qa5F6h+dBen3bZvU93Vg2No/37S2Q3RxI6fUK+NQiw+jtIR+woCUcyj+7G2g==
@@ -2096,7 +2085,7 @@
     mem "^8.1.1"
     multiformats "^9.7.1"
 
-"@cef-ebsi/verifiable-presentation@3.0.0", "@cef-ebsi/verifiable-presentation@^3.0.0":
+"@cef-ebsi/verifiable-presentation@^3.0.0":
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-presentation/-/verifiable-presentation-3.0.0.tgz#6ceac513eb7aa81a9da74d89740ab9aba3f24c8c"
   integrity sha512-azgWfE8K3R8MzEaWCZTHk9Dw5DTzBMrvpR62ISdmC5Ohgq4Tnb2ZcNS+dAdDWdt6HfSKl/tfkXsBP7MzwBJKRg==
@@ -19482,7 +19471,7 @@ jose@^3.17.0:
   resolved "https://registry.yarnpkg.com/jose/-/jose-3.20.4.tgz#f5b6559cf2625efca098e472257525c6f3d302be"
   integrity sha512-PRnyOQwWGD3EZnnSpKOOLqQ0RT9chbB8f8AzY4bEHY0I2FCtrcp1ojG0nBgAMn2MtuPpE3wOwIhhW0G7AGzbLw==
 
-jose@^4.3.8, jose@^4.9.0, jose@^4.9.3:
+jose@^4.3.8, jose@^4.9.3:
   version "4.9.3"
   resolved "https://registry.yarnpkg.com/jose/-/jose-4.9.3.tgz#890abd3f26725fe0f2aa720bc2f7835702b624db"
   integrity sha512-f8E/z+T3Q0kA9txzH2DKvH/ds2uggcw0m3vVPSB9HrSkrQ7mojjifvS7aR8cw+lQl2Fcmx9npwaHpM/M3GD8UQ==

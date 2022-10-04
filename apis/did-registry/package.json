@@ -58,8 +58,8 @@
     "yaml": "^2.1.1"
   },
   "devDependencies": {
-    "@cef-ebsi/verifiable-credential": "3.0.0",
-    "@cef-ebsi/verifiable-presentation": "3.0.0",
+    "@cef-ebsi/verifiable-credential": "^3.0.0",
+    "@cef-ebsi/verifiable-presentation": "^3.0.0",
     "@cef-ebsi/wallet-lib": "^2.0.1",
     "@commitlint/cli": "^17.0.3",
     "@commitlint/config-conventional": "^17.0.3",
