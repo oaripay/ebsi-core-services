@@ -22,16 +22,16 @@ pipeline {
       }
     }
 
-    // stage('Lint') {
-    //   when {
-    //     branch 'nx-tests'
-    //   }
-    //   steps {
-    //     nodejs(nodeJSInstallationName: '16.17.1') {
-    //       sh "yarn lint:all"
-    //     }
-    //   }
-    // }
+    stage('Lint') {
+      when {
+        branch 'nx-tests'
+      }
+      steps {
+        nodejs(nodeJSInstallationName: '16.17.1') {
+          sh "yarn lint:all"
+        }
+      }
+    }
 
 
     stage('Test') {
@@ -44,21 +44,20 @@ pipeline {
       steps {
         nodejs(nodeJSInstallationName: '16.13.0') {
           sh 'yarn test:all'
-          // sh 'yarn nx run-many --target=test:ci --projects=@ebsiint-api/trusted-policies-registry,@ebsiint-api/timestamp,@ebsiint-api/trusted-apps-registry'
         }
       }
     }
 
-    // stage('Build docker images') {
-    //   when {
-    //     branch 'nx-tests'
-    //   }
-    //   steps {
-    //     nodejs(nodeJSInstallationName: '16.13.0') {
-    //       sh "yarn docker-build:all"
-    //     }
-    //   }
-    // }
+    stage('Build docker images') {
+      when {
+        branch 'nx-tests'
+      }
+      steps {
+        nodejs(nodeJSInstallationName: '16.13.0') {
+          sh "yarn docker-build:all"
+        }
+      }
+    }
 
     // stage('Check changesets status') {
     //   when {
