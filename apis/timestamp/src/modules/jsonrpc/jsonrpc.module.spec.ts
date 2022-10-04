@@ -529,7 +529,7 @@ describe("JsonRpc Module", () => {
   // Tests to be repeated for every method
   describe.each([
     "insertHashAlgorithm",
-    // "updateHashAlgorithm",
+    "updateHashAlgorithm",
     "timestampHashes",
     "timestampRecordHashes",
     "timestampVersionHashes",
@@ -561,11 +561,11 @@ describe("JsonRpc Module", () => {
           param = {
             from: testAdmin.wallet.address,
             hashAlgorithmId: 1, // "1" is the ID of the hash we've just inserted
-            outputLength: 256,
-            ianaName: "sha-256",
-            oid: "2.16.840.1.101.3.4.2.1",
-            status: 1,
-            multihash: "sha2-256",
+            outputLength: 512,
+            ianaName: "sha3-512",
+            oid: "2.16.840.1.101.3.4.2.10",
+            status: 2,
+            multihash: "sha3-512",
           } as UpdateHashAlgorithmParam;
           break;
         }
