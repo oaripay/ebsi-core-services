@@ -23,7 +23,7 @@ pipeline {
     }
 
     // Case: pull request
-    stage('Lint') {
+    stage('Lint affected') {
       steps {
         nodejs(nodeJSInstallationName: '16.17.1') {
           sh "yarn lint"
@@ -31,7 +31,7 @@ pipeline {
       }
     }
 
-    stage('Test') {
+    stage('Test affected') {
       environment {
         API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
       }
