@@ -64,7 +64,7 @@
     "@stoplight/spectral-cli": "^6.4.2",
     "@tsconfig/node16": "^1.0.3",
     "@types/busboy": "^1.5.0",
-    "@types/jest": "28.1.6",
+    "@types/jest": "^28.1.6",
     "@types/k6": "^0.37.1",
     "@types/node": "^16.11.12",
     "@types/passport-http-bearer": "^1.0.37",
