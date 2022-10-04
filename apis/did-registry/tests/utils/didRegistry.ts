@@ -119,7 +119,6 @@ export async function deployDidRegistryContract(): Promise<{
         DidPolicyLib: await deployContract("DidPolicyLib", linkLibPagination),
         HashAlgoLib: await deployContract("HashAlgoLib"),
         DidTimestampLib: await deployContract("DidTimestampLib"),
-        DidMethodLib: await deployContract("DidMethodLib", linkLibPagination),
         DidRecordLib: await deployContract("DidRecordLib", linkLibPagination),
       },
     }
