@@ -84,7 +84,7 @@
     "@typescript-eslint/eslint-plugin": "^5.35.1",
     "@typescript-eslint/parser": "^5.35.1",
     "audit-ci": "^6.3.0",
-    "did-resolver": "^3.2.0",
+    "did-resolver": "^4.0.0",
     "elliptic": "^6.5.4",
     "eslint": "^8.22.0",
     "eslint-config-airbnb-base": "^15.0.0",
