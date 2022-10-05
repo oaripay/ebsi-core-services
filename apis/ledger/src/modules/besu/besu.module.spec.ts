@@ -1,4 +1,3 @@
-import { describe } from "@jest/globals";
 import hre from "hardhat";
 import "@nomiclabs/hardhat-ethers";
 import type { JsonRpcServer } from "hardhat/types";
@@ -114,10 +113,6 @@ describe("Besu Module", () => {
     });
 
     afterAll(async () => {
-      // Avoid jest open handle error
-      await new Promise<void>((resolve) => {
-        setTimeout(() => resolve(), 500);
-      });
       await app.close();
       await hardhatServer.close();
     });

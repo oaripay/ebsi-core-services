@@ -9,14 +9,6 @@ export interface ApiConfig {
   logLevel: string;
   externalEbsiApiHealthCheck: string;
   besuRpcNode: string;
-  fabric: {
-    enabled: boolean;
-    username: string;
-    password: string;
-    pem: string;
-    xpath: string;
-    chaincodeId: string;
-  };
   domain: string;
   localOrigin: string;
   authorisationApiName: string;
@@ -28,7 +20,6 @@ export interface ApiConfig {
     privateKey: string;
   };
   testApp: {
-    id: string;
     name: string;
     privateKey: string;
   };
@@ -70,14 +61,6 @@ export const loadConfig = (): ApiConfig => {
     apiUrlPrefix: process.env.API_URL_PREFIX || "/ledger/v3",
     logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
     besuRpcNode: process.env.BESU_RPC_NODE,
-    fabric: {
-      enabled: process.env.FABRIC_ENABLED === "true",
-      username: process.env.FABRIC_USERNAME,
-      password: process.env.FABRIC_PASSWORD,
-      pem: process.env.FABRIC_ADMIN_PEM_PRIVATE_KEY,
-      xpath: process.env.FABRIC_ADMIN_XPATH_PRIVATE_KEY,
-      chaincodeId: "iossdrpociossvatid",
-    },
     domain: DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
     trustedAppsRegistryApiUrl: DOMAIN + TAR_API_PATH,
@@ -91,7 +74,6 @@ export const loadConfig = (): ApiConfig => {
       privateKey: process.env.TEST_USER_PRIVATE_KEY,
     },
     testApp: {
-      id: process.env.TEST_APP_ID,
       name: process.env.TEST_APP_NAME,
       privateKey: process.env.TEST_APP_PRIVATE_KEY,
     },
@@ -103,8 +85,8 @@ export const ApiConfigModule = ConfigModule.forRoot({
   envFilePath: [
     `.env.${process.env.NODE_ENV}.local`,
     `.env.${process.env.NODE_ENV}`,
-    ".env.default.local",
-    ".env.default",
+    ".env.local",
+    ".env",
   ],
   load: [loadConfig],
   validationSchema: Joi.object({
@@ -127,33 +109,11 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "debug"
     ),
     BESU_RPC_NODE: Joi.string().uri().required(),
-    FABRIC_ENABLED: Joi.string(),
-    FABRIC_USERNAME: Joi.when("FABRIC_ENABLED", {
-      is: "true",
-      then: Joi.string().required(),
-      otherwise: Joi.string(),
-    }),
-    FABRIC_PASSWORD: Joi.when("FABRIC_ENABLED", {
-      is: "true",
-      then: Joi.string().required(),
-      otherwise: Joi.string(),
-    }),
-    FABRIC_ADMIN_PEM_PRIVATE_KEY: Joi.when("FABRIC_ENABLED", {
-      is: "true",
-      then: Joi.string().required(),
-      otherwise: Joi.string(),
-    }),
-    FABRIC_ADMIN_XPATH_PRIVATE_KEY: Joi.when("FABRIC_ENABLED", {
-      is: "true",
-      then: Joi.string().required(),
-      otherwise: Joi.string(),
-    }),
     DOMAIN: Joi.string().uri().required(),
     LOCAL_ORIGIN: Joi.string().uri(),
     REQUEST_TIMEOUT: Joi.string(),
     TEST_USER_KID: Joi.string(),
     TEST_USER_PRIVATE_KEY: Joi.string(),
-    TEST_APP_ID: Joi.string(),
     TEST_APP_NAME: Joi.string(),
     TEST_APP_PRIVATE_KEY: Joi.string(),
   }),

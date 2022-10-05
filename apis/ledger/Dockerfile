@@ -11,9 +11,6 @@ COPY --from=builder /app/apis/ledger/.ci .ci
 ENV NODE_ENV=production
 # This is required for nestjs runtime.
 RUN yarn install --production --frozen-lockfile --ignore-scripts && yarn cache clean
-RUN mkdir -p /app/wallet
-# Uncomment the following line to run Ledger API locally
-# COPY wallet wallet
 RUN chown node:node /app
 USER node
 CMD [ "node", "dist/main" ]

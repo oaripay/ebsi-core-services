@@ -8,7 +8,7 @@ Ledger API service gives use case applications access to all the available block
 
 The Ledger API is a Core Service of the EBSI platform providing access to the EBSI Ledger Protocol(s) and Smart Contracts services running at the lower layer Chain & Storage.
 
-EBSI V2 Ledger API provides capabilities to interact (Read and Write) with Hyperledger Besu and (Read-Only) for Fabric ledgers. As a remark, for EBSI v2.0, in order to interact with the Fabric node clients, consumers must install the Fabric SDK kit because Fabric ledgers has not a full feature set natively exposed by a REST API. Only a limited set of features are exposed.
+EBSI V2 Ledger API provides capabilities to interact (Read and Write) with Hyperledger Besu.
 
 As a general principle, only EBSI Core Service API, acting as JSON-RPC proxy for the end-users can have access to the Ledger API JSON RPC Proxy, meaning end-users have no direct access to the EBSI Ledgers clients software running on MS nodes.
 
@@ -45,7 +45,7 @@ For more information see:
 
 You can choose to run the project locally with your own Node.js environment, or you can use Docker Compose to run it.
 
-First, create an `.env.default.local` file locally. You can duplicate the content of `.env.default` or only set the variables that you want to change.
+First, create an `.env.local` file locally. You can duplicate the content of `.env` or only set the variables that you want to change.
 
 ### Run the project locally
 
@@ -81,7 +81,7 @@ You can now open http://localhost:3000/ledger/v3/health. If everything's working
 
 ### Run with Docker
 
-After creating the `.env.default.local` file, run:
+After creating the `.env.local` file, run:
 
 ```sh
 docker-compose up --build

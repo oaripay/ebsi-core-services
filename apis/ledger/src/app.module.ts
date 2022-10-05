@@ -4,18 +4,11 @@ import { APP_INTERCEPTOR } from "@nestjs/core";
 import { ApiConfigModule } from "./config/configuration";
 import { HealthModule } from "./modules/health/health.module";
 import { BesuModule } from "./modules/besu/besu.module";
-import { FabricModule } from "./modules/fabric/fabric.module";
 import { LoggingInterceptor } from "./interceptors/logging.interceptor";
 import { VersionInterceptor } from "./interceptors/version.interceptor";
 
 @Module({
-  imports: [
-    ApiConfigModule,
-    TerminusModule,
-    HealthModule,
-    BesuModule,
-    FabricModule,
-  ],
+  imports: [ApiConfigModule, TerminusModule, HealthModule, BesuModule],
   providers: [
     {
       provide: APP_INTERCEPTOR,

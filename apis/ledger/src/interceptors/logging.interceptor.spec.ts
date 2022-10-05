@@ -13,7 +13,6 @@ import axios from "axios";
 import { AppModule } from "../app.module";
 import { AllExceptionsFilter } from "../filters/http-exception.filter";
 import { createFakeToken } from "../../tests/utils/authorisation";
-import { FabricService } from "../modules/fabric/fabric.service";
 import { ApiConfig } from "../config/configuration";
 
 jest.setTimeout(120000);
@@ -35,31 +34,6 @@ describe("Logging interceptor", () => {
   };
 
   beforeAll(async () => {
-    // Don't load the actual config files
-    jest
-      .spyOn(FabricService, "importIdentityWallet")
-      .mockImplementation(() => ({
-        type: "X.509",
-        credentials: {
-          certificate: "",
-          privateKey: "",
-        },
-        mspId: "",
-      }));
-    jest
-      .spyOn(FabricService, "importConnectionProfile")
-      .mockImplementation(() => ({
-        channels: {},
-        client: {
-          adminCredential: {},
-        },
-        organizations: {
-          betaxiossdrpoc: {
-            adminPrivateKey: {},
-          },
-        },
-      }));
-
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
