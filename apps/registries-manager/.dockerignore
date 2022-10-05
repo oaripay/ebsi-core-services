@@ -1,9 +1,0 @@
-*
-!src
-!public
-!./tsconfig.json
-!./tsconfig.eslint.json
-!./package*.json
-!./nginx.conf
-!./yarn.lock
-!./craco.config.js
