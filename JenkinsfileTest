@@ -22,28 +22,55 @@ pipeline {
       }
     }
 
-    stage ('Lint Dockerfile-s') {
-      agent {
-        docker {
-            image 'hadolint/hadolint:latest-debian'
-            reuseNode true
+    stage('Static analysis') {
+      parallel {
+        stage('Check changesets status') {
+          when {
+            not {
+              branch 'main'
+            }
+          }
+          steps {
+            nodejs(nodeJSInstallationName: '16.17.1') {
+              sh 'yarn changeset status --since=main'
+            }
+          }
         }
-      }
-      steps {
-        sh 'hadolint Dockerfile apis/**/Dockerfile apps/**/Dockerfile'
-      }
-    }
 
-    // Case: pull request
-    stage('Lint affected packages') {
-      when {
-        not {
-          branch 'main'
+        stage ('Lint Dockerfile-s') {
+          agent {
+            docker {
+                image 'hadolint/hadolint:latest-debian'
+                reuseNode true
+            }
+          }
+          steps {
+            sh 'hadolint Dockerfile apis/**/Dockerfile apps/**/Dockerfile'
+          }
         }
-      }
-      steps {
-        nodejs(nodeJSInstallationName: '16.17.1') {
-          sh "yarn lint"
+
+        stage('Lint affected packages') {
+          when {
+            not {
+              branch 'main'
+            }
+          }
+          steps {
+            nodejs(nodeJSInstallationName: '16.17.1') {
+              sh "yarn lint"
+            }
+          }
+        }
+
+        stage('Lint all packages') {
+          when {
+            branch 'main'
+          }
+          steps {
+            nodejs(nodeJSInstallationName: '16.17.1') {
+              sh "yarn lint:all"
+            }
+          }
         }
       }
     }
@@ -60,31 +87,6 @@ pipeline {
       steps {
         nodejs(nodeJSInstallationName: '16.17.1') {
           sh 'yarn test'
-        }
-      }
-    }
-
-    stage('Check changesets status') {
-      when {
-        not {
-          branch 'main'
-        }
-      }
-      steps {
-        nodejs(nodeJSInstallationName: '16.17.1') {
-          sh 'yarn changeset status --since=main'
-        }
-      }
-    }
-
-    // Case: trunk (main branch) updated
-    stage('Lint all packages') {
-      when {
-        branch 'main'
-      }
-      steps {
-        nodejs(nodeJSInstallationName: '16.17.1') {
-          sh "yarn lint:all"
         }
       }
     }
