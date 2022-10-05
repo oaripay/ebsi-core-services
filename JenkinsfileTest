@@ -23,6 +23,7 @@ pipeline {
     }
 
     stage('Static analysis') {
+      failFast true
       parallel {
         stage('Check changesets status') {
           when {
