@@ -72,7 +72,7 @@ pipeline {
       }
       steps {
         nodejs(nodeJSInstallationName: '16.17.1') {
-          sh 'yarn changeset status -since=main'
+          sh 'yarn changeset status --since=main'
         }
       }
     }
