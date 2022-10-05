@@ -117,7 +117,7 @@
           "build"
         ]
       },
-      "test": {
+      "test:unit": {
         "inputs": [
           "default",
           "^prod"

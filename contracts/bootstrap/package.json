@@ -13,6 +13,7 @@
     "lint:eslint": "eslint . --ext .js,.ts",
     "lint:sol": "solhint --max-warnings 0 \"contracts/**/*.sol\"",
     "test": "hardhat test",
+    "test:unit": "yarn test",
     "test:ci": "hardhat compile && hardhat test"
   },
   "license": "EUPL-1.2",
@@ -79,7 +80,7 @@
           "build"
         ]
       },
-      "test": {
+      "test:unit": {
         "inputs": [
           "default",
           "^prod"

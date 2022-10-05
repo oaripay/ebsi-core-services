@@ -18,6 +18,7 @@
     "lint:tsc": "tsc --noEmit --incremental false",
     "lint:prettier": "prettier . --check",
     "test": "hardhat compile && hardhat test",
+    "test:unit": "yarn test",
     "test:ci": "hardhat compile && hardhat test && yarn coverage"
   },
   "dependencies": {
@@ -85,7 +86,7 @@
           "build"
         ]
       },
-      "test": {
+      "test:unit": {
         "inputs": [
           "default",
           "^prod"
