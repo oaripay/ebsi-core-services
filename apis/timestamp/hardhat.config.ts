@@ -11,7 +11,7 @@ const timestampScPath = path.resolve(
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   networks: {
-    hardhat: { hardfork: "berlin", allowUnlimitedContractSize: true },
+    hardhat: { hardfork: "berlin" },
   },
   solidity: {
     version: "0.8.12",

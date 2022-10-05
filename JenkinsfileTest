@@ -68,6 +68,18 @@ pipeline {
       }
     }
 
+    stage ('Lint Dockerfile-s') {
+        agent {
+            docker {
+                image 'hadolint/hadolint:latest-debian'
+                reuseNode true
+            }
+        }
+        steps {
+            sh 'hadolint Dockerfile **/(apis|apps)/**/Dockerfile'
+        }
+    }
+
     stage('Build docker images') {
       when {
         branch 'nx'
