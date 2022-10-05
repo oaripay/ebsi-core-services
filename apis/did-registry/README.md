@@ -46,17 +46,11 @@ For more information see:
 
 You can choose to run the project locally with your own Node.js environment, or you can use Docker Compose to run it.
 
-First, create an `.env.local` file locally. You can duplicate the content of `.env` or only set the variables that you want to change.
+First, create an `.env.default.local` file locally. You can duplicate the content of `.env.default` or only set the variables that you want to change.
 
 Please note that you need to fill the `API_PRIVATE_KEY` and `TEST_CLIENT_PRIVATE_KEY` environment variable with secp256k1 elliptic curve private keys in hexadecimal.
 
 You must at least set `API_PRIVATE_KEY`, `CONTRACT_ADDR`, `EBSI_ENV` and `DOMAIN` to run the API. For e2e testing, you must also set `TEST_CLIENT_KID` and `TEST_CLIENT_PRIVATE_KEY`.
-
-After cloning the repository, make sure to update the submodules:
-
-```sh
-git submodule update --init --recursive
-```
 
 ### Run the project locally
 
@@ -92,7 +86,7 @@ You can now open http://localhost:3000/did-registry/v3/health. If everything's w
 
 ### Run with Docker
 
-After creating the `.env.local` file, run:
+After creating the `.env.default.local` file, run:
 
 ```sh
 docker-compose up --build

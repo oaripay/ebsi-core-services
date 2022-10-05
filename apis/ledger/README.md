@@ -45,7 +45,7 @@ For more information see:
 
 You can choose to run the project locally with your own Node.js environment, or you can use Docker Compose to run it.
 
-First, create an `.env.local` file locally. You can duplicate the content of `.env` or only set the variables that you want to change.
+First, create an `.env.default.local` file locally. You can duplicate the content of `.env.default` or only set the variables that you want to change.
 
 ### Run the project locally
 
@@ -81,7 +81,7 @@ You can now open http://localhost:3000/ledger/v3/health. If everything's working
 
 ### Run with Docker
 
-After creating the `.env.local` file, run:
+After creating the `.env.default.local` file, run:
 
 ```sh
 docker-compose up --build

@@ -1,3 +1,4 @@
+import { describe } from "@jest/globals";
 import hre from "hardhat";
 import "@nomiclabs/hardhat-ethers";
 import type { JsonRpcServer } from "hardhat/types";
