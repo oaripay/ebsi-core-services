@@ -6,11 +6,11 @@ pipeline {
     stage('Fetch main branch') {
       when {
         not {
-          branch 'nx'
+          branch 'main'
         }
       }
       steps {
-        sh 'git fetch origin nx:nx'
+        sh 'git fetch origin main:main'
       }
     }
 
@@ -38,7 +38,7 @@ pipeline {
     stage('Lint affected packages') {
       when {
         not {
-          branch 'nx'
+          branch 'main'
         }
       }
       steps {
@@ -51,7 +51,7 @@ pipeline {
     stage('Unit test affected packages') {
       when {
         not {
-          branch 'nx'
+          branch 'main'
         }
       }
       environment {
@@ -67,12 +67,12 @@ pipeline {
     stage('Check changesets status') {
       when {
         not {
-          branch 'nx'
+          branch 'main'
         }
       }
       steps {
         nodejs(nodeJSInstallationName: '16.17.1') {
-          sh 'yarn changeset status -since=nx'
+          sh 'yarn changeset status -since=main'
         }
       }
     }
@@ -80,7 +80,7 @@ pipeline {
     // Case: trunk (main branch) updated
     stage('Lint all packages') {
       when {
-        branch 'nx'
+        branch 'main'
       }
       steps {
         nodejs(nodeJSInstallationName: '16.17.1') {
@@ -91,7 +91,7 @@ pipeline {
 
     stage('Unit test all packages') {
       when {
-        branch 'nx'
+        branch 'main'
       }
       environment {
         API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
@@ -105,7 +105,7 @@ pipeline {
 
     stage('Build docker images') {
       when {
-        branch 'nx'
+        branch 'main'
       }
       steps {
         nodejs(nodeJSInstallationName: '16.17.1') {
@@ -116,7 +116,7 @@ pipeline {
 
     stage('Push to ECR') {
       when {
-        branch 'nx'
+        branch 'main'
       }
       steps {
         sh '/usr/local/bin/update_ecr.bash ${GIT_COMMIT}'
@@ -125,7 +125,7 @@ pipeline {
 
     stage('Modify YAML & Commit') {
       when {
-        branch 'nx'
+        branch 'main'
       }
       steps {
         sh '/usr/local/bin/update_yaml.bash ${GIT_COMMIT}'
@@ -134,7 +134,7 @@ pipeline {
 
     stage('Deploy on network') {
       when {
-        branch 'nx'
+        branch 'main'
       }
       steps {
         withCredentials([sshUserPrivateKey(credentialsId: 'ebsi1-robot', keyFileVariable: 'PK')]) {
