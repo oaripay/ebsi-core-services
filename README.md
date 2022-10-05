@@ -54,6 +54,14 @@ To execute a specific package npm task, use the following pattern `yarn nx [npm-
 yarn nx build @ebsiint-sc/trusted-policies-registry
 ```
 
+### Managing changelogs and release version bumps
+
+When working on a PR, run `yarn changeset add` to create a new changeset file, or run `yarn changeset add --empty` to create an empty changeset (i.e. no changes). Rename the file with the jira ticket, e.g. `.changeset/EBSIINT-4242.md`
+
+When creating a new release, run `yarn changeset version`, open a PR, and merge it.
+
+For details on changesets please see [this excellent evaluation](https://ec.europa.eu/digital-building-blocks/tracker/browse/EBSIINT-4611).
+
 ### Further details
 
 Please refer to services' `README` files for more information regarding specifics.
