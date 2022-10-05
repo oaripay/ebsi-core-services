@@ -16,7 +16,6 @@
     "lint:tsc": "tsc --noEmit --incremental false",
     "lint:prettier": "prettier . --check",
     "lint:stylelint": "stylelint \"**/*.css\"",
-    "release": "standard-version",
     "test:ci": "react-scripts test --watchAll=false --ci --coverage --reporters=default --reporters=jest-sonar --runInBand"
   },
   "dependencies": {
@@ -73,7 +72,6 @@
     "precompress": "^7.0.1",
     "prettier": "^2.6.2",
     "source-map-explorer": "^2.5.2",
-    "standard-version": "^9.5.0",
     "stylelint": "^14.8.5",
     "stylelint-config-prettier": "^9.0.3",
     "stylelint-config-standard": "^25.0.0",
@@ -117,49 +115,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "standard-version": {
-    "skip": {
-      "commit": true,
-      "tag": true
-    },
-    "header": "# Changelog\n\nAll notable changes to this project will be documented in this file.\n",
-    "types": [
-      {
-        "type": "feat",
-        "section": "🚀 Features"
-      },
-      {
-        "type": "fix",
-        "section": "🐛 Bug Fixes"
-      },
-      {
-        "type": "chore",
-        "hidden": true
-      },
-      {
-        "type": "docs",
-        "hidden": true
-      },
-      {
-        "type": "style",
-        "hidden": true
-      },
-      {
-        "type": "refactor",
-        "hidden": true
-      },
-      {
-        "type": "perf",
-        "hidden": true
-      },
-      {
-        "type": "test",
-        "hidden": true
-      }
-    ],
-    "commitUrlFormat": "https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-web-client/commits/{{hash}}",
-    "issueUrlFormat": "https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-web-client/pull-requests/{{id}}/overview",
-    "compareUrlFormat": "https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-web-client/compare/diff?targetBranch=refs%2Ftags%2F{{previousTag}}&sourceBranch=refs%2Ftags%2F{{currentTag}}&targetRepoId=406"
   }
 }
