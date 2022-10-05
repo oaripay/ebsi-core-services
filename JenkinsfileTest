@@ -22,6 +22,18 @@ pipeline {
       }
     }
 
+    stage ('Lint Dockerfile-s') {
+      agent {
+        docker {
+            image 'hadolint/hadolint:latest-debian'
+            reuseNode true
+        }
+      }
+      steps {
+        sh 'hadolint Dockerfile apis/**/Dockerfile apps/**/Dockerfile'
+      }
+    }
+
     // Case: pull request
     stage('Lint affected packages') {
       when {
@@ -89,18 +101,6 @@ pipeline {
           sh 'yarn test:all'
         }
       }
-    }
-
-    stage ('Lint Dockerfile-s') {
-        agent {
-            docker {
-                image 'hadolint/hadolint:latest-debian'
-                reuseNode true
-            }
-        }
-        steps {
-            sh 'hadolint Dockerfile apis/**/Dockerfile apps/**/Dockerfile'
-        }
     }
 
     stage('Build docker images') {
