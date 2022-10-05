@@ -43,30 +43,30 @@ pipeline {
     }
 
     // Case: trunk (main branch) updated
-    stage('Lint') {
-      when {
-        branch 'nx'
-      }
-      steps {
-        nodejs(nodeJSInstallationName: '16.17.1') {
-          sh "yarn lint:all"
-        }
-      }
-    }
+    // stage('Lint') {
+    //   when {
+    //     branch 'nx'
+    //   }
+    //   steps {
+    //     nodejs(nodeJSInstallationName: '16.17.1') {
+    //       sh "yarn lint:all"
+    //     }
+    //   }
+    // }
 
-    stage('Test') {
-      when {
-        branch 'nx'
-      }
-      environment {
-        API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
-      }
-      steps {
-        nodejs(nodeJSInstallationName: '16.17.1') {
-          sh 'yarn test:all'
-        }
-      }
-    }
+    // stage('Test') {
+    //   when {
+    //     branch 'nx'
+    //   }
+    //   environment {
+    //     API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
+    //   }
+    //   steps {
+    //     nodejs(nodeJSInstallationName: '16.17.1') {
+    //       sh 'yarn test:all'
+    //     }
+    //   }
+    // }
 
     stage ('Lint Dockerfile-s') {
         agent {
