@@ -23,7 +23,12 @@ pipeline {
     }
 
     // Case: pull request
-    stage('Lint affected') {
+    stage('Lint affected packages') {
+      when {
+        not {
+          branch 'nx'
+        }
+      }
       steps {
         nodejs(nodeJSInstallationName: '16.17.1') {
           sh "yarn lint"
@@ -31,7 +36,12 @@ pipeline {
       }
     }
 
-    stage('Test affected') {
+    stage('Test affected packages') {
+      when {
+        not {
+          branch 'nx'
+        }
+      }
       environment {
         API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
       }
@@ -42,31 +52,44 @@ pipeline {
       }
     }
 
-    // Case: trunk (main branch) updated
-    // stage('Lint') {
-    //   when {
-    //     branch 'nx'
-    //   }
-    //   steps {
-    //     nodejs(nodeJSInstallationName: '16.17.1') {
-    //       sh "yarn lint:all"
-    //     }
-    //   }
-    // }
+    stage('Check changesets status') {
+      when {
+        not {
+          branch 'nx'
+        }
+      }
+      steps {
+        nodejs(nodeJSInstallationName: '16.17.1') {
+          sh 'yarn changeset status -since=nx'
+        }
+      }
+    }
 
-    // stage('Test') {
-    //   when {
-    //     branch 'nx'
-    //   }
-    //   environment {
-    //     API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
-    //   }
-    //   steps {
-    //     nodejs(nodeJSInstallationName: '16.17.1') {
-    //       sh 'yarn test:all'
-    //     }
-    //   }
-    // }
+    // Case: trunk (main branch) updated
+    stage('Lint all packages') {
+      when {
+        branch 'nx'
+      }
+      steps {
+        nodejs(nodeJSInstallationName: '16.17.1') {
+          sh "yarn lint:all"
+        }
+      }
+    }
+
+    stage('Unit test all packages') {
+      when {
+        branch 'nx'
+      }
+      environment {
+        API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
+      }
+      steps {
+        nodejs(nodeJSInstallationName: '16.17.1') {
+          sh 'yarn test:all'
+        }
+      }
+    }
 
     stage ('Lint Dockerfile-s') {
         agent {
