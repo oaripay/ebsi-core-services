@@ -1,6 +1,6 @@
 # Create reference to core-services
-ARG DOCKER_TAG=latest
-FROM ebsi/core-services:$DOCKER_TAG as builder
+ARG TAG=latest
+FROM ebsi/core-services:$TAG as builder
 
 FROM node:16.17.1-alpine3.16@sha256:4e36c3dee7c32cef5bfce5bc1b5013d1c3cc542cfdefde2a545ec641e7c94243
 WORKDIR /app
@@ -28,7 +28,7 @@ COPY --from=builder /app/contracts/trusted-issuers-registry/dist ./contracts/tru
 COPY --from=builder /app/contracts/trusted-issuers-registry/artifacts ./contracts/trusted-issuers-registry/artifacts
 # Define ENV
 ENV NODE_ENV=production
-ENV DOCKER_TAG=$DOCKER_TAG
+ENV DOCKER_TAG=$TAG
 # Install prod dependencies
 RUN yarn install --frozen-lockfile --silent --production --ignore-scripts && yarn cache clean
 RUN chown node:node /app

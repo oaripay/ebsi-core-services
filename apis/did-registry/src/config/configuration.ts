@@ -47,7 +47,8 @@ export const loadConfig = (): ApiConfig => {
     apiPrivateKey: process.env.API_PRIVATE_KEY,
     apiName: process.env.API_NAME,
     apiUrlPrefix: process.env.API_URL_PREFIX || "/did-registry/v3",
-    authorisationApiName: process.env.AUTHORISATION_API_NAME,
+    authorisationApiName:
+      process.env.AUTHORISATION_API_NAME || "authorisation-api",
     authorisationApiUrl: DOMAIN + AUTH_API_PATH,
     contractAddr: process.env.CONTRACT_ADDR,
     domain: DOMAIN,
@@ -91,7 +92,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     API_PRIVATE_KEY: Joi.string().required(),
     API_URL_PREFIX: Joi.string(),
     API_NAME: Joi.string().required(),
-    AUTHORISATION_API_NAME: Joi.string().required(),
+    AUTHORISATION_API_NAME: Joi.string(),
     LOG_LEVEL: Joi.string().valid(
       "silent",
       "error",

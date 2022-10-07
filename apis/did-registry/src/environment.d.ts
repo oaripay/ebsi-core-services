@@ -7,7 +7,7 @@ declare global {
       API_NAME: string;
       API_PORT?: string;
       API_URL_PREFIX?: string;
-      AUTHORISATION_API_NAME: string;
+      AUTHORISATION_API_NAME?: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
       DOCKER_TAG?: string;
       LEDGER_API_NAME?: string;
