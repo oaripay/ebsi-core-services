@@ -55,7 +55,7 @@ export class AttributesService {
 
   private timeout: number;
 
-  constructor(configService: ConfigService<ApiConfig>) {
+  constructor(configService: ConfigService<ApiConfig, true>) {
     this.secret = configService.get<string>("encryptionSecret");
     this.storageApiUrl = configService.get<string>("storageApiUrl");
     this.storageUri = `${this.storageApiUrl}/stores/distributed`;

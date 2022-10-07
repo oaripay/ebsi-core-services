@@ -16,7 +16,7 @@ import AuthService from "./auth.service";
 
 describe("auth module tests", () => {
   let app: INestApplication;
-  let configService: ConfigService<ApiConfig>;
+  let configService: ConfigService<ApiConfig, true>;
   let eos: {
     privateKey: Uint8Array | KeyLike;
     publicKeyJwk: JWK;
@@ -35,7 +35,8 @@ describe("auth module tests", () => {
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
 
-    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
 
     const privateKeyHex = configService.get<string>("apiPrivateKey");
     const publicKeyJwk = new EbsiWallet(privateKeyHex).getPublicKey({

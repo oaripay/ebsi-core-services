@@ -20,8 +20,11 @@ describe("App Module", () => {
   let app: NestFastifyApplication;
   let server: HttpServer;
   let configService: ConfigService<ApiConfig, true>;
+  const dockerTag = "version";
 
   beforeAll(async () => {
+    process.env.DOCKER_TAG = dockerTag;
+
     // Start server
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
@@ -74,7 +77,7 @@ describe("App Module", () => {
       const response = await request(server).get("/heal").send();
       const headers = response.header as ResponseHeaders;
       expect(headers).toHaveProperty("ebsi-image-tag");
-      expect(headers["ebsi-image-tag"].startsWith("test_")).toBe(true);
+      expect(headers["ebsi-image-tag"]).toBe(dockerTag);
     });
   });
 
@@ -84,7 +87,7 @@ describe("App Module", () => {
       const response = await request(server).get("/health").send();
       const headers = response.header as ResponseHeaders;
       expect(headers).toHaveProperty("ebsi-image-tag");
-      expect(headers["ebsi-image-tag"].startsWith("test_")).toBe(true);
+      expect(headers["ebsi-image-tag"]).toBe(dockerTag);
     });
   });
 });

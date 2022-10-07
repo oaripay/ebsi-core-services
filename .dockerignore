@@ -7,10 +7,6 @@
 yarn-error.log
 JenkinsfileTest
 
-# These files are currently needed to display the tag version
-# **/.ci
-# **/docker-compose.yml
-
 ## Apis
 apis/*/coverage
 apis/*/dist

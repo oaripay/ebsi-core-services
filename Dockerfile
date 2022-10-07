@@ -16,8 +16,6 @@ RUN apt-get update && apt-get install -y \
 COPY yarn.lock package.json ./
 
 # Copy projects' package.json files
-COPY ./apps/registries-manager/package.json ./apps/registries-manager/
-COPY ./apps/users-onboarding/package.json ./apps/users-onboarding/
 COPY ./apis/authorisation/package.json ./apis/authorisation/
 COPY ./apis/did-registry/package.json ./apis/did-registry/
 COPY ./apis/ledger/package.json ./apis/ledger/

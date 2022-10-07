@@ -39,7 +39,7 @@ import { byteLength } from "../../shared/utils";
 export class FilesController {
   constructor(
     private filesService: FilesService,
-    private configService: ConfigService<ApiConfig>
+    private configService: ConfigService<ApiConfig, true>
   ) {}
 
   @HttpCode(200)

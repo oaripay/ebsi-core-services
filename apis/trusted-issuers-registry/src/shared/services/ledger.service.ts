@@ -41,7 +41,7 @@ export class LedgerService {
 
   private timeout: number;
 
-  constructor(private configService: ConfigService<ApiConfig>) {
+  constructor(private configService: ConfigService<ApiConfig, true>) {
     this.tirAddress = this.configService.get<string>(
       "besuTrustedIssuersRegistryAddress"
     );

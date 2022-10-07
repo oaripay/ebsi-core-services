@@ -60,7 +60,7 @@ You can choose to run the project locally with your own Node.js environment, or 
 
 First, create an `.env.default.local` file locally. You can duplicate the content of `.env.default` or only set the variables that you want to change.
 
-You must at least set `EBSI_ENV` and `DOMAIN` to run the API. For e2e testing, you must also set `TEST_APP_NAME`, `TEST_APP_PRIVATE_KEY`, `TEST_CLIENT_KID` and `TEST_CLIENT_PRIVATE_KEY`.
+You must at least set `DOMAIN` and `CASSANDRA_KEYSPACE` to run the API. For e2e testing, you must also set `TEST_APP_NAME`, `TEST_APP_PRIVATE_KEY`, `TEST_CLIENT_KID` and `TEST_CLIENT_PRIVATE_KEY`.
 
 You can also define consistency desired for read/write operations in cassandra (this API is not using lightweight transactions).
 
@@ -271,7 +271,7 @@ create keyspace ebsi_integration with replication = { 'class':'NetworkTopologySt
 The setup is ready to test the network. Run the e2e tests defining quorum consistency:
 
 ```
-EBSI_ENV=local CONSISTENCY=quorum yarn test:e2e
+CONSISTENCY=quorum yarn test:e2e
 ```
 
 If you stop 2 nodes in the network and run again the tests it will fail.
@@ -279,7 +279,7 @@ If you stop 2 nodes in the network and run again the tests it will fail.
 Now use local consistency
 
 ```
-EBSI_ENV=local CONSITENCY=localQuorum yarn test:e2e
+CONSITENCY=localQuorum yarn test:e2e
 ```
 
 Using this consistency the API will only accept the confirmation of the datacenter `datacenter1`, which is the local datacenter defined in the api.

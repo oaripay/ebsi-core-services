@@ -11,25 +11,6 @@ export interface CassandraOptions {
   consistency: CassandraConsistency;
 }
 
-const defaultConfig = {
-  local: {
-    KEYSPACE: "ebsi_test",
-  },
-  test: {
-    KEYSPACE: "ebsi_test",
-  },
-  conformance: {
-    // conformance env connected to cassandra in preprod
-    KEYSPACE: "ebsi_pilot",
-  },
-  pilot: {
-    KEYSPACE: "ebsi_pilot",
-  },
-  prod: {
-    KEYSPACE: "ebsi_prod",
-  },
-};
-
 export const cassandraConfig = registerAs(
   "cassandra",
   (): CassandraOptions => ({
@@ -40,9 +21,7 @@ export const cassandraConfig = registerAs(
         "localhost",
       ],
       localDataCenter: process.env.CASSANDRA_LOCAL_DATACENTER || "datacenter1",
-      keyspace:
-        process.env.CASSANDRA_KEYSPACE ||
-        defaultConfig[process.env.EBSI_ENV].KEYSPACE,
+      keyspace: process.env.CASSANDRA_KEYSPACE,
       authProvider: new auth.PlainTextAuthProvider(
         process.env.CASSANDRA_USER,
         process.env.CASSANDRA_PASSWORD

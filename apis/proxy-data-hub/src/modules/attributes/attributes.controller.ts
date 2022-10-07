@@ -39,7 +39,7 @@ import { multihashEncode } from "../../shared/utils";
 export default class AttributesController {
   constructor(
     private attributesService: AttributesService,
-    private configService: ConfigService<ApiConfig>
+    private configService: ConfigService<ApiConfig, true>
   ) {}
 
   @UseGuards(JwtAuthGuard)

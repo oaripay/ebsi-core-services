@@ -38,7 +38,7 @@ export class NotificationsController {
 
   constructor(
     private notificationsService: NotificationsService,
-    private configService: ConfigService<ApiConfig>
+    private configService: ConfigService<ApiConfig, true>
   ) {
     const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
     const domain = configService.get<string>("domain");

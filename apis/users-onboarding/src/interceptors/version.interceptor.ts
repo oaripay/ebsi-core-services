@@ -14,10 +14,8 @@ import { ApiConfig } from "../config/configuration";
 export class VersionInterceptor implements NestInterceptor {
   private tag: string;
 
-  constructor(configService: ConfigService<ApiConfig>) {
-    if (process.env.EBSI_ENV === "test") {
-      this.tag = configService.get<string>("dockerContainerTag");
-    }
+  constructor(configService: ConfigService<ApiConfig, true>) {
+    this.tag = configService.get<string>("dockerContainerTag");
   }
 
   public intercept(

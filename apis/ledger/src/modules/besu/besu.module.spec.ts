@@ -38,7 +38,7 @@ describe("Besu Module", () => {
   let besuService: BesuService;
   let tokenOAuth2: string;
   let tokenSiop: string;
-  let configService: ConfigService<ApiConfig>;
+  let configService: ConfigService<ApiConfig, true>;
   const ganachePort = 8547; // 8546 might already be used for ssh port forwarding
 
   const mockAuthOAuth2 = jest.spyOn(OAuth2lib, "verifyJwtTar");
@@ -68,7 +68,7 @@ describe("Besu Module", () => {
       // Turn off logger
       Logger.overrideLogger(false);
 
-      configService = app.get<ConfigService<ApiConfig>>(ConfigService);
+      configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
       app.useGlobalFilters(new AllExceptionsFilter(configService));
       app.useGlobalPipes(new ValidationPipe({ transform: true }));
       await app.init();

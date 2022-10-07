@@ -54,7 +54,7 @@ export class NotificationsService {
 
   private timeout: number;
 
-  constructor(configService: ConfigService<ApiConfig>) {
+  constructor(configService: ConfigService<ApiConfig, true>) {
     this.secret = configService.get<string>("encryptionSecret");
     this.storageApiUrl = configService.get("storageApiUrl");
     this.storageApiName = configService.get<string>("storageApiName");

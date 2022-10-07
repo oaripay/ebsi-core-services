@@ -72,7 +72,7 @@ export default class AuthenticationService {
 
   private timeout: number;
 
-  constructor(private configService: ConfigService<ApiConfig>) {
+  constructor(private configService: ConfigService<ApiConfig, true>) {
     this.privateKey = prefix0x(this.configService.get<string>("apiPrivateKey"));
     this.didRegistryApiUrl = configService.get<string>("didRegistryApiUrl");
     this.apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");

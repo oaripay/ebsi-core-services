@@ -22,7 +22,7 @@ const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe("sessions service tests", () => {
   let app: INestApplication;
-  let configService: ConfigService<ApiConfig>;
+  let configService: ConfigService<ApiConfig, true>;
   let sessionsService: SessionsService;
   let userEU: Buffer;
   let apiDid: string;
@@ -40,7 +40,8 @@ describe("sessions service tests", () => {
 
     Logger.overrideLogger(false);
 
-    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
     sessionsService = new SessionsService(configService);
     userEU = fs.readFileSync("tests/data/ecasTicket.xml");
     [apiDid] = configService.get<string>("apiVerificationMethodKid").split("#");

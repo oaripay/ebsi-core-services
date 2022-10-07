@@ -31,7 +31,7 @@ import GetPublicKeyDto from "./dto/get-public-key.dto";
 export default class AppsController {
   constructor(
     private appsService: AppsService,
-    private configService: ConfigService<ApiConfig>
+    private configService: ConfigService<ApiConfig, true>
   ) {}
 
   @Get("")

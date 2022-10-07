@@ -10,7 +10,6 @@ COPY --from=builder /app/package.json ./package.json
 # Copy DID Registry API
 COPY --from=builder /app/apis/did-registry/package.json ./apis/did-registry/package.json
 COPY --from=builder /app/apis/did-registry/dist ./apis/did-registry/dist
-COPY --from=builder /app/apis/did-registry/.ci ./apis/did-registry/.ci
 # Copy Bootstrap SC
 COPY --from=builder /app/contracts/bootstrap/package.json ./contracts/bootstrap/package.json
 COPY --from=builder /app/contracts/bootstrap/dist ./contracts/bootstrap/dist
@@ -25,6 +24,7 @@ COPY --from=builder /app/contracts/trusted-policies-registry/dist ./contracts/tr
 COPY --from=builder /app/contracts/trusted-policies-registry/artifacts ./contracts/trusted-policies-registry/artifacts
 # Define ENV
 ENV NODE_ENV=production
+ENV DOCKER_TAG=$DOCKER_TAG
 # Install prod dependencies
 RUN yarn install --frozen-lockfile --silent --production --ignore-scripts && yarn cache clean
 RUN chown node:node /app

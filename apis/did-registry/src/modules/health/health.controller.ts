@@ -13,7 +13,7 @@ import { ApiConfig } from "../../config/configuration";
 export class HealthController {
   constructor(
     private health: HealthCheckService,
-    private configService: ConfigService<ApiConfig>,
+    private configService: ConfigService<ApiConfig, true>,
     private http: HttpHealthIndicator
   ) {}
 

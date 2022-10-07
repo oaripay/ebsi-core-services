@@ -26,7 +26,7 @@ import { ApiConfig } from "../../config/configuration";
 export class SchemasController {
   constructor(
     private schemasService: SchemasService,
-    private configService: ConfigService<ApiConfig>
+    private configService: ConfigService<ApiConfig, true>
   ) {}
 
   @Get("")

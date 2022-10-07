@@ -10,7 +10,6 @@ COPY --from=builder /app/package.json ./package.json
 # Copy TIR API
 COPY --from=builder /app/apis/trusted-issuers-registry/package.json ./apis/trusted-issuers-registry/package.json
 COPY --from=builder /app/apis/trusted-issuers-registry/dist ./apis/trusted-issuers-registry/dist
-COPY --from=builder /app/apis/trusted-issuers-registry/.ci ./apis/trusted-issuers-registry/.ci
 # Copy Bootstrap SC
 COPY --from=builder /app/contracts/bootstrap/package.json ./contracts/bootstrap/package.json
 COPY --from=builder /app/contracts/bootstrap/dist ./contracts/bootstrap/dist
@@ -29,6 +28,7 @@ COPY --from=builder /app/contracts/trusted-issuers-registry/dist ./contracts/tru
 COPY --from=builder /app/contracts/trusted-issuers-registry/artifacts ./contracts/trusted-issuers-registry/artifacts
 # Define ENV
 ENV NODE_ENV=production
+ENV DOCKER_TAG=$DOCKER_TAG
 # Install prod dependencies
 RUN yarn install --frozen-lockfile --silent --production --ignore-scripts && yarn cache clean
 RUN chown node:node /app

@@ -25,7 +25,7 @@ jest.mock("@cef-ebsi/oauth2-auth", () => ({
 
 describe("Logging interceptor", () => {
   let app: INestApplication;
-  let configService: ConfigService<ApiConfig>;
+  let configService: ConfigService<ApiConfig, true>;
 
   const mockedLogger = {
     log: jest.fn(),
@@ -41,7 +41,7 @@ describe("Logging interceptor", () => {
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter()
     );
-    configService = app.get<ConfigService<ApiConfig>>(ConfigService);
+    configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
     app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe());
 

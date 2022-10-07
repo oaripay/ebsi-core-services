@@ -31,7 +31,7 @@ import {
 export class IssuersController {
   constructor(
     private issuersService: IssuersService,
-    private configService: ConfigService<ApiConfig>
+    private configService: ConfigService<ApiConfig, true>
   ) {}
 
   @Get("")

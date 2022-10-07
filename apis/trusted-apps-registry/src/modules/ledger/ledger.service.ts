@@ -22,7 +22,7 @@ export default class LedgerService implements OnModuleDestroy {
 
   private timeout: number;
 
-  constructor(private configService: ConfigService<ApiConfig>) {
+  constructor(private configService: ConfigService<ApiConfig, true>) {
     this.timeout = configService.get<number>("requestTimeout");
   }
 

@@ -1,6 +1,5 @@
 import { ConfigModule } from "@nestjs/config";
 import Joi from "joi";
-import { getDockerTag } from "../shared/utils";
 
 // List here all the values that will be returned by the config factory
 export interface ApiConfig {
@@ -13,7 +12,7 @@ export interface ApiConfig {
   trustedAppsRegistryApiUrl: string;
   domain: string;
   localOrigin: string;
-  logLevel: string;
+  logLevel: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
   externalEbsiApiHealthCheck: string;
   requestTimeout: number;
   // Ledger & SC
@@ -38,31 +37,11 @@ const DIDR_API_PATH = "/did-registry/v3";
 const LEDGER_API_PATH = "/ledger/v3";
 const TAR_API_PATH = "/trusted-apps-registry/v3";
 
-// Example of default values to be used, depending on the environment
-const defaultConfig = {
-  local: {
-    LOG_LEVEL: "debug",
-  },
-  test: {
-    LOG_LEVEL: "info",
-  },
-  conformance: {
-    LOG_LEVEL: "info",
-  },
-  pilot: {
-    LOG_LEVEL: "warn",
-  },
-  prod: {
-    LOG_LEVEL: "error",
-  },
-};
-
 // Config factory
 // Note that process.env — for which provide typings in src/environment.d.ts —
 // should have already been validated by Joi in src/app.module.ts
 export const loadConfig = (): ApiConfig => {
-  const { EBSI_ENV, DOMAIN } = process.env;
-  const dockerContainerTag = getDockerTag(EBSI_ENV);
+  const { DOMAIN } = process.env;
 
   return {
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
@@ -72,7 +51,7 @@ export const loadConfig = (): ApiConfig => {
     authorisationApiUrl: DOMAIN + AUTH_API_PATH,
     domain: DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
-    logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
+    logLevel: process.env.LOG_LEVEL || "warn",
     externalEbsiApiHealthCheck: DOMAIN + HEALTH_CHECK_PATH,
     didRegistryApiUrl: DOMAIN + DIDR_API_PATH,
     trustedAppsRegistryApiUrl: DOMAIN + TAR_API_PATH,
@@ -85,7 +64,7 @@ export const loadConfig = (): ApiConfig => {
     testAdminPrivateKey: process.env.TEST_ADMIN_PRIVATE_KEY || "",
     testUserKid: process.env.TEST_USER_KID || "",
     testUserPrivateKey: process.env.TEST_USER_PRIVATE_KEY || "",
-    dockerContainerTag,
+    dockerContainerTag: process.env.DOCKER_TAG || "",
     blockscout: {
       url: process.env.BLOCKSCOUT_URL,
       bearerToken: process.env.BLOCKSCOUT_BEARER_TOKEN,
@@ -103,9 +82,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
   load: [loadConfig],
   validationSchema: Joi.object({
     // Common API variables
-    EBSI_ENV: Joi.string()
-      .valid("local", "test", "conformance", "pilot", "prod")
-      .required(),
     NODE_ENV: Joi.string()
       .valid("development", "production", "test")
       .default("development"),
@@ -121,6 +97,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "verbose",
       "debug"
     ),
+    DOCKER_TAG: Joi.string(),
     DOMAIN: Joi.string().uri().required(),
     LOCAL_ORIGIN: Joi.string().uri(),
     REQUEST_TIMEOUT: Joi.string(),

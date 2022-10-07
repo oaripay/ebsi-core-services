@@ -10,7 +10,7 @@ import { PaginatedList } from "../../shared/interfaces";
 export class StoresController {
   constructor(
     private storesService: StoresService,
-    private configService: ConfigService<ApiConfig>
+    private configService: ConfigService<ApiConfig, true>
   ) {}
 
   @Get()

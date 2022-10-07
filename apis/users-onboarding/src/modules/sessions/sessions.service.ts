@@ -60,7 +60,7 @@ export default class SessionsService {
 
   private timeout: number;
 
-  constructor(private configService: ConfigService<ApiConfig>) {
+  constructor(private configService: ConfigService<ApiConfig, true>) {
     this.apiKid = this.configService.get<string>("apiVerificationMethodKid");
     [this.apiDid] = this.apiKid.split("#");
     this.recaptchaRegisteredHostname = this.configService.get<string>(

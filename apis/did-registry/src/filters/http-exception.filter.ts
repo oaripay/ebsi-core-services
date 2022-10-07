@@ -26,9 +26,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
   private tag: string;
 
   constructor(configService: ConfigService<ApiConfig, true>) {
-    if (process.env.EBSI_ENV === "test") {
-      this.tag = configService.get<string>("dockerContainerTag");
-    }
+    this.tag = configService.get<string>("dockerContainerTag");
   }
 
   catch(err: Error, host: ArgumentsHost): FastifyReply {

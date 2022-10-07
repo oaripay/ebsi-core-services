@@ -12,7 +12,7 @@ export class AuthService {
 
   private timeout: number;
 
-  constructor(configService: ConfigService<ApiConfig>) {
+  constructor(configService: ConfigService<ApiConfig, true>) {
     this.trustedAppsRegistry = `${configService.get<string>(
       "trustedAppsRegistryApiUrl"
     )}/apps`;

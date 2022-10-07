@@ -12,7 +12,7 @@ import { GetUserParams } from "./dto";
 export class UsersController {
   constructor(
     private usersService: UsersService,
-    private configService: ConfigService<ApiConfig>
+    private configService: ConfigService<ApiConfig, true>
   ) {}
 
   @Get("")

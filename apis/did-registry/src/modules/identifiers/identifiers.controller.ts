@@ -34,7 +34,7 @@ import { ApiConfig } from "../../config/configuration";
 export default class IdentifiersController {
   constructor(
     private identifiersService: IdentifiersService,
-    private configService: ConfigService<ApiConfig>
+    private configService: ConfigService<ApiConfig, true>
   ) {}
 
   @Get("")

@@ -56,7 +56,7 @@ export class AuthorisationService {
 
   private timeout: number;
 
-  constructor(private configService: ConfigService<ApiConfig>) {
+  constructor(private configService: ConfigService<ApiConfig, true>) {
     const domain = this.configService.get<string>("domain");
     const urlPrefix = this.configService.get<string>("apiUrlPrefix");
     this.siopSessionsUrl = `${domain}${urlPrefix}/siop-sessions`;

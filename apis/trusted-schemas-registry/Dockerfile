@@ -10,7 +10,6 @@ COPY --from=builder /app/package.json ./package.json
 # Copy TSR API
 COPY --from=builder /app/apis/trusted-schemas-registry/package.json ./apis/trusted-schemas-registry/package.json
 COPY --from=builder /app/apis/trusted-schemas-registry/dist ./apis/trusted-schemas-registry/dist
-COPY --from=builder /app/apis/trusted-schemas-registry/.ci ./apis/trusted-schemas-registry/.ci
 # Copy Bootstrap SC
 COPY --from=builder /app/contracts/bootstrap/package.json ./contracts/bootstrap/package.json
 COPY --from=builder /app/contracts/bootstrap/dist ./contracts/bootstrap/dist
@@ -25,6 +24,7 @@ COPY --from=builder /app/contracts/trusted-schemas-registry/dist ./contracts/tru
 COPY --from=builder /app/contracts/trusted-schemas-registry/artifacts ./contracts/trusted-schemas-registry/artifacts
 # Define ENV
 ENV NODE_ENV=production
+ENV DOCKER_TAG=$DOCKER_TAG
 # Install prod dependencies
 RUN yarn install --frozen-lockfile --silent --production --ignore-scripts && yarn cache clean
 RUN chown node:node /app

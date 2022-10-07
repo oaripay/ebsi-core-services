@@ -16,7 +16,7 @@ import { ApiConfig } from "../../config/configuration";
 export class LedgersController {
   constructor(
     private ledgersService: LedgersService,
-    private configService: ConfigService<ApiConfig>
+    private configService: ConfigService<ApiConfig, true>
   ) {}
 
   @Get("")

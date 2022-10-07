@@ -29,7 +29,7 @@ import { PaginatedList } from "../../shared/interfaces";
 export class KeyValuesController {
   constructor(
     private keyValuesService: KeyValuesService,
-    private configService: ConfigService<ApiConfig>
+    private configService: ConfigService<ApiConfig, true>
   ) {}
 
   @HttpCode(200)

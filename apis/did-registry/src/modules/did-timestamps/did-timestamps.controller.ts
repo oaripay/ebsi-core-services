@@ -14,7 +14,7 @@ import { ApiConfig } from "../../config/configuration";
 export class DidTimestampsController {
   constructor(
     private didTimestampsService: DidTimestampsService,
-    private configService: ConfigService<ApiConfig>
+    private configService: ConfigService<ApiConfig, true>
   ) {}
 
   @Get("")

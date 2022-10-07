@@ -18,7 +18,7 @@ export class HealthController {
 
   constructor(
     private health: HealthCheckService,
-    private configService: ConfigService<ApiConfig>
+    private configService: ConfigService<ApiConfig, true>
   ) {
     this.timeout = configService.get<number>("requestTimeout");
   }

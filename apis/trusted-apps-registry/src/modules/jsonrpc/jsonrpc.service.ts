@@ -62,7 +62,7 @@ export class JsonRpcService {
   private timeout: number;
 
   constructor(
-    configService: ConfigService<ApiConfig>,
+    configService: ConfigService<ApiConfig, true>,
     private ledgerService: LedgerService
   ) {
     this.tarContract = this.ledgerService.getContract();

@@ -3,11 +3,11 @@ declare global {
   namespace NodeJS {
     interface ProcessEnv {
       NODE_ENV: "development" | "production" | "test";
-      EBSI_ENV: "local" | "test" | "conformance" | "pilot" | "prod";
       API_PORT?: string;
       API_URL_PREFIX?: string;
       AUTHORISATION_API_NAME?: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
+      DOCKER_TAG?: string;
       BESU_RPC_NODE: string;
       DOMAIN: string;
       LOCAL_ORIGIN?: string;

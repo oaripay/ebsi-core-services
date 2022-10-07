@@ -22,7 +22,7 @@ import { ApiConfig } from "../../config/configuration";
 export class SmartContractsController {
   constructor(
     private smartContractsService: SmartContractsService,
-    private configService: ConfigService<ApiConfig>
+    private configService: ConfigService<ApiConfig, true>
   ) {}
 
   @Get("")

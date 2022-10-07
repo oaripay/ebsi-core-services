@@ -12,7 +12,7 @@ export class AuthService {
 
   private timeout: number;
 
-  constructor(configService: ConfigService<ApiConfig>) {
+  constructor(configService: ConfigService<ApiConfig, true>) {
     this.tarApiUrl = `${configService.get<string>("tarApiUrl")}/apps`;
     this.timeout = configService.get<number>("requestTimeout");
   }

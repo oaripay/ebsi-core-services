@@ -24,7 +24,7 @@ import {
 
 describe("authentication service tests", () => {
   let app: INestApplication;
-  let configService: ConfigService<ApiConfig>;
+  let configService: ConfigService<ApiConfig, true>;
   let authenticationService: AuthenticationService;
 
   beforeAll(async () => {
@@ -38,7 +38,8 @@ describe("authentication service tests", () => {
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
 
-    configService = moduleFixture.get<ConfigService<ApiConfig>>(ConfigService);
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
 
     authenticationService = new AuthenticationService(configService);
   });

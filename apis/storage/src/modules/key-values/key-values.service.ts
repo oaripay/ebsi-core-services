@@ -27,7 +27,7 @@ export class KeyValuesService {
   private readonly logger = new Logger(KeyValuesService.name);
 
   constructor(
-    private configService: ConfigService<ApiConfig>,
+    private configService: ConfigService<ApiConfig, true>,
     private keyValuesRepository: KeyValuesRepository,
     private appUsageRepository: AppUsageRepository
   ) {}

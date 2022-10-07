@@ -6,7 +6,6 @@ This is the monorepo combining core services. They are divided into 3 categories
 
 - [contracts](./contracts/): solidity-based smart contracts
 - [apis](./apis/): services abstracting smart contracts methods as well other specific purposes (notifications, storage, etc.)
-- [apps](./apps/): client-side (frontend) applications
 
 ## Table of Contents
 

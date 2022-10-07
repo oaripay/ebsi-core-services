@@ -11,7 +11,7 @@ import { ApiConfig } from "../../config/configuration";
 export class PoliciesController {
   constructor(
     private policiesService: PoliciesService,
-    private configService: ConfigService<ApiConfig>
+    private configService: ConfigService<ApiConfig, true>
   ) {}
 
   @Get("")

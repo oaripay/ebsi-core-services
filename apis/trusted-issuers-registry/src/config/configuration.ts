@@ -1,6 +1,5 @@
 import { ConfigModule } from "@nestjs/config";
 import Joi from "joi";
-import { getDockerTag } from "../shared/utils";
 
 // List here all the values that will be returned by the config factory
 export interface ApiConfig {
@@ -8,7 +7,7 @@ export interface ApiConfig {
   apiPrivateKey: string;
   apiUrlPrefix: string;
   apiName: string;
-  logLevel: string;
+  logLevel: "error" | "warn" | "log" | "verbose" | "debug" | "silent";
   domain: string;
   localOrigin: string;
   externalEbsiApiHealthCheck: string;
@@ -47,34 +46,15 @@ const DIDR_API_PATH = "/did-registry/v3";
 const TAR_API_PATH = "/trusted-apps-registry/v3";
 const TSR_API_PATH = "/trusted-schemas-registry/v2";
 
-const defaultConfig = {
-  local: {
-    LOG_LEVEL: "debug",
-  },
-  test: {
-    LOG_LEVEL: "info",
-  },
-  conformance: {
-    LOG_LEVEL: "info",
-  },
-  pilot: {
-    LOG_LEVEL: "warn",
-  },
-  prod: {
-    LOG_LEVEL: "error",
-  },
-};
-
 export const loadConfig = (): ApiConfig => {
-  const { EBSI_ENV, DOMAIN } = process.env;
-  const dockerContainerTag = getDockerTag(EBSI_ENV);
+  const { DOMAIN } = process.env;
 
   return {
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
     apiPrivateKey: process.env.API_PRIVATE_KEY,
     apiUrlPrefix: process.env.API_URL_PREFIX || "/trusted-issuers-registry/v3",
     apiName: process.env.API_NAME,
-    logLevel: process.env.LOG_LEVEL || defaultConfig[EBSI_ENV].LOG_LEVEL,
+    logLevel: process.env.LOG_LEVEL || "warn",
     domain: DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
     externalEbsiApiHealthCheck: DOMAIN + HEALTH_CHECK_PATH,
@@ -101,7 +81,7 @@ export const loadConfig = (): ApiConfig => {
       process.env.TEST_ISSUER_WITH_PROXY_PRIVATE_KEY,
     testUserPrivateKey: process.env.TEST_USER_PRIVATE_KEY,
     testStatusListSchemaId: process.env.TEST_STATUS_LIST_SCHEMA_ID,
-    dockerContainerTag,
+    dockerContainerTag: process.env.DOCKER_TAG || "",
     blockscout: {
       url: process.env.BLOCKSCOUT_URL,
       bearerToken: process.env.BLOCKSCOUT_BEARER_TOKEN,
@@ -119,9 +99,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
   load: [loadConfig],
   validationSchema: Joi.object({
     // Common API variables
-    EBSI_ENV: Joi.string()
-      .valid("local", "test", "conformance", "pilot", "prod")
-      .required(),
     NODE_ENV: Joi.string()
       .valid("development", "production", "test")
       .default("development"),
@@ -138,6 +115,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "debug"
     ),
     DOMAIN: Joi.string().required(),
+    DOCKER_TAG: Joi.string(),
     LOCAL_ORIGIN: Joi.string().uri(),
     REQUEST_TIMEOUT: Joi.string(),
     // Ledger & SC

@@ -20,7 +20,7 @@ export class AuthService {
 
   constructor(
     private cache: JwtCacheService,
-    configService: ConfigService<ApiConfig>
+    configService: ConfigService<ApiConfig, true>
   ) {
     this.authorisationApiName = configService.get<string>(
       "authorisationApiName"

@@ -7,9 +7,9 @@ WORKDIR /app
 COPY --from=builder /app/yarn.lock yarn.lock
 COPY --from=builder /app/apis/users-onboarding/package.json package.json
 COPY --from=builder /app/apis/users-onboarding/dist dist
-COPY --from=builder /app/apis/users-onboarding/.ci .ci
 ENV NODE_ENV=production
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
+ENV DOCKER_TAG=$DOCKER_TAG
 # This is required for nestjs runtime.
 RUN yarn install --production --frozen-lockfile --ignore-scripts && yarn cache clean
 RUN chown node:node /app

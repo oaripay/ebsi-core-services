@@ -21,7 +21,7 @@ export default class AuthService {
 
   private timeout: number;
 
-  constructor(configService: ConfigService<ApiConfig>) {
+  constructor(configService: ConfigService<ApiConfig, true>) {
     this.didRegistryApiUrl = configService.get<string>("didRegistryApiUrl");
     [this.apiDid] = configService
       .get<string>("apiVerificationMethodKid")

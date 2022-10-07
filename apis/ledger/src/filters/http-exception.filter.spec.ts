@@ -56,7 +56,7 @@ const mockArgumentsHost = {
 describe("All exception filter tests", () => {
   let app: INestApplication;
   let service: AllExceptionsFilter;
-  let configService: ConfigService<ApiConfig>;
+  let configService: ConfigService<ApiConfig, true>;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -71,6 +71,7 @@ describe("All exception filter tests", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
+    configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
     app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();

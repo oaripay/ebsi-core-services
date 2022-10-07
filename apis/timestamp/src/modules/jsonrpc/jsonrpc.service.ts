@@ -64,7 +64,7 @@ export class JsonRpcService {
   private timeout: number;
 
   constructor(
-    private configService: ConfigService<ApiConfig>,
+    private configService: ConfigService<ApiConfig, true>,
     private ledgerService: LedgerService
   ) {
     this.trustedAppsRegistry = this.configService.get<string>(

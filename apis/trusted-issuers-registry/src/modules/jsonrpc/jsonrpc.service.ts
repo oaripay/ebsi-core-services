@@ -50,7 +50,7 @@ export class JsonRpcService {
   private timeout: number;
 
   constructor(
-    configService: ConfigService<ApiConfig>,
+    configService: ConfigService<ApiConfig, true>,
     private ledgerService: LedgerService
   ) {
     this.didRegistry = configService.get<string>("didRegistryApiUrl");

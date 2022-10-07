@@ -50,7 +50,7 @@ First, create an `.env.default.local` file locally. You can duplicate the conten
 
 Please note that you need to fill the `API_PRIVATE_KEY`, `TEST_ADMIN_PRIVATE_KEY`, and `TEST_USER_PRIVATE_KEY` environment variable with secp256k1 elliptic curve private keys in hexadecimal.
 
-You must at least set `API_PRIVATE_KEY`, `API_NAME`, `CONTRACT_ADDR`, `DOMAIN` and `EBSI_ENV` to run the API. For e2e testing, you must also set `TEST_ADMIN_PRIVATE_KEY`, `TEST_ADMIN_KID`, `TEST_USER_PRIVATE_KEY`, and `TEST_USER_KID`.
+You must at least set `API_PRIVATE_KEY`, `API_NAME`, `CONTRACT_ADDR`, and `DOMAIN` to run the API. For e2e testing, you must also set `TEST_ADMIN_PRIVATE_KEY`, `TEST_ADMIN_KID`, `TEST_USER_PRIVATE_KEY`, and `TEST_USER_KID`.
 
 ### Run the project locally
 

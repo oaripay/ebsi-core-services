@@ -3,13 +3,13 @@ declare global {
   namespace NodeJS {
     interface ProcessEnv {
       NODE_ENV: "development" | "production" | "test";
-      EBSI_ENV: "local" | "test" | "conformance" | "pilot" | "prod";
       API_PRIVATE_KEY: string;
       API_PORT?: string;
       API_URL_PREFIX?: string;
       API_NAME: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
       DOMAIN: string;
+      DOCKER_TAG?: string;
       LOCAL_ORIGIN?: string;
       REQUEST_TIMEOUT?: string;
       // Ledger & SC

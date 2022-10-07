@@ -3,17 +3,17 @@ declare global {
   namespace NodeJS {
     interface ProcessEnv {
       NODE_ENV: "development" | "production" | "test";
-      EBSI_ENV: "local" | "test" | "conformance" | "pilot" | "prod";
       API_PRIVATE_KEY: string;
       API_NAME: string;
       API_VERIFICATION_METHOD_KID: string;
       API_PORT?: string;
       API_URL_PREFIX?: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
+      DOCKER_TAG?: string;
       DOMAIN: string;
       LOCAL_ORIGIN?: string;
       AUTHORISATION_CREDENTIAL_SCHEMA: string;
-      EU_LOGIN_VALIDATE_SERVICE_URL?: string;
+      EU_LOGIN_VALIDATE_SERVICE_URL: string;
       RECAPTCHA_SERVICE_URL?: string;
       RECAPTCHA_REGISTERED_HOSTNAME?: string;
       RECAPTCHA_API_KEY: string;

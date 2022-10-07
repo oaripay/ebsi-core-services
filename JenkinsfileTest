@@ -46,7 +46,7 @@ pipeline {
             }
           }
           steps {
-            sh 'hadolint Dockerfile apis/**/Dockerfile apps/**/Dockerfile'
+            sh 'hadolint Dockerfile apis/**/Dockerfile'
           }
         }
 

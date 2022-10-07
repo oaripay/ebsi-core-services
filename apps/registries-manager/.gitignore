@@ -1,8 +1,0 @@
-.idea
-build
-coverage
-node_modules
-.env
-npm-debug.log*
-sonar-report.xml
-.eslintcache

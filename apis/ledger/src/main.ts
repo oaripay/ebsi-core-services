@@ -24,7 +24,7 @@ async function bootstrap(): Promise<void> {
     { logger }
   );
 
-  const configService = app.get<ConfigService<ApiConfig>>(ConfigService);
+  const configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
   const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
   const port = configService.get<number>("apiPort");
   const logLevel = configService.get<string>("logLevel");

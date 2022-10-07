@@ -64,8 +64,8 @@ describe("Authorisation (e2e)", () => {
     did: string;
   };
   let configService: ConfigService<ApiConfig, true>;
-  let ebsiEnv: "test" | "conformance" | "pilot" | "prod";
   let domain: string;
+  let ebsiAuthority: string;
 
   // Fake audience used for the creation of the VP JWT (not checked by the API)
   const audience = "authorisation-api";
@@ -118,10 +118,8 @@ describe("Authorisation (e2e)", () => {
       privateKey: testIssuerPrivateKey,
       did: testIssuerDid,
     };
-    ebsiEnv = configService.get<"test" | "conformance" | "pilot" | "prod">(
-      "ebsiEnv"
-    );
     domain = configService.get<string>("domain");
+    ebsiAuthority = domain.replace(/^https?:\/\//, "");
   });
 
   describe("POST /authentication-requests", () => {
@@ -902,7 +900,7 @@ describe("Authorisation (e2e)", () => {
             privateKeyJwk,
             verifiableCredentialJwt,
             audience,
-            ebsiEnv,
+            ebsiAuthority,
             alg
           );
 
@@ -1023,7 +1021,7 @@ describe("Authorisation (e2e)", () => {
         privateKeyJwk,
         verifiableCredentialJwt,
         audience,
-        ebsiEnv
+        ebsiAuthority
       );
 
       const nonce = randomUUID();

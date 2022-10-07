@@ -3,11 +3,11 @@ declare global {
   namespace NodeJS {
     interface ProcessEnv {
       NODE_ENV: "development" | "production" | "test";
-      EBSI_ENV: "local" | "test" | "conformance" | "pilot" | "prod";
       API_PORT?: string;
       API_URL_PREFIX?: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
       DOMAIN: string;
+      DOCKER_TAG?: string;
       LOCAL_ORIGIN?: string;
       REQUEST_TIMEOUT?: string;
       ENCRYPTION_SECRET: string;
@@ -47,7 +47,7 @@ declare global {
         | "localOne";
       CASSANDRA_CONTACT_POINTS?: string;
       CASSANDRA_LOCAL_DATACENTER?: string;
-      CASSANDRA_KEYSPACE?: string;
+      CASSANDRA_KEYSPACE: string;
       TEST_ENV?: string;
       TEST_ENABLE_WRITE_OPS?: string;
     }

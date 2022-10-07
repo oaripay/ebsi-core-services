@@ -29,7 +29,7 @@ export class FilesService {
   private readonly logger = new Logger(FilesService.name);
 
   constructor(
-    private configService: ConfigService<ApiConfig>,
+    private configService: ConfigService<ApiConfig, true>,
     private filesRepository: FilesRepository,
     private appUsageRepository: AppUsageRepository
   ) {}

@@ -45,7 +45,7 @@ export class JsonRpcService {
   private timeout: number;
 
   constructor(
-    configService: ConfigService<ApiConfig>,
+    configService: ConfigService<ApiConfig, true>,
     private contractService: ContractService
   ) {
     this.didRegistry = configService.get<string>("didRegistryApiUrl");

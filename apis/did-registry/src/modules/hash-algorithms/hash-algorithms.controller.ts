@@ -14,7 +14,7 @@ import { GetHashAlgorithmDto, GetHashAlgorithmsDto } from "./dto";
 export class HashAlgorithmsController {
   constructor(
     private hashAlgorithmsService: HashAlgorithmsService,
-    private configService: ConfigService<ApiConfig>
+    private configService: ConfigService<ApiConfig, true>
   ) {}
 
   @Get("")

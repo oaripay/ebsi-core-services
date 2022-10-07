@@ -11,7 +11,7 @@ import { GetTimestampsDto, GetTimestampDto } from "./dto";
 export default class TimestampsController {
   constructor(
     private timestampsService: TimestampsService,
-    private configService: ConfigService<ApiConfig>
+    private configService: ConfigService<ApiConfig, true>
   ) {}
 
   @Get("")

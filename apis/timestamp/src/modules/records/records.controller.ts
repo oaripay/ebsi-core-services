@@ -21,7 +21,7 @@ import GetRecordVersionDto from "./dto/get-record-version.dto";
 export default class RecordsController {
   constructor(
     private recordsService: RecordsService,
-    private configService: ConfigService<ApiConfig>
+    private configService: ConfigService<ApiConfig, true>
   ) {}
 
   @Get("")

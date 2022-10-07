@@ -43,7 +43,7 @@ First, create an `.env.default.local` file locally. You can duplicate the conten
 
 Please note that you need to fill the API_PRIVATE_KEY env variable with a secp256k1 elliptic curve private key in hexadecimal.
 
-You must at least set `API_PRIVATE_KEY`, `EBSI_ENV` and `DOMAIN`.
+You must at least set `API_PRIVATE_KEY` and `DOMAIN`.
 
 ### Run the project locally
 
