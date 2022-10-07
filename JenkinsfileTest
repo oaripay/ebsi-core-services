@@ -110,6 +110,9 @@ pipeline {
       when {
         branch 'main'
       }
+      environment {
+        DOCKER_BUILDKIT=1
+      }
       steps {
         nodejs(nodeJSInstallationName: '16.17.1') {
           sh "yarn docker-build:all"
