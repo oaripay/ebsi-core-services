@@ -7,7 +7,7 @@
     "audit": "audit-ci --moderate --skip-dev",
     "prebuild": "rimraf dist",
     "build": "nest build -p tsconfig.production.json",
-    "docker:build": "docker build . -t ebsi/storage-api-v3:${GIT_COMMIT} --build-arg TAG=${GIT_COMMIT}",
+    "docker:build": "docker build . -t ebsi/storage-api-v3:${GIT_COMMIT} --build-arg DOCKER_TAG=${GIT_COMMIT}",
     "configure:cassandra": "yarn configure:cassandra:keyspace && yarn configure:cassandra:tables",
     "configure:cassandra:keyspace": "yarn dotenv -c test ./scripts/createKeyspace.sh",
     "configure:cassandra:tables": "yarn dotenv -c test ./scripts/createTables.sh",
