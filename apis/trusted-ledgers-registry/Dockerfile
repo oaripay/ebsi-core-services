@@ -30,6 +30,7 @@ COPY --from=builder /app/contracts/trusted-ledgers-registry/artifacts ./contract
 ENV NODE_ENV=production
 # Install prod dependencies
 RUN yarn install --frozen-lockfile --silent --production --ignore-scripts && yarn cache clean
+ARG DOCKER_TAG
 RUN echo "DOCKER_TAG=$DOCKER_TAG" >> .env.default
 RUN chown node:node /app
 USER node

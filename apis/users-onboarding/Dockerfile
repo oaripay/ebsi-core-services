@@ -11,6 +11,7 @@ ENV NODE_ENV=production
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 # This is required for nestjs runtime.
 RUN yarn install --production --frozen-lockfile --ignore-scripts && yarn cache clean
+ARG DOCKER_TAG
 RUN echo "DOCKER_TAG=$DOCKER_TAG" >> .env.default
 RUN chown node:node /app
 USER node
