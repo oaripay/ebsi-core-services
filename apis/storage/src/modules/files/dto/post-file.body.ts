@@ -1,8 +1,8 @@
-import { Multipart } from "@fastify/multipart";
+import { MultipartFile, MultipartValue } from "@fastify/multipart";
 
 export interface PostFileBody {
-  file: Multipart;
-  metadata: Multipart<string>;
+  file: MultipartFile;
+  metadata: MultipartValue<string>;
 }
 
 export default PostFileBody;
