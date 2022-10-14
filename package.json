@@ -6,14 +6,14 @@
   "scripts": {
     "audit": "nx run-many --target=audit --all",
     "clean": "nx run-many --target=clean --all",
-    "build": "nx affected --target=build --parallel",
+    "build": "nx affected --target=build",
     "build:all": "nx run-many --target=build --all",
     "docker-build:core": "docker build . -t ebsi/core-services:${GIT_COMMIT}",
-    "docker-build:affected": "yarn docker-build:core && nx affected --target=docker:build --parallel",
+    "docker-build:affected": "yarn docker-build:core && nx affected --target=docker:build",
     "docker-build:all": "yarn docker-build:core && nx run-many --target=docker:build --all",
-    "lint": "nx affected --target=lint --parallel",
+    "lint": "nx affected --target=lint",
     "lint:all": "nx run-many --target=lint --all",
-    "test": "nx affected --target=test:unit --parallel",
+    "test": "nx affected --target=test:unit",
     "test:all": "nx run-many --target=test:unit --all",
     "lint-staged": "lint-staged",
     "prepare": "is-ci || husky install"
@@ -41,8 +41,9 @@
   },
   "workspaces": {
     "packages": [
-      "apis/**",
-      "contracts/**"
+      "apis/*",
+      "apps/*",
+      "contracts/*"
     ]
   }
 }

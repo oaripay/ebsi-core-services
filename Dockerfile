@@ -29,6 +29,7 @@ COPY ./apis/trusted-ledgers-registry/package.json ./apis/trusted-ledgers-registr
 COPY ./apis/trusted-policies-registry/package.json ./apis/trusted-policies-registry/
 COPY ./apis/trusted-schemas-registry/package.json ./apis/trusted-schemas-registry/
 COPY ./apis/users-onboarding/package.json ./apis/users-onboarding/
+COPY ./apps/users-onboarding-web-client-v2/package.json ./apps/users-onboarding-web-client-v2/package.json
 COPY ./contracts/bootstrap/package.json ./contracts/bootstrap/
 COPY ./contracts/did-registry/package.json ./contracts/did-registry/
 COPY ./contracts/timestamp/package.json ./contracts/timestamp/
@@ -37,7 +38,6 @@ COPY ./contracts/trusted-issuers-registry/package.json ./contracts/trusted-issue
 COPY ./contracts/trusted-ledgers-registry/package.json ./contracts/trusted-ledgers-registry/
 COPY ./contracts/trusted-policies-registry/package.json ./contracts/trusted-policies-registry/
 COPY ./contracts/trusted-schemas-registry/package.json ./contracts/trusted-schemas-registry/
-
 # Install all the dependencies
 RUN yarn install --frozen-lockfile --silent && yarn cache clean
 

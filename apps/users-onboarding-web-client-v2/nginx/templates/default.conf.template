@@ -1,0 +1,29 @@
+server {
+  listen 8080;
+  index index.html index.htm;
+  root /app;
+
+  # Media: images, icons, video, audio
+  location ~* \.(?:jpg|jpeg|gif|png|ico|cur|gz|svg|svgz|mp4|ogg|ogv|webm)$ {
+    expires 1M;
+    access_log off;
+    add_header Cache-Control "public";
+  }
+
+  # JavaScript and CSS files (incl. .map files)
+  location ~* \.(?:css|js|map)$ {
+      gzip_static on;
+      try_files $uri =404;
+      expires 1y;
+      access_log off;
+      add_header Cache-Control "public";
+  }
+
+  location /users-onboarding/v2 {
+    # Note: we can't use gzip_static and sub_filter at the same time.
+    # gzip_static on;
+    try_files $uri /users-onboarding/v2/index.html =404;
+    sub_filter '<head>' '<head><script>window.REACT_APP_CAPTCHA_KEY="${REACT_APP_CAPTCHA_KEY}";window.REACT_APP_EBSI_API_DOMAIN="${REACT_APP_EBSI_API_DOMAIN}";window.REACT_APP_EBSI_APP_DOMAIN="${REACT_APP_EBSI_APP_DOMAIN}";window.REACT_APP_EULOGIN="${REACT_APP_EULOGIN}";</script>';
+    sub_filter_once on;
+  }
+}
