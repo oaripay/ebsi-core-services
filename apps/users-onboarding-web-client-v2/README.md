@@ -124,12 +124,6 @@ or with yarn:
 yarn prettier . --check
 ```
 
-### Auditing the dependencies
-
-```sh
-yarn run audit
-```
-
 ## Licensing
 
 Copyright (c) 2019 European Commission

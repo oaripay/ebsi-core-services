@@ -129,20 +129,6 @@ You can run [hadolint](https://github.com/hadolint/hadolint) locally to lint you
 docker run --rm -i hadolint/hadolint < Dockerfile
 ```
 
-## Auditing the dependencies
-
-Using [audit-ci](https://github.com/IBM/audit-ci) (this is the one we run during CI):
-
-```sh
-yarn run audit
-```
-
-Or using Yarn's built-in `audit`command, to get more information:
-
-```sh
-yarn audit
-```
-
 ## Testing
 
 To run all the tests, type:

@@ -44,7 +44,6 @@ For more information see:
     - [Prettier](#prettier)
     - [tsc](#tsc)
     - [Extra: lint Dockerfile](#extra-lint-dockerfile)
-  - [Auditing the dependencies](#auditing-the-dependencies)
   - [Testing](#testing)
     - [Test consistency level in a network](#test-consistency-level-in-a-network)
   - [Load testing with k6](#load-testing-with-k6)
@@ -186,20 +185,6 @@ You can run [hadolint](https://github.com/hadolint/hadolint) locally to lint you
 
 ```sh
 docker run --rm -i hadolint/hadolint < Dockerfile
-```
-
-## Auditing the dependencies
-
-Using [audit-ci](https://github.com/IBM/audit-ci) (this is the one we run during CI):
-
-```sh
-yarn run audit
-```
-
-Or using Yarn's built-in `audit`command, to get more information:
-
-```sh
-yarn audit
 ```
 
 ## Testing
