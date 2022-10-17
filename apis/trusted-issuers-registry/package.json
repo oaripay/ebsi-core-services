@@ -4,7 +4,6 @@
   "version": "3.0.0-rc.2",
   "license": "EUPL-1.2",
   "scripts": {
-    "audit": "audit-ci --moderate --skip-dev",
     "prebuild": "rimraf dist",
     "build": "nest build -p tsconfig.production.json",
     "docker:build": "docker build . -t ebsi/trusted-issuers-registry-api-v3:${GIT_COMMIT} --build-arg DOCKER_TAG=${GIT_COMMIT}",
@@ -80,7 +79,6 @@
     "@types/supertest": "^2.0.12",
     "@typescript-eslint/eslint-plugin": "^5.35.1",
     "@typescript-eslint/parser": "^5.35.1",
-    "audit-ci": "^6.3.0",
     "elliptic": "^6.5.4",
     "eslint": "^8.22.0",
     "eslint-config-airbnb-base": "^15.0.0",

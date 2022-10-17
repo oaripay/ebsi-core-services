@@ -73,6 +73,14 @@ pipeline {
             }
           }
         }
+
+        stage('Audit dependencies') {
+          steps {
+            nodejs(nodeJSInstallationName: '16.17.1') {
+              sh 'yarn run audit'
+            }
+          }
+        }
       }
     }
 

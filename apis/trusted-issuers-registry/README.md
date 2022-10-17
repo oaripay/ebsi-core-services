@@ -31,7 +31,6 @@ For more information see:
     - [Prettier](#prettier)
     - [tsc](#tsc)
     - [Extra: lint Dockerfile](#extra-lint-dockerfile)
-  - [Auditing the dependencies](#auditing-the-dependencies)
   - [Testing](#testing)
   - [Load testing with k6](#load-testing-with-k6)
     - [Start the API server](#start-the-api-server)
@@ -147,12 +146,6 @@ You can run [hadolint](https://github.com/hadolint/hadolint) locally to lint you
 
 ```sh
 docker run --rm -i hadolint/hadolint < Dockerfile
-```
-
-## Auditing the dependencies
-
-```sh
-yarn run audit
 ```
 
 ## Testing

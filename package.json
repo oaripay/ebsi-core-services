@@ -4,7 +4,7 @@
   "private": true,
   "license": "EUPL-1.2",
   "scripts": {
-    "audit": "nx run-many --target=audit --all",
+    "audit": "audit-ci --skip-dev --moderate -a GHSA-rp65-9cf3-cjxr GHSA-455w-c45v-86rg",
     "clean": "nx run-many --target=clean --all",
     "build": "nx affected --target=build",
     "build:all": "nx run-many --target=build --all",
@@ -26,6 +26,7 @@
     "@nrwl/cli": "14.8.3",
     "@nrwl/workspace": "14.8.3",
     "@stoplight/spectral-cli": "^6.5.0",
+    "audit-ci": "^6.3.0",
     "husky": "^8.0.1",
     "is-ci": "^3.0.1",
     "jest": "^28.1.3",

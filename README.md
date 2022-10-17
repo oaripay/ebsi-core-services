@@ -12,8 +12,9 @@ This is the monorepo combining core services. They are divided into 3 categories
 - [EBSI Core Services](#ebsi-core-services)
   - [Table of Contents](#table-of-contents)
   - [Getting started](#getting-started)
-    - [Download dependencies](#download-dependencies)
+    - [Downloading dependencies](#downloading-dependencies)
     - [Executing tasks](#executing-tasks)
+    - [Auditing the dependencies](#auditing-the-dependencies)
     - [Further details](#further-details)
   - [License](#license)
 
@@ -21,7 +22,7 @@ This is the monorepo combining core services. They are divided into 3 categories
 
 The monorepo uses [NX](https://nx.dev/) as a task runner in combination with [yarn workspaces](https://classic.yarnpkg.com/lang/en/docs/workspaces/). Projects' structures of pre-monorepo work has been maintained.
 
-### Download dependencies
+### Downloading dependencies
 
 Install the required libraries and packages dependencies:
 
@@ -60,6 +61,14 @@ When working on a PR, run `yarn changeset add` to create a new changeset file, o
 When creating a new release, run `yarn changeset version`, open a PR, and merge it.
 
 For details on changesets please see [this excellent evaluation](https://ec.europa.eu/digital-building-blocks/tracker/browse/EBSIINT-4611).
+
+## Auditing the dependencies
+
+Using [audit-ci](https://github.com/IBM/audit-ci) (this is the one we run during CI):
+
+```sh
+yarn run audit
+```
 
 ### Further details
 
