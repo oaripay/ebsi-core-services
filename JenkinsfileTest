@@ -2,161 +2,113 @@ pipeline {
   agent any
 
   stages {
-
-    stage('Fetch main branch') {
+    stage("Build and test the feature branch") {
       when {
         not {
           branch 'main'
         }
       }
-      steps {
-        sh 'git fetch origin main:main'
-      }
-    }
+      stages {
+        stage('Fetch main branch') {
 
-    stage('Setup') {
-      steps {
-        nodejs(nodeJSInstallationName: '16.17.1') {
-          sh 'yarn install --frozen-lockfile'
+          steps {
+            sh 'git fetch origin main:main'
+          }
         }
-      }
-    }
-
-    stage('Static analysis') {
-      failFast true
-      parallel {
-        stage('Check changesets status') {
-          when {
-            not {
-              branch 'main'
+        stage('Setup') {
+          steps {
+            nodejs(nodeJSInstallationName: '16.17.1') {
+              sh 'yarn install --frozen-lockfile'
             }
+          }
+        }
+        stage('Static analysis') {
+          failFast true
+          parallel {
+            stage('Check changesets status') {
+              steps {
+                nodejs(nodeJSInstallationName: '16.17.1') {
+                  sh 'yarn changeset status --since=main'
+                }
+              }
+            }
+
+            stage ('Lint Dockerfile-s') {
+              agent {
+                docker {
+                    image 'hadolint/hadolint:latest-debian'
+                    reuseNode true
+                }
+              }
+              steps {
+                sh 'hadolint Dockerfile apis/**/Dockerfile'
+              }
+            }
+
+            stage('Lint affected packages') {
+              steps {
+                nodejs(nodeJSInstallationName: '16.17.1') {
+                  sh "yarn lint"
+                }
+              }
+            }
+
+            stage('Audit dependencies') {
+              steps {
+                nodejs(nodeJSInstallationName: '16.17.1') {
+                  sh 'yarn run audit'
+                }
+              }
+            }
+          }
+        }
+        stage('Unit test affected packages') {
+          environment {
+            API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
           }
           steps {
             nodejs(nodeJSInstallationName: '16.17.1') {
-              sh 'yarn changeset status --since=main'
+              sh 'yarn test'
             }
           }
         }
+      }
+    }
 
-        stage ('Lint Dockerfile-s') {
-          agent {
-            docker {
-                image 'hadolint/hadolint:latest-debian'
-                reuseNode true
-            }
-          }
-          steps {
-            sh 'hadolint Dockerfile apis/**/Dockerfile'
-          }
-        }
-
-        stage('Lint affected packages') {
-          when {
-            not {
-              branch 'main'
-            }
+    stage("Build and deploy docker images from the main branch") {
+      when {
+        branch 'main'
+      }
+      stages {
+        stage('Build docker images') {
+          environment {
+            DOCKER_BUILDKIT=1
           }
           steps {
             nodejs(nodeJSInstallationName: '16.17.1') {
-              sh "yarn lint"
+              sh "yarn docker-build:all"
             }
           }
         }
-
-        stage('Lint all packages') {
-          when {
-            branch 'main'
-          }
+        stage('Push to ECR') {
           steps {
-            nodejs(nodeJSInstallationName: '16.17.1') {
-              sh "yarn lint:all"
-            }
+            sh '/usr/local/bin/update_ecr.bash ${GIT_COMMIT}'
           }
         }
-
-        stage('Audit dependencies') {
+        stage('Modify YAML & Commit') {
           steps {
-            nodejs(nodeJSInstallationName: '16.17.1') {
-              sh 'yarn run audit'
+            sh '/usr/local/bin/update_yaml.bash ${GIT_COMMIT}'
+          }
+        }
+        stage('Deploy on network') {
+          steps {
+            withCredentials([sshUserPrivateKey(credentialsId: 'ebsi1-robot', keyFileVariable: 'PK')]) {
+              sh 'ssh mco /usr/local/bin/puppet_run_containers_only.sh test aio'
             }
           }
         }
       }
     }
-
-    stage('Unit test affected packages') {
-      when {
-        not {
-          branch 'main'
-        }
-      }
-      environment {
-        API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
-      }
-      steps {
-        nodejs(nodeJSInstallationName: '16.17.1') {
-          sh 'yarn test'
-        }
-      }
-    }
-
-    stage('Unit test all packages') {
-      when {
-        branch 'main'
-      }
-      environment {
-        API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
-      }
-      steps {
-        nodejs(nodeJSInstallationName: '16.17.1') {
-          sh 'yarn test:all'
-        }
-      }
-    }
-
-    stage('Build docker images') {
-      when {
-        branch 'main'
-      }
-      environment {
-        DOCKER_BUILDKIT=1
-      }
-      steps {
-        nodejs(nodeJSInstallationName: '16.17.1') {
-          sh "yarn docker-build:all"
-        }
-      }
-    }
-
-    stage('Push to ECR') {
-      when {
-        branch 'main'
-      }
-      steps {
-        sh '/usr/local/bin/update_ecr.bash ${GIT_COMMIT}'
-      }
-    }
-
-    stage('Modify YAML & Commit') {
-      when {
-        branch 'main'
-      }
-      steps {
-        sh '/usr/local/bin/update_yaml.bash ${GIT_COMMIT}'
-      }
-    }
-
-    stage('Deploy on network') {
-      when {
-        branch 'main'
-      }
-      steps {
-        withCredentials([sshUserPrivateKey(credentialsId: 'ebsi1-robot', keyFileVariable: 'PK')]) {
-          sh 'ssh mco /usr/local/bin/puppet_run_containers_only.sh test aio'
-        }
-      }
-    }
-
   }
 
   post {
