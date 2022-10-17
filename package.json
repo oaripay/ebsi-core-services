@@ -41,8 +41,9 @@
   },
   "workspaces": {
     "packages": [
-      "apis/**",
-      "contracts/**"
+      "apis/*",
+      "apps/*",
+      "contracts/*"
     ]
   }
 }

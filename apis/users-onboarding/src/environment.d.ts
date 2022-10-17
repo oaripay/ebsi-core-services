@@ -14,6 +14,7 @@ declare global {
       LOCAL_ORIGIN?: string;
       AUTHORISATION_CREDENTIAL_SCHEMA: string;
       EU_LOGIN_VALIDATE_SERVICE_URL: string;
+      EU_LOGIN_SERVICE_PARAM: string;
       RECAPTCHA_SERVICE_URL?: string;
       RECAPTCHA_REGISTERED_HOSTNAME?: string;
       RECAPTCHA_API_KEY: string;

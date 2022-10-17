@@ -1,0 +1,49 @@
+# Onboarding Web Client - Standalone Docker image (doesn't depend on the core-services' root image)
+#
+# Multi-stage build that:
+#   - creates a production build of the frontend
+#   - serves the build with nginx
+#
+# Required ARG variables:
+#   - PUBLIC_URL (default: /users-onboarding/v2)
+#
+# Required ENV variables:
+#   - REACT_APP_CAPTCHA_KEY
+#   - REACT_APP_EBSI_API_DOMAIN
+#   - REACT_APP_EBSI_APP_DOMAIN
+#   - REACT_APP_EULOGIN
+#
+
+## Stage 1: install dependencies and copy files
+FROM node:16.17.1-alpine3.16@sha256:4e36c3dee7c32cef5bfce5bc1b5013d1c3cc542cfdefde2a545ec641e7c94243 as base
+WORKDIR /usr/src/app
+COPY ./package.json /usr/src/app/package.json
+# TODO: import lockfile from root container
+# COPY ./yarn.lock /usr/src/app/yarn.lock
+# RUN yarn install --frozen-lockfile --silent && yarn cache clean
+RUN yarn install --silent && yarn cache clean
+COPY . /usr/src/app/
+# Build-time variable
+ARG PUBLIC_URL=/users-onboarding/v2
+# Note: the following variables are no longer defined during the build
+# - REACT_APP_EBSI_ENV
+# - REACT_APP_CAPTCHA_KEY
+RUN yarn build
+
+# Stage 2: run nginx
+FROM nginx:1.19.6-alpine@sha256:c2ce58e024275728b00a554ac25628af25c54782865b3487b11c21cafb7fabda
+RUN mkdir -p /app
+WORKDIR /app
+RUN chown -R nginx:nginx /app && chmod -R 755 /app && \
+  chown -R nginx:nginx /var/cache/nginx && \
+  chown -R nginx:nginx /var/log/nginx && \
+  chown -R nginx:nginx /etc/nginx/conf.d && \
+  touch /var/run/nginx.pid && \
+  chown -R nginx:nginx /var/run/nginx.pid
+USER nginx
+# Copy webapp
+COPY --from=base /usr/src/app/build /app/users-onboarding/v2
+# Copy nginx conf template. The ${X} variables will be automatically substituted.
+COPY nginx/templates/default.conf.template /etc/nginx/templates/default.conf.template
+EXPOSE 8080
+CMD ["nginx", "-g", "daemon off;"]

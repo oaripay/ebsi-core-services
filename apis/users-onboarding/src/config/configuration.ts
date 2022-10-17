@@ -68,7 +68,7 @@ export const loadConfig = (): ApiConfig => {
     authorisationCredentialSchema:
       DOMAIN + TSR_API_PATH + process.env.AUTHORISATION_CREDENTIAL_SCHEMA,
     euloginService: process.env.EU_LOGIN_VALIDATE_SERVICE_URL,
-    euloginServiceParam: `${DOMAIN}/users-onboarding/v2/authentication`,
+    euloginServiceParam: process.env.EU_LOGIN_SERVICE_PARAM,
     recaptchaService:
       process.env.RECAPTCHA_SERVICE_URL ||
       "https://www.google.com/recaptcha/api",
@@ -115,6 +115,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     LOCAL_ORIGIN: Joi.string().uri(),
     REQUEST_TIMEOUT: Joi.string(),
     EU_LOGIN_VALIDATE_SERVICE_URL: Joi.string().uri().required(),
+    EU_LOGIN_SERVICE_PARAM: Joi.string().uri().required(),
     RECAPTCHA_SERVICE_URL: Joi.string().uri(),
     RECAPTCHA_REGISTERED_HOSTNAME: Joi.string(),
     RECAPTCHA_API_KEY: Joi.string().required(),
