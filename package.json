@@ -17,7 +17,7 @@
     "test:all": "nx run-many --target=test:unit --all",
     "lint-staged": "lint-staged",
     "prepare": "is-ci || husky install",
-    "print-affected": "yarn nx print-affected | sed '/^{/,/^}/!d' | jq .projects | sed 's:@ebsiint.*/::'"
+    "print-affected": "scripts/print-affected.sh"
   },
   "devDependencies": {
     "@changesets/cli": "^2.25.0",

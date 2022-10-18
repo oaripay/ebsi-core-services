@@ -9,6 +9,13 @@ pipeline {
         }
       }
     }
+    stage('Print affected') {
+      steps {
+        nodejs(nodeJSInstallationName: '16.17.1') {
+          sh 'yarn print-affected'
+        }
+      }
+    }
     stage("Build and test the feature branch") {
       when {
         not {
