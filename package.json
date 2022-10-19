@@ -17,7 +17,7 @@
     "test:all": "nx run-many --target=test:unit --all",
     "lint-staged": "lint-staged",
     "prepare": "is-ci || husky install",
-    "print-affected": "scripts/print-affected.sh"
+    "print-affected": "scripts/print-affected.js"
   },
   "devDependencies": {
     "@changesets/cli": "^2.25.0",

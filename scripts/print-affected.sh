@@ -1,1 +1,0 @@
-yarn nx print-affected --exclude=@ebsiint-sc/trusted-policies-registry, @ebsiint-sc/trusted-issuers-registry, @ebsiint-sc/trusted-ledgers-registry, @ebsiint-sc/trusted-schemas-registry, @ebsiint-sc/trusted-apps-registry, @ebsiint-sc/did-registry, @ebsiint-sc/timestamp, @ebsiint-sc/bootstrap | sed '/^{/,/^}/!d' | jq .projects | sed 's:@ebsiint.*\/::'
