@@ -15,7 +15,7 @@ For more information see:
 
 - [TAR API Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/x/SoiWFQ)
 - [TAR Smart Contract Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/x/rIiWFQ)
-- [TAR Smart Contract Repository](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-apps-registry-ethereum-sc/browse)
+- [TAR Smart Contract](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/browse/contracts/trusted-apps-registry)
 - API catalogs:
   - [EBSI Pre-production network API Catalog](https://api.preprod.ebsi.eu/docs)
   - [EBSI Production network API Catalog](https://api.ebsi.eu/docs)

@@ -16,7 +16,7 @@ info:
       * [TIR API Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/Trusted+Issuers+Registry+API)
       * [TIR Smart Contract Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/Trusted+Issuers+Registry+Smart+Contract)
       * [TIR API Code Repository](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-issuers-registry-api/browse)
-      * [TIR Smart Contract Code Repository](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-issuers-registry-ethereum-sc/browse)
+      * [TIR Smart Contract](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/browse/contracts/trusted-issuers-registry)
   termsOfService: /docs/terms
   contact:
     name: EBSI Support - Service Desk

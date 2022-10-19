@@ -16,7 +16,7 @@ For more information see:
 
 - [Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/x/MYiWFQ)
 - [DID Registry Smart Contract Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/x/AofkFQ)
-- [DID Registry Smart Contract](../../contracts/did-registry)
+- [DID Registry Smart Contract](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/browse/contracts/did-registry)
 - API catalogs:
   - [EBSI Pre-production network API Catalog](https://api.preprod.ebsi.eu/docs)
   - [EBSI Production network API Catalog](https://api.ebsi.eu/docs)
