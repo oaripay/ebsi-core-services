@@ -42,8 +42,7 @@
     "nest-winston": "^1.7.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.5.6",
-    "winston": "^3.8.1",
-    "yaml": "^2.1.1"
+    "winston": "^3.8.1"
   },
   "devDependencies": {
     "@cef-ebsi/wallet-lib": "^2.0.1",

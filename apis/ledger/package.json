@@ -45,8 +45,7 @@
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.5.6",
     "winston": "^3.8.1",
-    "ws": "^8.8.1",
-    "yaml": "^2.1.1"
+    "ws": "^8.8.1"
   },
   "devDependencies": {
     "@cef-ebsi/siop-auth": "^2.1.2",
