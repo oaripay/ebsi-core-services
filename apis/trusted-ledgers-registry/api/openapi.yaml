@@ -11,12 +11,6 @@ info:
     - obtain Smart Contract and Ledger information,
     - optionally it helps to construct unsigned transactions for the operations.
 
-    For more information see:
-
-    * [Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/Trusted+Ledgers+and+Smart+Contracts+Registry+API)
-    * [Smart Contract Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/pages/viewpage.action?pageId=374834300)
-    * [Code Repository](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-ledgers-sc-registry-api/browse)
-    * [Smart Contract Code](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/browse/contracts/trusted-ledgers-registry)
   termsOfService: /docs/terms
   contact:
     name: EBSI Support - Service Desk

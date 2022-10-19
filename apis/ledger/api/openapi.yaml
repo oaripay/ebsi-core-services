@@ -13,10 +13,6 @@ info:
 
     EBSI Ledger API provides capabilities to interact with Hyperledger Besu.
 
-    For more information see:
-
-    - [Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/Ledger+API)
-    - [Code Repository](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/ledger-api/browse)
   license:
     name: EUPL-1.2
     url: https://joinup.ec.europa.eu/page/eupl-text-11-12

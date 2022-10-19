@@ -15,11 +15,6 @@ info:
 
     TSR API is a microservice, hosted on the EBSI infrastructure.
 
-    For more information see:
-    * [Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/Trusted+Schemas+Registry+API)
-    * [Smart Contract Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/Trusted+Schemas+Registry+Smart+Contract)
-    * [Code Repository](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-schemas-registry-api/browse)
-    * [Smart Contract](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/browse/contracts/trusted-schemas-registry)
   termsOfService: /docs/terms
   contact:
     name: EBSI Support - Service Desk

@@ -20,10 +20,6 @@ info:
     APIs and the distributed storage. Only the Storage API has direct access to
     distributed storage infrastructure (Cassandra for v2.0).
 
-    For more information see:
-
-    - [Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/Storage+API)
-    - [Code Repository](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/storage-api/browse)
   termsOfService: /docs/terms
   contact:
     name: EBSI Support - Service Desk
