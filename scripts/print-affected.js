@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 
+const { EOL } = require("os");
 const { spawnSync } = require("child_process");
+const { writeFileSync } = require("fs");
+
 const contracts = [
   "@ebsiint-sc/trusted-policies-registry",
   "@ebsiint-sc/trusted-issuers-registry",
@@ -23,9 +26,11 @@ const affected = projects.map((project) => {
   return packageName;
 });
 
-if (process.env.GIT_COMMIT) {
-  const dockerTags = affected.map((pkg) => `${pkg}:${process.env.GIT_COMMIT}`);
-  console.log("affected", dockerTags);
-} else {
-  console.log("affected", affected);
-}
+const updates = affected.map(
+  (pkg) => `version_tag::${pkg}: ${process.env.GIT_COMMIT}`
+);
+
+writeFileSync("affected.yaml", updates.join(EOL));
+
+console.log(`affected.yaml file created successfully at  ${process.cwd()}`);
+console.log(updates.join(EOL));
