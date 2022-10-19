@@ -24,7 +24,6 @@ Install dependencies:
 
 ```sh
 yarn install
-git submodule update --init
 ```
 
 ## Building
