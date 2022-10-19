@@ -22,9 +22,7 @@ module.exports = {
     "no-console": "off",
     // we use it for tests
     "func-names": "off",
-    // we use it for tests
     "import/no-extraneous-dependencies": "off",
-    // we use it for tests
     "no-unused-expressions": "off",
   },
 };

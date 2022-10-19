@@ -7,13 +7,6 @@ module.exports = {
     "plugin:@typescript-eslint/recommended-requiring-type-checking",
     "plugin:prettier/recommended",
   ],
-  globals: {
-    // truffle globals
-    artifacts: true,
-    contract: true,
-    assert: true,
-    web3: true,
-  },
   parserOptions: {
     project: "./tsconfig.eslint.json",
     tsconfigRootDir: __dirname,
