@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 
+const isCI = require("is-ci");
 const { EOL } = require("os");
 const { spawnSync } = require("child_process");
 const { writeFileSync } = require("fs");
 
+// Not relevant/unnecessary
 const contracts = [
   "@ebsiint-sc/trusted-policies-registry",
   "@ebsiint-sc/trusted-issuers-registry",
@@ -14,6 +16,7 @@ const contracts = [
   "@ebsiint-sc/timestamp",
   "@ebsiint-sc/bootstrap",
 ];
+
 const { stdout } = spawnSync("sh", [
   "-c",
   `yarn nx print-affected --exclude=${contracts.join(",")} | sed '/^{/,/^}/!d'`,
@@ -26,11 +29,14 @@ const affected = projects.map((project) => {
   return packageName;
 });
 
-const updates = affected.map(
-  (pkg) => `version_tag::${pkg}: ${process.env.GIT_COMMIT}`
-);
+if (!isCI) {
+  return console.log("affected", affected);
+}
 
-writeFileSync("affected.yaml", updates.join(EOL));
+const updates = affected
+  .map((pkg) => `version_tag::${pkg}: ${process.env.GIT_COMMIT}`)
+  .join(EOL);
 
-console.log(`affected.yaml file created successfully at  ${process.cwd()}`);
-console.log(updates.join(EOL));
+writeFileSync("affected.yaml", updates);
+
+console.log("affected.yaml created successfully");
