@@ -2,9 +2,5 @@
   "extends": "solhint:default",
   "rules": {
     "compiler-version": ["error", "0.8.12"]
-  },
-  "excludedFiles": [
-    "**/contracts/trusted-policies-registry-ethereum-sc",
-    "**/contracts/bootstrap-ethereum-sc"
-  ]
+  }
 }

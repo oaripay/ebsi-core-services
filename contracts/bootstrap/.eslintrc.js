@@ -18,7 +18,6 @@ module.exports = {
     project: "./tsconfig.eslint.json",
     tsconfigRootDir: __dirname,
   },
-  ignorePatterns: ["**/contracts/bootstrap-ethereum-sc"],
   rules: {
     // we use it for scripts
     "no-console": "off",

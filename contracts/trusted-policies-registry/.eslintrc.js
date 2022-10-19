@@ -26,7 +26,7 @@ module.exports = {
       },
     },
   },
-  ignorePatterns: ["**/contracts/bootstrap-ethereum-sc", "coverage"],
+  ignorePatterns: ["coverage"],
   rules: {
     // we use it for scripts
     "no-console": "off",
