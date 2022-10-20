@@ -1,20 +1,22 @@
 ![EBSI Logo](https://ec.europa.eu/digital-building-blocks/wikis/images/logo/default-space-logo.svg)
 
-# EBSI Core Services
+# EBSI core services
 
 This is the monorepo combining core services. They are divided into 3 categories
 
-- [contracts](./contracts/): solidity-based smart contracts
-- [apis](./apis/): services abstracting smart contracts methods as well other specific purposes (notifications, storage, etc.)
+- [contracts](/contracts/): solidity-based smart contracts
+- [apis](/apis/): services abstracting smart contracts methods as well other specific purposes (notifications, storage, etc.)
 
 ## Table of Contents
 
-- [EBSI Core Services](#ebsi-core-services)
+- [EBSI core services](#ebsi-core-services)
   - [Table of Contents](#table-of-contents)
   - [Getting started](#getting-started)
     - [Downloading dependencies](#downloading-dependencies)
     - [Executing tasks](#executing-tasks)
-    - [Auditing the dependencies](#auditing-the-dependencies)
+    - [Developing services](#developing-services)
+    - [Managing changelogs and release version bumps](#managing-changelogs-and-release-version-bumps)
+  - [Auditing the dependencies](#auditing-the-dependencies)
     - [Further details](#further-details)
   - [License](#license)
 
@@ -53,6 +55,10 @@ To execute a specific package npm task, use the following pattern `yarn nx [npm-
 ```sh
 yarn nx build @ebsiint-sc/trusted-policies-registry
 ```
+
+### Developing services
+
+Please refer to a more detailed documentation regarding how to [work on EBSI services](/docs/APIs.md).
 
 ### Managing changelogs and release version bumps
 
