@@ -89,60 +89,6 @@
     "tsconfig-paths": "^4.0.0",
     "typescript": "4.8.3"
   },
-  "nx": {
-    "namedInputs": {
-      "default": [
-        "{projectRoot}/src",
-        "{projectRoot}/api"
-      ],
-      "prod": [
-        "!{projectRoot}/tests/**/*.ts"
-      ]
-    },
-    "targets": {
-      "build": {
-        "inputs": [
-          "prod",
-          "^prod"
-        ],
-        "outputs": [
-          "dist"
-        ],
-        "dependsOn": [
-          "^build"
-        ]
-      },
-      "lint": {
-        "inputs": [
-          "default"
-        ],
-        "outputs": [],
-        "dependsOn": [
-          "build"
-        ]
-      },
-      "test:unit": {
-        "inputs": [
-          "default",
-          "^prod"
-        ],
-        "outputs": [],
-        "dependsOn": [
-          "build"
-        ]
-      },
-      "test:ci": {
-        "inputs": [
-          "default",
-          "^prod"
-        ],
-        "outputs": [],
-        "dependsOn": [
-          "build"
-        ]
-      }
-    }
-  },
   "jestSonar": {
     "reportPath": "coverage",
     "reportFile": "test-reporter.xml",
