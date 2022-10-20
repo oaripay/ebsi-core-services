@@ -22,3 +22,6 @@ cache
 coverage.json
 key/private.pem
 typechain
+
+# manifest created by nx for Jenkins CD
+affected.yaml

@@ -9,13 +9,6 @@ pipeline {
         }
       }
     }
-    stage('Print affected') {
-      steps {
-        nodejs(nodeJSInstallationName: '16.17.1') {
-          sh 'yarn print-affected'
-        }
-      }
-    }
     stage("Build and test the feature branch") {
       when {
         not {
@@ -98,6 +91,13 @@ pipeline {
         stage('Push to ECR') {
           steps {
             sh '/usr/local/bin/update_ecr.bash ${GIT_COMMIT}'
+          }
+        }
+        stage('Print affected') {
+          steps {
+            nodejs(nodeJSInstallationName: '16.17.1') {
+              sh 'yarn print-affected'
+            }
           }
         }
         stage('Modify YAML & Commit') {
