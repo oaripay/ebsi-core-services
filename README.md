@@ -2,11 +2,6 @@
 
 # EBSI core services
 
-This is the monorepo combining core services. They are divided into 3 categories
-
-- [contracts](/contracts/): solidity-based smart contracts
-- [apis](/apis/): services abstracting smart contracts methods as well other specific purposes (notifications, storage, etc.)
-
 ## Table of Contents
 
 - [EBSI core services](#ebsi-core-services)
@@ -14,6 +9,7 @@ This is the monorepo combining core services. They are divided into 3 categories
   - [Getting started](#getting-started)
     - [Downloading dependencies](#downloading-dependencies)
     - [Executing tasks](#executing-tasks)
+    - [Developing smart contracts](#developing-smart-contracts)
     - [Developing services](#developing-services)
     - [Managing changelogs and release version bumps](#managing-changelogs-and-release-version-bumps)
   - [Auditing the dependencies](#auditing-the-dependencies)
@@ -22,9 +18,16 @@ This is the monorepo combining core services. They are divided into 3 categories
 
 ## Getting started
 
-The monorepo uses [NX](https://nx.dev/) as a task runner in combination with [yarn workspaces](https://classic.yarnpkg.com/lang/en/docs/workspaces/). Projects' structures of pre-monorepo work has been maintained.
+The monorepo uses [NX](https://nx.dev/) as a task runner in combination with [yarn workspaces](https://classic.yarnpkg.com/lang/en/docs/workspaces/).
 
 ### Downloading dependencies
+
+System requirements:
+
+- Node.js = 16.17.1
+- yarn >= 1.22.0
+
+We recommend the use of [Node Version Manager](https://github.com/creationix/nvm). With it, run `nvm install` followed by `nvm use` to get the right Node.js version.
 
 Install the required libraries and packages dependencies:
 
@@ -55,6 +58,10 @@ To execute a specific package npm task, use the following pattern `yarn nx [npm-
 ```sh
 yarn nx build @ebsiint-sc/trusted-policies-registry
 ```
+
+### Developing smart contracts
+
+Please refer to a more detailed documentation regarding how to [work on EBSI smart contracts](/docs/Contracts.md).
 
 ### Developing services
 

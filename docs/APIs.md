@@ -6,6 +6,7 @@ Working with EBSI services.
 
 - [Table of Contents](#table-of-contents)
 - [Getting started](#getting-started)
+  - [Prerequisites](#prerequisites)
   - [Run a project locally](#run-a-project-locally)
 - [Linting](#linting)
   - [ESLint](#eslint)
@@ -23,13 +24,11 @@ All the commands described below are run from the root folder.
 
 Ensure correct `.env.default.local` file for the specific service you will be working on. Please refer to the service's subfolder `README.md` file for details regarding which values are required.
 
+### Prerequisites
+
+Please read [the main documentation](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/browse/README.md) first.
+
 ### Run a project locally
-
-Install the required libraries and packages dependencies:
-
-```sh
-yarn install
-```
 
 Run the development server:
 
