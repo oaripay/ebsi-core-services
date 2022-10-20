@@ -18,7 +18,8 @@
     "lint:stylelint": "stylelint \"**/*.css\"",
     "release": "standard-version",
     "test": "react-scripts test",
-    "test:ci": "react-scripts test --watchAll=false --ci --coverage --reporters=default --reporters=jest-sonar --runInBand"
+    "test:unit": "react-scripts test --watchAll=false",
+    "test:ci": "yarn test:unit --ci --coverage --reporters=default --reporters=jest-sonar --runInBand"
   },
   "dependencies": {
     "@ecl/ec-preset-website": "^2.39.0",
@@ -156,5 +157,21 @@
     "commitUrlFormat": "https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-web-client/commits/{{hash}}",
     "issueUrlFormat": "https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-web-client/pull-requests/{{id}}/overview",
     "compareUrlFormat": "https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-web-client/compare/diff?targetBranch=refs%2Ftags%2F{{previousTag}}&sourceBranch=refs%2Ftags%2F{{currentTag}}&targetRepoId=406"
+  },
+  "nx": {
+    "namedInputs": {
+      "default": [
+        "{projectRoot}/**/*"
+      ],
+      "production": [
+        "{projectRoot}/src/**/*",
+        "{projectRoot}/public/**/*",
+        "!{projectRoot}/**/*.spec.ts",
+        "!{projectRoot}/**/*.spec.tsx",
+        "!{projectRoot}/**/*.test.ts",
+        "!{projectRoot}/**/*.test.tsx",
+        "{projectRoot}/tsconfig.json"
+      ]
+    }
   }
 }
