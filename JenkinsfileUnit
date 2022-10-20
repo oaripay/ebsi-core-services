@@ -1,0 +1,225 @@
+pipeline {
+    agent any
+    triggers{
+        cron('0 8 * * *')
+    }
+    parameters {
+        extendedChoice(defaultValue: 'all', description: 'What API will be executed?', multiSelectDelimiter: ',', name: 'api', quoteValue: false, saveJSONParameterToFile: false, type: 'PT_CHECKBOX', value: 'all, authorisation-api, did-registry-api, ledger-api, notification-api, proxy-data-hub-api, storage-api, timestamp-api, trusted-apps-registry-api, trusted-issuers-registry-api, trusted-ledgers-registry-api, trusted-policies-registry-api, trusted-schemas-registry-api, users-onboarding-api', visibleItemCount: 15)
+    }
+    stages {        
+        stage('Setup') {
+            steps {                
+                nodejs(nodeJSInstallationName: '16.13.0') {
+                    sh 'yarn install --frozen-lockfile'
+                }                
+            }
+        }
+        stage('Lint') {
+            when {
+                expression { params.api == 'all'}
+            }
+            steps {                
+                nodejs(nodeJSInstallationName: '16.13.0') {                    
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
+                        sh 'yarn lint:all'
+                    }
+                }                
+            }
+        }
+        stage('Authorisation-Api') {    
+            when {
+                expression { params.api == 'all' || params.api.contains('authorisation-api')}
+            }        
+            environment {
+                API_PRIVATE_KEY=credentials('API_AUTHORISATION_PRIVATE_KEY')
+            }
+            steps {                
+                nodejs(nodeJSInstallationName: '16.13.0') {           
+                            
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){                        
+                        sh 'yarn nx test:ci @ebsiint-api/authorisation'
+                    }
+                }                                     
+            }       
+        }
+        stage('Did-Registry-Api') { 
+            when {
+                expression { params.api == 'all' || params.api.contains('did-registry-api')}
+            }           
+            environment {
+                API_PRIVATE_KEY=credentials('TEST_DID_API_PRIVATE_KEY')
+            }
+            steps {                
+                nodejs(nodeJSInstallationName: '16.13.0') {
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
+                        sh 'yarn nx test:ci @ebsiint-api/did-registry'
+                    }
+                }                                     
+            }       
+        }
+        stage('Ledger-Api') {
+            when {
+                expression { params.api == 'all' || params.api.contains('ledger-api')}
+            }            
+            steps {                
+                nodejs(nodeJSInstallationName: '16.13.0') {                                        
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
+                        sh 'yarn nx test:ci @ebsiint-api/ledger'
+                    }
+                }                                     
+            }       
+        }
+        stage('Notification-Api') {
+            when {
+                expression { params.api == 'all' || params.api.contains('notification-api')}
+            } 
+            environment {
+                API_PRIVATE_KEY=credentials('NOTIFICATION_API_PRIVATE_KEY')
+            }           
+            steps {                
+                nodejs(nodeJSInstallationName: '16.13.0') {                                        
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
+                        sh 'yarn nx test:ci @ebsiint-api/notifications'
+                    }
+                }                                     
+            }       
+        }
+        stage('Proxy-Data-Hub-Api') {
+            when {
+                expression { params.api == 'all' || params.api.contains('proxy-data-hub-api')}
+            } 
+            environment {
+                API_PRIVATE_KEY=credentials('PROXY_API_PRIVATE_KEY')
+            }           
+            steps {                
+                nodejs(nodeJSInstallationName: '16.13.0') {                    
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
+                        sh 'yarn nx test:ci @ebsiint-api/proxy-data-hub'
+                    }
+                }                                     
+            }       
+        }
+        stage('Storage-Api') {
+            when {
+                expression { params.api == 'all' || params.api.contains('storage-api')}
+            } 
+            steps {                
+                nodejs(nodeJSInstallationName: '16.13.0') {                    
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
+                        sh 'yarn nx test:ci @ebsiint-api/storage'
+                    }
+                }                                     
+            }       
+        }
+        stage('Timestamp-Api') { 
+            when {
+                expression { params.api == 'all' || params.api.contains('timestamp-api')}
+            }
+            steps {                
+                nodejs(nodeJSInstallationName: '16.13.0') {                    
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
+                        sh 'yarn nx test:ci @ebsiint-api/timestamp'
+                    }
+                }                                     
+            }       
+        }
+        stage('Trusted-apps-registry-Api') { 
+            when {
+                expression { params.api == 'all' || params.api.contains('trusted-apps-registry-api')}
+            }
+            steps {                
+                nodejs(nodeJSInstallationName: '16.13.0') {                    
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
+                        sh 'yarn nx test:ci @ebsiint-api/trusted-apps-registry'
+                    }
+                }                                     
+            }       
+        }
+        stage('Trusted-issuers-registry-Api') {
+            when {
+                expression { params.api == 'all' || params.api.contains('trusted-issuers-registry-api')}
+            }
+            environment {
+                API_PRIVATE_KEY=credentials('APP_PRIVATE_KEY_TRUSTED_ISSUERS')
+            } 
+            steps {                
+                nodejs(nodeJSInstallationName: '16.13.0') {                    
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
+                        sh 'yarn nx test:ci @ebsiint-api/trusted-issuers-registry'
+                    }
+                }                                     
+            }       
+        }
+        stage('Trusted-ledgers-registry-Api') {
+            when {
+                expression { params.api == 'all' || params.api.contains('trusted-ledgers-registry-api')}
+            }
+            environment {
+                API_PRIVATE_KEY=credentials('TLR_API_PRIVATE_KEY')
+            } 
+            steps {                
+                nodejs(nodeJSInstallationName: '16.13.0') {                    
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
+                        sh 'yarn nx test:ci @ebsiint-api/trusted-ledgers-registry'
+                    }
+                }                                     
+            }       
+        } 
+        stage('Trusted-policies-registry-Api') {
+            when {
+                expression { params.api == 'all' || params.api.contains('trusted-policies-registry-api')}
+            }
+            environment {
+                API_PRIVATE_KEY=credentials('TPR_API_PRIVATE_KEY')
+            } 
+            steps {                
+                nodejs(nodeJSInstallationName: '16.13.0') {                    
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
+                        sh 'yarn nx test:ci @ebsiint-api/trusted-policies-registry'
+                    }
+                }                                     
+            }       
+        }
+        stage('Trusted-schemas-registry-Api') {
+            when {
+                expression { params.api == 'all' || params.api.contains('trusted-schemas-registry-api')}
+            }
+            environment {
+                API_PRIVATE_KEY=credentials('TSR_API_PRIVATE_KEY')
+            } 
+            steps {                
+                nodejs(nodeJSInstallationName: '16.13.0') {                    
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
+                        sh 'yarn nx test:ci @ebsiint-api/trusted-schemas-registry'
+                    }
+                }                                     
+            }       
+        }
+        stage('Users-onboarding-Api') {
+            when {
+                expression { params.api == 'all' || params.api.contains('users-onboarding-api')}
+            }
+            environment {
+                API_PRIVATE_KEY=credentials('TEST_ONBOARDING_API_PRIVATE_KEY')
+            } 
+            steps {                
+                nodejs(nodeJSInstallationName: '16.13.0') {                    
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
+                        sh 'yarn nx test:ci @ebsiint-api/trusted-schemas-registry'
+                    }
+                }                                     
+            }       
+        }        
+    }
+    post {
+        failure {
+            slackSend (channel: '#jenkins_tests_notifications', color: '#FF0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+        }
+        always {
+            cleanWs()
+            dir("${env.WORKSPACE}@script") {
+                deleteDir()
+            }
+        }
+    }
+}
