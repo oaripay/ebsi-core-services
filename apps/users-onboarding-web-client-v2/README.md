@@ -23,13 +23,6 @@ It has been developed using Create-React-App.
 
 ### Instructions
 
-Clone the repository and move to the project directory
-
-```sh
-git clone https://ec.europa.eu/digital-building-blocks/code/scm/ebsi/users-onboarding-web-client.git
-cd users-onboarding-web-client
-```
-
 Install the required libraries and packages dependencies
 
 ```sh
