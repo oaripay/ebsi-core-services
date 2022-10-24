@@ -1,8 +1,8 @@
 pipeline {
   agent any
-  environment {
-    NX_CACHE_DIRECTORY = "/tmp/nx-cache"
-  }
+  // environment {
+  //   NX_CACHE_DIRECTORY = "/tmp/nx-cache"
+  // }
   stages {
     stage('Setup') {
       steps {
