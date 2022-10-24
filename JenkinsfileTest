@@ -1,6 +1,8 @@
 pipeline {
   agent any
-
+  environment {
+    NX_CACHE_DIRECTORY = "/tmp/nx-cache"
+  }
   stages {
     stage('Setup') {
       steps {
@@ -67,7 +69,7 @@ pipeline {
           }
           steps {
             nodejs(nodeJSInstallationName: '16.17.1') {
-              sh 'yarn test'
+              sh 'yarn test --parallel=1'
             }
           }
         }
@@ -124,5 +126,4 @@ pipeline {
       }
     }
   }
-
 }

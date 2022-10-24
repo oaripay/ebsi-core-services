@@ -50,54 +50,11 @@
     "typechain": "^8.1.0"
   },
   "nx": {
-    "namedInputs": {
-      "default": [
-        "{projectRoot}/contracts"
-      ],
-      "prod": [
-        "!{projectRoot}/tests/*.spec.ts"
-      ]
-    },
     "targets": {
       "build": {
-        "inputs": [
-          "prod",
-          "^prod"
-        ],
         "outputs": [
-          "dist"
-        ],
-        "dependsOn": [
-          "^build"
-        ]
-      },
-      "lint": {
-        "inputs": [
-          "default"
-        ],
-        "outputs": [],
-        "dependsOn": [
-          "build"
-        ]
-      },
-      "test:unit": {
-        "inputs": [
-          "default",
-          "^prod"
-        ],
-        "outputs": [],
-        "dependsOn": [
-          "build"
-        ]
-      },
-      "test:ci": {
-        "inputs": [
-          "default",
-          "^prod"
-        ],
-        "outputs": [],
-        "dependsOn": [
-          "build"
+          "{projectRoot}/artifacts",
+          "{projectRoot}/dist"
         ]
       }
     }
