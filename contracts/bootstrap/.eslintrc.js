@@ -7,18 +7,10 @@ module.exports = {
     "plugin:@typescript-eslint/recommended-requiring-type-checking",
     "plugin:prettier/recommended",
   ],
-  globals: {
-    // truffle globals
-    artifacts: true,
-    contract: true,
-    assert: true,
-    web3: true,
-  },
   parserOptions: {
     project: "./tsconfig.eslint.json",
     tsconfigRootDir: __dirname,
   },
-  ignorePatterns: ["**/contracts/bootstrap-ethereum-sc"],
   rules: {
     // we use it for scripts
     "no-console": "off",

@@ -10,9 +10,6 @@ info:
     application registered in the Trusted Applications Registry (TAR).
     * Entity or application is notified via its DID registered in the DID registry or TAR.
 
-    For more information see:
-    * [Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/Notifications+API)
-    * [Code repository](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/notifications-api/)
   termsOfService: /docs/terms
   contact:
     name: EBSI Support - Service Desk

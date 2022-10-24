@@ -6,13 +6,6 @@ module.exports = {
     "plugin:prettier/recommended",
     "plugin:import/recommended",
   ],
-  globals: {
-    // truffle globals
-    artifacts: true,
-    contract: true,
-    assert: true,
-    web3: true,
-  },
   parserOptions: {
     project: "./tsconfig.eslint.json",
     tsconfigRootDir: __dirname,
@@ -22,7 +15,6 @@ module.exports = {
     "no-console": "off",
     // we use it for tests
     "import/no-extraneous-dependencies": "off",
-    // we use it for tests
     "@typescript-eslint/no-unused-expressions": "off",
   },
 };

@@ -6,9 +6,6 @@ info:
     Proxy Data API is a Core Service of the EBSI platform providing the
     capability of securely storing data controlled by the owner.
 
-    For more information see:
-    * [Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/Proxy+Data+Hub+API)
-    * [Code Repository](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/proxy-data-hub-api/browse)
   termsOfService: "/docs/terms"
   contact:
     name: EBSI Support - Service Desk

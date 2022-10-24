@@ -6,10 +6,6 @@ info:
     Users Onboarding API is an EBSI core service to enable users (Natural Persons and Legal
     Entities) to obtain long-term access to the EBSI pre-production network.
 
-    For more information see:
-
-    * [Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/Users+Onboarding+API)
-    * [Code repository](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-api/browse?at=refs%2Fheads%2Fdevelop)
   termsOfService: /docs/terms
   contact:
     name: EBSI Support - Service Desk

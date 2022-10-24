@@ -8,11 +8,6 @@ info:
     * supports timestamping records/versions (and linking the timestamps)
     * verify timestamps.
 
-    For more information see:
-
-    * [Timestamp API Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/Timestamp+API)
-    * [Timestamp Smart Contract Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/TimeStamp+Smart+Contract)
-    * [Code Repository](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/timestamp-api/browse)
   termsOfService: "/docs/terms"
   contact:
     name: EBSI Support - Service Desk

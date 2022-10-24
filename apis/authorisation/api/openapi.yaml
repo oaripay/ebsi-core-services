@@ -19,9 +19,6 @@ info:
     successfully prove their private key ownership. We implement the
     Authenticated Key Exchange cryptographic identification protocol.
 
-    For more information see:
-      * [Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/Authorisation+API)
-      * [Code Repository](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/authorisation-api)
   version: 2.0.0
   termsOfService: /docs/terms
   contact:
