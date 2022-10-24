@@ -41,7 +41,7 @@
     "@types/chai": "^4.3.1",
     "@types/elliptic": "^6.4.14",
     "@types/mocha": "^9.1.1",
-    "@types/node": "^16.11.12",
+    "@types/node": "^16.18.0",
     "@typescript-eslint/eslint-plugin": "^5.35.1",
     "@typescript-eslint/parser": "^5.35.1",
     "canonicalize": "^1.0.8",
