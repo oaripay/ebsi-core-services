@@ -8,4 +8,4 @@ This repository contains the code of a wallet web client application. It has bee
 
 ## Service configuration
 
-Firstly, create a copy of `.env.example` and name it `.env` in this directory; change the variables if needed.
+Copy `.env` to `.env.local` and set the required values.
