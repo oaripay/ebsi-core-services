@@ -1,7 +1,7 @@
 import { task } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
 import { BigNumber } from "ethers";
-import { OwnedUpgradeabilityProxy } from "@ebsiint-sc/proxy";
+import { OwnedUpgradeabilityProxy } from "../src/types";
 
 task("initProxy", "init proxy with implementation")
   .addParam("proxy", "The proxy address")
@@ -10,7 +10,6 @@ task("initProxy", "init proxy with implementation")
     "storage",
     "The storage slot string for the smart contract. required if increment is true"
   )
-
   .setAction(
     async (
       taskArgs: {
@@ -34,7 +33,6 @@ task("initProxy", "init proxy with implementation")
         `OwnedUpgradeabilityProxy`,
         proxyDeployedAddr
       )) as OwnedUpgradeabilityProxy;
-
       // these infos are not easily accessible as they are restricted by an onlyAdmin modifier
       // to retrieve them we use the low level getStorage call
       let adminAddr = "0x0";
@@ -79,9 +77,9 @@ task("initProxy", "init proxy with implementation")
       console.log(`${taskArgs.implementation} deployed at ${ts.address} `);
 
       const ifaceSetVersion = new ethers.utils.Interface([
-        "function setVersion(uint version)",
+        "function initialize(uint256 version)",
       ]);
-      const setVersionData = ifaceSetVersion.encodeFunctionData("setVersion", [
+      const setVersionData = ifaceSetVersion.encodeFunctionData("initialize", [
         BigNumber.from(1),
       ]);
       const accounts = await ethers.getSigners();

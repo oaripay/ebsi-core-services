@@ -1,13 +1,25 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
+import { dependencies } from "./dependencies";
+import { ethers } from "hardhat";
 
 const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const { deployments, getNamedAccounts } = hre;
 
+  // get chain Id
+
+  const chainId = (await ethers.provider.getNetwork()).chainId;
+  let tprAddress = dependencies[chainId]?.tprAddress;
+
+  if (!tprAddress) {
+    await deployments.run("PolicyRegistry");
+    tprAddress = (await deployments.get("PolicyRegistry")).address;
+  }
+
   const { deployer } = await getNamedAccounts();
   const hashAlgoLib = await deployments.deploy("HashAlgoLib", {
     contract:
-      "contracts/timestamp-ethereum-sc/contracts/timestamp/HashAlgoLib.sol:HashAlgoLib",
+      "contracts/timestamp/contracts/timestamp/HashAlgoLib.sol:HashAlgoLib",
     from: deployer,
     log: true,
   });
@@ -16,8 +28,8 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     log: true,
   });
   const stringManip = await deployments.deploy("StringManip", {
-    contract:
-      "contracts/bootstrap-ethereum-sc/contracts/utils/StringManip.sol:StringManip",
+    // contract:
+    // "contracts/bootstrap-ethereum-sc/contracts/utils/StringManip.sol:StringManip",
     from: deployer,
     log: true,
   });
@@ -31,6 +43,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
   const ts = await deployments.deploy("Timestamp", {
     from: deployer,
+    args: [tprAddress],
     libraries: {
       HashAlgoLib: hashAlgoLib.address,
       TimestampLib: timestampLib.address,

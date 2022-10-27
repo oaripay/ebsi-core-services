@@ -33,4 +33,3 @@ cp -r ../trusted-policies-registry/contracts contracts/trusted-policies-registry
 
 echo Copy the trusted-schemas-registry
 cp -r ../trusted-schemas-registry/contracts contracts/trusted-schemas-registry
-

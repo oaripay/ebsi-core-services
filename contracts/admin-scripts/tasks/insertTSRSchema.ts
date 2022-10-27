@@ -2,7 +2,7 @@ import { task } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
 import canonicalize from "canonicalize";
 import { readdir, readFile } from "fs/promises";
-import { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry";
+import { SchemaSCRegistry } from "../src/types";
 
 // follows ETH/BTC's BIP 39 protocol
 // https://iancoleman.io/bip39/
@@ -16,6 +16,7 @@ task(
     { ethers }
   ) => {
     const [deployer, admin] = await ethers.getSigners();
+    // @ts-ignore
     const tsr: SchemaSCRegistry = await ethers.getContractAt(
       "SchemaSCRegistry",
       taskArgs.proxy,

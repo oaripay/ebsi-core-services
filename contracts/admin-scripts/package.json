@@ -72,7 +72,13 @@
           "{projectRoot}/src"
         ],
         "dependsOn": [
+          "^build",
           "prepare-contracts"
+        ]
+      },
+      "lint": {
+        "dependsOn": [
+          "compile"
         ]
       }
     }

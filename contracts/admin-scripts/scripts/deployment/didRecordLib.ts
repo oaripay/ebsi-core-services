@@ -11,19 +11,19 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   };
   const pagination = await deployments.deploy("Pagination", {
     ...opts,
-    contract:
-      "contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol:Pagination",
+    // contract:
+    //   "contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol:Pagination",
   });
   const didTimestampLib = await deployments.deploy("DidTimestampLib", {
     ...opts,
-    contract:
-      "contracts/did-registry-ethereum-sc/contracts/did-registry/DidTimestampLib.sol:DidTimestampLib",
+    // contract:
+    //   "contracts/did-registry-ethereum-sc/contracts/did-registry/DidTimestampLib.sol:DidTimestampLib",
   });
 
   await deployments.deploy("DidRecordLib", {
     ...opts,
-    contract:
-      "contracts/did-registry-ethereum-sc/contracts/did-registry/DidRecordLib.sol:DidRecordLib",
+    // contract:
+    //   "contracts/did-registry-ethereum-sc/contracts/did-registry/DidRecordLib.sol:DidRecordLib",
     libraries: {
       Pagination: pagination.address,
       DidTimestampLib: didTimestampLib.address,

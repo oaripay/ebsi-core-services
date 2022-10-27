@@ -2,7 +2,7 @@
 /* eslint-disable no-await-in-loop */
 import { task } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
-import { Tar } from "@ebsiint-sc/trusted-apps-registry";
+import { Tar } from "../src/types";
 
 // follows ETH/BTC's BIP 39 protocol
 // https://iancoleman.io/bip39/
@@ -16,6 +16,7 @@ task(
     { ethers }
   ) => {
     const [deployer, admin] = await ethers.getSigners();
+    // @ts-ignore
     const ts: Tar = await ethers.getContractAt("Tar", taskArgs.proxy, admin);
 
     console.log(

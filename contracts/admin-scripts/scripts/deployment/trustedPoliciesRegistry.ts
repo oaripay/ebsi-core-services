@@ -11,14 +11,14 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   };
   const pagination = await deployments.deploy("Pagination", {
     ...opts,
-    contract:
-      "contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol:Pagination",
+    // contract:
+    //   "contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol:Pagination",
   });
 
   const ts = await deployments.deploy("PolicyRegistry", {
     ...opts,
-    contract:
-      "contracts/trusted-policies-registry-etehereum-sc/contracts/trusted-policies-registry/PolicyRegistry.sol:PolicyRegistry",
+    // contract:
+    //   "contracts/trusted-policies-registry-etehereum-sc/contracts/trusted-policies-registry/PolicyRegistry.sol:PolicyRegistry",
     libraries: {
       Pagination: pagination.address,
     },

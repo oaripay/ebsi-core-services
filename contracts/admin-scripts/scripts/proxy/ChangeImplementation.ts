@@ -1,7 +1,7 @@
 import { ethers, deployments } from "hardhat";
 import { BigNumber } from "ethers";
 // import OwnedUpgradeabilityProxyArtifact from "@ebsiint-sc/proxy/build/contracts/OwnedUpgradeabilityProxy.json";
-import { LedgerSCRegistry } from "@ebsiint-sc/trusted-ledgers-registry";
+import { LedgerSCRegistry } from "../../src/types";
 
 async function main() {
   const proxyDeployedAddr = `0x7FC3C7805095a6863243bFc73Da563A1E1CA2763`;
