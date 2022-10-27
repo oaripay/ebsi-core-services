@@ -54,6 +54,11 @@
       "inputs": ["test", "^production"],
       "outputs": [],
       "dependsOn": ["^build"]
+    },
+    "test:e2e": {
+      "inputs": ["test", "^production"],
+      "outputs": [],
+      "dependsOn": ["^build"]
     }
   }
 }
