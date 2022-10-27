@@ -8,6 +8,7 @@
     "clean": "rimraf artifacts cache src/abi src/types",
     "fork": "hardhat node --fork https://eth-mainnet.alchemyapi.io/v2/GVQRQezmyi7tO268bhIl5CSo6lM9ubfp --fork-block-number 11095000",
     "prettier-format": "prettier . --write",
+    "prepare-contracts": "scripts/prepare-contracts.sh",
     "compile": "mkdir -p src/abi; hardhat --config hardhat.config.compiler.ts compile",
     "coverage": "hardhat coverage --testfiles 'tests/*.ts'",
     "lint": "yarn run lint:prettier && yarn lint:eslint && yarn lint:tsc",
@@ -71,7 +72,7 @@
           "{projectRoot}/src"
         ],
         "dependsOn": [
-          "^build"
+          "prepare-contracts"
         ]
       }
     }
