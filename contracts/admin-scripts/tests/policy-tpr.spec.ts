@@ -1,6 +1,6 @@
 import { ethers } from "hardhat";
 import { expect } from "chai";
-import { ContractFunction, Signer } from "ethers";
+import type { ContractFunction, Signer } from "ethers";
 import { PolicyRegistry } from "../src/types";
 
 const num = ethers.BigNumber.from;

@@ -1,14 +1,14 @@
 module.exports = {
   root: true,
   extends: [
-    "airbnb-base",
     "airbnb-typescript/base",
     "plugin:@typescript-eslint/recommended",
-    "plugin:@typescript-eslint/recommended-requiring-type-checking",
     "plugin:prettier/recommended",
+    "plugin:import/recommended",
   ],
   parserOptions: {
     project: "./tsconfig.eslint.json",
+    tsconfigRootDir: __dirname,
   },
   ignorePatterns: ["**/contracts", "**/src/types", "schemas"],
   rules: {
@@ -16,7 +16,8 @@ module.exports = {
     "no-console": "off",
     // we use it for tests
     "import/no-extraneous-dependencies": "off",
-    // we use it for tests
-    "no-unused-expressions": "off",
+    "@typescript-eslint/no-var-requires": "off",
+    "@typescript-eslint/no-unused-expressions": "off",
+    "@typescript-eslint/ban-ts-comment": "off",
   },
 };
