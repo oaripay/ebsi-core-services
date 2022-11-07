@@ -12,8 +12,11 @@ Compile the smart contracts:
 yarn nx compile @ebsiint-sc/admin-scripts
 ```
 
-this will create an `artifcats` folder with all the information related to the smart contracts
-and `src/types`,`src/abi` folder for the typechain object representing the contracts.
+This will take all the latest solidity source code from smart contracts projects (worskpace packages under `@ebsiint-sc/` namespace) and create an output `src` folder with all the information related to the smart contracts:
+
+- `abi`
+- `artifacts`
+- `types`
 
 ## Running tasks
 
@@ -21,31 +24,31 @@ Tasks which are run through npm scripts (defined within `package.json`) can be r
 
 In order to run non-npm tasks for tool within the project and not part of `package.json` scripts, change directory to the current project and run commands directly without `nx` prefix.
 
-To verify the accounts that will be used by hardhat
+To verify the accounts that will be used by hardhat:
 
 ```sh
 yarn hardhat accounts
 ```
 
-To verify the chainId that will be used by hardhat
+To verify the chainId that will be used by hardhat:
 
 ```sh
 yarn hardhat --network local chainId
 ```
 
-To get the lastest block number on the specified network
+To get the lastest block number on the specified network:
 
 ```sh
 yarn hardhat --network local blockNumber
 ```
 
-To get some inforamtion about a transaction
+To get some inforamtion about a transaction:
 
 ```sh
 yarn hardhat --network local tx --hash 0xd0f11a38650c987063b689b5384ae17e6506fbd179e50e47a84111695331302ds
 ```
 
-for the complete list of available tasks run
+List all available tasks:
 
 ```sh
 yarn hardhat
@@ -53,8 +56,7 @@ yarn hardhat
 
 ## Deployment
 
-To deploy the smart contracts on a network defined in the `hardhat.config.ts`
-use the `--tag` option to specify the deployment script that you want to run. The tag is exported at the end of the deployment file e.g. `func.tags = ["Timestamp"];`
+To deploy the smart contracts on a network defined in the `hardhat.config.ts` use the `--tag` option to specify the deployment script that you want to run. The tag is exported at the end of the deployment file e.g. `func.tags = ["Timestamp"];`
 
 Note that by default smart contracts will be deployed locally using hardhat development node.
 
@@ -64,13 +66,13 @@ Deployment scripts are located in the `scripts/deployment` folder
 yarn hardhat --network ebsi deploy --tags OwnedUpgradeabilityProxy --gasprice 0
 ```
 
-running deployment script will add information about deployment like the smart contract addresses per network inside the `deployments` folder
+Running a deployment script will add information about deployment like the smart contract addresses per network inside the `deployments` folder.
 
-if you want to deploy again the smart contract add the `--reset` option
+If you want to deploy again the smart contract add the `--reset` option.
 
 ### Deployment 1a
 
-To deploy the smart contract without upgrade-ability use the deploy script with the contract deployment tag
+To deploy the smart contract without upgrade-ability use the deploy script with the contract deployment tag.
 
 ```sh
 yarn hardhat --network local deploy --tags <TAG>  --gasprice 0 --reset
