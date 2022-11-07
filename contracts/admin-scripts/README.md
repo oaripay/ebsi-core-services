@@ -4,48 +4,22 @@
 
 > Smart contract utility scripts.
 
-## Table of Contents
-
-1. [Getting started](#Getting)
-2. [Compiling](#Compiling)
-3. [Run tasks](#Run-tasks)
-4. [Deployment](#Deployment)
-5. [Scripts](#Scripts)
-6. [Hardhat console](#Hardhat-console)
-7. [Licensing](#Licensing)
-
-## Getting started
-
-### Prerequisites
-
-- [Node.js](https://nodejs.org/en/download/)
-
-### Installing
-
-Install dependencies:
-
-```sh
-yarn install
-```
-
-retrieve the submodules
-
-```sh
-git submodule update --init --recursive --remote
-```
-
 ## Compiling
 
 Compile the smart contracts:
 
 ```sh
-yarn run compile
+yarn nx compile @ebsiint-sc/admin-scripts
 ```
 
 this will create an `artifcats` folder with all the information related to the smart contracts
 and `src/types`,`src/abi` folder for the typechain object representing the contracts.
 
-## Run tasks
+## Running tasks
+
+Tasks which are run through npm scripts (defined within `package.json`) can be run through `nx` as documented in [SC docs](../../docs/Contracts.md). The compile task mentioned in the previous section is a perfect example.
+
+In order to run non-npm tasks for tool within the project and not part of `package.json` scripts, change directory to the current project and run commands directly without `nx` prefix.
 
 To verify the accounts that will be used by hardhat
 

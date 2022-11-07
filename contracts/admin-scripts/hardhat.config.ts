@@ -20,12 +20,13 @@ const privKeyPath = `${__dirname}/.secret.privatekey`;
 let mnemonic = "test test test test test test test test test test test junk";
 let privKey =
   "0x6a41084b4e952f85d4ea71f1af325fa9925f98befd72f8a12534c67b5679fe0e";
-try {
+
+if (fs.existsSync(mnemonicPath)) {
+  console.log(".secret.mnemonic exists and will be used");
   mnemonic = fs.readFileSync(mnemonicPath).toString().trim();
   privKey = fs.readFileSync(privKeyPath).toString().trim();
-} catch (err) {
-  console.error(err);
 }
+
 const accounts = {
   // use default accounts
   mnemonic,
