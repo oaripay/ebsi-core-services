@@ -4,7 +4,7 @@ pragma solidity 0.8.12;
 import "./HashAlgoStorage.sol";
 import "./HashAlgoLib.sol";
 
-contract HashAlgoDetailed is HashAlgoStorage {
+abstract contract HashAlgoDetailed is HashAlgoStorage {
     using HashAlgoLib for HashAlgos;
 
     event AddNewHashAlgo(

@@ -20,8 +20,17 @@ contract Timestamp is
     TimestampDetailed,
     HashAlgoDetailed
 {
+    constructor(address _tprAddress) public HashAlgoStorage(_tprAddress) {}
+
     function initialize(uint256 version) public initializer {
         TimestampDetailed.init(version);
+        setTrustedPoliciesRegistryAddress();
+    }
+
+    function setVersion(uint256 version) public {
+        Timestamps storage ts = TimestampStorage.timestampStorage();
+        setTrustedPoliciesRegistryAddress();
+        ts._version = version;
     }
 }
 /* TODO insert those in the deployment script

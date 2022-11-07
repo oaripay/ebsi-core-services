@@ -3,7 +3,6 @@ pragma solidity 0.8.12;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-import "@ebsiint-sc/bootstrap/contracts/utils/upgradeability/Initializable.sol";
 import "./PolicyStorage.sol";
 import "@ebsiint-sc/bootstrap/contracts/utils/Pagination.sol";
 import "./Roles.sol";

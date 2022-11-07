@@ -7,8 +7,7 @@ pragma solidity 0.8.12;
  */
 library SafeAddArray {
     /**
-     * @dev Returns the addition of two unsigned integers, reverting on
-     * overflow.
+     * @dev push a new value into a storage array, checks for duplicate
      *
      */
     function add(bytes32[] storage array, bytes32 value) internal {
@@ -20,6 +19,10 @@ library SafeAddArray {
         array.push(value);
     }
 
+    /**
+     * @dev push a new value into a string array, checks for duplicate
+     *
+     */
     function add(string[] storage array, string memory value) internal {
         bytes32 hashValue = keccak256(bytes(value));
         for (uint256 i = 0; i < array.length; i++) {

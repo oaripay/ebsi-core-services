@@ -114,7 +114,6 @@ abstract contract Initializable {
      * {initializer} and {reinitializer} modifiers, directly or indirectly.
      */
     modifier onlyInitializing() {
-        // solhint-disable-next-line reason-string
         require(_initializing, "Initializable: contract is not initializing");
         _;
     }
@@ -137,7 +136,6 @@ abstract contract Initializable {
         bool isTopLevelCall = !_initializing; // cache sload
         uint8 currentVersion = _initialized; // cache sload
 
-        // solhint-disable-next-line reason-string
         require(
             (isTopLevelCall && version > currentVersion) || // not nested with increasing version or
                 (!Address.isContract(address(this)) &&

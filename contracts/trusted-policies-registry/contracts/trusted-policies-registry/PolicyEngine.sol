@@ -3,7 +3,6 @@ pragma solidity 0.8.12;
 pragma experimental ABIEncoderV2;
 
 import "./PolicyStorage.sol";
-import "@ebsiint-sc/bootstrap/contracts/utils/Pagination.sol";
 
 abstract contract PolicyEngine is PolicyStorage {
     // Viewer functions

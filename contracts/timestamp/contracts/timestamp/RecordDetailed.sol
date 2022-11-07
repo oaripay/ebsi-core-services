@@ -7,7 +7,7 @@ import "./TimestampLib.sol";
 import "./TimestampStorage.sol";
 import "./RecordLib.sol";
 
-contract RecordDetailed is RecordStorage {
+abstract contract RecordDetailed is RecordStorage {
     using RecordLib for Records;
     using TimestampLib for Timestamps;
 

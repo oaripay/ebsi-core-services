@@ -4,6 +4,7 @@ pragma solidity 0.8.12;
 import "./TirDetailed.sol";
 import "./IssuerDetailed.sol";
 import "./TirPolicyDetailed.sol";
+import "@ebsiint-sc/bootstrap/contracts/utils/upgradeability/Initializable.sol";
 
 /**
  * @title Trusted Issuers Registry Smart Contract

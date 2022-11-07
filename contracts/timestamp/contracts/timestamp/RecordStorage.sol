@@ -3,7 +3,7 @@ pragma solidity 0.8.12;
 
 import "./TimestampStorage.sol";
 
-contract RecordStorage is TimestampStorage {
+abstract contract RecordStorage is TimestampStorage {
     // The state variables we care about.
     bytes32 public constant TS_RECORD_DIAMOND_STORAGE_POSITION =
         keccak256("diamond.standard.record.storage");

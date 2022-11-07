@@ -6,6 +6,7 @@ contract HashAlgoStorage {
     // The state variables we care about.
     bytes32 public constant TS_HASHALGO_DIAMOND_STORAGE_POSITION =
         keccak256("diamond.standard.timestamp.hashAlgo.storage");
+
     enum Status {
         undefined,
         active,
@@ -29,6 +30,12 @@ contract HashAlgoStorage {
         // list of hash algorithms types (id => hash) along with the number of total hashes
         Algos hashAlgorithms;
         IPolicyRegistry trustedPolicyRegistry;
+    }
+
+    IPolicyRegistry public immutable trustedPolicyRegistry;
+
+    constructor(address _tprAddress) public {
+        trustedPolicyRegistry = IPolicyRegistry(_tprAddress);
     }
 
     // Creates and returns the storage pointer to the struct.
