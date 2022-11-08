@@ -12,7 +12,7 @@
     "lint": "yarn run lint:prettier && yarn run lint:eslint && yarn run lint:sol",
     "lint:prettier": "prettier . --check",
     "lint:eslint": "eslint . --ext .js,.ts",
-    "lint:sol": "solhint --max-warnings 0 \"contracts/**/*.sol\"",
+    "lint:sol": "solhint \"contracts/**/*.sol\"",
     "test": "hardhat test",
     "test:unit": "yarn test",
     "test:ci": "hardhat compile && hardhat test"

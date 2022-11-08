@@ -4,7 +4,8 @@
   "license": "EUPL-1.2",
   "private": true,
   "description": "Proxy Smart Contract",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "clean": "rimraf artifacts cache src dist",
     "prettier-format": "prettier --write '**/*.{js,json,md,sol}'",
