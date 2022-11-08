@@ -2,13 +2,14 @@
   "name": "@ebsiint-sc/bootstrap",
   "private": true,
   "version": "1.0.0",
+  "license": "EUPL-1.2",
   "main": "index.js",
   "scripts": {
     "clean": "rimraf artifacts cache src dist",
     "build": "yarn compile",
     "compile": "hardhat compile && yarn tsc",
     "coverage": "npx hardhat coverage --network coverage",
-    "lint": "yarn run lint:prettier && yarn run lint:eslint && npm run lint:sol",
+    "lint": "yarn run lint:prettier && yarn run lint:eslint && yarn run lint:sol",
     "lint:prettier": "prettier . --check",
     "lint:eslint": "eslint . --ext .js,.ts",
     "lint:sol": "solhint --max-warnings 0 \"contracts/**/*.sol\"",
@@ -16,7 +17,6 @@
     "test:unit": "yarn test",
     "test:ci": "hardhat compile && hardhat test"
   },
-  "license": "EUPL-1.2",
   "devDependencies": {
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/bytes": "^5.7.0",

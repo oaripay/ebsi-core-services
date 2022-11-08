@@ -1,19 +1,18 @@
 module.exports = {
   root: true,
   extends: [
-    "airbnb-base",
-    "plugin:jest/recommended",
-    "plugin:jest/style",
+    "airbnb-typescript/base",
+    "plugin:@typescript-eslint/recommended",
     "plugin:prettier/recommended",
+    "plugin:import/recommended",
   ],
-  globals: {
-    // truffle globals
-    artifacts: true,
-    contract: true,
-    assert: true,
-    web3: true,
+  parserOptions: {
+    project: "./tsconfig.eslint.json",
+    tsconfigRootDir: __dirname,
   },
   rules: {
     "no-console": "off",
+    "import/no-extraneous-dependencies": "off",
+    "@typescript-eslint/no-var-requires": "off",
   },
 };

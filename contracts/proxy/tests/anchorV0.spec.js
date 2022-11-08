@@ -1,5 +1,7 @@
 const { expectRevert } = require("@openzeppelin/test-helpers");
 const { accounts, contract, web3 } = require("@openzeppelin/test-environment");
+const { expect } = require("chai");
+
 const encodeCall = require("./helpers/encodeCall");
 
 const OwnedUpgradeabilityProxy = contract.fromArtifact(
