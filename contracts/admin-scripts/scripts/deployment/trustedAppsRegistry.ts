@@ -12,8 +12,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
   const pagination = await deployments.deploy("Pagination", {
     ...opts,
-    // contract:
-    //   "contracts/bootstrap/utils/Pagination.sol/Pagination",
+    contract: "contracts/bootstrap/utils/Pagination.sol/Pagination",
   });
   const optsPagination = {
     from: deployer,
@@ -28,8 +27,8 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const revocationLib = await deployments.deploy("RevocationLib", opts);
   const TarPolicyLib = await deployments.deploy("TarPolicyLib", {
     ...optsPagination,
-    // contract:
-    //   "contracts/trusted-apps-registry-ethereum-sc/contracts/tar/TarPolicyLib.sol:TarPolicyLib",
+    contract:
+      "contracts/trusted-apps-registry/tar/TarPolicyLib.sol:TarPolicyLib",
   });
 
   const ts = await deployments.deploy("Tar", {

@@ -11,8 +11,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const hashAlgoLib = await deployments.deploy("HashAlgoLib", {
     from: deployer,
     log: true,
-    contract:
-      "contracts/timestamp-ethereum-sc/contracts/timestamp/HashAlgoLib.sol:HashAlgoLib",
+    contract: "contracts/did-registry/did-registry/HashAlgoLib.sol:HashAlgoLib",
   });
   const timestampLib = await deployments.deploy("TimestampLib", {
     from: deployer,
@@ -21,8 +20,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const stringManip = await deployments.deploy("StringManip", {
     from: deployer,
     log: true,
-    contract:
-      "contracts/bootstrap-ethereum-sc/contracts/utils/StringManip.sol:StringManip",
+    contract: "contracts/bootstrap/utils/StringManip.sol:StringManip",
   });
   const recordLib = await deployments.deploy("RecordLib", {
     from: deployer,
