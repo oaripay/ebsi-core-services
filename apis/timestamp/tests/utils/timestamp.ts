@@ -77,7 +77,9 @@ export async function deployTimestampContract(): Promise<{
     }
   );
 
-  const timestampContract = await timestampContractFactory.deploy();
+  const timestampContract = await timestampContractFactory.deploy(
+    testTprAddress
+  );
 
   await timestampContract.initialize(1);
   await timestampContract.setTrustedPoliciesRegistryAddress();
