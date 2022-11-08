@@ -12,7 +12,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const pagination = await deployments.deploy("Pagination", {
     ...opts,
     // contract:
-    //   "contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol:Pagination",
+    //   "contracts/bootstrap/utils/Pagination.sol/Pagination",
   });
 
   await deployments.deploy("SchemaLib", {

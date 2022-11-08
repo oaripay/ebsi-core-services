@@ -11,14 +11,12 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   };
   const pagination = await deployments.deploy("Pagination", {
     ...opts,
-    // contract:
-    //   "contracts/bootstrap-ethereum-sc/contracts/utils/Pagination.sol:Pagination",
+    contract: "contracts/bootstrap/utils/Pagination.sol/Pagination",
   });
 
   await deployments.deploy("HashAlgoLib", {
     ...opts,
-    contract:
-      "contracts/did-registry/contracts/did-registry/HashAlgoLib.sol:HashAlgoLib",
+    contract: "contracts/did-registry/did-registry/HashAlgoLib.sol:HashAlgoLib",
     libraries: {
       Pagination: pagination.address,
     },
