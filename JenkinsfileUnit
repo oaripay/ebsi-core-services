@@ -33,13 +33,19 @@ pipeline {
             environment {
                 API_PRIVATE_KEY=credentials('API_AUTHORISATION_PRIVATE_KEY')
             }
-            steps {                
-                nodejs(nodeJSInstallationName: '16.13.0') {           
-                            
-                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){                        
-                        sh 'yarn nx test:ci @ebsiint-api/authorisation'
+            steps {     
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){               
+                    nodejs(nodeJSInstallationName: '16.13.0') {                           
+                        sh 'yarn nx test:ci @ebsiint-api/authorisation-api-v2' 
+                    }   
+                    withSonarQubeEnv('LocalSonar'){
+                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=authorisation-api -Dsonar.projectVersion=1.0 -Dsonar.projectKey=authorisation-api -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/authorisation"
                     }
-                }                                     
+                    waitForQualityGate abortPipeline: true 
+                }   
+                script {
+                    sh 'rm ${WORKSPACE}/apis/authorisation/.scannerwork/report-task.txt'
+                }                               
             }       
         }
         stage('Did-Registry-Api') { 
@@ -49,24 +55,38 @@ pipeline {
             environment {
                 API_PRIVATE_KEY=credentials('TEST_DID_API_PRIVATE_KEY')
             }
-            steps {                
-                nodejs(nodeJSInstallationName: '16.13.0') {
-                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
-                        sh 'yarn nx test:ci @ebsiint-api/did-registry'
+            steps {          
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){          
+                    nodejs(nodeJSInstallationName: '16.13.0') {
+                        sh 'yarn nx test:ci @ebsiint-api/did-registry-api-v3'
                     }
-                }                                     
+                    withSonarQubeEnv('LocalSonar'){
+                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=did-registry-api -Dsonar.projectVersion=1.0 -Dsonar.projectKey=did-registry-api -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/did-registry"
+                    }
+                    waitForQualityGate abortPipeline: true                                   
+                }   
+                script {
+                    sh 'rm ${WORKSPACE}/apis/did-registry/.scannerwork/report-task.txt'
+                }                    
             }       
         }
         stage('Ledger-Api') {
             when {
                 expression { params.api == 'all' || params.api.contains('ledger-api')}
             }            
-            steps {                
-                nodejs(nodeJSInstallationName: '16.13.0') {                                        
-                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
-                        sh 'yarn nx test:ci @ebsiint-api/ledger'
+            steps {             
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){       
+                    nodejs(nodeJSInstallationName: '16.13.0') {
+                        sh 'yarn nx test:ci @ebsiint-api/ledger-api-v3'
+                    }  
+                    withSonarQubeEnv('LocalSonar'){
+                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=ledger-api -Dsonar.projectVersion=1.0 -Dsonar.projectKey=ledger-api -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/ledger"
                     }
-                }                                     
+                    waitForQualityGate abortPipeline: true
+                } 
+                script {
+                    sh 'rm ${WORKSPACE}/apis/ledger/.scannerwork/report-task.txt'
+                }                                    
             }       
         }
         stage('Notification-Api') {
@@ -76,12 +96,19 @@ pipeline {
             environment {
                 API_PRIVATE_KEY=credentials('NOTIFICATION_API_PRIVATE_KEY')
             }           
-            steps {                
-                nodejs(nodeJSInstallationName: '16.13.0') {                                        
-                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
-                        sh 'yarn nx test:ci @ebsiint-api/notifications'
+            steps {          
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){          
+                    nodejs(nodeJSInstallationName: '16.13.0') {                                        
+                        sh 'yarn nx test:ci @ebsiint-api/notifications-api-v2'
                     }
-                }                                     
+                    withSonarQubeEnv('LocalSonar'){
+                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=notifications-api -Dsonar.projectVersion=1.0 -Dsonar.projectKey=notifications-api -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/notifications"
+                    }
+                    waitForQualityGate abortPipeline: true 
+                }   
+                script {
+                    sh 'rm ${WORKSPACE}/apis/notifications/.scannerwork/report-task.txt'
+                }                                   
             }       
         }
         stage('Proxy-Data-Hub-Api') {
@@ -91,48 +118,76 @@ pipeline {
             environment {
                 API_PRIVATE_KEY=credentials('PROXY_API_PRIVATE_KEY')
             }           
-            steps {                
-                nodejs(nodeJSInstallationName: '16.13.0') {                    
-                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
-                        sh 'yarn nx test:ci @ebsiint-api/proxy-data-hub'
+            steps {
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){                    
+                    nodejs(nodeJSInstallationName: '16.13.0') {                   
+                        sh 'yarn nx test:ci @ebsiint-api/proxy-data-hub-api-v3'
+                    }  
+                    withSonarQubeEnv('LocalSonar'){
+                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=proxy-data-hub-api -Dsonar.projectVersion=1.0 -Dsonar.projectKey=proxy-data-hub-api -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/proxy-data-hub"
                     }
-                }                                     
+                    waitForQualityGate abortPipeline: true  
+                }   
+                script {
+                    sh 'rm ${WORKSPACE}/apis/proxy-data-hub/.scannerwork/report-task.txt'
+                }                                
             }       
         }
         stage('Storage-Api') {
             when {
                 expression { params.api == 'all' || params.api.contains('storage-api')}
             } 
-            steps {                
-                nodejs(nodeJSInstallationName: '16.13.0') {                    
-                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
-                        sh 'yarn nx test:ci @ebsiint-api/storage'
+            steps {        
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){            
+                    nodejs(nodeJSInstallationName: '16.13.0') {                    
+                        sh 'yarn nx test:ci @ebsiint-api/storage-api-v3'
+                    }          
+                    withSonarQubeEnv('LocalSonar'){
+                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=storage-api -Dsonar.projectVersion=1.0 -Dsonar.projectKey=storage-api -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/storage"
                     }
-                }                                     
+                    waitForQualityGate abortPipeline: true 
+                }     
+                script {
+                    sh 'rm ${WORKSPACE}/apis/storage/.scannerwork/report-task.txt'
+                }                       
             }       
         }
         stage('Timestamp-Api') { 
             when {
                 expression { params.api == 'all' || params.api.contains('timestamp-api')}
             }
-            steps {                
-                nodejs(nodeJSInstallationName: '16.13.0') {                    
-                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
-                        sh 'yarn nx test:ci @ebsiint-api/timestamp'
+            steps {      
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){              
+                    nodejs(nodeJSInstallationName: '16.13.0') {                        
+                        sh 'yarn nx test:ci @ebsiint-api/timestamp-api-v3'
+                    }     
+                    withSonarQubeEnv('LocalSonar'){
+                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=timestamp-api -Dsonar.projectVersion=1.0 -Dsonar.projectKey=timestamp-api -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/timestamp"
                     }
-                }                                     
+                    waitForQualityGate abortPipeline: true  
+                }          
+                script {
+                    sh 'rm ${WORKSPACE}/apis/timestamp/.scannerwork/report-task.txt'
+                }                      
             }       
         }
         stage('Trusted-apps-registry-Api') { 
             when {
                 expression { params.api == 'all' || params.api.contains('trusted-apps-registry-api')}
             }
-            steps {                
-                nodejs(nodeJSInstallationName: '16.13.0') {                    
-                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
-                        sh 'yarn nx test:ci @ebsiint-api/trusted-apps-registry'
+            steps {    
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){                
+                    nodejs(nodeJSInstallationName: '16.13.0') {                   
+                        sh 'yarn nx test:ci @ebsiint-api/trusted-apps-registry-api-v3'
+                    }     
+                    withSonarQubeEnv('LocalSonar'){
+                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=trusted-apps-registry-api -Dsonar.projectVersion=1.0 -Dsonar.projectKey=trusted-apps-registry-api -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/trusted-apps-registry"
                     }
-                }                                     
+                    waitForQualityGate abortPipeline: true 
+                }   
+                script {
+                    sh 'rm ${WORKSPACE}/apis/trusted-apps-registry/.scannerwork/report-task.txt'
+                }                              
             }       
         }
         stage('Trusted-issuers-registry-Api') {
@@ -142,12 +197,19 @@ pipeline {
             environment {
                 API_PRIVATE_KEY=credentials('APP_PRIVATE_KEY_TRUSTED_ISSUERS')
             } 
-            steps {                
-                nodejs(nodeJSInstallationName: '16.13.0') {                    
-                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
-                        sh 'yarn nx test:ci @ebsiint-api/trusted-issuers-registry'
+            steps {  
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){                  
+                    nodejs(nodeJSInstallationName: '16.13.0') {                    
+                        sh 'yarn nx test:ci @ebsiint-api/trusted-issuers-registry-api-v3'
+                    }                  
+                    withSonarQubeEnv('LocalSonar'){
+                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=trusted-issuers-api -Dsonar.projectVersion=1.0 -Dsonar.projectKey=trusted-issuers-api -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/trusted-issuers-registry"
                     }
-                }                                     
+                    waitForQualityGate abortPipeline: true   
+                }  
+                script {
+                    sh 'rm ${WORKSPACE}/apis/trusted-issuers-registry/.scannerwork/report-task.txt'
+                }                
             }       
         }
         stage('Trusted-ledgers-registry-Api') {
@@ -158,11 +220,18 @@ pipeline {
                 API_PRIVATE_KEY=credentials('TLR_API_PRIVATE_KEY')
             } 
             steps {                
-                nodejs(nodeJSInstallationName: '16.13.0') {                    
-                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
-                        sh 'yarn nx test:ci @ebsiint-api/trusted-ledgers-registry'
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){    
+                    nodejs(nodeJSInstallationName: '16.13.0') {                    
+                        sh 'yarn nx test:ci @ebsiint-api/trusted-ledgers-registry-api-v2'
+                    }          
+                    withSonarQubeEnv('LocalSonar'){
+                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=trusted-ledgers-sc-registry-api -Dsonar.projectVersion=1.0 -Dsonar.projectKey=trusted-ledgers-sc-registry-api -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/trusted-ledgers-registry"
                     }
-                }                                     
+                    waitForQualityGate abortPipeline: true 
+                }     
+                script {
+                    sh 'rm ${WORKSPACE}/apis/trusted-ledgers-registry/.scannerwork/report-task.txt'
+                }                      
             }       
         } 
         stage('Trusted-policies-registry-Api') {
@@ -173,11 +242,18 @@ pipeline {
                 API_PRIVATE_KEY=credentials('TPR_API_PRIVATE_KEY')
             } 
             steps {                
-                nodejs(nodeJSInstallationName: '16.13.0') {                    
-                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
-                        sh 'yarn nx test:ci @ebsiint-api/trusted-policies-registry'
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){    
+                    nodejs(nodeJSInstallationName: '16.13.0') {                    
+                        sh 'yarn nx test:ci @ebsiint-api/trusted-policies-registry-api-v2'
+                    }       
+                    withSonarQubeEnv('LocalSonar'){
+                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=trusted-policies-registry-api -Dsonar.projectVersion=1.0 -Dsonar.projectKey=trusted-policies-registry-api -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/trusted-policies-registry"
                     }
-                }                                     
+                    waitForQualityGate abortPipeline: true
+                }
+                script {
+                    sh 'rm ${WORKSPACE}/apis/trusted-policies-registry/.scannerwork/report-task.txt'
+                } 
             }       
         }
         stage('Trusted-schemas-registry-Api') {
@@ -187,12 +263,19 @@ pipeline {
             environment {
                 API_PRIVATE_KEY=credentials('TSR_API_PRIVATE_KEY')
             } 
-            steps {                
-                nodejs(nodeJSInstallationName: '16.13.0') {                    
-                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
-                        sh 'yarn nx test:ci @ebsiint-api/trusted-schemas-registry'
+            steps {           
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){         
+                    nodejs(nodeJSInstallationName: '16.13.0') {                    
+                        sh 'yarn nx test:ci @ebsiint-api/trusted-schemas-registry-api-v2'
+                    }      
+                    withSonarQubeEnv('LocalSonar'){
+                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=trusted-schemas-registry-api -Dsonar.projectVersion=1.0 -Dsonar.projectKey=trusted-schemas-registry-api -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/trusted-schemas-registry"
                     }
-                }                                     
+                    waitForQualityGate abortPipeline: true   
+                }  
+                script {
+                    sh 'rm ${WORKSPACE}/apis/trusted-schemas-registry/.scannerwork/report-task.txt'
+                }                           
             }       
         }
         stage('Users-onboarding-Api') {
@@ -203,14 +286,22 @@ pipeline {
                 API_PRIVATE_KEY=credentials('TEST_ONBOARDING_API_PRIVATE_KEY')
             } 
             steps {                
-                nodejs(nodeJSInstallationName: '16.13.0') {                    
-                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
-                        sh 'yarn nx test:ci @ebsiint-api/trusted-schemas-registry'
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){    
+                    nodejs(nodeJSInstallationName: '16.13.0') {                    
+                        sh 'yarn nx test:ci @ebsiint-api/users-onboarding-api-v2'
+                    }                
+                    withSonarQubeEnv('LocalSonar'){
+                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=users-onboarding-api -Dsonar.projectVersion=1.0 -Dsonar.projectKey=users-onboarding-api -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/users-onboarding"
                     }
-                }                                     
+                    waitForQualityGate abortPipeline: true  
+                }     
+                script {
+                    sh 'rm ${WORKSPACE}/apis/users-onboarding/.scannerwork/report-task.txt'
+                }            
             }       
         }        
     }
+
     post {
         failure {
             slackSend (channel: '#jenkins_tests_notifications', color: '#FF0000', message: "FAILED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
