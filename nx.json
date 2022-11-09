@@ -9,7 +9,7 @@
     "default": {
       "runner": "nx/tasks-runners/default",
       "options": {
-        "cacheableOperations": ["build", "lint", "test", "test:unit", "test:ci"]
+        "cacheableOperations": ["build", "lint", "test", "test:unit", "test:ci", "prepare-contracts"]
       }
     }
   },

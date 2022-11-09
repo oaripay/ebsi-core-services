@@ -67,6 +67,14 @@
   },
   "nx": {
     "targets": {
+      "prepare-contracts": {
+        "inputs": [
+          "^production"
+        ],
+        "outputs": [
+          "{projectRoot}/contracts"
+        ]
+      },
       "compile": {
         "outputs": [
           "{projectRoot}/src"
