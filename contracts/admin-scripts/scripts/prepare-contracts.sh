@@ -5,9 +5,10 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 # echo $'\n'Cleaning up contracts/ folder
 
 # rm -rf ${SCRIPT_DIR}/../contracts
-# mkdir ${SCRIPT_DIR}/../contracts
 
 echo Consolidating smart contracts
+
+mkdir ${SCRIPT_DIR}/../contracts
 
 echo Copy the bootstrap
 cp -r ${SCRIPT_DIR}/../../bootstrap/contracts ${SCRIPT_DIR}/../contracts/bootstrap
