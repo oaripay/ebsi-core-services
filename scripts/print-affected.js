@@ -18,7 +18,7 @@ const contracts = [
 
 const processResult = spawnSync("sh", [
   "-c",
-  `yarn nx print-affected --exclude=${contracts.join(",")} | sed '/^{/,/^}/!d'`,
+  `yarn nx print-affected --base=main~1 --head=main --exclude=${contracts.join(",")} | sed '/^{/,/^}/!d'`,
 ]);
 
 try {
