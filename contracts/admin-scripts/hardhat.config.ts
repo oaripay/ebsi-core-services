@@ -1,5 +1,6 @@
 import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-solhint";
+import "@nomiclabs/hardhat-etherscan";
 import "@typechain/hardhat";
 import "hardhat-deploy";
 import "hardhat-deploy-ethers";
@@ -9,7 +10,9 @@ import "@tenderly/hardhat-tenderly";
 import "./tasks/index";
 import { HardhatUserConfig } from "hardhat/config";
 import * as fs from "fs";
-import "@nomiclabs/hardhat-etherscan";
+import dotenv from "dotenv";
+
+dotenv.config({ path: __dirname + "/.env" });
 
 // The solhint plugin overrides the check task, runs solhint
 // on the project's sources and prints the report to the console
@@ -32,12 +35,14 @@ const accounts = {
   mnemonic,
 };
 
+const { HARDHAT_NETWORK_URL, ETHERSCAN_API_KEY } = process.env;
+
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   networks: {
     hardhat: {},
     local: {
-      url: `https://ebsi:TTvD76znMvypBcNQ@www.test.intebsi.xyz/besu`,
+      url: HARDHAT_NETWORK_URL,
       accounts: [privKey],
       gas: 20000000,
       gasPrice: 0,
@@ -45,7 +50,7 @@ const config: HardhatUserConfig = {
       saveDeployments: true,
     },
     sokol: {
-      url: `https://ebsi:TTvD76znMvypBcNQ@www.test.intebsi.xyz/besu`,
+      url: HARDHAT_NETWORK_URL,
       accounts: [privKey],
       gas: 20000000,
       gasPrice: 0,
@@ -53,7 +58,7 @@ const config: HardhatUserConfig = {
       saveDeployments: true,
     },
     localWithData: {
-      url: `https://ebsi:TTvD76znMvypBcNQ@www.test.intebsi.xyz/besu`,
+      url: HARDHAT_NETWORK_URL,
       accounts,
       gas: 60000000,
       gasPrice: 0,
@@ -68,7 +73,7 @@ const config: HardhatUserConfig = {
   etherscan: {
     // Your API key for Etherscan
     // Obtain one at https://etherscan.io/
-    apiKey: "abc",
+    apiKey: ETHERSCAN_API_KEY,
   },
   typechain: {
     outDir: "src/types",

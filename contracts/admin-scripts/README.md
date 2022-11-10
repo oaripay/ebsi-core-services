@@ -4,6 +4,10 @@
 
 > Smart contract utility scripts.
 
+## Prerequisites
+
+Copy `.env.example` file to `.env` and configure the necessary settings.
+
 ## Compiling
 
 Compile the smart contracts:
