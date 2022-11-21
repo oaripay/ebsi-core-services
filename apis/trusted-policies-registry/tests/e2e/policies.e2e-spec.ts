@@ -765,7 +765,7 @@ describe("Policies (e2e)", () => {
           expect.assertions(1);
 
           await new Promise((f) => {
-            setTimeout(f, 1500);
+            setTimeout(f, 5000);
           });
 
           // check if blockscout is working properly

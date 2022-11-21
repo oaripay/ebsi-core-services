@@ -573,9 +573,15 @@ describe("Timestamp (e2e)", () => {
         );
         expect(receipt.status).toBe(1);
       });
+
       it("should return transaction data from blockscout", async () => {
         if (!blockscout.url || !sampleTransaction) return;
         expect.assertions(1);
+
+        await new Promise((f) => {
+          setTimeout(f, 5000);
+        });
+
         // check if blockscout is working properly
         const blockscoutCheck: SupertestJsonRpcResponse = await request(
           blockscout.url
