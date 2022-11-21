@@ -32,6 +32,7 @@ COPY ./apis/users-onboarding/package.json ./apis/users-onboarding/
 COPY ./apps/users-onboarding-web-client-v2/package.json ./apps/users-onboarding-web-client-v2/package.json
 COPY ./contracts/bootstrap/package.json ./contracts/bootstrap/
 COPY ./contracts/did-registry/package.json ./contracts/did-registry/
+COPY ./contracts/proxy/package.json ./contracts/proxy/
 COPY ./contracts/timestamp/package.json ./contracts/timestamp/
 COPY ./contracts/trusted-apps-registry/package.json ./contracts/trusted-apps-registry/
 COPY ./contracts/trusted-issuers-registry/package.json ./contracts/trusted-issuers-registry/
