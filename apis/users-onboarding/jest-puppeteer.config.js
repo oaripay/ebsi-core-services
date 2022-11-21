@@ -1,3 +1,6 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const path = require("path");
+
 module.exports = {
   preset: "./jest-puppeteer.preset.js",
   testTimeout: 120000,
@@ -19,7 +22,7 @@ module.exports = {
   moduleNameMapper: {
     "^jose/(.*)$": "<rootDir>/node_modules/jose/dist/node/cjs/$1",
   },
-  resolver: "<rootDir>/jest-resolver.js",
+  resolver: path.resolve(__dirname, "../../jest-resolver.js"),
   // Puppeteer config
   // Un-comment the following lines to see the browser window
   // launch: {

@@ -87,7 +87,7 @@ describe("EU Login onboarding", () => {
 
     await page.goto("https://app.test.intebsi.xyz/users-onboarding/v2");
 
-    await expect(page).toMatch("Welcome to the Test environment");
+    await expect(page).toMatch("Choose your onboarding method");
 
     await expect(page).toClick("button", { text: "Onboard with EU Login" });
 
@@ -95,7 +95,8 @@ describe("EU Login onboarding", () => {
 
     await expect(page).toMatch("EBSI requires you to authenticate");
 
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(10000); // EU Login can be very slow to load...
+
     await expect(page).toFillForm('form[id="whoamiForm"]', {
       username: euLoginUsername,
     });
