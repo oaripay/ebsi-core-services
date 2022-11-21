@@ -10,7 +10,6 @@
     "clean": "rimraf artifacts cache src dist",
     "prettier-format": "prettier --write '**/*.{js,json,md,sol}'",
     "compile": "hardhat compile && yarn tsc",
-    "build": "yarn compile",
     "lint": "yarn run lint:prettier && yarn run lint:eslint && yarn run lint:sol",
     "lint:sol": " solhint 'contracts/**/*.sol'",
     "lint:prettier": "prettier . --check",

@@ -86,7 +86,7 @@
       },
       "lint": {
         "dependsOn": [
-          "^build",
+          "^compile",
           "compile"
         ]
       }
