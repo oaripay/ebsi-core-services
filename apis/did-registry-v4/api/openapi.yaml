@@ -1,0 +1,896 @@
+openapi: 3.0.3
+info:
+  title: DID Registry API
+  description: |
+    DID Registry is a generic core service of the EBSI platform providing the capability of
+    resolving EBSI Decentralised Identifiers (DIDs).
+
+    It enables consumers to interact with the DID Registry SC to:
+    - Insert a DID/DID Document
+    - Update a DID Document
+    - Revoke a DID/DID Controlling keys
+    - Resolve a DID (and obtain a DID Document)
+    - Resolve a version of a DID Document at a certain point in time
+
+    For more information see:
+    * [DID Registry API Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/DID+Registry+API)
+    * [DID Registry Smart Contract Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/DID+Registry+Smart+Contract)
+    * [Code Repository](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/browse)
+  version: 4.0.0
+  termsOfService: /docs/terms
+  contact:
+    name: EBSI Support - Service Desk
+    url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11
+  license:
+    name: EUPL-1.2
+    url: https://joinup.ec.europa.eu/page/eupl-text-11-12
+paths:
+  /did-registry/v4/identifiers:
+    get:
+      tags:
+        - DID Documents
+      summary: List identifiers
+      description: Returns a list of identifiers.
+      operationId: get-did-registry-v4-identifiers
+      parameters:
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+          schema:
+            type: integer
+        - in: query
+          name: controller
+          description: Filter by controller DID.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: Absolute path to the collection (consult)
+                  items:
+                    type: array
+                    description: List of identifiers
+                    items:
+                      type: object
+                      properties:
+                        did:
+                          type: string
+                          description: A unique record id = DID User
+                        href:
+                          type: string
+                          description: Link to the resource
+                  total:
+                    type: integer
+                    description: Total number of items across all pages.
+                  pageSize:
+                    type: integer
+                    description: |
+                      Maximum number of items per page. For the last page, its value should be
+                      independent of the number of actually returned items.
+                  links:
+                    $ref: "#/components/schemas/Links"
+              examples:
+                "[test] Success":
+                  value:
+                    self: https://test.intebsi.xyz/did-registry/v4/identifiers?page[after]=3&page[size]=10
+                    items:
+                      - did: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                        href: https://test.intebsi.xyz/did-registry/v4/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                      - did: did:ebsi:zZssKY2QbbKEqVRgMP1iCLr
+                        href: https://test.intebsi.xyz/did-registry/v4/identifiers/did:ebsi:zZssKY2QbbKEqVRgMP1iCLr
+                      - did: did:ebsi:zb3EMmQSCWZHvFSrBTuoXsv
+                        href: https://test.intebsi.xyz/did-registry/v4/identifiers/did:ebsi:zb3EMmQSCWZHvFSrBTuoXsv
+                      - did: did:ebsi:zwkvdg7fEoiWnLm8zXWxcHf
+                        href: https://test.intebsi.xyz/did-registry/v4/identifiers/did:ebsi:zwkvdg7fEoiWnLm8zXWxcHf
+                      - did: did:ebsi:ziu9WCB3mDWMLVpF8GfEMG8
+                        href: https://test.intebsi.xyz/did-registry/v4/identifiers/did:ebsi:ziu9WCB3mDWMLVpF8GfEMG8
+                      - did: did:ebsi:znrtw6tCorGWkUoAHiSPuz6
+                        href: https://test.intebsi.xyz/did-registry/v4/identifiers/did:ebsi:znrtw6tCorGWkUoAHiSPuz6
+                      - did: did:ebsi:zqEozSTPA46JgCeP8d9XFGZ
+                        href: https://test.intebsi.xyz/did-registry/v4/identifiers/did:ebsi:zqEozSTPA46JgCeP8d9XFGZ
+                      - did: did:ebsi:z25a4Dcp8K7SULVfUCw4fFb7
+                        href: https://test.intebsi.xyz/did-registry/v4/identifiers/did:ebsi:z25a4Dcp8K7SULVfUCw4fFb7
+                      - did: did:ebsi:z239Np1bLCJiJLdkaSqq9XxV
+                        href: https://test.intebsi.xyz/did-registry/v4/identifiers/did:ebsi:z239Np1bLCJiJLdkaSqq9XxV
+                      - did: did:ebsi:z23ETkVyJGeLWysGD11s2Jof
+                        href: https://test.intebsi.xyz/did-registry/v4/identifiers/did:ebsi:z23ETkVyJGeLWysGD11s2Jof
+                    total: 124
+                    pageSize: 10
+                    links:
+                      first: https://test.intebsi.xyz/did-registry/v4/identifiers?page[after]=1&page[size]=10
+                      prev: https://test.intebsi.xyz/did-registry/v4/identifiers?page[after]=2&page[size]=10
+                      next: https://test.intebsi.xyz/did-registry/v4/identifiers?page[after]=4&page[size]=10
+                      last: https://test.intebsi.xyz/did-registry/v4/identifiers?page[after]=13&page[size]=10
+                "[test] Filter by controller":
+                  value:
+                    self: https://test.intebsi.xyz/did-registry/v4/identifiers?page[after]=1&page[size]=10&controller=did:ebsi:z23ETkVyJGeLWysGD11s2Jof
+                    items:
+                      - did: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                        href: https://test.intebsi.xyz/did-registry/v4/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                    total: 1
+                    pageSize: 10
+                    links:
+                      first: https://test.intebsi.xyz/did-registry/v4/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                      prev: https://test.intebsi.xyz/did-registry/v4/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                      next: https://test.intebsi.xyz/did-registry/v4/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                      last: https://test.intebsi.xyz/did-registry/v4/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                "[pilot] Success":
+                  value:
+                    self: https://api.preprod.ebsi.eu/did-registry/v4/identifiers?page[after]=3&page[size]=10
+                    items:
+                      - did: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                        href: https://api.preprod.ebsi.eu/did-registry/v4/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                      - did: did:ebsi:zZssKY2QbbKEqVRgMP1iCLr
+                        href: https://api.preprod.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zZssKY2QbbKEqVRgMP1iCLr
+                      - did: did:ebsi:zb3EMmQSCWZHvFSrBTuoXsv
+                        href: https://api.preprod.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zb3EMmQSCWZHvFSrBTuoXsv
+                      - did: did:ebsi:zwkvdg7fEoiWnLm8zXWxcHf
+                        href: https://api.preprod.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zwkvdg7fEoiWnLm8zXWxcHf
+                      - did: did:ebsi:ziu9WCB3mDWMLVpF8GfEMG8
+                        href: https://api.preprod.ebsi.eu/did-registry/v4/identifiers/did:ebsi:ziu9WCB3mDWMLVpF8GfEMG8
+                      - did: did:ebsi:znrtw6tCorGWkUoAHiSPuz6
+                        href: https://api.preprod.ebsi.eu/did-registry/v4/identifiers/did:ebsi:znrtw6tCorGWkUoAHiSPuz6
+                      - did: did:ebsi:zqEozSTPA46JgCeP8d9XFGZ
+                        href: https://api.preprod.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zqEozSTPA46JgCeP8d9XFGZ
+                      - did: did:ebsi:z25a4Dcp8K7SULVfUCw4fFb7
+                        href: https://api.preprod.ebsi.eu/did-registry/v4/identifiers/did:ebsi:z25a4Dcp8K7SULVfUCw4fFb7
+                      - did: did:ebsi:z239Np1bLCJiJLdkaSqq9XxV
+                        href: https://api.preprod.ebsi.eu/did-registry/v4/identifiers/did:ebsi:z239Np1bLCJiJLdkaSqq9XxV
+                      - did: did:ebsi:z23ETkVyJGeLWysGD11s2Jof
+                        href: https://api.preprod.ebsi.eu/did-registry/v4/identifiers/did:ebsi:z23ETkVyJGeLWysGD11s2Jof
+                    total: 124
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/did-registry/v4/identifiers?page[after]=1&page[size]=10
+                      prev: https://api.preprod.ebsi.eu/did-registry/v4/identifiers?page[after]=2&page[size]=10
+                      next: https://api.preprod.ebsi.eu/did-registry/v4/identifiers?page[after]=4&page[size]=10
+                      last: https://api.preprod.ebsi.eu/did-registry/v4/identifiers?page[after]=13&page[size]=10
+                "[pilot] Filter by controller":
+                  value:
+                    self: https://api.preprod.ebsi.eu/did-registry/v4/identifiers?page[after]=1&page[size]=10&controller=did:ebsi:z23ETkVyJGeLWysGD11s2Jof
+                    items:
+                      - did: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                        href: https://api.preprod.ebsi.eu/did-registry/v4/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                    total: 1
+                    pageSize: 10
+                    links:
+                      first: https://api.preprod.ebsi.eu/did-registry/v4/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                      prev: https://api.preprod.ebsi.eu/did-registry/v4/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                      next: https://api.preprod.ebsi.eu/did-registry/v4/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                      last: https://api.preprod.ebsi.eu/did-registry/v4/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+        "400":
+          description: Bad Request Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /did-registry/v4/identifiers/{did}:
+    get:
+      tags:
+        - DID Documents
+      summary: Get a DID Document
+      description: Gets the DID Document corresponding to the DID.
+      operationId: get-did-registry-v4-identifier
+      parameters:
+        - in: path
+          name: did
+          description: |
+            A DID to be resolved.
+            [conformance description] The API supports the following EBSI conformance tests:
+            - A user wallet checks if the DID is correctly included in the DID Registry (CT ONBOARD_063)
+          required: true
+          schema:
+            type: string
+          examples:
+            "[test] DID":
+              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+            "[pilot] DID":
+              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+        - in: query
+          name: valid-at
+          description: |
+            This option is used to get a the version in the past
+            of a DID Document. It must be a date in ISO-8601 format
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Success. A user wallet gets DID resolution (CT ONBOARD_063)
+          content:
+            application/did+ld+json:
+              schema:
+                $ref: "#/components/schemas/DIDDocument"
+              examples:
+                "[test] Success":
+                  value:
+                    "@context":
+                      - https://www.w3.org/ns/did/v1
+                    id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                    verificationMethod:
+                      - controller: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                        id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH#vm-3
+                        type: EcdsaSecp256k1RecoveryMethod2020
+                        publicKeyBase58: H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV
+                "[pilot] Success":
+                  value:
+                    "@context": https://w3id.org/did/v1
+                    id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                    verificationMethod:
+                      - id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH#keys-1
+                        type: Secp256k1VerificationKey2018
+                        controller: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                        publicKeyHex: 04f9139fbd3b9780863b17e8390934a1017fc8d0f18b84f02acb04f24c9cae261e45745c6507881509b9e6d837329153ea75fafb2c1a5d504702d04f1e22a80ecc
+                    authentication:
+                      - did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                    assertionMethod:
+                      - did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH#keys-1
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Invalid {did} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {did} parameter is not valid
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                DID Not Found:
+                  $ref: "#/components/examples/NotFound"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /did-registry/v4/identifiers/{did}/actions:
+    post:
+      tags:
+        - DID Documents
+      summary: Perform actions in did
+      description: Perform actions in did like checking a controller
+      operationId: get-did-registry-v4-actions
+      parameters:
+        - in: path
+          name: did
+          description: DID related to the action.
+          required: true
+          schema:
+            type: string
+          examples:
+            "[test] DID":
+              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+            "[pilot] DID":
+              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+      requestBody:
+        description: |
+          The body follows the
+          [JSON-RPC 2.0 specification](https://www.jsonrpc.org/specification).
+
+          It requires the following fields:
+
+          - **jsonrpc**: must be exactly "2.0"
+          - **method**: method to be invoked
+          - **params**: method parameters
+          - **id**: identifier established by the client
+        content:
+          application/json:
+            schema:
+              required:
+                - jsonrpc
+                - id
+                - method
+                - params
+              type: object
+              properties:
+                jsonrpc:
+                  description: Must be exactly "2.0"
+                  type: string
+                method:
+                  description: Method that needs to be invoked
+                  type: string
+                params:
+                  description: Array of parameters
+                  type: array
+                  items:
+                    type: string
+                id:
+                  description: Identifier established by the client
+                  type: integer
+                  example: 1
+            examples:
+              checkController:
+                value:
+                  jsonrpc: "2.0"
+                  method: "checkController"
+                  params: ["0x6C286fA9e15Df7f245B8A751d4e9a0FA4C43E8b6"]
+                  id: 1
+      responses:
+        "200":
+          description: Response
+          content:
+            application/json:
+              schema:
+                title: JSON-RPC Response
+                type: object
+                properties:
+                  jsonrpc:
+                    description: Must be exactly "2.0"
+                    type: string
+                  id:
+                    description: Same identifier established by the client in the call
+                    type: integer
+                  result:
+                    description: Result of the call
+                    oneOf:
+                      - type: object
+                      - type: string
+                      - type: boolean
+              examples:
+                checkController:
+                  value:
+                    jsonrpc: "2.0"
+                    id: 1
+                    result: true
+  /did-registry/v4/jsonrpc:
+    post:
+      operationId: post-did-registry-v4-jsonrpc
+      tags:
+        - JSON-RPC
+      summary: JSON-RPC API
+      description: |
+        The JSON-RPC API provides methods assisting the construction of blockchain transactions and
+        interaction with the ledger, i.e. write operation on ledger.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: header
+          name: Conformance
+          description: |
+            The header MUST be used ONLY for the EBSI conformance testing.
+            - Type: string
+            - Format: UUID V4
+
+            The header is used to log the activities. See Conformance testing header section in the [documentation](https://ec.europa.eu/digital-building-blocks/wikis/x/5YDwG).
+          required: false
+          schema:
+            type: string
+            format: uuid
+          example: edb60e02-398d-4b62-8028-85710b2476a5
+      requestBody:
+        required: true
+        description: |
+          The body follows the
+          [JSON-RPC 2.0 specification](https://www.jsonrpc.org/specification).
+
+          It requires the following fields:
+
+          - **jsonrpc**: must be exactly "2.0"
+          - **method**: method to be invoked
+          - **params**: method parameters
+          - **id**: identifier established by the client
+
+          ### API Methods
+
+          #### insertDidDocument
+
+          Call to build an unsigned transaction to insert a new DID Document.
+
+          Parameters:
+          - **from**: Ethereum address of the signer
+          - **did**: DID to insert. It must be for a legal entity (DID v1)
+          - **baseDocument**: JSON string containing the @context of the DID Document
+          - **vMethodId**: Thumbprint of the public key
+          - **publicKey**: Public key for seckp256k1 in compressed or uncompressed format
+          - **isSecp256k1**: It must be true
+          - **notBefore**: capability invocation is valid from this time
+          - **notAfter**: expiration of the capability invocation
+
+          #### updateBaseDocument
+
+          Call to build an unsigned transaction to update the base document
+          of an existing DID.
+
+          Parameters:
+          - **from**: Ethereum address of the signer
+          - **did**: Existing DID
+          - **baseDocument**: JSON string containing the @context of the DID Document
+
+          #### addController
+
+          Call to build an unsigned transaction to add a new controller
+          to an existing DID Document.
+
+          Parameters:
+          - **from**: Ethereum address of the signer
+          - **did**: Existing DID
+          - **controller**: DID of the new controller
+
+          #### revokeController
+
+          Call to build an unsigned transaction to revoke a controller
+          from a DID Document.
+
+          Parameters:
+          - **from**: Ethereum address of the signer
+          - **did**: Existing DID
+          - **controller**: DID of controller to revoke
+
+          #### addVerificationMethod
+
+          Call to build an unsigned transaction to add a verification method.
+
+          Parameters:
+          - **from**: Ethereum address of the signer
+          - **did**: Existing DID
+          - **vMethodId**: New verification method id
+          - **isSecp256k1**: Boolean defining if the public key is for
+            secp256k1 curve or not
+          - **publicKey**: Public key as hex string. For algorithms different
+            to ES256K it must be the JWK transformed to string and then to
+            hex format.
+
+          #### addVerificationRelationship
+
+          Call to build an unsigned transaction to add a verification relationship.
+
+          Parameters:
+          - **from**: Ethereum address of the signer
+          - **did**: Existing DID
+          - **name**: Name of the verification relationship
+          - **vMethodId**: Reference to the verification method
+          - **notBefore**: Verification relationship is valid from this time
+          - **notAfter**: Expiration of the verification relationship
+
+          #### revokeVerificationMethod
+
+          Call to build an unsigned transaction to revoke a verification method.
+
+          Parameters:
+          - **from**: Ethereum address of the signer
+          - **did**: Existing DID
+          - **vMethodId**: Reference to the verification method
+          - **notAfter**: Date on which the revocation takes effect. It must be in the past
+
+          #### expireVerificationMethod
+
+          Call to build an unsigned transaction to expire a verification method.
+
+          Parameters:
+          - **from**: Ethereum address of the signer
+          - **did**: Existing DID
+          - **vMethodId**: Reference to the verification method
+          - **notAfter**: New expiration date. It must be in the future
+
+          #### rollVerificationMethod
+
+          Call to build an unsigned transaction to roll a verification method.
+
+          Parameters:
+          - **from**: Ethereum address of the signer
+          - **did**: Existing DID
+          - **vMethodId**: New verification method id (thumbprint of the new public key)
+          - **isSecp256k1**: Boolean defining if the public key is for
+            secp256k1 curve or not
+          - **publicKey**: Public key as hex string. For algorithms different
+            to ES256K it must be the JWK transformed to string and then to
+            hex format.
+          - **notBefore**: Verification relationship is valid from this time
+          - **notAfter**: Expiration of the verification relationship
+          - **oldVMethodId**: Old verification method id that will be rolled
+          - **duration**: Duration of the period of transition. During this period
+            both verification methods will be valid.
+
+          #### sendSignedTransaction
+
+          Call to send a signed transaction to the blockchain.
+
+          [conformance description]
+
+          ### [EBSI conformance testing](https://ec.europa.eu/digital-building-blocks/wikis/x/5YDwG)
+
+          The API supports the following EBSI conformance tests:
+
+          - Construct a blockchain transaction to register a DID (CT ONBOARD_061)
+          - Broadcast a signed blockchain transaction to register a DID (CT ONBOARD_062)
+        content:
+          application/json:
+            schema:
+              required:
+                - jsonrpc
+                - id
+                - method
+                - params
+              type: object
+              properties:
+                jsonrpc:
+                  description: Must be exactly "2.0"
+                  type: string
+                method:
+                  description: Method that needs to be invoked
+                  type: string
+                params:
+                  description: Array of parameters
+                  type: array
+                  items:
+                    type: object
+                id:
+                  description: Identifier established by the client
+                  type: integer
+                  example: 1
+            examples:
+              "[conformance] ct1_did_01":
+                summary: Build blockchain transaction to register a DID Document (CT ONBOARD_061)
+                description: |
+                  EBSI conformance test: Build blockchain transaction to register a DID Document (DID_01).
+
+                  A successful response (HTTP 200) means that the service (wallet) can:
+
+                    - create an [EBSI-compliant DID](https://ec.europa.eu/digital-building-blocks/wikis/x/x4XyGQ)
+                    - create an [EBSI-compliant DID Document](https://ec.europa.eu/digital-building-blocks/wikis/x/x4XyGQ)
+
+                value:
+                  jsonrpc: "2.0"
+                  method: insertDidDocument
+                  params:
+                    - from: "0xD8feEbc61E1a94efDE2999028ff3eAeC4898Cea3"
+                      did: "did:ebsi:zzGFTqDCm5PzcUL8we3cmNe"
+                      baseDocument: '{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/jws-2020/v1"]}'
+                      vMethodId: "TnaihEiXpx3-yDOpBw_qQXJj8wUJm4rYhCBGfIpUZpQ"
+                      publicKey: "0x040159d8e2aec4ce0b331cc440572dc8386b4a01095a27880373d359a7c014242de14421e2fa4571f0efb0827dd8604c1c101f65ab8fd9fd00b5c0377796bf6fa4"
+                      isSecp256k1: true
+                      notBefore: 1665742665
+                      notAfter: 1665746265
+                  id: 1
+              "[conformance] ct1_did_02":
+                summary: Send blockchain transaction to register a DID Document (CT ONBOARD_062)
+                description: >
+                  EBSI conformance test: Send blockchain transaction to register a DID Document (DID_02).
+
+                  A successful response (HTTP 200) means that the service (wallet) can:
+
+                    - create an [EBSI-compliant DID](https://ec.europa.eu/digital-building-blocks/wikis/x/x4XyGQ)
+                    - create an [EBSI-compliant DID Document](https://ec.europa.eu/digital-building-blocks/wikis/x/x4XyGQ)
+                    - [create signed blockchain transaction]()
+
+                value:
+                  jsonrpc: "2.0"
+                  method: sendSignedTransaction
+                  id: 1
+                  params:
+                    - protocol: eth
+                      unsignedTransaction:
+                        from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
+                        to: "0xFde86148db58f57787C06BeAf63a9c3f789357b3"
+                        data: 0x0000...
+                        nonce: "0x00"
+                        chainId: "0x1b3b"
+                        gasLimit: "0x10000"
+                        gasPrice: "0x00"
+                        value: "0x00"
+                      r: 0x...
+                      s: 0x...
+                      v: 0x...
+                      signedRawTransaction: "--- signed raw transaction ---"
+              Build tx to insertDidDocument:
+                value:
+                  jsonrpc: "2.0"
+                  method: insertDidDocument
+                  id: 1
+                  params:
+                    - from: "0xD8feEbc61E1a94efDE2999028ff3eAeC4898Cea3"
+                      did: "did:ebsi:zzGFTqDCm5PzcUL8we3cmNe"
+                      baseDocument: '{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/jws-2020/v1"]}'
+                      vMethodId: "TnaihEiXpx3-yDOpBw_qQXJj8wUJm4rYhCBGfIpUZpQ"
+                      publicKey: "0x040159d8e2aec4ce0b331cc440572dc8386b4a01095a27880373d359a7c014242de14421e2fa4571f0efb0827dd8604c1c101f65ab8fd9fd00b5c0377796bf6fa4"
+                      isSecp256k1: true
+                      notBefore: 1665742665
+                      notAfter: 1665746265
+              Build tx to updateBaseDocument:
+                value:
+                  jsonrpc: "2.0"
+                  method: updateBaseDocument
+                  id: 1
+                  params:
+                    - from: "0xD8feEbc61E1a94efDE2999028ff3eAeC4898Cea3"
+                      did: "did:ebsi:zzGFTqDCm5PzcUL8we3cmNe"
+                      baseDocument: '{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/jws-2020/v1"]}'
+              Build tx to addController:
+                value:
+                  jsonrpc: "2.0"
+                  method: addController
+                  id: 1
+                  params:
+                    - from: "0xD8feEbc61E1a94efDE2999028ff3eAeC4898Cea3"
+                      did: "did:ebsi:zzGFTqDCm5PzcUL8we3cmNe"
+                      controller: "did:ebsi:zpUnevx4dP2R2BvbjFEnnFF"
+              Build tx to revokeController:
+                value:
+                  jsonrpc: "2.0"
+                  method: revokeController
+                  id: 1
+                  params:
+                    - from: "0xD8feEbc61E1a94efDE2999028ff3eAeC4898Cea3"
+                      did: "did:ebsi:zzGFTqDCm5PzcUL8we3cmNe"
+                      controller: "did:ebsi:zpUnevx4dP2R2BvbjFEnnFF"
+              Build tx to addVerificationMethod:
+                value:
+                  jsonrpc: "2.0"
+                  method: addVerificationMethod
+                  id: 1
+                  params:
+                    - from: "0xD8feEbc61E1a94efDE2999028ff3eAeC4898Cea3"
+                      did: "did:ebsi:zzGFTqDCm5PzcUL8we3cmNe"
+                      vMethodId: "H5RhB6vyFgl2Uizk8IjL_9AkB5mfqgn5ApgfHUbkqdQ"
+                      publicKey: "0x049D51B5F7820079AECA6FD34A6E65732FCDC9B5577FDCEE5DCD46A1409D55143E5BAF0161BFA775B2B1B6A144735157A9CFA424539757D21AC3797DC900550F75"
+                      isSecp256k1: true
+              Build tx to addVerificationRelationship:
+                value:
+                  jsonrpc: "2.0"
+                  method: addVerificationRelationship
+                  id: 1
+                  params:
+                    - from: "0xD8feEbc61E1a94efDE2999028ff3eAeC4898Cea3"
+                      did: "did:ebsi:zzGFTqDCm5PzcUL8we3cmNe"
+                      name: "assertionMethod"
+                      vMethodId: "TnaihEiXpx3-yDOpBw_qQXJj8wUJm4rYhCBGfIpUZpQ"
+                      notBefore: 1665742665
+                      notAfter: 1665746265
+              Build tx to revokeVerificationMethod:
+                value:
+                  jsonrpc: "2.0"
+                  method: revokeVerificationMethod
+                  id: 1
+                  params:
+                    - from: "0xD8feEbc61E1a94efDE2999028ff3eAeC4898Cea3"
+                      did: "did:ebsi:zzGFTqDCm5PzcUL8we3cmNe"
+                      vMethodId: "TnaihEiXpx3-yDOpBw_qQXJj8wUJm4rYhCBGfIpUZpQ"
+                      notAfter: 1665746265
+              Build tx to expireVerificationMethod:
+                value:
+                  jsonrpc: "2.0"
+                  method: expireVerificationMethod
+                  id: 1
+                  params:
+                    - from: "0xD8feEbc61E1a94efDE2999028ff3eAeC4898Cea3"
+                      did: "did:ebsi:zzGFTqDCm5PzcUL8we3cmNe"
+                      vMethodId: "TnaihEiXpx3-yDOpBw_qQXJj8wUJm4rYhCBGfIpUZpQ"
+                      notAfter: 1665746265
+              Build tx to rollVerificationMethod:
+                value:
+                  jsonrpc: "2.0"
+                  method: rollVerificationMethod
+                  id: 1
+                  params:
+                    - from: "0xD8feEbc61E1a94efDE2999028ff3eAeC4898Cea3"
+                      did: "did:ebsi:zzGFTqDCm5PzcUL8we3cmNe"
+                      vMethodId: "TnaihEiXpx3-yDOpBw_qQXJj8wUJm4rYhCBGfIpUZpQ"
+                      publicKey: "0x040159d8e2aec4ce0b331cc440572dc8386b4a01095a27880373d359a7c014242de14421e2fa4571f0efb0827dd8604c1c101f65ab8fd9fd00b5c0377796bf6fa4"
+                      isSecp256k1: true
+                      notBefore: 1665742665
+                      notAfter: 1665746265
+                      oldVMethodId: "O_EWDo1JUm3glFxTw3a9f2YfeKwbLuvG9kdGrb6gzHE"
+                      duration: 86400
+              Send Transaction:
+                value:
+                  jsonrpc: "2.0"
+                  method: sendSignedTransaction
+                  id: 1
+                  params:
+                    - protocol: eth
+                      unsignedTransaction:
+                        from: "0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7"
+                        to: "0xFde86148db58f57787C06BeAf63a9c3f789357b3"
+                        data: "0x0000..."
+                        nonce: "0x00"
+                        chainId: "0x1b3b"
+                        gasLimit: "0x10000"
+                        gasPrice: "0x00"
+                        value: "0x00"
+                      r: "0x..."
+                      s: "0x..."
+                      v: "0x..."
+                      signedRawTransaction: "--- signed raw transaction ---"
+      responses:
+        "200":
+          description: Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonRpcResponse"
+              examples:
+                Build unsigned blockchain transaction to register a DID:
+                  value:
+                    jsonrpc: "2.0"
+                    id: 1
+                    result:
+                      from: "0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7"
+                      to: "0xFde86148db58f57787C06BeAf63a9c3f789357b3"
+                      data: "0x0000..."
+                      nonce: "0x00"
+                      chainId: "0x1b3b"
+                      gasLimit: "0x10000"
+                      gasPrice: "0x00"
+                      value: "0x00"
+                Build tx:
+                  value:
+                    jsonrpc: "2.0"
+                    id: 1
+                    result:
+                      from: "0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7"
+                      to: "0xFde86148db58f57787C06BeAf63a9c3f789357b3"
+                      data: "0x0000..."
+                      nonce: "0x00"
+                      chainId: "0x1b3b"
+                      gasLimit: "0x10000"
+                      gasPrice: "0x00"
+                      value: "0x00"
+                Send a transaction:
+                  value:
+                    jsonrpc: "2.0"
+                    id: 1
+                    result: "0xe670ec64341771606e55d6b4ca35a1a6b75ee3d5145a99d05921026d1527331"
+        "400":
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Bad Request:
+                  $ref: "#/components/examples/BadRequest"
+components:
+  schemas:
+    ProblemDetails:
+      title: Problem Details
+      description: A [Problem Details](https://datatracker.ietf.org/doc/html/rfc7807) object.
+      type: object
+      properties:
+        type:
+          type: string
+          format: uri
+          description: |
+            An absolute URI that identifies the problem type. When dereferenced,
+            it SHOULD provide human-readable documentation for the problem type.
+          default: about:blank
+        title:
+          type: string
+          description: |
+            A short summary of the problem type.
+          example: Internal Server Error
+        status:
+          type: integer
+          format: int32
+          description: |
+            The HTTP status code generated by the origin server for this occurrence of the problem.
+          minimum: 400
+          maximum: 600
+          example: 500
+        detail:
+          type: string
+          description: |
+            A human readable explanation specific to this occurrence of the problem.
+          example: Connection timeout
+        instance:
+          type: string
+          format: uri
+          description: |
+            An absolute URI that identifies the specific occurrence of the problem.
+            It may or may not yield further information if dereferenced.
+    Links:
+      title: Links
+      description: Links model used for pagination
+      type: object
+      properties:
+        last:
+          type: string
+          description: URI of the last page
+        prev:
+          type: string
+          description: URI of the previous page
+        next:
+          type: string
+          description: URI of the next page
+        first:
+          type: string
+          description: URI of the first page
+    DIDDocument:
+      title: DID Document
+      description: DID Document as a JSON-LD document
+      type: object
+      additionalProperties: true
+      properties:
+        "@context":
+          description: DID Document @context
+          oneOf:
+            - type: string
+              format: uri
+            - type: array
+              items:
+                type: string
+                format: uri
+    JsonRpcResponse:
+      title: JSON-RPC Response
+      type: object
+      properties:
+        jsonrpc:
+          description: Must be exactly "2.0"
+          type: string
+        id:
+          description: Same identifier established by the client in the call
+          type: integer
+        result:
+          description: Result of the call
+          oneOf:
+            - type: object
+            - type: string
+  examples:
+    BadRequest:
+      value:
+        title: Bad request
+        status: 400
+        detail: Bad request
+    NotFound:
+      value:
+        title: Not found
+        status: 404
+        detail: Not found
+    InternalError:
+      value:
+        title: Internal error
+        status: 500
+        detail: Internal error
+  securitySchemes:
+    bearerAuth:
+      description: >
+
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+servers:
+  - url: "http://localhost"
+    description: Local Computer Environment
+  - url: "https://test.intebsi.xyz"
+    description: EBSI Test Environment
+  - url: "https://api.preprod.ebsi.eu"
+    description: EBSI Pre-production Environment
+  - url: "https://api.ebsi.eu"
+    description: EBSI Production Environment

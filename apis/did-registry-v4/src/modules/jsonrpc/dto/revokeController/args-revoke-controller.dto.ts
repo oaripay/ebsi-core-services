@@ -1,0 +1,11 @@
+import { IsDidV1 } from "../../../../shared/validators";
+
+export class ArgsRevokeController {
+  @IsDidV1()
+  did: string;
+
+  @IsDidV1()
+  controller: string;
+}
+
+export default { ArgsRevokeController };

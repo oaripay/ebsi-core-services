@@ -18,6 +18,7 @@ COPY yarn.lock package.json ./
 # Copy projects' package.json files
 COPY ./apis/authorisation/package.json ./apis/authorisation/
 COPY ./apis/did-registry/package.json ./apis/did-registry/
+COPY ./apis/did-registry-v4/package.json ./apis/did-registry-v4/
 COPY ./apis/ledger/package.json ./apis/ledger/
 COPY ./apis/notifications/package.json ./apis/notifications/
 COPY ./apis/proxy-data-hub/package.json ./apis/proxy-data-hub/
@@ -32,6 +33,7 @@ COPY ./apis/users-onboarding/package.json ./apis/users-onboarding/
 COPY ./apps/users-onboarding-web-client-v2/package.json ./apps/users-onboarding-web-client-v2/package.json
 COPY ./contracts/bootstrap/package.json ./contracts/bootstrap/
 COPY ./contracts/did-registry/package.json ./contracts/did-registry/
+COPY ./contracts/did-registry-v4/package.json ./contracts/did-registry-v4/
 COPY ./contracts/timestamp/package.json ./contracts/timestamp/
 COPY ./contracts/trusted-apps-registry/package.json ./contracts/trusted-apps-registry/
 COPY ./contracts/trusted-issuers-registry/package.json ./contracts/trusted-issuers-registry/

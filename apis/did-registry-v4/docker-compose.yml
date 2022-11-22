@@ -1,0 +1,11 @@
+version: "3.7"
+
+services:
+  did-registry-api-v4:
+    image: did-registry-api-v4
+    build: .
+    env_file:
+      - .env.default
+      - .env.default.local
+    ports:
+      - "${API_PORT:-3000}:${API_PORT:-3000}"
