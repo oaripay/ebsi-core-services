@@ -1,12 +1,11 @@
 openapi: 3.0.3
 info:
-  title: Users Onboarding API
+  title: Users Onboarding API v2
   version: 2.0.0
   description: |
     Users Onboarding API is an EBSI core service to enable users (Natural Persons and Legal
     Entities) to obtain long-term access to the EBSI pre-production network.
-
-  termsOfService: /docs/terms
+  termsOfService: https://api-preprod.ebsi.eu/docs/terms
   contact:
     name: EBSI Support - Service Desk
     url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11
@@ -294,7 +293,7 @@ components:
 servers:
   - url: "http://localhost"
     description: Local Computer Environment
-  - url: "https://api.preprod.ebsi.eu"
+  - url: "https://api-preprod.ebsi.eu"
     description: EBSI Pre-production Environment
   - url: "https://api.ebsi.eu"
     description: EBSI Production Environment

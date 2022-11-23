@@ -1,14 +1,13 @@
 openapi: 3.0.3
 info:
-  title: Timestamp API
+  title: Timestamp API v3
   version: 3.0.0
   description: |
     Timestamp API is an EBSI core service. It enables us to interact with the TimeStamp SC to
     * timestamp hashes,
     * supports timestamping records/versions (and linking the timestamps)
     * verify timestamps.
-
-  termsOfService: "/docs/terms"
+  termsOfService: https://api-preprod.ebsi.eu/docs/terms
   contact:
     name: EBSI Support - Service Desk
     url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11
@@ -68,34 +67,34 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://test.intebsi.xyz/timestamp/v3/hash-algorithms?page[after]=3&page[size]=2
+                    self: https://api-test.ebsi.eu/timestamp/v3/hash-algorithms?page[after]=3&page[size]=2
                     items:
                       - hashAlgorithmId: 0
-                        href: https://test.intebsi.xyz/timestamp/v3/hash-algorithms/4
+                        href: https://api-test.ebsi.eu/timestamp/v3/hash-algorithms/4
                       - hashAlgorithmId: 1
-                        href: https://test.intebsi.xyz/timestamp/v3/hash-algorithms/5
+                        href: https://api-test.ebsi.eu/timestamp/v3/hash-algorithms/5
                     total: 873
                     pageSize: 2
                     links:
-                      first: https://test.intebsi.xyz/timestamp/v3/hash-algorithms?page[after]=1&page[size]=2
-                      prev: https://test.intebsi.xyz/timestamp/v3/hash-algorithms?page[after]=2&page[size]=2
-                      next: https://test.intebsi.xyz/timestamp/v3/hash-algorithms?page[after]=4&page[size]=2
-                      last: https://test.intebsi.xyz/timestamp/v3/hash-algorithms?page[after]=437&page[size]=2
+                      first: https://api-test.ebsi.eu/timestamp/v3/hash-algorithms?page[after]=1&page[size]=2
+                      prev: https://api-test.ebsi.eu/timestamp/v3/hash-algorithms?page[after]=2&page[size]=2
+                      next: https://api-test.ebsi.eu/timestamp/v3/hash-algorithms?page[after]=4&page[size]=2
+                      last: https://api-test.ebsi.eu/timestamp/v3/hash-algorithms?page[after]=437&page[size]=2
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/timestamp/v3/hash-algorithms?page[after]=3&page[size]=2
+                    self: https://api-preprod.ebsi.eu/timestamp/v3/hash-algorithms?page[after]=3&page[size]=2
                     items:
                       - hashAlgorithmId: 4
-                        href: https://api.preprod.ebsi.eu/timestamp/v3/hash-algorithms/4
+                        href: https://api-preprod.ebsi.eu/timestamp/v3/hash-algorithms/4
                       - hashAlgorithmId: 5
-                        href: https://api.preprod.ebsi.eu/timestamp/v3/hash-algorithms/5
+                        href: https://api-preprod.ebsi.eu/timestamp/v3/hash-algorithms/5
                     total: 8
                     pageSize: 2
                     links:
-                      first: https://api.preprod.ebsi.eu/timestamp/v3/hash-algorithms?page[after]=1&page[size]=2
-                      prev: https://api.preprod.ebsi.eu/timestamp/v3/hash-algorithms?page[after]=2&page[size]=2
-                      next: https://api.preprod.ebsi.eu/timestamp/v3/hash-algorithms?page[after]=4&page[size]=2
-                      last: https://api.preprod.ebsi.eu/timestamp/v3/hash-algorithms?page[after]=42&page[size]=2
+                      first: https://api-preprod.ebsi.eu/timestamp/v3/hash-algorithms?page[after]=1&page[size]=2
+                      prev: https://api-preprod.ebsi.eu/timestamp/v3/hash-algorithms?page[after]=2&page[size]=2
+                      next: https://api-preprod.ebsi.eu/timestamp/v3/hash-algorithms?page[after]=4&page[size]=2
+                      last: https://api-preprod.ebsi.eu/timestamp/v3/hash-algorithms?page[after]=42&page[size]=2
                 "[conformance] Success":
                   value:
                     self: https://api-conformance.ebsi.eu/timestamp/v3/hash-algorithms?page[after]=1&page[size]=2
@@ -246,34 +245,34 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://test.intebsi.xyz/timestamp/v3/timestamps?page[after]=3&page[size]=2
+                    self: https://api-test.ebsi.eu/timestamp/v3/timestamps?page[after]=3&page[size]=2
                     items:
                       - timestampId: uEiDmj6io2CZGUPTl_uUmPmBufC_S41T4yAHAkggPRrQN1A
-                        href: https://test.intebsi.xyz/timestamp/v3/timestamps/uEiDmj6io2CZGUPTl_uUmPmBufC_S41T4yAHAkggPRrQN1A
+                        href: https://api-test.ebsi.eu/timestamp/v3/timestamps/uEiDmj6io2CZGUPTl_uUmPmBufC_S41T4yAHAkggPRrQN1A
                       - timestampId: uEiDIVMa0OK3HgiSv_tEwLs1ZopJ7Pw8es7jdx_3BN3Wlrg
-                        href: https://test.intebsi.xyz/timestamp/v3/timestamps/uEiDIVMa0OK3HgiSv_tEwLs1ZopJ7Pw8es7jdx_3BN3Wlrg
+                        href: https://api-test.ebsi.eu/timestamp/v3/timestamps/uEiDIVMa0OK3HgiSv_tEwLs1ZopJ7Pw8es7jdx_3BN3Wlrg
                     total: 7924
                     pageSize: 2
                     links:
-                      first: https://test.intebsi.xyz/timestamp/v3/timestamps?page[after]=1&page[size]=2
-                      prev: https://test.intebsi.xyz/timestamp/v3/timestamps?page[after]=2&page[size]=2
-                      next: https://test.intebsi.xyz/timestamp/v3/timestamps?page[after]=4&page[size]=2
-                      last: https://test.intebsi.xyz/timestamp/v3/timestamps?page[after]=3962&page[size]=2
+                      first: https://api-test.ebsi.eu/timestamp/v3/timestamps?page[after]=1&page[size]=2
+                      prev: https://api-test.ebsi.eu/timestamp/v3/timestamps?page[after]=2&page[size]=2
+                      next: https://api-test.ebsi.eu/timestamp/v3/timestamps?page[after]=4&page[size]=2
+                      last: https://api-test.ebsi.eu/timestamp/v3/timestamps?page[after]=3962&page[size]=2
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/timestamp/v3/timestamps?page[after]=3&page[size]=2
+                    self: https://api-preprod.ebsi.eu/timestamp/v3/timestamps?page[after]=3&page[size]=2
                     items:
                       - timestampId: uEiCuezPKD4AhaK0LCCH85rrMSK-G-0M4Merd2ASZO-59HQ
-                        href: https://api.preprod.ebsi.eu/timestamp/v3/timestamps/uEiCuezPKD4AhaK0LCCH85rrMSK-G-0M4Merd2ASZO-59HQ
+                        href: https://api-preprod.ebsi.eu/timestamp/v3/timestamps/uEiCuezPKD4AhaK0LCCH85rrMSK-G-0M4Merd2ASZO-59HQ
                       - timestampId: uEiCw27hwe5frnhyPo_NDlptLth1oWZ_UdpcuVHYiA2vavg
-                        href: https://api.preprod.ebsi.eu/timestamp/v3/timestamps/uEiCuezPKD4AhaK0LCCH85rrMSK-G-0M4Merd2ASZO-59HQ
+                        href: https://api-preprod.ebsi.eu/timestamp/v3/timestamps/uEiCuezPKD4AhaK0LCCH85rrMSK-G-0M4Merd2ASZO-59HQ
                     total: 415
                     pageSize: 2
                     links:
-                      first: https://api.preprod.ebsi.eu/timestamp/v3/timestamps?page[after]=1&page[size]=2
-                      prev: https://api.preprod.ebsi.eu/timestamp/v3/timestamps?page[after]=2&page[size]=2
-                      next: https://api.preprod.ebsi.eu/timestamp/v3/timestamps?page[after]=4&page[size]=2
-                      last: https://api.preprod.ebsi.eu/timestamp/v3/timestamps?page[after]=208&page[size]=2
+                      first: https://api-preprod.ebsi.eu/timestamp/v3/timestamps?page[after]=1&page[size]=2
+                      prev: https://api-preprod.ebsi.eu/timestamp/v3/timestamps?page[after]=2&page[size]=2
+                      next: https://api-preprod.ebsi.eu/timestamp/v3/timestamps?page[after]=4&page[size]=2
+                      last: https://api-preprod.ebsi.eu/timestamp/v3/timestamps?page[after]=208&page[size]=2
                 "[conformance] Success":
                   value:
                     self: https://api-conformance.ebsi.eu/timestamp/v3/timestamps?page[after]=3&page[size]=2
@@ -461,32 +460,32 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://test.intebsi.xyz/timestamp/v3/records?page[after]=3&page[size]=2
+                    self: https://api-test.ebsi.eu/timestamp/v3/records?page[after]=3&page[size]=2
                     items:
                       - recordId: uxbCgjOrW9U086Nc9MJ-bJGXZt6SxY0jIXxCBdFF6nbU
-                        href: https://test.intebsi.xyz/timestamp/v3/records/uxbCgjOrW9U086Nc9MJ-bJGXZt6SxY0jIXxCBdFF6nbU
+                        href: https://api-test.ebsi.eu/timestamp/v3/records/uxbCgjOrW9U086Nc9MJ-bJGXZt6SxY0jIXxCBdFF6nbU
                       - recordId: uNf5VlU49iDHH461yIwzJiczCHc_PcO-v5fO5NK7MXgg
-                        href: https://test.intebsi.xyz/timestamp/v3/records/uNf5VlU49iDHH461yIwzJiczCHc_PcO-v5fO5NK7MXgg
+                        href: https://api-test.ebsi.eu/timestamp/v3/records/uNf5VlU49iDHH461yIwzJiczCHc_PcO-v5fO5NK7MXgg
                     total: 2193
                     pageSize: 2
                     links:
-                      first: https://test.intebsi.xyz/timestamp/v3/records?page[after]=1&page[size]=2
-                      prev: https://test.intebsi.xyz/timestamp/v3/records?page[after]=2&page[size]=2
-                      next: https://test.intebsi.xyz/timestamp/v3/records?page[after]=4&page[size]=2
-                      last: https://test.intebsi.xyz/timestamp/v3/records?page[after]=1097&page[size]=2
+                      first: https://api-test.ebsi.eu/timestamp/v3/records?page[after]=1&page[size]=2
+                      prev: https://api-test.ebsi.eu/timestamp/v3/records?page[after]=2&page[size]=2
+                      next: https://api-test.ebsi.eu/timestamp/v3/records?page[after]=4&page[size]=2
+                      last: https://api-test.ebsi.eu/timestamp/v3/records?page[after]=1097&page[size]=2
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/timestamp/v3/records?page[after]=1&page[size]=2
+                    self: https://api-preprod.ebsi.eu/timestamp/v3/records?page[after]=1&page[size]=2
                     items:
                       - recordId: u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ
-                        href: https://api.preprod.ebsi.eu/timestamp/v3/records/u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ
+                        href: https://api-preprod.ebsi.eu/timestamp/v3/records/u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ
                     total: 1
                     pageSize: 1
                     links:
-                      first: https://api.preprod.ebsi.eu/timestamp/v3/records?page[after]=1&page[size]=2
-                      prev: https://api.preprod.ebsi.eu/timestamp/v3/records?page[after]=1&page[size]=2
-                      next: https://api.preprod.ebsi.eu/timestamp/v3/records?page[after]=1&page[size]=2
-                      last: https://api.preprod.ebsi.eu/timestamp/v3/records?page[after]=1&page[size]=2
+                      first: https://api-preprod.ebsi.eu/timestamp/v3/records?page[after]=1&page[size]=2
+                      prev: https://api-preprod.ebsi.eu/timestamp/v3/records?page[after]=1&page[size]=2
+                      next: https://api-preprod.ebsi.eu/timestamp/v3/records?page[after]=1&page[size]=2
+                      last: https://api-preprod.ebsi.eu/timestamp/v3/records?page[after]=1&page[size]=2
                 "[conformance] Success":
                   value:
                     self: https://api-conformance.ebsi.eu/timestamp/v3/records?page[after]=1&page[size]=2
@@ -658,32 +657,32 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://test.intebsi.xyz/timestamp/v3/records/utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8/versions?page[after]=1&page[size]=2
+                    self: https://api-test.ebsi.eu/timestamp/v3/records/utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8/versions?page[after]=1&page[size]=2
                     items:
                       - versionId: 0
-                        href: https://test.intebsi.xyz/timestamp/v3/records/utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8/versions/0
+                        href: https://api-test.ebsi.eu/timestamp/v3/records/utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8/versions/0
                       - versionId: 1
-                        href: https://test.intebsi.xyz/timestamp/v3/records/utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8/versions/1
+                        href: https://api-test.ebsi.eu/timestamp/v3/records/utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8/versions/1
                     total: 2
                     pageSize: 2
                     links:
-                      first: https://test.intebsi.xyz/timestamp/v3/records/utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8/versions?page[after]=1&page[size]=2
-                      prev: https://test.intebsi.xyz/timestamp/v3/records/utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8/versions?page[after]=1&page[size]=2
-                      next: https://test.intebsi.xyz/timestamp/v3/records/utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8/versions?page[after]=1&page[size]=2
-                      last: https://test.intebsi.xyz/timestamp/v3/records/utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8/versions?page[after]=1&page[size]=2
+                      first: https://api-test.ebsi.eu/timestamp/v3/records/utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8/versions?page[after]=1&page[size]=2
+                      prev: https://api-test.ebsi.eu/timestamp/v3/records/utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8/versions?page[after]=1&page[size]=2
+                      next: https://api-test.ebsi.eu/timestamp/v3/records/utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8/versions?page[after]=1&page[size]=2
+                      last: https://api-test.ebsi.eu/timestamp/v3/records/utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8/versions?page[after]=1&page[size]=2
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/timestamp/v3/records/u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ/versions?page[after]=1&page[size]=2
+                    self: https://api-preprod.ebsi.eu/timestamp/v3/records/u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ/versions?page[after]=1&page[size]=2
                     items:
                       - versionId: 0
-                        href: https://api.preprod.ebsi.eu/timestamp/v3/records/u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ/versions/0
+                        href: https://api-preprod.ebsi.eu/timestamp/v3/records/u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ/versions/0
                     total: 1
                     pageSize: 2
                     links:
-                      first: https://api.preprod.ebsi.eu/timestamp/v3/records/u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ/versions?page[after]=1&page[size]=2
-                      prev: https://api.preprod.ebsi.eu/timestamp/v3/records/u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ/versions?page[after]=1&page[size]=2
-                      next: https://api.preprod.ebsi.eu/timestamp/v3/records/u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ/versions?page[after]=1&page[size]=2
-                      last: https://api.preprod.ebsi.eu/timestamp/v3/records/u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ/versions?page[after]=1&page[size]=2
+                      first: https://api-preprod.ebsi.eu/timestamp/v3/records/u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ/versions?page[after]=1&page[size]=2
+                      prev: https://api-preprod.ebsi.eu/timestamp/v3/records/u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ/versions?page[after]=1&page[size]=2
+                      next: https://api-preprod.ebsi.eu/timestamp/v3/records/u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ/versions?page[after]=1&page[size]=2
+                      last: https://api-preprod.ebsi.eu/timestamp/v3/records/u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ/versions?page[after]=1&page[size]=2
                 "[conformance] Success":
                   value:
                     self: https://api-conformance.ebsi.eu/timestamp/v3/records/u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ/versions?page[after]=1&page[size]=2
@@ -1386,7 +1385,7 @@ components:
 servers:
   - url: "http://localhost"
     description: Local Computer Environment
-  - url: "https://api.preprod.ebsi.eu"
+  - url: "https://api-preprod.ebsi.eu"
     description: EBSI Pre-production Environment
   - url: "https://api.ebsi.eu"
     description: EBSI Production Environment

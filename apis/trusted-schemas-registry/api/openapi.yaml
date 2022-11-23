@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: Trusted Schemas Registry API
+  title: Trusted Schemas Registry API v2
   version: 2.0.0
   description: |
     Trusted Schemas Registry (TSR) API is an EBSI core service. It enables us to interact with the
@@ -14,8 +14,7 @@ info:
     whatever scheme the consumer needs to anchor, being it JSON, JSON-LD, XML, etc.).
 
     TSR API is a microservice, hosted on the EBSI infrastructure.
-
-  termsOfService: /docs/terms
+  termsOfService: https://api-preprod.ebsi.eu/docs/terms
   contact:
     name: EBSI Support - Service Desk
     url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11
@@ -77,42 +76,42 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://test.intebsi.xyz/trusted-schemas-registry/v2/schemas?page[after]=1&page[size]=10
+                    self: https://api-test.ebsi.eu/trusted-schemas-registry/v2/schemas?page[after]=1&page[size]=10
                     items:
                       - schemaId: "z3kRpVjUFj4Bq8qHRENUHiZrVF5VgMBUe7biEafp1wf2J"
-                        href: https://test.intebsi.xyz/trusted-schemas-registry/v2/schemas/z3kRpVjUFj4Bq8qHRENUHiZrVF5VgMBUe7biEafp1wf2J
+                        href: https://api-test.ebsi.eu/trusted-schemas-registry/v2/schemas/z3kRpVjUFj4Bq8qHRENUHiZrVF5VgMBUe7biEafp1wf2J
                       - schemaId: "zkVjiLUWHoDtRie9iRAV1oDfjY7onVTEdzzqdXajvBa"
-                        href: https://test.intebsi.xyz/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAV1oDfjY7onVTEdzzqdXajvBa
+                        href: https://api-test.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAV1oDfjY7onVTEdzzqdXajvBa
                       - schemaId: "zArZLLNBiR4puGn7xbvnbuwTTUMpwuLTD2rSEHYmFc"
-                        href: https://test.intebsi.xyz/trusted-schemas-registry/v2/schemas/zArZLLNBiR4puGn7xbvnbuwTTUMpwuLTD2rSEHYmFc
+                        href: https://api-test.ebsi.eu/trusted-schemas-registry/v2/schemas/zArZLLNBiR4puGn7xbvnbuwTTUMpwuLTD2rSEHYmFc
                       - schemaId: zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG
-                        href: https://test.intebsi.xyz/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG
+                        href: https://api-test.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG
                     total: 4
                     pageSize: 10
                     links:
-                      first: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/schemas?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/schemas?page[after]=1&page[size]=10
-                      next: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/schemas?page[after]=1&page[size]=10
-                      last: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/schemas?page[after]=1&page[size]=10
+                      first: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/schemas?page[after]=1&page[size]=10
+                      prev: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/schemas?page[after]=1&page[size]=10
+                      next: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/schemas?page[after]=1&page[size]=10
+                      last: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/schemas?page[after]=1&page[size]=10
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/schemas?page[after]=1&page[size]=10
+                    self: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/schemas?page[after]=1&page[size]=10
                     items:
                       - schemaId: "z3kRpVjUFj4Bq8qHRENUHiZrVF5VgMBUe7biEafp1wf2J"
-                        href: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/schemas/z3kRpVjUFj4Bq8qHRENUHiZrVF5VgMBUe7biEafp1wf2J
+                        href: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/schemas/z3kRpVjUFj4Bq8qHRENUHiZrVF5VgMBUe7biEafp1wf2J
                       - schemaId: "zkVjiLUWHoDtRie9iRAV1oDfjY7onVTEdzzqdXajvBa"
-                        href: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAV1oDfjY7onVTEdzzqdXajvBa
+                        href: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAV1oDfjY7onVTEdzzqdXajvBa
                       - schemaId: "zArZLLNBiR4puGn7xbvnbuwTTUMpwuLTD2rSEHYmFc"
-                        href: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/schemas/zArZLLNBiR4puGn7xbvnbuwTTUMpwuLTD2rSEHYmFc
+                        href: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/schemas/zArZLLNBiR4puGn7xbvnbuwTTUMpwuLTD2rSEHYmFc
                       - schemaId: zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG
-                        href: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG
+                        href: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG
                     total: 4
                     pageSize: 10
                     links:
-                      first: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/schemas?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/schemas?page[after]=1&page[size]=10
-                      next: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/schemas?page[after]=1&page[size]=10
-                      last: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/schemas?page[after]=1&page[size]=10
+                      first: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/schemas?page[after]=1&page[size]=10
+                      prev: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/schemas?page[after]=1&page[size]=10
+                      next: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/schemas?page[after]=1&page[size]=10
+                      last: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/schemas?page[after]=1&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -271,30 +270,30 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://test.intebsi.xyz/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions?page[after]=1&page[size]=10
+                    self: https://api-test.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions?page[after]=1&page[size]=10
                     items:
                       - schemaRevisionId: "0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066"
-                        href: https://test.intebsi.xyz/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066
+                        href: https://api-test.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://test.intebsi.xyz/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions?page[after]=1&page[size]=10
-                      prev: https://test.intebsi.xyz/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions?page[after]=1&page[size]=10
-                      next: https://test.intebsi.xyz/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions?page[after]=1&page[size]=10
-                      last: https://test.intebsi.xyz/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions?page[after]=1&page[size]=10
+                      first: https://api-test.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions?page[after]=1&page[size]=10
+                      prev: https://api-test.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions?page[after]=1&page[size]=10
+                      next: https://api-test.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions?page[after]=1&page[size]=10
+                      last: https://api-test.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions?page[after]=1&page[size]=10
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions?page[after]=1&page[size]=10
+                    self: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions?page[after]=1&page[size]=10
                     items:
                       - schemaRevisionId: "0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd"
-                        href: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd
+                        href: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions?page[after]=1&page[size]=10
-                      next: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions?page[after]=1&page[size]=10
-                      last: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions?page[after]=1&page[size]=10
+                      first: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions?page[after]=1&page[size]=10
+                      prev: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions?page[after]=1&page[size]=10
+                      next: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions?page[after]=1&page[size]=10
+                      last: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions?page[after]=1&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -472,30 +471,30 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://test.intebsi.xyz/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata?page[after]=1&page[size]=10
+                    self: https://api-test.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata?page[after]=1&page[size]=10
                     items:
                       - metadataId: "0x007e4954f43d3cc40b3a0a5ab81a8e6098fda8c54e0d66bb5d196cb27b55c3be"
-                        href: https://test.intebsi.xyz/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata/0x007e4954f43d3cc40b3a0a5ab81a8e6098fda8c54e0d66bb5d196cb27b55c3be
+                        href: https://api-test.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata/0x007e4954f43d3cc40b3a0a5ab81a8e6098fda8c54e0d66bb5d196cb27b55c3be
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://test.intebsi.xyz/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata?page[after]=1&page[size]=10
-                      prev: https://test.intebsi.xyz/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata?page[after]=1&page[size]=10
-                      next: https://test.intebsi.xyz/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata?page[after]=1&page[size]=10
-                      last: https://test.intebsi.xyz/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata?page[after]=1&page[size]=10
+                      first: https://api-test.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata?page[after]=1&page[size]=10
+                      prev: https://api-test.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata?page[after]=1&page[size]=10
+                      next: https://api-test.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata?page[after]=1&page[size]=10
+                      last: https://api-test.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata?page[after]=1&page[size]=10
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
+                    self: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
                     items:
                       - metadataId: "0xb9085bf38ccf24a264f73f6ba42204fda51185d89afc8104ab9155c4b002e1eb"
-                        href: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata/0xb9085bf38ccf24a264f73f6ba42204fda51185d89afc8104ab9155c4b002e1eb
+                        href: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata/0xb9085bf38ccf24a264f73f6ba42204fda51185d89afc8104ab9155c4b002e1eb
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
-                      prev: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
-                      next: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
-                      last: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
+                      first: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
+                      prev: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
+                      next: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
+                      last: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/schemas/zkVjiLUWHoDtRie9iRAcFUvxah4cxYRBEB4RDdHincG/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -676,34 +675,34 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://test.intebsi.xyz/trusted-schemas-registry/v2/policies?page[after]=3&page[size]=2
+                    self: https://api-test.ebsi.eu/trusted-schemas-registry/v2/policies?page[after]=3&page[size]=2
                     items:
                       - policyId: test-policy-1
-                        href: https://test.intebsi.xyz/trusted-schemas-registry/v2/policies/test-policy-1
+                        href: https://api-test.ebsi.eu/trusted-schemas-registry/v2/policies/test-policy-1
                       - policyId: test-policy-2
-                        href: https://test.intebsi.xyz/trusted-schemas-registry/v2/policies/test-policy-2
+                        href: https://api-test.ebsi.eu/trusted-schemas-registry/v2/policies/test-policy-2
                     total: 124
                     pageSize: 2
                     links:
-                      first: https://test.intebsi.xyz/trusted-schemas-registry/v2/policies?page[after]=1&page[size]=2
-                      prev: https://test.intebsi.xyz/trusted-schemas-registry/v2/policies?page[after]=2&page[size]=2
-                      next: https://test.intebsi.xyz/trusted-schemas-registry/v2/policies?page[after]=4&page[size]=2
-                      last: https://test.intebsi.xyz/trusted-schemas-registry/v2/policies?page[after]=62&page[size]=2
+                      first: https://api-test.ebsi.eu/trusted-schemas-registry/v2/policies?page[after]=1&page[size]=2
+                      prev: https://api-test.ebsi.eu/trusted-schemas-registry/v2/policies?page[after]=2&page[size]=2
+                      next: https://api-test.ebsi.eu/trusted-schemas-registry/v2/policies?page[after]=4&page[size]=2
+                      last: https://api-test.ebsi.eu/trusted-schemas-registry/v2/policies?page[after]=62&page[size]=2
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/policies?page[after]=3&page[size]=2
+                    self: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/policies?page[after]=3&page[size]=2
                     items:
                       - policyId: test-policy-1
-                        href: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/policies/test-policy-1
+                        href: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/policies/test-policy-1
                       - policyId: test-policy-2
-                        href: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/policies/test-policy-2
+                        href: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/policies/test-policy-2
                     total: 124
                     pageSize: 2
                     links:
-                      first: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/policies?page[after]=1&page[size]=2
-                      prev: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/policies?page[after]=2&page[size]=2
-                      next: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/policies?page[after]=4&page[size]=2
-                      last: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/policies?page[after]=62&page[size]=2
+                      first: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/policies?page[after]=1&page[size]=2
+                      prev: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/policies?page[after]=2&page[size]=2
+                      next: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/policies?page[after]=4&page[size]=2
+                      last: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/policies?page[after]=62&page[size]=2
         "400":
           description: Bad Request Error
           content:
@@ -833,7 +832,7 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://test.intebsi.xyz/trusted-schemas-registry/v2/policies/test-policy-1/revisions?page[after]=3&page[size]=2
+                    self: https://api-test.ebsi.eu/trusted-schemas-registry/v2/policies/test-policy-1/revisions?page[after]=3&page[size]=2
                     items:
                       - policyId: test-policy-1
                         policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
@@ -844,13 +843,13 @@ paths:
                     total: 61
                     pageSize: 2
                     links:
-                      first: https://test.intebsi.xyz/trusted-schemas-registry/v2/policies/test-policy-1/revisions?page[after]=1&page[size]=2
-                      prev: https://test.intebsi.xyz/trusted-schemas-registry/v2/policies/test-policy-1/revisions?page[after]=2&page[size]=2
-                      next: https://test.intebsi.xyz/trusted-schemas-registry/v2/policies/test-policy-1/revisions?page[after]=4&page[size]=2
-                      last: https://test.intebsi.xyz/trusted-schemas-registry/v2/policies/test-policy-1/revisions?page[after]=31&page[size]=2
+                      first: https://api-test.ebsi.eu/trusted-schemas-registry/v2/policies/test-policy-1/revisions?page[after]=1&page[size]=2
+                      prev: https://api-test.ebsi.eu/trusted-schemas-registry/v2/policies/test-policy-1/revisions?page[after]=2&page[size]=2
+                      next: https://api-test.ebsi.eu/trusted-schemas-registry/v2/policies/test-policy-1/revisions?page[after]=4&page[size]=2
+                      last: https://api-test.ebsi.eu/trusted-schemas-registry/v2/policies/test-policy-1/revisions?page[after]=31&page[size]=2
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/policies/test-policy-1/revisions?page[after]=3&page[size]=2
+                    self: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/policies/test-policy-1/revisions?page[after]=3&page[size]=2
                     items:
                       - policyId: test-policy-1
                         policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
@@ -861,10 +860,10 @@ paths:
                     total: 61
                     pageSize: 2
                     links:
-                      first: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/policies/test-policy-1/revisions?page[after]=1&page[size]=2
-                      prev: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/policies/test-policy-1/revisions?page[after]=2&page[size]=2
-                      next: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/policies/test-policy-1/revisions?page[after]=4&page[size]=2
-                      last: https://api.preprod.ebsi.eu/trusted-schemas-registry/v2/policies/test-policy-1/revisions?page[after]=31&page[size]=2
+                      first: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/policies/test-policy-1/revisions?page[after]=1&page[size]=2
+                      prev: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/policies/test-policy-1/revisions?page[after]=2&page[size]=2
+                      next: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/policies/test-policy-1/revisions?page[after]=4&page[size]=2
+                      last: https://api-preprod.ebsi.eu/trusted-schemas-registry/v2/policies/test-policy-1/revisions?page[after]=31&page[size]=2
         "400":
           description: Bad Request Error
           content:
@@ -1231,7 +1230,9 @@ components:
 servers:
   - url: "http://localhost"
     description: Local Computer Environment
-  - url: "https://api.preprod.ebsi.eu"
+  - url: "https://api-preprod.ebsi.eu"
     description: EBSI Pre-production Environment
   - url: "https://api.ebsi.eu"
     description: EBSI Production Environment
+  - url: "https://api-conformance.ebsi.eu"
+    description: EBSI Conformance Environment

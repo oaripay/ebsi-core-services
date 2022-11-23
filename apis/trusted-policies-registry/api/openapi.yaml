@@ -1,11 +1,11 @@
 openapi: 3.0.3
 info:
-  title: Trusted Policies Registry API
+  title: Trusted Policies Registry API v2
   version: 2.0.0
   description: |
     Trusted Policies Registry API provides an interface to interact with policies stored at the
     ledger administrated by Policies Registry Smart Contract.
-  termsOfService: /docs/terms
+  termsOfService: https://api-preprod.ebsi.eu/docs/terms
   contact:
     name: EBSI Support - Service Desk
     url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11
@@ -54,34 +54,34 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://test.intebsi.xyz/trusted-policies-registry/v2/policies?page[after]=3&page[size]=2
+                    self: https://api-test.ebsi.eu/trusted-policies-registry/v2/policies?page[after]=3&page[size]=2
                     items:
                       - policyName: "TIR:insertIssuer"
-                        href: https://test.intebsi.xyz/trusted-policies-registry/v2/policies/TIR:insertIssuer
+                        href: https://api-test.ebsi.eu/trusted-policies-registry/v2/policies/TIR:insertIssuer
                       - policyName: "TIR:updateIssuer"
-                        href: https://test.intebsi.xyz/trusted-policies-registry/v2/policies/TIR:updateIssuer
+                        href: https://api-test.ebsi.eu/trusted-policies-registry/v2/policies/TIR:updateIssuer
                     total: 124
                     pageSize: 2
                     links:
-                      first: https://test.intebsi.xyz/trusted-policies-registry/v2/policies?page[after]=1&page[size]=2
-                      prev: https://test.intebsi.xyz/trusted-policies-registry/v2/policies?page[after]=2&page[size]=2
-                      next: https://test.intebsi.xyz/trusted-policies-registry/v2/policies?page[after]=4&page[size]=2
-                      last: https://test.intebsi.xyz/trusted-policies-registry/v2/policies?page[after]=62&page[size]=2
+                      first: https://api-test.ebsi.eu/trusted-policies-registry/v2/policies?page[after]=1&page[size]=2
+                      prev: https://api-test.ebsi.eu/trusted-policies-registry/v2/policies?page[after]=2&page[size]=2
+                      next: https://api-test.ebsi.eu/trusted-policies-registry/v2/policies?page[after]=4&page[size]=2
+                      last: https://api-test.ebsi.eu/trusted-policies-registry/v2/policies?page[after]=62&page[size]=2
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/trusted-policies-registry/v2/policies?page[after]=3&page[size]=2
+                    self: https://api-preprod.ebsi.eu/trusted-policies-registry/v2/policies?page[after]=3&page[size]=2
                     items:
                       - policyName: "TIR:insertIssuer"
-                        href: https://api.preprod.ebsi.eu/trusted-policies-registry/v2/policies/TIR:insertIssuer
+                        href: https://api-preprod.ebsi.eu/trusted-policies-registry/v2/policies/TIR:insertIssuer
                       - policyName: "TIR:updateIssuer"
-                        href: https://api.preprod.ebsi.eu/trusted-policies-registry/v2/policies/TIR:updateIssuer
+                        href: https://api-preprod.ebsi.eu/trusted-policies-registry/v2/policies/TIR:updateIssuer
                     total: 124
                     pageSize: 2
                     links:
-                      first: https://api.preprod.ebsi.eu/trusted-policies-registry/v2/policies?page[after]=1&page[size]=2
-                      prev: https://api.preprod.ebsi.eu/trusted-policies-registry/v2/policies?page[after]=2&page[size]=2
-                      next: https://api.preprod.ebsi.eu/trusted-policies-registry/v2/policies?page[after]=4&page[size]=2
-                      last: https://api.preprod.ebsi.eu/trusted-policies-registry/v2/policies?page[after]=62&page[size]=2
+                      first: https://api-preprod.ebsi.eu/trusted-policies-registry/v2/policies?page[after]=1&page[size]=2
+                      prev: https://api-preprod.ebsi.eu/trusted-policies-registry/v2/policies?page[after]=2&page[size]=2
+                      next: https://api-preprod.ebsi.eu/trusted-policies-registry/v2/policies?page[after]=4&page[size]=2
+                      last: https://api-preprod.ebsi.eu/trusted-policies-registry/v2/policies?page[after]=62&page[size]=2
         "400":
           $ref: "#/components/responses/400"
         "500":
@@ -205,34 +205,34 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://test.intebsi.xyz/trusted-policies-registry/v2/users?page[after]=3&page[size]=2
+                    self: https://api-test.ebsi.eu/trusted-policies-registry/v2/users?page[after]=3&page[size]=2
                     items:
                       - address: "0x7E918E979A5FFa5e540d8C8d6dB220E3f0704858"
-                        href: https://test.intebsi.xyz/trusted-policies-registry/v2/users/0x7E918E979A5FFa5e540d8C8d6dB220E3f0704858
+                        href: https://api-test.ebsi.eu/trusted-policies-registry/v2/users/0x7E918E979A5FFa5e540d8C8d6dB220E3f0704858
                       - address: "0xe83C2eF9F05A47C14141F5ec3438beD89799eD92"
-                        href: https://test.intebsi.xyz/trusted-policies-registry/v2/users/0xe83C2eF9F05A47C14141F5ec3438beD89799eD92
+                        href: https://api-test.ebsi.eu/trusted-policies-registry/v2/users/0xe83C2eF9F05A47C14141F5ec3438beD89799eD92
                     total: 124
                     pageSize: 2
                     links:
-                      first: https://test.intebsi.xyz/trusted-policies-registry/v2/users?page[after]=1&page[size]=2
-                      prev: https://test.intebsi.xyz/trusted-policies-registry/v2/users?page[after]=2&page[size]=2
-                      next: https://test.intebsi.xyz/trusted-policies-registry/v2/users?page[after]=4&page[size]=2
-                      last: https://test.intebsi.xyz/trusted-policies-registry/v2/users?page[after]=62&page[size]=2
+                      first: https://api-test.ebsi.eu/trusted-policies-registry/v2/users?page[after]=1&page[size]=2
+                      prev: https://api-test.ebsi.eu/trusted-policies-registry/v2/users?page[after]=2&page[size]=2
+                      next: https://api-test.ebsi.eu/trusted-policies-registry/v2/users?page[after]=4&page[size]=2
+                      last: https://api-test.ebsi.eu/trusted-policies-registry/v2/users?page[after]=62&page[size]=2
                 "[pilot] Success":
                   value:
-                    self: https://api.preprod.ebsi.eu/trusted-policies-registry/v2/users?page[after]=3&page[size]=2
+                    self: https://api-preprod.ebsi.eu/trusted-policies-registry/v2/users?page[after]=3&page[size]=2
                     items:
                       - address: "0x7E918E979A5FFa5e540d8C8d6dB220E3f0704858"
-                        href: https://api.preprod.ebsi.eu/trusted-policies-registry/v2/users/0x7E918E979A5FFa5e540d8C8d6dB220E3f0704858
+                        href: https://api-preprod.ebsi.eu/trusted-policies-registry/v2/users/0x7E918E979A5FFa5e540d8C8d6dB220E3f0704858
                       - address: "0xe83C2eF9F05A47C14141F5ec3438beD89799eD92"
-                        href: https://api.preprod.ebsi.eu/trusted-policies-registry/v2/users/0xe83C2eF9F05A47C14141F5ec3438beD89799eD92
+                        href: https://api-preprod.ebsi.eu/trusted-policies-registry/v2/users/0xe83C2eF9F05A47C14141F5ec3438beD89799eD92
                     total: 124
                     pageSize: 2
                     links:
-                      first: https://api.preprod.ebsi.eu/trusted-policies-registry/v2/users?page[after]=1&page[size]=2
-                      prev: https://api.preprod.ebsi.eu/trusted-policies-registry/v2/users?page[after]=2&page[size]=2
-                      next: https://api.preprod.ebsi.eu/trusted-policies-registry/v2/users?page[after]=4&page[size]=2
-                      last: https://api.preprod.ebsi.eu/trusted-policies-registry/v2/users?page[after]=62&page[size]=2
+                      first: https://api-preprod.ebsi.eu/trusted-policies-registry/v2/users?page[after]=1&page[size]=2
+                      prev: https://api-preprod.ebsi.eu/trusted-policies-registry/v2/users?page[after]=2&page[size]=2
+                      next: https://api-preprod.ebsi.eu/trusted-policies-registry/v2/users?page[after]=4&page[size]=2
+                      last: https://api-preprod.ebsi.eu/trusted-policies-registry/v2/users?page[after]=62&page[size]=2
         "400":
           $ref: "#/components/responses/400"
         "500":
@@ -898,9 +898,9 @@ components:
 servers:
   - url: "http://localhost"
     description: Local Computer Environment
-  - url: "https://api.preprod.ebsi.eu"
+  - url: "https://api-preprod.ebsi.eu"
     description: EBSI Pre-production Environment
   - url: "https://api.ebsi.eu"
     description: EBSI Production Environment
-  - url: "https://conformance.ebsi.eu"
+  - url: "https://api-conformance.ebsi.eu"
     description: EBSI Conformance Environment

@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: Ledger API
+  title: Ledger API v3
   version: 3.0.0
   description: |
     Ledger API service gives use case applications access to all the
@@ -12,14 +12,13 @@ info:
     lower layer Chain & Storage.
 
     EBSI Ledger API provides capabilities to interact with Hyperledger Besu.
-
   license:
     name: EUPL-1.2
     url: https://joinup.ec.europa.eu/page/eupl-text-11-12
   contact:
     name: EBSI Support - Service Desk
     url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11
-  termsOfService: /docs/terms
+  termsOfService: https://api-preprod.ebsi.eu/docs/terms
 paths:
   /ledger/v3/blockchains/besu:
     post:
@@ -307,7 +306,7 @@ components:
 servers:
   - url: "http://localhost"
     description: Local Computer Environment
-  - url: "https://api.preprod.ebsi.eu"
+  - url: "https://api-preprod.ebsi.eu"
     description: EBSI Pre-production Environment
   - url: "https://api.ebsi.eu"
     description: EBSI Production Environment

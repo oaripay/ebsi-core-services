@@ -1,6 +1,6 @@
 openapi: 3.0.3
 info:
-  title: Storage API
+  title: Storage API v3
   version: 3.0.0
   description: |
     The Storage API is a generic supporting Core Service of the EBSI platform
@@ -19,8 +19,7 @@ info:
     It also has a special JSON-RPC endpoint that serves as a proxy between Core
     APIs and the distributed storage. Only the Storage API has direct access to
     distributed storage infrastructure (Cassandra for v2.0).
-
-  termsOfService: /docs/terms
+  termsOfService: https://api-preprod.ebsi.eu/docs/terms
   contact:
     name: EBSI Support - Service Desk
     url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11
@@ -1424,7 +1423,7 @@ components:
 servers:
   - url: "http://localhost"
     description: Local Computer Environment
-  - url: "https://api.preprod.ebsi.eu"
+  - url: "https://api-preprod.ebsi.eu"
     description: EBSI Pre-production Environment
   - url: "https://api.ebsi.eu"
     description: EBSI Production Environment

@@ -18,9 +18,8 @@ info:
     authorised there to access the requested protected resources, and
     successfully prove their private key ownership. We implement the
     Authenticated Key Exchange cryptographic identification protocol.
-
   version: 2.0.0
-  termsOfService: /docs/terms
+  termsOfService: https://api-preprod.ebsi.eu/docs/terms
   contact:
     name: EBSI Support - Service Desk
     url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11
@@ -30,7 +29,7 @@ info:
 servers:
   - url: http://localhost
     description: Local Computer Environment
-  - url: https://api.preprod.ebsi.eu
+  - url: https://api-preprod.ebsi.eu
     description: EBSI Pre-production Environment
   - url: https://api.ebsi.eu
     description: EBSI Production Environment
@@ -82,7 +81,7 @@ paths:
               examples:
                 Authentication Request:
                   value:
-                    uri: "openid://?response_type=id_token&client_id=https%3A%2F%2Fapi.preprod.ebsi.eu%2Fauthorisation%2Fv2%2Fsiop-sessions&scope=openid%20did_authn&nonce=2a6a2e33-fbf8-4a41-95a4-88201ebd9b0f&request=eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJodHRwczovL2FwaS5wcmVwcm9kLmVic2kuZXUvdHJ1c3RlZC1hcHBzLXJlZ2lzdHJ5L3YyL2FwcHMvMHgwOGMyNTg1NmZiY2JkZDA3NmM5YzM5NTEyYWJlZjYzMDk3NDk5MTBhMTEwZDlkMWE5YzlhN2QyYjI3N2I2ZDIwIn0.eyJpYXQiOjE2Mjc2NTIzNjQsImV4cCI6MTYyNzY1MjY2NCwiaXNzIjoiZGlkOmVic2k6SEM5dG1paXRXNFM5ZllBYWo2Ullzb3FiVDNzN1Rjd3loeXJzYlNpem5zZFoiLCJzY29wZSI6Im9wZW5pZCBkaWRfYXV0aG4iLCJyZXNwb25zZV90eXBlIjoiaWRfdG9rZW4iLCJjbGllbnRfaWQiOiJodHRwczovL2FwaS5wcmVwcm9kLmVic2kuZXUvYXV0aG9yaXNhdGlvbi92MS9zaW9wLXNlc3Npb25zIiwibm9uY2UiOiIyYTZhMmUzMy1mYmY4LTRhNDEtOTVhNC04ODIwMWViZDliMGYiLCJjbGFpbXMiOnsiaWRfdG9rZW4iOnsidmVyaWZpZWRfY2xhaW1zIjp7InZlcmlmaWNhdGlvbiI6eyJ0cnVzdF9mcmFtZXdvcmsiOiJFQlNJIiwiZXZpZGVuY2UiOnsidHlwZSI6eyJ2YWx1ZSI6InZlcmlmaWFibGVfY3JlZGVudGlhbCJ9LCJkb2N1bWVudCI6eyJ0eXBlIjp7ImVzc2VudGlhbCI6dHJ1ZSwidmFsdWUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJWZXJpZmlhYmxlQXV0aG9yaXNhdGlvbiJdfSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6eyJlc3NlbnRpYWwiOnRydWUsInZhbHVlIjoiaHR0cHM6Ly9hcGkucHJlcHJvZC5lYnNpLmV1L3RydXN0ZWQtc2NoZW1hcy1yZWdpc3RyeS92MS9zY2hlbWFzLzB4MzEyZTMzMmUzNjJlMzEyZTM0MmUzMTJlMzEzNjM2MzQyZTMxMzAyZTMxMzgzNzJlMzEyZTMyMmUzMjJlMzMzMyJ9fX19fX19fX0.3ET08uTUO8CxdC2H8AhBTvxLMb4yXVn5CxY0gtuexbfCM4EgL4U_FqYGbsApP1iugn9ZUx2v6V_zVcfJVPvZqA"
+                    uri: "openid://?response_type=id_token&client_id=https%3A%2F%2Fapi-preprod.ebsi.eu%2Fauthorisation%2Fv2%2Fsiop-sessions&scope=openid%20did_authn&nonce=2a6a2e33-fbf8-4a41-95a4-88201ebd9b0f&request=eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJodHRwczovL2FwaS5wcmVwcm9kLmVic2kuZXUvdHJ1c3RlZC1hcHBzLXJlZ2lzdHJ5L3YyL2FwcHMvMHgwOGMyNTg1NmZiY2JkZDA3NmM5YzM5NTEyYWJlZjYzMDk3NDk5MTBhMTEwZDlkMWE5YzlhN2QyYjI3N2I2ZDIwIn0.eyJpYXQiOjE2Mjc2NTIzNjQsImV4cCI6MTYyNzY1MjY2NCwiaXNzIjoiZGlkOmVic2k6SEM5dG1paXRXNFM5ZllBYWo2Ullzb3FiVDNzN1Rjd3loeXJzYlNpem5zZFoiLCJzY29wZSI6Im9wZW5pZCBkaWRfYXV0aG4iLCJyZXNwb25zZV90eXBlIjoiaWRfdG9rZW4iLCJjbGllbnRfaWQiOiJodHRwczovL2FwaS5wcmVwcm9kLmVic2kuZXUvYXV0aG9yaXNhdGlvbi92MS9zaW9wLXNlc3Npb25zIiwibm9uY2UiOiIyYTZhMmUzMy1mYmY4LTRhNDEtOTVhNC04ODIwMWViZDliMGYiLCJjbGFpbXMiOnsiaWRfdG9rZW4iOnsidmVyaWZpZWRfY2xhaW1zIjp7InZlcmlmaWNhdGlvbiI6eyJ0cnVzdF9mcmFtZXdvcmsiOiJFQlNJIiwiZXZpZGVuY2UiOnsidHlwZSI6eyJ2YWx1ZSI6InZlcmlmaWFibGVfY3JlZGVudGlhbCJ9LCJkb2N1bWVudCI6eyJ0eXBlIjp7ImVzc2VudGlhbCI6dHJ1ZSwidmFsdWUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJWZXJpZmlhYmxlQXV0aG9yaXNhdGlvbiJdfSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6eyJlc3NlbnRpYWwiOnRydWUsInZhbHVlIjoiaHR0cHM6Ly9hcGkucHJlcHJvZC5lYnNpLmV1L3RydXN0ZWQtc2NoZW1hcy1yZWdpc3RyeS92MS9zY2hlbWFzLzB4MzEyZTMzMmUzNjJlMzEyZTM0MmUzMTJlMzEzNjM2MzQyZTMxMzAyZTMxMzgzNzJlMzEyZTMyMmUzMjJlMzMzMyJ9fX19fX19fX0.3ET08uTUO8CxdC2H8AhBTvxLMb4yXVn5CxY0gtuexbfCM4EgL4U_FqYGbsApP1iugn9ZUx2v6V_zVcfJVPvZqA"
         "400":
           $ref: "#/components/responses/400"
         "500":
@@ -183,10 +182,10 @@ paths:
                       exp: 1627653452
                       ake1_nonce: 401e0d8b-89d5-4b04-b6f0-6c828f979830
                       ake1_enc_payload: 82a7fbf0b0431fd894e7a7693dfd520802f9ad4df34fa679b048f85cc73353f0a638e6f581168d07e3b4e89fb59d4969b238cfe419a4c66fb57b18ac9183c378679c35c71b7e667ff6edf302b3e7b6eb7b4f042d674069b01026ddc2c9c04d03f7faf2803e278db9dcac1ad8818b86cdcf4d406d3fb5cafff62f3c9b992f9fe4bbe09c680b93966afb4ff4a3a82d4cfad08a83f21e6bd4b0354c51b9faf4269ac276a819502bee82c6ffe452b27eb24c7a9f51f6b70a717e60195281de062b535d54feaa4ce5f54b804d9ac1197c63e160ac8dac1bba131c9c7d5f494c0b3bbaf0c07b73556789018c8962bd14ab3cf156fc066283777d9357b00a0134ec441c4991e030b62ca21b5f5c2f689413db49c1e02dbaa44a2a3d69312f5a32eca716d17dbea0cce1852f7351076637849d6f4259dec0576bdfcf76b666dc4260447146e8b7ce319cdbd92025484eb07454a00d42821997c205a33d4842b96aaaa2474773bb17d7f2080cd8f6cdb83097de495ae59f170944022b90cf752944ea0450f9e23e9d25525045e42f67b33f1b9aaf417c00ef5e03094a091767dd0c72e6b4c25669031e6e432f0a019c439ff3fff6408ca7f8a7aa23de7a14e0fe63f2da68e17df3a5889827174e21ad7be2237becf345596f7a5fc7b14069b569d8e823380f3cf5024bf007fa25fc9c68d40f29adf8722f7cfb3594f6028c68ae9b00293aaaa3aa1cb271864df58d4b88511a17225885328acbf0938bab49a114b7a262a1825cc0b14150902145423843e37daac3b360e8c2269cd524b3bffea45d7e3c51bc355628e0c28833c6793b66093948350ad4f36a73da687ca539a2d9572205baffbe07c41b24b5fbb71d4137d0cda87df35f59246b51cc5edda5b50a2f275645e8ab62d51d0084d612cce4750b7d97239482580e14e2fb4bd0e8384dc6b27ecd291c834222eb504f85d412e3d1bbdb3061ac07ebf8929b5711b6527d9cb08989d088718a881136cf10bd9f7dc1af9183d5639bfaaa162443d7ce37d745eec3622f57997b21a5e6ad90844f9267df0ab0b2141fee86090c9b9733d9bf2191c4509578a2fffb50d9b1de770612ad423bb47b869ecbedd11ab473773b24e053e238a09f7fc61b676ea555c45cf86ed18812991dd83c3ad47fcfd039be5d9be22bcc78175a47986f1fe53f0976ad76204daa67c35b85a6ec8e46449b376486546aaead3bdfe3d06c8d70032550abf42794d398
-                      kid: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps/0x7da933048e73d91f019944e738fcb28013f1bf438ab93fac6d545fb9392ac12e
+                      kid: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/apps/0x7da933048e73d91f019944e738fcb28013f1bf438ab93fac6d545fb9392ac12e
                       iss: authorisation-api
                     ake1_jws_detached: eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS5wcmVwcm9kLmVic2kuZXUvdHJ1c3RlZC1hcHBzLXJlZ2lzdHJ5L3YyL2FwcHMvMHgwOGMyNTg1NmZiY2JkZDA3NmM5YzM5NTEyYWJlZjYzMDk3NDk5MTBhMTEwZDlkMWE5YzlhN2QyYjI3N2I2ZDIwIn0..x3zRsAlgJ3nPyQj24_IPy30rBXMWO7poNG3qITewwe4LGbs-EefgdSKQMVPHWOGKXrgH5pvQ_-IF-nVUIW5H9w
-                    kid: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps/0x08c25856fbcbdd076c9c39512abef6309749910a110d9d1a9c9a7d2b277b6d20
+                    kid: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/apps/0x08c25856fbcbdd076c9c39512abef6309749910a110d9d1a9c9a7d2b277b6d20
         "400":
           $ref: "#/components/responses/400"
         "500":
@@ -246,7 +245,7 @@ components:
         uri:
           description: OpenId DID SIOP Uri response.
           type: string
-          example: "openid://?response_type=id_token&client_id=https%3A%2F%2Fapi.preprod.ebsi.eu%2Fauthorisation%2Fv2%2Fsiop-sessions&scope=openid%20did_authn&nonce=2a6a2e33-fbf8-4a41-95a4-88201ebd9b0f&request=eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJodHRwczovL2FwaS5wcmVwcm9kLmVic2kuZXUvdHJ1c3RlZC1hcHBzLXJlZ2lzdHJ5L3YyL2FwcHMvMHgwOGMyNTg1NmZiY2JkZDA3NmM5YzM5NTEyYWJlZjYzMDk3NDk5MTBhMTEwZDlkMWE5YzlhN2QyYjI3N2I2ZDIwIn0.eyJpYXQiOjE2Mjc2NTIzNjQsImV4cCI6MTYyNzY1MjY2NCwiaXNzIjoiZGlkOmVic2k6SEM5dG1paXRXNFM5ZllBYWo2Ullzb3FiVDNzN1Rjd3loeXJzYlNpem5zZFoiLCJzY29wZSI6Im9wZW5pZCBkaWRfYXV0aG4iLCJyZXNwb25zZV90eXBlIjoiaWRfdG9rZW4iLCJjbGllbnRfaWQiOiJodHRwczovL2FwaS5wcmVwcm9kLmVic2kuZXUvYXV0aG9yaXNhdGlvbi92MS9zaW9wLXNlc3Npb25zIiwibm9uY2UiOiIyYTZhMmUzMy1mYmY4LTRhNDEtOTVhNC04ODIwMWViZDliMGYiLCJjbGFpbXMiOnsiaWRfdG9rZW4iOnsidmVyaWZpZWRfY2xhaW1zIjp7InZlcmlmaWNhdGlvbiI6eyJ0cnVzdF9mcmFtZXdvcmsiOiJFQlNJIiwiZXZpZGVuY2UiOnsidHlwZSI6eyJ2YWx1ZSI6InZlcmlmaWFibGVfY3JlZGVudGlhbCJ9LCJkb2N1bWVudCI6eyJ0eXBlIjp7ImVzc2VudGlhbCI6dHJ1ZSwidmFsdWUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJWZXJpZmlhYmxlQXV0aG9yaXNhdGlvbiJdfSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6eyJlc3NlbnRpYWwiOnRydWUsInZhbHVlIjoiaHR0cHM6Ly9hcGkucHJlcHJvZC5lYnNpLmV1L3RydXN0ZWQtc2NoZW1hcy1yZWdpc3RyeS92MS9zY2hlbWFzLzB4MzEyZTMzMmUzNjJlMzEyZTM0MmUzMTJlMzEzNjM2MzQyZTMxMzAyZTMxMzgzNzJlMzEyZTMyMmUzMjJlMzMzMyJ9fX19fX19fX0.3ET08uTUO8CxdC2H8AhBTvxLMb4yXVn5CxY0gtuexbfCM4EgL4U_FqYGbsApP1iugn9ZUx2v6V_zVcfJVPvZqA"
+          example: "openid://?response_type=id_token&client_id=https%3A%2F%2Fapi-preprod.ebsi.eu%2Fauthorisation%2Fv2%2Fsiop-sessions&scope=openid%20did_authn&nonce=2a6a2e33-fbf8-4a41-95a4-88201ebd9b0f&request=eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJodHRwczovL2FwaS5wcmVwcm9kLmVic2kuZXUvdHJ1c3RlZC1hcHBzLXJlZ2lzdHJ5L3YyL2FwcHMvMHgwOGMyNTg1NmZiY2JkZDA3NmM5YzM5NTEyYWJlZjYzMDk3NDk5MTBhMTEwZDlkMWE5YzlhN2QyYjI3N2I2ZDIwIn0.eyJpYXQiOjE2Mjc2NTIzNjQsImV4cCI6MTYyNzY1MjY2NCwiaXNzIjoiZGlkOmVic2k6SEM5dG1paXRXNFM5ZllBYWo2Ullzb3FiVDNzN1Rjd3loeXJzYlNpem5zZFoiLCJzY29wZSI6Im9wZW5pZCBkaWRfYXV0aG4iLCJyZXNwb25zZV90eXBlIjoiaWRfdG9rZW4iLCJjbGllbnRfaWQiOiJodHRwczovL2FwaS5wcmVwcm9kLmVic2kuZXUvYXV0aG9yaXNhdGlvbi92MS9zaW9wLXNlc3Npb25zIiwibm9uY2UiOiIyYTZhMmUzMy1mYmY4LTRhNDEtOTVhNC04ODIwMWViZDliMGYiLCJjbGFpbXMiOnsiaWRfdG9rZW4iOnsidmVyaWZpZWRfY2xhaW1zIjp7InZlcmlmaWNhdGlvbiI6eyJ0cnVzdF9mcmFtZXdvcmsiOiJFQlNJIiwiZXZpZGVuY2UiOnsidHlwZSI6eyJ2YWx1ZSI6InZlcmlmaWFibGVfY3JlZGVudGlhbCJ9LCJkb2N1bWVudCI6eyJ0eXBlIjp7ImVzc2VudGlhbCI6dHJ1ZSwidmFsdWUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJWZXJpZmlhYmxlQXV0aG9yaXNhdGlvbiJdfSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6eyJlc3NlbnRpYWwiOnRydWUsInZhbHVlIjoiaHR0cHM6Ly9hcGkucHJlcHJvZC5lYnNpLmV1L3RydXN0ZWQtc2NoZW1hcy1yZWdpc3RyeS92MS9zY2hlbWFzLzB4MzEyZTMzMmUzNjJlMzEyZTM0MmUzMTJlMzEzNjM2MzQyZTMxMzAyZTMxMzgzNzJlMzEyZTMyMmUzMjJlMzMzMyJ9fX19fX19fX0.3ET08uTUO8CxdC2H8AhBTvxLMb4yXVn5CxY0gtuexbfCM4EgL4U_FqYGbsApP1iugn9ZUx2v6V_zVcfJVPvZqA"
       description: DID SIOP OIDC URI
     SiopSessionsRequest:
       title: SIOP Session Request
@@ -360,7 +359,7 @@ components:
             kid:
               description: Trusted App Kid
               type: string
-              example: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps/0x7da933048e73d91f019944e738fcb28013f1bf438ab93fac6d545fb9392ac12e
+              example: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/apps/0x7da933048e73d91f019944e738fcb28013f1bf438ab93fac6d545fb9392ac12e
             iat:
               description: Issued at
               type: number
@@ -376,7 +375,7 @@ components:
         kid:
           description: API Kid
           type: string
-          example: https://api.preprod.ebsi.eu/trusted-apps-registry/v3/apps/0x08c25856fbcbdd076c9c39512abef6309749910a110d9d1a9c9a7d2b277b6d20
+          example: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/apps/0x08c25856fbcbdd076c9c39512abef6309749910a110d9d1a9c9a7d2b277b6d20
       description: Ake1 Response for OAuth2 authentication
   responses:
     "400":
@@ -440,7 +439,7 @@ components:
   securitySchemes:
     bearerAuth:
       description: |
-        To access the protected services, you need to obtain an access token via the [Authorisation API](https://ec.europa.eu/digital-building-blocks/wikis/x/7YJXFg). See also the [Get a JWT from Authorisation API](https://ec.europa.eu/digital-building-blocks/wikis/x/boDwG) and the [OpenAPI](https://api.preprod.ebsi.eu/docs/?urls.primaryName=Authorisation%20API) examples.
+        To access the protected services, you need to obtain an access token via the [Authorisation API](https://ec.europa.eu/digital-building-blocks/wikis/x/7YJXFg). See also the [Get a JWT from Authorisation API](https://ec.europa.eu/digital-building-blocks/wikis/x/boDwG) and the [OpenAPI](https://api-preprod.ebsi.eu/docs/?urls.primaryName=Authorisation%20API) examples.
       type: http
       scheme: bearer
       bearerFormat: JWT
