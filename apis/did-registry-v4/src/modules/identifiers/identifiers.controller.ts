@@ -11,6 +11,7 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type { FastifyReply } from "fastify";
+import { PaginatedList } from "@ebsiint-api/shared";
 import IdentifiersService from "./identifiers.service";
 import { formatIdentifiers } from "./identifiers.formatter";
 import { DidLink } from "./identifiers.interface";
@@ -19,7 +20,6 @@ import {
   GetIdentifierQueryDto,
   GetIdentifiersDto,
 } from "./dto";
-import { PaginatedList } from "../../shared/interfaces";
 import { ApiConfig } from "../../config/configuration";
 import { JsonRpcResponseObject } from "../jsonrpc/jsonrpc.interface";
 import { InvalidRequestJsonRpcError } from "../jsonrpc/errors";

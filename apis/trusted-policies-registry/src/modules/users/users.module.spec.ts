@@ -13,11 +13,11 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
+import { AsyncReturnType } from "@ebsiint-api/shared";
 import { UsersModule } from "./users.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { setupTestEnv } from "../../../tests/utils/trustedPoliciesRegistry";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
-import { LedgerService } from "../../shared/services/ledger.service";
+import { LedgerService } from "../ledger/ledger.service";
 import { ApiConfig } from "../../config/configuration";
 
 jest.setTimeout(90000);

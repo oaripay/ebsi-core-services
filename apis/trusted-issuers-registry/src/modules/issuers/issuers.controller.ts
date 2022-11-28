@@ -2,6 +2,7 @@ import { Controller, Get, Query, Param, Req, Header } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NotFoundError } from "@cef-ebsi/problem-details-errors";
 import type { FastifyRequest } from "fastify";
+import { PaginatedList, PaginationQuery } from "@ebsiint-api/shared";
 import { IssuersService } from "./issuers.service";
 import {
   formatIssuers,
@@ -18,8 +19,6 @@ import {
   IssuerProxyResponseObject,
   ProxyLink,
 } from "./issuers.interface";
-import PaginationQuery from "../../shared/dto/pagination-query";
-import { PaginatedList } from "../../shared/interfaces";
 import { ApiConfig } from "../../config/configuration";
 import {
   GetIssuerAttributeParamsDto,

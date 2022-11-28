@@ -15,13 +15,16 @@ import {
 import type { FastifyInstance } from "fastify";
 import { ethers } from "ethers";
 import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp";
+import {
+  multibase,
+  multihashEncode,
+  AsyncReturnType,
+} from "@ebsiint-api/shared";
 import { TimestampsModule } from "./timestamps.module";
 import { TimestampLink } from "./timestamps.interface";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { setupTestEnv, insertHash } from "../../../tests/utils/timestamp";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
-import { multibase, multihashEncode } from "../../shared/utils";
-import { LedgerService } from "../../shared/services/ledger.service";
+import { LedgerService } from "../ledger/ledger.service";
 import { ApiConfig } from "../../config/configuration";
 
 const HASHES_TOTAL = 3;

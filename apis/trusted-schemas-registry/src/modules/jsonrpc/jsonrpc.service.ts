@@ -25,7 +25,7 @@ import {
   validateClass,
   validateSchemaId,
 } from "./jsonrpc.utils";
-import { ContractService } from "../../shared/services/contract.service";
+import { ContractService } from "../contract/contract.service";
 import { ApiConfig } from "../../config/configuration";
 
 function getErrorMessage(error: unknown) {

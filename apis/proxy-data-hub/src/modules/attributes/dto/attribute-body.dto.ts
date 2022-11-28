@@ -6,7 +6,7 @@ import {
   IsMimeType,
   IsOptional,
 } from "class-validator";
-import { IsBase64url, IsDid } from "../../../shared/validators";
+import { IsBase64url, IsDid } from "@ebsiint-api/shared";
 import { Visibility } from "../attributes.interface";
 import { loadConfig } from "../../../config/configuration";
 

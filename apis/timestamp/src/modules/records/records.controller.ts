@@ -1,6 +1,7 @@
 import { Controller, Get, Query, Param } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Timestamp } from "@ebsiint-sc/timestamp";
+import { PaginatedList, AsyncReturnType } from "@ebsiint-api/shared";
 import RecordsService from "./records.service";
 import { formatRecords, formatRecordVersions } from "./records.formatter";
 import {
@@ -9,9 +10,7 @@ import {
   RecordVersionResponseObject,
   VersionLink,
 } from "./records.interface";
-import { PaginatedList } from "../../shared/interfaces";
 import { ApiConfig } from "../../config/configuration";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
 import GetRecordsDto from "./dto/get-records.dto";
 import GetRecordDto from "./dto/get-record.dto";
 import GetRecordVersionsDto from "./dto/get-record-versions.dto";

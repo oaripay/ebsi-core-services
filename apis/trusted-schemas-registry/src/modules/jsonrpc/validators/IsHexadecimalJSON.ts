@@ -5,7 +5,7 @@ import {
   isHexadecimal,
   ValidationOptions,
 } from "class-validator";
-import { remove0xPrefix } from "../../../shared/utils";
+import { remove0xPrefix } from "@ebsiint-api/shared";
 
 export const IS_HEXADECIMAL_JSON = "isHexadecimalJSON";
 

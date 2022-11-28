@@ -1,9 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call */
 import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry";
+import { PaginatedList, paginate, AsyncReturnType } from "@ebsiint-api/shared";
 import { UserLink } from "./users.interface";
-import { PaginatedList } from "../../shared/interfaces";
-import { paginate } from "../../shared/utils";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 export function formatUsers(
   users: AsyncReturnType<PolicyRegistry["getUsers"]>,

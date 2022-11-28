@@ -1,5 +1,6 @@
 import { Controller, Get, Query, Param, Header } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { PaginatedList } from "@ebsiint-api/shared";
 import { SchemasService } from "./schemas.service";
 import {
   formatSchemas,
@@ -19,7 +20,6 @@ import {
   GetSchemaRevisionsQuery,
   GetSchemaRevisionMetadataQuery,
 } from "./dto";
-import { PaginatedList } from "../../shared/interfaces";
 import { ApiConfig } from "../../config/configuration";
 
 @Controller("/schemas")

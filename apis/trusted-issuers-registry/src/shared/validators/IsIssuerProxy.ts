@@ -7,8 +7,8 @@ import {
 } from "class-validator";
 import axios from "axios";
 import { ConfigService } from "@nestjs/config";
+import { isStatusList2021Credential } from "@ebsiint-api/shared";
 import { ApiConfig } from "../../config/configuration";
-import { isStatusList2021Credential } from "../utils";
 
 export const IS_ISSUER_PROXY = "isIssuerProxy";
 

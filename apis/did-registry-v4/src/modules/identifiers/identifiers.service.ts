@@ -4,9 +4,8 @@ import {
   NotFoundError,
 } from "@cef-ebsi/problem-details-errors";
 import { DidRegistry } from "@ebsiint-sc/did-registry-v4";
+import { AsyncReturnType, publicKeyFromHexToJwk } from "@ebsiint-api/shared";
 import { LedgerService } from "../ledger/ledger.service";
-import { publicKeyFromHexToJwk } from "../../shared/utils/encode.utils";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { RequestCheckControllerDto } from "./dto/request-check-controller.dto";
 import { InvalidRequestJsonRpcError } from "../jsonrpc/errors";
 import { validateClass } from "./identifiers.utils";

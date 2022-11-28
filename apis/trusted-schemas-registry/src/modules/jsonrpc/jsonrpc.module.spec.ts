@@ -20,6 +20,7 @@ import { createJWT, ES256KSigner } from "did-jwt";
 import nock from "nock";
 import { JWTVerifyResult } from "jose";
 import { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry";
+import { AsyncReturnType, computeId } from "@ebsiint-api/shared";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcService } from "./jsonrpc.service";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
@@ -37,14 +38,12 @@ import {
   PolicyObject,
   setupTestEnv,
 } from "../../../tests/utils/schemaRegistry";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
 import {
   createDid,
   createSchema,
   createVerifiableAuthorisationSchema,
 } from "../../../tests/utils/data";
-import { ContractService } from "../../shared/services/contract.service";
-import { computeId } from "../../shared/utils";
+import { ContractService } from "../contract/contract.service";
 import { ApiConfig } from "../../config/configuration";
 
 interface SupertestJsonRpcResponse {

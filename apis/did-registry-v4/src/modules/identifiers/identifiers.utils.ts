@@ -1,7 +1,7 @@
 import * as ClassValidator from "class-validator";
 import { ClassConstructor, ClassTransformer } from "class-transformer";
+import { getErrorMessages } from "@ebsiint-api/shared";
 import { RequestCheckControllerDto } from "./dto/request-check-controller.dto";
-import { getErrorMessages } from "../../shared/utils";
 
 type JsonRpcDtos = RequestCheckControllerDto;
 

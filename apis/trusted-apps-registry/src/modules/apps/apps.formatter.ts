@@ -1,3 +1,5 @@
+import { paginate, PaginatedList } from "@ebsiint-api/shared";
+
 import {
   AppLink,
   AppObject,
@@ -5,8 +7,6 @@ import {
   AuthorizationItemObject,
   PublicKeyLink,
 } from "./apps.interface";
-import { PaginatedList } from "../../shared/interfaces";
-import { paginate } from "../../shared/utils";
 
 export function formatApps(
   apps: AppObject[],

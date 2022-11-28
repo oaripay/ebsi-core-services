@@ -14,12 +14,12 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
+import { AsyncReturnType } from "@ebsiint-api/shared";
 import { SchemasModule } from "./schemas.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { setupTestEnv } from "../../../tests/utils/schemaRegistry";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { ItemsList } from "./schemas.interface";
-import { ContractService } from "../../shared/services/contract.service";
+import { ContractService } from "../contract/contract.service";
 import { hexToMultibaseBase58Btc } from "./schemas.utils";
 import { ApiConfig } from "../../config/configuration";
 

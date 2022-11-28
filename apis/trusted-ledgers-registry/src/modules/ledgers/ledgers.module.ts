@@ -2,7 +2,7 @@ import { Module, Logger } from "@nestjs/common";
 import { ApiConfigModule } from "../../config/configuration";
 import { LedgersController } from "./ledgers.controller";
 import { LedgersService } from "./ledgers.service";
-import { ContractService } from "../../shared/services/contract.service";
+import { ContractService } from "../contract/contract.service";
 
 @Module({
   imports: [ApiConfigModule],

@@ -1,6 +1,6 @@
 import { base58btc } from "multiformats/bases/base58";
 import { base16 } from "multiformats/bases/base16";
-import { prefixWith0x, remove0xPrefix } from "../../shared/utils";
+import { prefixWith0x, remove0xPrefix } from "@ebsiint-api/shared";
 
 // Generates a range
 // Example: range(0, 5) => [0, 1, 2, 3, 4, 5]

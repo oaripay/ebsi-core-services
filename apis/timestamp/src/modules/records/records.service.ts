@@ -5,14 +5,13 @@ import {
   NotFoundError,
 } from "@cef-ebsi/problem-details-errors";
 import { Timestamp } from "@ebsiint-sc/timestamp";
-import { LedgerService } from "../../shared/services/ledger.service";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
+import { AsyncReturnType, multibase } from "@ebsiint-api/shared";
+import { LedgerService } from "../ledger/ledger.service";
 import {
   InfoObject,
   RecordResponseObject,
   RecordVersionResponseObject,
 } from "./records.interface";
-import { multibase } from "../../shared/utils";
 
 @Injectable()
 export default class RecordsService {

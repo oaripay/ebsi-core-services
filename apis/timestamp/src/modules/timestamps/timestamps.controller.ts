@@ -1,9 +1,9 @@
 import { Controller, Get, Query, Param } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { PaginatedList } from "@ebsiint-api/shared";
 import TimestampsService from "./timestamps.service";
 import { formatTimestamps } from "./timestamps.formatter";
 import { TimestampLink, TimestampResponseObject } from "./timestamps.interface";
-import { PaginatedList } from "../../shared/interfaces";
 import { ApiConfig } from "../../config/configuration";
 import { GetTimestampsDto, GetTimestampDto } from "./dto";
 

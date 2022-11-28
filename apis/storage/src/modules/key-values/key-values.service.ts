@@ -6,18 +6,20 @@ import {
 } from "@cef-ebsi/problem-details-errors";
 import { types } from "cassandra-driver";
 import {
+  ExcessiveAppUsageError,
+  ValueTooLargeError,
+  byteLength,
+  encrypt,
+  decrypt,
+} from "@ebsiint-api/shared";
+import {
   AppUsageRepository,
   KeyValuesRepository,
 } from "../cassandra/repositories";
 import { KeyValueModel } from "../cassandra/models";
 import { CASSANDRA_EXCEPTIONS } from "../cassandra/cassandra.constants";
 import { PutKeyValuesResponseObject } from "./key-values.interface";
-import {
-  ExcessiveAppUsageError,
-  ValueTooLargeError,
-} from "../../shared/errors";
 import { ApiConfig } from "../../config/configuration";
-import { byteLength, encrypt, decrypt } from "../../shared/utils";
 
 const MAX_SIZE_VALUE = 5 * 1024 * 1024; // 5 MB
 const MAX_APP_USAGE = 1024 * 1024 * 1024; // 1GB

@@ -15,6 +15,7 @@ import {
 import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
 import { HashName } from "multihashes";
+import { prefixWith0x, multibase, multihashEncode } from "@ebsiint-api/shared";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
@@ -26,11 +27,6 @@ import {
 } from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
-import {
-  prefixWith0x,
-  multibase,
-  multihashEncode,
-} from "../../src/shared/utils";
 import { getAccessToken, waitToBeMined } from "../utils/waitToBeMined";
 import { requestOAuth2Jwt, requestSiopJwt } from "../utils/auth";
 import { describeWriteOps } from "../utils/describeWriteOps";

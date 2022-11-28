@@ -24,6 +24,7 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand"
   },
   "dependencies": {
+    "@ebsiint-api/shared": "^1.0.0",
     "@cef-ebsi/ebsi-did-resolver": "^2.1.2",
     "@cef-ebsi/oauth2-auth": "^2.1.3",
     "@cef-ebsi/problem-details-errors": "^2.0.1",

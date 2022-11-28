@@ -25,6 +25,12 @@ import {
   createVerifiableCredentialJwt,
   EbsiIssuer,
 } from "@cef-ebsi/verifiable-credential";
+import {
+  AsyncReturnType,
+  prefixWith0x,
+  StatusList2021Credential,
+  PaginatedList,
+} from "@ebsiint-api/shared";
 import { ApiConfig } from "../../src/config/configuration";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
@@ -39,8 +45,6 @@ import {
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { getAccessToken, waitToBeMined } from "../utils/waitToBeMined";
-import { prefixWith0x, StatusList2021Credential } from "../../src/shared/utils";
-import { PaginatedList } from "../../src/shared/interfaces";
 import { requestSiopJwt } from "../utils/siopJwt";
 import {
   AddIssuerProxyParam,
@@ -51,7 +55,6 @@ import {
 } from "../../src/modules/jsonrpc/dto";
 import { describeWriteOps } from "../utils/describeWriteOps";
 import { getServer } from "../utils/getServer";
-import { AsyncReturnType } from "../../src/shared/types/async-return-type";
 import { describeLocalTestEnvOnly } from "../utils/describeLocalTestEnvOnly";
 
 interface SupertestJsonRpcResponse {

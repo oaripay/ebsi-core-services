@@ -1,4 +1,4 @@
-import { multibase } from "../../shared/utils";
+import { multibase } from "@ebsiint-api/shared";
 import { formatDidTimestamps } from "./did-timestamps.formatter";
 
 describe("formatDidTimestamps", () => {

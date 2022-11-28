@@ -25,6 +25,7 @@ import { useContainer } from "class-validator";
 import type { JWTVerifyResult } from "jose";
 import type { HashName } from "multihashes";
 import { DidRegistry, DidRegistry__factory } from "@ebsiint-sc/did-registry";
+import { AsyncReturnType } from "@ebsiint-api/shared";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import {
@@ -46,7 +47,6 @@ import {
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { setupTestEnv } from "../../../tests/utils/didRegistry";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
 import {
   createDid,
   createDidDocument,

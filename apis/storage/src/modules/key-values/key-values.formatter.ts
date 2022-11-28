@@ -1,5 +1,4 @@
-import { PaginatedList } from "../../shared/interfaces";
-import { paginateForCassandra } from "../../shared/utils";
+import { paginateForCassandra2, PaginatedList2 } from "@ebsiint-api/shared";
 
 export function formatKeys(
   keys: string[],
@@ -8,8 +7,8 @@ export function formatKeys(
   pageSize: number,
   baseUrl: string,
   extraQuery?: string
-): PaginatedList<string> {
-  return paginateForCassandra<string>(
+): PaginatedList2<string> {
+  return paginateForCassandra2<string>(
     keys,
     baseUrl,
     currentPage,

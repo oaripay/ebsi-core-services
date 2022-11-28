@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry";
+import { AsyncReturnType } from "@ebsiint-api/shared";
 import { formatPolicies, formatRevisions } from "./policies.formatter";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
 import PoliciesService from "./policies.service";
 
 describe("formatPolicies", () => {

@@ -1,12 +1,15 @@
 import { DidRegistry } from "@ebsiint-sc/did-registry";
 import {
+  PaginatedList,
+  paginate,
+  remove0xPrefix,
+  AsyncReturnType,
+} from "@ebsiint-api/shared";
+import {
   DidLink,
   MetadataIdLink,
   VersionIdLink,
 } from "./identifiers.interface";
-import { PaginatedList } from "../../shared/interfaces";
-import { paginate, remove0xPrefix } from "../../shared/utils";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 export function formatIdentifiers(
   identifiers: AsyncReturnType<DidRegistry["getDidRecordIdentifiers"]>,

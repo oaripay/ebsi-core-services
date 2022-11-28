@@ -1,3 +1,3 @@
-import PaginationQuery from "../../../shared/dto/pagination-query";
+import { PaginationQuery } from "@ebsiint-api/shared";
 
 export default class GetRecordVersionsDto extends PaginationQuery {}

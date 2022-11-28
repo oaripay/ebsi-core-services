@@ -14,10 +14,53 @@ import {
   BadRequestError,
 } from "@cef-ebsi/problem-details-errors";
 import type { FastifyReply } from "fastify";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
+import { logAxiosError } from "@ebsiint-api/shared";
 import { InvalidRequestJsonRpcError } from "../modules/jsonrpc/errors";
-import { logAxiosError } from "../shared/utils";
 import { ApiConfig } from "../config/configuration";
+
+function getProblemDetailsError(
+  error: unknown,
+  logger: Logger
+): ProblemDetailsError {
+  if (error instanceof ProblemDetailsError) {
+    return error;
+  }
+
+  if (error instanceof NotFoundException) {
+    return new NotFoundError(NotFoundError.defaultTitle, {
+      detail: error.message,
+    });
+  }
+
+  if (error instanceof BadRequestException) {
+    let detail = error.message;
+    const resp = error.getResponse();
+    if (typeof resp === "object") {
+      const { message } = resp as { message: string };
+      if (message) {
+        if (typeof message === "string") detail = message;
+        else detail = JSON.stringify(message);
+      }
+    }
+
+    return new BadRequestError(BadRequestError.defaultTitle, {
+      detail,
+    });
+  }
+
+  if (axios.isAxiosError(error)) {
+    logAxiosError(error, logger);
+  } else {
+    const err = error as AxiosError;
+    logger.error(err.message, err.stack);
+  }
+
+  return new InternalServerError(undefined, {
+    detail:
+      "The server encountered an internal error and was unable to complete your request",
+  });
+}
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -47,39 +90,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         .send(JsonRpcError.toJSON());
     }
 
-    let problemError: ProblemDetailsError;
-
-    if (err instanceof NotFoundException) {
-      problemError = new NotFoundError(NotFoundError.defaultTitle, {
-        detail: err.message,
-      });
-    } else if (err instanceof BadRequestException) {
-      let detail = err.message;
-      const resp = err.getResponse();
-      if (typeof resp === "object") {
-        const { message } = resp as { message: string };
-        if (message) {
-          if (typeof message === "string") detail = message;
-          else detail = JSON.stringify(message);
-        }
-      }
-      problemError = new BadRequestError(BadRequestError.defaultTitle, {
-        detail,
-      });
-    } else if (err instanceof ProblemDetailsError) {
-      problemError = err;
-    } else {
-      if (axios.isAxiosError(err)) {
-        logAxiosError(err, this.logger);
-      } else {
-        this.logger.error(err.message, err.stack);
-      }
-
-      problemError = new InternalServerError(undefined, {
-        detail:
-          "The server encountered an internal error and was unable to complete your request",
-      });
-    }
+    const problemError = getProblemDetailsError(err, this.logger);
 
     this.logger.debug(
       `${problemError.toString()}: ${problemError.detail || "No detail"}`

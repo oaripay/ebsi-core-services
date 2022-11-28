@@ -1,8 +1,6 @@
 import { DidRegistry } from "@ebsiint-sc/did-registry";
+import { PaginatedList, paginate, AsyncReturnType } from "@ebsiint-api/shared";
 import { HashAlgorithmLink } from "./hash-algorithms.interface";
-import { PaginatedList } from "../../shared/interfaces";
-import { paginate } from "../../shared/utils";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 export function formatHashAlgorithms(
   hashAlgorithms: AsyncReturnType<DidRegistry["getHashAlgorithms"]>,

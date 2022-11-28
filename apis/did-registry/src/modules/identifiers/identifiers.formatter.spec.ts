@@ -1,11 +1,11 @@
 import { ethers } from "ethers";
 import { DidRegistry } from "@ebsiint-sc/did-registry";
+import { AsyncReturnType } from "@ebsiint-api/shared";
 import {
   formatIdentifiers,
   formatVersions,
   formatMetadata,
 } from "./identifiers.formatter";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 describe("formatIdentifiers", () => {
   const identifiers = {

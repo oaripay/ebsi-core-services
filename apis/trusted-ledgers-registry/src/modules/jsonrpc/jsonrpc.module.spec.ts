@@ -19,6 +19,7 @@ import { createJWT, ES256KSigner } from "did-jwt";
 import * as SiopLib from "@cef-ebsi/siop-auth";
 import type { JWTVerifyResult } from "jose";
 import { LedgerSCRegistry } from "@ebsiint-sc/trusted-ledgers-registry";
+import { AsyncReturnType } from "@ebsiint-api/shared";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import {
@@ -35,9 +36,8 @@ import {
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { setupTestEnv } from "../../../tests/utils/ledgerScRegistry";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { ApiConfig } from "../../config/configuration";
-import { ContractService } from "../../shared/services/contract.service";
+import { ContractService } from "../contract/contract.service";
 
 jest.mock("@cef-ebsi/siop-auth", () => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

@@ -1,11 +1,10 @@
+import { PaginatedList, paginate } from "@ebsiint-api/shared";
 import {
   GetSmartContractsResponse,
   GetRevisionsResponse,
   SmartContractInfoIdsList,
   RevisionsList,
 } from "./smart-contracts.interface";
-import { PaginatedList } from "../../shared/interfaces";
-import { paginate } from "../../shared/utils";
 
 export function formatSmartContracts(
   smartContracts: SmartContractInfoIdsList,

@@ -20,6 +20,7 @@ import {
   ForbiddenError,
   NotFoundError,
 } from "@cef-ebsi/problem-details-errors";
+import { multihashEncode2, PaginatedList2 } from "@ebsiint-api/shared";
 import { AttributesService } from "./attributes.service";
 import { AttributeResponseObject } from "./attributes.interface";
 import { ApiConfig } from "../../config/configuration";
@@ -31,9 +32,7 @@ import {
   GetAttributesDto,
   PatchAttributeBody,
 } from "./dto";
-import { PaginatedList } from "../../shared/interfaces";
 import { formatAttributes } from "./attributes.formatter";
-import { multihashEncode } from "../../shared/utils";
 
 @Controller("/attributes")
 export default class AttributesController {
@@ -55,7 +54,7 @@ export default class AttributesController {
       });
     }
 
-    const hash = multihashEncode(
+    const hash = multihashEncode2(
       crypto
         .createHash("sha3-256")
         .update(`${body.data}${body.did}`)
@@ -78,7 +77,7 @@ export default class AttributesController {
   async getAttributes(
     @User() user: UserInfo,
     @Query() query: GetAttributesDto
-  ): Promise<PaginatedList<AttributeResponseObject>> {
+  ): Promise<PaginatedList2<AttributeResponseObject>> {
     const currentPage = query["page[after]"];
     const pageSize = query["page[size]"];
 

@@ -12,6 +12,7 @@ import {
 import fastifyMultipart from "@fastify/multipart";
 import * as SiopLib from "@cef-ebsi/siop-auth";
 import type { JWTVerifyResult } from "jose";
+import { byteLength } from "@ebsiint-api/shared";
 import { mapping, Client } from "cassandra-driver";
 import { FilesModule } from "./files.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
@@ -20,7 +21,6 @@ import { FilesRepository } from "../cassandra/repositories";
 import { CassandraService } from "../cassandra/cassandra.service";
 import { fastifyMultipartConfig } from "../../config/server.config";
 import { ApiConfig } from "../../config/configuration";
-import { byteLength } from "../../shared/utils";
 
 const BASE_URL = "/stores/distributed/files";
 

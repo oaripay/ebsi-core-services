@@ -5,10 +5,13 @@ import {
 } from "@cef-ebsi/problem-details-errors";
 import { HashName } from "multihashes";
 import { DidRegistry } from "@ebsiint-sc/did-registry";
-import { multibase, multihashEncode } from "../../shared/utils";
+import {
+  multibase,
+  multihashEncode,
+  AsyncReturnType,
+} from "@ebsiint-api/shared";
 import { DidTimestampResponseObject } from "./did-timestamps.interface";
 import { LedgerService } from "../ledger/ledger.service";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 @Injectable()
 export class DidTimestampsService {

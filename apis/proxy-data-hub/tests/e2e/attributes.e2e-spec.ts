@@ -11,11 +11,11 @@ import type { FastifyInstance } from "fastify";
 import { base64url } from "multiformats/bases/base64";
 import { calculateJwkThumbprint, exportJWK, generateKeyPair } from "jose";
 import EbsiWallet from "@cef-ebsi/wallet-lib";
+import { PaginatedList2 } from "@ebsiint-api/shared";
 import { AppModule } from "../../src/app.module";
 import { ApiConfig, loadConfig } from "../../src/config/configuration";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { AttributeResponseObject } from "../../src/modules/attributes/attributes.interface";
-import { PaginatedList } from "../../src/shared/interfaces";
 import { requestSiopJwt } from "../utils/auth";
 import { describeWriteOps } from "../utils/describeWriteOps";
 import { getServer } from "../utils/getServer";
@@ -256,7 +256,7 @@ describeWriteOps()("Attributes", () => {
 
           path =
             (
-              response.body as PaginatedList<AttributeResponseObject>
+              response.body as PaginatedList2<AttributeResponseObject>
             ).links.next?.replace(apiUrl, "") ?? "";
 
           // Second page
@@ -291,7 +291,7 @@ describeWriteOps()("Attributes", () => {
 
           path =
             (
-              response.body as PaginatedList<AttributeResponseObject>
+              response.body as PaginatedList2<AttributeResponseObject>
             ).links.next?.replace(apiUrl, "") ?? "";
 
           // Third page: Shared attributes
@@ -562,7 +562,7 @@ describeWriteOps()("Attributes", () => {
             title: "Bad Request",
             status: 400,
             type: "about:blank",
-            detail: `["path must match /^(\\\\/visibility)|(\\\\/sharedWith)|(\\\\/contentType)|(\\\\/dataLabel)$/ regular expression"]`,
+            detail: `["path must match /^\\\\/(?:visibility|sharedWith|contentType|dataLabel)/ regular expression"]`,
           });
           expect(response.status).toBe(400);
 
@@ -574,7 +574,7 @@ describeWriteOps()("Attributes", () => {
             title: "Bad Request",
             status: 400,
             type: "about:blank",
-            detail: `["path must match /^(\\\\/visibility)|(\\\\/sharedWith)|(\\\\/contentType)|(\\\\/dataLabel)$/ regular expression"]`,
+            detail: `["path must match /^\\\\/(?:visibility|sharedWith|contentType|dataLabel)/ regular expression"]`,
           });
           expect(response.status).toBe(400);
 
@@ -586,7 +586,7 @@ describeWriteOps()("Attributes", () => {
             title: "Bad Request",
             status: 400,
             type: "about:blank",
-            detail: `["path must match /^(\\\\/visibility)|(\\\\/sharedWith)|(\\\\/contentType)|(\\\\/dataLabel)$/ regular expression"]`,
+            detail: `["path must match /^\\\\/(?:visibility|sharedWith|contentType|dataLabel)/ regular expression"]`,
           });
           expect(response.status).toBe(400);
 

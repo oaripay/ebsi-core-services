@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import { DidRegistry } from "@ebsiint-sc/did-registry-v4";
+import { AsyncReturnType } from "@ebsiint-api/shared";
 import { formatIdentifiers } from "./identifiers.formatter";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 describe("formatIdentifiers", () => {
   const identifiers = {

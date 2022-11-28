@@ -1,5 +1,6 @@
 import { Controller, Get, Query, Param } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { PaginatedList } from "@ebsiint-api/shared";
 import { DidTimestampsService } from "./did-timestamps.service";
 import { formatDidTimestamps } from "./did-timestamps.formatter";
 import {
@@ -7,7 +8,6 @@ import {
   DidTimestampResponseObject,
 } from "./did-timestamps.interface";
 import { GetTimestampParamsDto, GetTimestampsQueryDto } from "./dto";
-import { PaginatedList } from "../../shared/interfaces";
 import { ApiConfig } from "../../config/configuration";
 
 @Controller("/did-timestamps")

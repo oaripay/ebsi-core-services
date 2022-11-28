@@ -10,7 +10,7 @@ import {
   IsDidV1,
   IsVerificationMethodId,
   IsPublicKeyHex,
-} from "../../../../shared/validators";
+} from "@ebsiint-api/shared";
 
 export class ArgsRollVerificationMethod {
   @IsDidV1()

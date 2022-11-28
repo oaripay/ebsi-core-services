@@ -1,10 +1,9 @@
 import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { PaginationQuery, PaginatedList } from "@ebsiint-api/shared";
 import { UsersService } from "./users.service";
 import { formatUsers } from "./users.formatter";
 import { UserLink, UserResponseObject } from "./users.interface";
-import { PaginationQuery } from "../../shared/dto";
-import { PaginatedList } from "../../shared/interfaces";
 import { ApiConfig } from "../../config/configuration";
 import { GetUserParams } from "./dto";
 

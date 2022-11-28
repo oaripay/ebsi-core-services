@@ -1,4 +1,4 @@
-import { IsSchemaId } from "../../../shared/validators";
+import { IsSchemaId } from "@ebsiint-api/shared";
 
 export class GetSchemaParams {
   @IsSchemaId()

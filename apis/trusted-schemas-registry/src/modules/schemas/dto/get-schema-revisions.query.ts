@@ -1,5 +1,5 @@
 import { IsOptional, IsISO8601 } from "class-validator";
-import { PaginationQuery } from "../../../shared/dto";
+import { PaginationQuery } from "@ebsiint-api/shared";
 
 export class GetSchemaRevisionsQuery extends PaginationQuery {
   @IsOptional()

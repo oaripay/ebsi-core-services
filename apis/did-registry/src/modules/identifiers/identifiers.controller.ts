@@ -9,6 +9,7 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type { FastifyReply } from "fastify";
+import { PaginatedList } from "@ebsiint-api/shared";
 import IdentifiersService from "./identifiers.service";
 import {
   formatIdentifiers,
@@ -27,7 +28,6 @@ import {
   GetIdentifierVersionMetadataParamsDto,
   GetIdentifierVersionParamsDto,
 } from "./dto";
-import { PaginatedList } from "../../shared/interfaces";
 import { ApiConfig } from "../../config/configuration";
 
 @Controller("/identifiers")

@@ -1,10 +1,9 @@
 import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { PaginationQuery, PaginatedList } from "@ebsiint-api/shared";
 import { PoliciesService } from "./policies.service";
 import { formatPolicies } from "./policies.formatter";
 import { PolicyLink, PolicyResponseObject } from "./policies.interface";
-import { PaginationQuery } from "../../shared/dto";
-import { PaginatedList } from "../../shared/interfaces";
 import { ApiConfig } from "../../config/configuration";
 import { GetPolicyParams } from "./dto";
 

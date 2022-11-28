@@ -1,11 +1,10 @@
+import { PaginatedList, paginate } from "@ebsiint-api/shared";
 import {
   GetLedgersResponse,
   GetRevisionsResponse,
   LedgerInfoIdsList,
   RevisionsList,
 } from "./ledgers.interface";
-import { PaginatedList } from "../../shared/interfaces";
-import { paginate } from "../../shared/utils";
 
 export function formatLedgers(
   ledgers: LedgerInfoIdsList,

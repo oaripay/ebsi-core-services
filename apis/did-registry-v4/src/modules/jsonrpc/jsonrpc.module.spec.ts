@@ -22,6 +22,7 @@ import type { JwtTarVefifyResult } from "@cef-ebsi/oauth2-auth";
 import { useContainer } from "class-validator";
 import { calculateJwkThumbprint, JWK, JWTVerifyResult } from "jose";
 import { DidRegistry, DidRegistry__factory } from "@ebsiint-sc/did-registry-v4";
+import { AsyncReturnType } from "@ebsiint-api/shared";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import {
@@ -40,7 +41,6 @@ import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { createUser, UserDetails } from "../../../tests/utils/data";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { setupTestEnv } from "../../../tests/utils/didRegistry";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { ApiConfig } from "../../config/configuration";
 import { LedgerService } from "../ledger/ledger.service";
 

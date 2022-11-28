@@ -10,13 +10,13 @@ import {
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
 import fastifyMultipart from "@fastify/multipart";
+import { byteLength } from "@ebsiint-api/shared";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import {
   fastifyAdapterConfig,
   fastifyMultipartConfig,
 } from "../../src/config/server.config";
-import { byteLength } from "../../src/shared/utils";
 import { ApiConfig } from "../../src/config/configuration";
 import { requestSiopJwt } from "../utils";
 import { describeWriteOps } from "../utils/describeWriteOps";

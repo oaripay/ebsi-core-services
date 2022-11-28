@@ -1,10 +1,9 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { NotFoundError } from "@cef-ebsi/problem-details-errors";
 import { Tir } from "@ebsiint-sc/trusted-issuers-registry";
+import { generateMultihash, AsyncReturnType } from "@ebsiint-api/shared";
 import { PolicyRevisions } from "./policies.interface";
-import { LedgerService } from "../../shared/services/ledger.service";
-import { generateMultihash } from "../../shared/utils/multihash.utils";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
+import { LedgerService } from "../ledger/ledger.service";
 
 @Injectable()
 export class PoliciesService {

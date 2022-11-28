@@ -13,11 +13,11 @@ import {
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
 import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp";
+import { AsyncReturnType } from "@ebsiint-api/shared";
 import { HashAlgorithmsModule } from "./hash-algorithms.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { setupTestEnv } from "../../../tests/utils/timestamp";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
-import { LedgerService } from "../../shared/services/ledger.service";
+import { LedgerService } from "../ledger/ledger.service";
 import { ApiConfig } from "../../config/configuration";
 
 const HASH_ALGORITHMS_TOTAL = 3;

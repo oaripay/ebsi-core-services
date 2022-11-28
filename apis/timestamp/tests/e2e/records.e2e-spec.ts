@@ -16,6 +16,7 @@ import {
 import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
 import { HashName } from "multihashes";
+import { prefixWith0x, multibase, PaginatedList } from "@ebsiint-api/shared";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
@@ -37,10 +38,8 @@ import {
   VersionLink,
 } from "../../src/modules/records/records.interface";
 import { ApiConfig } from "../../src/config/configuration";
-import { prefixWith0x, multibase } from "../../src/shared/utils";
 import { getAccessToken, waitToBeMined } from "../utils/waitToBeMined";
 import { requestSiopJwt } from "../utils/auth";
-import { PaginatedList } from "../../src/shared/interfaces";
 import { describeWriteOps } from "../utils/describeWriteOps";
 import { getServer } from "../utils/getServer";
 

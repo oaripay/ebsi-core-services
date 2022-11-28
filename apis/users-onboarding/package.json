@@ -23,6 +23,7 @@
     "test:ci": "yarn test:unit --coverage --reporters=default --reporters=jest-sonar"
   },
   "dependencies": {
+    "@ebsiint-api/shared": "^1.0.0",
     "@cef-ebsi/ebsi-did-resolver": "^2.1.2",
     "@cef-ebsi/problem-details-errors": "^2.0.1",
     "@cef-ebsi/siop-auth": "^2.1.2",
@@ -44,7 +45,7 @@
     "jose": "^4.10.3",
     "multiformats": "^9.7.1",
     "nest-winston": "^1.8.0",
-    "reflect-metadata": "^0.1.12",
+    "reflect-metadata": "^0.1.13",
     "rxjs": "^7.5.7",
     "winston": "^3.8.1",
     "xml2js": "^0.4.23"

@@ -1,13 +1,11 @@
 import { Tir } from "@ebsiint-sc/trusted-issuers-registry";
+import { paginate, PaginatedList, AsyncReturnType } from "@ebsiint-api/shared";
 import {
   AttributeObject,
   IdLink,
   DidLink,
   ProxyLink,
 } from "./issuers.interface";
-import { PaginatedList } from "../../shared/interfaces";
-import { paginate } from "../../shared/utils";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 export function formatIssuers(
   issuers: AsyncReturnType<Tir["getIssuers"]>,

@@ -15,19 +15,21 @@ import {
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
 import { useContainer } from "class-validator";
+import {
+  prefixWith0x,
+  PaginatedList,
+  generateMultihash,
+} from "@ebsiint-api/shared";
 import { ApiConfig } from "../../src/config/configuration";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { getAccessToken, waitToBeMined } from "../utils/waitToBeMined";
-import { prefixWith0x } from "../../src/shared/utils";
 import {
   PolicyResponseObject,
   PolicyLink,
 } from "../../src/modules/policies/policies.interface";
-import { PaginatedList } from "../../src/shared/interfaces";
-import { generateMultihash } from "../../src/shared/utils/multihash.utils";
 import { requestSiopJwt } from "../utils/siopJwt";
 import { UnsignedTransaction } from "../../src/modules/jsonrpc/dto";
 import { describeWriteOps } from "../utils/describeWriteOps";

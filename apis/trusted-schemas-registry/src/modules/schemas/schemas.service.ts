@@ -2,10 +2,10 @@ import { Injectable, Logger } from "@nestjs/common";
 import { NotFoundError } from "@cef-ebsi/problem-details-errors";
 import pLimit from "p-limit";
 import { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry";
-import { ContractService } from "../../shared/services/contract.service";
+import { AsyncReturnType } from "@ebsiint-api/shared";
+import { ContractService } from "../contract/contract.service";
 import { ItemsList } from "./schemas.interface";
 import { range, schemaIdToHex } from "./schemas.utils";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 const MAX_RESULTS_PER_PAGE = 50;
 const MAX_CONCURRENT_PROMISES = 10;

@@ -1,5 +1,5 @@
 import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
-import { hasOwnProperty } from "../../../shared/utils";
+import { hasOwnProperty } from "@ebsiint-api/shared";
 import { UserInfo } from "../auth.interface";
 import { AuthService } from "../auth.service";
 

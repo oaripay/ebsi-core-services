@@ -1,5 +1,6 @@
 import { Controller, Get, Query, Param, Header } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { PaginatedList } from "@ebsiint-api/shared";
 import { SmartContractsService } from "./smart-contracts.service";
 import {
   formatSmartContracts,
@@ -15,7 +16,6 @@ import {
   GetRevisionParams,
   GetRevisionsQuery,
 } from "./dto";
-import { PaginatedList } from "../../shared/interfaces";
 import { ApiConfig } from "../../config/configuration";
 
 @Controller("/smart-contracts")

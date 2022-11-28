@@ -1,6 +1,5 @@
 import { IsString, IsInt, Min, IsIn } from "class-validator";
-
-import { IsDidV1 } from "../../../../shared/validators";
+import { IsDidV1 } from "@ebsiint-api/shared";
 
 export class ArgsAddVerificationRelationship {
   @IsDidV1()

@@ -20,6 +20,7 @@ import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { createJWT, ES256KSigner } from "did-jwt";
 import { JWTVerifyResult } from "jose";
 import { Tar, Tar__factory } from "@ebsiint-sc/trusted-apps-registry";
+import { AsyncReturnType } from "@ebsiint-api/shared";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcService } from "./jsonrpc.service";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
@@ -42,7 +43,6 @@ import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { setupTestEnv } from "../../../tests/utils/tar";
 import LedgerService from "../ledger/ledger.service";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { ApiConfig } from "../../config/configuration";
 
 interface SupertestJsonRpcResponse {

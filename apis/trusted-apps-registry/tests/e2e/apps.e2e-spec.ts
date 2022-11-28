@@ -13,6 +13,7 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import EbsiWallet from "@cef-ebsi/wallet-lib";
+import { prefixWith0x, PaginatedList } from "@ebsiint-api/shared";
 import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
 import { AppModule } from "../../src/app.module";
@@ -41,10 +42,8 @@ import {
   PublicKeyLink,
 } from "../../src/modules/apps/apps.interface";
 import { ApiConfig } from "../../src/config/configuration";
-import { prefixWith0x } from "../../src/shared/utils";
 import LedgerService from "../../src/modules/ledger/ledger.service";
 import { waitToBeMined } from "../utils/waitToBeMined";
-import { PaginatedList } from "../../src/shared/interfaces";
 import { requestSiopJwt } from "../utils/siopJwt";
 import { describeWriteOps } from "../utils/describeWriteOps";
 import { getServer } from "../utils/getServer";

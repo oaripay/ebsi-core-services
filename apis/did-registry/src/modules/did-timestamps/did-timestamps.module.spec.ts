@@ -14,6 +14,11 @@ import {
 import type { FastifyInstance } from "fastify";
 import { ethers } from "ethers";
 import { DidRegistry__factory } from "@ebsiint-sc/did-registry";
+import {
+  multihashEncode,
+  multibase,
+  AsyncReturnType,
+} from "@ebsiint-api/shared";
 import { DidTimestampsModule } from "./did-timestamps.module";
 import {
   DidTimestampResponseObject,
@@ -22,8 +27,6 @@ import {
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { setupTestEnv } from "../../../tests/utils/didRegistry";
 import { createDid } from "../../../tests/utils/data";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
-import { multihashEncode, multibase } from "../../shared/utils";
 import { LedgerService } from "../ledger/ledger.service";
 import { ApiConfig } from "../../config/configuration";
 

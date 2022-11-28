@@ -8,7 +8,7 @@ export class PatchAttributeBody {
 
   @IsNotEmpty()
   @IsString()
-  @Matches(/^(\/visibility)|(\/sharedWith)|(\/contentType)|(\/dataLabel)$/)
+  @Matches(/^\/(?:visibility|sharedWith|contentType|dataLabel)/)
   path: string;
 
   value: string;

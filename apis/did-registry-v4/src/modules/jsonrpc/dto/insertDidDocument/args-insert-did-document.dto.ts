@@ -1,11 +1,10 @@
 import { IsString, IsHexadecimal, IsInt, Min, Equals } from "class-validator";
-
 import {
   IsDidV1,
   IsBaseDocument,
   IsVerificationMethodId,
   IsPublicKeyHex,
-} from "../../../../shared/validators";
+} from "@ebsiint-api/shared";
 
 export class ArgsInsertDidDocument {
   @IsDidV1()

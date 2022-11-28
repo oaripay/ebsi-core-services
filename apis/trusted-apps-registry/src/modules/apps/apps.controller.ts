@@ -1,5 +1,6 @@
 import { Controller, Get, Query, Param } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { PaginatedList, PaginationQuery } from "@ebsiint-api/shared";
 import AppsService from "./apps.service";
 import {
   formatApps,
@@ -22,9 +23,7 @@ import GetAuthorizationDto from "./dto/get-authorization.dto";
 import GetAuthorizationsParamDto from "./dto/get-authorizations-param.dto";
 import GetAuthorizationsDto from "./dto/get-authorizations.dto";
 import GetPublicKeysParamDto from "./dto/get-public-keys-param.dto";
-import { PaginatedList } from "../../shared/interfaces";
 import { ApiConfig } from "../../config/configuration";
-import PaginationQuery from "../../shared/dto/pagination-query";
 import GetPublicKeyDto from "./dto/get-public-key.dto";
 
 @Controller("/apps")

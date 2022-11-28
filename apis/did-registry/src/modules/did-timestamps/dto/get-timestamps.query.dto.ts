@@ -1,7 +1,6 @@
 import { IsNumber, IsOptional } from "class-validator";
 import { Type } from "class-transformer";
-import { IsDidV1 } from "../../../shared/validators";
-import { PaginationQuery } from "../../../shared/dto";
+import { IsDidV1, PaginationQuery } from "@ebsiint-api/shared";
 
 export class GetTimestampsQueryDto extends PaginationQuery {
   @IsOptional()

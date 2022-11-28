@@ -1,4 +1,4 @@
-import { IsDidV1, IsBaseDocument } from "../../../../shared/validators";
+import { IsDidV1, IsBaseDocument } from "@ebsiint-api/shared";
 
 export class ArgsUpdateBaseDocument {
   @IsDidV1()

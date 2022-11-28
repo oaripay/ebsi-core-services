@@ -1,5 +1,6 @@
 import { Controller, Get, Query, Param, Header } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { PaginatedList } from "@ebsiint-api/shared";
 import { LedgersService } from "./ledgers.service";
 import { formatLedgers, formatRevisions } from "./ledgers.formatter";
 import { GetLedgersResponse, GetRevisionsResponse } from "./ledgers.interface";
@@ -9,7 +10,6 @@ import {
   GetLedgersQuery,
   GetRevisionsQuery,
 } from "./dto";
-import { PaginatedList } from "../../shared/interfaces";
 import { ApiConfig } from "../../config/configuration";
 
 @Controller("/ledgers")

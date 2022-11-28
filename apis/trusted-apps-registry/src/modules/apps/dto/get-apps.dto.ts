@@ -1,5 +1,5 @@
 import { IsHexadecimal, IsOptional, Length } from "class-validator";
-import PaginationQuery from "../../../shared/dto/pagination-query";
+import { PaginationQuery } from "@ebsiint-api/shared";
 
 export default class GetAppsDto extends PaginationQuery {
   @IsOptional()

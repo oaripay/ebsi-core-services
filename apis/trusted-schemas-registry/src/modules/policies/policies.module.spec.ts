@@ -12,12 +12,11 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
+import { generateMultihash, AsyncReturnType } from "@ebsiint-api/shared";
 import { PoliciesModule } from "./policies.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { generateMultihash } from "../../shared/utils";
 import { setupTestEnv } from "../../../tests/utils/schemaRegistry";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
-import { ContractService } from "../../shared/services/contract.service";
+import { ContractService } from "../contract/contract.service";
 import { ApiConfig } from "../../config/configuration";
 
 const POLICIES_TOTAL = 12;

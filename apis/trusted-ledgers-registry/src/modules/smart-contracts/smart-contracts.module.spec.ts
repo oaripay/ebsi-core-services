@@ -14,11 +14,11 @@ import {
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
 import { LedgerSCRegistry } from "@ebsiint-sc/trusted-ledgers-registry";
+import { AsyncReturnType } from "@ebsiint-api/shared";
 import { SmartContractsModule } from "./smart-contracts.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { setupTestEnv } from "../../../tests/utils/ledgerScRegistry";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
-import { ContractService } from "../../shared/services/contract.service";
+import { ContractService } from "../contract/contract.service";
 import { ApiConfig } from "../../config/configuration";
 
 jest.setTimeout(60000);

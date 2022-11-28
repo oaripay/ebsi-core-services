@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import { Timestamp } from "@ebsiint-sc/timestamp";
+import { AsyncReturnType } from "@ebsiint-api/shared";
 import { formatHashAlgorithms } from "./hash-algorithms.formatter";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 describe("formatHashAlgorithms", () => {
   const hashAlgorithms = {

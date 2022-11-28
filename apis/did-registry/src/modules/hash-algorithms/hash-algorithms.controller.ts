@@ -1,12 +1,12 @@
 import { Controller, Get, Query, Param } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { PaginatedList } from "@ebsiint-api/shared";
 import { HashAlgorithmsService } from "./hash-algorithms.service";
 import { formatHashAlgorithms } from "./hash-algorithms.formatter";
 import {
   HashAlgorithmLink,
   HashAlgorithmResponseObject,
 } from "./hash-algorithms.interface";
-import { PaginatedList } from "../../shared/interfaces";
 import { ApiConfig } from "../../config/configuration";
 import { GetHashAlgorithmDto, GetHashAlgorithmsDto } from "./dto";
 

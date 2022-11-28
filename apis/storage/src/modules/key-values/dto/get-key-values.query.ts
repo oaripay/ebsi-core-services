@@ -1,4 +1,4 @@
-import { StringPaginationQuery } from "../../../shared/dto";
+import { StringPaginationQuery } from "@ebsiint-api/shared";
 
 export class GetKeyValuesQuery extends StringPaginationQuery {}
 

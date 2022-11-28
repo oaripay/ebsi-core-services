@@ -14,6 +14,11 @@ import {
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
+import {
+  PaginatedList,
+  prefixWith0x,
+  generateMultihash,
+} from "@ebsiint-api/shared";
 import { AppModule } from "../../src/app.module";
 import { ApiConfig } from "../../src/config/configuration";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
@@ -23,10 +28,7 @@ import {
   PolicyResponseObject,
   PolicyLink,
 } from "../../src/modules/policies/policies.interface";
-import { PaginatedList } from "../../src/shared/interfaces";
-import { prefixWith0x } from "../../src/shared/utils";
 import { waitToBeMined } from "../utils/waitToBeMined";
-import { generateMultihash } from "../../src/shared/utils/multihash.utils";
 import { requestSiopJwt } from "../utils/siopJwt";
 import { UnsignedTransaction } from "../../src/modules/jsonrpc/dto";
 import { describeWriteOps } from "../utils/describeWriteOps";

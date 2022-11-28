@@ -17,6 +17,7 @@ import {
 import { ConfigService } from "@nestjs/config";
 import type { FastifyRequest, FastifyReply } from "fastify";
 import { BadRequestError } from "@cef-ebsi/problem-details-errors";
+import { PaginatedList2, byteLength } from "@ebsiint-api/shared";
 import { FilesService } from "./files.service";
 import { FileMetadata, PostFileResponseObject } from "./files.interface";
 import { formatFiles } from "./files.formatter";
@@ -32,8 +33,6 @@ import {
   PatchFileParams,
   PostFileBody,
 } from "./dto";
-import { PaginatedList } from "../../shared/interfaces";
-import { byteLength } from "../../shared/utils";
 
 @Controller("/stores/distributed/files")
 export class FilesController {
@@ -48,7 +47,7 @@ export class FilesController {
   async getKeys(
     @Query() query: GetFilesQuery,
     @User() user: ClientInfo
-  ): Promise<PaginatedList<string>> {
+  ): Promise<PaginatedList2<string>> {
     const { did } = user;
     const pageAfter = query["page[after]"];
     const pageSize = query["page[size]"];

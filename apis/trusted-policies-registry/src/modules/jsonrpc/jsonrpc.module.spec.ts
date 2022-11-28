@@ -20,6 +20,7 @@ import { createJWT, ES256KSigner } from "did-jwt";
 import * as SiopLib from "@cef-ebsi/siop-auth";
 import type { JWTVerifyResult } from "jose";
 import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry";
+import { AsyncReturnType } from "@ebsiint-api/shared";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcService } from "./jsonrpc.service";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
@@ -38,9 +39,8 @@ import {
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { setupTestEnv } from "../../../tests/utils/trustedPoliciesRegistry";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { ApiConfig } from "../../config/configuration";
-import { LedgerService } from "../../shared/services/ledger.service";
+import { LedgerService } from "../ledger/ledger.service";
 import { ATTRIBUTE_OPERATIONS } from "../policies/policies.interface";
 import { createPolicy } from "../../../tests/utils/data";
 

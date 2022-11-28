@@ -11,12 +11,12 @@ import {
 import axios from "axios";
 import * as SiopLib from "@cef-ebsi/siop-auth";
 import type { JWTVerifyResult } from "jose";
+import { byteLength } from "@ebsiint-api/shared";
 import { mapping, Client } from "cassandra-driver";
 import { KeyValuesModule } from "./key-values.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { AppUsageModel, KeyValueModel } from "../cassandra/models";
 import { CassandraService } from "../cassandra/cassandra.service";
-import { byteLength } from "../../shared/utils";
 import { ApiConfig } from "../../config/configuration";
 
 const BASE_URL = "/stores/distributed/key-values";

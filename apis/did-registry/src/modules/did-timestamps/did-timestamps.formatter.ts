@@ -1,6 +1,5 @@
-import { multibase, paginate } from "../../shared/utils";
+import { multibase, paginate, PaginatedList } from "@ebsiint-api/shared";
 import { TimestampLink } from "./did-timestamps.interface";
-import { PaginatedList } from "../../shared/interfaces";
 
 export function formatDidTimestamps(
   didTimestamps: {

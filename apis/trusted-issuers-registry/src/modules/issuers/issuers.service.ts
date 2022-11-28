@@ -7,14 +7,17 @@ import {
   NotFoundError,
 } from "@cef-ebsi/problem-details-errors";
 import axios, { AxiosResponse } from "axios";
-import { LedgerService } from "../../shared/services/ledger.service";
+import {
+  isStatusList2021Credential,
+  prefixWith0x,
+  AsyncReturnType,
+} from "@ebsiint-api/shared";
+import { LedgerService } from "../ledger/ledger.service";
 import {
   AttributeObject,
   IssuerProxyResponseObject,
   IssuerResponseObject,
 } from "./issuers.interface";
-import { isStatusList2021Credential, prefixWith0x } from "../../shared/utils";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { ApiConfig } from "../../config/configuration";
 
 @Injectable()

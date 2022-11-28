@@ -26,6 +26,7 @@ import {
 import * as vcLib from "@cef-ebsi/verifiable-credential";
 import { exportJWK, generateKeyPair, JWTVerifyResult } from "jose";
 import { useContainer } from "class-validator";
+import { AsyncReturnType, StatusList2021Credential } from "@ebsiint-api/shared";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import { JsonRpcService } from "./jsonrpc.service";
@@ -38,14 +39,12 @@ import {
   AddIssuerProxyParam,
   UpdateIssuerProxyParam,
 } from "./dto";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { setupTestEnv } from "../../../tests/utils/tir";
-import { LedgerService } from "../../shared/services/ledger.service";
+import { LedgerService } from "../ledger/ledger.service";
 import { AttributeObject } from "../issuers/issuers.interface";
 import { ApiConfig } from "../../config/configuration";
-import { StatusList2021Credential } from "../../shared/utils";
 
 interface SupertestJsonRpcResponse {
   status: number;

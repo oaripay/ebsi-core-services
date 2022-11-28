@@ -6,14 +6,14 @@ import {
 import { HashName } from "multihashes";
 import type { ethers } from "ethers";
 import { Timestamp } from "@ebsiint-sc/timestamp";
-import { LedgerService } from "../../shared/services/ledger.service";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
-import { TimestampResponseObject } from "./timestamps.interface";
 import {
+  AsyncReturnType,
   multibase,
   multihashEncode,
   multihashDecode,
-} from "../../shared/utils";
+} from "@ebsiint-api/shared";
+import { LedgerService } from "../ledger/ledger.service";
+import { TimestampResponseObject } from "./timestamps.interface";
 
 @Injectable()
 export default class TimestampsService {

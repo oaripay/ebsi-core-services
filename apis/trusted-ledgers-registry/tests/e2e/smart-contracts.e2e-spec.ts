@@ -14,6 +14,7 @@ import {
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
+import { prefixWith0x } from "@ebsiint-api/shared";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
@@ -26,7 +27,6 @@ import {
 } from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
-import { prefixWith0x } from "../../src/shared/utils";
 import { getAccessToken, waitToBeMined } from "../utils/waitToBeMined";
 import { requestSiopJwt } from "../utils/siopJwt";
 import { describeWriteOps } from "../utils/describeWriteOps";

@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
 import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry";
+import { AsyncReturnType } from "@ebsiint-api/shared";
 import { formatPolicies } from "./policies.formatter";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 describe("formatPolicies", () => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

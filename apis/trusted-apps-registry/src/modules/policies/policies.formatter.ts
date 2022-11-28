@@ -1,12 +1,10 @@
 import { Tar } from "@ebsiint-sc/trusted-apps-registry";
+import { PaginatedList, paginate, AsyncReturnType } from "@ebsiint-api/shared";
 import {
   PolicyLink,
   PolicyRevisions,
   PolicyResponseObject,
 } from "./policies.interface";
-import { PaginatedList } from "../../shared/interfaces";
-import { paginate } from "../../shared/utils";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 export function formatPolicies(
   policies: AsyncReturnType<Tar["getPolicies"]>,

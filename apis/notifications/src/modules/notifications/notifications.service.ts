@@ -11,6 +11,7 @@ import axios, { AxiosResponse } from "axios";
 import { decodeJWT } from "did-jwt";
 import { validate as validateDid } from "@cef-ebsi/ebsi-did-resolver";
 import { Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
+import { logAxiosError, encrypt, decrypt } from "@ebsiint-api/shared";
 import { CreateNotificationDto } from "./dto/create-notification.dto";
 import { ApiConfig } from "../../config/configuration";
 import {
@@ -21,7 +22,6 @@ import {
   PageOpts,
   AxiosResponseJsonRpc,
 } from "./notifications.interface";
-import { encrypt, decrypt, logAxiosError } from "../../shared/utils";
 
 const FIVE_DAYS = 5 * 24 * 60 * 60 * 1000;
 

@@ -15,6 +15,7 @@ import {
 import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
 import $RefParser from "@apidevtools/json-schema-ref-parser";
+import { prefixWith0x, computeId } from "@ebsiint-api/shared";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
@@ -26,8 +27,6 @@ import {
 } from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
-import { prefixWith0x } from "../../src/shared/utils";
-import { computeId } from "../../src/shared/utils/jsonSchema.utils";
 import { getAccessToken, waitToBeMined } from "../utils/waitToBeMined";
 import { ItemsList } from "../../src/modules/schemas/schemas.interface";
 import { requestSiopJwt } from "../utils/siopJwt";

@@ -1,4 +1,4 @@
-import { IsMultibase64urlEncoded } from "../../../shared/validators";
+import { IsMultibase64urlEncoded } from "@ebsiint-api/shared";
 
 export class GetTimestampDto {
   @IsMultibase64urlEncoded()

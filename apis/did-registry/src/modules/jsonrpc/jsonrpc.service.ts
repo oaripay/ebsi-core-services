@@ -1,6 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ethers } from "ethers";
 import { ProblemDetailsError } from "@cef-ebsi/problem-details-errors";
+import { remove0xPrefix } from "@ebsiint-api/shared";
 import {
   RequestSendSignedTransactionDto,
   SignedTransactionParam,
@@ -39,7 +40,6 @@ import {
   validateClass,
 } from "./jsonrpc.utils";
 import { LedgerService } from "../ledger/ledger.service";
-import { remove0xPrefix } from "../../shared/utils";
 
 // Cache algorightms' output lengths for 30 minutes
 const ALGORITHMS_EXP = 30 * 60 * 1000; // 30 minutes

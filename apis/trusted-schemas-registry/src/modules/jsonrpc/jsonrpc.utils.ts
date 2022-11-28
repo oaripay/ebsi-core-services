@@ -2,6 +2,7 @@ import * as ClassValidator from "class-validator";
 import { ClassTransformer, ClassConstructor } from "class-transformer";
 import { ethers } from "ethers";
 import $RefParser from "@apidevtools/json-schema-ref-parser";
+import { remove0xPrefix, computeId, prefixWith0x } from "@ebsiint-api/shared";
 import {
   RequestSendSignedTransactionDto,
   UnsignedTransaction,
@@ -16,7 +17,6 @@ import {
   ArgsUpdateSchema,
   RequestUpdateSchemaDto,
 } from "./dto";
-import { remove0xPrefix, computeId, prefixWith0x } from "../../shared/utils";
 
 export function formatEthersUnsignedTransaction(
   unsignedTransaction: UnsignedTransaction

@@ -1,6 +1,5 @@
 import { IsIn, IsOptional, IsString } from "class-validator";
-import { IsDidV1 } from "../../../shared/validators";
-import { PaginationQuery } from "../../../shared/dto/pagination-query";
+import { IsDidV1, PaginationQuery } from "@ebsiint-api/shared";
 
 export class GetIdentifiersDto extends PaginationQuery {
   @IsOptional()

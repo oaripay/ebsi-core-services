@@ -8,6 +8,7 @@ import {
   ForbiddenError,
   InternalServerError,
 } from "@cef-ebsi/problem-details-errors";
+import { hasOwnProperty } from "@ebsiint-api/shared";
 import { BesuResponseObject, BesuServiceResponse } from "./besu.interface";
 import { ApiConfig } from "../../config/configuration";
 import { isDeployingSmartContract } from "./besu.utils";
@@ -34,13 +35,6 @@ interface JsonRpcResponseError extends Error {
 
 function isWsResponse(value: unknown): value is WsResponse {
   return !!value && !!(value as WsResponse).response;
-}
-
-function hasOwnProperty<X, Y extends PropertyKey>(
-  obj: X,
-  prop: Y
-): obj is X & Record<Y, unknown> {
-  return Object.prototype.hasOwnProperty.call(obj, prop) as boolean;
 }
 
 function isJsonRpcResponseError(value: unknown): value is JsonRpcResponseError {

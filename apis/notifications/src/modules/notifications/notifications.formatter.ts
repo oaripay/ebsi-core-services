@@ -1,5 +1,4 @@
-import { PaginatedList } from "../../shared/interfaces";
-import { paginateForCassandra } from "../../shared/utils";
+import { PaginatedList2, paginateForCassandra } from "@ebsiint-api/shared";
 import { NotificationResponseObject } from "./notifications.interface";
 
 export function formatNotifications(
@@ -10,7 +9,7 @@ export function formatNotifications(
   baseUrl: string,
   total: number,
   extraQuery?: string
-): PaginatedList<NotificationResponseObject> {
+): PaginatedList2<NotificationResponseObject> {
   return paginateForCassandra<NotificationResponseObject>(
     attributes,
     baseUrl,

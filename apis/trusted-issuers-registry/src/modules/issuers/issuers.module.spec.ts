@@ -16,12 +16,12 @@ import type { FastifyInstance } from "fastify";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import * as vcLib from "@cef-ebsi/verifiable-credential";
+import { AsyncReturnType } from "@ebsiint-api/shared";
 import { IssuersModule } from "./issuers.module";
 import { AttributeObject } from "./issuers.interface";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { IssuerProxyObject, setupTestEnv } from "../../../tests/utils/tir";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
-import { LedgerService } from "../../shared/services/ledger.service";
+import { LedgerService } from "../ledger/ledger.service";
 import { ApiConfig } from "../../config/configuration";
 
 jest.setTimeout(90000);

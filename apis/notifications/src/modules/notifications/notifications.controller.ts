@@ -17,6 +17,7 @@ import {
   BadRequestError,
   ForbiddenError,
 } from "@cef-ebsi/problem-details-errors";
+import { PaginatedList2 } from "@ebsiint-api/shared";
 import { NotificationsService } from "./notifications.service";
 import {
   Notification,
@@ -27,7 +28,6 @@ import { User, UserInfo } from "../auth/decorators";
 import { ApiConfig } from "../../config/configuration";
 import { CreateNotificationDto } from "./dto/create-notification.dto";
 import { formatNotifications } from "./notifications.formatter";
-import { PaginatedList } from "../../shared/interfaces";
 import { GetNotificationsDto } from "./dto/get-attributes.dto";
 
 @Controller("/notifications")
@@ -70,7 +70,7 @@ export class NotificationsController {
   async getNotifications(
     @Query() query: GetNotificationsDto,
     @User() user: UserInfo
-  ): Promise<PaginatedList<NotificationResponseObject>> {
+  ): Promise<PaginatedList2<NotificationResponseObject>> {
     const currentPage = query["page[after]"];
     const pageSize = query["page[size]"];
 

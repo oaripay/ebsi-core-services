@@ -13,11 +13,14 @@ import {
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
 import { DidRegistry__factory } from "@ebsiint-sc/did-registry";
+import {
+  multihashEncode,
+  multibase,
+  AsyncReturnType,
+} from "@ebsiint-api/shared";
 import { PoliciesModule } from "./policies.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { multihashEncode, multibase } from "../../shared/utils";
 import { setupTestEnv } from "../../../tests/utils/didRegistry";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { LedgerService } from "../ledger/ledger.service";
 import { ApiConfig } from "../../config/configuration";
 

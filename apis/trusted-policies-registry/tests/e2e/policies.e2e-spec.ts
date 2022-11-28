@@ -15,6 +15,7 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
+import { PaginatedList, prefixWith0x } from "@ebsiint-api/shared";
 import { ApiConfig } from "../../src/config/configuration";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
@@ -28,7 +29,6 @@ import {
 } from "../../src/modules/policies/policies.interface";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
-import { PaginatedList } from "../../src/shared/interfaces";
 import {
   ActivatePolicyParam,
   AddPolicyConditionsParam,
@@ -38,11 +38,10 @@ import {
   UnsignedTransaction,
   UpdatePolicyParam,
 } from "../../src/modules/jsonrpc/dto";
-import { prefixWith0x } from "../../src/shared/utils";
 import { createPolicy } from "../utils/data";
 import { requestSiopJwt } from "../utils/siopJwt";
 import { waitToBeMined } from "../utils/waitToBeMined";
-import { LedgerService } from "../../src/shared/services/ledger.service";
+import { LedgerService } from "../../src/modules/ledger/ledger.service";
 import { describeWriteOps } from "../utils/describeWriteOps";
 import { getServer } from "../utils/getServer";
 

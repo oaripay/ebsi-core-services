@@ -1,5 +1,4 @@
-import { PaginatedList } from "../../shared/interfaces";
-import { paginateForCassandra } from "../../shared/utils";
+import { PaginatedList2, paginateForCassandra2 } from "@ebsiint-api/shared";
 
 export function formatFiles(
   hashes: string[],
@@ -8,8 +7,8 @@ export function formatFiles(
   pageSize: number,
   baseUrl: string,
   extraQuery?: string
-): PaginatedList<string> {
-  return paginateForCassandra<string>(
+): PaginatedList2<string> {
+  return paginateForCassandra2<string>(
     hashes,
     baseUrl,
     currentPage,

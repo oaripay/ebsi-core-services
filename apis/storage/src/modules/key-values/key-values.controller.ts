@@ -12,6 +12,7 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type { FastifyReply } from "fastify";
+import { PaginatedList2 } from "@ebsiint-api/shared";
 import { KeyValuesService } from "./key-values.service";
 import {
   DeleteKeyValueParams,
@@ -23,7 +24,6 @@ import { formatKeys } from "./key-values.formatter";
 import { ApiConfig } from "../../config/configuration";
 import { SiopJwtAuthGuard } from "../auth/guards";
 import { User, ClientInfo } from "../auth/decorators";
-import { PaginatedList } from "../../shared/interfaces";
 
 @Controller("/stores/distributed/key-values")
 export class KeyValuesController {
@@ -38,7 +38,7 @@ export class KeyValuesController {
   async getKeys(
     @Query() query: GetKeyValuesQuery,
     @User() user: ClientInfo
-  ): Promise<PaginatedList<string>> {
+  ): Promise<PaginatedList2<string>> {
     const { did } = user;
     const pageAfter = query["page[after]"];
     const pageSize = query["page[size]"];

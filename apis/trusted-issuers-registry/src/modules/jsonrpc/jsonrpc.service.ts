@@ -3,7 +3,8 @@ import axios from "axios";
 import { ethers } from "ethers";
 import { ConfigService } from "@nestjs/config";
 import { ProblemDetailsError } from "@cef-ebsi/problem-details-errors";
-import { LedgerService } from "../../shared/services/ledger.service";
+import { prefixWith0x } from "@ebsiint-api/shared";
+import { LedgerService } from "../ledger/ledger.service";
 import {
   RequestInsertIssuerDto,
   RequestUpdateIssuerDto,
@@ -26,7 +27,6 @@ import {
   formatEthersSignature,
   validateClass,
 } from "./jsonrpc.utils";
-import { prefixWith0x } from "../../shared/utils";
 import { ApiConfig } from "../../config/configuration";
 import { RequestUpdateIssuerProxyDto } from "./dto/updateIssuerProxy";
 

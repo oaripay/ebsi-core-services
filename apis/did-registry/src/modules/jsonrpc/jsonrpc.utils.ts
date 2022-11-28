@@ -66,7 +66,6 @@ type JsonRpcDtos =
   | RequestInsertHashAlgorithmDto
   | ArgsUpdateHashAlgorithm
   | RequestUpdateHashAlgorithmDto
-  | RequestUpdateHashAlgorithmDto
   | ArgsInsertPolicy
   | RequestInsertPolicyDto
   | ArgsUpdatePolicy

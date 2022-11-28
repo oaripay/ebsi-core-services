@@ -16,6 +16,7 @@ import {
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
 import { Tar__factory } from "@ebsiint-sc/trusted-apps-registry";
+import { AsyncReturnType, PaginatedList } from "@ebsiint-api/shared";
 import { AppsModule } from "./apps.module";
 import {
   AppLink,
@@ -26,8 +27,6 @@ import {
 } from "./apps.interface";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { setupTestEnv } from "../../../tests/utils/tar";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
-import { PaginatedList } from "../../shared/interfaces";
 import LedgerService from "../ledger/ledger.service";
 import { ApiConfig } from "../../config/configuration";
 

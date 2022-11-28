@@ -2,7 +2,7 @@ import { Module, Logger } from "@nestjs/common";
 import { ApiConfigModule } from "../../config/configuration";
 import JsonRpcController from "./jsonrpc.controller";
 import { JsonRpcService } from "./jsonrpc.service";
-import { ContractService } from "../../shared/services/contract.service";
+import { ContractService } from "../contract/contract.service";
 import { AuthModule } from "../auth/auth.module";
 
 @Module({

@@ -19,6 +19,7 @@ import * as SiopLib from "@cef-ebsi/siop-auth";
 import * as OAuth2Lib from "@cef-ebsi/oauth2-auth";
 import jsonwebtoken from "jsonwebtoken";
 import type { FastifyInstance } from "fastify";
+import { encrypt, multihashEncode2 } from "@ebsiint-api/shared";
 import axios from "axios";
 import { AttributesModule } from "./attributes.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
@@ -27,7 +28,6 @@ import {
   AttributeCassandraModel,
   AttributeResponseObject,
 } from "./attributes.interface";
-import { encrypt, multihashEncode } from "../../shared/utils";
 
 jest.mock("@cef-ebsi/siop-auth", () => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -103,7 +103,7 @@ describe("Attributes Module", () => {
     content_type: "application/json+ld",
     data: attributeData,
     data_label: "document",
-    hash: multihashEncode(
+    hash: multihashEncode2(
       crypto
         .createHash("sha3-256")
         .update(`${attributeData}${testUser.did}`)
@@ -990,7 +990,7 @@ describe("Attributes Module", () => {
         title: "Bad Request",
         status: 400,
         type: "about:blank",
-        detail: `["path must match /^(\\\\/visibility)|(\\\\/sharedWith)|(\\\\/contentType)|(\\\\/dataLabel)$/ regular expression"]`,
+        detail: `["path must match /^\\\\/(?:visibility|sharedWith|contentType|dataLabel)/ regular expression"]`,
       });
       expect(response.status).toBe(400);
 
@@ -1008,7 +1008,7 @@ describe("Attributes Module", () => {
         title: "Bad Request",
         status: 400,
         type: "about:blank",
-        detail: `["path must match /^(\\\\/visibility)|(\\\\/sharedWith)|(\\\\/contentType)|(\\\\/dataLabel)$/ regular expression"]`,
+        detail: `["path must match /^\\\\/(?:visibility|sharedWith|contentType|dataLabel)/ regular expression"]`,
       });
       expect(response.status).toBe(400);
 
@@ -1020,7 +1020,7 @@ describe("Attributes Module", () => {
         title: "Bad Request",
         status: 400,
         type: "about:blank",
-        detail: `["path must match /^(\\\\/visibility)|(\\\\/sharedWith)|(\\\\/contentType)|(\\\\/dataLabel)$/ regular expression"]`,
+        detail: `["path must match /^\\\\/(?:visibility|sharedWith|contentType|dataLabel)/ regular expression"]`,
       });
       expect(response.status).toBe(400);
 

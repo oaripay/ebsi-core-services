@@ -34,7 +34,7 @@ import {
   formatEthersSignature,
   validateClass,
 } from "./jsonrpc.utils";
-import { LedgerService } from "../../shared/services/ledger.service";
+import { LedgerService } from "../ledger/ledger.service";
 import { ApiConfig } from "../../config/configuration";
 
 function getErrorMessage(error: unknown) {

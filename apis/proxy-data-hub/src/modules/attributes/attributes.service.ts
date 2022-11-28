@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { randomInt, randomUUID } from "node:crypto";
 import { Injectable, Logger } from "@nestjs/common";
 import {
   BadRequestError,
@@ -11,6 +11,7 @@ import axios, { AxiosResponse } from "axios";
 import jsonpatch, { Operation } from "fast-json-patch";
 import { decodeJWT } from "did-jwt";
 import { Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
+import { logAxiosError, encrypt, decrypt } from "@ebsiint-api/shared";
 import { ApiConfig } from "../../config/configuration";
 import {
   AttributeResponseObject,
@@ -19,7 +20,6 @@ import {
   CassandraResponse,
 } from "./attributes.interface";
 import { AttributeBodyDto, PatchAttributeBody } from "./dto";
-import { encrypt, decrypt, logAxiosError } from "../../shared/utils";
 
 interface PageOpts {
   fetchSize: number;
@@ -132,7 +132,7 @@ export class AttributesService {
       jsonrpc: "2.0",
       method: "cassandra_call",
       params,
-      id: Math.trunc(Math.random() * 1000),
+      id: randomInt(0, 1000),
     };
 
     const opts = {

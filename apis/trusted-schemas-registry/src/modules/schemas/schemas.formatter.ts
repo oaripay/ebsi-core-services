@@ -1,11 +1,10 @@
+import { PaginatedList, paginate } from "@ebsiint-api/shared";
 import {
   GetSchemaRevisionsResponse,
   GetSchemasResponse,
   GetSchemaRevisionMetadataListResponse,
   ItemsList,
 } from "./schemas.interface";
-import { PaginatedList } from "../../shared/interfaces";
-import { paginate } from "../../shared/utils";
 import { hexToMultibaseBase58Btc } from "./schemas.utils";
 
 export function formatSchemas(

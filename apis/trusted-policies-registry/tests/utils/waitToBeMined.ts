@@ -1,5 +1,5 @@
 import type { ethers } from "ethers";
-import type { LedgerService } from "../../src/shared/services/ledger.service";
+import type { LedgerService } from "../../src/modules/ledger/ledger.service";
 
 export const waitToBeMined = async (
   ledgerService: LedgerService,

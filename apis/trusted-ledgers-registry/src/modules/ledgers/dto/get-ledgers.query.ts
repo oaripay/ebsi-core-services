@@ -1,5 +1,5 @@
 import { IsOptional, IsString } from "class-validator";
-import { PaginationQuery } from "../../../shared/dto";
+import { PaginationQuery } from "@ebsiint-api/shared";
 
 export class GetLedgersQuery extends PaginationQuery {
   @IsOptional()

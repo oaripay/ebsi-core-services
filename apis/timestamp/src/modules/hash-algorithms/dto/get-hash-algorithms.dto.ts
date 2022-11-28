@@ -1,4 +1,4 @@
-import PaginationQuery from "../../../shared/dto/pagination-query";
+import { PaginationQuery } from "@ebsiint-api/shared";
 
 export class GetHashAlgorithmsDto extends PaginationQuery {}
 

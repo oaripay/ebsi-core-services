@@ -8,17 +8,19 @@ import {
 } from "@cef-ebsi/problem-details-errors";
 import { types } from "cassandra-driver";
 import jsonpatch, { Operation } from "fast-json-patch";
+import {
+  ExcessiveAppUsageError,
+  ValueTooLargeError,
+  byteLength,
+  decrypt,
+  encrypt,
+} from "@ebsiint-api/shared";
 import { PostFileResponseObject, FileMetadata } from "./files.interface";
 import { AppUsageRepository, FilesRepository } from "../cassandra/repositories";
 import { CASSANDRA_EXCEPTIONS } from "../cassandra/cassandra.constants";
 import { FileModel } from "../cassandra/models";
-import {
-  ExcessiveAppUsageError,
-  ValueTooLargeError,
-} from "../../shared/errors";
 import { ApiConfig } from "../../config/configuration";
 import { PatchFileBody, PostFileBody } from "./dto";
-import { byteLength, decrypt, encrypt } from "../../shared/utils";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 const MAX_METADATA_SIZE = 5 * 1024 * 1024; // 5 MB

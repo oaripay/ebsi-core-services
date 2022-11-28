@@ -7,11 +7,11 @@ import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
 import { ValidationPipe } from "@nestjs/common";
 import fastifyHelmet from "@fastify/helmet";
+import { setupInterceptors } from "@ebsiint-api/shared";
 import { AppModule } from "./app.module";
 import { AllExceptionsFilter } from "./filters/http-exception.filter";
 import { createLogger, consoleTransport } from "./logger/logger";
 import { ApiConfig } from "./config/configuration";
-import { setupInterceptors } from "./axiosInterceptors";
 
 async function bootstrap(): Promise<void> {
   const fastifyAdapter = new FastifyAdapter();

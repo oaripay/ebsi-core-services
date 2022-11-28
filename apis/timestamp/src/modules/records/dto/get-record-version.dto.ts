@@ -1,6 +1,6 @@
 import { IsNumber, Min } from "class-validator";
 import { Type } from "class-transformer";
-import { IsMultibase64urlEncoded } from "../../../shared/validators";
+import { IsMultibase64urlEncoded } from "@ebsiint-api/shared";
 
 export default class GetRecordVersionDto {
   @IsMultibase64urlEncoded()

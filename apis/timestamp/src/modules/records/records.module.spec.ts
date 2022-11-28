@@ -15,13 +15,12 @@ import {
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
 import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp";
+import { AsyncReturnType, multibase } from "@ebsiint-api/shared";
 import { RecordsModule } from "./records.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { setupTestEnv } from "../../../tests/utils/timestamp";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { InfoObject, RecordLink } from "./records.interface";
-import { multibase } from "../../shared/utils";
-import { LedgerService } from "../../shared/services/ledger.service";
+import { LedgerService } from "../ledger/ledger.service";
 import { ApiConfig } from "../../config/configuration";
 
 const RECORDS_TOTAL = 3;

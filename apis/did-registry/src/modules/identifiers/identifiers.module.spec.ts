@@ -16,11 +16,11 @@ import {
 import type { FastifyInstance } from "fastify";
 import { ethers } from "ethers";
 import { DidRegistry__factory } from "@ebsiint-sc/did-registry";
+import { AsyncReturnType } from "@ebsiint-api/shared";
 import { IdentifiersModule } from "./identifiers.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { setupTestEnv } from "../../../tests/utils/didRegistry";
 import { createDid } from "../../../tests/utils/data";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
 import { LedgerService } from "../ledger/ledger.service";
 import { ApiConfig } from "../../config/configuration";
 

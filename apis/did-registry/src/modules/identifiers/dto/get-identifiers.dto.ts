@@ -1,5 +1,5 @@
 import { IsEthereumAddress, IsOptional } from "class-validator";
-import { PaginationQuery } from "../../../shared/dto/pagination-query";
+import { PaginationQuery } from "@ebsiint-api/shared";
 
 export class GetIdentifiersDto extends PaginationQuery {
   @IsOptional()

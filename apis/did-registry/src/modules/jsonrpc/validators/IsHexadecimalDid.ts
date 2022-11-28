@@ -4,7 +4,7 @@ import {
   buildMessage,
   ValidationOptions,
 } from "class-validator";
-import { isDidV1 } from "../../../shared/validators";
+import { isDidV1 } from "@ebsiint-api/shared";
 
 export const IS_HEXADECIMAL_DID = "isHexadecimalDid";
 

@@ -1,10 +1,10 @@
 import { Controller, Get, Query, Param, HttpCode } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { PaginatedList2 } from "@ebsiint-api/shared";
 import { StoresService } from "./stores.service";
 import { GetStoreDto, GetStoresDto } from "./dto";
 import { formatStores } from "./stores.formatter";
 import { ApiConfig } from "../../config/configuration";
-import { PaginatedList } from "../../shared/interfaces";
 
 @Controller("/stores")
 export class StoresController {
@@ -14,7 +14,7 @@ export class StoresController {
   ) {}
 
   @Get()
-  getStores(@Query() query: GetStoresDto): PaginatedList<string> {
+  getStores(@Query() query: GetStoresDto): PaginatedList2<string> {
     const pageAfter = query["page[after]"];
     const pageSize = query["page[size]"];
 

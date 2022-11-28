@@ -1,6 +1,6 @@
 import { buildMessage, ValidateBy, ValidationOptions } from "class-validator";
+import { isDidV1, isDidDocument } from "@ebsiint-api/shared";
 import { isHexadecimalJson } from "./IsHexadecimalJson";
-import { isDidV1, isDidDocument } from "../../../shared/validators";
 
 export const IS_HEXADECIMAL_JSON_LD_DID_DOCUMENT =
   "isHexadecimalJsonLdDidDocument";

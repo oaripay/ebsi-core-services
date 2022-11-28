@@ -1,9 +1,8 @@
 import crypto from "crypto";
 import { ethers } from "ethers";
 import { Timestamp } from "@ebsiint-sc/timestamp";
+import { multibase, AsyncReturnType } from "@ebsiint-api/shared";
 import { formatRecords, formatRecordVersions } from "./records.formatter";
-import { multibase } from "../../shared/utils";
-import { AsyncReturnType } from "../../shared/types/async-return-type";
 
 describe("formatRecords", () => {
   const records = {

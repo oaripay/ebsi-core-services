@@ -7,8 +7,8 @@ import { Contract, ethers } from "ethers";
 import { range } from "rxjs";
 import { mergeMap, toArray } from "rxjs/operators";
 import { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry";
+import { computeId } from "@ebsiint-api/shared";
 import { createDid, createSchema } from "./data";
-import { computeId } from "../../src/shared/utils/jsonSchema.utils";
 
 interface User {
   wallet: ethers.Wallet;
