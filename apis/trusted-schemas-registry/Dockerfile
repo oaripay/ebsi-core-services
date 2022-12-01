@@ -24,7 +24,7 @@ COPY --from=builder /app/contracts/trusted-schemas-registry/dist ./contracts/tru
 COPY --from=builder /app/contracts/trusted-schemas-registry/artifacts ./contracts/trusted-schemas-registry/artifacts
 # Copy shared code
 COPY --from=builder /app/apis/shared/package.json ./apis/shared/package.json
-COPY --from=builder /app/apis/shared/src ./apis/shared/src
+COPY --from=builder /app/apis/shared/dist ./apis/shared/dist
 # Define ENV
 ENV NODE_ENV=production
 # Install prod dependencies

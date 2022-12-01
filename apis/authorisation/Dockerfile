@@ -12,7 +12,7 @@ COPY --from=builder /app/apis/authorisation/package.json ./apis/authorisation/pa
 COPY --from=builder /app/apis/authorisation/dist ./apis/authorisation/dist
 # Copy shared code
 COPY --from=builder /app/apis/shared/package.json ./apis/shared/package.json
-COPY --from=builder /app/apis/shared/src ./apis/shared/src
+COPY --from=builder /app/apis/shared/dist ./apis/shared/dist
 # Define ENV
 ENV NODE_ENV=production
 # This is required for nestjs runtime.
