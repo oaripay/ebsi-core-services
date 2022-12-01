@@ -19,11 +19,9 @@ contract AnchorV1 is Anchor {
         _roles.push(Role({bearer: role}));
     }
 
-    function getRole(uint8 i)
-        public
-        view
-        returns (bytes32[] memory winnerName_)
-    {
+    function getRole(
+        uint8 i
+    ) public view returns (bytes32[] memory winnerName_) {
         winnerName_ = _roles[i].bearer;
     }
 }

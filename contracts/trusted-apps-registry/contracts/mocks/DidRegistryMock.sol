@@ -10,11 +10,10 @@ contract DidRegistryMock {
      * @param ctrl address
      * @return didResult bool
      */
-    function checkController(bytes calldata identifier, address ctrl)
-        external
-        view
-        returns (bool)
-    {
+    function checkController(
+        bytes calldata identifier,
+        address ctrl
+    ) external view returns (bool) {
         return didResult;
     }
 

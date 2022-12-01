@@ -11,10 +11,10 @@ import "./TirDetailed.sol";
  *
  */
 contract Tir is Initializable, TirDetailed, Pausable {
-    function initialize(uint256 version, address[] calldata pausers)
-        public
-        initializer
-    {
+    function initialize(
+        uint256 version,
+        address[] calldata pausers
+    ) public initializer {
         TirDetailed.initialize(version);
 
         Pausable.initialize(address(this));

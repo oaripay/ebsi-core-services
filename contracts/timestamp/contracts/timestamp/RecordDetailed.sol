@@ -179,9 +179,10 @@ abstract contract RecordDetailed is RecordStorage {
      *      Revoked owner's address is removed from record.OwnerIds list and is added to the record.
      *      revokedOwnerIds list.
      */
-    function revokeRecordOwner(bytes32 recordId, string calldata ownerId)
-        external
-    {
+    function revokeRecordOwner(
+        bytes32 recordId,
+        string calldata ownerId
+    ) external {
         Records storage rs = recordStorage();
         rs.revokeRecordOwner(recordId, ownerId);
     }
@@ -189,15 +190,10 @@ abstract contract RecordDetailed is RecordStorage {
     /**
      * @dev getRecordOwnerInfo returns the record's owner info.
      */
-    function getRecordOwnerInfo(bytes32 recordId, string calldata ownerId)
-        public
-        view
-        returns (
-            bool revoked,
-            uint256 notBefore,
-            uint256 notAfter
-        )
-    {
+    function getRecordOwnerInfo(
+        bytes32 recordId,
+        string calldata ownerId
+    ) public view returns (bool revoked, uint256 notBefore, uint256 notAfter) {
         Records storage rs = recordStorage();
         return rs.getRecordOwnerInfo(recordId, ownerId);
     }
@@ -227,7 +223,10 @@ abstract contract RecordDetailed is RecordStorage {
     /**
      * @dev getRecordIds returns a paginated list of record ids from recordIdsList
      */
-    function getRecordIds(uint256 page, uint256 pageSize)
+    function getRecordIds(
+        uint256 page,
+        uint256 pageSize
+    )
         public
         view
         returns (
@@ -268,7 +267,9 @@ abstract contract RecordDetailed is RecordStorage {
     /**
      * @dev getRecord returns information about a the record.
      */
-    function getRecord(bytes32 recordId)
+    function getRecord(
+        bytes32 recordId
+    )
         public
         view
         returns (
@@ -327,11 +328,9 @@ abstract contract RecordDetailed is RecordStorage {
     /**
      * @dev getRecordVersionInfo returns version info by version info id (hash) from the versionInfoStore[versionInfoId]
      */
-    function getRecordVersionInfo(bytes32 versionInfoId)
-        public
-        view
-        returns (bytes memory info)
-    {
+    function getRecordVersionInfo(
+        bytes32 versionInfoId
+    ) public view returns (bytes memory info) {
         require(versionInfoId != bytes32(0), "versionInfoId empty");
         Records storage rs = recordStorage();
         return rs.versionInfoStore[versionInfoId];

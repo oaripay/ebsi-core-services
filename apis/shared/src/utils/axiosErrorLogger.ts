@@ -10,7 +10,7 @@ export function logAxiosError(error: unknown, logger: Logger): void {
     // The request was made and the server responded with a status code
     // that falls out of the range of 2xx
     logger.error({
-      data: error.response.data,
+      data: error.response.data as unknown,
       status: error.response.status,
       headers: error.response.headers as unknown,
     });

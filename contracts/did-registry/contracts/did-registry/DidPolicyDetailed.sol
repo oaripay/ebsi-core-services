@@ -20,9 +20,10 @@ contract DidPolicyDetailed is DidPolicyStorage {
     /**
      * @dev insert an Policy
      */
-    function insertPolicy(string calldata policyId, bytes calldata policyData)
-        external
-    {
+    function insertPolicy(
+        string calldata policyId,
+        bytes calldata policyData
+    ) external {
         DidPolicyStorage.Policies storage ds = didPolicyStorage();
         ds.insertPolicy(policyId, policyData);
     }
@@ -30,9 +31,10 @@ contract DidPolicyDetailed is DidPolicyStorage {
     /**
      * @dev add a new policy's attribute
      */
-    function updatePolicy(string calldata policyId, bytes calldata policyData)
-        external
-    {
+    function updatePolicy(
+        string calldata policyId,
+        bytes calldata policyData
+    ) external {
         DidPolicyStorage.Policies storage ds = didPolicyStorage();
         ds.updatePolicy(policyId, policyData);
     }
@@ -40,11 +42,9 @@ contract DidPolicyDetailed is DidPolicyStorage {
     /**
     Returns the data of the last revision
      */
-    function getPolicy(string memory policyId)
-        public
-        view
-        returns (bytes memory, bytes32)
-    {
+    function getPolicy(
+        string memory policyId
+    ) public view returns (bytes memory, bytes32) {
         DidPolicyStorage.Policies storage ds = didPolicyStorage();
         return ds.getPolicy(policyId);
     }
@@ -52,11 +52,9 @@ contract DidPolicyDetailed is DidPolicyStorage {
     /**
     Returns the data of the provided revision
      */
-    function getPolicyByHash(bytes32 revisionHash)
-        public
-        view
-        returns (bytes memory)
-    {
+    function getPolicyByHash(
+        bytes32 revisionHash
+    ) public view returns (bytes memory) {
         DidPolicyStorage.Policies storage ds = didPolicyStorage();
         return ds.getPolicyByHash(revisionHash);
     }
@@ -83,7 +81,10 @@ contract DidPolicyDetailed is DidPolicyStorage {
         return ds.getPolicyRevisions(policyId, page, pageSize);
     }
 
-    function getPolicies(uint256 page, uint256 pageSize)
+    function getPolicies(
+        uint256 page,
+        uint256 pageSize
+    )
         public
         view
         returns (

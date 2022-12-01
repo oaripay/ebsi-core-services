@@ -10,7 +10,7 @@ import {
   JWTPayload,
 } from "jose";
 import { Resolver } from "did-resolver";
-import { getResolver } from "@cef-ebsi/ebsi-did-resolver";
+import { getLegalEntitiesResolver } from "@cef-ebsi/ebsi-did-resolver";
 import { ApiConfig } from "../../config/configuration";
 
 @Injectable()
@@ -48,7 +48,7 @@ export default class AuthService {
 
     try {
       const resolver = new Resolver(
-        getResolver({ registry: this.didRegistryApiUrl })
+        getLegalEntitiesResolver({ registry: this.didRegistryApiUrl })
       );
 
       if (!header.kid || typeof header.kid !== "string") {

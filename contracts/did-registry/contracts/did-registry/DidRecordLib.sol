@@ -178,11 +178,10 @@ library DidRecordLib {
         );
     }
 
-    function checkIfControllerExists(address ctrlId, address[] memory ctrlIds)
-        internal
-        pure
-        returns (bool)
-    {
+    function checkIfControllerExists(
+        address ctrlId,
+        address[] memory ctrlIds
+    ) internal pure returns (bool) {
         for (uint256 i = 0; i < ctrlIds.length; i++) {
             if (ctrlIds[i] == ctrlId) {
                 return true;
@@ -794,11 +793,10 @@ library DidRecordLib {
         controllerIds = r.controllerIds;
     }
 
-    function concatenateArrays(bytes32[] memory arr1, bytes32[] memory arr2)
-        internal
-        pure
-        returns (bytes32[] memory)
-    {
+    function concatenateArrays(
+        bytes32[] memory arr1,
+        bytes32[] memory arr2
+    ) internal pure returns (bytes32[] memory) {
         bytes32[] memory returnArr = new bytes32[](arr1.length + arr2.length);
         uint256 i = 0;
         for (; i < arr1.length; i++) {

@@ -2,17 +2,24 @@
 ARG DOCKER_TAG=latest
 FROM ebsi/core-services:$DOCKER_TAG as builder
 
-FROM node:16.17.1-alpine3.16@sha256:4e36c3dee7c32cef5bfce5bc1b5013d1c3cc542cfdefde2a545ec641e7c94243
+FROM node:16.18.1-alpine3.16@sha256:15dd66f723aab8b367abc7ac6ed25594ca4653f2ce49ad1505bfbe740ad5190e
 WORKDIR /app
-COPY --from=builder /app/yarn.lock yarn.lock
-COPY --from=builder /app/apis/users-onboarding/package.json package.json
-COPY --from=builder /app/apis/users-onboarding/dist dist
+# Copy root package.json + lockfile
+COPY --from=builder /app/yarn.lock ./yarn.lock
+COPY --from=builder /app/package.json ./package.json
+# Copy Users Onboarding API
+COPY --from=builder /app/apis/users-onboarding/package.json ./apis/users-onboarding/package.json
+COPY --from=builder /app/apis/users-onboarding/dist ./apis/users-onboarding/dist
+# Copy shared code
+COPY --from=builder /app/apis/shared/package.json ./apis/shared/package.json
+COPY --from=builder /app/apis/shared/src ./apis/shared/src
+# Define ENV
 ENV NODE_ENV=production
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 # This is required for nestjs runtime.
-RUN yarn install --production --frozen-lockfile --ignore-scripts && yarn cache clean
+RUN yarn install --frozen-lockfile --silent --production --ignore-scripts && yarn cache clean
 ARG DOCKER_TAG
 RUN echo "DOCKER_TAG=$DOCKER_TAG" >> .env.default
 RUN chown node:node /app
 USER node
-CMD [ "node", "dist/main" ]
+CMD [ "node", "apis/users-onboarding/dist/main" ]

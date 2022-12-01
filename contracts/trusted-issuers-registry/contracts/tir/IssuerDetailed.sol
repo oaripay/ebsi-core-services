@@ -32,9 +32,10 @@ abstract contract IssuerDetailed is IssuerStorage {
     /**
      * @dev insert an Issuer
      */
-    function insertIssuer(string calldata did, bytes calldata attributeData)
-        external
-    {
+    function insertIssuer(
+        string calldata did,
+        bytes calldata attributeData
+    ) external {
         bytes32 firstAttrHash = sha256(attributeData);
         Issuers storage ds = issuerStorage();
 
@@ -89,9 +90,10 @@ abstract contract IssuerDetailed is IssuerStorage {
     /**
      * @dev add a new issuer's attribute
      */
-    function updateIssuer(string calldata did, bytes calldata attributeData)
-        external
-    {
+    function updateIssuer(
+        string calldata did,
+        bytes calldata attributeData
+    ) external {
         Issuers storage ds = issuerStorage();
 
         require(
@@ -223,11 +225,9 @@ abstract contract IssuerDetailed is IssuerStorage {
         );
     }
 
-    function getIssuer(string memory did)
-        public
-        view
-        returns (bytes32[] memory)
-    {
+    function getIssuer(
+        string memory did
+    ) public view returns (bytes32[] memory) {
         Issuers storage ds = issuerStorage();
         bytes32[] memory attributesFirstHash = ds.issuerStore[did].attributes;
         require(attributesFirstHash.length > 0, "issuer does not exist");
@@ -248,7 +248,10 @@ abstract contract IssuerDetailed is IssuerStorage {
         return attributesLastHash;
     }
 
-    function getIssuers(uint256 page, uint256 pageSize)
+    function getIssuers(
+        uint256 page,
+        uint256 pageSize
+    )
         public
         view
         returns (
@@ -303,11 +306,9 @@ abstract contract IssuerDetailed is IssuerStorage {
                 .paginate(page, pageSize);
     }
 
-    function getIssuerAttributeByHash(bytes32 anyAttrVersHash)
-        public
-        view
-        returns (string memory did, bytes memory attribData)
-    {
+    function getIssuerAttributeByHash(
+        bytes32 anyAttrVersHash
+    ) public view returns (string memory did, bytes memory attribData) {
         Issuers storage ds = issuerStorage();
         // retrieve first the did and attrId (firstHash of attribute)
         AttributeMetadata memory i = ds.attributeMetadataStore[anyAttrVersHash];
@@ -324,9 +325,10 @@ abstract contract IssuerDetailed is IssuerStorage {
     /**
      * @dev Add a proxy record to an issuer.
      */
-    function addIssuerProxy(string calldata did, string calldata proxyData)
-        external
-    {
+    function addIssuerProxy(
+        string calldata did,
+        string calldata proxyData
+    ) external {
         Issuers storage ds = issuerStorage();
 
         require(
@@ -384,11 +386,10 @@ abstract contract IssuerDetailed is IssuerStorage {
     /**
      * @dev Get proxy data by its id/hash.
      */
-    function getIssuerProxyById(string memory did, bytes32 proxyId)
-        public
-        view
-        returns (string memory proxyData)
-    {
+    function getIssuerProxyById(
+        string memory did,
+        bytes32 proxyId
+    ) public view returns (string memory proxyData) {
         Issuers storage ds = issuerStorage();
         return ds.issuerStore[did].proxiesStore[proxyId];
     }
@@ -396,11 +397,9 @@ abstract contract IssuerDetailed is IssuerStorage {
     /**
      * @dev Return the list of proxies of a given issuer.
      */
-    function getIssuerProxies(string memory did)
-        public
-        view
-        returns (bytes32[] memory)
-    {
+    function getIssuerProxies(
+        string memory did
+    ) public view returns (bytes32[] memory) {
         Issuers storage ds = issuerStorage();
         return ds.issuerStore[did].proxies;
     }

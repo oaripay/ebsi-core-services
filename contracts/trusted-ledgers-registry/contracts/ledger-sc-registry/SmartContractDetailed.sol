@@ -30,10 +30,10 @@ contract SmartContractDetailed is SmartContractStorage {
      * @dev insertSmartContractInfo enables to register SmartContract information
      * (see the data model above) as a signed and serialized JSON-LD document.
      */
-    function insertSmartContractInfo(string memory name, bytes memory info)
-        external
-        returns (bytes32 smartContractInfoId)
-    {
+    function insertSmartContractInfo(
+        string memory name,
+        bytes memory info
+    ) external returns (bytes32 smartContractInfoId) {
         SmartContracts storage ts = smartContractStorage();
         return ts.insertSmartContractInfo(name, info);
     }
@@ -74,7 +74,10 @@ contract SmartContractDetailed is SmartContractStorage {
     /**
      * @dev getSmartContractInfoIds enables to retrieve a paginated list of the registered smartContract info ids.
      */
-    function getSmartContractInfoIds(uint256 page, uint256 pageSize)
+    function getSmartContractInfoIds(
+        uint256 page,
+        uint256 pageSize
+    )
         public
         view
         returns (
@@ -93,11 +96,9 @@ contract SmartContractDetailed is SmartContractStorage {
      * @dev getLatestSmartContractInfoById enables to retrieve the latest smartContract
      * info revision by the smartContract id.
      */
-    function getLatestSmartContractInfoById(bytes32 smartContractInfoId)
-        external
-        view
-        returns (bytes memory info)
-    {
+    function getLatestSmartContractInfoById(
+        bytes32 smartContractInfoId
+    ) external view returns (bytes memory info) {
         SmartContracts storage ts = smartContractStorage();
         return ts.getLatestSmartContractInfoById(smartContractInfoId);
     }
@@ -106,11 +107,9 @@ contract SmartContractDetailed is SmartContractStorage {
      * @dev getLatestSmartContractInfoByName enables to retrieve the latest smartContract
      * info revision by the smartContract name.
      */
-    function getLatestSmartContractInfoByName(string memory name)
-        external
-        view
-        returns (bytes memory info)
-    {
+    function getLatestSmartContractInfoByName(
+        string memory name
+    ) external view returns (bytes memory info) {
         SmartContracts storage ts = smartContractStorage();
         return ts.getLatestSmartContractInfoByName(name);
     }
@@ -118,11 +117,9 @@ contract SmartContractDetailed is SmartContractStorage {
     /**
      * @dev getSmartContractInfoIdByName enables to retrieve the smart contract info Id by name.
      */
-    function getSmartContractInfoIdByName(string memory name)
-        external
-        view
-        returns (bytes32)
-    {
+    function getSmartContractInfoIdByName(
+        string memory name
+    ) external view returns (bytes32) {
         SmartContracts storage ts = smartContractStorage();
         return ts.getSmartContractInfoIdByName(name);
     }

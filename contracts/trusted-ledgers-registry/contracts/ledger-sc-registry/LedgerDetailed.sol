@@ -31,10 +31,10 @@ contract LedgerDetailed is LedgerStorage {
      * (see the data model above) as a signed and serialized JSON-LD
      * document.
      */
-    function insertLedgerInfo(string memory name, bytes memory info)
-        external
-        returns (bytes32 ledgerInfoId)
-    {
+    function insertLedgerInfo(
+        string memory name,
+        bytes memory info
+    ) external returns (bytes32 ledgerInfoId) {
         Ledgers storage ts = ledgerStorage();
         return ts.insertLedgerInfo(name, info);
     }
@@ -42,10 +42,10 @@ contract LedgerDetailed is LedgerStorage {
     /**
      * @dev updateLedgerInfoById enables to update existing Ledger info by Ledger info id.
      */
-    function updateLedgerInfoById(bytes32 ledgerInfoId, bytes memory info)
-        external
-        returns (bytes32 ledgerInfoRevisionId)
-    {
+    function updateLedgerInfoById(
+        bytes32 ledgerInfoId,
+        bytes memory info
+    ) external returns (bytes32 ledgerInfoRevisionId) {
         Ledgers storage ts = ledgerStorage();
         return ts.updateLedgerInfoById(ledgerInfoId, info);
     }
@@ -53,10 +53,10 @@ contract LedgerDetailed is LedgerStorage {
     /**
      * @dev updateLedgerInfoByName enables to update existing Ledger info by the Ledger name.
      */
-    function updateLedgerInfoByName(string memory name, bytes memory info)
-        external
-        returns (bytes32 ledgerInfoRevisionId)
-    {
+    function updateLedgerInfoByName(
+        string memory name,
+        bytes memory info
+    ) external returns (bytes32 ledgerInfoRevisionId) {
         Ledgers storage ts = ledgerStorage();
         return ts.updateLedgerInfoByName(name, info);
     }
@@ -64,9 +64,10 @@ contract LedgerDetailed is LedgerStorage {
     /**
      * @dev updateLedgerName enables to update an existing ledger name.
      */
-    function updateLedgerName(string memory oldName, string memory newName)
-        external
-    {
+    function updateLedgerName(
+        string memory oldName,
+        string memory newName
+    ) external {
         Ledgers storage ts = ledgerStorage();
         ts.updateLedgerName(oldName, newName);
     }
@@ -74,7 +75,10 @@ contract LedgerDetailed is LedgerStorage {
     /**
      * @dev getLedgerInfoIds enables to retrieve a paginated list of the registered ledger info ids.
      */
-    function getLedgerInfoIds(uint256 page, uint256 pageSize)
+    function getLedgerInfoIds(
+        uint256 page,
+        uint256 pageSize
+    )
         public
         view
         returns (
@@ -92,11 +96,9 @@ contract LedgerDetailed is LedgerStorage {
     /**
      * @dev getLatestLedgerInfoById enables to retrieve the latest ledger info revision by the ledger id.
      */
-    function getLatestLedgerInfoById(bytes32 ledgerInfoId)
-        external
-        view
-        returns (bytes memory info)
-    {
+    function getLatestLedgerInfoById(
+        bytes32 ledgerInfoId
+    ) external view returns (bytes memory info) {
         Ledgers storage ts = ledgerStorage();
         return ts.getLatestLedgerInfoById(ledgerInfoId);
     }
@@ -105,11 +107,9 @@ contract LedgerDetailed is LedgerStorage {
      * @dev getLatestLedgerInfoByName enables to retrieve the latest ledger info
      * revision by the ledger name.
      */
-    function getLatestLedgerInfoByName(string memory name)
-        external
-        view
-        returns (bytes memory info)
-    {
+    function getLatestLedgerInfoByName(
+        string memory name
+    ) external view returns (bytes memory info) {
         Ledgers storage ts = ledgerStorage();
         return ts.getLatestLedgerInfoByName(name);
     }
@@ -117,11 +117,9 @@ contract LedgerDetailed is LedgerStorage {
     /**
      * @dev getLedgerInfoIdByName enables to retrieve the ledger info Id by the ledger name.
      */
-    function getLedgerInfoIdByName(string memory name)
-        external
-        view
-        returns (bytes32)
-    {
+    function getLedgerInfoIdByName(
+        string memory name
+    ) external view returns (bytes32) {
         Ledgers storage ts = ledgerStorage();
         return ts.getLedgerInfoIdByName(name);
     }
@@ -129,11 +127,9 @@ contract LedgerDetailed is LedgerStorage {
     /**
      * @dev getLedgerInfoByRevisionId enables to retrieve a ledger info revision.
      */
-    function getLedgerInfoByRevisionId(bytes32 ledgerInfoRevisionId)
-        external
-        view
-        returns (bytes memory info)
-    {
+    function getLedgerInfoByRevisionId(
+        bytes32 ledgerInfoRevisionId
+    ) external view returns (bytes memory info) {
         Ledgers storage ts = ledgerStorage();
         return ts.getLedgerInfoByRevisionId(ledgerInfoRevisionId);
     }

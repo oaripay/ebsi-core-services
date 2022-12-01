@@ -19,9 +19,10 @@ contract TarPolicyDetailed is TarPolicyStorage {
     /**
      * @dev insert an Policy
      */
-    function insertPolicy(string calldata policyId, bytes calldata policyData)
-        external
-    {
+    function insertPolicy(
+        string calldata policyId,
+        bytes calldata policyData
+    ) external {
         TarPolicyStoreLib.Policies storage ds = policyStorage();
         ds.insertPolicy(policyId, policyData);
     }
@@ -29,9 +30,10 @@ contract TarPolicyDetailed is TarPolicyStorage {
     /**
      * @dev add a new policy's attribute
      */
-    function updatePolicy(string calldata policyId, bytes calldata policyData)
-        external
-    {
+    function updatePolicy(
+        string calldata policyId,
+        bytes calldata policyData
+    ) external {
         TarPolicyStoreLib.Policies storage ds = policyStorage();
         ds.updatePolicy(policyId, policyData);
     }
@@ -39,11 +41,9 @@ contract TarPolicyDetailed is TarPolicyStorage {
     /**
     Returns the data of the last revision
      */
-    function getPolicy(string memory policyId)
-        public
-        view
-        returns (bytes memory, bytes32)
-    {
+    function getPolicy(
+        string memory policyId
+    ) public view returns (bytes memory, bytes32) {
         TarPolicyStoreLib.Policies storage ds = policyStorage();
         return ds.getPolicy(policyId);
     }
@@ -51,11 +51,9 @@ contract TarPolicyDetailed is TarPolicyStorage {
     /**
     Returns the data of the provided revision
      */
-    function getPolicyByHash(bytes32 revisionHash)
-        public
-        view
-        returns (bytes memory)
-    {
+    function getPolicyByHash(
+        bytes32 revisionHash
+    ) public view returns (bytes memory) {
         TarPolicyStoreLib.Policies storage ds = policyStorage();
         return ds.getPolicyByHash(revisionHash);
     }
@@ -82,7 +80,10 @@ contract TarPolicyDetailed is TarPolicyStorage {
         return ds.getPolicyRevisions(policyId, page, pageSize);
     }
 
-    function getPolicies(uint256 page, uint256 pageSize)
+    function getPolicies(
+        uint256 page,
+        uint256 pageSize
+    )
         public
         view
         returns (

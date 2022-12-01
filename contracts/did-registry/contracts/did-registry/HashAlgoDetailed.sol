@@ -66,7 +66,9 @@ contract HashAlgoDetailed is HashAlgoStorage {
     /**
      * @dev getHashAlgorithmById returns hash algorithm details by the algorithm id.
      */
-    function getHashAlgorithmById(uint256 hashAlgorithmId)
+    function getHashAlgorithmById(
+        uint256 hashAlgorithmId
+    )
         public
         view
         returns (
@@ -84,7 +86,10 @@ contract HashAlgoDetailed is HashAlgoStorage {
     /**
      * @dev Returns a paginated list of registered hash algorithm IDs.
      */
-    function getHashAlgorithms(uint256 page, uint256 pageSize)
+    function getHashAlgorithms(
+        uint256 page,
+        uint256 pageSize
+    )
         public
         view
         returns (

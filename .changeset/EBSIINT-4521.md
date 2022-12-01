@@ -2,4 +2,4 @@
 "@ebsiint-api/did-registry-api-v4": minor
 ---
 
-Add `revokeVerificationMethod` JSON-RPC method
+Add `revokeVerificationMethod` JSON-RPC method.

@@ -104,20 +104,20 @@ contract DidDocumentDetailed is
         return result;
     }
 
-    function updateBaseDocument(string memory did, string memory baseDocument)
-        external
-        returns (bool)
-    {
+    function updateBaseDocument(
+        string memory did,
+        string memory baseDocument
+    ) external returns (bool) {
         DidDocuments storage ds = didDocumentStorage();
         bool result = ds.updateBaseDocument(did, baseDocument);
         emit BaseDocumentUpdated(did, baseDocument);
         return result;
     }
 
-    function addController(string memory did, string memory controller)
-        external
-        returns (bool)
-    {
+    function addController(
+        string memory did,
+        string memory controller
+    ) external returns (bool) {
         DidDocuments storage ds = didDocumentStorage();
         Controllers storage cs = controllersStorage();
         bool result = ds.addController(did, controller);
@@ -126,10 +126,10 @@ contract DidDocumentDetailed is
         return result;
     }
 
-    function revokeController(string memory did, string memory controller)
-        external
-        returns (bool)
-    {
+    function revokeController(
+        string memory did,
+        string memory controller
+    ) external returns (bool) {
         DidDocuments storage ds = didDocumentStorage();
         Controllers storage cs = controllersStorage();
         bool result = ds.revokeController(did, controller);
@@ -244,7 +244,10 @@ contract DidDocumentDetailed is
         return result;
     }
 
-    function getDids(uint256 page, uint256 pageSize)
+    function getDids(
+        uint256 page,
+        uint256 pageSize
+    )
         public
         view
         returns (
@@ -304,7 +307,9 @@ contract DidDocumentDetailed is
         return vs.getDidsByVerificationRelationshipId(vrId, page, pageSize);
     }
 
-    function getDidDocument(string memory did)
+    function getDidDocument(
+        string memory did
+    )
         public
         view
         returns (
@@ -319,7 +324,10 @@ contract DidDocumentDetailed is
         return ds.getDidDocumentByTimestamp(did, block.timestamp);
     }
 
-    function getDidDocumentByTimestamp(string memory did, uint256 timestamp)
+    function getDidDocumentByTimestamp(
+        string memory did,
+        uint256 timestamp
+    )
         public
         view
         returns (
@@ -334,20 +342,18 @@ contract DidDocumentDetailed is
         return ds.getDidDocumentByTimestamp(did, timestamp);
     }
 
-    function checkController(string memory did, address controller)
-        public
-        view
-        returns (bool)
-    {
+    function checkController(
+        string memory did,
+        address controller
+    ) public view returns (bool) {
         DidDocuments storage ds = didDocumentStorage();
         return ds.checkController(did, controller);
     }
 
-    function checkController(bytes memory did, address controller)
-        public
-        view
-        returns (bool)
-    {
+    function checkController(
+        bytes memory did,
+        address controller
+    ) public view returns (bool) {
         DidDocuments storage ds = didDocumentStorage();
         return ds.checkController(string(did), controller);
     }

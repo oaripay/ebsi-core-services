@@ -1051,7 +1051,7 @@ describe("Issuers Module", () => {
       jest.spyOn(axios, "get").mockImplementation((requestUrl: string) => {
         if (requestUrl === `${issuer1ProxyData.prefix}${subpath}`) {
           const error = new Error() as AxiosError<string>;
-          error.status = "500";
+          error.status = 500;
           error.response = {
             status: 500,
             data: "Internal Server Error",

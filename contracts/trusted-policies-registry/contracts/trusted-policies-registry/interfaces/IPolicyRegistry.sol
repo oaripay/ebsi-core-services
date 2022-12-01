@@ -6,13 +6,13 @@ pragma solidity 0.8.12;
  *
  */
 interface IPolicyRegistry {
-    function checkPolicy(string calldata policyName, address user)
-        external
-        view
-        returns (bool);
+    function checkPolicy(
+        string calldata policyName,
+        address user
+    ) external view returns (bool);
 
-    function checkPolicy(uint256 policyId, address user)
-        external
-        view
-        returns (bool);
+    function checkPolicy(
+        uint256 policyId,
+        address user
+    ) external view returns (bool);
 }

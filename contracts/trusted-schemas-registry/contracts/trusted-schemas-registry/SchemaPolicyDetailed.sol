@@ -23,9 +23,10 @@ abstract contract SchemaPolicyDetailed is SchemaPolicyStorage {
     /**
      * @dev insert an Policy
      */
-    function insertPolicy(string calldata policyId, bytes calldata policyData)
-        external
-    {
+    function insertPolicy(
+        string calldata policyId,
+        bytes calldata policyData
+    ) external {
         Policies storage ds = schemaPolicyStorage();
         PolicyDetails storage p = ds.policyStore[policyId];
         require(p.revisionHashes.length == 0, "policy already exist");
@@ -46,9 +47,10 @@ abstract contract SchemaPolicyDetailed is SchemaPolicyStorage {
     /**
      * @dev add a new policy's attribute
      */
-    function updatePolicy(string calldata policyId, bytes calldata policyData)
-        external
-    {
+    function updatePolicy(
+        string calldata policyId,
+        bytes calldata policyData
+    ) external {
         Policies storage ds = schemaPolicyStorage();
         PolicyDetails storage p = ds.policyStore[policyId];
         require(p.revisionHashes.length > 0, "policy does not exist");
@@ -70,11 +72,9 @@ abstract contract SchemaPolicyDetailed is SchemaPolicyStorage {
     /**
     Returns the data of the last revision
      */
-    function getPolicy(string memory policyId)
-        public
-        view
-        returns (bytes memory, bytes32)
-    {
+    function getPolicy(
+        string memory policyId
+    ) public view returns (bytes memory, bytes32) {
         Policies storage ds = schemaPolicyStorage();
         bytes32[] memory policyRevisionHashes = ds
             .policyStore[policyId]
@@ -89,11 +89,9 @@ abstract contract SchemaPolicyDetailed is SchemaPolicyStorage {
     /**
     Returns the data of the provided revision
      */
-    function getPolicyByHash(bytes32 revisionHash)
-        public
-        view
-        returns (bytes memory)
-    {
+    function getPolicyByHash(
+        bytes32 revisionHash
+    ) public view returns (bytes memory) {
         Policies storage ds = schemaPolicyStorage();
         require(
             ds.revisions[revisionHash].length > 0,
@@ -130,7 +128,10 @@ abstract contract SchemaPolicyDetailed is SchemaPolicyStorage {
         return p.revisionHashes.paginate(page, pageSize);
     }
 
-    function getPolicies(uint256 page, uint256 pageSize)
+    function getPolicies(
+        uint256 page,
+        uint256 pageSize
+    )
         public
         view
         returns (

@@ -24,7 +24,7 @@ The monorepo uses [NX](https://nx.dev/) as a task runner in combination with [ya
 
 System requirements:
 
-- Node.js = 16.17.1
+- Node.js: check the version number in the `.nvmrc` file
 - yarn >= 1.22.0
 
 We recommend the use of [Node Version Manager](https://github.com/creationix/nvm). With it, run `nvm install` followed by `nvm use` to get the right Node.js version.

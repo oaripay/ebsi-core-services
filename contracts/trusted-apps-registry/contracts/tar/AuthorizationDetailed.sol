@@ -129,7 +129,9 @@ contract AuthorizationDetailed is AuthorizationStorage {
     /**
     Returns the Authorization based on the authorization ID
      */
-    function getAuthorizationById(bytes32 authorizationId)
+    function getAuthorizationById(
+        bytes32 authorizationId
+    )
         public
         view
         returns (

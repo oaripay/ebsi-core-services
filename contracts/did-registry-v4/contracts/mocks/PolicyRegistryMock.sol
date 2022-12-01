@@ -10,11 +10,10 @@ contract PolicyRegistryMock {
      * @param user address
      * @return bool policyResult
      */
-    function checkPolicy(string calldata policyName, address user)
-        external
-        view
-        returns (bool)
-    {
+    function checkPolicy(
+        string calldata policyName,
+        address user
+    ) external view returns (bool) {
         return policyResult;
     }
 

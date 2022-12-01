@@ -80,10 +80,10 @@ abstract contract UserAttributesManagement is
      * @dev delete user attributes (defined on a policy condition)
      */
 
-    function deleteUserAttribute(address user, string calldata attribute)
-        external
-        onlyRole(OPERATOR_ROLE)
-    {
+    function deleteUserAttribute(
+        address user,
+        string calldata attribute
+    ) external onlyRole(OPERATOR_ROLE) {
         require(user != address(0), "Policy: invalid user address");
         PolicyContractStorage storage ps = policyStorage();
         require(
@@ -115,7 +115,10 @@ abstract contract UserAttributesManagement is
      * @dev get defined user attributes paginated
      */
 
-    function getUsers(uint256 page, uint256 pageSize)
+    function getUsers(
+        uint256 page,
+        uint256 pageSize
+    )
         external
         view
         returns (
@@ -168,11 +171,10 @@ abstract contract UserAttributesManagement is
      * @dev get specific user attribute
      */
 
-    function getUserAttribute(address user, string calldata attribute)
-        external
-        view
-        returns (bytes memory value)
-    {
+    function getUserAttribute(
+        address user,
+        string calldata attribute
+    ) external view returns (bytes memory value) {
         require(user != address(0), "Policy: invalid user address");
         PolicyContractStorage storage ps = policyStorage();
         return ps.userAttributes[user][attribute];

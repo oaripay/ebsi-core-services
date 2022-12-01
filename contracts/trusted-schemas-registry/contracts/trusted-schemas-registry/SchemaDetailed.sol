@@ -30,7 +30,10 @@ contract SchemaDetailed is SchemaStorage {
     /**
      * @dev getSchemaIds returns a paginated list of registered schema ids.
      */
-    function getSchemaIds(uint256 page, uint256 pageSize)
+    function getSchemaIds(
+        uint256 page,
+        uint256 pageSize
+    )
         external
         view
         returns (
@@ -60,10 +63,10 @@ contract SchemaDetailed is SchemaStorage {
     /**
      * @dev updateMetadata enables to update the existing metadata.
      */
-    function updateMetadata(bytes32 schemaRevisionId, bytes calldata metadata)
-        external
-        returns (bytes32 metadataId)
-    {
+    function updateMetadata(
+        bytes32 schemaRevisionId,
+        bytes calldata metadata
+    ) external returns (bytes32 metadataId) {
         Schemas storage ss = schemaStorage();
         metadataId = ss.updateMetadata(schemaRevisionId, metadata);
     }
@@ -71,11 +74,9 @@ contract SchemaDetailed is SchemaStorage {
     /**
      * @dev getLatestSchemaRevision returns the latest schema revision by schema id.
      */
-    function getLatestSchemaRevision(bytes calldata schemaId)
-        external
-        view
-        returns (bytes memory schema)
-    {
+    function getLatestSchemaRevision(
+        bytes calldata schemaId
+    ) external view returns (bytes memory schema) {
         Schemas storage ss = schemaStorage();
         schema = ss.getLatestSchemaRevision(schemaId);
     }
@@ -105,11 +106,9 @@ contract SchemaDetailed is SchemaStorage {
     /**
      * @dev getSchemaRevision returns a specific schema revision for a specific SchemaRevisionId.
      */
-    function getSchemaRevision(bytes32 schemaRevisionId)
-        external
-        view
-        returns (bytes memory schema)
-    {
+    function getSchemaRevision(
+        bytes32 schemaRevisionId
+    ) external view returns (bytes memory schema) {
         Schemas storage ss = schemaStorage();
         schema = ss.getSchemaRevision(schemaRevisionId);
     }
@@ -152,11 +151,9 @@ contract SchemaDetailed is SchemaStorage {
     /**
      * @dev getSchemaRevisionMetadataByMetadataId returns schema revision metadata for the given schema revision metadata id.
      */
-    function getSchemaRevisionMetadataByMetadataId(bytes32 metadataId)
-        external
-        view
-        returns (bytes memory metadata)
-    {
+    function getSchemaRevisionMetadataByMetadataId(
+        bytes32 metadataId
+    ) external view returns (bytes memory metadata) {
         Schemas storage ss = schemaStorage();
         metadata = ss.getSchemaRevisionMetadataByMetadataId(metadataId);
     }

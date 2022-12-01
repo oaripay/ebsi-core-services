@@ -14,7 +14,10 @@ import type { JWK } from "jose";
 import { bytes } from "multiformats";
 import { base64url } from "multiformats/bases/base64";
 import { JsonWebKey, Resolver } from "did-resolver";
-import { getResolver, validate } from "@cef-ebsi/ebsi-did-resolver";
+import {
+  getBackwardCompatibleResolver,
+  validate,
+} from "@cef-ebsi/ebsi-did-resolver";
 import { ConfigService } from "@nestjs/config";
 import {
   createVerifiableCredentialJwt,
@@ -175,7 +178,7 @@ export default class AuthenticationService {
     // Check if the DID exists
     const did = kid.split("#")[0];
     const resolver = new Resolver(
-      getResolver({
+      getBackwardCompatibleResolver({
         registry: this.didRegistryApiUrl,
         ...(idTokenHeader.jwk && {
           naturalPersonJwks: [idTokenHeader.jwk as JsonWebKey],

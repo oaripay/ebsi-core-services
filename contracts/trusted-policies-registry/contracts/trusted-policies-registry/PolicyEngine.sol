@@ -13,11 +13,10 @@ abstract contract PolicyEngine is PolicyStorage {
      * @param user address
      * @return bool
      */
-    function checkPolicy(uint256 policyId, address user)
-        external
-        view
-        returns (bool)
-    {
+    function checkPolicy(
+        uint256 policyId,
+        address user
+    ) external view returns (bool) {
         return _checkPolicy(policyId, user);
     }
 
@@ -27,11 +26,10 @@ abstract contract PolicyEngine is PolicyStorage {
      * @param user address
      * @return bool
      */
-    function checkPolicy(string calldata policyName, address user)
-        external
-        view
-        returns (bool)
-    {
+    function checkPolicy(
+        string calldata policyName,
+        address user
+    ) external view returns (bool) {
         PolicyContractStorage storage ps = policyStorage();
         require(ps.policyNameDefined[policyName], "policy does not exists");
         return _checkPolicy(ps.policyNameToPolicyId[policyName], user);
@@ -45,11 +43,10 @@ abstract contract PolicyEngine is PolicyStorage {
      * @return bool
      */
 
-    function _checkPolicy(uint256 policyId, address user)
-        internal
-        view
-        returns (bool)
-    {
+    function _checkPolicy(
+        uint256 policyId,
+        address user
+    ) internal view returns (bool) {
         PolicyContractStorage storage ps = policyStorage();
         require(ps.policyCount > policyId, "Policy: invalid policy");
 
@@ -132,11 +129,10 @@ abstract contract PolicyEngine is PolicyStorage {
      * @return address
      */
 
-    function toAddress(bytes memory _bytes, uint256 _start)
-        internal
-        pure
-        returns (address)
-    {
+    function toAddress(
+        bytes memory _bytes,
+        uint256 _start
+    ) internal pure returns (address) {
         require(_bytes.length >= _start + 20, "toAddress_outOfBounds");
         address tempAddress;
 
@@ -156,11 +152,10 @@ abstract contract PolicyEngine is PolicyStorage {
      * @param _start uint256
      * @return uint256
      */
-    function toUint256(bytes memory _bytes, uint256 _start)
-        internal
-        pure
-        returns (uint256)
-    {
+    function toUint256(
+        bytes memory _bytes,
+        uint256 _start
+    ) internal pure returns (uint256) {
         require(_bytes.length >= _start + 32, "toUint256_outOfBounds");
         uint256 tempUint;
 
@@ -178,11 +173,10 @@ abstract contract PolicyEngine is PolicyStorage {
      * @return bytes32
      */
 
-    function toBytes32(bytes memory _bytes, uint256 _start)
-        internal
-        pure
-        returns (bytes32)
-    {
+    function toBytes32(
+        bytes memory _bytes,
+        uint256 _start
+    ) internal pure returns (bytes32) {
         require(_bytes.length >= _start + 32, "toBytes32_outOfBounds");
         bytes32 tempBytes32;
 
@@ -199,11 +193,10 @@ abstract contract PolicyEngine is PolicyStorage {
      * @param _start uint256
      * @return bool
      */
-    function toBool(bytes memory _bytes, uint256 _start)
-        internal
-        pure
-        returns (bool)
-    {
+    function toBool(
+        bytes memory _bytes,
+        uint256 _start
+    ) internal pure returns (bool) {
         require(_bytes.length >= _start + 32, "toBool_outOfBounds");
         bool tempBool;
 

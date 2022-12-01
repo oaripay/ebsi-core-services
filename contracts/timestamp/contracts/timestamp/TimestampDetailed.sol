@@ -63,7 +63,10 @@ abstract contract TimestampDetailed is Initializable, TimestampStorage {
     /**
      * @dev returns a paginated list of timestamp hashes. List of all timestamp ids is stored in the timestampIdsList
      */
-    function getTimestamps(uint256 page, uint256 pageSize)
+    function getTimestamps(
+        uint256 page,
+        uint256 pageSize
+    )
         public
         view
         returns (
@@ -81,7 +84,9 @@ abstract contract TimestampDetailed is Initializable, TimestampStorage {
     /**
      * @dev returns the timestamp of the hash. The timestamp is stored in the timestampsStore.
      */
-    function getTimestamp(bytes calldata hashValue)
+    function getTimestamp(
+        bytes calldata hashValue
+    )
         public
         view
         returns (
@@ -98,7 +103,9 @@ abstract contract TimestampDetailed is Initializable, TimestampStorage {
     /**
      * @dev returns the timestamp by timestampId (sha256(hashvalue)). The timestamp is stored in the timestampsStore.
      */
-    function getTimestampById(bytes32 timestampId)
+    function getTimestampById(
+        bytes32 timestampId
+    )
         public
         view
         returns (

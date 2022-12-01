@@ -7,11 +7,10 @@ import "./ControllersStorage.sol";
 library ControllersLib {
     using Pagination for string[];
 
-    function equalStrings(string memory a, string memory b)
-        internal
-        pure
-        returns (bool)
-    {
+    function equalStrings(
+        string memory a,
+        string memory b
+    ) internal pure returns (bool) {
         if (abi.encodePacked(a).length != abi.encodePacked(b).length) {
             return false;
         }

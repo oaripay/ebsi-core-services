@@ -31,11 +31,9 @@ contract RevocationDetailed is RevocationStorage {
     /**
      * @dev get n revocation
      */
-    function getRevocation(bytes32 applicationId)
-        public
-        view
-        returns (string memory revokedBy, uint256 notBefore)
-    {
+    function getRevocation(
+        bytes32 applicationId
+    ) public view returns (string memory revokedBy, uint256 notBefore) {
         RevocationStoreLib.Revocations storage revocs = revocationStorage();
         return revocs.getRevocation(applicationId);
     }

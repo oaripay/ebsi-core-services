@@ -79,11 +79,9 @@ contract AppDetailed is AppStorage {
     /**
      * @dev For the given app info id, the method returns the info as bytes.
      */
-    function getAppInfoByInfoId(bytes32 infoId)
-        external
-        view
-        returns (bytes memory info)
-    {
+    function getAppInfoByInfoId(
+        bytes32 infoId
+    ) external view returns (bytes memory info) {
         AppStoreLib.Applications storage apps = appStorage();
         return apps.getAppInfoByInfoId(infoId);
     }
@@ -135,11 +133,9 @@ contract AppDetailed is AppStorage {
     /**
      * @dev returns the application object by application id.
      */
-    function getAppById(bytes32 applicationId)
-        external
-        view
-        returns (string memory name, AppStoreLib.Domains domain)
-    {
+    function getAppById(
+        bytes32 applicationId
+    ) external view returns (string memory name, AppStoreLib.Domains domain) {
         AppStoreLib.Applications storage apps = appStorage();
         return apps.getAppById(applicationId);
     }
@@ -147,11 +143,9 @@ contract AppDetailed is AppStorage {
     /**
      * @dev Get the latest version of the application info.
      */
-    function getAppInfo(bytes32 applicationId)
-        external
-        view
-        returns (bytes memory)
-    {
+    function getAppInfo(
+        bytes32 applicationId
+    ) external view returns (bytes memory) {
         AppStoreLib.Applications storage apps = appStorage();
         return apps.getAppInfo(applicationId);
     }
@@ -161,7 +155,9 @@ contract AppDetailed is AppStorage {
      * a consumer wants to learn if a public key belongs to an application,
      * registered in TAR.
      */
-    function getAppByPublicKeyId(bytes32 publicKeyId)
+    function getAppByPublicKeyId(
+        bytes32 publicKeyId
+    )
         external
         view
         returns (
@@ -177,7 +173,9 @@ contract AppDetailed is AppStorage {
     /**
      * @dev returns an application by name.
      */
-    function getAppByName(string memory name)
+    function getAppByName(
+        string memory name
+    )
         external
         view
         returns (bytes32 applicationId, AppStoreLib.Domains domain)
@@ -189,7 +187,10 @@ contract AppDetailed is AppStorage {
     /**
      * @dev returns a paginated list of application ids.
      */
-    function getApps(uint256 page, uint256 pageSize)
+    function getApps(
+        uint256 page,
+        uint256 pageSize
+    )
         external
         view
         returns (
@@ -207,7 +208,9 @@ contract AppDetailed is AppStorage {
     /**
      * @dev return publick Key.
      */
-    function getPublicKey(bytes32 publicKeyId)
+    function getPublicKey(
+        bytes32 publicKeyId
+    )
         external
         view
         returns (
@@ -257,9 +260,10 @@ contract AppDetailed is AppStorage {
     /**
      * @dev Update application name and/or domain.
      */
-    function updateApp(bytes32 applicationId, AppStoreLib.Domains domain)
-        external
-    {
+    function updateApp(
+        bytes32 applicationId,
+        AppStoreLib.Domains domain
+    ) external {
         AppStoreLib.Applications storage apps = appStorage();
         return apps.updateApp(applicationId, domain);
     }

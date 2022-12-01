@@ -10,22 +10,19 @@ library DidDocumentLib {
     using Pagination for string[];
     using VRelationshipsLib for VRelationshipsStorage.VRelationships;
 
-    function equalStrings(string memory a, string memory b)
-        internal
-        pure
-        returns (bool)
-    {
+    function equalStrings(
+        string memory a,
+        string memory b
+    ) internal pure returns (bool) {
         if (abi.encodePacked(a).length != abi.encodePacked(b).length) {
             return false;
         }
         return keccak256(abi.encodePacked(a)) == keccak256(abi.encodePacked(b));
     }
 
-    function getAddress(bytes storage publicKey)
-        internal
-        view
-        returns (address)
-    {
+    function getAddress(
+        bytes storage publicKey
+    ) internal view returns (address) {
         /**
          * step 1: Remove the compression prefix (04, 03, or 02)
          * Note: We can not use the built-in array slices (like publicKey[1:])

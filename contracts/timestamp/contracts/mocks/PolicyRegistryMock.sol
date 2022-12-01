@@ -4,11 +4,10 @@ pragma solidity 0.8.12;
 contract PolicyRegistryMock {
     bool public policyResult;
 
-    function checkPolicy(string calldata policyName, address user)
-        external
-        view
-        returns (bool)
-    {
+    function checkPolicy(
+        string calldata policyName,
+        address user
+    ) external view returns (bool) {
         return policyResult;
     }
 

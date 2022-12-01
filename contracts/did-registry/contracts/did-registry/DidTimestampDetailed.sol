@@ -35,7 +35,10 @@ contract DidTimestampDetailed is DidTimestampStorage {
     /**
      * @dev returns a paginated list of timestamp hashes. List of all timestamp ids is stored in the timestampIdsList
      */
-    function getDidTimestamps(uint256 page, uint256 pageSize)
+    function getDidTimestamps(
+        uint256 page,
+        uint256 pageSize
+    )
         public
         view
         returns (
@@ -53,7 +56,9 @@ contract DidTimestampDetailed is DidTimestampStorage {
     /**
      * @dev returns the timestamp of the hash. The timestamp is stored in the timestampsStore.
      */
-    function getDidTimestamp(bytes calldata hashValue)
+    function getDidTimestamp(
+        bytes calldata hashValue
+    )
         public
         view
         returns (
@@ -70,7 +75,9 @@ contract DidTimestampDetailed is DidTimestampStorage {
     /**
      * @dev returns the timestamp by timestampId (sha256(hashvalue)). The timestamp is stored in the timestampsStore.
      */
-    function getDidTimestampById(bytes32 timestampId)
+    function getDidTimestampById(
+        bytes32 timestampId
+    )
         public
         view
         returns (

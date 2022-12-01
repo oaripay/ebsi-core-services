@@ -11,12 +11,7 @@ library CustomPagination {
     )
         internal
         pure
-        returns (
-            uint256 cursor,
-            uint256 howMany,
-            uint256 prev,
-            uint256 next
-        )
+        returns (uint256 cursor, uint256 howMany, uint256 prev, uint256 next)
     {
         uint256 curPage = page;
         uint256 mod = total % pageSize;

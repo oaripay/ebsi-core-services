@@ -295,7 +295,10 @@ contract DidRecordDetailed is DidRecordStorage {
     /**
      * @dev getDidRecordIdentifiers returns a paginated list of  didRecords identifiers from didRecordIdentifiersList.
      */
-    function getDidRecordIdentifiers(uint256 page, uint256 pageSize)
+    function getDidRecordIdentifiers(
+        uint256 page,
+        uint256 pageSize
+    )
         public
         view
         returns (
@@ -364,11 +367,9 @@ contract DidRecordDetailed is DidRecordStorage {
      * @dev getLatestDidDocumentVersion returns for a specific identifier
      * (did), the didVersionInfo for the latest version of the DID Document.
      */
-    function getLatestDidDocumentVersion(bytes calldata identifier)
-        public
-        view
-        returns (bytes memory)
-    {
+    function getLatestDidDocumentVersion(
+        bytes calldata identifier
+    ) public view returns (bytes memory) {
         DidRecords storage rs = recordStorage();
         return rs.getLatestDidDocumentVersion(identifier);
     }
@@ -376,7 +377,9 @@ contract DidRecordDetailed is DidRecordStorage {
     /**
      * @dev getDidRecord returns information about a specific identifier (did)
      */
-    function getDidRecord(bytes calldata identifier)
+    function getDidRecord(
+        bytes calldata identifier
+    )
         public
         view
         returns (address[] memory controllerIds, uint256 totalDidVersions)
@@ -388,7 +391,9 @@ contract DidRecordDetailed is DidRecordStorage {
     /**
      * @dev getDidRecordById returns information about a specific identifier (did)
      */
-    function getDidRecordById(bytes32 recordId)
+    function getDidRecordById(
+        bytes32 recordId
+    )
         public
         view
         returns (
@@ -426,11 +431,9 @@ contract DidRecordDetailed is DidRecordStorage {
     /**
      * @dev getDidDocumentVersionInfo returns version info by didVersionInfoId
      */
-    function getDidDocumentVersionInfo(bytes32 didVersionInfoId)
-        public
-        view
-        returns (bytes memory)
-    {
+    function getDidDocumentVersionInfo(
+        bytes32 didVersionInfoId
+    ) public view returns (bytes memory) {
         DidRecords storage rs = recordStorage();
         return rs.getDidDocumentVersionInfo(didVersionInfoId);
     }
@@ -469,11 +472,9 @@ contract DidRecordDetailed is DidRecordStorage {
      * @dev getDidDocumentVersionMetadata returns version metadata by
      * didVersionMetadataId from the didVersionMetadataStore
      */
-    function getDidDocumentVersionMetadata(bytes32 didVersionMetadataId)
-        public
-        view
-        returns (bytes memory)
-    {
+    function getDidDocumentVersionMetadata(
+        bytes32 didVersionMetadataId
+    ) public view returns (bytes memory) {
         DidRecords storage rs = recordStorage();
         return rs.getDidDocumentVersionMetadata(didVersionMetadataId);
     }
@@ -496,11 +497,10 @@ contract DidRecordDetailed is DidRecordStorage {
      * @dev checkController returns true if the 'ctrl' is in the list
      * of controllers of the 'identifier'
      */
-    function checkController(bytes calldata identifier, address ctrl)
-        external
-        view
-        returns (bool)
-    {
+    function checkController(
+        bytes calldata identifier,
+        address ctrl
+    ) external view returns (bool) {
         DidRecords storage rs = recordStorage();
         return rs.checkController(identifier, ctrl);
     }

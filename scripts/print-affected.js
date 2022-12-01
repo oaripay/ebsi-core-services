@@ -4,31 +4,24 @@ const { EOL } = require("os");
 const { spawnSync } = require("child_process");
 const { writeFileSync } = require("fs");
 
-// Not relevant/unnecessary
-const contracts = [
-  "@ebsiint-sc/trusted-policies-registry",
-  "@ebsiint-sc/trusted-issuers-registry",
-  "@ebsiint-sc/trusted-ledgers-registry",
-  "@ebsiint-sc/trusted-schemas-registry",
-  "@ebsiint-sc/trusted-apps-registry",
-  "@ebsiint-sc/did-registry",
-  "@ebsiint-sc/timestamp",
-  "@ebsiint-sc/bootstrap",
-];
-
 const processResult = spawnSync("sh", [
   "-c",
-  `yarn nx print-affected --base=main~1 --head=main --exclude=${contracts.join(",")} | sed '/^{/,/^}/!d'`,
+  `yarn nx print-affected --base=main~1 --head=main | sed '/^{/,/^}/!d'`,
 ]);
 
 try {
   const { projects } = JSON.parse(processResult.stdout.toString());
-  const affected = projects.map((project) => {
-    const [scope, packageName] = project.split("/");
-    return packageName;
-  });
+  const affected = projects
+    .filter(
+      (project) =>
+        project.startsWith("@ebsiint-api") || project.startsWith("@ebsiint-app")
+    )
+    .map((project) => {
+      const [scope, packageName] = project.split("/");
+      return packageName;
+    });
 
-  console.log("affected packages", affected);
+  console.log("affected services", affected);
 
   const updates = affected
     .map((pkg) => `version_tag::${pkg}: ${process.env.GIT_COMMIT}`)

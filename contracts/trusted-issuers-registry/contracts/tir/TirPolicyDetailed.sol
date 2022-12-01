@@ -24,9 +24,10 @@ abstract contract TirPolicyDetailed is TirPolicyStorage {
     /**
      * @dev insert an Policy
      */
-    function insertPolicy(string calldata policyId, bytes calldata policyData)
-        external
-    {
+    function insertPolicy(
+        string calldata policyId,
+        bytes calldata policyData
+    ) external {
         bytes32 firstPolicyHash = sha256(policyData);
 
         Policies storage ds = tirPolicyStorage();
@@ -48,9 +49,10 @@ abstract contract TirPolicyDetailed is TirPolicyStorage {
     /**
      * @dev add a new policy's attribute
      */
-    function updatePolicy(string calldata policyId, bytes calldata policyData)
-        external
-    {
+    function updatePolicy(
+        string calldata policyId,
+        bytes calldata policyData
+    ) external {
         Policies storage ds = tirPolicyStorage();
         PolicyDetails storage p = ds.policyStore[policyId];
         require(p.revisionHashes.length > 0, "policy does not exist");
@@ -73,11 +75,9 @@ abstract contract TirPolicyDetailed is TirPolicyStorage {
     /**
     Returns the data of the last revision
      */
-    function getPolicy(string memory policyId)
-        public
-        view
-        returns (bytes memory, bytes32)
-    {
+    function getPolicy(
+        string memory policyId
+    ) public view returns (bytes memory, bytes32) {
         Policies storage ds = tirPolicyStorage();
         bytes32[] memory policyRevisionHashes = ds
             .policyStore[policyId]
@@ -92,11 +92,9 @@ abstract contract TirPolicyDetailed is TirPolicyStorage {
     /**
     Returns the data of the provided revision
      */
-    function getPolicyByHash(bytes32 revisionHash)
-        public
-        view
-        returns (bytes memory)
-    {
+    function getPolicyByHash(
+        bytes32 revisionHash
+    ) public view returns (bytes memory) {
         Policies storage ds = tirPolicyStorage();
         require(
             keccak256(bytes(ds.revisions[revisionHash])) !=
@@ -134,7 +132,10 @@ abstract contract TirPolicyDetailed is TirPolicyStorage {
         return p.revisionHashes.paginate(page, pageSize);
     }
 
-    function getPolicies(uint256 page, uint256 pageSize)
+    function getPolicies(
+        uint256 page,
+        uint256 pageSize
+    )
         public
         view
         returns (

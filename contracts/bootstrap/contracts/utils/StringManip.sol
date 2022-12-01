@@ -2,19 +2,15 @@
 pragma solidity 0.8.12;
 
 library StringManip {
-    function convertToString(address account)
-        public
-        pure
-        returns (string memory)
-    {
+    function convertToString(
+        address account
+    ) public pure returns (string memory) {
         return bytestoString(abi.encodePacked(account));
     }
 
-    function bytestoString(bytes memory data)
-        internal
-        pure
-        returns (string memory)
-    {
+    function bytestoString(
+        bytes memory data
+    ) internal pure returns (string memory) {
         bytes memory alphabet = "0123456789abcdef";
 
         bytes memory str = new bytes(2 + data.length * 2);

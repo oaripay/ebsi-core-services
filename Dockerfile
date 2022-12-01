@@ -1,4 +1,4 @@
-FROM node:16.17.1-bullseye-slim@sha256:d93fb5c25db163dc795d40eabf66251a2daf6a2c6a2d21cc29930e754aef4c2c
+FROM node:16.18.1-bullseye-slim@sha256:d0a2a23135b471f1905f0f8440032d2cdab9261488e94026fbc49002542a83bc
 
 WORKDIR /app
 
@@ -22,6 +22,7 @@ COPY ./apis/did-registry-v4/package.json ./apis/did-registry-v4/
 COPY ./apis/ledger/package.json ./apis/ledger/
 COPY ./apis/notifications/package.json ./apis/notifications/
 COPY ./apis/proxy-data-hub/package.json ./apis/proxy-data-hub/
+COPY ./apis/shared/package.json ./apis/shared/
 COPY ./apis/storage/package.json ./apis/storage/
 COPY ./apis/timestamp/package.json ./apis/timestamp/
 COPY ./apis/trusted-apps-registry/package.json ./apis/trusted-apps-registry/
@@ -40,7 +41,9 @@ COPY ./contracts/trusted-issuers-registry/package.json ./contracts/trusted-issue
 COPY ./contracts/trusted-ledgers-registry/package.json ./contracts/trusted-ledgers-registry/
 COPY ./contracts/trusted-policies-registry/package.json ./contracts/trusted-policies-registry/
 COPY ./contracts/trusted-schemas-registry/package.json ./contracts/trusted-schemas-registry/
+
 # Install all the dependencies
+ENV PUPPETEER_SKIP_DOWNLOAD=true
 RUN yarn install --frozen-lockfile --silent && yarn cache clean
 
 # Copy all other files

@@ -3,4 +3,4 @@
 "@ebsiint-sc/did-registry-v4": minor
 ---
 
-DID API/SC v4: get dids given a verification relationship and verification method id
+DIDR API/SC v4: get DIDs given a verification relationship and verification method ID.

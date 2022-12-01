@@ -24,11 +24,10 @@ library RecordLib {
     /**
      * @dev  checkIfOwnerExist checks if the sender is the owner of the record
      */
-    function checkIfOwnerExist(address ownerId, string[] memory ownerIds)
-        internal
-        pure
-        returns (bool)
-    {
+    function checkIfOwnerExist(
+        address ownerId,
+        string[] memory ownerIds
+    ) internal pure returns (bool) {
         string memory ownerIdStr = ownerId.convertToString();
         for (uint256 i = 0; i < ownerIds.length; i++) {
             if (
@@ -372,15 +371,7 @@ library RecordLib {
         RecordStorage.Records storage rs,
         bytes32 recordId,
         string calldata ownerId
-    )
-        public
-        view
-        returns (
-            bool revoked,
-            uint256 notBefore,
-            uint256 notAfter
-        )
-    {
+    ) public view returns (bool revoked, uint256 notBefore, uint256 notAfter) {
         require(recordId != bytes32(0), "recordId empty");
         require(bytes(ownerId).length > 0, "ownerId empty");
         RecordStorage.Record storage r = rs.recordsStore[recordId];
