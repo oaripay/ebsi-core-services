@@ -1,3 +1,4 @@
+import { describe } from "@jest/globals";
 import crypto, { randomUUID } from "node:crypto";
 import { URLSearchParams } from "node:url";
 import request from "supertest";

@@ -53,6 +53,11 @@
       "outputs": [],
       "dependsOn": ["^build"]
     },
+    "start:prod": {
+      "inputs": ["production", "^production"],
+      "outputs": [],
+      "dependsOn": ["^build"]
+    },
     "test:unit": {
       "inputs": ["test", "^production"],
       "outputs": [],

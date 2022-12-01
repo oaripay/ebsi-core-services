@@ -12,6 +12,7 @@ import { base64url } from "multiformats/bases/base64";
 import { calculateJwkThumbprint, exportJWK, generateKeyPair } from "jose";
 import EbsiWallet from "@cef-ebsi/wallet-lib";
 import { PaginatedList2 } from "@ebsiint-api/shared";
+import { describe } from "@jest/globals";
 import { AppModule } from "../../src/app.module";
 import { ApiConfig, loadConfig } from "../../src/config/configuration";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";

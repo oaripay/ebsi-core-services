@@ -297,7 +297,6 @@ describe("Trusted Apps", () => {
     await policyContractMock.setPolicyResult(false);
 
     const info = crypto.randomBytes(32);
-    const infoId = ethers.utils.sha256(info);
     await expect(tar.insertAppInfo(app.id, info)).to.emit(
       tar,
       "ApplicationInfoUpdated"

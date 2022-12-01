@@ -29,6 +29,7 @@ import {
   encode,
   verifyJwtTar,
 } from "@cef-ebsi/siop-auth";
+import { describe } from "@jest/globals";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import type { ApiConfig } from "../../src/config/configuration";
