@@ -157,7 +157,11 @@ export class ContractService {
         );
         this.logger.debug(`Trying to connect to local Ledger API: ${localUrl}`);
         this.setupProvider(localUrl, token);
-        await this.ethersProvider.getNetwork();
+        if (token) {
+          await this.ethersProvider.getNetwork();
+        } else {
+          await this.ethersProviderWithoutToken.getNetwork();
+        }
         this.logger.debug("Connected to local Ledger API");
       } catch (e) {
         this.logger.debug(
