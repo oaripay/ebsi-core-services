@@ -1,8 +1,8 @@
 version: "3.7"
 
 services:
-  trusted-apps-registry-api:
-    image: trusted-apps-registry-api
+  trusted-apps-registry-api-v3:
+    image: trusted-apps-registry-api-v3
     build: .
     env_file:
       - .env.default
