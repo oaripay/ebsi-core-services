@@ -127,7 +127,9 @@ export class LedgerService {
 
       this.ethersProvider.on("debug", (...args) => {
         try {
-          this.logger.debug(JSON.stringify(args[0], null, 2));
+          if (typeof args[0] === "object" && "error" in args[0]) {
+            this.logger.debug(JSON.stringify(args[0]));
+          }
         } catch {
           // Ignore debug
         }
@@ -140,7 +142,9 @@ export class LedgerService {
 
       this.ethersProviderWithoutToken.on("debug", (...args) => {
         try {
-          this.logger.debug(JSON.stringify(args[0], null, 2));
+          if (typeof args[0] === "object" && "error" in args[0]) {
+            this.logger.debug(JSON.stringify(args[0]));
+          }
         } catch {
           // Ignore debug
         }
