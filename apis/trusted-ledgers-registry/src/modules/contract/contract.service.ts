@@ -124,10 +124,26 @@ export class ContractService {
         },
         timeout: this.timeout,
       });
+
+      this.ethersProvider.on("debug", (...args) => {
+        try {
+          this.logger.debug(JSON.stringify(args[0], null, 2));
+        } catch {
+          // Ignore debug
+        }
+      });
     } else {
       this.ethersProviderWithoutToken = new ethers.providers.JsonRpcProvider({
         url,
         timeout: this.timeout,
+      });
+
+      this.ethersProviderWithoutToken.on("debug", (...args) => {
+        try {
+          this.logger.debug(JSON.stringify(args[0], null, 2));
+        } catch {
+          // Ignore debug
+        }
       });
     }
   }

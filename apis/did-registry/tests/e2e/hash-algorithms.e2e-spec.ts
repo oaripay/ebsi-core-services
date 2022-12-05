@@ -131,7 +131,7 @@ describe("HashAlgorithms (e2e)", () => {
       it("should work", async () => {
         expect.assertions(5);
 
-        let params: JsonRpcParams = null;
+        let params: JsonRpcParams | null = null;
 
         switch (method) {
           case "insertHashAlgorithm": {
