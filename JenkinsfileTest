@@ -110,7 +110,14 @@ pipeline {
         stage('Deploy on network') {
           steps {
             withCredentials([sshUserPrivateKey(credentialsId: 'ebsi1-robot', keyFileVariable: 'PK')]) {
-              sh 'ssh mco /usr/local/bin/puppet_run_containers_only.sh test aio'
+              sh 'scripts/run_deploy.sh'
+            }
+          }
+        }
+        stage('Verify Deployment') {
+          steps {
+            withCredentials([sshUserPrivateKey(credentialsId: 'ebsi1-robot', keyFileVariable: 'PK')]) {
+              sh 'scripts/run_verify.sh'
             }
           }
         }
