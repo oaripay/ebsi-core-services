@@ -52,7 +52,7 @@ describe("Hash Algorithm", () => {
         DidPolicyLib: policyLib.address,
       },
     });
-    ts = (await contractFactory.deploy()) as DidRegistry;
+    ts = (await contractFactory.deploy(testTprAddress)) as DidRegistry;
     await ts.initialize(42);
     await ts.setTrustedPoliciesRegistryAddress();
     const initialVersion = await ts.version();

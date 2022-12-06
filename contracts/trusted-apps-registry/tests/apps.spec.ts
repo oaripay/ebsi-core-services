@@ -122,7 +122,10 @@ describe("Trusted Apps", () => {
       },
     });
 
-    tar = (await contractFactory.deploy()) as Tar;
+    tar = (await contractFactory.deploy(
+      testTprAddress,
+      testDidrAddress
+    )) as Tar;
     await tar.initialize(42);
     await tar.setRegistryAddresses();
     const initialVersion = await tar.version();

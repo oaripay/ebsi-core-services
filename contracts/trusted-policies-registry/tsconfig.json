@@ -17,6 +17,6 @@
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true
   },
-  "include": ["src/types"],
+  "include": ["src/types", "contracts"],
   "exclude": ["node_modules", "artifacts", "cache", "dist"]
 }

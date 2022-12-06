@@ -107,7 +107,7 @@ export async function deployTarContract(): Promise<Tar> {
     },
   });
 
-  const tarContract = await tarFactory.deploy();
+  const tarContract = await tarFactory.deploy(testTprAddress, testDidrAddress);
   await tarContract.initialize(1);
   await tarContract.setRegistryAddresses();
 

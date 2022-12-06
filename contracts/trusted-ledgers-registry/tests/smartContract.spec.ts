@@ -35,7 +35,7 @@ describe("SmartContract", () => {
         },
       }
     );
-    ts = await contractFactory.deploy();
+    ts = await contractFactory.deploy(testTprAddress);
     await ts.initialize(42);
     await ts.setTrustedPoliciesRegistryAddress();
     const initialVersion = await ts.version();

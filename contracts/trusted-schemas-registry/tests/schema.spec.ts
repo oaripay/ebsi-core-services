@@ -38,7 +38,7 @@ describe("Schema", () => {
         },
       }
     );
-    ts = (await contractFactory.deploy()) as SchemaSCRegistry;
+    ts = (await contractFactory.deploy(testTprAddress)) as SchemaSCRegistry;
     await ts.initialize(42);
     await ts.setTrustedPoliciesRegistryAddress();
     const initialVersion = await ts.version();

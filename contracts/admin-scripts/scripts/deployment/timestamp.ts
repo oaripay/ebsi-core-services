@@ -14,6 +14,8 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   if (!tprAddress) {
     await deployments.run("PolicyRegistry");
     tprAddress = (await deployments.get("PolicyRegistry")).address;
+  } else {
+    console.log(`re-using tpr address ${tprAddress}`);
   }
 
   const { deployer } = await getNamedAccounts();

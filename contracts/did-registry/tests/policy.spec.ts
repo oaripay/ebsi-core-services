@@ -5,7 +5,7 @@ import crypto from "crypto";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { DidRegistry } from "../src/types";
-
+import { testTprAddress } from "./testAddress";
 const num = (a: number) => BigNumber.from(a).toString();
 
 function getEthObject(o: unknown): Record<string, unknown> {
@@ -79,7 +79,7 @@ describe("Policies", () => {
         DidPolicyLib: policyLib.address,
       },
     });
-    ts = (await contractFactory.deploy()) as DidRegistry;
+    ts = (await contractFactory.deploy(testTprAddress)) as DidRegistry;
     await ts.initialize(42);
     const initialVersion = await ts.version();
     expect(initialVersion).to.equal(42);

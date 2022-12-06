@@ -34,72 +34,60 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
       Pagination: pagination.address,
     },
   };
-  const didTimestampLib = await deployments.deploy("DidTimestampLib", {
+
+  const controller = await deployments.deploy("ControllersLib", {
     ...optsPagination,
-    contract:
-      "contracts/did-registry/did-registry/DidTimestampLib.sol:DidTimestampLib",
   });
-  const didRecordLib = await deployments.deploy("DidRecordLib", {
+  console.log(`Controller deployed;`);
+
+  const customPagination = await deployments.deploy("CustomPagination", {
+    ...optsPagination,
+  });
+
+  console.log(`Custom Pagination deployed;`);
+  const optsv = {
     from: deployer,
     log: true,
+    libraries: {
+      Pagination: pagination.address,
+      CustomPagination: customPagination.address,
+    },
+  };
+  const vRelation = await deployments.deploy("VRelationshipsLib", {
+    ...optsv,
     contract:
-      "contracts/did-registry/did-registry/DidRecordLib.sol/DidRecordLib",
-    libraries: {
-      Pagination: pagination.address,
-      DidTimestampLib: didTimestampLib.address,
-    },
+      "contracts/did-registry-v4/did-registry/VRelationshipsLib.sol/VRelationshipsLib",
   });
-
-  const didPolicyLib = await deployments.deploy("DidPolicyLib", {
-    ...opts,
-    libraries: {
-      Pagination: pagination.address,
-    },
-  });
-
-  // const didControllersLib = await deployments.deploy("ControllersLib", {
-  //   ...opts,
-  //   libraries: {
-  //     Pagination: pagination.address,
-  //   },
-  // });
-  // const didDocumentLib = await deployments.deploy("DidDocumentLib", {
-  //   ...opts,
-  //   libraries: {
-  //     Pagination: pagination.address,
-  //   },
-  // });
-
-  const hashAlgoLib = await deployments.deploy("HashAlgoLib", {
-    ...optsPagination,
-    contract: "contracts/did-registry/did-registry/HashAlgoLib.sol:HashAlgoLib",
-  });
-
-  const ts = await deployments.deploy("DidRegistry", {
+  console.log(`VRelationships lib deployed`);
+  const optsPagVrel = {
     from: deployer,
-    contract: "contracts/did-registry/did-registry/DidRegistry.sol:DidRegistry",
+    log: true,
+    libraries: {
+      Pagination: pagination.address,
+      VRelationshipsLib: vRelation.address,
+    },
+  };
+  const didDocument = await deployments.deploy("DidDocumentLib", {
+    ...optsPagVrel,
+  });
+
+  console.log(`Did Document deployed;`);
+
+  const ts = await deployments.deploy("DidRegistryV4", {
+    from: deployer,
+    contract:
+      "contracts/did-registry-v4/did-registry/DidRegistry.sol:DidRegistry",
     args: [tprAddress],
     libraries: {
-      DidRecordLib: didRecordLib.address,
-      HashAlgoLib: hashAlgoLib.address,
-      DidTimestampLib: didTimestampLib.address,
+      ControllersLib: controller.address,
+      CustomPagination: customPagination.address,
+      DidDocumentLib: didDocument.address,
+      VRelationshipsLib: vRelation.address,
       Pagination: pagination.address,
-      DidPolicyLib: didPolicyLib.address,
-      // ControllersLib: didControllersLib.address,
-      // DidDocumentLib: didDocumentLib.address,
     },
-    log: true,
   });
 
   deployments.log("Did Registry deployed at:", ts.address);
 };
 export default func;
-func.tags = ["DidRegistry"];
-func.dependencies = [
-  "AdministratorLib",
-  "PolicyLib",
-  "HashAlgoLib",
-  "DidTimestampLib",
-  "DidRecordLib",
-  "Pagination",
-];
+func.tags = ["DidRegistryV4"];

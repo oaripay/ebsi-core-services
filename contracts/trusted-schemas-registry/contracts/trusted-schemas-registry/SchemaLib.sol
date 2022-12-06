@@ -36,7 +36,6 @@ library SchemaLib {
         require(metadata.length > 0, "metadata empty");
 
         schemaRevisionId = sha256(schema);
-        bytes32 metadataId = sha256(metadata);
 
         // Verify that the schema ID is not already registered (in the Schema ID To Schema Revisions IDs map)
         require(
@@ -55,12 +54,16 @@ library SchemaLib {
         ss.schemaIds.push(schemaId);
         // add revision id to the list of schema
         ss.schemaIdToRevisionIds[schemaId].push(schemaRevisionId);
-        // add metadataId to the current revisionId
-        ss.revisionIdToMetadataIds[schemaRevisionId].push(metadataId);
+        {
+            bytes32 metadataId = sha256(metadata);
+            // add metadataId to the current revisionId
+            ss.revisionIdToMetadataIds[schemaRevisionId].push(metadataId);
+            // save metadata of revision
+            ss.revisionMetadataStore[metadataId] = metadata;
+        }
+
         // save schema revision (bytes)
         ss.schemaRevisionStore[schemaRevisionId] = schema;
-        // save metadata of revision
-        ss.revisionMetadataStore[metadataId] = metadata;
 
         emit SchemaInserted(schemaId, schema, metadata);
     }

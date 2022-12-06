@@ -75,7 +75,7 @@ export async function deployTirContract(): Promise<{
       Pagination: pagination.address,
     },
   });
-  const tirContract = await tirFactory.deploy();
+  const tirContract = await tirFactory.deploy(testTprAddress, testDidrAddress);
   await tirContract.initialize(1);
   await tirContract.setRegistryAddresses();
 

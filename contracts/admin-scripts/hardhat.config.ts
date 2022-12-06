@@ -10,7 +10,7 @@ import "@tenderly/hardhat-tenderly";
 import "./tasks/index";
 import { HardhatUserConfig } from "hardhat/config";
 import * as fs from "fs";
-import dotenv from "dotenv";
+import * as dotenv from "dotenv";
 
 dotenv.config({ path: __dirname + "/.env" });
 
@@ -38,7 +38,7 @@ const accounts = {
 const { HARDHAT_NETWORK_URL, ETHERSCAN_API_KEY } = process.env;
 
 const config: HardhatUserConfig = {
-  defaultNetwork: "hardhat",
+  defaultNetwork: "local",
   networks: {
     hardhat: {},
     local: {
@@ -102,6 +102,7 @@ const config: HardhatUserConfig = {
             enabled: true,
             runs: 200,
           },
+          viaIR: true,
         },
       },
     ],

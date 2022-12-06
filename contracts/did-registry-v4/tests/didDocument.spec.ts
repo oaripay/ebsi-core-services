@@ -92,7 +92,9 @@ describe("Did Documents", () => {
       },
     });
 
-    reg = (await contractFactory.deploy()).connect(user) as DidRegistry;
+    reg = (await contractFactory.deploy(testTprAddress)).connect(
+      user
+    ) as DidRegistry;
 
     await reg.initialize(42);
     await reg.setTrustedPoliciesRegistryAddress();

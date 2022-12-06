@@ -4,6 +4,7 @@ import { expect } from "chai";
 // eslint-disable-next-line import/no-unresolved, import/extensions
 import { SchemaSCRegistry } from "../src/types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import testTprAddress from "./testAddress";
 
 const num = ethers.BigNumber.from;
 
@@ -62,7 +63,7 @@ describe("SchemaPolicies", () => {
         },
       }
     );
-    ts = (await contractFactory.deploy()) as SchemaSCRegistry;
+    ts = (await contractFactory.deploy(testTprAddress)) as SchemaSCRegistry;
     await ts.initialize(42);
     const initialVersion = await ts.version();
     expect(initialVersion).to.equal(42);

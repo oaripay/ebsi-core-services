@@ -72,7 +72,9 @@ export async function deployLedgerScRegistryContract(): Promise<{
       },
     }
   );
-  const ledgerScRegistryContract = await ledgersScFactory.deploy();
+  const ledgerScRegistryContract = await ledgersScFactory.deploy(
+    testTprAddress
+  );
   await ledgerScRegistryContract.initialize(1);
   await ledgerScRegistryContract.setTrustedPoliciesRegistryAddress();
   await policyContractMock.setPolicyResult(true);

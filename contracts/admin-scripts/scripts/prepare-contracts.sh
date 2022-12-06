@@ -8,6 +8,7 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 echo Consolidating smart contracts
 
+rm -rf ${SCRIPT_DIR}/../contracts
 mkdir ${SCRIPT_DIR}/../contracts
 
 echo Copy the bootstrap
@@ -15,6 +16,9 @@ cp -r ${SCRIPT_DIR}/../../bootstrap/contracts ${SCRIPT_DIR}/../contracts/bootstr
 
 echo Copy the did-registry
 cp -r ${SCRIPT_DIR}/../../did-registry/contracts ${SCRIPT_DIR}/../contracts/did-registry
+
+echo Copy the did-registry-v4
+cp -r ${SCRIPT_DIR}/../../did-registry-v4/contracts ${SCRIPT_DIR}/../contracts/did-registry-v4
 
 echo Copy the proxy
 cp -r ${SCRIPT_DIR}/../../proxy/contracts ${SCRIPT_DIR}/../contracts/proxy

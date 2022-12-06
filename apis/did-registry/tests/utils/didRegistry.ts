@@ -124,7 +124,9 @@ export async function deployDidRegistryContract(): Promise<{
     }
   );
 
-  const didRegistryContract = await didRegistryContractFactory.deploy();
+  const didRegistryContract = await didRegistryContractFactory.deploy(
+    testTprAddress
+  );
   await didRegistryContract.initialize(1);
   await didRegistryContract.setTrustedPoliciesRegistryAddress();
 

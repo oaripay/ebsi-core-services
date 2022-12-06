@@ -1,5 +1,7 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
+import { ethers } from "hardhat";
+import { dependencies } from "./dependencies";
 
 const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const { deployments, getNamedAccounts } = hre;
@@ -10,6 +12,25 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     log: true,
   };
 
+  // get Proxy of TPR and didr - deployed new ones for undefined vars
+  const chainId = (await ethers.provider.getNetwork()).chainId;
+  console.log(`chain id ${chainId}`);
+  let tprAddress = dependencies[chainId]?.tprAddress;
+  let didAddress = dependencies[chainId]?.didAddress;
+  if (!ethers.utils.isAddress(tprAddress)) {
+    console.log(`Deploying TPR for testnet`);
+    // deploy for testnet
+    await deployments.run("PolicyRegistry");
+    tprAddress = (await deployments.get("PolicyRegistry")).address;
+  }
+
+  if (!ethers.utils.isAddress(didAddress)) {
+    console.log(`Deploying DIDr for testnet`);
+    // deploy for testnet
+    await deployments.run("DidRegistry");
+    didAddress = (await deployments.get("DidRegistry")).address;
+  }
+  console.log(`Registry addresses did: ${didAddress}, tpr: ${tprAddress}`);
   const pagination = await deployments.deploy("Pagination", {
     ...opts,
     contract: "contracts/bootstrap/utils/Pagination.sol/Pagination",
@@ -17,6 +38,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
   const ts = await deployments.deploy("Tir", {
     from: deployer,
+    args: [tprAddress, didAddress],
     contract: "contracts/trusted-issuers-registry/tir/Tir.sol:Tir",
     libraries: {
       Pagination: pagination.address,

@@ -94,7 +94,7 @@ describe("Issuers", () => {
         Pagination: paginationLib.address,
       },
     });
-    tir = await contractFactory.deploy();
+    tir = await contractFactory.deploy(testTprAddress, testDidrAddress);
     await tir.deployed();
     await tir.initialize(42);
     await tir.setRegistryAddresses();

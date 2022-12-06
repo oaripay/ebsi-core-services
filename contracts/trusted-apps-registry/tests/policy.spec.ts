@@ -5,6 +5,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { FactoryOptions } from "hardhat/types";
 import { expect } from "chai";
 import { Tar } from "../src/types";
+import { testDidrAddress, testTprAddress } from "./testAddress";
 
 const num = ethers.BigNumber.from;
 
@@ -63,7 +64,7 @@ describe("Policies", () => {
         AuthLib: await deployContract("AuthLib"),
       },
     });
-    ts = (await contractFactory.deploy()) as Tar;
+    ts = (await contractFactory.deploy(testTprAddress, testDidrAddress)) as Tar;
     await ts.initialize(42);
     const initialVersion = await ts.version();
     expect(initialVersion).to.equal(42);

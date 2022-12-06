@@ -184,7 +184,7 @@ export async function deploySchemasRegistryContract(): Promise<{
       },
     }
   );
-  const schemasRegistry = await schemasRegistryFactory.deploy();
+  const schemasRegistry = await schemasRegistryFactory.deploy(testTprAddress);
   await schemasRegistry.initialize(1);
   await schemasRegistry.setTrustedPoliciesRegistryAddress();
   await policyContractMock.setPolicyResult(true);

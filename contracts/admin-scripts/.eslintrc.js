@@ -19,5 +19,6 @@ module.exports = {
     "@typescript-eslint/no-var-requires": "off",
     "@typescript-eslint/no-unused-expressions": "off",
     "@typescript-eslint/ban-ts-comment": "off",
+    "@nomiclabs/eslint-plugin-hardhat-internal-rules": "off",
   },
 };
