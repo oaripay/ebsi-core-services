@@ -24,4 +24,9 @@ module.exports = {
     "^jose/(.*)$": "<rootDir>/node_modules/jose/dist/node/cjs/$1",
   },
   resolver: path.resolve(__dirname, "../../jest-resolver.js"),
+  globals: {
+    "ts-jest": {
+      tsconfig: "tsconfig.test.json",
+    },
+  },
 };

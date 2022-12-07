@@ -39,6 +39,7 @@ describe("EU Login onboarding", () => {
   let app: NestFastifyApplication;
   let server: HttpServer | string;
   let configService: ConfigService<ApiConfig, true>;
+  let usersOnboardingAppUrl: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -61,6 +62,11 @@ describe("EU Login onboarding", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
 
     server = getServer(app, configService);
+
+    // Infer Users Onboarding webapp URL from the API's domain
+    usersOnboardingAppUrl = `${configService
+      .get<string>("domain")
+      .replace("api", "app")}/users-onboarding/v2`;
   });
 
   it("should allow any EU Login user to onboard", async () => {
@@ -70,22 +76,18 @@ describe("EU Login onboarding", () => {
     const euLoginUsername = configService.get<string>("testEuLoginUsername");
     const euLoginPassword = configService.get<string>("testEuLoginPassword");
 
-    // Let all the requests pass except https://app.test.intebsi.xyz/users-onboarding/v2/authentication?ticket=...
+    // Let all the requests pass except [Users Onboarding App]/authentication?ticket=...
     await page.setRequestInterception(true);
     page.on("request", (req: HTTPRequest) => {
       if (
-        !req
-          .url()
-          .startsWith(
-            "https://app.test.intebsi.xyz/users-onboarding/v2/authentication?ticket="
-          )
+        !req.url().startsWith(`${usersOnboardingAppUrl}/authentication?ticket=`)
       ) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         req.continue();
       }
     });
 
-    await page.goto("https://app.test.intebsi.xyz/users-onboarding/v2");
+    await page.goto(usersOnboardingAppUrl);
 
     await expect(page).toMatch("Choose your onboarding method");
 
@@ -93,7 +95,9 @@ describe("EU Login onboarding", () => {
 
     await page.waitForNavigation({ waitUntil: "networkidle0" });
 
-    await expect(page).toMatch("EBSI requires you to authenticate");
+    // On EU Login Acceptance, the message is: "EBSI requires you to authenticate"
+    // On EU Login Prod, the message is "EBSI Users Onboarding Service v2 requires you to authenticate"
+    await expect(page).toMatch("requires you to authenticate");
 
     await page.waitForTimeout(10000); // EU Login can be very slow to load...
 
@@ -115,21 +119,14 @@ describe("EU Login onboarding", () => {
     await expect(page).toClick('input[title="Sign in"]');
 
     const httpReq = await page.waitForRequest((req) =>
-      req
-        .url()
-        .startsWith(
-          "https://app.test.intebsi.xyz/users-onboarding/v2/authentication?ticket="
-        )
+      req.url().startsWith(`${usersOnboardingAppUrl}/authentication?ticket=`)
     );
 
     await httpReq.abort();
 
     const ticket = httpReq
       .url()
-      .replace(
-        "https://app.test.intebsi.xyz/users-onboarding/v2/authentication?ticket=",
-        ""
-      );
+      .replace(`${usersOnboardingAppUrl}/authentication?ticket=`, "");
 
     // The EU Login ticket starts with ST-
     expect(ticket).toContain("ST-");
@@ -174,7 +171,7 @@ describe("EU Login onboarding", () => {
       ),
     });
 
-    expect(requestPayload.iss).toBe(configService.get<string>("apiName"));
+    expect(requestPayload.iss.startsWith("users-onboarding-api")).toBe(true);
     expect(requestPayload.client_id).toStrictEqual(
       expect.stringContaining("/users-onboarding/v2/authentication-responses")
     );
