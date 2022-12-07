@@ -18,7 +18,7 @@ pipeline {
     stage('Setup') {
       steps {
         dir('core-services') {
-            nodejs(nodeJSInstallationName: '16.13.0') {
+            nodejs(nodeJSInstallationName: '16.17.1') {
                 sh 'yarn install --ignore-engines'
             }
         }
@@ -28,7 +28,7 @@ pipeline {
       steps {
         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
           dir('core-services') {
-            nodejs(nodeJSInstallationName: '16.13.0') {
+            nodejs(nodeJSInstallationName: '16.17.1') {
               sh 'yarn nx lint @ebsiint-sc/timestamp'
             }
           }
@@ -39,12 +39,12 @@ pipeline {
       steps{
         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
           dir('core-services') {
-              nodejs(nodeJSInstallationName: '16.13.0') {
+              nodejs(nodeJSInstallationName: '16.17.1') {
                   sh 'yarn nx test:unit @ebsiint-sc/timestamp'
               }
           }
         }
-      } 
+      }
     }
   }
   post {

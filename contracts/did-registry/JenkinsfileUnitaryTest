@@ -7,19 +7,19 @@ pipeline {
   stages {
     stage('Checkout'){
       steps {
-          checkout poll: false, 
-              scm: [$class: 'GitSCM', 
-              branches:[[name: "${env.BRANCH_NAME}"]], 
-              doGenerateSubmoduleConfigurations: false, 
+          checkout poll: false,
+              scm: [$class: 'GitSCM',
+              branches:[[name: "${env.BRANCH_NAME}"]],
+              doGenerateSubmoduleConfigurations: false,
               extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'core-services']],
               submoduleCfg: [],
-              userRemoteConfigs: [[url: 'https://ebsi1-robot@ec.europa.eu/digital-building-blocks/code/scm/ebsi/core-services.git', credentialsId: 'b257a49a-5fed-4971-a6df-e05d3200edc0']]] 
+              userRemoteConfigs: [[url: 'https://ebsi1-robot@ec.europa.eu/digital-building-blocks/code/scm/ebsi/core-services.git', credentialsId: 'b257a49a-5fed-4971-a6df-e05d3200edc0']]]
       }
     }
     stage('Setup') {
       steps {
         dir('core-services') {
-            nodejs(nodeJSInstallationName: '16.13.0') {
+            nodejs(nodeJSInstallationName: '16.17.1') {
                 sh 'yarn install --ignore-engines'
             }
         }
@@ -29,7 +29,7 @@ pipeline {
       steps {
         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
           dir('core-services') {
-            nodejs(nodeJSInstallationName: '16.13.0') {
+            nodejs(nodeJSInstallationName: '16.17.1') {
               sh 'yarn nx lint @ebsiint-sc/did-registry'
             }
           }
@@ -40,12 +40,12 @@ pipeline {
       steps{
         catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
           dir('core-services') {
-              nodejs(nodeJSInstallationName: '16.13.0') {
+              nodejs(nodeJSInstallationName: '16.17.1') {
                   sh 'yarn nx test:unit @ebsiint-sc/did-registry'
               }
           }
         }
-      } 
+      }
     }
   }
   post {

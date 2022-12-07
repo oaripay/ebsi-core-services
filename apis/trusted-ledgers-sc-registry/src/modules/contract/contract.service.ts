@@ -9,7 +9,7 @@ import { randomUUID } from "crypto";
 import {
   LedgerSCRegistry,
   LedgerSCRegistry__factory,
-} from "@ebsiint-sc/trusted-ledgers-registry";
+} from "@ebsiint-sc/trusted-ledgers-sc-registry";
 import { logAxiosError } from "@ebsiint-api/shared";
 import { ApiConfig } from "../../config/configuration";
 

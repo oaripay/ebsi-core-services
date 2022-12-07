@@ -24,7 +24,7 @@
     "@ebsiint-sc/timestamp": "^1.0.0",
     "@ebsiint-sc/trusted-apps-registry": "^2.0.0",
     "@ebsiint-sc/trusted-issuers-registry": "^3.0.0",
-    "@ebsiint-sc/trusted-ledgers-registry": "^1.0.0",
+    "@ebsiint-sc/trusted-ledgers-sc-registry": "^1.0.0",
     "@ebsiint-sc/trusted-policies-registry": "^1.0.0",
     "@ebsiint-sc/trusted-schemas-registry": "^1.0.0",
     "@openzeppelin/contracts": "^4.8.0",

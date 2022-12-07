@@ -15,7 +15,7 @@ For more information see:
 
 - [Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/x/UYiWFQ)
 - [Smart Contract Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/x/uoiWFQ)
-- [Smart Contract](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/browse/contracts/trusted-ledgers-registry)
+- [Smart Contract](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/browse/contracts/trusted-ledgers-sc-registry)
 
 - API catalogs:
   - [EBSI Pre-production network API Catalog](https://api.preprod.ebsi.eu/docs)

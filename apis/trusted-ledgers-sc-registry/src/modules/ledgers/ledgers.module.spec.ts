@@ -13,9 +13,9 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
-import { LedgerSCRegistry } from "@ebsiint-sc/trusted-ledgers-registry";
+import { LedgerSCRegistry } from "@ebsiint-sc/trusted-ledgers-sc-registry";
 import { AsyncReturnType } from "@ebsiint-api/shared";
-import { SmartContractsModule } from "./smart-contracts.module";
+import { LedgersModule } from "./ledgers.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { setupTestEnv } from "../../../tests/utils/ledgerScRegistry";
 import { ContractService } from "../contract/contract.service";
@@ -23,10 +23,10 @@ import { ApiConfig } from "../../config/configuration";
 
 jest.setTimeout(60000);
 
-const SMART_CONTRACTS_TOTAL = 3;
+const LEDGERS_TOTAL = 3;
 const REVISIONS_TOTAL = 3;
 
-describe("SmartContracts Module", () => {
+describe("Ledgers Module", () => {
   let app: INestApplication;
   let server: HttpServer;
   let ledgerScRegistryContract: LedgerSCRegistry;
@@ -37,14 +37,14 @@ describe("SmartContracts Module", () => {
   beforeAll(async () => {
     // Spin up test blockchain (ganache)
     testEnv = await setupTestEnv({
-      smartContractsTotal: SMART_CONTRACTS_TOTAL,
-      smartContractsRevisionsTotal: REVISIONS_TOTAL,
+      ledgersTotal: LEDGERS_TOTAL,
+      ledgersRevisionsTotal: REVISIONS_TOTAL,
     });
 
     ledgerScRegistryContract = testEnv.ledgerScRegistryContract;
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [SmartContractsModule],
+      imports: [LedgersModule],
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
@@ -64,6 +64,7 @@ describe("SmartContracts Module", () => {
 
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+
     server = app.getHttpServer() as HttpServer;
 
     // Mock TLSCR contract
@@ -82,30 +83,30 @@ describe("SmartContracts Module", () => {
     await app.close();
   });
 
-  describe("GET /smart-contracts", () => {
-    it("should return a paginated collection of smart-contracts", async () => {
+  describe("GET /ledgers", () => {
+    it("should return a paginated collection of ledgers", async () => {
       expect.assertions(3);
 
-      const response = await request(server).get("/smart-contracts");
+      const response = await request(server).get("/ledgers");
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          "/smart-contracts?page[after]=1&page[size]=10"
+          "/ledgers?page[after]=1&page[size]=10"
         ) as string,
         items: expect.arrayContaining([]) as Array<string>,
-        total: SMART_CONTRACTS_TOTAL,
+        total: LEDGERS_TOTAL,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            "/smart-contracts?page[after]=1&page[size]=10"
+            "/ledgers?page[after]=1&page[size]=10"
           ) as string,
           prev: expect.stringContaining(
-            "/smart-contracts?page[after]=1&page[size]=10"
+            "/ledgers?page[after]=1&page[size]=10"
           ) as string,
           next: expect.stringContaining(
-            "/smart-contracts?page[after]=1&page[size]=10"
+            "/ledgers?page[after]=1&page[size]=10"
           ) as string,
           last: expect.stringContaining(
-            "/smart-contracts?page[after]=1&page[size]=10"
+            "/ledgers?page[after]=1&page[size]=10"
           ) as string,
         },
       });
@@ -116,28 +117,26 @@ describe("SmartContracts Module", () => {
     it("should handle the pagination properly", async () => {
       expect.assertions(12);
 
-      const response1 = await request(server).get(
-        "/smart-contracts?page[size]=2"
-      );
+      const response1 = await request(server).get("/ledgers?page[size]=2");
       expect(response1.body).toStrictEqual({
         self: expect.stringContaining(
-          "/smart-contracts?page[after]=1&page[size]=2"
+          "/ledgers?page[after]=1&page[size]=2"
         ) as string,
         items: expect.arrayContaining([]) as Array<string>,
-        total: SMART_CONTRACTS_TOTAL,
+        total: LEDGERS_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
-            "/smart-contracts?page[after]=1&page[size]=2"
+            "/ledgers?page[after]=1&page[size]=2"
           ) as string,
           prev: expect.stringContaining(
-            "/smart-contracts?page[after]=1&page[size]=2"
+            "/ledgers?page[after]=1&page[size]=2"
           ) as string,
           next: expect.stringContaining(
-            "/smart-contracts?page[after]=2&page[size]=2"
+            "/ledgers?page[after]=2&page[size]=2"
           ) as string,
           last: expect.stringContaining(
-            "/smart-contracts?page[after]=2&page[size]=2"
+            "/ledgers?page[after]=2&page[size]=2"
           ) as string,
         },
       });
@@ -146,27 +145,27 @@ describe("SmartContracts Module", () => {
 
       // next page
       const response2 = await request(server).get(
-        "/smart-contracts?page[after]=2&page[size]=2"
+        "/ledgers?page[after]=2&page[size]=2"
       );
       expect(response2.body).toStrictEqual({
         self: expect.stringContaining(
-          "/smart-contracts?page[after]=2&page[size]=2"
+          "/ledgers?page[after]=2&page[size]=2"
         ) as string,
         items: expect.arrayContaining([]) as Array<string>,
-        total: SMART_CONTRACTS_TOTAL,
+        total: LEDGERS_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
-            "/smart-contracts?page[after]=1&page[size]=2"
+            "/ledgers?page[after]=1&page[size]=2"
           ) as string,
           prev: expect.stringContaining(
-            "/smart-contracts?page[after]=1&page[size]=2"
+            "/ledgers?page[after]=1&page[size]=2"
           ) as string,
           next: expect.stringContaining(
-            "/smart-contracts?page[after]=2&page[size]=2"
+            "/ledgers?page[after]=2&page[size]=2"
           ) as string,
           last: expect.stringContaining(
-            "/smart-contracts?page[after]=2&page[size]=2"
+            "/ledgers?page[after]=2&page[size]=2"
           ) as string,
         },
       });
@@ -175,27 +174,27 @@ describe("SmartContracts Module", () => {
 
       // big page
       const response3 = await request(server).get(
-        "/smart-contracts?page[after]=100&page[size]=2"
+        "/ledgers?page[after]=100&page[size]=2"
       );
       expect(response3.body).toStrictEqual({
         self: expect.stringContaining(
-          "/smart-contracts?page[after]=100&page[size]=2"
+          "/ledgers?page[after]=100&page[size]=2"
         ) as string,
         items: expect.arrayContaining([]) as Array<string>,
-        total: SMART_CONTRACTS_TOTAL,
+        total: LEDGERS_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
-            "/smart-contracts?page[after]=1&page[size]=2"
+            "/ledgers?page[after]=1&page[size]=2"
           ) as string,
           prev: expect.stringContaining(
-            "/smart-contracts?page[after]=2&page[size]=2"
+            "/ledgers?page[after]=2&page[size]=2"
           ) as string,
           next: expect.stringContaining(
-            "/smart-contracts?page[after]=2&page[size]=2"
+            "/ledgers?page[after]=2&page[size]=2"
           ) as string,
           last: expect.stringContaining(
-            "/smart-contracts?page[after]=2&page[size]=2"
+            "/ledgers?page[after]=2&page[size]=2"
           ) as string,
         },
       });
@@ -203,28 +202,26 @@ describe("SmartContracts Module", () => {
       expect(response3.status).toBe(200);
 
       // page["after"] defined but page["size"] undefined
-      const response4 = await request(server).get(
-        "/smart-contracts?page[after]=1"
-      );
+      const response4 = await request(server).get("/ledgers?page[after]=1");
       expect(response4.body).toStrictEqual({
         self: expect.stringContaining(
-          "/smart-contracts?page[after]=1&page[size]=10"
+          "/ledgers?page[after]=1&page[size]=10"
         ) as string,
         items: expect.arrayContaining([]) as Array<string>,
-        total: SMART_CONTRACTS_TOTAL,
+        total: LEDGERS_TOTAL,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            "/smart-contracts?page[after]=1&page[size]=10"
+            "/ledgers?page[after]=1&page[size]=10"
           ) as string,
           prev: expect.stringContaining(
-            "/smart-contracts?page[after]=1&page[size]=10"
+            "/ledgers?page[after]=1&page[size]=10"
           ) as string,
           next: expect.stringContaining(
-            "/smart-contracts?page[after]=1&page[size]=10"
+            "/ledgers?page[after]=1&page[size]=10"
           ) as string,
           last: expect.stringContaining(
-            "/smart-contracts?page[after]=1&page[size]=10"
+            "/ledgers?page[after]=1&page[size]=10"
           ) as string,
         },
       });
@@ -235,9 +232,7 @@ describe("SmartContracts Module", () => {
     it("should throw a Bad Request for bad pagination", async () => {
       expect.assertions(12);
 
-      const response1 = await request(server).get(
-        "/smart-contracts?page[size]=100"
-      );
+      const response1 = await request(server).get("/ledgers?page[size]=100");
       expect(response1.body).toStrictEqual({
         title: "Bad Request",
         status: 400,
@@ -249,9 +244,7 @@ describe("SmartContracts Module", () => {
         (response1.headers as { "content-type": string })["content-type"]
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
 
-      const response2 = await request(server).get(
-        "/smart-contracts?page[size]=0"
-      );
+      const response2 = await request(server).get("/ledgers?page[size]=0");
       expect(response2.body).toStrictEqual({
         title: "Bad Request",
         status: 400,
@@ -263,9 +256,7 @@ describe("SmartContracts Module", () => {
         (response2.headers as { "content-type": string })["content-type"]
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
 
-      const response3 = await request(server).get(
-        "/smart-contracts?page[after]=0"
-      );
+      const response3 = await request(server).get("/ledgers?page[after]=0");
       expect(response3.body).toStrictEqual({
         title: "Bad Request",
         status: 400,
@@ -277,9 +268,7 @@ describe("SmartContracts Module", () => {
         (response3.headers as { "content-type": string })["content-type"]
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
 
-      const response4 = await request(server).get(
-        "/smart-contracts?page[after]=abc"
-      );
+      const response4 = await request(server).get("/ledgers?page[after]=abc");
       expect(response4.body).toStrictEqual({
         title: "Bad Request",
         status: 400,
@@ -293,52 +282,50 @@ describe("SmartContracts Module", () => {
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
 
-    it("should return the smart-contracts corresponding to a specific name", async () => {
+    it("should return the ledgers corresponding to a specific name", async () => {
       expect.assertions(4);
 
       // If we give a wrong name
-      const response = await request(server).get(
-        "/smart-contracts?name=wrong-name"
-      );
+      const response = await request(server).get("/ledgers?name=wrong-name");
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          "/smart-contracts?page[after]=1&page[size]=10&name=wrong-name"
+          "/ledgers?page[after]=1&page[size]=10&name=wrong-name"
         ) as string,
         items: [],
         total: 0,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            "/smart-contracts?page[after]=1&page[size]=10&name=wrong-name"
+            "/ledgers?page[after]=1&page[size]=10&name=wrong-name"
           ) as string,
           prev: expect.stringContaining(
-            "/smart-contracts?page[after]=1&page[size]=10&name=wrong-name"
+            "/ledgers?page[after]=1&page[size]=10&name=wrong-name"
           ) as string,
           next: expect.stringContaining(
-            "/smart-contracts?page[after]=1&page[size]=10&name=wrong-name"
+            "/ledgers?page[after]=1&page[size]=10&name=wrong-name"
           ) as string,
           last: expect.stringContaining(
-            "/smart-contracts?page[after]=1&page[size]=10&name=wrong-name"
+            "/ledgers?page[after]=1&page[size]=10&name=wrong-name"
           ) as string,
         },
       });
       expect(response.status).toBe(200);
 
-      const { smartContracts } = testEnv;
+      const { ledgers } = testEnv;
 
       // If we pass an existing name
       const response2 = await request(server).get(
-        `/smart-contracts?name=${smartContracts[0].smartContractName}`
+        `/ledgers?name=${ledgers[0].ledgerName}`
       );
       expect(response2.body).toStrictEqual({
         self: expect.stringContaining(
-          `/smart-contracts?page[after]=1&page[size]=10&name=${smartContracts[0].smartContractName}`
+          "/ledgers?page[after]=1&page[size]=10"
         ) as string,
         items: [
           {
-            smartContractInfoId: smartContracts[0].smartContractInfoId,
+            ledgerInfoId: ledgers[0].ledgerInfoId,
             href: expect.stringContaining(
-              `/smart-contracts/${smartContracts[0].smartContractInfoId}`
+              `/ledgers/${ledgers[0].ledgerInfoId}`
             ) as string,
           },
         ],
@@ -346,16 +333,16 @@ describe("SmartContracts Module", () => {
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/smart-contracts?page[after]=1&page[size]=10&name=${smartContracts[0].smartContractName}`
+            "/ledgers?page[after]=1&page[size]=10"
           ) as string,
           prev: expect.stringContaining(
-            `/smart-contracts?page[after]=1&page[size]=10&name=${smartContracts[0].smartContractName}`
+            "/ledgers?page[after]=1&page[size]=10"
           ) as string,
           next: expect.stringContaining(
-            `/smart-contracts?page[after]=1&page[size]=10&name=${smartContracts[0].smartContractName}`
+            "/ledgers?page[after]=1&page[size]=10"
           ) as string,
           last: expect.stringContaining(
-            `/smart-contracts?page[after]=1&page[size]=10&name=${smartContracts[0].smartContractName}`
+            "/ledgers?page[after]=1&page[size]=10"
           ) as string,
         },
       });
@@ -363,14 +350,14 @@ describe("SmartContracts Module", () => {
     });
   });
 
-  describe("GET /smart-contracts/{smartContractInfoId}", () => {
-    it("should throw an error if the smart contract ID is not hexadecimal", async () => {
+  describe("GET /ledgers/{ledgerInfoId}", () => {
+    it("should throw an error if the ledger ID is not hexadecimal", async () => {
       expect.assertions(3);
 
-      const response = await request(server).get("/smart-contracts/no-sc");
+      const response = await request(server).get("/ledgers/no-ledger");
 
       expect(response.body).toStrictEqual({
-        detail: '["smartContractInfoId must be a hexadecimal number"]',
+        detail: '["ledgerInfoId must be a hexadecimal number"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -381,18 +368,16 @@ describe("SmartContracts Module", () => {
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
 
-    it("should throw an error if the smart contract is not found", async () => {
+    it("should throw an error if the ledger is not found", async () => {
       expect.assertions(3);
 
-      const smartContractInfoId = `0x${crypto.randomBytes(32).toString("hex")}`;
-      const response = await request(server).get(
-        `/smart-contracts/${smartContractInfoId}`
-      );
+      const ledgerInfoId = `0x${crypto.randomBytes(32).toString("hex")}`;
+      const response = await request(server).get(`/ledgers/${ledgerInfoId}`);
 
       expect(response.body).toStrictEqual({
-        title: "Smart Contract Not Found",
+        title: "Ledger Not Found",
         status: 404,
-        detail: `Smart contract ${smartContractInfoId} not found`,
+        detail: `Ledger ${ledgerInfoId} not found`,
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -401,19 +386,19 @@ describe("SmartContracts Module", () => {
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
 
-    it("should return a specific smart contract", async () => {
+    it("should return a specific ledger", async () => {
       expect.assertions(3);
 
-      const sc = testEnv.smartContracts[0];
+      const ledger = testEnv.ledgers[0];
 
       // We expect it to return the last revision
-      const revision = testEnv.smartContractsRevisions[REVISIONS_TOTAL - 2]; // -2 because it's 0-based AND because ledgersRevisions contains only the updates
+      const revision = testEnv.ledgersRevisions[REVISIONS_TOTAL - 2]; // -2 because it's 0-based AND because ledgersRevisions contains only the updates
 
       const response = await request(server).get(
-        `/smart-contracts/${sc.smartContractInfoId}`
+        `/ledgers/${ledger.ledgerInfoId}`
       );
 
-      expect(response.body).toStrictEqual(revision.smartContractInfo);
+      expect(response.body).toStrictEqual(revision.ledgerInfo);
       expect(response.status).toBe(200);
       expect(
         (response.headers as { "content-type": string })["content-type"]
@@ -421,16 +406,16 @@ describe("SmartContracts Module", () => {
     });
   });
 
-  describe("GET /smart-contracts/{smartContractInfoId}/revisions", () => {
-    it("should throw an error if the smart contract info ID is not hexadecimal", async () => {
+  describe("GET /ledgers/{ledgerInfoId}/revisions", () => {
+    it("should throw an error if the ledger info ID is not hexadecimal", async () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        "/smart-contracts/no-sc/revisions"
+        "/ledgers/no-ledger/revisions"
       );
 
       expect(response.body).toStrictEqual({
-        detail: '["smartContractInfoId must be a hexadecimal number"]',
+        detail: '["ledgerInfoId must be a hexadecimal number"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -438,51 +423,51 @@ describe("SmartContracts Module", () => {
       expect(response.status).toBe(400);
     });
 
-    it("should throw an error if the smart contract info is not found", async () => {
+    it("should throw an error if the ledger info is not found", async () => {
       expect.assertions(2);
 
-      const smartContractInfoId = `0x${crypto.randomBytes(32).toString("hex")}`;
+      const ledgerInfoId = `0x${crypto.randomBytes(32).toString("hex")}`;
       const response = await request(server).get(
-        `/smart-contracts/${smartContractInfoId}/revisions`
+        `/ledgers/${ledgerInfoId}/revisions`
       );
 
       expect(response.body).toStrictEqual({
-        title: "Smart Contract Not Found",
+        title: "Ledger Not Found",
         status: 404,
-        detail: `Smart contract ${smartContractInfoId} not found`,
+        detail: `Ledger ${ledgerInfoId} not found`,
         type: "about:blank",
       });
       expect(response.status).toBe(404);
     });
 
-    it("should return a paginated collection of smart-contracts", async () => {
+    it("should return a paginated collection of ledgers", async () => {
       expect.assertions(3);
 
-      const smartContract = testEnv.smartContracts[0];
+      const ledger = testEnv.ledgers[0];
 
       const response = await request(server).get(
-        `/smart-contracts/${smartContract.smartContractInfoId}/revisions`
+        `/ledgers/${ledger.ledgerInfoId}/revisions`
       );
 
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=1&page[size]=10`
+          `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=1&page[size]=10`
         ) as string,
         items: expect.arrayContaining([]) as Array<string>,
         total: REVISIONS_TOTAL,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=1&page[size]=10`
+            `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=1&page[size]=10`
           ) as string,
           prev: expect.stringContaining(
-            `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=1&page[size]=10`
+            `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=1&page[size]=10`
           ) as string,
           next: expect.stringContaining(
-            `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=1&page[size]=10`
+            `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=1&page[size]=10`
           ) as string,
           last: expect.stringContaining(
-            `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=1&page[size]=10`
+            `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=1&page[size]=10`
           ) as string,
         },
       });
@@ -493,31 +478,31 @@ describe("SmartContracts Module", () => {
     it("should handle the pagination properly", async () => {
       expect.assertions(12);
 
-      const smartContract = testEnv.smartContracts[0];
+      const ledger = testEnv.ledgers[0];
 
       const response1 = await request(server).get(
-        `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[size]=2`
+        `/ledgers/${ledger.ledgerInfoId}/revisions?page[size]=2`
       );
 
       expect(response1.body).toStrictEqual({
         self: expect.stringContaining(
-          `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=1&page[size]=2`
+          `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=1&page[size]=2`
         ) as string,
         items: expect.arrayContaining([]) as Array<string>,
         total: REVISIONS_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
-            `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=1&page[size]=2`
+            `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=1&page[size]=2`
           ) as string,
           prev: expect.stringContaining(
-            `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=1&page[size]=2`
+            `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=1&page[size]=2`
           ) as string,
           next: expect.stringContaining(
-            `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=2&page[size]=2`
+            `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=2&page[size]=2`
           ) as string,
           last: expect.stringContaining(
-            `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=2&page[size]=2`
+            `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=2&page[size]=2`
           ) as string,
         },
       });
@@ -526,28 +511,28 @@ describe("SmartContracts Module", () => {
 
       // next page
       const response2 = await request(server).get(
-        `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=2&page[size]=2`
+        `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=2&page[size]=2`
       );
 
       expect(response2.body).toStrictEqual({
         self: expect.stringContaining(
-          `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=2&page[size]=2`
+          `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=2&page[size]=2`
         ) as string,
         items: expect.arrayContaining([]) as Array<string>,
         total: REVISIONS_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
-            `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=1&page[size]=2`
+            `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=1&page[size]=2`
           ) as string,
           prev: expect.stringContaining(
-            `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=1&page[size]=2`
+            `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=1&page[size]=2`
           ) as string,
           next: expect.stringContaining(
-            `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=2&page[size]=2`
+            `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=2&page[size]=2`
           ) as string,
           last: expect.stringContaining(
-            `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=2&page[size]=2`
+            `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=2&page[size]=2`
           ) as string,
         },
       });
@@ -556,28 +541,28 @@ describe("SmartContracts Module", () => {
 
       // big page
       const response3 = await request(server).get(
-        `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=100&page[size]=2`
+        `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=100&page[size]=2`
       );
 
       expect(response3.body).toStrictEqual({
         self: expect.stringContaining(
-          `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=100&page[size]=2`
+          `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=100&page[size]=2`
         ) as string,
         items: expect.arrayContaining([]) as Array<string>,
         total: REVISIONS_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
-            `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=1&page[size]=2`
+            `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=1&page[size]=2`
           ) as string,
           prev: expect.stringContaining(
-            `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=2&page[size]=2`
+            `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=2&page[size]=2`
           ) as string,
           next: expect.stringContaining(
-            `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=2&page[size]=2`
+            `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=2&page[size]=2`
           ) as string,
           last: expect.stringContaining(
-            `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=2&page[size]=2`
+            `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=2&page[size]=2`
           ) as string,
         },
       });
@@ -586,28 +571,28 @@ describe("SmartContracts Module", () => {
 
       // page["after"] defined but page["size"] undefined
       const response4 = await request(server).get(
-        `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=1`
+        `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=1`
       );
 
       expect(response4.body).toStrictEqual({
         self: expect.stringContaining(
-          `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=1&page[size]=10`
+          `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=1&page[size]=10`
         ) as string,
         items: expect.arrayContaining([]) as Array<string>,
         total: REVISIONS_TOTAL,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=1&page[size]=10`
+            `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=1&page[size]=10`
           ) as string,
           prev: expect.stringContaining(
-            `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=1&page[size]=10`
+            `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=1&page[size]=10`
           ) as string,
           next: expect.stringContaining(
-            `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=1&page[size]=10`
+            `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=1&page[size]=10`
           ) as string,
           last: expect.stringContaining(
-            `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=1&page[size]=10`
+            `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=1&page[size]=10`
           ) as string,
         },
       });
@@ -618,9 +603,9 @@ describe("SmartContracts Module", () => {
     it("should throw a Bad Request for bad pagination", async () => {
       expect.assertions(8);
 
-      const smartContract = testEnv.smartContracts[0];
+      const ledger = testEnv.ledgers[0];
       const response1 = await request(server).get(
-        `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[size]=100`
+        `/ledgers/${ledger.ledgerInfoId}/revisions?page[size]=100`
       );
 
       expect(response1.body).toStrictEqual({
@@ -632,7 +617,7 @@ describe("SmartContracts Module", () => {
       expect(response1.status).toBe(400);
 
       const response2 = await request(server).get(
-        `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[size]=0`
+        `/ledgers/${ledger.ledgerInfoId}/revisions?page[size]=0`
       );
 
       expect(response2.body).toStrictEqual({
@@ -644,7 +629,7 @@ describe("SmartContracts Module", () => {
       expect(response2.status).toBe(400);
 
       const response3 = await request(server).get(
-        `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=0`
+        `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=0`
       );
 
       expect(response3.body).toStrictEqual({
@@ -656,7 +641,7 @@ describe("SmartContracts Module", () => {
       expect(response3.status).toBe(400);
 
       const response4 = await request(server).get(
-        `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=abc`
+        `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=abc`
       );
 
       expect(response4.body).toStrictEqual({
@@ -670,18 +655,18 @@ describe("SmartContracts Module", () => {
     });
   });
 
-  describe("GET /smart-contracts/{smartContractInfoId}/revisions/{revisionHash}", () => {
-    it("should throw an error if the smart contract info ID is not hexadecimal", async () => {
+  describe("GET /ledgers/{ledgerInfoId}/revisions/{revisionHash}", () => {
+    it("should throw an error if the ledger info ID is not hexadecimal", async () => {
       expect.assertions(2);
 
-      const revision = testEnv.smartContractsRevisions[0];
+      const revision = testEnv.ledgersRevisions[0];
 
       const response = await request(server).get(
-        `/smart-contracts/no-sc/revisions/${revision.revisionHash}`
+        `/ledgers/no-ledger/revisions/${revision.revisionHash}`
       );
 
       expect(response.body).toStrictEqual({
-        detail: '["smartContractInfoId must be a hexadecimal number"]',
+        detail: '["ledgerInfoId must be a hexadecimal number"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -689,20 +674,20 @@ describe("SmartContracts Module", () => {
       expect(response.status).toBe(400);
     });
 
-    it("should throw an error if the smart contract info is not found", async () => {
+    it("should throw an error if the ledger info is not found", async () => {
       expect.assertions(2);
 
-      const smartContractInfoId = `0x${crypto.randomBytes(32).toString("hex")}`;
-      const revision = testEnv.smartContractsRevisions[0];
+      const ledgerInfoId = `0x${crypto.randomBytes(32).toString("hex")}`;
+      const revision = testEnv.ledgersRevisions[0];
 
       const response = await request(server).get(
-        `/smart-contracts/${smartContractInfoId}/revisions/${revision.revisionHash}`
+        `/ledgers/${ledgerInfoId}/revisions/${revision.revisionHash}`
       );
 
       expect(response.body).toStrictEqual({
-        title: "Smart Contract Not Found",
+        title: "Ledger Not Found",
         status: 404,
-        detail: `Smart contract ${smartContractInfoId} not found`,
+        detail: `Ledger ${ledgerInfoId} not found`,
         type: "about:blank",
       });
       expect(response.status).toBe(404);
@@ -711,10 +696,10 @@ describe("SmartContracts Module", () => {
     it("should throw an error if the revision hash is not hexadecimal", async () => {
       expect.assertions(2);
 
-      const smartContract = testEnv.smartContracts[0];
+      const ledger = testEnv.ledgers[0];
 
       const response = await request(server).get(
-        `/smart-contracts/${smartContract.smartContractInfoId}/revisions/not-hexadecimal`
+        `/ledgers/${ledger.ledgerInfoId}/revisions/not-hexadecimal`
       );
 
       expect(response.body).toStrictEqual({
@@ -729,11 +714,11 @@ describe("SmartContracts Module", () => {
     it("should throw an error if the revision is not found", async () => {
       expect.assertions(2);
 
-      const smartContract = testEnv.smartContracts[0];
+      const ledger = testEnv.ledgers[0];
       const revisionHash = `0x${crypto.randomBytes(32).toString("hex")}`;
 
       const response = await request(server).get(
-        `/smart-contracts/${smartContract.smartContractInfoId}/revisions/${revisionHash}`
+        `/ledgers/${ledger.ledgerInfoId}/revisions/${revisionHash}`
       );
 
       expect(response.body).toStrictEqual({
@@ -748,14 +733,14 @@ describe("SmartContracts Module", () => {
     it("should return the expected revision", async () => {
       expect.assertions(3);
 
-      const smartContract = testEnv.smartContracts[0];
-      const revision = testEnv.smartContractsRevisions[0];
+      const ledger = testEnv.ledgers[0];
+      const revision = testEnv.ledgersRevisions[0];
 
       const response = await request(server).get(
-        `/smart-contracts/${smartContract.smartContractInfoId}/revisions/${revision.revisionHash}`
+        `/ledgers/${ledger.ledgerInfoId}/revisions/${revision.revisionHash}`
       );
 
-      expect(response.body).toStrictEqual(revision.smartContractInfo);
+      expect(response.body).toStrictEqual(revision.ledgerInfo);
       expect(response.status).toBe(200);
       expect(
         (response.headers as { "content-type": string })["content-type"]

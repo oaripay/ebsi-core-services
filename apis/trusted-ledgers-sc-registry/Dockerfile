@@ -8,8 +8,8 @@ WORKDIR /app
 COPY --from=builder /app/yarn.lock ./yarn.lock
 COPY --from=builder /app/package.json ./package.json
 # Copy TLSR API
-COPY --from=builder /app/apis/trusted-ledgers-registry/package.json ./apis/trusted-ledgers-registry/package.json
-COPY --from=builder /app/apis/trusted-ledgers-registry/dist ./apis/trusted-ledgers-registry/dist
+COPY --from=builder /app/apis/trusted-ledgers-sc-registry/package.json ./apis/trusted-ledgers-sc-registry/package.json
+COPY --from=builder /app/apis/trusted-ledgers-sc-registry/dist ./apis/trusted-ledgers-sc-registry/dist
 # Copy Bootstrap SC
 COPY --from=builder /app/contracts/bootstrap/package.json ./contracts/bootstrap/package.json
 COPY --from=builder /app/contracts/bootstrap/dist ./contracts/bootstrap/dist
@@ -23,9 +23,9 @@ COPY --from=builder /app/contracts/trusted-policies-registry/package.json ./cont
 COPY --from=builder /app/contracts/trusted-policies-registry/dist ./contracts/trusted-policies-registry/dist
 COPY --from=builder /app/contracts/trusted-policies-registry/artifacts ./contracts/trusted-policies-registry/artifacts
 # Copy TLSR SC
-COPY --from=builder /app/contracts/trusted-ledgers-registry/package.json ./contracts/trusted-ledgers-registry/package.json
-COPY --from=builder /app/contracts/trusted-ledgers-registry/dist ./contracts/trusted-ledgers-registry/dist
-COPY --from=builder /app/contracts/trusted-ledgers-registry/artifacts ./contracts/trusted-ledgers-registry/artifacts
+COPY --from=builder /app/contracts/trusted-ledgers-sc-registry/package.json ./contracts/trusted-ledgers-sc-registry/package.json
+COPY --from=builder /app/contracts/trusted-ledgers-sc-registry/dist ./contracts/trusted-ledgers-sc-registry/dist
+COPY --from=builder /app/contracts/trusted-ledgers-sc-registry/artifacts ./contracts/trusted-ledgers-sc-registry/artifacts
 # Copy shared code
 COPY --from=builder /app/apis/shared/package.json ./apis/shared/package.json
 COPY --from=builder /app/apis/shared/dist ./apis/shared/dist
@@ -37,4 +37,4 @@ ARG DOCKER_TAG
 RUN echo "DOCKER_TAG=$DOCKER_TAG" >> .env.default
 RUN chown node:node /app
 USER node
-CMD [ "node", "apis/trusted-ledgers-registry/dist/main" ]
+CMD [ "node", "apis/trusted-ledgers-sc-registry/dist/main" ]

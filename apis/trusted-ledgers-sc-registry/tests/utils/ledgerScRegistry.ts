@@ -1,11 +1,11 @@
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
-/// <reference path="../../../../contracts/trusted-ledgers-registry/src/types/hardhat.d.ts" />
+/// <reference path="../../../../contracts/trusted-ledgers-sc-registry/src/types/hardhat.d.ts" />
 import hre from "hardhat";
 import { FactoryOptions } from "hardhat/types";
 import "@nomiclabs/hardhat-ethers";
 import { Contract, ethers } from "ethers";
 import crypto from "node:crypto";
-import { LedgerSCRegistry } from "@ebsiint-sc/trusted-ledgers-registry";
+import { LedgerSCRegistry } from "@ebsiint-sc/trusted-ledgers-sc-registry";
 
 interface LedgerInfoObject {
   ledgerName: string;

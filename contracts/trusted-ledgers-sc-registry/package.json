@@ -1,5 +1,5 @@
 {
-  "name": "@ebsiint-sc/trusted-ledgers-registry",
+  "name": "@ebsiint-sc/trusted-ledgers-sc-registry",
   "version": "1.0.0",
   "license": "EUPL-1.2",
   "private": true,

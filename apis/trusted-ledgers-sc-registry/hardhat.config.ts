@@ -4,7 +4,7 @@ import "@nomiclabs/hardhat-ethers";
 import type { HardhatUserConfig } from "hardhat/config";
 
 const tlrsScPath = path.resolve(
-  require.resolve("@ebsiint-sc/trusted-ledgers-registry"),
+  require.resolve("@ebsiint-sc/trusted-ledgers-sc-registry"),
   "../.." // relative to "dist/index.js"
 );
 

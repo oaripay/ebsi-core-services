@@ -18,7 +18,7 @@ import {
 import { createJWT, ES256KSigner } from "did-jwt";
 import * as SiopLib from "@cef-ebsi/siop-auth";
 import type { JWTVerifyResult } from "jose";
-import { LedgerSCRegistry } from "@ebsiint-sc/trusted-ledgers-registry";
+import { LedgerSCRegistry } from "@ebsiint-sc/trusted-ledgers-sc-registry";
 import { AsyncReturnType } from "@ebsiint-api/shared";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
