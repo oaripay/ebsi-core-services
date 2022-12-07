@@ -85,8 +85,14 @@ pipeline {
         stage('Print affected') {
           steps {
             nodejs(nodeJSInstallationName: '16.17.1') {
-              sh 'yarn print-affected'
-              script { deployment_needed = true }
+              script {
+                try {
+                  sh 'yarn print-affected'
+                  script { deployment_needed = true }
+                } catch (Exception e) {
+                  echo 'Exception occurred: ' + e.toString()
+                }
+              }
             }
           }
         }
