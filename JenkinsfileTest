@@ -1,3 +1,5 @@
+def deployment_needed = false;
+
 pipeline {
   agent any
   // environment {
@@ -80,34 +82,39 @@ pipeline {
         branch 'main'
       }
       stages {
+        stage('Print affected') {
+          steps {
+            nodejs(nodeJSInstallationName: '16.17.1') {
+              sh 'yarn print-affected'
+              script { deployment_needed = true }
+            }
+          }
+        }
         stage('Build docker images') {
+          when { expression { deployment_needed == true } }
           environment {
             DOCKER_BUILDKIT=1
           }
           steps {
             nodejs(nodeJSInstallationName: '16.17.1') {
-              sh "yarn docker-build:all"
+              sh "yarn docker-build:affected --base=main~1 --head=main"
             }
           }
         }
         stage('Push to ECR') {
+          when { expression { deployment_needed == true } }
           steps {
-            sh '/usr/local/bin/update_ecr.bash ${GIT_COMMIT}'
-          }
-        }
-        stage('Print affected') {
-          steps {
-            nodejs(nodeJSInstallationName: '16.17.1') {
-              sh 'yarn print-affected'
-            }
+            sh 'scripts/run_update_ecr.sh'
           }
         }
         stage('Modify YAML & Commit') {
+          when { expression { deployment_needed == true } }
           steps {
-            sh '/usr/local/bin/update_yaml.bash ${GIT_COMMIT}'
+            sh 'scripts/run_update_yaml.sh'
           }
         }
         stage('Deploy on network') {
+          when { expression { deployment_needed == true } }
           steps {
             withCredentials([sshUserPrivateKey(credentialsId: 'ebsi1-robot', keyFileVariable: 'PK')]) {
               sh 'scripts/run_deploy.sh'
@@ -115,6 +122,7 @@ pipeline {
           }
         }
         stage('Verify Deployment') {
+          when { expression { deployment_needed == true } }
           steps {
             withCredentials([sshUserPrivateKey(credentialsId: 'ebsi1-robot', keyFileVariable: 'PK')]) {
               sh 'scripts/run_verify.sh'

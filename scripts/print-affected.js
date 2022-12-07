@@ -21,6 +21,15 @@ try {
       return packageName;
     });
 
+  if (affected.length === 0) {
+    console.log(
+      "No affected packages. No need for new docker images or deployments"
+    );
+    // Theory says exit with non-zero code to communicate an error.
+    // The idea is that this scripts communicates an error to prevent jenkins deployment steps from executing in vain.
+    return process.exit(1);
+  }
+
   console.log("affected services", affected);
 
   const updates = affected
