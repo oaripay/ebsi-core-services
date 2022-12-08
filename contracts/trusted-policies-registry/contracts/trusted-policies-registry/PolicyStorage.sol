@@ -2,7 +2,6 @@
 pragma solidity 0.8.12;
 
 contract PolicyStorage {
-    // The state variables we care about.
     bytes32 public constant POLICY_DIAMOND_STORAGE_POSITION =
         keccak256("diamond.standard.policy.registry.storage");
 
