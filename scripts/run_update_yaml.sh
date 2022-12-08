@@ -34,7 +34,7 @@ for value in "${COMPONENTS[@]}" ;do
   printf "\n%s\n\n" "Processing ${component_name}";
 
   /bin/sudo -E -u ebsi1-robot /usr/bin/bash -c "/usr/bin/yq eval \".\\\"version_tag::${component_name}\\\" |= \\\"${component_tag}\\\"\" --inplace ${conf_data}/${versions_file}"
-  /bin/sudo -E -u ebsi1-robot /usr/bin/bash -c 'cd ${conf_data}/${ebsi_env} && git add . && git commit -am "[auto] env:${ebsi_env} container:${component_name} tag:${component_tag}"'
+  /bin/sudo -E -u ebsi1-robot /usr/bin/bash -c "cd ${conf_data}/${ebsi_env} && git add . && git commit -am \"[auto] env:${ebsi_env} container:${component_name} tag:${component_tag}\""
 
 done
 
