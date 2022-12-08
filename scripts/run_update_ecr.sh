@@ -28,6 +28,6 @@ for value in "${COMPONENTS[@]}" ;do
   component_tag=$(echo $value | cut -d ':' -f 2)
   export component_name
   printf "\n%s\n\n" "Processing ${component_name}";
-  docker tag "ebsi/${component_name}:${component_tag}" 305472350643.dkr.ecr.eu-central-1.amazonaws.com/"${component_name}:${component_tag}";
-  docker push 305472350643.dkr.ecr.eu-central-1.amazonaws.com/"${component_name}:${component_tag}";
+  docker tag "ebsi/${component_name}:${component_tag}" 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/"${component_name}:${component_tag}";
+  docker push 305472350643.dkr.ecr.eu-central-1.amazonaws.com/ebsi/"${component_name}:${component_tag}";
 done
