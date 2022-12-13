@@ -7,7 +7,9 @@
  * @param encoding encoding used to evaluate (defaults to 'utf8')
  */
 export const byteLength = (
+  /* global NodeJS */
   input: string | NodeJS.ArrayBufferView | ArrayBuffer | SharedArrayBuffer,
+  /* global BufferEncoding */
   encoding?: BufferEncoding
 ): number => {
   // Auto-detect hex strings starting with 0x

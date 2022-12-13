@@ -1,9 +1,8 @@
 import { ethers } from "hardhat";
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { expect } from "chai";
-// eslint-disable-next-line import/no-unresolved, import/extensions
-import { SchemaSCRegistry } from "../src/types";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { SchemaSCRegistry } from "../src/types";
 
 const num = ethers.BigNumber.from;
 
@@ -327,9 +326,9 @@ describe("SchemaPolicies", () => {
           const did = `${i}`;
           const data = `data${i}`;
           const inputdata = ethers.utils.toUtf8Bytes(data);
+          const tsUser = ts.connect(user);
           // INSERT SHOULD BE DONE IN ORDER !!!
           // eslint-disable-next-line no-await-in-loop
-          const tsUser = ts.connect(user);
           await expect(tsUser.insertPolicy(did, inputdata)).to.emit(
             ts,
             "AddNewPolicy"

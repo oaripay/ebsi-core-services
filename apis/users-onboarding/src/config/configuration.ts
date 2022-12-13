@@ -28,6 +28,7 @@ export interface ApiConfig {
   testEuLoginUsername: string;
   testEuLoginPassword: string;
   testRecaptchaToken: string;
+  testLoadBalancerDomain: string;
   dockerContainerTag: string;
 }
 
@@ -81,6 +82,7 @@ export const loadConfig = (): ApiConfig => {
     testEuLoginUsername: process.env.TEST_EU_LOGIN_USERNAME,
     testEuLoginPassword: process.env.TEST_EU_LOGIN_PASSWORD,
     testRecaptchaToken: process.env.TEST_RECAPTCHA_TOKEN,
+    testLoadBalancerDomain: process.env.TEST_LB_DOMAIN || "",
     dockerContainerTag: process.env.DOCKER_TAG,
   };
 };
@@ -126,5 +128,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_EU_LOGIN_USERNAME: Joi.string(),
     TEST_EU_LOGIN_PASSWORD: Joi.string(),
     TEST_RECAPTCHA_TOKEN: Joi.string(),
+    TEST_LB_DOMAIN: Joi.string().uri(),
   }),
 });

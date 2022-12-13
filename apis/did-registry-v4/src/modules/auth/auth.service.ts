@@ -67,7 +67,7 @@ export class AuthService {
         })
       ).payload;
     } catch (e) {
-      let message = "unkown error";
+      let message = "unknown error";
 
       if (e instanceof Error) {
         message = e.message;
@@ -95,7 +95,7 @@ export class AuthService {
         })
       ).payload;
     } catch (e) {
-      let message = "unkown error";
+      let message = "unknown error";
 
       if (e instanceof Error) {
         message = e.message;

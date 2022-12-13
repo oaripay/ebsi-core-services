@@ -9,10 +9,11 @@ import "solidity-coverage";
 import "@tenderly/hardhat-tenderly";
 import "./tasks/index";
 import { HardhatUserConfig } from "hardhat/config";
-import * as fs from "fs";
+import * as fs from "node:fs";
+import { resolve } from "node:path";
 import * as dotenv from "dotenv";
 
-dotenv.config({ path: __dirname + "/.env" });
+dotenv.config({ path: resolve(__dirname, ".env") });
 
 // The solhint plugin overrides the check task, runs solhint
 // on the project's sources and prints the report to the console

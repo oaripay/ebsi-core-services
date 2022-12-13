@@ -1,3 +1,4 @@
+import { describe, beforeAll, afterAll, it, expect } from "@jest/globals";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication, Logger, HttpServer } from "@nestjs/common";
@@ -65,14 +66,14 @@ describe("App module", () => {
     });
   });
 
-  describe("GET /unkown-route", () => {
+  describe("GET /unknown-route", () => {
     it("should return an error", async () => {
       expect.assertions(2);
 
-      const response = await request(server).get("/unkown-route").send();
+      const response = await request(server).get("/unknown-route").send();
 
       expect(response.body).toStrictEqual({
-        detail: "Cannot GET /unkown-route",
+        detail: "Cannot GET /unknown-route",
         status: 404,
         title: "Not Found",
         type: "about:blank",

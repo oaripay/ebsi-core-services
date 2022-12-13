@@ -1,4 +1,4 @@
-import { describe } from "@jest/globals";
+import { describe, it, expect } from "@jest/globals";
 import { TextDecoder } from "node:util";
 import { multibase } from "./multibase.utils";
 
@@ -6,6 +6,7 @@ const bases: Record<
   keyof typeof multibase,
   {
     inputString: string;
+    /* global BufferEncoding */
     encoding: BufferEncoding;
     multibaseString: string;
   }[]

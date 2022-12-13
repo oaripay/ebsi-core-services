@@ -1,4 +1,5 @@
-import crypto from "crypto";
+import { describe, beforeAll, afterAll, it, expect } from "@jest/globals";
+import crypto from "node:crypto";
 import { ethers } from "ethers";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
@@ -19,6 +20,7 @@ import {
   prefixWith0x,
   generateMultihash,
 } from "@ebsiint-api/shared";
+import type { TransactionRequest } from "@ethersproject/abstract-provider";
 import { AppModule } from "../../src/app.module";
 import { ApiConfig } from "../../src/config/configuration";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
@@ -108,15 +110,19 @@ describe("Policies (e2e)", () => {
       prefixWith0x(configService.get("testAdminPrivateKey"))
     );
 
-    // Generate a valid Client JWT (SIOP) for the tests
-    testUserAccessToken = await requestSiopJwt({
-      clientDid: configService.get<string>("testAdminDid"),
-      clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
-      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
-      trustedAppsRegistryUrl: `${configService.get<string>(
-        "domain"
-      )}${configService.get<string>("apiUrlPrefix")}`,
-    });
+    try {
+      // Generate a valid Client JWT (SIOP) for the tests
+      testUserAccessToken = await requestSiopJwt({
+        clientDid: configService.get<string>("testAdminDid"),
+        clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
+        configService,
+      });
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e);
+      throw e;
+    }
+
     besuRpcNode = configService.get("besuRpcNode");
   });
 
@@ -139,24 +145,24 @@ describe("Policies (e2e)", () => {
         expect.objectContaining({
           self: expect.stringContaining(
             "/trusted-apps-registry/v3/policies?page[after]=1&page[size]=10"
-          ) as string,
-          items: expect.arrayContaining([]) as string[],
-          total: expect.any(Number) as number,
-          pageSize: expect.any(Number) as number,
+          ),
+          items: expect.arrayContaining([]),
+          total: expect.any(Number),
+          pageSize: expect.any(Number),
           links: expect.objectContaining({
             first: expect.stringContaining(
               "/trusted-apps-registry/v3/policies?page[after]=1&page[size]=10"
-            ) as string,
+            ),
             prev: expect.stringContaining(
               "/trusted-apps-registry/v3/policies?page[after]=1&page[size]=10"
-            ) as string,
+            ),
             next: expect.stringContaining(
               "/trusted-apps-registry/v3/policies?page[after]="
-            ) as string,
+            ),
             last: expect.stringContaining(
               "/trusted-apps-registry/v3/policies?page[after]="
-            ) as string,
-          }) as PaginatedList<PolicyLink>["links"],
+            ),
+          }),
         })
       );
       expect(response.status).toBe(200);
@@ -181,8 +187,8 @@ describe("Policies (e2e)", () => {
 
       expect(response.body).toStrictEqual({
         policyId,
-        policy: expect.any(String) as string,
-        hash: expect.any(String) as string,
+        policy: expect.any(String),
+        hash: expect.any(String),
       });
       expect(response.status).toBe(200);
     });
@@ -221,38 +227,38 @@ describe("Policies (e2e)", () => {
             `/trusted-apps-registry/v3/policies/${encodeURIComponent(
               policyId
             )}/revisions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           items: expect.arrayContaining([
             expect.objectContaining({
-              policyId: expect.any(String) as string,
-              policy: expect.any(String) as string,
-              hash: expect.any(String) as string,
+              policyId: expect.any(String),
+              policy: expect.any(String),
+              hash: expect.any(String),
             }),
-          ]) as string[],
-          total: expect.any(Number) as number,
-          pageSize: expect.any(Number) as number,
+          ]),
+          total: expect.any(Number),
+          pageSize: expect.any(Number),
           links: expect.objectContaining({
             first: expect.stringContaining(
               `/trusted-apps-registry/v3/policies/${encodeURIComponent(
                 policyId
               )}/revisions?page[after]=1&page[size]=10`
-            ) as string,
+            ),
             prev: expect.stringContaining(
               `/trusted-apps-registry/v3/policies/${encodeURIComponent(
                 policyId
               )}/revisions?page[after]=1&page[size]=10`
-            ) as string,
+            ),
             next: expect.stringContaining(
               `/trusted-apps-registry/v3/policies/${encodeURIComponent(
                 policyId
               )}/revisions?page[after]=`
-            ) as string,
+            ),
             last: expect.stringContaining(
               `/trusted-apps-registry/v3/policies/${encodeURIComponent(
                 policyId
               )}/revisions?page[after]=`
-            ) as string,
-          }) as PaginatedList<PolicyLink>["links"],
+            ),
+          }),
         })
       );
       expect(response.status).toBe(200);
@@ -303,14 +309,14 @@ describe("Policies (e2e)", () => {
           jsonrpc: "2.0",
           id: 231,
           result: {
-            chainId: expect.any(String) as string,
-            data: expect.any(String) as string,
+            chainId: expect.any(String),
+            data: expect.any(String),
             from: adminTestWallet.address,
-            gasLimit: expect.any(String) as string,
-            gasPrice: expect.any(String) as string,
-            nonce: expect.any(String) as string,
-            to: expect.any(String) as string,
-            value: expect.any(String) as string,
+            gasLimit: expect.any(String),
+            gasPrice: expect.any(String),
+            nonce: expect.any(String),
+            to: expect.any(String),
+            value: expect.any(String),
           },
         });
         expect(responseBuild.status).toBe(200);
@@ -318,9 +324,9 @@ describe("Policies (e2e)", () => {
     }
   );
 
-  describeWriteOps().each(["insertPolicy", "updatePolicy"])(
+  describeWriteOps().each(["insertPolicy", "updatePolicy"] as const)(
     "/jsonrpc - send transaction for %s",
-    (method: string) => {
+    (method: "insertPolicy" | "updatePolicy") => {
       it("should insert a new policy", async () => {
         expect.assertions(5);
 
@@ -337,7 +343,7 @@ describe("Policies (e2e)", () => {
             break;
           }
           default:
-            break;
+            throw new Error("Unsupported method");
         }
 
         const responseBuild: SupertestJsonRpcResponse = await request(server)
@@ -363,7 +369,9 @@ describe("Policies (e2e)", () => {
           ) as unknown as UnsignedTransaction
         );
         uTx.chainId = Number(uTx.chainId);
-        const sgnTx = await adminTestWallet.signTransaction(uTx);
+        const sgnTx = await adminTestWallet.signTransaction(
+          uTx as TransactionRequest
+        );
         const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
         const responseSend: SupertestJsonRpcResponse = await request(server)
@@ -388,7 +396,7 @@ describe("Policies (e2e)", () => {
         expect(responseSend.body).toStrictEqual({
           jsonrpc: "2.0",
           id: "45",
-          result: expect.any(String) as string,
+          result: expect.any(String),
         });
         expect(responseSend.status).toBe(200);
 

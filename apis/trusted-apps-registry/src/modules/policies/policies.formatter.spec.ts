@@ -1,3 +1,4 @@
+import { describe, it, expect } from "@jest/globals";
 import { ethers } from "ethers";
 import { Tar } from "@ebsiint-sc/trusted-apps-registry";
 import { AsyncReturnType } from "@ebsiint-api/shared";

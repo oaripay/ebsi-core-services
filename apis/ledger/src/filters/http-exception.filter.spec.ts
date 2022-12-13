@@ -1,3 +1,4 @@
+import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
 import { Test, TestingModule } from "@nestjs/testing";
 import {
   INestApplication,
@@ -5,6 +6,7 @@ import {
   Logger,
   NotFoundException,
   BadRequestException,
+  ArgumentsHost,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { AxiosError } from "axios";
@@ -29,28 +31,19 @@ const mockGetResponse = jest.fn().mockImplementation(() => ({
   })),
 }));
 
-const mockGetRequest = jest.fn().mockImplementation(() => ({
-  url: "/blockchains/besu",
-  body: {
-    jsonrpc: "2.0",
-    id: 1,
-    method: "eth_sendRawTransaction",
-    params: ["0x0"],
-  },
-}));
-
 const mockHttpArgumentsHost = jest.fn().mockImplementation(() => ({
   getResponse: mockGetResponse,
-  getRequest: mockGetRequest,
-}));
+  getRequest: jest.fn(),
+  getNext: jest.fn(),
+})) as ArgumentsHost["switchToHttp"];
 
-const mockArgumentsHost = {
+const mockArgumentsHost: ArgumentsHost = {
   switchToHttp: mockHttpArgumentsHost,
-  getArgByIndex: jest.fn(),
-  getArgs: jest.fn(),
-  getType: jest.fn(),
-  switchToRpc: jest.fn(),
-  switchToWs: jest.fn(),
+  getArgByIndex: jest.fn() as ArgumentsHost["getArgByIndex"],
+  getArgs: jest.fn() as ArgumentsHost["getArgs"],
+  getType: jest.fn() as ArgumentsHost["getType"],
+  switchToRpc: jest.fn() as ArgumentsHost["switchToRpc"],
+  switchToWs: jest.fn() as ArgumentsHost["switchToWs"],
 };
 
 describe("All exception filter tests", () => {

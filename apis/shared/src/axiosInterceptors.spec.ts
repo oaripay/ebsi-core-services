@@ -1,3 +1,4 @@
+import { jest, describe, afterEach, afterAll, it, expect } from "@jest/globals";
 import { LoggerService } from "@nestjs/common";
 import axios from "axios";
 import nock from "nock";
@@ -22,7 +23,7 @@ describe("setupInterceptors", () => {
     nock.restore();
   });
 
-  it("should do nothing if the 'domain' or 'localOrigin' varaiable is not defined or empty", () => {
+  it("should do nothing if the 'domain' or 'localOrigin' variable is not defined or empty", () => {
     expect.assertions(2);
     expect(setupInterceptors("", "")).toBeUndefined();
     expect(setupInterceptors("https://test.intebsi.xyz", "")).toBeUndefined();

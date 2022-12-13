@@ -1,4 +1,5 @@
-import crypto from "crypto";
+import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
+import crypto from "node:crypto";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import {
@@ -90,23 +91,23 @@ describe("SmartContracts Module", () => {
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           "/smart-contracts?page[after]=1&page[size]=10"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: SMART_CONTRACTS_TOTAL,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/smart-contracts?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           prev: expect.stringContaining(
             "/smart-contracts?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           next: expect.stringContaining(
             "/smart-contracts?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           last: expect.stringContaining(
             "/smart-contracts?page[after]=1&page[size]=10"
-          ) as string,
+          ),
         },
       });
       expect((response.body as { items: string }).items).toHaveLength(3);
@@ -122,23 +123,23 @@ describe("SmartContracts Module", () => {
       expect(response1.body).toStrictEqual({
         self: expect.stringContaining(
           "/smart-contracts?page[after]=1&page[size]=2"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: SMART_CONTRACTS_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             "/smart-contracts?page[after]=1&page[size]=2"
-          ) as string,
+          ),
           prev: expect.stringContaining(
             "/smart-contracts?page[after]=1&page[size]=2"
-          ) as string,
+          ),
           next: expect.stringContaining(
             "/smart-contracts?page[after]=2&page[size]=2"
-          ) as string,
+          ),
           last: expect.stringContaining(
             "/smart-contracts?page[after]=2&page[size]=2"
-          ) as string,
+          ),
         },
       });
       expect((response1.body as { items: string }).items).toHaveLength(2);
@@ -151,23 +152,23 @@ describe("SmartContracts Module", () => {
       expect(response2.body).toStrictEqual({
         self: expect.stringContaining(
           "/smart-contracts?page[after]=2&page[size]=2"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: SMART_CONTRACTS_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             "/smart-contracts?page[after]=1&page[size]=2"
-          ) as string,
+          ),
           prev: expect.stringContaining(
             "/smart-contracts?page[after]=1&page[size]=2"
-          ) as string,
+          ),
           next: expect.stringContaining(
             "/smart-contracts?page[after]=2&page[size]=2"
-          ) as string,
+          ),
           last: expect.stringContaining(
             "/smart-contracts?page[after]=2&page[size]=2"
-          ) as string,
+          ),
         },
       });
       expect((response2.body as { items: string }).items).toHaveLength(1);
@@ -180,23 +181,23 @@ describe("SmartContracts Module", () => {
       expect(response3.body).toStrictEqual({
         self: expect.stringContaining(
           "/smart-contracts?page[after]=100&page[size]=2"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: SMART_CONTRACTS_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             "/smart-contracts?page[after]=1&page[size]=2"
-          ) as string,
+          ),
           prev: expect.stringContaining(
             "/smart-contracts?page[after]=2&page[size]=2"
-          ) as string,
+          ),
           next: expect.stringContaining(
             "/smart-contracts?page[after]=2&page[size]=2"
-          ) as string,
+          ),
           last: expect.stringContaining(
             "/smart-contracts?page[after]=2&page[size]=2"
-          ) as string,
+          ),
         },
       });
       expect((response3.body as { items: string }).items).toHaveLength(0);
@@ -209,23 +210,23 @@ describe("SmartContracts Module", () => {
       expect(response4.body).toStrictEqual({
         self: expect.stringContaining(
           "/smart-contracts?page[after]=1&page[size]=10"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: SMART_CONTRACTS_TOTAL,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/smart-contracts?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           prev: expect.stringContaining(
             "/smart-contracts?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           next: expect.stringContaining(
             "/smart-contracts?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           last: expect.stringContaining(
             "/smart-contracts?page[after]=1&page[size]=10"
-          ) as string,
+          ),
         },
       });
       expect((response4.body as { items: string }).items).toHaveLength(3);
@@ -303,23 +304,23 @@ describe("SmartContracts Module", () => {
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           "/smart-contracts?page[after]=1&page[size]=10&name=wrong-name"
-        ) as string,
+        ),
         items: [],
         total: 0,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/smart-contracts?page[after]=1&page[size]=10&name=wrong-name"
-          ) as string,
+          ),
           prev: expect.stringContaining(
             "/smart-contracts?page[after]=1&page[size]=10&name=wrong-name"
-          ) as string,
+          ),
           next: expect.stringContaining(
             "/smart-contracts?page[after]=1&page[size]=10&name=wrong-name"
-          ) as string,
+          ),
           last: expect.stringContaining(
             "/smart-contracts?page[after]=1&page[size]=10&name=wrong-name"
-          ) as string,
+          ),
         },
       });
       expect(response.status).toBe(200);
@@ -333,13 +334,13 @@ describe("SmartContracts Module", () => {
       expect(response2.body).toStrictEqual({
         self: expect.stringContaining(
           `/smart-contracts?page[after]=1&page[size]=10&name=${smartContracts[0].smartContractName}`
-        ) as string,
+        ),
         items: [
           {
             smartContractInfoId: smartContracts[0].smartContractInfoId,
             href: expect.stringContaining(
               `/smart-contracts/${smartContracts[0].smartContractInfoId}`
-            ) as string,
+            ),
           },
         ],
         total: 1,
@@ -347,16 +348,16 @@ describe("SmartContracts Module", () => {
         links: {
           first: expect.stringContaining(
             `/smart-contracts?page[after]=1&page[size]=10&name=${smartContracts[0].smartContractName}`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/smart-contracts?page[after]=1&page[size]=10&name=${smartContracts[0].smartContractName}`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/smart-contracts?page[after]=1&page[size]=10&name=${smartContracts[0].smartContractName}`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/smart-contracts?page[after]=1&page[size]=10&name=${smartContracts[0].smartContractName}`
-          ) as string,
+          ),
         },
       });
       expect(response2.status).toBe(200);
@@ -467,23 +468,23 @@ describe("SmartContracts Module", () => {
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=1&page[size]=10`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: REVISIONS_TOTAL,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
         },
       });
       expect((response.body as { items: string }).items).toHaveLength(3);
@@ -502,23 +503,23 @@ describe("SmartContracts Module", () => {
       expect(response1.body).toStrictEqual({
         self: expect.stringContaining(
           `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=1&page[size]=2`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: REVISIONS_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=2&page[size]=2`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=2&page[size]=2`
-          ) as string,
+          ),
         },
       });
       expect((response1.body as { items: string }).items).toHaveLength(2);
@@ -532,23 +533,23 @@ describe("SmartContracts Module", () => {
       expect(response2.body).toStrictEqual({
         self: expect.stringContaining(
           `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=2&page[size]=2`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: REVISIONS_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=2&page[size]=2`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=2&page[size]=2`
-          ) as string,
+          ),
         },
       });
       expect((response2.body as { items: string }).items).toHaveLength(1);
@@ -562,23 +563,23 @@ describe("SmartContracts Module", () => {
       expect(response3.body).toStrictEqual({
         self: expect.stringContaining(
           `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=100&page[size]=2`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: REVISIONS_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=2&page[size]=2`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=2&page[size]=2`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=2&page[size]=2`
-          ) as string,
+          ),
         },
       });
       expect((response3.body as { items: string }).items).toHaveLength(0);
@@ -592,23 +593,23 @@ describe("SmartContracts Module", () => {
       expect(response4.body).toStrictEqual({
         self: expect.stringContaining(
           `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=1&page[size]=10`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: REVISIONS_TOTAL,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/smart-contracts/${smartContract.smartContractInfoId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
         },
       });
       expect((response4.body as { items: string }).items).toHaveLength(3);

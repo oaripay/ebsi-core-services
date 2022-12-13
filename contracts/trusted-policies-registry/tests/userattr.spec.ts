@@ -5,7 +5,7 @@ import { PolicyRegistry } from "../src/types";
 
 describe("UserAttributesManagement", () => {
   let snapshotId: string;
-  let policyContract: any;
+  let policyContract: PolicyRegistry;
   let user: SignerWithAddress;
   let user2: SignerWithAddress;
 

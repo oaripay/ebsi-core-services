@@ -1,3 +1,4 @@
+import { describe, it, expect } from "@jest/globals";
 import { multibase } from "@ebsiint-api/shared";
 import { formatDidTimestamps } from "./did-timestamps.formatter";
 

@@ -1,3 +1,4 @@
+import { describe, it, expect } from "@jest/globals";
 import { addAlgToJwk, prefix0x } from "./authentication.utils";
 
 describe("authentication utils", () => {

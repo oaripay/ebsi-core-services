@@ -1,3 +1,4 @@
+import { describe, it, expect } from "@jest/globals";
 import { contextSchema } from "./IsDidDocument";
 
 describe("contextSchema", () => {

@@ -9,7 +9,7 @@ export const waitToBeMined = async (
   let receipt: ethers.providers.TransactionReceipt;
 
   /* eslint-disable no-await-in-loop */
-  while (!mined) {
+  do {
     await new Promise((resolve) => {
       setTimeout(resolve, 500);
     });
@@ -19,7 +19,7 @@ export const waitToBeMined = async (
     ).provider.getTransactionReceipt(txId);
 
     mined = !!receipt;
-  }
+  } while (!mined);
 
   return receipt;
 };

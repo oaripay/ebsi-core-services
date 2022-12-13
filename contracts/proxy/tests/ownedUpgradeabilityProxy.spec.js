@@ -1,10 +1,11 @@
+const { describe, it, expect } = require("@jest/globals");
 const { constants, expectRevert } = require("@openzeppelin/test-helpers");
-
 const { accounts, contract, web3 } = require("@openzeppelin/test-environment");
-
 const PaginationArtifact = require("@ebsiint-sc/bootstrap/artifacts/contracts/utils/Pagination.sol/Pagination.json");
 
+contract.artifactsDir = "artifacts/contracts/test/tir/Tir.sol";
 const Tir = contract.fromArtifact("Tir");
+contract.artifactsDir = "artifacts/contracts/test/TirV1.sol";
 const TirV1 = contract.fromArtifact("TirV1");
 const encodeCall = require("./helpers/encodeCall");
 
@@ -13,6 +14,8 @@ const Pagination = contract.fromABI(
   PaginationArtifact.bytecode
 );
 
+contract.artifactsDir =
+  "artifacts/contracts/upgradeability/OwnedUpgradeabilityProxy.sol";
 const OwnedUpgradeabilityProxy = contract.fromArtifact(
   "OwnedUpgradeabilityProxy"
 );

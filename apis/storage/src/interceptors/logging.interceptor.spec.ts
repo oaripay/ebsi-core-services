@@ -1,4 +1,12 @@
-import crypto from "crypto";
+import {
+  jest,
+  describe,
+  beforeAll,
+  afterEach,
+  it,
+  expect,
+} from "@jest/globals";
+import crypto from "node:crypto";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication, ValidationPipe, Logger } from "@nestjs/common";
@@ -24,6 +32,8 @@ jest.mock("@cef-ebsi/siop-auth", () => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return {
     __esModule: true,
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
     ...originalModule,
     verifyJwtTar: async () =>
       Promise.resolve({ payload: { sub: "did:ebsi:any" } } as JWTVerifyResult),
@@ -93,7 +103,7 @@ describe("Logging interceptor", () => {
           headers: {
             "accept-encoding": "gzip, deflate",
             connection: "close",
-            host: expect.stringContaining("127.0.0.1:") as string,
+            host: expect.stringContaining("127.0.0.1:"),
           },
           message: "Incoming request - GET - /health",
           method: "GET",
@@ -155,7 +165,7 @@ describe("Logging interceptor", () => {
             connection: "close",
             "content-length": "11",
             "content-type": "application/json",
-            host: expect.stringContaining("127.0.0.1:") as string,
+            host: expect.stringContaining("127.0.0.1:"),
           },
           message: `Incoming request - PUT - /stores/distributed/key-values/${key}`,
           method: "PUT",
@@ -204,7 +214,7 @@ describe("Logging interceptor", () => {
             connection: "close",
             "content-length": "5",
             "content-type": "text/plain",
-            host: expect.stringContaining("127.0.0.1:") as string,
+            host: expect.stringContaining("127.0.0.1:"),
           },
           message: `Incoming request - PUT - /stores/distributed/key-values/${key}`,
           method: "PUT",
@@ -218,7 +228,7 @@ describe("Logging interceptor", () => {
         warnCalls,
         {
           body: value,
-          error: expect.any(Error) as Error,
+          error: expect.any(Error),
           message: `Outgoing response - 400 - PUT - /stores/distributed/key-values/${key}`,
           method: "PUT",
           url: `/stores/distributed/key-values/${key}`,

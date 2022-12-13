@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { importJWK } from "jose";
 import { ec as EC } from "elliptic";
 import { ethers } from "hardhat";

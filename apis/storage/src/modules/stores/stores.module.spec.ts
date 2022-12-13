@@ -1,3 +1,4 @@
+import { describe, beforeAll, afterAll, it, expect } from "@jest/globals";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger, HttpServer } from "@nestjs/common";
@@ -58,26 +59,20 @@ describe("Stores Module", () => {
       expect(response.body).toStrictEqual({
         items: STORES.slice(0, 10),
         links: {
-          first: expect.stringContaining(
-            "/stores?page[after]=1&page[size]=10"
-          ) as string,
-          prev: expect.stringContaining(
-            "/stores?page[after]=1&page[size]=10"
-          ) as string,
+          first: expect.stringContaining("/stores?page[after]=1&page[size]=10"),
+          prev: expect.stringContaining("/stores?page[after]=1&page[size]=10"),
           next: expect.stringContaining(
             `/stores?page[after]=${Math.min(
               2,
               Math.ceil(STORES.length / 10)
             )}&page[size]=10`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/stores?page[after]=${Math.ceil(STORES.length / 10)}&page[size]=10`
-          ) as string,
+          ),
         },
         pageSize: 10,
-        self: expect.stringContaining(
-          "/stores?page[after]=1&page[size]=10"
-        ) as string,
+        self: expect.stringContaining("/stores?page[after]=1&page[size]=10"),
         total: STORES.length,
       });
       expect(response.status).toBe(200);
@@ -88,28 +83,22 @@ describe("Stores Module", () => {
 
       const response1 = await request(server).get("/stores?page[size]=2");
       expect(response1.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/stores?page[after]=1&page[size]=2"
-        ) as string,
+        self: expect.stringContaining("/stores?page[after]=1&page[size]=2"),
         items: STORES.slice(0, 2),
         total: STORES.length,
         pageSize: 2,
         links: {
-          first: expect.stringContaining(
-            "/stores?page[after]=1&page[size]=2"
-          ) as string,
-          prev: expect.stringContaining(
-            "/stores?page[after]=1&page[size]=2"
-          ) as string,
+          first: expect.stringContaining("/stores?page[after]=1&page[size]=2"),
+          prev: expect.stringContaining("/stores?page[after]=1&page[size]=2"),
           next: expect.stringContaining(
             `/stores?page[after]=${Math.min(
               2,
               Math.ceil(STORES.length / 2)
             )}&page[size]=2`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/stores?page[after]=${Math.ceil(STORES.length / 2)}&page[size]=2`
-          ) as string,
+          ),
         },
       });
       expect(response1.status).toBe(200);
@@ -119,28 +108,22 @@ describe("Stores Module", () => {
         "/stores?page[after]=2&page[size]=2"
       );
       expect(response2.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/stores?page[after]=2&page[size]=2"
-        ) as string,
+        self: expect.stringContaining("/stores?page[after]=2&page[size]=2"),
         items: STORES.slice(2, 4),
         total: STORES.length,
         pageSize: 2,
         links: {
-          first: expect.stringContaining(
-            "/stores?page[after]=1&page[size]=2"
-          ) as string,
-          prev: expect.stringContaining(
-            "/stores?page[after]=1&page[size]=2"
-          ) as string,
+          first: expect.stringContaining("/stores?page[after]=1&page[size]=2"),
+          prev: expect.stringContaining("/stores?page[after]=1&page[size]=2"),
           next: expect.stringContaining(
             `/stores?page[after]=${Math.min(
               3,
               Math.ceil(STORES.length / 2)
             )}&page[size]=2`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/stores?page[after]=${Math.ceil(STORES.length / 2)}&page[size]=2`
-          ) as string,
+          ),
         },
       });
       expect(response2.status).toBe(200);
@@ -150,31 +133,27 @@ describe("Stores Module", () => {
         "/stores?page[after]=100&page[size]=2"
       );
       expect(response3.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/stores?page[after]=100&page[size]=2"
-        ) as string,
+        self: expect.stringContaining("/stores?page[after]=100&page[size]=2"),
         items: STORES.slice(198, 200),
         total: STORES.length,
         pageSize: 2,
         links: {
-          first: expect.stringContaining(
-            "/stores?page[after]=1&page[size]=2"
-          ) as string,
+          first: expect.stringContaining("/stores?page[after]=1&page[size]=2"),
           prev: expect.stringContaining(
             `/stores?page[after]=${Math.min(
               99,
               Math.ceil(STORES.length / 2)
             )}&page[size]=2`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/stores?page[after]=${Math.min(
               101,
               Math.ceil(STORES.length / 2)
             )}&page[size]=2`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/stores?page[after]=${Math.ceil(STORES.length / 2)}&page[size]=2`
-          ) as string,
+          ),
         },
       });
       expect(response3.status).toBe(200);
@@ -182,28 +161,22 @@ describe("Stores Module", () => {
       // page["after"] defined but page["size"] undefined
       const response4 = await request(server).get("/stores?page[after]=1");
       expect(response4.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/stores?page[after]=1&page[size]=10"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        self: expect.stringContaining("/stores?page[after]=1&page[size]=10"),
+        items: expect.arrayContaining([]),
         total: STORES.length,
         pageSize: 10,
         links: {
-          first: expect.stringContaining(
-            "/stores?page[after]=1&page[size]=10"
-          ) as string,
-          prev: expect.stringContaining(
-            "/stores?page[after]=1&page[size]=10"
-          ) as string,
+          first: expect.stringContaining("/stores?page[after]=1&page[size]=10"),
+          prev: expect.stringContaining("/stores?page[after]=1&page[size]=10"),
           next: expect.stringContaining(
             `/stores?page[after]=${Math.min(
               2,
               Math.ceil(STORES.length / 10)
             )}&page[size]=10`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/stores?page[after]=${Math.ceil(STORES.length / 10)}&page[size]=10`
-          ) as string,
+          ),
         },
       });
       expect(response4.status).toBe(200);

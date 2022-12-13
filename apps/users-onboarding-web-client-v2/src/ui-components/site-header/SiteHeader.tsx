@@ -6,13 +6,11 @@ import classnames from "classnames";
 import { FocusOn } from "react-focus-on";
 import logoSrc from "./logo.svg";
 import { MemoizedIcon } from "../icon/Icon";
-import { MemoizedLink, Link, LinkProps } from "../link/Link";
+import { MemoizedLink } from "../link/Link";
 import { Menu, MenuProps } from "../menu/Menu";
 
 export interface SiteHeaderProps {
   siteName?: string;
-  bannerTop?: string | LinkProps;
-  banner?: string;
   logged?: boolean;
   loginToggle?: {
     labelNotLogged?: string;
@@ -32,8 +30,6 @@ export interface SiteHeaderProps {
 
 export const SiteHeader: React.FC<SiteHeaderProps> = ({
   siteName,
-  bannerTop,
-  banner,
   logged,
   loginToggle,
   loginBox,
@@ -166,25 +162,8 @@ export const SiteHeader: React.FC<SiteHeaderProps> = ({
           )}
         </div>
       </div>
-      {bannerTop && (
-        <div className="ecl-site-header-harmonised__banner-top">
-          {typeof bannerTop === "object" && (
-            <div className="ecl-container">
-              <MemoizedLink {...bannerTop} variant="standalone" />
-            </div>
-          )}
-          {typeof bannerTop === "string" && (
-            <div className="ecl-container">{bannerTop}</div>
-          )}
-        </div>
-      )}
       {siteName && (
         <div className="ecl-site-header-harmonised__site-name">{siteName}</div>
-      )}
-      {banner && (
-        <div className="ecl-site-header-harmonised__banner">
-          <div className="ecl-container">{banner}</div>
-        </div>
       )}
       {!!(menu && Object.keys(menu).length >= 1) && <Menu {...menu} />}
     </header>
@@ -206,11 +185,6 @@ SiteHeader.propTypes = {
     label: PropTypes.string,
     href: PropTypes.string,
   }),
-  bannerTop: PropTypes.oneOfType([
-    PropTypes.string,
-    PropTypes.exact(Link.propTypes),
-  ]),
-  banner: PropTypes.string,
   menu: PropTypes.exact(Menu.propTypes),
   className: PropTypes.string,
 };
@@ -220,8 +194,6 @@ SiteHeader.defaultProps = {
   logged: false,
   loginToggle: {},
   loginBox: {},
-  bannerTop: "",
-  banner: "",
   menu: undefined,
   className: "",
 };

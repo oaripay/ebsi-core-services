@@ -1,3 +1,13 @@
+import {
+  jest,
+  describe,
+  beforeAll,
+  beforeEach,
+  afterEach,
+  afterAll,
+  it,
+  expect,
+} from "@jest/globals";
 import crypto from "node:crypto";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
@@ -36,6 +46,8 @@ jest.mock("@cef-ebsi/siop-auth", () => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return {
     __esModule: true,
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
     ...originalModule,
     verifyJwtTar: jest.fn(),
   };
@@ -48,6 +60,8 @@ jest.mock("@cef-ebsi/oauth2-auth", () => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return {
     __esModule: true,
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
     ...originalModule,
     verifyJwtTar: jest.fn(),
   };
@@ -76,7 +90,7 @@ describe("Attributes Module", () => {
     headers: {
       Authorization: `Bearer ${accessTokenApi}`,
     },
-    timeout: expect.any(Number) as number,
+    timeout: expect.any(Number),
   };
 
   const testUser = {
@@ -206,9 +220,9 @@ describe("Attributes Module", () => {
       expect(mockAxios).toHaveBeenNthCalledWith(
         numberCall,
         expect.stringContaining("/oauth2-sessions"),
-        expect.objectContaining({}) as { clientAssertion: string },
+        expect.objectContaining({}),
         {
-          timeout: expect.any(Number) as number,
+          timeout: expect.any(Number),
         }
       );
 
@@ -217,7 +231,7 @@ describe("Attributes Module", () => {
         numberCall,
         expect.stringContaining("/distributed/jsonrpc"),
         expect.objectContaining({
-          id: expect.any(Number) as number,
+          id: expect.any(Number),
           jsonrpc: "2.0",
           method: "cassandra_call",
           params: [
@@ -230,14 +244,14 @@ describe("Attributes Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining("/attributes?page[size]=2") as string,
-        items: expect.arrayContaining([]) as AttributeResponseObject[],
+        self: expect.stringContaining("/attributes?page[size]=2"),
+        items: expect.arrayContaining([]),
         links: {
           next: expect.stringMatching(
             new RegExp(
               `^${apiUrl}/attributes\\?page\\[after\\]=.*&page\\[size\\]=2`
             )
-          ) as string,
+          ),
         },
         pageSize: 2,
       });
@@ -273,7 +287,7 @@ describe("Attributes Module", () => {
         numberCall,
         expect.stringContaining("/distributed/jsonrpc"),
         expect.objectContaining({
-          id: expect.any(Number) as number,
+          id: expect.any(Number),
           jsonrpc: "2.0",
           method: "cassandra_call",
           params: [
@@ -290,14 +304,14 @@ describe("Attributes Module", () => {
           new RegExp(
             `^${apiUrl}/attributes\\?page\\[after\\]=.*&page\\[size\\]=10`
           )
-        ) as string,
-        items: expect.arrayContaining([]) as AttributeResponseObject[],
+        ),
+        items: expect.arrayContaining([]),
         links: {
           next: expect.stringMatching(
             new RegExp(
               `^${apiUrl}/attributes\\?page\\[after\\]=.*&page\\[size\\]=10`
             )
-          ) as string,
+          ),
         },
         pageSize: 10,
       });
@@ -318,7 +332,7 @@ describe("Attributes Module", () => {
         numberCall,
         expect.stringContaining("/distributed/jsonrpc"),
         expect.objectContaining({
-          id: expect.any(Number) as number,
+          id: expect.any(Number),
           jsonrpc: "2.0",
           method: "cassandra_call",
           params: [
@@ -335,14 +349,14 @@ describe("Attributes Module", () => {
           new RegExp(
             `^${apiUrl}/attributes\\?page\\[after\\]=.*&page\\[size\\]=10`
           )
-        ) as string,
-        items: expect.arrayContaining([]) as AttributeResponseObject[],
+        ),
+        items: expect.arrayContaining([]),
         links: {
           next: expect.stringMatching(
             new RegExp(
               `^${apiUrl}/attributes\\?page\\[after\\]=.*&page\\[size\\]=10`
             )
-          ) as string,
+          ),
         },
         pageSize: 10,
       });
@@ -379,7 +393,7 @@ describe("Attributes Module", () => {
         numberCall,
         expect.stringContaining("/distributed/jsonrpc"),
         expect.objectContaining({
-          id: expect.any(Number) as number,
+          id: expect.any(Number),
           jsonrpc: "2.0",
           method: "cassandra_call",
           params: ["select * from attribute_storage where hash = ?", hash],
@@ -425,7 +439,7 @@ describe("Attributes Module", () => {
         numberCall,
         expect.stringContaining("/distributed/jsonrpc"),
         expect.objectContaining({
-          id: expect.any(Number) as number,
+          id: expect.any(Number),
           jsonrpc: "2.0",
           method: "cassandra_call",
           params: [
@@ -455,7 +469,7 @@ describe("Attributes Module", () => {
         numberCall,
         expect.stringContaining("/distributed/jsonrpc"),
         expect.objectContaining({
-          id: expect.any(Number) as number,
+          id: expect.any(Number),
           jsonrpc: "2.0",
           method: "cassandra_call",
           params: [
@@ -499,7 +513,7 @@ describe("Attributes Module", () => {
         numberCall,
         expect.stringContaining("/distributed/jsonrpc"),
         expect.objectContaining({
-          id: expect.any(Number) as number,
+          id: expect.any(Number),
           jsonrpc: "2.0",
           method: "cassandra_call",
           params: [
@@ -551,7 +565,7 @@ describe("Attributes Module", () => {
         numberCall,
         expect.stringContaining("/distributed/jsonrpc"),
         expect.objectContaining({
-          id: expect.any(Number) as number,
+          id: expect.any(Number),
           jsonrpc: "2.0",
           method: "cassandra_call",
           params: [
@@ -586,7 +600,7 @@ describe("Attributes Module", () => {
         numberCall,
         expect.stringContaining("/distributed/jsonrpc"),
         expect.objectContaining({
-          id: expect.any(Number) as number,
+          id: expect.any(Number),
           jsonrpc: "2.0",
           method: "cassandra_call",
           params: [
@@ -752,12 +766,12 @@ describe("Attributes Module", () => {
         numberCall,
         expect.stringContaining("/distributed/jsonrpc"),
         expect.objectContaining({
-          id: expect.any(Number) as number,
+          id: expect.any(Number),
           jsonrpc: "2.0",
           method: "cassandra_call",
           params: [
             "select did from attribute_storage where hash = ?",
-            expect.any(String) as string,
+            expect.any(String),
           ],
         }),
         headerJwt
@@ -802,12 +816,12 @@ describe("Attributes Module", () => {
         numberCall,
         expect.stringContaining("/distributed/jsonrpc"),
         expect.objectContaining({
-          id: expect.any(Number) as number,
+          id: expect.any(Number),
           jsonrpc: "2.0",
           method: "cassandra_call",
           params: [
             "select did from attribute_storage where hash = ?",
-            expect.any(String) as string,
+            expect.any(String),
           ],
         }),
         headerJwt
@@ -818,12 +832,12 @@ describe("Attributes Module", () => {
         numberCall,
         expect.stringContaining("/distributed/jsonrpc"),
         expect.objectContaining({
-          id: expect.any(Number) as number,
+          id: expect.any(Number),
           jsonrpc: "2.0",
           method: "cassandra_call",
           params: [
             "insert into attribute_storage (hash, did, visibility, shared_with, content_type, data, data_label) values (?, ?, ?, ?, ?, ?, ?)",
-            expect.any(String) as string,
+            expect.any(String),
             attribute.did,
             attribute.visibility,
             "",
@@ -837,7 +851,7 @@ describe("Attributes Module", () => {
 
       expect(response.body).toStrictEqual({
         ...attribute,
-        hash: expect.any(String) as string,
+        hash: expect.any(String),
       });
       expect(response.status).toBe(201);
     });
@@ -866,7 +880,7 @@ describe("Attributes Module", () => {
         numberCall,
         expect.stringContaining("/distributed/jsonrpc"),
         expect.objectContaining({
-          id: expect.any(Number) as number,
+          id: expect.any(Number),
           jsonrpc: "2.0",
           method: "cassandra_call",
           params: ["select did from attribute_storage where hash = ?", hash],
@@ -905,7 +919,7 @@ describe("Attributes Module", () => {
         numberCall,
         expect.stringContaining("/distributed/jsonrpc"),
         expect.objectContaining({
-          id: expect.any(Number) as number,
+          id: expect.any(Number),
           jsonrpc: "2.0",
           method: "cassandra_call",
           params: ["select did from attribute_storage where hash = ?", hash],
@@ -950,7 +964,7 @@ describe("Attributes Module", () => {
         numberCall,
         expect.stringContaining("/distributed/jsonrpc"),
         expect.objectContaining({
-          id: expect.any(Number) as number,
+          id: expect.any(Number),
           jsonrpc: "2.0",
           method: "cassandra_call",
           params: ["select did from attribute_storage where hash = ?", hash],
@@ -963,7 +977,7 @@ describe("Attributes Module", () => {
         numberCall,
         expect.stringContaining("/distributed/jsonrpc"),
         expect.objectContaining({
-          id: expect.any(Number) as number,
+          id: expect.any(Number),
           jsonrpc: "2.0",
           method: "cassandra_call",
           params: ["delete from attribute_storage where hash = ?", hash],
@@ -1071,12 +1085,12 @@ describe("Attributes Module", () => {
         numberCall,
         expect.stringContaining("/distributed/jsonrpc"),
         expect.objectContaining({
-          id: expect.any(Number) as number,
+          id: expect.any(Number),
           jsonrpc: "2.0",
           method: "cassandra_call",
           params: [
             "select * from attribute_storage where hash = ?",
-            expect.any(String) as string,
+            expect.any(String),
           ],
         }),
         headerJwt
@@ -1120,12 +1134,12 @@ describe("Attributes Module", () => {
         numberCall,
         expect.stringContaining("/distributed/jsonrpc"),
         expect.objectContaining({
-          id: expect.any(Number) as number,
+          id: expect.any(Number),
           jsonrpc: "2.0",
           method: "cassandra_call",
           params: [
             "select * from attribute_storage where hash = ?",
-            expect.any(String) as string,
+            expect.any(String),
           ],
         }),
         headerJwt
@@ -1210,7 +1224,7 @@ describe("Attributes Module", () => {
         numberCall,
         expect.stringContaining("/distributed/jsonrpc"),
         expect.objectContaining({
-          id: expect.any(Number) as number,
+          id: expect.any(Number),
           jsonrpc: "2.0",
           method: "cassandra_call",
           params: [
@@ -1226,7 +1240,7 @@ describe("Attributes Module", () => {
         numberCall,
         expect.stringContaining("/distributed/jsonrpc"),
         expect.objectContaining({
-          id: expect.any(Number) as number,
+          id: expect.any(Number),
           jsonrpc: "2.0",
           method: "cassandra_call",
           params: [

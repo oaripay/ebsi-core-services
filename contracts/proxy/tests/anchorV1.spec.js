@@ -1,13 +1,21 @@
+const { describe, it, expect } = require("@jest/globals");
 const { expectRevert } = require("@openzeppelin/test-helpers");
 const { accounts, contract, web3 } = require("@openzeppelin/test-environment");
 const encodeCall = require("./helpers/encodeCall");
 
+contract.artifactsDir = "artifacts/contracts/test/Anchor.sol";
 const Anchor = contract.fromArtifact("Anchor");
+
+contract.artifactsDir = "artifacts/contracts/test/AnchorV1.sol";
 const AnchorV1 = contract.fromArtifact("AnchorV1");
+
+contract.artifactsDir =
+  "artifacts/contracts/upgradeability/OwnedUpgradeabilityProxy.sol";
 const OwnedUpgradeabilityProxy = contract.fromArtifact(
   "OwnedUpgradeabilityProxy"
 );
 let anchor;
+
 describe("anchorV1", () => {
   describe("initialize", () => {
     it("can not be initialized twice", async () => {

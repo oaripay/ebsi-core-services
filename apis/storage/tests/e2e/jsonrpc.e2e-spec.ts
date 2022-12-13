@@ -1,5 +1,6 @@
+import { beforeAll, afterAll, it, expect } from "@jest/globals";
 import request from "supertest";
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger, HttpServer } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -50,10 +51,7 @@ describeWriteOps()("JsonRpc Module", () => {
     accessToken = await requestOAuth2Jwt({
       trustedAppName: configService.get<string>("testAppName"),
       trustedAppPrivateKey: configService.get<string>("testAppPrivateKey"),
-      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
-      trustedAppsRegistryApiUrl: configService.get<string>(
-        "trustedAppsRegistryApiUrl"
-      ),
+      configService,
     });
   });
 
@@ -96,10 +94,20 @@ describeWriteOps()("JsonRpc Module", () => {
       )
       .send();
 
+    let trustedAppsRegistryApiUrl = configService.get<string>(
+      "trustedAppsRegistryApiUrl"
+    );
+
+    // Use TEST_LB_DOMAIN if defined
+    if (configService.get<string>("testLoadBalancerDomain")) {
+      trustedAppsRegistryApiUrl = trustedAppsRegistryApiUrl.replace(
+        configService.get<string>("domain"),
+        configService.get<string>("testLoadBalancerDomain")
+      );
+    }
+
     expect(response.body).toStrictEqual({
-      detail: `Invalid JWT: JWT with invalid kid. It should be hosted at ${configService.get<string>(
-        "trustedAppsRegistryApiUrl"
-      )}/apps`,
+      detail: `Invalid JWT: JWT with invalid kid. It should be hosted at ${trustedAppsRegistryApiUrl}/apps`,
       status: 401,
       title: "Unauthorized",
       type: "about:blank",
@@ -148,7 +156,7 @@ describeWriteOps()("JsonRpc Module", () => {
         code: -32600,
         message: expect.stringContaining(
           `property params has failed the following constraints: isValidCassandraCall`
-        ) as string,
+        ),
       },
     });
     expect(response.status).toBe(400);

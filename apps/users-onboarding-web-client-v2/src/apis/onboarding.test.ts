@@ -13,6 +13,7 @@ describe("onboarding api", () => {
     },
   };
   const responseAPI: session.SessionResponse = { Bearer: "token" };
+
   it("should return a 500 error", async () => {
     expect.assertions(2);
 
@@ -21,8 +22,7 @@ describe("onboarding api", () => {
     const response = await validateSession(recaptcha);
 
     expect(response.status).toBe(500);
-
-    await expect(response.data).toMatch("Error");
+    expect(response.data).toMatch("Error");
   });
 
   it("should return a session token", async () => {

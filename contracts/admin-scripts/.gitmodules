@@ -1,4 +1,0 @@
-[submodule "schemas/json-schemas"]
-	path = schemas/json-schemas
-	url = https://ec.europa.eu/digital-building-blocks/code/scm/ebsi/json-schema
-  branch = main

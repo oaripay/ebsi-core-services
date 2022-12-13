@@ -1,3 +1,4 @@
+import { expect } from "@jest/globals";
 import { ProblemDetailsError } from "@cef-ebsi/problem-details-errors";
 
 type ConstructorTypeOf<T> = new (...args: unknown[]) => T;

@@ -1,4 +1,5 @@
-import crypto from "crypto";
+import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
+import crypto from "node:crypto";
 import axios from "axios";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
@@ -31,6 +32,8 @@ jest.mock("@cef-ebsi/siop-auth", () => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return {
     __esModule: true,
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
     ...originalModule,
     verifyJwtTar: jest.fn(),
   };
@@ -43,6 +46,8 @@ jest.mock("@cef-ebsi/oauth2-auth", () => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return {
     __esModule: true,
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
     ...originalModule,
     verifyJwtTar: jest.fn(),
   };
@@ -227,9 +232,7 @@ describe("Notifications module", () => {
       expect(response.status).toBe(201);
       expect(response.headers).toStrictEqual(
         expect.objectContaining({
-          location: expect.stringContaining(
-            `/notifications/${notificationId}`
-          ) as string,
+          location: expect.stringContaining(`/notifications/${notificationId}`),
         })
       );
     });
@@ -258,9 +261,7 @@ describe("Notifications module", () => {
       expect(response.status).toBe(201);
       expect(response.headers).toStrictEqual(
         expect.objectContaining({
-          location: expect.stringContaining(
-            `/notifications/${notificationId}`
-          ) as string,
+          location: expect.stringContaining(`/notifications/${notificationId}`),
         })
       );
     });
@@ -390,11 +391,7 @@ describe("Notifications module", () => {
       expect(response.body).toStrictEqual({
         detail: "Your request parameters didn't validate.",
         "invalid-params": {
-          proof: [
-            {
-              proof: ["nested property proof must be an object"],
-            },
-          ],
+          proof: ["nested property proof must be an object"],
         },
         status: 400,
         title: "Validation Error",
@@ -416,9 +413,7 @@ describe("Notifications module", () => {
         "invalid-params": {
           proof: [
             "proof should not be empty",
-            {
-              proof: ["nested property proof must be an object"],
-            },
+            "nested property proof must be an object",
           ],
         },
         status: 400,
@@ -493,16 +488,14 @@ describe("Notifications module", () => {
         .send();
 
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining("/notifications?page[size]=10") as string,
+        self: expect.stringContaining("/notifications?page[size]=10"),
         items: resultNotifications
           .map((result) => {
             return {
               ...result.notification,
               _links: {
                 self: {
-                  href: expect.stringContaining(
-                    `/notifications/${result.id}`
-                  ) as string,
+                  href: expect.stringContaining(`/notifications/${result.id}`),
                 },
               },
             };
@@ -511,9 +504,7 @@ describe("Notifications module", () => {
         total: 2,
         pageSize: 10,
         links: {
-          next: expect.stringContaining(
-            "/notifications?page[after]="
-          ) as string,
+          next: expect.stringContaining("/notifications?page[after]="),
         },
       });
       expect(response.status).toBe(200);

@@ -1,3 +1,5 @@
+import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
+import type { SpyInstance } from "jest-mock";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger, HttpServer } from "@nestjs/common";
@@ -11,7 +13,6 @@ import axios from "axios";
 import * as OAuth2Lib from "@cef-ebsi/oauth2-auth";
 import type { JwtTarVefifyResult } from "@cef-ebsi/oauth2-auth";
 import { Client, types } from "cassandra-driver";
-import { describe } from "@jest/globals";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { CassandraService } from "../cassandra/cassandra.service";
@@ -27,6 +28,8 @@ jest.mock("@cef-ebsi/oauth2-auth", () => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return {
     __esModule: true,
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
     ...originalModule,
     verifyJwtTar: jest.fn(),
   };
@@ -35,7 +38,7 @@ jest.mock("@cef-ebsi/oauth2-auth", () => {
 describe("JsonRpc Module", () => {
   let app: NestFastifyApplication;
   let server: HttpServer;
-  let mockCassandra: jest.SpyInstance;
+  let mockCassandra: SpyInstance;
   let cassandraService: CassandraService;
   let configService: ConfigService<ApiConfig, true>;
   let authService: AuthService;
@@ -137,7 +140,7 @@ describe("JsonRpc Module", () => {
       trustedAppsRegistry: `${configService.get<string>(
         "trustedAppsRegistryApiUrl"
       )}/apps`,
-      timeout: expect.any(Number) as number,
+      timeout: expect.any(Number),
     });
   });
 
@@ -191,7 +194,7 @@ describe("JsonRpc Module", () => {
         code: -32600,
         message: expect.stringContaining(
           `property params has failed the following constraints: isValidCassandraCall`
-        ) as string,
+        ),
       },
     });
     expect(response.status).toBe(400);
@@ -217,7 +220,7 @@ describe("JsonRpc Module", () => {
         code: -32600,
         message: expect.stringContaining(
           `property params has failed the following constraints: isValidCassandraCall`
-        ) as string,
+        ),
       },
     });
     expect(response.status).toBe(400);

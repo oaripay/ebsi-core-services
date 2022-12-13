@@ -1,3 +1,12 @@
+import {
+  jest,
+  describe,
+  beforeAll,
+  afterEach,
+  afterAll,
+  it,
+  expect,
+} from "@jest/globals";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import {
@@ -107,7 +116,7 @@ describe("Sessions Module", () => {
       expect(responseBody.Bearer).toBeDefined();
       expect(decodeJWT(responseBody.Bearer).payload).toStrictEqual(
         expect.objectContaining({
-          iat: expect.any(Number) as number,
+          iat: expect.any(Number),
           iss: apiDid,
           onboarding: body.onboarding,
           validatedInfo,
@@ -138,7 +147,7 @@ describe("Sessions Module", () => {
       expect(responseBody.Bearer).toBeDefined();
       expect(decodeJWT(responseBody.Bearer).payload).toStrictEqual(
         expect.objectContaining({
-          iat: expect.any(Number) as number,
+          iat: expect.any(Number),
           iss: apiDid,
           onboarding: body.onboarding,
           validatedInfo,

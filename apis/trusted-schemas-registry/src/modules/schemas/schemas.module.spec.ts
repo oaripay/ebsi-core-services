@@ -1,4 +1,5 @@
-import crypto from "crypto";
+import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
+import crypto from "node:crypto";
 import request from "supertest";
 import { ethers } from "ethers";
 import { Test, TestingModule } from "@nestjs/testing";
@@ -18,7 +19,6 @@ import { AsyncReturnType } from "@ebsiint-api/shared";
 import { SchemasModule } from "./schemas.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { setupTestEnv } from "../../../tests/utils/schemaRegistry";
-import { ItemsList } from "./schemas.interface";
 import { ContractService } from "../contract/contract.service";
 import { hexToMultibaseBase58Btc } from "./schemas.utils";
 import { ApiConfig } from "../../config/configuration";
@@ -89,33 +89,25 @@ describe("Schemas Module", () => {
       const response = await request(server).get("/schemas");
 
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/schemas?page[after]=1&page[size]=10"
-        ) as string,
+        self: expect.stringContaining("/schemas?page[after]=1&page[size]=10"),
         items: expect.arrayContaining(
           testEnv.schemas.map((schema) => {
             const schemaId = hexToMultibaseBase58Btc(schema.schemaId);
             return {
               schemaId,
-              href: expect.stringContaining(`/schemas/${schemaId}`) as string,
+              href: expect.stringContaining(`/schemas/${schemaId}`),
             };
           })
-        ) as Array<string>,
+        ),
         total: SCHEMAS_TOTAL,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/schemas?page[after]=1&page[size]=10"
-          ) as string,
-          prev: expect.stringContaining(
-            "/schemas?page[after]=1&page[size]=10"
-          ) as string,
-          next: expect.stringContaining(
-            "/schemas?page[after]=1&page[size]=10"
-          ) as string,
-          last: expect.stringContaining(
-            "/schemas?page[after]=1&page[size]=10"
-          ) as string,
+          ),
+          prev: expect.stringContaining("/schemas?page[after]=1&page[size]=10"),
+          next: expect.stringContaining("/schemas?page[after]=1&page[size]=10"),
+          last: expect.stringContaining("/schemas?page[after]=1&page[size]=10"),
         },
       });
       expect((response.body as { items: string }).items).toHaveLength(
@@ -129,25 +121,15 @@ describe("Schemas Module", () => {
 
       const response1 = await request(server).get("/schemas?page[size]=2");
       expect(response1.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/schemas?page[after]=1&page[size]=2"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        self: expect.stringContaining("/schemas?page[after]=1&page[size]=2"),
+        items: expect.arrayContaining([]),
         total: SCHEMAS_TOTAL,
         pageSize: 2,
         links: {
-          first: expect.stringContaining(
-            "/schemas?page[after]=1&page[size]=2"
-          ) as string,
-          prev: expect.stringContaining(
-            "/schemas?page[after]=1&page[size]=2"
-          ) as string,
-          next: expect.stringContaining(
-            "/schemas?page[after]=2&page[size]=2"
-          ) as string,
-          last: expect.stringContaining(
-            "/schemas?page[after]=2&page[size]=2"
-          ) as string,
+          first: expect.stringContaining("/schemas?page[after]=1&page[size]=2"),
+          prev: expect.stringContaining("/schemas?page[after]=1&page[size]=2"),
+          next: expect.stringContaining("/schemas?page[after]=2&page[size]=2"),
+          last: expect.stringContaining("/schemas?page[after]=2&page[size]=2"),
         },
       });
       expect((response1.body as { items: string }).items).toHaveLength(2);
@@ -158,25 +140,15 @@ describe("Schemas Module", () => {
         "/schemas?page[after]=2&page[size]=2"
       );
       expect(response2.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/schemas?page[after]=2&page[size]=2"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        self: expect.stringContaining("/schemas?page[after]=2&page[size]=2"),
+        items: expect.arrayContaining([]),
         total: SCHEMAS_TOTAL,
         pageSize: 2,
         links: {
-          first: expect.stringContaining(
-            "/schemas?page[after]=1&page[size]=2"
-          ) as string,
-          prev: expect.stringContaining(
-            "/schemas?page[after]=1&page[size]=2"
-          ) as string,
-          next: expect.stringContaining(
-            "/schemas?page[after]=2&page[size]=2"
-          ) as string,
-          last: expect.stringContaining(
-            "/schemas?page[after]=2&page[size]=2"
-          ) as string,
+          first: expect.stringContaining("/schemas?page[after]=1&page[size]=2"),
+          prev: expect.stringContaining("/schemas?page[after]=1&page[size]=2"),
+          next: expect.stringContaining("/schemas?page[after]=2&page[size]=2"),
+          last: expect.stringContaining("/schemas?page[after]=2&page[size]=2"),
         },
       });
       expect((response2.body as { items: string }).items).toHaveLength(1);
@@ -187,25 +159,15 @@ describe("Schemas Module", () => {
         "/schemas?page[after]=100&page[size]=2"
       );
       expect(response3.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/schemas?page[after]=100&page[size]=2"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        self: expect.stringContaining("/schemas?page[after]=100&page[size]=2"),
+        items: expect.arrayContaining([]),
         total: SCHEMAS_TOTAL,
         pageSize: 2,
         links: {
-          first: expect.stringContaining(
-            "/schemas?page[after]=1&page[size]=2"
-          ) as string,
-          prev: expect.stringContaining(
-            "/schemas?page[after]=2&page[size]=2"
-          ) as string,
-          next: expect.stringContaining(
-            "/schemas?page[after]=2&page[size]=2"
-          ) as string,
-          last: expect.stringContaining(
-            "/schemas?page[after]=2&page[size]=2"
-          ) as string,
+          first: expect.stringContaining("/schemas?page[after]=1&page[size]=2"),
+          prev: expect.stringContaining("/schemas?page[after]=2&page[size]=2"),
+          next: expect.stringContaining("/schemas?page[after]=2&page[size]=2"),
+          last: expect.stringContaining("/schemas?page[after]=2&page[size]=2"),
         },
       });
       expect((response3.body as { items: string }).items).toHaveLength(0);
@@ -214,25 +176,17 @@ describe("Schemas Module", () => {
       // page["after"] defined but page["size"] undefined
       const response4 = await request(server).get("/schemas?page[after]=1");
       expect(response4.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/schemas?page[after]=1&page[size]=10"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        self: expect.stringContaining("/schemas?page[after]=1&page[size]=10"),
+        items: expect.arrayContaining([]),
         total: SCHEMAS_TOTAL,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/schemas?page[after]=1&page[size]=10"
-          ) as string,
-          prev: expect.stringContaining(
-            "/schemas?page[after]=1&page[size]=10"
-          ) as string,
-          next: expect.stringContaining(
-            "/schemas?page[after]=1&page[size]=10"
-          ) as string,
-          last: expect.stringContaining(
-            "/schemas?page[after]=1&page[size]=10"
-          ) as string,
+          ),
+          prev: expect.stringContaining("/schemas?page[after]=1&page[size]=10"),
+          next: expect.stringContaining("/schemas?page[after]=1&page[size]=10"),
+          last: expect.stringContaining("/schemas?page[after]=1&page[size]=10"),
         },
       });
       expect((response4.body as { items: string }).items).toHaveLength(
@@ -556,40 +510,40 @@ describe("Schemas Module", () => {
           {
             href: expect.stringContaining(
               `/schemas/${schema.schemaId}/revisions/${revisionId1}`
-            ) as string,
+            ),
             schemaRevisionId: revisionId1,
           },
           {
             href: expect.stringContaining(
               `/schemas/${schema.schemaId}/revisions/${revisionId2}`
-            ) as string,
+            ),
             schemaRevisionId: revisionId2,
           },
           {
             href: expect.stringContaining(
               `/schemas/${schema.schemaId}/revisions/${revisionId3}`
-            ) as string,
+            ),
             schemaRevisionId: revisionId3,
           },
-        ]) as ItemsList[],
+        ]),
         links: {
           first: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
         },
         pageSize: 10,
         self: expect.stringContaining(
           `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
-        ) as string,
+        ),
         total: SCHEMA_REVISIONS_TOTAL,
       });
       expect(response.status).toBe(200);
@@ -622,40 +576,40 @@ describe("Schemas Module", () => {
           {
             href: expect.stringContaining(
               `/schemas/${schema.schemaId}/revisions/${revisionId1}`
-            ) as string,
+            ),
             schemaRevisionId: revisionId1,
           },
           {
             href: expect.stringContaining(
               `/schemas/${schema.schemaId}/revisions/${revisionId2}`
-            ) as string,
+            ),
             schemaRevisionId: revisionId2,
           },
           {
             href: expect.stringContaining(
               `/schemas/${schema.schemaId}/revisions/${revisionId3}`
-            ) as string,
+            ),
             schemaRevisionId: revisionId3,
           },
-        ]) as ItemsList[],
+        ]),
         links: {
           first: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
         },
         pageSize: 10,
         self: expect.stringContaining(
           `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
-        ) as string,
+        ),
         total: SCHEMA_REVISIONS_TOTAL,
       });
       expect(response.status).toBe(200);
@@ -675,23 +629,23 @@ describe("Schemas Module", () => {
       expect(response1.body).toStrictEqual({
         self: expect.stringContaining(
           `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: SCHEMA_REVISIONS_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`
-          ) as string,
+          ),
         },
       });
       expect((response1.body as { items: string }).items).toHaveLength(2);
@@ -704,23 +658,23 @@ describe("Schemas Module", () => {
       expect(response2.body).toStrictEqual({
         self: expect.stringContaining(
           `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: SCHEMA_REVISIONS_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`
-          ) as string,
+          ),
         },
       });
       expect((response2.body as { items: string }).items).toHaveLength(1);
@@ -733,23 +687,23 @@ describe("Schemas Module", () => {
       expect(response3.body).toStrictEqual({
         self: expect.stringContaining(
           `/schemas/${schema.schemaId}/revisions?page[after]=100&page[size]=2`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: SCHEMA_REVISIONS_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`
-          ) as string,
+          ),
         },
       });
       expect((response3.body as { items: string }).items).toHaveLength(0);
@@ -762,23 +716,23 @@ describe("Schemas Module", () => {
       expect(response4.body).toStrictEqual({
         self: expect.stringContaining(
           `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: SCHEMA_REVISIONS_TOTAL,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
         },
       });
       expect((response4.body as { items: string }).items).toHaveLength(
@@ -906,23 +860,23 @@ describe("Schemas Module", () => {
       expect(response1.body).toStrictEqual({
         self: expect.stringContaining(
           `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: SCHEMA_REVISIONS_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`
-          ) as string,
+          ),
         },
       });
       expect((response1.body as { items: string }).items).toHaveLength(2);
@@ -935,23 +889,23 @@ describe("Schemas Module", () => {
       expect(response2.body).toStrictEqual({
         self: expect.stringContaining(
           `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: SCHEMA_REVISIONS_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`
-          ) as string,
+          ),
         },
       });
       expect((response2.body as { items: string }).items).toHaveLength(1);
@@ -964,23 +918,23 @@ describe("Schemas Module", () => {
       expect(response3.body).toStrictEqual({
         self: expect.stringContaining(
           `/schemas/${schema.schemaId}/revisions?page[after]=100&page[size]=2`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: SCHEMA_REVISIONS_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=2&page[size]=2`
-          ) as string,
+          ),
         },
       });
       expect((response3.body as { items: string }).items).toHaveLength(0);
@@ -993,23 +947,23 @@ describe("Schemas Module", () => {
       expect(response4.body).toStrictEqual({
         self: expect.stringContaining(
           `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: SCHEMA_REVISIONS_TOTAL,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
         },
       });
       expect((response4.body as { items: string }).items).toHaveLength(
@@ -1131,40 +1085,40 @@ describe("Schemas Module", () => {
           {
             href: expect.stringContaining(
               `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata/${metadataId}`
-            ) as string,
+            ),
             metadataId,
           },
           {
             href: expect.stringContaining(
               `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata/${metadataId2}`
-            ) as string,
+            ),
             metadataId: metadataId2,
           },
           {
             href: expect.stringContaining(
               `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata/${metadataId3}`
-            ) as string,
+            ),
             metadataId: metadataId3,
           },
-        ]) as ItemsList[],
+        ]),
         links: {
           first: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`
-          ) as string,
+          ),
         },
         pageSize: 10,
         self: expect.stringContaining(
           `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`
-        ) as string,
+        ),
         total: SCHEMA_METADATA_TOTAL,
       });
       expect(response.status).toBe(200);
@@ -1185,23 +1139,23 @@ describe("Schemas Module", () => {
       expect(response1.body).toStrictEqual({
         self: expect.stringContaining(
           `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=2`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: SCHEMA_REVISIONS_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=2&page[size]=2`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=2&page[size]=2`
-          ) as string,
+          ),
         },
       });
       expect((response1.body as { items: string }).items).toHaveLength(2);
@@ -1214,23 +1168,23 @@ describe("Schemas Module", () => {
       expect(response2.body).toStrictEqual({
         self: expect.stringContaining(
           `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=2&page[size]=2`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: SCHEMA_REVISIONS_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=2&page[size]=2`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=2&page[size]=2`
-          ) as string,
+          ),
         },
       });
       expect((response2.body as { items: string }).items).toHaveLength(1);
@@ -1243,23 +1197,23 @@ describe("Schemas Module", () => {
       expect(response3.body).toStrictEqual({
         self: expect.stringContaining(
           `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=100&page[size]=2`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: SCHEMA_REVISIONS_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=2&page[size]=2`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=2&page[size]=2`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=2&page[size]=2`
-          ) as string,
+          ),
         },
       });
       expect((response3.body as { items: string }).items).toHaveLength(0);
@@ -1272,23 +1226,23 @@ describe("Schemas Module", () => {
       expect(response4.body).toStrictEqual({
         self: expect.stringContaining(
           `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: SCHEMA_REVISIONS_TOTAL,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/schemas/${schema.schemaId}/revisions/${revisionId}/metadata?page[after]=1&page[size]=10`
-          ) as string,
+          ),
         },
       });
       expect((response4.body as { items: string }).items).toHaveLength(

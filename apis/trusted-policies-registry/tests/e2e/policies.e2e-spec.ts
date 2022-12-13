@@ -1,5 +1,5 @@
-import { describe } from "@jest/globals";
-import crypto from "crypto";
+import { jest, describe, beforeAll, it, expect } from "@jest/globals";
+import crypto from "node:crypto";
 import { ethers } from "ethers";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
@@ -23,7 +23,6 @@ import {
   ATTRIBUTE_OPERATIONS,
   ATTRIBUTE_TYPES,
   OPERATION_TYPES,
-  PolicyConditionStructOutput,
   PolicyLink,
   PolicyResponseObject,
 } from "../../src/modules/policies/policies.interface";
@@ -115,23 +114,23 @@ describe("Policies (e2e)", () => {
     );
 
     // Generate a valid Client JWT (SIOP) for the tests
-    testUserAccessToken = await requestSiopJwt({
-      clientKid: configService.get<string>("testUserKid"),
-      clientPrivateKey: configService.get<string>("testUserPrivateKey"),
-      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
-      trustedAppsRegistryApiUrl: configService.get<string>(
-        "trustedAppsRegistryApiUrl"
-      ),
-    });
+    try {
+      testUserAccessToken = await requestSiopJwt({
+        clientKid: configService.get<string>("testUserKid"),
+        clientPrivateKey: configService.get<string>("testUserPrivateKey"),
+        configService,
+      });
 
-    testAdminAccessToken = await requestSiopJwt({
-      clientKid: configService.get<string>("testAdminKid"),
-      clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
-      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
-      trustedAppsRegistryApiUrl: configService.get<string>(
-        "trustedAppsRegistryApiUrl"
-      ),
-    });
+      testAdminAccessToken = await requestSiopJwt({
+        clientKid: configService.get<string>("testAdminKid"),
+        clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
+        configService,
+      });
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e);
+      throw e;
+    }
 
     blockscout = configService.get<{
       url: string;
@@ -168,10 +167,20 @@ describe("Policies (e2e)", () => {
         .auth(invalidAccessToken, { type: "bearer" })
         .send();
 
+      let trustedAppsRegistryApiUrl = configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      );
+
+      // Use TEST_LB_DOMAIN if defined
+      if (configService.get<string>("testLoadBalancerDomain")) {
+        trustedAppsRegistryApiUrl = trustedAppsRegistryApiUrl.replace(
+          configService.get<string>("domain"),
+          configService.get<string>("testLoadBalancerDomain")
+        );
+      }
+
       expect(response.body).toStrictEqual({
-        detail: `Invalid JWT: JWT with invalid kid. It should be hosted at ${configService.get<string>(
-          "trustedAppsRegistryApiUrl"
-        )}/apps`,
+        detail: `Invalid JWT: JWT with invalid kid. It should be hosted at ${trustedAppsRegistryApiUrl}/apps`,
         status: 401,
         title: "Unauthorized",
         type: "about:blank",
@@ -220,7 +229,7 @@ describe("Policies (e2e)", () => {
           code: -32600,
           message: expect.stringContaining(
             "The method 'unknown-method' is invalid"
-          ) as string,
+          ),
         },
       });
       expect(response.status).toBe(400);
@@ -254,13 +263,13 @@ describe("Policies (e2e)", () => {
         jsonrpc: "2.0",
         id: 231,
         result: {
-          chainId: expect.any(String) as string,
-          data: expect.any(String) as string,
+          chainId: expect.any(String),
+          data: expect.any(String),
           from: param.from,
-          gasLimit: expect.any(String) as string,
-          gasPrice: expect.any(String) as string,
-          nonce: expect.any(String) as string,
-          to: expect.any(String) as string,
+          gasLimit: expect.any(String),
+          gasPrice: expect.any(String),
+          nonce: expect.any(String),
+          to: expect.any(String),
           value: "0x0",
         },
       });
@@ -338,13 +347,13 @@ describe("Policies (e2e)", () => {
         jsonrpc: "2.0",
         id: 231,
         result: {
-          chainId: expect.any(String) as string,
-          data: expect.any(String) as string,
+          chainId: expect.any(String),
+          data: expect.any(String),
           from: param.from,
-          gasLimit: expect.any(String) as string,
-          gasPrice: expect.any(String) as string,
-          nonce: expect.any(String) as string,
-          to: expect.any(String) as string,
+          gasLimit: expect.any(String),
+          gasPrice: expect.any(String),
+          nonce: expect.any(String),
+          to: expect.any(String),
           value: "0x0",
         },
       });
@@ -490,13 +499,13 @@ describe("Policies (e2e)", () => {
             jsonrpc: "2.0",
             id: 231,
             result: {
-              chainId: expect.any(String) as string,
-              data: expect.any(String) as string,
+              chainId: expect.any(String),
+              data: expect.any(String),
               from: param.from,
-              gasLimit: expect.any(String) as string,
-              gasPrice: expect.any(String) as string,
-              nonce: expect.any(String) as string,
-              to: expect.any(String) as string,
+              gasLimit: expect.any(String),
+              gasPrice: expect.any(String),
+              nonce: expect.any(String),
+              to: expect.any(String),
               value: "0x0",
             },
           });
@@ -534,7 +543,7 @@ describe("Policies (e2e)", () => {
           expect(responseSend.body).toStrictEqual({
             jsonrpc: "2.0",
             id: "45",
-            result: expect.any(String) as string,
+            result: expect.any(String),
           });
           expect(responseSend.status).toBe(200);
 
@@ -782,10 +791,10 @@ describe("Policies (e2e)", () => {
           expect(blockscoutCheck.body).toStrictEqual({
             data: {
               transaction: {
-                blockNumber: expect.any(Number) as number,
-                gasUsed: expect.any(String) as string,
+                blockNumber: expect.any(Number),
+                gasUsed: expect.any(String),
                 hash: sampleTransaction,
-                value: expect.any(String) as string,
+                value: expect.any(String),
               },
             },
           });
@@ -1117,9 +1126,7 @@ describe("Policies (e2e)", () => {
               id: 231,
               error: {
                 code: -32600,
-                message: expect.stringContaining(
-                  expectedErrorMessages[index]
-                ) as string,
+                message: expect.stringContaining(expectedErrorMessages[index]),
               },
             });
             expect(response1.status).toBe(400);
@@ -1300,7 +1307,7 @@ describe("Policies (e2e)", () => {
             code: -32600,
             message: expect.stringContaining(
               "does not match with the signedRawTransaction"
-            ) as string,
+            ),
           },
         });
         expect(responseSend1.status).toBe(400);
@@ -1333,7 +1340,7 @@ describe("Policies (e2e)", () => {
             code: -32600,
             message: expect.stringContaining(
               "does not match with unsignedTransaction.from"
-            ) as string,
+            ),
           },
         });
         expect(responseSend1.status).toBe(400);
@@ -1352,24 +1359,24 @@ describe("Policies (e2e)", () => {
         expect.objectContaining({
           self: expect.stringContaining(
             "/trusted-policies-registry/v2/policies?page[after]=1&page[size]=10"
-          ) as string,
-          items: expect.arrayContaining([]) as string[],
-          total: expect.any(Number) as number,
-          pageSize: expect.any(Number) as number,
+          ),
+          items: expect.arrayContaining([]),
+          total: expect.any(Number),
+          pageSize: expect.any(Number),
           links: expect.objectContaining({
             first: expect.stringContaining(
               "/trusted-policies-registry/v2/policies?page[after]=1&page[size]=10"
-            ) as string,
+            ),
             prev: expect.stringContaining(
               "/trusted-policies-registry/v2/policies?page[after]=1&page[size]=10"
-            ) as string,
+            ),
             next: expect.stringContaining(
               "/trusted-policies-registry/v2/policies?page[after]="
-            ) as string,
+            ),
             last: expect.stringContaining(
               "/trusted-policies-registry/v2/policies?page[after]="
-            ) as string,
-          }) as PaginatedList<PolicyLink>["links"],
+            ),
+          }),
         })
       );
       expect(response.status).toBe(200);
@@ -1397,23 +1404,21 @@ describe("Policies (e2e)", () => {
         }`
       );
 
-      expect(response.body).toStrictEqual<PolicyResponseObject>({
+      expect(response.body).toStrictEqual({
         policyId: `${policyId}`,
-        policyName: expect.any(String) as string,
-        description: expect.any(String) as string,
-        status: expect.any(Boolean) as boolean,
-        operationType: expect.any(String) as typeof OPERATION_TYPES[number],
-        policyConditions: expect.arrayContaining<PolicyConditionStructOutput>([
-          expect.objectContaining<PolicyConditionStructOutput>({
-            attributeName: expect.any(String) as string,
-            attributeOperation: expect.any(
-              String
-            ) as typeof ATTRIBUTE_OPERATIONS[number],
-            value: expect.anything() as string | boolean,
-            name: expect.any(String) as string,
-            typeOfValue: expect.any(String) as typeof ATTRIBUTE_TYPES[number],
-          }) as PolicyConditionStructOutput,
-        ]) as PolicyConditionStructOutput[],
+        policyName: expect.any(String),
+        description: expect.any(String),
+        status: expect.any(Boolean),
+        operationType: expect.any(String),
+        policyConditions: expect.arrayContaining([
+          expect.objectContaining({
+            attributeName: expect.any(String),
+            attributeOperation: expect.any(String),
+            value: expect.anything(),
+            name: expect.any(String),
+            typeOfValue: expect.any(String),
+          }),
+        ]),
       });
       expect(response.status).toBe(200);
     });

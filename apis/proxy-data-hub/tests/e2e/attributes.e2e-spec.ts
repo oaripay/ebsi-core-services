@@ -1,3 +1,11 @@
+import {
+  jest,
+  describe,
+  beforeAll,
+  beforeEach,
+  it,
+  expect,
+} from "@jest/globals";
 import crypto from "node:crypto";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
@@ -12,9 +20,8 @@ import { base64url } from "multiformats/bases/base64";
 import { calculateJwkThumbprint, exportJWK, generateKeyPair } from "jose";
 import EbsiWallet from "@cef-ebsi/wallet-lib";
 import { PaginatedList2 } from "@ebsiint-api/shared";
-import { describe } from "@jest/globals";
 import { AppModule } from "../../src/app.module";
-import { ApiConfig, loadConfig } from "../../src/config/configuration";
+import { ApiConfig } from "../../src/config/configuration";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { AttributeResponseObject } from "../../src/modules/attributes/attributes.interface";
 import { requestSiopJwt } from "../utils/auth";
@@ -27,7 +34,8 @@ describeWriteOps()("Attributes", () => {
   let app: NestFastifyApplication;
   let server: HttpServer | string;
   let configService: ConfigService<ApiConfig, true>;
-
+  let storageApiUrl: string;
+  let apiUrl: string;
   let testUser1: {
     kid: string;
     did: string;
@@ -39,9 +47,6 @@ describeWriteOps()("Attributes", () => {
     did: string;
     token: string;
   };
-
-  const { domain, apiUrlPrefix, storageApiUrl } = loadConfig();
-  const apiUrl = `${domain}${apiUrlPrefix}`;
 
   const createAttribute = (visibility?: string, sharedWithMe?: boolean) => ({
     storageUri: `${storageApiUrl}/stores/distributed`,
@@ -116,51 +121,67 @@ describeWriteOps()("Attributes", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
 
     server = getServer(app, configService);
+
+    const domain = configService.get<"string">("domain");
+    const testLoadBalancerDomain = configService.get<"string">(
+      "testLoadBalancerDomain"
+    );
+    const apiUrlPrefix = configService.get<"string">("apiUrlPrefix");
+
+    storageApiUrl = configService.get<"string">("storageApiUrl");
+    apiUrl = `${domain}${apiUrlPrefix}`;
+
+    if (testLoadBalancerDomain) {
+      storageApiUrl = storageApiUrl.replace(domain, testLoadBalancerDomain);
+      apiUrl = apiUrl.replace(domain, testLoadBalancerDomain);
+    }
   });
 
   describe.each(["legal entity", "natural person"] as const)(
     "with the user being a %s",
     (userType) => {
       beforeAll(async () => {
-        const authorisationApiUrl = configService.get<string>(
-          "authorisationApiUrl"
-        );
-        const trustedAppsRegistryApiUrl = configService.get<string>(
-          "trustedAppsRegistryApiUrl"
-        );
-
         if (userType === "legal entity") {
           const configTestUser1 = configService.get<{
             kid: string;
             privateKey: string;
           }>("testUser1");
-
-          testUser1 = {
-            ...configTestUser1,
-            did: configTestUser1.kid.split("#")[0],
-            token: await requestSiopJwt({
-              clientKid: configTestUser1.kid,
-              clientPrivateKey: configTestUser1.privateKey,
-              authorisationApiUrl,
-              trustedAppsRegistryApiUrl,
-            }),
-          };
+          try {
+            testUser1 = {
+              ...configTestUser1,
+              did: configTestUser1.kid.split("#")[0],
+              token: await requestSiopJwt({
+                clientKid: configTestUser1.kid,
+                clientPrivateKey: configTestUser1.privateKey,
+                configService,
+              }),
+            };
+          } catch (e) {
+            // eslint-disable-next-line no-console
+            console.error(e);
+            throw e;
+          }
 
           const configTestUser2 = configService.get<{
             kid: string;
             privateKey: string;
           }>("testUser2");
 
-          testUser2 = {
-            ...configTestUser2,
-            did: configTestUser2.kid.split("#")[0],
-            token: await requestSiopJwt({
-              clientKid: configTestUser2.kid,
-              clientPrivateKey: configTestUser2.privateKey,
-              authorisationApiUrl,
-              trustedAppsRegistryApiUrl,
-            }),
-          };
+          try {
+            testUser2 = {
+              ...configTestUser2,
+              did: configTestUser2.kid.split("#")[0],
+              token: await requestSiopJwt({
+                clientKid: configTestUser2.kid,
+                clientPrivateKey: configTestUser2.privateKey,
+                configService,
+              }),
+            };
+          } catch (e) {
+            // eslint-disable-next-line no-console
+            console.error(e);
+            throw e;
+          }
         } else {
           const testUser1Keys = await generateKeyPair("ES256K");
           const testUser1PrivateKeyJwk = await exportJWK(
@@ -178,33 +199,43 @@ describeWriteOps()("Attributes", () => {
           );
           const testUser1Kid = `${testUser1Did}#${testUser1PublicKeyJwkThumbprint}`;
 
-          testUser1 = {
-            did: testUser1Did,
-            kid: testUser1Kid,
-            token: await requestSiopJwt({
-              clientKid: testUser1Kid,
-              clientPrivateKey: testUser1PrivateKeyJwk,
-              authorisationApiUrl,
-              trustedAppsRegistryApiUrl,
-              syntaxType: "did_subject",
-            }),
-          };
+          try {
+            testUser1 = {
+              did: testUser1Did,
+              kid: testUser1Kid,
+              token: await requestSiopJwt({
+                clientKid: testUser1Kid,
+                clientPrivateKey: testUser1PrivateKeyJwk,
+                configService,
+                syntaxType: "did_subject",
+              }),
+            };
+          } catch (e) {
+            // eslint-disable-next-line no-console
+            console.error(e);
+            throw e;
+          }
 
           const configTestUser2 = configService.get<{
             kid: string;
             privateKey: string;
           }>("testUser2");
 
-          testUser2 = {
-            ...configTestUser2,
-            did: configTestUser2.kid.split("#")[0],
-            token: await requestSiopJwt({
-              clientKid: configTestUser2.kid,
-              clientPrivateKey: configTestUser2.privateKey,
-              authorisationApiUrl,
-              trustedAppsRegistryApiUrl,
-            }),
-          };
+          try {
+            testUser2 = {
+              ...configTestUser2,
+              did: configTestUser2.kid.split("#")[0],
+              token: await requestSiopJwt({
+                clientKid: configTestUser2.kid,
+                clientPrivateKey: configTestUser2.privateKey,
+                configService,
+              }),
+            };
+          } catch (e) {
+            // eslint-disable-next-line no-console
+            console.error(e);
+            throw e;
+          }
         }
       });
 
@@ -236,17 +267,15 @@ describeWriteOps()("Attributes", () => {
             items: expect.arrayContaining([
               expect.objectContaining({
                 did: testUser1.did,
-                sharedWith: expect.not.stringContaining(
-                  testUser1.did
-                ) as string,
+                sharedWith: expect.not.stringContaining(testUser1.did),
               }),
-            ]) as AttributeResponseObject[],
+            ]),
             links: {
               next: expect.stringMatching(
                 new RegExp(
                   `^${apiUrl}/attributes\\?page\\[after\\]=.*&page\\[size\\]=2`
                 )
-              ) as string,
+              ),
             },
             pageSize: 2,
           });
@@ -271,17 +300,15 @@ describeWriteOps()("Attributes", () => {
             items: expect.arrayContaining([
               expect.objectContaining({
                 did: testUser1.did,
-                sharedWith: expect.not.stringContaining(
-                  testUser1.did
-                ) as string,
+                sharedWith: expect.not.stringContaining(testUser1.did),
               }),
-            ]) as AttributeResponseObject[],
+            ]),
             links: {
               next: expect.stringMatching(
                 new RegExp(
                   `^${apiUrl}/attributes\\?page\\[after\\]=.*&page\\[size\\]=2`
                 )
-              ) as string,
+              ),
             },
             pageSize: 2,
           });
@@ -309,8 +336,8 @@ describeWriteOps()("Attributes", () => {
                 did: testUser2.did,
                 sharedWith: testUser1.did,
               }),
-            ]) as AttributeResponseObject[],
-            links: expect.objectContaining({}) as { next: string },
+            ]),
+            links: expect.objectContaining({}),
             pageSize: 2,
           });
           expect(response.status).toBe(200);
@@ -501,7 +528,7 @@ describeWriteOps()("Attributes", () => {
           delete attribute.visibility;
           expect(response.body).toStrictEqual({
             ...attribute,
-            hash: expect.any(String) as string,
+            hash: expect.any(String),
           });
           expect(response.status).toBe(201);
         });

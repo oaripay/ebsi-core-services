@@ -1,6 +1,12 @@
+import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import { INestApplication, HttpServer, ValidationPipe } from "@nestjs/common";
+import {
+  INestApplication,
+  HttpServer,
+  ValidationPipe,
+  Logger,
+} from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
@@ -47,8 +53,12 @@ describe("App Module", () => {
     configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
     app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
+    Logger.overrideLogger(false);
+
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+
     server = app.getHttpServer() as HttpServer;
   });
 
@@ -67,14 +77,14 @@ describe("App Module", () => {
     expect(response.text).toBe("ok");
   });
 
-  describe("GET /unkown-route", () => {
+  describe("GET /unknown-route", () => {
     it("should return an error", async () => {
       expect.assertions(2);
 
-      const response = await request(server).get("/unkown-route").send();
+      const response = await request(server).get("/unknown-route").send();
 
       expect(response.body).toStrictEqual({
-        detail: "Cannot GET /unkown-route",
+        detail: "Cannot GET /unknown-route",
         status: 404,
         title: "Not Found",
         type: "about:blank",

@@ -5,7 +5,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import axios, { AxiosResponse } from "axios";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import {
   PolicyRegistry,
   PolicyRegistry__factory,

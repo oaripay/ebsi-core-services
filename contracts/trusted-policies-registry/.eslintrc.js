@@ -25,7 +25,15 @@ module.exports = {
     "no-console": "off",
     // we use it for tests
     "func-names": "off",
-    "import/no-extraneous-dependencies": "off",
+    "import/no-extraneous-dependencies": [
+      "error",
+      {
+        devDependencies: true,
+        optionalDependencies: false,
+        peerDependencies: false,
+        bundledDependencies: false,
+      },
+    ],
     "no-unused-expressions": "off",
     "import/extensions": "off",
     "no-shadow": "off",

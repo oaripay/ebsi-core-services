@@ -1,3 +1,4 @@
+import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication, Logger } from "@nestjs/common";
 import * as DidJwt from "did-jwt";

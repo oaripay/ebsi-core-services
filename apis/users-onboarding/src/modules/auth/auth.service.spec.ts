@@ -1,3 +1,4 @@
+import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
 import { INestApplication } from "@nestjs/common";
 import {
   FastifyAdapter,

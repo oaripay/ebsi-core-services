@@ -1,4 +1,5 @@
-import crypto from "crypto";
+import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
+import crypto from "node:crypto";
 import { Test, TestingModule } from "@nestjs/testing";
 import { Logger, HttpServer } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -106,13 +107,6 @@ describeWriteOps()("Notifications module (e2e)", () => {
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
 
-    const authorisationApiUrl = configService.get<string>(
-      "authorisationApiUrl"
-    );
-    const trustedAppsRegistryApiUrl = configService.get<string>(
-      "trustedAppsRegistryApiUrl"
-    );
-
     server = getServer(app, configService);
 
     const configTestUser1 = configService.get<{
@@ -120,32 +114,42 @@ describeWriteOps()("Notifications module (e2e)", () => {
       privateKey: string;
     }>("testUser1");
 
-    testUser1 = {
-      ...configTestUser1,
-      did: configTestUser1.kid.split("#")[0],
-      token: await requestSiopJwt({
-        clientKid: configTestUser1.kid,
-        clientPrivateKey: configTestUser1.privateKey,
-        authorisationApiUrl,
-        trustedAppsRegistryApiUrl,
-      }),
-    };
+    try {
+      testUser1 = {
+        ...configTestUser1,
+        did: configTestUser1.kid.split("#")[0],
+        token: await requestSiopJwt({
+          clientKid: configTestUser1.kid,
+          clientPrivateKey: configTestUser1.privateKey,
+          configService,
+        }),
+      };
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e);
+      throw e;
+    }
 
     const configTestUser2 = configService.get<{
       kid: string;
       privateKey: string;
     }>("testUser2");
 
-    testUser2 = {
-      ...configTestUser2,
-      did: configTestUser2.kid.split("#")[0],
-      token: await requestSiopJwt({
-        clientKid: configTestUser2.kid,
-        clientPrivateKey: configTestUser2.privateKey,
-        authorisationApiUrl,
-        trustedAppsRegistryApiUrl,
-      }),
-    };
+    try {
+      testUser2 = {
+        ...configTestUser2,
+        did: configTestUser2.kid.split("#")[0],
+        token: await requestSiopJwt({
+          clientKid: configTestUser2.kid,
+          clientPrivateKey: configTestUser2.privateKey,
+          configService,
+        }),
+      };
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e);
+      throw e;
+    }
 
     // delete notifications of testUser1 and testUser2
     await deleteAllNotifications();
@@ -196,9 +200,7 @@ describeWriteOps()("Notifications module (e2e)", () => {
       expect(response.status).toBe(201);
       expect(response.headers).toStrictEqual(
         expect.objectContaining({
-          location: expect.stringContaining(
-            `/notifications/${notificationId}`
-          ) as string,
+          location: expect.stringContaining(`/notifications/${notificationId}`),
         })
       );
     });
@@ -222,9 +224,7 @@ describeWriteOps()("Notifications module (e2e)", () => {
       expect(response.status).toBe(201);
       expect(response.headers).toStrictEqual(
         expect.objectContaining({
-          location: expect.stringContaining(
-            `/notifications/${notificationId}`
-          ) as string,
+          location: expect.stringContaining(`/notifications/${notificationId}`),
         })
       );
     });
@@ -291,14 +291,12 @@ describeWriteOps()("Notifications module (e2e)", () => {
         .send();
 
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining("/notifications?page[size]=10") as string,
-        items: expect.arrayContaining([]) as { id: string }[],
-        total: expect.any(Number) as number,
+        self: expect.stringContaining("/notifications?page[size]=10"),
+        items: expect.arrayContaining([]),
+        total: expect.any(Number),
         pageSize: 10,
         links: {
-          next: expect.stringContaining(
-            "/notifications?page[after]="
-          ) as string,
+          next: expect.stringContaining("/notifications?page[after]="),
         },
       });
 
@@ -320,9 +318,9 @@ describeWriteOps()("Notifications module (e2e)", () => {
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           `/notifications?page[after]=${nextPage}&page[size]=10`
-        ) as string,
-        items: expect.arrayContaining([]) as { id: string }[],
-        total: expect.any(Number) as number,
+        ),
+        items: expect.arrayContaining([]),
+        total: expect.any(Number),
         pageSize: 10,
         links: {},
       });

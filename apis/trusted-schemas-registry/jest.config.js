@@ -5,6 +5,7 @@ module.exports = {
   preset: "ts-jest",
   testEnvironment: "node",
   testTimeout: 120000,
+  injectGlobals: false,
   rootDir: ".",
   roots: ["<rootDir>/src/", "<rootDir>/tests/"],
   testMatch: ["**/?(*.|*-)+(spec|test).ts"],

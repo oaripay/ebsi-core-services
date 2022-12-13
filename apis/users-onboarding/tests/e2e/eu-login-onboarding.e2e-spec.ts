@@ -1,3 +1,5 @@
+/* global page */
+import { describe, beforeAll, it, expect } from "@jest/globals";
 import { URLSearchParams } from "node:url";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ValidationPipe, HttpServer, Logger } from "@nestjs/common";
@@ -10,8 +12,8 @@ import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
 import { Agent, encode, verifyJwtTar } from "@cef-ebsi/siop-auth";
 import { verifyCredentialJwt } from "@cef-ebsi/verifiable-credential";
-import "expect-puppeteer";
-import type { HTTPRequest } from "puppeteer";
+import expectPuppeteer from "expect-puppeteer";
+import type { Request } from "puppeteer";
 import { importJWK } from "jose";
 import { UserAuthentication } from "../../src/shared/dto";
 import { AppModule } from "../../src/app.module";
@@ -64,9 +66,10 @@ describe("EU Login onboarding", () => {
     server = getServer(app, configService);
 
     // Infer Users Onboarding webapp URL from the API's domain
-    usersOnboardingAppUrl = `${configService
-      .get<string>("domain")
-      .replace("api", "app")}/users-onboarding/v2`;
+    usersOnboardingAppUrl = `${(
+      configService.get<string>("testLoadBalancerDomain") ||
+      configService.get<string>("domain")
+    ).replace("api", "app")}/users-onboarding/v2`;
   });
 
   it("should allow any EU Login user to onboard", async () => {
@@ -78,7 +81,7 @@ describe("EU Login onboarding", () => {
 
     // Let all the requests pass except [Users Onboarding App]/authentication?ticket=...
     await page.setRequestInterception(true);
-    page.on("request", (req: HTTPRequest) => {
+    page.on("request", (req: Request) => {
       if (
         !req.url().startsWith(`${usersOnboardingAppUrl}/authentication?ticket=`)
       ) {
@@ -89,34 +92,37 @@ describe("EU Login onboarding", () => {
 
     await page.goto(usersOnboardingAppUrl);
 
-    await expect(page).toMatch("Choose your onboarding method");
+    await expectPuppeteer(page).toMatch("Choose your onboarding method");
 
-    await expect(page).toClick("button", { text: "Onboard with EU Login" });
+    await expectPuppeteer(page).toClick("button", {
+      text: "Onboard with EU Login",
+    });
 
     await page.waitForNavigation({ waitUntil: "networkidle0" });
 
     // On EU Login Acceptance, the message is: "EBSI requires you to authenticate"
     // On EU Login Prod, the message is "EBSI Users Onboarding Service v2 requires you to authenticate"
-    await expect(page).toMatch("requires you to authenticate");
+    await expectPuppeteer(page).toMatch("requires you to authenticate");
 
     await page.waitForTimeout(10000); // EU Login can be very slow to load...
 
-    await expect(page).toFillForm('form[id="whoamiForm"]', {
+    await expectPuppeteer(page).toFillForm('form[id="whoamiForm"]', {
       username: euLoginUsername,
     });
     await page.waitForTimeout(300);
-    await expect(page).toClick("button", { text: "Next" });
+    await expectPuppeteer(page).toClick("button", { text: "Next" });
 
     await page.waitForNavigation();
 
-    await expect(page).toMatch(euLoginUsername);
+    await expectPuppeteer(page).toMatch(euLoginUsername);
 
     await page.waitForTimeout(100);
-    await expect(page).toFillForm('form[id="loginForm"]', {
+
+    await expectPuppeteer(page).toFillForm('form[id="loginForm"]', {
       password: euLoginPassword,
     });
     await page.waitForTimeout(100);
-    await expect(page).toClick('input[title="Sign in"]');
+    await expectPuppeteer(page).toClick('input[title="Sign in"]');
 
     const httpReq = await page.waitForRequest((req) =>
       req.url().startsWith(`${usersOnboardingAppUrl}/authentication?ticket=`)
@@ -136,8 +142,11 @@ describe("EU Login onboarding", () => {
       await request(server).post("/authentication-requests").send({
         scope: "ebsi users onboarding",
       });
+
     expect(authenticationRequestResponse.status).toBe(201);
+
     const authenticationRequest = authenticationRequestResponse.body;
+
     expect(authenticationRequest.session_token).toBeDefined();
 
     // 2 - User verifies it
@@ -165,10 +174,20 @@ describe("EU Login onboarding", () => {
       siopV2: true,
     });
 
+    let trustedAppsRegistry = configService.get<string>(
+      "trustedAppsRegistryApiUrl"
+    );
+
+    // Use TEST_LB_DOMAIN if defined
+    if (configService.get<string>("testLoadBalancerDomain")) {
+      trustedAppsRegistry = trustedAppsRegistry.replace(
+        configService.get<string>("domain"),
+        configService.get<string>("testLoadBalancerDomain")
+      );
+    }
+
     const { payload: requestPayload } = await verifyJwtTar(didAuthRequestJwt, {
-      trustedAppsRegistry: configService.get<string>(
-        "trustedAppsRegistryApiUrl"
-      ),
+      trustedAppsRegistry,
     });
 
     expect(requestPayload.iss.startsWith("users-onboarding-api")).toBe(true);

@@ -1,10 +1,18 @@
-import { describe } from "@jest/globals";
+import {
+  jest,
+  describe,
+  beforeAll,
+  beforeEach,
+  afterEach,
+  afterAll,
+  it,
+  expect,
+} from "@jest/globals";
 import crypto, { randomUUID } from "node:crypto";
 import { URLSearchParams } from "node:url";
 import request from "supertest";
 import { SignJWT, importJWK, exportJWK, jwtVerify } from "jose";
 import { Agent } from "@cef-ebsi/oauth2-auth";
-import type { Ake1SigPayload } from "@cef-ebsi/oauth2-auth";
 import { Test, TestingModule } from "@nestjs/testing";
 import axios from "axios";
 import type { AxiosResponse } from "axios";
@@ -191,17 +199,17 @@ describe("Authorisation Module", () => {
         publicKeyObject
       );
       expect(verification.payload).toStrictEqual({
-        iat: expect.any(Number) as number,
+        iat: expect.any(Number),
         scope: "openid did_authn",
         response_type: "id_token",
-        client_id: expect.any(String) as string,
-        nonce: expect.any(String) as string,
+        client_id: expect.any(String),
+        nonce: expect.any(String),
         redirect_uri: expect.stringContaining(
           "/authorisation/v2/siop-sessions"
-        ) as string,
+        ),
         response_mode: "post",
         iss: configService.get<string>("apiName"),
-        exp: expect.any(Number) as number,
+        exp: expect.any(Number),
         claims: expect.any(Object) as unknown,
       });
       expect(verification.payload.claims).toBeDefined();
@@ -420,23 +428,23 @@ describe("Authorisation Module", () => {
         .send(authRequest);
 
       expect(sessionRequest.body).toStrictEqual({
-        ake1_enc_payload: expect.any(String) as string,
-        ake1_jws_detached: expect.any(String) as string,
+        ake1_enc_payload: expect.any(String),
+        ake1_jws_detached: expect.any(String),
         ake1_sig_payload: {
-          ake1_enc_payload: expect.any(String) as string,
-          ake1_nonce: expect.any(String) as string,
-          exp: expect.any(Number) as string,
-          iat: expect.any(Number) as string,
+          ake1_enc_payload: expect.any(String),
+          ake1_nonce: expect.any(String),
+          exp: expect.any(Number),
+          iat: expect.any(Number),
           iss: configService.get<string>("apiName"),
           kid: expect.stringContaining(
             `/trusted-apps-registry/v3/apps/${trustedApp.name}`
-          ) as string,
+          ),
         },
         kid: expect.stringContaining(
           `/trusted-apps-registry/v3/apps/${configService.get<string>(
             "apiName"
           )}`
-        ) as string,
+        ),
       });
     });
   });
@@ -753,22 +761,20 @@ describe("Authorisation Module", () => {
           .send({ id_token: idToken });
 
         expect(response.body).toStrictEqual({
-          ake1_enc_payload: expect.any(String) as string,
-          ake1_jws_detached: expect.stringContaining("..") as string, // payload removed from the JWT
+          ake1_enc_payload: expect.any(String),
+          ake1_jws_detached: expect.stringContaining(".."), // payload removed from the JWT
           ake1_sig_payload: expect.objectContaining({
-            ake1_enc_payload: expect.any(String) as string,
+            ake1_enc_payload: expect.any(String),
             ake1_nonce: nonce,
             did: client.did,
-            iat: expect.any(Number) as number,
-            exp: expect.any(Number) as number,
+            iat: expect.any(Number),
+            exp: expect.any(Number),
             iss: configService.get<string>("apiName"),
-          }) as Ake1SigPayload,
-          kid: <string>(
-            expect.stringContaining(
-              `/trusted-apps-registry/v3/apps/${configService.get<string>(
-                "apiName"
-              )}`
-            )
+          }),
+          kid: expect.stringContaining(
+            `/trusted-apps-registry/v3/apps/${configService.get<string>(
+              "apiName"
+            )}`
           ),
         });
         expect(response.status).toBe(200);
@@ -938,22 +944,20 @@ describe("Authorisation Module", () => {
           .send({ id_token: idToken, vp_token: vpJwt });
 
         expect(response.body).toStrictEqual({
-          ake1_enc_payload: expect.any(String) as string,
-          ake1_jws_detached: expect.stringContaining("..") as string, // payload removed from the JWT
+          ake1_enc_payload: expect.any(String),
+          ake1_jws_detached: expect.stringContaining(".."), // payload removed from the JWT
           ake1_sig_payload: expect.objectContaining({
-            ake1_enc_payload: expect.any(String) as string,
+            ake1_enc_payload: expect.any(String),
             ake1_nonce: nonce,
             did: client.did,
-            iat: expect.any(Number) as number,
-            exp: expect.any(Number) as number,
+            iat: expect.any(Number),
+            exp: expect.any(Number),
             iss: configService.get<string>("apiName"),
-          }) as Ake1SigPayload,
-          kid: <string>(
-            expect.stringContaining(
-              `/trusted-apps-registry/v3/apps/${configService.get<string>(
-                "apiName"
-              )}`
-            )
+          }),
+          kid: expect.stringContaining(
+            `/trusted-apps-registry/v3/apps/${configService.get<string>(
+              "apiName"
+            )}`
           ),
         });
         expect(response.status).toBe(200);

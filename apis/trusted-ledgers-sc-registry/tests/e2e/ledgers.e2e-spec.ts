@@ -1,4 +1,5 @@
-import crypto from "crypto";
+import { describe, beforeAll, it, expect } from "@jest/globals";
+import crypto from "node:crypto";
 import { ethers } from "ethers";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
@@ -15,6 +16,7 @@ import {
 import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
 import { prefixWith0x } from "@ebsiint-api/shared";
+import type { TransactionRequest } from "@ethersproject/abstract-provider";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
@@ -27,7 +29,7 @@ import {
 } from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
-import { getAccessToken, waitToBeMined } from "../utils/waitToBeMined";
+import { waitToBeMined } from "../utils/waitToBeMined";
 import { requestSiopJwt } from "../utils/siopJwt";
 import { describeWriteOps } from "../utils/describeWriteOps";
 import { getServer } from "../utils/getServer";
@@ -61,7 +63,6 @@ describe("Ledgers (e2e)", () => {
   }[] = [];
   let testAdminAccessToken: string;
   let testUserAccessToken: string;
-  let apiAccessToken: string;
   let ledgerApi: string;
   let sampleTransaction: string;
 
@@ -115,26 +116,31 @@ describe("Ledgers (e2e)", () => {
       JSON.stringify({ data: crypto.randomBytes(10).toString("hex") })
     );
 
-    // Generate a valid Client JWT (SIOP) for the tests
-    testAdminAccessToken = await requestSiopJwt({
-      clientKid: configService.get<string>("testAdminKid"),
-      clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
-      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
-      trustedAppsRegistryApiUrl: configService.get<string>(
-        "trustedAppsRegistryApiUrl"
-      ),
-    });
+    try {
+      // Generate a valid Client JWT (SIOP) for the tests
+      testAdminAccessToken = await requestSiopJwt({
+        clientKid: configService.get<string>("testAdminKid"),
+        clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
+        configService,
+      });
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e);
+      throw e;
+    }
 
-    testUserAccessToken = await requestSiopJwt({
-      clientKid: configService.get<string>("testUserKid"),
-      clientPrivateKey: configService.get<string>("testUserPrivateKey"),
-      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
-      trustedAppsRegistryApiUrl: configService.get<string>(
-        "trustedAppsRegistryApiUrl"
-      ),
-    });
+    try {
+      testUserAccessToken = await requestSiopJwt({
+        clientKid: configService.get<string>("testUserKid"),
+        clientPrivateKey: configService.get<string>("testUserPrivateKey"),
+        configService,
+      });
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e);
+      throw e;
+    }
 
-    apiAccessToken = await getAccessToken(configService);
     ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
 
     blockscout = configService.get<{
@@ -152,7 +158,7 @@ describe("Ledgers (e2e)", () => {
     it("should work", async () => {
       expect.assertions(5);
 
-      let params: JsonRpcParams = null;
+      let params: JsonRpcParams | null = null;
 
       switch (method) {
         case "insertLedgerInfo": {
@@ -229,14 +235,14 @@ describe("Ledgers (e2e)", () => {
         jsonrpc: "2.0",
         id: 231,
         result: {
-          chainId: expect.any(String) as string,
-          data: expect.any(String) as string,
+          chainId: expect.any(String),
+          data: expect.any(String),
           from: adminTestWallet.address,
-          gasLimit: expect.any(String) as string,
-          gasPrice: expect.any(String) as string,
-          nonce: expect.any(String) as string,
-          to: expect.any(String) as string,
-          value: expect.any(String) as string,
+          gasLimit: expect.any(String),
+          gasPrice: expect.any(String),
+          nonce: expect.any(String),
+          to: expect.any(String),
+          value: expect.any(String),
         },
       });
       expect(responseBuild.status).toBe(200);
@@ -248,7 +254,9 @@ describe("Ledgers (e2e)", () => {
         ) as unknown as UnsignedTransaction
       );
       uTx.chainId = Number(uTx.chainId);
-      const sgnTx = await adminTestWallet.signTransaction(uTx);
+      const sgnTx = await adminTestWallet.signTransaction(
+        uTx as TransactionRequest
+      );
       const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
       const responseSend: SupertestJsonRpcResponse = await request(server)
@@ -273,14 +281,13 @@ describe("Ledgers (e2e)", () => {
       expect(responseSend.body).toStrictEqual({
         jsonrpc: "2.0",
         id: "45",
-        result: expect.any(String) as string,
+        result: expect.any(String),
       });
       expect(responseSend.status).toBe(200);
 
       // wait to be mined
       const receipt = await waitToBeMined(
         ledgerApi,
-        apiAccessToken,
         responseSend.body.result as string
       );
       expect(receipt.status).toBe(1);
@@ -310,10 +317,10 @@ describe("Ledgers (e2e)", () => {
       expect(blockscoutCheck.body).toStrictEqual({
         data: {
           transaction: {
-            blockNumber: expect.any(Number) as number,
-            gasUsed: expect.any(String) as string,
+            blockNumber: expect.any(Number),
+            gasUsed: expect.any(String),
             hash: sampleTransaction,
-            value: expect.any(String) as string,
+            value: expect.any(String),
           },
         },
       });
@@ -326,7 +333,7 @@ describe("Ledgers (e2e)", () => {
       it("should send the transaction but the SC should reject no authorized users", async () => {
         expect.assertions(5);
 
-        let params: JsonRpcParams = null;
+        let params: JsonRpcParams | null = null;
 
         switch (method) {
           case "insertLedgerInfo": {
@@ -363,14 +370,14 @@ describe("Ledgers (e2e)", () => {
           jsonrpc: "2.0",
           id: 231,
           result: {
-            chainId: expect.any(String) as string,
-            data: expect.any(String) as string,
+            chainId: expect.any(String),
+            data: expect.any(String),
             from: userTestWallet.address,
-            gasLimit: expect.any(String) as string,
-            gasPrice: expect.any(String) as string,
-            nonce: expect.any(String) as string,
-            to: expect.any(String) as string,
-            value: expect.any(String) as string,
+            gasLimit: expect.any(String),
+            gasPrice: expect.any(String),
+            nonce: expect.any(String),
+            to: expect.any(String),
+            value: expect.any(String),
           },
         });
         expect(responseBuild.status).toBe(200);
@@ -382,7 +389,9 @@ describe("Ledgers (e2e)", () => {
           ) as unknown as UnsignedTransaction
         );
         uTx.chainId = Number(uTx.chainId);
-        const sgnTx = await userTestWallet.signTransaction(uTx);
+        const sgnTx = await userTestWallet.signTransaction(
+          uTx as TransactionRequest
+        );
         const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
         const responseSend: SupertestJsonRpcResponse = await request(server)
@@ -407,14 +416,13 @@ describe("Ledgers (e2e)", () => {
         expect(responseSend.body).toStrictEqual({
           jsonrpc: "2.0",
           id: "45",
-          result: expect.any(String) as string,
+          result: expect.any(String),
         });
         expect(responseSend.status).toBe(200);
 
         // wait to be mined
         const receipt = await waitToBeMined(
           ledgerApi,
-          apiAccessToken,
           responseSend.body.result as string
         );
         receipt.revertReason = Buffer.from(
@@ -428,7 +436,7 @@ describe("Ledgers (e2e)", () => {
             status: 0,
             revertReason: expect.stringContaining(
               `Policy error: sender doesn't have the attribute TLSCR:${method}`
-            ) as string,
+            ),
           })
         );
       });
@@ -441,21 +449,17 @@ describe("Ledgers (e2e)", () => {
 
       const response = await request(server).get("/ledgers");
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/ledgers?page[after]=1&page[size]=10"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
-        total: expect.any(Number) as number,
+        self: expect.stringContaining("/ledgers?page[after]=1&page[size]=10"),
+        items: expect.arrayContaining([]),
+        total: expect.any(Number),
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/ledgers?page[after]=1&page[size]=10"
-          ) as string,
-          prev: expect.stringContaining(
-            "/ledgers?page[after]=1&page[size]=10"
-          ) as string,
-          next: expect.stringContaining("/ledgers?page[after]=") as string,
-          last: expect.stringContaining("/ledgers?page[after]=") as string,
+          ),
+          prev: expect.stringContaining("/ledgers?page[after]=1&page[size]=10"),
+          next: expect.stringContaining("/ledgers?page[after]="),
+          last: expect.stringContaining("/ledgers?page[after]="),
         },
       });
       expect(response.status).toBe(200);
@@ -469,23 +473,23 @@ describe("Ledgers (e2e)", () => {
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           "/ledgers?page[after]=1&page[size]=10&name=wrong-name"
-        ) as string,
+        ),
         items: [],
         total: 0,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/ledgers?page[after]=1&page[size]=10&name=wrong-name"
-          ) as string,
+          ),
           prev: expect.stringContaining(
             "/ledgers?page[after]=1&page[size]=10&name=wrong-name"
-          ) as string,
+          ),
           next: expect.stringContaining(
             "/ledgers?page[after]=1&page[size]=10&name=wrong-name"
-          ) as string,
+          ),
           last: expect.stringContaining(
             "/ledgers?page[after]=1&page[size]=10&name=wrong-name"
-          ) as string,
+          ),
         },
       });
       expect(response.status).toBe(200);
@@ -502,13 +506,11 @@ describe("Ledgers (e2e)", () => {
         expect(response.body).toStrictEqual({
           self: expect.stringContaining(
             `/ledgers?page[after]=1&page[size]=10&name=${ledgerName2}`
-          ) as string,
+          ),
           items: [
             {
               ledgerInfoId,
-              href: expect.stringContaining(
-                `/ledgers/${ledgerInfoId}`
-              ) as string,
+              href: expect.stringContaining(`/ledgers/${ledgerInfoId}`),
             },
           ],
           total: 1,
@@ -516,16 +518,16 @@ describe("Ledgers (e2e)", () => {
           links: {
             first: expect.stringContaining(
               `/ledgers?page[after]=1&page[size]=10&name=${ledgerName2}`
-            ) as string,
+            ),
             prev: expect.stringContaining(
               `/ledgers?page[after]=1&page[size]=10&name=${ledgerName2}`
-            ) as string,
+            ),
             next: expect.stringContaining(
               `/ledgers?page[after]=1&page[size]=10&name=${ledgerName2}`
-            ) as string,
+            ),
             last: expect.stringContaining(
               `/ledgers?page[after]=1&page[size]=10&name=${ledgerName2}`
-            ) as string,
+            ),
           },
         });
         expect(response.status).toBe(200);
@@ -624,23 +626,23 @@ describe("Ledgers (e2e)", () => {
         expect(response.body).toStrictEqual({
           self: expect.stringContaining(
             `/ledgers/${ledgerInfoId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
-          items: expect.arrayContaining([]) as Array<string>,
+          ),
+          items: expect.arrayContaining([]),
           total: 3,
           pageSize: 10,
           links: {
             first: expect.stringContaining(
               `/ledgers/${ledgerInfoId}/revisions?page[after]=1&page[size]=10`
-            ) as string,
+            ),
             prev: expect.stringContaining(
               `/ledgers/${ledgerInfoId}/revisions?page[after]=1&page[size]=10`
-            ) as string,
+            ),
             next: expect.stringContaining(
               `/ledgers/${ledgerInfoId}/revisions?page[after]=1&page[size]=10`
-            ) as string,
+            ),
             last: expect.stringContaining(
               `/ledgers/${ledgerInfoId}/revisions?page[after]=1&page[size]=10`
-            ) as string,
+            ),
           },
         });
         expect((response.body as { items: string }).items).toHaveLength(3);
@@ -657,23 +659,23 @@ describe("Ledgers (e2e)", () => {
         expect(response1.body).toStrictEqual({
           self: expect.stringContaining(
             `/ledgers/${ledgerInfoId}/revisions?page[after]=1&page[size]=2`
-          ) as string,
-          items: expect.arrayContaining([]) as Array<string>,
+          ),
+          items: expect.arrayContaining([]),
           total: 3,
           pageSize: 2,
           links: {
             first: expect.stringContaining(
               `/ledgers/${ledgerInfoId}/revisions?page[after]=1&page[size]=2`
-            ) as string,
+            ),
             prev: expect.stringContaining(
               `/ledgers/${ledgerInfoId}/revisions?page[after]=1&page[size]=2`
-            ) as string,
+            ),
             next: expect.stringContaining(
               `/ledgers/${ledgerInfoId}/revisions?page[after]=2&page[size]=2`
-            ) as string,
+            ),
             last: expect.stringContaining(
               `/ledgers/${ledgerInfoId}/revisions?page[after]=2&page[size]=2`
-            ) as string,
+            ),
           },
         });
         expect((response1.body as { items: string }).items).toHaveLength(2);
@@ -687,23 +689,23 @@ describe("Ledgers (e2e)", () => {
         expect(response2.body).toStrictEqual({
           self: expect.stringContaining(
             `/ledgers/${ledgerInfoId}/revisions?page[after]=2&page[size]=2`
-          ) as string,
-          items: expect.arrayContaining([]) as Array<string>,
+          ),
+          items: expect.arrayContaining([]),
           total: 3,
           pageSize: 2,
           links: {
             first: expect.stringContaining(
               `/ledgers/${ledgerInfoId}/revisions?page[after]=1&page[size]=2`
-            ) as string,
+            ),
             prev: expect.stringContaining(
               `/ledgers/${ledgerInfoId}/revisions?page[after]=1&page[size]=2`
-            ) as string,
+            ),
             next: expect.stringContaining(
               `/ledgers/${ledgerInfoId}/revisions?page[after]=2&page[size]=2`
-            ) as string,
+            ),
             last: expect.stringContaining(
               `/ledgers/${ledgerInfoId}/revisions?page[after]=2&page[size]=2`
-            ) as string,
+            ),
           },
         });
         expect((response2.body as { items: string }).items).toHaveLength(1);
@@ -717,23 +719,23 @@ describe("Ledgers (e2e)", () => {
         expect(response3.body).toStrictEqual({
           self: expect.stringContaining(
             `/ledgers/${ledgerInfoId}/revisions?page[after]=100&page[size]=2`
-          ) as string,
-          items: expect.arrayContaining([]) as Array<string>,
+          ),
+          items: expect.arrayContaining([]),
           total: 3,
           pageSize: 2,
           links: {
             first: expect.stringContaining(
               `/ledgers/${ledgerInfoId}/revisions?page[after]=1&page[size]=2`
-            ) as string,
+            ),
             prev: expect.stringContaining(
               `/ledgers/${ledgerInfoId}/revisions?page[after]=2&page[size]=2`
-            ) as string,
+            ),
             next: expect.stringContaining(
               `/ledgers/${ledgerInfoId}/revisions?page[after]=2&page[size]=2`
-            ) as string,
+            ),
             last: expect.stringContaining(
               `/ledgers/${ledgerInfoId}/revisions?page[after]=2&page[size]=2`
-            ) as string,
+            ),
           },
         });
         expect((response3.body as { items: string }).items).toHaveLength(0);
@@ -747,23 +749,23 @@ describe("Ledgers (e2e)", () => {
         expect(response4.body).toStrictEqual({
           self: expect.stringContaining(
             `/ledgers/${ledgerInfoId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
-          items: expect.arrayContaining([]) as Array<string>,
+          ),
+          items: expect.arrayContaining([]),
           total: 3,
           pageSize: 10,
           links: {
             first: expect.stringContaining(
               `/ledgers/${ledgerInfoId}/revisions?page[after]=1&page[size]=10`
-            ) as string,
+            ),
             prev: expect.stringContaining(
               `/ledgers/${ledgerInfoId}/revisions?page[after]=1&page[size]=10`
-            ) as string,
+            ),
             next: expect.stringContaining(
               `/ledgers/${ledgerInfoId}/revisions?page[after]=1&page[size]=10`
-            ) as string,
+            ),
             last: expect.stringContaining(
               `/ledgers/${ledgerInfoId}/revisions?page[after]=1&page[size]=10`
-            ) as string,
+            ),
           },
         });
         expect((response4.body as { items: string }).items).toHaveLength(3);

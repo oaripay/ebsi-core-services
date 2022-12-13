@@ -5,7 +5,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import axios, { AxiosResponse } from "axios";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import { Tir, Tir__factory } from "@ebsiint-sc/trusted-issuers-registry";
 import { logAxiosError } from "@ebsiint-api/shared";
 import { ApiConfig } from "../../config/configuration";
@@ -52,7 +52,9 @@ export class LedgerService {
     this.agent = new Agent({
       privateKey: configService.get<string>("apiPrivateKey"),
       name: configService.get<string>("apiName"),
-      trustedAppsRegistry: `${configService.get<string>("tarApiUrl")}/apps`,
+      trustedAppsRegistry: `${configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      )}/apps`,
     });
 
     this.domain = this.configService.get<string>("domain");

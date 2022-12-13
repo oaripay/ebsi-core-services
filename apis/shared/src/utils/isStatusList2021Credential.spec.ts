@@ -1,3 +1,4 @@
+import { jest, describe, it, expect } from "@jest/globals";
 import * as vcLib from "@cef-ebsi/verifiable-credential";
 import { EBSIVerifiableAttestation } from "@cef-ebsi/verifiable-credential/dist/types/EBSIVerifiableAttestation";
 import Joi from "joi";

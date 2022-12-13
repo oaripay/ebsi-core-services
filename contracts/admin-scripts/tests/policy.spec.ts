@@ -1,8 +1,8 @@
 /* eslint-disable no-await-in-loop */
 import { ethers } from "hardhat";
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { FactoryOptions } from "hardhat/types";
+import type { FactoryOptions } from "hardhat/types";
 import { expect } from "chai";
 import { Tar } from "../src/types";
 

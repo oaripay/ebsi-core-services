@@ -1,3 +1,11 @@
+import {
+  jest,
+  describe,
+  beforeAll,
+  afterEach,
+  it,
+  expect,
+} from "@jest/globals";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication, ValidationPipe, Logger } from "@nestjs/common";
@@ -76,7 +84,7 @@ describe("Logging interceptor", () => {
           headers: {
             "accept-encoding": "gzip, deflate",
             connection: "close",
-            host: expect.stringContaining("127.0.0.1:") as string,
+            host: expect.stringContaining("127.0.0.1:"),
           },
           message: "Incoming request - GET - /health",
           method: "GET",
@@ -116,11 +124,11 @@ describe("Logging interceptor", () => {
       expect.assertions(2);
 
       const tokenOAuth2 = await createFakeToken({
-        trustedAppsRegistryApiUrl: "",
         loginHint: "oauth2",
         authorisationApiName: "authorisation-api",
         testAppName: "test-app",
         useKidAuthApi: false,
+        configService,
       });
 
       await request(app.getHttpServer())
@@ -147,7 +155,7 @@ describe("Logging interceptor", () => {
             connection: "close",
             "content-length": "62",
             "content-type": "application/json",
-            host: expect.stringContaining("127.0.0.1:") as string,
+            host: expect.stringContaining("127.0.0.1:"),
           },
           message: "Incoming request - POST - /blockchains/besu",
           method: "POST",
@@ -166,7 +174,7 @@ describe("Logging interceptor", () => {
             params: [],
             id: "42",
           },
-          error: expect.any(Error) as Error,
+          error: expect.any(Error),
           message: "Outgoing response - 400 - POST - /blockchains/besu",
           method: "POST",
           url: "/blockchains/besu",

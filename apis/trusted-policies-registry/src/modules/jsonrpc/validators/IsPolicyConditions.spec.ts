@@ -1,4 +1,4 @@
-import { describe } from "@jest/globals";
+import { describe, it, expect } from "@jest/globals";
 import {
   ATTRIBUTE_OPERATIONS,
   ATTRIBUTE_TYPES,

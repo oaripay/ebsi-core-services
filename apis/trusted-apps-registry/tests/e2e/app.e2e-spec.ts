@@ -1,3 +1,4 @@
+import { describe, beforeAll, afterAll, it, expect } from "@jest/globals";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ValidationPipe, HttpServer } from "@nestjs/common";
@@ -35,9 +36,6 @@ describe("TAR API (generic tests)", () => {
     app.useGlobalPipes(new ValidationPipe());
 
     Logger.overrideLogger(false);
-    trustedAppsRegistryUrl = `${configService.get<string>(
-      "domain"
-    )}${configService.get<string>("apiUrlPrefix")}`;
 
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
@@ -46,6 +44,18 @@ describe("TAR API (generic tests)", () => {
 
     if (process.env.TEST_ENV === "remote") {
       apiUrlPrefix = configService.get<string>("apiUrlPrefix");
+    }
+
+    trustedAppsRegistryUrl = `${configService.get<string>(
+      "domain"
+    )}${configService.get<string>("apiUrlPrefix")}`;
+
+    // Use TEST_LB_DOMAIN if defined
+    if (configService.get<string>("testLoadBalancerDomain")) {
+      trustedAppsRegistryUrl = trustedAppsRegistryUrl.replace(
+        configService.get<string>("domain"),
+        configService.get<string>("testLoadBalancerDomain")
+      );
     }
   });
 
@@ -91,9 +101,7 @@ describe("TAR API (generic tests)", () => {
     it("should reject a POST without JWT", async () => {
       expect.assertions(3);
 
-      const response = await request(app.getHttpServer())
-        .post("/jsonrpc")
-        .send();
+      const response = await request(server).post("/jsonrpc").send();
 
       expect(response.body).toStrictEqual({
         detail: "Invalid or missing JWT",
@@ -110,7 +118,7 @@ describe("TAR API (generic tests)", () => {
     it("should reject a POST with an invalid token", async () => {
       expect.assertions(3);
 
-      const response = await request(app.getHttpServer())
+      const response = await request(server)
         .post("/jsonrpc")
         .auth(
           "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJpc3MiOiJhbnkifQ.eiwf-6rtNV0oWpFidRTlcY6oLBpV0l2tEkCs5FNoIxY",

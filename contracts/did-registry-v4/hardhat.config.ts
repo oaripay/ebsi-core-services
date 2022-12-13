@@ -4,7 +4,7 @@ import "@nomiclabs/hardhat-solhint";
 import "hardhat-abi-exporter";
 import "solidity-coverage";
 import { HardhatUserConfig } from "hardhat/config";
-import * as fs from "fs";
+import * as fs from "node:fs";
 
 // The solhint plugin overrides the check task, runs solhint
 // on the project's sources and prints the report to the console
@@ -23,11 +23,11 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {},
     local: {
-      url: `http://localhost:8545`,
+      url: "http://localhost:8545",
       accounts: { mnemonic },
     },
     mainnet: {
-      url: `https://api.intebsi.xyz/ledger/v1/blockchains/besu`,
+      url: "https://api.intebsi.xyz/ledger/v3/blockchains/besu",
       accounts: { mnemonic },
     },
   },

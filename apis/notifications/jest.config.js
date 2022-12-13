@@ -4,6 +4,7 @@ const path = require("path");
 module.exports = {
   preset: "ts-jest",
   testEnvironment: "node",
+  injectGlobals: false,
   rootDir: ".",
   roots: ["<rootDir>/src/", "<rootDir>/tests/"],
   testMatch: ["**/?(*.|*-)+(spec|test).ts"],
@@ -15,4 +16,9 @@ module.exports = {
   collectCoverageFrom: ["src/**/*.(t|j)s", "!**/*.d.ts", "!src/main.ts"],
   coverageReporters: ["text", "lcov", "json", "clover", "cobertura"],
   resolver: path.resolve(__dirname, "../../jest-resolver.js"),
+  globals: {
+    "ts-jest": {
+      tsconfig: "tsconfig.test.json",
+    },
+  },
 };

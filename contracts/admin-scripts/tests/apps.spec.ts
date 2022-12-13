@@ -1,10 +1,10 @@
 import { ethers, network } from "hardhat";
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { expect } from "chai";
 import { Contract } from "ethers";
+import type { FactoryOptions } from "hardhat/types";
 import { Tar } from "../src/types";
 import { testDidrAddress, testTprAddress } from "./testAddress";
-import { FactoryOptions } from "hardhat/types";
 
 const num = ethers.BigNumber.from;
 const getAppId = (name: string) =>
@@ -297,7 +297,6 @@ describe("Trusted Apps", () => {
     await policyContractMock.setPolicyResult(false);
 
     const info = crypto.randomBytes(32);
-    const infoId = ethers.utils.sha256(info);
     await expect(tar.insertAppInfo(app.id, info)).to.emit(
       tar,
       "ApplicationInfoUpdated"

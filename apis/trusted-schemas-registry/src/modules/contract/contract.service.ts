@@ -5,7 +5,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import axios, { AxiosResponse } from "axios";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import {
   SchemaSCRegistry,
   SchemaSCRegistry__factory,
@@ -53,7 +53,9 @@ export class ContractService {
     this.agent = new Agent({
       privateKey: configService.get<string>("apiPrivateKey"),
       name: configService.get<string>("apiName"),
-      trustedAppsRegistry: `${configService.get<string>("tarApiUrl")}/apps`,
+      trustedAppsRegistry: `${configService.get<string>(
+        "trustedAppsRegistryApiUrl"
+      )}/apps`,
     });
 
     this.domain = this.configService.get<string>("domain");

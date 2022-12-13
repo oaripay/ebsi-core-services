@@ -1,3 +1,4 @@
+import { describe, beforeAll, it, expect } from "@jest/globals";
 import crypto, { randomUUID } from "node:crypto";
 import type { JsonWebKey } from "node:crypto";
 import { URLSearchParams } from "node:url";
@@ -22,20 +23,19 @@ import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { Agent as OAuth2Agent } from "@cef-ebsi/oauth2-auth";
-import type { Ake1SigPayload, AkeResponse } from "@cef-ebsi/oauth2-auth";
+import type { AkeResponse } from "@cef-ebsi/oauth2-auth";
 import {
   RP,
   Agent as SiopAgent,
   encode,
   verifyJwtTar,
 } from "@cef-ebsi/siop-auth";
-import { describe, it } from "@jest/globals";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import type { ApiConfig } from "../../src/config/configuration";
 import { getPublicKey, randomPrivateKeySecp256k1 } from "../utils/keys";
 import { createVerifiableAuthorisationJwt } from "../utils/verifiableAuthorisation";
-import { createVpJwt } from "../utils/verfiablePresentation";
+import { createVpJwt } from "../utils/verifiablePresentation";
 import {
   createAuthenticationResponseJose,
   getKeyByAlg,
@@ -50,6 +50,7 @@ describe("Authorisation (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer | string;
   let trustedAppsRegistry: string;
+  let didRegistry: string;
   let authorisationCredentialSchema: string;
   let onboardingApiPrivateKey: string;
   let onboardingAllowlist: string[];
@@ -67,6 +68,7 @@ describe("Authorisation (e2e)", () => {
   let configService: ConfigService<ApiConfig, true>;
   let domain: string;
   let ebsiAuthority: string;
+  let testLoadBalancerDomain: string;
 
   // Fake audience used for the creation of the VP JWT (not checked by the API)
   const audience = "authorisation-api";
@@ -99,6 +101,7 @@ describe("Authorisation (e2e)", () => {
       "testIssuerPrivateKey"
     );
     trustedAppsRegistry = configService.get<string>("trustedAppsRegistry");
+    didRegistry = configService.get<string>("didRegistry");
     authorisationCredentialSchema = configService.get<string>(
       "authorisationCredentialSchema"
     );
@@ -110,17 +113,32 @@ describe("Authorisation (e2e)", () => {
     apiName = configService.get<string>("apiName");
     apiKid = `${trustedAppsRegistry}/${apiName}`;
 
-    trustedApp = {
-      name: testAppName,
-      privateKey: testAppPrivateKey,
-      kid: `${trustedAppsRegistry}/${testAppName}`,
-    };
     trustedIssuer = {
       privateKey: testIssuerPrivateKey,
       did: testIssuerDid,
     };
     domain = configService.get<string>("domain");
     ebsiAuthority = domain.replace(/^https?:\/\//, "");
+
+    testLoadBalancerDomain = configService.get<string>(
+      "testLoadBalancerDomain"
+    );
+
+    // Replace URLs to TAR API and DIDR API with the LB domain if defined
+    if (testLoadBalancerDomain) {
+      trustedAppsRegistry = trustedAppsRegistry.replace(
+        domain,
+        testLoadBalancerDomain
+      );
+      didRegistry = didRegistry.replace(domain, testLoadBalancerDomain);
+      ebsiAuthority = testLoadBalancerDomain.replace(/^https?:\/\//, "");
+    }
+
+    trustedApp = {
+      name: testAppName,
+      privateKey: testAppPrivateKey,
+      kid: `${trustedAppsRegistry}/${testAppName}`,
+    };
   });
 
   describe("POST /authentication-requests", () => {
@@ -224,18 +242,18 @@ describe("Authorisation (e2e)", () => {
       }
 
       expect(verification.payload).toStrictEqual({
-        iat: expect.any(Number) as number,
-        exp: expect.any(Number) as number,
+        iat: expect.any(Number),
+        exp: expect.any(Number),
         scope: "openid did_authn",
         response_type: "id_token",
-        client_id: expect.any(String) as string,
-        nonce: expect.any(String) as string,
+        client_id: expect.any(String),
+        nonce: expect.any(String),
         redirect_uri: expect.stringContaining(
           "/authorisation/v2/siop-sessions"
-        ) as string,
+        ),
         response_mode: "post",
-        iss: expect.stringMatching(/^authorisation-api_/) as string,
-        claims: expect.objectContaining({}) as { id_token: unknown },
+        iss: expect.stringMatching(/^authorisation-api_/),
+        claims: expect.objectContaining({}),
       });
     });
   });
@@ -276,9 +294,7 @@ describe("Authorisation (e2e)", () => {
       expect(response.body).toStrictEqual({
         title: "Invalid Client Assertion",
         status: 400,
-        detail: `JWT with invalid kid. It should be hosted at ${configService.get<string>(
-          "trustedAppsRegistry"
-        )}`,
+        detail: `JWT with invalid kid. It should be hosted at ${trustedAppsRegistry}`,
         type: "about:blank",
       });
       expect(response.status).toBe(400);
@@ -288,7 +304,7 @@ describe("Authorisation (e2e)", () => {
       let agent = new OAuth2Agent({
         privateKey: randomPrivateKeySecp256k1(),
         name: "invalid-app",
-        trustedAppsRegistry: configService.get<string>("trustedAppsRegistry"),
+        trustedAppsRegistry,
       });
 
       let authRequest = await agent.createRequest("storage-api", {
@@ -302,7 +318,7 @@ describe("Authorisation (e2e)", () => {
       expect(response.body).toStrictEqual({
         title: "Invalid Client Assertion",
         status: 400,
-        detail: expect.stringContaining("App invalid-app not found") as string,
+        detail: expect.stringContaining("App invalid-app not found"),
         type: "about:blank",
       });
       expect(response.status).toBe(400);
@@ -310,7 +326,7 @@ describe("Authorisation (e2e)", () => {
       agent = new OAuth2Agent({
         privateKey: randomPrivateKeySecp256k1(),
         name: trustedApp.name,
-        trustedAppsRegistry: configService.get<string>("trustedAppsRegistry"),
+        trustedAppsRegistry,
       });
 
       authRequest = await agent.createRequest("storage-api", {
@@ -324,9 +340,7 @@ describe("Authorisation (e2e)", () => {
       expect(response.body).toStrictEqual({
         title: "Invalid Client Assertion",
         status: 400,
-        detail: expect.stringContaining(
-          "signature verification failed"
-        ) as string,
+        detail: expect.stringContaining("signature verification failed"),
         type: "about:blank",
       });
       expect(response.status).toBe(400);
@@ -339,7 +353,7 @@ describe("Authorisation (e2e)", () => {
       const agent = new OAuth2Agent({
         privateKey: trustedApp.privateKey,
         name: trustedApp.name,
-        trustedAppsRegistry: configService.get<string>("trustedAppsRegistry"),
+        trustedAppsRegistry,
       });
 
       const authRequest = await agent.createRequest("ledger-api", {
@@ -351,19 +365,17 @@ describe("Authorisation (e2e)", () => {
         .send(authRequest);
 
       expect(response.body).toStrictEqual({
-        ake1_enc_payload: expect.any(String) as string,
+        ake1_enc_payload: expect.any(String),
         ake1_sig_payload: expect.objectContaining({
-          iat: expect.any(Number) as number,
-          exp: expect.any(Number) as number,
+          iat: expect.any(Number),
+          exp: expect.any(Number),
           ake1_nonce: nonce,
-          ake1_enc_payload: expect.any(String) as string,
+          ake1_enc_payload: expect.any(String),
           kid: trustedApp.kid,
-          iss: expect.stringMatching(/^authorisation-api_/) as string,
-        }) as Ake1SigPayload,
-        ake1_jws_detached: expect.stringContaining("..") as string, // payload removed from the JWT
-        kid: expect.stringMatching(
-          `${trustedAppsRegistry}/authorisation-api_`
-        ) as string,
+          iss: expect.stringMatching(/^authorisation-api_/),
+        }),
+        ake1_jws_detached: expect.stringContaining(".."), // payload removed from the JWT
+        kid: expect.stringMatching(`${trustedAppsRegistry}/authorisation-api_`),
       });
       expect(response.status).toBe(200);
 
@@ -377,7 +389,7 @@ describe("Authorisation (e2e)", () => {
 
   describe.each(["ES256K", "ES256", "RS256", "EdDSA"] as const)(
     "POST /siop-sessions with alg %s",
-    (alg) => {
+    (alg: "ES256K" | "ES256" | "RS256" | "EdDSA") => {
       it("should reject bad requests", async () => {
         expect.assertions(14);
 
@@ -522,9 +534,7 @@ describe("Authorisation (e2e)", () => {
         expect(response.body).toStrictEqual({
           title: "Invalid ID Token",
           status: 400,
-          detail: `Unable to resolve ${randomDid}. Error: notFound. Message: Identifier ${randomDid} not found | Registry used: ${configService.get<string>(
-            "didRegistry"
-          )}`,
+          detail: `Unable to resolve ${randomDid}. Error: notFound. Message: Identifier ${randomDid} not found | Registry used: ${didRegistry}`,
           type: "about:blank",
         });
         expect(response.status).toBe(400);
@@ -633,7 +643,7 @@ describe("Authorisation (e2e)", () => {
           name: apiName,
           kid: apiKid,
           redirectUri: siopSessionsUrl,
-          didRegistry: configService.get<string>("didRegistry"),
+          didRegistry,
         });
         const uri = await rp.createRequest({});
 
@@ -716,19 +726,19 @@ describe("Authorisation (e2e)", () => {
           .send({ id_token: idToken });
 
         expect(response.body).toStrictEqual({
-          ake1_enc_payload: expect.any(String) as string,
-          ake1_jws_detached: expect.stringContaining("..") as string, // payload removed from the JWT
+          ake1_enc_payload: expect.any(String),
+          ake1_jws_detached: expect.stringContaining(".."), // payload removed from the JWT
           ake1_sig_payload: expect.objectContaining({
-            ake1_enc_payload: expect.any(String) as string,
+            ake1_enc_payload: expect.any(String),
             ake1_nonce: nonce,
-            did: expect.any(String) as string,
-            iat: expect.any(Number) as number,
-            exp: expect.any(Number) as number,
-            iss: expect.stringMatching(/^authorisation-api_/) as string,
-          }) as Ake1SigPayload,
+            did: expect.any(String),
+            iat: expect.any(Number),
+            exp: expect.any(Number),
+            iss: expect.stringMatching(/^authorisation-api_/),
+          }),
           kid: expect.stringMatching(
             `${trustedAppsRegistry}/authorisation-api_`
-          ) as string,
+          ),
         });
         expect(
           (

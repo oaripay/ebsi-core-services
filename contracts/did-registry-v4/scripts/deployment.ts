@@ -1,8 +1,8 @@
-import fs from "fs";
+import fs from "node:fs";
 import path from "path";
 import { ethers } from "hardhat";
-import { DidRegistry } from "../src/types";
 import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry";
+import { DidRegistry } from "../src/types";
 
 async function main() {
   const paginationFactory = await ethers.getContractFactory("Pagination", {});

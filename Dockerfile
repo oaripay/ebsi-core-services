@@ -31,7 +31,7 @@ COPY ./apis/trusted-ledgers-sc-registry/package.json ./apis/trusted-ledgers-sc-r
 COPY ./apis/trusted-policies-registry/package.json ./apis/trusted-policies-registry/
 COPY ./apis/trusted-schemas-registry/package.json ./apis/trusted-schemas-registry/
 COPY ./apis/users-onboarding/package.json ./apis/users-onboarding/
-COPY ./apps/users-onboarding-web-client-v2/package.json ./apps/users-onboarding-web-client-v2/package.json
+COPY ./apps/users-onboarding-web-client-v2/package.json ./apps/users-onboarding-web-client-v2/
 COPY ./contracts/bootstrap/package.json ./contracts/bootstrap/
 COPY ./contracts/did-registry/package.json ./contracts/did-registry/
 COPY ./contracts/did-registry-v4/package.json ./contracts/did-registry-v4/
@@ -41,6 +41,10 @@ COPY ./contracts/trusted-issuers-registry/package.json ./contracts/trusted-issue
 COPY ./contracts/trusted-ledgers-sc-registry/package.json ./contracts/trusted-ledgers-sc-registry/
 COPY ./contracts/trusted-policies-registry/package.json ./contracts/trusted-policies-registry/
 COPY ./contracts/trusted-schemas-registry/package.json ./contracts/trusted-schemas-registry/
+
+# Copy patches
+COPY ./patches ./patches
+COPY ./apis/users-onboarding/patches ./apis/users-onboarding/patches
 
 # Install all the dependencies
 ENV PUPPETEER_SKIP_DOWNLOAD=true

@@ -92,7 +92,7 @@ export class BesuService implements OnModuleDestroy {
     }
 
     this.ethersProvider = new ethers.providers.WebSocketProvider(besuRpcNode);
-
+    /* global NodeJS */
     let pingTimeout: NodeJS.Timeout | null = null;
     let keepAliveInterval: NodeJS.Timeout | null = null;
 
@@ -216,7 +216,7 @@ export class BesuService implements OnModuleDestroy {
           };
         } catch (err) {
           // Log whatever could be useful for debugging
-          this.logger.log("An error occured while parsing Besu's reponse");
+          this.logger.log("An error occurred while parsing Besu's response");
           this.logger.log(err);
 
           // Don't reveal details to the client
@@ -241,7 +241,7 @@ export class BesuService implements OnModuleDestroy {
           };
         } catch (err) {
           // Log whatever could be useful for debugging
-          this.logger.log("An error occured while parsing Besu's reponse");
+          this.logger.log("An error occurred while parsing Besu's response");
           this.logger.log(err);
 
           // Don't reveal details to the client
@@ -253,7 +253,7 @@ export class BesuService implements OnModuleDestroy {
       }
 
       // Log whatever could be useful for debugging
-      this.logger.error("An error occured while querying Besu");
+      this.logger.error("An error occurred while querying Besu");
       this.logger.error(e);
 
       // Don't reveal details to the client

@@ -1,3 +1,4 @@
+import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
 import crypto from "node:crypto";
 import { URL } from "node:url";
 import request from "supertest";
@@ -75,15 +76,18 @@ describe("Files (e2e)", () => {
 
     server = getServer(app, configService);
 
-    // Generate valid Client JWT (SIOP) for the tests
-    testUserAccessToken = await requestSiopJwt({
-      clientKid: configService.get<string>("testClientKid"),
-      clientPrivateKey: configService.get<string>("testClientPrivateKey"),
-      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
-      trustedAppsRegistryApiUrl: configService.get<string>(
-        "trustedAppsRegistryApiUrl"
-      ),
-    });
+    try {
+      // Generate valid Client JWT (SIOP) for the tests
+      testUserAccessToken = await requestSiopJwt({
+        clientKid: configService.get<string>("testClientKid"),
+        clientPrivateKey: configService.get<string>("testClientPrivateKey"),
+        configService,
+      });
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e);
+      throw e;
+    }
   });
 
   afterAll(async () => {
@@ -314,12 +318,12 @@ describe("Files (e2e)", () => {
         .send();
 
       expect(response.body).toStrictEqual({
-        items: expect.arrayContaining([]) as string[],
+        items: expect.arrayContaining([]),
         links: expect.objectContaining({}) as unknown,
         pageSize: 12,
         self: expect.stringContaining(
           "/stores/distributed/files?page[size]=12"
-        ) as string,
+        ),
       });
       expect(response.status).toBe(200);
     });
@@ -333,18 +337,14 @@ describe("Files (e2e)", () => {
         .send();
 
       expect(response.body).toStrictEqual({
-        items: expect.arrayContaining([
-          expect.stringContaining("0x"),
-        ]) as string[],
+        items: expect.arrayContaining([expect.stringContaining("0x")]),
         links: {
           next: expect.stringMatching(
             /\/stores\/distributed\/files\?page\[after\]=.*&page\[size\]=2/
-          ) as string,
+          ),
         },
         pageSize: 2,
-        self: expect.stringContaining(
-          "/stores/distributed/files?page[size]=2"
-        ) as string,
+        self: expect.stringContaining("/stores/distributed/files?page[size]=2"),
       });
       expect((response.body as { items: string[] }).items).toHaveLength(2);
       expect(response.status).toBe(200);
@@ -361,12 +361,10 @@ describe("Files (e2e)", () => {
         .send();
 
       expect(nextPageResponse.body).toStrictEqual({
-        items: expect.arrayContaining([
-          expect.stringContaining("0x"),
-        ]) as string[],
+        items: expect.arrayContaining([expect.stringContaining("0x")]),
         links: expect.objectContaining({}) as unknown,
         pageSize: 2,
-        self: expect.stringContaining(nextPageUrl) as string,
+        self: expect.stringContaining(nextPageUrl),
       });
       expect((response.body as { items: string[] }).items).toHaveLength(2);
       expect(nextPageResponse.status).toBe(200);

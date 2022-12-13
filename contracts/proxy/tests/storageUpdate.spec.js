@@ -1,24 +1,35 @@
+const { describe, it, expect } = require("@jest/globals");
 const {
   expectRevert, // Assertions for emitted events
 } = require("@openzeppelin/test-helpers");
-
 const { accounts, contract } = require("@openzeppelin/test-environment");
-
 const PaginationArtifact = require("@ebsiint-sc/bootstrap/artifacts/contracts/utils/Pagination.sol/Pagination.json");
 
 const Pagination = contract.fromABI(
   PaginationArtifact.abi,
   PaginationArtifact.bytecode
 );
+
+contract.artifactsDir = "artifacts/contracts/test/tir/Tir.sol";
 const Tir = contract.fromArtifact("Tir");
+
+contract.artifactsDir = "artifacts/contracts/test/TirV1.sol";
 const TirV1 = contract.fromArtifact("TirV1");
+
+contract.artifactsDir = "artifacts/contracts/test/TirV2.sol";
 const TirV2 = contract.fromArtifact("TirV2");
+
+contract.artifactsDir = "artifacts/contracts/test/TirV2Breaking.sol";
 const TirV2Breaking = contract.fromArtifact("TirV2Breaking");
+
 const encodeCall = require("./helpers/encodeCall");
 
+contract.artifactsDir =
+  "artifacts/contracts/upgradeability/OwnedUpgradeabilityProxy.sol";
 const OwnedUpgradeabilityProxy = contract.fromArtifact(
   "OwnedUpgradeabilityProxy"
 );
+
 const initializeData = (pauser) =>
   encodeCall(
     "initialize",

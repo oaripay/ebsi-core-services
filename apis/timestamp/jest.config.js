@@ -6,6 +6,7 @@ module.exports = {
   testTimeout: 150000,
   maxConcurrency: 1,
   testEnvironment: "node",
+  injectGlobals: false,
   rootDir: ".",
   roots: ["<rootDir>/src/", "<rootDir>/tests/"],
   testMatch: ["**/?(*.|*-)+(spec|test).ts"],

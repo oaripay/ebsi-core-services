@@ -1,4 +1,4 @@
-import { JsonWebKey } from "crypto";
+import { JsonWebKey } from "node:crypto";
 import { ec as EC } from "elliptic";
 import { bases } from "multiformats/basics";
 

@@ -36,7 +36,7 @@ function getEthObject(o: unknown): Record<string, unknown> | unknown[] {
 
 describe("Policy", () => {
   let snapshotId: string;
-  let policyContract: any;
+  let policyContract: PolicyRegistry;
 
   const pcs = [
     {
@@ -89,7 +89,7 @@ describe("Policy", () => {
     snapshotId = await ethers.provider.send("evm_snapshot", []);
   });
 
-  afterEach(async function () {
+  afterEach(async () => {
     await ethers.provider.send("evm_revert", [snapshotId]);
   });
 

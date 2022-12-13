@@ -1,5 +1,5 @@
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { DeployFunction } from "hardhat-deploy/types";
+import type { HardhatRuntimeEnvironment } from "hardhat/types";
+import type { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import { dependencies } from "./dependencies";
 
@@ -13,7 +13,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   };
 
   // get Proxy of TPR
-  const chainId = (await ethers.provider.getNetwork()).chainId;
+  const { chainId } = await ethers.provider.getNetwork();
   console.log(`chain id ${chainId}`);
   let tprAddress = dependencies[chainId]?.tprAddress;
   if (!ethers.utils.isAddress(tprAddress)) {
@@ -42,6 +42,8 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     ts.address
   );
 };
-export default func;
+
 func.tags = ["LedgerSCRegistry"];
 func.dependencies = ["LedgerLib", "SmartContractLib", "Pagination"];
+
+export default func;

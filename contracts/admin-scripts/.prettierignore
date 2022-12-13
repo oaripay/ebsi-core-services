@@ -1,9 +1,8 @@
+artifacts
+build
+cache
+contracts
 coverage
 node_modules
 src
-build
-cache
-artifacts
-contracts
 deployments
-schemas

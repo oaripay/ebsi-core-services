@@ -1,3 +1,4 @@
+import { describe, beforeAll, it, expect } from "@jest/globals";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger, HttpServer } from "@nestjs/common";
@@ -48,21 +49,15 @@ describe("Stores (e2e)", () => {
 
       const response = await request(server).get("/stores");
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/stores?page[after]=1&page[size]=10"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
-        total: expect.any(Number) as number,
+        self: expect.stringContaining("/stores?page[after]=1&page[size]=10"),
+        items: expect.arrayContaining([]),
+        total: expect.any(Number),
         pageSize: 10,
         links: {
-          first: expect.stringContaining(
-            "/stores?page[after]=1&page[size]=10"
-          ) as string,
-          prev: expect.stringContaining(
-            "/stores?page[after]=1&page[size]=10"
-          ) as string,
-          next: expect.stringContaining("/stores?page[after]=") as string,
-          last: expect.stringContaining("/stores?page[after]=") as string,
+          first: expect.stringContaining("/stores?page[after]=1&page[size]=10"),
+          prev: expect.stringContaining("/stores?page[after]=1&page[size]=10"),
+          next: expect.stringContaining("/stores?page[after]="),
+          last: expect.stringContaining("/stores?page[after]="),
         },
       });
       expect(response.status).toBe(200);

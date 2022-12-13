@@ -1,6 +1,6 @@
 import { ethers } from "hardhat";
-import { Tir } from "../src/types";
 import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry";
+import { Tir } from "../src/types";
 
 async function main() {
   const paginationFactory = await ethers.getContractFactory("Pagination", {});

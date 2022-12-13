@@ -7,7 +7,7 @@ import "hardhat-abi-exporter";
 import "solidity-coverage";
 import "@openzeppelin/hardhat-upgrades";
 import "hardhat-gas-reporter";
-import * as fs from "fs";
+import * as fs from "node:fs";
 
 const mnemonicPath = `${__dirname}/.secret.mnemonic`;
 let mnemonic = "test test test test test test test test test test test junk";
@@ -59,11 +59,11 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {},
     local: {
-      url: `http://localhost:8545`,
+      url: "http://localhost:8545",
       accounts: { mnemonic },
     },
     mainnet: {
-      url: `https://api.intebsi.xyz/ledger/v1/blockchains/besu`,
+      url: "https://api.intebsi.xyz/ledger/v3/blockchains/besu",
       accounts: { mnemonic },
     },
   },

@@ -1,16 +1,29 @@
 import crypto from "node:crypto";
 import { createJWT, ES256KSigner } from "did-jwt";
+import { ConfigService } from "@nestjs/config";
+import { ApiConfig } from "src/config/configuration";
 
 export async function createFakeToken({
   apiName,
   authorisationApiName,
-  trustedAppsRegistryApiUrl,
+  configService,
 }: {
   apiName: string;
   authorisationApiName: string;
-  trustedAppsRegistryApiUrl: string;
-  useKidAuthApi?: boolean;
+  configService: ConfigService<ApiConfig, true>;
 }): Promise<string> {
+  let trustedAppsRegistryApiUrl = configService.get<string>(
+    "trustedAppsRegistryApiUrl"
+  );
+
+  // Use TEST_LB_DOMAIN if defined
+  if (configService.get<string>("testLoadBalancerDomain")) {
+    trustedAppsRegistryApiUrl = trustedAppsRegistryApiUrl.replace(
+      configService.get<string>("domain"),
+      configService.get<string>("testLoadBalancerDomain")
+    );
+  }
+
   const payload = {
     iss: authorisationApiName,
     sub: "testApp",

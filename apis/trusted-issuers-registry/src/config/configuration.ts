@@ -21,7 +21,7 @@ export interface ApiConfig {
   // DID Registry API
   didRegistryApiUrl: string;
   // Trusted Apps Registry API
-  tarApiUrl: string;
+  trustedAppsRegistryApiUrl: string;
   // TSR API (using in tests only)
   trustedSchemasRegistryApiUrl: string;
   // Test variables
@@ -32,6 +32,7 @@ export interface ApiConfig {
   testIssuerWithProxyKid: string;
   testIssuerWithProxyPrivateKey: string;
   testStatusListSchemaId: string;
+  testLoadBalancerDomain: string;
   dockerContainerTag: string;
   blockscout: {
     url: string;
@@ -71,7 +72,7 @@ export const loadConfig = (): ApiConfig => {
     // TSR API
     trustedSchemasRegistryApiUrl: DOMAIN + TSR_API_PATH,
     // Trusted Apps Registry API
-    tarApiUrl: DOMAIN + TAR_API_PATH,
+    trustedAppsRegistryApiUrl: DOMAIN + TAR_API_PATH,
     // Test vars
     testAdminKid: process.env.TEST_ADMIN_KID,
     testAdminPrivateKey: process.env.TEST_ADMIN_PRIVATE_KEY,
@@ -81,6 +82,7 @@ export const loadConfig = (): ApiConfig => {
       process.env.TEST_ISSUER_WITH_PROXY_PRIVATE_KEY,
     testUserPrivateKey: process.env.TEST_USER_PRIVATE_KEY,
     testStatusListSchemaId: process.env.TEST_STATUS_LIST_SCHEMA_ID,
+    testLoadBalancerDomain: process.env.TEST_LB_DOMAIN || "",
     dockerContainerTag: process.env.DOCKER_TAG || "",
     blockscout: {
       url: process.env.BLOCKSCOUT_URL,
@@ -114,7 +116,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "verbose",
       "debug"
     ),
-    DOMAIN: Joi.string().required(),
+    DOMAIN: Joi.string().uri().required(),
     DOCKER_TAG: Joi.string(),
     LOCAL_ORIGIN: Joi.string().uri(),
     REQUEST_TIMEOUT: Joi.string(),
@@ -129,6 +131,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_ISSUER_WITH_PROXY_PRIVATE_KEY: Joi.string(),
     TEST_USER_PRIVATE_KEY: Joi.string(),
     TEST_STATUS_LIST_SCHEMA_ID: Joi.string(),
+    TEST_LB_DOMAIN: Joi.string().uri(),
     BLOCKSCOUT_URL: Joi.string(),
     BLOCKSCOUT_BEARER_TOKEN: Joi.string(),
   }),

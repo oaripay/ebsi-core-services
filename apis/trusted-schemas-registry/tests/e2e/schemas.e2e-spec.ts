@@ -1,4 +1,5 @@
-import crypto from "crypto";
+import { describe, beforeAll, it, expect } from "@jest/globals";
+import crypto from "node:crypto";
 import { ethers } from "ethers";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
@@ -14,6 +15,7 @@ import {
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
+import type { TransactionRequest } from "@ethersproject/abstract-provider";
 import $RefParser from "@apidevtools/json-schema-ref-parser";
 import { prefixWith0x, computeId } from "@ebsiint-api/shared";
 import { AppModule } from "../../src/app.module";
@@ -27,8 +29,7 @@ import {
 } from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
-import { getAccessToken, waitToBeMined } from "../utils/waitToBeMined";
-import { ItemsList } from "../../src/modules/schemas/schemas.interface";
+import { waitToBeMined } from "../utils/waitToBeMined";
 import { requestSiopJwt } from "../utils/siopJwt";
 import { createVerifiableAuthorisationSchema } from "../utils/data";
 import { hexToMultibaseBase58Btc } from "../../src/modules/schemas/schemas.utils";
@@ -75,7 +76,6 @@ describe("Schemas (e2e)", () => {
   let serializedUpdatedMetadataBuffer: Buffer;
 
   let ledgerApi: string;
-  let apiAccessToken: string;
 
   let sampleTransaction: string;
 
@@ -110,16 +110,16 @@ describe("Schemas (e2e)", () => {
       prefixWith0x(configService.get("testAdminPrivateKey"))
     );
 
-    // Generate a valid Client JWT (SIOP) for the tests
-    testUserAccessToken = await requestSiopJwt({
-      clientKid: configService.get<string>("testAdminKid"),
-      clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
-      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
-      trustedAppsRegistryUrl: `${configService.get<string>("tarApiUrl")}`,
-    });
+    try {
+      // Generate a valid Client JWT (SIOP) for the tests
+      testUserAccessToken = await requestSiopJwt(configService);
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e);
+      throw e;
+    }
 
     ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
-    apiAccessToken = await getAccessToken(configService);
 
     rawSchema = createVerifiableAuthorisationSchema(
       configService.get<string>("testVaSchemaUrl")
@@ -177,7 +177,7 @@ describe("Schemas (e2e)", () => {
       it("should work", async () => {
         expect.assertions(5);
 
-        let params: JsonRpcParams = null;
+        let params: JsonRpcParams | null = null;
 
         switch (method) {
           case "insertSchema": {
@@ -225,14 +225,14 @@ describe("Schemas (e2e)", () => {
           jsonrpc: "2.0",
           id: 231,
           result: {
-            chainId: expect.any(String) as string,
-            data: expect.any(String) as string,
+            chainId: expect.any(String),
+            data: expect.any(String),
             from: adminTestWallet.address,
-            gasLimit: expect.any(String) as string,
-            gasPrice: expect.any(String) as string,
-            nonce: expect.any(String) as string,
-            to: expect.any(String) as string,
-            value: expect.any(String) as string,
+            gasLimit: expect.any(String),
+            gasPrice: expect.any(String),
+            nonce: expect.any(String),
+            to: expect.any(String),
+            value: expect.any(String),
           },
         });
         expect(responseBuild.status).toBe(200);
@@ -244,7 +244,9 @@ describe("Schemas (e2e)", () => {
           ) as unknown as UnsignedTransaction
         );
         uTx.chainId = Number(uTx.chainId);
-        const sgnTx = await adminTestWallet.signTransaction(uTx);
+        const sgnTx = await adminTestWallet.signTransaction(
+          uTx as TransactionRequest
+        );
         const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
         const responseSend: SupertestJsonRpcResponse = await request(server)
@@ -269,14 +271,13 @@ describe("Schemas (e2e)", () => {
         expect(responseSend.body).toStrictEqual({
           jsonrpc: "2.0",
           id: "45",
-          result: expect.any(String) as string,
+          result: expect.any(String),
         });
         expect(responseSend.status).toBe(200);
 
         // wait to be mined
         const receipt = await waitToBeMined(
           ledgerApi,
-          apiAccessToken,
           responseSend.body.result as string
         );
         expect(receipt.status).toBe(1);
@@ -306,10 +307,10 @@ describe("Schemas (e2e)", () => {
         expect(blockscoutCheck.body).toStrictEqual({
           data: {
             transaction: {
-              blockNumber: expect.any(Number) as number,
-              gasUsed: expect.any(String) as string,
+              blockNumber: expect.any(Number),
+              gasUsed: expect.any(String),
               hash: sampleTransaction,
-              value: expect.any(String) as string,
+              value: expect.any(String),
             },
           },
         });
@@ -324,21 +325,17 @@ describe("Schemas (e2e)", () => {
       const response = await request(server).get("/schemas");
 
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/schemas?page[after]=1&page[size]=10"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
-        total: expect.any(Number) as number,
+        self: expect.stringContaining("/schemas?page[after]=1&page[size]=10"),
+        items: expect.arrayContaining([]),
+        total: expect.any(Number),
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/schemas?page[after]=1&page[size]=10"
-          ) as string,
-          prev: expect.stringContaining(
-            "/schemas?page[after]=1&page[size]=10"
-          ) as string,
-          next: expect.stringContaining("/schemas?page[after]=") as string,
-          last: expect.stringContaining("/schemas?page[after]=") as string,
+          ),
+          prev: expect.stringContaining("/schemas?page[after]=1&page[size]=10"),
+          next: expect.stringContaining("/schemas?page[after]="),
+          last: expect.stringContaining("/schemas?page[after]="),
         },
       });
       expect(response.status).toBe(200);
@@ -440,7 +437,7 @@ describe("Schemas (e2e)", () => {
       expect.assertions(3);
 
       const response = await request(server).get(
-        `/schemas/${schemaId}/revisions?valid-at=yesterdat`
+        `/schemas/${schemaId}/revisions?valid-at=yesterday`
       );
 
       expect(response.body).toStrictEqual({
@@ -533,35 +530,35 @@ describe("Schemas (e2e)", () => {
             {
               href: expect.stringContaining(
                 `/schemas/${schemaId}/revisions/${schemaRevisionId}`
-              ) as string,
+              ),
               schemaRevisionId,
             },
             {
               href: expect.stringContaining(
                 `/schemas/${schemaId}/revisions/${revisionId2}`
-              ) as string,
+              ),
               schemaRevisionId: revisionId2,
             },
-          ]) as ItemsList[],
+          ]),
           links: {
             first: expect.stringContaining(
               `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`
-            ) as string,
+            ),
             last: expect.stringContaining(
               `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`
-            ) as string,
+            ),
             next: expect.stringContaining(
               `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`
-            ) as string,
+            ),
             prev: expect.stringContaining(
               `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`
-            ) as string,
+            ),
           },
           pageSize: 10,
           self: expect.stringContaining(
             `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
-          total: expect.any(Number) as number,
+          ),
+          total: expect.any(Number),
         });
         expect(response.status).toBe(200);
         expect(
@@ -585,35 +582,35 @@ describe("Schemas (e2e)", () => {
             {
               href: expect.stringContaining(
                 `/schemas/${schemaId}/revisions/${schemaRevisionId}`
-              ) as string,
+              ),
               schemaRevisionId,
             },
             {
               href: expect.stringContaining(
                 `/schemas/${schemaId}/revisions/${revisionId2}`
-              ) as string,
+              ),
               schemaRevisionId: revisionId2,
             },
-          ]) as ItemsList[],
+          ]),
           links: {
             first: expect.stringContaining(
               `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`
-            ) as string,
+            ),
             last: expect.stringContaining(
               `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`
-            ) as string,
+            ),
             next: expect.stringContaining(
               `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`
-            ) as string,
+            ),
             prev: expect.stringContaining(
               `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`
-            ) as string,
+            ),
           },
           pageSize: 10,
           self: expect.stringContaining(
             `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
-          total: expect.any(Number) as number,
+          ),
+          total: expect.any(Number),
         });
         expect(response.status).toBe(200);
         expect(
@@ -839,29 +836,29 @@ describe("Schemas (e2e)", () => {
             {
               href: expect.stringContaining(
                 `/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata/${schemaRevisionMetadataId}`
-              ) as string,
+              ),
               metadataId: schemaRevisionMetadataId,
             },
-          ]) as ItemsList[],
+          ]),
           links: {
             first: expect.stringContaining(
               `/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata?page[after]=1&page[size]=10`
-            ) as string,
+            ),
             last: expect.stringContaining(
               `/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata?page[after]=1&page[size]=10`
-            ) as string,
+            ),
             next: expect.stringContaining(
               `/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata?page[after]=1&page[size]=10`
-            ) as string,
+            ),
             prev: expect.stringContaining(
               `/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata?page[after]=1&page[size]=10`
-            ) as string,
+            ),
           },
           pageSize: 10,
           self: expect.stringContaining(
             `/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata?page[after]=1&page[size]=10`
-          ) as string,
-          total: expect.any(Number) as number,
+          ),
+          total: expect.any(Number),
         });
         expect(response.status).toBe(200);
         expect(

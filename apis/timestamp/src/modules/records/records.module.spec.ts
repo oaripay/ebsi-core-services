@@ -1,4 +1,4 @@
-import { describe } from "@jest/globals";
+import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import {
@@ -8,7 +8,7 @@ import {
   Logger,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import crypto from "crypto";
+import crypto from "node:crypto";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -19,7 +19,7 @@ import { AsyncReturnType, multibase } from "@ebsiint-api/shared";
 import { RecordsModule } from "./records.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { setupTestEnv } from "../../../tests/utils/timestamp";
-import { InfoObject, RecordLink } from "./records.interface";
+import { RecordLink } from "./records.interface";
 import { LedgerService } from "../ledger/ledger.service";
 import { ApiConfig } from "../../config/configuration";
 
@@ -92,25 +92,23 @@ describe("Records Module", () => {
 
         const response = await request(server).get(url());
         expect(response.body).toStrictEqual({
-          self: expect.stringContaining(
-            "/records?page[after]=1&page[size]=10"
-          ) as string,
-          items: expect.arrayContaining([]) as Array<string>,
+          self: expect.stringContaining("/records?page[after]=1&page[size]=10"),
+          items: expect.arrayContaining([]),
           total: RECORDS_TOTAL,
           pageSize: 10,
           links: {
             first: expect.stringContaining(
               "/records?page[after]=1&page[size]=10"
-            ) as string,
+            ),
             prev: expect.stringContaining(
               "/records?page[after]=1&page[size]=10"
-            ) as string,
+            ),
             next: expect.stringContaining(
               "/records?page[after]=1&page[size]=10"
-            ) as string,
+            ),
             last: expect.stringContaining(
               "/records?page[after]=1&page[size]=10"
-            ) as string,
+            ),
           },
         });
         expect((response.body as { items: string }).items).toHaveLength(
@@ -125,25 +123,15 @@ describe("Records Module", () => {
 
       const response1 = await request(server).get("/records?page[size]=2");
       expect(response1.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/records?page[after]=1&page[size]=2"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        self: expect.stringContaining("/records?page[after]=1&page[size]=2"),
+        items: expect.arrayContaining([]),
         total: RECORDS_TOTAL,
         pageSize: 2,
         links: {
-          first: expect.stringContaining(
-            "/records?page[after]=1&page[size]=2"
-          ) as string,
-          prev: expect.stringContaining(
-            "/records?page[after]=1&page[size]=2"
-          ) as string,
-          next: expect.stringContaining(
-            "/records?page[after]=2&page[size]=2"
-          ) as string,
-          last: expect.stringContaining(
-            "/records?page[after]=2&page[size]=2"
-          ) as string,
+          first: expect.stringContaining("/records?page[after]=1&page[size]=2"),
+          prev: expect.stringContaining("/records?page[after]=1&page[size]=2"),
+          next: expect.stringContaining("/records?page[after]=2&page[size]=2"),
+          last: expect.stringContaining("/records?page[after]=2&page[size]=2"),
         },
       });
       expect((response1.body as { items: string }).items).toHaveLength(2);
@@ -154,25 +142,15 @@ describe("Records Module", () => {
         "/records?page[after]=2&page[size]=2"
       );
       expect(response2.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/records?page[after]=2&page[size]=2"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        self: expect.stringContaining("/records?page[after]=2&page[size]=2"),
+        items: expect.arrayContaining([]),
         total: RECORDS_TOTAL,
         pageSize: 2,
         links: {
-          first: expect.stringContaining(
-            "/records?page[after]=1&page[size]=2"
-          ) as string,
-          prev: expect.stringContaining(
-            "/records?page[after]=1&page[size]=2"
-          ) as string,
-          next: expect.stringContaining(
-            "/records?page[after]=2&page[size]=2"
-          ) as string,
-          last: expect.stringContaining(
-            "/records?page[after]=2&page[size]=2"
-          ) as string,
+          first: expect.stringContaining("/records?page[after]=1&page[size]=2"),
+          prev: expect.stringContaining("/records?page[after]=1&page[size]=2"),
+          next: expect.stringContaining("/records?page[after]=2&page[size]=2"),
+          last: expect.stringContaining("/records?page[after]=2&page[size]=2"),
         },
       });
       expect((response2.body as { items: string }).items).toHaveLength(1);
@@ -183,25 +161,15 @@ describe("Records Module", () => {
         "/records?page[after]=100&page[size]=2"
       );
       expect(response3.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/records?page[after]=100&page[size]=2"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        self: expect.stringContaining("/records?page[after]=100&page[size]=2"),
+        items: expect.arrayContaining([]),
         total: RECORDS_TOTAL,
         pageSize: 2,
         links: {
-          first: expect.stringContaining(
-            "/records?page[after]=1&page[size]=2"
-          ) as string,
-          prev: expect.stringContaining(
-            "/records?page[after]=2&page[size]=2"
-          ) as string,
-          next: expect.stringContaining(
-            "/records?page[after]=2&page[size]=2"
-          ) as string,
-          last: expect.stringContaining(
-            "/records?page[after]=2&page[size]=2"
-          ) as string,
+          first: expect.stringContaining("/records?page[after]=1&page[size]=2"),
+          prev: expect.stringContaining("/records?page[after]=2&page[size]=2"),
+          next: expect.stringContaining("/records?page[after]=2&page[size]=2"),
+          last: expect.stringContaining("/records?page[after]=2&page[size]=2"),
         },
       });
       expect((response3.body as { items: string }).items).toHaveLength(0);
@@ -210,25 +178,17 @@ describe("Records Module", () => {
       // page["after"] defined but page["size"] undefined
       const response4 = await request(server).get("/records?page[after]=1");
       expect(response4.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/records?page[after]=1&page[size]=10"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        self: expect.stringContaining("/records?page[after]=1&page[size]=10"),
+        items: expect.arrayContaining([]),
         total: RECORDS_TOTAL,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/records?page[after]=1&page[size]=10"
-          ) as string,
-          prev: expect.stringContaining(
-            "/records?page[after]=1&page[size]=10"
-          ) as string,
-          next: expect.stringContaining(
-            "/records?page[after]=1&page[size]=10"
-          ) as string,
-          last: expect.stringContaining(
-            "/records?page[after]=1&page[size]=10"
-          ) as string,
+          ),
+          prev: expect.stringContaining("/records?page[after]=1&page[size]=10"),
+          next: expect.stringContaining("/records?page[after]=1&page[size]=10"),
+          last: expect.stringContaining("/records?page[after]=1&page[size]=10"),
         },
       });
       expect((response4.body as { items: string }).items).toHaveLength(3);
@@ -292,10 +252,10 @@ describe("Records Module", () => {
       const response = await request(server).get(`/records/${recordId}`);
 
       expect(response.body).toStrictEqual({
-        ownerIds: expect.arrayContaining([]) as string[],
-        revokedOwnerIds: expect.arrayContaining([]) as string[],
-        firstVersionTimestamps: expect.arrayContaining([]) as string[],
-        lastVersionTimestamps: expect.arrayContaining([]) as string[],
+        ownerIds: expect.arrayContaining([]),
+        revokedOwnerIds: expect.arrayContaining([]),
+        firstVersionTimestamps: expect.arrayContaining([]),
+        lastVersionTimestamps: expect.arrayContaining([]),
         totalVersions: 1,
       });
       expect(response.status).toBe(200);
@@ -356,23 +316,23 @@ describe("Records Module", () => {
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           `/records/${recordId}/versions?page[after]=1&page[size]=10`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: 1,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             `/records/${recordId}/versions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/records/${recordId}/versions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/records/${recordId}/versions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/records/${recordId}/versions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
         },
       });
       expect((response.body as { items: string[] }).items).toHaveLength(1);
@@ -390,23 +350,23 @@ describe("Records Module", () => {
       expect(response1.body).toStrictEqual({
         self: expect.stringContaining(
           `/records/${recordId}/versions?page[after]=1&page[size]=2`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: 1,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             `/records/${recordId}/versions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/records/${recordId}/versions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/records/${recordId}/versions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/records/${recordId}/versions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
         },
       });
       expect((response1.body as { items: string }).items).toHaveLength(1);
@@ -419,23 +379,23 @@ describe("Records Module", () => {
       expect(response2.body).toStrictEqual({
         self: expect.stringContaining(
           `/records/${recordId}/versions?page[after]=2&page[size]=2`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: 1,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             `/records/${recordId}/versions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/records/${recordId}/versions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/records/${recordId}/versions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/records/${recordId}/versions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
         },
       });
       expect((response2.body as { items: string }).items).toHaveLength(0);
@@ -448,23 +408,23 @@ describe("Records Module", () => {
       expect(response3.body).toStrictEqual({
         self: expect.stringContaining(
           `/records/${recordId}/versions?page[after]=100&page[size]=2`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: 1,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             `/records/${recordId}/versions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/records/${recordId}/versions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/records/${recordId}/versions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/records/${recordId}/versions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
         },
       });
       expect((response3.body as { items: string }).items).toHaveLength(0);
@@ -477,23 +437,23 @@ describe("Records Module", () => {
       expect(response4.body).toStrictEqual({
         self: expect.stringContaining(
           `/records/${recordId}/versions?page[after]=1&page[size]=10`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: 1,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             `/records/${recordId}/versions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/records/${recordId}/versions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/records/${recordId}/versions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/records/${recordId}/versions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
         },
       });
       expect((response4.body as { items: string }).items).toHaveLength(1);
@@ -522,8 +482,8 @@ describe("Records Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        hashes: expect.arrayContaining([]) as string[],
-        info: expect.arrayContaining([]) as InfoObject[],
+        hashes: expect.arrayContaining([]),
+        info: expect.arrayContaining([]),
       });
       expect(response.status).toBe(200);
     });

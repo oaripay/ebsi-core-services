@@ -1,4 +1,5 @@
-import crypto from "crypto";
+import { describe, it, expect } from "@jest/globals";
+import crypto from "node:crypto";
 import { byteLength } from "./byteLength.utils";
 
 describe("byteLength", () => {

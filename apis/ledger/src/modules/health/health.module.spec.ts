@@ -1,3 +1,4 @@
+import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger, HttpServer } from "@nestjs/common";
@@ -61,7 +62,7 @@ describe("Health Module", () => {
 
       expect(spy).toHaveBeenCalledWith(
         configService.get("externalEbsiApiHealthCheck"),
-        { timeout: expect.any(Number) as number }
+        { timeout: expect.any(Number) }
       );
       expect(response.body).toStrictEqual({
         details: status,

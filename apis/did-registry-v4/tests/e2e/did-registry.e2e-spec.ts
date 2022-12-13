@@ -1,3 +1,4 @@
+import { describe, beforeAll, it, expect } from "@jest/globals";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import {
@@ -86,28 +87,28 @@ describe("DID Registry (e2e)", () => {
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           "/identifiers?page[after]=1&page[size]=10"
-        ) as string,
+        ),
         items: expect.arrayContaining([
           {
-            did: expect.stringContaining("did:") as string,
-            href: expect.stringContaining("/identifiers/") as string,
+            did: expect.stringContaining("did:"),
+            href: expect.stringContaining("/identifiers/"),
           },
-        ]) as Array<string>,
-        total: expect.any(Number) as number,
+        ]),
+        total: expect.any(Number),
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/identifiers?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           prev: expect.stringContaining(
             "/identifiers?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/identifiers?page[after]=${total > 10 ? 2 : 1}&page[size]=10`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/identifiers?page[after]=${Math.ceil(total / 10)}&page[size]=10`
-          ) as string,
+          ),
         },
       });
       expect(response.status).toBe(200);
@@ -165,33 +166,33 @@ describe("DID Registry (e2e)", () => {
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           `/identifiers?page[after]=1&page[size]=10&${extraQuery}`
-        ) as string,
+        ),
         items: expect.arrayContaining([
           // the list of items should contain at least the DID obtained above
           {
             did,
-            href: expect.stringContaining("/identifiers/") as string,
+            href: expect.stringContaining("/identifiers/"),
           },
-        ]) as Array<string>,
-        total: expect.any(Number) as number,
+        ]),
+        total: expect.any(Number),
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             `/identifiers?page[after]=1&page[size]=10&${extraQuery}`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/identifiers?page[after]=1&page[size]=10&${extraQuery}`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/identifiers?page[after]=${
               total > 10 ? 2 : 1
             }&page[size]=10&${extraQuery}`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/identifiers?page[after]=${Math.ceil(
               total / 10
             )}&page[size]=10&${extraQuery}`
-          ) as string,
+          ),
         },
       });
       expect(response.status).toBe(200);
@@ -253,9 +254,9 @@ describe("DID Registry (e2e)", () => {
 
       expect(response.body).toStrictEqual(
         expect.objectContaining({
-          id: expect.stringContaining("did:") as string,
-          controller: expect.arrayContaining([]) as string[],
-          verificationMethod: expect.arrayContaining([]) as unknown[],
+          id: expect.stringContaining("did:"),
+          controller: expect.arrayContaining([]),
+          verificationMethod: expect.arrayContaining([]),
         })
       );
       expect(
@@ -276,8 +277,8 @@ describe("DID Registry (e2e)", () => {
 
       expect(response.body).toStrictEqual(
         expect.objectContaining({
-          id: expect.stringContaining("did:") as string,
-          controller: expect.arrayContaining([]) as string[],
+          id: expect.stringContaining("did:"),
+          controller: expect.arrayContaining([]),
           verificationMethod: [], // no keys in 1970
         })
       );
@@ -296,9 +297,9 @@ describe("DID Registry (e2e)", () => {
 
       expect(response.body).toStrictEqual(
         expect.objectContaining({
-          id: expect.stringContaining("did:") as string,
-          controller: expect.arrayContaining([]) as string[],
-          verificationMethod: expect.arrayContaining([]) as unknown[],
+          id: expect.stringContaining("did:"),
+          controller: expect.arrayContaining([]),
+          verificationMethod: expect.arrayContaining([]),
         })
       );
       expect(response.status).toBe(200);

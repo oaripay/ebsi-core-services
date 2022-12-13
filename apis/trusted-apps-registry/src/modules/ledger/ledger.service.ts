@@ -66,6 +66,7 @@ export default class LedgerService implements OnModuleDestroy {
           });
         }
       } else {
+        /* global NodeJS */
         let pingTimeout: NodeJS.Timeout | null = null;
         let keepAliveInterval: NodeJS.Timeout | null = null;
 

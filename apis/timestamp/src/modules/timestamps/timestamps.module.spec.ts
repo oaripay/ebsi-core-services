@@ -1,3 +1,4 @@
+import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import {
@@ -7,7 +8,7 @@ import {
   Logger,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import crypto from "crypto";
+import crypto from "node:crypto";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -92,23 +93,23 @@ describe("Timestamps Module", () => {
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           "/timestamps?page[after]=1&page[size]=10"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: HASHES_TOTAL,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/timestamps?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           prev: expect.stringContaining(
             "/timestamps?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           next: expect.stringContaining(
             "/timestamps?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           last: expect.stringContaining(
             "/timestamps?page[after]=1&page[size]=10"
-          ) as string,
+          ),
         },
       });
       expect((response.body as { items: string }).items).toHaveLength(3);
@@ -120,25 +121,23 @@ describe("Timestamps Module", () => {
 
       const response1 = await request(server).get("/timestamps?page[size]=2");
       expect(response1.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/timestamps?page[after]=1&page[size]=2"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        self: expect.stringContaining("/timestamps?page[after]=1&page[size]=2"),
+        items: expect.arrayContaining([]),
         total: HASHES_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             "/timestamps?page[after]=1&page[size]=2"
-          ) as string,
+          ),
           prev: expect.stringContaining(
             "/timestamps?page[after]=1&page[size]=2"
-          ) as string,
+          ),
           next: expect.stringContaining(
             "/timestamps?page[after]=2&page[size]=2"
-          ) as string,
+          ),
           last: expect.stringContaining(
             "/timestamps?page[after]=2&page[size]=2"
-          ) as string,
+          ),
         },
       });
       expect((response1.body as { items: string }).items).toHaveLength(2);
@@ -149,25 +148,23 @@ describe("Timestamps Module", () => {
         "/timestamps?page[after]=2&page[size]=2"
       );
       expect(response2.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/timestamps?page[after]=2&page[size]=2"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        self: expect.stringContaining("/timestamps?page[after]=2&page[size]=2"),
+        items: expect.arrayContaining([]),
         total: HASHES_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             "/timestamps?page[after]=1&page[size]=2"
-          ) as string,
+          ),
           prev: expect.stringContaining(
             "/timestamps?page[after]=1&page[size]=2"
-          ) as string,
+          ),
           next: expect.stringContaining(
             "/timestamps?page[after]=2&page[size]=2"
-          ) as string,
+          ),
           last: expect.stringContaining(
             "/timestamps?page[after]=2&page[size]=2"
-          ) as string,
+          ),
         },
       });
       expect((response2.body as { items: string }).items).toHaveLength(1);
@@ -180,23 +177,23 @@ describe("Timestamps Module", () => {
       expect(response3.body).toStrictEqual({
         self: expect.stringContaining(
           "/timestamps?page[after]=100&page[size]=2"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: HASHES_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             "/timestamps?page[after]=1&page[size]=2"
-          ) as string,
+          ),
           prev: expect.stringContaining(
             "/timestamps?page[after]=2&page[size]=2"
-          ) as string,
+          ),
           next: expect.stringContaining(
             "/timestamps?page[after]=2&page[size]=2"
-          ) as string,
+          ),
           last: expect.stringContaining(
             "/timestamps?page[after]=2&page[size]=2"
-          ) as string,
+          ),
         },
       });
       expect((response3.body as { items: string }).items).toHaveLength(0);
@@ -207,23 +204,23 @@ describe("Timestamps Module", () => {
       expect(response4.body).toStrictEqual({
         self: expect.stringContaining(
           "/timestamps?page[after]=1&page[size]=10"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: HASHES_TOTAL,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/timestamps?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           prev: expect.stringContaining(
             "/timestamps?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           next: expect.stringContaining(
             "/timestamps?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           last: expect.stringContaining(
             "/timestamps?page[after]=1&page[size]=10"
-          ) as string,
+          ),
         },
       });
       expect((response4.body as { items: string }).items).toHaveLength(3);
@@ -302,12 +299,12 @@ describe("Timestamps Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        blockNumber: expect.any(Number) as number,
-        timestamp: expect.any(String) as string,
+        blockNumber: expect.any(Number),
+        timestamp: expect.any(String),
         data: hash.timestampData[0],
         hash: multihashEncodedHash,
-        timestampedBy: expect.stringContaining("0x") as string,
-        transactionHash: expect.stringContaining("0x") as string,
+        timestampedBy: expect.stringContaining("0x"),
+        transactionHash: expect.stringContaining("0x"),
       });
       expect(response.status).toBe(200);
     });
@@ -327,12 +324,12 @@ describe("Timestamps Module", () => {
       const response = await request(server).get(`/timestamps/${timestampId}`);
 
       expect(response.body).toStrictEqual({
-        blockNumber: expect.any(Number) as number,
-        timestamp: expect.any(String) as string,
-        data: expect.stringContaining("0x") as string,
-        hash: expect.any(String) as string,
-        timestampedBy: expect.stringContaining("0x") as string,
-        transactionHash: expect.stringContaining("0x") as string,
+        blockNumber: expect.any(Number),
+        timestamp: expect.any(String),
+        data: expect.stringContaining("0x"),
+        hash: expect.any(String),
+        timestampedBy: expect.stringContaining("0x"),
+        transactionHash: expect.stringContaining("0x"),
       });
       expect(response.status).toBe(200);
     });
@@ -388,7 +385,7 @@ describe("Timestamps Module", () => {
       // Verify response (especially "transactionHash")
       expect(response.body).toStrictEqual({
         blockNumber: blockNumberTx1,
-        timestamp: expect.any(String) as string,
+        timestamp: expect.any(String),
         data: hash2.timestampData[0],
         hash: multibase.base64.encode(
           multihashEncode(

@@ -1,3 +1,4 @@
+import { describe, it, expect } from "@jest/globals";
 import { formatAttributes } from "./attributes.formatter";
 import { AttributeResponseObject } from "./attributes.interface";
 

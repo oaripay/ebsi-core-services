@@ -1,3 +1,12 @@
+import {
+  jest,
+  describe,
+  beforeAll,
+  afterEach,
+  afterAll,
+  it,
+  expect,
+} from "@jest/globals";
 import crypto from "node:crypto";
 import request from "supertest";
 import { UnauthorizedError } from "@cef-ebsi/problem-details-errors";
@@ -136,9 +145,7 @@ describe("Authentication Module", () => {
       const fakeToken = await createFakeToken({
         apiName: configService.get<string>("apiName"),
         authorisationApiName: configService.get<string>("authorisationApiName"),
-        trustedAppsRegistryApiUrl: configService.get<string>(
-          "trustedAppsRegistryApiUrl"
-        ),
+        configService,
       });
 
       let response = await request(server)

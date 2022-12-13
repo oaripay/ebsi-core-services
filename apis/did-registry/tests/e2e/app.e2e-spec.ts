@@ -1,3 +1,4 @@
+import { jest, describe, beforeAll, it, expect } from "@jest/globals";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { HttpServer, ValidationPipe, Logger } from "@nestjs/common";
@@ -47,6 +48,14 @@ describe("/did-registry/v3 (generic tests)", () => {
     trustedAppsRegistryApiUrl = configService.get<string>(
       "trustedAppsRegistryApiUrl"
     );
+
+    // Use TEST_LB_DOMAIN if defined
+    if (configService.get<string>("testLoadBalancerDomain")) {
+      trustedAppsRegistryApiUrl = trustedAppsRegistryApiUrl.replace(
+        configService.get<string>("domain"),
+        configService.get<string>("testLoadBalancerDomain")
+      );
+    }
   });
 
   describe("GET /health", () => {

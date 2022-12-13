@@ -1,6 +1,7 @@
 module.exports = {
   root: true,
   extends: [
+    "airbnb-base",
     "airbnb-typescript/base",
     "plugin:@typescript-eslint/recommended",
     "plugin:prettier/recommended",
@@ -14,7 +15,15 @@ module.exports = {
     // we use it for scripts
     "no-console": "off",
     // we use it for tests
-    "import/no-extraneous-dependencies": "off",
+    "import/no-extraneous-dependencies": [
+      "error",
+      {
+        devDependencies: true,
+        optionalDependencies: false,
+        peerDependencies: false,
+        bundledDependencies: false,
+      },
+    ],
     "@typescript-eslint/no-unused-expressions": "off",
   },
 };

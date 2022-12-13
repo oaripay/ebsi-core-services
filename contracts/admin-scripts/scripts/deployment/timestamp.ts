@@ -1,14 +1,13 @@
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { DeployFunction } from "hardhat-deploy/types";
-import { dependencies } from "./dependencies";
+import type { HardhatRuntimeEnvironment } from "hardhat/types";
+import type { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
+import { dependencies } from "./dependencies";
 
 const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const { deployments, getNamedAccounts } = hre;
 
   // get chain Id
-
-  const chainId = (await ethers.provider.getNetwork()).chainId;
+  const { chainId } = await ethers.provider.getNetwork();
   let tprAddress = dependencies[chainId]?.tprAddress;
 
   if (!tprAddress) {
@@ -57,5 +56,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
   deployments.log("Timestamp deployed at:", ts.address);
 };
-export default func;
+
 func.tags = ["Timestamp"];
+
+export default func;

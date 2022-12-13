@@ -1,3 +1,4 @@
+import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import {
@@ -85,23 +86,23 @@ describe("HashAlgorithms Module", () => {
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           "/hash-algorithms?page[after]=1&page[size]=10"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: HASH_ALGORITHMS_TOTAL,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/hash-algorithms?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           prev: expect.stringContaining(
             "/hash-algorithms?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           next: expect.stringContaining(
             "/hash-algorithms?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           last: expect.stringContaining(
             "/hash-algorithms?page[after]=1&page[size]=10"
-          ) as string,
+          ),
         },
       });
       expect((response.body as { items: string }).items).toHaveLength(3);
@@ -117,23 +118,23 @@ describe("HashAlgorithms Module", () => {
       expect(response1.body).toStrictEqual({
         self: expect.stringContaining(
           "/hash-algorithms?page[after]=1&page[size]=2"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: HASH_ALGORITHMS_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             "/hash-algorithms?page[after]=1&page[size]=2"
-          ) as string,
+          ),
           prev: expect.stringContaining(
             "/hash-algorithms?page[after]=1&page[size]=2"
-          ) as string,
+          ),
           next: expect.stringContaining(
             "/hash-algorithms?page[after]=2&page[size]=2"
-          ) as string,
+          ),
           last: expect.stringContaining(
             "/hash-algorithms?page[after]=2&page[size]=2"
-          ) as string,
+          ),
         },
       });
       expect((response1.body as { items: string }).items).toHaveLength(2);
@@ -146,23 +147,23 @@ describe("HashAlgorithms Module", () => {
       expect(response2.body).toStrictEqual({
         self: expect.stringContaining(
           "/hash-algorithms?page[after]=2&page[size]=2"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: HASH_ALGORITHMS_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             "/hash-algorithms?page[after]=1&page[size]=2"
-          ) as string,
+          ),
           prev: expect.stringContaining(
             "/hash-algorithms?page[after]=1&page[size]=2"
-          ) as string,
+          ),
           next: expect.stringContaining(
             "/hash-algorithms?page[after]=2&page[size]=2"
-          ) as string,
+          ),
           last: expect.stringContaining(
             "/hash-algorithms?page[after]=2&page[size]=2"
-          ) as string,
+          ),
         },
       });
       expect((response2.body as { items: string }).items).toHaveLength(1);
@@ -175,23 +176,23 @@ describe("HashAlgorithms Module", () => {
       expect(response3.body).toStrictEqual({
         self: expect.stringContaining(
           "/hash-algorithms?page[after]=100&page[size]=2"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: HASH_ALGORITHMS_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             "/hash-algorithms?page[after]=1&page[size]=2"
-          ) as string,
+          ),
           prev: expect.stringContaining(
             "/hash-algorithms?page[after]=2&page[size]=2"
-          ) as string,
+          ),
           next: expect.stringContaining(
             "/hash-algorithms?page[after]=2&page[size]=2"
-          ) as string,
+          ),
           last: expect.stringContaining(
             "/hash-algorithms?page[after]=2&page[size]=2"
-          ) as string,
+          ),
         },
       });
       expect((response3.body as { items: string }).items).toHaveLength(0);
@@ -204,23 +205,23 @@ describe("HashAlgorithms Module", () => {
       expect(response4.body).toStrictEqual({
         self: expect.stringContaining(
           "/hash-algorithms?page[after]=1&page[size]=10"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: HASH_ALGORITHMS_TOTAL,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/hash-algorithms?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           prev: expect.stringContaining(
             "/hash-algorithms?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           next: expect.stringContaining(
             "/hash-algorithms?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           last: expect.stringContaining(
             "/hash-algorithms?page[after]=1&page[size]=10"
-          ) as string,
+          ),
         },
       });
       expect((response4.body as { items: string }).items).toHaveLength(3);

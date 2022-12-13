@@ -5,7 +5,7 @@ import { PolicyRegistry } from "../src/types";
 
 describe("UserAttributesManagement", () => {
   let snapshotId: string;
-  let policyContract: any;
+  let policyContract: PolicyRegistry;
   let user: SignerWithAddress;
   let user2: SignerWithAddress;
 
@@ -82,7 +82,7 @@ describe("UserAttributesManagement", () => {
     snapshotId = await ethers.provider.send("evm_snapshot", []);
   });
 
-  afterEach(async function () {
+  afterEach(async () => {
     await ethers.provider.send("evm_revert", [snapshotId]);
   });
 

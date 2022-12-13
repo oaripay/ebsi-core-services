@@ -18,5 +18,5 @@
     "allowSyntheticDefaultImports": true
   },
   "include": ["./src", "./scripts", "./hardhat.config.ts", "./tasks"],
-  "exclude": ["node_modules", "artifacts", "cache", "./schemas"]
+  "exclude": ["node_modules", "artifacts", "cache"]
 }

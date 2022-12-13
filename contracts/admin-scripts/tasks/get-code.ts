@@ -1,4 +1,4 @@
-import * as fs from "fs";
+import * as fs from "node:fs";
 import { task } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
 

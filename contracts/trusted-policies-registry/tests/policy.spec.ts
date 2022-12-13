@@ -36,7 +36,7 @@ function getEthObject(o: unknown): Record<string, unknown> | unknown[] {
 
 describe("Policy", () => {
   let snapshotId: string;
-  let policyContract: any;
+  let policyContract: PolicyRegistry;
 
   const pcs = [
     {

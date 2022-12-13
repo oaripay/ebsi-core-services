@@ -1,7 +1,5 @@
-import { task, types } from "hardhat/config";
+import { task } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
-import { BigNumber } from "ethers";
-import { OwnedUpgradeabilityProxy } from "../src/types";
 
 task("grantRole", "add new operator on Trusted Policy Registry")
   .addParam("proxy", "The proxy address of tpr")

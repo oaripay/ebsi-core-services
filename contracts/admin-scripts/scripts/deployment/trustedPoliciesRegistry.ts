@@ -1,5 +1,5 @@
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { DeployFunction } from "hardhat-deploy/types";
+import type { HardhatRuntimeEnvironment } from "hardhat/types";
+import type { DeployFunction } from "hardhat-deploy/types";
 
 const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const { deployments, getNamedAccounts } = hre;
@@ -25,6 +25,8 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
   deployments.log("Trusted Schema Registry deployed at:", ts.address);
 };
-export default func;
+
 func.tags = ["PolicyRegistry"];
 func.dependencies = ["Pagination"];
+
+export default func;

@@ -1,4 +1,5 @@
-import crypto from "crypto";
+import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
+import crypto from "node:crypto";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import {
@@ -89,25 +90,17 @@ describe("Ledgers Module", () => {
 
       const response = await request(server).get("/ledgers");
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/ledgers?page[after]=1&page[size]=10"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        self: expect.stringContaining("/ledgers?page[after]=1&page[size]=10"),
+        items: expect.arrayContaining([]),
         total: LEDGERS_TOTAL,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/ledgers?page[after]=1&page[size]=10"
-          ) as string,
-          prev: expect.stringContaining(
-            "/ledgers?page[after]=1&page[size]=10"
-          ) as string,
-          next: expect.stringContaining(
-            "/ledgers?page[after]=1&page[size]=10"
-          ) as string,
-          last: expect.stringContaining(
-            "/ledgers?page[after]=1&page[size]=10"
-          ) as string,
+          ),
+          prev: expect.stringContaining("/ledgers?page[after]=1&page[size]=10"),
+          next: expect.stringContaining("/ledgers?page[after]=1&page[size]=10"),
+          last: expect.stringContaining("/ledgers?page[after]=1&page[size]=10"),
         },
       });
       expect((response.body as { items: string }).items).toHaveLength(3);
@@ -119,25 +112,15 @@ describe("Ledgers Module", () => {
 
       const response1 = await request(server).get("/ledgers?page[size]=2");
       expect(response1.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/ledgers?page[after]=1&page[size]=2"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        self: expect.stringContaining("/ledgers?page[after]=1&page[size]=2"),
+        items: expect.arrayContaining([]),
         total: LEDGERS_TOTAL,
         pageSize: 2,
         links: {
-          first: expect.stringContaining(
-            "/ledgers?page[after]=1&page[size]=2"
-          ) as string,
-          prev: expect.stringContaining(
-            "/ledgers?page[after]=1&page[size]=2"
-          ) as string,
-          next: expect.stringContaining(
-            "/ledgers?page[after]=2&page[size]=2"
-          ) as string,
-          last: expect.stringContaining(
-            "/ledgers?page[after]=2&page[size]=2"
-          ) as string,
+          first: expect.stringContaining("/ledgers?page[after]=1&page[size]=2"),
+          prev: expect.stringContaining("/ledgers?page[after]=1&page[size]=2"),
+          next: expect.stringContaining("/ledgers?page[after]=2&page[size]=2"),
+          last: expect.stringContaining("/ledgers?page[after]=2&page[size]=2"),
         },
       });
       expect((response1.body as { items: string }).items).toHaveLength(2);
@@ -148,25 +131,15 @@ describe("Ledgers Module", () => {
         "/ledgers?page[after]=2&page[size]=2"
       );
       expect(response2.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/ledgers?page[after]=2&page[size]=2"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        self: expect.stringContaining("/ledgers?page[after]=2&page[size]=2"),
+        items: expect.arrayContaining([]),
         total: LEDGERS_TOTAL,
         pageSize: 2,
         links: {
-          first: expect.stringContaining(
-            "/ledgers?page[after]=1&page[size]=2"
-          ) as string,
-          prev: expect.stringContaining(
-            "/ledgers?page[after]=1&page[size]=2"
-          ) as string,
-          next: expect.stringContaining(
-            "/ledgers?page[after]=2&page[size]=2"
-          ) as string,
-          last: expect.stringContaining(
-            "/ledgers?page[after]=2&page[size]=2"
-          ) as string,
+          first: expect.stringContaining("/ledgers?page[after]=1&page[size]=2"),
+          prev: expect.stringContaining("/ledgers?page[after]=1&page[size]=2"),
+          next: expect.stringContaining("/ledgers?page[after]=2&page[size]=2"),
+          last: expect.stringContaining("/ledgers?page[after]=2&page[size]=2"),
         },
       });
       expect((response2.body as { items: string }).items).toHaveLength(1);
@@ -177,25 +150,15 @@ describe("Ledgers Module", () => {
         "/ledgers?page[after]=100&page[size]=2"
       );
       expect(response3.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/ledgers?page[after]=100&page[size]=2"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        self: expect.stringContaining("/ledgers?page[after]=100&page[size]=2"),
+        items: expect.arrayContaining([]),
         total: LEDGERS_TOTAL,
         pageSize: 2,
         links: {
-          first: expect.stringContaining(
-            "/ledgers?page[after]=1&page[size]=2"
-          ) as string,
-          prev: expect.stringContaining(
-            "/ledgers?page[after]=2&page[size]=2"
-          ) as string,
-          next: expect.stringContaining(
-            "/ledgers?page[after]=2&page[size]=2"
-          ) as string,
-          last: expect.stringContaining(
-            "/ledgers?page[after]=2&page[size]=2"
-          ) as string,
+          first: expect.stringContaining("/ledgers?page[after]=1&page[size]=2"),
+          prev: expect.stringContaining("/ledgers?page[after]=2&page[size]=2"),
+          next: expect.stringContaining("/ledgers?page[after]=2&page[size]=2"),
+          last: expect.stringContaining("/ledgers?page[after]=2&page[size]=2"),
         },
       });
       expect((response3.body as { items: string }).items).toHaveLength(0);
@@ -204,25 +167,17 @@ describe("Ledgers Module", () => {
       // page["after"] defined but page["size"] undefined
       const response4 = await request(server).get("/ledgers?page[after]=1");
       expect(response4.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/ledgers?page[after]=1&page[size]=10"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        self: expect.stringContaining("/ledgers?page[after]=1&page[size]=10"),
+        items: expect.arrayContaining([]),
         total: LEDGERS_TOTAL,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/ledgers?page[after]=1&page[size]=10"
-          ) as string,
-          prev: expect.stringContaining(
-            "/ledgers?page[after]=1&page[size]=10"
-          ) as string,
-          next: expect.stringContaining(
-            "/ledgers?page[after]=1&page[size]=10"
-          ) as string,
-          last: expect.stringContaining(
-            "/ledgers?page[after]=1&page[size]=10"
-          ) as string,
+          ),
+          prev: expect.stringContaining("/ledgers?page[after]=1&page[size]=10"),
+          next: expect.stringContaining("/ledgers?page[after]=1&page[size]=10"),
+          last: expect.stringContaining("/ledgers?page[after]=1&page[size]=10"),
         },
       });
       expect((response4.body as { items: string }).items).toHaveLength(3);
@@ -290,23 +245,23 @@ describe("Ledgers Module", () => {
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           "/ledgers?page[after]=1&page[size]=10&name=wrong-name"
-        ) as string,
+        ),
         items: [],
         total: 0,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/ledgers?page[after]=1&page[size]=10&name=wrong-name"
-          ) as string,
+          ),
           prev: expect.stringContaining(
             "/ledgers?page[after]=1&page[size]=10&name=wrong-name"
-          ) as string,
+          ),
           next: expect.stringContaining(
             "/ledgers?page[after]=1&page[size]=10&name=wrong-name"
-          ) as string,
+          ),
           last: expect.stringContaining(
             "/ledgers?page[after]=1&page[size]=10&name=wrong-name"
-          ) as string,
+          ),
         },
       });
       expect(response.status).toBe(200);
@@ -318,15 +273,13 @@ describe("Ledgers Module", () => {
         `/ledgers?name=${ledgers[0].ledgerName}`
       );
       expect(response2.body).toStrictEqual({
-        self: expect.stringContaining(
-          "/ledgers?page[after]=1&page[size]=10"
-        ) as string,
+        self: expect.stringContaining("/ledgers?page[after]=1&page[size]=10"),
         items: [
           {
             ledgerInfoId: ledgers[0].ledgerInfoId,
             href: expect.stringContaining(
               `/ledgers/${ledgers[0].ledgerInfoId}`
-            ) as string,
+            ),
           },
         ],
         total: 1,
@@ -334,16 +287,10 @@ describe("Ledgers Module", () => {
         links: {
           first: expect.stringContaining(
             "/ledgers?page[after]=1&page[size]=10"
-          ) as string,
-          prev: expect.stringContaining(
-            "/ledgers?page[after]=1&page[size]=10"
-          ) as string,
-          next: expect.stringContaining(
-            "/ledgers?page[after]=1&page[size]=10"
-          ) as string,
-          last: expect.stringContaining(
-            "/ledgers?page[after]=1&page[size]=10"
-          ) as string,
+          ),
+          prev: expect.stringContaining("/ledgers?page[after]=1&page[size]=10"),
+          next: expect.stringContaining("/ledgers?page[after]=1&page[size]=10"),
+          last: expect.stringContaining("/ledgers?page[after]=1&page[size]=10"),
         },
       });
       expect(response2.status).toBe(200);
@@ -452,23 +399,23 @@ describe("Ledgers Module", () => {
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=1&page[size]=10`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: REVISIONS_TOTAL,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
         },
       });
       expect((response.body as { items: string }).items).toHaveLength(3);
@@ -487,23 +434,23 @@ describe("Ledgers Module", () => {
       expect(response1.body).toStrictEqual({
         self: expect.stringContaining(
           `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=1&page[size]=2`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: REVISIONS_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=2&page[size]=2`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=2&page[size]=2`
-          ) as string,
+          ),
         },
       });
       expect((response1.body as { items: string }).items).toHaveLength(2);
@@ -517,23 +464,23 @@ describe("Ledgers Module", () => {
       expect(response2.body).toStrictEqual({
         self: expect.stringContaining(
           `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=2&page[size]=2`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: REVISIONS_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=2&page[size]=2`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=2&page[size]=2`
-          ) as string,
+          ),
         },
       });
       expect((response2.body as { items: string }).items).toHaveLength(1);
@@ -547,23 +494,23 @@ describe("Ledgers Module", () => {
       expect(response3.body).toStrictEqual({
         self: expect.stringContaining(
           `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=100&page[size]=2`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: REVISIONS_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=2&page[size]=2`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=2&page[size]=2`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=2&page[size]=2`
-          ) as string,
+          ),
         },
       });
       expect((response3.body as { items: string }).items).toHaveLength(0);
@@ -577,23 +524,23 @@ describe("Ledgers Module", () => {
       expect(response4.body).toStrictEqual({
         self: expect.stringContaining(
           `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=1&page[size]=10`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: REVISIONS_TOTAL,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/ledgers/${ledger.ledgerInfoId}/revisions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
         },
       });
       expect((response4.body as { items: string }).items).toHaveLength(3);

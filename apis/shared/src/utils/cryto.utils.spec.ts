@@ -1,3 +1,4 @@
+import { describe, it, expect } from "@jest/globals";
 import { encrypt, decrypt } from "./crypto.utils";
 
 describe("crypto utils", () => {

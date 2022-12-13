@@ -8,24 +8,41 @@ import {
   verifyJwtTar,
 } from "@cef-ebsi/siop-auth";
 import { exportJWK, generateKeyPair, importJWK, JWK } from "jose";
+import { ConfigService } from "@nestjs/config";
+import { ApiConfig } from "../../src/config/configuration";
 
 export const requestSiopJwt = async ({
   clientKid,
   clientPrivateKey,
-  authorisationApiUrl,
-  trustedAppsRegistryApiUrl,
   syntaxType = "jwk_thumbprint_subject",
+  configService,
 }: {
   clientKid: string;
   clientPrivateKey: string | JWK;
-  authorisationApiUrl: string;
-  trustedAppsRegistryApiUrl: string;
   syntaxType?: "jwk_thumbprint_subject" | "did_subject";
+  configService: ConfigService<ApiConfig, true>;
 }): Promise<string> => {
   const alg = "ES256K";
   const encryptionKeyPair = await generateKeyPair(alg);
   const publicEncryptionKeyJwk = await exportJWK(encryptionKeyPair.publicKey);
   const privateEncryptionKeyJwk = await exportJWK(encryptionKeyPair.privateKey);
+
+  let authorisationApiUrl = configService.get<string>("authorisationApiUrl");
+  let trustedAppsRegistryApiUrl = configService.get<string>(
+    "trustedAppsRegistryApiUrl"
+  );
+
+  // Use TEST_LB_DOMAIN if defined
+  if (configService.get<string>("testLoadBalancerDomain")) {
+    authorisationApiUrl = authorisationApiUrl.replace(
+      configService.get<string>("domain"),
+      configService.get<string>("testLoadBalancerDomain")
+    );
+    trustedAppsRegistryApiUrl = trustedAppsRegistryApiUrl.replace(
+      configService.get<string>("domain"),
+      configService.get<string>("testLoadBalancerDomain")
+    );
+  }
 
   const siopAgent = new SiopAgent({
     privateKey: await importJWK(
@@ -51,8 +68,11 @@ export const requestSiopJwt = async ({
   const uri = authenticationRequestsResponse.data;
 
   const urlParams = new URLSearchParams(uri.replace("openid://?", ""));
-
-  const { payload } = await verifyJwtTar(urlParams.get("request") || "", {
+  const params = Object.fromEntries(urlParams);
+  Object.keys(params).forEach((k) => {
+    params[k] = decodeURIComponent(params[k]);
+  });
+  const { payload } = await verifyJwtTar(params.request, {
     trustedAppsRegistry: `${trustedAppsRegistryApiUrl}/apps`,
   });
 
@@ -76,7 +96,7 @@ export const requestSiopJwt = async ({
   const { idToken } = authenticationResponse;
 
   if (!idToken) {
-    throw new Error("Missing idToken");
+    throw new Error("undefined or empty idToken");
   }
 
   // 4. The client call /siop-sessions with the ID Token

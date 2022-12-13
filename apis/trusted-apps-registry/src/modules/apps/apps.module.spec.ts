@@ -1,4 +1,14 @@
-import { describe } from "@jest/globals";
+import {
+  jest,
+  describe,
+  beforeAll,
+  beforeEach,
+  afterEach,
+  afterAll,
+  it,
+  expect,
+} from "@jest/globals";
+import type { SpyInstance } from "jest-mock";
 import request from "supertest";
 import { ethers } from "ethers";
 import { Test, TestingModule } from "@nestjs/testing";
@@ -9,7 +19,7 @@ import {
   Logger,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import crypto from "crypto";
+import crypto from "node:crypto";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -21,7 +31,6 @@ import { AppsModule } from "./apps.module";
 import {
   AppLink,
   AuthorizationLink,
-  AuthorizationResponseObject,
   PublicKeyLink,
   PublicKeyResponseObject,
 } from "./apps.interface";
@@ -61,8 +70,8 @@ describe("Apps Module", () => {
   describe.each(["http://127.0.0.1", "ws://127.0.0.1"])(
     "with LedgerService connecting to %s",
     (besuRpcNode: string) => {
-      let webSocketProviderSpy: jest.SpyInstance;
-      let jsonRpcProviderSpy: jest.SpyInstance;
+      let webSocketProviderSpy: SpyInstance;
+      let jsonRpcProviderSpy: SpyInstance;
 
       beforeEach(async () => {
         // Spin up test blockchain (ganache)
@@ -139,35 +148,29 @@ describe("Apps Module", () => {
         );
 
         expect(response.body).toStrictEqual({
-          self: expect.stringContaining(
-            "/apps?page[after]=1&page[size]=10"
-          ) as string,
-          items: expect.arrayContaining([]) as Array<string>,
+          self: expect.stringContaining("/apps?page[after]=1&page[size]=10"),
+          items: expect.arrayContaining([]),
           total: APPS_TOTAL,
           pageSize: 10,
           links: {
-            first: expect.stringContaining(
-              "/apps?page[after]=1&page[size]=10"
-            ) as string,
-            prev: expect.stringContaining(
-              "/apps?page[after]=1&page[size]=10"
-            ) as string,
+            first: expect.stringContaining("/apps?page[after]=1&page[size]=10"),
+            prev: expect.stringContaining("/apps?page[after]=1&page[size]=10"),
             next: expect.stringContaining(
               `/apps?page[after]=${Math.min(
                 Math.ceil(APPS_TOTAL / 10),
                 2
               )}&page[size]=10`
-            ) as string,
+            ),
             last: expect.stringContaining(
               `/apps?page[after]=${Math.ceil(APPS_TOTAL / 10)}&page[size]=10`
-            ) as string,
+            ),
           },
         });
         expect(response.body.items).toHaveLength(Math.min(10, APPS_TOTAL));
         expect(response.status).toBe(200);
 
-        let calledProvider: jest.SpyInstance;
-        let notCalledProvider: jest.SpyInstance;
+        let calledProvider: SpyInstance;
+        let notCalledProvider: SpyInstance;
 
         if (besuRpcNode === "http://127.0.0.1") {
           calledProvider = jsonRpcProviderSpy;
@@ -248,28 +251,22 @@ describe("Apps Module", () => {
           "/apps"
         );
         expect(response.body).toStrictEqual({
-          self: expect.stringContaining(
-            "/apps?page[after]=1&page[size]=10"
-          ) as string,
-          items: expect.arrayContaining([]) as Array<string>,
+          self: expect.stringContaining("/apps?page[after]=1&page[size]=10"),
+          items: expect.arrayContaining([]),
           total: APPS_TOTAL,
           pageSize: 10,
           links: {
-            first: expect.stringContaining(
-              "/apps?page[after]=1&page[size]=10"
-            ) as string,
-            prev: expect.stringContaining(
-              "/apps?page[after]=1&page[size]=10"
-            ) as string,
+            first: expect.stringContaining("/apps?page[after]=1&page[size]=10"),
+            prev: expect.stringContaining("/apps?page[after]=1&page[size]=10"),
             next: expect.stringContaining(
               `/apps?page[after]=${Math.min(
                 Math.ceil(APPS_TOTAL / 10),
                 2
               )}&page[size]=10`
-            ) as string,
+            ),
             last: expect.stringContaining(
               `/apps?page[after]=${Math.ceil(APPS_TOTAL / 10)}&page[size]=10`
-            ) as string,
+            ),
           },
         });
         expect(response.body.items).toHaveLength(Math.min(10, APPS_TOTAL));
@@ -294,23 +291,23 @@ describe("Apps Module", () => {
         expect(response.body).toStrictEqual({
           self: expect.stringContaining(
             `/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId}`
-          ) as string,
-          items: expect.arrayContaining([]) as Array<string>,
+          ),
+          items: expect.arrayContaining([]),
           total: APPS_TOTAL,
           pageSize: 10,
           links: {
             first: expect.stringContaining(
               `/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId}`
-            ) as string,
+            ),
             prev: expect.stringContaining(
               `/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId}`
-            ) as string,
+            ),
             next: expect.stringContaining(
               `/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId}`
-            ) as string,
+            ),
             last: expect.stringContaining(
               `/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId}`
-            ) as string,
+            ),
           },
         });
         expect(response.body.items).toHaveLength(1);
@@ -326,23 +323,23 @@ describe("Apps Module", () => {
         expect(response.body).toStrictEqual({
           self: expect.stringContaining(
             `/apps?page[after]=1&page[size]=10&public_key_id=0x1234567890123456789012345678901234567890123456789012345678901234`
-          ) as string,
-          items: expect.arrayContaining([]) as Array<string>,
+          ),
+          items: expect.arrayContaining([]),
           total: APPS_TOTAL,
           pageSize: 10,
           links: {
             first: expect.stringContaining(
               `/apps?page[after]=1&page[size]=10&public_key_id=0x1234567890123456789012345678901234567890123456789012345678901234`
-            ) as string,
+            ),
             prev: expect.stringContaining(
               `/apps?page[after]=1&page[size]=10&public_key_id=0x1234567890123456789012345678901234567890123456789012345678901234`
-            ) as string,
+            ),
             next: expect.stringContaining(
               `/apps?page[after]=1&page[size]=10&public_key_id=0x1234567890123456789012345678901234567890123456789012345678901234`
-            ) as string,
+            ),
             last: expect.stringContaining(
               `/apps?page[after]=1&page[size]=10&public_key_id=0x1234567890123456789012345678901234567890123456789012345678901234`
-            ) as string,
+            ),
           },
         });
         expect(response.body.items).toHaveLength(0);
@@ -356,25 +353,15 @@ describe("Apps Module", () => {
           "/apps?page[size]=3"
         );
         expect(response1.body).toStrictEqual({
-          self: expect.stringContaining(
-            "/apps?page[after]=1&page[size]=3"
-          ) as string,
-          items: expect.arrayContaining([]) as Array<string>,
+          self: expect.stringContaining("/apps?page[after]=1&page[size]=3"),
+          items: expect.arrayContaining([]),
           total: APPS_TOTAL,
           pageSize: 3,
           links: {
-            first: expect.stringContaining(
-              "/apps?page[after]=1&page[size]=3"
-            ) as string,
-            prev: expect.stringContaining(
-              "/apps?page[after]=1&page[size]=3"
-            ) as string,
-            next: expect.stringContaining(
-              "/apps?page[after]=2&page[size]=3"
-            ) as string,
-            last: expect.stringContaining(
-              "/apps?page[after]=4&page[size]=3"
-            ) as string,
+            first: expect.stringContaining("/apps?page[after]=1&page[size]=3"),
+            prev: expect.stringContaining("/apps?page[after]=1&page[size]=3"),
+            next: expect.stringContaining("/apps?page[after]=2&page[size]=3"),
+            last: expect.stringContaining("/apps?page[after]=4&page[size]=3"),
           },
         });
         expect(response1.body.items).toHaveLength(3);
@@ -385,23 +372,15 @@ describe("Apps Module", () => {
           "/apps?page[after]=2&page[size]=3"
         );
         expect(response2.body).toStrictEqual({
-          self: expect.stringContaining("/apps") as string,
-          items: expect.arrayContaining([]) as Array<string>,
+          self: expect.stringContaining("/apps"),
+          items: expect.arrayContaining([]),
           total: APPS_TOTAL,
           pageSize: 3,
           links: {
-            first: expect.stringContaining(
-              "/apps?page[after]=1&page[size]=3"
-            ) as string,
-            prev: expect.stringContaining(
-              "/apps?page[after]=1&page[size]=3"
-            ) as string,
-            next: expect.stringContaining(
-              "/apps?page[after]=3&page[size]=3"
-            ) as string,
-            last: expect.stringContaining(
-              "/apps?page[after]=4&page[size]=3"
-            ) as string,
+            first: expect.stringContaining("/apps?page[after]=1&page[size]=3"),
+            prev: expect.stringContaining("/apps?page[after]=1&page[size]=3"),
+            next: expect.stringContaining("/apps?page[after]=3&page[size]=3"),
+            last: expect.stringContaining("/apps?page[after]=4&page[size]=3"),
           },
         });
         expect(response2.body.items).toHaveLength(3);
@@ -412,25 +391,15 @@ describe("Apps Module", () => {
           "/apps?page[after]=100&page[size]=3"
         );
         expect(response3.body).toStrictEqual({
-          self: expect.stringContaining(
-            "/apps?page[after]=100&page[size]=3"
-          ) as string,
-          items: expect.arrayContaining([]) as Array<string>,
+          self: expect.stringContaining("/apps?page[after]=100&page[size]=3"),
+          items: expect.arrayContaining([]),
           total: APPS_TOTAL,
           pageSize: 3,
           links: {
-            first: expect.stringContaining(
-              "/apps?page[after]=1&page[size]=3"
-            ) as string,
-            prev: expect.stringContaining(
-              "/apps?page[after]=4&page[size]=3"
-            ) as string,
-            next: expect.stringContaining(
-              "/apps?page[after]=4&page[size]=3"
-            ) as string,
-            last: expect.stringContaining(
-              "/apps?page[after]=4&page[size]=3"
-            ) as string,
+            first: expect.stringContaining("/apps?page[after]=1&page[size]=3"),
+            prev: expect.stringContaining("/apps?page[after]=4&page[size]=3"),
+            next: expect.stringContaining("/apps?page[after]=4&page[size]=3"),
+            last: expect.stringContaining("/apps?page[after]=4&page[size]=3"),
           },
         });
         expect(response3.body.items).toHaveLength(0);
@@ -441,23 +410,15 @@ describe("Apps Module", () => {
           "/apps?page[after]=1"
         );
         expect(response4.body).toStrictEqual({
-          self: expect.stringContaining("/apps") as string,
-          items: expect.arrayContaining([]) as Array<string>,
+          self: expect.stringContaining("/apps"),
+          items: expect.arrayContaining([]),
           total: APPS_TOTAL,
           pageSize: 10,
           links: {
-            first: expect.stringContaining(
-              "/apps?page[after]=1&page[size]=10"
-            ) as string,
-            prev: expect.stringContaining(
-              "/apps?page[after]=1&page[size]=10"
-            ) as string,
-            next: expect.stringContaining(
-              "/apps?page[after]=2&page[size]=10"
-            ) as string,
-            last: expect.stringContaining(
-              "/apps?page[after]=2&page[size]=10"
-            ) as string,
+            first: expect.stringContaining("/apps?page[after]=1&page[size]=10"),
+            prev: expect.stringContaining("/apps?page[after]=1&page[size]=10"),
+            next: expect.stringContaining("/apps?page[after]=2&page[size]=10"),
+            last: expect.stringContaining("/apps?page[after]=2&page[size]=10"),
           },
         });
         expect(response4.body.items).toHaveLength(10);
@@ -530,9 +491,7 @@ describe("Apps Module", () => {
           name,
           domain: domainName,
           administrators: [appAdministrator],
-          authorizations: expect.arrayContaining(
-            []
-          ) as AuthorizationResponseObject[],
+          authorizations: expect.arrayContaining([]),
           info,
           publicKeys: [Buffer.from(publicKey, "utf8").toString("base64")],
           revocation: null,
@@ -568,23 +527,23 @@ describe("Apps Module", () => {
         expect(response.body).toStrictEqual({
           self: expect.stringContaining(
             `/apps/${name}/public-keys?page[after]=1&page[size]=10`
-          ) as string,
-          items: expect.arrayContaining([]) as Array<string>,
+          ),
+          items: expect.arrayContaining([]),
           total: 1,
           pageSize: 10,
           links: {
             first: expect.stringContaining(
               `/apps/${name}/public-keys?page[after]=1&page[size]=10`
-            ) as string,
+            ),
             prev: expect.stringContaining(
               `/apps/${name}/public-keys?page[after]=1&page[size]=10`
-            ) as string,
+            ),
             next: expect.stringContaining(
               `/apps/${name}/public-keys?page[after]=1&page[size]=10`
-            ) as string,
+            ),
             last: expect.stringContaining(
               `/apps/${name}/public-keys?page[after]=1&page[size]=10`
-            ) as string,
+            ),
           },
         });
         expect(response.body.items).toHaveLength(1);
@@ -600,23 +559,23 @@ describe("Apps Module", () => {
         expect(response1.body).toStrictEqual({
           self: expect.stringContaining(
             `/apps/${name}/public-keys?page[after]=1&page[size]=3`
-          ) as string,
-          items: expect.arrayContaining([]) as Array<string>,
+          ),
+          items: expect.arrayContaining([]),
           total: 1,
           pageSize: 3,
           links: {
             first: expect.stringContaining(
               `/apps/${name}/public-keys?page[after]=1&page[size]=3`
-            ) as string,
+            ),
             prev: expect.stringContaining(
               `/apps/${name}/public-keys?page[after]=1&page[size]=3`
-            ) as string,
+            ),
             next: expect.stringContaining(
               `/apps/${name}/public-keys?page[after]=1&page[size]=3`
-            ) as string,
+            ),
             last: expect.stringContaining(
               `/apps/${name}/public-keys?page[after]=1&page[size]=3`
-            ) as string,
+            ),
           },
         });
         expect(response1.body.items).toHaveLength(1);
@@ -627,23 +586,23 @@ describe("Apps Module", () => {
           server
         ).get(`/apps/${name}/public-keys?page[after]=2&page[size]=3`);
         expect(response2.body).toStrictEqual({
-          self: expect.stringContaining("/apps") as string,
-          items: expect.arrayContaining([]) as Array<string>,
+          self: expect.stringContaining("/apps"),
+          items: expect.arrayContaining([]),
           total: 1,
           pageSize: 3,
           links: {
             first: expect.stringContaining(
               `/apps/${name}/public-keys?page[after]=1&page[size]=3`
-            ) as string,
+            ),
             prev: expect.stringContaining(
               `/apps/${name}/public-keys?page[after]=1&page[size]=3`
-            ) as string,
+            ),
             next: expect.stringContaining(
               `/apps/${name}/public-keys?page[after]=1&page[size]=3`
-            ) as string,
+            ),
             last: expect.stringContaining(
               `/apps/${name}/public-keys?page[after]=1&page[size]=3`
-            ) as string,
+            ),
           },
         });
         expect(response2.body.items).toHaveLength(0);
@@ -656,23 +615,23 @@ describe("Apps Module", () => {
         expect(response3.body).toStrictEqual({
           self: expect.stringContaining(
             `/apps/${name}/public-keys?page[after]=100&page[size]=3`
-          ) as string,
-          items: expect.arrayContaining([]) as Array<string>,
+          ),
+          items: expect.arrayContaining([]),
           total: 1,
           pageSize: 3,
           links: {
             first: expect.stringContaining(
               `/apps/${name}/public-keys?page[after]=1&page[size]=3`
-            ) as string,
+            ),
             prev: expect.stringContaining(
               `/apps/${name}/public-keys?page[after]=1&page[size]=3`
-            ) as string,
+            ),
             next: expect.stringContaining(
               `/apps/${name}/public-keys?page[after]=1&page[size]=3`
-            ) as string,
+            ),
             last: expect.stringContaining(
               `/apps/${name}/public-keys?page[after]=1&page[size]=3`
-            ) as string,
+            ),
           },
         });
         expect(response3.body.items).toHaveLength(0);
@@ -683,23 +642,23 @@ describe("Apps Module", () => {
           server
         ).get(`/apps/${name}/public-keys?page[after]=1`);
         expect(response4.body).toStrictEqual({
-          self: expect.stringContaining(`/apps/${name}/public-keys`) as string,
-          items: expect.arrayContaining([]) as Array<string>,
+          self: expect.stringContaining(`/apps/${name}/public-keys`),
+          items: expect.arrayContaining([]),
           total: 1,
           pageSize: 10,
           links: {
             first: expect.stringContaining(
               `/apps/${name}/public-keys?page[after]=1&page[size]=10`
-            ) as string,
+            ),
             prev: expect.stringContaining(
               `/apps/${name}/public-keys?page[after]=1&page[size]=10`
-            ) as string,
+            ),
             next: expect.stringContaining(
               `/apps/${name}/public-keys?page[after]=1&page[size]=10`
-            ) as string,
+            ),
             last: expect.stringContaining(
               `/apps/${name}/public-keys?page[after]=1&page[size]=10`
-            ) as string,
+            ),
           },
         });
         expect(response4.body.items).toHaveLength(1);
@@ -771,10 +730,10 @@ describe("Apps Module", () => {
 
         expect(response.body).toStrictEqual({
           applicationId,
-          publicKey: expect.any(String) as string,
+          publicKey: expect.any(String),
           status: "active",
-          notBefore: expect.any(Number) as number,
-          notAfter: expect.any(Number) as number,
+          notBefore: expect.any(Number),
+          notAfter: expect.any(Number),
         });
         expect(response.status).toBe(200);
       });
@@ -836,28 +795,28 @@ describe("Apps Module", () => {
         expect(response.body).toStrictEqual({
           self: expect.stringContaining(
             `/apps/${name}/authorizations?page[after]=1&page[size]=10`
-          ) as string,
-          items: expect.arrayContaining([]) as Array<string>,
+          ),
+          items: expect.arrayContaining([]),
           total: 2 * APPS_TOTAL,
           pageSize: 10,
           links: {
             first: expect.stringContaining(
               `/apps/${name}/authorizations?page[after]=1&page[size]=10`
-            ) as string,
+            ),
             prev: expect.stringContaining(
               `/apps/${name}/authorizations?page[after]=1&page[size]=10`
-            ) as string,
+            ),
             next: expect.stringContaining(
               `/apps/${name}/authorizations?page[after]=${Math.min(
                 Math.ceil((2 * APPS_TOTAL) / 10),
                 2
               )}&page[size]=10`
-            ) as string,
+            ),
             last: expect.stringContaining(
               `/apps/${name}/authorizations?page[after]=${Math.ceil(
                 (2 * APPS_TOTAL) / 10
               )}&page[size]=10`
-            ) as string,
+            ),
           },
         });
         expect(response.body.items).toHaveLength(Math.min(10, 2 * APPS_TOTAL));
@@ -880,23 +839,23 @@ describe("Apps Module", () => {
         expect(response.body).toStrictEqual({
           self: expect.stringContaining(
             `/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${requesterApplicationName2}`
-          ) as string,
-          items: expect.arrayContaining([]) as Array<string>,
+          ),
+          items: expect.arrayContaining([]),
           total: 2,
           pageSize: 10,
           links: {
             first: expect.stringContaining(
               `/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${requesterApplicationName2}`
-            ) as string,
+            ),
             prev: expect.stringContaining(
               `/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${requesterApplicationName2}`
-            ) as string,
+            ),
             next: expect.stringContaining(
               `/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${requesterApplicationName2}`
-            ) as string,
+            ),
             last: expect.stringContaining(
               `/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${requesterApplicationName2}`
-            ) as string,
+            ),
           },
         });
         expect(response.body.items).toHaveLength(2);
@@ -918,7 +877,7 @@ describe("Apps Module", () => {
           `/apps/${name}/authorizations/${authorizationId}`
         );
         expect(response.body).toStrictEqual({
-          authorizationId: expect.any(String) as string,
+          authorizationId: expect.any(String),
           resourceApplicationId: applicationId,
           requesterApplicationId: applicationId,
           resourceApplicationName: name,
@@ -931,8 +890,8 @@ describe("Apps Module", () => {
             delete: "false",
           },
           status: "active",
-          notBefore: expect.any(Number) as number,
-          notAfter: expect.any(Number) as number,
+          notBefore: expect.any(Number),
+          notAfter: expect.any(Number),
         });
         expect(response.status).toBe(200);
       });

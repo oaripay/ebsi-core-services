@@ -25,6 +25,7 @@ declare global {
       TEST_EU_LOGIN_PASSWORD?: string;
       TEST_RECAPTCHA_TOKEN?: string;
       TEST_ENV?: string;
+      TEST_LB_DOMAIN?: string;
     }
   }
 }

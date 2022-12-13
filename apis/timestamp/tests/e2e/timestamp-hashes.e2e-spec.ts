@@ -1,4 +1,5 @@
-import crypto from "crypto";
+import { describe, beforeAll, it, expect } from "@jest/globals";
+import crypto from "node:crypto";
 import { ethers } from "ethers";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
@@ -14,8 +15,8 @@ import {
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
-import { HashName } from "multihashes";
 import { prefixWith0x, multibase, multihashEncode } from "@ebsiint-api/shared";
+import type { TransactionRequest } from "@ethersproject/abstract-provider";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
@@ -27,7 +28,7 @@ import {
 } from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
-import { getAccessToken, waitToBeMined } from "../utils/waitToBeMined";
+import { waitToBeMined } from "../utils/waitToBeMined";
 import { requestOAuth2Jwt, requestSiopJwt } from "../utils/auth";
 import { describeWriteOps } from "../utils/describeWriteOps";
 import { getServer } from "../utils/getServer";
@@ -42,14 +43,22 @@ type JsonRpcParams =
   | UpdateHashAlgorithmParam
   | TimestampHashesParam;
 
+const multihashToNodeHashAlg = {
+  "sha2-256": "sha256",
+  "sha2-512": "sha512",
+  "sha3-224": "sha3-224",
+  "sha3-256": "sha3-256",
+  "sha3-384": "sha3-384",
+  "sha3-512": "sha3-512",
+} as const;
+
 describe("Timestamp (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer | string;
   let hashAlgorithmId: number;
-  let hashAlgorithMultihash: HashName;
+  let hashAlgorithmMultihash: keyof typeof multihashToNodeHashAlg;
   let hashValue1: string;
   let hashValue2: string;
-  let apiAccessToken: string;
   let ledgerApi: string;
   let sampleTransaction: string;
 
@@ -57,21 +66,21 @@ describe("Timestamp (e2e)", () => {
     kid: string;
     privateKey: string;
     wallet: ethers.Wallet;
-    token?: string;
+    token: string;
   };
 
   let testUser: {
     kid: string;
     privateKey: string;
     wallet: ethers.Wallet;
-    token?: string;
+    token: string;
   };
 
   let testApp: {
     name: string;
     privateKey: string;
     wallet: ethers.Wallet;
-    token?: string;
+    token: string;
   };
 
   let blockscout: {
@@ -99,12 +108,6 @@ describe("Timestamp (e2e)", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
 
     server = getServer(app, configService);
-    const authorisationApiUrl = configService.get<string>(
-      "authorisationApiUrl"
-    );
-    const trustedAppsRegistryApiUrl = configService.get<string>(
-      "trustedAppsRegistryApiUrl"
-    );
 
     const configAdmin = configService.get<{
       kid: string;
@@ -122,40 +125,56 @@ describe("Timestamp (e2e)", () => {
       url: string;
       bearerToken: string;
     }>("blockscout");
-    testAdmin = {
-      ...configAdmin,
-      wallet: new ethers.Wallet(prefixWith0x(configAdmin.privateKey)),
-    };
-    testUser = {
-      ...configUser,
-      wallet: new ethers.Wallet(prefixWith0x(configUser.privateKey)),
-    };
-    testApp = {
-      ...configApp,
-      wallet: new ethers.Wallet(prefixWith0x(configApp.privateKey)),
-    };
+
+    try {
+      testAdmin = {
+        ...configAdmin,
+        wallet: new ethers.Wallet(prefixWith0x(configAdmin.privateKey)),
+        token: await requestSiopJwt({
+          clientKid: configAdmin.kid,
+          clientPrivateKey: configAdmin.privateKey,
+          configService,
+        }),
+      };
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e);
+      throw e;
+    }
+
+    try {
+      testUser = {
+        ...configUser,
+        wallet: new ethers.Wallet(prefixWith0x(configUser.privateKey)),
+        token: await requestSiopJwt({
+          clientKid: configUser.kid,
+          clientPrivateKey: configUser.privateKey,
+          configService,
+        }),
+      };
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e);
+      throw e;
+    }
+
+    try {
+      testApp = {
+        ...configApp,
+        wallet: new ethers.Wallet(prefixWith0x(configApp.privateKey)),
+        token: await requestOAuth2Jwt({
+          trustedAppPrivateKey: configApp.privateKey,
+          trustedAppName: configApp.name,
+          configService,
+        }),
+      };
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e);
+      throw e;
+    }
+
     blockscout = configBlockscout;
-
-    testUser.token = await requestSiopJwt({
-      clientKid: testUser.kid,
-      clientPrivateKey: testUser.privateKey,
-      authorisationApiUrl,
-      trustedAppsRegistryApiUrl,
-    });
-
-    testAdmin.token = await requestSiopJwt({
-      clientKid: testAdmin.kid,
-      clientPrivateKey: testAdmin.privateKey,
-      authorisationApiUrl,
-      trustedAppsRegistryApiUrl,
-    });
-
-    testApp.token = await requestOAuth2Jwt({
-      trustedAppPrivateKey: testApp.privateKey,
-      trustedAppName: testApp.name,
-      trustedAppsRegistryApiUrl,
-      authorisationApiUrl,
-    });
 
     // During the tests, we'll use the last hash algorithm
     const getHashAlgorithmsResponse = await request(server).get(
@@ -168,33 +187,24 @@ describe("Timestamp (e2e)", () => {
     const getHashAlgorithmResponse = await request(server).get(
       `/hash-algorithms/${hashAlgorithmId}`
     );
-    hashAlgorithMultihash = (
-      getHashAlgorithmResponse.body as { multihash: HashName }
+    hashAlgorithmMultihash = (
+      getHashAlgorithmResponse.body as {
+        multihash: keyof typeof multihashToNodeHashAlg;
+      }
     ).multihash;
-
-    const multihashToNodeHashAlg: { [Key in HashName]?: string } = {
-      "sha2-256": "sha256",
-      "sha2-512": "sha512",
-      "sha3-224": "sha3-224",
-      "sha3-256": "sha3-256",
-      "sha3-384": "sha3-384",
-      "sha3-512": "sha3-512",
-    };
 
     // Compute 2 hashes with the last hash algorithm
     hashValue1 = `0x${crypto
-      .createHash(multihashToNodeHashAlg[hashAlgorithMultihash])
+      .createHash(multihashToNodeHashAlg[hashAlgorithmMultihash])
       .update(crypto.randomBytes(32).toString("hex"), "hex")
       .digest()
       .toString("hex")}`;
 
     hashValue2 = `0x${crypto
-      .createHash(multihashToNodeHashAlg[hashAlgorithMultihash])
+      .createHash(multihashToNodeHashAlg[hashAlgorithmMultihash])
       .update(crypto.randomBytes(32).toString("hex"), "hex")
       .digest()
       .toString("hex")}`;
-
-    apiAccessToken = await getAccessToken(configService);
 
     ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
   });
@@ -205,7 +215,7 @@ describe("Timestamp (e2e)", () => {
       it("should work", async () => {
         expect.assertions(5);
 
-        let param: JsonRpcParams = null;
+        let param: JsonRpcParams | null = null;
 
         switch (method) {
           case "timestampHashes": {
@@ -244,14 +254,14 @@ describe("Timestamp (e2e)", () => {
           jsonrpc: "2.0",
           id: 231,
           result: {
-            chainId: expect.any(String) as string,
-            data: expect.any(String) as string,
+            chainId: expect.any(String),
+            data: expect.any(String),
             from: testUser.wallet.address,
-            gasLimit: expect.any(String) as string,
-            gasPrice: expect.any(String) as string,
-            nonce: expect.any(String) as string,
-            to: expect.any(String) as string,
-            value: expect.any(String) as string,
+            gasLimit: expect.any(String),
+            gasPrice: expect.any(String),
+            nonce: expect.any(String),
+            to: expect.any(String),
+            value: expect.any(String),
           },
         });
         expect(responseBuild.status).toBe(200);
@@ -263,7 +273,9 @@ describe("Timestamp (e2e)", () => {
           ) as unknown as UnsignedTransaction
         );
         uTx.chainId = Number(uTx.chainId);
-        const sgnTx = await testUser.wallet.signTransaction(uTx);
+        const sgnTx = await testUser.wallet.signTransaction(
+          uTx as TransactionRequest
+        );
         const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
         const responseSend: SupertestJsonRpcResponse = await request(server)
@@ -288,14 +300,13 @@ describe("Timestamp (e2e)", () => {
         expect(responseSend.body).toStrictEqual({
           jsonrpc: "2.0",
           id: "45",
-          result: expect.any(String) as string,
+          result: expect.any(String),
         });
         expect(responseSend.status).toBe(200);
 
         // wait to be mined
         const receipt = await waitToBeMined(
           ledgerApi,
-          apiAccessToken,
           responseSend.body.result as string
         );
         expect(receipt.status).toBe(1);
@@ -305,7 +316,7 @@ describe("Timestamp (e2e)", () => {
       it("should work with empty data", async () => {
         expect.assertions(5);
 
-        let param: JsonRpcParams = null;
+        let param: JsonRpcParams | null = null;
 
         switch (method) {
           case "timestampHashes": {
@@ -334,14 +345,14 @@ describe("Timestamp (e2e)", () => {
           jsonrpc: "2.0",
           id: 231,
           result: {
-            chainId: expect.any(String) as string,
-            data: expect.any(String) as string,
+            chainId: expect.any(String),
+            data: expect.any(String),
             from: testUser.wallet.address,
-            gasLimit: expect.any(String) as string,
-            gasPrice: expect.any(String) as string,
-            nonce: expect.any(String) as string,
-            to: expect.any(String) as string,
-            value: expect.any(String) as string,
+            gasLimit: expect.any(String),
+            gasPrice: expect.any(String),
+            nonce: expect.any(String),
+            to: expect.any(String),
+            value: expect.any(String),
           },
         });
         expect(responseBuild.status).toBe(200);
@@ -353,7 +364,9 @@ describe("Timestamp (e2e)", () => {
           ) as unknown as UnsignedTransaction
         );
         uTx.chainId = Number(uTx.chainId);
-        const sgnTx = await testUser.wallet.signTransaction(uTx);
+        const sgnTx = await testUser.wallet.signTransaction(
+          uTx as TransactionRequest
+        );
         const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
         const responseSend: SupertestJsonRpcResponse = await request(server)
@@ -378,14 +391,13 @@ describe("Timestamp (e2e)", () => {
         expect(responseSend.body).toStrictEqual({
           jsonrpc: "2.0",
           id: "45",
-          result: expect.any(String) as string,
+          result: expect.any(String),
         });
         expect(responseSend.status).toBe(200);
 
         // wait to be mined
         const receipt = await waitToBeMined(
           ledgerApi,
-          apiAccessToken,
           responseSend.body.result as string
         );
         expect(receipt.status).toBe(1);
@@ -394,7 +406,7 @@ describe("Timestamp (e2e)", () => {
       it("should reject impersonating transactions: admin wallet using jwt from user", async () => {
         expect.assertions(2);
 
-        let param: JsonRpcParams = null;
+        let param: JsonRpcParams | null = null;
 
         switch (method) {
           case "timestampHashes": {
@@ -436,7 +448,9 @@ describe("Timestamp (e2e)", () => {
           ) as unknown as UnsignedTransaction
         );
         uTx.chainId = Number(uTx.chainId);
-        const sgnTx = await testAdmin.wallet.signTransaction(uTx);
+        const sgnTx = await testAdmin.wallet.signTransaction(
+          uTx as TransactionRequest
+        );
         const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
         const responseSend: SupertestJsonRpcResponse = await request(server)
@@ -474,7 +488,7 @@ describe("Timestamp (e2e)", () => {
       it("should work with a trusted app", async () => {
         expect.assertions(5);
 
-        let param: JsonRpcParams = null;
+        let param: JsonRpcParams | null = null;
 
         switch (method) {
           case "timestampHashes": {
@@ -513,14 +527,14 @@ describe("Timestamp (e2e)", () => {
           jsonrpc: "2.0",
           id: 231,
           result: {
-            chainId: expect.any(String) as string,
-            data: expect.any(String) as string,
+            chainId: expect.any(String),
+            data: expect.any(String),
             from: testApp.wallet.address,
-            gasLimit: expect.any(String) as string,
-            gasPrice: expect.any(String) as string,
-            nonce: expect.any(String) as string,
-            to: expect.any(String) as string,
-            value: expect.any(String) as string,
+            gasLimit: expect.any(String),
+            gasPrice: expect.any(String),
+            nonce: expect.any(String),
+            to: expect.any(String),
+            value: expect.any(String),
           },
         });
         expect(responseBuild.status).toBe(200);
@@ -532,7 +546,9 @@ describe("Timestamp (e2e)", () => {
           ) as unknown as UnsignedTransaction
         );
         uTx.chainId = Number(uTx.chainId);
-        const sgnTx = await testApp.wallet.signTransaction(uTx);
+        const sgnTx = await testApp.wallet.signTransaction(
+          uTx as TransactionRequest
+        );
         const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
         const responseSend: SupertestJsonRpcResponse = await request(server)
@@ -557,14 +573,13 @@ describe("Timestamp (e2e)", () => {
         expect(responseSend.body).toStrictEqual({
           jsonrpc: "2.0",
           id: "45",
-          result: expect.any(String) as string,
+          result: expect.any(String),
         });
         expect(responseSend.status).toBe(200);
 
         // wait to be mined
         const receipt = await waitToBeMined(
           ledgerApi,
-          apiAccessToken,
           responseSend.body.result as string
         );
         expect(receipt.status).toBe(1);
@@ -593,10 +608,10 @@ describe("Timestamp (e2e)", () => {
         expect(blockscoutCheck.body).toStrictEqual({
           data: {
             transaction: {
-              blockNumber: expect.any(Number) as number,
-              gasUsed: expect.any(String) as string,
+              blockNumber: expect.any(Number),
+              gasUsed: expect.any(String),
               hash: sampleTransaction,
-              value: expect.any(String) as string,
+              value: expect.any(String),
             },
           },
         });
@@ -612,19 +627,19 @@ describe("Timestamp (e2e)", () => {
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           "/timestamps?page[after]=1&page[size]=10"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
-        total: expect.any(Number) as number,
+        ),
+        items: expect.arrayContaining([]),
+        total: expect.any(Number),
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/timestamps?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           prev: expect.stringContaining(
             "/timestamps?page[after]=1&page[size]=10"
-          ) as string,
-          next: expect.stringContaining("/timestamps?page[after]=") as string,
-          last: expect.stringContaining("/timestamps?page[after]=") as string,
+          ),
+          next: expect.stringContaining("/timestamps?page[after]="),
+          last: expect.stringContaining("/timestamps?page[after]="),
         },
       });
       expect(response.status).toBe(200);
@@ -649,12 +664,12 @@ describe("Timestamp (e2e)", () => {
         );
 
         expect(response.body).toStrictEqual({
-          blockNumber: expect.any(Number) as number,
-          timestamp: expect.any(String) as string,
-          data: expect.stringContaining("0x") as string,
-          hash: expect.any(String) as string,
-          timestampedBy: expect.stringContaining("0x") as string,
-          transactionHash: expect.stringContaining("0x") as string,
+          blockNumber: expect.any(Number),
+          timestamp: expect.any(String),
+          data: expect.stringContaining("0x"),
+          hash: expect.any(String),
+          timestampedBy: expect.stringContaining("0x"),
+          transactionHash: expect.stringContaining("0x"),
         });
         expect(response.status).toBe(200);
       });

@@ -31,6 +31,7 @@ export interface ApiConfig {
     name: string;
     privateKey: string;
   };
+  testLoadBalancerDomain: string;
   dockerContainerTag: string;
   blockscout: {
     url: string;
@@ -80,6 +81,7 @@ export const loadConfig = (): ApiConfig => {
       name: process.env.TEST_APP_NAME,
       privateKey: process.env.TEST_APP_PRIVATE_KEY,
     },
+    testLoadBalancerDomain: process.env.TEST_LB_DOMAIN || "",
     dockerContainerTag: process.env.DOCKER_TAG || "",
     blockscout: {
       url: process.env.BLOCKSCOUT_URL,
@@ -127,6 +129,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_USER_PRIVATE_KEY: Joi.string(),
     TEST_APP_NAME: Joi.string(),
     TEST_APP_PRIVATE_KEY: Joi.string(),
+    TEST_LB_DOMAIN: Joi.string().uri(),
     BLOCKSCOUT_URL: Joi.string(),
     BLOCKSCOUT_BEARER_TOKEN: Joi.string(),
   }),

@@ -1,3 +1,4 @@
+import { describe, beforeAll, it, expect } from "@jest/globals";
 import { URLSearchParams } from "node:url";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ValidationPipe, HttpServer, Logger } from "@nestjs/common";
@@ -106,10 +107,20 @@ describeSkipCI("reCAPTCHA onboarding", () => {
     });
     const didAuthRequestJwt = params.request;
 
+    let trustedAppsRegistry = configService.get<string>(
+      "trustedAppsRegistryApiUrl"
+    );
+
+    // Use TEST_LB_DOMAIN if defined
+    if (configService.get<string>("testLoadBalancerDomain")) {
+      trustedAppsRegistry = trustedAppsRegistry.replace(
+        configService.get<string>("domain"),
+        configService.get<string>("testLoadBalancerDomain")
+      );
+    }
+
     const { payload: requestPayload } = await verifyJwtTar(didAuthRequestJwt, {
-      trustedAppsRegistry: configService.get<string>(
-        "trustedAppsRegistryApiUrl"
-      ),
+      trustedAppsRegistry,
     });
 
     expect(requestPayload.iss).toBe(configService.get<string>("apiName"));

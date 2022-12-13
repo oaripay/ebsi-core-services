@@ -1,10 +1,10 @@
 import { ethers, network } from "hardhat";
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { expect } from "chai";
 import { Contract } from "ethers";
+import type { FactoryOptions } from "hardhat/types";
 import { Tar } from "../src/types";
 import { testDidrAddress, testTprAddress } from "./testAddress";
-import { FactoryOptions } from "hardhat/types";
 
 const num = ethers.BigNumber.from;
 const getAppId = (name: string) =>

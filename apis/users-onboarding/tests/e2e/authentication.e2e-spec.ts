@@ -1,3 +1,4 @@
+import { describe, beforeAll, it, expect } from "@jest/globals";
 import { URLSearchParams } from "node:url";
 import EbsiWallet from "@cef-ebsi/wallet-lib";
 import { Test, TestingModule } from "@nestjs/testing";
@@ -98,7 +99,7 @@ describe("/onboarding/v2 authentication e2e tests", () => {
       });
 
     expect(response.body).toStrictEqual({
-      verifiableCredential: expect.any(String) as string,
+      verifiableCredential: expect.any(String),
     });
     expect(response.status).toBe(201);
   });
@@ -140,7 +141,7 @@ describe("/onboarding/v2 authentication e2e tests", () => {
       });
 
     expect(response.body).toStrictEqual({
-      verifiableCredential: expect.any(String) as string,
+      verifiableCredential: expect.any(String),
     });
     expect(response.status).toBe(201);
   });
@@ -224,9 +225,7 @@ describe("/onboarding/v2 authentication e2e tests", () => {
     const fakeToken = await createFakeToken({
       apiName: configService.get<string>("apiName"),
       authorisationApiName: configService.get<string>("authorisationApiName"),
-      trustedAppsRegistryApiUrl: configService.get<string>(
-        "trustedAppsRegistryApiUrl"
-      ),
+      configService,
     });
     const authenticationServerResponseWrongToken: SupertestAuthenticationResponse =
       await request(server)

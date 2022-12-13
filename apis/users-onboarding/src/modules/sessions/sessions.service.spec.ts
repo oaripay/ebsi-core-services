@@ -1,3 +1,12 @@
+import {
+  jest,
+  describe,
+  beforeAll,
+  afterEach,
+  afterAll,
+  it,
+  expect,
+} from "@jest/globals";
 import { INestApplication, Logger } from "@nestjs/common";
 import {
   FastifyAdapter,
@@ -307,9 +316,9 @@ describe("sessions service tests", () => {
       expect(token).toHaveProperty("Bearer");
       expect(decodeJWT(token.Bearer).payload).toStrictEqual(
         expect.objectContaining({
-          iat: expect.any(Number) as number,
+          iat: expect.any(Number),
           iss: apiDid,
-          exp: expect.any(Number) as number,
+          exp: expect.any(Number),
           onboarding: body.onboarding,
           validatedInfo,
         })
@@ -337,9 +346,9 @@ describe("sessions service tests", () => {
       expect(token).toHaveProperty("Bearer");
       expect(decodeJWT(token.Bearer).payload).toStrictEqual(
         expect.objectContaining({
-          iat: expect.any(Number) as number,
+          iat: expect.any(Number),
           iss: apiDid,
-          exp: expect.any(Number) as number,
+          exp: expect.any(Number),
           onboarding: body.onboarding,
           validatedInfo,
         })

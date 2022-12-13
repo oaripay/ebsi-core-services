@@ -1,5 +1,5 @@
 import { ethers, network } from "hardhat";
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { Contract } from "ethers";
@@ -233,10 +233,10 @@ describe("Issuers", () => {
       await policyContractMock.setPolicyResult(true);
 
       // insert issuers
-
-      const issuers = [];
+      const issuers: string[] = [];
       for (let i = 0; i < 18; i += 1) {
         issuers[i] = randomDid();
+        // eslint-disable-next-line no-await-in-loop
         await (await tir.insertIssuer(issuers[i], randomAttribute())).wait();
       }
 

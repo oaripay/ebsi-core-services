@@ -1,3 +1,4 @@
+import { jest, describe, beforeAll, it, expect } from "@jest/globals";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { HttpServer, INestApplication, ValidationPipe } from "@nestjs/common";

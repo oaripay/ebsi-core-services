@@ -1,5 +1,5 @@
-import { describe } from "@jest/globals";
-import crypto from "crypto";
+import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
+import crypto from "node:crypto";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import {
@@ -91,28 +91,28 @@ describe("Identifiers Module", () => {
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           "/identifiers?page[after]=1&page[size]=10"
-        ) as string,
+        ),
         items: expect.arrayContaining(
           didDocuments.map((doc) => ({
             did: doc.did,
-            href: expect.stringContaining(`/identifiers/${doc.did}`) as string,
+            href: expect.stringContaining(`/identifiers/${doc.did}`),
           }))
-        ) as Array<string>,
+        ),
         total: DID_DOCUMENTS,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/identifiers?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           prev: expect.stringContaining(
             "/identifiers?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           next: expect.stringContaining(
             "/identifiers?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           last: expect.stringContaining(
             "/identifiers?page[after]=1&page[size]=10"
-          ) as string,
+          ),
         },
       });
       expect((response.body as { items: string }).items).toHaveLength(
@@ -140,30 +140,30 @@ describe("Identifiers Module", () => {
           expect(response.body).toStrictEqual({
             self: expect.stringContaining(
               `/identifiers?page[after]=1&page[size]=10&controller=${controllerId}`
-            ) as string,
+            ),
             items: expect.arrayContaining([
               {
                 did: didDocuments[0].did,
                 href: expect.stringContaining(
                   `/identifiers/${didDocuments[0].did}`
-                ) as string,
+                ),
               },
-            ]) as Array<unknown>,
+            ]),
             total: DID_DOCUMENTS,
             pageSize: 10,
             links: {
               first: expect.stringContaining(
                 `/identifiers?page[after]=1&page[size]=10&controller=${controllerId}`
-              ) as string,
+              ),
               prev: expect.stringContaining(
                 `/identifiers?page[after]=1&page[size]=10&controller=${controllerId}`
-              ) as string,
+              ),
               next: expect.stringContaining(
                 `/identifiers?page[after]=1&page[size]=10&controller=${controllerId}`
-              ) as string,
+              ),
               last: expect.stringContaining(
                 `/identifiers?page[after]=1&page[size]=10&controller=${controllerId}`
-              ) as string,
+              ),
             },
           });
           expect(response.status).toBe(200);
@@ -171,7 +171,7 @@ describe("Identifiers Module", () => {
       }
     );
 
-    it("should return an empty array for an unkown controller ID", async () => {
+    it("should return an empty array for an unknown controller ID", async () => {
       expect.assertions(2);
 
       const controllerId = ethers.Wallet.createRandom().address;
@@ -182,23 +182,23 @@ describe("Identifiers Module", () => {
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           `/identifiers?page[after]=1&page[size]=10&controller=${controllerId}`
-        ) as string,
+        ),
         items: [],
         total: 0,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             `/identifiers?page[after]=1&page[size]=10&controller=${controllerId}`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/identifiers?page[after]=1&page[size]=10&controller=${controllerId}`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/identifiers?page[after]=1&page[size]=10&controller=${controllerId}`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/identifiers?page[after]=1&page[size]=10&controller=${controllerId}`
-          ) as string,
+          ),
         },
       });
       expect(response.status).toBe(200);
@@ -211,23 +211,23 @@ describe("Identifiers Module", () => {
       expect(response1.body).toStrictEqual({
         self: expect.stringContaining(
           "/identifiers?page[after]=1&page[size]=2"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: DID_DOCUMENTS,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             "/identifiers?page[after]=1&page[size]=2"
-          ) as string,
+          ),
           prev: expect.stringContaining(
             "/identifiers?page[after]=1&page[size]=2"
-          ) as string,
+          ),
           next: expect.stringContaining(
             "/identifiers?page[after]=2&page[size]=2"
-          ) as string,
+          ),
           last: expect.stringContaining(
             "/identifiers?page[after]=2&page[size]=2"
-          ) as string,
+          ),
         },
       });
       expect((response1.body as { items: string }).items).toHaveLength(2);
@@ -240,23 +240,23 @@ describe("Identifiers Module", () => {
       expect(response2.body).toStrictEqual({
         self: expect.stringContaining(
           "/identifiers?page[after]=2&page[size]=2"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: DID_DOCUMENTS,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             "/identifiers?page[after]=1&page[size]=2"
-          ) as string,
+          ),
           prev: expect.stringContaining(
             "/identifiers?page[after]=1&page[size]=2"
-          ) as string,
+          ),
           next: expect.stringContaining(
             "/identifiers?page[after]=2&page[size]=2"
-          ) as string,
+          ),
           last: expect.stringContaining(
             "/identifiers?page[after]=2&page[size]=2"
-          ) as string,
+          ),
         },
       });
       expect((response2.body as { items: string }).items).toHaveLength(1);
@@ -269,23 +269,23 @@ describe("Identifiers Module", () => {
       expect(response3.body).toStrictEqual({
         self: expect.stringContaining(
           "/identifiers?page[after]=100&page[size]=2"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: DID_DOCUMENTS,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             "/identifiers?page[after]=1&page[size]=2"
-          ) as string,
+          ),
           prev: expect.stringContaining(
             "/identifiers?page[after]=2&page[size]=2"
-          ) as string,
+          ),
           next: expect.stringContaining(
             "/identifiers?page[after]=2&page[size]=2"
-          ) as string,
+          ),
           last: expect.stringContaining(
             "/identifiers?page[after]=2&page[size]=2"
-          ) as string,
+          ),
         },
       });
       expect((response3.body as { items: string }).items).toHaveLength(0);
@@ -296,23 +296,23 @@ describe("Identifiers Module", () => {
       expect(response4.body).toStrictEqual({
         self: expect.stringContaining(
           "/identifiers?page[after]=1&page[size]=10"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: DID_DOCUMENTS,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/identifiers?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           prev: expect.stringContaining(
             "/identifiers?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           next: expect.stringContaining(
             "/identifiers?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           last: expect.stringContaining(
             "/identifiers?page[after]=1&page[size]=10"
-          ) as string,
+          ),
         },
       });
       expect((response4.body as { items: string }).items).toHaveLength(3);
@@ -447,30 +447,28 @@ describe("Identifiers Module", () => {
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           `/identifiers/${did}/versions?page[after]=1&page[size]=10`
-        ) as string,
+        ),
         items: expect.arrayContaining([
           {
-            versionId: expect.any(String) as string,
-            href: expect.stringContaining(
-              `/identifiers/${did}/versions/`
-            ) as string,
+            versionId: expect.any(String),
+            href: expect.stringContaining(`/identifiers/${did}/versions/`),
           },
-        ]) as Array<string>,
+        ]),
         total: 1,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             `/identifiers/${did}/versions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/identifiers/${did}/versions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/identifiers/${did}/versions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/identifiers/${did}/versions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
         },
       });
       expect(response.status).toBe(200);
@@ -488,23 +486,23 @@ describe("Identifiers Module", () => {
       expect(response1.body).toStrictEqual({
         self: expect.stringContaining(
           `/identifiers/${did}/versions?page[after]=1&page[size]=2`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: 1,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             `/identifiers/${did}/versions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/identifiers/${did}/versions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/identifiers/${did}/versions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/identifiers/${did}/versions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
         },
       });
       expect(response1.status).toBe(200);
@@ -516,23 +514,23 @@ describe("Identifiers Module", () => {
       expect(response2.body).toStrictEqual({
         self: expect.stringContaining(
           `/identifiers/${did}/versions?page[after]=2&page[size]=2`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: 1,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             `/identifiers/${did}/versions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/identifiers/${did}/versions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/identifiers/${did}/versions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/identifiers/${did}/versions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
         },
       });
       expect(response2.status).toBe(200);
@@ -544,23 +542,23 @@ describe("Identifiers Module", () => {
       expect(response3.body).toStrictEqual({
         self: expect.stringContaining(
           `/identifiers/${did}/versions?page[after]=100&page[size]=2`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: 1,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             `/identifiers/${did}/versions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/identifiers/${did}/versions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/identifiers/${did}/versions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/identifiers/${did}/versions?page[after]=1&page[size]=2`
-          ) as string,
+          ),
         },
       });
       expect(response3.status).toBe(200);
@@ -572,23 +570,23 @@ describe("Identifiers Module", () => {
       expect(response4.body).toStrictEqual({
         self: expect.stringContaining(
           `/identifiers/${did}/versions?page[after]=1&page[size]=10`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: 1,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             `/identifiers/${did}/versions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/identifiers/${did}/versions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/identifiers/${did}/versions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/identifiers/${did}/versions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
         },
       });
       expect(response4.status).toBe(200);
@@ -783,30 +781,30 @@ describe("Identifiers Module", () => {
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=10`
-        ) as string,
+        ),
         items: expect.arrayContaining([
           {
-            metadataId: expect.any(String) as string,
+            metadataId: expect.any(String),
             href: expect.stringContaining(
               `/identifiers/${did}/versions/${versionId}/metadata/`
-            ) as string,
+            ),
           },
-        ]) as Array<string>,
+        ]),
         total: 1,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=10`
-          ) as string,
+          ),
         },
       });
       expect(response.status).toBe(200);
@@ -826,23 +824,23 @@ describe("Identifiers Module", () => {
       expect(response1.body).toStrictEqual({
         self: expect.stringContaining(
           `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: 1,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
-          ) as string,
+          ),
         },
       });
       expect(response1.status).toBe(200);
@@ -854,23 +852,23 @@ describe("Identifiers Module", () => {
       expect(response2.body).toStrictEqual({
         self: expect.stringContaining(
           `/identifiers/${did}/versions/${versionId}/metadata?page[after]=2&page[size]=2`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: 1,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
-          ) as string,
+          ),
         },
       });
       expect(response2.status).toBe(200);
@@ -882,23 +880,23 @@ describe("Identifiers Module", () => {
       expect(response3.body).toStrictEqual({
         self: expect.stringContaining(
           `/identifiers/${did}/versions/${versionId}/metadata?page[after]=100&page[size]=2`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: 1,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=2`
-          ) as string,
+          ),
         },
       });
       expect(response3.status).toBe(200);
@@ -910,23 +908,23 @@ describe("Identifiers Module", () => {
       expect(response4.body).toStrictEqual({
         self: expect.stringContaining(
           `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=10`
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: 1,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=10`
-          ) as string,
+          ),
         },
       });
       expect(response4.status).toBe(200);

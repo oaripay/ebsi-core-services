@@ -27,6 +27,7 @@ export interface ApiConfig {
   testAdminPrivateKey: string;
   testUserKid: string;
   testUserPrivateKey: string;
+  testLoadBalancerDomain: string;
   dockerContainerTag: string;
   blockscout: {
     url: string;
@@ -73,6 +74,7 @@ export const loadConfig = (): ApiConfig => {
     testAdminPrivateKey: process.env.TEST_ADMIN_PRIVATE_KEY,
     testUserKid: process.env.TEST_USER_KID,
     testUserPrivateKey: process.env.TEST_USER_PRIVATE_KEY,
+    testLoadBalancerDomain: process.env.TEST_LB_DOMAIN || "",
     dockerContainerTag: process.env.DOCKER_TAG || "",
     blockscout: {
       url: process.env.BLOCKSCOUT_URL,
@@ -106,7 +108,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "verbose",
       "debug"
     ),
-    DOMAIN: Joi.string().required(),
+    DOMAIN: Joi.string().uri().required(),
     DOCKER_TAG: Joi.string(),
     LOCAL_ORIGIN: Joi.string().uri(),
     REQUEST_TIMEOUT: Joi.string(),
@@ -118,6 +120,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_ADMIN_PRIVATE_KEY: Joi.string(),
     TEST_USER_KID: Joi.string(),
     TEST_USER_PRIVATE_KEY: Joi.string(),
+    TEST_LB_DOMAIN: Joi.string().uri(),
     BLOCKSCOUT_URL: Joi.string(),
     BLOCKSCOUT_BEARER_TOKEN: Joi.string(),
   }),

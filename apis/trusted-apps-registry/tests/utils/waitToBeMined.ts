@@ -5,7 +5,7 @@ export interface TransactionReceiptBesu extends TransactionReceipt {
   revertReason: string;
 }
 
-export async function getTransactionReceipt(
+async function getTransactionReceipt(
   url: string,
   txId: string
 ): Promise<TransactionReceiptBesu> {
@@ -27,14 +27,15 @@ export const waitToBeMined = async (
 ): Promise<TransactionReceiptBesu> => {
   let mined = false;
   let receipt: TransactionReceiptBesu;
+
   /* eslint-disable no-await-in-loop */
-  while (!mined) {
+  do {
     await new Promise((resolve) => {
       setTimeout(resolve, 500);
     });
     receipt = await getTransactionReceipt(url, txId);
     mined = !!receipt;
-  }
+  } while (!mined);
 
   return receipt;
 };

@@ -1,3 +1,4 @@
+import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication, Logger } from "@nestjs/common";
 import * as DidJwt from "did-jwt";
@@ -23,6 +24,8 @@ jest.mock("@cef-ebsi/oauth2-auth", () => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return {
     __esModule: true,
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
     ...originalModule,
     verifyJwtTar: jest.fn(),
   };
@@ -90,7 +93,7 @@ describe("Auth Module", () => {
         data: "",
       }));
 
-      // Setup spys
+      // Setup spies
       const jwtCacheAddSpy = jest.spyOn(jwtCacheService, "add");
       const jwtCacheIsValidSpy = jest.spyOn(jwtCacheService, "isValid");
       const jwtCacheRemoveSpy = jest.spyOn(jwtCacheService, "remove");

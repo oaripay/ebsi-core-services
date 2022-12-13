@@ -1,3 +1,4 @@
+import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import {
@@ -63,34 +64,44 @@ describe("POST /ledger/v3/blockchains/besu", () => {
 
     const testUser = configService.get<ApiConfig["testUser"]>("testUser");
 
-    tokenOAuth2 = await requestOAuth2Jwt({
-      trustedAppName: testApp.name,
-      trustedAppPrivateKey: testApp.privateKey,
-      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
-      trustedAppsRegistryApiUrl: configService.get<string>(
-        "trustedAppsRegistryApiUrl"
-      ),
-    });
+    try {
+      tokenOAuth2 = await requestOAuth2Jwt({
+        trustedAppName: testApp.name,
+        trustedAppPrivateKey: testApp.privateKey,
+        configService,
+      });
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e);
+      throw e;
+    }
 
-    tokenSiop = await requestSiopJwt({
-      clientKid: testUser.kid,
-      clientPrivateKey: testUser.privateKey,
-      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
-      trustedAppsRegistryApiUrl: configService.get<string>(
-        "trustedAppsRegistryApiUrl"
-      ),
-    });
+    try {
+      tokenSiop = await requestSiopJwt({
+        clientKid: testUser.kid,
+        clientPrivateKey: testUser.privateKey,
+        configService,
+      });
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e);
+      throw e;
+    }
 
-    fakeTokenOAuth2 = await createFakeToken({
-      loginHint: "oauth2",
-      authorisationApiName: configService.get<string>("authorisationApiName"),
-      trustedAppsRegistryApiUrl: configService.get<string>(
-        "trustedAppsRegistryApiUrl"
-      ),
-      testUserDid: EbsiWallet.createDid(),
-      testAppName: testApp.name,
-      useKidAuthApi: true,
-    });
+    try {
+      fakeTokenOAuth2 = await createFakeToken({
+        loginHint: "oauth2",
+        authorisationApiName: configService.get<string>("authorisationApiName"),
+        testUserDid: EbsiWallet.createDid(),
+        testAppName: testApp.name,
+        useKidAuthApi: true,
+        configService,
+      });
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e);
+      throw e;
+    }
   });
 
   afterAll(async () => {
@@ -120,7 +131,7 @@ describe("POST /ledger/v3/blockchains/besu", () => {
       status: 401,
       detail: expect.stringContaining(
         "JWT could not be validated with the public keys of 'authorisation-api'"
-      ) as string,
+      ),
       type: "about:blank",
     });
     expect(response.status).toBe(401);
@@ -180,7 +191,7 @@ describe("POST /ledger/v3/blockchains/besu", () => {
 
     expect(response.body).toStrictEqual({
       jsonrpc: "2.0",
-      result: expect.any(String) as string,
+      result: expect.any(String),
       id: "42",
     });
     expect(response.status).toBe(200);

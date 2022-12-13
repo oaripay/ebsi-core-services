@@ -1,4 +1,13 @@
-import crypto from "crypto";
+import {
+  jest,
+  describe,
+  beforeAll,
+  afterEach,
+  afterAll,
+  it,
+  expect,
+} from "@jest/globals";
+import crypto from "node:crypto";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger, HttpServer } from "@nestjs/common";
@@ -33,6 +42,8 @@ jest.mock("@cef-ebsi/siop-auth", () => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return {
     __esModule: true,
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
     ...originalModule,
     verifyJwtTar: jest.fn(),
   };
@@ -182,7 +193,7 @@ describe("Files Module", () => {
         trustedAppsRegistry: `${configService.get<string>(
           "trustedAppsRegistryApiUrl"
         )}/apps`,
-        timeout: expect.any(Number) as number,
+        timeout: expect.any(Number),
       });
     });
 
@@ -219,7 +230,7 @@ describe("Files Module", () => {
         trustedAppsRegistry: `${configService.get<string>(
           "trustedAppsRegistryApiUrl"
         )}/apps`,
-        timeout: expect.any(Number) as number,
+        timeout: expect.any(Number),
       });
     });
 
@@ -269,12 +280,12 @@ describe("Files Module", () => {
         links: {
           next: expect.stringMatching(
             /\/stores\/distributed\/files\?page\[after\]=.*&page\[size\]=10/
-          ) as string,
+          ),
         },
         pageSize: 10,
         self: expect.stringContaining(
           "/stores/distributed/files?page[size]=10"
-        ) as string,
+        ),
       });
       expect(response.status).toBe(200);
       expect(mockedCassandraClientExecute).toHaveBeenCalledWith(

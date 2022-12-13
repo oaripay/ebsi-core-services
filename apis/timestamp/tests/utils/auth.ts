@@ -13,18 +13,35 @@ import {
   AkeResponse as OAuth2AkeResponse,
 } from "@cef-ebsi/oauth2-auth";
 import { exportJWK, generateKeyPair, importJWK } from "jose";
+import { ConfigService } from "@nestjs/config";
+import { ApiConfig } from "../../src/config/configuration";
 
 export async function requestOAuth2Jwt({
   trustedAppPrivateKey,
   trustedAppName,
-  trustedAppsRegistryApiUrl,
-  authorisationApiUrl,
+  configService,
 }: {
   trustedAppPrivateKey: string;
   trustedAppName: string;
-  trustedAppsRegistryApiUrl: string;
-  authorisationApiUrl: string;
+  configService: ConfigService<ApiConfig, true>;
 }): Promise<string> {
+  let authorisationApiUrl = configService.get<string>("authorisationApiUrl");
+  let trustedAppsRegistryApiUrl = configService.get<string>(
+    "trustedAppsRegistryApiUrl"
+  );
+
+  // Use TEST_LB_DOMAIN if defined
+  if (configService.get<string>("testLoadBalancerDomain")) {
+    authorisationApiUrl = authorisationApiUrl.replace(
+      configService.get<string>("domain"),
+      configService.get<string>("testLoadBalancerDomain")
+    );
+    trustedAppsRegistryApiUrl = trustedAppsRegistryApiUrl.replace(
+      configService.get<string>("domain"),
+      configService.get<string>("testLoadBalancerDomain")
+    );
+  }
+
   const nonce = randomUUID();
 
   const agent = new OAuth2Agent({
@@ -56,14 +73,29 @@ export async function requestOAuth2Jwt({
 export const requestSiopJwt = async ({
   clientKid,
   clientPrivateKey,
-  authorisationApiUrl,
-  trustedAppsRegistryApiUrl,
+  configService,
 }: {
   clientKid: string;
   clientPrivateKey: string;
-  authorisationApiUrl: string;
-  trustedAppsRegistryApiUrl: string;
+  configService: ConfigService<ApiConfig, true>;
 }): Promise<string> => {
+  let authorisationApiUrl = configService.get<string>("authorisationApiUrl");
+  let trustedAppsRegistryApiUrl = configService.get<string>(
+    "trustedAppsRegistryApiUrl"
+  );
+
+  // Use TEST_LB_DOMAIN if defined
+  if (configService.get<string>("testLoadBalancerDomain")) {
+    authorisationApiUrl = authorisationApiUrl.replace(
+      configService.get<string>("domain"),
+      configService.get<string>("testLoadBalancerDomain")
+    );
+    trustedAppsRegistryApiUrl = trustedAppsRegistryApiUrl.replace(
+      configService.get<string>("domain"),
+      configService.get<string>("testLoadBalancerDomain")
+    );
+  }
+
   const alg = "ES256K";
   const encryptionKeyPair = await generateKeyPair(alg);
   const publicEncryptionKeyJwk = await exportJWK(encryptionKeyPair.publicKey);
@@ -119,7 +151,7 @@ export const requestSiopJwt = async ({
     AxiosResponse<SiopAkeResponse>
   >(
     `${authorisationApiUrl}/siop-sessions`,
-    new URLSearchParams({ id_token: idToken }).toString(),
+    new URLSearchParams({ id_token: idToken || "" }).toString(),
     {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",

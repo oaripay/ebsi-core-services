@@ -31,7 +31,7 @@ export class AuthService {
       });
       payload = verifiedJwt.payload;
     } catch (e) {
-      let message = "unkown error";
+      let message = "unknown error";
 
       if (e instanceof Error) {
         message = e.message;

@@ -1,3 +1,11 @@
+import {
+  describe,
+  beforeAll,
+  afterEach,
+  afterAll,
+  it,
+  expect,
+} from "@jest/globals";
 import request from "supertest";
 import crypto from "node:crypto";
 import { ethers } from "ethers";
@@ -44,7 +52,7 @@ import {
 } from "../../src/modules/issuers/issuers.interface";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
-import { getAccessToken, waitToBeMined } from "../utils/waitToBeMined";
+import { waitToBeMined } from "../utils/waitToBeMined";
 import { requestSiopJwt } from "../utils/siopJwt";
 import {
   AddIssuerProxyParam,
@@ -185,7 +193,6 @@ describe("Issuers (e2e)", () => {
   let testIssuerWithProxyPrivateKey: string;
   let testUserWithProxyFirstProxyId: string;
   let testStatusListSchemaId: string;
-  let apiAccessToken: string;
   let ledgerApi: string;
   let trustedSchemasRegistryApiUrl: string;
   let sampleTransaction: string;
@@ -321,20 +328,30 @@ describe("Issuers (e2e)", () => {
       prefixWith0x(configService.get("testAdminPrivateKey"))
     );
 
-    // Generate a valid Client JWT (SIOP) for the tests
-    testUserAccessToken = await requestSiopJwt({
-      clientKid: configService.get<string>("testUserKid"),
-      clientPrivateKey: configService.get<string>("testUserPrivateKey"),
-      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
-      trustedAppsRegistryUrl: `${configService.get<string>("tarApiUrl")}`,
-    });
+    try {
+      // Generate a valid Client JWT (SIOP) for the tests
+      testUserAccessToken = await requestSiopJwt({
+        clientKid: configService.get<string>("testUserKid"),
+        clientPrivateKey: configService.get<string>("testUserPrivateKey"),
+        configService,
+      });
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e);
+      throw e;
+    }
 
-    testAdminAccessToken = await requestSiopJwt({
-      clientKid: configService.get<string>("testAdminKid"),
-      clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
-      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
-      trustedAppsRegistryUrl: `${configService.get<string>("tarApiUrl")}`,
-    });
+    try {
+      testAdminAccessToken = await requestSiopJwt({
+        clientKid: configService.get<string>("testAdminKid"),
+        clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
+        configService,
+      });
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e);
+      throw e;
+    }
 
     blockscout = configService.get<{
       url: string;
@@ -368,7 +385,6 @@ describe("Issuers (e2e)", () => {
       "testIssuerWithProxyPrivateKey"
     );
 
-    apiAccessToken = await getAccessToken(configService);
     ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
     trustedSchemasRegistryApiUrl = configService.get<string>(
       "trustedSchemasRegistryApiUrl"
@@ -389,24 +405,24 @@ describe("Issuers (e2e)", () => {
         expect.objectContaining({
           self: expect.stringContaining(
             "/trusted-issuers-registry/v3/issuers?page[after]=1&page[size]=10"
-          ) as string,
-          items: expect.arrayContaining([]) as string[],
-          total: expect.any(Number) as number,
-          pageSize: expect.any(Number) as number,
+          ),
+          items: expect.arrayContaining([]),
+          total: expect.any(Number),
+          pageSize: expect.any(Number),
           links: expect.objectContaining({
             first: expect.stringContaining(
               "/trusted-issuers-registry/v3/issuers?page[after]=1&page[size]=10"
-            ) as string,
+            ),
             prev: expect.stringContaining(
               "/trusted-issuers-registry/v3/issuers?page[after]=1&page[size]=10"
-            ) as string,
+            ),
             next: expect.stringContaining(
               "/trusted-issuers-registry/v3/issuers?page[after]="
-            ) as string,
+            ),
             last: expect.stringContaining(
               "/trusted-issuers-registry/v3/issuers?page[after]="
-            ) as string,
-          }) as PaginatedList<IdLink>["links"],
+            ),
+          }),
         })
       );
       expect(response.status).toBe(200);
@@ -422,7 +438,7 @@ describe("Issuers (e2e)", () => {
       );
       expect(response.body).toStrictEqual({
         did: lastExistingIssuerDid,
-        attributes: expect.arrayContaining([]) as unknown[],
+        attributes: expect.arrayContaining([]),
       });
       expect(response.status).toBe(200);
     });
@@ -482,24 +498,24 @@ describe("Issuers (e2e)", () => {
         expect.objectContaining({
           self: expect.stringContaining(
             `/trusted-issuers-registry/v3/issuers/${lastExistingIssuerDid}/attributes?page[after]=1&page[size]=10`
-          ) as string,
-          items: expect.arrayContaining([]) as string[],
-          total: expect.any(Number) as number,
-          pageSize: expect.any(Number) as number,
+          ),
+          items: expect.arrayContaining([]),
+          total: expect.any(Number),
+          pageSize: expect.any(Number),
           links: expect.objectContaining({
             first: expect.stringContaining(
               `/trusted-issuers-registry/v3/issuers/${lastExistingIssuerDid}/attributes?page[after]=1&page[size]=10`
-            ) as string,
+            ),
             prev: expect.stringContaining(
               `/trusted-issuers-registry/v3/issuers/${lastExistingIssuerDid}/attributes?page[after]=1&page[size]=10`
-            ) as string,
+            ),
             next: expect.stringContaining(
               `/trusted-issuers-registry/v3/issuers/${lastExistingIssuerDid}/attributes?page[after]=`
-            ) as string,
+            ),
             last: expect.stringContaining(
               `/trusted-issuers-registry/v3/issuers/${lastExistingIssuerDid}/attributes?page[after]=`
-            ) as string,
-          }) as PaginatedList<IdLink>["links"],
+            ),
+          }),
         })
       );
       expect(response.status).toBe(200);
@@ -574,7 +590,7 @@ describe("Issuers (e2e)", () => {
       expect(response.body).toStrictEqual({
         did: lastExistingIssuerDid,
         attribute: {
-          body: expect.any(String) as string,
+          body: expect.any(String),
           hash: attributeId,
         },
       });
@@ -641,7 +657,7 @@ describe("Issuers (e2e)", () => {
       expect(response.body).toStrictEqual({
         detail: expect.stringContaining(
           `Attribute ${wrongAttributeId} not found`
-        ) as string,
+        ),
         status: 404,
         title: "Attribute Not Found",
         type: "about:blank",
@@ -660,9 +676,7 @@ describe("Issuers (e2e)", () => {
         `/issuers/${lastExistingIssuerDid}/attributes/${attributeId2}`
       );
       expect(response2.body).toStrictEqual({
-        detail: expect.stringContaining(
-          `Attribute ${attributeId2} not found`
-        ) as string,
+        detail: expect.stringContaining(`Attribute ${attributeId2} not found`),
         status: 404,
         title: "Attribute Not Found",
         type: "about:blank",
@@ -691,15 +705,15 @@ describe("Issuers (e2e)", () => {
         `/issuers/${lastExistingIssuerDid}/attributes/${attributeId}/revisions`
       );
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(urlPath) as string,
-        items: expect.arrayContaining([]) as AttributeObject[],
-        total: expect.any(Number) as number,
-        pageSize: expect.any(Number) as number,
+        self: expect.stringContaining(urlPath),
+        items: expect.arrayContaining([]),
+        total: expect.any(Number),
+        pageSize: expect.any(Number),
         links: {
-          first: expect.stringContaining(urlPath) as string,
-          prev: expect.stringContaining(urlPath) as string,
-          next: expect.stringContaining(urlPath) as string,
-          last: expect.stringContaining(urlPath) as string,
+          first: expect.stringContaining(urlPath),
+          prev: expect.stringContaining(urlPath),
+          next: expect.stringContaining(urlPath),
+          last: expect.stringContaining(urlPath),
         },
       });
       expect(response.status).toBe(200);
@@ -765,7 +779,7 @@ describe("Issuers (e2e)", () => {
       expect(response.body).toStrictEqual({
         detail: expect.stringContaining(
           `Attribute ${wrongAttributeId} not found`
-        ) as string,
+        ),
         status: 404,
         title: "Attribute Not Found",
         type: "about:blank",
@@ -784,9 +798,7 @@ describe("Issuers (e2e)", () => {
         `/issuers/${lastExistingIssuerDid}/attributes/${attributeId2}`
       );
       expect(response2.body).toStrictEqual({
-        detail: expect.stringContaining(
-          `Attribute ${attributeId2} not found`
-        ) as string,
+        detail: expect.stringContaining(`Attribute ${attributeId2} not found`),
         status: 404,
         title: "Attribute Not Found",
         type: "about:blank",
@@ -809,11 +821,11 @@ describe("Issuers (e2e)", () => {
             expect.objectContaining({
               href: expect.stringContaining(
                 `/trusted-issuers-registry/v3/issuers/${testIssuerWithProxyDid}/proxies/0x`
-              ) as string,
-              proxyId: expect.stringContaining("0x") as string,
+              ),
+              proxyId: expect.stringContaining("0x"),
             }),
-          ]) as string[],
-          total: expect.any(Number) as number,
+          ]),
+          total: expect.any(Number),
         })
       );
       expect(response.status).toBe(200);
@@ -875,12 +887,9 @@ describe("Issuers (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        headers: expect.any(Object) as Record<
-          string,
-          string | boolean | number
-        >,
-        prefix: expect.any(String) as string,
-        testSuffix: expect.any(String) as string,
+        headers: expect.any(Object),
+        prefix: expect.any(String),
+        testSuffix: expect.any(String),
       });
       expect(response.status).toBe(200);
     });
@@ -1149,14 +1158,14 @@ describe("Issuers (e2e)", () => {
         jsonrpc: "2.0",
         id: 231,
         result: {
-          chainId: expect.any(String) as string,
-          data: expect.any(String) as string,
+          chainId: expect.any(String),
+          data: expect.any(String),
           from: adminTestWallet.address,
-          gasLimit: expect.any(String) as string,
-          gasPrice: expect.any(String) as string,
-          nonce: expect.any(String) as string,
-          to: expect.any(String) as string,
-          value: expect.any(String) as string,
+          gasLimit: expect.any(String),
+          gasPrice: expect.any(String),
+          nonce: expect.any(String),
+          to: expect.any(String),
+          value: expect.any(String),
         },
       });
       expect(responseBuild.status).toBe(200);
@@ -1260,7 +1269,7 @@ describe("Issuers (e2e)", () => {
                 // eslint-disable-next-line jest/no-conditional-expect
                 href: expect.stringContaining(
                   `/proxies/${newIssuer1.proxy.proxyId}`
-                ) as string,
+                ),
               },
             ],
             total: 1,
@@ -1327,14 +1336,13 @@ describe("Issuers (e2e)", () => {
       expect(responseSend.body).toStrictEqual({
         jsonrpc: "2.0",
         id: "45",
-        result: expect.any(String) as string,
+        result: expect.any(String),
       });
       expect(responseSend.status).toBe(200);
 
       // wait to be mined
       const receipt = await waitToBeMined(
         ledgerApi,
-        apiAccessToken,
         responseSend.body.result as string
       );
       expect(receipt.status).toBe(1);
@@ -1446,14 +1454,13 @@ describe("Issuers (e2e)", () => {
       expect(responseSend.body).toStrictEqual({
         jsonrpc: "2.0",
         id: "45",
-        result: expect.any(String) as string,
+        result: expect.any(String),
       });
       expect(responseSend.status).toBe(200);
 
       // wait to be mined
       const receipt = await waitToBeMined(
         ledgerApi,
-        apiAccessToken,
         responseSend.body.result as string
       );
       receipt.revertReason = Buffer.from(
@@ -1467,7 +1474,7 @@ describe("Issuers (e2e)", () => {
           status: 0,
           revertReason: expect.stringContaining(
             `doesn't have the attribute TIR:${method}`
-          ) as string,
+          ),
         })
       );
     });
@@ -1496,10 +1503,10 @@ describe("Issuers (e2e)", () => {
       expect(blockscoutCheck.body).toStrictEqual({
         data: {
           transaction: {
-            blockNumber: expect.any(Number) as number,
-            gasUsed: expect.any(String) as string,
+            blockNumber: expect.any(Number),
+            gasUsed: expect.any(String),
             hash: sampleTransaction,
-            value: expect.any(String) as string,
+            value: expect.any(String),
           },
         },
       });
@@ -1522,16 +1529,19 @@ describe("Issuers (e2e)", () => {
             prefixWith0x(configService.get("testIssuerWithProxyPrivateKey"))
           );
 
-          testIssuerWithProxyAccessToken = await requestSiopJwt({
-            clientKid: configService.get<string>("testIssuerWithProxyKid"),
-            clientPrivateKey: configService.get<string>(
-              "testIssuerWithProxyPrivateKey"
-            ),
-            authorisationApiUrl: configService.get<string>(
-              "authorisationApiUrl"
-            ),
-            trustedAppsRegistryUrl: `${configService.get<string>("tarApiUrl")}`,
-          });
+          try {
+            testIssuerWithProxyAccessToken = await requestSiopJwt({
+              clientKid: configService.get<string>("testIssuerWithProxyKid"),
+              clientPrivateKey: configService.get<string>(
+                "testIssuerWithProxyPrivateKey"
+              ),
+              configService,
+            });
+          } catch (e) {
+            // eslint-disable-next-line no-console
+            console.error(e);
+            throw e;
+          }
 
           // Mock Trusted Issuers' endpoint
           const issuer = getEbsiIssuer(
@@ -1587,11 +1597,11 @@ describe("Issuers (e2e)", () => {
                     // eslint-disable-next-line jest/no-conditional-expect
                     href: expect.stringContaining(
                       `/proxies/${newIssuer1.proxy.proxyId}`
-                    ) as string,
+                    ),
                   },
-                ]) as { proxyId: string; href: string }[],
+                ]),
                 // eslint-disable-next-line jest/no-conditional-expect
-                total: expect.any(Number) as number,
+                total: expect.any(Number),
               };
 
               break;
@@ -1655,14 +1665,13 @@ describe("Issuers (e2e)", () => {
           expect(responseSend.body).toStrictEqual({
             jsonrpc: "2.0",
             id: "45",
-            result: expect.any(String) as string,
+            result: expect.any(String),
           });
           expect(responseSend.status).toBe(200);
 
           // wait to be mined
           const receipt = await waitToBeMined(
             ledgerApi,
-            apiAccessToken,
             responseSend.body.result as string
           );
           expect(receipt.status).toBe(1);

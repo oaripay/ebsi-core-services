@@ -1,3 +1,4 @@
+import { describe, it, expect } from "@jest/globals";
 import { ethers } from "ethers";
 import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry";
 import { AsyncReturnType } from "@ebsiint-api/shared";

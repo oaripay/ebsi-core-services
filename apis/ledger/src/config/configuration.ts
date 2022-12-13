@@ -22,6 +22,7 @@ export interface ApiConfig {
     name: string;
     privateKey: string;
   };
+  testLoadBalancerDomain: string;
   dockerContainerTag: string;
 }
 
@@ -56,6 +57,7 @@ export const loadConfig = (): ApiConfig => {
       name: process.env.TEST_APP_NAME,
       privateKey: process.env.TEST_APP_PRIVATE_KEY,
     },
+    testLoadBalancerDomain: process.env.TEST_LB_DOMAIN || "",
     dockerContainerTag: process.env.DOCKER_TAG || "",
   };
 };
@@ -93,5 +95,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_USER_PRIVATE_KEY: Joi.string(),
     TEST_APP_NAME: Joi.string(),
     TEST_APP_PRIVATE_KEY: Joi.string(),
+    TEST_LB_DOMAIN: Joi.string().uri(),
   }),
 });

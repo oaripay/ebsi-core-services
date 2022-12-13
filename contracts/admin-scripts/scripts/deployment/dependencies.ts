@@ -2,6 +2,7 @@ interface NetworkConfig {
   tprAddress?: string;
   didAddress?: string;
 }
+
 interface Dependencies {
   [chainId: number]: NetworkConfig;
 }
@@ -21,3 +22,5 @@ export const dependencies: Dependencies = {
     didAddress: "0xD55bDf1407E57D55C92BdB67088ECdA554b76B45",
   },
 };
+
+export default dependencies;

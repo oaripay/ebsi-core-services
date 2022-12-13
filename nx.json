@@ -53,8 +53,16 @@
       "outputs": [],
       "dependsOn": ["^build"]
     },
+    "postinstall": {
+      "dependsOn": []
+    },
     "start:prod": {
       "inputs": ["production", "^production"],
+      "outputs": [],
+      "dependsOn": ["^build"]
+    },
+    "test": {
+      "inputs": ["test", "^production"],
       "outputs": [],
       "dependsOn": ["^build"]
     },

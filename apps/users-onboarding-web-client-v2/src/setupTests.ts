@@ -1,4 +1,3 @@
-/* eslint-disable import/no-extraneous-dependencies */
 // jest-dom adds custom jest matchers for asserting on DOM nodes.
 // allows you to do things like:
 // expect(element).toHaveTextContent(/react/i)
@@ -10,4 +9,4 @@ import EnzymeAdapter from "enzyme-adapter-react-16";
 configure({ adapter: new EnzymeAdapter() });
 
 // Mock scrollTo
-jest.spyOn(global, "scrollTo").mockImplementation();
+jest.spyOn(global, "scrollTo").mockImplementation(() => {});

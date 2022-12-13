@@ -3,19 +3,36 @@ import {
   AkeResponse as OAuth2AkeResponse,
 } from "@cef-ebsi/oauth2-auth";
 import axios, { AxiosResponse } from "axios";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
+import { ConfigService } from "@nestjs/config";
+import { ApiConfig } from "../../src/config/configuration";
 
 export async function requestOAuth2Jwt({
   trustedAppPrivateKey,
   trustedAppName,
-  trustedAppsRegistryApiUrl,
-  authorisationApiUrl,
+  configService,
 }: {
   trustedAppPrivateKey: string;
   trustedAppName: string;
-  trustedAppsRegistryApiUrl: string;
-  authorisationApiUrl: string;
+  configService: ConfigService<ApiConfig, true>;
 }): Promise<string> {
+  let authorisationApiUrl = configService.get<string>("authorisationApiUrl");
+  let trustedAppsRegistryApiUrl = configService.get<string>(
+    "trustedAppsRegistryApiUrl"
+  );
+
+  // Use TEST_LB_DOMAIN if defined
+  if (configService.get<string>("testLoadBalancerDomain")) {
+    authorisationApiUrl = authorisationApiUrl.replace(
+      configService.get<string>("domain"),
+      configService.get<string>("testLoadBalancerDomain")
+    );
+    trustedAppsRegistryApiUrl = trustedAppsRegistryApiUrl.replace(
+      configService.get<string>("domain"),
+      configService.get<string>("testLoadBalancerDomain")
+    );
+  }
+
   const nonce = randomUUID();
 
   const agent = new OAuth2Agent({

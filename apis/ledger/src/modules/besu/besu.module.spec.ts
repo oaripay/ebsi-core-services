@@ -1,4 +1,13 @@
-import { describe } from "@jest/globals";
+import {
+  jest,
+  describe,
+  beforeAll,
+  beforeEach,
+  afterEach,
+  afterAll,
+  it,
+  expect,
+} from "@jest/globals";
 import hre from "hardhat";
 import "@nomiclabs/hardhat-ethers";
 import type { JsonRpcServer } from "hardhat/types";
@@ -78,18 +87,18 @@ describe("Besu Module", () => {
       besuService = moduleFixture.get<BesuService>(BesuService);
 
       tokenOAuth2 = await createFakeToken({
-        trustedAppsRegistryApiUrl: "",
         loginHint: "oauth2",
         authorisationApiName: "authorisation-api",
         testAppName: "test-app",
         useKidAuthApi: false,
+        configService,
       });
       tokenSiop = await createFakeToken({
-        trustedAppsRegistryApiUrl: "",
         loginHint: "did_siop",
         authorisationApiName: "authorisation-api",
         testUserDid: EbsiWallet.createDid(),
         useKidAuthApi: false,
+        configService,
       });
     });
 
@@ -219,7 +228,7 @@ describe("Besu Module", () => {
       expect(response.header).toHaveProperty("content-type");
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       expect(response.headers["content-type"]).toStrictEqual(
-        expect.stringContaining("application/json") as string
+        expect.stringContaining("application/json")
       );
     });
 
@@ -417,7 +426,7 @@ describe("Besu Module", () => {
       expect(response.status).toBe(400);
     });
 
-    it("should handle internal errorr (fails to retrieve chainId)", async () => {
+    it("should handle internal error (fails to retrieve chainId)", async () => {
       expect.assertions(3);
 
       mockAuthOAuth2.mockImplementation(
@@ -446,7 +455,7 @@ describe("Besu Module", () => {
       expect(response.body).toStrictEqual({
         title: "Internal Server Error",
         status: 500,
-        detail: expect.stringContaining("internal error") as string,
+        detail: expect.stringContaining("internal error"),
         type: "about:blank",
       });
       expect(response.status).toBe(500);
@@ -461,7 +470,7 @@ describe("Besu Module", () => {
       );
 
       jest.spyOn(besuService, "send").mockImplementation(() => {
-        const err = new Error("unkown error");
+        const err = new Error("unknown error");
         return Promise.reject(err);
       });
 
@@ -478,7 +487,7 @@ describe("Besu Module", () => {
       expect(response.body).toStrictEqual({
         title: "Internal Server Error",
         status: 500,
-        detail: expect.stringContaining("internal error") as string,
+        detail: expect.stringContaining("internal error"),
         type: "about:blank",
       });
       expect(response.status).toBe(500);
@@ -498,7 +507,7 @@ describe("Besu Module", () => {
 
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        err.response = { unparseable: "reponse" };
+        err.response = { unparseable: "response" };
         return Promise.reject(err);
       });
 
@@ -515,7 +524,7 @@ describe("Besu Module", () => {
       expect(response.body).toStrictEqual({
         title: "Internal Server Error",
         status: 500,
-        detail: expect.stringContaining("internal error") as string,
+        detail: expect.stringContaining("internal error"),
         type: "about:blank",
       });
       expect(response.status).toBe(500);

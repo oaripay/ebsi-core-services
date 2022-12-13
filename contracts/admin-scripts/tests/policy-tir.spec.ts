@@ -1,6 +1,6 @@
 /* eslint-disable no-await-in-loop */
 import { ethers } from "hardhat";
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { Contract } from "ethers";

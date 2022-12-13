@@ -6,6 +6,7 @@ module.exports = {
   testTimeout: 90000,
   maxConcurrency: 1,
   testEnvironment: "node",
+  injectGlobals: false,
   rootDir: ".",
   roots: ["<rootDir>/src/", "<rootDir>/tests/"],
   testMatch: ["**/?(*.|*-)+(spec|test).ts"],
@@ -23,4 +24,9 @@ module.exports = {
   coverageReporters: ["text", "lcov", "json", "clover", "cobertura"],
   setupFilesAfterEnv: ["./tests/jest.setup.ts"],
   resolver: path.resolve(__dirname, "../../jest-resolver.js"),
+  globals: {
+    "ts-jest": {
+      tsconfig: "tsconfig.test.json",
+    },
+  },
 };

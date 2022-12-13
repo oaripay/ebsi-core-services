@@ -26,6 +26,7 @@ declare global {
       TEST_ISSUER_DID?: string;
       TEST_ISSUER_PRIVATE_KEY?: string;
       TEST_ENV?: string;
+      TEST_LB_DOMAIN?: string;
     }
   }
 }

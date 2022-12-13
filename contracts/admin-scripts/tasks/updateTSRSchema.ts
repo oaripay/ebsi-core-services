@@ -33,6 +33,7 @@ task(
 
     const network = await ethers.provider.getNetwork();
 
+    // TODO: fix JSON schemas import logic (can't use git submodules anymore)
     const jsonFile = await readFile(
       `${__dirname}/../schemas/json-schemas/${taskArgs.file}`
     );

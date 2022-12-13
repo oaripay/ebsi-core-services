@@ -1,3 +1,4 @@
+import { describe, it, expect } from "@jest/globals";
 import { publicKeyFromHexToJwk } from "./encode.utils";
 
 describe("encode", () => {

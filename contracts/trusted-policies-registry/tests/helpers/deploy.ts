@@ -1,4 +1,4 @@
-import { ContractFactory } from "@ethersproject/contracts";
+import type { ContractFactory } from "@ethersproject/contracts";
 import { Contract } from "ethers";
 import { ethers } from "hardhat";
 

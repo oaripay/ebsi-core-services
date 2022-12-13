@@ -1,4 +1,5 @@
-import crypto from "crypto";
+import { describe, it, expect } from "@jest/globals";
+import crypto from "node:crypto";
 import { ethers } from "ethers";
 import { Timestamp } from "@ebsiint-sc/timestamp";
 import { multibase, AsyncReturnType } from "@ebsiint-api/shared";

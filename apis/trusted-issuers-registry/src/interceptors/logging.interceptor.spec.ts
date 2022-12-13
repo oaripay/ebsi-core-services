@@ -1,3 +1,11 @@
+import {
+  jest,
+  describe,
+  beforeAll,
+  afterEach,
+  it,
+  expect,
+} from "@jest/globals";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication, ValidationPipe, Logger } from "@nestjs/common";
@@ -85,7 +93,7 @@ describe("Logging interceptor", () => {
           headers: {
             "accept-encoding": "gzip, deflate",
             connection: "close",
-            host: expect.stringContaining("127.0.0.1:") as string,
+            host: expect.stringContaining("127.0.0.1:"),
           },
           message: "Incoming request - GET - /health",
           method: "GET",
@@ -146,7 +154,7 @@ describe("Logging interceptor", () => {
             connection: "close",
             "content-length": "12",
             "content-type": "application/x-www-form-urlencoded",
-            host: expect.stringContaining("127.0.0.1:") as string,
+            host: expect.stringContaining("127.0.0.1:"),
           },
           message: "Incoming request - POST - /jsonrpc",
           method: "POST",
@@ -162,7 +170,7 @@ describe("Logging interceptor", () => {
           body: {
             "invalid body": "",
           },
-          error: expect.any(Error) as Error,
+          error: expect.any(Error),
           message: "Outgoing response - 400 - POST - /jsonrpc",
           method: "POST",
           url: "/jsonrpc",

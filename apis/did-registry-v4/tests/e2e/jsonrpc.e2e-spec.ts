@@ -1,3 +1,4 @@
+import { describe, beforeAll, it, expect } from "@jest/globals";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import {
@@ -102,24 +103,17 @@ describe("DID Registry - JSON RPC - e2e", () => {
       token: "",
     };
 
-    user1.token = await requestNewUserSiopJwt({
-      clientKid: user1.details.kid,
-      clientPrivateKey: user1.details.wallet.privateKey,
-      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
-      authorisationCredentialSchema: configService.get<string>(
-        "authorisationCredentialSchema"
-      ),
-      usersOnboardingApiPrivateKey: configService.get<string>(
-        "usersOnboardingApiPrivateKey"
-      ),
-      usersOnboardingApiDid: configService.get<string>("usersOnboardingApiDid"),
-      trustedAppsRegistryUrl: configService.get<string>(
-        "trustedAppsRegistryApiUrl"
-      ),
-      ebsiAuthority: configService
-        .get<string>("domain")
-        .replace(/^https?:\/\//, ""),
-    });
+    try {
+      user1.token = await requestNewUserSiopJwt({
+        clientKid: user1.details.kid,
+        clientPrivateKey: user1.details.wallet.privateKey,
+        configService,
+      });
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e);
+      throw e;
+    }
 
     publicKeyJwk2 = {
       kty: "OKP",
@@ -293,14 +287,14 @@ describe("DID Registry - JSON RPC - e2e", () => {
         jsonrpc: "2.0",
         id: 1,
         result: {
-          chainId: expect.any(String) as string,
-          data: expect.any(String) as string,
+          chainId: expect.any(String),
+          data: expect.any(String),
           from: user1.details.wallet.address,
-          gasLimit: expect.any(String) as string,
-          gasPrice: expect.any(String) as string,
-          nonce: expect.any(String) as string,
-          to: expect.any(String) as string,
-          value: expect.any(String) as string,
+          gasLimit: expect.any(String),
+          gasPrice: expect.any(String),
+          nonce: expect.any(String),
+          to: expect.any(String),
+          value: expect.any(String),
         },
       });
       expect(responseBuild.status).toBe(200);
@@ -337,14 +331,13 @@ describe("DID Registry - JSON RPC - e2e", () => {
       expect(responseSend.body).toStrictEqual({
         jsonrpc: "2.0",
         id: "45",
-        result: expect.any(String) as string,
+        result: expect.any(String),
       });
       expect(responseSend.status).toBe(200);
 
       // wait to be mined
       const receipt = await waitToBeMined(
         ledgerApi,
-        user1.token,
         responseSend.body.result as string
       );
       expect(receipt.status).toBe(1);

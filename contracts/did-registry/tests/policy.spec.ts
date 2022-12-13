@@ -1,11 +1,12 @@
 /* eslint-disable no-await-in-loop */
 import { ethers } from "hardhat";
 import { BigNumber } from "ethers";
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { DidRegistry } from "../src/types";
 import { testTprAddress } from "./testAddress";
+
 const num = (a: number) => BigNumber.from(a).toString();
 
 function getEthObject(o: unknown): Record<string, unknown> {
@@ -15,6 +16,7 @@ function getEthObject(o: unknown): Record<string, unknown> {
   keys.forEach((k, i) => {
     if (i >= keys.length / 2) {
       const b = obj[k] as BigNumber;
+      // eslint-disable-next-line no-underscore-dangle
       if (b._isBigNumber) result[k] = b.toString();
       else result[k] = obj[k];
     }

@@ -1,4 +1,13 @@
-import crypto from "crypto";
+import {
+  jest,
+  describe,
+  beforeAll,
+  afterEach,
+  afterAll,
+  it,
+  expect,
+} from "@jest/globals";
+import crypto from "node:crypto";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger, HttpServer } from "@nestjs/common";
@@ -30,6 +39,8 @@ jest.mock("@cef-ebsi/siop-auth", () => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return {
     __esModule: true,
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
     ...originalModule,
     verifyJwtTar: jest.fn(),
   };
@@ -175,7 +186,7 @@ describe("Key-Values Module", () => {
         trustedAppsRegistry: `${configService.get<string>(
           "trustedAppsRegistryApiUrl"
         )}/apps`,
-        timeout: expect.any(Number) as number,
+        timeout: expect.any(Number),
       });
     });
 
@@ -212,7 +223,7 @@ describe("Key-Values Module", () => {
         trustedAppsRegistry: `${configService.get<string>(
           "trustedAppsRegistryApiUrl"
         )}/apps`,
-        timeout: expect.any(Number) as number,
+        timeout: expect.any(Number),
       });
     });
 
@@ -254,12 +265,12 @@ describe("Key-Values Module", () => {
         links: {
           next: expect.stringMatching(
             /\/stores\/distributed\/key-values\?page\[after\]=.*&page\[size\]=10/
-          ) as string,
+          ),
         },
         pageSize: 10,
         self: expect.stringContaining(
           "/stores/distributed/key-values?page[size]=10"
-        ) as string,
+        ),
       });
       expect(response.status).toBe(200);
     });
@@ -498,7 +509,7 @@ describe("Key-Values Module", () => {
       expect(response.body).toStrictEqual({
         detail: expect.stringContaining(
           "Cannot PUT /stores/distributed/key-values/"
-        ) as string,
+        ),
         status: 404,
         title: "Not Found",
         type: "about:blank",
@@ -531,7 +542,7 @@ describe("Key-Values Module", () => {
       expect(response.body).toStrictEqual({
         detail: expect.stringContaining(
           "Max size for 'value' is 5242880 bytes. Received "
-        ) as string,
+        ),
         status: 413,
         title: "Payload Too Large",
         type: "about:blank",

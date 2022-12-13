@@ -1,5 +1,5 @@
-import { describe } from "@jest/globals";
-import crypto from "crypto";
+import { describe, beforeAll, it, expect } from "@jest/globals";
+import crypto from "node:crypto";
 import { ethers } from "ethers";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
@@ -17,14 +17,14 @@ import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
 import canonicalize from "canonicalize";
 import { useContainer } from "class-validator";
-import { HashName } from "multihashes";
 import type { DIDDocument } from "did-resolver";
+import type { TransactionRequest } from "@ethersproject/abstract-provider";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
-import { getAccessToken, waitToBeMined } from "../utils/waitToBeMined";
+import { waitToBeMined } from "../utils/waitToBeMined";
 import {
   InsertDidControllerParam,
   InsertDidDocumentParam,
@@ -37,10 +37,6 @@ import {
   UpdateDidControllerParam,
   UnsignedTransaction,
 } from "../../src/modules/jsonrpc/dto";
-import {
-  DidTimestampResponseObject,
-  TimestampLink,
-} from "../../src/modules/did-timestamps/did-timestamps.interface";
 import { createDid, createDidDocument, createMetadata } from "../utils/data";
 import { requestNewUserSiopJwt } from "../utils/siopJwt";
 import { describeWriteOps } from "../utils/describeWriteOps";
@@ -73,24 +69,23 @@ interface DidDocumentDataset {
   didVersionMetadataBuffer: Buffer;
 }
 
-const multihashToNodeHashAlg: { [Key in HashName]?: string } = {
+const multihashToNodeHashAlg = {
   "sha2-256": "sha256",
   "sha2-512": "sha512",
   "sha3-224": "sha3-224",
   "sha3-256": "sha3-256",
   "sha3-384": "sha3-384",
   "sha3-512": "sha3-512",
-};
+} as const;
 
 describe("DID Registry (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer | string;
   let configService: ConfigService<ApiConfig, true>;
-  let hashAlgorithMultihash: HashName;
-  let hashAlgorithOutputLength: number;
+  let hashAlgorithmMultihash: keyof typeof multihashToNodeHashAlg;
+  let hashAlgorithmOutputLength: number;
   let newUserWallet: ethers.Wallet;
   let newUserAccessToken: string;
-  let apiAccessToken: string;
   let ledgerApi: string;
   let sampleTransaction: string;
   let lastIdentifier: {
@@ -112,14 +107,14 @@ describe("DID Registry (e2e)", () => {
 
   const prepareDidDocument = (
     did: string,
-    multihash: HashName,
+    multihash: keyof typeof multihashToNodeHashAlg,
     outputLength: number
   ): DidDocumentDataset => {
     const didDocument = createDidDocument(did);
 
     const didDocumentBuffer = Buffer.from(JSON.stringify(didDocument));
 
-    const canonicalizedDidDocument = canonicalize(didDocument);
+    const canonicalizedDidDocument = canonicalize(didDocument) || "";
 
     const canonicalizedDidDocumentHash = `0x${crypto
       .createHash(multihashToNodeHashAlg[multihash])
@@ -187,10 +182,12 @@ describe("DID Registry (e2e)", () => {
     const getHashAlgorithmResponse = await request(server).get(
       `/hash-algorithms/${hashAlgorithmId}`
     );
-    hashAlgorithMultihash = (
-      getHashAlgorithmResponse.body as { multihash: HashName }
+    hashAlgorithmMultihash = (
+      getHashAlgorithmResponse.body as {
+        multihash: keyof typeof multihashToNodeHashAlg;
+      }
     ).multihash;
-    hashAlgorithOutputLength =
+    hashAlgorithmOutputLength =
       (getHashAlgorithmResponse.body as { outputLengthBits: number })
         .outputLengthBits / 8;
 
@@ -199,40 +196,44 @@ describe("DID Registry (e2e)", () => {
 
     newDidDocument = prepareDidDocument(
       newUserDid,
-      hashAlgorithMultihash,
-      hashAlgorithOutputLength
+      hashAlgorithmMultihash,
+      hashAlgorithmOutputLength
     );
     updatedDidDocument = prepareDidDocument(
       newUserDid,
-      hashAlgorithMultihash,
-      hashAlgorithOutputLength
+      hashAlgorithmMultihash,
+      hashAlgorithmOutputLength
     );
 
     const newUserPrivateKey = crypto.randomBytes(32).toString("hex");
     newUserWallet = new ethers.Wallet(`0x${newUserPrivateKey}`);
 
+    if (
+      !newDidDocument.didDocument.verificationMethod ||
+      !Array.isArray(newDidDocument.didDocument.verificationMethod) ||
+      !newDidDocument.didDocument.verificationMethod[0]
+    ) {
+      throw new Error(
+        `Verification Method missing in ${JSON.stringify(
+          newDidDocument.didDocument
+        )}`
+      );
+    }
+
     const newUserKid = newDidDocument.didDocument.verificationMethod[0].id;
 
-    newUserAccessToken = await requestNewUserSiopJwt({
-      clientKid: newUserKid,
-      clientPrivateKey: `0x${newUserPrivateKey}`,
-      authorisationApiUrl: configService.get<string>("authorisationApiUrl"),
-      authorisationCredentialSchema: configService.get<string>(
-        "authorisationCredentialSchema"
-      ),
-      usersOnboardingApiPrivateKey: configService.get<string>(
-        "usersOnboardingApiPrivateKey"
-      ),
-      usersOnboardingApiDid: configService.get<string>("usersOnboardingApiDid"),
-      trustedAppsRegistryUrl: configService.get<string>(
-        "trustedAppsRegistryApiUrl"
-      ),
-      ebsiAuthority: configService
-        .get<string>("domain")
-        .replace(/^https?:\/\//, ""),
-    });
+    try {
+      newUserAccessToken = await requestNewUserSiopJwt({
+        clientKid: newUserKid,
+        clientPrivateKey: `0x${newUserPrivateKey}`,
+        configService,
+      });
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e);
+      throw e;
+    }
 
-    apiAccessToken = await getAccessToken(configService);
     ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
 
     const configBlockscout = configService.get<{
@@ -296,7 +297,7 @@ describe("DID Registry (e2e)", () => {
     it("should work", async () => {
       expect.assertions(5);
 
-      let params: JsonRpcParams = null;
+      let params: JsonRpcParams | null = null;
       let signer = newUserWallet;
       const accessToken = newUserAccessToken;
 
@@ -467,14 +468,14 @@ describe("DID Registry (e2e)", () => {
         jsonrpc: "2.0",
         id: 231,
         result: {
-          chainId: expect.any(String) as string,
-          data: expect.any(String) as string,
+          chainId: expect.any(String),
+          data: expect.any(String),
           from: signer.address,
-          gasLimit: expect.any(String) as string,
-          gasPrice: expect.any(String) as string,
-          nonce: expect.any(String) as string,
-          to: expect.any(String) as string,
-          value: expect.any(String) as string,
+          gasLimit: expect.any(String),
+          gasPrice: expect.any(String),
+          nonce: expect.any(String),
+          to: expect.any(String),
+          value: expect.any(String),
         },
       });
       expect(responseBuild.status).toBe(200);
@@ -486,7 +487,7 @@ describe("DID Registry (e2e)", () => {
         ) as unknown as UnsignedTransaction
       );
       uTx.chainId = Number(uTx.chainId);
-      const sgnTx = await signer.signTransaction(uTx);
+      const sgnTx = await signer.signTransaction(uTx as TransactionRequest);
       const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
       const responseSend: SupertestJsonRpcResponse = await request(server)
@@ -511,14 +512,13 @@ describe("DID Registry (e2e)", () => {
       expect(responseSend.body).toStrictEqual({
         jsonrpc: "2.0",
         id: "45",
-        result: expect.any(String) as string,
+        result: expect.any(String),
       });
       expect(responseSend.status).toBe(200);
 
       // wait to be mined
       const receipt = await waitToBeMined(
         ledgerApi,
-        apiAccessToken,
         responseSend.body.result as string
       );
       expect(receipt.status).toBe(1);
@@ -548,10 +548,10 @@ describe("DID Registry (e2e)", () => {
       expect(blockscoutCheck.body).toStrictEqual({
         data: {
           transaction: {
-            blockNumber: expect.any(Number) as number,
-            gasUsed: expect.any(String) as string,
+            blockNumber: expect.any(Number),
+            gasUsed: expect.any(String),
             hash: sampleTransaction,
-            value: expect.any(String) as string,
+            value: expect.any(String),
           },
         },
       });
@@ -570,34 +570,34 @@ describe("DID Registry (e2e)", () => {
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           "/identifiers?page[after]=1&page[size]=10"
-        ) as string,
+        ),
         items: expect.arrayContaining([
           {
-            did: expect.stringContaining("did:") as string,
-            href: expect.stringContaining("/identifiers/") as string,
+            did: expect.stringContaining("did:"),
+            href: expect.stringContaining("/identifiers/"),
           },
-        ]) as Array<string>,
-        total: expect.any(Number) as number,
+        ]),
+        total: expect.any(Number),
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/identifiers?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           prev: expect.stringContaining(
             "/identifiers?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/identifiers?page[after]=${total > 10 ? 2 : 1}&page[size]=10`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/identifiers?page[after]=${Math.ceil(total / 10)}&page[size]=10`
-          ) as string,
+          ),
         },
       });
       expect(response.status).toBe(200);
     });
 
-    it("should return an empty array for an unkown controller ID", async () => {
+    it("should return an empty array for an unknown controller ID", async () => {
       expect.assertions(2);
 
       const controllerId = ethers.Wallet.createRandom().address;
@@ -608,23 +608,23 @@ describe("DID Registry (e2e)", () => {
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           `/identifiers?page[after]=1&page[size]=10&controller=${controllerId}`
-        ) as string,
+        ),
         items: [],
         total: 0,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             `/identifiers?page[after]=1&page[size]=10&controller=${controllerId}`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/identifiers?page[after]=1&page[size]=10&controller=${controllerId}`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/identifiers?page[after]=1&page[size]=10&controller=${controllerId}`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/identifiers?page[after]=1&page[size]=10&controller=${controllerId}`
-          ) as string,
+          ),
         },
       });
       expect(response.status).toBe(200);
@@ -686,14 +686,14 @@ describe("DID Registry (e2e)", () => {
 
       expect(response.body).toStrictEqual(
         expect.objectContaining({
-          id: expect.stringContaining("did:") as string,
+          id: expect.stringContaining("did:"),
           verificationMethod: expect.arrayContaining([
             expect.objectContaining({
-              controller: expect.stringContaining("did:") as string,
-              id: expect.stringContaining("did:") as string,
-              type: expect.any(String) as string,
+              controller: expect.stringContaining("did:"),
+              id: expect.stringContaining("did:"),
+              type: expect.any(String),
             }),
-          ]) as unknown[],
+          ]),
         })
       );
       expect(
@@ -714,14 +714,14 @@ describe("DID Registry (e2e)", () => {
 
       expect(response.body).toStrictEqual(
         expect.objectContaining({
-          id: expect.stringContaining("did:") as string,
+          id: expect.stringContaining("did:"),
           verificationMethod: expect.arrayContaining([
             expect.objectContaining({
-              controller: expect.stringContaining("did:") as string,
-              id: expect.stringContaining("did:") as string,
-              type: expect.any(String) as string,
+              controller: expect.stringContaining("did:"),
+              id: expect.stringContaining("did:"),
+              type: expect.any(String),
             }),
-          ]) as unknown[],
+          ]),
         })
       );
       expect(response.status).toBe(200);
@@ -773,30 +773,28 @@ describe("DID Registry (e2e)", () => {
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           `/identifiers/${did}/versions?page[after]=1&page[size]=10`
-        ) as string,
+        ),
         items: expect.arrayContaining([
           {
-            versionId: expect.any(String) as string,
-            href: expect.stringContaining(
-              `/identifiers/${did}/versions/`
-            ) as string,
+            versionId: expect.any(String),
+            href: expect.stringContaining(`/identifiers/${did}/versions/`),
           },
-        ]) as Array<string>,
-        total: expect.any(Number) as number,
+        ]),
+        total: expect.any(Number),
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             `/identifiers/${did}/versions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/identifiers/${did}/versions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/identifiers/${did}/versions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/identifiers/${did}/versions?page[after]=1&page[size]=10`
-          ) as string,
+          ),
         },
       });
       expect(response.status).toBe(200);
@@ -883,14 +881,14 @@ describe("DID Registry (e2e)", () => {
 
       expect(response.body).toStrictEqual(
         expect.objectContaining({
-          id: expect.stringContaining("did:") as string,
+          id: expect.stringContaining("did:"),
           verificationMethod: expect.arrayContaining([
             expect.objectContaining({
-              controller: expect.stringContaining("did:") as string,
-              id: expect.stringContaining("did:") as string,
-              type: expect.any(String) as string,
+              controller: expect.stringContaining("did:"),
+              id: expect.stringContaining("did:"),
+              type: expect.any(String),
             }),
-          ]) as unknown[],
+          ]),
         })
       );
       expect(
@@ -914,14 +912,14 @@ describe("DID Registry (e2e)", () => {
 
       expect(response.body).toStrictEqual(
         expect.objectContaining({
-          id: expect.stringContaining("did:") as string,
+          id: expect.stringContaining("did:"),
           verificationMethod: expect.arrayContaining([
             expect.objectContaining({
-              controller: expect.stringContaining("did:") as string,
-              id: expect.stringContaining("did:") as string,
-              type: expect.any(String) as string,
+              controller: expect.stringContaining("did:"),
+              id: expect.stringContaining("did:"),
+              type: expect.any(String),
             }),
-          ]) as unknown[],
+          ]),
         })
       );
       expect(
@@ -1005,30 +1003,30 @@ describe("DID Registry (e2e)", () => {
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=10`
-        ) as string,
+        ),
         items: expect.arrayContaining([
           {
-            metadataId: expect.any(String) as string,
+            metadataId: expect.any(String),
             href: expect.stringContaining(
               `/identifiers/${did}/versions/${versionId}/metadata/`
-            ) as string,
+            ),
           },
-        ]) as Array<string>,
-        total: expect.any(Number) as number,
+        ]),
+        total: expect.any(Number),
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=10`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/identifiers/${did}/versions/${versionId}/metadata?page[after]=1&page[size]=10`
-          ) as string,
+          ),
         },
       });
       expect(response.status).toBe(200);
@@ -1313,28 +1311,24 @@ describe("DID Registry (e2e)", () => {
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           "/did-timestamps?page[after]=1&page[size]=10"
-        ) as string,
+        ),
         items: expect.arrayContaining([
           {
-            timestampId: expect.any(String) as string,
-            href: expect.stringContaining(`/did-timestamps/`) as string,
-          } as TimestampLink,
-        ]) as Array<string>,
-        total: expect.any(Number) as number,
+            timestampId: expect.any(String),
+            href: expect.stringContaining(`/did-timestamps/`),
+          },
+        ]),
+        total: expect.any(Number),
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/did-timestamps?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           prev: expect.stringContaining(
             "/did-timestamps?page[after]=1&page[size]=10"
-          ) as string,
-          next: expect.stringContaining(
-            "/did-timestamps?page[after]="
-          ) as string,
-          last: expect.stringContaining(
-            "/did-timestamps?page[after]="
-          ) as string,
+          ),
+          next: expect.stringContaining("/did-timestamps?page[after]="),
+          last: expect.stringContaining("/did-timestamps?page[after]="),
         },
       });
       expect(response.status).toBe(200);
@@ -1402,23 +1396,23 @@ describe("DID Registry (e2e)", () => {
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
-        ) as string,
+        ),
         items: [],
         total: 0,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
-          ) as string,
+          ),
         },
       });
       expect(response.status).toBe(200);
@@ -1437,28 +1431,24 @@ describe("DID Registry (e2e)", () => {
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
-        ) as string,
+        ),
         items: expect.arrayContaining([
           {
-            timestampId: expect.any(String) as string,
-            href: expect.stringContaining(`/did-timestamps/`) as string,
-          } as TimestampLink,
-        ]) as Array<string>,
-        total: expect.any(Number) as number,
+            timestampId: expect.any(String),
+            href: expect.stringContaining(`/did-timestamps/`),
+          },
+        ]),
+        total: expect.any(Number),
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
-          ) as string,
-          next: expect.stringContaining(
-            "/did-timestamps?page[after]="
-          ) as string,
-          last: expect.stringContaining(
-            "/did-timestamps?page[after]="
-          ) as string,
+          ),
+          next: expect.stringContaining("/did-timestamps?page[after]="),
+          last: expect.stringContaining("/did-timestamps?page[after]="),
         },
       });
       expect(response.status).toBe(200);
@@ -1482,18 +1472,23 @@ describe("DID Registry (e2e)", () => {
           href: string;
         }[];
       };
+
       const lastTimestamp = timestamps.pop();
+
+      if (!lastTimestamp) {
+        throw new Error("lastTimestamp not found");
+      }
 
       const response = await request(server).get(
         `/did-timestamps/${lastTimestamp.timestampId}`
       );
 
       expect(response.body).toStrictEqual({
-        blockNumber: expect.any(Number) as number,
-        data: expect.stringContaining("0x") as string,
-        hash: expect.any(String) as string,
-        timestampedBy: expect.stringContaining("0x") as string,
-      } as DidTimestampResponseObject);
+        blockNumber: expect.any(Number),
+        data: expect.stringContaining("0x"),
+        hash: expect.any(String),
+        timestampedBy: expect.stringContaining("0x"),
+      });
 
       expect(response.status).toBe(200);
     });

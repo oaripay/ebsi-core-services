@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
 import {
   ATTRIBUTE_OPERATIONS,
   ATTRIBUTE_TYPES,

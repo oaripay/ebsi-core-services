@@ -1,3 +1,11 @@
+import {
+  jest,
+  describe,
+  beforeAll,
+  afterEach,
+  it,
+  expect,
+} from "@jest/globals";
 import { Test, TestingModule } from "@nestjs/testing";
 import { LedgerService } from "./ledger.service";
 import { LedgerModule } from "./ledger.module";
@@ -27,6 +35,7 @@ describe("Ledger service", () => {
     expect.assertions(1);
 
     const sessionMock = jest
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .spyOn(LedgerService.prototype as any, "refreshConnection")
       .mockImplementation(() => jest.fn());
 
@@ -38,11 +47,13 @@ describe("Ledger service", () => {
     expect.assertions(2);
 
     const sessionSpy = jest.spyOn(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       LedgerService.prototype as any,
       "refreshConnection"
     );
 
     const getTokenMock = jest
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .spyOn(LedgerService.prototype as any, "getAccessToken")
       .mockImplementation(() => jest.fn());
 

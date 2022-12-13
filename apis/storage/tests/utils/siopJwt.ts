@@ -8,22 +8,39 @@ import {
   verifyJwtTar,
 } from "@cef-ebsi/siop-auth";
 import { exportJWK, generateKeyPair, importJWK } from "jose";
+import { ConfigService } from "@nestjs/config";
+import { ApiConfig } from "../../src/config/configuration";
 
 export const requestSiopJwt = async ({
   clientKid,
   clientPrivateKey,
-  authorisationApiUrl,
-  trustedAppsRegistryApiUrl,
+  configService,
 }: {
   clientKid: string;
   clientPrivateKey: string;
-  authorisationApiUrl: string;
-  trustedAppsRegistryApiUrl: string;
+  configService: ConfigService<ApiConfig, true>;
 }): Promise<string> => {
   const alg = "ES256K";
   const encryptionKeyPair = await generateKeyPair(alg);
   const publicEncryptionKeyJwk = await exportJWK(encryptionKeyPair.publicKey);
   const privateEncryptionKeyJwk = await exportJWK(encryptionKeyPair.privateKey);
+
+  let authorisationApiUrl = configService.get<string>("authorisationApiUrl");
+  let trustedAppsRegistryApiUrl = configService.get<string>(
+    "trustedAppsRegistryApiUrl"
+  );
+
+  // Use TEST_LB_DOMAIN if defined
+  if (configService.get<string>("testLoadBalancerDomain")) {
+    authorisationApiUrl = authorisationApiUrl.replace(
+      configService.get<string>("domain"),
+      configService.get<string>("testLoadBalancerDomain")
+    );
+    trustedAppsRegistryApiUrl = trustedAppsRegistryApiUrl.replace(
+      configService.get<string>("domain"),
+      configService.get<string>("testLoadBalancerDomain")
+    );
+  }
 
   const siopAgent = new SiopAgent({
     privateKey: await importJWK(

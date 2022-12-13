@@ -1,7 +1,7 @@
 /**
  * Collection of functions for generating fake data to be used in the tests.
  */
-import crypto from "crypto";
+import crypto from "node:crypto";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import type { DIDDocument } from "did-resolver";
 import { JWK } from "jose";

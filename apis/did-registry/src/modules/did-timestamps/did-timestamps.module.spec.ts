@@ -1,3 +1,4 @@
+import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import {
@@ -20,10 +21,6 @@ import {
   AsyncReturnType,
 } from "@ebsiint-api/shared";
 import { DidTimestampsModule } from "./did-timestamps.module";
-import {
-  DidTimestampResponseObject,
-  TimestampLink,
-} from "./did-timestamps.interface";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { setupTestEnv } from "../../../tests/utils/didRegistry";
 import { createDid } from "../../../tests/utils/data";
@@ -98,7 +95,7 @@ describe("DidTimestamps Module", () => {
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           "/did-timestamps?page[after]=1&page[size]=10"
-        ) as string,
+        ),
         items: expect.arrayContaining(
           didDocuments.map((method) => {
             // Timestamp ID = sha256(canonicalizedDidDocumentHash)
@@ -113,25 +110,25 @@ describe("DidTimestamps Module", () => {
                 `/did-timestamps/${multibase.base64url.encode(
                   Buffer.from(hash.replace(/^0x/, ""), "hex")
                 )}`
-              ) as string,
-            } as TimestampLink;
+              ),
+            };
           })
-        ) as Array<string>,
+        ),
         total: DID_METHODS_TOTAL,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/did-timestamps?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           prev: expect.stringContaining(
             "/did-timestamps?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           next: expect.stringContaining(
             "/did-timestamps?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           last: expect.stringContaining(
             "/did-timestamps?page[after]=1&page[size]=10"
-          ) as string,
+          ),
         },
       });
       expect((response.body as { items: string }).items).toHaveLength(
@@ -149,23 +146,23 @@ describe("DidTimestamps Module", () => {
       expect(response1.body).toStrictEqual({
         self: expect.stringContaining(
           "/did-timestamps?page[after]=1&page[size]=2"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: DID_METHODS_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             "/did-timestamps?page[after]=1&page[size]=2"
-          ) as string,
+          ),
           prev: expect.stringContaining(
             "/did-timestamps?page[after]=1&page[size]=2"
-          ) as string,
+          ),
           next: expect.stringContaining(
             "/did-timestamps?page[after]=2&page[size]=2"
-          ) as string,
+          ),
           last: expect.stringContaining(
             "/did-timestamps?page[after]=2&page[size]=2"
-          ) as string,
+          ),
         },
       });
       expect((response1.body as { items: string }).items).toHaveLength(2);
@@ -178,23 +175,23 @@ describe("DidTimestamps Module", () => {
       expect(response2.body).toStrictEqual({
         self: expect.stringContaining(
           "/did-timestamps?page[after]=2&page[size]=2"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: DID_METHODS_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             "/did-timestamps?page[after]=1&page[size]=2"
-          ) as string,
+          ),
           prev: expect.stringContaining(
             "/did-timestamps?page[after]=1&page[size]=2"
-          ) as string,
+          ),
           next: expect.stringContaining(
             "/did-timestamps?page[after]=2&page[size]=2"
-          ) as string,
+          ),
           last: expect.stringContaining(
             "/did-timestamps?page[after]=2&page[size]=2"
-          ) as string,
+          ),
         },
       });
       expect((response2.body as { items: string }).items).toHaveLength(1);
@@ -207,23 +204,23 @@ describe("DidTimestamps Module", () => {
       expect(response3.body).toStrictEqual({
         self: expect.stringContaining(
           "/did-timestamps?page[after]=100&page[size]=2"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: DID_METHODS_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             "/did-timestamps?page[after]=1&page[size]=2"
-          ) as string,
+          ),
           prev: expect.stringContaining(
             "/did-timestamps?page[after]=2&page[size]=2"
-          ) as string,
+          ),
           next: expect.stringContaining(
             "/did-timestamps?page[after]=2&page[size]=2"
-          ) as string,
+          ),
           last: expect.stringContaining(
             "/did-timestamps?page[after]=2&page[size]=2"
-          ) as string,
+          ),
         },
       });
       expect((response3.body as { items: string }).items).toHaveLength(0);
@@ -236,23 +233,23 @@ describe("DidTimestamps Module", () => {
       expect(response4.body).toStrictEqual({
         self: expect.stringContaining(
           "/did-timestamps?page[after]=1&page[size]=10"
-        ) as string,
-        items: expect.arrayContaining([]) as Array<string>,
+        ),
+        items: expect.arrayContaining([]),
         total: DID_METHODS_TOTAL,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             "/did-timestamps?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           prev: expect.stringContaining(
             "/did-timestamps?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           next: expect.stringContaining(
             "/did-timestamps?page[after]=1&page[size]=10"
-          ) as string,
+          ),
           last: expect.stringContaining(
             "/did-timestamps?page[after]=1&page[size]=10"
-          ) as string,
+          ),
         },
       });
       expect((response4.body as { items: string }).items).toHaveLength(3);
@@ -373,23 +370,23 @@ describe("DidTimestamps Module", () => {
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
-        ) as string,
+        ),
         items: [],
         total: 0,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
-          ) as string,
+          ),
         },
       });
       expect(response.status).toBe(200);
@@ -410,7 +407,7 @@ describe("DidTimestamps Module", () => {
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
-        ) as string,
+        ),
         items: expect.arrayContaining(
           [didDocuments[0]].map((method) => {
             // Timestamp ID = sha256(canonicalizedDidDocumentHash)
@@ -425,25 +422,25 @@ describe("DidTimestamps Module", () => {
                 `/did-timestamps/${multibase.base64url.encode(
                   Buffer.from(hash.replace(/^0x/, ""), "hex")
                 )}`
-              ) as string,
-            } as TimestampLink;
+              ),
+            };
           })
-        ) as Array<string>,
+        ),
         total: 1,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
             `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
-          ) as string,
+          ),
           prev: expect.stringContaining(
             `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
-          ) as string,
+          ),
           next: expect.stringContaining(
             `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
-          ) as string,
+          ),
           last: expect.stringContaining(
             `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
-          ) as string,
+          ),
         },
       });
       expect((response.body as { items: string }).items).toHaveLength(1);
@@ -473,7 +470,7 @@ describe("DidTimestamps Module", () => {
       const signer = await didRegistryContract.signer.getAddress();
 
       expect(response.body).toStrictEqual({
-        blockNumber: expect.any(Number) as number,
+        blockNumber: expect.any(Number),
         data: `0x${timestampDataBuffer.toString("hex")}`,
         hash: multibase.base64.encode(
           multihashEncode(
@@ -483,7 +480,7 @@ describe("DidTimestamps Module", () => {
           )
         ),
         timestampedBy: signer,
-      } as DidTimestampResponseObject);
+      });
 
       expect(response.status).toBe(200);
     });

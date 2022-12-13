@@ -31,6 +31,7 @@ task(
     console.log(initialVersion);
     console.log("initialVersion:", initialVersion.toString());
 
+    // TODO: fix JSON schemas import logic (can't use git submodules anymore)
     const files = await readdir(`${__dirname}/../schemas/json-schemas`);
 
     const network = await ethers.provider.getNetwork();

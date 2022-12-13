@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import { FactoryOptions } from "hardhat/types";
+import type { FactoryOptions } from "hardhat/types";
 import { Tar } from "../src/types";
 
 async function main() {

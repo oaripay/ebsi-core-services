@@ -5,18 +5,35 @@ import type { AxiosResponse } from "axios";
 import { Agent as SiopAgent, encode, verifyJwtTar } from "@cef-ebsi/siop-auth";
 import type { AkeResponse } from "@cef-ebsi/siop-auth";
 import { exportJWK, generateKeyPair, importJWK } from "jose";
+import { ConfigService } from "@nestjs/config";
+import { ApiConfig } from "../../src/config/configuration";
 
 export const requestSiopJwt = async ({
   clientKid,
   clientPrivateKey,
-  authorisationApiUrl,
-  trustedAppsRegistryUrl,
+  configService,
 }: {
   clientKid: string;
   clientPrivateKey: string;
-  authorisationApiUrl: string;
-  trustedAppsRegistryUrl: string;
+  configService: ConfigService<ApiConfig, true>;
 }): Promise<string> => {
+  let authorisationApiUrl = configService.get<string>("authorisationApiUrl");
+  let trustedAppsRegistryUrl = configService.get<string>(
+    "trustedAppsRegistryApiUrl"
+  );
+
+  // Use TEST_LB_DOMAIN if defined
+  if (configService.get<string>("testLoadBalancerDomain")) {
+    authorisationApiUrl = authorisationApiUrl.replace(
+      configService.get<string>("domain"),
+      configService.get<string>("testLoadBalancerDomain")
+    );
+    trustedAppsRegistryUrl = trustedAppsRegistryUrl.replace(
+      configService.get<string>("domain"),
+      configService.get<string>("testLoadBalancerDomain")
+    );
+  }
+
   const alg = "ES256K";
   const encryptionKeyPair = await generateKeyPair(alg);
   const publicEncryptionKeyJwk = await exportJWK(encryptionKeyPair.publicKey);

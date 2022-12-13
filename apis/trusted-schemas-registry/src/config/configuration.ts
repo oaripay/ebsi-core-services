@@ -21,11 +21,12 @@ export interface ApiConfig {
   // DID Registry API
   didRegistryApiUrl: string;
   // Trusted Apps Registry API
-  tarApiUrl: string;
+  trustedAppsRegistryApiUrl: string;
   // Test variables
   testAdminKid: string;
   testAdminPrivateKey: string;
   testVaSchemaUrl: string;
+  testLoadBalancerDomain: string;
   dockerContainerTag: string;
   blockscout: {
     url: string;
@@ -65,11 +66,12 @@ export const loadConfig = (): ApiConfig => {
     // DID Registry API
     didRegistryApiUrl: DOMAIN + DIDR_API_PATH,
     // Trusted Apps Registry API
-    tarApiUrl: DOMAIN + TAR_API_PATH,
+    trustedAppsRegistryApiUrl: DOMAIN + TAR_API_PATH,
     // Test vars
     testAdminKid: process.env.TEST_ADMIN_KID,
     testAdminPrivateKey: process.env.TEST_ADMIN_PRIVATE_KEY,
     testVaSchemaUrl: DOMAIN + TSR_API_PATH + process.env.TEST_VA_SCHEMA,
+    testLoadBalancerDomain: process.env.TEST_LB_DOMAIN,
     dockerContainerTag: process.env.DOCKER_TAG,
     blockscout: {
       url: process.env.BLOCKSCOUT_URL,
@@ -104,7 +106,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "debug"
     ),
     DOCKER_TAG: Joi.string(),
-    DOMAIN: Joi.string().required(),
+    DOMAIN: Joi.string().uri().required(),
     LOCAL_ORIGIN: Joi.string().uri(),
     REQUEST_TIMEOUT: Joi.string(),
     // Ledger & SC
@@ -114,6 +116,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_ADMIN_KID: Joi.string(),
     TEST_ADMIN_PRIVATE_KEY: Joi.string(),
     TEST_VA_SCHEMA: Joi.string(),
+    TEST_LB_DOMAIN: Joi.string().uri(),
     BLOCKSCOUT_URL: Joi.string(),
     BLOCKSCOUT_BEARER_TOKEN: Joi.string(),
   }),

@@ -1,6 +1,7 @@
 import { URLSearchParams } from "node:url";
 import { randomUUID } from "node:crypto";
 import axios, { AxiosResponse } from "axios";
+import { ConfigService } from "@nestjs/config";
 import {
   Agent as SiopAgent,
   AkeResponse,
@@ -10,22 +11,36 @@ import {
 import { exportJWK, generateKeyPair, importJWK } from "jose";
 import { createVP } from "./verifiablePresentation";
 import { createVerifiableAuthorisation } from "./verifiableAuthorisation";
+import { ApiConfig } from "../../src/config/configuration";
 
 export const requestSiopJwt = async ({
-  clientKid,
-  clientPrivateKey,
-  authorisationApiUrl,
-  trustedAppsRegistryUrl,
+  configService,
 }: {
-  clientKid: string;
-  clientPrivateKey: string;
-  authorisationApiUrl: string;
-  trustedAppsRegistryUrl: string;
+  configService: ConfigService<ApiConfig, true>;
 }): Promise<string> => {
   const alg = "ES256K";
   const encryptionKeyPair = await generateKeyPair(alg);
   const publicEncryptionKeyJwk = await exportJWK(encryptionKeyPair.publicKey);
   const privateEncryptionKeyJwk = await exportJWK(encryptionKeyPair.privateKey);
+
+  const clientKid = configService.get<string>("testClientKid");
+  const clientPrivateKey = configService.get<string>("testClientPrivateKey");
+  let authorisationApiUrl = configService.get<string>("authorisationApiUrl");
+  let trustedAppsRegistryUrl = configService.get<string>(
+    "trustedAppsRegistryApiUrl"
+  );
+
+  // Use TEST_LB_DOMAIN if defined
+  if (configService.get<string>("testLoadBalancerDomain")) {
+    authorisationApiUrl = authorisationApiUrl.replace(
+      configService.get<string>("domain"),
+      configService.get<string>("testLoadBalancerDomain")
+    );
+    trustedAppsRegistryUrl = trustedAppsRegistryUrl.replace(
+      configService.get<string>("domain"),
+      configService.get<string>("testLoadBalancerDomain")
+    );
+  }
 
   const siopAgent = new SiopAgent({
     privateKey: await importJWK(
@@ -77,7 +92,7 @@ export const requestSiopJwt = async ({
     AxiosResponse<AkeResponse>
   >(
     `${authorisationApiUrl}/siop-sessions`,
-    new URLSearchParams({ id_token: idToken }).toString(),
+    new URLSearchParams({ id_token: idToken || "" }).toString(),
     {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -103,22 +118,45 @@ export const requestSiopJwt = async ({
 export const requestNewUserSiopJwt = async ({
   clientKid,
   clientPrivateKey,
-  authorisationApiUrl,
-  authorisationCredentialSchema,
-  usersOnboardingApiPrivateKey,
-  usersOnboardingApiDid,
-  trustedAppsRegistryUrl,
-  ebsiAuthority,
+  configService,
 }: {
   clientKid: string;
   clientPrivateKey: string;
-  authorisationApiUrl: string;
-  authorisationCredentialSchema: string;
-  usersOnboardingApiPrivateKey: string;
-  usersOnboardingApiDid: string;
-  trustedAppsRegistryUrl: string;
-  ebsiAuthority: string;
+  configService: ConfigService<ApiConfig, true>;
 }): Promise<string> => {
+  let authorisationApiUrl = configService.get<string>("authorisationApiUrl");
+  const authorisationCredentialSchema = configService.get<string>(
+    "authorisationCredentialSchema"
+  );
+  const usersOnboardingApiPrivateKey = configService.get<string>(
+    "usersOnboardingApiPrivateKey"
+  );
+  const usersOnboardingApiDid = configService.get<string>(
+    "usersOnboardingApiDid"
+  );
+  let trustedAppsRegistryUrl = configService.get<string>(
+    "trustedAppsRegistryApiUrl"
+  );
+  let ebsiAuthority = configService
+    .get<string>("domain")
+    .replace(/^https?:\/\//, "");
+
+  // Use TEST_LB_DOMAIN if defined
+  if (configService.get<string>("testLoadBalancerDomain")) {
+    authorisationApiUrl = authorisationApiUrl.replace(
+      configService.get<string>("domain"),
+      configService.get<string>("testLoadBalancerDomain")
+    );
+    trustedAppsRegistryUrl = trustedAppsRegistryUrl.replace(
+      configService.get<string>("domain"),
+      configService.get<string>("testLoadBalancerDomain")
+    );
+    ebsiAuthority = ebsiAuthority.replace(
+      configService.get<string>("domain"),
+      configService.get<string>("testLoadBalancerDomain")
+    );
+  }
+
   const verifiableCredential = await createVerifiableAuthorisation(
     clientKid.split("#")[0],
     authorisationCredentialSchema,
@@ -202,7 +240,7 @@ export const requestNewUserSiopJwt = async ({
   >(
     `${authorisationApiUrl}/siop-sessions`,
     new URLSearchParams({
-      id_token: idToken,
+      id_token: idToken || "",
       vp_token: verifiablePresentation,
     }).toString(),
     {

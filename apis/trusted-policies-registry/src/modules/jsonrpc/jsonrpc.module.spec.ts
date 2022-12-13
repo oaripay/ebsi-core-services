@@ -1,4 +1,13 @@
-import { describe } from "@jest/globals";
+import {
+  jest,
+  describe,
+  beforeAll,
+  beforeEach,
+  afterEach,
+  afterAll,
+  it,
+  expect,
+} from "@jest/globals";
 import crypto from "node:crypto";
 import axios from "axios";
 import request from "supertest";
@@ -51,6 +60,8 @@ jest.mock("@cef-ebsi/siop-auth", () => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return {
     __esModule: true,
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
     ...originalModule,
     verifyJwtTar: jest.fn(),
   };
@@ -227,7 +238,7 @@ describe("JsonRpc Module", () => {
       trustedAppsRegistry: `${configService.get<string>(
         "trustedAppsRegistryApiUrl"
       )}/apps`,
-      timeout: expect.any(Number) as number,
+      timeout: expect.any(Number),
     });
   });
 
@@ -353,7 +364,7 @@ describe("JsonRpc Module", () => {
         code: -32600,
         message: expect.stringContaining(
           "The method 'unknown-method' is invalid"
-        ) as string,
+        ),
       },
     });
     expect(response.status).toBe(400);
@@ -400,13 +411,13 @@ describe("JsonRpc Module", () => {
       jsonrpc: "2.0",
       id: 231,
       result: {
-        chainId: expect.any(String) as string,
-        data: expect.any(String) as string,
+        chainId: expect.any(String),
+        data: expect.any(String),
         from: param.from,
-        gasLimit: expect.any(String) as string,
-        gasPrice: expect.any(String) as string,
-        nonce: expect.any(String) as string,
-        to: expect.any(String) as string,
+        gasLimit: expect.any(String),
+        gasPrice: expect.any(String),
+        nonce: expect.any(String),
+        to: expect.any(String),
         value: "0x0",
       },
     });
@@ -490,13 +501,13 @@ describe("JsonRpc Module", () => {
       jsonrpc: "2.0",
       id: 231,
       result: {
-        chainId: expect.any(String) as string,
-        data: expect.any(String) as string,
+        chainId: expect.any(String),
+        data: expect.any(String),
         from: param.from,
-        gasLimit: expect.any(String) as string,
-        gasPrice: expect.any(String) as string,
-        nonce: expect.any(String) as string,
-        to: expect.any(String) as string,
+        gasLimit: expect.any(String),
+        gasPrice: expect.any(String),
+        nonce: expect.any(String),
+        to: expect.any(String),
         value: "0x0",
       },
     });
@@ -536,7 +547,7 @@ describe("JsonRpc Module", () => {
         code: -32600,
         message: expect.stringContaining(
           `reverted with reason string 'AccessControl: account ${signer.address.toLowerCase()} is missing role 0x97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929'`
-        ) as string,
+        ),
       },
       jsonrpc: "2.0",
       id: "45",
@@ -686,13 +697,13 @@ describe("JsonRpc Module", () => {
         jsonrpc: "2.0",
         id: 231,
         result: {
-          chainId: expect.any(String) as string,
-          data: expect.any(String) as string,
+          chainId: expect.any(String),
+          data: expect.any(String),
           from: param.from,
-          gasLimit: expect.any(String) as string,
-          gasPrice: expect.any(String) as string,
-          nonce: expect.any(String) as string,
-          to: expect.any(String) as string,
+          gasLimit: expect.any(String),
+          gasPrice: expect.any(String),
+          nonce: expect.any(String),
+          to: expect.any(String),
           value: "0x0",
         },
       });
@@ -730,7 +741,7 @@ describe("JsonRpc Module", () => {
       expect(responseSend.body).toStrictEqual({
         jsonrpc: "2.0",
         id: "45",
-        result: expect.any(String) as string,
+        result: expect.any(String),
       });
       expect(responseSend.status).toBe(200);
     });
@@ -1146,9 +1157,7 @@ describe("JsonRpc Module", () => {
             id: 231,
             error: {
               code: -32600,
-              message: expect.stringContaining(
-                expectedErrorMessages[index]
-              ) as string,
+              message: expect.stringContaining(expectedErrorMessages[index]),
             },
           });
           expect(response1.status).toBe(400);
@@ -1383,7 +1392,7 @@ describe("JsonRpc Module", () => {
           code: -32600,
           message: expect.stringContaining(
             "does not match with the signedRawTransaction"
-          ) as string,
+          ),
         },
       });
       expect(responseSend1.status).toBe(400);
@@ -1416,7 +1425,7 @@ describe("JsonRpc Module", () => {
           code: -32600,
           message: expect.stringContaining(
             "does not match with unsignedTransaction.from"
-          ) as string,
+          ),
         },
       });
       expect(responseSend1.status).toBe(400);

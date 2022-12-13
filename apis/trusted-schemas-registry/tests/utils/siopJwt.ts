@@ -2,22 +2,35 @@ import { randomUUID } from "node:crypto";
 import { URLSearchParams } from "node:url";
 import axios from "axios";
 import type { AxiosResponse } from "axios";
+import { ConfigService } from "@nestjs/config";
 import { Agent as SiopAgent, encode, verifyJwtTar } from "@cef-ebsi/siop-auth";
 import type { AkeResponse } from "@cef-ebsi/siop-auth";
 import { exportJWK, generateKeyPair, importJWK } from "jose";
+import { ApiConfig } from "../../src/config/configuration";
 
-export const requestSiopJwt = async ({
-  clientKid,
-  clientPrivateKey,
-  authorisationApiUrl,
-  trustedAppsRegistryUrl,
-}: {
-  clientKid: string;
-  clientPrivateKey: string;
-  authorisationApiUrl: string;
-  trustedAppsRegistryUrl: string;
-}): Promise<string> => {
+export const requestSiopJwt = async (
+  configService: ConfigService<ApiConfig, true>
+): Promise<string> => {
   const alg = "ES256K";
+  const clientKid = configService.get<string>("testAdminKid");
+  const clientPrivateKey = configService.get<string>("testAdminPrivateKey");
+  let authorisationApiUrl = configService.get<string>("authorisationApiUrl");
+  let trustedAppsRegistry = `${configService.get<string>(
+    "trustedAppsRegistryApiUrl"
+  )}/apps`;
+
+  // Use TEST_LB_DOMAIN if defined
+  if (configService.get<string>("testLoadBalancerDomain")) {
+    authorisationApiUrl = authorisationApiUrl.replace(
+      configService.get<string>("domain"),
+      configService.get<string>("testLoadBalancerDomain")
+    );
+    trustedAppsRegistry = trustedAppsRegistry.replace(
+      configService.get<string>("domain"),
+      configService.get<string>("testLoadBalancerDomain")
+    );
+  }
+
   const encryptionKeyPair = await generateKeyPair(alg);
   const publicEncryptionKeyJwk = await exportJWK(encryptionKeyPair.publicKey);
   const privateEncryptionKeyJwk = await exportJWK(encryptionKeyPair.privateKey);
@@ -50,7 +63,7 @@ export const requestSiopJwt = async ({
   });
 
   const { payload } = await verifyJwtTar(params.request, {
-    trustedAppsRegistry: `${trustedAppsRegistryUrl}/apps`,
+    trustedAppsRegistry,
   });
 
   // 3. The client creates an authentication response and gets an ID Token
@@ -73,7 +86,7 @@ export const requestSiopJwt = async ({
     AxiosResponse<AkeResponse>
   >(
     `${authorisationApiUrl}/siop-sessions`,
-    new URLSearchParams({ id_token: idToken }).toString(),
+    new URLSearchParams({ id_token: idToken || "" }).toString(),
     {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -87,7 +100,7 @@ export const requestSiopJwt = async ({
     {
       nonce,
       privateEncryptionKeyJwk,
-      trustedAppsRegistry: `${trustedAppsRegistryUrl}/apps`,
+      trustedAppsRegistry,
       alg,
     }
   );

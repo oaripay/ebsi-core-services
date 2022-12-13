@@ -4,6 +4,7 @@ const path = require("path");
 module.exports = {
   preset: "ts-jest",
   testEnvironment: "node",
+  injectGlobals: false,
   rootDir: ".",
   roots: ["<rootDir>/src/", "<rootDir>/tests/"],
   testMatch: ["**/?(*.|*-)+(spec|test).ts"],

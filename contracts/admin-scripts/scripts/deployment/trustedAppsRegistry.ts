@@ -1,5 +1,5 @@
-import { HardhatRuntimeEnvironment } from "hardhat/types";
-import { DeployFunction } from "hardhat-deploy/types";
+import type { HardhatRuntimeEnvironment } from "hardhat/types";
+import type { DeployFunction } from "hardhat-deploy/types";
 import { ethers } from "hardhat";
 import { dependencies } from "./dependencies";
 
@@ -12,7 +12,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     log: true,
   };
   // get Proxy of TPR and didr - deployed new ones for undefined vars
-  const chainId = (await ethers.provider.getNetwork()).chainId;
+  const { chainId } = await ethers.provider.getNetwork();
   console.log(`chain id ${chainId}`);
   let tprAddress = dependencies[chainId]?.tprAddress;
   let didAddress = dependencies[chainId]?.didAddress;
@@ -66,5 +66,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
   deployments.log("Trusted Apps Registry deployed at:", ts.address);
 };
-export default func;
+
 func.tags = ["Tar"];
+
+export default func;

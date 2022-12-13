@@ -8,12 +8,14 @@ import { ApiConfig } from "../../config/configuration";
 
 @Injectable()
 export class AuthService {
-  private tarApiUrl: string;
+  private trustedAppsRegistryApiUrl: string;
 
   private timeout: number;
 
   constructor(configService: ConfigService<ApiConfig, true>) {
-    this.tarApiUrl = `${configService.get<string>("tarApiUrl")}/apps`;
+    this.trustedAppsRegistryApiUrl = `${configService.get<string>(
+      "trustedAppsRegistryApiUrl"
+    )}/apps`;
     this.timeout = configService.get<number>("requestTimeout");
   }
 
@@ -23,13 +25,13 @@ export class AuthService {
 
     try {
       const verifiedJwt = await verifyJwtTar(bearerToken, {
-        trustedAppsRegistry: this.tarApiUrl,
+        trustedAppsRegistry: this.trustedAppsRegistryApiUrl,
         audience: "ebsi-core-services",
         timeout: this.timeout,
       });
       payload = verifiedJwt.payload;
     } catch (e) {
-      let message = "unkown error";
+      let message = "unknown error";
 
       if (e instanceof Error) {
         message = e.message;
