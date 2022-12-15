@@ -27,8 +27,8 @@ info:
 servers:
   - url: http://localhost
     description: Local Computer Environment
-  - url: https://api-preprod.ebsi.eu
-    description: EBSI Pre-production Environment
+  - url: https://api-pilot.ebsi.eu
+    description: EBSI Pilot Environment
   - url: https://api.ebsi.eu
     description: EBSI Production Environment
 tags:
@@ -223,7 +223,7 @@ components:
       description: Contains information on what to send into PAR
       type: object
       properties:
-        response_types:
+        response_type:
           type: string
           description: The OIDC flow to be used
           example: vp_token code
@@ -243,6 +243,9 @@ components:
           type: string
         code_challenge_method:
           type: string
+        nonce:
+          type: string
+          description: Required nonce for replay attacks
     auth_resp:
       title: OIDC - Authentication Response Object
       description: OpenID Connect Authorisation Response object.
@@ -304,6 +307,11 @@ components:
           description: |
             URL of the OP's UserInfo Endpoint. This URL MUST use the
             https scheme and MAY contain port, path, and query parameter components.
+        pushed_authorization_request_endpoint:
+          type: string
+          description: |
+            The URL of the pushed authorization request endpoint at which a client can
+            post an authorization request to exchange for a request_uri value usable at the authorization server.
         jwks_uri:
           type: string
           description: |
@@ -386,6 +394,7 @@ components:
       required:
         - issuer
         - authorization_endpoint
+        - pushed_authorization_request_endpoint
         - jwks_uri
         - response_types_supported
         - subject_types_supported
