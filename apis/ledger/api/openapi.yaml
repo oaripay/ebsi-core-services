@@ -18,7 +18,7 @@ info:
   contact:
     name: EBSI Support - Service Desk
     url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11
-  termsOfService: https://api-preprod.ebsi.eu/docs/terms
+  termsOfService: https://api-pilot.ebsi.eu/docs/terms
 paths:
   /ledger/v3/blockchains/besu:
     post:
@@ -304,9 +304,11 @@ components:
       scheme: bearer
       bearerFormat: JWT
 servers:
-  - url: "http://localhost"
+  - url: http://localhost
     description: Local Computer Environment
-  - url: "https://api-preprod.ebsi.eu"
-    description: EBSI Pre-production Environment
-  - url: "https://api.ebsi.eu"
-    description: EBSI Production Environment
+  - url: https://api-test.ebsi.eu
+    description: EBSI Test Environment
+  - url: https://api-pilot.ebsi.eu
+    description: EBSI Pilot Environment
+  - url: "https://api-conformance.ebsi.eu"
+    description: EBSI Conformance Environment

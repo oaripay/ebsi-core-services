@@ -33,7 +33,7 @@ const config: HardhatUserConfig = {
       accounts: { mnemonic },
     },
     mainnet: {
-      url: "https://api.intebsi.xyz/ledger/v3/blockchains/besu",
+      url: "https://api-test.ebsi.eu/ledger/v3/blockchains/besu",
       accounts: { mnemonic },
     },
   },

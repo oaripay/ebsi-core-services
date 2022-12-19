@@ -13,6 +13,7 @@ module.exports = {
   transform: {
     "^.+\\.(t|j)s$": "ts-jest",
   },
+  transformIgnorePatterns: ["node_modules/(?!(axios))"],
   moduleFileExtensions: ["js", "json", "ts"],
   coverageDirectory: "./coverage/",
   collectCoverageFrom: ["src/**/*.(t|j)s", "!**/*.d.ts", "!src/main.ts"],

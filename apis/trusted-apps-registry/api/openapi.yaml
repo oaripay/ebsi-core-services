@@ -9,7 +9,7 @@ info:
     * manage application administrators,
     * obtain application information,
     * obtain application authorizations.
-  termsOfService: https://api-preprod.ebsi.eu/docs/terms
+  termsOfService: https://api-pilot.ebsi.eu/docs/terms
   contact:
     name: EBSI Support - Service Desk
     url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11
@@ -94,21 +94,21 @@ paths:
                       last: https://api-test.ebsi.eu/trusted-apps-registry/v3/apps?page[after]=62&page[size]=2
                 "[pilot] Success":
                   value:
-                    self: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/apps?page[after]=3&page[size]=2
+                    self: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps?page[after]=3&page[size]=2
                     items:
                       - id: "0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909"
                         name: test-app-1
-                        href: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/apps/test-app-1
+                        href: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps/test-app-1
                       - id: "0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854"
                         name: test-app-2
-                        href: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/apps/test-app-2
+                        href: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps/test-app-2
                     total: 124
                     pageSize: 2
                     links:
-                      first: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/apps?page[after]=1&page[size]=2
-                      prev: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/apps?page[after]=2&page[size]=2
-                      next: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/apps?page[after]=4&page[size]=2
-                      last: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/apps?page[after]=62&page[size]=2
+                      first: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps?page[after]=1&page[size]=2
+                      prev: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps?page[after]=2&page[size]=2
+                      next: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps?page[after]=4&page[size]=2
+                      last: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps?page[after]=62&page[size]=2
         "400":
           description: Bad Request Error
           content:
@@ -315,19 +315,19 @@ paths:
                       last: https://api-test.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/public-keys?page[after]=62&page[size]=2
                 "[pilot] Success":
                   value:
-                    self: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/public-keys?page[after]=3&page[size]=2
+                    self: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/public-keys?page[after]=3&page[size]=2
                     items:
                       - id: "0x7623198d13d51cc485e4ec6bd52af05f6b691c1d9dd06a4b3f609d9c19efb985"
-                        href: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/public-keys/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909
+                        href: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/public-keys/0x3f571838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0909
                       - id: "0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854"
-                        href: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/public-keys/0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854
+                        href: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/public-keys/0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854
                     total: 4
                     pageSize: 2
                     links:
-                      first: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/public-keys?page[after]=1&page[size]=2
-                      prev: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/public-keys?page[after]=2&page[size]=2
-                      next: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/public-keys?page[after]=4&page[size]=2
-                      last: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/public-keys?page[after]=62&page[size]=2
+                      first: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/public-keys?page[after]=1&page[size]=2
+                      prev: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/public-keys?page[after]=2&page[size]=2
+                      next: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/public-keys?page[after]=4&page[size]=2
+                      last: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/public-keys?page[after]=62&page[size]=2
         "400":
           description: Bad Request Error
           content:
@@ -538,21 +538,21 @@ paths:
                       last: https://api-test.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/authorizations?page[after]=62&page[size]=2
                 "[pilot] Success":
                   value:
-                    self: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/authorizations?page[after]=3&page[size]=2
+                    self: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/authorizations?page[after]=3&page[size]=2
                     items:
                       - authorizationId: "0x743072ec11502736ecc5f4bcb1d2ffd435131b2d03003b4a2d222ab9b384a663"
                         requesterApplicationName: timestamp-api
-                        href: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/authorizations/0x743072ec11502736ecc5f4bcb1d2ffd435131b2d03003b4a2d222ab9b384a663
+                        href: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/authorizations/0x743072ec11502736ecc5f4bcb1d2ffd435131b2d03003b4a2d222ab9b384a663
                       - authorizationId: "0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854"
                         requesterApplicationName: test-app-2
-                        href: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/authorizations/0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854
+                        href: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/authorizations/0x1b891838c18b0e83db06d167211279b437e0becc999309be2de54ccc7b8d0854
                     total: 124
                     pageSize: 2
                     links:
-                      first: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/authorizations?page[after]=1&page[size]=2
-                      prev: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/authorizations?page[after]=2&page[size]=2
-                      next: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/authorizations?page[after]=4&page[size]=2
-                      last: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/authorizations?page[after]=62&page[size]=2
+                      first: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/authorizations?page[after]=1&page[size]=2
+                      prev: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/authorizations?page[after]=2&page[size]=2
+                      next: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/authorizations?page[after]=4&page[size]=2
+                      last: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps/ledger-api/authorizations?page[after]=62&page[size]=2
         "400":
           description: Bad Request Error
           content:
@@ -743,19 +743,19 @@ paths:
                       last: https://api-test.ebsi.eu/trusted-apps-registry/v3/policies?page[after]=62&page[size]=2
                 "[pilot] Success":
                   value:
-                    self: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/policies?page[after]=3&page[size]=2
+                    self: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/policies?page[after]=3&page[size]=2
                     items:
                       - policyId: test-policy-1
-                        href: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-1
+                        href: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-1
                       - policyId: test-policy-2
-                        href: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-2
+                        href: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-2
                     total: 124
                     pageSize: 2
                     links:
-                      first: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/policies?page[after]=1&page[size]=2
-                      prev: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/policies?page[after]=2&page[size]=2
-                      next: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/policies?page[after]=4&page[size]=2
-                      last: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/policies?page[after]=62&page[size]=2
+                      first: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/policies?page[after]=1&page[size]=2
+                      prev: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/policies?page[after]=2&page[size]=2
+                      next: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/policies?page[after]=4&page[size]=2
+                      last: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/policies?page[after]=62&page[size]=2
         "400":
           description: Bad Request Error
           content:
@@ -902,7 +902,7 @@ paths:
                       last: https://api-test.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=31&page[size]=2
                 "[pilot] Success":
                   value:
-                    self: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=3&page[size]=2
+                    self: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=3&page[size]=2
                     items:
                       - policyId: test-policy-1
                         policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
@@ -913,10 +913,10 @@ paths:
                     total: 61
                     pageSize: 2
                     links:
-                      first: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=1&page[size]=2
-                      prev: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=2&page[size]=2
-                      next: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=4&page[size]=2
-                      last: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=31&page[size]=2
+                      first: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=1&page[size]=2
+                      prev: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=2&page[size]=2
+                      next: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=4&page[size]=2
+                      last: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=31&page[size]=2
         "400":
           description: Bad Request Error
           content:
@@ -1443,10 +1443,10 @@ components:
           description: URI of the first page
       x-examples:
         Links:
-          first: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/apps?page[after]=1&page[size]=2
-          prev: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/apps?page[after]=2&page[size]=2
-          next: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/apps?page[after]=4&page[size]=2
-          last: https://api-preprod.ebsi.eu/trusted-apps-registry/v3/apps?page[after]=13&page[size]=2
+          first: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps?page[after]=1&page[size]=2
+          prev: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps?page[after]=2&page[size]=2
+          next: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps?page[after]=4&page[size]=2
+          last: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps?page[after]=13&page[size]=2
     JsonRpcResponse:
       title: JSON-RPC Response
       type: object
@@ -1545,9 +1545,11 @@ components:
       scheme: bearer
       bearerFormat: JWT
 servers:
-  - url: "http://localhost"
+  - url: http://localhost
     description: Local Computer Environment
-  - url: "https://api-preprod.ebsi.eu"
-    description: EBSI Pre-production Environment
-  - url: "https://api.ebsi.eu"
-    description: EBSI Production Environment
+  - url: https://api-test.ebsi.eu
+    description: EBSI Test Environment
+  - url: https://api-pilot.ebsi.eu
+    description: EBSI Pilot Environment
+  - url: "https://api-conformance.ebsi.eu"
+    description: EBSI Conformance Environment

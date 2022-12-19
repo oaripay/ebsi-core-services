@@ -10,7 +10,7 @@ info:
     rules)
     - obtain Smart Contract and Ledger information,
     - optionally it helps to construct unsigned transactions for the operations.
-  termsOfService: https://api-preprod.ebsi.eu/docs/terms
+  termsOfService: https://api-pilot.ebsi.eu/docs/terms
   contact:
     name: EBSI Support - Service Desk
     url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11
@@ -92,19 +92,19 @@ paths:
                       last: https://api-test.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers?page[after]=1&page[size]=10
                 "[pilot] Success":
                   value:
-                    self: https://api-preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers?page[after]=1&page[size]=10
+                    self: https://api-pilot.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers?page[after]=1&page[size]=10
                     items:
                       - ledgerInfoId: "0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57"
-                        href: https://api-preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57
+                        href: https://api-pilot.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57
                       - ledgerInfoId: "0x0cd81662c95df9643238abdbfc15b6f23c7754fcb8d1cc6be909e2525b550b44"
-                        href: https://api-preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers/0x0cd81662c95df9643238abdbfc15b6f23c7754fcb8d1cc6be909e2525b550b44
+                        href: https://api-pilot.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers/0x0cd81662c95df9643238abdbfc15b6f23c7754fcb8d1cc6be909e2525b550b44
                     total: 2
                     pageSize: 10
                     links:
-                      first: https://api-preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers?page[after]=1&page[size]=10
-                      prev: https://api-preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers?page[after]=1&page[size]=10
-                      next: https://api-preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers?page[after]=1&page[size]=10
-                      last: https://api-preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers?page[after]=1&page[size]=10
+                      first: https://api-pilot.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers?page[after]=1&page[size]=10
+                      prev: https://api-pilot.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers?page[after]=1&page[size]=10
+                      next: https://api-pilot.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers?page[after]=1&page[size]=10
+                      last: https://api-pilot.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers?page[after]=1&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -260,17 +260,17 @@ paths:
                       last: https://api-test.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers/0x50c4e3d7e0e9c588c0ab7b72747b10bdeab48efa9e375bf9e9b67fe91a0c64f2/revisions?page[after]=1&page[size]=10
                 "[pilot] Success":
                   value:
-                    self: https://api-preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57/revisions?page[after]=1&page[size]=10
+                    self: https://api-pilot.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57/revisions?page[after]=1&page[size]=10
                     items:
                       - revisionHash: "0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57"
-                        href: https://api-preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57/revisions/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57
+                        href: https://api-pilot.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57/revisions/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api-preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57/revisions?page[after]=1&page[size]=10
-                      prev: https://api-preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57/revisions?page[after]=1&page[size]=10
-                      next: https://api-preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57/revisions?page[after]=1&page[size]=10
-                      last: https://api-preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57/revisions?page[after]=1&page[size]=10
+                      first: https://api-pilot.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57/revisions?page[after]=1&page[size]=10
+                      prev: https://api-pilot.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57/revisions?page[after]=1&page[size]=10
+                      next: https://api-pilot.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57/revisions?page[after]=1&page[size]=10
+                      last: https://api-pilot.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/ledgers/0xc981798c566a266b48cfd0d7684a4a00ce8d9d9d770aa7614ff0f7cc724e0a57/revisions?page[after]=1&page[size]=10
         "400":
           description: Bad Request
           content:
@@ -470,27 +470,27 @@ paths:
                       last: https://api-test.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts?page[after]=1&page[size]=10
                 "[pilot] Success":
                   value:
-                    self: https://api-preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts?page[after]=1&page[size]=10
+                    self: https://api-pilot.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts?page[after]=1&page[size]=10
                     items:
                       - smartContractInfoId: "0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed"
-                        href: https://api-preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed
+                        href: https://api-pilot.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed
                       - smartContractInfoId: "0x2bcd6e0ff362b35b9cd510a0f1deaaeda18cfa0a3f20d477b738c57d506e0da9"
-                        href: https://api-preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0x2bcd6e0ff362b35b9cd510a0f1deaaeda18cfa0a3f20d477b738c57d506e0da9
+                        href: https://api-pilot.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0x2bcd6e0ff362b35b9cd510a0f1deaaeda18cfa0a3f20d477b738c57d506e0da9
                       - smartContractInfoId: "0x72d1f36bffd10b2760b6c57da3c886d39689e04a23b5a75d3be6ad2e99195d7e"
-                        href: https://api-preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0x72d1f36bffd10b2760b6c57da3c886d39689e04a23b5a75d3be6ad2e99195d7e
+                        href: https://api-pilot.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0x72d1f36bffd10b2760b6c57da3c886d39689e04a23b5a75d3be6ad2e99195d7e
                       - smartContractInfoId: "0x63117ba242c0bd812b689200e0f80e805cbc13feb351aa20798e8fb8d5a7ddea"
-                        href: https://api-preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0x63117ba242c0bd812b689200e0f80e805cbc13feb351aa20798e8fb8d5a7ddea
+                        href: https://api-pilot.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0x63117ba242c0bd812b689200e0f80e805cbc13feb351aa20798e8fb8d5a7ddea
                       - smartContractInfoId: "0xf8e665a36a7e87846b0cc64abf03454c5a3f2c201b66ac8bbc96d7dea44c9f0c"
-                        href: https://api-preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xf8e665a36a7e87846b0cc64abf03454c5a3f2c201b66ac8bbc96d7dea44c9f0c
+                        href: https://api-pilot.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xf8e665a36a7e87846b0cc64abf03454c5a3f2c201b66ac8bbc96d7dea44c9f0c
                       - smartContractInfoId: "0xf09fb81d126b8b0b11e7be8e096cf7f2c2421c53e860b07f46c46f3c7dd50f93"
-                        href: https://api-preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xf09fb81d126b8b0b11e7be8e096cf7f2c2421c53e860b07f46c46f3c7dd50f93
+                        href: https://api-pilot.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xf09fb81d126b8b0b11e7be8e096cf7f2c2421c53e860b07f46c46f3c7dd50f93
                     total: 6
                     pageSize: 10
                     links:
-                      first: https://api-preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts?page[after]=1&page[size]=10
-                      prev: https://api-preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts?page[after]=1&page[size]=10
-                      next: https://api-preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts?page[after]=1&page[size]=10
-                      last: https://api-preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts?page[after]=1&page[size]=10
+                      first: https://api-pilot.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts?page[after]=1&page[size]=10
+                      prev: https://api-pilot.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts?page[after]=1&page[size]=10
+                      next: https://api-pilot.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts?page[after]=1&page[size]=10
+                      last: https://api-pilot.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts?page[after]=1&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -649,17 +649,17 @@ paths:
                       last: https://api-test.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions?page[after]=1&page[size]=10
                 "[pilot] Success":
                   value:
-                    self: https://api-preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions?page[after]=1&page[size]=10
+                    self: https://api-pilot.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions?page[after]=1&page[size]=10
                     items:
                       - revisionHash: "0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed"
-                        href: https://api-preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed
+                        href: https://api-pilot.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api-preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions?page[after]=1&page[size]=10
-                      prev: https://api-preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions?page[after]=1&page[size]=10
-                      next: https://api-preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions?page[after]=1&page[size]=10
-                      last: https://api-preprod.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions?page[after]=1&page[size]=10
+                      first: https://api-pilot.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions?page[after]=1&page[size]=10
+                      prev: https://api-pilot.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions?page[after]=1&page[size]=10
+                      next: https://api-pilot.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions?page[after]=1&page[size]=10
+                      last: https://api-pilot.ebsi.eu/trusted-ledgers-smart-contracts-registry/v2/smart-contracts/0xd4cf294b16f142479ab2b6405ede4910638541aca3c1a77cf95e9e16542743ed/revisions?page[after]=1&page[size]=10
         "400":
           description: Bad Request
           content:
@@ -1157,9 +1157,11 @@ components:
       scheme: bearer
       bearerFormat: JWT
 servers:
-  - url: "http://localhost"
+  - url: http://localhost
     description: Local Computer Environment
-  - url: "https://api-preprod.ebsi.eu"
-    description: EBSI Pre-production Environment
-  - url: "https://api.ebsi.eu"
-    description: EBSI Production Environment
+  - url: https://api-test.ebsi.eu
+    description: EBSI Test Environment
+  - url: https://api-pilot.ebsi.eu
+    description: EBSI Pilot Environment
+  - url: "https://api-conformance.ebsi.eu"
+    description: EBSI Conformance Environment

@@ -808,7 +808,7 @@ describe("Authorisation Module", () => {
             id: client.did,
           },
           credentialSchema: {
-            id: "https://test.intebsi.xyz/trusted-schemas-registry/v1/schemas/0x312e332e362e312e342e312e3234342e332e3137302e332e332e312e3734",
+            id: "https://api-test.ebsi.eu/trusted-schemas-registry/v2/schemas/0x312e332e362e312e342e312e3234342e332e3137302e332e332e312e3734",
             type: "FullJsonSchemaValidator2021",
           },
           expirationDate: "2031-11-30T00:00:00Z",

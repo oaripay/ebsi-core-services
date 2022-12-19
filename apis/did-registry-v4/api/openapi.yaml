@@ -17,7 +17,7 @@ info:
     * [DID Registry Smart Contract Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/DID+Registry+Smart+Contract)
     * [Code Repository](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/browse)
   version: 4.0.0
-  termsOfService: https://api-preprod.ebsi.eu/docs/terms
+  termsOfService: https://api-pilot.ebsi.eu/docs/terms
   contact:
     name: EBSI Support - Service Desk
     url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11
@@ -128,48 +128,48 @@ paths:
                       last: https://api-test.ebsi.eu/did-registry/v4/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
                 "[pilot] Success":
                   value:
-                    self: https://api-preprod.ebsi.eu/did-registry/v4/identifiers?page[after]=3&page[size]=10
+                    self: https://api-pilot.ebsi.eu/did-registry/v4/identifiers?page[after]=3&page[size]=10
                     items:
                       - did: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
-                        href: https://api-preprod.ebsi.eu/did-registry/v4/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                        href: https://api-pilot.ebsi.eu/did-registry/v4/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
                       - did: did:ebsi:zZssKY2QbbKEqVRgMP1iCLr
-                        href: https://api-preprod.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zZssKY2QbbKEqVRgMP1iCLr
+                        href: https://api-pilot.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zZssKY2QbbKEqVRgMP1iCLr
                       - did: did:ebsi:zb3EMmQSCWZHvFSrBTuoXsv
-                        href: https://api-preprod.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zb3EMmQSCWZHvFSrBTuoXsv
+                        href: https://api-pilot.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zb3EMmQSCWZHvFSrBTuoXsv
                       - did: did:ebsi:zwkvdg7fEoiWnLm8zXWxcHf
-                        href: https://api-preprod.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zwkvdg7fEoiWnLm8zXWxcHf
+                        href: https://api-pilot.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zwkvdg7fEoiWnLm8zXWxcHf
                       - did: did:ebsi:ziu9WCB3mDWMLVpF8GfEMG8
-                        href: https://api-preprod.ebsi.eu/did-registry/v4/identifiers/did:ebsi:ziu9WCB3mDWMLVpF8GfEMG8
+                        href: https://api-pilot.ebsi.eu/did-registry/v4/identifiers/did:ebsi:ziu9WCB3mDWMLVpF8GfEMG8
                       - did: did:ebsi:znrtw6tCorGWkUoAHiSPuz6
-                        href: https://api-preprod.ebsi.eu/did-registry/v4/identifiers/did:ebsi:znrtw6tCorGWkUoAHiSPuz6
+                        href: https://api-pilot.ebsi.eu/did-registry/v4/identifiers/did:ebsi:znrtw6tCorGWkUoAHiSPuz6
                       - did: did:ebsi:zqEozSTPA46JgCeP8d9XFGZ
-                        href: https://api-preprod.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zqEozSTPA46JgCeP8d9XFGZ
+                        href: https://api-pilot.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zqEozSTPA46JgCeP8d9XFGZ
                       - did: did:ebsi:z25a4Dcp8K7SULVfUCw4fFb7
-                        href: https://api-preprod.ebsi.eu/did-registry/v4/identifiers/did:ebsi:z25a4Dcp8K7SULVfUCw4fFb7
+                        href: https://api-pilot.ebsi.eu/did-registry/v4/identifiers/did:ebsi:z25a4Dcp8K7SULVfUCw4fFb7
                       - did: did:ebsi:z239Np1bLCJiJLdkaSqq9XxV
-                        href: https://api-preprod.ebsi.eu/did-registry/v4/identifiers/did:ebsi:z239Np1bLCJiJLdkaSqq9XxV
+                        href: https://api-pilot.ebsi.eu/did-registry/v4/identifiers/did:ebsi:z239Np1bLCJiJLdkaSqq9XxV
                       - did: did:ebsi:z23ETkVyJGeLWysGD11s2Jof
-                        href: https://api-preprod.ebsi.eu/did-registry/v4/identifiers/did:ebsi:z23ETkVyJGeLWysGD11s2Jof
+                        href: https://api-pilot.ebsi.eu/did-registry/v4/identifiers/did:ebsi:z23ETkVyJGeLWysGD11s2Jof
                     total: 124
                     pageSize: 10
                     links:
-                      first: https://api-preprod.ebsi.eu/did-registry/v4/identifiers?page[after]=1&page[size]=10
-                      prev: https://api-preprod.ebsi.eu/did-registry/v4/identifiers?page[after]=2&page[size]=10
-                      next: https://api-preprod.ebsi.eu/did-registry/v4/identifiers?page[after]=4&page[size]=10
-                      last: https://api-preprod.ebsi.eu/did-registry/v4/identifiers?page[after]=13&page[size]=10
+                      first: https://api-pilot.ebsi.eu/did-registry/v4/identifiers?page[after]=1&page[size]=10
+                      prev: https://api-pilot.ebsi.eu/did-registry/v4/identifiers?page[after]=2&page[size]=10
+                      next: https://api-pilot.ebsi.eu/did-registry/v4/identifiers?page[after]=4&page[size]=10
+                      last: https://api-pilot.ebsi.eu/did-registry/v4/identifiers?page[after]=13&page[size]=10
                 "[pilot] Filter by controller":
                   value:
-                    self: https://api-preprod.ebsi.eu/did-registry/v4/identifiers?page[after]=1&page[size]=10&controller=did:ebsi:z23ETkVyJGeLWysGD11s2Jof
+                    self: https://api-pilot.ebsi.eu/did-registry/v4/identifiers?page[after]=1&page[size]=10&controller=did:ebsi:z23ETkVyJGeLWysGD11s2Jof
                     items:
                       - did: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
-                        href: https://api-preprod.ebsi.eu/did-registry/v4/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                        href: https://api-pilot.ebsi.eu/did-registry/v4/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api-preprod.ebsi.eu/did-registry/v4/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
-                      prev: https://api-preprod.ebsi.eu/did-registry/v4/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
-                      next: https://api-preprod.ebsi.eu/did-registry/v4/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
-                      last: https://api-preprod.ebsi.eu/did-registry/v4/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                      first: https://api-pilot.ebsi.eu/did-registry/v4/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                      prev: https://api-pilot.ebsi.eu/did-registry/v4/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                      next: https://api-pilot.ebsi.eu/did-registry/v4/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
+                      last: https://api-pilot.ebsi.eu/did-registry/v4/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
         "400":
           description: Bad Request Error
           content:
@@ -886,11 +886,11 @@ components:
       scheme: bearer
       bearerFormat: JWT
 servers:
-  - url: "http://localhost"
+  - url: http://localhost
     description: Local Computer Environment
-  - url: "https://test.intebsi.xyz"
+  - url: https://api-test.ebsi.eu
     description: EBSI Test Environment
-  - url: "https://api-preprod.ebsi.eu"
-    description: EBSI Pre-production Environment
-  - url: "https://api.ebsi.eu"
-    description: EBSI Production Environment
+  - url: https://api-pilot.ebsi.eu
+    description: EBSI Pilot Environment
+  - url: "https://api-conformance.ebsi.eu"
+    description: EBSI Conformance Environment

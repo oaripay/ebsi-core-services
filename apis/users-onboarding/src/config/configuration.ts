@@ -45,7 +45,7 @@ export const loadConfig = (): ApiConfig => {
   const { DOMAIN } = process.env;
 
   // Get root domain
-  // Eg. "https://api.test.intebsi.xyz" -> "intebsi.xyz"
+  // Eg. "https://api-test.ebsi.eu" -> "ebsi.xyz"
   const defaultRecaptchaRegisteredHostname = new URL(DOMAIN).hostname
     .split(".")
     .slice(-2)

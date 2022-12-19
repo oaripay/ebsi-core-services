@@ -26,26 +26,26 @@ describe("setupInterceptors", () => {
   it("should do nothing if the 'domain' or 'localOrigin' variable is not defined or empty", () => {
     expect.assertions(2);
     expect(setupInterceptors("", "")).toBeUndefined();
-    expect(setupInterceptors("https://test.intebsi.xyz", "")).toBeUndefined();
+    expect(setupInterceptors("https://api-test.ebsi.eu", "")).toBeUndefined();
   });
 
   it("should intercept Axios requests", async () => {
     expect.assertions(1);
 
-    setupInterceptors("https://test.intebsi.xyz", "http://api.local");
+    setupInterceptors("https://api-test.ebsi.eu", "http://api.local");
 
     // Set up 2 mocked servers (local, remote)
     nock("http://api.local")
       .get("/trusted-apps-registry/v3/apps")
       .reply(200, "local");
 
-    nock("https://test.intebsi.xyz")
+    nock("https://api-test.ebsi.eu")
       .get("/trusted-apps-registry/v3/apps")
       .reply(200, "remote");
 
     // Query the remote server
     const response = await axios.get(
-      "https://test.intebsi.xyz/trusted-apps-registry/v3/apps"
+      "https://api-test.ebsi.eu/trusted-apps-registry/v3/apps"
     );
 
     // Expect a response from the local server
@@ -55,18 +55,18 @@ describe("setupInterceptors", () => {
   it("should not call the remote server if the local server responded with a status < 500", async () => {
     expect.assertions(1);
 
-    setupInterceptors("https://test.intebsi.xyz", "http://api.local");
+    setupInterceptors("https://api-test.ebsi.eu", "http://api.local");
 
     // Set up 2 mocked servers (local, remote)
     nock("http://api.local").get("/trusted-apps-registry/v3/apps").reply(401);
 
-    nock("https://test.intebsi.xyz")
+    nock("https://api-test.ebsi.eu")
       .get("/trusted-apps-registry/v3/apps")
       .reply(200, "remote");
 
     // Querying the remote server should be intercepted and return the 404 error from the local server
     await expect(() =>
-      axios.get("https://test.intebsi.xyz/trusted-apps-registry/v3/apps")
+      axios.get("https://api-test.ebsi.eu/trusted-apps-registry/v3/apps")
     ).rejects.toThrow("Request failed with status code 401");
   });
 
@@ -80,7 +80,7 @@ describe("setupInterceptors", () => {
     };
 
     setupInterceptors(
-      "https://test.intebsi.xyz",
+      "https://api-test.ebsi.eu",
       "http://api.local",
       logger as unknown as LoggerService
     );
@@ -90,13 +90,13 @@ describe("setupInterceptors", () => {
       .get("/trusted-apps-registry/v3/apps")
       .reply(500, "local");
 
-    nock("https://test.intebsi.xyz")
+    nock("https://api-test.ebsi.eu")
       .get("/trusted-apps-registry/v3/apps")
       .reply(200, "remote");
 
     // Query the remote server
     const response = await axios.get(
-      "https://test.intebsi.xyz/trusted-apps-registry/v3/apps"
+      "https://api-test.ebsi.eu/trusted-apps-registry/v3/apps"
     );
 
     // Expect a response from the remote server
@@ -110,12 +110,12 @@ describe("setupInterceptors", () => {
     expect(logger.verbose).toHaveBeenCalledTimes(2);
     expect(logger.verbose).toHaveBeenNthCalledWith(
       1,
-      "Replacing https://test.intebsi.xyz/trusted-apps-registry/v3/apps with http://api.local/trusted-apps-registry/v3/apps",
+      "Replacing https://api-test.ebsi.eu/trusted-apps-registry/v3/apps with http://api.local/trusted-apps-registry/v3/apps",
       "Axios Request Interceptor"
     );
     expect(logger.verbose).toHaveBeenNthCalledWith(
       2,
-      "Replacing http://api.local/trusted-apps-registry/v3/apps with https://test.intebsi.xyz/trusted-apps-registry/v3/apps",
+      "Replacing http://api.local/trusted-apps-registry/v3/apps with https://api-test.ebsi.eu/trusted-apps-registry/v3/apps",
       "Axios Response Interceptor"
     );
   });
@@ -130,7 +130,7 @@ describe("setupInterceptors", () => {
     };
 
     setupInterceptors(
-      "https://test.intebsi.xyz",
+      "https://api-test.ebsi.eu",
       "http://api.local",
       logger as unknown as LoggerService
     );
@@ -140,13 +140,13 @@ describe("setupInterceptors", () => {
       .get("/trusted-apps-registry/v3/apps")
       .reply(404, "local");
 
-    nock("https://test.intebsi.xyz")
+    nock("https://api-test.ebsi.eu")
       .get("/trusted-apps-registry/v3/apps")
       .reply(200, "remote");
 
     // Query the remote server
     const response = await axios.get(
-      "https://test.intebsi.xyz/trusted-apps-registry/v3/apps"
+      "https://api-test.ebsi.eu/trusted-apps-registry/v3/apps"
     );
 
     // Expect a response from the remote server
@@ -160,12 +160,12 @@ describe("setupInterceptors", () => {
     expect(logger.verbose).toHaveBeenCalledTimes(2);
     expect(logger.verbose).toHaveBeenNthCalledWith(
       1,
-      "Replacing https://test.intebsi.xyz/trusted-apps-registry/v3/apps with http://api.local/trusted-apps-registry/v3/apps",
+      "Replacing https://api-test.ebsi.eu/trusted-apps-registry/v3/apps with http://api.local/trusted-apps-registry/v3/apps",
       "Axios Request Interceptor"
     );
     expect(logger.verbose).toHaveBeenNthCalledWith(
       2,
-      "Replacing http://api.local/trusted-apps-registry/v3/apps with https://test.intebsi.xyz/trusted-apps-registry/v3/apps",
+      "Replacing http://api.local/trusted-apps-registry/v3/apps with https://api-test.ebsi.eu/trusted-apps-registry/v3/apps",
       "Axios Response Interceptor"
     );
   });
@@ -173,7 +173,7 @@ describe("setupInterceptors", () => {
   it("should not call the remote server if the local server responded with a status 404 and the response is a Problem Details error", async () => {
     expect.assertions(1);
 
-    setupInterceptors("https://test.intebsi.xyz", "http://api.local");
+    setupInterceptors("https://api-test.ebsi.eu", "http://api.local");
 
     // Set up 2 mocked servers (local, remote)
     nock("http://api.local").get("/trusted-apps-registry/v3/apps").reply(404, {
@@ -181,13 +181,13 @@ describe("setupInterceptors", () => {
       status: 404,
     });
 
-    nock("https://test.intebsi.xyz")
+    nock("https://api-test.ebsi.eu")
       .get("/trusted-apps-registry/v3/apps")
       .reply(200, "remote");
 
     // Querying the remote server should be intercepted and return the 404 error from the local server
     await expect(() =>
-      axios.get("https://test.intebsi.xyz/trusted-apps-registry/v3/apps")
+      axios.get("https://api-test.ebsi.eu/trusted-apps-registry/v3/apps")
     ).rejects.toThrow("Request failed with status code 404");
   });
 });

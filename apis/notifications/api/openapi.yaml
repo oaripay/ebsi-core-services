@@ -9,7 +9,7 @@ info:
     * Notification service can be used by any entity/user registered in the DID registry or
     application registered in the Trusted Applications Registry (TAR).
     * Entity or application is notified via its DID registered in the DID registry or TAR.
-  termsOfService: https://api-preprod.ebsi.eu/docs/terms
+  termsOfService: https://api-pilot.ebsi.eu/docs/terms
   contact:
     name: EBSI Support - Service Desk
     url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11
@@ -19,10 +19,12 @@ info:
 servers:
   - url: http://localhost
     description: Local Computer Environment
-  - url: https://api-preprod.ebsi.eu
-    description: EBSI Pre-production Environment
-  - url: https://api.ebsi.eu
-    description: EBSI Production Environment
+  - url: https://api-test.ebsi.eu
+    description: EBSI Test Environment
+  - url: https://api-pilot.ebsi.eu
+    description: EBSI Pilot Environment
+  - url: "https://api-conformance.ebsi.eu"
+    description: EBSI Conformance Environment
 paths:
   /notifications/v2/notifications:
     get:
@@ -351,7 +353,7 @@ paths:
                       conformance: 652ced8b-c834-4b1d-b823-fa4f2e5e7ecd
                       authorization: Bearer 32164be2809b7e8acdaf
                     body:
-                      type: https://api-test.ebsi.eu/trusted-schemas-registry/v1/schemas/0x1ee207961aba4a8ba018bacf3aaa338df9884d52e993468297e775a585abe4d8
+                      type: https://api-test.ebsi.eu/trusted-schemas-registry/v2/schemas/0x1ee207961aba4a8ba018bacf3aaa338df9884d52e993468297e775a585abe4d8
                       format: jwt_vc
                       did: did:ebsi:zaHbvRybDEwsick4MEJcbP7
                       proof:

@@ -11,7 +11,7 @@ export const mockAxiosGet = (authorisationApiPublicKey: string) =>
     .mockImplementation((url: string): Promise<Partial<AxiosResponse>> => {
       if (
         url ===
-        "https://test.intebsi.xyz/trusted-apps-registry/v3/apps/0x1111111111111111111111111111111111111111111111111111111111111111"
+        "https://api-test.ebsi.eu/trusted-apps-registry/v3/apps/0x1111111111111111111111111111111111111111111111111111111111111111"
       ) {
         return Promise.resolve({
           status: 200,
@@ -34,7 +34,7 @@ export const mockAxiosGet = (authorisationApiPublicKey: string) =>
 
       if (
         url ===
-        "https://test.intebsi.xyz/trusted-apps-registry/v3/apps?name=storage-api"
+        "https://api-test.ebsi.eu/trusted-apps-registry/v3/apps?name=storage-api"
       ) {
         return Promise.resolve({
           status: 200,
@@ -43,7 +43,7 @@ export const mockAxiosGet = (authorisationApiPublicKey: string) =>
               {
                 id: "0x1234",
                 name: "storage-api",
-                href: "https://test.intebsi.xyz/trusted-apps-registry/v3/apps/0x1234",
+                href: "https://api-test.ebsi.eu/trusted-apps-registry/v3/apps/0x1234",
               },
             ],
           },
@@ -52,7 +52,7 @@ export const mockAxiosGet = (authorisationApiPublicKey: string) =>
 
       if (
         url ===
-        "https://test.intebsi.xyz/trusted-apps-registry/v3/apps?name=test-app"
+        "https://api-test.ebsi.eu/trusted-apps-registry/v3/apps?name=test-app"
       ) {
         return Promise.resolve({
           status: 200,
@@ -61,7 +61,7 @@ export const mockAxiosGet = (authorisationApiPublicKey: string) =>
               {
                 id: "0x5678",
                 name: "test-api",
-                href: "https://test.intebsi.xyz/trusted-apps-registry/v3/apps/0x5678",
+                href: "https://api-test.ebsi.eu/trusted-apps-registry/v3/apps/0x5678",
               },
             ],
           },
@@ -70,7 +70,7 @@ export const mockAxiosGet = (authorisationApiPublicKey: string) =>
 
       if (
         url ===
-        "https://test.intebsi.xyz/trusted-apps-registry/v3/apps/0x1234/authorizations?requesterApplicationId=0x5678"
+        "https://api-test.ebsi.eu/trusted-apps-registry/v3/apps/0x1234/authorizations?requesterApplicationId=0x5678"
       ) {
         return Promise.resolve({
           status: 200,
@@ -79,7 +79,7 @@ export const mockAxiosGet = (authorisationApiPublicKey: string) =>
               {
                 authorizationId: "0x51dd",
                 requesterApplicationName: "test-api",
-                href: "https://test.intebsi.xyz/trusted-apps-registry/v3/apps/0x1234/authorizations/0x51dd",
+                href: "https://api-test.ebsi.eu/trusted-apps-registry/v3/apps/0x1234/authorizations/0x51dd",
               },
             ],
           },
@@ -88,7 +88,7 @@ export const mockAxiosGet = (authorisationApiPublicKey: string) =>
 
       if (
         url ===
-        "https://test.intebsi.xyz/trusted-apps-registry/v3/apps/0x1234/authorizations/0x51dd"
+        "https://api-test.ebsi.eu/trusted-apps-registry/v3/apps/0x1234/authorizations/0x51dd"
       ) {
         return Promise.resolve({
           status: 200,

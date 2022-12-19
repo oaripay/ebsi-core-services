@@ -252,7 +252,7 @@ docker run -i loadimpact/k6 run -e BASE_URL=http://host.docker.internal:3000 --n
 Note: you can also use k6 to test the remote API by configuring BASE_URL:
 
 ```sh
-BASE_URL=https://test.intebsi.xyz k6 run tests/k6/script.js --no-usage-report
+BASE_URL=https://api-test.ebsi.eu k6 run tests/k6/script.js --no-usage-report
 ```
 
 ## Cutting a new release

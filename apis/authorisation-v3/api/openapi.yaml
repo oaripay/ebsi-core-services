@@ -17,7 +17,7 @@ info:
     authorised there to access the requested protected resources, and
     successfully prove their private key ownership. We implement the
     Authenticated Key Exchange cryptographic identification protocol.
-  termsOfService: https://api-preprod.ebsi.eu/docs/terms
+  termsOfService: https://api-pilot.ebsi.eu/docs/terms
   contact:
     name: EBSI Support - Service Desk
     url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11
@@ -27,10 +27,12 @@ info:
 servers:
   - url: http://localhost
     description: Local Computer Environment
+  - url: https://api-test.ebsi.eu
+    description: EBSI Test Environment
   - url: https://api-pilot.ebsi.eu
     description: EBSI Pilot Environment
-  - url: https://api.ebsi.eu
-    description: EBSI Production Environment
+  - url: "https://api-conformance.ebsi.eu"
+    description: EBSI Conformance Environment
 tags:
   - name: OpenID Provider
     description: Groups OIDC related endpoints
