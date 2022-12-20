@@ -19,7 +19,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:unit": "jest --testPathIgnorePatterns=e2e",
-    "test:e2e": "jest --testPathPattern=tests/e2e",
+    "test:e2e": "jest --testPathPattern=tests/e2e --verbose",
     "test:ci": "yarn test:unit --coverage --reporters=default --reporters=jest-sonar"
   },
   "dependencies": {
