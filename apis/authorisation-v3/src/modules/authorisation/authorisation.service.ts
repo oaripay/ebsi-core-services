@@ -1,13 +1,17 @@
+import { JsonWebKey } from "node:crypto";
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type { ApiConfig } from "../../config/configuration";
-import type { OPMetadata } from "./authorisation.interfaces";
+import type { JsonWebKeySet, OPMetadata } from "./authorisation.interfaces";
+import { fromHexToJwk } from "./authorisation.utils";
 
 @Injectable()
 export class AuthorisationService {
   private issuer: string;
 
-  constructor(configService: ConfigService<ApiConfig, true>) {
+  private publicKey: JsonWebKey;
+
+  constructor(private configService: ConfigService<ApiConfig, true>) {
     const domain = configService.get<string>("domain");
     const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
     this.issuer = `${domain}${apiUrlPrefix}`;
@@ -27,10 +31,29 @@ export class AuthorisationService {
         // "tir_write",
         // "generic_write",
       ],
-      response_types_supported: ["vp_token code"],
+      response_types_supported: ["code"],
       subject_types_supported: ["public"],
       id_token_signing_alg_values_supported: ["none"],
       subject_syntax_types_supported: ["did:ebsi", "did:ebsinp"],
+    };
+  }
+
+  /**
+   * Load OP's ES256 signing key from environment and return it as JWK.
+   * Note: in the future, the keys will be dynamically generated and rolled every X minutes.
+   *
+   * @returns The OP's JWKS
+   */
+  getJwks(): JsonWebKeySet {
+    if (!this.publicKey) {
+      const hexPrivateKey =
+        this.configService.get<string>("apiES256PrivateKey");
+      this.publicKey = fromHexToJwk(hexPrivateKey);
+    }
+
+    // Return JWKS
+    return {
+      keys: [this.publicKey],
     };
   }
 }

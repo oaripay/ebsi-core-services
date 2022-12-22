@@ -67,12 +67,33 @@ describe("Authorisation Module", () => {
         pushed_authorization_request_endpoint: `${issuer}/par`,
         jwks_uri: `${issuer}/jwks`,
         scopes_supported: expect.arrayContaining(["openid"]),
-        response_types_supported: expect.arrayContaining(["vp_token code"]),
+        response_types_supported: expect.arrayContaining(["code"]),
         subject_types_supported: expect.arrayContaining(["public"]),
         id_token_signing_alg_values_supported: expect.arrayContaining(["none"]),
         subject_syntax_types_supported: expect.arrayContaining([
           "did:ebsi",
           "did:ebsinp",
+        ]),
+      });
+
+      expect(response.status).toBe(200);
+    });
+  });
+
+  describe("GET /jwks", () => {
+    it("should return the OP's JWKS", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get("/jwks");
+
+      expect(response.body).toStrictEqual({
+        keys: expect.arrayContaining([
+          {
+            kty: "EC",
+            crv: "P-256",
+            x: expect.any(String),
+            y: expect.any(String),
+          },
         ]),
       });
 

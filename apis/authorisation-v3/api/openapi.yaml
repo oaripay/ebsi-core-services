@@ -74,7 +74,7 @@ paths:
       description: |
         `request_uri` can only be paired with `client_id`
 
-        `response_type` as `vp_token code` will cause redirection towards wallet. Redirection is a Dynamic Credential Request,
+        `response_type` as `code` will cause redirection towards wallet. Redirection is a Dynamic Credential Request,
         which cointains information on how to sign the vp_token.
         Redirection can be populated with other parameters to carry information like `code_challenge` and `redirect_uri`.
 
@@ -227,11 +227,11 @@ components:
         response_type:
           type: string
           description: The OIDC flow to be used
-          example: vp_token code
+          example: code
         scope:
           type: string
           description: Request Type
-          example: openid vp_token code
+          example: openid code
         presentation_definition:
           type: string
           description: Instructions for presentation_submission and vp_token
@@ -482,7 +482,7 @@ components:
       description: OIDC Response Type
       schema:
         type: string
-        example: vp_token code
+        example: code
     scope:
       in: query
       name: scope

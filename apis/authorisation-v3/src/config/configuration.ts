@@ -5,6 +5,7 @@ import Joi from "joi";
 export interface ApiConfig {
   apiPort: number;
   apiDid: string;
+  apiES256PrivateKey: string;
   apiUrlPrefix: string;
   domain: string;
   localOrigin: string;
@@ -26,6 +27,7 @@ export const loadConfig = (): ApiConfig => {
   return {
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
     apiDid: process.env.API_DID,
+    apiES256PrivateKey: process.env.API_ES256_PRIVATE_KEY,
     apiUrlPrefix: process.env.API_URL_PREFIX || "/authorisation/v3",
     logLevel: process.env.LOG_LEVEL || "warn",
     domain: DOMAIN,
@@ -51,6 +53,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       .default("development"),
     API_PORT: Joi.string().default("3000"),
     API_DID: Joi.string().required(),
+    API_ES256_PRIVATE_KEY: Joi.string().required(),
     API_URL_PREFIX: Joi.string(),
     LOG_LEVEL: Joi.string().valid(
       "silent",

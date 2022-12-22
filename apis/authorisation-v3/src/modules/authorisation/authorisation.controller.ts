@@ -1,6 +1,6 @@
 import { Controller, Get, HttpCode } from "@nestjs/common";
 import { AuthorisationService } from "./authorisation.service";
-import type { OPMetadata } from "./authorisation.interfaces";
+import type { JsonWebKeySet, OPMetadata } from "./authorisation.interfaces";
 
 @Controller("/")
 export class AuthorisationController {
@@ -10,6 +10,12 @@ export class AuthorisationController {
   @Get("/.well-known/openid-configuration")
   getOPMetadata(): OPMetadata {
     return this.authorisationService.getOPMetadata();
+  }
+
+  @HttpCode(200)
+  @Get("/jwks")
+  getJwks(): JsonWebKeySet {
+    return this.authorisationService.getJwks();
   }
 }
 

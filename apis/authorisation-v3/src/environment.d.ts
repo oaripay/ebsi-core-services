@@ -4,6 +4,7 @@ declare global {
     interface ProcessEnv {
       NODE_ENV: "development" | "production" | "test";
       API_DID: string;
+      API_ES256_PRIVATE_KEY: string;
       API_PORT?: string;
       API_URL_PREFIX?: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";

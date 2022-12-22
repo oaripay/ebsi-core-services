@@ -15,7 +15,6 @@ import { getServer } from "../utils/getServer";
 describe("Authorisation (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer | string;
-  let apiDid: string;
   let configService: ConfigService<ApiConfig, true>;
 
   beforeAll(async () => {
@@ -39,8 +38,6 @@ describe("Authorisation (e2e)", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
 
     server = getServer(app, configService);
-
-    apiDid = configService.get<string>("apiDid");
   });
 
   describe("GET /.well-known/openid-configuration", () => {
@@ -62,11 +59,33 @@ describe("Authorisation (e2e)", () => {
         pushed_authorization_request_endpoint: `${issuer}/par`,
         jwks_uri: `${issuer}/jwks`,
         scopes_supported: expect.arrayContaining(["openid"]),
+        response_types_supported: expect.arrayContaining(["code"]),
         subject_types_supported: expect.arrayContaining(["public"]),
         id_token_signing_alg_values_supported: expect.arrayContaining(["none"]),
         subject_syntax_types_supported: expect.arrayContaining([
           "did:ebsi",
           "did:ebsinp",
+        ]),
+      });
+
+      expect(response.status).toBe(200);
+    });
+  });
+
+  describe("GET /jwks", () => {
+    it("should return the OP's JWKS", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get("/jwks");
+
+      expect(response.body).toStrictEqual({
+        keys: expect.arrayContaining([
+          {
+            kty: "EC",
+            crv: "P-256",
+            x: expect.any(String),
+            y: expect.any(String),
+          },
         ]),
       });
 

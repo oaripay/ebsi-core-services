@@ -1,4 +1,8 @@
+import type { JsonWebKey } from "node:crypto";
+
 /**
+ * OpenID Provider (OP) Metadata
+ *
  * Specs:
  * - https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
  * - https://www.ietf.org/archive/id/draft-ietf-oauth-par-03.html#section-5
@@ -148,6 +152,16 @@ export interface OPMetadata {
    * sending did without any method-name.
    */
   subject_syntax_types_supported: string[];
+}
+
+/**
+ * JWK Set
+ *
+ * Specs:
+ * - https://www.rfc-editor.org/rfc/rfc7517.html#section-5
+ */
+export interface JsonWebKeySet {
+  keys: JsonWebKey[];
 }
 
 export default OPMetadata;
