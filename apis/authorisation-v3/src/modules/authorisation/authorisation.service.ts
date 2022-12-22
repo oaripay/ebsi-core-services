@@ -1,33 +1,36 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type { ApiConfig } from "../../config/configuration";
-import type { OpenIdConfiguration } from "./authorisation.interfaces";
+import type { OPMetadata } from "./authorisation.interfaces";
 
 @Injectable()
 export class AuthorisationService {
-  private apiDid: string;
+  private issuer: string;
 
   constructor(configService: ConfigService<ApiConfig, true>) {
-    this.apiDid = configService.get<string>("apiDid");
+    const domain = configService.get<string>("domain");
+    const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
+    this.issuer = `${domain}${apiUrlPrefix}`;
   }
 
-  getOpenIdConfiguration(): OpenIdConfiguration {
+  getOPMetadata(): OPMetadata {
     return {
-      issuer: this.apiDid,
-      authorization_endpoint: "",
-      token_endpoint: "",
-      userinfo_endpoint: "",
-      jwks_uri: "",
-      scopes_supported: "",
-      response_types_supported: "",
-      response_modes_supported: "",
-      grant_types_supported: "",
-      subject_types_supported: "",
-      id_token_signing_alg_values_supported: "",
-      userinfo_signing_alg_values_supported: "",
-      request_object_signing_alg_values_supported: "",
-      request_parameter_supported: true,
-      request_uri_parameter_supported: true,
+      issuer: this.issuer,
+      authorization_endpoint: `${this.issuer}/authorize`,
+      token_endpoint: `${this.issuer}/token`,
+      pushed_authorization_request_endpoint: `${this.issuer}/par`,
+      jwks_uri: `${this.issuer}/jwks`,
+      scopes_supported: [
+        "openid",
+        // TODO: uncomment the following scopes once they're supported
+        // "did_write",
+        // "tir_write",
+        // "generic_write",
+      ],
+      response_types_supported: ["vp_token code"],
+      subject_types_supported: ["public"],
+      id_token_signing_alg_values_supported: ["none"],
+      subject_syntax_types_supported: ["did:ebsi", "did:ebsinp"],
     };
   }
 }

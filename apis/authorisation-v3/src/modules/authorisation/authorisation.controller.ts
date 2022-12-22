@@ -1,6 +1,6 @@
 import { Controller, Get, HttpCode } from "@nestjs/common";
 import { AuthorisationService } from "./authorisation.service";
-import type { OpenIdConfiguration } from "./authorisation.interfaces";
+import type { OPMetadata } from "./authorisation.interfaces";
 
 @Controller("/")
 export class AuthorisationController {
@@ -8,8 +8,8 @@ export class AuthorisationController {
 
   @HttpCode(200)
   @Get("/.well-known/openid-configuration")
-  wellKnownOpenIdConfiguration(): OpenIdConfiguration {
-    return this.authorisationService.getOpenIdConfiguration();
+  getOPMetadata(): OPMetadata {
+    return this.authorisationService.getOPMetadata();
   }
 }
 

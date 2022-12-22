@@ -165,7 +165,6 @@ paths:
                 $ref: "#/components/schemas/token_response"
         "4XX":
           $ref: "#/components/responses/oidc_error"
-
 components:
   schemas:
     request_uri:
@@ -329,43 +328,59 @@ components:
             provided. When used, the bare key values MUST still be present and MUST
             match those in the certificate.
         scopes_supported:
-          type: string
+          type: array
+          items:
+            type: string
           description: |
             JSON array containing a list of the OAuth 2.0 [RFC6749] scope
             values that this server supports
         response_types_supported:
-          type: string
+          type: array
+          items:
+            type: string
           description: |
             JSON array containing a list of the OAuth 2.0 response_type
             values that this OP supports
         response_modes_supported:
-          type: string
+          type: array
+          items:
+            type: string
           description: |
             JSON array containing a list of the OAuth 2.0 response_mode
             values that this OP supports
         grant_types_supported:
-          type: string
+          type: array
+          items:
+            type: string
           description: |
             JSON array containing a list of the OAuth 2.0 Grant Type values
             that this OP supports
         subject_types_supported:
-          type: string
+          type: array
+          items:
+            type: string
           description: |
             JSON array containing a list of the Subject Identifier types
             that this OP supports
         id_token_signing_alg_values_supported:
-          type: string
+          type: array
+          items:
+            type: string
           description: |
             JSON array containing a list of the JWS signing algorithms (alg
             values) supported by the OP for the ID Token to encode the Claims in a JWT
         userinfo_signing_alg_values_supported:
-          type: string
+          type: array
+          items:
+            type: string
           description: |
             JSON array containing a list of the JWS signing algorithms (alg
             values) [JWA] supported by the UserInfo Endpoint to encode the Claims in a
             JWT
         request_object_signing_alg_values_supported:
-          type: string
+          type: array
+          items:
+            type: string
           description: |
             JSON array containing a list of the JWS signing algorithms (alg
             values) supported by the OP for Request Objects
@@ -392,16 +407,21 @@ components:
                   items:
                     type: string
                   example: ["ES256"]
-
+        subject_syntax_types_supported:
+          type: array
+          items:
+            type: string
+          description: |
+            A JSON array of strings representing URI scheme identifiers and optionally method names
+            of supported Subject Syntax Types.
       required:
         - issuer
         - authorization_endpoint
-        - pushed_authorization_request_endpoint
         - jwks_uri
         - response_types_supported
         - subject_types_supported
         - id_token_signing_alg_values_supported
-
+        - subject_syntax_types_supported
   responses:
     oidc_error:
       description: OIDC Error Response
@@ -425,7 +445,6 @@ components:
                 description: JSON integer denoting the lifetime in seconds of the c_nonce.
                 type: integer
                 example: 300
-
   parameters:
     vp_token:
       in: query

@@ -47,26 +47,27 @@ describe("Authorisation (e2e)", () => {
     it("should return the well-known OpenID configuration", async () => {
       expect.assertions(2);
 
+      const domain = configService.get<string>("domain");
+      const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
+      const issuer = `${domain}${apiUrlPrefix}`;
+
       const response = await request(server).get(
         "/.well-known/openid-configuration"
       );
 
       expect(response.body).toStrictEqual({
-        issuer: apiDid,
-        authorization_endpoint: "",
-        token_endpoint: "",
-        userinfo_endpoint: "",
-        jwks_uri: "",
-        scopes_supported: "",
-        response_types_supported: "",
-        response_modes_supported: "",
-        grant_types_supported: "",
-        subject_types_supported: "",
-        id_token_signing_alg_values_supported: "",
-        userinfo_signing_alg_values_supported: "",
-        request_object_signing_alg_values_supported: "",
-        request_parameter_supported: true,
-        request_uri_parameter_supported: true,
+        issuer: expect.any(String),
+        authorization_endpoint: `${issuer}/authorize`,
+        token_endpoint: `${issuer}/token`,
+        pushed_authorization_request_endpoint: `${issuer}/par`,
+        jwks_uri: `${issuer}/jwks`,
+        scopes_supported: expect.arrayContaining(["openid"]),
+        subject_types_supported: expect.arrayContaining(["public"]),
+        id_token_signing_alg_values_supported: expect.arrayContaining(["none"]),
+        subject_syntax_types_supported: expect.arrayContaining([
+          "did:ebsi",
+          "did:ebsinp",
+        ]),
       });
 
       expect(response.status).toBe(200);
