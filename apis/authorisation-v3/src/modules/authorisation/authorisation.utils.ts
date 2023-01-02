@@ -29,6 +29,7 @@ export function fromHexToJwk(hexPrivateKey: string): JsonWebKey {
   const jwk: JsonWebKey = {
     kty: "EC",
     crv: "P-256",
+    alg: "ES256",
     x: base64url.encode(pubPoint.getX().toBuffer("be", 32)),
     y: base64url.encode(pubPoint.getY().toBuffer("be", 32)),
   };

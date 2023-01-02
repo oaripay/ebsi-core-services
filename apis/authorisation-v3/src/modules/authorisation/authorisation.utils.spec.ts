@@ -14,12 +14,13 @@ describe("fromHexToJwk", () => {
     expect(jwk).toStrictEqual({
       crv: "P-256",
       kty: "EC",
+      alg: "ES256",
       x: "Dwo0EeTNBL-YGCsQ3upWFVvapcx5MsHtMjk3Q3KAPqs",
       y: "KWRHbc2TXlMEngo6YfD5vJcv7c3DbsZ4g-gigDuw3AU",
     });
 
     // Verify that we can import the JWK in jose
-    await expect(importJWK(jwk, "ES256")).resolves.not.toThrow();
+    await expect(importJWK(jwk)).resolves.not.toThrow();
   });
 
   it("should throw an error when the given private key is empty", () => {

@@ -91,6 +91,7 @@ describe("Authorisation Module", () => {
           {
             kty: "EC",
             crv: "P-256",
+            alg: "ES256",
             x: expect.any(String),
             y: expect.any(String),
           },
