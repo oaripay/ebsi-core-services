@@ -7,6 +7,7 @@ declare global {
       API_ES256_PRIVATE_KEY: string;
       API_PORT?: string;
       API_URL_PREFIX?: string;
+      OID_SCHEMA_PATTERN: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
       DOCKER_TAG?: string;
       DOMAIN: string;

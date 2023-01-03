@@ -228,7 +228,7 @@ components:
           format: uri
           description: |
             An absolute URI that identifies the specific occurrence of the problem. It may or may
-            not yield further information if dereferenced.         type: string
+            not yield further information if dereferenced.
     AuthenticationRequest:
       title: SIOP Authentication Request
       description: Request to initiate a SIOP authentication process.

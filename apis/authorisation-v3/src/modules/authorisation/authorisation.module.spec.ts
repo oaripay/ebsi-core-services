@@ -7,9 +7,11 @@ import { ConfigService } from "@nestjs/config";
 import { FastifyAdapter } from "@nestjs/platform-fastify";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
+import type { PresentationDefinitionV2 } from "@sphereon/pex-models";
 import { AuthorisationModule } from "./authorisation.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import type { ApiConfig } from "../../config/configuration";
+import type { Scope } from "./authorisation.interfaces";
 
 describe("Authorisation Module", () => {
   let app: INestApplication;
@@ -65,6 +67,7 @@ describe("Authorisation Module", () => {
         authorization_endpoint: `${issuer}/authorize`,
         token_endpoint: `${issuer}/token`,
         pushed_authorization_request_endpoint: `${issuer}/par`,
+        presentation_definition_endpoint: `${issuer}/presentation-definitions`,
         jwks_uri: `${issuer}/jwks`,
         scopes_supported: expect.arrayContaining(["openid"]),
         response_types_supported: expect.arrayContaining(["code"]),
@@ -98,6 +101,124 @@ describe("Authorisation Module", () => {
         ]),
       });
 
+      expect(response.status).toBe(200);
+    });
+  });
+
+  describe("GET /presentation-definitions", () => {
+    it("should return an error if the scope is invalid", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get(
+        "/presentation-definitions?scope=test"
+      );
+
+      expect(response.body).toStrictEqual({
+        detail:
+          '["scope must be one of the following values: openid, did_write, tir_write, generic_write"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should return the expected presentation definition for the given scope", async () => {
+      expect.assertions(10);
+
+      const expectedPresentationDefinitions: Record<
+        Scope,
+        PresentationDefinitionV2
+      > = {
+        openid: {
+          id: "openid_presentation",
+          input_descriptors: [
+            {
+              id: "Any type of Verifiable Attestation",
+              name: "Any type of Verifiable Attestation",
+              purpose: "Please present a valid Verifiable Attestation",
+              constraints: {
+                fields: [
+                  {
+                    path: ["$.vc.credentialSchema.id"],
+                    filter: {
+                      type: "string",
+                      pattern: configService.get<string>("oidSchemaPattern"),
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+          format: {
+            jwt_vc: {
+              alg: ["ES256", "ES256K"],
+            },
+            jwt_vp: {
+              alg: ["ES256", "ES256K"],
+            },
+          },
+        },
+        did_write: {
+          id: "did_write_presentation",
+          input_descriptors: [],
+        },
+        tir_write: {
+          id: "tir_write_presentation",
+          input_descriptors: [],
+        },
+        generic_write: {
+          id: "generic_write_presentation",
+          input_descriptors: [],
+        },
+      };
+
+      // 1. Without explicit scope (default scope: "openid")
+      let response = await request(server).get("/presentation-definitions");
+
+      expect(response.body).toStrictEqual(
+        expectedPresentationDefinitions.openid
+      );
+      expect(response.status).toBe(200);
+
+      // 2. With explicit scope "openid"
+      response = await request(server).get(
+        "/presentation-definitions?scope=openid"
+      );
+
+      expect(response.body).toStrictEqual(
+        expectedPresentationDefinitions.openid
+      );
+      expect(response.status).toBe(200);
+
+      // 3. With explicit scope "did_write"
+      response = await request(server).get(
+        "/presentation-definitions?scope=did_write"
+      );
+
+      expect(response.body).toStrictEqual(
+        expectedPresentationDefinitions.did_write
+      );
+      expect(response.status).toBe(200);
+
+      // 4. With explicit scope "tir_write"
+      response = await request(server).get(
+        "/presentation-definitions?scope=tir_write"
+      );
+
+      expect(response.body).toStrictEqual(
+        expectedPresentationDefinitions.tir_write
+      );
+      expect(response.status).toBe(200);
+
+      // 5. With explicit scope "generic_write"
+      response = await request(server).get(
+        "/presentation-definitions?scope=generic_write"
+      );
+
+      expect(response.body).toStrictEqual(
+        expectedPresentationDefinitions.generic_write
+      );
       expect(response.status).toBe(200);
     });
   });

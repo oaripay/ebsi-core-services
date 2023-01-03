@@ -7,6 +7,7 @@ export interface ApiConfig {
   apiDid: string;
   apiES256PrivateKey: string;
   apiUrlPrefix: string;
+  oidSchemaPattern: string;
   domain: string;
   localOrigin: string;
   logLevel: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
@@ -29,6 +30,7 @@ export const loadConfig = (): ApiConfig => {
     apiDid: process.env.API_DID,
     apiES256PrivateKey: process.env.API_ES256_PRIVATE_KEY,
     apiUrlPrefix: process.env.API_URL_PREFIX || "/authorisation/v3",
+    oidSchemaPattern: process.env.OID_SCHEMA_PATTERN,
     logLevel: process.env.LOG_LEVEL || "warn",
     domain: DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
@@ -55,6 +57,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     API_DID: Joi.string().required(),
     API_ES256_PRIVATE_KEY: Joi.string().required(),
     API_URL_PREFIX: Joi.string(),
+    OID_SCHEMA_PATTERN: Joi.string().required(),
     LOG_LEVEL: Joi.string().valid(
       "silent",
       "error",

@@ -1,4 +1,7 @@
 import type { JsonWebKey } from "node:crypto";
+import { SUPPORTED_SCOPES } from "./authorisation.constants";
+
+export type Scope = typeof SUPPORTED_SCOPES[number];
 
 /**
  * OpenID Provider (OP) Metadata
@@ -9,6 +12,7 @@ import type { JsonWebKey } from "node:crypto";
  * - https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#section-8.1
  * - https://openid.net/specs/openid-connect-self-issued-v2-1_0.html#section-9.2.3
  * - https://ec.europa.eu/digital-building-blocks/wikis/display/BLOCKCHAININT/OpenAPI+specification+-+Onboarding+and+accreditations+for+EBSI+Authentication+service
+ * - https://ec.europa.eu/digital-building-blocks/wikis/display/BLOCKCHAININT/RFC+-+EBSI+Platform+Identity+and+Access+Management#RFCEBSIPlatformIdentityandAccessManagement-PresentationDefinition
  */
 export interface OPMetadata {
   /**
@@ -43,6 +47,12 @@ export interface OPMetadata {
   pushed_authorization_request_endpoint?: string;
 
   /**
+   * The URL of the presentation definition endpoint at which the client can get the presentation
+   * definition requirements.
+   */
+  presentation_definition_endpoint?: string;
+
+  /**
    * REQUIRED. URL of the OP's JSON Web Key Set document. This contains the signing key(s) the RP
    * uses to validate signatures from the OP. The JWK Set MAY also contain the Server's encryption
    * key(s), which are used by RPs to encrypt requests to the Server. When both signing and
@@ -61,7 +71,7 @@ export interface OPMetadata {
    * some supported scope values even when this parameter is used, although those defined in
    * OpenID.Core SHOULD be listed, if supported.
    */
-  scopes_supported?: string[];
+  scopes_supported?: Scope[];
 
   /**
    * REQUIRED. JSON array containing a list of the OAuth 2.0 `response_type` values that this OP

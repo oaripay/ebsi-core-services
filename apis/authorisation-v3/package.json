@@ -50,6 +50,7 @@
     "@nestjs/cli": "^9.1.5",
     "@nestjs/schematics": "^9.0.1",
     "@nestjs/testing": "^9.2.1",
+    "@sphereon/pex-models": "^1.1.0",
     "@stoplight/spectral-cli": "^6.6.0",
     "@tsconfig/node16": "^1.0.3",
     "@types/elliptic": "^6.4.14",
