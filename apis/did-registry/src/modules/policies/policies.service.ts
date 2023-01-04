@@ -41,7 +41,7 @@ export class PoliciesService {
       "base64"
     );
 
-    //  sha2-256 multihash from hash, encoded in mutlibase base16
+    //  sha2-256 multihash from hash, encoded in multibase base16
     const multihash = multibase.base16.encode(
       multihashEncode(rawPolicyHash, "sha2-256", 32)
     );

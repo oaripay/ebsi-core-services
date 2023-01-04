@@ -7,12 +7,12 @@ Notifications API is an EBSI core service that helps to send async or delayed no
 - Notification service can be used by any entity/user registered in the DID registry or application registered in the Trusted Applications Registry (TAR).
 - Entity or application is notified via its DID registered in the DID registry or TAR.
 
-For more information see:
+For more information, see:
 
 - [Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/x/WIiWFQ)
 - API catalogs:
-  - [EBSI Pre-production network API Catalog](https://api.preprod.ebsi.eu/docs)
-  - [EBSI Production network API Catalog](https://api.ebsi.eu/docs)
+  - [EBSI Pilot network API Catalog](https://api-pilot.ebsi.eu/docs/apis)
+  - [EBSI Conformance network API Catalog](https://api-conformance.ebsi.eu/docs/apis)
 
 ## Service configuration
 

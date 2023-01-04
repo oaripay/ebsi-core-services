@@ -9,14 +9,14 @@ Trusted Apps Registry (TAR) API is an EBSI core service. It enables us to intera
 - obtain application information
 - obtain application authorisations
 
-For more information see:
+For more information, see:
 
 - [TAR API Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/x/SoiWFQ)
 - [TAR Smart Contract Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/x/rIiWFQ)
 - [TAR Smart Contract](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/browse/contracts/trusted-apps-registry)
 - API catalogs:
-  - [EBSI Pre-production network API Catalog](https://api.preprod.ebsi.eu/docs)
-  - [EBSI Production network API Catalog](https://api.ebsi.eu/docs)
+  - [EBSI Pilot network API Catalog](https://api-pilot.ebsi.eu/docs/apis)
+  - [EBSI Conformance network API Catalog](https://api-conformance.ebsi.eu/docs/apis)
 
 ## Service configuration
 

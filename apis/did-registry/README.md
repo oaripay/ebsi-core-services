@@ -12,14 +12,14 @@ It enables consumers to interact with the DID Registry Smart Contract to:
 - Resolve a DID (and obtain a DID Document)
 - Resolve a version of a DID Document at a certain point in time
 
-For more information see:
+For more information, see:
 
 - [Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/x/MYiWFQ)
 - [DID Registry Smart Contract Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/x/AofkFQ)
 - [DID Registry Smart Contract](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/browse/contracts/did-registry)
 - API catalogs:
-  - [EBSI Pre-production network API Catalog](https://api.preprod.ebsi.eu/docs)
-  - [EBSI Production network API Catalog](https://api.ebsi.eu/docs)
+  - [EBSI Pilot network API Catalog](https://api-pilot.ebsi.eu/docs/apis)
+  - [EBSI Conformance network API Catalog](https://api-conformance.ebsi.eu/docs/apis)
 
 ## Service configuration
 

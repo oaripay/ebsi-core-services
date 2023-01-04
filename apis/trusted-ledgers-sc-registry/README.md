@@ -11,15 +11,15 @@ Trusted Ledgers & Smart Contracts Registry (TLSCR) API is an EBSI core service. 
 
 TLSCR API is a microservice, hosted on the EBSI infrastructure.
 
-For more information see:
+For more information, see:
 
 - [Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/x/UYiWFQ)
 - [Smart Contract Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/x/uoiWFQ)
 - [Smart Contract](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/browse/contracts/trusted-ledgers-sc-registry)
 
 - API catalogs:
-  - [EBSI Pre-production network API Catalog](https://api.preprod.ebsi.eu/docs)
-  - [EBSI Production network API Catalog](https://api.ebsi.eu/docs)
+  - [EBSI Pilot network API Catalog](https://api-pilot.ebsi.eu/docs/apis)
+  - [EBSI Conformance network API Catalog](https://api-conformance.ebsi.eu/docs/apis)
 
 ## Service configuration
 

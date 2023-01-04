@@ -30,9 +30,6 @@ pipeline {
             when {
                 expression { params.api == 'all' || params.api.contains('authorisation-api')}
             }
-            environment {
-                API_PRIVATE_KEY=credentials('API_AUTHORISATION_PRIVATE_KEY')
-            }
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
                     nodejs(nodeJSInstallationName: '16.17.1') {
@@ -51,9 +48,6 @@ pipeline {
         stage('Did-Registry-Api') {
             when {
                 expression { params.api == 'all' || params.api.contains('did-registry-api')}
-            }
-            environment {
-                API_PRIVATE_KEY=credentials('TEST_DID_API_PRIVATE_KEY')
             }
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
@@ -93,9 +87,6 @@ pipeline {
             when {
                 expression { params.api == 'all' || params.api.contains('notification-api')}
             }
-            environment {
-                API_PRIVATE_KEY=credentials('NOTIFICATION_API_PRIVATE_KEY')
-            }
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
                     nodejs(nodeJSInstallationName: '16.17.1') {
@@ -114,9 +105,6 @@ pipeline {
         stage('Proxy-Data-Hub-Api') {
             when {
                 expression { params.api == 'all' || params.api.contains('proxy-data-hub-api')}
-            }
-            environment {
-                API_PRIVATE_KEY=credentials('PROXY_API_PRIVATE_KEY')
             }
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
@@ -194,9 +182,6 @@ pipeline {
             when {
                 expression { params.api == 'all' || params.api.contains('trusted-issuers-registry-api')}
             }
-            environment {
-                API_PRIVATE_KEY=credentials('APP_PRIVATE_KEY_TRUSTED_ISSUERS')
-            }
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
                     nodejs(nodeJSInstallationName: '16.17.1') {
@@ -215,9 +200,6 @@ pipeline {
         stage('Trusted-ledgers-registry-Api') {
             when {
                 expression { params.api == 'all' || params.api.contains('trusted-ledgers-sc-registry-api')}
-            }
-            environment {
-                API_PRIVATE_KEY=credentials('TLR_API_PRIVATE_KEY')
             }
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
@@ -238,9 +220,6 @@ pipeline {
             when {
                 expression { params.api == 'all' || params.api.contains('trusted-policies-registry-api')}
             }
-            environment {
-                API_PRIVATE_KEY=credentials('TPR_API_PRIVATE_KEY')
-            }
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
                     nodejs(nodeJSInstallationName: '16.17.1') {
@@ -260,9 +239,6 @@ pipeline {
             when {
                 expression { params.api == 'all' || params.api.contains('trusted-schemas-registry-api')}
             }
-            environment {
-                API_PRIVATE_KEY=credentials('TSR_API_PRIVATE_KEY')
-            }
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
                     nodejs(nodeJSInstallationName: '16.17.1') {
@@ -281,9 +257,6 @@ pipeline {
         stage('Users-onboarding-Api') {
             when {
                 expression { params.api == 'all' || params.api.contains('users-onboarding-api')}
-            }
-            environment {
-                API_PRIVATE_KEY=credentials('TEST_ONBOARDING_API_PRIVATE_KEY')
             }
             steps {
                 catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){

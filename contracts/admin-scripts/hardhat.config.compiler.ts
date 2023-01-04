@@ -5,7 +5,6 @@ import "hardhat-deploy";
 import "hardhat-deploy-ethers";
 import "hardhat-abi-exporter";
 import "solidity-coverage";
-import "@tenderly/hardhat-tenderly";
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomiclabs/hardhat-etherscan";
 

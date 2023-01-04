@@ -6,7 +6,6 @@ import "hardhat-deploy";
 import "hardhat-deploy-ethers";
 import "hardhat-abi-exporter";
 import "solidity-coverage";
-import "@tenderly/hardhat-tenderly";
 import "./tasks/index";
 import { HardhatUserConfig } from "hardhat/config";
 import * as fs from "node:fs";

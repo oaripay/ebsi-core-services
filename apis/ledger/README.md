@@ -12,12 +12,12 @@ EBSI V2 Ledger API provides capabilities to interact (Read and Write) with Hyper
 
 As a general principle, only EBSI core service API, acting as JSON-RPC proxy for the end-users can have access to the Ledger API JSON RPC Proxy, meaning end-users have no direct access to the EBSI Ledgers clients software running on MS nodes.
 
-For more information see:
+For more information, see:
 
 - [Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/x/V4iWFQ)
 - API catalogs:
-  - [EBSI Pre-production network API Catalog](https://api.preprod.ebsi.eu/docs)
-  - [EBSI Production network API Catalog](https://api.ebsi.eu/docs)
+  - [EBSI Pilot network API Catalog](https://api-pilot.ebsi.eu/docs/apis)
+  - [EBSI Conformance network API Catalog](https://api-conformance.ebsi.eu/docs/apis)
 
 ## Service configuration
 

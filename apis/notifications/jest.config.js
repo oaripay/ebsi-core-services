@@ -1,24 +1,27 @@
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+/* eslint-disable @typescript-eslint/no-var-requires */
 const path = require("path");
 
+/** @type {import('ts-jest').JestConfigWithTsJest} */
 module.exports = {
-  preset: "ts-jest",
+  testTimeout: 90000,
+  maxConcurrency: 1,
   testEnvironment: "node",
   injectGlobals: false,
   rootDir: ".",
   roots: ["<rootDir>/src/", "<rootDir>/tests/"],
   testMatch: ["**/?(*.|*-)+(spec|test).ts"],
   transform: {
-    "^.+\\.(t|j)s$": "ts-jest",
+    "^.+\\.[tj]sx?$": ["ts-jest", { tsconfig: "<rootDir>/tsconfig.test.json" }],
   },
+  transformIgnorePatterns: ["/node_modules/", "/apis/shared/dist/"],
   moduleFileExtensions: ["js", "json", "ts"],
   coverageDirectory: "./coverage/",
-  collectCoverageFrom: ["src/**/*.(t|j)s", "!**/*.d.ts", "!src/main.ts"],
+  collectCoverageFrom: [
+    "src/**/*.(t|j)s",
+    "!**/*.d.ts",
+    "!src/main.ts",
+    "!src/logger/logger.ts",
+  ],
   coverageReporters: ["text", "lcov", "json", "clover", "cobertura"],
   resolver: path.resolve(__dirname, "../../jest-resolver.js"),
-  globals: {
-    "ts-jest": {
-      tsconfig: "tsconfig.test.json",
-    },
-  },
 };

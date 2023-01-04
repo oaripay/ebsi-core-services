@@ -1,36 +1,11 @@
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const path = require("path");
-
+// Puppeteer config
+// See: https://github.com/smooth-code/jest-puppeteer#jest-puppeteerconfigjs
 module.exports = {
-  preset: "./jest-puppeteer.preset.js",
-  testTimeout: 120000,
-  rootDir: ".",
-  roots: ["<rootDir>/src/", "<rootDir>/tests/"],
-  testMatch: ["**/?(*.|*-)+(spec|test).ts"],
-  transform: {
-    "^.+\\.(t|j)s$": "ts-jest",
+  /** @type {import('puppeteer').LaunchOptions} */
+  launch: {
+    dumpio: false,
+    headless: process.env.HEADLESS !== "false",
+    product: "chrome",
   },
-  moduleFileExtensions: ["js", "json", "ts"],
-  coverageDirectory: "./coverage/",
-  collectCoverageFrom: [
-    "src/**/*.(t|j)s",
-    "!src/contracts/**/*.(t|j)s",
-    "!src/main.ts",
-    "!**/*.d.ts",
-  ],
-  coverageReporters: ["text", "lcov", "json", "clover", "cobertura"],
-  moduleNameMapper: {
-    "^jose/(.*)$": "<rootDir>/node_modules/jose/dist/node/cjs/$1",
-  },
-  resolver: path.resolve(__dirname, "../../jest-resolver.js"),
-  globals: {
-    "ts-jest": {
-      tsconfig: "tsconfig.test.json",
-    },
-  },
-  // Puppeteer config
-  // Un-comment the following lines to see the browser window
-  // launch: {
-  //   headless: false,
-  // },
+  browserContext: "default",
 };

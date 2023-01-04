@@ -10,13 +10,13 @@ TIR smart contract is deployed on the permissioned EBSI ledger that has the adva
 
 The TIR service consists of a smart contract (TIR SC) and API (TIR API). The TIR SC is an Ethereum SC is deployed on the EBSI ledger. All public smart contract methods are exposed via APIs. Two types of APIs are delivered, JSON-RPC for write and REST for the read operations. The TIR API enables to manage and verify Trusted Issuers information and accreditations. Accreditation of trusted issuers domain-specific and is outside the EBSI scope.
 
-For more information see:
+For more information, see:
 
 - [TIR API Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/x/S4iWFQ)
 - [TIR Smart Contract Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/x/tYiWFQ)
 - API catalogs:
-  - [EBSI Pre-production network API Catalog](https://api.preprod.ebsi.eu/docs)
-  - [EBSI Production network API Catalog](https://api.ebsi.eu/docs)
+  - [EBSI Pilot network API Catalog](https://api-pilot.ebsi.eu/docs/apis)
+  - [EBSI Conformance network API Catalog](https://api-conformance.ebsi.eu/docs/apis)
 
 ## Service configuration
 

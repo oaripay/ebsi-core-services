@@ -73,13 +73,14 @@ describe("EU Login onboarding", () => {
   });
 
   it("should allow any EU Login user to onboard", async () => {
-    expect.assertions(19);
+    expect.assertions(11); // Note: expectPuppeteer doesn't count
 
     // 0 - Use puppeteer to get EU Login ticket
     const euLoginUsername = configService.get<string>("testEuLoginUsername");
     const euLoginPassword = configService.get<string>("testEuLoginPassword");
 
     // Let all the requests pass except [Users Onboarding App]/authentication?ticket=...
+    let ticket = "";
     await page.setRequestInterception(true);
     page.on("request", (req: Request) => {
       if (
@@ -87,6 +88,12 @@ describe("EU Login onboarding", () => {
       ) {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         req.continue();
+      } else {
+        ticket = req
+          .url()
+          .replace(`${usersOnboardingAppUrl}/authentication?ticket=`, "");
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        req.abort();
       }
     });
 
@@ -100,39 +107,50 @@ describe("EU Login onboarding", () => {
 
     await page.waitForNavigation({ waitUntil: "networkidle0" });
 
+    // EU Login's body element is hidden by default. Wait until it becomes visible.
+    await page.waitForSelector("body", { visible: true });
+
     // On EU Login Acceptance, the message is: "EBSI requires you to authenticate"
     // On EU Login Prod, the message is "EBSI Users Onboarding Service v2 requires you to authenticate"
     await expectPuppeteer(page).toMatch("requires you to authenticate");
 
-    await page.waitForTimeout(10000); // EU Login can be very slow to load...
+    await page.waitForSelector('form[id="whoamiForm"]');
 
     await expectPuppeteer(page).toFillForm('form[id="whoamiForm"]', {
       username: euLoginUsername,
     });
-    await page.waitForTimeout(300);
+
+    await page.waitForSelector('button[title="Next"]:not([disabled])');
+
     await expectPuppeteer(page).toClick("button", { text: "Next" });
 
     await page.waitForNavigation();
 
+    await page.waitForSelector("body", { visible: true });
+
     await expectPuppeteer(page).toMatch(euLoginUsername);
 
-    await page.waitForTimeout(100);
+    await page.waitForSelector('form[id="loginForm"]');
 
     await expectPuppeteer(page).toFillForm('form[id="loginForm"]', {
       password: euLoginPassword,
     });
-    await page.waitForTimeout(100);
-    await expectPuppeteer(page).toClick('input[title="Sign in"]');
 
-    const httpReq = await page.waitForRequest((req) =>
-      req.url().startsWith(`${usersOnboardingAppUrl}/authentication?ticket=`)
-    );
+    await page.waitForSelector('input[title="Sign in"]:not([disabled])');
 
-    await httpReq.abort();
+    await Promise.all([
+      page.waitForRequest((req) =>
+        req.url().startsWith(`${usersOnboardingAppUrl}/authentication?ticket=`)
+      ),
+      Promise.all([
+        await new Promise((resolve) => {
+          setTimeout(() => resolve(null), 500);
+        }),
+        await expectPuppeteer(page).toClick('input[title="Sign in"]'),
+      ]),
+    ]);
 
-    const ticket = httpReq
-      .url()
-      .replace(`${usersOnboardingAppUrl}/authentication?ticket=`, "");
+    await page.waitForTimeout(3000);
 
     // The EU Login ticket starts with ST-
     expect(ticket).toContain("ST-");

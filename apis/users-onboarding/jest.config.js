@@ -1,33 +1,35 @@
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+/* eslint-disable @typescript-eslint/no-var-requires */
 const path = require("path");
 
+/** @type {import('ts-jest').JestConfigWithTsJest} */
 module.exports = {
-  preset: "ts-jest",
+  testTimeout: 120000,
+  maxConcurrency: 1,
   testEnvironment: "node",
-  testTimeout: 60000,
   injectGlobals: false,
   rootDir: ".",
   roots: ["<rootDir>/src/", "<rootDir>/tests/"],
-  testMatch: ["**/?(*.|*-)+(spec|test).ts"],
+  testMatch: [
+    "**/?(*.|*-)+(spec|test).ts",
+    // Exclude EU Login test (requires Puppeteer)
+    "!**/eu-login-onboarding.e2e-spec.ts",
+  ],
   transform: {
-    "^.+\\.(t|j)s$": "ts-jest",
+    "^.+\\.[tj]sx?$": ["ts-jest", { tsconfig: "<rootDir>/tsconfig.test.json" }],
   },
+  transformIgnorePatterns: [
+    "/node_modules/",
+    "/apis/shared/dist/",
+    "jest-puppeteer.config.js",
+  ],
   moduleFileExtensions: ["js", "json", "ts"],
   coverageDirectory: "./coverage/",
   collectCoverageFrom: [
     "src/**/*.(t|j)s",
-    "!src/contracts/**/*.(t|j)s",
-    "!src/main.ts",
     "!**/*.d.ts",
+    "!src/main.ts",
+    "!src/logger/logger.ts",
   ],
   coverageReporters: ["text", "lcov", "json", "clover", "cobertura"],
-  moduleNameMapper: {
-    "^jose/(.*)$": "<rootDir>/node_modules/jose/dist/node/cjs/$1",
-  },
   resolver: path.resolve(__dirname, "../../jest-resolver.js"),
-  globals: {
-    "ts-jest": {
-      tsconfig: "tsconfig.test.json",
-    },
-  },
 };

@@ -38,7 +38,7 @@ All notable changes to this project will be documented in this file. 🤘
 
 ### 🐛 Bug Fixes
 
-- update fastiy-multipart, fix CVE-2021-23597 ([#78](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/storage-api/pull-requests/78/overview)) - EBSIINT-3831 ([15a1a35](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/storage-api/commits/15a1a3509e27ae37bbe995b886000622a58c7cd4))
+- update fastify-multipart, fix CVE-2021-23597 ([#78](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/storage-api/pull-requests/78/overview)) - EBSIINT-3831 ([15a1a35](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/storage-api/commits/15a1a3509e27ae37bbe995b886000622a58c7cd4))
 
 ## [2.0.0-rc.7](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/storage-api/compare/diff?targetBranch=refs%2Ftags%2Fv2.0.0-rc.6&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.7&targetRepoId=245) (2021-12-06)
 

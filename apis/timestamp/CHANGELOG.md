@@ -77,7 +77,7 @@ All notable changes to this project will be documented in this file. 🤘
 
 ### 🐛 Bug Fixes
 
-- encode DID Timestamp hash in mutlibase base64 ([#75](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/timestamp-api/pull-requests/75/overview)) - EBSIINT-3294 ([ef2f904](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/timestamp-api/commits/ef2f904e4d1bc4eb024faf7b2e597c7f7a314fea))
+- encode DID Timestamp hash in multibase base64 ([#75](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/timestamp-api/pull-requests/75/overview)) - EBSIINT-3294 ([ef2f904](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/timestamp-api/commits/ef2f904e4d1bc4eb024faf7b2e597c7f7a314fea))
 - last versionId not found ([#64](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/timestamp-api/pull-requests/64/overview)) - EBSIINT-3160 ([ecb8a54](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/timestamp-api/commits/ecb8a5455c696eec32c3572f806c5fe5b28b22f3))
 - prevent error 500 in /timestamps/{timestampId} when a block contains multiple transactions ([#78](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/timestamp-api/pull-requests/78/overview)) - EBSIINT-3313 ([274a6ed](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/timestamp-api/commits/274a6ede9b4599f5c946b203bae4d9f7403efcbb))
 - return correct transaction hash ([#59](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/timestamp-api/pull-requests/59/overview)) - EBSIINT-3070 ([b87ad81](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/timestamp-api/commits/b87ad8151685dcc132412d92dad6cbdc889364ba))

@@ -15,7 +15,7 @@
 #
 
 ## Stage 1: install dependencies and copy files
-FROM node:16.18.1-alpine3.16@sha256:15dd66f723aab8b367abc7ac6ed25594ca4653f2ce49ad1505bfbe740ad5190e as base
+FROM node:16.19.0-alpine3.17@sha256:58e4dfcf063f67d71e608c3cace5a0bcf39e9dbab3047b41e20c15c7132d1d46 as base
 WORKDIR /usr/src/app
 COPY ./package.json /usr/src/app/package.json
 # TODO: import lockfile from root container

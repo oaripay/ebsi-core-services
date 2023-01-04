@@ -1,4 +1,4 @@
-openapi: 3.0.3
+openapi: 3.1.0
 info:
   title: DID Registry API v4
   description: |
@@ -12,7 +12,7 @@ info:
     - Resolve a DID (and obtain a DID Document)
     - Resolve a version of a DID Document at a certain point in time
 
-    For more information see:
+    For more information, see:
     * [DID Registry API Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/DID+Registry+API)
     * [DID Registry Smart Contract Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/DID+Registry+Smart+Contract)
     * [Code Repository](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/browse)

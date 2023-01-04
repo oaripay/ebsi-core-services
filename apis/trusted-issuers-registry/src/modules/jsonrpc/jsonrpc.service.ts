@@ -157,7 +157,7 @@ export class JsonRpcService {
       );
     }
 
-    // verify function and parameters enconded in unsignedTransaction.data
+    // verify function and parameters encoded in unsignedTransaction.data
     const { args, functionFragment } = (
       await this.ledgerService.getContract()
     ).interface.parseTransaction(unsignedTransaction);

@@ -1,27 +1,28 @@
 import { Transaction, TxOptions } from "@ethereumjs/tx";
-import Common from "@ethereumjs/common";
+import { Common } from "@ethereumjs/common";
 import { BesuDto } from "./dto";
 
 function deserialize(serializedTransaction: unknown, chainId: number) {
   const optsChain: TxOptions = {
-    common: Common.forCustomChain(
-      "mainnet",
-      {
-        name: "ebsi-network",
-        networkId: chainId,
-        chainId,
-      },
-      "petersburg"
-    ),
+    common: Common.custom({
+      name: "ebsi-network",
+      networkId: chainId,
+      chainId,
+      defaultHardfork: "petersburg",
+    }),
   };
 
+  let txBuffer: Buffer;
+  if (typeof serializedTransaction === "string") {
+    txBuffer = Buffer.from(serializedTransaction.replace("0x", ""), "hex");
+  } else if (Buffer.isBuffer(serializedTransaction)) {
+    txBuffer = serializedTransaction;
+  } else {
+    throw new Error("Unsupported serialized transaction");
+  }
+
   try {
-    const tx = Transaction.fromSerializedTx(
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      serializedTransaction,
-      optsChain
-    );
+    const tx = Transaction.fromSerializedTx(txBuffer, optsChain);
 
     return tx.toJSON();
   } catch (error: unknown) {

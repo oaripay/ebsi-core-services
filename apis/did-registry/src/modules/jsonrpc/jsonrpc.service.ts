@@ -41,7 +41,7 @@ import {
 } from "./jsonrpc.utils";
 import { LedgerService } from "../ledger/ledger.service";
 
-// Cache algorightms' output lengths for 30 minutes
+// Cache algorithms' output lengths for 30 minutes
 const ALGORITHMS_EXP = 30 * 60 * 1000; // 30 minutes
 
 function getErrorMessage(error: unknown) {
@@ -238,7 +238,7 @@ export class JsonRpcService {
       );
     }
 
-    // verify function and parameters enconded in unsignedTransaction.data
+    // verify function and parameters encoded in unsignedTransaction.data
     const { args, functionFragment } = (
       await this.ledgerService.getContract()
     ).interface.parseTransaction(unsignedTransaction);

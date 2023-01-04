@@ -170,7 +170,7 @@ export class JsonRpcService {
         `Invalid unsignedTransaction.to. Expected ${this.tarContract.address}. Received ${unsignedTransaction.to}`
       );
 
-    // verify function and parameters enconded in unsignedTransaction.data
+    // verify function and parameters encoded in unsignedTransaction.data
     const { args, functionFragment } =
       this.tarContract.interface.parseTransaction(unsignedTransaction);
 
