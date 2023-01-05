@@ -5,7 +5,7 @@ import { bases } from "multiformats/basics";
 const { base64url } = bases;
 const ec = new EC("secp256k1");
 
-export function publicKeyFromHexToJwk(keyHex: string): JsonWebKey {
+export function publicKeyfromHexToJWK(keyHex: string): JsonWebKey {
   const hex = keyHex.replace("0x", "");
   const pubPoint = ec.keyFromPublic(hex, "hex").getPublic();
   return {
@@ -16,4 +16,4 @@ export function publicKeyFromHexToJwk(keyHex: string): JsonWebKey {
   };
 }
 
-export default publicKeyFromHexToJwk;
+export default publicKeyfromHexToJWK;

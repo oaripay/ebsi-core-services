@@ -44,7 +44,7 @@ export const requestSiopJwt = async ({
 
   const siopAgent = new SiopAgent({
     privateKey: await importJWK(
-      encode.privateKey.fromHextoJWK(clientPrivateKey),
+      encode.privateKey.fromHexToJWK(clientPrivateKey),
       alg
     ),
     kid: clientKid,
@@ -182,7 +182,7 @@ export const requestNewUserSiopJwt = async ({
 
   const agent = new SiopAgent({
     privateKey: await importJWK(
-      encode.privateKey.fromHextoJWK(clientPrivateKey),
+      encode.privateKey.fromHexToJWK(clientPrivateKey),
       alg
     ),
     kid: clientKid,

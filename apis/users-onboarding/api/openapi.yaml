@@ -4,7 +4,7 @@ info:
   version: 2.0.0
   description: |
     Users Onboarding API is an EBSI core service to enable users (Natural Persons and Legal
-    Entities) to obtain long-term access to the EBSI pre-production network.
+    Entities) to obtain long-term access to the EBSI network.
   termsOfService: https://api-pilot.ebsi.eu/docs/terms
   contact:
     name: EBSI Support - Service Desk
@@ -21,14 +21,14 @@ paths:
       requestBody:
         required: true
         description: |
-          It requires to provide either the EULogin or reCAPTCHA response.
+          It requires to provide either the EU Login or reCAPTCHA response.
         content:
           application/json:
             schema:
               type: object
               properties:
                 onboarding:
-                  description: Either eu-login or reCAPTCHA.
+                  description: Either EU Login or reCAPTCHA.
                   type: string
                 info:
                   description: Additional onboarding information
@@ -68,10 +68,10 @@ paths:
   /users-onboarding/v2/authentication-requests:
     post:
       summary: Authentication requests
-      description: The user performs a request to this endpoint to start did siop by requesting the creation of the request. The endpoint returns a SIOP DID authentication request.
+      description: The user performs a request to this endpoint to start DID SIOP by requesting the creation of the request. The endpoint returns a DID SIOP authentication request.
       operationId: post-users-onboarding-api-authentication-requests
       parameters:
-        - $ref: "#/components/parameters/headerConformance"
+        - $ref: "#/components/parameters/conformanceHeader"
       requestBody:
         required: true
         description: |
@@ -83,16 +83,9 @@ paths:
               type: object
               properties:
                 scope:
-                  description: scope of did siop
+                  description: scope of DID SIOP
                   type: string
             examples:
-              "[conformance] ct_v1_onboard_01a":
-                summary: Request Verifiable Authorisation (CT v1 - ONBOARD_01a)
-                description: |
-                  This is test data for the [EBSI Conformance Test V1](https://ec.europa.eu/digital-building-blocks/wikis/x/5YDwG) [ONBOARD_01a](https://ec.europa.eu/digital-building-blocks/wikis/display/BLOCKCHAININT/RFC+-+Conformance+testing#RFCConformancetesting-Scenario:ONBOARD).
-                  Successful response (HTTP 201) means that the service (wallet) can request a Verifiable Authorisation according to the [specifications]().
-                value:
-                  scope: ebsi users onboarding
               request:
                 summary: Request Verifiable Authorisation
                 value:
@@ -111,7 +104,7 @@ paths:
               examples:
                 Success:
                   value:
-                    session_token: "openid://?response_type=id_token&client_id=https%3A%2F%2Fapi.ebsi.zyz%2Faccess-tokens&scope=openid%20did_authn&request=eyJhbGciOiJIUzI1Ni..."
+                    session_token: "openid://?response_type=id_token&client_id=https%3A%2F%2Fapi-pilot.ebsi.eu%2Fusers-onboarding%2Fv2%2Fauthentication-responses&scope=openid+did_authn&nonce=0d606dc1-c5a0-4186-a894-5ca998e516d5&request=eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJodHRwczovL2FwaS1waWxvdC5lYnNpLmV1L3RydXN0ZWQtYXBwcy1yZWdpc3RyeS92My9hcHBzL3VzZXJzLW9uYm9hcmRpbmctYXBpX3BpbG90LXRlbXAtMDEifQ.eyJzY29wZSI6Im9wZW5pZCBkaWRfYXV0aG4iLCJyZXNwb25zZV90eXBlIjoiaWRfdG9rZW4iLCJyZXNwb25zZV9tb2RlIjoicG9zdCIsImNsaWVudF9pZCI6Imh0dHBzOi8vYXBpLXBpbG90LmVic2kuZXUvdXNlcnMtb25ib2FyZGluZy92Mi9hdXRoZW50aWNhdGlvbi1yZXNwb25zZXMiLCJyZWRpcmVjdF91cmkiOiJodHRwczovL2FwaS1waWxvdC5lYnNpLmV1L3VzZXJzLW9uYm9hcmRpbmcvdjIvYXV0aGVudGljYXRpb24tcmVzcG9uc2VzIiwibm9uY2UiOiIwZDYwNmRjMS1jNWEwLTQxODYtYTg5NC01Y2E5OThlNTE2ZDUiLCJpYXQiOjE2NzI5MDgyNjMsImlzcyI6InVzZXJzLW9uYm9hcmRpbmctYXBpX3BpbG90LXRlbXAtMDEiLCJleHAiOjE2NzI5MDg1NjN9.FJRjA2fsVJeuyLqhmVZw0NcWdM5bKUFORKmr7UGogfGHOiaabxRJsgy0qNkR9pPuZ1MXXdSXHtulcMZxLGgTEg"
         "400":
           $ref: "#/components/responses/400"
         "404":
@@ -121,12 +114,12 @@ paths:
   /users-onboarding/v2/authentication-responses:
     post:
       summary: Authentication responses
-      description: The user performs a request to this endpoint so as the user onboarding api accept his/her authentication response, validates it and returns a Verifiable Authorisation.
+      description: The user performs a request to this endpoint. The Users Onboarding API accepts his/her authentication response, validates it and returns a Verifiable Authorisation.
       operationId: post-users-onboarding-api-authentication-responses
       security:
         - bearerAuth: []
       parameters:
-        - $ref: "#/components/parameters/headerConformance"
+        - $ref: "#/components/parameters/conformanceHeader"
       requestBody:
         required: true
         content:
@@ -134,42 +127,49 @@ paths:
             schema:
               title: DID Authentication ID Token
               type: object
-              required:
-                - id_token
               properties:
                 id_token:
-                  description: did auth id token created by the user candidate to be validated. Notice that this value holds more than the JWT but also parameters like state.
+                  description: |
+                    DID Auth ID token (JWT) created by the user candidate to be validated.
+
+                    Its header must contain the signer's `kid` (e.g. `"kid": "did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw#keys-1"`).
+                    The ID Token payload must contain the following fields:
+                    - `aud`: the URL of the /authentication-responses endpoint, e.g. "https://api-pilot.ebsi.eu/users-onboarding/v2/authentication-responses"
+                    - `sub`: the subject, e.g. "x8pW2jUNE9ipd3DGgO_D0mUoG1pO1U3fEiqizt9gntQ"
+                    - `sub_jwk`: the JWK used to sign the JWT
+                    - `nonce`: a random UUID
+                    - `responseMode`: should be "form_post",
+                    - `iss`: should be "https://self-issued.me/v2",
                   type: string
+              required:
+                - id_token
             examples:
-              "[conformance] ct_v1_onboard_02":
-                summary: Request Verifiable Authorisation (CT v1 - ONBOARD_02)
-                description: |
-                  This is test data for the [EBSI Conformance Test
-                  V1](https://ec.europa.eu/digital-building-blocks/wikis/x/5YDwG)
-                  [ONBOARD_02](https://ec.europa.eu/digital-building-blocks/wikis/display/BLOCKCHAININT/RFC+-+Conformance+testing#RFCConformancetesting-Scenario:ONBOARD).
-                  Successful response (HTTP 201) means that the service (wallet)
-                  can:
-                  - Create an [EBSI-compliant DID]()
-                  - Can create a DID controlling key supported by EBSI
-                  - Can prove a posession of a DID controlling key as defined in the [specifications]()
-                value:
-                  id_token: eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6L3RydXN0ZWQtYXBwcy1yZWdpc3RyeS92Mi9hcHBzLzB4MTlkMDA0ZTdmNmVjZjI2NDUyM2UxMzY5MjRjYjY4Nzk2Y2E5ZGJmYTI1YmNhMDUzYjJmNmFmMGZjNmZkZDg4YyJ9.eyJpYXQiOjE2MTkxOTAxMzQsImV4cCI6MTYxOTE5MDQzNCwiaXNzIjoiZGlkOmVic2k6NlFZSmMzdExSaGV5ODhXUEtDMmt2NTg4djF1WjFvaWQzeWZjNUxwNUFiWUQiLCJzY29wZSI6Im9wZW5pZCBkaWRfYXV0aG4iLCJyZXNwb25zZV90eXBlIjoiaWRfdG9rZW4iLCJjbGllbnRfaWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6Ly9vbmJvYXJkaW5nL3YxL2F1dGhlbnRpY2F0aW9uLXJlc3BvbnNlcyIsInN0YXRlIjoiOWY1YzFjMTgwNjczY2NjZDM5N2Q2MmQ1Iiwibm9uY2UiOiJtNERoVUN1Q2tjNUhvR09SZFQtSTNqakRsUTlxVjFGSnhJMDZXUDUzUFNvIn0.63o7hoAL-5CeXIXAZBrt0HE0Qc_Yi8WNwSkZAovOOJO-tVTrTFYKCtDdtQZEy7rnCA9g2P5wrq013P_KO8Jpmg&state=af0ifjsldkj
               request:
                 summary: Request Verifiable Authorisation
                 value:
-                  id_token: eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6L3RydXN0ZWQtYXBwcy1yZWdpc3RyeS92Mi9hcHBzLzB4MTlkMDA0ZTdmNmVjZjI2NDUyM2UxMzY5MjRjYjY4Nzk2Y2E5ZGJmYTI1YmNhMDUzYjJmNmFmMGZjNmZkZDg4YyJ9.eyJpYXQiOjE2MTkxOTAxMzQsImV4cCI6MTYxOTE5MDQzNCwiaXNzIjoiZGlkOmVic2k6NlFZSmMzdExSaGV5ODhXUEtDMmt2NTg4djF1WjFvaWQzeWZjNUxwNUFiWUQiLCJzY29wZSI6Im9wZW5pZCBkaWRfYXV0aG4iLCJyZXNwb25zZV90eXBlIjoiaWRfdG9rZW4iLCJjbGllbnRfaWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6Ly9vbmJvYXJkaW5nL3YxL2F1dGhlbnRpY2F0aW9uLXJlc3BvbnNlcyIsInN0YXRlIjoiOWY1YzFjMTgwNjczY2NjZDM5N2Q2MmQ1Iiwibm9uY2UiOiJtNERoVUN1Q2tjNUhvR09SZFQtSTNqakRsUTlxVjFGSnhJMDZXUDUzUFNvIn0.63o7hoAL-5CeXIXAZBrt0HE0Qc_Yi8WNwSkZAovOOJO-tVTrTFYKCtDdtQZEy7rnCA9g2P5wrq013P_KO8Jpmg&state=af0ifjsldkj
+                  id_token: eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJkaWQ6ZWJzaTp6Yk04Y0N1b0JNRk5MZVF5TGlWRnl4dyNrZXlzLTEifQ.eyJhdWQiOiJodHRwczovL2FwaS1waWxvdC5lYnNpLmV1L3VzZXJzLW9uYm9hcmRpbmcvdjIvYXV0aGVudGljYXRpb24tcmVzcG9uc2VzIiwic3ViIjoieDhwVzJqVU5FOWlwZDNER2dPX0QwbVVvRzFwTzFVM2ZFaXFpenQ5Z250USIsInN1Yl9qd2siOnsia3R5IjoiRUMiLCJ4IjoiRXA5T01UYXl2YnJKWllyQl9xclMtZTZKWE5BVmJHQWhTMThFMDlMb3M2ZyIsInkiOiJtdTVrZnBjZGJHN1JMQWowY2xFZzA1czd5aGR4UTJkNmJTd3c0UkJXcVdVIiwiY3J2Ijoic2VjcDI1NmsxIn0sIm5vbmNlIjoiN2I3OWI5NGMtOTkyZS00YjJkLWJlNjEtODcwZjg5OTliMmUxIiwicmVzcG9uc2VNb2RlIjoiZm9ybV9wb3N0IiwiaWF0IjoxNjcyOTA5MjYyLCJpc3MiOiJodHRwczovL3NlbGYtaXNzdWVkLm1lL3YyIiwiZXhwIjoxNjcyOTA5NTYyfQ.GHSOPdrcltFfKg0ciYE4LrhyDrcaLzhngv4UuXvgaLQFT3592wNkI8lQ-UFKVxzPmZMS0ZEvred8Z9koch4ksg
           application/x-www-form-urlencoded:
             schema:
-              title: DID Auth id_token
+              title: DID Authentication ID Token
               type: object
-              required:
-                - id_token
               properties:
                 id_token:
-                  description: DID authentication ID Token.
+                  description: |
+                    DID Auth ID token (JWT) created by the user candidate to be validated.
+
+                    Its header must contain the signer's `kid` (e.g. `"kid": "did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw#keys-1"`).
+                    The ID Token payload must contain the following fields:
+                    - `aud`: the URL of the /authentication-responses endpoint, e.g. "https://api-pilot.ebsi.eu/users-onboarding/v2/authentication-responses"
+                    - `sub`: the subject, e.g. "x8pW2jUNE9ipd3DGgO_D0mUoG1pO1U3fEiqizt9gntQ"
+                    - `sub_jwk`: the JWK used to sign the JWT
+                    - `nonce`: a random UUID
+                    - `responseMode`: should be "form_post",
+                    - `iss`: should be "https://self-issued.me/v2",
                   type: string
+              required:
+                - id_token
             example:
-              id_token: eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6L3RydXN0ZWQtYXBwcy1yZWdpc3RyeS92Mi9hcHBzLzB4MTlkMDA0ZTdmNmVjZjI2NDUyM2UxMzY5MjRjYjY4Nzk2Y2E5ZGJmYTI1YmNhMDUzYjJmNmFmMGZjNmZkZDg4YyJ9.eyJpYXQiOjE2MTkxOTAxMzQsImV4cCI6MTYxOTE5MDQzNCwiaXNzIjoiZGlkOmVic2k6NlFZSmMzdExSaGV5ODhXUEtDMmt2NTg4djF1WjFvaWQzeWZjNUxwNUFiWUQiLCJzY29wZSI6Im9wZW5pZCBkaWRfYXV0aG4iLCJyZXNwb25zZV90eXBlIjoiaWRfdG9rZW4iLCJjbGllbnRfaWQiOiJodHRwczovL2FwaS50ZXN0LmludGVic2kueHl6Ly9vbmJvYXJkaW5nL3YxL2F1dGhlbnRpY2F0aW9uLXJlc3BvbnNlcyIsInN0YXRlIjoiOWY1YzFjMTgwNjczY2NjZDM5N2Q2MmQ1Iiwibm9uY2UiOiJtNERoVUN1Q2tjNUhvR09SZFQtSTNqakRsUTlxVjFGSnhJMDZXUDUzUFNvIn0.63o7hoAL-5CeXIXAZBrt0HE0Qc_Yi8WNwSkZAovOOJO-tVTrTFYKCtDdtQZEy7rnCA9g2P5wrq013P_KO8Jpmg&state=af0ifjsldkj
+              id_token: eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJkaWQ6ZWJzaTp6Yk04Y0N1b0JNRk5MZVF5TGlWRnl4dyNrZXlzLTEifQ.eyJhdWQiOiJodHRwczovL2FwaS1waWxvdC5lYnNpLmV1L3VzZXJzLW9uYm9hcmRpbmcvdjIvYXV0aGVudGljYXRpb24tcmVzcG9uc2VzIiwic3ViIjoieDhwVzJqVU5FOWlwZDNER2dPX0QwbVVvRzFwTzFVM2ZFaXFpenQ5Z250USIsInN1Yl9qd2siOnsia3R5IjoiRUMiLCJ4IjoiRXA5T01UYXl2YnJKWllyQl9xclMtZTZKWE5BVmJHQWhTMThFMDlMb3M2ZyIsInkiOiJtdTVrZnBjZGJHN1JMQWowY2xFZzA1czd5aGR4UTJkNmJTd3c0UkJXcVdVIiwiY3J2Ijoic2VjcDI1NmsxIn0sIm5vbmNlIjoiN2I3OWI5NGMtOTkyZS00YjJkLWJlNjEtODcwZjg5OTliMmUxIiwicmVzcG9uc2VNb2RlIjoiZm9ybV9wb3N0IiwiaWF0IjoxNjcyOTA5MjYyLCJpc3MiOiJodHRwczovL3NlbGYtaXNzdWVkLm1lL3YyIiwiZXhwIjoxNjcyOTA5NTYyfQ.GHSOPdrcltFfKg0ciYE4LrhyDrcaLzhngv4UuXvgaLQFT3592wNkI8lQ-UFKVxzPmZMS0ZEvred8Z9koch4ksg
       responses:
         "201":
           description: Success - The service (wallet) can prove DID key possession.
@@ -186,7 +186,7 @@ paths:
               examples:
                 Success:
                   value:
-                    verifiableCredential: eyJraWQiOiJkaWQ6ZWJzaTp6d0M1NkRaZGlKaDhrU3hiZ2c0Zk1DdSNrZXlzLTEiLCJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QifQ.eyJpYXQiOjE2NTI4NjU5NTEsImV4cCI6MTY2ODU5MDc1MSwidmMiOnsiQGNvbnRleHQiOlsiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZGVudGlhbHMvdjEiXSwiaWQiOiJ2YzplYnNpOmF1dGhlbnRpY2F0aW9uI2QyZDUxOTVjLTM2NjEtNDU0Ni04MzI3LTkyOGRjNGMzNzg3MSIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJWZXJpZmlhYmxlQXV0aG9yaXNhdGlvbiJdLCJpc3N1ZXIiOiJkaWQ6ZWJzaTp6d0M1NkRaZGlKaDhrU3hiZ2c0Zk1DdSIsImlzc3VhbmNlRGF0ZSI6IjIwMjItMDUtMThUMDk6MjU6NTFaIiwiaXNzdWVkIjoiMjAyMi0wNS0xOFQwOToyNTo1MVoiLCJ2YWxpZEZyb20iOiIyMDIyLTA1LTE4VDA5OjI1OjUxWiIsImV4cGlyYXRpb25EYXRlIjoiMjAyMi0xMS0xNlQwOToyNTo1MVoiLCJjcmVkZW50aWFsU3ViamVjdCI6eyJpZCI6ImRpZDplYnNpOnoyNTZhc0JXbUhCc2oyWk5WeEc1TWhrcCJ9LCJjcmVkZW50aWFsU2NoZW1hIjp7ImlkIjoiaHR0cHM6Ly9hcGkudGVzdC5pbnRlYnNpLnh5ei90cnVzdGVkLXNjaGVtYXMtcmVnaXN0cnkvdjEvc2NoZW1hcy8weDI4ZDc2OTU0OTI0ZDFjNDc0N2E0ZjFmOWUzZTllZGM5Y2E5NjVlZmJmOGZmMjBlNDMzOWMyYmYyMzIzYTU3NzMiLCJ0eXBlIjoiRnVsbEpzb25TY2hlbWFWYWxpZGF0b3IyMDIxIn19LCJqdGkiOiJ2YzplYnNpOmF1dGhlbnRpY2F0aW9uI2QyZDUxOTVjLTM2NjEtNDU0Ni04MzI3LTkyOGRjNGMzNzg3MSIsInN1YiI6ImRpZDplYnNpOnoyNTZhc0JXbUhCc2oyWk5WeEc1TWhrcCIsImlzcyI6ImRpZDplYnNpOnp3QzU2RFpkaUpoOGtTeGJnZzRmTUN1IiwibmJmIjoxNjUyODY1OTUxfQ.W-AIPH-mB3pVokvbIn_HSp7dm65UzSHBfps8fCoaqddm9rY2xfNvcJSSKAmmjJQtFv7AdVNr4HXfbwMegoe2gg
+                    verifiableCredential: eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJkaWQ6ZWJzaTp6cjJyV0RISHJVQ2RaQVc3d3NTYjVuUSNrZXlzLTEifQ.eyJqdGkiOiJ2YzplYnNpOmF1dGhlbnRpY2F0aW9uIzNmZjJlY2QzLWEwMWMtNDgwOC1iMDY5LTU2NjY5MDI2NjdmNCIsInN1YiI6ImRpZDplYnNpOnpiTThjQ3VvQk1GTkxlUXlMaVZGeXh3IiwiaXNzIjoiZGlkOmVic2k6enIycldESEhyVUNkWkFXN3dzU2I1blEiLCJuYmYiOjE2NzI5MDkyNjMsImV4cCI6MTY4ODYzNDA2MywiaWF0IjoxNjcyOTA5MjYzLCJ2YyI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJpZCI6InZjOmVic2k6YXV0aGVudGljYXRpb24jM2ZmMmVjZDMtYTAxYy00ODA4LWIwNjktNTY2NjkwMjY2N2Y0IiwidHlwZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCIsIlZlcmlmaWFibGVBdXRob3Jpc2F0aW9uIl0sImlzc3VlciI6ImRpZDplYnNpOnpyMnJXREhIclVDZFpBVzd3c1NiNW5RIiwiaXNzdWFuY2VEYXRlIjoiMjAyMy0wMS0wNVQwOTowMTowM1oiLCJpc3N1ZWQiOiIyMDIzLTAxLTA1VDA5OjAxOjAzWiIsInZhbGlkRnJvbSI6IjIwMjMtMDEtMDVUMDk6MDE6MDNaIiwiZXhwaXJhdGlvbkRhdGUiOiIyMDIzLTA3LTA2VDA5OjAxOjAzWiIsImNyZWRlbnRpYWxTdWJqZWN0Ijp7ImlkIjoiZGlkOmVic2k6emJNOGNDdW9CTUZOTGVReUxpVkZ5eHcifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHBzOi8vYXBpLXBpbG90LmVic2kuZXUvdHJ1c3RlZC1zY2hlbWFzLXJlZ2lzdHJ5L3YyL3NjaGVtYXMvekhNcDUyTHFKV29jbWhBOVJrem5UV3VFZWNKWG9QREt3M2tXUXA4MVlZOXBDIiwidHlwZSI6IkZ1bGxKc29uU2NoZW1hVmFsaWRhdG9yMjAyMSJ9fX0.1jngGGWZF9W8AJXrzJkiscqI9BSsrJIejwsWnyhztAtiG7Ym5ZT9NlHNnSCV9zDrWDOO5idLUuaW5T0gZyYBXw
         "400":
           $ref: "#/components/responses/400"
         "404":
@@ -274,7 +274,7 @@ components:
         status: 500
         detail: The server encountered an internal error and was unable to process your request.
   parameters:
-    headerConformance:
+    conformanceHeader:
       in: header
       name: Conformance
       description: |

@@ -469,7 +469,7 @@ paths:
                     description: hash of the file stored
                   function:
                     type: string
-                    description: 1lgorithm used to generate the file's hash
+                    description: Algorithm used to generate the file's hash
                 required:
                   - hash
                   - function
@@ -1409,7 +1409,7 @@ components:
       value:
         title: Payload Too Large
         status: 413
-        detail: Payload exceedes the size limit {size_limit}.
+        detail: Payload exceeds the size limit {size_limit}.
     InternalError:
       value:
         title: Internal Server Error

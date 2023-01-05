@@ -419,7 +419,7 @@ paths:
           - **did**: DID to insert. It must be for a legal entity (DID v1)
           - **baseDocument**: JSON string containing the @context of the DID Document
           - **vMethodId**: Thumbprint of the public key
-          - **publicKey**: Public key for seckp256k1 in compressed or uncompressed format
+          - **publicKey**: Public key for secp256k1 in compressed or uncompressed format
           - **isSecp256k1**: It must be true
           - **notBefore**: capability invocation is valid from this time
           - **notAfter**: expiration of the capability invocation

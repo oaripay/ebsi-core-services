@@ -9,7 +9,7 @@ import type {
   OPMetadata,
   Scope,
 } from "./authorisation.interfaces";
-import { fromHexToJwk } from "./authorisation.utils";
+import { fromHexToJWK } from "./authorisation.utils";
 
 @Injectable()
 export class AuthorisationService {
@@ -61,7 +61,7 @@ export class AuthorisationService {
     if (!this.publicKey) {
       const hexPrivateKey =
         this.configService.get<string>("apiES256PrivateKey");
-      this.publicKey = fromHexToJwk(hexPrivateKey);
+      this.publicKey = fromHexToJWK(hexPrivateKey);
     }
 
     // Return JWKS

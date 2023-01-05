@@ -152,6 +152,7 @@ describe("/onboarding/v2 authentication e2e tests", () => {
       await request(server).post("/authentication-requests").send({
         scope: "ebsi users onboarding",
       });
+
     // 1 - User create the request
     expect(authenticationRequestResponse.status).toBe(201);
     const authenticationRequest = authenticationRequestResponse.body;
@@ -191,7 +192,7 @@ describe("/onboarding/v2 authentication e2e tests", () => {
     const alg = "ES256K";
     const agent = new Agent({
       privateKey: await importJWK(
-        encode.privateKey.fromHextoJWK(testUserPrivateKey),
+        encode.privateKey.fromHexToJWK(testUserPrivateKey),
         alg
       ),
       kid: testUserKid,

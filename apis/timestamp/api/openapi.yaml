@@ -180,7 +180,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
               examples:
-                Hash algortihm Not Found:
+                Hash algorithm Not Found:
                   $ref: "#/components/examples/NotFound"
         "500":
           description: Internal Server Error
@@ -347,8 +347,8 @@ paths:
               description: Valid test timestampId
               value: uEiAbFEn1TXr__LSFdj16CqLZR48_R9TQfd088lEXspM-5A
             "[pilot] timestampId":
-              description: Valid preprod timestampId
-              value: uEiAdujH21UQak2LBQyCjr44jVfGekbhNG4wLgtrqgKnFBQ
+              description: Valid pilot timestampId
+              value: uEiBrUuxV-ybYtSQ4oiczDhFkmUR7Wk6QtF26SXaD9h9RTg
           required: true
       responses:
         "200":
@@ -385,7 +385,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
               examples:
-                Hash algortihm Not Found:
+                Hash algorithm Not Found:
                   $ref: "#/components/examples/NotFound"
         "500":
           description: Internal Server Error
@@ -477,8 +477,8 @@ paths:
                   value:
                     self: https://api-pilot.ebsi.eu/timestamp/v3/records?page[after]=1&page[size]=2
                     items:
-                      - recordId: u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ
-                        href: https://api-pilot.ebsi.eu/timestamp/v3/records/u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ
+                      - recordId: uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE
+                        href: https://api-pilot.ebsi.eu/timestamp/v3/records/uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE
                     total: 1
                     pageSize: 1
                     links:
@@ -490,8 +490,8 @@ paths:
                   value:
                     self: https://api-conformance.ebsi.eu/timestamp/v3/records?page[after]=1&page[size]=2
                     items:
-                      - recordId: u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ
-                        href: https://api-conformance.ebsi.eu/timestamp/v3/records/u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ
+                      - recordId: uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE
+                        href: https://api-conformance.ebsi.eu/timestamp/v3/records/uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE
                     total: 1
                     pageSize: 1
                     links:
@@ -538,8 +538,8 @@ paths:
               description: valid test multibase base64url encoded recordId
               value: utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8
             "[pilot] recordId":
-              description: valid preprod multibase base64url encoded recordId
-              value: u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ
+              description: valid pilot multibase base64url encoded recordId
+              value: uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE
           required: true
       responses:
         "200":
@@ -555,7 +555,7 @@ paths:
                       - "0x62165ec5d61..."
                       - "0x654dv561165..."
                       - "0x56e87f15a16..."
-                    revokedOnwerIds:
+                    revokedOwnerIds:
                       - "0xa1565165ef1..."
                     firstVersionTimestamps:
                       - "0x1659411f..."
@@ -581,7 +581,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
               examples:
-                Hash algortihm Not Found:
+                Hash algorithm Not Found:
                   $ref: "#/components/examples/NotFound"
         "500":
           description: Internal Server Error
@@ -609,8 +609,8 @@ paths:
               description: valid test multibase base64url encoded recordId
               value: utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8
             "[pilot] recordId":
-              description: valid preprod multibase base64url encoded recordId
-              value: u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ
+              description: valid pilot multibase base64url encoded recordId
+              value: uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE
           description: Record ID (multibase base64url encoded)
           required: true
         - in: query
@@ -672,30 +672,30 @@ paths:
                       last: https://api-test.ebsi.eu/timestamp/v3/records/utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8/versions?page[after]=1&page[size]=2
                 "[pilot] Success":
                   value:
-                    self: https://api-pilot.ebsi.eu/timestamp/v3/records/u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ/versions?page[after]=1&page[size]=2
+                    self: https://api-pilot.ebsi.eu/timestamp/v3/records/uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE/versions?page[after]=1&page[size]=2
                     items:
                       - versionId: 0
-                        href: https://api-pilot.ebsi.eu/timestamp/v3/records/u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ/versions/0
+                        href: https://api-pilot.ebsi.eu/timestamp/v3/records/uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE/versions/0
                     total: 1
                     pageSize: 2
                     links:
-                      first: https://api-pilot.ebsi.eu/timestamp/v3/records/u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ/versions?page[after]=1&page[size]=2
-                      prev: https://api-pilot.ebsi.eu/timestamp/v3/records/u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ/versions?page[after]=1&page[size]=2
-                      next: https://api-pilot.ebsi.eu/timestamp/v3/records/u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ/versions?page[after]=1&page[size]=2
-                      last: https://api-pilot.ebsi.eu/timestamp/v3/records/u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ/versions?page[after]=1&page[size]=2
+                      first: https://api-pilot.ebsi.eu/timestamp/v3/records/uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE/versions?page[after]=1&page[size]=2
+                      prev: https://api-pilot.ebsi.eu/timestamp/v3/records/uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE/versions?page[after]=1&page[size]=2
+                      next: https://api-pilot.ebsi.eu/timestamp/v3/records/uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE/versions?page[after]=1&page[size]=2
+                      last: https://api-pilot.ebsi.eu/timestamp/v3/records/uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE/versions?page[after]=1&page[size]=2
                 "[conformance] Success":
                   value:
-                    self: https://api-conformance.ebsi.eu/timestamp/v3/records/u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ/versions?page[after]=1&page[size]=2
+                    self: https://api-conformance.ebsi.eu/timestamp/v3/records/uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE/versions?page[after]=1&page[size]=2
                     items:
                       - versionId: 0
-                        href: https://api-conformance.ebsi.eu/timestamp/v3/records/u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ/versions/0
+                        href: https://api-conformance.ebsi.eu/timestamp/v3/records/uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE/versions/0
                     total: 1
                     pageSize: 2
                     links:
-                      first: https://api-conformance.ebsi.eu/timestamp/v3/records/u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ/versions?page[after]=1&page[size]=2
-                      prev: https://api-conformance.ebsi.eu/timestamp/v3/records/u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ/versions?page[after]=1&page[size]=2
-                      next: https://api-conformance.ebsi.eu/timestamp/v3/records/u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ/versions?page[after]=1&page[size]=2
-                      last: https://api-conformance.ebsi.eu/timestamp/v3/records/u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ/versions?page[after]=1&page[size]=2
+                      first: https://api-conformance.ebsi.eu/timestamp/v3/records/uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE/versions?page[after]=1&page[size]=2
+                      prev: https://api-conformance.ebsi.eu/timestamp/v3/records/uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE/versions?page[after]=1&page[size]=2
+                      next: https://api-conformance.ebsi.eu/timestamp/v3/records/uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE/versions?page[after]=1&page[size]=2
+                      last: https://api-conformance.ebsi.eu/timestamp/v3/records/uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE/versions?page[after]=1&page[size]=2
         "400":
           description: Bad Request Error
           content:
@@ -734,8 +734,8 @@ paths:
               description: valid test multibase base64url encoded recordId
               value: utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8
             "[pilot] recordId":
-              description: valid preprod multibase base64url encoded recordId
-              value: u_tpZtXc3uJfbO4u5yn69rN678ksV7jG7-KG5SAIiJIQ
+              description: valid pilot multibase base64url encoded recordId
+              value: uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE
           description: Record ID (multibase base64url encoded)
           required: true
         - in: path
@@ -792,7 +792,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
               examples:
-                Hash algortihm Not Found:
+                Hash algorithm Not Found:
                   $ref: "#/components/examples/NotFound"
         "500":
           description: Internal Server Error
@@ -1290,7 +1290,7 @@ components:
           type: array
           items:
             type: string
-        revokedOnwerIds:
+        revokedOwnerIds:
           description: A list of revoked owners/controllers
           type: array
           items:

@@ -67,7 +67,7 @@ paths:
                           description: Link to the resource.
                   total:
                     type: integer
-                    description: Total number of items accross all pages.
+                    description: Total number of items across all pages.
                   pageSize:
                     type: integer
                     description: Number of items to be returned per page.
@@ -261,7 +261,7 @@ paths:
                           description: Link to the resource.
                   total:
                     type: integer
-                    description: Total number of items accross all pages.
+                    description: Total number of items across all pages.
                   pageSize:
                     type: integer
                     description: Number of items to be returned per page.
@@ -462,7 +462,7 @@ paths:
                           description: Link to the resource.
                   total:
                     type: integer
-                    description: Total number of items accross all pages.
+                    description: Total number of items across all pages.
                   pageSize:
                     type: integer
                     description: Number of items to be returned per page.

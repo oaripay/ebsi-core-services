@@ -42,11 +42,11 @@ paths:
       summary: Initiate a SIOP DID Auth request
       description: Natural Person and Legal Entities entry point to initiate a SIOP DID Auth Request.
       parameters:
-        - $ref: "#/components/parameters/headerConformance"
+        - $ref: "#/components/parameters/conformanceHeader"
       requestBody:
         description: |
           [conformance description]
-          [EBSI conformance testing](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIEA/EBSI+Wallet+Conformance+Testing)
+          [EBSI conformance testing](https://api-conformance.ebsi.eu/docs/wallet-conformance)
 
           The API supports the following EBSI conformance tests
           - Request Access Token (CT ONBOARD_051)
@@ -55,21 +55,10 @@ paths:
             schema:
               $ref: "#/components/schemas/AuthenticationRequest"
             examples:
-              "[conformance] CT ONBOARD_051":
-                summary: Request Access Token (CT ONBOARD_051)
-                description: |
-                  This is test data for [ONBOARD_051](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIEA/EBSI+Wallet+Conformance+Testing).
-                  The payload is a SIOP Authentication Request.
-
-                  Successful response (HTTP 200) means that the service (wallet) can:
-
-                  - request an authentication request
-                value:
-                  scope: openid did_authn
               OIDC SIOP Authentication Request:
                 description: |
-                  EBSI supports OIDC and OAuth2 authentication, hence the scope MUST a [valid EBSI authentication scope]().
-                  The endpoint returns an [OIDC SIOP V2]() authentication request as URI string.
+                  EBSI supports OIDC and OAuth2 authentication, hence the scope MUST a valid EBSI authentication scope.
+                  The endpoint returns an OIDC SIOP V2 authentication request as URI string.
                 value:
                   scope: openid did_authn
         required: true
@@ -83,7 +72,7 @@ paths:
               examples:
                 Authentication Request:
                   value:
-                    uri: "openid://?response_type=id_token&client_id=https%3A%2F%2Fapi-pilot.ebsi.eu%2Fauthorisation%2Fv2%2Fsiop-sessions&scope=openid%20did_authn&nonce=2a6a2e33-fbf8-4a41-95a4-88201ebd9b0f&request=eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJodHRwczovL2FwaS5wcmVwcm9kLmVic2kuZXUvdHJ1c3RlZC1hcHBzLXJlZ2lzdHJ5L3YyL2FwcHMvMHgwOGMyNTg1NmZiY2JkZDA3NmM5YzM5NTEyYWJlZjYzMDk3NDk5MTBhMTEwZDlkMWE5YzlhN2QyYjI3N2I2ZDIwIn0.eyJpYXQiOjE2Mjc2NTIzNjQsImV4cCI6MTYyNzY1MjY2NCwiaXNzIjoiZGlkOmVic2k6SEM5dG1paXRXNFM5ZllBYWo2Ullzb3FiVDNzN1Rjd3loeXJzYlNpem5zZFoiLCJzY29wZSI6Im9wZW5pZCBkaWRfYXV0aG4iLCJyZXNwb25zZV90eXBlIjoiaWRfdG9rZW4iLCJjbGllbnRfaWQiOiJodHRwczovL2FwaS5wcmVwcm9kLmVic2kuZXUvYXV0aG9yaXNhdGlvbi92MS9zaW9wLXNlc3Npb25zIiwibm9uY2UiOiIyYTZhMmUzMy1mYmY4LTRhNDEtOTVhNC04ODIwMWViZDliMGYiLCJjbGFpbXMiOnsiaWRfdG9rZW4iOnsidmVyaWZpZWRfY2xhaW1zIjp7InZlcmlmaWNhdGlvbiI6eyJ0cnVzdF9mcmFtZXdvcmsiOiJFQlNJIiwiZXZpZGVuY2UiOnsidHlwZSI6eyJ2YWx1ZSI6InZlcmlmaWFibGVfY3JlZGVudGlhbCJ9LCJkb2N1bWVudCI6eyJ0eXBlIjp7ImVzc2VudGlhbCI6dHJ1ZSwidmFsdWUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJWZXJpZmlhYmxlQXV0aG9yaXNhdGlvbiJdfSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6eyJlc3NlbnRpYWwiOnRydWUsInZhbHVlIjoiaHR0cHM6Ly9hcGkucHJlcHJvZC5lYnNpLmV1L3RydXN0ZWQtc2NoZW1hcy1yZWdpc3RyeS92MS9zY2hlbWFzLzB4MzEyZTMzMmUzNjJlMzEyZTM0MmUzMTJlMzEzNjM2MzQyZTMxMzAyZTMxMzgzNzJlMzEyZTMyMmUzMjJlMzMzMyJ9fX19fX19fX0.3ET08uTUO8CxdC2H8AhBTvxLMb4yXVn5CxY0gtuexbfCM4EgL4U_FqYGbsApP1iugn9ZUx2v6V_zVcfJVPvZqA"
+                    uri: "openid://?response_type=id_token&client_id=https%3A%2F%2Fapi-pilot.ebsi.eu%2Fauthorisation%2Fv2%2Fsiop-sessions&scope=openid+did_authn&nonce=09e8ebfe-674e-4e4c-82b3-da153f8625c2&request=eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJodHRwczovL2FwaS1waWxvdC5lYnNpLmV1L3RydXN0ZWQtYXBwcy1yZWdpc3RyeS92My9hcHBzL2F1dGhvcmlzYXRpb24tYXBpX3BpbG90LXRlbXAtMDEifQ.eyJzY29wZSI6Im9wZW5pZCBkaWRfYXV0aG4iLCJyZXNwb25zZV90eXBlIjoiaWRfdG9rZW4iLCJyZXNwb25zZV9tb2RlIjoicG9zdCIsImNsaWVudF9pZCI6Imh0dHBzOi8vYXBpLXBpbG90LmVic2kuZXUvYXV0aG9yaXNhdGlvbi92Mi9zaW9wLXNlc3Npb25zIiwicmVkaXJlY3RfdXJpIjoiaHR0cHM6Ly9hcGktcGlsb3QuZWJzaS5ldS9hdXRob3Jpc2F0aW9uL3YyL3Npb3Atc2Vzc2lvbnMiLCJub25jZSI6IjA5ZThlYmZlLTY3NGUtNGU0Yy04MmIzLWRhMTUzZjg2MjVjMiIsImNsYWltcyI6eyJpZF90b2tlbiI6eyJ2ZXJpZmllZF9jbGFpbXMiOnsidmVyaWZpY2F0aW9uIjp7InRydXN0X2ZyYW1ld29yayI6IkVCU0kiLCJldmlkZW5jZSI6eyJ0eXBlIjp7InZhbHVlIjoidmVyaWZpYWJsZV9jcmVkZW50aWFsIn0sImRvY3VtZW50Ijp7InR5cGUiOnsiZXNzZW50aWFsIjp0cnVlLCJ2YWx1ZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCIsIlZlcmlmaWFibGVBdXRob3Jpc2F0aW9uIl19LCJjcmVkZW50aWFsU2NoZW1hIjp7ImlkIjp7ImVzc2VudGlhbCI6dHJ1ZSwidmFsdWUiOiJodHRwczovL2FwaS1waWxvdC5lYnNpLmV1L3RydXN0ZWQtc2NoZW1hcy1yZWdpc3RyeS92Mi9zY2hlbWFzL3pITXA1MkxxSldvY21oQTlSa3puVFd1RWVjSlhvUERLdzNrV1FwODFZWTlwQyJ9fX19fX19fSwiaWF0IjoxNjcyODQxODgxLCJpc3MiOiJhdXRob3Jpc2F0aW9uLWFwaV9waWxvdC10ZW1wLTAxIiwiZXhwIjoxNjcyODQyMTgxfQ.Z8jVzKtcTtSD1kBlYin_1jnfZ6BhhYdo18lUSf5xz0RFtkoPonsQyKsS7u72w7fV3oxWUs8YV7QAynGyUxuR_w"
         "400":
           $ref: "#/components/responses/400"
         "500":
@@ -92,35 +81,53 @@ paths:
     post:
       operationId: post-authorisation-v2-siop-sessions
       summary: Create a SIOP Session
-      description: Sessions Token endpoint as the callback for DID SIOP Response. This endpoint accepts id-token for algorithms ES256K, ES256, RS256, and EdDSA. The public key must be in the DID Registry.
+      description: Sessions Token endpoint as the callback for DID SIOP Response.
       parameters:
-        - $ref: "#/components/parameters/headerConformance"
+        - $ref: "#/components/parameters/conformanceHeader"
       requestBody:
         description: |
-          The ID Token should be a JWT containing in the payload the following fields:
-          - **did**: DID already registered or DID you want to register (Onboarding users)
-          - **nonce**: nonce.
-          - **claims**: Object containing claims.
-              - encryption_key: public key used to encrypt the response
-          - **sub_did_verification_method_uri** (optional): key reference to verify the signature. Only for onboarded users.
+          The request body must contain an ID Token (parameter name: `id_token`) and, optionally, a VP token (as `vp_token`) (only for onboarding).
 
-          The optional `vp_token` should be a Verifiable Presentation JWT. Only for onboarding.
+          The ID Token should be a JWT.
+          Its header must contain the signer's `kid` (e.g. `"kid": "did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw#keys-1"`).
+          The ID Token payload must contain the following fields:
+          - `aud`: the URL of the /siop-sessions endpoint, e.g. "https://api-pilot.ebsi.eu/authorisation/v2/siop-sessions"
+          - `sub`: the subject
+          - `sub_jwk`: the JWK used to sign the JWT
+          - `nonce`: a random UUID
+          - `claims`:
+            - `encryption_key`: public key used to encrypt the response
+          - `responseMode`: should be "form_post",
+          - `iss`: should be "https://self-issued.me/v2",
+          - `_vp_token`: only if the request also contains a VP token.
+            - `presentation_submission`: a VP submission object (https://identity.foundation/presentation-exchange/spec/v2.0.0/#presentation-submission).
 
-          [conformance description]
-          [EBSI conformance testing](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIEA/EBSI+Wallet+Conformance+Testing)
+          Here's an example of a valid `presentation_submission`:
 
-          The API supports the following EBSI conformance tests
+          ```json
+            "presentation_submission": {
+              "id": "237b0eec-0b7e-4a16-b3bc-bdd42f57b86b",
+              "definition_id": "b5c07e84-55f6-48e1-a531-3608d26fc336",
+              "descriptor_map": [
+                {
+                  "id": "6f43bcea-da4b-4e45-ac2c-25307d6dfe34",
+                  "format": "jwt_vp",
+                  "path": "$",
+                  "path_nested": {
+                    "id": "onboarding-input-id",
+                    "format": "jwt_vc",
+                    "path": "$.vp.verifiableCredential[0]"
+                  }
+                }
+              ]
+            }
+          ```
 
-          - Request Access Token (CT ONBOARD_052)
+          With the associated `vp_token` being a Verifiable Presentation JWT:
 
-          **Share Verifiable Authorisation** ([ONBOARD_052](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIEA/EBSI+Wallet+Conformance+Testing))
-
-          The example below shows test data for the EBSI conformance test.
-
-          A successful response (HTTP 200) means that the service (wallet) can:
-            - request and understand the authentication request returned by the /authorisation/v2/authentication-requests API
-            - create an ID Token (SIOP Session Request)
-            - share a valid Verifiable Authorisation
+          ```
+          eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJkaWQ6ZWJzaTp6c3ROc2VtaWZrd2ZVY2pBYzJucDFXcCNTLTJiQV9lUXNTa1JDbmw0ZnNielVWZGtwM3F4WEVrcnFKTTI3WWhBZUtzIn0.eyJqdGkiOiIiLCJzdWIiOiJkaWQ6ZWJzaTp6c3ROc2VtaWZrd2ZVY2pBYzJucDFXcCIsImlzcyI6ImRpZDplYnNpOnpzdE5zZW1pZmt3ZlVjakFjMm5wMVdwIiwibmJmIjoxNjcyODQyOTc3LCJleHAiOjE2ODg1Njc3NzcsImlhdCI6MTY3Mjg0Mjk3OCwiYXVkIjoiYXV0aG9yaXNhdGlvbi1hcGkiLCJ2cCI6eyJAY29udGV4dCI6WyJodHRwczovL3d3dy53My5vcmcvMjAxOC9jcmVkZW50aWFscy92MSJdLCJ0eXBlIjpbIlZlcmlmaWFibGVQcmVzZW50YXRpb24iXSwidmVyaWZpYWJsZUNyZWRlbnRpYWwiOlsiZXlKaGJHY2lPaUpGVXpJMU5rc2lMQ0owZVhBaU9pSktWMVFpTENKcmFXUWlPaUprYVdRNlpXSnphVHA2Y2pKeVYwUklTSEpWUTJSYVFWYzNkM05UWWpWdVVTTnJaWGx6TFRFaWZRLmV5SnFkR2tpT2lKMll6cGxZbk5wT21GMWRHaGxiblJwWTJGMGFXOXVJMk00TUdSalpHTmlMV1UxTURVdE5HTTRNQzFoTlRnekxUTTROakZsT0RObFlUQTRZaUlzSW5OMVlpSTZJbVJwWkRwbFluTnBPbnB6ZEU1elpXMXBabXQzWmxWamFrRmpNbTV3TVZkd0lpd2lhWE56SWpvaVpHbGtPbVZpYzJrNmVuSXljbGRFU0VoeVZVTmtXa0ZYTjNkelUySTFibEVpTENKdVltWWlPakUyTnpJNE5ESTVOemNzSW1WNGNDSTZNVFk0T0RVMk56YzNOeXdpYVdGMElqb3hOamN5T0RReU9UYzNMQ0oyWXlJNmV5SkFZMjl1ZEdWNGRDSTZXeUpvZEhSd2N6b3ZMM2QzZHk1M015NXZjbWN2TWpBeE9DOWpjbVZrWlc1MGFXRnNjeTkyTVNKZExDSnBaQ0k2SW5aak9tVmljMms2WVhWMGFHVnVkR2xqWVhScGIyNGpZemd3WkdOa1kySXRaVFV3TlMwMFl6Z3dMV0UxT0RNdE16ZzJNV1U0TTJWaE1EaGlJaXdpZEhsd1pTSTZXeUpXWlhKcFptbGhZbXhsUTNKbFpHVnVkR2xoYkNJc0lsWmxjbWxtYVdGaWJHVkJkWFJvYjNKcGMyRjBhVzl1SWwwc0ltbHpjM1ZsY2lJNkltUnBaRHBsWW5OcE9ucHlNbkpYUkVoSWNsVkRaRnBCVnpkM2MxTmlOVzVSSWl3aWFYTnpkV0Z1WTJWRVlYUmxJam9pTWpBeU15MHdNUzB3TkZReE5Eb3pOam94TjFvaUxDSnBjM04xWldRaU9pSXlNREl6TFRBeExUQTBWREUwT2pNMk9qRTNXaUlzSW5aaGJHbGtSbkp2YlNJNklqSXdNak10TURFdE1EUlVNVFE2TXpZNk1UZGFJaXdpWlhod2FYSmhkR2x2YmtSaGRHVWlPaUl5TURJekxUQTNMVEExVkRFME9qTTJPakUzV2lJc0ltTnlaV1JsYm5ScFlXeFRkV0pxWldOMElqcDdJbWxrSWpvaVpHbGtPbVZpYzJrNmVuTjBUbk5sYldsbWEzZG1WV05xUVdNeWJuQXhWM0FpZlN3aVkzSmxaR1Z1ZEdsaGJGTmphR1Z0WVNJNmV5SnBaQ0k2SW1oMGRIQnpPaTh2WVhCcExYQnBiRzkwTG1WaWMya3VaWFV2ZEhKMWMzUmxaQzF6WTJobGJXRnpMWEpsWjJsemRISjVMM1l5TDNOamFHVnRZWE12ZWtoTmNEVXlUSEZLVjI5amJXaEJPVkpyZW01VVYzVkZaV05LV0c5UVJFdDNNMnRYVVhBNE1WbFpPWEJESWl3aWRIbHdaU0k2SWtaMWJHeEtjMjl1VTJOb1pXMWhWbUZzYVdSaGRHOXlNakF5TVNKOWZYMC5vdmR1a20wVnpRNWpUZE9nTmJHY0g4LTVCdFZTMTNqcDhxUUstV0JJQTlvbmU5WmswUnRXZWV2RkJMQ05LeGdCWS0tMk1WZ0E2eUJTNHR4Y3Z4VlZhZyJdLCJob2xkZXIiOiJkaWQ6ZWJzaTp6c3ROc2VtaWZrd2ZVY2pBYzJucDFXcCJ9fQ.86g3f_b5JvsvKwuayWGp_9BpQ0GwsvmY_51K88npaFM2CWJH6D3Aqjee4_URXHPtdSzKoiBhPdGqGyz3RACsKQ
+          ```
         content:
           application/x-www-form-urlencoded:
             schema:
@@ -136,16 +143,16 @@ paths:
               examples:
                 Encrypted access token:
                   value:
-                    ake1_enc_payload: bd9ddee6c87ca26b1c6e299c6242006b0316f1dc6efb4a8862d4027c255e1a68417a851572195de75d23510f33a78cd3eb2c098b87070b8b4855bc0681ba9ee8b4a4cace78be0c1a4b2bb79fd333d3d13a60c8ebee93cfa1d90242cf14dd013d7ef51fb92d6fdf5a16a09825496c74b7b5e71bb5d29d12dd511a4c5f25ee2f223d9e9699d29a4b0bf7a0ef1c63209fc15dca9009491139fd3fc68ecf659b34b15f10c8cf412f6b39a17076d9d147656d7607aa48b504f0aa88f8ef6bd2999f3df43ef6c421ae6bff7809ca4a357a63873e3746dab89b5b29bbc49e816db9776bf681837ee59f015f9a3c7afdc346c78a9222c63922535e1fda7bc740282ea64bce9af3ee2e8ef6eac0a3c30e81aac4f6091ef532395812ca7add4b6d2026bec09267ccd49d2491cb7f3eba4e3f2863aa21d86ce7248b3c708d1a1a0c38e9296970f51117ca50327367277d56c1b761d5a01c9717a41e35c7416973e7ef07fe817af9be218d050825604c79475418f1a0a5135c7442441ff3905391ce18359fd40859a3bd5532c91b9b0d8824f0142455a7528a8b355831de9a7c6aa625cecc5f8093c2b711269286f16164d8928697c889a78aaa7f14caaceba8c888376988fe881f8c44a324796df8e4bfb787e5696cb32c2aa4dbc27608fa9d9d849c19d7d09a2171db09c189585f7f5150340fd03d16fc1703ccb0b63e5694eb20e78a811bf62439c9cf3803d257055cd2b58414a211d8940aec7378d318df9e52e0ecf1f347765c53e0d8f24529fbcdc798e4e841ea68c0bed7c82cec8dffac0146e0b2f80a633ea515aeab10e7ca1ad4663d518c33a22861b05c28b8be6f3eb6b0590b4aee0deb9422afe7c99664c80594e15e6289006fc212051e3bd63dfa3c79bb5f53db31379df395c601ed27768251e539f49597d86f66da69fd70fe633b20938c307394acd01f867897d0b969cb1db98781542493ed1bb4b38a31a5b3ce4579edd8b31506b8f0c03cb617781558bcf4fe3dbff835cf77e13c36fe94719628449bbf428f91367261fbf34aa854a468ef0071bb96e2641ddf75fbc53a508a96cc0c272ab964fe50f91a010a7bbec6a9c658f2717808efa4438868acd0e3794b623d6f4c64d685493c1d8c59704f1a1274481580b66c53187b12225a5882f19e2b8c0144af83cdda10824e1666ab4e7c7ff33a70b4505e976c20ef369b0558ce7af2239f
+                    ake1_enc_payload: ce527bf1e06bd6241625d54e76bdb5ac029c455f97324ed20a5038724966ba5d9befd49195b4841b513c7f23e785c99f87bad2e255cbceb1152cef05b15137a1411520d8d578961f16d6c59ec042889e45cb4d3965d9d859dac8f217b3b3776ad342a605f2bb985d820ad8b0f6cb2c7c40da4d1ebd3efb5a3d57507e0479801c088e68b277fac799f852c1053a1dacc7cdb921cff2006eaf1b3fa3a5b64de91e991390b7317814625f490a1354dc2b69498b2bfad7caf0e819ebd93cccb2ef26e399d996ab19910605d798dacf9f78489dd7bac8613b5da28314e1153d929a9059decedce00eeb2848ee95f14e523f9f12372e71b9db4ebe702ce508d2dbc1e5cbdafcd5a15afe397fb35f9a45424c6aac43380b054185cbac4f498a5db4dcf517cf8bc760354c26e2e1af37dbdf06f888e5d424a66ab9546475b187787b557d197af20c7ac1e0639acf0304f051194da4be7c8badb0747b3e669ffd7ffe5a2c9c2060f338d8e4eb3010e10e6a67a1c8fe21d48ee7bc5d540497071f80dd36e58d309e868837c193dd5646b33baa61c3c190d5ce44d08bc6820d240e14edd12af9ae8242e5a7186c1697426d14e97101313331cb1d803030cd2d6d2799852bda0dbc80b3c927efffc19d170327ac11c5d645b83c38fdcfb9ac779d9eac795d8eb671fe0ade56cdcb020261e1bf6d2e1d2fdfc1f954959c2d5516adf3f2abcee298c92b5451e3dee89d1903b8390fe9a426278ec879a59e682eabf8b8f3ad4482de9c636a41e506c82d7d0be1a92d926ba7fb05779f2612a86f8b47e10477b1d6080044d1f983cf3cb81e35af5b3ea4205e1d25ce0b6d20755442904d670380082203e25d4326df0ab47ee8bb404f98d5184a3949e043a0656e856f78f442fb33a2ec63c7347520c796fb721bfc0c6106c0db9e0580ba17aa3f96abf1a4744256635803f90bcfce185ddba20a8635a1c59f68760220ddaf296ac3a582ea953f928290c50f186ea8909a9a94a82b6b1c8204f243a4ed4cef5fd672959cec8359a57ac08c4b41ccb515b963f675af7cf4a9bef97f13942a63678680fb8f9e2de766f3c578d6f5913d7e71aafbd5ebc965b90ce4c3dc4a7bc2af74754c3e7c05fc3fbd1851ee5caa4723fe7bf5a9cd804a979bbd341836bcb3e82ad164748cb46f5d9fd4b599d27a307962eea6465eb91a6155
                     ake1_sig_payload:
-                      iat: 1627652364
-                      exp: 1627653264
-                      ake1_nonce: 60193434-8319-4f0c-b47a-ad146aa55915
-                      ake1_enc_payload: bd9ddee6c87ca26b1c6e299c6242006b0316f1dc6efb4a8862d4027c255e1a68417a851572195de75d23510f33a78cd3eb2c098b87070b8b4855bc0681ba9ee8b4a4cace78be0c1a4b2bb79fd333d3d13a60c8ebee93cfa1d90242cf14dd013d7ef51fb92d6fdf5a16a09825496c74b7b5e71bb5d29d12dd511a4c5f25ee2f223d9e9699d29a4b0bf7a0ef1c63209fc15dca9009491139fd3fc68ecf659b34b15f10c8cf412f6b39a17076d9d147656d7607aa48b504f0aa88f8ef6bd2999f3df43ef6c421ae6bff7809ca4a357a63873e3746dab89b5b29bbc49e816db9776bf681837ee59f015f9a3c7afdc346c78a9222c63922535e1fda7bc740282ea64bce9af3ee2e8ef6eac0a3c30e81aac4f6091ef532395812ca7add4b6d2026bec09267ccd49d2491cb7f3eba4e3f2863aa21d86ce7248b3c708d1a1a0c38e9296970f51117ca50327367277d56c1b761d5a01c9717a41e35c7416973e7ef07fe817af9be218d050825604c79475418f1a0a5135c7442441ff3905391ce18359fd40859a3bd5532c91b9b0d8824f0142455a7528a8b355831de9a7c6aa625cecc5f8093c2b711269286f16164d8928697c889a78aaa7f14caaceba8c888376988fe881f8c44a324796df8e4bfb787e5696cb32c2aa4dbc27608fa9d9d849c19d7d09a2171db09c189585f7f5150340fd03d16fc1703ccb0b63e5694eb20e78a811bf62439c9cf3803d257055cd2b58414a211d8940aec7378d318df9e52e0ecf1f347765c53e0d8f24529fbcdc798e4e841ea68c0bed7c82cec8dffac0146e0b2f80a633ea515aeab10e7ca1ad4663d518c33a22861b05c28b8be6f3eb6b0590b4aee0deb9422afe7c99664c80594e15e6289006fc212051e3bd63dfa3c79bb5f53db31379df395c601ed27768251e539f49597d86f66da69fd70fe633b20938c307394acd01f867897d0b969cb1db98781542493ed1bb4b38a31a5b3ce4579edd8b31506b8f0c03cb617781558bcf4fe3dbff835cf77e13c36fe94719628449bbf428f91367261fbf34aa854a468ef0071bb96e2641ddf75fbc53a508a96cc0c272ab964fe50f91a010a7bbec6a9c658f2717808efa4438868acd0e3794b623d6f4c64d685493c1d8c59704f1a1274481580b66c53187b12225a5882f19e2b8c0144af83cdda10824e1666ab4e7c7ff33a70b4505e976c20ef369b0558ce7af2239f
-                      did: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
-                      iss: did:ebsi:zwC56DZdiJh8kSxbgg4fMCu
-                    ake1_jws_detached: eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS5wcmVwcm9kLmVic2kuZXUvdHJ1c3RlZC1hcHBzLXJlZ2lzdHJ5L3YyL2FwcHMvMHgwOGMyNTg1NmZiY2JkZDA3NmM5YzM5NTEyYWJlZjYzMDk3NDk5MTBhMTEwZDlkMWE5YzlhN2QyYjI3N2I2ZDIwIn0..hniLWpfw8sxgacyRdXr7en4UrCQoWvsJ72m9bo51x3n5fWSoL7_BdfcHyaEQXCHz_y7iZhRDBxtT1Pw03OiNIQ
-                    did: did:ebsi:zwC56DZdiJh8kSxbgg4fMCu
+                      iat: 1672841881
+                      exp: 1672842781
+                      ake1_nonce: 53a6e914-ef94-412b-b226-82da24be3dd9
+                      ake1_enc_payload: ce527bf1e06bd6241625d54e76bdb5ac029c455f97324ed20a5038724966ba5d9befd49195b4841b513c7f23e785c99f87bad2e255cbceb1152cef05b15137a1411520d8d578961f16d6c59ec042889e45cb4d3965d9d859dac8f217b3b3776ad342a605f2bb985d820ad8b0f6cb2c7c40da4d1ebd3efb5a3d57507e0479801c088e68b277fac799f852c1053a1dacc7cdb921cff2006eaf1b3fa3a5b64de91e991390b7317814625f490a1354dc2b69498b2bfad7caf0e819ebd93cccb2ef26e399d996ab19910605d798dacf9f78489dd7bac8613b5da28314e1153d929a9059decedce00eeb2848ee95f14e523f9f12372e71b9db4ebe702ce508d2dbc1e5cbdafcd5a15afe397fb35f9a45424c6aac43380b054185cbac4f498a5db4dcf517cf8bc760354c26e2e1af37dbdf06f888e5d424a66ab9546475b187787b557d197af20c7ac1e0639acf0304f051194da4be7c8badb0747b3e669ffd7ffe5a2c9c2060f338d8e4eb3010e10e6a67a1c8fe21d48ee7bc5d540497071f80dd36e58d309e868837c193dd5646b33baa61c3c190d5ce44d08bc6820d240e14edd12af9ae8242e5a7186c1697426d14e97101313331cb1d803030cd2d6d2799852bda0dbc80b3c927efffc19d170327ac11c5d645b83c38fdcfb9ac779d9eac795d8eb671fe0ade56cdcb020261e1bf6d2e1d2fdfc1f954959c2d5516adf3f2abcee298c92b5451e3dee89d1903b8390fe9a426278ec879a59e682eabf8b8f3ad4482de9c636a41e506c82d7d0be1a92d926ba7fb05779f2612a86f8b47e10477b1d6080044d1f983cf3cb81e35af5b3ea4205e1d25ce0b6d20755442904d670380082203e25d4326df0ab47ee8bb404f98d5184a3949e043a0656e856f78f442fb33a2ec63c7347520c796fb721bfc0c6106c0db9e0580ba17aa3f96abf1a4744256635803f90bcfce185ddba20a8635a1c59f68760220ddaf296ac3a582ea953f928290c50f186ea8909a9a94a82b6b1c8204f243a4ed4cef5fd672959cec8359a57ac08c4b41ccb515b963f675af7cf4a9bef97f13942a63678680fb8f9e2de766f3c578d6f5913d7e71aafbd5ebc965b90ce4c3dc4a7bc2af74754c3e7c05fc3fbd1851ee5caa4723fe7bf5a9cd804a979bbd341836bcb3e82ad164748cb46f5d9fd4b599d27a307962eea6465eb91a6155
+                      did: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw
+                      iss: authorisation-api_pilot-temp-01
+                    ake1_jws_detached: eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJodHRwczovL2FwaS1waWxvdC5lYnNpLmV1L3RydXN0ZWQtYXBwcy1yZWdpc3RyeS92My9hcHBzL2F1dGhvcmlzYXRpb24tYXBpX3BpbG90LXRlbXAtMDEifQ..bJ5gwcsgYcRTpMAJYpkUPGSYA962eioQ94Yju7buVGneuCCmelxWH-ZhKxMf7RolebgdVrrnNIIhdTZLJ8NpMw
+                    kid: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps/authorisation-api_pilot-temp-01
         "400":
           $ref: "#/components/responses/400"
         "500":
@@ -165,7 +172,7 @@ paths:
                 value:
                   grantType: client_credentials
                   clientAssertionType: "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
-                  clientAssertion: eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS5wcmVwcm9kLmVic2kuZXUvdHJ1c3RlZC1hcHBzLXJlZ2lzdHJ5L3YyL2FwcHMvMHg3ZGE5MzMwNDhlNzNkOTFmMDE5OTQ0ZTczOGZjYjI4MDEzZjFiZjQzOGFiOTNmYWM2ZDU0NWZiOTM5MmFjMTJlIn0.eyJpYXQiOjE2Mjc2NTI1NDEsImV4cCI6MTYyNzY1MjU1Niwibm9uY2UiOiI0MDFlMGQ4Yi04OWQ1LTRiMDQtYjZmMC02YzgyOGY5Nzk4MzAiLCJqdGkiOiIzYjU4ZGZiYS02MDU2LTRlMmUtOTc1Mi0yYjNhZDhjN2E2YjUiLCJhdWQiOiJsZWRnZXItYXBpIiwic3ViIjoidGVzdC1hcHAyIiwiaXNzIjoidGVzdC1hcHAyIn0.7lIZb1zPgbg832ku-faA8fmMs8K1c2U14zzD1Ge85VjJCraUkmPHJdRmAsPlkoiXs8o6qUroT5Mge6LlFbeg3g
+                  clientAssertion: eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS1waWxvdC5lYnNpLmV1L3RydXN0ZWQtYXBwcy1yZWdpc3RyeS92My9hcHBzL3Rlc3QtYXBwLXBpbG90MiJ9.eyJpYXQiOjE2NzI4NDUxOTYsImV4cCI6MTY3Mjg0NTIxMSwianRpIjoiZDQwNzdmMzctNzMxYy00Y2M0LThmYmItZDE0MWE5MjUyODViIiwiYXVkIjoibGVkZ2VyLWFwaSIsInN1YiI6InRlc3QtYXBwLXBpbG90MiIsIm5vbmNlIjoiOWEzNTQxODQtMzlmMy00MGJiLTg1NDctMjc5N2YzZDhlNThhIiwiaXNzIjoidGVzdC1hcHAtcGlsb3QyIn0.enmQemuwwkBSPTokpUjacOSgjM4JIo6OnHLaOiw_A3lwwJqGssBjHOfrxEIVOBCvdtLOSFDa6he8qCnqGef95Q
                   scope: openid did_authn
         required: true
       responses:
@@ -178,16 +185,16 @@ paths:
               examples:
                 OAuth2 response:
                   value:
-                    ake1_enc_payload: 82a7fbf0b0431fd894e7a7693dfd520802f9ad4df34fa679b048f85cc73353f0a638e6f581168d07e3b4e89fb59d4969b238cfe419a4c66fb57b18ac9183c378679c35c71b7e667ff6edf302b3e7b6eb7b4f042d674069b01026ddc2c9c04d03f7faf2803e278db9dcac1ad8818b86cdcf4d406d3fb5cafff62f3c9b992f9fe4bbe09c680b93966afb4ff4a3a82d4cfad08a83f21e6bd4b0354c51b9faf4269ac276a819502bee82c6ffe452b27eb24c7a9f51f6b70a717e60195281de062b535d54feaa4ce5f54b804d9ac1197c63e160ac8dac1bba131c9c7d5f494c0b3bbaf0c07b73556789018c8962bd14ab3cf156fc066283777d9357b00a0134ec441c4991e030b62ca21b5f5c2f689413db49c1e02dbaa44a2a3d69312f5a32eca716d17dbea0cce1852f7351076637849d6f4259dec0576bdfcf76b666dc4260447146e8b7ce319cdbd92025484eb07454a00d42821997c205a33d4842b96aaaa2474773bb17d7f2080cd8f6cdb83097de495ae59f170944022b90cf752944ea0450f9e23e9d25525045e42f67b33f1b9aaf417c00ef5e03094a091767dd0c72e6b4c25669031e6e432f0a019c439ff3fff6408ca7f8a7aa23de7a14e0fe63f2da68e17df3a5889827174e21ad7be2237becf345596f7a5fc7b14069b569d8e823380f3cf5024bf007fa25fc9c68d40f29adf8722f7cfb3594f6028c68ae9b00293aaaa3aa1cb271864df58d4b88511a17225885328acbf0938bab49a114b7a262a1825cc0b14150902145423843e37daac3b360e8c2269cd524b3bffea45d7e3c51bc355628e0c28833c6793b66093948350ad4f36a73da687ca539a2d9572205baffbe07c41b24b5fbb71d4137d0cda87df35f59246b51cc5edda5b50a2f275645e8ab62d51d0084d612cce4750b7d97239482580e14e2fb4bd0e8384dc6b27ecd291c834222eb504f85d412e3d1bbdb3061ac07ebf8929b5711b6527d9cb08989d088718a881136cf10bd9f7dc1af9183d5639bfaaa162443d7ce37d745eec3622f57997b21a5e6ad90844f9267df0ab0b2141fee86090c9b9733d9bf2191c4509578a2fffb50d9b1de770612ad423bb47b869ecbedd11ab473773b24e053e238a09f7fc61b676ea555c45cf86ed18812991dd83c3ad47fcfd039be5d9be22bcc78175a47986f1fe53f0976ad76204daa67c35b85a6ec8e46449b376486546aaead3bdfe3d06c8d70032550abf42794d398
+                    ake1_enc_payload: a5c94fe3c30baec627ab0afb26cf4b5f0319f3eb08752991fb98149e16549a2be069461ce0de3b83f3066027da8565d4516d043c1572b837a0263ffe493c5ded124bf4aaf060e87006e21d4b658abf43b6953f1f23ff982acc74d2c341545f976c5052e07730b304aa6bd37bbc8f54535c6ff84fffcf6caadb1757a854c8d559000bd1fb255e83b2e6a79e5a23a7b67c429ffa4a3e1a7acdc18c4cc7b623584a2ce612ae8052ecc42e116a0664c85c0c30f366c9a42d8d3ffc76e0da3b2c16e0cf19a90086d9c0f9db05218197f8bf07060d27b5c6caac3afdb90b4292123f80df6dbd7922b975335f408b74671790413e02c30d9db9ca96cb9bc25a9e51853f408bd565cadfaaf06526799deb2be248d67c82aaf13010dddaa40dbffe2e0e1fb5689ccbca3785707e188d2cf10f320aca678ff48491d4dec3227e2c17c9843fd8283ce79a3ee212c81063248507dbb694c11eb893235e0b6dc69e78eb69c4fc85ecaa91c8c72c43fd5362fe1f382f57f4dd7b0ee03a5542c83602a437e4b03fb434f6a44e4a04f0adbf30abacdaa69a5b826c77ac3faa27a650f3bcff21cdd1f6793df3dad9bae33496c9da4acba4c8fd793bc23f0d9032d416e753cd802153dc0ea3925d1110367322cba5450ceceb3cd3d4228228177dd8d667eda5691030183e0d3f1be40ac793d1d42af344895d85fb84d9374a344e8f95a33b1c740fa4c84ee016765a63fceda74d5decbf5ee76df9119c73491449a70554541900348b306ab07111312d2b74c226df7f194be00b8335a207bd41399487bd4216edf078a11b8a8b9b93d50e2cb673ccbce0b97d994b54b97068ef317e1136193b17d34764e6ec9c68be69b42aaf1aa1c9bb448dd38eb3a96957fc0a5b81c4710921c6605da420614042518739a02f8ed44338236733a5b2964a3bba2e4333034cb14746e6c2692445c65e8ec124c8e49413d01d86cd1b3dbd863807dc1d9a408e47c46c02f3e7bacbcbc387b03ebd26be6bd1d6f70f5c308081a8ca66beaea71ffee9d1cc375fc299323c938f5c200a2f031380f5347d1604d57a4af3c35a4891e5b1e2bb8573e36a4e1af5fbe62e1b188d119a6b07b25bda8086f3f0aa2139ee4e7144cd
                     ake1_sig_payload:
-                      iat: 1627652552
-                      exp: 1627653452
-                      ake1_nonce: 401e0d8b-89d5-4b04-b6f0-6c828f979830
-                      ake1_enc_payload: 82a7fbf0b0431fd894e7a7693dfd520802f9ad4df34fa679b048f85cc73353f0a638e6f581168d07e3b4e89fb59d4969b238cfe419a4c66fb57b18ac9183c378679c35c71b7e667ff6edf302b3e7b6eb7b4f042d674069b01026ddc2c9c04d03f7faf2803e278db9dcac1ad8818b86cdcf4d406d3fb5cafff62f3c9b992f9fe4bbe09c680b93966afb4ff4a3a82d4cfad08a83f21e6bd4b0354c51b9faf4269ac276a819502bee82c6ffe452b27eb24c7a9f51f6b70a717e60195281de062b535d54feaa4ce5f54b804d9ac1197c63e160ac8dac1bba131c9c7d5f494c0b3bbaf0c07b73556789018c8962bd14ab3cf156fc066283777d9357b00a0134ec441c4991e030b62ca21b5f5c2f689413db49c1e02dbaa44a2a3d69312f5a32eca716d17dbea0cce1852f7351076637849d6f4259dec0576bdfcf76b666dc4260447146e8b7ce319cdbd92025484eb07454a00d42821997c205a33d4842b96aaaa2474773bb17d7f2080cd8f6cdb83097de495ae59f170944022b90cf752944ea0450f9e23e9d25525045e42f67b33f1b9aaf417c00ef5e03094a091767dd0c72e6b4c25669031e6e432f0a019c439ff3fff6408ca7f8a7aa23de7a14e0fe63f2da68e17df3a5889827174e21ad7be2237becf345596f7a5fc7b14069b569d8e823380f3cf5024bf007fa25fc9c68d40f29adf8722f7cfb3594f6028c68ae9b00293aaaa3aa1cb271864df58d4b88511a17225885328acbf0938bab49a114b7a262a1825cc0b14150902145423843e37daac3b360e8c2269cd524b3bffea45d7e3c51bc355628e0c28833c6793b66093948350ad4f36a73da687ca539a2d9572205baffbe07c41b24b5fbb71d4137d0cda87df35f59246b51cc5edda5b50a2f275645e8ab62d51d0084d612cce4750b7d97239482580e14e2fb4bd0e8384dc6b27ecd291c834222eb504f85d412e3d1bbdb3061ac07ebf8929b5711b6527d9cb08989d088718a881136cf10bd9f7dc1af9183d5639bfaaa162443d7ce37d745eec3622f57997b21a5e6ad90844f9267df0ab0b2141fee86090c9b9733d9bf2191c4509578a2fffb50d9b1de770612ad423bb47b869ecbedd11ab473773b24e053e238a09f7fc61b676ea555c45cf86ed18812991dd83c3ad47fcfd039be5d9be22bcc78175a47986f1fe53f0976ad76204daa67c35b85a6ec8e46449b376486546aaead3bdfe3d06c8d70032550abf42794d398
-                      kid: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps/0x7da933048e73d91f019944e738fcb28013f1bf438ab93fac6d545fb9392ac12e
-                      iss: authorisation-api
-                    ake1_jws_detached: eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS5wcmVwcm9kLmVic2kuZXUvdHJ1c3RlZC1hcHBzLXJlZ2lzdHJ5L3YyL2FwcHMvMHgwOGMyNTg1NmZiY2JkZDA3NmM5YzM5NTEyYWJlZjYzMDk3NDk5MTBhMTEwZDlkMWE5YzlhN2QyYjI3N2I2ZDIwIn0..x3zRsAlgJ3nPyQj24_IPy30rBXMWO7poNG3qITewwe4LGbs-EefgdSKQMVPHWOGKXrgH5pvQ_-IF-nVUIW5H9w
-                    kid: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps/0x08c25856fbcbdd076c9c39512abef6309749910a110d9d1a9c9a7d2b277b6d20
+                      iat: 1672845197
+                      exp: 1672846097
+                      ake1_nonce: 9a354184-39f3-40bb-8547-2797f3d8e58a
+                      ake1_enc_payload: a5c94fe3c30baec627ab0afb26cf4b5f0319f3eb08752991fb98149e16549a2be069461ce0de3b83f3066027da8565d4516d043c1572b837a0263ffe493c5ded124bf4aaf060e87006e21d4b658abf43b6953f1f23ff982acc74d2c341545f976c5052e07730b304aa6bd37bbc8f54535c6ff84fffcf6caadb1757a854c8d559000bd1fb255e83b2e6a79e5a23a7b67c429ffa4a3e1a7acdc18c4cc7b623584a2ce612ae8052ecc42e116a0664c85c0c30f366c9a42d8d3ffc76e0da3b2c16e0cf19a90086d9c0f9db05218197f8bf07060d27b5c6caac3afdb90b4292123f80df6dbd7922b975335f408b74671790413e02c30d9db9ca96cb9bc25a9e51853f408bd565cadfaaf06526799deb2be248d67c82aaf13010dddaa40dbffe2e0e1fb5689ccbca3785707e188d2cf10f320aca678ff48491d4dec3227e2c17c9843fd8283ce79a3ee212c81063248507dbb694c11eb893235e0b6dc69e78eb69c4fc85ecaa91c8c72c43fd5362fe1f382f57f4dd7b0ee03a5542c83602a437e4b03fb434f6a44e4a04f0adbf30abacdaa69a5b826c77ac3faa27a650f3bcff21cdd1f6793df3dad9bae33496c9da4acba4c8fd793bc23f0d9032d416e753cd802153dc0ea3925d1110367322cba5450ceceb3cd3d4228228177dd8d667eda5691030183e0d3f1be40ac793d1d42af344895d85fb84d9374a344e8f95a33b1c740fa4c84ee016765a63fceda74d5decbf5ee76df9119c73491449a70554541900348b306ab07111312d2b74c226df7f194be00b8335a207bd41399487bd4216edf078a11b8a8b9b93d50e2cb673ccbce0b97d994b54b97068ef317e1136193b17d34764e6ec9c68be69b42aaf1aa1c9bb448dd38eb3a96957fc0a5b81c4710921c6605da420614042518739a02f8ed44338236733a5b2964a3bba2e4333034cb14746e6c2692445c65e8ec124c8e49413d01d86cd1b3dbd863807dc1d9a408e47c46c02f3e7bacbcbc387b03ebd26be6bd1d6f70f5c308081a8ca66beaea71ffee9d1cc375fc299323c938f5c200a2f031380f5347d1604d57a4af3c35a4891e5b1e2bb8573e36a4e1af5fbe62e1b188d119a6b07b25bda8086f3f0aa2139ee4e7144cd
+                      kid: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps/test-app-pilot2
+                      iss: authorisation-api_pilot-temp-01
+                    ake1_jws_detached: eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS1waWxvdC5lYnNpLmV1L3RydXN0ZWQtYXBwcy1yZWdpc3RyeS92My9hcHBzL2F1dGhvcmlzYXRpb24tYXBpX3BpbG90LXRlbXAtMDEifQ..PHbuIxA7oSp8-6oh7BED0fEiFL8gItKETlFzaiuFIKH0aF3RRjJQv-CKc5kEfmhGSO8_46yD2qFXZnsTrHAJFg
+                    kid: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps/authorisation-api_pilot-temp-01
         "400":
           $ref: "#/components/responses/400"
         "500":
@@ -247,7 +254,7 @@ components:
         uri:
           description: OpenId DID SIOP Uri response.
           type: string
-          example: "openid://?response_type=id_token&client_id=https%3A%2F%2Fapi-pilot.ebsi.eu%2Fauthorisation%2Fv2%2Fsiop-sessions&scope=openid%20did_authn&nonce=2a6a2e33-fbf8-4a41-95a4-88201ebd9b0f&request=eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJodHRwczovL2FwaS5wcmVwcm9kLmVic2kuZXUvdHJ1c3RlZC1hcHBzLXJlZ2lzdHJ5L3YyL2FwcHMvMHgwOGMyNTg1NmZiY2JkZDA3NmM5YzM5NTEyYWJlZjYzMDk3NDk5MTBhMTEwZDlkMWE5YzlhN2QyYjI3N2I2ZDIwIn0.eyJpYXQiOjE2Mjc2NTIzNjQsImV4cCI6MTYyNzY1MjY2NCwiaXNzIjoiZGlkOmVic2k6SEM5dG1paXRXNFM5ZllBYWo2Ullzb3FiVDNzN1Rjd3loeXJzYlNpem5zZFoiLCJzY29wZSI6Im9wZW5pZCBkaWRfYXV0aG4iLCJyZXNwb25zZV90eXBlIjoiaWRfdG9rZW4iLCJjbGllbnRfaWQiOiJodHRwczovL2FwaS5wcmVwcm9kLmVic2kuZXUvYXV0aG9yaXNhdGlvbi92MS9zaW9wLXNlc3Npb25zIiwibm9uY2UiOiIyYTZhMmUzMy1mYmY4LTRhNDEtOTVhNC04ODIwMWViZDliMGYiLCJjbGFpbXMiOnsiaWRfdG9rZW4iOnsidmVyaWZpZWRfY2xhaW1zIjp7InZlcmlmaWNhdGlvbiI6eyJ0cnVzdF9mcmFtZXdvcmsiOiJFQlNJIiwiZXZpZGVuY2UiOnsidHlwZSI6eyJ2YWx1ZSI6InZlcmlmaWFibGVfY3JlZGVudGlhbCJ9LCJkb2N1bWVudCI6eyJ0eXBlIjp7ImVzc2VudGlhbCI6dHJ1ZSwidmFsdWUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJWZXJpZmlhYmxlQXV0aG9yaXNhdGlvbiJdfSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6eyJlc3NlbnRpYWwiOnRydWUsInZhbHVlIjoiaHR0cHM6Ly9hcGkucHJlcHJvZC5lYnNpLmV1L3RydXN0ZWQtc2NoZW1hcy1yZWdpc3RyeS92MS9zY2hlbWFzLzB4MzEyZTMzMmUzNjJlMzEyZTM0MmUzMTJlMzEzNjM2MzQyZTMxMzAyZTMxMzgzNzJlMzEyZTMyMmUzMjJlMzMzMyJ9fX19fX19fX0.3ET08uTUO8CxdC2H8AhBTvxLMb4yXVn5CxY0gtuexbfCM4EgL4U_FqYGbsApP1iugn9ZUx2v6V_zVcfJVPvZqA"
+          example: "openid://?response_type=id_token&client_id=https%3A%2F%2Fapi-pilot.ebsi.eu%2Fauthorisation%2Fv2%2Fsiop-sessions&scope=openid+did_authn&nonce=09e8ebfe-674e-4e4c-82b3-da153f8625c2&request=eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJodHRwczovL2FwaS1waWxvdC5lYnNpLmV1L3RydXN0ZWQtYXBwcy1yZWdpc3RyeS92My9hcHBzL2F1dGhvcmlzYXRpb24tYXBpX3BpbG90LXRlbXAtMDEifQ.eyJzY29wZSI6Im9wZW5pZCBkaWRfYXV0aG4iLCJyZXNwb25zZV90eXBlIjoiaWRfdG9rZW4iLCJyZXNwb25zZV9tb2RlIjoicG9zdCIsImNsaWVudF9pZCI6Imh0dHBzOi8vYXBpLXBpbG90LmVic2kuZXUvYXV0aG9yaXNhdGlvbi92Mi9zaW9wLXNlc3Npb25zIiwicmVkaXJlY3RfdXJpIjoiaHR0cHM6Ly9hcGktcGlsb3QuZWJzaS5ldS9hdXRob3Jpc2F0aW9uL3YyL3Npb3Atc2Vzc2lvbnMiLCJub25jZSI6IjA5ZThlYmZlLTY3NGUtNGU0Yy04MmIzLWRhMTUzZjg2MjVjMiIsImNsYWltcyI6eyJpZF90b2tlbiI6eyJ2ZXJpZmllZF9jbGFpbXMiOnsidmVyaWZpY2F0aW9uIjp7InRydXN0X2ZyYW1ld29yayI6IkVCU0kiLCJldmlkZW5jZSI6eyJ0eXBlIjp7InZhbHVlIjoidmVyaWZpYWJsZV9jcmVkZW50aWFsIn0sImRvY3VtZW50Ijp7InR5cGUiOnsiZXNzZW50aWFsIjp0cnVlLCJ2YWx1ZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCIsIlZlcmlmaWFibGVBdXRob3Jpc2F0aW9uIl19LCJjcmVkZW50aWFsU2NoZW1hIjp7ImlkIjp7ImVzc2VudGlhbCI6dHJ1ZSwidmFsdWUiOiJodHRwczovL2FwaS1waWxvdC5lYnNpLmV1L3RydXN0ZWQtc2NoZW1hcy1yZWdpc3RyeS92Mi9zY2hlbWFzL3pITXA1MkxxSldvY21oQTlSa3puVFd1RWVjSlhvUERLdzNrV1FwODFZWTlwQyJ9fX19fX19fSwiaWF0IjoxNjcyODQxODgxLCJpc3MiOiJhdXRob3Jpc2F0aW9uLWFwaV9waWxvdC10ZW1wLTAxIiwiZXhwIjoxNjcyODQyMTgxfQ.Z8jVzKtcTtSD1kBlYin_1jnfZ6BhhYdo18lUSf5xz0RFtkoPonsQyKsS7u72w7fV3oxWUs8YV7QAynGyUxuR_w"
       description: DID SIOP OIDC URI
     SiopSessionsRequest:
       title: SIOP Session Request
@@ -256,8 +263,7 @@ components:
       properties:
         id_token:
           type: string
-          description: "JWS compact serialised ID Token (see schema: Verifiable Presentation)"
-          example: eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJkaWQ6ZWJzaToybWhtMTl0d3RpbHJyd241N2x4c25ocDl6YXlqN2cyYXQxYnFmZ21uam5kayNrZXktMSJ9.eyJpYXQiOjE2Mjc2NTIzNTMsImV4cCI6MTYyNzY1MjY1MywiaXNzIjoiaHR0cHM6Ly9zZWxmLWlzc3VlZC5tZSIsInN1YiI6Im5Pa0lESmppR1AtX1U1WGJOODlsclZSOWFwVWt6a2NLc29LbXFnaHZvREEiLCJhdWQiOiJodHRwczovL2FwaS5wcmVwcm9kLmVic2kuZXUvYXV0aG9yaXNhdGlvbi92MS9zaW9wLXNlc3Npb25zIiwibm9uY2UiOiI2MDE5MzQzNC04MzE5LTRmMGMtYjQ3YS1hZDE0NmFhNTU5MTUiLCJzdWJfandrIjp7ImtpZCI6ImRpZDplYnNpOjJtaG0xOXR3dGlscnJ3bjU3bHhzbmhwOXpheWo3ZzJhdDFicWZnbW5qbmRrI2tleS0xIiwia3R5IjoiRUMiLCJjcnYiOiJzZWNwMjU2azEiLCJ4IjoiMDhua2p3eU5OMHJ5SmVWMzFwbDhIV041YmlVcmZLeTM2VGRqUU52V3U2byIsInkiOiJ6RGRpdFE5Z25INVZiWVFESGd5ZlVVLW94bzBXQ3RHOXhQdUlsQzhKYmtjIn19.1xt0OjtMyuJcC7FGtnVwAYQ16C7fD3uLi9egpOqh2M4ivrxTxYLqPlbvg5463sRNOu9-aAsNfYXvNCzHbiEkow
+          description: JWS compact serialised ID Token
         vp_token:
           type: string
           description: A Verifiable Presentation JWT. Only for onboarding.
@@ -265,31 +271,32 @@ components:
         - id_token
     Ake1SiopResponse:
       title: SIOP Session Response
+      description: Ake1 Response for OAuth2 authentication
       type: object
       properties:
         ake1_enc_payload:
           description: Encrypted payload with user's public key
           type: string
-          example: bd9ddee6c87ca26b1c6e299c6242006b0316f1dc6efb4a8862d4027c255e1a68417a851572195de75d23510f33a78cd3eb2c098b87070b8b4855bc0681ba9ee8b4a4cace78be0c1a4b2bb79fd333d3d13a60c8ebee93cfa1d90242cf14dd013d7ef51fb92d6fdf5a16a09825496c74b7b5e71bb5d29d12dd511a4c5f25ee2f223d9e9699d29a4b0bf7a0ef1c63209fc15dca9009491139fd3fc68ecf659b34b15f10c8cf412f6b39a17076d9d147656d7607aa48b504f0aa88f8ef6bd2999f3df43ef6c421ae6bff7809ca4a357a63873e3746dab89b5b29bbc49e816db9776bf681837ee59f015f9a3c7afdc346c78a9222c63922535e1fda7bc740282ea64bce9af3ee2e8ef6eac0a3c30e81aac4f6091ef532395812ca7add4b6d2026bec09267ccd49d2491cb7f3eba4e3f2863aa21d86ce7248b3c708d1a1a0c38e9296970f51117ca50327367277d56c1b761d5a01c9717a41e35c7416973e7ef07fe817af9be218d050825604c79475418f1a0a5135c7442441ff3905391ce18359fd40859a3bd5532c91b9b0d8824f0142455a7528a8b355831de9a7c6aa625cecc5f8093c2b711269286f16164d8928697c889a78aaa7f14caaceba8c888376988fe881f8c44a324796df8e4bfb787e5696cb32c2aa4dbc27608fa9d9d849c19d7d09a2171db09c189585f7f5150340fd03d16fc1703ccb0b63e5694eb20e78a811bf62439c9cf3803d257055cd2b58414a211d8940aec7378d318df9e52e0ecf1f347765c53e0d8f24529fbcdc798e4e841ea68c0bed7c82cec8dffac0146e0b2f80a633ea515aeab10e7ca1ad4663d518c33a22861b05c28b8be6f3eb6b0590b4aee0deb9422afe7c99664c80594e15e6289006fc212051e3bd63dfa3c79bb5f53db31379df395c601ed27768251e539f49597d86f66da69fd70fe633b20938c307394acd01f867897d0b969cb1db98781542493ed1bb4b38a31a5b3ce4579edd8b31506b8f0c03cb617781558bcf4fe3dbff835cf77e13c36fe94719628449bbf428f91367261fbf34aa854a468ef0071bb96e2641ddf75fbc53a508a96cc0c272ab964fe50f91a010a7bbec6a9c658f2717808efa4438868acd0e3794b623d6f4c64d685493c1d8c59704f1a1274481580b66c53187b12225a5882f19e2b8c0144af83cdda10824e1666ab4e7c7ff33a70b4505e976c20ef369b0558ce7af2239f
+          example: ce527bf1e06bd6241625d54e76bdb5ac029c455f97324ed20a5038724966ba5d9befd49195b4841b513c7f23e785c99f87bad2e255cbceb1152cef05b15137a1411520d8d578961f16d6c59ec042889e45cb4d3965d9d859dac8f217b3b3776ad342a605f2bb985d820ad8b0f6cb2c7c40da4d1ebd3efb5a3d57507e0479801c088e68b277fac799f852c1053a1dacc7cdb921cff2006eaf1b3fa3a5b64de91e991390b7317814625f490a1354dc2b69498b2bfad7caf0e819ebd93cccb2ef26e399d996ab19910605d798dacf9f78489dd7bac8613b5da28314e1153d929a9059decedce00eeb2848ee95f14e523f9f12372e71b9db4ebe702ce508d2dbc1e5cbdafcd5a15afe397fb35f9a45424c6aac43380b054185cbac4f498a5db4dcf517cf8bc760354c26e2e1af37dbdf06f888e5d424a66ab9546475b187787b557d197af20c7ac1e0639acf0304f051194da4be7c8badb0747b3e669ffd7ffe5a2c9c2060f338d8e4eb3010e10e6a67a1c8fe21d48ee7bc5d540497071f80dd36e58d309e868837c193dd5646b33baa61c3c190d5ce44d08bc6820d240e14edd12af9ae8242e5a7186c1697426d14e97101313331cb1d803030cd2d6d2799852bda0dbc80b3c927efffc19d170327ac11c5d645b83c38fdcfb9ac779d9eac795d8eb671fe0ade56cdcb020261e1bf6d2e1d2fdfc1f954959c2d5516adf3f2abcee298c92b5451e3dee89d1903b8390fe9a426278ec879a59e682eabf8b8f3ad4482de9c636a41e506c82d7d0be1a92d926ba7fb05779f2612a86f8b47e10477b1d6080044d1f983cf3cb81e35af5b3ea4205e1d25ce0b6d20755442904d670380082203e25d4326df0ab47ee8bb404f98d5184a3949e043a0656e856f78f442fb33a2ec63c7347520c796fb721bfc0c6106c0db9e0580ba17aa3f96abf1a4744256635803f90bcfce185ddba20a8635a1c59f68760220ddaf296ac3a582ea953f928290c50f186ea8909a9a94a82b6b1c8204f243a4ed4cef5fd672959cec8359a57ac08c4b41ccb515b963f675af7cf4a9bef97f13942a63678680fb8f9e2de766f3c578d6f5913d7e71aafbd5ebc965b90ce4c3dc4a7bc2af74754c3e7c05fc3fbd1851ee5caa4723fe7bf5a9cd804a979bbd341836bcb3e82ad164748cb46f5d9fd4b599d27a307962eea6465eb91a6155
         ake1_jws_detached:
           description: Detached JWS of AKE1 Signing Payload
           type: string
-          example: eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS5wcmVwcm9kLmVic2kuZXUvdHJ1c3RlZC1hcHBzLXJlZ2lzdHJ5L3YyL2FwcHMvMHgwOGMyNTg1NmZiY2JkZDA3NmM5YzM5NTEyYWJlZjYzMDk3NDk5MTBhMTEwZDlkMWE5YzlhN2QyYjI3N2I2ZDIwIn0..hniLWpfw8sxgacyRdXr7en4UrCQoWvsJ72m9bo51x3n5fWSoL7_BdfcHyaEQXCHz_y7iZhRDBxtT1Pw03OiNIQ
+          example: eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJodHRwczovL2FwaS1waWxvdC5lYnNpLmV1L3RydXN0ZWQtYXBwcy1yZWdpc3RyeS92My9hcHBzL2F1dGhvcmlzYXRpb24tYXBpX3BpbG90LXRlbXAtMDEifQ..bJ5gwcsgYcRTpMAJYpkUPGSYA962eioQ94Yju7buVGneuCCmelxWH-ZhKxMf7RolebgdVrrnNIIhdTZLJ8NpMw
         ake1_sig_payload:
           type: object
           properties:
             ake1_enc_payload:
               description: Encrypted payload with user's public key
               type: string
-              example: bd9ddee6c87ca26b1c6e299c6242006b0316f1dc6efb4a8862d4027c255e1a68417a851572195de75d23510f33a78cd3eb2c098b87070b8b4855bc0681ba9ee8b4a4cace78be0c1a4b2bb79fd333d3d13a60c8ebee93cfa1d90242cf14dd013d7ef51fb92d6fdf5a16a09825496c74b7b5e71bb5d29d12dd511a4c5f25ee2f223d9e9699d29a4b0bf7a0ef1c63209fc15dca9009491139fd3fc68ecf659b34b15f10c8cf412f6b39a17076d9d147656d7607aa48b504f0aa88f8ef6bd2999f3df43ef6c421ae6bff7809ca4a357a63873e3746dab89b5b29bbc49e816db9776bf681837ee59f015f9a3c7afdc346c78a9222c63922535e1fda7bc740282ea64bce9af3ee2e8ef6eac0a3c30e81aac4f6091ef532395812ca7add4b6d2026bec09267ccd49d2491cb7f3eba4e3f2863aa21d86ce7248b3c708d1a1a0c38e9296970f51117ca50327367277d56c1b761d5a01c9717a41e35c7416973e7ef07fe817af9be218d050825604c79475418f1a0a5135c7442441ff3905391ce18359fd40859a3bd5532c91b9b0d8824f0142455a7528a8b355831de9a7c6aa625cecc5f8093c2b711269286f16164d8928697c889a78aaa7f14caaceba8c888376988fe881f8c44a324796df8e4bfb787e5696cb32c2aa4dbc27608fa9d9d849c19d7d09a2171db09c189585f7f5150340fd03d16fc1703ccb0b63e5694eb20e78a811bf62439c9cf3803d257055cd2b58414a211d8940aec7378d318df9e52e0ecf1f347765c53e0d8f24529fbcdc798e4e841ea68c0bed7c82cec8dffac0146e0b2f80a633ea515aeab10e7ca1ad4663d518c33a22861b05c28b8be6f3eb6b0590b4aee0deb9422afe7c99664c80594e15e6289006fc212051e3bd63dfa3c79bb5f53db31379df395c601ed27768251e539f49597d86f66da69fd70fe633b20938c307394acd01f867897d0b969cb1db98781542493ed1bb4b38a31a5b3ce4579edd8b31506b8f0c03cb617781558bcf4fe3dbff835cf77e13c36fe94719628449bbf428f91367261fbf34aa854a468ef0071bb96e2641ddf75fbc53a508a96cc0c272ab964fe50f91a010a7bbec6a9c658f2717808efa4438868acd0e3794b623d6f4c64d685493c1d8c59704f1a1274481580b66c53187b12225a5882f19e2b8c0144af83cdda10824e1666ab4e7c7ff33a70b4505e976c20ef369b0558ce7af2239f
+              example: ce527bf1e06bd6241625d54e76bdb5ac029c455f97324ed20a5038724966ba5d9befd49195b4841b513c7f23e785c99f87bad2e255cbceb1152cef05b15137a1411520d8d578961f16d6c59ec042889e45cb4d3965d9d859dac8f217b3b3776ad342a605f2bb985d820ad8b0f6cb2c7c40da4d1ebd3efb5a3d57507e0479801c088e68b277fac799f852c1053a1dacc7cdb921cff2006eaf1b3fa3a5b64de91e991390b7317814625f490a1354dc2b69498b2bfad7caf0e819ebd93cccb2ef26e399d996ab19910605d798dacf9f78489dd7bac8613b5da28314e1153d929a9059decedce00eeb2848ee95f14e523f9f12372e71b9db4ebe702ce508d2dbc1e5cbdafcd5a15afe397fb35f9a45424c6aac43380b054185cbac4f498a5db4dcf517cf8bc760354c26e2e1af37dbdf06f888e5d424a66ab9546475b187787b557d197af20c7ac1e0639acf0304f051194da4be7c8badb0747b3e669ffd7ffe5a2c9c2060f338d8e4eb3010e10e6a67a1c8fe21d48ee7bc5d540497071f80dd36e58d309e868837c193dd5646b33baa61c3c190d5ce44d08bc6820d240e14edd12af9ae8242e5a7186c1697426d14e97101313331cb1d803030cd2d6d2799852bda0dbc80b3c927efffc19d170327ac11c5d645b83c38fdcfb9ac779d9eac795d8eb671fe0ade56cdcb020261e1bf6d2e1d2fdfc1f954959c2d5516adf3f2abcee298c92b5451e3dee89d1903b8390fe9a426278ec879a59e682eabf8b8f3ad4482de9c636a41e506c82d7d0be1a92d926ba7fb05779f2612a86f8b47e10477b1d6080044d1f983cf3cb81e35af5b3ea4205e1d25ce0b6d20755442904d670380082203e25d4326df0ab47ee8bb404f98d5184a3949e043a0656e856f78f442fb33a2ec63c7347520c796fb721bfc0c6106c0db9e0580ba17aa3f96abf1a4744256635803f90bcfce185ddba20a8635a1c59f68760220ddaf296ac3a582ea953f928290c50f186ea8909a9a94a82b6b1c8204f243a4ed4cef5fd672959cec8359a57ac08c4b41ccb515b963f675af7cf4a9bef97f13942a63678680fb8f9e2de766f3c578d6f5913d7e71aafbd5ebc965b90ce4c3dc4a7bc2af74754c3e7c05fc3fbd1851ee5caa4723fe7bf5a9cd804a979bbd341836bcb3e82ad164748cb46f5d9fd4b599d27a307962eea6465eb91a6155
             ake1_nonce:
               description: Nonce used during the authentication process
               type: string
-              example: 60193434-8319-4f0c-b47a-ad146aa55915
+              example: 53a6e914-ef94-412b-b226-82da24be3dd9
             did:
-              description: User DID
+              description: API DID
               type: string
-              example: did:ebsi:zub5ZZUfHLLptCduwEy8xRj
+              example: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw
             iat:
               description: Issued at
               type: number
@@ -299,14 +306,13 @@ components:
               type: number
               example: 1627653264
             iss:
-              description: Issuer (authorisation api)
+              description: Issuer (Authorisation API)
               type: string
-              example: did:ebsi:zwC56DZdiJh8kSxbgg4fMCu
-        did:
-          description: API DID
+              example: authorisation-api_pilot-temp-01
+        kid:
+          description: API KID
           type: string
-          example: did:ebsi:zwC56DZdiJh8kSxbgg4fMCu
-      description: Ake1 Response for OAuth2 authentication
+          example: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps/authorisation-api_pilot-temp-01
     OAuth2SessionsRequest:
       title: OAuth2 Session Request
       description: Request for JWT bearer assertion grant.
@@ -325,7 +331,7 @@ components:
         clientAssertion:
           type: string
           description: Self-signed JWT
-          example: eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS5wcmVwcm9kLmVic2kuZXUvdHJ1c3RlZC1hcHBzLXJlZ2lzdHJ5L3YyL2FwcHMvMHg3ZGE5MzMwNDhlNzNkOTFmMDE5OTQ0ZTczOGZjYjI4MDEzZjFiZjQzOGFiOTNmYWM2ZDU0NWZiOTM5MmFjMTJlIn0.eyJpYXQiOjE2Mjc2NTI1NDEsImV4cCI6MTYyNzY1MjU1Niwibm9uY2UiOiI0MDFlMGQ4Yi04OWQ1LTRiMDQtYjZmMC02YzgyOGY5Nzk4MzAiLCJqdGkiOiIzYjU4ZGZiYS02MDU2LTRlMmUtOTc1Mi0yYjNhZDhjN2E2YjUiLCJhdWQiOiJsZWRnZXItYXBpIiwic3ViIjoidGVzdC1hcHAyIiwiaXNzIjoidGVzdC1hcHAyIn0.7lIZb1zPgbg832ku-faA8fmMs8K1c2U14zzD1Ge85VjJCraUkmPHJdRmAsPlkoiXs8o6qUroT5Mge6LlFbeg3g
+          example: eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS1waWxvdC5lYnNpLmV1L3RydXN0ZWQtYXBwcy1yZWdpc3RyeS92My9hcHBzL3Rlc3QtYXBwLXBpbG90MiJ9.eyJpYXQiOjE2NzI4NDUxOTYsImV4cCI6MTY3Mjg0NTIxMSwianRpIjoiZDQwNzdmMzctNzMxYy00Y2M0LThmYmItZDE0MWE5MjUyODViIiwiYXVkIjoibGVkZ2VyLWFwaSIsInN1YiI6InRlc3QtYXBwLXBpbG90MiIsIm5vbmNlIjoiOWEzNTQxODQtMzlmMy00MGJiLTg1NDctMjc5N2YzZDhlNThhIiwiaXNzIjoidGVzdC1hcHAtcGlsb3QyIn0.enmQemuwwkBSPTokpUjacOSgjM4JIo6OnHLaOiw_A3lwwJqGssBjHOfrxEIVOBCvdtLOSFDa6he8qCnqGef95Q
         scope:
           type: string
           description: Scope is used to define the authentication method. Must be set to "openid did_authn"
@@ -342,42 +348,42 @@ components:
         ake1_enc_payload:
           description: Encrypted payload with user's public key
           type: string
-          example: 82a7fbf0b0431fd894e7a7693dfd520802f9ad4df34fa679b048f85cc73353f0a638e6f581168d07e3b4e89fb59d4969b238cfe419a4c66fb57b18ac9183c378679c35c71b7e667ff6edf302b3e7b6eb7b4f042d674069b01026ddc2c9c04d03f7faf2803e278db9dcac1ad8818b86cdcf4d406d3fb5cafff62f3c9b992f9fe4bbe09c680b93966afb4ff4a3a82d4cfad08a83f21e6bd4b0354c51b9faf4269ac276a819502bee82c6ffe452b27eb24c7a9f51f6b70a717e60195281de062b535d54feaa4ce5f54b804d9ac1197c63e160ac8dac1bba131c9c7d5f494c0b3bbaf0c07b73556789018c8962bd14ab3cf156fc066283777d9357b00a0134ec441c4991e030b62ca21b5f5c2f689413db49c1e02dbaa44a2a3d69312f5a32eca716d17dbea0cce1852f7351076637849d6f4259dec0576bdfcf76b666dc4260447146e8b7ce319cdbd92025484eb07454a00d42821997c205a33d4842b96aaaa2474773bb17d7f2080cd8f6cdb83097de495ae59f170944022b90cf752944ea0450f9e23e9d25525045e42f67b33f1b9aaf417c00ef5e03094a091767dd0c72e6b4c25669031e6e432f0a019c439ff3fff6408ca7f8a7aa23de7a14e0fe63f2da68e17df3a5889827174e21ad7be2237becf345596f7a5fc7b14069b569d8e823380f3cf5024bf007fa25fc9c68d40f29adf8722f7cfb3594f6028c68ae9b00293aaaa3aa1cb271864df58d4b88511a17225885328acbf0938bab49a114b7a262a1825cc0b14150902145423843e37daac3b360e8c2269cd524b3bffea45d7e3c51bc355628e0c28833c6793b66093948350ad4f36a73da687ca539a2d9572205baffbe07c41b24b5fbb71d4137d0cda87df35f59246b51cc5edda5b50a2f275645e8ab62d51d0084d612cce4750b7d97239482580e14e2fb4bd0e8384dc6b27ecd291c834222eb504f85d412e3d1bbdb3061ac07ebf8929b5711b6527d9cb08989d088718a881136cf10bd9f7dc1af9183d5639bfaaa162443d7ce37d745eec3622f57997b21a5e6ad90844f9267df0ab0b2141fee86090c9b9733d9bf2191c4509578a2fffb50d9b1de770612ad423bb47b869ecbedd11ab473773b24e053e238a09f7fc61b676ea555c45cf86ed18812991dd83c3ad47fcfd039be5d9be22bcc78175a47986f1fe53f0976ad76204daa67c35b85a6ec8e46449b376486546aaead3bdfe3d06c8d70032550abf42794d398
+          example: a5c94fe3c30baec627ab0afb26cf4b5f0319f3eb08752991fb98149e16549a2be069461ce0de3b83f3066027da8565d4516d043c1572b837a0263ffe493c5ded124bf4aaf060e87006e21d4b658abf43b6953f1f23ff982acc74d2c341545f976c5052e07730b304aa6bd37bbc8f54535c6ff84fffcf6caadb1757a854c8d559000bd1fb255e83b2e6a79e5a23a7b67c429ffa4a3e1a7acdc18c4cc7b623584a2ce612ae8052ecc42e116a0664c85c0c30f366c9a42d8d3ffc76e0da3b2c16e0cf19a90086d9c0f9db05218197f8bf07060d27b5c6caac3afdb90b4292123f80df6dbd7922b975335f408b74671790413e02c30d9db9ca96cb9bc25a9e51853f408bd565cadfaaf06526799deb2be248d67c82aaf13010dddaa40dbffe2e0e1fb5689ccbca3785707e188d2cf10f320aca678ff48491d4dec3227e2c17c9843fd8283ce79a3ee212c81063248507dbb694c11eb893235e0b6dc69e78eb69c4fc85ecaa91c8c72c43fd5362fe1f382f57f4dd7b0ee03a5542c83602a437e4b03fb434f6a44e4a04f0adbf30abacdaa69a5b826c77ac3faa27a650f3bcff21cdd1f6793df3dad9bae33496c9da4acba4c8fd793bc23f0d9032d416e753cd802153dc0ea3925d1110367322cba5450ceceb3cd3d4228228177dd8d667eda5691030183e0d3f1be40ac793d1d42af344895d85fb84d9374a344e8f95a33b1c740fa4c84ee016765a63fceda74d5decbf5ee76df9119c73491449a70554541900348b306ab07111312d2b74c226df7f194be00b8335a207bd41399487bd4216edf078a11b8a8b9b93d50e2cb673ccbce0b97d994b54b97068ef317e1136193b17d34764e6ec9c68be69b42aaf1aa1c9bb448dd38eb3a96957fc0a5b81c4710921c6605da420614042518739a02f8ed44338236733a5b2964a3bba2e4333034cb14746e6c2692445c65e8ec124c8e49413d01d86cd1b3dbd863807dc1d9a408e47c46c02f3e7bacbcbc387b03ebd26be6bd1d6f70f5c308081a8ca66beaea71ffee9d1cc375fc299323c938f5c200a2f031380f5347d1604d57a4af3c35a4891e5b1e2bb8573e36a4e1af5fbe62e1b188d119a6b07b25bda8086f3f0aa2139ee4e7144cd
         ake1_jws_detached:
           description: Detached JWS of AKE1 Signing Payload
           type: string
-          example: eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS5wcmVwcm9kLmVic2kuZXUvdHJ1c3RlZC1hcHBzLXJlZ2lzdHJ5L3YyL2FwcHMvMHgwOGMyNTg1NmZiY2JkZDA3NmM5YzM5NTEyYWJlZjYzMDk3NDk5MTBhMTEwZDlkMWE5YzlhN2QyYjI3N2I2ZDIwIn0..x3zRsAlgJ3nPyQj24_IPy30rBXMWO7poNG3qITewwe4LGbs-EefgdSKQMVPHWOGKXrgH5pvQ_-IF-nVUIW5H9w
+          example: eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS1waWxvdC5lYnNpLmV1L3RydXN0ZWQtYXBwcy1yZWdpc3RyeS92My9hcHBzL2F1dGhvcmlzYXRpb24tYXBpX3BpbG90LXRlbXAtMDEifQ..PHbuIxA7oSp8-6oh7BED0fEiFL8gItKETlFzaiuFIKH0aF3RRjJQv-CKc5kEfmhGSO8_46yD2qFXZnsTrHAJFg
         ake1_sig_payload:
           type: object
           properties:
             ake1_enc_payload:
               description: Encrypted payload with user's public key
               type: string
-              example: 82a7fbf0b0431fd894e7a7693dfd520802f9ad4df34fa679b048f85cc73353f0a638e6f581168d07e3b4e89fb59d4969b238cfe419a4c66fb57b18ac9183c378679c35c71b7e667ff6edf302b3e7b6eb7b4f042d674069b01026ddc2c9c04d03f7faf2803e278db9dcac1ad8818b86cdcf4d406d3fb5cafff62f3c9b992f9fe4bbe09c680b93966afb4ff4a3a82d4cfad08a83f21e6bd4b0354c51b9faf4269ac276a819502bee82c6ffe452b27eb24c7a9f51f6b70a717e60195281de062b535d54feaa4ce5f54b804d9ac1197c63e160ac8dac1bba131c9c7d5f494c0b3bbaf0c07b73556789018c8962bd14ab3cf156fc066283777d9357b00a0134ec441c4991e030b62ca21b5f5c2f689413db49c1e02dbaa44a2a3d69312f5a32eca716d17dbea0cce1852f7351076637849d6f4259dec0576bdfcf76b666dc4260447146e8b7ce319cdbd92025484eb07454a00d42821997c205a33d4842b96aaaa2474773bb17d7f2080cd8f6cdb83097de495ae59f170944022b90cf752944ea0450f9e23e9d25525045e42f67b33f1b9aaf417c00ef5e03094a091767dd0c72e6b4c25669031e6e432f0a019c439ff3fff6408ca7f8a7aa23de7a14e0fe63f2da68e17df3a5889827174e21ad7be2237becf345596f7a5fc7b14069b569d8e823380f3cf5024bf007fa25fc9c68d40f29adf8722f7cfb3594f6028c68ae9b00293aaaa3aa1cb271864df58d4b88511a17225885328acbf0938bab49a114b7a262a1825cc0b14150902145423843e37daac3b360e8c2269cd524b3bffea45d7e3c51bc355628e0c28833c6793b66093948350ad4f36a73da687ca539a2d9572205baffbe07c41b24b5fbb71d4137d0cda87df35f59246b51cc5edda5b50a2f275645e8ab62d51d0084d612cce4750b7d97239482580e14e2fb4bd0e8384dc6b27ecd291c834222eb504f85d412e3d1bbdb3061ac07ebf8929b5711b6527d9cb08989d088718a881136cf10bd9f7dc1af9183d5639bfaaa162443d7ce37d745eec3622f57997b21a5e6ad90844f9267df0ab0b2141fee86090c9b9733d9bf2191c4509578a2fffb50d9b1de770612ad423bb47b869ecbedd11ab473773b24e053e238a09f7fc61b676ea555c45cf86ed18812991dd83c3ad47fcfd039be5d9be22bcc78175a47986f1fe53f0976ad76204daa67c35b85a6ec8e46449b376486546aaead3bdfe3d06c8d70032550abf42794d398
+              example: a5c94fe3c30baec627ab0afb26cf4b5f0319f3eb08752991fb98149e16549a2be069461ce0de3b83f3066027da8565d4516d043c1572b837a0263ffe493c5ded124bf4aaf060e87006e21d4b658abf43b6953f1f23ff982acc74d2c341545f976c5052e07730b304aa6bd37bbc8f54535c6ff84fffcf6caadb1757a854c8d559000bd1fb255e83b2e6a79e5a23a7b67c429ffa4a3e1a7acdc18c4cc7b623584a2ce612ae8052ecc42e116a0664c85c0c30f366c9a42d8d3ffc76e0da3b2c16e0cf19a90086d9c0f9db05218197f8bf07060d27b5c6caac3afdb90b4292123f80df6dbd7922b975335f408b74671790413e02c30d9db9ca96cb9bc25a9e51853f408bd565cadfaaf06526799deb2be248d67c82aaf13010dddaa40dbffe2e0e1fb5689ccbca3785707e188d2cf10f320aca678ff48491d4dec3227e2c17c9843fd8283ce79a3ee212c81063248507dbb694c11eb893235e0b6dc69e78eb69c4fc85ecaa91c8c72c43fd5362fe1f382f57f4dd7b0ee03a5542c83602a437e4b03fb434f6a44e4a04f0adbf30abacdaa69a5b826c77ac3faa27a650f3bcff21cdd1f6793df3dad9bae33496c9da4acba4c8fd793bc23f0d9032d416e753cd802153dc0ea3925d1110367322cba5450ceceb3cd3d4228228177dd8d667eda5691030183e0d3f1be40ac793d1d42af344895d85fb84d9374a344e8f95a33b1c740fa4c84ee016765a63fceda74d5decbf5ee76df9119c73491449a70554541900348b306ab07111312d2b74c226df7f194be00b8335a207bd41399487bd4216edf078a11b8a8b9b93d50e2cb673ccbce0b97d994b54b97068ef317e1136193b17d34764e6ec9c68be69b42aaf1aa1c9bb448dd38eb3a96957fc0a5b81c4710921c6605da420614042518739a02f8ed44338236733a5b2964a3bba2e4333034cb14746e6c2692445c65e8ec124c8e49413d01d86cd1b3dbd863807dc1d9a408e47c46c02f3e7bacbcbc387b03ebd26be6bd1d6f70f5c308081a8ca66beaea71ffee9d1cc375fc299323c938f5c200a2f031380f5347d1604d57a4af3c35a4891e5b1e2bb8573e36a4e1af5fbe62e1b188d119a6b07b25bda8086f3f0aa2139ee4e7144cd
             ake1_nonce:
               description: Nonce used during the authentication process
               type: string
-              example: 401e0d8b-89d5-4b04-b6f0-6c828f979830
+              example: 9a354184-39f3-40bb-8547-2797f3d8e58a
             kid:
-              description: Trusted App Kid
+              description: Trusted App KID
               type: string
-              example: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps/0x7da933048e73d91f019944e738fcb28013f1bf438ab93fac6d545fb9392ac12e
+              example: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps/test-app-pilot2
             iat:
               description: Issued at
               type: number
-              example: 1627652552
+              example: 1672845197
             exp:
               description: Expires
               type: number
-              example: 1627653452
+              example: 1672846097
             iss:
-              description: Issuer (authorisation api)
+              description: Issuer (Authorisation API)
               type: string
-              example: authorisation-api
+              example: authorisation-api_pilot-temp-01
         kid:
-          description: API Kid
+          description: API KID
           type: string
-          example: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps/0x08c25856fbcbdd076c9c39512abef6309749910a110d9d1a9c9a7d2b277b6d20
+          example: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps/authorisation-api_pilot-temp-01
       description: Ake1 Response for OAuth2 authentication
   responses:
     "400":
@@ -424,7 +430,7 @@ components:
         status: 500
         detail: The server encountered an internal error and was unable to process your request.
   parameters:
-    headerConformance:
+    conformanceHeader:
       in: header
       name: Conformance
       description: |
@@ -432,16 +438,9 @@ components:
         - Type: string
         - Format: UUID V4
 
-        The header is used to log the activities. See section\_Conformance testing header in the [documentation](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIEA/EBSI+Wallet+Conformance+Testing).
+        The header is used to log the activities.
       required: false
       schema:
         type: string
         format: uuid
       example: edb60e02-398d-4b62-8028-85710b2476a5
-  securitySchemes:
-    bearerAuth:
-      description: |
-        To access the protected services, you need to obtain an access token via the [Authorisation API](https://ec.europa.eu/digital-building-blocks/wikis/x/7YJXFg). See also the [Get a JWT from Authorisation API](https://ec.europa.eu/digital-building-blocks/wikis/x/boDwG) and the [OpenAPI](https://api-pilot.ebsi.eu/docs/?urls.primaryName=Authorisation%20API) examples.
-      type: http
-      scheme: bearer
-      bearerFormat: JWT

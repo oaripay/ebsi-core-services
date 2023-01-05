@@ -222,7 +222,7 @@ describe("Authorisation (e2e)", () => {
               );
 
               const publicKeyObject = (await importJWK(
-                encode.publicKey.fromHextoJWK(publicKeyHex),
+                encode.publicKey.fromHexToJWK(publicKeyHex),
                 "ES256K"
               )) as crypto.KeyObject;
 
@@ -636,7 +636,7 @@ describe("Authorisation (e2e)", () => {
         // The RP creates an authentication request
         const rp = new RP({
           privateKey: await importJWK(
-            encode.privateKey.fromHextoJWK(privateKey),
+            encode.privateKey.fromHexToJWK(privateKey),
             "ES256K"
           ),
           alg: "ES256K",
@@ -792,7 +792,7 @@ describe("Authorisation (e2e)", () => {
 
       const siopAgent = new SiopAgent({
         privateKey: await importJWK(
-          encode.privateKey.fromHextoJWK(keyObject.privateKeyHexES256K),
+          encode.privateKey.fromHexToJWK(keyObject.privateKeyHexES256K),
           "ES256K"
         ),
         alg: "ES256K",
@@ -870,7 +870,7 @@ describe("Authorisation (e2e)", () => {
           expect.assertions(3);
 
           // 1. The user creates an authentication request in Onboarding api
-          // Since this step requires human intervention (eulogin, recaptcha) this test
+          // Since this step requires human intervention (EU Login, recaptcha) this test
           // will skip it and create the response:
           // A verifiable credential signed by onboarding api
           const did = EbsiWallet.createDid("LEGAL_ENTITY");
@@ -878,7 +878,7 @@ describe("Authorisation (e2e)", () => {
           const publicKeyJwk = await exportJWK(keyPair.publicKey);
           const privateKeyJwk = await exportJWK(keyPair.privateKey);
           const privateKeyHexEncryption = randomPrivateKeySecp256k1();
-          const privateEncryptionKeyJwk = encode.privateKey.fromHextoJWK(
+          const privateEncryptionKeyJwk = encode.privateKey.fromHexToJWK(
             privateKeyHexEncryption
           );
           const publicKeyEncryption = new EbsiWallet(
@@ -897,7 +897,7 @@ describe("Authorisation (e2e)", () => {
           // 2. The client creates a verifiable presentation using the verifiable credential
           const siopAgent = new SiopAgent({
             privateKey: await importJWK(
-              encode.privateKey.fromHextoJWK(privateKeyHexEncryption),
+              encode.privateKey.fromHexToJWK(privateKeyHexEncryption),
               "ES256K"
             ),
             kid: `${did}#keys-1`,
@@ -1018,7 +1018,7 @@ describe("Authorisation (e2e)", () => {
       // 2. The client creates a verifiable presentation using the verifiable credential
       const siopAgent = new SiopAgent({
         privateKey: await importJWK(
-          encode.privateKey.fromHextoJWK(privateKeyHexEncryption),
+          encode.privateKey.fromHexToJWK(privateKeyHexEncryption),
           "ES256K"
         ),
         alg: "ES256K",

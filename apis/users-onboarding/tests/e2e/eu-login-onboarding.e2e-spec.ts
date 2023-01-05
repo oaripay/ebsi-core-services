@@ -184,7 +184,7 @@ describe("EU Login onboarding", () => {
     const alg = "ES256K";
     const agent = new Agent({
       privateKey: await importJWK(
-        encode.privateKey.fromHextoJWK(testUserPrivateKey),
+        encode.privateKey.fromHexToJWK(testUserPrivateKey),
         alg
       ),
       kid: testUserKid,

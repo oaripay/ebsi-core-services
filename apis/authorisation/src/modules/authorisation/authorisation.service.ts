@@ -89,7 +89,7 @@ export class AuthorisationService {
 
     this.relyingParty = new RP({
       privateKey: await importJWK(
-        encode.privateKey.fromHextoJWK(this.privateKey),
+        encode.privateKey.fromHexToJWK(this.privateKey),
         "ES256K"
       ),
       alg: "ES256K",

@@ -2,8 +2,8 @@ openapi: 3.1.0
 info:
   title: DID Registry API v3
   description: |
-    DID Registry is a generic core service of the EBSI platform providing the capability of
-    resolving EBSI Decentralised Identifiers (DIDs).
+    The DID Registry API is an EBSI core service providing the capability of resolving EBSI
+    Decentralised Identifiers (DIDs).
 
     It enables consumers to interact with the DID Registry SC to:
     - Insert a DID/DID Document
@@ -837,26 +837,26 @@ paths:
                   value:
                     self: https://api-pilot.ebsi.eu/did-registry/v3/did-timestamps?page[after]=3&page[size]=10
                     items:
-                      - timestampId: uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
-                        href: https://api-pilot.ebsi.eu/did-registry/v3/did-timestamps/uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
-                      - timestampId: uzMRQ0TI4Vxo2gHIrcVLKLYOnBQ4t1ZkZYyT2QVyNgKo
-                        href: https://api-pilot.ebsi.eu/did-registry/v3/did-timestamps/uzMRQ0TI4Vxo2gHIrcVLKLYOnBQ4t1ZkZYyT2QVyNgKo
-                      - timestampId: uLy3HmncmAorLT-iay2y_mbzYLHa-ww53HM6VSQlYaHE
-                        href: https://api-pilot.ebsi.eu/did-registry/v3/did-timestamps/uLy3HmncmAorLT-iay2y_mbzYLHa-ww53HM6VSQlYaHE
-                      - timestampId: urqQNspg0BqR8XCqmXt2sRZnvuhyeaNM6O-lA7OznRN8
-                        href: https://api-pilot.ebsi.eu/did-registry/v3/did-timestamps/urqQNspg0BqR8XCqmXt2sRZnvuhyeaNM6O-lA7OznRN8
-                      - timestampId: ugcOHT5tMm04KBRefXxewebFzZJcuer2k8faZhdOUymc
-                        href: https://api-pilot.ebsi.eu/did-registry/v3/did-timestamps/ugcOHT5tMm04KBRefXxewebFzZJcuer2k8faZhdOUymc
-                      - timestampId: u5BbCzBKnFO-FjzmFwbUUhdktTYOMqLlR7mV5C2Y9Exo
-                        href: https://api-pilot.ebsi.eu/did-registry/v3/did-timestamps/u5BbCzBKnFO-FjzmFwbUUhdktTYOMqLlR7mV5C2Y9Exo
-                      - timestampId: umoafX3iynkFfL1PygxbEDnx6IOGVwya5flZ_EVs5Ark
-                        href: https://api-pilot.ebsi.eu/did-registry/v3/did-timestamps/umoafX3iynkFfL1PygxbEDnx6IOGVwya5flZ_EVs5Ark
-                      - timestampId: u3qxc1zktQQ6yRtz3Se127ORLivKYjlgDw23PCDNVUkI
-                        href: https://api-pilot.ebsi.eu/did-registry/v3/did-timestamps/u3qxc1zktQQ6yRtz3Se127ORLivKYjlgDw23PCDNVUkI
-                      - timestampId: urfWWoYSy9vHeq-IMQiJAr79Yx3dJ-9wvReEcvycbsGs
-                        href: https://api-pilot.ebsi.eu/did-registry/v3/did-timestamps/urfWWoYSy9vHeq-IMQiJAr79Yx3dJ-9wvReEcvycbsGs
-                      - timestampId: udgAv5lWYXKCBLp3T26uMKJpXdX0vg-FxNnVuoCQBZeM
-                        href: https://api-pilot.ebsi.eu/did-registry/v3/did-timestamps/udgAv5lWYXKCBLp3T26uMKJpXdX0vg-FxNnVuoCQBZeM
+                      - timestampId: uGiaHOVFw-Zzg-OCeDAwLn30xnqHrPHgd_wdhusk0xo4
+                        href: https://api-pilot.ebsi.eu/did-registry/v3/did-timestamps/uGiaHOVFw-Zzg-OCeDAwLn30xnqHrPHgd_wdhusk0xo4
+                      - timestampId: uSuEAV93R-g7gBiVUOCDN8aQTogcWKPD1hpJ9scQeKKo
+                        href: https://api-pilot.ebsi.eu/did-registry/v3/did-timestamps/uSuEAV93R-g7gBiVUOCDN8aQTogcWKPD1hpJ9scQeKKo
+                      - timestampId: uCz_g-JPgDtMPpVn5m7k49B7N1rEWNFiDVn_3fYovdCs
+                        href: https://api-pilot.ebsi.eu/did-registry/v3/did-timestamps/uCz_g-JPgDtMPpVn5m7k49B7N1rEWNFiDVn_3fYovdCs
+                      - timestampId: ujw61HzrVU3qRKqRQ44wyBkMHL278PN7eRsGLAVRmsp0
+                        href: https://api-pilot.ebsi.eu/did-registry/v3/did-timestamps/ujw61HzrVU3qRKqRQ44wyBkMHL278PN7eRsGLAVRmsp0
+                      - timestampId: uNhnOGrj6oIBqpgNZkkpvMB8G_aowmnnQfNVX3r4fCp4
+                        href: https://api-pilot.ebsi.eu/did-registry/v3/did-timestamps/uNhnOGrj6oIBqpgNZkkpvMB8G_aowmnnQfNVX3r4fCp4
+                      - timestampId: u3UMd2pQ65by5XpBrPa3MThAkHgWtRJRLhiD-ByUlE4Y
+                        href: https://api-pilot.ebsi.eu/did-registry/v3/did-timestamps/u3UMd2pQ65by5XpBrPa3MThAkHgWtRJRLhiD-ByUlE4Y
+                      - timestampId: uo9Vy2v039OSRhAnurzA8T8VknS1yt0vfaIZPdnofoLI
+                        href: https://api-pilot.ebsi.eu/did-registry/v3/did-timestamps/uo9Vy2v039OSRhAnurzA8T8VknS1yt0vfaIZPdnofoLI
+                      - timestampId: uUlre0lnBPyzIZsS-I73jhtCMEKWIeMLkwK9YRDYP9_o
+                        href: https://api-pilot.ebsi.eu/did-registry/v3/did-timestamps/uUlre0lnBPyzIZsS-I73jhtCMEKWIeMLkwK9YRDYP9_o
+                      - timestampId: uk3rjKpPe9qw2DmZ1Yv6cLmhfE4BK_OnK7M5YIg55JEE
+                        href: https://api-pilot.ebsi.eu/did-registry/v3/did-timestamps/uk3rjKpPe9qw2DmZ1Yv6cLmhfE4BK_OnK7M5YIg55JEE
+                      - timestampId: urAIncFzJG4BbnmFRooo3xTc9DrMUjkYtdB0n3j2cmvA
+                        href: https://api-pilot.ebsi.eu/did-registry/v3/did-timestamps/urAIncFzJG4BbnmFRooo3xTc9DrMUjkYtdB0n3j2cmvA
                     total: 124
                     pageSize: 10
                     links:
@@ -868,8 +868,8 @@ paths:
                   value:
                     self: https://api-pilot.ebsi.eu/did-registry/v3/did-timestamps?identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
                     items:
-                      - timestampId: uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
-                        href: https://api-pilot.ebsi.eu/did-registry/v3/did-timestamps/uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
+                      - timestampId: uGiaHOVFw-Zzg-OCeDAwLn30xnqHrPHgd_wdhusk0xo4
+                        href: https://api-pilot.ebsi.eu/did-registry/v3/did-timestamps/uGiaHOVFw-Zzg-OCeDAwLn30xnqHrPHgd_wdhusk0xo4
                     total: 1
                     pageSize: 10
                     links:
@@ -913,9 +913,8 @@ paths:
           examples:
             "[test] Timestamp ID":
               value: uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
-            # TODO: Once the API is updated in preprod, update this example
             "[pilot] Timestamp ID":
-              value: uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
+              value: uGiaHOVFw-Zzg-OCeDAwLn30xnqHrPHgd_wdhusk0xo4
           required: true
       responses:
         "200":
@@ -1142,7 +1141,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
               examples:
-                Hash algortihm Not Found:
+                Hash algorithm Not Found:
                   $ref: "#/components/examples/NotFound"
         "500":
           description: Internal Server Error
@@ -1576,7 +1575,7 @@ paths:
           - **identifier**: DID identifier (hexadecimal)
           - **newControllerId**: Ethereum address of the new controller (hex-encoded)
           - **notBefore**: timestamp before which the controller is not valid
-          - **notAfter**: timetstamp after which the controller is not valid anymore
+          - **notAfter**: timestamp after which the controller is not valid anymore
 
           #### updateDidController
 
@@ -1587,7 +1586,7 @@ paths:
           - **identifier**: DID identifier (hexadecimal)
           - **newControllerId**: Ethereum address of the controller to be updated (hex-encoded)
           - **notBefore**: timestamp before which the controller is not valid
-          - **notAfter**: timetstamp after which the controller is not valid anymore
+          - **notAfter**: timestamp after which the controller is not valid anymore
 
           #### revokeDidController
 

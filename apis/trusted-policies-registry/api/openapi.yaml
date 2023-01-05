@@ -374,7 +374,7 @@ paths:
           - **from**: Ethereum address of the administrator
           - **policyId**: Policy ID
           - **policyName**: Policy Name
-          - **policyConditionId:**: ID of the policiy condition to remove
+          - **policyConditionId:**: ID of the policy condition to remove
 
           Use either `policyId` OR `policyName` to identify the policy, but not both.
 

@@ -8,7 +8,7 @@ import { base64url } from "jose";
  * @param hexPrivateKey The compressed ES256 private key
  * @returns The public key as a JWK
  */
-export function fromHexToJwk(hexPrivateKey: string): JsonWebKey {
+export function fromHexToJWK(hexPrivateKey: string): JsonWebKey {
   if (!hexPrivateKey || typeof hexPrivateKey !== "string") {
     throw new Error("You must provide a non-empty hexadecimal private key");
   }
@@ -37,4 +37,4 @@ export function fromHexToJwk(hexPrivateKey: string): JsonWebKey {
   return jwk;
 }
 
-export default fromHexToJwk;
+export default fromHexToJWK;

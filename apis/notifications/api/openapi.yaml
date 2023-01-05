@@ -53,7 +53,7 @@ paths:
                                     href:
                                       type: string
                                       description: URI to the specific notification with its id
-                                      example: https://api.ebsi.xyz/notifications/v2/notifications/123
+                                      example: https://api-pilot.ebsi.eu/notifications/v2/notifications/123
                                   required:
                                     - href
                               required:
@@ -63,7 +63,7 @@ paths:
                           example:
                             _links:
                               self:
-                                href: https://api.ebsi.xyz/notifications/v2/notifications/123
+                                href: https://api-pilot.ebsi.eu/notifications/v2/notifications/123
                   self:
                     type: string
                     description: |
@@ -85,10 +85,10 @@ paths:
                         type: string
                         description: URI of the first page
                     example:
-                      first: https://api.ebsi.xyz/notifications/v2/notifications?page[after]=1&page[size]=2
-                      prev: https://api.ebsi.xyz/notifications/v2/notifications?page[after]=2&page[size]=2
-                      next: https://api.ebsi.xyz/notifications/v2/notifications?page[after]=4&page[size]=2
-                      last: https://api.ebsi.xyz/notifications/v2/notifications?page[after]=7&page[size]=2
+                      first: https://api-pilot.ebsi.eu/notifications/v2/notifications?page[after]=1&page[size]=2
+                      prev: https://api-pilot.ebsi.eu/notifications/v2/notifications?page[after]=2&page[size]=2
+                      next: https://api-pilot.ebsi.eu/notifications/v2/notifications?page[after]=4&page[size]=2
+                      last: https://api-pilot.ebsi.eu/notifications/v2/notifications?page[after]=7&page[size]=2
                   pageSize:
                     type: integer
                     description: Maximum number of items per page.
@@ -142,15 +142,15 @@ paths:
                           jws: eyJh..Iw
                         _links:
                           self:
-                            href: https://api.ebsi.xyz/notifications/v2/notifications/124
+                            href: https://api-pilot.ebsi.eu/notifications/v2/notifications/124
                     total: 13
                     pageSize: 2
-                    self: https://api.ebsi.xyz/notifications/v2/notifications?page[after]=3&page[size]=2
+                    self: https://api-pilot.ebsi.eu/notifications/v2/notifications?page[after]=3&page[size]=2
                     links:
-                      first: https://api.ebsi.xyz/notifications/v2/notifications?page[after]=1&page[size]=2
-                      prev: https://api.ebsi.xyz/notifications/v2/notifications?page[after]=2&page[size]=2
-                      next: https://api.ebsi.xyz/notifications/v2/notifications?page[after]=4&page[size]=2
-                      last: https://api.ebsi.xyz/notifications/v2/notifications?page[after]=7&page[size]=2
+                      first: https://api-pilot.ebsi.eu/notifications/v2/notifications?page[after]=1&page[size]=2
+                      prev: https://api-pilot.ebsi.eu/notifications/v2/notifications?page[after]=2&page[size]=2
+                      next: https://api-pilot.ebsi.eu/notifications/v2/notifications?page[after]=4&page[size]=2
+                      last: https://api-pilot.ebsi.eu/notifications/v2/notifications?page[after]=7&page[size]=2
         "400":
           description: Bad Request
           content:
@@ -442,7 +442,7 @@ paths:
             Location:
               schema:
                 type: string
-                example: https://api.ebsi.xyz/notifications/v2/notifications/123
+                example: https://api-pilot.ebsi.eu/notifications/v2/notifications/123
               description: URI to retrieve a specific notification using its identifier.
           content:
             application/json:

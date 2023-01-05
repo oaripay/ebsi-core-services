@@ -1,5 +1,5 @@
 import { describe, it, expect } from "@jest/globals";
-import { publicKeyFromHexToJwk } from "./encode.utils";
+import { publicKeyfromHexToJWK } from "./encode.utils";
 
 describe("encode", () => {
   it("should convert a public key from hex to jwk", () => {
@@ -12,8 +12,8 @@ describe("encode", () => {
       x: "O3E3BlpRjB69fnsZpfaFDmlz4YctucGJpsGbaWHFWE0",
       y: "ZmmNH67eV-46pMN_pI1wWIqMKNUcqWkKmrLkZqeEow4",
     };
-    expect(publicKeyFromHexToJwk(publicKeyHex)).toStrictEqual(publicKeyJwk);
-    expect(publicKeyFromHexToJwk(`0x${publicKeyHex}`)).toStrictEqual(
+    expect(publicKeyfromHexToJWK(publicKeyHex)).toStrictEqual(publicKeyJwk);
+    expect(publicKeyfromHexToJWK(`0x${publicKeyHex}`)).toStrictEqual(
       publicKeyJwk
     );
   });

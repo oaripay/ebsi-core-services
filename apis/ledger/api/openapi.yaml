@@ -97,7 +97,7 @@ paths:
                   jsonrpc: "2.0"
                   method: eth_sendRawTransaction
                   params:
-                    - "---signed raw transation---"
+                    - "---signed raw transaction---"
                   id: 1
       responses:
         "200":

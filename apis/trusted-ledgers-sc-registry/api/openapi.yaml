@@ -68,7 +68,7 @@ paths:
                           description: URL to the LedgerInfo resource.
                   total:
                     type: integer
-                    description: Total number of items accross all pages.
+                    description: Total number of items across all pages.
                   pageSize:
                     type: integer
                     description: Number of items to be returned per page.
@@ -238,7 +238,7 @@ paths:
                           description: URL to the revision resource.
                   total:
                     type: integer
-                    description: Total number of items accross all pages.
+                    description: Total number of items across all pages.
                   pageSize:
                     type: integer
                     description: Number of items to be returned per page.
@@ -438,7 +438,7 @@ paths:
                           description: URL to the SmartContractInfo resource.
                   total:
                     type: integer
-                    description: Total number of items accross all pages.
+                    description: Total number of items across all pages.
                   pageSize:
                     type: integer
                     description: Number of items to be returned per page.
@@ -627,7 +627,7 @@ paths:
                           description: URL to the revision resource.
                   total:
                     type: integer
-                    description: Total number of items accross all pages.
+                    description: Total number of items across all pages.
                   pageSize:
                     type: integer
                     description: Number of items to be returned per page.
