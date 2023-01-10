@@ -31,16 +31,19 @@ pipeline {
                 expression { params.api == 'all' || params.api.contains('authorisation-api')}
             }
             steps {
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
-                    nodejs(nodeJSInstallationName: '16.17.1') {
-                        sh 'yarn nx test:ci @ebsiint-api/authorisation-api-v2'
+                
+                nodejs(nodeJSInstallationName: '16.17.1') {
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
+                    sh 'yarn nx test:ci @ebsiint-api/authorisation-api-v2'
                     }
+                }    
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
                     withSonarQubeEnv('LocalSonar'){
                         sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=authorisation-api-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=authorisation-api-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/authorisation"
                     }
                     waitForQualityGate abortPipeline: true
                 }
-                script {
+                script{
                     sh 'rm ${WORKSPACE}/apis/authorisation/.scannerwork/report-task.txt'
                 }
             }
@@ -50,10 +53,13 @@ pipeline {
                 expression { params.api == 'all' || params.api.contains('did-registry-api')}
             }
             steps {
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
-                    nodejs(nodeJSInstallationName: '16.17.1') {
+                
+                nodejs(nodeJSInstallationName: '16.17.1') {
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
                         sh 'yarn nx test:ci @ebsiint-api/did-registry-api-v3'
                     }
+                }
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
                     withSonarQubeEnv('LocalSonar'){
                         sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=did-registry-api-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=did-registry-api-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/did-registry"
                     }
@@ -69,10 +75,12 @@ pipeline {
                 expression { params.api == 'all' || params.api.contains('ledger-api')}
             }
             steps {
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
-                    nodejs(nodeJSInstallationName: '16.17.1') {
+                nodejs(nodeJSInstallationName: '16.17.1') {
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
                         sh 'yarn nx test:ci @ebsiint-api/ledger-api-v3'
                     }
+                }
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
                     withSonarQubeEnv('LocalSonar'){
                         sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=ledger-api-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=ledger-api-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/ledger"
                     }
@@ -87,11 +95,13 @@ pipeline {
             when {
                 expression { params.api == 'all' || params.api.contains('notification-api')}
             }
-            steps {
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
-                    nodejs(nodeJSInstallationName: '16.17.1') {
+            steps {  
+                nodejs(nodeJSInstallationName: '16.17.1') {
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
                         sh 'yarn nx test:ci @ebsiint-api/notifications-api-v2'
                     }
+                }
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
                     withSonarQubeEnv('LocalSonar'){
                         sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=notifications-api-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=notifications-api-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/notifications"
                     }
@@ -107,10 +117,12 @@ pipeline {
                 expression { params.api == 'all' || params.api.contains('proxy-data-hub-api')}
             }
             steps {
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
-                    nodejs(nodeJSInstallationName: '16.17.1') {
+                nodejs(nodeJSInstallationName: '16.17.1') {
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
                         sh 'yarn nx test:ci @ebsiint-api/proxy-data-hub-api-v3'
                     }
+                }
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
                     withSonarQubeEnv('LocalSonar'){
                         sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=proxy-data-hub-api-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=proxy-data-hub-api-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/proxy-data-hub"
                     }
@@ -126,10 +138,12 @@ pipeline {
                 expression { params.api == 'all' || params.api.contains('storage-api')}
             }
             steps {
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
-                    nodejs(nodeJSInstallationName: '16.17.1') {
+                nodejs(nodeJSInstallationName: '16.17.1') {
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
                         sh 'yarn nx test:ci @ebsiint-api/storage-api-v3'
                     }
+                }
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
                     withSonarQubeEnv('LocalSonar'){
                         sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=storage-api-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=storage-api-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/storage"
                     }
@@ -145,10 +159,12 @@ pipeline {
                 expression { params.api == 'all' || params.api.contains('timestamp-api')}
             }
             steps {
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
-                    nodejs(nodeJSInstallationName: '16.17.1') {
+                nodejs(nodeJSInstallationName: '16.17.1') {
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
                         sh 'yarn nx test:ci @ebsiint-api/timestamp-api-v3'
                     }
+                }
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
                     withSonarQubeEnv('LocalSonar'){
                         sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=timestamp-api-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=timestamp-api-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/timestamp"
                     }
@@ -164,10 +180,12 @@ pipeline {
                 expression { params.api == 'all' || params.api.contains('trusted-apps-registry-api')}
             }
             steps {
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
-                    nodejs(nodeJSInstallationName: '16.17.1') {
+                nodejs(nodeJSInstallationName: '16.17.1') {
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
                         sh 'yarn nx test:ci @ebsiint-api/trusted-apps-registry-api-v3'
                     }
+                }
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){    
                     withSonarQubeEnv('LocalSonar'){
                         sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=trusted-apps-registry-api-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=trusted-apps-registry-api-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/trusted-apps-registry"
                     }
@@ -183,10 +201,12 @@ pipeline {
                 expression { params.api == 'all' || params.api.contains('trusted-issuers-registry-api')}
             }
             steps {
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
-                    nodejs(nodeJSInstallationName: '16.17.1') {
+                nodejs(nodeJSInstallationName: '16.17.1') {
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
                         sh 'yarn nx test:ci @ebsiint-api/trusted-issuers-registry-api-v3'
                     }
+                }
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
                     withSonarQubeEnv('LocalSonar'){
                         sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=trusted-issuers-api-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=trusted-issuers-api-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/trusted-issuers-registry"
                     }
@@ -202,10 +222,12 @@ pipeline {
                 expression { params.api == 'all' || params.api.contains('trusted-ledgers-sc-registry-api')}
             }
             steps {
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
-                    nodejs(nodeJSInstallationName: '16.17.1') {
+                nodejs(nodeJSInstallationName: '16.17.1') {
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
                         sh 'yarn nx test:ci @ebsiint-api/trusted-ledgers-sc-registry-api-v2'
                     }
+                }
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
                     withSonarQubeEnv('LocalSonar'){
                         sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=trusted-ledgers-sc-registry-api-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=trusted-ledgers-sc-registry-api-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/trusted-ledgers-sc-registry"
                     }
@@ -221,10 +243,12 @@ pipeline {
                 expression { params.api == 'all' || params.api.contains('trusted-policies-registry-api')}
             }
             steps {
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
-                    nodejs(nodeJSInstallationName: '16.17.1') {
+                nodejs(nodeJSInstallationName: '16.17.1') {
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
                         sh 'yarn nx test:ci @ebsiint-api/trusted-policies-registry-api-v2'
                     }
+                }
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
                     withSonarQubeEnv('LocalSonar'){
                         sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=trusted-policies-registry-api-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=trusted-policies-registry-api-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/trusted-policies-registry"
                     }
@@ -240,10 +264,12 @@ pipeline {
                 expression { params.api == 'all' || params.api.contains('trusted-schemas-registry-api')}
             }
             steps {
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
-                    nodejs(nodeJSInstallationName: '16.17.1') {
+                nodejs(nodeJSInstallationName: '16.17.1') {
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
                         sh 'yarn nx test:ci @ebsiint-api/trusted-schemas-registry-api-v2'
                     }
+                }
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
                     withSonarQubeEnv('LocalSonar'){
                         sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=trusted-schemas-registry-api-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=trusted-schemas-registry-api-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/trusted-schemas-registry"
                     }
@@ -259,10 +285,12 @@ pipeline {
                 expression { params.api == 'all' || params.api.contains('users-onboarding-api')}
             }
             steps {
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
-                    nodejs(nodeJSInstallationName: '16.17.1') {
+                nodejs(nodeJSInstallationName: '16.17.1') {
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
                         sh 'yarn nx test:ci @ebsiint-api/users-onboarding-api-v2'
                     }
+                }
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
                     withSonarQubeEnv('LocalSonar'){
                         sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=users-onboarding-api-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=users-onboarding-api-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/users-onboarding"
                     }
