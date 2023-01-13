@@ -16,7 +16,7 @@
     "lint:eslint": "eslint . --ext .js,.ts ",
     "lint:tsc": "tsc --noEmit --incremental false",
     "lint:prettier": "prettier . --check",
-    "postinstall": "patch-package",
+    "patch-package": "patch-package",
     "test": "jest --runInBand",
     "test:watch": "jest --watch",
     "test:unit": "jest --testPathIgnorePatterns=e2e",
