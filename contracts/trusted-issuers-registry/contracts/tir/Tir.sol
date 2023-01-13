@@ -13,10 +13,16 @@ import "@ebsiint-sc/bootstrap/contracts/utils/upgradeability/Initializable.sol";
 contract Tir is Initializable, TirDetailed, IssuerDetailed, TirPolicyDetailed {
     IPolicyRegistry public immutable policyRegistryContract;
     IDidRegistry public immutable didRegistryContract;
+    IDidRegistryV4 public immutable didRegistryContractV4;
 
-    constructor(address _tprAddress, address _didRegistryAddress) {
+    constructor(
+        address _tprAddress,
+        address _didRegistryAddress,
+        address _didRegistryV4Address
+    ) {
         policyRegistryContract = IPolicyRegistry(_tprAddress);
         didRegistryContract = IDidRegistry(_didRegistryAddress);
+        didRegistryContractV4 = IDidRegistryV4(_didRegistryV4Address);
     }
 
     function initialize(uint256 _version) public initializer {
@@ -30,5 +36,6 @@ contract Tir is Initializable, TirDetailed, IssuerDetailed, TirPolicyDetailed {
 
         ds.trustedPolicyRegistry = policyRegistryContract;
         ds.didRegistry = didRegistryContract;
+        ds.didRegistryV4 = didRegistryContractV4;
     }
 }

@@ -3,10 +3,20 @@ import crypto from "node:crypto";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { Contract } from "ethers";
-import { testDidrAddress, testTprAddress } from "./testAddress";
+import {
+  testDidrAddress,
+  testTprAddress,
+  testDidrV4Address,
+} from "./testAddress";
 
 const num = ethers.BigNumber.from;
-
+enum IssuerType {
+  Undefined,
+  RootTAO,
+  TAO,
+  TI,
+  Revoked,
+}
 function getEthObject(o: unknown): Record<string, unknown> {
   const obj = o as string[] & Record<string, unknown>;
   const keys = Object.keys(obj);
@@ -46,12 +56,19 @@ describe("Issuers", () => {
   let issuer: SignerWithAddress;
   let policyContractMock: Contract;
   let didContractMock: Contract;
+  let didV4ContractMock: Contract;
 
   const attributeData1 = randomAttribute();
   const attributeData2 = randomAttribute();
   const attributeData3 = randomAttribute();
   const proxyData1 = randomProxy();
   const didIssuer = "did:ebsi:issuer";
+  const taoDid = "did:ebsi:taodid";
+  const taoDid2 = "did:ebsi:taodid2";
+  const attributeTaoDid = randomAttribute();
+  const attributeTaoDidId = ethers.utils.sha256(attributeTaoDid);
+  const attributeTaoDid2 = randomAttribute();
+  const attributeTaoDidId2 = ethers.utils.sha256(attributeTaoDid2);
   const zeroHash = new Uint8Array(32);
 
   before(async () => {
@@ -80,8 +97,14 @@ describe("Issuers", () => {
       testDidrAddress,
       bytecodeDid,
     ]);
+    await network.provider.send("hardhat_setCode", [
+      testDidrV4Address,
+      bytecodeDid,
+    ]);
     didContractMock = didRegistryFactory.attach(testDidrAddress);
-    await didContractMock.setDidResult(true);
+    didV4ContractMock = didRegistryFactory.attach(testDidrV4Address);
+    await didContractMock.setDidResult(false);
+    await didV4ContractMock.setDidResult(true);
   });
 
   beforeEach(async () => {
@@ -94,7 +117,11 @@ describe("Issuers", () => {
         Pagination: paginationLib.address,
       },
     });
-    tir = await contractFactory.deploy(testTprAddress, testDidrAddress);
+    tir = await contractFactory.deploy(
+      testTprAddress,
+      testDidrAddress,
+      testDidrV4Address
+    );
     await tir.deployed();
     await tir.initialize(42);
     await tir.setRegistryAddresses();
@@ -107,32 +134,66 @@ describe("Issuers", () => {
   describe("Entities", () => {
     it("should reject no authenticated users", async () => {
       await policyContractMock.setPolicyResult(false);
-      await didContractMock.setDidResult(false);
+      await didV4ContractMock.setDidResult(false);
       await expect(
-        tir.insertIssuer(didIssuer, attributeData1)
+        tir.insertIssuer(
+          didIssuer,
+          attributeData1,
+          IssuerType.RootTAO,
+          taoDid,
+          attributeTaoDidId
+        )
       ).to.be.revertedWith(
         "Policy error: sender doesn't have the attribute TIR:insertIssuer"
       );
-
+      // insert first before update
+      await policyContractMock.setPolicyResult(true);
+      await didV4ContractMock.setDidResult(true);
+      await tir.insertIssuer(
+        didIssuer,
+        attributeTaoDid,
+        IssuerType.RootTAO,
+        taoDid2,
+        attributeTaoDidId
+      );
+      await policyContractMock.setPolicyResult(false);
+      await didV4ContractMock.setDidResult(false);
       await expect(
-        tir["updateIssuer(string,bytes)"](didIssuer, attributeData1)
+        tir["updateIssuer(string,bytes,uint8,string,bytes32)"](
+          didIssuer,
+          attributeData1,
+          IssuerType.TAO,
+          didIssuer,
+          attributeTaoDidId
+        )
       ).to.be.revertedWith(
-        "Policy error: sender is not controller of the did did:ebsi:issuer and it doesn't have the attribute TIR:updateIssuer"
+        "Policy error: sender is not TAO/RootTao of current did did:ebsi:issuer and it doesn't have the attribute TIR:updateIssuer"
       );
 
       await expect(
-        tir["updateIssuer(string,bytes,bytes32)"](
+        tir["updateIssuer(string,bytes,bytes32,uint8,string,bytes32)"](
           didIssuer,
           attributeData1,
-          zeroHash
+          attributeTaoDidId,
+          IssuerType.RootTAO,
+          didIssuer,
+          attributeTaoDidId
         )
       ).to.be.revertedWith(
-        "Policy error: sender is not controller of the did did:ebsi:issuer and it doesn't have the attribute TIR:updateIssuer"
+        "Only TIR:updateIssuer attr in tpr can add RootTAO Attribute"
       );
 
       // restrict even if the user has a did
       await expect(
-        tir.connect(userWithDid).insertIssuer(didIssuer, attributeData1)
+        tir
+          .connect(userWithDid)
+          .insertIssuer(
+            taoDid2,
+            attributeData1,
+            IssuerType.RootTAO,
+            taoDid,
+            attributeTaoDidId
+          )
       ).to.be.revertedWith(
         "Policy error: sender doesn't have the attribute TIR:insertIssuer"
       );
@@ -140,13 +201,18 @@ describe("Issuers", () => {
 
     it("should insert/update an issuer as admin", async () => {
       await policyContractMock.setPolicyResult(true); // is admin
-      await didContractMock.setDidResult(false); // the admin is not a controller
+      await didV4ContractMock.setDidResult(false); // the admin is not a controller
 
       // insert issuer
-      await expect(tir.insertIssuer(didIssuer, attributeData1)).to.emit(
-        tir,
-        "AddIssuerAttribute"
-      );
+      await expect(
+        tir.insertIssuer(
+          didIssuer,
+          attributeData1,
+          IssuerType.RootTAO,
+          taoDid,
+          attributeTaoDidId
+        )
+      ).to.emit(tir, "AddIssuerAttribute");
       let issuerHashes = await tir.getIssuer(didIssuer);
       expect(issuerHashes).to.be.an("array");
       expect(issuerHashes).to.have.length(1);
@@ -156,11 +222,20 @@ describe("Issuers", () => {
       expect(getEthObject(issuerAttr)).to.eql({
         did: didIssuer,
         attribData: attributeData1,
+        issuerType: IssuerType.RootTAO,
+        rootTao: didIssuer,
+        tao: didIssuer,
       });
 
       // update: insert attribute
       await expect(
-        tir["updateIssuer(string,bytes)"](didIssuer, attributeData2)
+        tir["updateIssuer(string,bytes,uint8,string,bytes32)"](
+          didIssuer,
+          attributeData2,
+          IssuerType.RootTAO,
+          didIssuer,
+          ethers.utils.sha256(attributeData1)
+        )
       ).to.emit(tir, "UpdateIssuerAttribute");
       issuerHashes = await tir.getIssuer(didIssuer);
       expect(issuerHashes).to.be.an("array");
@@ -172,20 +247,29 @@ describe("Issuers", () => {
       expect(getEthObject(issuerAttr)).to.eql({
         did: didIssuer,
         attribData: attributeData1,
+        issuerType: IssuerType.RootTAO,
+        rootTao: didIssuer,
+        tao: didIssuer,
       });
 
       issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[1]);
       expect(getEthObject(issuerAttr)).to.eql({
         did: didIssuer,
         attribData: attributeData2,
+        issuerType: IssuerType.RootTAO,
+        rootTao: didIssuer,
+        tao: didIssuer,
       });
 
       // update: update attribute
       await expect(
-        tir["updateIssuer(string,bytes,bytes32)"](
+        tir["updateIssuer(string,bytes,bytes32,uint8,string,bytes32)"](
           didIssuer,
           attributeData3,
-          issuerHashes[1]
+          issuerHashes[1],
+          IssuerType.RootTAO,
+          didIssuer,
+          ethers.utils.sha256(attributeData1)
         )
       ).to.emit(tir, "UpdateIssuerAttribute");
       issuerHashes = await tir.getIssuer(didIssuer);
@@ -198,12 +282,18 @@ describe("Issuers", () => {
       expect(getEthObject(issuerAttr)).to.eql({
         did: didIssuer,
         attribData: attributeData1,
+        issuerType: IssuerType.RootTAO,
+        rootTao: didIssuer,
+        tao: didIssuer,
       });
 
       issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[1]);
       expect(getEthObject(issuerAttr)).to.eql({
         did: didIssuer,
         attribData: attributeData3,
+        issuerType: IssuerType.RootTAO,
+        rootTao: didIssuer,
+        tao: didIssuer,
       });
 
       // the second attribute should has 2 revisions
@@ -221,11 +311,86 @@ describe("Issuers", () => {
       });
     });
 
+    it("should insert/update an issuer as TAO/RootTao", async () => {
+      await policyContractMock.setPolicyResult(true); // is admin admin
+      await didV4ContractMock.setDidResult(false); // the admin is not a controller
+
+      // insert issuer RootTao
+      await expect(
+        tir.insertIssuer(
+          taoDid,
+          attributeTaoDid,
+          IssuerType.RootTAO,
+          taoDid,
+          attributeTaoDidId
+        )
+      ).to.emit(tir, "AddIssuerAttribute");
+      // remove admin
+      await policyContractMock.setPolicyResult(false);
+      await didV4ContractMock.setDidResult(true); // the admin is a controller
+
+      // insert issuer type TAO by RooTTao
+      await expect(
+        tir.insertIssuer(
+          taoDid2,
+          attributeTaoDid2,
+          IssuerType.TAO,
+          taoDid,
+          attributeTaoDidId
+        )
+      ).to.emit(tir, "AddIssuerAttribute");
+      // insert issuer as TAO
+      await expect(
+        tir.insertIssuer(
+          didIssuer,
+          attributeData1,
+          IssuerType.TI,
+          taoDid2,
+          attributeTaoDidId2
+        )
+      ).to.emit(tir, "AddIssuerAttribute");
+
+      // update: insert attribute
+      await expect(
+        tir["updateIssuer(string,bytes,uint8,string,bytes32)"](
+          didIssuer,
+          attributeData2,
+          IssuerType.TI,
+          taoDid2,
+          attributeTaoDidId2
+        )
+      ).to.emit(tir, "UpdateIssuerAttribute");
+      // update: update attribute
+      const issuerHashes = await tir.getIssuer(didIssuer);
+      await expect(
+        tir["updateIssuer(string,bytes,bytes32,uint8,string,bytes32)"](
+          didIssuer,
+          attributeData3,
+          issuerHashes[1],
+          IssuerType.TI,
+          taoDid2,
+          attributeTaoDidId2
+        )
+      ).to.emit(tir, "UpdateIssuerAttribute");
+    });
+
     it("should reject 2 issuers with the same did", async () => {
       await policyContractMock.setPolicyResult(true);
-      await tir.insertIssuer(didIssuer, attributeData1);
+      await tir.insertIssuer(
+        didIssuer,
+        attributeData1,
+        IssuerType.RootTAO,
+        taoDid,
+        attributeTaoDidId
+      );
       await expect(
-        tir.insertIssuer(didIssuer, attributeData2)
+        tir.insertIssuer(
+          didIssuer,
+          attributeData2,
+          IssuerType.RootTAO,
+          taoDid,
+          attributeTaoDidId
+        )
       ).to.be.revertedWith("issuer already exist");
     });
 
@@ -237,7 +402,13 @@ describe("Issuers", () => {
       for (let i = 0; i < 18; i += 1) {
         issuers[i] = randomDid();
         // eslint-disable-next-line no-await-in-loop
-        await (await tir.insertIssuer(issuers[i], randomAttribute())).wait();
+        await tir.insertIssuer(
+          issuers[i],
+          randomAttribute(),
+          IssuerType.RootTAO,
+          taoDid,
+          attributeTaoDidId
+        );
       }
 
       // get issuers: page 1
@@ -287,31 +458,52 @@ describe("Issuers", () => {
         "issuer does not exist"
       );
       await expect(
-        tir["updateIssuer(string,bytes)"](didIssuer, attributeData1)
-      ).to.be.revertedWith("issuer does not exist");
-      await expect(
-        tir["updateIssuer(string,bytes,bytes32)"](
+        tir["updateIssuer(string,bytes,uint8,string,bytes32)"](
           didIssuer,
           attributeData1,
-          randomHash()
+          IssuerType.RootTAO,
+          taoDid,
+          attributeTaoDidId
+        )
+      ).to.be.revertedWith("issuer does not exist");
+      await expect(
+        tir["updateIssuer(string,bytes,bytes32,uint8,string,bytes32)"](
+          didIssuer,
+          attributeData1,
+          randomHash(),
+          IssuerType.RootTAO,
+          taoDid,
+          attributeTaoDidId
         )
       ).to.be.revertedWith("issuer does not exist");
     });
   });
 
   describe("Attributes", () => {
-    it("should update its own attributes", async () => {
+    it("should update its own attributes only if it's a RootTAO", async () => {
       // insert issuer
       await policyContractMock.setPolicyResult(true); // enable admin
-      await tir.insertIssuer(didIssuer, attributeData1);
+      await tir.insertIssuer(
+        didIssuer,
+        attributeData1,
+        IssuerType.RootTAO,
+        taoDid,
+        attributeTaoDidId
+      );
       await policyContractMock.setPolicyResult(false); // disable admin
 
-      await didContractMock.setDidResult(true); // is a controller
+      await didV4ContractMock.setDidResult(true); // is a controller
       // update: insert attribute
       await expect(
         tir
           .connect(issuer)
-          ["updateIssuer(string,bytes)"](didIssuer, attributeData2)
+          ["updateIssuer(string,bytes,uint8,string,bytes32)"](
+            didIssuer,
+            attributeData2,
+            IssuerType.TAO,
+            didIssuer,
+            ethers.utils.sha256(attributeData1)
+          )
       ).to.emit(tir, "UpdateIssuerAttribute");
       const issuerHashes = await tir.getIssuer(didIssuer);
 
@@ -319,47 +511,86 @@ describe("Issuers", () => {
       await expect(
         tir
           .connect(issuer)
-          ["updateIssuer(string,bytes,bytes32)"](
+          ["updateIssuer(string,bytes,bytes32,uint8,string,bytes32)"](
             didIssuer,
             attributeData3,
-            issuerHashes[0]
+            issuerHashes[0],
+            IssuerType.TAO,
+            didIssuer,
+            ethers.utils.sha256(attributeData1)
           )
       ).to.emit(tir, "UpdateIssuerAttribute");
     });
 
     it("should reject 2 dids with the same attribute", async () => {
       await policyContractMock.setPolicyResult(true);
-      await tir.insertIssuer(didIssuer, attributeData1);
+      await tir.insertIssuer(
+        didIssuer,
+        attributeData1,
+        IssuerType.RootTAO,
+        taoDid,
+        attributeTaoDidId
+      );
       await expect(
-        tir.insertIssuer(randomDid(), attributeData1)
+        tir.insertIssuer(
+          randomDid(),
+          attributeData1,
+          IssuerType.RootTAO,
+          taoDid,
+          attributeTaoDidId
+        )
       ).to.be.revertedWith("attribute is already stored");
 
       const did2 = randomDid();
-      await tir.insertIssuer(did2, attributeData2);
+      await tir.insertIssuer(
+        did2,
+        attributeData2,
+        IssuerType.RootTAO,
+        taoDid,
+        attributeTaoDidId
+      );
       await expect(
-        tir["updateIssuer(string,bytes)"](did2, attributeData1)
+        tir["updateIssuer(string,bytes,uint8,string,bytes32)"](
+          did2,
+          attributeData1,
+          IssuerType.RootTAO,
+          didIssuer,
+          ethers.utils.sha256(attributeData1)
+        )
       ).to.be.revertedWith("attribute is already stored");
 
       const [prevHash] = await tir.getIssuer(did2);
       await expect(
-        tir["updateIssuer(string,bytes,bytes32)"](
+        tir["updateIssuer(string,bytes,bytes32,uint8,string,bytes32)"](
           did2,
           attributeData1,
-          prevHash
+          prevHash,
+          IssuerType.RootTAO,
+          didIssuer,
+          ethers.utils.sha256(attributeData1)
         )
       ).to.be.revertedWith("attribute is already stored");
     });
 
     it("should reject an update of an unknown attribute", async () => {
       await policyContractMock.setPolicyResult(true);
-      await tir.insertIssuer(didIssuer, attributeData1);
+      await tir.insertIssuer(
+        didIssuer,
+        attributeData1,
+        IssuerType.RootTAO,
+        taoDid,
+        attributeTaoDidId
+      );
       await expect(
-        tir["updateIssuer(string,bytes,bytes32)"](
+        tir["updateIssuer(string,bytes,bytes32,uint8,string,bytes32)"](
           didIssuer,
           attributeData2,
-          randomHash()
+          randomHash(),
+          IssuerType.RootTAO,
+          taoDid,
+          attributeTaoDidId
         )
-      ).to.be.revertedWith("lastVersHash is not link to DID");
+      ).to.be.revertedWith("attributeId is not link to DID");
     });
 
     it("should reject the get of an unknown attribute", async () => {
@@ -376,7 +607,7 @@ describe("Issuers", () => {
     it("addIssuerProxy: inserts a new proxy record", async () => {
       // Focus only on proxy management logic regardless of policy and did validations.
       await policyContractMock.setPolicyResult(true);
-      await didContractMock.setDidResult(true);
+      await didV4ContractMock.setDidResult(true);
 
       await expect(tir.addIssuerProxy(didIssuer, proxyData1)).to.emit(
         tir,
@@ -389,7 +620,7 @@ describe("Issuers", () => {
 
     it("addIssuerProxy permissions: did controller and TIR:updateIssuer", async () => {
       await policyContractMock.setPolicyResult(false);
-      await didContractMock.setDidResult(false);
+      await didV4ContractMock.setDidResult(false);
 
       // Adding a new proxy config
       await expect(
@@ -402,7 +633,7 @@ describe("Issuers", () => {
     it("getIssuerProxyById: get a proxy record", async () => {
       // Focus only on proxy management logic regardless of policy and did validations.
       await policyContractMock.setPolicyResult(true);
-      await didContractMock.setDidResult(true);
+      await didV4ContractMock.setDidResult(true);
 
       await expect(tir.addIssuerProxy(didIssuer, proxyData1)).to.emit(
         tir,
@@ -420,7 +651,7 @@ describe("Issuers", () => {
     it("updateIssuerProxy: update a specific proxy record", async () => {
       // Focus only on proxy management logic regardless of policy and did validations.
       await policyContractMock.setPolicyResult(true);
-      await didContractMock.setDidResult(true);
+      await didV4ContractMock.setDidResult(true);
 
       await expect(tir.addIssuerProxy(didIssuer, proxyData1)).to.emit(
         tir,
@@ -445,7 +676,7 @@ describe("Issuers", () => {
 
     it("updateIssuerProxy permissions: did controller and TIR:updateIssuer", async () => {
       await policyContractMock.setPolicyResult(true);
-      await didContractMock.setDidResult(true);
+      await didV4ContractMock.setDidResult(true);
 
       await expect(tir.addIssuerProxy(didIssuer, proxyData1)).to.emit(
         tir,
@@ -456,7 +687,7 @@ describe("Issuers", () => {
 
       // Toggle permissions
       await policyContractMock.setPolicyResult(false);
-      await didContractMock.setDidResult(false);
+      await didV4ContractMock.setDidResult(false);
 
       await expect(
         tir.updateIssuerProxy(didIssuer, proxyId, proxyData1)

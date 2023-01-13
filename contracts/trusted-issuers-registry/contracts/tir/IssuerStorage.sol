@@ -2,6 +2,7 @@
 pragma solidity 0.8.12;
 import "./AttributeStorage.sol";
 import "@ebsiint-sc/did-registry/contracts/did-registry/interfaces/IDidRegistry.sol";
+import "@ebsiint-sc/did-registry-v4/contracts/did-registry/interfaces/IDidRegistryV4.sol";
 import "@ebsiint-sc/trusted-policies-registry/contracts/trusted-policies-registry/interfaces/IPolicyRegistry.sol";
 
 contract IssuerStorage is AttributeStorage {
@@ -17,6 +18,7 @@ contract IssuerStorage is AttributeStorage {
         mapping(bytes32 => AttributeMetadata) attributeMetadataStore;
         IPolicyRegistry trustedPolicyRegistry;
         IDidRegistry didRegistry;
+        IDidRegistryV4 didRegistryV4;
     }
 
     // Creates and returns the storage pointer to the struct.
