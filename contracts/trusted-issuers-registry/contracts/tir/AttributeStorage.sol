@@ -4,21 +4,11 @@ pragma solidity 0.8.12;
 
 // solhint-disable-next-line indent
 abstract contract AttributeStorage {
-    enum IssuerType {
-        Undefined,
-        RootTAO,
-        TAO,
-        TI,
-        Revoked
-    }
     struct AttributeMetadata {
         // For each Attribute version hash, this is an object that stores
         // the DID of his owner and the hash of the first version.
         string did; // DID of the attribute owner.
         bytes32 attributeId; // Unique attribute ID (hash of the first attribute version)
-        IssuerType issuerType;
-        string taoDid;
-        string rootTaoDid;
     }
     struct AttributeDetails {
         // For a particular Entity and a specific Attribute id, this is

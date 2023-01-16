@@ -74,16 +74,6 @@ const config: HardhatUserConfig = {
     // Your API key for Etherscan
     // Obtain one at https://etherscan.io/
     apiKey: ETHERSCAN_API_KEY,
-    customChains: [
-      {
-        network: "conformance",
-        chainId: 6178,
-        urls: {
-          apiURL: "https://blockscout-conformance.ebsi.eu/api",
-          browserURL: "https://blockscout-conformance.ebsi.eu/",
-        },
-      },
-    ],
   },
   typechain: {
     outDir: "src/types",

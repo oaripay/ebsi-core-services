@@ -4,11 +4,7 @@ import crypto from "node:crypto";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { Contract } from "ethers";
-import {
-  testDidrAddress,
-  testTprAddress,
-  testDidrV4Address,
-} from "./testAddress";
+import { testDidrAddress, testTprAddress } from "./testAddress";
 
 const num = ethers.BigNumber.from;
 
@@ -54,11 +50,7 @@ describe("Policies", () => {
         Pagination: paginationLib.address,
       },
     });
-    ts = await contractFactory.deploy(
-      testTprAddress,
-      testDidrAddress,
-      testDidrV4Address
-    );
+    ts = await contractFactory.deploy(testTprAddress, testDidrAddress);
     await ts.initialize(42);
     const initialVersion = await ts.version();
     expect(initialVersion).to.equal(42);
