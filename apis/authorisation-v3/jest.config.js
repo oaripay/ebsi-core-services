@@ -13,7 +13,7 @@ module.exports = {
   transform: {
     "^.+\\.[tj]sx?$": ["ts-jest", { tsconfig: "<rootDir>/tsconfig.test.json" }],
   },
-  transformIgnorePatterns: ["/node_modules/", "/apis/shared/dist/"],
+  transformIgnorePatterns: ["/node_modules/(?!(axios))", "/apis/shared/dist/"],
   moduleFileExtensions: ["js", "json", "ts"],
   coverageDirectory: "./coverage/",
   collectCoverageFrom: [

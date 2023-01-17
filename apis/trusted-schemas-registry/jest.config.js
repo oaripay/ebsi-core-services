@@ -14,7 +14,7 @@ module.exports = {
     "^.+\\.[tj]sx?$": ["ts-jest", { tsconfig: "<rootDir>/tsconfig.test.json" }],
   },
   transformIgnorePatterns: [
-    "/node_modules/",
+    "/node_modules/(?!(axios))",
     "/apis/shared/dist/",
     "/contracts/trusted-schemas-registry/dist/",
   ],
