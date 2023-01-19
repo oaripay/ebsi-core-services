@@ -5,13 +5,15 @@ import {
   ForbiddenError,
   NotFoundError,
   InternalServerError,
-} from "@cef-ebsi/problem-details-errors";
+  logAxiosError,
+  encrypt,
+  decrypt,
+} from "@ebsiint-api/shared";
 import { ConfigService } from "@nestjs/config";
 import axios, { AxiosResponse } from "axios";
 import jsonpatch, { Operation } from "fast-json-patch";
 import { decodeJWT } from "did-jwt";
 import { Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
-import { logAxiosError, encrypt, decrypt } from "@ebsiint-api/shared";
 import { ApiConfig } from "../../config/configuration";
 import {
   AttributeResponseObject,

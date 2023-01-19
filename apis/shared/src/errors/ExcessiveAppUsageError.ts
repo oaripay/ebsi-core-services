@@ -1,4 +1,4 @@
-import { BadRequestError } from "@cef-ebsi/problem-details-errors";
+import { BadRequestError } from "./BadRequestError";
 
 export class ExcessiveAppUsageError extends BadRequestError {
   constructor(detail?: string) {

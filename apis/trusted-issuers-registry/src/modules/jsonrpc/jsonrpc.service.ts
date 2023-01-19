@@ -2,8 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import axios from "axios";
 import { ethers } from "ethers";
 import { ConfigService } from "@nestjs/config";
-import { ProblemDetailsError } from "@cef-ebsi/problem-details-errors";
-import { prefixWith0x } from "@ebsiint-api/shared";
+import { prefixWith0x, ProblemDetailsError } from "@ebsiint-api/shared";
 import { LedgerService } from "../ledger/ledger.service";
 import {
   RequestInsertIssuerDto,

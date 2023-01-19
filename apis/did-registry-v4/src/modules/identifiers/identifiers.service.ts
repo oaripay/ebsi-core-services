@@ -1,10 +1,11 @@
 import { Injectable, Logger } from "@nestjs/common";
+import { DidRegistry } from "@ebsiint-sc/did-registry-v4";
 import {
+  AsyncReturnType,
+  publicKeyfromHexToJWK,
   BadRequestError,
   NotFoundError,
-} from "@cef-ebsi/problem-details-errors";
-import { DidRegistry } from "@ebsiint-sc/did-registry-v4";
-import { AsyncReturnType, publicKeyfromHexToJWK } from "@ebsiint-api/shared";
+} from "@ebsiint-api/shared";
 import { LedgerService } from "../ledger/ledger.service";
 import { RequestCheckControllerDto } from "./dto/request-check-controller.dto";
 import { InvalidRequestJsonRpcError } from "../jsonrpc/errors";

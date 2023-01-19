@@ -1,8 +1,11 @@
 import { Controller, Get, Query, Param, Req, Header } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { NotFoundError } from "@cef-ebsi/problem-details-errors";
 import type { FastifyRequest } from "fastify";
-import { PaginatedList, PaginationQuery } from "@ebsiint-api/shared";
+import {
+  PaginatedList,
+  PaginationQuery,
+  NotFoundError,
+} from "@ebsiint-api/shared";
 import { IssuersService } from "./issuers.service";
 import {
   formatIssuers,

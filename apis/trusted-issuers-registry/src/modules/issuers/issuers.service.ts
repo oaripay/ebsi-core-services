@@ -1,16 +1,14 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { Tir } from "@ebsiint-sc/trusted-issuers-registry";
 import { ConfigService } from "@nestjs/config";
-import {
-  BadRequestError,
-  InternalServerError,
-  NotFoundError,
-} from "@cef-ebsi/problem-details-errors";
 import axios, { AxiosResponse } from "axios";
 import {
   isStatusList2021Credential,
   prefixWith0x,
   AsyncReturnType,
+  BadRequestError,
+  InternalServerError,
+  NotFoundError,
 } from "@ebsiint-api/shared";
 import { LedgerService } from "../ledger/ledger.service";
 import {

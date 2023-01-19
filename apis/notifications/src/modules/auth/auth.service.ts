@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type { JWTPayload } from "did-jwt";
 import { verifyJwtTar } from "@cef-ebsi/siop-auth";
-import { UnauthorizedError } from "@cef-ebsi/problem-details-errors";
+import { UnauthorizedError } from "@ebsiint-api/shared";
 import type { ApiConfig } from "../../config/configuration";
 
 @Injectable()

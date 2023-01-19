@@ -16,8 +16,8 @@ import type { FastifyReply } from "fastify";
 import {
   BadRequestError,
   ForbiddenError,
-} from "@cef-ebsi/problem-details-errors";
-import { PaginatedList2 } from "@ebsiint-api/shared";
+  PaginatedList2,
+} from "@ebsiint-api/shared";
 import { NotificationsService } from "./notifications.service";
 import {
   Notification,

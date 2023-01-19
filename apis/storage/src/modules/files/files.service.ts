@@ -1,16 +1,14 @@
 import crypto from "node:crypto";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  BadRequestError,
-  NotFoundError,
-  InternalServerError,
-} from "@cef-ebsi/problem-details-errors";
 import { types } from "cassandra-driver";
 import jsonpatch, { Operation } from "fast-json-patch";
 import {
   ExcessiveAppUsageError,
   ValueTooLargeError,
+  BadRequestError,
+  NotFoundError,
+  InternalServerError,
   byteLength,
   decrypt,
   encrypt,

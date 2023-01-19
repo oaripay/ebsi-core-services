@@ -14,10 +14,10 @@ import {
   NotFoundError,
   BadRequestError,
   ForbiddenError,
-} from "@cef-ebsi/problem-details-errors";
+  logAxiosError,
+} from "@ebsiint-api/shared";
 import type { FastifyReply } from "fastify";
 import axios, { AxiosError } from "axios";
-import { logAxiosError } from "@ebsiint-api/shared";
 import { InvalidRequestJsonRpcError } from "../modules/jsonrpc/errors";
 import { ApiConfig } from "../config/configuration";
 

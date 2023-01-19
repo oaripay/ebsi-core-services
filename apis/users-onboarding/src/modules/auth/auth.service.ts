@@ -1,6 +1,5 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { UnauthorizedError } from "@cef-ebsi/problem-details-errors";
 import {
   importJWK,
   jwtVerify,
@@ -11,6 +10,7 @@ import {
 } from "jose";
 import { Resolver } from "did-resolver";
 import { getLegalEntitiesResolver } from "@cef-ebsi/ebsi-did-resolver";
+import { UnauthorizedError } from "@ebsiint-api/shared";
 import { ApiConfig } from "../../config/configuration";
 
 @Injectable()

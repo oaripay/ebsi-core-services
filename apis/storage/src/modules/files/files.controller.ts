@@ -16,8 +16,11 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type { FastifyRequest, FastifyReply } from "fastify";
-import { BadRequestError } from "@cef-ebsi/problem-details-errors";
-import { PaginatedList2, byteLength } from "@ebsiint-api/shared";
+import {
+  BadRequestError,
+  PaginatedList2,
+  byteLength,
+} from "@ebsiint-api/shared";
 import { FilesService } from "./files.service";
 import { FileMetadata, PostFileResponseObject } from "./files.interface";
 import { formatFiles } from "./files.formatter";

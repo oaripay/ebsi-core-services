@@ -1,4 +1,4 @@
-import { BadRequestError } from "@cef-ebsi/problem-details-errors";
+import { BadRequestError } from "@ebsiint-api/shared";
 
 export class InvalidUserAuthentication extends BadRequestError {
   constructor(message: string) {

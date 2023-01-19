@@ -1,7 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { NotFoundError } from "@cef-ebsi/problem-details-errors";
 import { Timestamp } from "@ebsiint-sc/timestamp";
-import { AsyncReturnType } from "@ebsiint-api/shared";
+import { AsyncReturnType, NotFoundError } from "@ebsiint-api/shared";
 import { LedgerService } from "../ledger/ledger.service";
 import { HashAlgorithmResponseObject } from "./hash-algorithms.interface";
 

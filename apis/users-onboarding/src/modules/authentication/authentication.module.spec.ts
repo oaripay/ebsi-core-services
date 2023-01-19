@@ -9,7 +9,6 @@ import {
 } from "@jest/globals";
 import crypto from "node:crypto";
 import request from "supertest";
-import { UnauthorizedError } from "@cef-ebsi/problem-details-errors";
 import { Test, TestingModule } from "@nestjs/testing";
 import * as jose from "jose";
 import type { JWK } from "jose";
@@ -28,6 +27,7 @@ import type { FastifyInstance } from "fastify";
 import { JsonWebKey, Resolver } from "did-resolver";
 import { createJWT, ES256KSigner } from "did-jwt";
 import EbsiWallet from "@cef-ebsi/wallet-lib";
+import { UnauthorizedError } from "@ebsiint-api/shared";
 import { AuthenticationModule } from "./authentication.module";
 import {
   AuthenticationResponse,

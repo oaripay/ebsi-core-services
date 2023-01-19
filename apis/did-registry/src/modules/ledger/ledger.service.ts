@@ -1,13 +1,12 @@
 import { randomUUID } from "node:crypto";
 import { Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
-import { InternalServerError } from "@cef-ebsi/problem-details-errors";
 import { decodeJWT } from "did-jwt";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import axios, { AxiosResponse } from "axios";
 import { DidRegistry, DidRegistry__factory } from "@ebsiint-sc/did-registry";
-import { logAxiosError } from "@ebsiint-api/shared";
+import { logAxiosError, InternalServerError } from "@ebsiint-api/shared";
 import { ApiConfig } from "../../config/configuration";
 
 // Refresh the token if it expires in less than 10 seconds

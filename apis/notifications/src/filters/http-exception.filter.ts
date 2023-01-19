@@ -12,10 +12,10 @@ import {
   InternalServerError,
   NotFoundError,
   BadRequestError,
-} from "@cef-ebsi/problem-details-errors";
+  logAxiosError,
+} from "@ebsiint-api/shared";
 import type { FastifyReply } from "fastify";
 import axios, { AxiosError } from "axios";
-import { logAxiosError } from "@ebsiint-api/shared";
 import { ApiConfig } from "../config/configuration";
 
 function getProblemDetailsError(

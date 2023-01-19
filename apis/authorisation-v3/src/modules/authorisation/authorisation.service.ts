@@ -1,7 +1,7 @@
 import { JsonWebKey } from "node:crypto";
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { BadRequestError } from "@cef-ebsi/problem-details-errors";
+import { BadRequestError } from "@ebsiint-api/shared";
 import type { PresentationDefinitionV2 } from "@sphereon/pex-models";
 import type { ApiConfig } from "../../config/configuration";
 import type {

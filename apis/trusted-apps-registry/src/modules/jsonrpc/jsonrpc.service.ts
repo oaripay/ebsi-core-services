@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import axios from "axios";
 import { ethers } from "ethers";
 import { ConfigService } from "@nestjs/config";
-import { ProblemDetailsError } from "@cef-ebsi/problem-details-errors";
+import { ProblemDetailsError } from "@ebsiint-api/shared";
 import { Tar } from "@ebsiint-sc/trusted-apps-registry";
 import {
   RequestDeleteAppAdministratorDto,

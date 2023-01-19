@@ -5,7 +5,7 @@ import {
   BadRequestError,
   InternalServerError,
   ProblemDetailsError,
-} from "@cef-ebsi/problem-details-errors";
+} from "@ebsiint-api/shared";
 import { RP as OAuth2RP, verifyJwtTar } from "@cef-ebsi/oauth2-auth";
 import type {
   AkeResponse as OAuth2AkeResponse,

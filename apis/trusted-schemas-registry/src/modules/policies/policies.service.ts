@@ -1,7 +1,10 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { NotFoundError } from "@cef-ebsi/problem-details-errors";
 import { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry";
-import { generateMultihash, AsyncReturnType } from "@ebsiint-api/shared";
+import {
+  generateMultihash,
+  AsyncReturnType,
+  NotFoundError,
+} from "@ebsiint-api/shared";
 import { ContractService } from "../contract/contract.service";
 import { PolicyRevisions } from "./policies.interface";
 

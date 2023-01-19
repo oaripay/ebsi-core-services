@@ -1,8 +1,4 @@
 import { Injectable, Logger } from "@nestjs/common";
-import {
-  InternalServerError,
-  NotFoundError,
-} from "@cef-ebsi/problem-details-errors";
 import { HashName } from "multihashes";
 import type { ethers } from "ethers";
 import { Timestamp } from "@ebsiint-sc/timestamp";
@@ -11,6 +7,8 @@ import {
   multibase,
   multihashEncode,
   multihashDecode,
+  InternalServerError,
+  NotFoundError,
 } from "@ebsiint-api/shared";
 import { LedgerService } from "../ledger/ledger.service";
 import { TimestampResponseObject } from "./timestamps.interface";

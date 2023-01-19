@@ -1,13 +1,11 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  BadRequestError,
-  NotFoundError,
-} from "@cef-ebsi/problem-details-errors";
 import { types } from "cassandra-driver";
 import {
   ExcessiveAppUsageError,
   ValueTooLargeError,
+  BadRequestError,
+  NotFoundError,
   byteLength,
   encrypt,
   decrypt,

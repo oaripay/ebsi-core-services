@@ -7,15 +7,15 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import type { FastifyReply } from "fastify";
+import axios, { AxiosError } from "axios";
 import {
+  logAxiosError,
   ProblemDetailsError,
   InternalServerError,
   NotFoundError,
   BadRequestError,
-} from "@cef-ebsi/problem-details-errors";
-import type { FastifyReply } from "fastify";
-import axios, { AxiosError } from "axios";
-import { logAxiosError } from "@ebsiint-api/shared";
+} from "@ebsiint-api/shared";
 import { InvalidRequestJsonRpcError } from "../modules/jsonrpc/errors";
 import { ApiConfig } from "../config/configuration";
 

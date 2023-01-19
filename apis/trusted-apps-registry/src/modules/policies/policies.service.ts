@@ -1,7 +1,10 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { NotFoundError } from "@cef-ebsi/problem-details-errors";
 import { Tar } from "@ebsiint-sc/trusted-apps-registry";
-import { AsyncReturnType, generateMultihash } from "@ebsiint-api/shared";
+import {
+  AsyncReturnType,
+  generateMultihash,
+  NotFoundError,
+} from "@ebsiint-api/shared";
 import { PolicyRevisions } from "./policies.interface";
 import LedgerService from "../ledger/ledger.service";
 

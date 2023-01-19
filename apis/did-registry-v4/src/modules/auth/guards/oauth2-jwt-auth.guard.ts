@@ -1,7 +1,7 @@
 import { ExecutionContext, Injectable } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import type { Observable } from "rxjs";
-import { UnauthorizedError } from "@cef-ebsi/problem-details-errors";
+import { UnauthorizedError } from "@ebsiint-api/shared";
 import { AppInfo } from "../auth.interface";
 
 @Injectable()

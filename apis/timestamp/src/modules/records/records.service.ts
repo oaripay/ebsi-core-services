@@ -1,11 +1,12 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ethers } from "ethers";
+import { Timestamp } from "@ebsiint-sc/timestamp";
 import {
+  AsyncReturnType,
+  multibase,
   BadRequestError,
   NotFoundError,
-} from "@cef-ebsi/problem-details-errors";
-import { Timestamp } from "@ebsiint-sc/timestamp";
-import { AsyncReturnType, multibase } from "@ebsiint-api/shared";
+} from "@ebsiint-api/shared";
 import { LedgerService } from "../ledger/ledger.service";
 import {
   InfoObject,

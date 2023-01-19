@@ -23,7 +23,6 @@
     "test:ci": "yarn test:unit --coverage --reporters=default --reporters=jest-sonar"
   },
   "dependencies": {
-    "@cef-ebsi/problem-details-errors": "^2.1.1",
     "@ebsiint-api/shared": "^1.0.0",
     "@fastify/helmet": "^10.1.0",
     "@nestjs/axios": "^1.0.1",

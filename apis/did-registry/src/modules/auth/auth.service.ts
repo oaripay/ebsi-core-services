@@ -3,7 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { JWTPayload, decodeJWT } from "did-jwt";
 import { verifyJwtTar as verifyOAuth2Token } from "@cef-ebsi/oauth2-auth";
 import { verifyJwtTar as verifySiopToken } from "@cef-ebsi/siop-auth";
-import { UnauthorizedError } from "@cef-ebsi/problem-details-errors";
+import { UnauthorizedError } from "@ebsiint-api/shared";
 import { AppInfo, ClientInfo, SubjectInfo } from "./auth.interface";
 import { ApiConfig } from "../../config/configuration";
 

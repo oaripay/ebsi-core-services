@@ -7,8 +7,8 @@ import {
   BadRequestError,
   ForbiddenError,
   InternalServerError,
-} from "@cef-ebsi/problem-details-errors";
-import { hasOwnProperty } from "@ebsiint-api/shared";
+  hasOwnProperty,
+} from "@ebsiint-api/shared";
 import { BesuResponseObject, BesuServiceResponse } from "./besu.interface";
 import { ApiConfig } from "../../config/configuration";
 import { isDeployingSmartContract } from "./besu.utils";

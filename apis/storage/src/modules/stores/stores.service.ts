@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { NotFoundError } from "@cef-ebsi/problem-details-errors";
+import { NotFoundError } from "@ebsiint-api/shared";
 import { STORES } from "./stores.constants";
 
 @Injectable()

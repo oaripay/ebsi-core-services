@@ -19,8 +19,9 @@ import {
   BadRequestError,
   ForbiddenError,
   NotFoundError,
-} from "@cef-ebsi/problem-details-errors";
-import { multihashEncode2, PaginatedList2 } from "@ebsiint-api/shared";
+  multihashEncode2,
+  PaginatedList2,
+} from "@ebsiint-api/shared";
 import { AttributesService } from "./attributes.service";
 import { AttributeResponseObject } from "./attributes.interface";
 import { ApiConfig } from "../../config/configuration";

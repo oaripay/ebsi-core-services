@@ -1,5 +1,5 @@
-import { UnauthorizedError } from "@cef-ebsi/problem-details-errors";
 import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
+import { UnauthorizedError } from "@ebsiint-api/shared";
 import { UserInfo } from "../auth.interface";
 import AuthService from "../auth.service";
 

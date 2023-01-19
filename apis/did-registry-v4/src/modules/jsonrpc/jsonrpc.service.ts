@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ethers } from "ethers";
-import { ProblemDetailsError } from "@cef-ebsi/problem-details-errors";
+import { ProblemDetailsError } from "@ebsiint-api/shared";
 import {
   RequestSendSignedTransactionDto,
   UnsignedTransaction,

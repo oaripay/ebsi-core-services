@@ -6,12 +6,14 @@ import {
   NotFoundError,
   BadRequestError,
   InternalServerError,
-} from "@cef-ebsi/problem-details-errors";
+  logAxiosError,
+  encrypt,
+  decrypt,
+} from "@ebsiint-api/shared";
 import axios, { AxiosResponse } from "axios";
 import { decodeJWT } from "did-jwt";
 import { validate as validateDid } from "@cef-ebsi/ebsi-did-resolver";
 import { Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
-import { logAxiosError, encrypt, decrypt } from "@ebsiint-api/shared";
 import { CreateNotificationDto } from "./dto/create-notification.dto";
 import { ApiConfig } from "../../config/configuration";
 import {

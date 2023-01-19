@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { decodeJWT } from "did-jwt";
 import { verifyJwtTar } from "@cef-ebsi/oauth2-auth";
-import { UnauthorizedError } from "@cef-ebsi/problem-details-errors";
+import { UnauthorizedError } from "@ebsiint-api/shared";
 import { ApiConfig } from "../../config/configuration";
 import { JwtCacheService } from "./jwt-cache.service";
 import { Payload } from "./auth.interface";

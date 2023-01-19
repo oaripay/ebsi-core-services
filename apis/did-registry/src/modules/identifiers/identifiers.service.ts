@@ -1,7 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { NotFoundError } from "@cef-ebsi/problem-details-errors";
 import { DidRegistry } from "@ebsiint-sc/did-registry";
-import { remove0xPrefix } from "@ebsiint-api/shared";
+import { remove0xPrefix, NotFoundError } from "@ebsiint-api/shared";
 import { LedgerService } from "../ledger/ledger.service";
 
 @Injectable()

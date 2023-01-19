@@ -1,14 +1,12 @@
 import { Injectable, Logger } from "@nestjs/common";
-import {
-  BadRequestError,
-  NotFoundError,
-} from "@cef-ebsi/problem-details-errors";
 import { HashName } from "multihashes";
 import { DidRegistry } from "@ebsiint-sc/did-registry";
 import {
   multibase,
   multihashEncode,
   AsyncReturnType,
+  BadRequestError,
+  NotFoundError,
 } from "@ebsiint-api/shared";
 import { DidTimestampResponseObject } from "./did-timestamps.interface";
 import { LedgerService } from "../ledger/ledger.service";

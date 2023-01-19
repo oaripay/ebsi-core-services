@@ -1,7 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { NotFoundError } from "@cef-ebsi/problem-details-errors";
 import { LedgerSCRegistry } from "@ebsiint-sc/trusted-ledgers-sc-registry";
-import { AsyncReturnType } from "@ebsiint-api/shared";
+import { AsyncReturnType, NotFoundError } from "@ebsiint-api/shared";
 import { ContractService } from "../contract/contract.service";
 import {
   SmartContractInfoIdsList,

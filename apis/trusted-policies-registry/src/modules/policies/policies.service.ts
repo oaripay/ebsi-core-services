@@ -1,11 +1,11 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ethers } from "ethers";
+import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry";
 import {
+  AsyncReturnType,
   InternalServerError,
   NotFoundError,
-} from "@cef-ebsi/problem-details-errors";
-import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry";
-import { AsyncReturnType } from "@ebsiint-api/shared";
+} from "@ebsiint-api/shared";
 import { LedgerService } from "../ledger/ledger.service";
 import {
   ATTRIBUTE_OPERATIONS,

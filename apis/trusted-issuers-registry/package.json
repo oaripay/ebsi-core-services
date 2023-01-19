@@ -24,7 +24,6 @@
   },
   "dependencies": {
     "@cef-ebsi/oauth2-auth": "^2.2.1",
-    "@cef-ebsi/problem-details-errors": "^2.1.1",
     "@cef-ebsi/siop-auth": "^2.2.1",
     "@cef-ebsi/verifiable-credential": "^3.3.0",
     "@ebsiint-api/shared": "^1.0.0",
