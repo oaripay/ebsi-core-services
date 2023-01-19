@@ -9,7 +9,7 @@ import {
   JWTPayload,
 } from "jose";
 import { Resolver } from "did-resolver";
-import { getLegalEntitiesResolver } from "@cef-ebsi/ebsi-did-resolver";
+import { getResolver } from "@cef-ebsi/ebsi-did-resolver";
 import { UnauthorizedError } from "@ebsiint-api/shared";
 import { ApiConfig } from "../../config/configuration";
 
@@ -48,7 +48,7 @@ export default class AuthService {
 
     try {
       const resolver = new Resolver(
-        getLegalEntitiesResolver({ registry: this.didRegistryApiUrl })
+        getResolver({ registry: this.didRegistryApiUrl })
       );
 
       if (!header.kid || typeof header.kid !== "string") {

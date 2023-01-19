@@ -1,5 +1,5 @@
 import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
-import crypto from "node:crypto";
+import crypto, { randomBytes } from "node:crypto";
 import axios from "axios";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
@@ -15,6 +15,11 @@ import type { JWTVerifyResult } from "jose";
 import * as OAuth2Lib from "@cef-ebsi/oauth2-auth";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import jsonwebtoken from "jsonwebtoken";
+import {
+  EBSI_DID_METHOD_PREFIX,
+  EBSI_DID_SPECS,
+} from "@cef-ebsi/ebsi-did-resolver";
+import { base58btc } from "multiformats/bases/base58";
 import { NotificationsModule } from "./notifications.module";
 import { CassandraResponse, Notification } from "./notifications.interface";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
@@ -76,7 +81,6 @@ describe("Notifications module", () => {
 
   const didSender = EbsiWallet.createDid();
   const legalEntityRecipientDid = EbsiWallet.createDid("LEGAL_ENTITY");
-  const naturalPersonRecipientDid = EbsiWallet.createDid("NATURAL_PERSON");
 
   const sender = {
     did: didSender,
@@ -86,11 +90,6 @@ describe("Notifications module", () => {
   const legalEntityRecipient = {
     did: legalEntityRecipientDid,
     token: createToken(legalEntityRecipientDid),
-  };
-
-  const naturalPersonRecipient = {
-    did: naturalPersonRecipientDid,
-    token: createToken(naturalPersonRecipientDid),
   };
 
   const accessTokenApi = jsonwebtoken.sign(
@@ -237,12 +236,61 @@ describe("Notifications module", () => {
       );
     });
 
-    it("should accept a valid payload with a NP as recipient", async () => {
+    it("should accept a valid payload with a NP (did:ebsi v2, legacy) as recipient", async () => {
       expect.assertions(3);
+
+      const bytesArray = new Uint8Array(
+        1 + EBSI_DID_SPECS.NATURAL_PERSON.BYTE_LENGTH
+      );
+      bytesArray.set([EBSI_DID_SPECS.NATURAL_PERSON.VERSION_ID]);
+      bytesArray.set(randomBytes(EBSI_DID_SPECS.NATURAL_PERSON.BYTE_LENGTH), 1);
+      const methodSpecificIdentifier = base58btc.encode(bytesArray);
+      const naturalPersonRecipientDid = `${EBSI_DID_METHOD_PREFIX}${methodSpecificIdentifier}`;
 
       const notification = createNotification(
         sender.did,
-        naturalPersonRecipient.did
+        naturalPersonRecipientDid
+      );
+
+      const notificationId = crypto
+        .createHash("sha3-256")
+        .update(JSON.stringify(notification), "utf8")
+        .digest("hex");
+
+      modifyResponse = cassandraResponse([]);
+
+      const response = await request(server)
+        .post("/notifications")
+        .auth(sender.token, { type: "bearer" })
+        .send(notification);
+
+      expect(response.body).toStrictEqual(notification);
+      expect(response.status).toBe(201);
+      expect(response.headers).toStrictEqual(
+        expect.objectContaining({
+          location: expect.stringContaining(`/notifications/${notificationId}`),
+        })
+      );
+    });
+
+    it("should accept a valid payload with a NP (did:key) as recipient", async () => {
+      expect.assertions(3);
+
+      const naturalPersonRecipientJwk = {
+        crv: "P-256",
+        kty: "EC",
+        x: "ngy44T1vxAT6Di4nr-UaM9K3Tlnz9pkoksDokKFkmNc",
+        y: "QCRfOKlSM31GTkb4JHx3nXB4G_jSPMsbdjzlkT_UpPc",
+      };
+
+      const naturalPersonRecipientDid = EbsiWallet.createDid(
+        "NATURAL_PERSON",
+        naturalPersonRecipientJwk
+      );
+
+      const notification = createNotification(
+        sender.did,
+        naturalPersonRecipientDid
       );
 
       const notificationId = crypto

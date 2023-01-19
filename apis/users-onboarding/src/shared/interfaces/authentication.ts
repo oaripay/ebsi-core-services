@@ -7,6 +7,6 @@ export interface AuthenticationRequest {
 export interface VerifiableAuthorization {
   verifiableCredential: string;
 }
-export interface AuhtenticationResponseRequest {
+export interface AuthenticationResponseRequest {
   id_token: string;
 }

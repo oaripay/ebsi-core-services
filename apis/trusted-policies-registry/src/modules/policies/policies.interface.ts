@@ -23,16 +23,16 @@ export const OPERATION_TYPES = [
 export interface PolicyConditionStructOutput {
   name: string;
   attributeName: string;
-  typeOfValue: typeof ATTRIBUTE_TYPES[number];
+  typeOfValue: (typeof ATTRIBUTE_TYPES)[number];
   value: string | boolean;
-  attributeOperation: typeof ATTRIBUTE_OPERATIONS[number];
+  attributeOperation: (typeof ATTRIBUTE_OPERATIONS)[number];
 }
 
 export interface PolicyResponseObject {
   policyId: string;
   description: string;
   policyName: string;
-  operationType: typeof OPERATION_TYPES[number];
+  operationType: (typeof OPERATION_TYPES)[number];
   status: boolean;
   policyConditions: PolicyConditionStructOutput[];
 }

@@ -1,7 +1,7 @@
 import { createHash, randomInt, randomUUID } from "node:crypto";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { classToPlain } from "class-transformer";
+import { instanceToPlain } from "class-transformer";
 import {
   NotFoundError,
   BadRequestError,
@@ -12,7 +12,11 @@ import {
 } from "@ebsiint-api/shared";
 import axios, { AxiosResponse } from "axios";
 import { decodeJWT } from "did-jwt";
-import { validate as validateDid } from "@cef-ebsi/ebsi-did-resolver";
+import {
+  EBSI_DID_METHOD_PREFIX,
+  validate as validateDid,
+} from "@cef-ebsi/ebsi-did-resolver";
+import { util } from "@cef-ebsi/key-did-resolver";
 import { Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
 import { CreateNotificationDto } from "./dto/create-notification.dto";
 import { ApiConfig } from "../../config/configuration";
@@ -159,7 +163,7 @@ export class NotificationsService {
     createNotificationDto: CreateNotificationDto
   ): Promise<{ notification: Notification; id: string | number }> {
     // Transform DTO to plain object to be stored
-    const notification = classToPlain(createNotificationDto) as Notification;
+    const notification = instanceToPlain(createNotificationDto) as Notification;
 
     const { from, to, issuanceDate } = notification;
     let { expirationDate } = notification;
@@ -168,27 +172,34 @@ export class NotificationsService {
       expirationDate &&
       new Date(expirationDate).getTime() - new Date(issuanceDate).getTime() >
         FIVE_DAYS
-    )
+    ) {
       throw new BadRequestError("Invalid Expiration Date", {
         detail: `The expiration date can not be greater than 5 days of issuance`,
       });
-    if (!expirationDate)
+    }
+
+    if (!expirationDate) {
       expirationDate = new Date(
         new Date(issuanceDate).getTime() + FIVE_DAYS
       ).toISOString();
+    }
 
-    const recipientDidVersion = validateDid(to);
-    if (recipientDidVersion === 1) {
-      // verify if "to" is in the DID Registry (LE only)
-      try {
-        await axios.get(`${this.didRegistryApiUrl}/identifiers/${to}`, {
-          timeout: this.timeout,
-        });
-      } catch (error) {
-        throw new BadRequestError(
-          `${to} is not registered in the DID Registry`
-        );
+    if (to.startsWith(EBSI_DID_METHOD_PREFIX)) {
+      const recipientDidVersion = validateDid(to);
+      if (recipientDidVersion === 1) {
+        // verify if "to" is in the DID Registry (LE only)
+        try {
+          await axios.get(`${this.didRegistryApiUrl}/identifiers/${to}`, {
+            timeout: this.timeout,
+          });
+        } catch (error) {
+          throw new BadRequestError(
+            `${to} is not registered in the DID Registry`
+          );
+        }
       }
+    } else {
+      util.validateDid(to);
     }
 
     // Generate ID

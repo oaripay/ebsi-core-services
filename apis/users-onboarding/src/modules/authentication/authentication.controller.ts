@@ -3,7 +3,7 @@ import {
   VerifiableAuthorization,
   AuthenticationResponse,
   AuthenticationRequest,
-  AuhtenticationResponseRequest,
+  AuthenticationResponseRequest,
 } from "../../shared/interfaces";
 import { JwtAuthGuard } from "../auth/guards";
 import AuthenticationService from "./authentication.service";
@@ -24,7 +24,7 @@ export class AuthenticationController {
   @UseGuards(JwtAuthGuard)
   @Post("/authentication-responses")
   async authenticationResponse(
-    @Body() body: AuhtenticationResponseRequest
+    @Body() body: AuthenticationResponseRequest
   ): Promise<VerifiableAuthorization> {
     const subject = await this.authenticationService.validateResponse(body);
     return this.authenticationService.createVerifiableAuthorisation(subject);

@@ -11,7 +11,7 @@ import {
 } from "@nestjs/platform-fastify";
 import axios from "axios";
 import * as OAuth2Lib from "@cef-ebsi/oauth2-auth";
-import type { JwtTarVefifyResult } from "@cef-ebsi/oauth2-auth";
+import type { JwtTarVerifyResult } from "@cef-ebsi/oauth2-auth";
 import { Client, types } from "cassandra-driver";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
@@ -151,7 +151,7 @@ describe("JsonRpc Module", () => {
     jest
       .spyOn(OAuth2Lib, "verifyJwtTar")
       .mockImplementation(async () =>
-        Promise.resolve({ payload: {} } as JwtTarVefifyResult)
+        Promise.resolve({ payload: {} } as JwtTarVerifyResult)
       );
 
     const response = await request(server)

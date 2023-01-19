@@ -16,7 +16,7 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
-import type { JwtTarVefifyResult } from "@cef-ebsi/oauth2-auth";
+import type { JwtTarVerifyResult } from "@cef-ebsi/oauth2-auth";
 import axios from "axios";
 import { AppModule } from "../app.module";
 import { AllExceptionsFilter } from "../filters/http-exception.filter";
@@ -27,8 +27,8 @@ jest.setTimeout(120000);
 
 jest.mock("@cef-ebsi/oauth2-auth", () => ({
   // In the following tests, we assume that the OAuth2 JWT is valid
-  verifyJwtTar: async (): Promise<JwtTarVefifyResult> =>
-    Promise.resolve({} as JwtTarVefifyResult),
+  verifyJwtTar: async (): Promise<JwtTarVerifyResult> =>
+    Promise.resolve({} as JwtTarVerifyResult),
 }));
 
 describe("Logging interceptor", () => {

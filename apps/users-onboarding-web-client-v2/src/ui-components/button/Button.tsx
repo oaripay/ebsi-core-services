@@ -6,11 +6,11 @@ import { MemoizedIcon, Icon, IconProps } from "../icon/Icon";
 
 const buttonVariants = ["primary", "secondary", "call", "text"] as const;
 
-export type ButtonVariant = typeof buttonVariants[number];
+export type ButtonVariant = (typeof buttonVariants)[number];
 
 const buttonTypes = ["submit", "reset", "button"] as const;
 
-export type ButtonType = typeof buttonTypes[number];
+export type ButtonType = (typeof buttonTypes)[number];
 
 export interface ButtonProps {
   variant?: ButtonVariant;

@@ -9,7 +9,7 @@ export class StoresService {
   }
 
   getStore(store: string): void {
-    if (!STORES.includes(store as typeof STORES[number])) {
+    if (!STORES.includes(store as (typeof STORES)[number])) {
       throw new NotFoundError(NotFoundError.defaultTitle, {
         detail: `Store "${store}" does not exist.`,
       });

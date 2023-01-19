@@ -11,7 +11,10 @@ module.exports = {
   roots: ["<rootDir>/src/"],
   testMatch: ["**/?(*.|*-)+(spec|test).ts"],
   transform: {
-    "^.+\\.[tj]sx?$": ["ts-jest", { tsconfig: "<rootDir>/tsconfig.test.json" }],
+    "^.+\\.[tj]sx?$": [
+      "ts-jest",
+      { tsconfig: "<rootDir>/tsconfig.test.json", isolatedModules: true },
+    ],
   },
   transformIgnorePatterns: ["/node_modules/(?!(axios))"],
   moduleFileExtensions: ["js", "json", "ts"],

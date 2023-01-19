@@ -56,3 +56,5 @@ COPY . .
 
 # Build affected projects
 RUN yarn build
+
+USER node

@@ -6,11 +6,11 @@ import defaultSprite from "@ecl/ec-preset-website/dist/images/icons/sprites/icon
 
 const iconSizes = ["fluid", "xs", "s", "m", "l", "xl", "2xl"];
 
-export type IconSize = typeof iconSizes[number];
+export type IconSize = (typeof iconSizes)[number];
 
 const iconColors = ["", "inverted", "primary"];
 
-export type IconColor = typeof iconColors[number];
+export type IconColor = (typeof iconColors)[number];
 
 export interface IconProps {
   className?: string;

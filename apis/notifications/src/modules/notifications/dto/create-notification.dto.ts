@@ -9,7 +9,7 @@ import {
   Equals,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { IsDid } from "../validators/IsDid";
+import { IsDid } from "@ebsiint-api/shared";
 
 class Proof {
   @IsNotEmpty()

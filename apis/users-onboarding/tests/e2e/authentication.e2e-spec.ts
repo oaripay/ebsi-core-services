@@ -17,6 +17,13 @@ import {
   generateKeyPair,
   importJWK,
 } from "jose";
+import { base58btc } from "multiformats/bases/base58";
+import {
+  EBSI_DID_METHOD_PREFIX,
+  EBSI_DID_SPECS,
+} from "@cef-ebsi/ebsi-did-resolver";
+import { base64url } from "multiformats/bases/base64";
+import { KEY_DID_METHOD_PREFIX } from "@cef-ebsi/key-did-resolver";
 import { createFakeToken, generateTokenWebAppOnboarding } from "../auxTests";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
@@ -75,11 +82,11 @@ describe("/onboarding/v2 authentication e2e tests", () => {
     expect.assertions(2);
 
     const keyPair = await generateKeyPair("ES256K");
-    const kidAgent = `${EbsiWallet.createDid()}#keys-1`;
+    const agentKid = `${EbsiWallet.createDid()}#keys-1`;
     const agent = new Agent({
       privateKey: keyPair.privateKey,
       alg: "ES256K",
-      kid: kidAgent,
+      kid: agentKid,
       siopV2: true,
     });
     const { idToken } = await agent.createResponse(
@@ -104,7 +111,7 @@ describe("/onboarding/v2 authentication e2e tests", () => {
     expect(response.status).toBe(201);
   });
 
-  it("should receive a verifiable authorisation - Natural person", async () => {
+  it("should receive a verifiable authorisation - Natural person (did:ebsi v2, legacy)", async () => {
     expect.assertions(2);
 
     const keyPair = await generateKeyPair("ES256K");
@@ -113,15 +120,54 @@ describe("/onboarding/v2 authentication e2e tests", () => {
       publicKeyJwkAgent,
       "sha256"
     );
-    const subjectIdentifier = Buffer.from(thumbprint, "base64");
-    const kidAgent = `${EbsiWallet.createDid(
-      "NATURAL_PERSON",
-      subjectIdentifier
-    )}#${thumbprint}`;
+    const bytesArray = new Uint8Array(
+      1 + EBSI_DID_SPECS.NATURAL_PERSON.BYTE_LENGTH
+    );
+    bytesArray.set([EBSI_DID_SPECS.NATURAL_PERSON.VERSION_ID]);
+    bytesArray.set(base64url.baseDecode(thumbprint), 1);
+    const methodSpecificIdentifier = base58btc.encode(bytesArray);
+    const agentDid = `${EBSI_DID_METHOD_PREFIX}${methodSpecificIdentifier}`;
+    const agentKid = `${agentDid}#${thumbprint}`;
     const agent = new Agent({
       privateKey: keyPair.privateKey,
       alg: "ES256K",
-      kid: kidAgent,
+      kid: agentKid,
+      siopV2: true,
+    });
+    const { idToken } = await agent.createResponse(
+      {
+        redirectUri: "/authentication-responses",
+      },
+      {
+        syntaxType: "did_subject",
+      }
+    );
+
+    const response: SupertestAuthenticationResponse = await request(server)
+      .post("/authentication-responses")
+      .auth(tokenWebApp, { type: "bearer" })
+      .send({
+        id_token: idToken,
+      });
+
+    expect(response.body).toStrictEqual({
+      verifiableCredential: expect.any(String),
+    });
+    expect(response.status).toBe(201);
+  });
+
+  it("should receive a verifiable authorisation - Natural person (did:key)", async () => {
+    expect.assertions(2);
+
+    const keyPair = await generateKeyPair("ES256K");
+    const publicKeyJwkAgent = await exportJWK(keyPair.publicKey);
+    const agentDid = EbsiWallet.createDid("NATURAL_PERSON", publicKeyJwkAgent);
+    const fragmentIdentifier = agentDid.substring(KEY_DID_METHOD_PREFIX.length);
+    const agentKid = `${agentDid}#${fragmentIdentifier}`;
+    const agent = new Agent({
+      privateKey: keyPair.privateKey,
+      alg: "ES256K",
+      kid: agentKid,
       siopV2: true,
     });
     const { idToken } = await agent.createResponse(

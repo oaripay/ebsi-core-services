@@ -10,10 +10,10 @@ import { MemoizedIcon, IconProps, iconPropTypes } from "../icon/Icon";
 
 const linkIconPositions = ["before", "after"] as const;
 const linkIconDefaultPosition = "after";
-export type LinkIconPosition = typeof linkIconPositions[number];
+export type LinkIconPosition = (typeof linkIconPositions)[number];
 
 const linkVariants = ["default", "standalone"] as const;
-export type LinkVariant = typeof linkVariants[number];
+export type LinkVariant = (typeof linkVariants)[number];
 
 export interface LinkProps extends RouterLinkProps {
   variant?: LinkVariant;

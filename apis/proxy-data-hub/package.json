@@ -23,8 +23,8 @@
     "test:ci": "yarn test:unit --coverage --reporters=default --reporters=jest-sonar"
   },
   "dependencies": {
-    "@cef-ebsi/oauth2-auth": "^2.2.1",
-    "@cef-ebsi/siop-auth": "^2.2.1",
+    "@cef-ebsi/oauth2-auth": "^2.2.2-alpha.2",
+    "@cef-ebsi/siop-auth": "^3.0.0-alpha.2",
     "@ebsiint-api/shared": "^1.0.0",
     "@fastify/helmet": "^10.1.0",
     "@nestjs/axios": "^1.0.1",
@@ -47,14 +47,14 @@
     "winston": "^3.8.1"
   },
   "devDependencies": {
-    "@cef-ebsi/wallet-lib": "^3.1.1",
+    "@cef-ebsi/wallet-lib": "^4.0.0-alpha.2",
     "@jest/globals": "^29.3.1",
     "@nestjs/cli": "^9.1.8",
     "@nestjs/schematics": "^9.0.4",
     "@nestjs/testing": "^9.2.1",
     "@stoplight/spectral-cli": "^6.6.0",
     "@tsconfig/node16": "^1.0.3",
-    "@types/jsonwebtoken": "^9.0.0",
+    "@types/jsonwebtoken": "^9.0.1",
     "@types/k6": "^0.42.0",
     "@types/node": "^16.18.11",
     "@types/supertest": "^2.0.12",
@@ -62,9 +62,9 @@
     "jest-sonar": "^0.2.15",
     "jose": "^4.11.2",
     "jsonwebtoken": "^9.0.0",
-    "nock": "^13.2.9",
+    "nock": "^13.3.0",
     "supertest": "^6.3.3",
-    "ts-jest": "^29.0.3",
+    "ts-jest": "^29.0.5",
     "ts-node": "^10.9.1",
     "typescript": "4.9.4"
   },

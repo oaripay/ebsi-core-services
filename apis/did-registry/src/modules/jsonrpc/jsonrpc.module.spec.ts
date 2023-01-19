@@ -26,7 +26,7 @@ import {
 import { createJWT, ES256KSigner } from "did-jwt";
 import * as OAuth2Lib from "@cef-ebsi/oauth2-auth";
 import * as SiopLib from "@cef-ebsi/siop-auth";
-import type { JwtTarVefifyResult } from "@cef-ebsi/oauth2-auth";
+import type { JwtTarVerifyResult } from "@cef-ebsi/oauth2-auth";
 import EbsiWallet from "@cef-ebsi/wallet-lib";
 import canonicalize from "canonicalize";
 import { useContainer } from "class-validator";
@@ -283,7 +283,7 @@ describe("JsonRpc Module", () => {
 
     // Mock libraries
     mockAuthOAuth2.mockImplementation(
-      async (): Promise<JwtTarVefifyResult> =>
+      async (): Promise<JwtTarVerifyResult> =>
         Promise.reject(
           new Error("Forgot to implement the mock for OAuth2 verifyJwtTar?")
         )
@@ -378,7 +378,7 @@ describe("JsonRpc Module", () => {
 
     // Mock reject JWT
     const verifyAccessTokenSpy = mockAuthOAuth2.mockImplementation(
-      async (): Promise<JwtTarVefifyResult> =>
+      async (): Promise<JwtTarVerifyResult> =>
         Promise.reject(new Error("error message"))
     );
 
@@ -443,8 +443,8 @@ describe("JsonRpc Module", () => {
 
     // Mock access token verification
     mockAuthOAuth2.mockImplementation(
-      async (): Promise<JwtTarVefifyResult> =>
-        Promise.resolve({ payload: {} } as JwtTarVefifyResult)
+      async (): Promise<JwtTarVerifyResult> =>
+        Promise.resolve({ payload: {} } as JwtTarVerifyResult)
     );
 
     const response = await request(server)
@@ -489,8 +489,8 @@ describe("JsonRpc Module", () => {
 
     // Mock access token verification
     mockAuthOAuth2.mockImplementation(
-      async (): Promise<JwtTarVefifyResult> =>
-        Promise.resolve({ payload: {} } as JwtTarVefifyResult)
+      async (): Promise<JwtTarVerifyResult> =>
+        Promise.resolve({ payload: {} } as JwtTarVerifyResult)
     );
 
     const responseSend = await request(server)
@@ -531,8 +531,8 @@ describe("JsonRpc Module", () => {
 
     // Mock access token verification
     mockAuthOAuth2.mockImplementation(
-      async (): Promise<JwtTarVefifyResult> =>
-        Promise.resolve({ payload: {} } as JwtTarVefifyResult)
+      async (): Promise<JwtTarVerifyResult> =>
+        Promise.resolve({ payload: {} } as JwtTarVerifyResult)
     );
 
     const response = await request(server)

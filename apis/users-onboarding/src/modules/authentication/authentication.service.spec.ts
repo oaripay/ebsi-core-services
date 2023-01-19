@@ -1,4 +1,12 @@
-import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
+import {
+  jest,
+  describe,
+  beforeAll,
+  afterAll,
+  it,
+  expect,
+  afterEach,
+} from "@jest/globals";
 import crypto from "node:crypto";
 import { INestApplication } from "@nestjs/common";
 import {
@@ -13,13 +21,20 @@ import { createJWT, decodeJWT, ES256KSigner } from "did-jwt";
 import EbsiWallet from "@cef-ebsi/wallet-lib";
 import type { EbsiVerifiableAttestation } from "@cef-ebsi/verifiable-credential";
 import { Agent } from "@cef-ebsi/siop-auth";
+import {
+  EBSI_DID_METHOD_PREFIX,
+  EBSI_DID_SPECS,
+} from "@cef-ebsi/ebsi-did-resolver";
+import { KEY_DID_METHOD_PREFIX } from "@cef-ebsi/key-did-resolver";
+import { base64url } from "multiformats/bases/base64";
+import { base58btc } from "multiformats/bases/base58";
 import type { FastifyInstance } from "fastify";
 import { Resolver } from "did-resolver";
 import { AuthenticationModule } from "./authentication.module";
 import { ApiConfig } from "../../config/configuration";
 import AuthenticationService from "./authentication.service";
 import {
-  AuhtenticationResponseRequest,
+  AuthenticationResponseRequest,
   AuthenticationRequest,
 } from "../../shared/interfaces";
 
@@ -43,6 +58,10 @@ describe("authentication service tests", () => {
       moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
 
     authenticationService = new AuthenticationService(configService);
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   afterAll(async () => {
@@ -104,7 +123,7 @@ describe("authentication service tests", () => {
     const jwk = new EbsiWallet(privateKey).getPublicKey({
       format: "jwk",
     }) as JWK;
-    const mockedAuthRequest: AuhtenticationResponseRequest = {
+    const mockedAuthRequest: AuthenticationResponseRequest = {
       id_token: await createJWT(
         { sub_jwk: jwk },
         {
@@ -131,7 +150,7 @@ describe("authentication service tests", () => {
     ).resolves.not.toThrow();
   });
 
-  it("should validate the response for natural persons", async () => {
+  it("should validate the response for natural persons (did:ebsi v2, legacy)", async () => {
     expect.assertions(1);
     const keyPair = await generateKeyPair("ES256K");
     const publicKeyJwkAgent = await exportJWK(keyPair.publicKey);
@@ -139,15 +158,45 @@ describe("authentication service tests", () => {
       publicKeyJwkAgent,
       "sha256"
     );
-    const subjectIdentifier = Buffer.from(thumbprint, "base64");
-    const kidAgent = `${EbsiWallet.createDid(
-      "NATURAL_PERSON",
-      subjectIdentifier
-    )}#${thumbprint}`;
+    const bytesArray = new Uint8Array(
+      1 + EBSI_DID_SPECS.NATURAL_PERSON.BYTE_LENGTH
+    );
+    bytesArray.set([EBSI_DID_SPECS.NATURAL_PERSON.VERSION_ID]);
+    bytesArray.set(base64url.baseDecode(thumbprint), 1);
+    const methodSpecificIdentifier = base58btc.encode(bytesArray);
+    const agentDid = `${EBSI_DID_METHOD_PREFIX}${methodSpecificIdentifier}`;
+    const agentKid = `${agentDid}#${thumbprint}`;
     const agent = new Agent({
       privateKey: keyPair.privateKey,
       alg: "ES256K",
-      kid: kidAgent,
+      kid: agentKid,
+      siopV2: true,
+    });
+    const { idToken } = await agent.createResponse(
+      {
+        redirectUri: "/authentication-responses",
+      },
+      {
+        syntaxType: "did_subject",
+      }
+    );
+
+    await expect(
+      authenticationService.validateResponse({ id_token: idToken })
+    ).resolves.not.toThrow();
+  });
+
+  it("should validate the response for natural persons (did:key)", async () => {
+    expect.assertions(1);
+    const keyPair = await generateKeyPair("ES256K");
+    const publicKeyJwkAgent = await exportJWK(keyPair.publicKey);
+    const agentDid = EbsiWallet.createDid("NATURAL_PERSON", publicKeyJwkAgent);
+    const fragmentIdentifier = agentDid.substring(KEY_DID_METHOD_PREFIX.length);
+    const agentKid = `${agentDid}#${fragmentIdentifier}`;
+    const agent = new Agent({
+      privateKey: keyPair.privateKey,
+      alg: "ES256K",
+      kid: agentKid,
       siopV2: true,
     });
     const { idToken } = await agent.createResponse(
@@ -180,7 +229,7 @@ describe("authentication service tests", () => {
     const jwk = new EbsiWallet(privateKey).getPublicKey({
       format: "jwk",
     }) as JWK;
-    const mockedAuthRequest: AuhtenticationResponseRequest = {
+    const mockedAuthRequest: AuthenticationResponseRequest = {
       id_token: await createJWT(
         { sub_jwk: jwk },
         {
@@ -201,7 +250,7 @@ describe("authentication service tests", () => {
     expect.assertions(1);
     const kid = "did:ebsi:znbuGDt6tEqpGZNAuGc2uvZ#key-1";
     const privateKey = crypto.randomBytes(32);
-    const mockedAuthRequest: AuhtenticationResponseRequest = {
+    const mockedAuthRequest: AuthenticationResponseRequest = {
       id_token: await createJWT(
         {},
         {

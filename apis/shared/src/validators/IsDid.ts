@@ -1,9 +1,10 @@
-import { validate as validateDid } from "@cef-ebsi/ebsi-did-resolver";
 import {
   registerDecorator,
   buildMessage,
   ValidationOptions,
 } from "class-validator";
+import { EBSI_DID_METHOD_PREFIX, validate } from "@cef-ebsi/ebsi-did-resolver";
+import { util } from "@cef-ebsi/key-did-resolver";
 
 export function IsDid(validationOptions?: ValidationOptions) {
   return (object: unknown, propertyName: string): void => {
@@ -13,8 +14,14 @@ export function IsDid(validationOptions?: ValidationOptions) {
       propertyName,
       validator: {
         validate(value: string) {
+          if (!value || typeof value !== "string") return false;
+
           try {
-            validateDid(value);
+            if (value.startsWith(EBSI_DID_METHOD_PREFIX)) {
+              validate(value);
+            } else {
+              util.validateDid(value);
+            }
             return true;
           } catch (e) {
             return false;

@@ -1,5 +1,5 @@
 import { IsString, IsInt, Min, Max } from "class-validator";
-import { IsDid } from "@ebsiint-api/shared";
+import { IsDidV1 } from "@ebsiint-api/shared";
 
 export class ArgsInsertAuthorization {
   @IsString()
@@ -8,7 +8,7 @@ export class ArgsInsertAuthorization {
   @IsString()
   authorizedAppName: string;
 
-  @IsDid()
+  @IsDidV1()
   iss: string;
 
   @IsInt()

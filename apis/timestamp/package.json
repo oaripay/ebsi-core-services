@@ -23,8 +23,8 @@
     "test:ci": "yarn test:unit --coverage --reporters=default --reporters=jest-sonar"
   },
   "dependencies": {
-    "@cef-ebsi/oauth2-auth": "^2.2.1",
-    "@cef-ebsi/siop-auth": "^2.2.1",
+    "@cef-ebsi/oauth2-auth": "^2.2.2-alpha.2",
+    "@cef-ebsi/siop-auth": "^3.0.0-alpha.2",
     "@ebsiint-api/shared": "^1.0.0",
     "@ebsiint-sc/bootstrap": "^1.0.0",
     "@ebsiint-sc/timestamp": "^1.0.0",
@@ -50,7 +50,7 @@
     "winston": "^3.8.1"
   },
   "devDependencies": {
-    "@cef-ebsi/wallet-lib": "^3.1.1",
+    "@cef-ebsi/wallet-lib": "^4.0.0-alpha.2",
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/abstract-provider": "^5.7.0",
     "@ethersproject/bytes": "^5.7.0",
@@ -59,8 +59,8 @@
     "@nestjs/cli": "^9.1.8",
     "@nestjs/schematics": "^9.0.4",
     "@nestjs/testing": "^9.2.1",
-    "@nomiclabs/hardhat-ethers": "^2.2.1",
-    "@openzeppelin/contracts": "^4.8.0",
+    "@nomiclabs/hardhat-ethers": "^2.2.2",
+    "@openzeppelin/contracts": "^4.8.1",
     "@stoplight/spectral-cli": "^6.6.0",
     "@tsconfig/node16": "^1.0.3",
     "@typechain/ethers-v5": "^10.2.0",
@@ -68,14 +68,14 @@
     "@types/k6": "^0.42.0",
     "@types/node": "^16.18.11",
     "@types/supertest": "^2.0.12",
-    "hardhat": "^2.12.5",
+    "hardhat": "^2.12.6",
     "jest": "^29.3.1",
     "jest-mock": "^29.3.1",
     "jest-sonar": "^0.2.15",
     "jose": "^4.11.2",
-    "nock": "^13.2.9",
+    "nock": "^13.3.0",
     "supertest": "^6.3.3",
-    "ts-jest": "^29.0.3",
+    "ts-jest": "^29.0.5",
     "ts-node": "^10.9.1",
     "typechain": "^8.1.1",
     "typescript": "4.9.4"

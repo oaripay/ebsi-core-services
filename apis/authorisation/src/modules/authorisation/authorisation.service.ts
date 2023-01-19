@@ -9,7 +9,7 @@ import {
 import { RP as OAuth2RP, verifyJwtTar } from "@cef-ebsi/oauth2-auth";
 import type {
   AkeResponse as OAuth2AkeResponse,
-  JwtTarVefifyResult,
+  JwtTarVerifyResult,
 } from "@cef-ebsi/oauth2-auth";
 import { RP, verifyJwtDid, encode } from "@cef-ebsi/siop-auth";
 import type {
@@ -142,7 +142,7 @@ export class AuthorisationService {
   async createOAuth2Session(
     body: OAuth2SessionDto
   ): Promise<OAuth2AkeResponse> {
-    let resVerification: JwtTarVefifyResult;
+    let resVerification: JwtTarVerifyResult;
 
     try {
       resVerification = await verifyJwtTar(body.clientAssertion, {

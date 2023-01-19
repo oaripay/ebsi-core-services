@@ -14,7 +14,7 @@ import { ethers } from "ethers";
 import type { FastifyInstance } from "fastify";
 import * as OAuth2Lib from "@cef-ebsi/oauth2-auth";
 import * as SiopLib from "@cef-ebsi/siop-auth";
-import type { JwtTarVefifyResult } from "@cef-ebsi/oauth2-auth";
+import type { JwtTarVerifyResult } from "@cef-ebsi/oauth2-auth";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import type { JWTVerifyResult } from "jose";
 import {
@@ -304,11 +304,11 @@ describe("JsonRpc Module", () => {
 
     jest
       .spyOn(OAuth2Lib, "verifyJwtTar")
-      .mockImplementation((token: string): Promise<JwtTarVefifyResult> => {
+      .mockImplementation((token: string): Promise<JwtTarVerifyResult> => {
         if (token === testApp.token) {
           return Promise.resolve({
             payload: { sub: testApp.name },
-          } as JwtTarVefifyResult);
+          } as JwtTarVerifyResult);
         }
 
         return Promise.reject(new Error("verifyJwtTar failed (siop)"));

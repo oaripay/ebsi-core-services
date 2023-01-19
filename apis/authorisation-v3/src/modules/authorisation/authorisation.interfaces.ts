@@ -1,7 +1,7 @@
 import type { JsonWebKey } from "node:crypto";
 import { SUPPORTED_SCOPES } from "./authorisation.constants";
 
-export type Scope = typeof SUPPORTED_SCOPES[number];
+export type Scope = (typeof SUPPORTED_SCOPES)[number];
 
 /**
  * OpenID Provider (OP) Metadata

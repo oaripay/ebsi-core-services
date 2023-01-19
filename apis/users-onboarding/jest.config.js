@@ -15,7 +15,10 @@ module.exports = {
     "!**/eu-login-onboarding.e2e-spec.ts",
   ],
   transform: {
-    "^.+\\.[tj]sx?$": ["ts-jest", { tsconfig: "<rootDir>/tsconfig.test.json" }],
+    "^.+\\.[tj]sx?$": [
+      "ts-jest",
+      { tsconfig: "<rootDir>/tsconfig.test.json", isolatedModules: true },
+    ],
   },
   transformIgnorePatterns: [
     "/node_modules/(?!(axios))",

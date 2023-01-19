@@ -8,7 +8,7 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import * as OAuth2lib from "@cef-ebsi/oauth2-auth";
-import type { JwtTarVefifyResult } from "@cef-ebsi/oauth2-auth";
+import type { JwtTarVerifyResult } from "@cef-ebsi/oauth2-auth";
 import { AuthModule } from "./auth.module";
 import { AuthService } from "./auth.service";
 import { JwtCacheService } from "./jwt-cache.service";
@@ -63,8 +63,8 @@ describe("Auth Module", () => {
 
       // Prepare mocks
       mockVerifyAccessToken.mockImplementation(
-        async (): Promise<JwtTarVefifyResult> =>
-          Promise.resolve({ payload: jwtPayload } as JwtTarVefifyResult)
+        async (): Promise<JwtTarVerifyResult> =>
+          Promise.resolve({ payload: jwtPayload } as JwtTarVerifyResult)
       );
 
       mockDecodeJwt.mockImplementation(() => ({
@@ -124,8 +124,8 @@ describe("Auth Module", () => {
 
       // Update mocks
       mockVerifyAccessToken.mockImplementation(
-        async (): Promise<JwtTarVefifyResult> =>
-          Promise.resolve({ payload: jwtPayload } as JwtTarVefifyResult)
+        async (): Promise<JwtTarVerifyResult> =>
+          Promise.resolve({ payload: jwtPayload } as JwtTarVerifyResult)
       );
 
       mockDecodeJwt.mockImplementation(() => ({
@@ -165,8 +165,8 @@ describe("Auth Module", () => {
       dateSpy.mockImplementation(() => futureNow * 1000);
 
       mockVerifyAccessToken.mockImplementation(
-        async (): Promise<JwtTarVefifyResult> =>
-          Promise.resolve({ payload: jwtPayload } as JwtTarVefifyResult)
+        async (): Promise<JwtTarVerifyResult> =>
+          Promise.resolve({ payload: jwtPayload } as JwtTarVerifyResult)
       );
 
       mockDecodeJwt.mockImplementation(() => ({
