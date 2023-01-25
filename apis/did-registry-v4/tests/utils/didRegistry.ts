@@ -1,9 +1,13 @@
+// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+/// <reference path="../../../../contracts/did-registry-v4/src/types/hardhat.d.ts" />
 import hre from "hardhat";
 import { FactoryOptions } from "hardhat/types";
 import "@nomiclabs/hardhat-ethers";
 import { Contract, ethers } from "ethers";
+import { AsyncReturnType } from "@ebsiint-api/shared";
 import { DidRegistry, PolicyRegistryMock } from "@ebsiint-sc/did-registry-v4";
 import { createUser, UserDetails } from "./data";
+import { setupTestEnv as setupTestEnvV3 } from "./didRegistryV3";
 
 const deployContract = async (
   name: string,
@@ -133,6 +137,7 @@ export async function setupTestEnv(
   didRegistryContract: DidRegistry;
   policyContractMock: Contract;
   users: UserDetails[];
+  setupV3: AsyncReturnType<typeof setupTestEnvV3>;
 }> {
   const ethersProvider = hre.ethers.provider;
   const users: UserDetails[] = [];
@@ -149,11 +154,14 @@ export async function setupTestEnv(
     ))
   );
 
+  const setupV3 = await setupTestEnvV3(opts);
+
   // Return test env variables
   return {
     provider: ethersProvider,
     didRegistryContract,
     policyContractMock,
     users,
+    setupV3,
   };
 }

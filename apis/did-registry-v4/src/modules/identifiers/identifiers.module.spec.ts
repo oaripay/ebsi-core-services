@@ -73,6 +73,11 @@ describe("Identifiers Module", () => {
     jest
       .spyOn(ledgerService, "getContract")
       .mockImplementation(async () => Promise.resolve(didRegistryContract));
+    jest
+      .spyOn(ledgerService, "getContractV3")
+      .mockImplementation(async () =>
+        Promise.resolve(testEnv.setupV3.didRegistryV3Contract)
+      );
   });
 
   afterAll(async () => {
@@ -377,6 +382,21 @@ describe("Identifiers Module", () => {
       expect.assertions(3);
 
       const { did, didDocument } = users[0];
+
+      const response = await request(server).get(`/identifiers/${did}`);
+
+      expect(response.body).toStrictEqual(didDocument);
+      expect(response.status).toBe(200);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/did+ld+json"));
+    });
+
+    it("should return a DID Document from V3 if it doesn't exist on V4", async () => {
+      expect.assertions(3);
+
+      const [didDocumentV3] = testEnv.setupV3.didDocuments;
+      const { did, didDocument } = didDocumentV3;
 
       const response = await request(server).get(`/identifiers/${did}`);
 
@@ -732,6 +752,29 @@ describe("Identifiers Module", () => {
         jsonrpc: "2.0",
         id: 123,
         result: false,
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should perform the action checkController for a DID registered in DID Registry V3", async () => {
+      expect.assertions(2);
+
+      const [didDocumentV3] = testEnv.setupV3.didDocuments;
+      const { did, controller } = didDocumentV3;
+
+      const response = await request(server)
+        .post(`/identifiers/${did}/actions`)
+        .send({
+          jsonrpc: "2.0",
+          method: "checkController",
+          params: [controller.address],
+          id: 123,
+        });
+
+      expect(response.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: 123,
+        result: true,
       });
       expect(response.status).toBe(200);
     });

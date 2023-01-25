@@ -10,6 +10,7 @@ export interface ApiConfig {
   authorisationApiName: string;
   authorisationApiUrl: string;
   contractAddr: string;
+  contractAddrV3: string;
   domain: string;
   localOrigin: string;
   logLevel: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
@@ -52,6 +53,7 @@ export const loadConfig = (): ApiConfig => {
       process.env.AUTHORISATION_API_NAME || "authorisation-api",
     authorisationApiUrl: DOMAIN + AUTH_API_PATH,
     contractAddr: process.env.CONTRACT_ADDR,
+    contractAddrV3: process.env.CONTRACT_ADDR_V3,
     domain: DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
     logLevel: process.env.LOG_LEVEL || "warn",

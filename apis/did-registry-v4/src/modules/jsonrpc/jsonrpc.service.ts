@@ -51,6 +51,28 @@ export class JsonRpcService {
     this.contractAddress = ledgerService.getContractAddress();
   }
 
+  /**
+   * If the DID exists on DID Registry V3 then its controller
+   * must be the signer of the transaction to insert it in
+   * DID Registry V4
+   */
+  async validateControllerOnV3(did: string, controller: string): Promise<void> {
+    const contract = await this.ledgerService.getContractV3();
+    const didHex = `0x${Buffer.from(did).toString("hex")}`;
+    try {
+      await contract.getLatestDidDocumentVersion(didHex);
+    } catch {
+      // the did doesn't exist on DID Registry V3
+      return;
+    }
+
+    if (!(await contract.checkController(didHex, controller))) {
+      throw new Error(
+        `The address ${controller} is not the controller of ${did} in DID Registry V3`
+      );
+    }
+  }
+
   async getChainId(): Promise<string> {
     if (!this.chainId) {
       const { chainId } = await (
@@ -130,6 +152,7 @@ export class JsonRpcService {
       case "insertDidDocument": {
         const castArgs = args as unknown as ArgsInsertDidDocument;
         await validateClass(ArgsInsertDidDocument, castArgs);
+        await this.validateControllerOnV3(castArgs.did, signer);
         break;
       }
 
@@ -253,6 +276,8 @@ export class JsonRpcService {
         notBefore,
         notAfter,
       } = body.params[0];
+
+      await this.validateControllerOnV3(did, from);
 
       const data = (
         await this.ledgerService.getContract()

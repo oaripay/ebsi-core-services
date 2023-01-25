@@ -5,6 +5,7 @@ import {
   publicKeyfromHexToJWK,
   BadRequestError,
   NotFoundError,
+  remove0xPrefix,
 } from "@ebsiint-api/shared";
 import { LedgerService } from "../ledger/ledger.service";
 import { RequestCheckControllerDto } from "./dto/request-check-controller.dto";
@@ -16,6 +17,44 @@ export default class IdentifiersService {
   private readonly logger = new Logger(IdentifiersService.name);
 
   constructor(private ledgerService: LedgerService) {}
+
+  // compatibility - legacy API v3
+
+  async getDidDocumentV3(did: string): Promise<{ [x: string]: unknown }> {
+    const hexDid = `0x${Buffer.from(did).toString("hex")}`;
+    const latestDidDoc = await (
+      await this.ledgerService.getContractV3()
+    ).getLatestDidDocumentVersion(hexDid);
+    return JSON.parse(
+      Buffer.from(remove0xPrefix(latestDidDoc), "hex").toString()
+    ) as { [x: string]: unknown };
+  }
+
+  async checkControllerV3(
+    did: string,
+    body: RequestCheckControllerDto,
+    id?: number | string
+  ): Promise<boolean> {
+    try {
+      await validateClass(RequestCheckControllerDto, body);
+      const contract = await this.ledgerService.getContractV3();
+      const address = body.params[0];
+      const didHex = `0x${Buffer.from(did).toString("hex")}`;
+      return await contract.checkController(didHex, address);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async didExistsOnV4(did: string): Promise<boolean> {
+    const contract = await this.ledgerService.getContract();
+    const document = await contract.getDidDocument(did);
+    return !!document.baseDocument;
+  }
+
+  // API v4
 
   async getIdentifiers(
     page: number,
@@ -99,9 +138,13 @@ export default class IdentifiersService {
     }
 
     if (!document.baseDocument) {
-      throw new NotFoundError("Identifier Not Found", {
-        detail: `Identifier ${did} not found`,
-      });
+      try {
+        return await this.getDidDocumentV3(did);
+      } catch (error) {
+        throw new NotFoundError("Identifier Not Found", {
+          detail: `Identifier ${did} not found`,
+        });
+      }
     }
 
     let baseDocument: { [x: string]: unknown };
@@ -163,6 +206,9 @@ export default class IdentifiersService {
   ): Promise<boolean> {
     try {
       await validateClass(RequestCheckControllerDto, body);
+      if (!(await this.didExistsOnV4(did))) {
+        return await this.checkControllerV3(did, body, id);
+      }
       const contract = await this.ledgerService.getContract();
       const address = body.params[0];
       return await contract["checkController(string,address)"](did, address);

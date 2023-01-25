@@ -6,6 +6,10 @@ import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import axios, { AxiosResponse } from "axios";
 import { DidRegistry, DidRegistry__factory } from "@ebsiint-sc/did-registry-v4";
+import {
+  DidRegistry as DidRegistryV3,
+  DidRegistry__factory as DidRegistryV3__factory,
+} from "@ebsiint-sc/did-registry";
 import { logAxiosError, InternalServerError } from "@ebsiint-api/shared";
 import { ApiConfig } from "../../config/configuration";
 
@@ -24,7 +28,11 @@ export class LedgerService {
 
   private publicMethodsDidRegistryContract: DidRegistry;
 
+  private publicMethodsDidRegistryV3Contract: DidRegistryV3;
+
   private didRegistryAddress: string;
+
+  private didRegistryV3Address: string;
 
   private accessTokenExp: number;
 
@@ -42,6 +50,8 @@ export class LedgerService {
 
   constructor(private configService: ConfigService<ApiConfig, true>) {
     this.didRegistryAddress = this.configService.get<string>("contractAddr");
+    this.didRegistryV3Address =
+      this.configService.get<string>("contractAddrV3");
     this.authorisationApiUrl = this.configService.get<string>(
       "authorisationApiUrl"
     );
@@ -201,6 +211,21 @@ export class LedgerService {
     return this.publicMethodsDidRegistryContract;
   }
 
+  private async getPublicMethodsDidRegistryV3Contract() {
+    if (this.publicMethodsDidRegistryV3Contract) {
+      return this.publicMethodsDidRegistryV3Contract;
+    }
+
+    await this.connectProvider();
+
+    this.publicMethodsDidRegistryV3Contract = DidRegistryV3__factory.connect(
+      this.didRegistryV3Address,
+      this.ethersProviderWithoutToken
+    );
+
+    return this.publicMethodsDidRegistryV3Contract;
+  }
+
   async getContract({ protectedMethod = false } = {}): Promise<DidRegistry> {
     if (protectedMethod) {
       await this.checkSession();
@@ -208,6 +233,10 @@ export class LedgerService {
     }
 
     return this.getPublicMethodsDidRegistryContract();
+  }
+
+  async getContractV3(): Promise<DidRegistryV3> {
+    return this.getPublicMethodsDidRegistryV3Contract();
   }
 
   getContractAddress() {

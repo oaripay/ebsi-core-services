@@ -188,6 +188,11 @@ describe("JsonRpc Module", () => {
     jest
       .spyOn(ledgerService, "getContract")
       .mockImplementation(async () => Promise.resolve(didRegistryContract));
+    jest
+      .spyOn(ledgerService, "getContractV3")
+      .mockImplementation(async () =>
+        Promise.resolve(testEnv.setupV3.didRegistryV3Contract)
+      );
 
     // Mock libraries
     mockAuthOAuth2.mockImplementation(
@@ -968,6 +973,23 @@ describe("JsonRpc Module", () => {
             } as InsertDidDocumentParam,
             expectedErrorMessage:
               "Validation error: isSecp256k1 must be equal to true",
+            accessToken: testUserAccessToken,
+          });
+
+          testSetup.push({
+            params: {
+              from: signer.address,
+              did: testEnv.setupV3.didDocuments[0].did,
+              baseDocument: JSON.stringify({
+                "@context": testUser.didDocument["@context"],
+              }),
+              vMethodId: testUser.thumbprint,
+              publicKey: testUser.wallet.publicKey,
+              isSecp256k1: true,
+              notBefore: now,
+              notAfter: now + 3600,
+            } as InsertDidDocumentParam,
+            expectedErrorMessage: `The address ${signer.address} is not the controller of ${testEnv.setupV3.didDocuments[0].did} in DID Registry V3`,
             accessToken: testUserAccessToken,
           });
 
