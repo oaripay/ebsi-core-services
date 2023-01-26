@@ -347,7 +347,12 @@ contract DidDocumentDetailed is
         address controller
     ) public view returns (bool) {
         DidDocuments storage ds = didDocumentStorage();
-        return ds.checkController(did, controller);
+        if (bytes(ds.didList[did].baseDocument).length > 0) {
+            return ds.checkController(did, controller);
+        }
+
+        // the DID doesn't exist. Check in the previous version of DID SC
+        return ds.didRegistryV3.checkController(bytes(did), controller);
     }
 
     function checkController(
@@ -355,6 +360,11 @@ contract DidDocumentDetailed is
         address controller
     ) public view returns (bool) {
         DidDocuments storage ds = didDocumentStorage();
-        return ds.checkController(string(did), controller);
+        if (bytes(ds.didList[string(did)].baseDocument).length > 0) {
+            return ds.checkController(string(did), controller);
+        }
+
+        // the DID doesn't exist. Check in the previous version of DID SC
+        return ds.didRegistryV3.checkController(did, controller);
     }
 }

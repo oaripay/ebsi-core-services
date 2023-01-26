@@ -18,9 +18,11 @@ const deployContract = async (
   return contract.address;
 };
 
-export async function deployDidRegistryContract(): Promise<{
+export async function deployDidRegistryContract(
+  testDidV3Address: string
+): Promise<{
   didRegistryContract: DidRegistry;
-  policyContractMock: Contract;
+  policyContractMock: PolicyRegistryMock;
 }> {
   // mock trusted policies registry
   const testTprAddress = "0xb2a560271ce08135e245F490b8794794A13a1208";
@@ -69,10 +71,11 @@ export async function deployDidRegistryContract(): Promise<{
   );
 
   const didRegistryContract = (await didRegistryContractFactory.deploy(
-    testTprAddress
+    testTprAddress,
+    testDidV3Address
   )) as DidRegistry;
   await didRegistryContract.initialize(1);
-  await didRegistryContract.setTrustedPoliciesRegistryAddress();
+  await didRegistryContract.setRegistryAddresses();
 
   await policyContractMock.setPolicyResult(true);
 
@@ -142,9 +145,11 @@ export async function setupTestEnv(
   const ethersProvider = hre.ethers.provider;
   const users: UserDetails[] = [];
 
+  const setupV3 = await setupTestEnvV3(opts);
+
   // Deploy contract
   const { didRegistryContract, policyContractMock } =
-    await deployDidRegistryContract();
+    await deployDidRegistryContract(setupV3.didRegistryV3Contract.address);
 
   users.push(
     ...(await Promise.all(
@@ -153,8 +158,6 @@ export async function setupTestEnv(
         .map((_, index) => insertDidDocument(didRegistryContract, index))
     ))
   );
-
-  const setupV3 = await setupTestEnvV3(opts);
 
   // Return test env variables
   return {

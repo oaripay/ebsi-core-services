@@ -65,7 +65,7 @@ async function main() {
   });
   const ts = (await contractFactory.deploy()) as DidRegistry;
   await ts.initialize(16);
-  await ts.setTrustedPoliciesRegistryAddress();
+  await ts.setRegistryAddresses();
 
   console.log("DID Registry deployed at :", ts.address);
   console.log(`Contract version set to: ${await ts.version()}`);

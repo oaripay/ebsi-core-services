@@ -1,7 +1,7 @@
 import { ethers, network, config } from "hardhat";
 import { expect } from "chai";
-import { DidRegistry, PolicyRegistryMock } from "../src/types";
-import { testTprAddress } from "./testAddress";
+import { DidRegistry, PolicyRegistryMock, DidRegistryMock } from "../src/types";
+import { testTprAddress, testDidV3Address } from "./testAddress";
 import { getEthObject } from "./utils";
 
 type InsertDidDocumentArgs = [
@@ -19,6 +19,7 @@ type AddVerificationRelationshipArgs = [string, string, string, number, number];
 describe("Did Documents", () => {
   let reg: DidRegistry;
   let policyContractMock: PolicyRegistryMock;
+  let didV3ContractMock: DidRegistryMock;
 
   const acc = config.networks.hardhat.accounts as { mnemonic: string };
   const hd = ethers.utils.HDNode.fromMnemonic(acc.mnemonic);
@@ -46,12 +47,32 @@ describe("Did Documents", () => {
     );
     const tempPolicyContract = await policyRegistryFactory.deploy();
     await tempPolicyContract.deployed();
-    const bytecode = await ethers.provider.getCode(tempPolicyContract.address);
-    await network.provider.send("hardhat_setCode", [testTprAddress, bytecode]);
+    const bytecodeTpr = await ethers.provider.getCode(
+      tempPolicyContract.address
+    );
+    await network.provider.send("hardhat_setCode", [
+      testTprAddress,
+      bytecodeTpr,
+    ]);
 
     policyContractMock = policyRegistryFactory.attach(
       testTprAddress
     ) as PolicyRegistryMock;
+
+    const didRegistryV3Factory = await ethers.getContractFactory(
+      "DidRegistryMock"
+    );
+    const tempDidContract = await didRegistryV3Factory.deploy();
+    await tempDidContract.deployed();
+    const bytecodeDid = await ethers.provider.getCode(tempDidContract.address);
+    await network.provider.send("hardhat_setCode", [
+      testDidV3Address,
+      bytecodeDid,
+    ]);
+
+    didV3ContractMock = didRegistryV3Factory.attach(
+      testDidV3Address
+    ) as DidRegistryMock;
   });
 
   beforeEach(async () => {
@@ -92,13 +113,14 @@ describe("Did Documents", () => {
       },
     });
 
-    reg = (await contractFactory.deploy(testTprAddress)).connect(
-      user
-    ) as DidRegistry;
+    reg = (
+      await contractFactory.deploy(testTprAddress, testDidV3Address)
+    ).connect(user) as DidRegistry;
 
     await reg.initialize(42);
-    await reg.setTrustedPoliciesRegistryAddress();
+    await reg.setRegistryAddresses();
     await policyContractMock.setPolicyResult(false);
+    await didV3ContractMock.setDidResult(false);
     const initialVersion = await reg.version();
     expect(initialVersion).to.equal(42);
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
@@ -1400,6 +1422,24 @@ describe("Did Documents", () => {
         ethers.Wallet.createRandom().address
       )
     ).to.be.false;
+    /* eslint-enable @typescript-eslint/no-unused-expressions */
+  });
+
+  it("should call checkController from DIDv3 when the did doesn't exist", async () => {
+    const didHex = `0x${Buffer.from(did).toString("hex")}`;
+    const { address } = ethers.Wallet.createRandom();
+    /* eslint-disable @typescript-eslint/no-unused-expressions */
+    expect(await reg["checkController(string,address)"](did, address)).to.be
+      .false;
+    expect(await reg["checkController(bytes,address)"](didHex, address)).to.be
+      .false;
+
+    // now, this did is inserted in DID v3
+    await didV3ContractMock.setDidResult(true);
+    expect(await reg["checkController(string,address)"](did, address)).to.be
+      .true;
+    expect(await reg["checkController(bytes,address)"](didHex, address)).to.be
+      .true;
     /* eslint-enable @typescript-eslint/no-unused-expressions */
   });
 

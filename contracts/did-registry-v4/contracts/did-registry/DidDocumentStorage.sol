@@ -2,6 +2,7 @@
 pragma solidity 0.8.12;
 
 import "@ebsiint-sc/trusted-policies-registry/contracts/trusted-policies-registry/interfaces/IPolicyRegistry.sol";
+import "./interfaces/IDidRegistry.sol";
 
 contract DidDocumentStorage {
     // The state variables we care about.
@@ -46,6 +47,7 @@ contract DidDocumentStorage {
         mapping(string => DidDocument) didList;
         string[] dids;
         IPolicyRegistry trustedPolicyRegistry;
+        IDidRegistry didRegistryV3;
     }
 
     // Creates and returns the storage pointer to the struct.

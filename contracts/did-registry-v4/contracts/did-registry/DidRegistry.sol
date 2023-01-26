@@ -12,19 +12,22 @@ import "./DidDocumentDetailed.sol";
  */
 contract DidRegistry is DidStorage, DidDocumentDetailed, Initializable {
     IPolicyRegistry public immutable policyRegistryContract;
+    IDidRegistry public immutable didRegistryContractV3;
 
-    constructor(address _tprAddress) {
+    constructor(address _tprAddress, address _didRegistryV3Address) {
         policyRegistryContract = IPolicyRegistry(_tprAddress);
+        didRegistryContractV3 = IDidRegistry(_didRegistryV3Address);
     }
 
     function initialize(uint256 v) public initializer {
         _onInitialize(v);
-        setTrustedPoliciesRegistryAddress();
+        setRegistryAddresses();
     }
 
-    function setTrustedPoliciesRegistryAddress() public {
+    function setRegistryAddresses() public {
         DidDocuments storage ds = didDocumentStorage();
         ds.trustedPolicyRegistry = policyRegistryContract;
+        ds.didRegistryV3 = didRegistryContractV3;
     }
 
     function _onInitialize(uint256 _version) internal onlyInitializing {
@@ -46,6 +49,6 @@ contract DidRegistry is DidStorage, DidDocumentDetailed, Initializable {
     function setVersion(uint256 _version) public {
         TSC storage ts = DidStorage.tscStorage();
         ts.version = _version;
-        setTrustedPoliciesRegistryAddress();
+        setRegistryAddresses();
     }
 }

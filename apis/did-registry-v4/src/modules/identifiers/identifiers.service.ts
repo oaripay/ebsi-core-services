@@ -30,30 +30,6 @@ export default class IdentifiersService {
     ) as { [x: string]: unknown };
   }
 
-  async checkControllerV3(
-    did: string,
-    body: RequestCheckControllerDto,
-    id?: number | string
-  ): Promise<boolean> {
-    try {
-      await validateClass(RequestCheckControllerDto, body);
-      const contract = await this.ledgerService.getContractV3();
-      const address = body.params[0];
-      const didHex = `0x${Buffer.from(did).toString("hex")}`;
-      return await contract.checkController(didHex, address);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError((err as Error).message, id);
-      error.stack = (err as Error).stack;
-      throw error;
-    }
-  }
-
-  async didExistsOnV4(did: string): Promise<boolean> {
-    const contract = await this.ledgerService.getContract();
-    const document = await contract.getDidDocument(did);
-    return !!document.baseDocument;
-  }
-
   // API v4
 
   async getIdentifiers(
@@ -206,9 +182,6 @@ export default class IdentifiersService {
   ): Promise<boolean> {
     try {
       await validateClass(RequestCheckControllerDto, body);
-      if (!(await this.didExistsOnV4(did))) {
-        return await this.checkControllerV3(did, body, id);
-      }
       const contract = await this.ledgerService.getContract();
       const address = body.params[0];
       return await contract["checkController(string,address)"](did, address);
