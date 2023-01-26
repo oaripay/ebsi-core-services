@@ -14,6 +14,10 @@ COPY --from=builder /app/apis/did-registry-v4/dist ./apis/did-registry-v4/dist
 COPY --from=builder /app/contracts/bootstrap/package.json ./contracts/bootstrap/package.json
 COPY --from=builder /app/contracts/bootstrap/dist ./contracts/bootstrap/dist
 COPY --from=builder /app/contracts/bootstrap/artifacts ./contracts/bootstrap/artifacts
+# Copy DID Registry SC v3
+COPY --from=builder /app/contracts/did-registry/package.json ./contracts/did-registry/package.json
+COPY --from=builder /app/contracts/did-registry/dist ./contracts/did-registry/dist
+COPY --from=builder /app/contracts/did-registry/artifacts ./contracts/did-registry/artifacts
 # Copy DID Registry SC v4
 COPY --from=builder /app/contracts/did-registry-v4/package.json ./contracts/did-registry-v4/package.json
 COPY --from=builder /app/contracts/did-registry-v4/dist ./contracts/did-registry-v4/dist
