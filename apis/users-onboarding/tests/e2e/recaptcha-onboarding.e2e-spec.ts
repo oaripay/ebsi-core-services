@@ -9,7 +9,8 @@ import {
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
-import { Agent, encode, verifyJwtTar } from "@cef-ebsi/siop-auth";
+import { Agent, verifyJwtTar } from "@cef-ebsi/siop-auth";
+import { encode } from "@ebsiint-api/shared";
 import { verifyCredentialJwt } from "@cef-ebsi/verifiable-credential";
 import isCI from "is-ci";
 import { importJWK } from "jose";

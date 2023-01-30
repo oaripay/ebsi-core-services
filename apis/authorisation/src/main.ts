@@ -55,7 +55,6 @@ async function bootstrap(): Promise<void> {
 
   app.setGlobalPrefix(apiUrlPrefix);
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   await app.register(fastifyHelmet);
 
   app.useGlobalFilters(new AllExceptionsFilter(configService));

@@ -65,75 +65,75 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/jwks"
-  /authorisation/v3/authorize:
-    get:
-      tags:
-        - OpenID Provider
-      operationId: get-v3-authorize
-      summary: Authorize the requestor from PAR handler
-      description: |
-        `request_uri` can only be paired with `client_id`
+  # /authorisation/v3/authorize:
+  #   get:
+  #     tags:
+  #       - OpenID Provider
+  #     operationId: get-v3-authorize
+  #     summary: Authorize the requestor from PAR handler
+  #     description: |
+  #       `request_uri` can only be paired with `client_id`
 
-        `response_type` as `code` will cause redirection towards wallet. Redirection is a Dynamic Credential Request,
-        which cointains information on how to sign the vp_token.
-        Redirection can be populated with other parameters to carry information like `code_challenge` and `redirect_uri`.
+  #       `response_type` as `code` will cause redirection towards wallet. Redirection is a Dynamic Credential Request,
+  #       which cointains information on how to sign the vp_token.
+  #       Redirection can be populated with other parameters to carry information like `code_challenge` and `redirect_uri`.
 
-        `scope` parameter is used to build `presentation_definition`, which will guide the wallet to choose
-        Verifiable Credentials accepted by the Authorisation Server.
-      parameters:
-        - $ref: "#/components/parameters/scope"
-        - $ref: "#/components/parameters/response_type"
-        - $ref: "#/components/parameters/client_id"
-        - $ref: "#/components/parameters/request_uri"
-        - $ref: "#/components/parameters/redirect_uri"
-        - $ref: "#/components/parameters/code_challenge"
-        - $ref: "#/components/parameters/code_challenge_method"
-      responses:
-        "302":
-          description: |
-            redirect_uri?<x-www-form-urlencoded OIDC Authentication Response>
-            or redirect_uri?<x-www-form-urlencoded Dynamic Credential Request>
-            or <x-www-form-urlencoded OIDC Error response>
-          content:
-            application/x-www-form-urlencoded:
-              schema:
-                oneOf:
-                  - $ref: "#/components/schemas/auth_resp"
-                  - $ref: "#/components/schemas/dyn_cred_req"
-        "4XX":
-          $ref: "#/components/responses/oidc_error"
-  /authorisation/v3/par:
-    post:
-      tags:
-        - OpenID Provider
-      operationId: par-v3-request
-      summary: Provide authentication proofs with PAR
-      description: |
-        PAR - https://datatracker.ietf.org/doc/html/rfc9126
-        Only Authorization Code flow is supported.
+  #       `scope` parameter is used to build `presentation_definition`, which will guide the wallet to choose
+  #       Verifiable Credentials accepted by the Authorisation Server.
+  #     parameters:
+  #       - $ref: "#/components/parameters/scope"
+  #       - $ref: "#/components/parameters/response_type"
+  #       - $ref: "#/components/parameters/client_id"
+  #       - $ref: "#/components/parameters/request_uri"
+  #       - $ref: "#/components/parameters/redirect_uri"
+  #       - $ref: "#/components/parameters/code_challenge"
+  #       - $ref: "#/components/parameters/code_challenge_method"
+  #     responses:
+  #       "302":
+  #         description: |
+  #           redirect_uri?<x-www-form-urlencoded OIDC Authentication Response>
+  #           or redirect_uri?<x-www-form-urlencoded Dynamic Credential Request>
+  #           or <x-www-form-urlencoded OIDC Error response>
+  #         content:
+  #           application/x-www-form-urlencoded:
+  #             schema:
+  #               oneOf:
+  #                 - $ref: "#/components/schemas/auth_resp"
+  #                 - $ref: "#/components/schemas/dyn_cred_req"
+  #       "4XX":
+  #         $ref: "#/components/responses/oidc_error"
+  # /authorisation/v3/par:
+  #   post:
+  #     tags:
+  #       - OpenID Provider
+  #     operationId: par-v3-request
+  #     summary: Provide authentication proofs with PAR
+  #     description: |
+  #       PAR - https://datatracker.ietf.org/doc/html/rfc9126
+  #       Only Authorization Code flow is supported.
 
-        Accepts same parameters as /authorize endpoint, with exclusion of `request_uri`.
-        `vp_token` and `presentation_submission` must be provided as an extra.
-      parameters:
-        - $ref: "#/components/parameters/response_type"
-        - $ref: "#/components/parameters/scope"
-        - $ref: "#/components/parameters/vp_token"
-        - $ref: "#/components/parameters/presentation_submission"
-        - $ref: "#/components/parameters/redirect_uri"
-        - $ref: "#/components/parameters/client_id"
-        - $ref: "#/components/parameters/code_challenge"
-        - $ref: "#/components/parameters/code_challenge_method"
-      responses:
-        "302":
-          description: |
-            redirect_uri?<x-www-form-urlencoded OIDC Authentication Response>
-            or <x-www-form-urlencoded OIDC Error response>
-          content:
-            application/x-www-form-urlencoded:
-              schema:
-                $ref: "#/components/schemas/par_response"
-        "4XX":
-          $ref: "#/components/responses/oidc_error"
+  #       Accepts same parameters as /authorize endpoint, with exclusion of `request_uri`.
+  #       `vp_token` and `presentation_submission` must be provided as an extra.
+  #     parameters:
+  #       - $ref: "#/components/parameters/response_type"
+  #       - $ref: "#/components/parameters/scope"
+  #       - $ref: "#/components/parameters/vp_token"
+  #       - $ref: "#/components/parameters/presentation_submission"
+  #       - $ref: "#/components/parameters/redirect_uri"
+  #       - $ref: "#/components/parameters/client_id"
+  #       - $ref: "#/components/parameters/code_challenge"
+  #       - $ref: "#/components/parameters/code_challenge_method"
+  #     responses:
+  #       "302":
+  #         description: |
+  #           redirect_uri?<x-www-form-urlencoded OIDC Authentication Response>
+  #           or <x-www-form-urlencoded OIDC Error response>
+  #         content:
+  #           application/x-www-form-urlencoded:
+  #             schema:
+  #               $ref: "#/components/schemas/par_response"
+  #       "4XX":
+  #         $ref: "#/components/responses/oidc_error"
   /authorisation/v3/presentation-definitions:
     get:
       operationId: get-v3-presentation-definitions
@@ -164,52 +164,53 @@ paths:
                     detail: '["scope must be one of the following values: openid, did_write, tir_write, generic_write"]'
                     type: about:blank
   /authorisation/v3/token:
-    get:
-      operationId: get-v3-token
+    post:
+      operationId: post-v3-token
       tags:
         - OpenID Provider
-      summary: Exchange code into an access token
-      description: Exchange code into an access token
+      summary: Point-to-point flow for getting access token for a given scope
+      description: Receive an access token for a given scope provided a complying presentation submission
       parameters:
-        - $ref: "#/components/parameters/code"
-        - $ref: "#/components/parameters/code_verifier"
-        - $ref: "#/components/parameters/redirect_uri"
+        - $ref: "#/components/parameters/grant_type"
+        - $ref: "#/components/parameters/scope"
+        - $ref: "#/components/parameters/vp_token"
+        - $ref: "#/components/parameters/presentation_submission"
       responses:
         "200":
           description: Success
-          headers:
-            Cache-Control:
-              description: no-store.
-              schema:
-                type: string
-              example: no-store
-            Pragma:
-              description: no-cache.
-              schema:
-                type: string
-              example: no-cache
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/token_response"
-        "4XX":
-          $ref: "#/components/responses/oidc_error"
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Bad Request:
+                  value:
+                    title: "Bad Request"
+                    status: 400
+                    detail: '["scope must be a combination of ''openid'' and one of the supported scopes (''did_write'', ''tir_write'', ''generic_write'')"]'
+                    type: about:blank
 components:
   schemas:
-    request_uri:
-      title: PAR Request URI
-      type: string
-      format: URI
-      example: "urn:ietf:params:oauth:request_uri:6esc_11ACC5bwc014ltc14eY22c"
-    par_response:
-      title: PAR Authentication Response
-      type: object
-      properties:
-        request_uri:
-          $ref: "#/components/schemas/request_uri"
-        expires_in:
-          type: integer
-          example: 60
+    # request_uri:
+    #   title: PAR Request URI
+    #   type: string
+    #   format: URI
+    #   example: "urn:ietf:params:oauth:request_uri:6esc_11ACC5bwc014ltc14eY22c"
+    # par_response:
+    #   title: PAR Authentication Response
+    #   type: object
+    #   properties:
+    #     request_uri:
+    #       $ref: "#/components/schemas/request_uri"
+    #     expires_in:
+    #       type: integer
+    #       example: 60
     token_response:
       title: OIDC - Access Token Response
       type: object
@@ -220,7 +221,7 @@ components:
         token_type:
           type: string
           description: Only Bearer supported
-          example: bearer
+          example: Bearer
         expires_in:
           minimum: 1
           type: integer
@@ -232,15 +233,15 @@ components:
         id_token:
           type: string
           description: ID Token value associated with the authenticated session. Presents client's identity
-        c_nonce:
-          description: A string containing a random challenge that needs to be signed to create proof of possession of key material. This value MUST be random and used only once.
-          type: string
-          example: 6eed1c940f5b
-        c_nonce_expires_in:
-          description: |
-            Value denoting the lifetime in seconds of the c_nonce
-          type: integer
-          example: 86400
+        # c_nonce:
+        #   description: A string containing a random challenge that needs to be signed to create proof of possession of key material. This value MUST be random and used only once.
+        #   type: string
+        #   example: 6eed1c940f5b
+        # c_nonce_expires_in:
+        #   description: |
+        #     Value denoting the lifetime in seconds of the c_nonce
+        #   type: integer
+        #   example: 86400
       required:
         - access_token
         - id_token
@@ -248,48 +249,48 @@ components:
         - scope
         - c_nonce
         - c_nonce_expires_in
-    dyn_cred_req:
-      title: Dynamic Credential Request
-      description: Contains information on what to send into PAR
-      type: object
-      properties:
-        response_type:
-          type: string
-          description: The OIDC flow to be used
-          example: code
-        scope:
-          type: string
-          description: Request Type
-          example: openid code
-        presentation_definition:
-          type: string
-          description: Instructions for presentation_submission and vp_token
-          example: https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#name-presentation_definition
-        redirect_uri:
-          type: string
-        client_id:
-          type: string
-        code_challenge:
-          type: string
-        code_challenge_method:
-          type: string
-        nonce:
-          type: string
-          description: Required nonce for replay attacks
-    auth_resp:
-      title: OIDC - Authentication Response Object
-      description: OpenID Connect Authorisation Response object.
-      type: object
-      required:
-        - code
-        - redirect_uri
-      properties:
-        code:
-          type: string
-          description: The authorization code generated by the authorization server
-        redirect_uri:
-          type: string
-          description: target for redirection
+    # dyn_cred_req:
+    #   title: Dynamic Credential Request
+    #   description: Contains information on what to send into PAR
+    #   type: object
+    #   properties:
+    #     response_type:
+    #       type: string
+    #       description: The OIDC flow to be used
+    #       example: code
+    #     scope:
+    #       type: string
+    #       description: Request Type
+    #       example: openid code
+    #     presentation_definition:
+    #       type: string
+    #       description: Instructions for presentation_submission and vp_token
+    #       example: https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#name-presentation_definition
+    #     redirect_uri:
+    #       type: string
+    #     client_id:
+    #       type: string
+    #     code_challenge:
+    #       type: string
+    #     code_challenge_method:
+    #       type: string
+    #     nonce:
+    #       type: string
+    #       description: Required nonce for replay attacks
+    # auth_resp:
+    #   title: OIDC - Authentication Response Object
+    #   description: OpenID Connect Authorisation Response object.
+    #   type: object
+    #   required:
+    #     - code
+    #     - redirect_uri
+    #   properties:
+    #     code:
+    #       type: string
+    #       description: The authorization code generated by the authorization server
+    #     redirect_uri:
+    #       type: string
+    #       description: target for redirection
     jwk:
       title: JSON Web Key
       type: object
@@ -309,6 +310,9 @@ components:
         y:
           type: string
           example: "k-t1bfe-MmmXWQ0QaxK3uJMYlMNkJHYGUSLpxP9RQak"
+        kid:
+          type: string
+          example: CG4OE7FEwwh4Nr7ip3l8gq31FZq3jYAJZMru362H9pU
     jwks:
       title: JSON Web Key Set
       type: array
@@ -490,30 +494,37 @@ components:
           description: |
             An absolute URI that identifies the specific occurrence of the problem. It may or may
             not yield further information if dereferenced.
-  responses:
-    oidc_error:
-      description: OIDC Error Response
-      content:
-        application/x-www-form-urlencoded:
-          schema:
-            title: OIDC Error Response
-            type: object
-            properties:
-              error:
-                type: string
-                example: some_explicit_error
-              error_description:
-                type: string
-                example: Something more descriptive
-              c_nonce:
-                description: JSON string containing a nonce to be used to create a proof of possession of key material when requesting a credential
-                type: string
-                example: 6eed1c940f5b
-              c_nonce_expires_in:
-                description: JSON integer denoting the lifetime in seconds of the c_nonce.
-                type: integer
-                example: 300
+  # responses:
+  #   oidc_error:
+  #     description: OIDC Error Response
+  #     content:
+  #       application/x-www-form-urlencoded:
+  #         schema:
+  #           title: OIDC Error Response
+  #           type: object
+  #           properties:
+  #             error:
+  #               type: string
+  #               example: some_explicit_error
+  #             error_description:
+  #               type: string
+  #               example: Something more descriptive
+  #             c_nonce:
+  #               description: JSON string containing a nonce to be used to create a proof of possession of key material when requesting a credential
+  #               type: string
+  #               example: 6eed1c940f5b
+  #             c_nonce_expires_in:
+  #               description: JSON integer denoting the lifetime in seconds of the c_nonce.
+  #               type: integer
+  #               example: 300
   parameters:
+    grant_type:
+      in: query
+      name: grand_type
+      description: Must be set to "vp_token"
+      schema:
+        type: string
+        example: vp_token
     vp_token:
       in: query
       name: vp_token
@@ -544,13 +555,13 @@ components:
               }
             ]
           }
-    response_type:
-      in: query
-      name: response_type
-      description: OIDC Response Type
-      schema:
-        type: string
-        example: code
+    # response_type:
+    #   in: query
+    #   name: response_type
+    #   description: OIDC Response Type
+    #   schema:
+    #     type: string
+    #     example: code
     scope:
       in: query
       name: scope
@@ -558,59 +569,59 @@ components:
       schema:
         type: string
         example: openid did_write tir_write generic_write
-    code:
-      in: query
-      name: code
-      description: Authorization code
-      schema:
-        type: string
-        example: SplxlOBeZQQYbYS6WxSbIA
-      required: true
-      allowEmptyValue: false
-    code_verifier:
-      in: query
-      name: code_verifier
-      required: true
-      schema:
-        maxLength: 128
-        minLength: 43
-        type: string
-      description: high-entropy cryptographic random STRING
-      example: EbWPr9dknKvBDg8r8zRroG82bFZaSqSWeCKjvj_AI1w
-    request_uri:
-      in: query
-      name: request_uri
-      required: false
-      schema:
-        $ref: "#/components/schemas/request_uri"
-    redirect_uri:
-      in: query
-      name: redirect_uri
-      required: false
-      description: Callback location where the authorization code or tokens should be redirected.
-      schema:
-        type: string
-        format: URI
-      allowEmptyValue: false
-      example: "https://client.example.org/cb"
-    client_id:
-      name: client_id
-      in: query
-      description: |
-        The client identifier - MUST be URL
-      schema:
-        type: string
-        format: URL
-      required: true
-      allowEmptyValue: false
-      example: "https://root-tao.example.com/auth/zxvf4982z"
-    code_challenge:
-      in: query
-      name: code_challenge
-      schema:
-        type: string
-    code_challenge_method:
-      in: query
-      name: code_challenge_method
-      schema:
-        type: string
+    # code:
+    #   in: query
+    #   name: code
+    #   description: Authorization code
+    #   schema:
+    #     type: string
+    #     example: SplxlOBeZQQYbYS6WxSbIA
+    #   required: true
+    #   allowEmptyValue: false
+    # code_verifier:
+    #   in: query
+    #   name: code_verifier
+    #   required: true
+    #   schema:
+    #     maxLength: 128
+    #     minLength: 43
+    #     type: string
+    #   description: high-entropy cryptographic random STRING
+    #   example: EbWPr9dknKvBDg8r8zRroG82bFZaSqSWeCKjvj_AI1w
+    # request_uri:
+    #   in: query
+    #   name: request_uri
+    #   required: false
+    #   schema:
+    #     $ref: "#/components/schemas/request_uri"
+    # redirect_uri:
+    #   in: query
+    #   name: redirect_uri
+    #   required: false
+    #   description: Callback location where the authorization code or tokens should be redirected.
+    #   schema:
+    #     type: string
+    #     format: URI
+    #   allowEmptyValue: false
+    #   example: "https://client.example.org/cb"
+    # client_id:
+    #   name: client_id
+    #   in: query
+    #   description: |
+    #     The client identifier - MUST be URL
+    #   schema:
+    #     type: string
+    #     format: URL
+    #   required: true
+    #   allowEmptyValue: false
+    #   example: "https://root-tao.example.com/auth/zxvf4982z"
+    # code_challenge:
+    #   in: query
+    #   name: code_challenge
+    #   schema:
+    #     type: string
+    # code_challenge_method:
+    #   in: query
+    #   name: code_challenge_method
+    #   schema:
+    #     type: string

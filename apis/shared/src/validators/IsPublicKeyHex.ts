@@ -1,6 +1,6 @@
 import { ValidateBy, ValidationOptions } from "class-validator";
 import { JWK } from "jose";
-import { publicKeyfromHexToJWK } from "../utils/encode.utils";
+import { encode } from "../utils/encode.utils";
 
 export const IS_PUBLIC_KEY_HEX = "isPublicKeyHex";
 
@@ -18,7 +18,7 @@ export function getPublicKeyJwk(value: unknown, isSecp256k1: boolean): JWK {
     }
 
     try {
-      return publicKeyfromHexToJWK(publicKey);
+      return encode.publicKey.fromHexToJWK(publicKey);
     } catch (error) {
       throw new Error(
         `Validation error: Invalid public key. ${(error as Error).message}`

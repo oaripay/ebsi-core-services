@@ -23,10 +23,10 @@
     "test:ci": "yarn test:unit --coverage --reporters=default --reporters=jest-sonar"
   },
   "dependencies": {
-    "@cef-ebsi/oauth2-auth": "^2.2.2-alpha.2",
-    "@cef-ebsi/siop-auth": "^3.0.0-alpha.2",
-    "@cef-ebsi/verifiable-credential": "^4.0.0-alpha.1",
-    "@cef-ebsi/verifiable-presentation": "^5.0.0-alpha.1",
+    "@cef-ebsi/oauth2-auth": "^2.2.2-alpha.3",
+    "@cef-ebsi/siop-auth": "^3.0.0-alpha.3",
+    "@cef-ebsi/verifiable-credential": "^4.0.0-alpha.2",
+    "@cef-ebsi/verifiable-presentation": "^5.0.0-alpha.3",
     "@ebsiint-api/shared": "^1.0.0",
     "@fastify/helmet": "^10.1.0",
     "@nestjs/axios": "^1.0.1",
@@ -48,7 +48,7 @@
     "winston": "^3.8.1"
   },
   "devDependencies": {
-    "@cef-ebsi/wallet-lib": "^4.0.0-alpha.2",
+    "@cef-ebsi/wallet-lib": "^4.0.0-alpha.3",
     "@jest/globals": "^29.3.1",
     "@nestjs/cli": "^9.1.8",
     "@nestjs/schematics": "^9.0.4",

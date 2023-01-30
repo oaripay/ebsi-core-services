@@ -24,12 +24,8 @@ import type { FastifyInstance } from "fastify";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { Agent as OAuth2Agent } from "@cef-ebsi/oauth2-auth";
 import type { AkeResponse } from "@cef-ebsi/oauth2-auth";
-import {
-  RP,
-  Agent as SiopAgent,
-  encode,
-  verifyJwtTar,
-} from "@cef-ebsi/siop-auth";
+import { RP, Agent as SiopAgent, verifyJwtTar } from "@cef-ebsi/siop-auth";
+import { encode } from "@ebsiint-api/shared";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import type { ApiConfig } from "../../src/config/configuration";

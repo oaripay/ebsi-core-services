@@ -2,22 +2,18 @@ import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
 import { Test, TestingModule } from "@nestjs/testing";
 import {
   INestApplication,
-  ValidationPipe,
   Logger,
   NotFoundException,
   BadRequestException,
   ArgumentsHost,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { AxiosError } from "axios";
-import {
-  FastifyAdapter,
-  NestFastifyApplication,
-} from "@nestjs/platform-fastify";
+import type { AxiosError } from "axios";
 import type { FastifyInstance } from "fastify";
 import { ProblemDetailsError } from "@ebsiint-api/shared";
 import { AllExceptionsFilter } from "./http-exception.filter";
 import { ApiConfig } from "../config/configuration";
+import { configureApp } from "../../tests/utils/app";
 
 const mockGetResponse = jest.fn().mockImplementation(() => ({
   code: jest.fn().mockImplementation((code: number) => ({
@@ -57,16 +53,14 @@ describe("All exception filter tests", () => {
       providers: [AllExceptionsFilter, ConfigService],
     }).compile();
 
-    app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
-    );
-
     // Turn off logger
     Logger.overrideLogger(false);
 
-    configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
-    app.useGlobalFilters(new AllExceptionsFilter(configService));
-    app.useGlobalPipes(new ValidationPipe({ transform: true }));
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+
+    app = await configureApp(moduleFixture, configService);
+
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     service = moduleFixture.get<AllExceptionsFilter>(AllExceptionsFilter);

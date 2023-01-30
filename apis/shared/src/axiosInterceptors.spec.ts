@@ -1,12 +1,22 @@
-import { jest, describe, afterEach, afterAll, it, expect } from "@jest/globals";
+import {
+  jest,
+  describe,
+  afterEach,
+  afterAll,
+  it,
+  expect,
+  beforeAll,
+} from "@jest/globals";
 import { LoggerService } from "@nestjs/common";
 import axios from "axios";
 import nock from "nock";
 import { setupInterceptors } from "./axiosInterceptors";
 
-nock.disableNetConnect();
-
 describe("setupInterceptors", () => {
+  beforeAll(() => {
+    nock.disableNetConnect();
+  });
+
   afterEach(() => {
     nock.cleanAll();
 

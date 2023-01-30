@@ -16,13 +16,13 @@ import type { FastifyInstance } from "fastify";
 import { ethers } from "ethers";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { DidRegistry__factory } from "@ebsiint-sc/did-registry-v4";
-import { AsyncReturnType } from "@ebsiint-api/shared";
+import { AsyncReturnType, encode } from "@ebsiint-api/shared";
 import { IdentifiersModule } from "./identifiers.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { setupTestEnv } from "../../../tests/utils/didRegistry";
 import { LedgerService } from "../ledger/ledger.service";
 import { ApiConfig } from "../../config/configuration";
-import { createUser, encode, UserDetails } from "../../../tests/utils/data";
+import { createUser, UserDetails } from "../../../tests/utils/data";
 
 jest.setTimeout(120000);
 

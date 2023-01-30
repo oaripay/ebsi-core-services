@@ -5,8 +5,10 @@ import {
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
 import { ValidationPipe } from "@nestjs/common";
-import fastifyHelmet from "@fastify/helmet";
+import FastifyHelmet from "@fastify/helmet";
+import FastifyFormBody from "@fastify/formbody";
 import { setupInterceptors } from "@ebsiint-api/shared";
+import qs from "qs";
 import { AppModule } from "./app.module";
 import { AllExceptionsFilter } from "./filters/http-exception.filter";
 import { createLogger, consoleTransport } from "./logger/logger";
@@ -16,12 +18,23 @@ async function bootstrap(): Promise<void> {
   const fastifyAdapter = new FastifyAdapter();
   fastifyAdapter.enableCors({ methods: "*" });
 
+  // Register "application/x-www-form-urlencoded" parser
+  await fastifyAdapter.register(FastifyFormBody, {
+    parser: (str: string) =>
+      qs.parse(str, {
+        // Parse up to 50 children deep
+        depth: 50,
+        // Parse up to 1000 parameters
+        parameterLimit: 1000,
+      }),
+  });
+
   const logger = createLogger();
 
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     fastifyAdapter,
-    { logger }
+    { logger, bodyParser: false }
   );
 
   const configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
@@ -55,11 +68,12 @@ async function bootstrap(): Promise<void> {
 
   app.setGlobalPrefix(apiUrlPrefix);
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-  await app.register(fastifyHelmet);
+  await app.register(FastifyHelmet);
 
   app.useGlobalFilters(new AllExceptionsFilter(configService));
-  app.useGlobalPipes(new ValidationPipe({ transform: true }));
+  app.useGlobalPipes(
+    new ValidationPipe({ transform: true, stopAtFirstError: true })
+  );
 
   // Setup axios interceptors
   setupInterceptors(domain, localOrigin);

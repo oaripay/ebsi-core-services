@@ -10,7 +10,8 @@ import {
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
-import { Agent, encode } from "@cef-ebsi/siop-auth";
+import { Agent } from "@cef-ebsi/siop-auth";
+import { encode } from "@ebsiint-api/shared";
 import {
   calculateJwkThumbprint,
   exportJWK,

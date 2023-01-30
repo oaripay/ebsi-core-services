@@ -26,7 +26,8 @@ import {
   EbsiIssuer,
   EbsiVerifiableAttestation,
 } from "@cef-ebsi/verifiable-credential";
-import { RP, encode } from "@cef-ebsi/siop-auth";
+import { RP } from "@cef-ebsi/siop-auth";
+import { encode } from "@ebsiint-api/shared";
 import {
   AuthenticationResponseRequest,
   AuthenticationRequest,

@@ -5,13 +5,14 @@ import {
   BadRequestError,
   InternalServerError,
   ProblemDetailsError,
+  encode,
 } from "@ebsiint-api/shared";
 import { RP as OAuth2RP, verifyJwtTar } from "@cef-ebsi/oauth2-auth";
 import type {
   AkeResponse as OAuth2AkeResponse,
   JwtTarVerifyResult,
 } from "@cef-ebsi/oauth2-auth";
-import { RP, verifyJwtDid, encode } from "@cef-ebsi/siop-auth";
+import { RP, verifyJwtDid } from "@cef-ebsi/siop-auth";
 import type {
   ResponseClaims,
   VerifyResponseResult,

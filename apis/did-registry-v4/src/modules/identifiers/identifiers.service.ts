@@ -1,12 +1,12 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { DidRegistry } from "@ebsiint-sc/did-registry-v4";
 import {
   AsyncReturnType,
-  publicKeyfromHexToJWK,
+  encode,
   BadRequestError,
   NotFoundError,
   remove0xPrefix,
 } from "@ebsiint-api/shared";
+import { DidRegistry } from "@ebsiint-sc/did-registry-v4";
 import { LedgerService } from "../ledger/ledger.service";
 import { RequestCheckControllerDto } from "./dto/request-check-controller.dto";
 import { InvalidRequestJsonRpcError } from "../jsonrpc/errors";
@@ -143,7 +143,7 @@ export default class IdentifiersService {
         type: "JsonWebKey2020",
         controller: did,
         publicKeyJwk: vMethod.isSecp256k1
-          ? publicKeyfromHexToJWK(vMethod.publicKey)
+          ? encode.publicKey.fromHexToJWK(vMethod.publicKey)
           : (JSON.parse(
               Buffer.from(vMethod.publicKey.slice(2), "hex").toString()
             ) as unknown),

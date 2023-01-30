@@ -4,7 +4,7 @@ import {
   EbsiIssuer,
   EbsiVerifiableAttestation,
 } from "@cef-ebsi/verifiable-credential";
-import { encode } from "./data";
+import { encode } from "@ebsiint-api/shared";
 
 export async function createVerifiableAuthorisation(
   subjectDid: string,

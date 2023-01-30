@@ -15,6 +15,9 @@ export interface ApiConfig {
   dockerContainerTag: string;
   // Test-specific variables
   testEnv?: string;
+  testIssuerKid?: string;
+  testIssuerPrivateKey?: string;
+  testIssuerAlg?: string;
 }
 
 const HEALTH_CHECK_PATH = "/docs/";
@@ -38,6 +41,9 @@ export const loadConfig = (): ApiConfig => {
     dockerContainerTag: process.env.DOCKER_TAG || "",
     // Test-specific variables
     testEnv: process.env.TEST_ENV,
+    testIssuerKid: process.env.TEST_ISSUER_KID,
+    testIssuerPrivateKey: process.env.TEST_ISSUER_PRIVATE_KEY,
+    testIssuerAlg: process.env.TEST_ISSUER_ALG,
   };
 };
 
@@ -71,5 +77,8 @@ export const ApiConfigModule = ConfigModule.forRoot({
     LOCAL_ORIGIN: Joi.string().uri(),
     // Test-specific variables
     TEST_ENV: Joi.string(),
+    TEST_ISSUER_KID: Joi.string(),
+    TEST_ISSUER_PRIVATE_KEY: Joi.string(),
+    TEST_ISSUER_ALG: Joi.string(),
   }),
 });

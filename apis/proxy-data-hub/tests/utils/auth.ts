@@ -4,9 +4,9 @@ import axios, { AxiosResponse } from "axios";
 import {
   Agent as SiopAgent,
   AkeResponse as SiopAkeResponse,
-  encode,
   verifyJwtTar,
 } from "@cef-ebsi/siop-auth";
+import { encode } from "@ebsiint-api/shared";
 import { exportJWK, generateKeyPair, importJWK, JWK } from "jose";
 import { ConfigService } from "@nestjs/config";
 import { ApiConfig } from "../../src/config/configuration";

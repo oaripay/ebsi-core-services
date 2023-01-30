@@ -71,7 +71,7 @@ export interface OPMetadata {
    * some supported scope values even when this parameter is used, although those defined in
    * OpenID.Core SHOULD be listed, if supported.
    */
-  scopes_supported?: Scope[];
+  scopes_supported?: typeof SUPPORTED_SCOPES;
 
   /**
    * REQUIRED. JSON array containing a list of the OAuth 2.0 `response_type` values that this OP
@@ -174,4 +174,10 @@ export interface JsonWebKeySet {
   keys: JsonWebKey[];
 }
 
-export default OPMetadata;
+export interface TokenResponse {
+  access_token: string;
+  token_type: string;
+  expires_in: number;
+  scope: string;
+  id_token: string;
+}

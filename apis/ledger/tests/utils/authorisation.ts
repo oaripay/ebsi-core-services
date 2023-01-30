@@ -3,11 +3,12 @@ import crypto, { randomUUID } from "node:crypto";
 import request from "supertest";
 import axios, { AxiosResponse } from "axios";
 import { Agent as OAuth2Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
-import { Agent as SiopAgent, encode, verifyJwtTar } from "@cef-ebsi/siop-auth";
+import { Agent as SiopAgent, verifyJwtTar } from "@cef-ebsi/siop-auth";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { exportJWK, generateKeyPair, importJWK } from "jose";
 import { createJWT, ES256KSigner } from "did-jwt";
 import { ConfigService } from "@nestjs/config";
+import { encode } from "@ebsiint-api/shared";
 import { ApiConfig } from "../../src/config/configuration";
 
 export async function createFakeToken({

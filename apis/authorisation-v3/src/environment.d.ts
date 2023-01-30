@@ -13,6 +13,9 @@ declare global {
       DOMAIN: string;
       LOCAL_ORIGIN?: string;
       TEST_ENV?: string;
+      TEST_ISSUER_KID?: string;
+      TEST_ISSUER_PRIVATE_KEY?: string;
+      TEST_ISSUER_ALG?: string;
     }
   }
 }

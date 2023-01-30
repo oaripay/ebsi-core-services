@@ -4,11 +4,11 @@ import axios, { AxiosResponse } from "axios";
 import {
   Agent as SiopAgent,
   AkeResponse as SiopAkeResponse,
-  encode,
   verifyJwtTar,
 } from "@cef-ebsi/siop-auth";
 import { exportJWK, generateKeyPair, importJWK } from "jose";
 import { ConfigService } from "@nestjs/config";
+import { encode } from "@ebsiint-api/shared";
 import { ApiConfig } from "../../src/config/configuration";
 
 export const requestSiopJwt = async ({

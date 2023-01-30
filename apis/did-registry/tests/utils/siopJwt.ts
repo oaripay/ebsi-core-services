@@ -5,10 +5,10 @@ import { ConfigService } from "@nestjs/config";
 import {
   Agent as SiopAgent,
   AkeResponse,
-  encode,
   verifyJwtTar,
 } from "@cef-ebsi/siop-auth";
 import { exportJWK, generateKeyPair, importJWK } from "jose";
+import { encode } from "@ebsiint-api/shared";
 import { createVP } from "./verifiablePresentation";
 import { createVerifiableAuthorisation } from "./verifiableAuthorisation";
 import { ApiConfig } from "../../src/config/configuration";

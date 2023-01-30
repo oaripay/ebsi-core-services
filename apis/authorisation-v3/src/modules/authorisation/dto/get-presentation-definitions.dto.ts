@@ -1,11 +1,18 @@
-import { IsIn, IsOptional } from "class-validator";
-import { SUPPORTED_SCOPES } from "../authorisation.constants";
+import { Transform } from "class-transformer";
+import { IsDefined } from "class-validator";
 import { Scope } from "../authorisation.interfaces";
+import { IsScope } from "../validators";
 
 export class GetPresentationDefinitionsDto {
-  @IsOptional()
-  @IsIn(SUPPORTED_SCOPES)
-  readonly "scope": Scope = "openid";
+  @IsDefined()
+  @Transform(({ value }) => {
+    if (value && typeof value === "string") {
+      return value.split(" ");
+    }
+    return [];
+  })
+  @IsScope()
+  readonly "scope": [Scope, Scope];
 }
 
 export default GetPresentationDefinitionsDto;

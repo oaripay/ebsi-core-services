@@ -1,7 +1,7 @@
 import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
 import type { EbsiVerifiablePresentation } from "@cef-ebsi/verifiable-presentation";
 import { createVerifiablePresentationJwt } from "@cef-ebsi/verifiable-presentation";
-import { encode } from "./data";
+import { encode } from "@ebsiint-api/shared";
 
 export async function createVP({
   vc,

@@ -24,8 +24,8 @@
   },
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^9.1.0",
-    "@cef-ebsi/oauth2-auth": "^2.2.2-alpha.2",
-    "@cef-ebsi/siop-auth": "^3.0.0-alpha.2",
+    "@cef-ebsi/oauth2-auth": "^2.2.2-alpha.3",
+    "@cef-ebsi/siop-auth": "^3.0.0-alpha.3",
     "@ebsiint-api/shared": "^1.0.0",
     "@ebsiint-sc/bootstrap": "^1.0.0",
     "@ebsiint-sc/trusted-schemas-registry": "^1.0.0",
@@ -56,7 +56,7 @@
     "winston": "^3.8.1"
   },
   "devDependencies": {
-    "@cef-ebsi/wallet-lib": "^4.0.0-alpha.2",
+    "@cef-ebsi/wallet-lib": "^4.0.0-alpha.3",
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/abstract-provider": "^5.7.0",
     "@ethersproject/bytes": "^5.7.0",

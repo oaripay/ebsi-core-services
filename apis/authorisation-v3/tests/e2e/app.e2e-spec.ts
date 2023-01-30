@@ -1,18 +1,14 @@
 import { jest, describe, beforeAll, it, expect } from "@jest/globals";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
-import { HttpServer, INestApplication, ValidationPipe } from "@nestjs/common";
+import { HttpServer, INestApplication } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  FastifyAdapter,
-  NestFastifyApplication,
-} from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
 import { Logger } from "@nestjs/common/services/logger.service";
 import { AppModule } from "../../src/app.module";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { ApiConfig } from "../../src/config/configuration";
 import { getServer } from "../utils/getServer";
+import { configureApp } from "../utils/app";
 
 jest.setTimeout(60000);
 
@@ -26,15 +22,10 @@ describe("/authorisation/v3 (generic tests)", () => {
       imports: [AppModule],
     }).compile();
 
-    app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
-    );
-
     const configService =
       moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
 
-    app.useGlobalFilters(new AllExceptionsFilter(configService));
-    app.useGlobalPipes(new ValidationPipe());
+    app = await configureApp(moduleFixture, configService);
 
     Logger.overrideLogger(false);
 

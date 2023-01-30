@@ -1,6 +1,6 @@
 import { JsonWebKey } from "node:crypto";
 import { ec as EC } from "elliptic";
-import { base64url } from "jose";
+import { base64url, calculateJwkThumbprint } from "jose";
 
 /**
  * Transform an ES256 private key into a JWK public key.
@@ -8,7 +8,7 @@ import { base64url } from "jose";
  * @param hexPrivateKey The compressed ES256 private key
  * @returns The public key as a JWK
  */
-export function fromHexToJWK(hexPrivateKey: string): JsonWebKey {
+export async function fromHexToJWK(hexPrivateKey: string): Promise<JsonWebKey> {
   if (!hexPrivateKey || typeof hexPrivateKey !== "string") {
     throw new Error("You must provide a non-empty hexadecimal private key");
   }
@@ -34,7 +34,12 @@ export function fromHexToJWK(hexPrivateKey: string): JsonWebKey {
     y: base64url.encode(pubPoint.getY().toBuffer("be", 32)),
   };
 
-  return jwk;
+  const thumbprint = await calculateJwkThumbprint(jwk);
+
+  return {
+    ...jwk,
+    kid: thumbprint,
+  };
 }
 
 export default fromHexToJWK;

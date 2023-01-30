@@ -23,8 +23,8 @@
     "test:watch": "jest --watch"
   },
   "dependencies": {
-    "@cef-ebsi/oauth2-auth": "^2.2.2-alpha.2",
-    "@cef-ebsi/siop-auth": "^3.0.0-alpha.2",
+    "@cef-ebsi/oauth2-auth": "^2.2.2-alpha.3",
+    "@cef-ebsi/siop-auth": "^3.0.0-alpha.3",
     "@ebsiint-api/shared": "^1.0.0",
     "@ebsiint-sc/trusted-ledgers-sc-registry": "^1.0.0",
     "@fastify/helmet": "^10.1.0",

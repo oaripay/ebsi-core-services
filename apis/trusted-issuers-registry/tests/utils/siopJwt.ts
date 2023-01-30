@@ -2,10 +2,11 @@ import { randomUUID } from "node:crypto";
 import { URLSearchParams } from "node:url";
 import axios from "axios";
 import type { AxiosResponse } from "axios";
-import { Agent as SiopAgent, encode, verifyJwtTar } from "@cef-ebsi/siop-auth";
+import { Agent as SiopAgent, verifyJwtTar } from "@cef-ebsi/siop-auth";
 import type { AkeResponse } from "@cef-ebsi/siop-auth";
 import { exportJWK, generateKeyPair, importJWK } from "jose";
 import { ConfigService } from "@nestjs/config";
+import { encode } from "@ebsiint-api/shared";
 import { ApiConfig } from "../../src/config/configuration";
 
 export const requestSiopJwt = async ({

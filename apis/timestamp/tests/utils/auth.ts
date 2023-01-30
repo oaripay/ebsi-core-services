@@ -5,7 +5,6 @@ import axios, { AxiosResponse } from "axios";
 import {
   Agent as SiopAgent,
   AkeResponse as SiopAkeResponse,
-  encode,
   verifyJwtTar,
 } from "@cef-ebsi/siop-auth";
 import {
@@ -13,6 +12,7 @@ import {
   AkeResponse as OAuth2AkeResponse,
 } from "@cef-ebsi/oauth2-auth";
 import { exportJWK, generateKeyPair, importJWK } from "jose";
+import { encode } from "@ebsiint-api/shared";
 import { ConfigService } from "@nestjs/config";
 import { ApiConfig } from "../../src/config/configuration";
 
