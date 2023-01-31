@@ -4,8 +4,6 @@ import { InvalidRequestJsonRpcError } from "./errors";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import {
   JsonRpcDto,
-  RequestInsertIssuerDto,
-  RequestUpdateIssuerDto,
   RequestInsertPolicyDto,
   RequestUpdatePolicyDto,
   RequestSendSignedTransactionDto,
@@ -35,21 +33,12 @@ export class JsonRpcController {
   ): Promise<JsonRpcResponseObject> {
     const { method, id } = body;
     switch (method) {
-      case "insertIssuer": {
-        const transaction =
-          await this.jsonRpcService.buildTransactionInsertIssuer(
-            body as RequestInsertIssuerDto,
-            id
-          );
-        return jsonRpcResponse(transaction, id);
-      }
+      case "insertIssuer":
       case "updateIssuer": {
-        const transaction =
-          await this.jsonRpcService.buildTransactionUpdateIssuer(
-            body as RequestUpdateIssuerDto,
-            id
-          );
-        return jsonRpcResponse(transaction, id);
+        throw new InvalidRequestJsonRpcError(
+          `The method '${method}' is deprecated in TIR API v3. Please use TIR API v4`,
+          id
+        );
       }
       case "insertPolicy": {
         const transaction =

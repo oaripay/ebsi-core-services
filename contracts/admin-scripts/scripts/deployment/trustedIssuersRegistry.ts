@@ -30,7 +30,9 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     await deployments.run("DidRegistry");
     didAddress = (await deployments.get("DidRegistry")).address;
   }
+
   console.log(`Registry addresses did: ${didAddress}, tpr: ${tprAddress}`);
+
   const pagination = await deployments.deploy("Pagination", {
     ...opts,
     contract: "contracts/bootstrap/utils/Pagination.sol/Pagination",

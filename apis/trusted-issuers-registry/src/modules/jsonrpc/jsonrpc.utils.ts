@@ -3,13 +3,9 @@ import { ClassTransformer, ClassConstructor } from "class-transformer";
 import { ethers } from "ethers";
 import {
   UnsignedTransaction,
-  RequestInsertIssuerDto,
-  RequestUpdateIssuerDto,
   RequestInsertPolicyDto,
   RequestUpdatePolicyDto,
   RequestSendSignedTransactionDto,
-  ArgsInsertIssuer,
-  ArgsUpdateIssuer,
   ArgsInsertPolicy,
   ArgsUpdatePolicy,
   RequestAddIssuerProxyDto,
@@ -19,15 +15,11 @@ import {
 } from "./dto";
 
 type JsonRpcDtos =
-  | RequestInsertIssuerDto
-  | RequestUpdateIssuerDto
   | RequestAddIssuerProxyDto
   | RequestUpdateIssuerProxyDto
   | RequestInsertPolicyDto
   | RequestUpdatePolicyDto
   | RequestSendSignedTransactionDto
-  | ArgsInsertIssuer
-  | ArgsUpdateIssuer
   | ArgsInsertPolicy
   | ArgsUpdatePolicy
   | ArgsAddIssuerProxy

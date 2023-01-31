@@ -9,6 +9,7 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 echo Consolidating smart contracts
 
 rm -rf ${SCRIPT_DIR}/../contracts
+rm -rf ${SCRIPT_DIR}/../src
 mkdir ${SCRIPT_DIR}/../contracts
 
 echo Copy the bootstrap

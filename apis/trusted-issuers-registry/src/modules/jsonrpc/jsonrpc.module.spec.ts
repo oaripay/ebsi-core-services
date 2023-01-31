@@ -40,8 +40,6 @@ import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import { JsonRpcService } from "./jsonrpc.service";
 import {
   UnsignedTransaction,
-  InsertIssuerParam,
-  UpdateIssuerParam,
   InsertPolicyParam,
   UpdatePolicyParam,
   AddIssuerProxyParam,
@@ -60,8 +58,6 @@ interface SupertestJsonRpcResponse {
 }
 
 type JsonRpcParams =
-  | InsertIssuerParam
-  | UpdateIssuerParam
   | InsertPolicyParam
   | UpdatePolicyParam
   | AddIssuerProxyParam
@@ -105,7 +101,6 @@ describe("JsonRpc Module", () => {
   let userAccessTokenPayload: { [x: string]: unknown };
   let defaultSignerSiopAccessToken: string;
   let defaultSignerSiopAccessTokenPayload: { [x: string]: unknown };
-  let issuerV1SiopAccessTokenPayload: { [x: string]: unknown };
 
   const createIssuer = () => {
     const did = EbsiWallet.createDid();
@@ -166,7 +161,6 @@ describe("JsonRpc Module", () => {
 
   const issuerV1 = createIssuer();
   const issuerV2 = createIssuer();
-  const issuerV3 = createIssuer();
   const policy1 = createPolicy();
   const policy2 = createPolicy();
   const issuerV1Proxy1 = createIssuerProxy(issuerV1.did);
@@ -196,42 +190,10 @@ describe("JsonRpc Module", () => {
   };
   let issuerV1StatusList2021CredentialJwt: string;
 
-  function createParam(
-    method: string,
-    signer: ethers.Wallet,
-    updateAttribute: boolean,
-    tamper = false
-  ) {
+  function createParam(method: string, signer: ethers.Wallet, tamper = false) {
     let param: JsonRpcParams;
 
     switch (method) {
-      case "insertIssuer": {
-        param = {
-          attributeData: issuerV1.attributeData,
-          did: tamper ? issuerV2.did : issuerV1.did,
-          from: signer.address,
-        } as InsertIssuerParam;
-        break;
-      }
-      case "updateIssuer": {
-        if (updateAttribute) {
-          // update attribute1: change it to attribute3
-          param = {
-            attributeData: issuerV3.attributeData,
-            did: tamper ? issuerV2.did : issuerV1.did,
-            from: signer.address,
-            prevAttributeHash: issuerV1.attribute.hash,
-          } as UpdateIssuerParam;
-        } else {
-          // updateIssuer: add attribute2
-          param = {
-            attributeData: issuerV2.attributeData,
-            did: tamper ? issuerV2.did : issuerV1.did,
-            from: signer.address,
-          } as UpdateIssuerParam;
-        }
-        break;
-      }
       case "insertPolicy": {
         param = {
           from: signer.address,
@@ -329,10 +291,6 @@ describe("JsonRpc Module", () => {
         signer: ES256KSigner(crypto.randomBytes(32)),
       }
     );
-
-    issuerV1SiopAccessTokenPayload = {
-      sub: issuerV1.did,
-    };
 
     const keyPair = await generateKeyPair("ES256K");
     const privateKeyJwk = await exportJWK(keyPair.privateKey);
@@ -646,33 +604,23 @@ describe("JsonRpc Module", () => {
 
   // Tests to be repeated for every method
   describe.each([
-    "insertIssuer",
     "insertPolicy",
-    "updateIssuer",
-    "updateIssuer(test update attribute)",
     "updatePolicy",
     "addIssuerProxy",
     "updateIssuerProxy",
   ])("/jsonrpc with method %s", (testMethod: string) => {
-    const updateAttribute = testMethod.includes("(test update attribute)");
     const method = testMethod.replace("(test update attribute)", "");
 
     it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction", async () => {
       expect.assertions(4);
 
       // Mock access token verification
-      if (method === "updateIssuer" && updateAttribute) {
-        // Authenticate as issuer V1
-        tokenVerificationResolve = true;
-        customPayload = issuerV1SiopAccessTokenPayload;
-      } else {
-        // Authenticate as admin
-        tokenVerificationResolve = true;
-        customPayload = defaultSignerSiopAccessTokenPayload;
-      }
+      // Authenticate as admin
+      tokenVerificationResolve = true;
+      customPayload = defaultSignerSiopAccessTokenPayload;
 
       const signer = ethers.Wallet.createRandom();
-      const param: JsonRpcParams = createParam(method, signer, updateAttribute);
+      const param: JsonRpcParams = createParam(method, signer);
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
@@ -746,7 +694,7 @@ describe("JsonRpc Module", () => {
 
       const signer = ethers.Wallet.createRandom();
 
-      const param = createParam(method, signer, updateAttribute);
+      const param = createParam(method, signer);
 
       const responseBuild = await request(server)
         .post("/jsonrpc")
@@ -775,29 +723,15 @@ describe("JsonRpc Module", () => {
 
       const signer = ethers.Wallet.createRandom();
 
-      const param1 = createParam(method, signer, updateAttribute);
-      const param2 = createParam(method, signer, updateAttribute);
-      const param3 = createParam(method, signer, updateAttribute);
+      const param1 = createParam(method, signer);
+      const param2 = createParam(method, signer);
+      const param3 = createParam(method, signer);
 
       let expectedErrorMessage1: string;
       let expectedErrorMessage2: string;
       let expectedErrorMessage3: string;
 
       switch (method) {
-        case "insertIssuer":
-        case "updateIssuer":
-          delete (param1 as InsertIssuerParam).attributeData;
-          expectedErrorMessage1 =
-            "property params[0].attributeData has failed the following constraints: isHexadecimal";
-
-          delete (param2 as InsertIssuerParam).did;
-          expectedErrorMessage2 =
-            "property params[0].did has failed the following constraints: isDidV1";
-
-          param3.from = "bad address";
-          expectedErrorMessage3 =
-            "property params[0].from has failed the following constraints: isEthereumAddress";
-          break;
         case "insertPolicy":
         case "updatePolicy":
           delete (param1 as InsertPolicyParam).policyData;
@@ -901,8 +835,8 @@ describe("JsonRpc Module", () => {
       const wallet1 = ethers.Wallet.createRandom();
       const wallet2 = ethers.Wallet.createRandom();
 
-      const param1 = createParam(method, wallet1, updateAttribute);
-      const param2 = createParam(method, wallet1, updateAttribute, true);
+      const param1 = createParam(method, wallet1);
+      const param2 = createParam(method, wallet1, true);
 
       const responseBuild1: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")

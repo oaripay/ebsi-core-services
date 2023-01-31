@@ -1,4 +1,5 @@
 import {
+  EbsiEnvConfiguration,
   EbsiVerifiableAttestation,
   verifyCredentialJwt,
 } from "@cef-ebsi/verifiable-credential";
@@ -50,7 +51,8 @@ export const statusList2021CredentialSchema = Joi.object({
 
 export async function isStatusList2021Credential(
   credentialJwt: unknown,
-  authority: string
+  authority: string,
+  ebsiEnvConfig?: EbsiEnvConfiguration
 ): Promise<boolean> {
   // Note: we only support VC JWT for now -> the StatusList2021Credential must be a JWT
   if (!credentialJwt || typeof credentialJwt !== "string") return false;
@@ -59,6 +61,7 @@ export async function isStatusList2021Credential(
     // Verify credential and its signature
     const credential = await verifyCredentialJwt(credentialJwt, {
       ebsiAuthority: authority,
+      ebsiEnvConfig,
     });
 
     Joi.assert(credential, statusList2021CredentialSchema);

@@ -94,7 +94,13 @@ export async function insertIssuer(contract: Tir): Promise<IssuerObject> {
     })
   );
 
-  await contract.insertIssuer(issuerDid, attributeData);
+  await contract.insertIssuer(
+    issuerDid,
+    attributeData,
+    1,
+    issuerDid,
+    `0x${"0".repeat(64)}`
+  );
 
   // Add proxy
   const rawProxyData: IssuerProxyObject = {

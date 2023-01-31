@@ -2,18 +2,14 @@ import { Injectable, Logger } from "@nestjs/common";
 import axios from "axios";
 import { ethers } from "ethers";
 import { ConfigService } from "@nestjs/config";
-import { prefixWith0x, ProblemDetailsError } from "@ebsiint-api/shared";
+import { ProblemDetailsError } from "@ebsiint-api/shared";
 import { LedgerService } from "../ledger/ledger.service";
 import {
-  RequestInsertIssuerDto,
-  RequestUpdateIssuerDto,
   RequestInsertPolicyDto,
   RequestUpdatePolicyDto,
   RequestSendSignedTransactionDto,
   UnsignedTransaction,
   SignedTransactionParam,
-  ArgsInsertIssuer,
-  ArgsUpdateIssuer,
   ArgsInsertPolicy,
   ArgsUpdatePolicy,
   RequestAddIssuerProxyDto,
@@ -162,20 +158,6 @@ export class JsonRpcService {
     ).interface.parseTransaction(unsignedTransaction);
 
     switch (functionFragment.name) {
-      case "insertIssuer": {
-        await validateClass(
-          ArgsInsertIssuer,
-          args as unknown as ArgsInsertIssuer
-        );
-        break;
-      }
-      case "updateIssuer": {
-        await validateClass(
-          ArgsUpdateIssuer,
-          args as unknown as ArgsUpdateIssuer
-        );
-        break;
-      }
       case "insertPolicy": {
         await validateClass(
           ArgsInsertPolicy,
@@ -258,68 +240,6 @@ export class JsonRpcService {
     }
 
     return unsignedTransaction;
-  }
-
-  async buildTransactionInsertIssuer(
-    body: RequestInsertIssuerDto,
-    id?: number | string
-  ): Promise<UnsignedTransaction> {
-    try {
-      await validateClass(RequestInsertIssuerDto, body);
-
-      const { from, did, attributeData } = body.params[0];
-
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("insertIssuer", [did, attributeData]);
-
-      return await this.buildTransaction(from, data);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
-      throw error;
-    }
-  }
-
-  async buildTransactionUpdateIssuer(
-    body: RequestUpdateIssuerDto,
-    id?: number | string
-  ): Promise<UnsignedTransaction> {
-    try {
-      await validateClass(RequestUpdateIssuerDto, body);
-
-      const { from, did, attributeData, prevAttributeHash } = body.params[0];
-      const data = [did, attributeData];
-
-      if (prevAttributeHash) data.push(prefixWith0x(prevAttributeHash));
-
-      let functionSig: string;
-
-      if (prevAttributeHash) {
-        // using updateIssuer function (did, attributeData, lastVersHash)
-        functionSig = "updateIssuer(string,bytes,bytes32)";
-      } else {
-        // using updateIssuer function (did, attributeData)
-        functionSig = "updateIssuer(string,bytes)";
-      }
-
-      const encodedData = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData(
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        functionSig,
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        data
-      );
-
-      return await this.buildTransaction(from, encodedData);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
-      throw error;
-    }
   }
 
   async buildTransactionInsertPolicy(
