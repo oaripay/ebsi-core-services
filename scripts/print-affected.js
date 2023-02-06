@@ -4,6 +4,12 @@ const { EOL } = require("os");
 const { spawnSync } = require("child_process");
 const { writeFileSync } = require("fs");
 
+/**
+ * The script below should prepare a list of affected (modified) services and apps managed through Docker containers.
+ * Therefore, results should not contain SC or shared utilities which are not Dockerized.
+ * Git commit hash values should be used consistently througout the rest of the toolchain managing the manifested resources.
+ */
+
 const processResult = spawnSync("sh", [
   "-c",
   `yarn nx print-affected --base=main~1 --head=main | sed '/^{/,/^}/!d'`,
@@ -12,10 +18,13 @@ const processResult = spawnSync("sh", [
 try {
   const { projects } = JSON.parse(processResult.stdout.toString());
   const affected = projects
+    // microservices and apps
     .filter(
       (project) =>
         project.startsWith("@ebsiint-api") || project.startsWith("@ebsiint-app")
     )
+    // NOT service utilities
+    .filter((project) => project !== "@ebsiint-api/shared")
     .map((project) => {
       const [scope, packageName] = project.split("/");
       return packageName;
