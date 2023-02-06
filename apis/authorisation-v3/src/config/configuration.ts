@@ -7,7 +7,6 @@ export interface ApiConfig {
   apiDid: string;
   apiES256PrivateKey: string;
   apiUrlPrefix: string;
-  oidSchemaPattern: string;
   domain: string;
   localOrigin: string;
   logLevel: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
@@ -18,6 +17,7 @@ export interface ApiConfig {
   testIssuerKid?: string;
   testIssuerPrivateKey?: string;
   testIssuerAlg?: string;
+  testOidSchemaPattern: string;
 }
 
 const HEALTH_CHECK_PATH = "/docs/";
@@ -33,7 +33,6 @@ export const loadConfig = (): ApiConfig => {
     apiDid: process.env.API_DID,
     apiES256PrivateKey: process.env.API_ES256_PRIVATE_KEY,
     apiUrlPrefix: process.env.API_URL_PREFIX || "/authorisation/v3",
-    oidSchemaPattern: process.env.OID_SCHEMA_PATTERN,
     logLevel: process.env.LOG_LEVEL || "warn",
     domain: DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
@@ -44,6 +43,7 @@ export const loadConfig = (): ApiConfig => {
     testIssuerKid: process.env.TEST_ISSUER_KID,
     testIssuerPrivateKey: process.env.TEST_ISSUER_PRIVATE_KEY,
     testIssuerAlg: process.env.TEST_ISSUER_ALG,
+    testOidSchemaPattern: process.env.TEST_OID_SCHEMA_PATTERN,
   };
 };
 
@@ -63,7 +63,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
     API_DID: Joi.string().required(),
     API_ES256_PRIVATE_KEY: Joi.string().required(),
     API_URL_PREFIX: Joi.string(),
-    OID_SCHEMA_PATTERN: Joi.string().required(),
     LOG_LEVEL: Joi.string().valid(
       "silent",
       "error",
@@ -80,5 +79,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_ISSUER_KID: Joi.string(),
     TEST_ISSUER_PRIVATE_KEY: Joi.string(),
     TEST_ISSUER_ALG: Joi.string(),
+    TEST_OID_SCHEMA_PATTERN: Joi.string(),
   }),
 });

@@ -1157,7 +1157,7 @@
     multiformats "^9.9.0"
     web-encoding "^1.1.5"
 
-"@cef-ebsi/oauth2-auth@^2.2.2-alpha.3":
+"@cef-ebsi/oauth2-auth@^2.2.2-alpha.2", "@cef-ebsi/oauth2-auth@^2.2.2-alpha.3":
   version "2.2.2-alpha.3"
   resolved "https://registry.yarnpkg.com/@cef-ebsi/oauth2-auth/-/oauth2-auth-2.2.2-alpha.3.tgz#c1c3da7071d63a5e58a72212836ccace41627476"
   integrity sha512-ZTNJyBwfQfASxSoiqj8eSLSHXTi0EqWhTjt4SNOES8gQmNQJTljIpT1RT4L0NkvqL0bWopOKsiNSlQGfvVAVDg==
@@ -1172,7 +1172,7 @@
     multiformats "^9.9.0"
     uuid "^9.0.0"
 
-"@cef-ebsi/siop-auth@^3.0.0-alpha.3":
+"@cef-ebsi/siop-auth@^3.0.0-alpha.2", "@cef-ebsi/siop-auth@^3.0.0-alpha.3":
   version "3.0.0-alpha.3"
   resolved "https://registry.yarnpkg.com/@cef-ebsi/siop-auth/-/siop-auth-3.0.0-alpha.3.tgz#279cf5cc9d92384fb81c17600248f95b118d0f1c"
   integrity sha512-j3lGfqxlkSJd8kihDc4dJ6PCHCyYPt3CjZzAmFKrHvZR+ydRExHLgm4V/8NGC1Dtxvax5k1X+PkN9pXEA2hSFQ==
@@ -1190,7 +1190,7 @@
     multiformats "^9.9.0"
     uuid "^9.0.0"
 
-"@cef-ebsi/verifiable-credential@^4.0.0-alpha.2":
+"@cef-ebsi/verifiable-credential@^4.0.0-alpha.1", "@cef-ebsi/verifiable-credential@^4.0.0-alpha.2":
   version "4.0.0-alpha.2"
   resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-credential/-/verifiable-credential-4.0.0-alpha.2.tgz#f95470be8973b1e4db14c1c8a9947b72514c4978"
   integrity sha512-PSCJzrbGHQo6J3WrkDgniqWD97MVPhwQoxGZmldDeRxy4dYav6hA92gxz40T5bMAVjJxQ/H7Ays4B3mV6WrqAQ==
@@ -1225,7 +1225,7 @@
     mem "^8.1.1"
     multiformats "^9.9.0"
 
-"@cef-ebsi/wallet-lib@^4.0.0-alpha.3":
+"@cef-ebsi/wallet-lib@^4.0.0-alpha.2", "@cef-ebsi/wallet-lib@^4.0.0-alpha.3":
   version "4.0.0-alpha.3"
   resolved "https://registry.yarnpkg.com/@cef-ebsi/wallet-lib/-/wallet-lib-4.0.0-alpha.3.tgz#9b886ff0d201656fabd2cbe9f52ea41216b117ce"
   integrity sha512-bdtURLLw4S5m20Wiyo5LJO47r6cRY9yKRcAzysGsiVLwJaggkeEmcGLmJ3ad3zakVauDZZRvAIPzcs8g62lwAQ==

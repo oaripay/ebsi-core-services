@@ -290,7 +290,7 @@ describe("Authorisation (e2e)", () => {
           expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
           credentialSubject: { id: issuer.did, type: "same-device" },
           credentialSchema: {
-            id: configService.get<string>("oidSchemaPattern"),
+            id: configService.get<string>("testOidSchemaPattern"),
             type: "FullJsonSchemaValidator2021",
           },
         };
