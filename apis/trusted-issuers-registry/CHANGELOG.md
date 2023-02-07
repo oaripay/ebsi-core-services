@@ -1,6 +1,23 @@
 # Changelog
 
-All notable changes to this project will be documented in this file. 🤘
+## 3.0.0-rc.3
+
+### Patch Changes
+
+- [2f8b1686](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/2f8b1686): Bump dependencies.
+- [c9f6e302](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/c9f6e302): Refactor common code with Sonar-reported high complexity.
+  Update rules for http patch path attribute args to have any order.
+- [79b2951e](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/79b2951e): Fix connection with ethers provider when there is no token.
+- [6d699188](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/6d699188): Bump dependencies, refactor tests.
+- [1e62e0cc](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/1e62e0cc): Move custom errors from `@cef-ebsi/problem-details-errors` to `@ebsiint-api/shared`
+- Updated dependencies [1be2b488](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/1be2b488)
+- Updated dependencies [2f8b1686](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/2f8b1686)
+- Updated dependencies [6d699188](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/6d699188)
+- Updated dependencies [be8604c9](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/be8604c9)
+- Updated dependencies [1e62e0cc](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/1e62e0cc)
+  - @ebsiint-sc/trusted-issuers-registry@3.0.1-rc.0
+  - @ebsiint-sc/bootstrap@1.0.1-rc.0
+  - @ebsiint-api/shared@1.1.0-rc.0
 
 ## [3.0.0-rc.2](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/trusted-issuers-registry-api/compare/diff?targetBranch=refs%2Ftags%2Fv3.0.0-rc.1&sourceBranch=refs%2Ftags%2Fv3.0.0-rc.2&targetRepoId=251) (2022-09-22)
 

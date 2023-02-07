@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.0-rc.1
+
+### Patch Changes
+
+- [7e8b0649](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/7e8b0649): Prevent direct access to /users-onboarding/v2/authentication and fix validation of EU Login tickets.
+- [cd8a7b8f](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/cd8a7b8f): Bump dependencies.
+- [6d699188](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/6d699188): Bump dependencies, refactor tests.
+
 All notable changes to this project will be documented in this file.
 
 ## [2.0.0-rc.0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/users-onboarding-web-client/compare/diff?targetBranch=refs%2Ftags%2Fv1.0.0-rc.4&sourceBranch=refs%2Ftags%2Fv2.0.0-rc.0&targetRepoId=406) (2022-06-15)

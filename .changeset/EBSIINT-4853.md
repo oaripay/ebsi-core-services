@@ -1,5 +1,5 @@
 ---
-"@ebsiint-api/users-onboarding": patch
+"@ebsiint-api/users-onboarding-api-v2": patch
 "@ebsiint-app/users-onboarding-web-client-v2": patch
 ---
 

@@ -1,7 +1,6 @@
 ---
 "@ebsiint-api/authorisation-api-v2": patch
 "@ebsiint-api/did-registry-api-v3": patch
-"@ebsiint-api/did-registry-api-v4": patch
 "@ebsiint-api/ledger-api-v3": patch
 "@ebsiint-api/notifications-api-v2": patch
 "@ebsiint-api/proxy-data-hub-api-v3": patch

@@ -1,10 +1,9 @@
 ---
 "@ebsiint-sc/admin-scripts": patch
 "@ebsiint-sc/did-registry": patch
-"@ebsiint-sc/did-registry-v4": patch
 "@ebsiint-sc/trusted-apps-registry": patch
 "@ebsiint-sc/trusted-issuers-registry": patch
-"@ebsiint-sc/trusted-ledgers-registry": patch
+"@ebsiint-sc/trusted-ledgers-sc-registry": patch
 "@ebsiint-sc/trusted-policies-registry": patch
 "@ebsiint-sc/trusted-schemas-registry": patch
 ---
