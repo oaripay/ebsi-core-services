@@ -64,7 +64,6 @@ describe("Issuers", () => {
   const attributeTaoDidId = ethers.utils.sha256(attributeTaoDid);
   const attributeTaoDid2 = randomAttribute();
   const attributeTaoDidId2 = ethers.utils.sha256(attributeTaoDid2);
-  const zeroHash = new Uint8Array(32);
 
   before(async () => {
     const policyRegistryFactory = await ethers.getContractFactory(

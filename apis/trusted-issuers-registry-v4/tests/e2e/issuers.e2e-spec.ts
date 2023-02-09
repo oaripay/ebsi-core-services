@@ -910,8 +910,7 @@ describe("Issuers (e2e)", () => {
         nock.cleanAll();
       });
 
-      // Remove the skip after TIR API v4 is deployed
-      it.skip("should return a StatusList2021Credential JWT", async () => {
+      it("should return a StatusList2021Credential JWT", async () => {
         expect.assertions(2);
 
         // Mock issuer's endpoint response

@@ -88,7 +88,7 @@ describe("Authorisation Module", () => {
 
   beforeEach(() => {
     nock("https://api-test.ebsi.eu")
-      .get(`/did-registry/v3/identifiers/${issuer.did}`)
+      .get(`/did-registry/v4/identifiers/${issuer.did}`)
       .reply(200, issuer.didDocument)
       .persist();
 

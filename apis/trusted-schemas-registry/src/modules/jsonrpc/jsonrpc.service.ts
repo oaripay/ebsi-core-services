@@ -87,34 +87,21 @@ export class JsonRpcService {
 
   async isDidControlledByAddress(
     did: string,
-    controllerAddress: string,
-    currentPage = 1
+    controllerAddress: string
   ): Promise<boolean> {
-    const pageSize = 50;
-
-    const { data } = await axios.get<{
-      items: { did: string }[];
-      total: number;
+    const { data } = await axios.post<{
+      result: boolean;
     }>(
-      `${this.didRegistry}/identifiers?controller=${controllerAddress}&page[size]=${pageSize}&page[after]=${currentPage}`,
+      `${this.didRegistry}/identifiers/${did}/actions`,
+      {
+        jsonrpc: "2.0",
+        method: "checkController",
+        params: [controllerAddress],
+      },
       { timeout: this.timeout }
     );
 
-    // Check if DID is in the list
-    if (data.items.map((item) => item.did).includes(did)) {
-      return true;
-    }
-
-    // Recursive call if there are more pages
-    if (currentPage * pageSize < data.total) {
-      return this.isDidControlledByAddress(
-        did,
-        controllerAddress,
-        currentPage + 1
-      );
-    }
-
-    return false;
+    return data.result;
   }
 
   async checkWritePermission(address: string, clientId: string): Promise<void> {

@@ -29,7 +29,7 @@ export interface ApiConfig {
 }
 
 const AUTH_API_PATH = "/authorisation/v2";
-const DIDR_API_PATH = "/did-registry/v3";
+const DIDR_API_PATH = "/did-registry/v4";
 const HEALTH_CHECK_PATH = "/docs/";
 
 // Config factory

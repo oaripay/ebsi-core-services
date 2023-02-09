@@ -35,7 +35,7 @@ export interface ApiConfig {
 const TAR_PATH = "/trusted-apps-registry/v3/apps";
 const TIR_PATH = "/trusted-issuers-registry/v3/issuers";
 const TSR_PATH = "/trusted-schemas-registry/v2/schemas";
-const DIDR_PATH = "/did-registry/v3/identifiers";
+const DIDR_PATH = "/did-registry/v4/identifiers";
 const HEALTH_CHECK_PATH = "/docs/";
 
 // Config factory

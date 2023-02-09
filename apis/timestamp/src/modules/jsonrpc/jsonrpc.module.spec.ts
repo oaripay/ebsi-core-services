@@ -224,9 +224,29 @@ describe("JsonRpc Module", () => {
     server = app.getHttpServer() as HttpServer;
 
     // Make sure we never use axios.post in tests ;-)
-    jest.spyOn(axios, "post").mockImplementation(() => {
-      throw new Error("Forgot to mock an axios post call?");
-    });
+    jest
+      .spyOn(axios, "post")
+      .mockImplementation((url, data: { params: string[] }) => {
+        if (url.includes("/actions")) {
+          const urlParts = url.split("/");
+          const did = urlParts[urlParts.length - 2];
+          const [address] = data.params;
+          const result =
+            (testAdmin.did === did &&
+              testAdmin.wallet.address.toLocaleLowerCase() ===
+                address.toLocaleLowerCase()) ||
+            (testUser.did === did &&
+              testUser.wallet.address.toLocaleLowerCase() ===
+                address.toLocaleLowerCase());
+          return Promise.resolve({
+            data: {
+              jsonrpc: "2.0",
+              result,
+            },
+          });
+        }
+        throw new Error("Forgot to mock an axios post call?");
+      });
 
     jest.spyOn(axios, "get").mockImplementation((url): Promise<unknown> => {
       // accessing administrators in TAR
@@ -266,18 +286,6 @@ describe("JsonRpc Module", () => {
         });
       }
 
-      // accessing did registry
-      if (url.includes("/identifiers?controller")) {
-        if (url.includes(testAdmin.wallet.address.toLowerCase()))
-          return Promise.resolve({
-            data: { items: [{ did: testAdmin.did }] },
-          });
-        if (url.includes(testUser.wallet.address.toLowerCase()))
-          return Promise.resolve({
-            data: { items: [{ did: testUser.did }] },
-          });
-        return Promise.resolve({ data: { items: [] } });
-      }
       throw new Error("Forgot to mock an axios call?");
     });
 

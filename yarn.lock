@@ -1190,10 +1190,10 @@
     multiformats "^9.9.0"
     uuid "^9.0.0"
 
-"@cef-ebsi/verifiable-credential@^4.0.0-alpha.1", "@cef-ebsi/verifiable-credential@^4.0.0-alpha.2":
-  version "4.0.0-alpha.2"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-credential/-/verifiable-credential-4.0.0-alpha.2.tgz#f95470be8973b1e4db14c1c8a9947b72514c4978"
-  integrity sha512-PSCJzrbGHQo6J3WrkDgniqWD97MVPhwQoxGZmldDeRxy4dYav6hA92gxz40T5bMAVjJxQ/H7Ays4B3mV6WrqAQ==
+"@cef-ebsi/verifiable-credential@^4.0.0-alpha.3":
+  version "4.0.0-alpha.3"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-credential/-/verifiable-credential-4.0.0-alpha.3.tgz#ea4b8f29bd0a01067dffe2a2331aa2d57b7f7180"
+  integrity sha512-It+0zCvtPMJ7CjK2NFNdpAYjfUOzvyL1nOdxL6qgr/UkkKJ9cN9hiYDCn1Jo0ejx5Wx3N4K1GYdM1e+dy5IMRg==
   dependencies:
     "@cef-ebsi/ebsi-did-resolver" "^3.0.0-alpha.3"
     "@cef-ebsi/key-did-resolver" "^1.0.0-alpha.1"
@@ -1208,14 +1208,14 @@
     mem "^8.1.1"
     multiformats "^9.9.0"
 
-"@cef-ebsi/verifiable-presentation@^5.0.0-alpha.3":
-  version "5.0.0-alpha.3"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-presentation/-/verifiable-presentation-5.0.0-alpha.3.tgz#3a198fbcce1909c664f5a7b650f70fa4d1ddb8a2"
-  integrity sha512-n+2ur8ykGuxTbOUEHx/vqx0ojVJayBA+g1zSR/SeAvMEeUgtLkDdjdPAPfCN8s69AzlDhBkQ9zw24dE8iF7rJw==
+"@cef-ebsi/verifiable-presentation@^5.0.0-alpha.4":
+  version "5.0.0-alpha.4"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-presentation/-/verifiable-presentation-5.0.0-alpha.4.tgz#83d24b5bc21afff9c85333c5173b86df92d5f607"
+  integrity sha512-HRA/4WEAIkioTdcJQCOhEfFKAxHtdZ+v5f2/6vKMziHnixe2XZUJY8OPlHhn1q/psKrnoiT53jaIFokjNptLdQ==
   dependencies:
     "@cef-ebsi/ebsi-did-resolver" "^3.0.0-alpha.3"
     "@cef-ebsi/key-did-resolver" "^1.0.0-alpha.1"
-    "@cef-ebsi/verifiable-credential" "^4.0.0-alpha.2"
+    "@cef-ebsi/verifiable-credential" "^4.0.0-alpha.3"
     "@transmute/json-web-signature" "^0.7.0-unstable.79"
     "@transmute/vc.js" "^0.7.0-unstable.79"
     ajv "^8.12.0"
