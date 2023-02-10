@@ -3,7 +3,7 @@ info:
   title: Trusted Issuers Registry API v4
   version: 4.0.0
   description: |
-    Trusted Issuers Registry (TIR) is a generic decentralised registry holding information about trusted issuers, like public information, accreditations and other. All information is stored in the smart contract in form of Attribute envelops (like Verifiable Credentials) that are issued by Trusted Issuers or self-issued. Generic Envelop (like Verifiable Credential) validation is performed outside EBSI.
+    Trusted Issuers Registry (TIR) is a generic decentralised registry holding information about trusted issuers, like public information, accreditations and other. All information is stored in the smart contract in form of Attribute envelops (like Verifiable Credentials) that are issued by Trusted Issuers or self-issued. Generic Envelop (like Verifiable Credential) validation is performed outside EBSI. The issuers can define proxies that will be used during the verification of credentials to check if they are still valid or revoked. The flow for verification can be found at [EBSI Verifiable Accreditation and Verifiable Authorisation Revocation](https://ec.europa.eu/digital-building-blocks/wikis/pages/viewpage.action?spaceKey=BLOCKCHAININT&title=EBSI+Verifiable+Accreditation+and+Verifiable+Authorisation+Revocation).
 
     EBSI Trusted Issuers Registry (TIR) is a generic decentralised registry component and is used as a core component of the European Self Sovereign Identity Framework (ESSIF) that enables to validate the identity and accreditations of Trusted Issuers.
 
@@ -49,7 +49,7 @@ paths:
                     description: URI to issuers
                   items:
                     type: array
-                    description: list of issuers whith their decentralized identifier
+                    description: list of issuers with their decentralized identifier
                     items:
                       type: object
                       properties:
@@ -1098,7 +1098,8 @@ paths:
           #### updateIssuer
 
           Call to build an unsigned transaction to add a new attribute to, or update an existing
-          attribute of, an issuer. The issuer can be updated by the issuer itself or by an admin.
+          attribute of, an issuer. The issuer can be updated by the corresponding TAO, RootTAO, or
+          an admin registered in the Trusted Policies Registry.
 
           Parameters (add a new attribute):
           - **from**: Ethereum address of the administrator
@@ -1116,6 +1117,29 @@ paths:
           - **issuerType**: 1 (RootTAO), 2 (TAO), 3 (TI), or 4 (Revoked)
           - **taoDid**: DID of the TAO accrediting the issuer
           - **taoAttributeId**: Attribute ID that accredits taoDid as TAO or RootTAO
+
+          #### addIssuerProxy
+
+          Call to build an unsigned transaction to insert a new proxy to an issuer. It can be
+          added by the issuer itself or an admin registered in the Trusted Policies Registry
+          to update issuers.
+
+          Parameters:
+          - **from**: Ethereum address of the administrator
+          - **did**: DID of the issuer
+          - **proxyData**: Proxy object converted to hex string. Example: `Buffer.from('{"prefix":"https://example.net","headers":{"Authorization":"Bearer 1234567890"},"testSuffix":"/cred/1"}').toString("hex")`
+
+          #### updateIssuerProxy
+
+          Call to build an unsigned transaction to update an existing proxy of an issuer. It can be
+          updated by the issuer itself or an admin registered in the Trusted Policies Registry
+          to update issuers.
+
+          Parameters:
+          - **from**: Ethereum address of the administrator
+          - **did**: DID of the issuer
+          - **proxyId**: ID of the existing proxy
+          - **proxyData**: Proxy object converted to hex string. Example: `Buffer.from('{"prefix":"https://example.net","headers":{"Authorization":"Bearer 1234567890"},"testSuffix":"/cred/1"}').toString("hex")`
 
           #### insertPolicy
 

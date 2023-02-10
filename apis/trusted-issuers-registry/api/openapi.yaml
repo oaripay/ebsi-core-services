@@ -3,7 +3,7 @@ info:
   title: Trusted Issuers Registry API v3
   version: 3.0.0
   description: |
-    Trusted Issuers Registry (TIR) is a generic decentralised registry holding information about trusted issuers, like public information, accreditations and other. All information is stored in the smart contract in form of Attribute envelops (like Verifiable Credentials) that are issued by Trusted Issuers or self-issued. Generic Envelop (like Verifiable Credential) validation is performed outside EBSI.
+    Trusted Issuers Registry (TIR) is a generic decentralised registry holding information about trusted issuers, like public information, accreditations and other. All information is stored in the smart contract in form of Attribute envelops (like Verifiable Credentials) that are issued by Trusted Issuers or self-issued. Generic Envelop (like Verifiable Credential) validation is performed outside EBSI. The issuers can define proxies that will be used during the verification of credentials to check if they are still valid or revoked. The flow for verification can be found at [EBSI Verifiable Accreditation and Verifiable Authorisation Revocation](https://ec.europa.eu/digital-building-blocks/wikis/pages/viewpage.action?spaceKey=BLOCKCHAININT&title=EBSI+Verifiable+Accreditation+and+Verifiable+Authorisation+Revocation).
 
     EBSI Trusted Issuers Registry (TIR) is a generic decentralised registry component and is used as a core component of the European Self Sovereign Identity Framework (ESSIF) that enables to validate the identity and accreditations of Trusted Issuers.
 
@@ -49,7 +49,7 @@ paths:
                     description: URI to issuers
                   items:
                     type: array
-                    description: list of issuers whith their decentralized identifier
+                    description: list of issuers with their decentralized identifier
                     items:
                       type: object
                       properties:
@@ -1058,29 +1058,46 @@ paths:
 
           #### insertIssuer
 
-          Call to build an unsigned transaction to insert a new issuer. This method requires admin
-          rights in the Trusted Policies Registry.
-
-          Parameters:
-          - **from**: Ethereum address of the administrator
-          - **did**: DID of the issuer to insert
-          - **attributeData**: Attribute data. This field must be a JSON stringified and converted into hex string
+          DEPRECATED. This method is not available in version V3 anymore. Please use "insertIssuer"
+          from Trusted Issuers Registry V4.
 
           #### updateIssuer
 
-          Call to build an unsigned transaction to add a new attribute to, or update an existing
-          attribute of, an issuer. The issuer can be updated by the issuer itself or by an admin.
+          DEPRECATED. This method is not available in version V3 anymore. Please use "updateIssuer"
+          from Trusted Issuers Registry V4.
 
-          Parameters (add a new attribute):
+          #### addIssuerProxy
+
+          Call to build an unsigned transaction to insert a new proxy to an issuer. It can be
+          added by the issuer itself or an admin registered in the Trusted Policies Registry
+          to update issuers.
+
+          Parameters:
           - **from**: Ethereum address of the administrator
           - **did**: DID of the issuer
-          - **attributeData**: Attribute data to insert. This field must be a JSON stringified and converted into hex string
+          - **proxyData**: Proxy configuration to be used during the verification of credentials. For the
+          registration to be accepted, the configured proxy must serve a status list which is valid and
+          signed by the issuer requesting the proxy. The validation is done by combining "prefix" with
+          "testSuffix" and executed before accepting the registration. Proxy must be configured before
+          any VCs are issued. The validation will fail if the credential status proxy doesn't exist.
+          It must be a JSON object converted to hex string. Example: `Buffer.from('{"prefix":"https://example.net","headers":{"Authorization":"Bearer 1234567890"},"testSuffix":"/cred/1"}').toString("hex")`.
 
-          Parameters (update an existing attribute):
+          #### updateIssuerProxy
+
+          Call to build an unsigned transaction to update an existing proxy of an issuer. It can be
+          updated by the issuer itself or an admin registered in the Trusted Policies Registry
+          to update issuers.
+
+          Parameters:
           - **from**: Ethereum address of the administrator
           - **did**: DID of the issuer
-          - **prevAttributeHash**: Attribute ID to update
-          - **attributeData**: Attribute data to insert. This field must be a JSON stringified and converted into hex string
+          - **proxyId**: ID of the existing proxy
+          - **proxyData**: Proxy configuration to be used during the verification of credentials. For the
+          registration to be accepted, the configured proxy must serve a status list which is valid and
+          signed by the issuer requesting the proxy. The validation is done by combining "prefix" with
+          "testSuffix" and executed before accepting the registration. Proxy must be configured before
+          any VCs are issued. The validation will fail if the credential status proxy doesn't exist.
+          It must be a JSON object converted to hex string. Example: `Buffer.from('{"prefix":"https://example.net","headers":{"Authorization":"Bearer 1234567890"},"testSuffix":"/cred/1"}').toString("hex")`.
 
           #### insertPolicy
 
