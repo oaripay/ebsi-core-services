@@ -1128,11 +1128,11 @@ paths:
           - **from**: Ethereum address of the administrator
           - **did**: DID of the issuer
           - **proxyData**: Proxy configuration to be used during the verification of credentials. For the
-          registration to be accepted, the configured proxy must serve a status list which is valid and
-          signed by the issuer requesting the proxy. The validation is done by combining "prefix" with
-          "testSuffix" and executed before accepting the registration. Proxy must be configured before
-          any VCs are issued. The validation will fail if the credential status proxy doesn't exist.
-          It must be a JSON object converted to hex string. Example: `Buffer.from('{"prefix":"https://example.net","headers":{"Authorization":"Bearer 1234567890"},"testSuffix":"/cred/1"}').toString("hex")`.
+            registration to be accepted, the configured proxy must serve a status list which is valid and
+            signed by the issuer requesting the proxy. The validation is done by combining "prefix" with
+            "testSuffix" and executed before accepting the registration. Proxy must be configured before
+            any VCs are issued. The validation will fail if the credential status proxy doesn't exist.
+            It must be a JSON object converted to hex string. Example: `Buffer.from('{"prefix":"https://example.net","headers":{"Authorization":"Bearer 1234567890"},"testSuffix":"/cred/1"}').toString("hex")`.
 
           #### updateIssuerProxy
 
@@ -1145,11 +1145,11 @@ paths:
           - **did**: DID of the issuer
           - **proxyId**: ID of the existing proxy
           - **proxyData**: Proxy configuration to be used during the verification of credentials. For the
-          registration to be accepted, the configured proxy must serve a status list which is valid and
-          signed by the issuer requesting the proxy. The validation is done by combining "prefix" with
-          "testSuffix" and executed before accepting the registration. Proxy must be configured before
-          any VCs are issued. The validation will fail if the credential status proxy doesn't exist.
-          It must be a JSON object converted to hex string. Example: `Buffer.from('{"prefix":"https://example.net","headers":{"Authorization":"Bearer 1234567890"},"testSuffix":"/cred/1"}').toString("hex")`.
+            registration to be accepted, the configured proxy must serve a status list which is valid and
+            signed by the issuer requesting the proxy. The validation is done by combining "prefix" with
+            "testSuffix" and executed before accepting the registration. Proxy must be configured before
+            any VCs are issued. The validation will fail if the credential status proxy doesn't exist.
+            It must be a JSON object converted to hex string. Example: `Buffer.from('{"prefix":"https://example.net","headers":{"Authorization":"Bearer 1234567890"},"testSuffix":"/cred/1"}').toString("hex")`.
 
           #### insertPolicy
 
