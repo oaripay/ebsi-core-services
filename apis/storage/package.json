@@ -30,7 +30,7 @@
     "@cef-ebsi/siop-auth": "^3.0.0-alpha.3",
     "@ebsiint-api/shared": "^1.1.0-rc.0",
     "@fastify/helmet": "^10.1.0",
-    "@fastify/multipart": "^7.4.0",
+    "@fastify/multipart": "^7.4.1",
     "@nestjs/axios": "^1.0.1",
     "@nestjs/common": "^9.2.1",
     "@nestjs/config": "^2.2.0",

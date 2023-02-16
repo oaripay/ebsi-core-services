@@ -19,7 +19,7 @@
     "prepare": "is-ci || husky install",
     "print-affected": "scripts/print-affected.js",
     "postinstall": "yarn run patch-package",
-    "patch-package": "patch-package && nx run-many --target=patch-package --all"
+    "patch-package": "patch-package"
   },
   "devDependencies": {
     "@changesets/cli": "^2.26.0",
