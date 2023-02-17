@@ -46,7 +46,6 @@ COPY ./contracts/trusted-schemas-registry/package.json ./contracts/trusted-schem
 
 # Copy patches
 COPY ./patches ./patches
-COPY ./apis/users-onboarding/patches ./apis/users-onboarding/patches
 
 # Install all the dependencies
 ENV PUPPETEER_SKIP_DOWNLOAD=true
