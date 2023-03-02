@@ -4,6 +4,8 @@ export * from "./args-insert-policy.dto";
 export * from "./args-update-issuer-proxy.dto";
 export * from "./args-update-issuer.dto";
 export * from "./args-update-policy.dto";
+export * from "./args-set-attribute-metadata.dto";
+export * from "./args-set-attribute-data.dto";
 export * from "./request-send-signed-transaction.dto";
 export * from "./signed-transaction-param.dto";
 export * from "./unsigned-transaction.dto";

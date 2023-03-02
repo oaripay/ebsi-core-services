@@ -6,3 +6,5 @@ export * from "./sendSignedTransaction";
 export * from "./updateIssuer";
 export * from "./updateIssuerProxy";
 export * from "./updatePolicy";
+export * from "./setAttributeMetadata";
+export * from "./setAttributeData";

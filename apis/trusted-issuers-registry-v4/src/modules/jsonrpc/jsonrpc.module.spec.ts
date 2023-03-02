@@ -41,6 +41,8 @@ import {
   UnsignedTransaction,
   InsertIssuerParam,
   UpdateIssuerParam,
+  SetAttributeMetadataParam,
+  SetAttributeDataParam,
   InsertPolicyParam,
   UpdatePolicyParam,
   AddIssuerProxyParam,
@@ -65,6 +67,8 @@ interface SupertestJsonRpcResponse {
 type JsonRpcParams =
   | InsertIssuerParam
   | UpdateIssuerParam
+  | SetAttributeMetadataParam
+  | SetAttributeDataParam
   | InsertPolicyParam
   | UpdatePolicyParam
   | AddIssuerProxyParam
@@ -177,6 +181,28 @@ describe("JsonRpc Module", () => {
             from: signer.address,
           } as UpdateIssuerParam;
         }
+        break;
+      }
+      case "setAttributeMetadata": {
+        // update metadata attribute1
+        param = {
+          from: signer.address,
+          did: tamper ? issuer2.did : issuer1.did,
+          attributeId: issuer1.attribute.id,
+          issuerType: issuer1.issuerType,
+          taoDid: issuer1.tao,
+          taoAttributeId: issuer1.taoAttributeId,
+        } as SetAttributeMetadataParam;
+        break;
+      }
+      case "setAttributeData": {
+        // update data attribute1
+        param = {
+          from: signer.address,
+          did: tamper ? issuer2.did : issuer1.did,
+          attributeId: issuer1.attribute.id,
+          attributeData: `0x${crypto.randomBytes(12).toString("hex")}`,
+        } as SetAttributeDataParam;
         break;
       }
       case "insertPolicy": {
@@ -611,6 +637,8 @@ describe("JsonRpc Module", () => {
     "insertPolicy",
     "updateIssuer",
     "updateIssuer(test update attribute)",
+    "setAttributeMetadata",
+    "setAttributeData",
     "updatePolicy",
     "addIssuerProxy",
     "updateIssuerProxy",
@@ -750,6 +778,20 @@ describe("JsonRpc Module", () => {
           delete (param1 as InsertIssuerParam).attributeData;
           expectedErrorMessage1 =
             "property params[0].attributeData has failed the following constraints: isHexadecimal";
+
+          delete (param2 as InsertIssuerParam).did;
+          expectedErrorMessage2 =
+            "property params[0].did has failed the following constraints: isDidV1";
+
+          param3.from = "bad address";
+          expectedErrorMessage3 =
+            "property params[0].from has failed the following constraints: isEthereumAddress";
+          break;
+        case "setAttributeMetadata":
+        case "setAttributeData":
+          delete (param1 as SetAttributeMetadataParam).attributeId;
+          expectedErrorMessage1 =
+            "property params[0].attributeId has failed the following constraints: isHexadecimal";
 
           delete (param2 as InsertIssuerParam).did;
           expectedErrorMessage2 =

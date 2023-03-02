@@ -7,11 +7,15 @@ import {
   RequestUpdateIssuerDto,
   RequestInsertPolicyDto,
   RequestUpdatePolicyDto,
+  RequestSetAttributeMetadataDto,
+  RequestSetAttributeDataDto,
   RequestSendSignedTransactionDto,
   ArgsInsertIssuer,
   ArgsUpdateIssuer,
   ArgsInsertPolicy,
   ArgsUpdatePolicy,
+  ArgsSetAttributeMetadata,
+  ArgsSetAttributeData,
   RequestAddIssuerProxyDto,
   RequestUpdateIssuerProxyDto,
   ArgsAddIssuerProxy,
@@ -21,6 +25,8 @@ import {
 type JsonRpcDtos =
   | RequestInsertIssuerDto
   | RequestUpdateIssuerDto
+  | RequestSetAttributeMetadataDto
+  | RequestSetAttributeDataDto
   | RequestAddIssuerProxyDto
   | RequestUpdateIssuerProxyDto
   | RequestInsertPolicyDto
@@ -28,6 +34,8 @@ type JsonRpcDtos =
   | RequestSendSignedTransactionDto
   | ArgsInsertIssuer
   | ArgsUpdateIssuer
+  | ArgsSetAttributeMetadata
+  | ArgsSetAttributeData
   | ArgsInsertPolicy
   | ArgsUpdatePolicy
   | ArgsAddIssuerProxy

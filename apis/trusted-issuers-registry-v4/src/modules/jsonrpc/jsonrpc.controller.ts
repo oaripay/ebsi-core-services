@@ -11,6 +11,8 @@ import {
   RequestSendSignedTransactionDto,
   RequestAddIssuerProxyDto,
   RequestUpdateIssuerProxyDto,
+  RequestSetAttributeMetadataDto,
+  RequestSetAttributeDataDto,
 } from "./dto";
 import { SiopJwtAuthGuard } from "../auth/guards";
 import { Client, ClientInfo } from "../auth/decorators";
@@ -47,6 +49,22 @@ export class JsonRpcController {
         const transaction =
           await this.jsonRpcService.buildTransactionUpdateIssuer(
             body as RequestUpdateIssuerDto,
+            id
+          );
+        return jsonRpcResponse(transaction, id);
+      }
+      case "setAttributeMetadata": {
+        const transaction =
+          await this.jsonRpcService.buildTransactionSetAttributeMetadata(
+            body as RequestSetAttributeMetadataDto,
+            id
+          );
+        return jsonRpcResponse(transaction, id);
+      }
+      case "setAttributeData": {
+        const transaction =
+          await this.jsonRpcService.buildTransactionSetAttributeData(
+            body as RequestSetAttributeDataDto,
             id
           );
         return jsonRpcResponse(transaction, id);

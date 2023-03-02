@@ -9,6 +9,8 @@ import {
   RequestUpdateIssuerDto,
   RequestInsertPolicyDto,
   RequestUpdatePolicyDto,
+  RequestSetAttributeMetadataDto,
+  RequestSetAttributeDataDto,
   RequestSendSignedTransactionDto,
   UnsignedTransaction,
   SignedTransactionParam,
@@ -19,6 +21,8 @@ import {
   RequestAddIssuerProxyDto,
   ArgsAddIssuerProxy,
   ArgsUpdateIssuerProxy,
+  ArgsSetAttributeMetadata,
+  ArgsSetAttributeData,
 } from "./dto";
 import { InvalidRequestJsonRpcError } from "./errors";
 import {
@@ -160,6 +164,20 @@ export class JsonRpcService {
         await validateClass(
           ArgsUpdateIssuer,
           args as unknown as ArgsUpdateIssuer
+        );
+        break;
+      }
+      case "setAttributeMetadata": {
+        await validateClass(
+          ArgsSetAttributeMetadata,
+          args as unknown as ArgsSetAttributeMetadata
+        );
+        break;
+      }
+      case "setAttributeData": {
+        await validateClass(
+          ArgsSetAttributeData,
+          args as unknown as ArgsSetAttributeData
         );
         break;
       }
@@ -318,6 +336,59 @@ export class JsonRpcService {
       );
 
       return await this.buildTransaction(from, encodedData);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionSetAttributeMetadata(
+    body: RequestSetAttributeMetadataDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestSetAttributeMetadataDto, body);
+
+      const { from, did, attributeId, issuerType, taoDid, taoAttributeId } =
+        body.params[0];
+
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData("setAttributeMetadata", [
+        did,
+        attributeId,
+        issuerType,
+        taoDid,
+        taoAttributeId,
+      ]);
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionSetAttributeData(
+    body: RequestSetAttributeDataDto,
+    id?: number | string
+  ): Promise<UnsignedTransaction> {
+    try {
+      await validateClass(RequestSetAttributeDataDto, body);
+
+      const { from, did, attributeId, attributeData } = body.params[0];
+
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData("setAttributeData", [
+        did,
+        attributeId,
+        attributeData,
+      ]);
+
+      return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
       error.stack = (err as Error).stack;

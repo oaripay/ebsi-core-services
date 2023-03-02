@@ -152,7 +152,7 @@ describe("Issuers", () => {
           attributeTaoDidId
         )
       ).to.be.revertedWith(
-        "Policy error: sender is not TAO/RootTao of current did did:ebsi:issuer and it doesn't have the attribute TIR:updateIssuer"
+        "Policy error: sender is not TAO/RootTao it doesn't have the attribute TIR:updateIssuer"
       );
 
       await expect(
@@ -165,7 +165,7 @@ describe("Issuers", () => {
           attributeTaoDidId
         )
       ).to.be.revertedWith(
-        "Only TIR:updateIssuer attr in tpr can add RootTAO Attribute"
+        "Policy error: sender doesn't have the attribute TIR:updateIssuer"
       );
 
       // restrict even if the user has a did
@@ -465,6 +465,21 @@ describe("Issuers", () => {
   });
 
   describe("Attributes", () => {
+    it("setAttributeMetadata fail if conditions fail", async () => {
+      await policyContractMock.setPolicyResult(false); // enable admin
+      await expect(
+        tir.setAttributeMetadata(
+          didIssuer,
+          ethers.utils.sha256(attributeData1),
+          IssuerType.RootTAO,
+          taoDid,
+          attributeTaoDidId
+        )
+      ).to.be.revertedWith(
+        "Policy error: sender doesn't have the attribute TIR:setAttributeMetadata"
+      );
+    });
+
     it("should update its own attributes only if it's a RootTAO", async () => {
       // insert issuer
       await policyContractMock.setPolicyResult(true); // enable admin
@@ -554,7 +569,7 @@ describe("Issuers", () => {
           didIssuer,
           ethers.utils.sha256(attributeData1)
         )
-      ).to.be.revertedWith("attribute is already stored");
+      ).to.be.revertedWith("revision already stored");
     });
 
     it("should reject an update of an unknown attribute", async () => {

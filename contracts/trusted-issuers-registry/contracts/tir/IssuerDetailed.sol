@@ -29,6 +29,114 @@ abstract contract IssuerDetailed is IssuerStorage {
     event AddIssuerProxy(string did, bytes32 indexed proxyId);
     event UpdateIssuerProxy(string did, bytes32 indexed proxyId);
 
+    function compareStrings(
+        string memory str1,
+        string memory str2
+    ) internal pure returns (bool) {
+        return
+            keccak256(abi.encodePacked(str1)) ==
+            keccak256(abi.encodePacked(str2));
+    }
+
+    function addRevision(
+        string memory did,
+        bytes32 attributeId,
+        bytes32 newRevisionId,
+        IssuerType issuerType,
+        string memory taoDid,
+        string memory _rootTaoDid,
+        bytes memory attributeData
+    ) internal {
+        Issuers storage ds = issuerStorage();
+        Entity storage iss = ds.issuerStore[did];
+
+        require(
+            compareStrings(ds.attributeMetadataStore[newRevisionId].did, ""),
+            "revision already stored"
+        );
+
+        AttributeDetails storage atr = iss.attributesStore[attributeId];
+        // push the new version hash for this attribute
+        atr.revisionHashes.push(newRevisionId);
+        // push the new version data for this attribute
+        iss.revisions[newRevisionId] = attributeData;
+        // push the new version metadata for this attribute
+        ds.attributeMetadataStore[newRevisionId] = AttributeMetadata(
+            did,
+            attributeId,
+            issuerType,
+            taoDid,
+            _rootTaoDid
+        );
+    }
+
+    function checkEligibility(
+        string memory did,
+        bytes32 lastRevisionId,
+        IssuerType issuerType,
+        string memory taoDid,
+        bytes32 lastRevisionIdTao,
+        string memory policy
+    ) internal {
+        Issuers storage ds = issuerStorage();
+        Entity storage iss = ds.issuerStore[did];
+        require(iss.attributes.length > 0, "issuer does not exist");
+        bool hasTprPolicy = ds.trustedPolicyRegistry.checkPolicy(
+            policy,
+            msg.sender
+        );
+        if (issuerType == IssuerType.RootTAO) {
+            require(
+                hasTprPolicy,
+                string(
+                    abi.encodePacked(
+                        "Policy error: sender doesn't have the attribute ",
+                        policy
+                    )
+                )
+            );
+            return;
+        }
+        AttributeMetadata storage lastAttrMetadata = ds.attributeMetadataStore[
+            lastRevisionId
+        ];
+
+        AttributeMetadata memory lastTaoAttrMetadata = ds
+            .attributeMetadataStore[lastRevisionIdTao];
+        require(
+            hasTprPolicy ||
+                (checkController(bytes(taoDid), msg.sender) &&
+                    (lastTaoAttrMetadata.issuerType == IssuerType.RootTAO ||
+                        lastTaoAttrMetadata.issuerType == IssuerType.TAO)),
+            string(
+                abi.encodePacked(
+                    "Policy error: sender is not TAO/RootTao it doesn't have the attribute ",
+                    policy
+                )
+            )
+        );
+
+        // in the case of existing attributes make sure the TAO/RootTAO
+        // is part of the trust chain of the attribute
+        bool isNewAttribute = compareStrings(lastAttrMetadata.did, "");
+        bool isTaoOfAttribute = compareStrings(lastAttrMetadata.taoDid, taoDid);
+        bool isRootTaoOfAttribute = compareStrings(
+            lastAttrMetadata.rootTaoDid,
+            taoDid
+        );
+        require(
+            isNewAttribute || isTaoOfAttribute || isRootTaoOfAttribute,
+            string(
+                abi.encodePacked(
+                    "Policy error: sender is not TAO/RootTao of current did ",
+                    did,
+                    " and it doesn't have the attribute ",
+                    policy
+                )
+            )
+        );
+    }
+
     /**
      * @dev insert an Issuer with TAO
      */
@@ -39,26 +147,64 @@ abstract contract IssuerDetailed is IssuerStorage {
         string calldata taoDid,
         bytes32 attributeIdTao
     ) external {
-        bytes32 firstAttrHash = sha256(attributeData);
+        assert(issuerType != IssuerType.Undefined);
+        bytes32 attributeId = sha256(attributeData);
+        Issuers storage ds = issuerStorage();
 
-        checkInsertIssuerCondition(did, firstAttrHash);
-        (string memory _taoDid, string memory _rootTaoDid) = getTaoAndRootTao(
+        Entity storage iss = ds.issuerStore[did];
+        AttributeDetails storage atr = iss.attributesStore[attributeId];
+        AttributeMetadata storage attrMetadata = ds.attributeMetadataStore[
+            attributeId
+        ];
+
+        // insert issuer
+        require(iss.attributes.length == 0, "issuer already exist");
+        ds.didStore.push(did);
+
+        // insert attribute
+        require(
+            compareStrings(attrMetadata.did, ""),
+            "attribute is already stored"
+        );
+        iss.attributes.push(attributeId);
+        bytes32 lastRevisionId = attributeId;
+        bytes32 newRevisionId = attributeId;
+
+        string memory _rootTaoDid;
+        bytes32 lastRevisionIdTao = bytes32(0);
+        if (issuerType == IssuerType.RootTAO) {
+            taoDid = did;
+            _rootTaoDid = did;
+        } else {
+            lastRevisionIdTao = getLatestRevisionAttributeId(
+                taoDid,
+                attributeIdTao
+            );
+            _rootTaoDid = ds
+                .attributeMetadataStore[lastRevisionIdTao]
+                .rootTaoDid;
+        }
+
+        checkEligibility(
             did,
+            lastRevisionId,
             issuerType,
             taoDid,
-            attributeIdTao
+            lastRevisionIdTao,
+            "TIR:insertIssuer"
         );
 
-        // store a link between this hash to the did to easily retrieve it
-        insertIssuerAddAttributeMetadata(
+        addRevision(
             did,
-            firstAttrHash,
+            attributeId,
+            newRevisionId,
             issuerType,
-            _taoDid,
-            _rootTaoDid
+            taoDid,
+            _rootTaoDid,
+            attributeData
         );
 
-        insertRevisionAndAttributes(did, firstAttrHash, attributeData);
+        emit AddIssuerAttribute(sha256(bytes(did)), attributeId, did, 1, 1);
     }
 
     /**
@@ -69,31 +215,74 @@ abstract contract IssuerDetailed is IssuerStorage {
         bytes calldata attributeData,
         IssuerType issuerType,
         string calldata taoDid,
-        bytes32 attributeTaoDidId
+        bytes32 attributeIdTao
     ) external {
         assert(issuerType != IssuerType.Undefined);
-        // get latest getLatestRevisionAttributeId for taoattribute id
-        bytes32 latestRevisionAttributeTaoDidId = getLatestRevisionAttributeId(
-            taoDid,
-            attributeTaoDidId
+        bytes32 attributeId = sha256(attributeData);
+        Issuers storage ds = issuerStorage();
+
+        Entity storage iss = ds.issuerStore[did];
+        AttributeDetails storage atr = iss.attributesStore[attributeId];
+        AttributeMetadata storage attrMetadata = ds.attributeMetadataStore[
+            attributeId
+        ];
+
+        require(iss.attributes.length > 0, "issuer does not exist");
+
+        // insert attribute
+        require(
+            compareStrings(attrMetadata.did, ""),
+            "attribute is already stored"
         );
-        checkEligibilityAddAttribute(
+        iss.attributes.push(attributeId);
+        bytes32 lastRevisionId = attributeId;
+        bytes32 newRevisionId = attributeId;
+
+        string memory _rootTaoDid;
+        bytes32 lastRevisionIdTao = bytes32(0);
+        if (issuerType == IssuerType.RootTAO) {
+            taoDid = did;
+            _rootTaoDid = did;
+        } else {
+            lastRevisionIdTao = getLatestRevisionAttributeId(
+                taoDid,
+                attributeIdTao
+            );
+            _rootTaoDid = ds
+                .attributeMetadataStore[lastRevisionIdTao]
+                .rootTaoDid;
+        }
+
+        checkEligibility(
             did,
+            lastRevisionId,
+            issuerType,
             taoDid,
-            latestRevisionAttributeTaoDidId,
-            issuerType
-        );
-        bytes32 newAttrHash = sha256(attributeData);
-        checkNewAttributeHash(did, newAttrHash);
-
-        // store a link between this hash to the did to easily retrieve it
-        string memory _rootTaoDid = getRootTaoDid(
-            latestRevisionAttributeTaoDidId
+            lastRevisionIdTao,
+            "TIR:updateIssuer"
         );
 
-        saveMetadata(did, attributeData, issuerType, taoDid, _rootTaoDid);
+        addRevision(
+            did,
+            attributeId,
+            newRevisionId,
+            issuerType,
+            taoDid,
+            _rootTaoDid,
+            attributeData
+        );
 
-        emitUpdateIssuer(did, newAttrHash, newAttrHash, newAttrHash);
+        uint256 attributesCount = iss.attributes.length;
+        uint256 attributeVersionCount = atr.revisionHashes.length;
+        emit UpdateIssuerAttribute(
+            sha256(bytes(did)),
+            newRevisionId,
+            lastRevisionId,
+            attributeId,
+            did,
+            attributeVersionCount,
+            attributesCount
+        );
     }
 
     /**
@@ -108,59 +297,208 @@ abstract contract IssuerDetailed is IssuerStorage {
         bytes32 attributeIdTao
     ) external {
         assert(issuerType != IssuerType.Undefined);
-        bytes32 latestRevisionAttributeId = getLatestRevisionAttributeId(
+        bytes32 lastRevisionId = getLatestRevisionAttributeId(
             did,
             lastVersHash
         );
-        // based on the last version hash we can retrive the first version hash for this attribute along with the did
-        bytes32 newAttrHash = sha256(attributeData);
-        bytes32 firstAttrHash = computeFirstAttrHash(
-            lastVersHash,
-            newAttrHash,
-            did
-        );
-        checkEligibilityUpdateAttribute(
+        Issuers storage ds = issuerStorage();
+        bytes32 attributeId = ds
+            .attributeMetadataStore[lastVersHash]
+            .attributeId;
+
+        Entity storage iss = ds.issuerStore[did];
+        AttributeDetails storage atr = iss.attributesStore[attributeId];
+        AttributeMetadata storage attrMetadata = ds.attributeMetadataStore[
+            attributeId
+        ];
+
+        string memory _rootTaoDid;
+        bytes32 lastRevisionIdTao = bytes32(0);
+        if (issuerType == IssuerType.RootTAO) {
+            taoDid = did;
+            _rootTaoDid = did;
+        } else {
+            lastRevisionIdTao = getLatestRevisionAttributeId(
+                taoDid,
+                attributeIdTao
+            );
+            _rootTaoDid = ds
+                .attributeMetadataStore[lastRevisionIdTao]
+                .rootTaoDid;
+        }
+        checkEligibility(
             did,
+            lastRevisionId,
+            issuerType,
             taoDid,
-            latestRevisionAttributeId,
-            issuerType
+            lastRevisionIdTao,
+            "TIR:updateIssuer"
         );
 
-        // store a link between this hash, the first hash and the did to easily retrieve it
-
-        string memory _rootTaoDid = getRootTaoDid(attributeIdTao);
-        // save into memory
-        insertMetadata(
+        _addRevisionUpdate(
             did,
-            firstAttrHash,
+            attributeId,
             issuerType,
             taoDid,
             _rootTaoDid,
-            newAttrHash
+            attributeData
         );
-        addRevision(did, firstAttrHash, newAttrHash, attributeData);
-        emitUpdateIssuer(did, newAttrHash, lastVersHash, firstAttrHash);
+
+        emitUpdateIssuerAttribute(
+            did,
+            attributeData,
+            lastRevisionId,
+            attributeId
+        );
     }
 
-    function emitUpdateIssuer(
+    function _addRevisionUpdate(
         string memory did,
-        bytes32 newAttrHash,
-        bytes32 lastVersHash,
-        bytes32 firstAttrHash
+        bytes32 attributeId,
+        IssuerType issuerType,
+        string memory taoDid,
+        string memory _rootTaoDid,
+        bytes memory attributeData
+    ) internal {
+        addRevision(
+            did,
+            attributeId,
+            sha256(attributeData),
+            issuerType,
+            taoDid,
+            _rootTaoDid,
+            attributeData
+        );
+    }
+
+    function emitUpdateIssuerAttribute(
+        string memory did,
+        bytes memory attributeData,
+        bytes32 lastRevisionId,
+        bytes32 attributeId
     ) internal {
         Issuers storage ds = issuerStorage();
         Entity storage iss = ds.issuerStore[did];
-        AttributeDetails storage atr = iss.attributesStore[firstAttrHash];
-        uint256 attributeVersionCount = atr.revisionHashes.length;
+        AttributeDetails storage atr = iss.attributesStore[attributeId];
         uint256 attributesCount = iss.attributes.length;
+        uint256 attributeVersionCount = atr.revisionHashes.length;
         emit UpdateIssuerAttribute(
             sha256(bytes(did)),
-            newAttrHash,
-            lastVersHash,
-            firstAttrHash,
+            sha256(attributeData),
+            lastRevisionId,
+            attributeId,
             did,
             attributeVersionCount,
             attributesCount
+        );
+    }
+
+    function setAttributeMetadata(
+        string calldata did,
+        bytes32 attributeId,
+        IssuerType issuerType,
+        string calldata taoDid,
+        bytes32 attributeIdTao
+    ) external {
+        assert(issuerType != IssuerType.Undefined);
+        Issuers storage ds = issuerStorage();
+
+        Entity storage iss = ds.issuerStore[did];
+        AttributeDetails storage atr = iss.attributesStore[attributeId];
+        AttributeMetadata storage attrMetadata = ds.attributeMetadataStore[
+            attributeId
+        ];
+
+        // insert the issuer if it doesn't exist
+        if (iss.attributes.length == 0) {
+            ds.didStore.push(did);
+        }
+
+        bytes32 lastRevisionId;
+        bytes32 newRevisionId;
+        if (compareStrings(attrMetadata.did, "")) {
+            // new attribute
+            iss.attributes.push(attributeId);
+            lastRevisionId = attributeId;
+            newRevisionId = attributeId;
+        } else {
+            // existing attribute
+            lastRevisionId = getLatestRevisionAttributeId(did, attributeId);
+            bytes memory seedAttributeData = abi.encode(
+                "Some Random attr data",
+                did,
+                block.timestamp,
+                atr.revisionHashes.length
+            );
+            newRevisionId = sha256(seedAttributeData);
+        }
+
+        string memory _rootTaoDid;
+        bytes32 lastRevisionIdTao = bytes32(0);
+        if (issuerType == IssuerType.RootTAO) {
+            taoDid = did;
+            _rootTaoDid = did;
+        } else {
+            lastRevisionIdTao = getLatestRevisionAttributeId(
+                taoDid,
+                attributeIdTao
+            );
+            _rootTaoDid = ds
+                .attributeMetadataStore[lastRevisionIdTao]
+                .rootTaoDid;
+        }
+
+        checkEligibility(
+            did,
+            lastRevisionId,
+            issuerType,
+            taoDid,
+            lastRevisionIdTao,
+            "TIR:setAttributeMetadata"
+        );
+
+        addRevision(
+            did,
+            attributeId,
+            newRevisionId,
+            issuerType,
+            taoDid,
+            _rootTaoDid,
+            abi.encode("")
+        );
+    }
+
+    function setAttributeData(
+        string calldata did,
+        bytes32 attributeId,
+        bytes calldata attributeData
+    ) external {
+        require(
+            checkController(bytes(did), msg.sender),
+            "Not the issuer itself"
+        );
+        Issuers storage ds = issuerStorage();
+        Entity storage iss = ds.issuerStore[did];
+        AttributeMetadata storage attrMetadata = ds.attributeMetadataStore[
+            attributeId
+        ];
+        require(
+            !compareStrings(attrMetadata.did, ""),
+            "Attribute does not exists"
+        );
+
+        bytes32 newRevisionId = sha256(attributeData);
+        string memory taoDid = attrMetadata.taoDid;
+        string memory rootTaoDid = attrMetadata.rootTaoDid;
+
+        addRevision(
+            did,
+            attrMetadata.attributeId,
+            newRevisionId,
+            attrMetadata.issuerType,
+            taoDid,
+            rootTaoDid,
+            attributeData
         );
     }
 
@@ -356,226 +694,6 @@ abstract contract IssuerDetailed is IssuerStorage {
         return ds.issuerStore[did].proxies;
     }
 
-    function compareStrings(
-        string memory str1,
-        string memory str2
-    ) internal pure returns (bool) {
-        return
-            keccak256(abi.encodePacked(str1)) ==
-            keccak256(abi.encodePacked(str2));
-    }
-
-    function checkEligibilityAddAttribute(
-        string calldata did,
-        string calldata taoDid,
-        bytes32 taoDidHashId,
-        IssuerType issuerType
-    ) internal {
-        Issuers storage ds = issuerStorage();
-        Entity storage iss = ds.issuerStore[did];
-        require(iss.attributes.length > 0, "issuer does not exist");
-        AttributeMetadata memory taoAttrMetadata = ds.attributeMetadataStore[
-            taoDidHashId
-        ];
-        if (issuerType == IssuerType.RootTAO) {
-            require(
-                ds.trustedPolicyRegistry.checkPolicy(
-                    "TIR:updateIssuer",
-                    msg.sender
-                ),
-                "msg sender does not have updateIssuer in policy Registry"
-            );
-            return;
-        }
-        require(
-            ds.trustedPolicyRegistry.checkPolicy(
-                "TIR:updateIssuer",
-                msg.sender
-            ) ||
-                (checkController(bytes(taoDid), msg.sender) &&
-                    compareStrings(taoDid, taoAttrMetadata.did) &&
-                    (taoAttrMetadata.issuerType == IssuerType.RootTAO ||
-                        taoAttrMetadata.issuerType == IssuerType.TAO)),
-            string(
-                abi.encodePacked(
-                    "Policy error: sender is not TAO/RootTao of current did ",
-                    did,
-                    " and it doesn't have the attribute TIR:updateIssuer"
-                )
-            )
-        );
-    }
-
-    function checkEligibilityUpdateAttribute(
-        string calldata did,
-        string calldata taoDid,
-        bytes32 latestIssuerAttrHash,
-        IssuerType issuerType
-    ) internal {
-        Issuers storage ds = issuerStorage();
-        Entity storage iss = ds.issuerStore[did];
-        if (issuerType == IssuerType.RootTAO) {
-            require(
-                ds.trustedPolicyRegistry.checkPolicy(
-                    "TIR:updateIssuer",
-                    msg.sender
-                ),
-                "Only TIR:updateIssuer attr in tpr can add RootTAO Attribute"
-            );
-            return;
-        }
-
-        require(
-            ds.trustedPolicyRegistry.checkPolicy(
-                "TIR:updateIssuer",
-                msg.sender
-            ) ||
-                (
-                    (checkController(bytes(taoDid), msg.sender) &&
-                        (compareStrings(
-                            ds
-                                .attributeMetadataStore[latestIssuerAttrHash]
-                                .taoDid,
-                            taoDid
-                        ) ||
-                            compareStrings(
-                                ds
-                                    .attributeMetadataStore[
-                                        latestIssuerAttrHash
-                                    ]
-                                    .rootTaoDid,
-                                taoDid
-                            )))
-                ),
-            string(
-                abi.encodePacked(
-                    "Policy error: sender is not TAO/RootTao of current did ",
-                    did,
-                    " and it doesn't have the attribute TIR:updateIssuer"
-                )
-            )
-        );
-    }
-
-    function computeFirstAttrHash(
-        bytes32 lastVersHash,
-        bytes32 newAttrHash,
-        string calldata did
-    ) internal returns (bytes32) {
-        Issuers storage ds = issuerStorage();
-        Entity storage iss = ds.issuerStore[did];
-        bytes32 firstAttrHash = ds
-            .attributeMetadataStore[lastVersHash]
-            .attributeId;
-        require(iss.attributesStore[firstAttrHash].revisionHashes.length > 0);
-
-        require(
-            keccak256(bytes(ds.attributeMetadataStore[newAttrHash].did)) ==
-                keccak256(bytes("")),
-            "attribute is already stored"
-        );
-        return firstAttrHash;
-    }
-
-    function getRootTaoDid(
-        bytes32 taoAttrHash
-    ) internal returns (string memory) {
-        Issuers storage ds = issuerStorage();
-        string memory _rootTaoDid;
-        _rootTaoDid = ds.attributeMetadataStore[taoAttrHash].rootTaoDid;
-        require(
-            compareStrings(_rootTaoDid, "") == false,
-            "Root Tao not defined"
-        );
-        return _rootTaoDid;
-    }
-
-    function addRevision(
-        string calldata did,
-        bytes32 firstAttrHash,
-        bytes32 newAttrHash,
-        bytes calldata attributeData
-    ) internal {
-        Issuers storage ds = issuerStorage();
-        Entity storage iss = ds.issuerStore[did];
-        AttributeDetails storage atr = iss.attributesStore[firstAttrHash];
-        // push the new version hash for this attribute
-        atr.revisionHashes.push(newAttrHash);
-        // push the new version data for this attribute
-        iss.revisions[newAttrHash] = attributeData;
-    }
-
-    function insertMetadata(
-        string calldata did,
-        bytes32 firstAttrHash,
-        IssuerType issuerType,
-        string calldata taoDid,
-        string memory _rootTaoDid,
-        bytes32 newAttrHash
-    ) internal {
-        Issuers storage ds = issuerStorage();
-        Entity storage iss = ds.issuerStore[did];
-
-        ds.attributeMetadataStore[newAttrHash] = AttributeMetadata(
-            did,
-            firstAttrHash,
-            issuerType,
-            taoDid,
-            _rootTaoDid
-        );
-    }
-
-    function checkNewAttributeHash(
-        string calldata did,
-        bytes32 newAttrHash
-    ) internal {
-        Issuers storage ds = issuerStorage();
-        Entity storage iss = ds.issuerStore[did];
-        require(
-            keccak256(bytes(ds.attributeMetadataStore[newAttrHash].did)) ==
-                keccak256(bytes("")),
-            "attribute is already stored"
-        );
-
-        require(iss.attributes.length > 0, "issuer does not exist");
-
-        require(iss.attributesStore[newAttrHash].revisionHashes.length == 0);
-    }
-
-    function saveMetadata(
-        string calldata did,
-        bytes calldata attributeData,
-        IssuerType issuerType,
-        string calldata taoDid,
-        string memory _rootTaoDid
-    ) internal {
-        Issuers storage ds = issuerStorage();
-        Entity storage iss = ds.issuerStore[did];
-        bytes32 newAttrHash = sha256(attributeData);
-
-        ds.attributeMetadataStore[newAttrHash] = AttributeMetadata(
-            did,
-            newAttrHash,
-            issuerType,
-            taoDid,
-            _rootTaoDid
-        );
-        // store the version hash and data for this attribute
-        AttributeDetails storage atr = iss.attributesStore[newAttrHash];
-
-        // push the new version hash for this attribute
-        atr.revisionHashes.push(newAttrHash);
-        // push the new version data for this attribute
-        iss.revisions[newAttrHash] = attributeData;
-
-        /*
-         Push the firstAttrHash of the attribute to uniquely identify an issuer attribute
-         Methods .push() and .push(value) can be used to append a new element at the end of the array,
-         where .push() appends a zero-initialized element and returns a reference to it.
-        */
-        iss.attributes.push(newAttrHash);
-    }
-
     function getLatestRevisionAttributeId(
         string calldata did,
         bytes32 attributeId
@@ -599,125 +717,11 @@ abstract contract IssuerDetailed is IssuerStorage {
             "invalid attribute: no revisions found"
         );
         bytes memory latestRevision = iss.revisions[attributeId];
-        require(latestRevision.length > 0, "No Revision on this id");
         latestRevisionAttributeId = revisionHashes[revisionHashes.length - 1];
     }
 
-    function getTaoAndRootTao(
-        string calldata did,
-        IssuerType issuerType,
-        string calldata taoDid,
-        bytes32 attributeIdTao
-    ) internal returns (string memory _taoDid, string memory _rootTaoDid) {
-        Issuers storage ds = issuerStorage();
-        Entity storage taoIss = ds.issuerStore[taoDid];
-        assert(issuerType != IssuerType.Undefined);
-        if (issuerType == IssuerType.RootTAO) {
-            require(
-                ds.trustedPolicyRegistry.checkPolicy(
-                    "TIR:insertIssuer",
-                    msg.sender
-                ),
-                "Policy error: sender doesn't have the attribute TIR:insertIssuer"
-            );
-            // if its RootTao:
-            _taoDid = did;
-            _rootTaoDid = did;
-        } else {
-            require(taoIss.attributes.length != 0, "tao does not exists");
-            // check msg.sender is the TAO DID
-            require(
-                checkController(bytes(taoDid), msg.sender),
-                "MsgSender is not a controller of Tao Used"
-            );
-
-            // check tao Attr Hash is RootTAO or TAO
-            bytes32 latestRevisionTaoId = getLatestRevisionAttributeId(
-                taoDid,
-                attributeIdTao
-            );
-
-            require(
-                ds.attributeMetadataStore[latestRevisionTaoId].issuerType ==
-                    IssuerType.RootTAO ||
-                    ds.attributeMetadataStore[latestRevisionTaoId].issuerType ==
-                    IssuerType.TAO,
-                "Attribute is not RootTAO or TAO"
-            );
-            _taoDid = taoDid;
-            // for root tao we need to set what is the root tao of the current taoDid
-            _rootTaoDid = ds
-                .attributeMetadataStore[latestRevisionTaoId]
-                .rootTaoDid;
-        }
-    }
-
-    function checkInsertIssuerCondition(
-        string calldata did,
-        bytes32 firstAttrHash
-    ) internal {
-        Issuers storage ds = issuerStorage();
-        Entity storage iss = ds.issuerStore[did];
-        require(iss.attributes.length == 0, "issuer already exist");
-        require(
-            compareStrings(ds.attributeMetadataStore[firstAttrHash].did, ""),
-            "attribute is already stored"
-        );
-
-        require(iss.attributesStore[firstAttrHash].revisionHashes.length == 0);
-    }
-
-    function insertIssuerAddAttributeMetadata(
-        string calldata did,
-        bytes32 firstAttrHash,
-        IssuerType issuerType,
-        string memory _taoDid,
-        string memory _rootTaoDid
-    ) internal {
-        Issuers storage ds = issuerStorage();
-        ds.attributeMetadataStore[firstAttrHash] = AttributeMetadata(
-            did,
-            firstAttrHash,
-            issuerType,
-            _taoDid,
-            _rootTaoDid
-        );
-    }
-
-    function insertRevisionAndAttributes(
-        string calldata did,
-        bytes32 firstAttrHash,
-        bytes calldata attributeData
-    ) internal {
-        Issuers storage ds = issuerStorage();
-        Entity storage iss = ds.issuerStore[did];
-        // store the version hash and data for this attribute
-        AttributeDetails storage atr = iss.attributesStore[firstAttrHash];
-
-        // push the new version hash for this attribute
-        atr.revisionHashes.push(firstAttrHash);
-        // push the new version data for this attribute
-        iss.revisions[firstAttrHash] = attributeData;
-
-        /*
-         Push the firstAttrHash of the attribute to uniquely identify an issuer attribute
-         Methods .push() and .push(value) can be used to append a new element at the end of the array,
-         where .push() appends a zero-initialized element and returns a reference to it.
-        */
-        iss.attributes.push(firstAttrHash);
-        uint256 attributesCount = iss.attributes.length;
-        ds.didStore.push(did);
-        emit AddIssuerAttribute(
-            sha256(bytes(did)),
-            firstAttrHash,
-            did,
-            1,
-            attributesCount
-        );
-    }
-
     function checkController(
-        bytes calldata identifier,
+        bytes memory identifier,
         address ctrl
     ) internal returns (bool) {
         Issuers storage ds = issuerStorage();
