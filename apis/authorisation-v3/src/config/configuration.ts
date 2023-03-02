@@ -43,7 +43,7 @@ export const loadConfig = (): ApiConfig => {
     testIssuerKid: process.env.TEST_ISSUER_KID,
     testIssuerPrivateKey: process.env.TEST_ISSUER_PRIVATE_KEY,
     testIssuerAlg: process.env.TEST_ISSUER_ALG,
-    testOidSchemaPattern: process.env.TEST_OID_SCHEMA_PATTERN,
+    testOidSchemaPattern: process.env.TEST_OID_SCHEMA_PATTERN || "",
   };
 };
 

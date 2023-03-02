@@ -34,7 +34,7 @@ import { PresentationDefinition } from "../../shared/interfaces/pex";
 export class AuthorisationService {
   private readonly issuer: string;
 
-  private publicKeyJwk: JsonWebKey;
+  private publicKeyJwk?: JsonWebKey;
 
   private readonly ebsiAuthority: string;
 
@@ -157,8 +157,6 @@ export class AuthorisationService {
     presentationDefinition: PresentationDefinition,
     presentationSubmission: PresentationSubmission
   ) {
-    let errorDetails = "";
-
     const presentation = {
       "@context": vp["@context"],
       type: vp.type,
@@ -172,18 +170,24 @@ export class AuthorisationService {
       presentation
     );
 
-    errors.forEach((error) => {
-      errorDetails += `${error.tag} tag: ${error.message};`;
-    });
-
-    if (errors.length > 0) {
+    if (errors && errors.length > 0) {
       throw new BadRequestError("Invalid Presentation Submission", {
-        detail: errorDetails,
+        detail: errors
+          .map(
+            (error) => `${error.tag} tag: ${error.message ?? "Unknown error"};`
+          )
+          .join(),
       });
     }
   }
 
-  async validateVpJwt(vpToken: string) {
+  /**
+   * Validate VP Token.
+   *
+   * @param vpToken - The VP Token to validate.
+   * @param isDidUnresolvable - If the holder DID is unresolvable, the signature validation is skipped.
+   */
+  async validateVpJwt(vpToken: string, isDidUnresolvable: boolean) {
     try {
       const audience = this.issuer;
       const now = Math.floor(Date.now() / 1000);
@@ -191,6 +195,8 @@ export class AuthorisationService {
       await verifyPresentationJwt(vpToken, audience, {
         ebsiAuthority: this.ebsiAuthority,
         validAt: now, // The JWT VC(s) must be valid now
+        skipHolderDidResolutionValidation: isDidUnresolvable,
+        skipSignatureValidation: isDidUnresolvable,
       });
     } catch (e) {
       throw new BadRequestError("Invalid Verifiable Presentation", {
@@ -228,7 +234,9 @@ export class AuthorisationService {
 
     if (errors.length > 0) {
       throw new BadRequestError("Invalid Presentation Submission", {
-        detail: errors.map((err) => `- [${err.tag}] ${err.message}`).join("\n"),
+        detail: errors
+          .map((err) => `- [${err.tag}] ${err.message ?? "Unknown error"}`)
+          .join("\n"),
       });
     }
 
@@ -272,9 +280,6 @@ export class AuthorisationService {
 
     await this.preventReplayAttack(vpTokenPayload);
 
-    // Verify VP JWT
-    await this.validateVpJwt(vpToken);
-
     // Get Presentation Definition corresponding to the requested scope
     const presentationDefinition = this.getPresentationDefinitions(scope);
 
@@ -293,6 +298,9 @@ export class AuthorisationService {
       presentationDefinition,
       presentationSubmission
     );
+
+    // Verify VP JWT
+    await this.validateVpJwt(vpToken, scope.includes("did_write"));
 
     // TODO: Implement additional logic based on scope + VC type
 

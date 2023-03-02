@@ -200,6 +200,10 @@ describe("Authorisation (e2e)", () => {
         const { payload } = decodeJWT(queryRequest);
         const { iss } = payload;
 
+        if (!iss) {
+          throw new Error("iss is undefined or empty");
+        }
+
         const appInfo = await request(trustedAppsRegistry).get(`/${iss}`);
 
         const { publicKeys } = appInfo.body as unknown as {
@@ -230,7 +234,7 @@ describe("Authorisation (e2e)", () => {
           })
         );
 
-        [verification] = verificationResults.filter((res) => res);
+        [verification] = verificationResults.filter(Boolean);
       }
 
       if (!verification) {

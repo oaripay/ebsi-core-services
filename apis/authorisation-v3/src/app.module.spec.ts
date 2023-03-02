@@ -10,7 +10,7 @@ import { ApiConfig } from "./config/configuration";
 import { configureApp } from "../tests/utils/app";
 
 interface ResponseHeaders {
-  "ebsi-image-tag"?: string;
+  "ebsi-image-tag": string;
   [key: string]: string;
 }
 

@@ -55,7 +55,11 @@ export async function isIssuerProxy(
 
     if (testResponse.status !== 200) return false;
 
-    if (!(await isStatusList2021Credential(testResponse.data, authority))) {
+    if (
+      !(await isStatusList2021Credential(testResponse.data, authority, {
+        skipAccreditationsValidation: true,
+      }))
+    ) {
       return false;
     }
   } catch {

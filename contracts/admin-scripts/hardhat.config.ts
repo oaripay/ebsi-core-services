@@ -1,3 +1,4 @@
+import { HardhatUserConfig } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-solhint";
 import "@nomiclabs/hardhat-etherscan";
@@ -7,10 +8,12 @@ import "hardhat-deploy-ethers";
 import "hardhat-abi-exporter";
 import "solidity-coverage";
 import "./tasks/index";
-import { HardhatUserConfig } from "hardhat/config";
 import * as fs from "node:fs";
 import { resolve } from "node:path";
 import * as dotenv from "dotenv";
+import type { EtherscanUserConfig } from "@nomiclabs/hardhat-etherscan/dist/src/types";
+import type { TypechainUserConfig } from "@typechain/hardhat/dist/types";
+import type { AbiExporterUserConfig } from "hardhat-abi-exporter";
 
 dotenv.config({ path: resolve(__dirname, ".env") });
 
@@ -37,7 +40,17 @@ const accounts = {
 
 const { HARDHAT_NETWORK_URL, ETHERSCAN_API_KEY } = process.env;
 
-const config: HardhatUserConfig = {
+const config: HardhatUserConfig & {
+  etherscan: EtherscanUserConfig;
+  typechain: TypechainUserConfig;
+  abiExporter: AbiExporterUserConfig;
+  namedAccounts?: {
+    [name: string]:
+      | string
+      | number
+      | { [network: string]: null | number | string };
+  };
+} = {
   defaultNetwork: "local",
   networks: {
     hardhat: {},

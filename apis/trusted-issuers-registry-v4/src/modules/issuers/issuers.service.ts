@@ -256,16 +256,7 @@ export class IssuersService {
     const domain = this.configService.get<string>("domain");
     const authority = domain.replace(/^https?:\/\//, "");
 
-    if (
-      !(await isStatusList2021Credential(res.data, authority, {
-        didRegistry: `${this.configService.get<string>(
-          "didRegistryApiUrl"
-        )}/identifiers`,
-        trustedIssuersRegistry: `${domain}${this.configService.get<string>(
-          "apiUrlPrefix"
-        )}/issuers`,
-      }))
-    ) {
+    if (!(await isStatusList2021Credential(res.data, authority))) {
       throw new InternalServerError("Invalid Status List Credential", {
         detail:
           "The Status List Credential returned by the Issuer's proxy is invalid",

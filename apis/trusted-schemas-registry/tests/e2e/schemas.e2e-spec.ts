@@ -16,7 +16,7 @@ import {
 import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
 import type { TransactionRequest } from "@ethersproject/abstract-provider";
-import $RefParser from "@apidevtools/json-schema-ref-parser";
+import type { JSONSchema } from "@apidevtools/json-schema-ref-parser/dist/lib/types";
 import { prefixWith0x, computeId } from "@ebsiint-api/shared";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
@@ -52,13 +52,13 @@ describe("Schemas (e2e)", () => {
   let adminTestWallet: ethers.Wallet;
   let testUserAccessToken: string;
 
-  let rawSchema: $RefParser.JSONSchema;
+  let rawSchema: JSONSchema;
   let schemaId: string;
   let serializedSchema: string;
   let serializedSchemaBuffer: Buffer;
   let schemaRevisionId: string;
 
-  let rawUpdatedSchema: $RefParser.JSONSchema;
+  let rawUpdatedSchema: JSONSchema;
   let serializedUpdatedSchema: string;
   let serializedSchemaUpdatedBuffer: Buffer;
 

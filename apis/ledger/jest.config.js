@@ -16,7 +16,7 @@ module.exports = {
       { tsconfig: "<rootDir>/tsconfig.test.json", isolatedModules: true },
     ],
   },
-  transformIgnorePatterns: ["/node_modules/(?!(axios))", "/apis/shared/dist/"],
+  transformIgnorePatterns: ["/node_modules/", "/apis/shared/dist/"],
   moduleFileExtensions: ["js", "json", "ts"],
   coverageDirectory: "./coverage/",
   collectCoverageFrom: [

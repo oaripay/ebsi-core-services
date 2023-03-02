@@ -49,7 +49,7 @@ export class AuthorisationService {
 
   private oauth2RP: OAuth2RP;
 
-  private relyingParty: RP;
+  private relyingParty?: RP;
 
   private authorisationCredentialSchema: string;
 
@@ -187,6 +187,7 @@ export class AuthorisationService {
             await verifyCredentialJwt(verifiableCredential, {
               ebsiAuthority: domain.replace(/^https?:\/\//, ""), // remove http protocol scheme
               timeout: this.timeout,
+              skipAccreditationsValidation: true,
             });
           } catch (e) {
             if (e instanceof Error) {
@@ -229,7 +230,7 @@ export class AuthorisationService {
     const { header, payload } = decodeJWT(body.id_token);
     const { claims } = payload as { claims: ResponseClaims };
 
-    let encryptionKey: JWK;
+    let encryptionKey: JWK | undefined;
     if (claims?.encryption_key) {
       encryptionKey = claims.encryption_key;
     }
@@ -268,7 +269,7 @@ export class AuthorisationService {
       return (await this.getRelyingParty()).createAccessToken({
         header,
         resultClaims: {
-          encryption_key: encryptionKey,
+          encryption_key: encryptionKey as JWK, // Not ideal
           did: vp.holder,
         },
         payload: {
@@ -323,9 +324,9 @@ export class AuthorisationService {
         }
 
         if (axios.isAxiosError(error)) {
-          if (typeof error.response.data !== "object") {
+          if (typeof error.response?.data !== "object") {
             throw new BadRequestError("Invalid ID Token", {
-              detail: error.response.data as string,
+              detail: error.response?.data as string,
             });
           }
 

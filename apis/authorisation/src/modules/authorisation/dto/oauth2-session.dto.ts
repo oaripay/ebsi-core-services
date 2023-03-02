@@ -2,16 +2,16 @@ import { Equals, IsJWT } from "class-validator";
 
 export class OAuth2SessionDto {
   @Equals("client_credentials")
-  grantType: string;
+  grantType!: string;
 
   @Equals("urn:ietf:params:oauth:client-assertion-type:jwt-bearer")
-  clientAssertionType: string;
+  clientAssertionType!: string;
 
   @IsJWT()
-  clientAssertion: string;
+  clientAssertion!: string;
 
   @Equals("openid did_authn")
-  scope: string;
+  scope!: string;
 }
 
 export default OAuth2SessionDto;

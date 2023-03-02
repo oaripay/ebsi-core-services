@@ -21,7 +21,7 @@ module.exports = {
   },
   overrides: [
     {
-      files: ["tests/**/*.ts", "src/**/*.spec.ts"],
+      files: ["tests/**/*.ts", "src/**/*.spec.ts", "**/*.d.ts"],
       rules: {
         "import/no-extraneous-dependencies": [
           "error",

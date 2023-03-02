@@ -23,7 +23,7 @@ export async function getKeyByAlg(
   publicKeyEncryptionJwk?: JWK;
   privateKeyEncryption: KeyLike | Uint8Array;
   publicKeyEncryption?: KeyLike | Uint8Array;
-  privateKeyHexES256K: string;
+  privateKeyHexES256K?: string;
 }> {
   const types = {
     ES256K: "Secp256k1VerificationKey2018",
@@ -32,6 +32,11 @@ export async function getKeyByAlg(
     EdDSA: "Ed25519VerificationKey2018",
   };
   const keyObject = keys.find((p) => p.type === types[alg] || p.alg === alg);
+
+  if (!keyObject) {
+    throw new Error("No key found");
+  }
+
   const privateKeyEncryption = await importJWK(
     keyObject.privateKeyEncryptionJwk ?? keyObject.privateKeyJwk,
     alg
@@ -39,14 +44,14 @@ export async function getKeyByAlg(
   const publicKeyEncryption =
     keyObject.publicKeyEncryptionJwk || keyObject.publicKeyJwk
       ? await importJWK(
-          keyObject.publicKeyEncryptionJwk ?? keyObject.publicKeyJwk,
+          (keyObject.publicKeyEncryptionJwk ?? keyObject.publicKeyJwk) as JWK,
           alg
         )
-      : null;
+      : undefined;
   const privateKeyHexES256K =
     alg === "ES256K"
       ? await getPrivateKeyHex(privateKeyEncryption as KeyObject)
-      : null;
+      : undefined;
   return {
     ...keyObject,
     privateKeyEncryption,

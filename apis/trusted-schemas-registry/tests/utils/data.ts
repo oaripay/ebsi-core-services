@@ -1,10 +1,10 @@
 import crypto from "node:crypto";
-import $RefParser from "@apidevtools/json-schema-ref-parser";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
+import type { JSONSchema } from "@apidevtools/json-schema-ref-parser/dist/lib/types";
 
 export const createDid = (): string => EbsiWallet.createDid();
 
-export const createSchema = (): $RefParser.JSONSchema => ({
+export const createSchema = (): JSONSchema => ({
   $schema: "http://json-schema.org/draft-07/schema#",
   title: "EBSI Verifiable Attestation",
   description: "Schema of an EBSI Verifiable Attestation",
@@ -219,7 +219,7 @@ export const createSchema = (): $RefParser.JSONSchema => ({
 
 export const createVerifiableAuthorisationSchema = (
   ref: string
-): $RefParser.JSONSchema => ({
+): JSONSchema => ({
   $schema: "http://json-schema.org/draft-07/schema#",
   title: "EBSI Verifiable Authorisation",
   description: "Schema of an EBSI Verifiable Authorisation",

@@ -195,7 +195,7 @@ describe("Authorisation Module", () => {
       const { publicKeyObject } = await getPublicKey(apiPrivateKey);
 
       const verification = await jwtVerify(
-        query.get("request"),
+        query.get("request") as string,
         publicKeyObject
       );
       expect(verification.payload).toStrictEqual({

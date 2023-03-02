@@ -1,0 +1,13 @@
+diff --git a/node_modules/nx/src/tasks-runner/forked-process-task-runner.js b/node_modules/nx/src/tasks-runner/forked-process-task-runner.js
+index f1e444b..fde0ae0 100644
+--- a/node_modules/nx/src/tasks-runner/forked-process-task-runner.js
++++ b/node_modules/nx/src/tasks-runner/forked-process-task-runner.js
+@@ -258,7 +258,7 @@ class ForkedProcessTaskRunner {
+         return Object.assign(Object.assign(Object.assign({}, parseEnv('.env')), parseEnv('.local.env')), parseEnv('.env.local'));
+     }
+     getDotenvVariablesForTask(task) {
+-        if (process.env.NX_LOAD_DOT_ENV_FILES == 'true') {
++        if (false) {
+             return Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign(Object.assign({}, this.getDotenvVariablesForForkedProcess()), parseEnv(`.${task.target.target}.env`)), parseEnv(`.env.${task.target.target}`)), (task.target.configuration
+                 ? parseEnv(`.${task.target.target}.${task.target.configuration}.env`)
+                 : {})), (task.target.configuration

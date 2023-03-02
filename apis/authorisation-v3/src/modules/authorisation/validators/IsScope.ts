@@ -24,8 +24,9 @@ export function isScope(value: unknown): boolean {
   }
 
   // Each value must be one of the supported scopes
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-  return value.every((val) => SUPPORTED_SCOPES.includes(val));
+  return value.every(
+    (val) => typeof val === "string" && SUPPORTED_SCOPES.includes(val)
+  );
 }
 
 export function IsScope(

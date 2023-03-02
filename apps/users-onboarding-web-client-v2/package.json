@@ -24,7 +24,7 @@
     "@ecl/ec-preset-website": "^2.39.0",
     "@ecl/ec-resources-logo": "^2.39.0",
     "@react-hook/window-size": "^3.0.7",
-    "axios": "1.2.1",
+    "axios": "^1.3.4",
     "classnames": "^2.2.6",
     "history": "^5.3.0",
     "prop-types": "^15.8.1",
@@ -34,7 +34,7 @@
     "react-dom": "^17.0.1",
     "react-focus-on": "^3.7.0",
     "react-google-recaptcha-v3": "^1.10.1",
-    "react-router-dom": "^6.6.2"
+    "react-router-dom": "^6.8.2"
   },
   "devDependencies": {
     "@testing-library/dom": "^8.20.0",
@@ -54,10 +54,10 @@
     "enzyme-adapter-react-16": "^1.15.7",
     "jest-sonar": "^0.2.15",
     "postcss": "^8.4.21",
-    "precompress": "^10.0.0",
+    "precompress": "^10.0.1",
     "react-scripts": "^5.0.1",
     "source-map-explorer": "^2.5.2",
-    "typescript": "4.9.4"
+    "typescript": "4.9.5"
   },
   "stylelint": {
     "extends": [

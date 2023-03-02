@@ -38,8 +38,8 @@ export async function generateKeys(alg: string): Promise<{
     privateKey: crypto.KeyObject;
   };
 
-  let publicKeyEncryption: crypto.KeyObject;
-  let privateKeyEncryption: crypto.KeyObject;
+  let publicKeyEncryption: crypto.KeyObject | undefined;
+  let privateKeyEncryption: crypto.KeyObject | undefined;
   if (alg === "EdDSA") {
     // For Edward we have to use the keys for encryption
     const keysEncryption = crypto.generateKeyPairSync("x25519");
@@ -59,6 +59,9 @@ export async function getPrivateKeyHex(
   privateKey: crypto.KeyObject
 ): Promise<string> {
   const privateJwk = await exportJWK(privateKey);
+  if (!privateJwk.d) {
+    throw new Error("Missing d prop");
+  }
   return Buffer.from(base64url.baseDecode(privateJwk.d)).toString("hex");
 }
 

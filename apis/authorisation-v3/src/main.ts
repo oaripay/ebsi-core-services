@@ -5,8 +5,8 @@ import {
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
 import { ValidationPipe } from "@nestjs/common";
-import FastifyHelmet from "@fastify/helmet";
-import FastifyFormBody from "@fastify/formbody";
+import { fastifyHelmet } from "@fastify/helmet";
+import { fastifyFormbody } from "@fastify/formbody";
 import { setupInterceptors } from "@ebsiint-api/shared";
 import qs from "qs";
 import { AppModule } from "./app.module";
@@ -19,7 +19,9 @@ async function bootstrap(): Promise<void> {
   fastifyAdapter.enableCors({ methods: "*" });
 
   // Register "application/x-www-form-urlencoded" parser
-  await fastifyAdapter.register(FastifyFormBody, {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-expect-error
+  await fastifyAdapter.register(fastifyFormbody, {
     parser: (str: string) =>
       qs.parse(str, {
         // Parse up to 50 children deep
@@ -52,23 +54,25 @@ async function bootstrap(): Promise<void> {
     consoleTransport.level = logLevel;
   }
 
-  logger.debug(
-    `Starting API with:
+  if (logger.debug) {
+    logger.debug(
+      `Starting API with:
 - NODE_ENV: ${process.env.NODE_ENV}
 - API_URL_PREFIX:${apiUrlPrefix}
 - API_PORT:${port}
 - LOG_LEVEL: ${logLevel}
 - Docker container tag: ${dockerContainerTag}
 `,
-    "main"
-  );
+      "main"
+    );
+  }
 
   // Starts listening for shutdown hooks
   app.enableShutdownHooks();
 
   app.setGlobalPrefix(apiUrlPrefix);
 
-  await app.register(FastifyHelmet);
+  await app.register(fastifyHelmet);
 
   app.useGlobalFilters(new AllExceptionsFilter(configService));
   app.useGlobalPipes(

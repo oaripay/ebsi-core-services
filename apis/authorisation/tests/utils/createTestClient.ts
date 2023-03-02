@@ -1,7 +1,8 @@
+import type { KeyObject } from "node:crypto";
 import { exportJWK } from "jose";
 import type { JWK } from "jose";
 import EbsiWallet from "@cef-ebsi/wallet-lib";
-import type { DIDDocument } from "did-resolver";
+import type { DIDDocument, JsonWebKey } from "did-resolver";
 import { generateKeys, getPrivateKeyHex } from "./keys";
 
 export async function createTestClient(): Promise<{
@@ -23,13 +24,13 @@ export async function createTestClient(): Promise<{
   const didDocument = {
     "@context": "https://www.w3.org/ns/did/v1",
     id: did,
-    verificationMethod: [],
+    verificationMethod: [] as NonNullable<DIDDocument["verificationMethod"]>,
     authentication: [`${did}#keys-1`],
-    assertionMethod: [],
-  };
+    assertionMethod: [] as NonNullable<DIDDocument["assertionMethod"]>,
+  } satisfies DIDDocument;
 
   let privateKeyHexES256K = "";
-  const algs = ["ES256K", "ES256", "RS256", "EdDSA"];
+  const algs = ["ES256K", "ES256", "RS256", "EdDSA"] as const;
   const types = [
     "Secp256k1VerificationKey2018",
     "Secp256r1VerificationKey2018",
@@ -38,7 +39,7 @@ export async function createTestClient(): Promise<{
   ];
   const keys = [];
   /* eslint-disable no-await-in-loop */
-  for (let i = 0; i < 4; i += 1) {
+  for (let i = 0; i < algs.length; i += 1) {
     const id = `${did}#keys-${i + 1}`;
     const ks = await generateKeys(algs[i]);
     const jwk = await exportJWK(ks.publicKey);
@@ -49,14 +50,15 @@ export async function createTestClient(): Promise<{
     }
     if (algs[i] === "EdDSA") {
       const enc = {
-        jwk: await exportJWK(ks.publicKeyEncryption),
-        jwkPriv: await exportJWK(ks.privateKeyEncryption),
+        jwk: await exportJWK(ks.publicKeyEncryption as KeyObject),
+        jwkPriv: await exportJWK(ks.privateKeyEncryption as KeyObject),
       };
+
       didDocument.verificationMethod.push({
         id,
         type,
         controller: did,
-        publicKeyJwk: { ...jwk, use: "sig" },
+        publicKeyJwk: { ...jwk, use: "sig" } as JsonWebKey,
       });
 
       keys.push({
@@ -72,7 +74,7 @@ export async function createTestClient(): Promise<{
         id,
         type,
         controller: did,
-        publicKeyJwk: jwk,
+        publicKeyJwk: jwk as JsonWebKey,
       });
       keys.push({
         type,

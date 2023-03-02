@@ -12,6 +12,8 @@ import axios from "axios";
 import nock from "nock";
 import { setupInterceptors } from "./axiosInterceptors";
 
+axios.defaults.adapter = "http";
+
 describe("setupInterceptors", () => {
   beforeAll(() => {
     nock.disableNetConnect();
@@ -80,8 +82,7 @@ describe("setupInterceptors", () => {
     ).rejects.toThrow("Request failed with status code 401");
   });
 
-  // Skipped: https://github.com/axios/axios/issues/5089
-  it.skip("should fallback to the remote server if the local server responds with a status >= 500", async () => {
+  it("should fallback to the remote server if the local server responds with a status >= 500", async () => {
     expect.assertions(5);
 
     const logger = {
@@ -130,8 +131,7 @@ describe("setupInterceptors", () => {
     );
   });
 
-  // Skipped: https://github.com/axios/axios/issues/5089
-  it.skip("should fallback to the remote server if the local server responds with a status 404 and the response is not a Problem Details error", async () => {
+  it("should fallback to the remote server if the local server responds with a status 404 and the response is not a Problem Details error", async () => {
     expect.assertions(5);
 
     const logger = {

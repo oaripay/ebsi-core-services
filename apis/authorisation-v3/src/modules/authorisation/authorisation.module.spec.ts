@@ -8,6 +8,7 @@ import {
   afterEach,
 } from "@jest/globals";
 import { randomUUID, randomBytes } from "node:crypto";
+import type { JsonWebKey } from "node:crypto";
 import request from "supertest";
 import nock from "nock";
 import { Test, TestingModule } from "@nestjs/testing";
@@ -51,9 +52,11 @@ describe("Authorisation Module", () => {
   let app: INestApplication;
   let server: HttpServer;
   let configService: ConfigService<ApiConfig, true>;
-
+  let domain: string;
   let serviceEndpoint: string;
-  let issuer: LegalEntity;
+  let credentialIssuer: LegalEntity;
+  let credentialIssuerAccreditationUrl: string;
+  let credentialSubject: LegalEntity;
 
   beforeAll(async () => {
     // Disable external requests
@@ -78,22 +81,25 @@ describe("Authorisation Module", () => {
 
     server = app.getHttpServer() as HttpServer;
 
-    const domain = configService.get<string>("domain");
+    domain = configService.get<string>("domain");
     const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
     serviceEndpoint = `${domain}${apiUrlPrefix}`;
 
-    const alg = "ES256K";
-    issuer = await createLegalEntity(alg);
+    credentialIssuer = await createLegalEntity("ES256K");
+    credentialIssuerAccreditationUrl = `${domain}/trusted-issuers-registry/v4/issuers/${
+      credentialIssuer.did
+    }/attributes/${randomBytes(16).toString("hex")}`;
+    credentialSubject = await createLegalEntity("ES256K");
   });
 
-  beforeEach(() => {
-    nock("https://api-test.ebsi.eu")
-      .get(`/did-registry/v4/identifiers/${issuer.did}`)
-      .reply(200, issuer.didDocument)
+  beforeEach(async () => {
+    nock(domain)
+      .get(`/did-registry/v4/identifiers/${credentialIssuer.did}`)
+      .reply(200, credentialIssuer.didDocument)
       .persist();
 
-    nock("https://api-test.ebsi.eu")
-      .get(`/trusted-issuers-registry/v3/issuers/${issuer.did}`)
+    nock(domain)
+      .get(`/trusted-issuers-registry/v4/issuers/${credentialIssuer.did}`)
       .reply(200, {})
       .persist();
 
@@ -105,6 +111,82 @@ describe("Authorisation Module", () => {
     nock("https://w3id.org")
       .get("/security/suites/jws-2020/v1")
       .reply(200, JWS_2020_CONTEXT)
+      .persist();
+
+    // Issuer Self-Accreditation
+    const authorisationCredentialSchema = configService.get<string>(
+      "testOidSchemaPattern"
+    );
+    const iat = Math.round(Date.now() / 1000);
+    const exp = iat + 365 * 24 * 3600;
+    const jti = `urn:uuid:${randomUUID()}`;
+    const issuanceDate = new Date(iat * 1000).toISOString();
+    const expirationDate = new Date(exp * 1000).toISOString();
+    const accreditation = {
+      "@context": ["https://www.w3.org/2018/credentials/v1"],
+      type: [
+        "VerifiableCredential",
+        "VerifiableAttestation",
+        "VerifiableAccreditation",
+        "VerifiableAccreditationToAttest",
+      ],
+      id: jti,
+      issuanceDate,
+      expirationDate,
+      issued: issuanceDate,
+      validFrom: issuanceDate,
+      validUntil: expirationDate,
+      issuer: credentialIssuer.did,
+      credentialSubject: {
+        id: credentialIssuer.did,
+        accreditedFor: [
+          {
+            schemaId: authorisationCredentialSchema,
+            types: [
+              "VerifiableCredential",
+              "VerifiableAttestation",
+              "VerifiableAuthorisationForTrustChain",
+            ],
+            policies: [
+              {
+                type: "ebsiPilot2023",
+                uri: "{uri to EBSI gov documents}",
+              },
+            ],
+          },
+        ],
+      },
+      credentialSchema: {
+        id: authorisationCredentialSchema,
+        type: "FullJsonSchemaValidator2021",
+      },
+    } satisfies EbsiVerifiableAttestation;
+
+    const accreditationVcJwt = await new SignJWT({
+      iat,
+      jti,
+      nbf: iat,
+      exp,
+      sub: accreditation.credentialSubject.id,
+      iss: accreditation.issuer,
+      vc: accreditation,
+    })
+      .setProtectedHeader({
+        alg: credentialIssuer.alg,
+        typ: "JWT",
+        kid: credentialIssuer.kid,
+      })
+      .sign(
+        await importJWK(credentialIssuer.privateKeyJwk, credentialIssuer.alg)
+      );
+
+    nock(domain)
+      .get(new URL(credentialIssuerAccreditationUrl).pathname)
+      .reply(200, {
+        attribute: {
+          body: accreditationVcJwt,
+        },
+      })
       .persist();
   });
 
@@ -350,20 +432,26 @@ describe("Authorisation Module", () => {
         // JWT access token must have 2 hours expiration time and there are no Refresh Tokens.
         expirationDate = new Date(issuanceDate.getTime() + 2 * 60 * 60 * 1000);
 
-        // Note: in this test, the VC issuer is also the VC subject and the VP holder
         vcPayload = {
           "@context": ["https://www.w3.org/2018/credentials/v1"],
           id: `urn:uuid:${randomUUID()}`,
           type: ["VerifiableCredential", "VerifiableAttestation"],
-          issuer: issuer.did,
+          issuer: credentialIssuer.did,
           issuanceDate: `${issuanceDate.toISOString().slice(0, -5)}Z`,
           issued: `${issuanceDate.toISOString().slice(0, -5)}Z`,
           validFrom: `${issuanceDate.toISOString().slice(0, -5)}Z`,
           expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
-          credentialSubject: { id: issuer.did, type: "same-device" },
+          credentialSubject: {
+            id: credentialSubject.did,
+            type: "same-device",
+          },
           credentialSchema: {
             id: configService.get<string>("testOidSchemaPattern"),
             type: "FullJsonSchemaValidator2021",
+          },
+          termsOfUse: {
+            id: credentialIssuerAccreditationUrl,
+            type: "IssuanceCertificate",
           },
         };
 
@@ -377,7 +465,7 @@ describe("Authorisation Module", () => {
           "@context": ["https://www.w3.org/2018/credentials/v1"],
           type: ["VerifiablePresentation"],
           verifiableCredential: [],
-          holder: issuer.did,
+          holder: credentialSubject.did,
         };
       });
 
@@ -387,6 +475,21 @@ describe("Authorisation Module", () => {
         // Reset to empty verifiable credential array before each test to allow each test to add its own verifiable credential
         vpPayload.verifiableCredential = [];
         vpPayload.id = randomUUID(); // VP ID is used as JWT JTI.
+
+        // If scope=did_write, the DID is not yet registered in the DIDR and TIR
+        if (customScope !== "did_write") {
+          nock(domain)
+            .get(`/did-registry/v4/identifiers/${credentialSubject.did}`)
+            .reply(200, credentialSubject.didDocument)
+            .persist();
+
+          nock(domain)
+            .get(
+              `/trusted-issuers-registry/v4/issuers/${credentialSubject.did}`
+            )
+            .reply(200, {})
+            .persist();
+        }
       });
 
       describe("vp_token validation", () => {
@@ -400,7 +503,7 @@ describe("Authorisation Module", () => {
           if (customScope !== "generic_write") {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
-              issuer,
+              credentialIssuer,
               {
                 ebsiAuthority: "example.net",
                 skipValidation: true,
@@ -412,7 +515,7 @@ describe("Authorisation Module", () => {
 
           const vpJwt = await createVerifiablePresentationJwt(
             vpPayload,
-            issuer,
+            credentialSubject,
             "authentication-service-v3",
             {
               ebsiAuthority: "example.net",
@@ -442,7 +545,7 @@ describe("Authorisation Module", () => {
 
           expect(response.body).toStrictEqual({
             detail: expect.stringContaining(
-              'JWT "aud" property MUST match the expected audience "https://api-test.ebsi.eu/authorisation/v3"'
+              `JWT "aud" property MUST match the expected audience "${domain}/authorisation/v3"`
             ),
             status: 400,
             title: "Invalid Verifiable Presentation",
@@ -455,7 +558,7 @@ describe("Authorisation Module", () => {
           if (customScope !== "generic_write") {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
-              issuer,
+              credentialIssuer,
               {
                 ebsiAuthority: "example.net",
                 skipValidation: true,
@@ -467,7 +570,7 @@ describe("Authorisation Module", () => {
 
           const vpJwt = await createVerifiablePresentationJwt(
             vpPayload,
-            issuer,
+            credentialSubject,
             serviceEndpoint,
             {
               ebsiAuthority: "example.net",
@@ -490,11 +593,11 @@ describe("Authorisation Module", () => {
           const vpTokenTampered = await createJWT(
             vpJwtDecoded.payload,
             {
-              issuer: vpJwtDecoded.payload.iss,
+              issuer: vpJwtDecoded.payload.iss as string,
               signer: ES256KSigner(randomBytes(32)),
             },
             {
-              kid: issuer.kid,
+              kid: credentialIssuer.kid,
             }
           );
 
@@ -512,7 +615,7 @@ describe("Authorisation Module", () => {
 
           expect(response.body).toStrictEqual({
             detail: expect.stringMatching(
-              `JWT "sub" property MUST match the VP holder "${issuer.did}"`
+              `JWT "sub" property MUST match the VP holder "${credentialSubject.did}"`
             ),
             status: 400,
             title: "Invalid Verifiable Presentation",
@@ -525,7 +628,7 @@ describe("Authorisation Module", () => {
           if (customScope !== "generic_write") {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
-              issuer,
+              credentialIssuer,
               {
                 ebsiAuthority: "example.net",
                 skipValidation: true,
@@ -537,7 +640,7 @@ describe("Authorisation Module", () => {
 
           const vpJwt = await createVerifiablePresentationJwt(
             vpPayload,
-            issuer,
+            credentialSubject,
             serviceEndpoint,
             {
               ebsiAuthority: "example.net",
@@ -574,7 +677,7 @@ describe("Authorisation Module", () => {
           if (customScope !== "generic_write") {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
-              issuer,
+              credentialIssuer,
               {
                 ebsiAuthority: "example.net",
                 skipValidation: true,
@@ -586,7 +689,7 @@ describe("Authorisation Module", () => {
 
           const vpJwt = await createVerifiablePresentationJwt(
             vpPayload,
-            issuer,
+            credentialSubject,
             serviceEndpoint,
             {
               ebsiAuthority: "example.net",
@@ -623,7 +726,7 @@ describe("Authorisation Module", () => {
           if (customScope !== "generic_write") {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
-              issuer,
+              credentialIssuer,
               {
                 ebsiAuthority: "example.net",
                 skipValidation: true,
@@ -635,7 +738,7 @@ describe("Authorisation Module", () => {
 
           const vpJwt = await createVerifiablePresentationJwt(
             vpPayload,
-            issuer,
+            credentialSubject,
             serviceEndpoint,
             {
               ebsiAuthority: "example.net",
@@ -678,7 +781,7 @@ describe("Authorisation Module", () => {
           if (customScope !== "generic_write") {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
-              issuer,
+              credentialIssuer,
               {
                 ebsiAuthority: "example.net",
                 skipValidation: true,
@@ -689,21 +792,24 @@ describe("Authorisation Module", () => {
           }
 
           // Create VP JWT manually
-          const privateKey = await importJWK(issuer.privateKeyJwk, issuer.alg);
+          const privateKey = await importJWK(
+            credentialIssuer.privateKeyJwk,
+            credentialIssuer.alg
+          );
           const vpJwt = await new SignJWT({
             aud: serviceEndpoint,
-            sub: issuer.did,
+            sub: credentialIssuer.did,
             iat: Math.floor(issuanceDate.getTime() / 1000),
             nbf: Math.floor(issuanceDate.getTime() / 1000),
             exp: Math.floor(expirationDate.getTime() / 1000),
             vp: vpPayload,
             nonce: randomUUID(),
-            iss: issuer.did,
+            iss: credentialIssuer.did,
           })
             .setProtectedHeader({
-              alg: issuer.alg,
+              alg: credentialIssuer.alg,
               typ: "JWT",
-              kid: issuer.kid,
+              kid: credentialIssuer.kid,
             })
             .sign(privateKey);
 
@@ -762,17 +868,21 @@ describe("Authorisation Module", () => {
         };
 
         if (customScope !== "generic_write") {
-          const vcJwt = await createVerifiableCredentialJwt(vcPayload, issuer, {
-            ebsiAuthority: "example.net",
-            skipValidation: true,
-          });
+          const vcJwt = await createVerifiableCredentialJwt(
+            vcPayload,
+            credentialIssuer,
+            {
+              ebsiAuthority: "example.net",
+              skipValidation: true,
+            }
+          );
 
           vpPayload.verifiableCredential.push(vcJwt);
         }
 
         let vpJwt = await createVerifiablePresentationJwt(
           vpPayload,
-          issuer,
+          credentialSubject,
           serviceEndpoint,
           {
             ebsiAuthority: "example.net",
@@ -833,7 +943,7 @@ describe("Authorisation Module", () => {
 
         vpJwt = await createVerifiablePresentationJwt(
           vpPayload,
-          issuer,
+          credentialSubject,
           serviceEndpoint,
           {
             ebsiAuthority: "example.net",
@@ -893,7 +1003,7 @@ describe("Authorisation Module", () => {
 
         vpJwt = await createVerifiablePresentationJwt(
           vpPayload,
-          issuer,
+          credentialSubject,
           serviceEndpoint,
           {
             ebsiAuthority: "example.net",
@@ -936,7 +1046,7 @@ describe("Authorisation Module", () => {
 
         vpJwt = await createVerifiablePresentationJwt(
           vpPayload,
-          issuer,
+          credentialSubject,
           serviceEndpoint,
           {
             ebsiAuthority: "example.net",
@@ -974,7 +1084,7 @@ describe("Authorisation Module", () => {
 
         vpJwt = await createVerifiablePresentationJwt(
           vpPayload,
-          issuer,
+          credentialSubject,
           serviceEndpoint,
           {
             ebsiAuthority: "example.net",
@@ -1019,7 +1129,7 @@ describe("Authorisation Module", () => {
 
         vpJwt = await createVerifiablePresentationJwt(
           vpPayload,
-          issuer,
+          credentialSubject,
           serviceEndpoint,
           {
             ebsiAuthority: "example.net",
@@ -1062,10 +1172,14 @@ describe("Authorisation Module", () => {
 
       it("should return an error if the content is not application/x-www-form-urlencoded", async () => {
         if (customScope !== "generic_write") {
-          const vcJwt = await createVerifiableCredentialJwt(vcPayload, issuer, {
-            ebsiAuthority: "example.net",
-            skipValidation: true,
-          });
+          const vcJwt = await createVerifiableCredentialJwt(
+            vcPayload,
+            credentialIssuer,
+            {
+              ebsiAuthority: "example.net",
+              skipValidation: true,
+            }
+          );
 
           vpPayload.verifiableCredential.push(vcJwt);
         }
@@ -1074,7 +1188,7 @@ describe("Authorisation Module", () => {
 
         const vpJwt = await createVerifiablePresentationJwt(
           vpPayload,
-          issuer,
+          credentialSubject,
           serviceEndpoint,
           {
             ebsiAuthority: "example.net",
@@ -1112,10 +1226,14 @@ describe("Authorisation Module", () => {
 
       it("should return an access token and an ID token when the presentation is valid", async () => {
         if (customScope !== "generic_write") {
-          const vcJwt = await createVerifiableCredentialJwt(vcPayload, issuer, {
-            ebsiAuthority: "example.net",
-            skipValidation: true,
-          });
+          const vcJwt = await createVerifiableCredentialJwt(
+            vcPayload,
+            credentialIssuer,
+            {
+              ebsiAuthority: "example.net",
+              skipValidation: true,
+            }
+          );
 
           vpPayload.verifiableCredential.push(vcJwt);
         }
@@ -1124,7 +1242,7 @@ describe("Authorisation Module", () => {
 
         const vpJwt = await createVerifiablePresentationJwt(
           vpPayload,
-          issuer,
+          credentialSubject,
           serviceEndpoint,
           {
             ebsiAuthority: "example.net",
@@ -1173,13 +1291,13 @@ describe("Authorisation Module", () => {
         });
 
         expect(decodedAccessToken.payload).toStrictEqual({
-          aud: "https://api-test.ebsi.eu/authorisation/v3",
+          aud: `${domain}/authorisation/v3`,
           exp: expect.any(Number),
           iat: expect.any(Number),
-          iss: "https://api-test.ebsi.eu/authorisation/v3",
+          iss: `${domain}/authorisation/v3`,
           jti: expect.any(String),
           scp: scope,
-          sub: issuer.did,
+          sub: credentialSubject.did,
         });
 
         // Get API public key in order to verify the signature
@@ -1193,7 +1311,7 @@ describe("Authorisation Module", () => {
 
         expect(apiPublicKeyJwk).toBeDefined();
 
-        const apiPublicKey = await importJWK(apiPublicKeyJwk);
+        const apiPublicKey = await importJWK(apiPublicKeyJwk as JsonWebKey);
 
         // Verify the signature of the access token
         await expect(
@@ -1211,12 +1329,12 @@ describe("Authorisation Module", () => {
         });
 
         expect(decodedIdToken.payload).toStrictEqual({
-          aud: issuer.did,
+          aud: credentialSubject.did,
           exp: expect.any(Number),
           iat: expect.any(Number),
-          iss: "https://api-test.ebsi.eu/authorisation/v3",
+          iss: `${domain}/authorisation/v3`,
           jti: expect.any(String),
-          sub: issuer.did,
+          sub: credentialSubject.did,
           nonce,
         });
 

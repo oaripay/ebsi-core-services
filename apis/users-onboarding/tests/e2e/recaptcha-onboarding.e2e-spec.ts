@@ -179,6 +179,7 @@ describeSkipCI("reCAPTCHA onboarding", () => {
       authenticationServerResponse.body.verifiableCredential,
       {
         ebsiAuthority: domain.replace(/^https?:\/\//, ""), // remove http protocol scheme
+        skipAccreditationsValidation: true,
       }
     );
     expect(validation).toBeDefined();

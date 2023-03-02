@@ -17,7 +17,7 @@ module.exports = {
     ],
   },
   transformIgnorePatterns: [
-    "/node_modules/(?!(axios))",
+    "/node_modules/",
     "/apis/shared/dist/",
     "/contracts/trusted-issuers-registry/dist/",
   ],

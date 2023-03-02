@@ -255,7 +255,11 @@ export class IssuersService {
       .get<string>("domain")
       .replace(/^https?:\/\//, "");
 
-    if (!(await isStatusList2021Credential(res.data, authority))) {
+    if (
+      !(await isStatusList2021Credential(res.data, authority, {
+        skipAccreditationsValidation: true,
+      }))
+    ) {
       throw new InternalServerError("Invalid Status List Credential", {
         detail:
           "The Status List Credential returned by the Issuer's proxy is invalid",

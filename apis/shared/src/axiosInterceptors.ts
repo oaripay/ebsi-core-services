@@ -21,7 +21,7 @@ const validateRequestConfigHeaders = (config: AxiosRequestConfig): boolean => {
   return (
     !config.headers ||
     (typeof config.headers === "object" &&
-      config.headers["EBSI-REMOTE-API"] !== true)
+      config.headers["EBSI-REMOTE-API"] !== "true")
   );
 };
 
@@ -87,7 +87,8 @@ export function setupInterceptors(
         config.url = remoteUrl;
 
         // Add custom header to avoid replacing the URL again
-        (config.headers as { [x: string]: unknown })["EBSI-REMOTE-API"] = true;
+        (config.headers as { [x: string]: unknown })["EBSI-REMOTE-API"] =
+          "true";
 
         // Retry request
         return axios.request(config);

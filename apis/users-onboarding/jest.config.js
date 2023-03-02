@@ -21,7 +21,7 @@ module.exports = {
     ],
   },
   transformIgnorePatterns: [
-    "/node_modules/(?!(axios))",
+    "/node_modules/",
     "/apis/shared/dist/",
     "jest-puppeteer.config.js",
   ],
