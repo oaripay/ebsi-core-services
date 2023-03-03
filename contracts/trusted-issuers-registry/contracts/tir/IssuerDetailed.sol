@@ -85,18 +85,16 @@ abstract contract IssuerDetailed is IssuerStorage {
             policy,
             msg.sender
         );
-        if (issuerType == IssuerType.RootTAO) {
-            require(
-                hasTprPolicy,
-                string(
-                    abi.encodePacked(
-                        "Policy error: sender doesn't have the attribute ",
-                        policy
-                    )
+        if (hasTprPolicy) return;
+        require(
+            issuerType != IssuerType.RootTAO,
+            string(
+                abi.encodePacked(
+                    "Policy error: sender doesn't have the attribute ",
+                    policy
                 )
-            );
-            return;
-        }
+            )
+        );
         AttributeMetadata storage lastAttrMetadata = ds.attributeMetadataStore[
             lastRevisionId
         ];
@@ -464,7 +462,7 @@ abstract contract IssuerDetailed is IssuerStorage {
             issuerType,
             taoDid,
             _rootTaoDid,
-            abi.encode("")
+            ""
         );
     }
 
@@ -479,23 +477,21 @@ abstract contract IssuerDetailed is IssuerStorage {
         );
         Issuers storage ds = issuerStorage();
         Entity storage iss = ds.issuerStore[did];
-        AttributeMetadata storage attrMetadata = ds.attributeMetadataStore[
-            attributeId
+
+        bytes32 lastRevisionId = getLatestRevisionAttributeId(did, attributeId);
+        AttributeMetadata memory lastAttrMetadata = ds.attributeMetadataStore[
+            lastRevisionId
         ];
-        require(
-            !compareStrings(attrMetadata.did, ""),
-            "Attribute does not exists"
-        );
 
         bytes32 newRevisionId = sha256(attributeData);
-        string memory taoDid = attrMetadata.taoDid;
-        string memory rootTaoDid = attrMetadata.rootTaoDid;
+        string memory taoDid = lastAttrMetadata.taoDid;
+        string memory rootTaoDid = lastAttrMetadata.rootTaoDid;
 
         addRevision(
             did,
-            attrMetadata.attributeId,
+            lastAttrMetadata.attributeId,
             newRevisionId,
-            attrMetadata.issuerType,
+            lastAttrMetadata.issuerType,
             taoDid,
             rootTaoDid,
             attributeData

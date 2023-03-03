@@ -480,6 +480,127 @@ describe("Issuers", () => {
       );
     });
 
+    it("should get latest metadata during setAttributeData", async () => {
+      await policyContractMock.setPolicyResult(true);
+      await didContractMock.setDidResult(true);
+
+      const attributeIdAsRootTAO = crypto.randomBytes(32);
+      const attributeIdAsTI = crypto.randomBytes(32);
+      const attributeData = crypto.randomBytes(5);
+
+      await tir.setAttributeMetadata(
+        didIssuer,
+        attributeIdAsRootTAO,
+        IssuerType.RootTAO,
+        didIssuer,
+        attributeIdAsRootTAO
+      );
+
+      // set an attribute as TI
+      await tir.setAttributeMetadata(
+        didIssuer,
+        attributeIdAsTI,
+        IssuerType.TI,
+        didIssuer,
+        attributeIdAsRootTAO
+      );
+
+      // revoke that attribute
+      await tir.setAttributeMetadata(
+        didIssuer,
+        attributeIdAsTI,
+        IssuerType.Revoked,
+        didIssuer,
+        attributeIdAsRootTAO
+      );
+
+      // fill the data
+      await tir.setAttributeData(didIssuer, attributeIdAsTI, attributeData);
+
+      // expect the attribute to be revoked
+      const issuerHashes = await tir.getIssuer(didIssuer);
+      expect(issuerHashes).to.be.an("array");
+      expect(issuerHashes).to.have.length(2);
+
+      // get the second attribute
+      const issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[1]);
+      expect(getEthObject(issuerAttr)).to.eql({
+        did: didIssuer,
+        attribData: `0x${attributeData.toString("hex")}`,
+        issuerType: IssuerType.Revoked,
+        rootTao: didIssuer,
+        tao: didIssuer,
+      });
+    });
+
+    it("should be able to revoke a RootTAO by an admin from TPR", async () => {
+      await policyContractMock.setPolicyResult(true);
+      await didContractMock.setDidResult(true);
+
+      const attributeIdAsRootTAO = crypto.randomBytes(32);
+      const didSupportOffice = "did:ebsi:supportOffice";
+      const anyAttributeId = crypto.randomBytes(32);
+
+      // create support office
+      await tir.setAttributeMetadata(
+        didSupportOffice,
+        anyAttributeId,
+        IssuerType.RootTAO,
+        didSupportOffice,
+        anyAttributeId
+      );
+
+      // set issuer as RootTAO
+      await tir.setAttributeMetadata(
+        didIssuer,
+        attributeIdAsRootTAO,
+        IssuerType.RootTAO,
+        didSupportOffice,
+        anyAttributeId
+      );
+
+      // expect the attribute to be RootTAO
+      let issuerHashes = await tir.getIssuer(didIssuer);
+      expect(issuerHashes).to.be.an("array");
+      expect(issuerHashes).to.have.length(1);
+
+      // get the attribute
+      let issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[0]);
+      expect(getEthObject(issuerAttr)).to.eql({
+        did: didIssuer,
+        attribData: "0x",
+        issuerType: IssuerType.RootTAO,
+        // the rootTao is the issuer itself
+        rootTao: didIssuer,
+        tao: didIssuer,
+      });
+
+      // revoke RootTAO attribute
+      await tir.setAttributeMetadata(
+        didIssuer,
+        attributeIdAsRootTAO,
+        IssuerType.Revoked,
+        didSupportOffice,
+        anyAttributeId
+      );
+
+      // expect the attribute to be revoked
+      issuerHashes = await tir.getIssuer(didIssuer);
+      expect(issuerHashes).to.be.an("array");
+      expect(issuerHashes).to.have.length(1);
+
+      // get the attribute
+      issuerAttr = await tir.getIssuerAttributeByHash(issuerHashes[0]);
+      expect(getEthObject(issuerAttr)).to.eql({
+        did: didIssuer,
+        attribData: "0x",
+        issuerType: IssuerType.Revoked,
+        // here the rootTao and tao is reassigned to support office
+        rootTao: didSupportOffice,
+        tao: didSupportOffice,
+      });
+    });
+
     it("should update its own attributes only if it's a RootTAO", async () => {
       // insert issuer
       await policyContractMock.setPolicyResult(true); // enable admin
