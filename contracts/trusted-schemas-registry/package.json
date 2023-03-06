@@ -24,7 +24,7 @@
   "dependencies": {
     "@ebsiint-sc/bootstrap": "^1.0.1-rc.0",
     "@ebsiint-sc/trusted-policies-registry": "^1.0.1-rc.0",
-    "@openzeppelin/contracts": "^4.8.1"
+    "@openzeppelin/contracts": "^4.8.2"
   },
   "devDependencies": {
     "@ethersproject/abi": "^5.7.0",
