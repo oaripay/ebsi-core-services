@@ -1,6 +1,8 @@
 interface NetworkConfig {
   tprAddress?: string;
   didAddress?: string;
+  didV3Address?: string;
+  didV4Address?: string;
 }
 
 interface Dependencies {
@@ -10,9 +12,11 @@ interface Dependencies {
 export const dependencies: Dependencies = {
   6176: {},
   6175: {
+    // TEST Env
     tprAddress: "0x17a340418937A38b3Cb62FdA42241eB0722868A6",
-    didAddress: "0x823BBc0ceE3dE3B61AcfA0CEedb951AB9a013F05",
-  }, // test environment
+    didAddress: "0x823BBc0ceE3dE3B61AcfA0CEedb951AB9a013F05", // did V4
+    didV3Address: "0x15582f47140ff4bd74843583a1e3111032fb91c8", // did V3
+  },
   1337: {
     tprAddress: "0x331fC724f2e88269DFC96ddA52119752999EB25C",
     didAddress: "0x331fC724f2e88269DFC96ddA52119752999EB25C",

@@ -16,6 +16,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const { chainId } = await ethers.provider.getNetwork();
   console.log(`chain id ${chainId}`);
   let tprAddress = dependencies[chainId]?.tprAddress;
+  let didV3Address = dependencies[chainId]?.didV3Address;
   if (!ethers.utils.isAddress(tprAddress)) {
     console.log(`Deploying TPR for testnet`);
     // deploy for testnet
@@ -23,6 +24,14 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     tprAddress = (await deployments.get("PolicyRegistry")).address;
   }
   console.log(`Trusted Policy Registry Address is ${tprAddress}`);
+
+  if (!ethers.utils.isAddress(didV3Address)) {
+    console.log(`Deploying DidRegistry for testnet`);
+    // deploy for testnet
+    await deployments.run("DidRegistry");
+    didV3Address = (await deployments.get("DidRegistry")).address;
+  }
+  console.log(`DidRegistry Address is ${didV3Address}`);
 
   const pagination = await deployments.deploy("Pagination", {
     ...opts,
@@ -78,7 +87,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     from: deployer,
     contract:
       "contracts/did-registry-v4/did-registry/DidRegistry.sol:DidRegistry",
-    args: [tprAddress],
+    args: [tprAddress, didV3Address],
     libraries: {
       ControllersLib: controller.address,
       CustomPagination: customPagination.address,

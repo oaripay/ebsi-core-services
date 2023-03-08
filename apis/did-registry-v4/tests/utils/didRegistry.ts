@@ -110,14 +110,6 @@ export async function insertDidDocument(
 
   await contract.addVerificationRelationship(
     user.did,
-    "authentication",
-    user.thumbprint,
-    now,
-    now + 3600
-  );
-
-  await contract.addVerificationRelationship(
-    user.did,
     "assertionMethod",
     user.thumbprint,
     now,

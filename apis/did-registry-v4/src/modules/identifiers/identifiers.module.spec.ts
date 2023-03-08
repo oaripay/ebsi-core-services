@@ -522,6 +522,7 @@ describe("Identifiers Module", () => {
           },
         ],
         capabilityInvocation: [`${user.did}#${thumbprint1}`],
+        authentication: [`${user.did}#${thumbprint1}`],
       });
       expect(response.status).toBe(200);
 
@@ -535,20 +536,23 @@ describe("Identifiers Module", () => {
         controller: controllers,
         verificationMethod: [
           {
-            id: `${user.did}#${thumbprint2}`,
-            type: "JsonWebKey2020",
-            controller: user.did,
-            publicKeyJwk: publicKeyJwk2,
-          },
-          {
             id: `${user.did}#${thumbprint1}`,
             type: "JsonWebKey2020",
             controller: user.did,
             publicKeyJwk: publicKeyJwk1,
           },
+          {
+            id: `${user.did}#${thumbprint2}`,
+            type: "JsonWebKey2020",
+            controller: user.did,
+            publicKeyJwk: publicKeyJwk2,
+          },
         ],
         capabilityInvocation: [`${user.did}#${thumbprint1}`],
-        authentication: [`${user.did}#${thumbprint2}`],
+        authentication: [
+          `${user.did}#${thumbprint1}`,
+          `${user.did}#${thumbprint2}`,
+        ],
       });
       expect(response.status).toBe(200);
 
@@ -562,16 +566,16 @@ describe("Identifiers Module", () => {
         controller: controllers,
         verificationMethod: [
           {
-            id: `${user.did}#${thumbprint2}`,
-            type: "JsonWebKey2020",
-            controller: user.did,
-            publicKeyJwk: publicKeyJwk2,
-          },
-          {
             id: `${user.did}#${thumbprint1}`,
             type: "JsonWebKey2020",
             controller: user.did,
             publicKeyJwk: publicKeyJwk1,
+          },
+          {
+            id: `${user.did}#${thumbprint2}`,
+            type: "JsonWebKey2020",
+            controller: user.did,
+            publicKeyJwk: publicKeyJwk2,
           },
           {
             id: `${user.did}#${thumbprint3}`,
@@ -584,7 +588,11 @@ describe("Identifiers Module", () => {
           `${user.did}#${thumbprint1}`,
           `${user.did}#${thumbprint3}`,
         ],
-        authentication: [`${user.did}#${thumbprint2}`],
+        authentication: [
+          `${user.did}#${thumbprint1}`,
+          `${user.did}#${thumbprint2}`,
+          `${user.did}#${thumbprint3}`,
+        ],
       });
       expect(response.status).toBe(200);
 
@@ -611,7 +619,10 @@ describe("Identifiers Module", () => {
           },
         ],
         capabilityInvocation: [`${user.did}#${thumbprint3}`],
-        authentication: [`${user.did}#${thumbprint2}`],
+        authentication: [
+          `${user.did}#${thumbprint2}`,
+          `${user.did}#${thumbprint3}`,
+        ],
       });
       expect(response.status).toBe(200);
 
@@ -632,6 +643,7 @@ describe("Identifiers Module", () => {
           },
         ],
         capabilityInvocation: [`${user.did}#${thumbprint3}`],
+        authentication: [`${user.did}#${thumbprint3}`],
       });
       expect(response.status).toBe(200);
     });

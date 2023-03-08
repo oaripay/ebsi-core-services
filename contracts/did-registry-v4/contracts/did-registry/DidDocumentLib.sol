@@ -140,10 +140,13 @@ library DidDocumentLib {
             true,
             false
         );
-        uint256 indexDid = vs.addVerificationRelationship(
-            uint256(
-                keccak256(abi.encodePacked("capabilityInvocation", vMethodId))
-            ),
+
+        uint256 indexDid;
+
+        indexDid = _addVerificationRelationship(
+            vs,
+            "capabilityInvocation",
+            vMethodId,
             did,
             notBefore,
             notAfter
@@ -158,9 +161,44 @@ library DidDocumentLib {
             )
         );
 
-        ds.dids.push(did);
+        indexDid = _addVerificationRelationship(
+            vs,
+            "authentication",
+            vMethodId,
+            did,
+            notBefore,
+            notAfter
+        );
 
+        d.vRelationships.push(
+            DidDocumentStorage.VRelationship(
+                "authentication",
+                vMethodId,
+                notBefore,
+                notAfter,
+                indexDid
+            )
+        );
+
+        ds.dids.push(did);
         return true;
+    }
+
+    function _addVerificationRelationship(
+        VRelationshipsStorage.VRelationships storage vs,
+        string memory str,
+        string memory vMethodId,
+        string memory did,
+        uint notBefore,
+        uint notAfter
+    ) internal returns (uint) {
+        return
+            vs.addVerificationRelationship(
+                uint256(keccak256(abi.encodePacked(str, vMethodId))),
+                did,
+                notBefore,
+                notAfter
+            );
     }
 
     function updateBaseDocument(

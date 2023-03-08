@@ -381,6 +381,13 @@ describe("Did Documents", () => {
       ],
       vRelationships: [
         {
+          name: "authentication",
+          vMethodId,
+          notBefore: Number(notBefore).toString(),
+          notAfter: Number(notAfter).toString(),
+          indexDid: "0",
+        },
+        {
           name: "capabilityInvocation",
           vMethodId,
           notBefore: Number(notBefore).toString(),
@@ -783,6 +790,13 @@ describe("Did Documents", () => {
       ],
       vRelationships: [
         {
+          name: "authentication",
+          vMethodId,
+          notBefore: Number(notBefore).toString(),
+          notAfter: Number(notAfter + 3000).toString(),
+          indexDid: "0",
+        },
+        {
           name: "capabilityInvocation",
           vMethodId,
           notBefore: Number(notBefore).toString(),
@@ -895,6 +909,13 @@ describe("Did Documents", () => {
       ],
       vRelationships: [
         {
+          name: "authentication",
+          vMethodId: vMethodId2,
+          notBefore: Number(newNotBefore).toString(),
+          notAfter: Number(newNotAfter).toString(),
+          indexDid: "0",
+        },
+        {
           name: "capabilityInvocation",
           vMethodId: vMethodId2,
           notBefore: Number(newNotBefore).toString(),
@@ -954,6 +975,20 @@ describe("Did Documents", () => {
         },
       ],
       vRelationships: [
+        {
+          name: "authentication",
+          vMethodId,
+          notBefore: Number(notBefore).toString(),
+          notAfter: Number(newNotBefore + 1234).toString(),
+          indexDid: "0",
+        },
+        {
+          name: "authentication",
+          vMethodId: vMethodId2,
+          notBefore: Number(newNotBefore).toString(),
+          notAfter: Number(newNotAfter).toString(),
+          indexDid: "0",
+        },
         {
           name: "capabilityInvocation",
           vMethodId,
@@ -1331,6 +1366,13 @@ describe("Did Documents", () => {
       ],
       vRelationships: [
         {
+          name: "authentication",
+          vMethodId,
+          notBefore: "1000",
+          notAfter: "2000",
+          indexDid: "0",
+        },
+        {
           name: "capabilityInvocation",
           vMethodId,
           notBefore: "1000",
@@ -1499,6 +1541,13 @@ describe("Did Documents", () => {
       ],
       vRelationships: [
         {
+          name: "authentication",
+          vMethodId,
+          notBefore: Number(notBefore).toString(),
+          notAfter: Number(notAfter).toString(),
+          indexDid: "0",
+        },
+        {
           name: "assertionMethod",
           vMethodId,
           notBefore: Number(notBefore).toString(),
@@ -1558,6 +1607,13 @@ describe("Did Documents", () => {
       ],
       vRelationships: [
         {
+          name: "authentication",
+          vMethodId,
+          notBefore: Number(notBefore).toString(),
+          notAfter: Number(notAfter).toString(),
+          indexDid: "0",
+        },
+        {
           name: "assertionMethod",
           vMethodId,
           notBefore: Number(notBefore).toString(),
@@ -1608,6 +1664,13 @@ describe("Did Documents", () => {
         },
       ],
       vRelationships: [
+        {
+          name: "authentication",
+          vMethodId,
+          notBefore: Number(notBefore).toString(),
+          notAfter: Number(notAfter).toString(),
+          indexDid: "0",
+        },
         {
           name: "assertionMethod",
           vMethodId,
@@ -1670,6 +1733,13 @@ describe("Did Documents", () => {
           vMethodId: vMethodId3,
           notBefore: Number(notBefore3).toString(),
           notAfter: Number(notAfter3).toString(),
+          indexDid: "0",
+        },
+        {
+          name: "authentication",
+          vMethodId: vMethodId4,
+          notBefore: Number(notBefore4).toString(),
+          notAfter: Number(notAfter4).toString(),
           indexDid: "0",
         },
         {
