@@ -40,8 +40,6 @@ import {
   UnsignedTransaction,
   InsertHashAlgorithmParam,
   UpdateHashAlgorithmParam,
-  InsertPolicyParam,
-  UpdatePolicyParam,
   InsertDidControllerParam,
   InsertDidDocumentParam,
   UpdateDidDocumentParam,
@@ -100,8 +98,6 @@ interface SupertestJsonRpcResponse {
 type JsonRpcParams =
   | InsertHashAlgorithmParam
   | UpdateHashAlgorithmParam
-  | InsertPolicyParam
-  | UpdatePolicyParam
   | InsertDidDocumentParam
   | UpdateDidDocumentParam
   | InsertDidControllerParam
@@ -135,26 +131,6 @@ describe("JsonRpc Module", () => {
   let appAccessToken: string;
   let adminAccessToken: string;
   let newUserAccessToken: string;
-
-  function createPolicy() {
-    const policyId = `policy-test-${crypto.randomBytes(16).toString("hex")}`;
-    const json = {
-      // any object here
-      any: "Any attribute here",
-      type: "credential",
-      data: crypto.randomBytes(16).toString("hex"),
-    };
-    const data = Buffer.from(JSON.stringify(json));
-    const policyData = `0x${data.toString("hex")}`;
-    return {
-      policyId,
-      policyData,
-    };
-  }
-
-  const policy1 = createPolicy();
-  const policy2 = createPolicy();
-  const policy3 = createPolicy();
 
   let adminSigner: ethers.Wallet;
   let adminDid: string;
@@ -469,10 +445,10 @@ describe("JsonRpc Module", () => {
     const transaction = {
       from: wallet.address,
       to: didRegistryContractAddress,
-      data: didRegistryContract.interface.encodeFunctionData("insertPolicy", [
-        "policy abc",
-        "0x000000",
-      ]),
+      data: didRegistryContract.interface.encodeFunctionData(
+        "insertHashAlgorithm",
+        ["0x0100", "sha-256", "2.16.840.1.101.3.4.2.1", "0x1", "sha2-256"]
+      ),
       value: "0x00",
       nonce: "0x00",
       chainId: "0x1b3b",
@@ -738,8 +714,6 @@ describe("JsonRpc Module", () => {
   describe.each([
     "insertHashAlgorithm",
     "updateHashAlgorithm",
-    "insertPolicy",
-    "updatePolicy",
     "insertDidDocument",
     "updateDidDocument",
     "insertDidController",
@@ -792,22 +766,6 @@ describe("JsonRpc Module", () => {
             status: 1,
             multihash: "sha2-256",
           } as UpdateHashAlgorithmParam;
-          break;
-        }
-        case "insertPolicy": {
-          param = {
-            from: signer.address,
-            policyId: policy1.policyId,
-            policyData: policy1.policyData,
-          } as InsertPolicyParam;
-          break;
-        }
-        case "updatePolicy": {
-          param = {
-            from: signer.address,
-            policyId: policy1.policyId,
-            policyData: policy2.policyData,
-          } as UpdatePolicyParam;
           break;
         }
         case "insertDidDocument": {
@@ -1108,15 +1066,6 @@ describe("JsonRpc Module", () => {
           } as UpdateHashAlgorithmParam;
           break;
         }
-        case "insertPolicy":
-        case "updatePolicy": {
-          param = {
-            from: signer.address,
-            policyId: policy1.policyId,
-            policyData: policy1.policyData,
-          } as InsertPolicyParam;
-          break;
-        }
         case "insertDidDocument": {
           const {
             didDocumentBuffer,
@@ -1388,36 +1337,6 @@ describe("JsonRpc Module", () => {
               multihash: "sha-sha-sha-256",
             } as UpdateHashAlgorithmParam,
             expectedErrorMessage: "multihash must be a valid multihash",
-          });
-
-          break;
-        }
-        case "insertPolicy":
-        case "updatePolicy": {
-          testSetup.push({
-            params: {
-              ...policy1,
-              from: signer.address,
-              policyId: undefined,
-            } as InsertPolicyParam,
-            expectedErrorMessage: "policyId must be a string",
-          });
-
-          testSetup.push({
-            params: {
-              ...policy2,
-              from: signer.address,
-              policyData: undefined,
-            } as InsertPolicyParam,
-            expectedErrorMessage: "policyData must be a hexadecimal number",
-          });
-
-          testSetup.push({
-            params: {
-              ...policy3,
-              from: "bad address",
-            } as InsertPolicyParam,
-            expectedErrorMessage: "from must be an Ethereum address",
           });
 
           break;
@@ -1902,18 +1821,6 @@ describe("JsonRpc Module", () => {
             multihash: "sha2-256",
           } as UpdateHashAlgorithmParam;
 
-          break;
-        }
-        case "insertPolicy":
-        case "updatePolicy": {
-          param1 = {
-            ...policy1,
-            from: signer.address,
-          } as InsertPolicyParam;
-          param2 = {
-            ...policy2,
-            from: signer.address,
-          } as InsertPolicyParam;
           break;
         }
         case "insertDidDocument":

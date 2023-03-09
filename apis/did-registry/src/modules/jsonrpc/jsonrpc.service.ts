@@ -9,10 +9,6 @@ import {
   RequestInsertHashAlgorithmDto,
   RequestUpdateHashAlgorithmDto,
   ArgsUpdateHashAlgorithm,
-  ArgsInsertPolicy,
-  RequestInsertPolicyDto,
-  RequestUpdatePolicyDto,
-  ArgsUpdatePolicy,
   RequestInsertDidControllerDto,
   ArgsInsertDidController,
   RequestInsertDidDocumentDto,
@@ -243,20 +239,6 @@ export class JsonRpcService {
     ).interface.parseTransaction(unsignedTransaction);
 
     switch (functionFragment.name) {
-      case "insertPolicy": {
-        await validateClass(
-          ArgsInsertPolicy,
-          args as unknown as ArgsInsertPolicy
-        );
-        break;
-      }
-      case "updatePolicy": {
-        await validateClass(
-          ArgsUpdatePolicy,
-          args as unknown as ArgsUpdatePolicy
-        );
-        break;
-      }
       case "insertHashAlgorithm": {
         await validateClass(
           ArgsInsertHashAlgorithm,
@@ -383,44 +365,6 @@ export class JsonRpcService {
     }
 
     return unsignedTransaction;
-  }
-
-  async buildTransactionInsertPolicy(
-    body: RequestInsertPolicyDto,
-    id?: number | string
-  ): Promise<UnsignedTransaction> {
-    try {
-      await validateClass(RequestInsertPolicyDto, body);
-      const { from, policyId, policyData } = body.params[0];
-
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("insertPolicy", [policyId, policyData]);
-      return await this.buildTransaction(from, data);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
-      throw error;
-    }
-  }
-
-  async buildTransactionUpdatePolicy(
-    body: RequestUpdatePolicyDto,
-    id?: number | string
-  ): Promise<UnsignedTransaction> {
-    try {
-      await validateClass(RequestUpdatePolicyDto, body);
-      const { from, policyId, policyData } = body.params[0];
-
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("updatePolicy", [policyId, policyData]);
-      return await this.buildTransaction(from, data);
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
-      throw error;
-    }
   }
 
   async buildTransactionInsertHashAlgorithm(

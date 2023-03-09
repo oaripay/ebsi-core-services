@@ -8,10 +8,6 @@ import {
   RequestInsertHashAlgorithmDto,
   ArgsUpdateHashAlgorithm,
   RequestUpdateHashAlgorithmDto,
-  ArgsInsertPolicy,
-  RequestInsertPolicyDto,
-  ArgsUpdatePolicy,
-  RequestUpdatePolicyDto,
   ArgsInsertDidController,
   RequestInsertDidControllerDto,
   ArgsInsertDidDocument,
@@ -66,10 +62,6 @@ type JsonRpcDtos =
   | RequestInsertHashAlgorithmDto
   | ArgsUpdateHashAlgorithm
   | RequestUpdateHashAlgorithmDto
-  | ArgsInsertPolicy
-  | RequestInsertPolicyDto
-  | ArgsUpdatePolicy
-  | RequestUpdatePolicyDto
   | ArgsInsertDidController
   | RequestInsertDidControllerDto
   | ArgsInsertDidDocument

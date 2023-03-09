@@ -6,7 +6,6 @@ import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module";
 import { DidTimestampsModule } from "./modules/did-timestamps/did-timestamps.module";
 import { HashAlgorithmsModule } from "./modules/hash-algorithms/hash-algorithms.module";
 import { IdentifiersModule } from "./modules/identifiers/identifiers.module";
-import { PoliciesModule } from "./modules/policies/policies.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { LedgerModule } from "./modules/ledger/ledger.module";
 import { LoggingInterceptor } from "./interceptors/logging.intereceptor";
@@ -22,7 +21,6 @@ import { VersionInterceptor } from "./interceptors/version.interceptor";
     DidTimestampsModule,
     HashAlgorithmsModule,
     IdentifiersModule,
-    PoliciesModule,
   ],
   providers: [
     {

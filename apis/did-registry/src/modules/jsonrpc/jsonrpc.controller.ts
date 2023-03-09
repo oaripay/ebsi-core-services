@@ -8,8 +8,6 @@ import {
   RequestSendSignedTransactionDto,
   RequestInsertHashAlgorithmDto,
   RequestUpdateHashAlgorithmDto,
-  RequestInsertPolicyDto,
-  RequestUpdatePolicyDto,
   RequestInsertDidControllerDto,
   RequestInsertDidDocumentDto,
   RequestUpdateDidDocumentDto,
@@ -42,22 +40,6 @@ export default class AppController {
   ): Promise<JsonRpcResponseObject> {
     const { method, id } = body;
     switch (method) {
-      case "insertPolicy": {
-        const transaction =
-          await this.jsonRpcService.buildTransactionInsertPolicy(
-            body as RequestInsertPolicyDto,
-            id
-          );
-        return formatJsonRpcResponse(transaction, id);
-      }
-      case "updatePolicy": {
-        const transaction =
-          await this.jsonRpcService.buildTransactionUpdatePolicy(
-            body as RequestUpdatePolicyDto,
-            id
-          );
-        return formatJsonRpcResponse(transaction, id);
-      }
       case "insertHashAlgorithm": {
         const result =
           await this.jsonRpcService.buildTransactionInsertHashAlgorithm(

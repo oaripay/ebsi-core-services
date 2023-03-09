@@ -5,7 +5,6 @@ pragma solidity 0.8.12;
 import "@ebsiint-sc/bootstrap/contracts/utils/upgradeability/Initializable.sol";
 import "./DidStorage.sol";
 import "./HashAlgoDetailed.sol";
-import "./DidPolicyDetailed.sol";
 import "./DidTimestampDetailed.sol";
 import "./DidRecordDetailed.sol";
 
@@ -16,7 +15,6 @@ import "./DidRecordDetailed.sol";
 contract DidRegistry is
     DidStorage,
     HashAlgoDetailed,
-    DidPolicyDetailed,
     DidTimestampDetailed,
     DidRecordDetailed,
     Initializable

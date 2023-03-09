@@ -5,10 +5,8 @@ import { FactoryOptions } from "hardhat/types";
 import "@nomiclabs/hardhat-ethers";
 import crypto from "node:crypto";
 import { Contract, ethers } from "ethers";
-import { range } from "rxjs";
 import canonicalize from "canonicalize";
 import { HashName } from "multihashes";
-import { mergeMap, toArray } from "rxjs/operators";
 import { DidRegistry } from "@ebsiint-sc/did-registry";
 import { createDid, createDidDocument, createMetadata } from "./data";
 
@@ -32,12 +30,6 @@ interface HashAlgorithmObject {
   oid: string;
   status: number;
   multihash: HashName;
-}
-
-interface PolicyObject {
-  policyId: string;
-  policyData: unknown;
-  policyHash: string;
 }
 
 const validHashAlgorithms = [
@@ -116,7 +108,6 @@ export async function deployDidRegistryContract(): Promise<{
     "DidRegistry",
     {
       libraries: {
-        DidPolicyLib: await deployContract("DidPolicyLib", linkLibPagination),
         HashAlgoLib: await deployContract("HashAlgoLib"),
         DidTimestampLib: await deployContract("DidTimestampLib"),
         DidRecordLib: await deployContract("DidRecordLib", linkLibPagination),
@@ -203,45 +194,6 @@ export async function insertDidDocument(
   };
 }
 
-export async function insertPolicy(
-  contract: DidRegistry
-): Promise<PolicyObject> {
-  const policyId = `policy-test-${crypto.randomBytes(16).toString("hex")}`;
-
-  const policyData = {
-    // any object here
-    any: "Any attribute here",
-    type: "credential",
-    data: crypto.randomBytes(16).toString("hex"),
-  };
-
-  const policyBuffer = Buffer.from(JSON.stringify(policyData));
-  const policyHash = ethers.utils.sha256(policyBuffer);
-
-  await contract.insertPolicy(policyId, policyBuffer);
-
-  return { policyId, policyData: policyBuffer.toString("base64"), policyHash };
-}
-
-export async function updatePolicy(
-  contract: DidRegistry,
-  policyId: string
-): Promise<PolicyObject> {
-  const policyData = {
-    // any object here
-    any: "Any attribute here",
-    type: "credential",
-    data: crypto.randomBytes(16).toString("hex"),
-  };
-
-  const policyBuffer = Buffer.from(JSON.stringify(policyData));
-  const policyHash = ethers.utils.sha256(policyBuffer);
-
-  await contract.updatePolicy(policyId, policyBuffer);
-
-  return { policyId, policyData: policyBuffer.toString("base64"), policyHash };
-}
-
 export async function insertHashAlgorithm(
   contract: DidRegistry,
   id: number
@@ -272,16 +224,12 @@ export async function insertHashAlgorithm(
 export interface SetupOptions {
   didDocuments?: number;
   hashAlgorithmsTotal?: number;
-  policiesTotal?: number;
-  policiesRevisionsTotal?: number;
 }
 
 export async function setupTestEnv(
   opts: SetupOptions = {
     didDocuments: 1,
     hashAlgorithmsTotal: 1,
-    policiesTotal: 1,
-    policiesRevisionsTotal: 1,
   }
 ): Promise<{
   provider: ethers.providers.JsonRpcProvider;
@@ -290,8 +238,6 @@ export async function setupTestEnv(
   didDocuments: DidDocument[];
   defaultController: ethers.Wallet;
   hashAlgorithms: HashAlgorithmObject[];
-  policies: PolicyObject[];
-  policyRevisions: { [x: string]: PolicyObject[] };
 }> {
   const ethersProvider = hre.ethers.provider;
   const didDocuments: DidDocument[] = [];
@@ -325,35 +271,6 @@ export async function setupTestEnv(
     ))
   );
 
-  const policyRevisions = {};
-
-  // Create as many policies as requested
-  const createPolicy = async () => {
-    const policy = await insertPolicy(didRegistryContract);
-
-    const createRevision = async () =>
-      updatePolicy(didRegistryContract, policy.policyId);
-
-    // For each policy, add revisions
-    policyRevisions[policy.policyId] = [
-      // The first revision is the policy itself
-      policy,
-      // Then, we add new revisions
-      ...(await range(0, (opts.policiesRevisionsTotal ?? 1) - 1)
-        .pipe(mergeMap(createRevision), toArray())
-        .toPromise()),
-    ];
-
-    return policy;
-  };
-
-  const policies =
-    opts.policiesTotal >= 1
-      ? await range(0, opts.policiesTotal)
-          .pipe(mergeMap(createPolicy), toArray())
-          .toPromise()
-      : [];
-
   // Return test env variables
   return {
     provider: ethersProvider,
@@ -362,7 +279,5 @@ export async function setupTestEnv(
     didDocuments,
     defaultController,
     hashAlgorithms,
-    policies,
-    policyRevisions,
   };
 }

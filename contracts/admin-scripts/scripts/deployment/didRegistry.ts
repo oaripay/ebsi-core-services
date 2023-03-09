@@ -51,13 +51,6 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     },
   });
 
-  const didPolicyLib = await deployments.deploy("DidPolicyLib", {
-    ...opts,
-    libraries: {
-      Pagination: pagination.address,
-    },
-  });
-
   // const didControllersLib = await deployments.deploy("ControllersLib", {
   //   ...opts,
   //   libraries: {
@@ -85,7 +78,6 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
       HashAlgoLib: hashAlgoLib.address,
       DidTimestampLib: didTimestampLib.address,
       Pagination: pagination.address,
-      DidPolicyLib: didPolicyLib.address,
       // ControllersLib: didControllersLib.address,
       // DidDocumentLib: didDocumentLib.address,
     },

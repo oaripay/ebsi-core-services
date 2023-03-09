@@ -41,19 +41,11 @@ describe("Record Hashes", () => {
     });
     const didRecordLib = await didRecordFactory.deploy();
 
-    const policyFactory = await ethers.getContractFactory("DidPolicyLib", {
-      libraries: {
-        Pagination: paginationLib.address,
-      },
-    });
-    const policyLib = await policyFactory.deploy();
-
     const contractFactory = await ethers.getContractFactory("DidRegistry", {
       libraries: {
         HashAlgoLib: hashAlgoLib.address,
         DidTimestampLib: didTimestampLib.address,
         DidRecordLib: didRecordLib.address,
-        DidPolicyLib: policyLib.address,
       },
     });
 
