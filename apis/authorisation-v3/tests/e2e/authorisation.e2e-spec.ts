@@ -24,9 +24,14 @@ import { AppModule } from "../../src/app.module";
 import type { ApiConfig } from "../../src/config/configuration";
 import {
   CUSTOM_SCOPES,
-  DID_WRITE_PRESENTATION_DEFINITION,
-  GENERIC_WRITE_PRESENTATION_DEFINITION,
+  DIDR_INVITE_PRESENTATION_DEFINITION,
+  DIDR_INVITE_SCOPE,
+  DIDR_WRITE_PRESENTATION_DEFINITION,
+  DIDR_WRITE_SCOPE,
+  TIR_INVITE_PRESENTATION_DEFINITION,
+  TIR_INVITE_SCOPE,
   TIR_WRITE_PRESENTATION_DEFINITION,
+  TIR_WRITE_SCOPE,
 } from "../../src/modules/authorisation/authorisation.constants";
 import type {
   JsonWebKeySet,
@@ -34,7 +39,7 @@ import type {
 } from "../../src/modules/authorisation/authorisation.interfaces";
 import { getServer } from "../utils/getServer";
 import { configureApp } from "../utils/app";
-import { createPresentationSubmission } from "../utils/data";
+import { createLegalEntity, createPresentationSubmission } from "../utils/data";
 
 describe("Authorisation (e2e)", () => {
   let app: INestApplication;
@@ -131,7 +136,7 @@ describe("Authorisation (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('did_write', 'tir_write', 'generic_write')"]`,
+        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write')"]`,
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -140,38 +145,46 @@ describe("Authorisation (e2e)", () => {
     });
 
     it("should return the expected presentation definition for the given scope", async () => {
-      expect.assertions(6);
+      expect.assertions(8);
 
-      // 1. With explicit scope "openid did_write"
+      //  With explicit scope "openid didr_invite"
       let response = await request(server).get(
         `/presentation-definitions?scope=${encodeURIComponent(
-          "openid did_write"
+          `openid ${DIDR_INVITE_SCOPE}`
         )}`
       );
 
-      expect(response.body).toStrictEqual(DID_WRITE_PRESENTATION_DEFINITION);
+      expect(response.body).toStrictEqual(DIDR_INVITE_PRESENTATION_DEFINITION);
       expect(response.status).toBe(200);
 
-      // 2. With explicit scope "openid tir_write"
+      // With explicit scope "openid didr_write"
       response = await request(server).get(
         `/presentation-definitions?scope=${encodeURIComponent(
-          "openid tir_write"
+          `openid ${DIDR_WRITE_SCOPE}`
+        )}`
+      );
+
+      expect(response.body).toStrictEqual(DIDR_WRITE_PRESENTATION_DEFINITION);
+      expect(response.status).toBe(200);
+
+      // With explicit scope "openid tir_invite"
+      response = await request(server).get(
+        `/presentation-definitions?scope=${encodeURIComponent(
+          `openid ${TIR_INVITE_SCOPE}`
+        )}`
+      );
+
+      expect(response.body).toStrictEqual(TIR_INVITE_PRESENTATION_DEFINITION);
+      expect(response.status).toBe(200);
+
+      // With explicit scope "openid tir_write"
+      response = await request(server).get(
+        `/presentation-definitions?scope=${encodeURIComponent(
+          `openid ${TIR_WRITE_SCOPE}`
         )}`
       );
 
       expect(response.body).toStrictEqual(TIR_WRITE_PRESENTATION_DEFINITION);
-      expect(response.status).toBe(200);
-
-      // 3. With explicit scope "openid generic_write"
-      response = await request(server).get(
-        `/presentation-definitions?scope=${encodeURIComponent(
-          "openid generic_write"
-        )}`
-      );
-
-      expect(response.body).toStrictEqual(
-        GENERIC_WRITE_PRESENTATION_DEFINITION
-      );
       expect(response.status).toBe(200);
     });
   });
@@ -212,7 +225,7 @@ describe("Authorisation (e2e)", () => {
 
       expect(response.body).toStrictEqual({
         detail: expect.stringContaining(
-          "scope must be a combination of 'openid' and one of the supported scopes ('did_write', 'tir_write', 'generic_write')"
+          "scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write')"
         ),
         status: 400,
         title: "Bad Request",
@@ -245,17 +258,21 @@ describe("Authorisation (e2e)", () => {
     describe.each(CUSTOM_SCOPES)("with scope 'openid %s'", (customScope) => {
       const scope = `openid ${customScope}`;
       let issuer: EbsiIssuer;
+      let client: EbsiIssuer;
       let vcPayload: EbsiVerifiableAttestation;
       let vpPayload: EbsiVerifiablePresentation;
       let presentationSubmission: PresentationSubmission;
       let issuanceDate: Date;
       let expirationDate: Date;
 
-      beforeAll(() => {
+      beforeAll(async () => {
         const issuerKid = configService.get<string>("testIssuerKid");
         const issuerAlg = configService.get<string>("testIssuerAlg");
         const issuerPrivateKey = configService.get<string>(
           "testIssuerPrivateKey"
+        );
+        const issuerAttribute = configService.get<string>(
+          "testIssuerAttribute"
         );
 
         // Only support ES256K issuer (temporary)
@@ -274,6 +291,16 @@ describe("Authorisation (e2e)", () => {
           alg: issuerAlg,
         };
 
+        if (
+          customScope.includes(DIDR_INVITE_SCOPE) ||
+          customScope.includes(TIR_INVITE_SCOPE)
+        ) {
+          // client is a new LE
+          client = await createLegalEntity("ES256K");
+        } else {
+          client = issuer;
+        }
+
         issuanceDate = new Date();
         // JWT access token must have 2 hours expiration time and there are no Refresh Tokens.
         expirationDate = new Date(issuanceDate.getTime() + 2 * 60 * 60 * 1000);
@@ -288,16 +315,20 @@ describe("Authorisation (e2e)", () => {
           issued: `${issuanceDate.toISOString().slice(0, -5)}Z`,
           validFrom: `${issuanceDate.toISOString().slice(0, -5)}Z`,
           expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
-          credentialSubject: { id: issuer.did, type: "same-device" },
+          credentialSubject: { id: client.did, type: "same-device" },
           credentialSchema: {
             id: configService.get<string>("testOidSchemaPattern"),
             type: "FullJsonSchemaValidator2021",
           },
+          termsOfUse: {
+            id: issuerAttribute,
+            type: "IssuanceCertificate",
+          },
         };
 
-        if (customScope === "tir_write") {
+        if (customScope === TIR_INVITE_SCOPE) {
           vcPayload.type.push("VerifiableAccreditationToAccredit");
-        } else if (customScope === "did_write") {
+        } else if (customScope === DIDR_INVITE_SCOPE) {
           vcPayload.type.push("VerifiableAuthorisationToOnboard");
         }
 
@@ -305,7 +336,7 @@ describe("Authorisation (e2e)", () => {
           "@context": ["https://www.w3.org/2018/credentials/v1"],
           type: ["VerifiablePresentation"],
           verifiableCredential: [],
-          holder: issuer.did,
+          holder: client.did,
         };
       });
 
@@ -325,7 +356,7 @@ describe("Authorisation (e2e)", () => {
         });
 
         it("should return an error the audience is not the service", async () => {
-          if (customScope !== "generic_write") {
+          if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
               issuer,
@@ -340,13 +371,13 @@ describe("Authorisation (e2e)", () => {
 
           const vpJwt = await createVerifiablePresentationJwt(
             vpPayload,
-            issuer,
+            client,
             "authentication-service-v3",
             {
               ebsiAuthority: "example.net",
               skipValidation: true,
               nonce: randomUUID(),
-              ...(customScope === "generic_write"
+              ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
                 ? {
                     // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                     exp: Math.floor(Date.now() / 1000) + 100,
@@ -380,7 +411,7 @@ describe("Authorisation (e2e)", () => {
         });
 
         it("should return an error if sub is not the client's DID", async () => {
-          if (customScope !== "generic_write") {
+          if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
               issuer,
@@ -395,13 +426,13 @@ describe("Authorisation (e2e)", () => {
 
           const vpJwt = await createVerifiablePresentationJwt(
             vpPayload,
-            issuer,
+            client,
             authorisationApiV3Url,
             {
               ebsiAuthority: "example.net",
               skipValidation: true,
               nonce: randomUUID(),
-              ...(customScope === "generic_write"
+              ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
                 ? {
                     // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                     exp: Math.floor(Date.now() / 1000) + 100,
@@ -423,7 +454,7 @@ describe("Authorisation (e2e)", () => {
               signer: ES256KSigner(randomBytes(32)),
             },
             {
-              kid: issuer.kid,
+              kid: client.kid,
             }
           );
 
@@ -441,7 +472,7 @@ describe("Authorisation (e2e)", () => {
 
           expect(response.body).toStrictEqual({
             detail: expect.stringMatching(
-              `JWT "sub" property MUST match the VP holder "${issuer.did}"`
+              `JWT "sub" property MUST match the VP holder "${client.did}"`
             ),
             status: 400,
             title: "Invalid Verifiable Presentation",
@@ -451,7 +482,7 @@ describe("Authorisation (e2e)", () => {
         });
 
         it("should return an error if the VP JWT has expired", async () => {
-          if (customScope !== "generic_write") {
+          if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
               issuer,
@@ -466,7 +497,7 @@ describe("Authorisation (e2e)", () => {
 
           const vpJwt = await createVerifiablePresentationJwt(
             vpPayload,
-            issuer,
+            client,
             authorisationApiV3Url,
             {
               ebsiAuthority: "example.net",
@@ -500,7 +531,7 @@ describe("Authorisation (e2e)", () => {
         });
 
         it("should return an error if the VP JWT is not valid yet", async () => {
-          if (customScope !== "generic_write") {
+          if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
               issuer,
@@ -515,7 +546,7 @@ describe("Authorisation (e2e)", () => {
 
           const vpJwt = await createVerifiablePresentationJwt(
             vpPayload,
-            issuer,
+            client,
             authorisationApiV3Url,
             {
               ebsiAuthority: "example.net",
@@ -549,7 +580,7 @@ describe("Authorisation (e2e)", () => {
         });
 
         it("should return an error if nonce is not included in vp_token", async () => {
-          if (customScope !== "generic_write") {
+          if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
               issuer,
@@ -564,13 +595,13 @@ describe("Authorisation (e2e)", () => {
 
           const vpJwt = await createVerifiablePresentationJwt(
             vpPayload,
-            issuer,
+            client,
             authorisationApiV3Url,
             {
               ebsiAuthority: "example.net",
               skipValidation: true,
               // We don't add any nonce
-              ...(customScope === "generic_write"
+              ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
                 ? {
                     // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                     exp: Math.floor(Date.now() / 1000) + 100,
@@ -604,7 +635,7 @@ describe("Authorisation (e2e)", () => {
         });
 
         it("should return an error when a nonce has been used twice", async () => {
-          if (customScope !== "generic_write") {
+          if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
               issuer,
@@ -618,21 +649,21 @@ describe("Authorisation (e2e)", () => {
           }
 
           // Create VP JWT manually
-          const privateKey = await importJWK(issuer.privateKeyJwk, issuer.alg);
+          const privateKey = await importJWK(client.privateKeyJwk, client.alg);
           const vpJwt = await new SignJWT({
             aud: authorisationApiV3Url,
-            sub: issuer.did,
+            sub: client.did,
             iat: Math.floor(issuanceDate.getTime() / 1000),
             nbf: Math.floor(issuanceDate.getTime() / 1000),
             exp: Math.floor(expirationDate.getTime() / 1000),
             vp: vpPayload,
             nonce: randomUUID(),
-            iss: issuer.did,
+            iss: client.did,
           })
             .setProtectedHeader({
-              alg: issuer.alg,
+              alg: client.alg,
               typ: "JWT",
-              kid: issuer.kid,
+              kid: client.kid,
             })
             .sign(privateKey);
 
@@ -690,7 +721,7 @@ describe("Authorisation (e2e)", () => {
           ],
         };
 
-        if (customScope !== "generic_write") {
+        if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
           const vcJwt = await createVerifiableCredentialJwt(vcPayload, issuer, {
             ebsiAuthority: "example.net",
             skipValidation: true,
@@ -701,13 +732,13 @@ describe("Authorisation (e2e)", () => {
 
         let vpJwt = await createVerifiablePresentationJwt(
           vpPayload,
-          issuer,
+          client,
           authorisationApiV3Url,
           {
             ebsiAuthority: "example.net",
             skipValidation: true,
             nonce: randomUUID(),
-            ...(customScope === "generic_write"
+            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                   exp: Math.floor(Date.now() / 1000) + 100,
@@ -762,13 +793,13 @@ describe("Authorisation (e2e)", () => {
 
         vpJwt = await createVerifiablePresentationJwt(
           vpPayload,
-          issuer,
+          client,
           authorisationApiV3Url,
           {
             ebsiAuthority: "example.net",
             skipValidation: true,
             nonce: randomUUID(),
-            ...(customScope === "generic_write"
+            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                   exp: Math.floor(Date.now() / 1000) + 100,
@@ -822,13 +853,13 @@ describe("Authorisation (e2e)", () => {
 
         vpJwt = await createVerifiablePresentationJwt(
           vpPayload,
-          issuer,
+          client,
           authorisationApiV3Url,
           {
             ebsiAuthority: "example.net",
             skipValidation: true,
             nonce: randomUUID(),
-            ...(customScope === "generic_write"
+            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                   exp: Math.floor(Date.now() / 1000) + 100,
@@ -865,13 +896,13 @@ describe("Authorisation (e2e)", () => {
 
         vpJwt = await createVerifiablePresentationJwt(
           vpPayload,
-          issuer,
+          client,
           authorisationApiV3Url,
           {
             ebsiAuthority: "example.net",
             skipValidation: true,
             nonce: randomUUID(),
-            ...(customScope === "generic_write"
+            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                   exp: Math.floor(Date.now() / 1000) + 100,
@@ -903,13 +934,13 @@ describe("Authorisation (e2e)", () => {
 
         vpJwt = await createVerifiablePresentationJwt(
           vpPayload,
-          issuer,
+          client,
           authorisationApiV3Url,
           {
             ebsiAuthority: "example.net",
             skipValidation: true,
             nonce: randomUUID(),
-            ...(customScope === "generic_write"
+            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                   exp: Math.floor(Date.now() / 1000) + 100,
@@ -948,7 +979,7 @@ describe("Authorisation (e2e)", () => {
       });
 
       it("should return an error if the content is not application/x-www-form-urlencoded", async () => {
-        if (customScope !== "generic_write") {
+        if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
           const vcJwt = await createVerifiableCredentialJwt(vcPayload, issuer, {
             ebsiAuthority: "example.net",
             skipValidation: true,
@@ -961,13 +992,13 @@ describe("Authorisation (e2e)", () => {
 
         const vpJwt = await createVerifiablePresentationJwt(
           vpPayload,
-          issuer,
+          client,
           authorisationApiV3Url,
           {
             ebsiAuthority: "example.net",
             skipValidation: true,
             nonce,
-            ...(customScope === "generic_write"
+            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                   exp: Math.floor(Date.now() / 1000) + 100,
@@ -998,7 +1029,19 @@ describe("Authorisation (e2e)", () => {
       });
 
       it("should return an access token and an ID token when the presentation is valid", async () => {
-        if (customScope !== "generic_write") {
+        if (customScope === TIR_INVITE_SCOPE) {
+          // /!\ Skip test - Could be implemented later
+          // In order to pass this test, we would have to register a new DID into the DID Registry
+          // and a new Trusted Issuer into the TIR. It can only be run in an environment where we
+          // can use write operations, and where the DIDR API v4 and TIR API v4 support the new
+          // auth mechanism.
+
+          // eslint-disable-next-line jest/no-conditional-expect
+          expect.assertions(0);
+          return;
+        }
+
+        if (customScope === DIDR_INVITE_SCOPE) {
           const vcJwt = await createVerifiableCredentialJwt(vcPayload, issuer, {
             ebsiAuthority: "example.net",
             skipValidation: true,
@@ -1011,13 +1054,13 @@ describe("Authorisation (e2e)", () => {
 
         const vpJwt = await createVerifiablePresentationJwt(
           vpPayload,
-          issuer,
+          client,
           authorisationApiV3Url,
           {
             ebsiAuthority: "example.net",
             skipValidation: true,
             nonce,
-            ...(customScope === "generic_write"
+            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                   exp: Math.floor(Date.now() / 1000) + 100,
@@ -1066,7 +1109,7 @@ describe("Authorisation (e2e)", () => {
           iss: authorisationApiV3Url,
           jti: expect.any(String),
           scp: scope,
-          sub: issuer.did,
+          sub: client.did,
         });
 
         // Get API public key in order to verify the signature
@@ -1098,12 +1141,12 @@ describe("Authorisation (e2e)", () => {
         });
 
         expect(decodedIdToken.payload).toStrictEqual({
-          aud: issuer.did,
+          aud: client.did,
           exp: expect.any(Number),
           iat: expect.any(Number),
           iss: authorisationApiV3Url,
           jti: expect.any(String),
-          sub: issuer.did,
+          sub: client.did,
           nonce,
         });
 

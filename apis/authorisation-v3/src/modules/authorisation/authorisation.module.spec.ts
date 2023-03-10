@@ -33,9 +33,14 @@ import type { JsonWebKeySet, TokenResponse } from "./authorisation.interfaces";
 import type { ApiConfig } from "../../config/configuration";
 import {
   CUSTOM_SCOPES,
-  DID_WRITE_PRESENTATION_DEFINITION,
-  GENERIC_WRITE_PRESENTATION_DEFINITION,
+  DIDR_INVITE_PRESENTATION_DEFINITION,
+  DIDR_INVITE_SCOPE,
+  DIDR_WRITE_PRESENTATION_DEFINITION,
+  DIDR_WRITE_SCOPE,
+  TIR_INVITE_PRESENTATION_DEFINITION,
+  TIR_INVITE_SCOPE,
   TIR_WRITE_PRESENTATION_DEFINITION,
+  TIR_WRITE_SCOPE,
 } from "./authorisation.constants";
 import {
   createLegalEntity,
@@ -282,7 +287,7 @@ describe("Authorisation Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('did_write', 'tir_write', 'generic_write')"]`,
+        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write')"]`,
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -291,11 +296,13 @@ describe("Authorisation Module", () => {
 
       // Doesn't contain "openid"
       response = await request(server).get(
-        "/presentation-definitions?scope=did_write tir_write"
+        `/presentation-definitions?${qs.stringify({
+          scope: "didr_write tir_write",
+        })}`
       );
 
       expect(response.body).toStrictEqual({
-        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('did_write', 'tir_write', 'generic_write')"]`,
+        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write')"]`,
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -308,7 +315,7 @@ describe("Authorisation Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('did_write', 'tir_write', 'generic_write')"]`,
+        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write')"]`,
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -317,38 +324,46 @@ describe("Authorisation Module", () => {
     });
 
     it("should return the expected presentation definition for the given scope", async () => {
-      expect.assertions(6);
+      expect.assertions(8);
 
-      // 1. With explicit scope "openid did_write"
+      //  With explicit scope "openid didr_invite"
       let response = await request(server).get(
         `/presentation-definitions?scope=${encodeURIComponent(
-          "openid did_write"
+          `openid ${DIDR_INVITE_SCOPE}`
         )}`
       );
 
-      expect(response.body).toStrictEqual(DID_WRITE_PRESENTATION_DEFINITION);
+      expect(response.body).toStrictEqual(DIDR_INVITE_PRESENTATION_DEFINITION);
       expect(response.status).toBe(200);
 
-      // 2. With explicit scope "openid tir_write"
+      // With explicit scope "openid didr_write"
       response = await request(server).get(
         `/presentation-definitions?scope=${encodeURIComponent(
-          "openid tir_write"
+          `openid ${DIDR_WRITE_SCOPE}`
+        )}`
+      );
+
+      expect(response.body).toStrictEqual(DIDR_WRITE_PRESENTATION_DEFINITION);
+      expect(response.status).toBe(200);
+
+      // With explicit scope "openid tir_invite"
+      response = await request(server).get(
+        `/presentation-definitions?scope=${encodeURIComponent(
+          `openid ${TIR_INVITE_SCOPE}`
+        )}`
+      );
+
+      expect(response.body).toStrictEqual(TIR_INVITE_PRESENTATION_DEFINITION);
+      expect(response.status).toBe(200);
+
+      // With explicit scope "openid tir_write"
+      response = await request(server).get(
+        `/presentation-definitions?scope=${encodeURIComponent(
+          `openid ${TIR_WRITE_SCOPE}`
         )}`
       );
 
       expect(response.body).toStrictEqual(TIR_WRITE_PRESENTATION_DEFINITION);
-      expect(response.status).toBe(200);
-
-      // 3. With explicit scope "openid generic_write"
-      response = await request(server).get(
-        `/presentation-definitions?scope=${encodeURIComponent(
-          "openid generic_write"
-        )}`
-      );
-
-      expect(response.body).toStrictEqual(
-        GENERIC_WRITE_PRESENTATION_DEFINITION
-      );
       expect(response.status).toBe(200);
     });
   });
@@ -389,7 +404,7 @@ describe("Authorisation Module", () => {
 
       expect(response.body).toStrictEqual({
         detail: expect.stringContaining(
-          "scope must be a combination of 'openid' and one of the supported scopes ('did_write', 'tir_write', 'generic_write')"
+          "scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write')"
         ),
         status: 400,
         title: "Bad Request",
@@ -427,7 +442,7 @@ describe("Authorisation Module", () => {
       let issuanceDate: Date;
       let expirationDate: Date;
 
-      beforeAll(() => {
+      beforeEach(() => {
         issuanceDate = new Date();
         // JWT access token must have 2 hours expiration time and there are no Refresh Tokens.
         expirationDate = new Date(issuanceDate.getTime() + 2 * 60 * 60 * 1000);
@@ -455,9 +470,9 @@ describe("Authorisation Module", () => {
           },
         };
 
-        if (customScope === "tir_write") {
+        if (customScope === TIR_INVITE_SCOPE) {
           vcPayload.type.push("VerifiableAccreditationToAccredit");
-        } else if (customScope === "did_write") {
+        } else if (customScope === DIDR_INVITE_SCOPE) {
           vcPayload.type.push("VerifiableAuthorisationToOnboard");
         }
 
@@ -467,28 +482,120 @@ describe("Authorisation Module", () => {
           verifiableCredential: [],
           holder: credentialSubject.did,
         };
-      });
 
-      beforeEach(() => {
         // Reset to valid presentation submission before each test
         presentationSubmission = createPresentationSubmission(customScope);
         // Reset to empty verifiable credential array before each test to allow each test to add its own verifiable credential
         vpPayload.verifiableCredential = [];
         vpPayload.id = randomUUID(); // VP ID is used as JWT JTI.
 
-        // If scope=did_write, the DID is not yet registered in the DIDR and TIR
-        if (customScope !== "did_write") {
+        // If scope=didr_invite, the DID is not yet registered in the DIDR and TIR
+        if (customScope !== DIDR_INVITE_SCOPE) {
           nock(domain)
             .get(`/did-registry/v4/identifiers/${credentialSubject.did}`)
             .reply(200, credentialSubject.didDocument)
             .persist();
+        }
 
+        if (
+          customScope === TIR_INVITE_SCOPE ||
+          customScope === TIR_WRITE_SCOPE
+        ) {
           nock(domain)
             .get(
               `/trusted-issuers-registry/v4/issuers/${credentialSubject.did}`
             )
             .reply(200, {})
             .persist();
+
+          const attributeId =
+            "352f18152fdc52f1797c98bfea8e0737d620e5503df2463dd8129719fcf6bf5c";
+
+          nock(domain)
+            .get(
+              `/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes`
+            )
+            .reply(200, {
+              self: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes?page[after]=1&page[size]=10`,
+              items: [
+                {
+                  id: attributeId,
+                  href: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}`,
+                },
+              ],
+              total: 1,
+              pageSize: 10,
+              links: {
+                first: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes?page[after]=1&page[size]=10`,
+                prev: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes?page[after]=1&page[size]=10`,
+                next: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes?page[after]=1&page[size]=10`,
+                last: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes?page[after]=1&page[size]=10`,
+              },
+            })
+            .persist();
+
+          if (customScope === TIR_INVITE_SCOPE) {
+            // For tir_invite, create only 1 revision
+            nock(domain)
+              .get(
+                `/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions`
+              )
+              .reply(200, {
+                self: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
+                items: [
+                  {
+                    hash: "c1a9c6159f72591b612e1381f5d79cede36a2b097aef6b3691f61248a406d9d2",
+                    body: "",
+                    issuerType: "RootTAO",
+                    tao: EbsiWallet.createDid(),
+                    rootTao: EbsiWallet.createDid(),
+                  },
+                ],
+                total: 1,
+                pageSize: 10,
+                links: {
+                  first: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
+                  prev: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
+                  next: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
+                  last: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
+                },
+              })
+              .persist();
+          } else {
+            // For tir_write, create 2 revisions
+            nock(domain)
+              .get(
+                `/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions`
+              )
+              .reply(200, {
+                self: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
+                items: [
+                  {
+                    hash: "c1a9c6159f72591b612e1381f5d79cede36a2b097aef6b3691f61248a406d9d2",
+                    body: "",
+                    issuerType: "RootTAO",
+                    tao: EbsiWallet.createDid(),
+                    rootTao: EbsiWallet.createDid(),
+                  },
+                  {
+                    hash: "352f18152fdc52f1797c98bfea8e0737d620e5503df2463dd8129719fcf6bf5c",
+                    body: "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImRpZDplYnNpOnp5d24zZlBoM0s0aDZLaWJlOUF1VE1wIzVfWXJCNTFHckxZSFc2cU9lY05RZFFiMU8xNWUzWGNtWE5zVzA5d1IyNncifQ.eyJpYXQiOjE2NzcyNDk0NzYsImp0aSI6InVybjp1dWlkOmI2NDhkZGQ2LTVjMzgtNGI3YS1iMDM3LTVmNzc4OWJhNTVlOSIsIm5iZiI6MTY3NzI0OTQ3NiwiZXhwIjoxNzA4Nzg1NDc2LCJzdWIiOiJkaWQ6ZWJzaTp6ejdYc0M5aXhBWHVaZWNvRDlzWkVNMSIsInZjIjp7IkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIl0sInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJWZXJpZmlhYmxlQXR0ZXN0YXRpb24iLCJWZXJpZmlhYmxlQXV0aG9yaXNhdGlvbkZvclRydXN0Q2hhaW4iXSwiaXNzdWVyIjoiZGlkOmVic2k6enl3bjNmUGgzSzRoNktpYmU5QXVUTXAiLCJjcmVkZW50aWFsU3ViamVjdCI6eyJpZCI6ImRpZDplYnNpOnp6N1hzQzlpeEFYdVplY29EOXNaRU0xIn0sInRlcm1zT2ZVc2UiOnsiaWQiOiJodHRwczovL2FwaS10ZXN0LmVic2kuZXUvdHJ1c3RlZC1pc3N1ZXJzLXJlZ2lzdHJ5L3Y0L2lzc3VlcnMvZGlkOmVic2k6enl3bjNmUGgzSzRoNktpYmU5QXVUTXAvYXR0cmlidXRlcy9iYTc1MWZhNjAyNTBjYmRiMzlmZWVjMDdkMzZjMzNiNTBiNjM4ODY0MjBmYzkxNDY5MjUwOWQ1N2Y4MTgxYzFjIiwidHlwZSI6Iklzc3VhbmNlQ2VydGlmaWNhdGUifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHBzOi8vYXBpLXRlc3QuZWJzaS5ldS90cnVzdGVkLXNjaGVtYXMtcmVnaXN0cnkvdjIvc2NoZW1hcy96M01nVUZVa2I3MjJ1cTR4M2R2NXlBSm1uTm16REZlSzVVQzh4ODNRb2VMSk0iLCJ0eXBlIjoiRnVsbEpzb25TY2hlbWFWYWxpZGF0b3IyMDIxIn0sImlkIjoidXJuOnV1aWQ6YjY0OGRkZDYtNWMzOC00YjdhLWIwMzctNWY3Nzg5YmE1NWU5IiwiaXNzdWFuY2VEYXRlIjoiMjAyMy0wMi0yNFQxNDozNzo1Ni4wMDBaIiwiaXNzdWVkIjoiMjAyMy0wMi0yNFQxNDozNzo1Ni4wMDBaIiwidmFsaWRGcm9tIjoiMjAyMy0wMi0yNFQxNDozNzo1Ni4wMDBaIiwiZXhwaXJhdGlvbkRhdGUiOiIyMDI0LTAyLTI0VDE0OjM3OjU2LjAwMFoiLCJ2YWxpZFVudGlsIjoiMjAyNC0wMi0yNFQxNDozNzo1Ni4wMDBaIn0sImlzcyI6ImRpZDplYnNpOnp5d24zZlBoM0s0aDZLaWJlOUF1VE1wIn0.td0zhAcRNN6UQ4Yul6-Vy9qQNi_ZxlXmUIlbkfMcD3rAY6s8EpnA1h8UYagcePmGk8Xzx_6KpzN78QuFPF4lsg",
+                    issuerType: "RootTAO",
+                    tao: EbsiWallet.createDid(),
+                    rootTao: EbsiWallet.createDid(),
+                  },
+                ],
+                total: 2,
+                pageSize: 10,
+                links: {
+                  first: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
+                  prev: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
+                  next: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
+                  last: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
+                },
+              })
+              .persist();
+          }
         }
       });
 
@@ -500,7 +607,7 @@ describe("Authorisation Module", () => {
         });
 
         it("should return an error the audience is not the service", async () => {
-          if (customScope !== "generic_write") {
+          if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
               credentialIssuer,
@@ -521,7 +628,7 @@ describe("Authorisation Module", () => {
               ebsiAuthority: "example.net",
               skipValidation: true,
               nonce: randomUUID(),
-              ...(customScope === "generic_write"
+              ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
                 ? {
                     // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                     exp: Math.floor(Date.now() / 1000) + 100,
@@ -555,7 +662,7 @@ describe("Authorisation Module", () => {
         });
 
         it("should return an error if sub is not the client's DID", async () => {
-          if (customScope !== "generic_write") {
+          if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
               credentialIssuer,
@@ -576,7 +683,7 @@ describe("Authorisation Module", () => {
               ebsiAuthority: "example.net",
               skipValidation: true,
               nonce: randomUUID(),
-              ...(customScope === "generic_write"
+              ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
                 ? {
                     // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                     exp: Math.floor(Date.now() / 1000) + 100,
@@ -625,7 +732,7 @@ describe("Authorisation Module", () => {
         });
 
         it("should return an error if the VP JWT has expired", async () => {
-          if (customScope !== "generic_write") {
+          if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
               credentialIssuer,
@@ -674,7 +781,7 @@ describe("Authorisation Module", () => {
         });
 
         it("should return an error if the VP JWT is not valid yet", async () => {
-          if (customScope !== "generic_write") {
+          if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
               credentialIssuer,
@@ -723,7 +830,7 @@ describe("Authorisation Module", () => {
         });
 
         it("should return an error if nonce is not included in vp_token", async () => {
-          if (customScope !== "generic_write") {
+          if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
               credentialIssuer,
@@ -744,7 +851,7 @@ describe("Authorisation Module", () => {
               ebsiAuthority: "example.net",
               skipValidation: true,
               // We don't add any nonce
-              ...(customScope === "generic_write"
+              ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
                 ? {
                     // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                     exp: Math.floor(Date.now() / 1000) + 100,
@@ -778,7 +885,7 @@ describe("Authorisation Module", () => {
         });
 
         it("should return an error when a nonce has been used twice", async () => {
-          if (customScope !== "generic_write") {
+          if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
               credentialIssuer,
@@ -867,7 +974,7 @@ describe("Authorisation Module", () => {
           ],
         };
 
-        if (customScope !== "generic_write") {
+        if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
           const vcJwt = await createVerifiableCredentialJwt(
             vcPayload,
             credentialIssuer,
@@ -888,7 +995,7 @@ describe("Authorisation Module", () => {
             ebsiAuthority: "example.net",
             skipValidation: true,
             nonce: randomUUID(),
-            ...(customScope === "generic_write"
+            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                   exp: Math.floor(Date.now() / 1000) + 100,
@@ -949,7 +1056,7 @@ describe("Authorisation Module", () => {
             ebsiAuthority: "example.net",
             skipValidation: true,
             nonce: randomUUID(),
-            ...(customScope === "generic_write"
+            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                   exp: Math.floor(Date.now() / 1000) + 100,
@@ -1009,7 +1116,7 @@ describe("Authorisation Module", () => {
             ebsiAuthority: "example.net",
             skipValidation: true,
             nonce: randomUUID(),
-            ...(customScope === "generic_write"
+            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                   exp: Math.floor(Date.now() / 1000) + 100,
@@ -1052,7 +1159,7 @@ describe("Authorisation Module", () => {
             ebsiAuthority: "example.net",
             skipValidation: true,
             nonce: randomUUID(),
-            ...(customScope === "generic_write"
+            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                   exp: Math.floor(Date.now() / 1000) + 100,
@@ -1090,7 +1197,7 @@ describe("Authorisation Module", () => {
             ebsiAuthority: "example.net",
             skipValidation: true,
             nonce: randomUUID(),
-            ...(customScope === "generic_write"
+            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                   exp: Math.floor(Date.now() / 1000) + 100,
@@ -1135,7 +1242,7 @@ describe("Authorisation Module", () => {
             ebsiAuthority: "example.net",
             skipValidation: true,
             nonce: randomUUID(),
-            ...(customScope === "generic_write"
+            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                   exp: Math.floor(Date.now() / 1000) + 100,
@@ -1146,7 +1253,7 @@ describe("Authorisation Module", () => {
         );
 
         const invalidPresentationSubmission =
-          createPresentationSubmission("generic_write");
+          createPresentationSubmission(TIR_WRITE_SCOPE);
         invalidPresentationSubmission.definition_id = "invalid_def_id";
         response = await request(server)
           .post("/token")
@@ -1171,7 +1278,7 @@ describe("Authorisation Module", () => {
       });
 
       it("should return an error if the content is not application/x-www-form-urlencoded", async () => {
-        if (customScope !== "generic_write") {
+        if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
           const vcJwt = await createVerifiableCredentialJwt(
             vcPayload,
             credentialIssuer,
@@ -1194,7 +1301,7 @@ describe("Authorisation Module", () => {
             ebsiAuthority: "example.net",
             skipValidation: true,
             nonce,
-            ...(customScope === "generic_write"
+            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                   exp: Math.floor(Date.now() / 1000) + 100,
@@ -1224,8 +1331,123 @@ describe("Authorisation Module", () => {
         expect(response.status).toBe(400);
       });
 
+      it("should an error if the conditions specific to the scope are not met", async () => {
+        let expectedErrorTitle: string;
+        let expectedErrorMessage: string;
+        let vpSigner = credentialSubject;
+
+        switch (customScope) {
+          case DIDR_INVITE_SCOPE: {
+            // Present a VC without VerifiableAccreditationToAccredit
+            vcPayload.type = ["VerifiableCredential", "VerifiableAttestation"];
+            expectedErrorTitle = "Invalid Presentation Submission";
+            expectedErrorMessage =
+              "FilterEvaluation tag: Input candidate failed filter evaluation: $.input_descriptors[0]: $.verifiableCredential[0];,MarkForSubmissionEvaluation tag: The input candidate is not eligible for submission: $.input_descriptors[0]: $.verifiableCredential[0];";
+            break;
+          }
+          case DIDR_WRITE_SCOPE: {
+            // VP Signer is not registered in the DIDR
+            vpSigner = await createLegalEntity("ES256K");
+            vpPayload.holder = vpSigner.did;
+
+            nock(domain)
+              .get(`/did-registry/v4/identifiers/${vpSigner.did}`)
+              .reply(404, "Not found")
+              .persist();
+
+            expectedErrorTitle = "Invalid Verifiable Presentation";
+            expectedErrorMessage = `VP JWT validation failed: Unable to resolve ${vpSigner.kid}. Error: notFound. Not Found | Registry used: ${domain}/did-registry/v4/identifiers`;
+            break;
+          }
+          case TIR_INVITE_SCOPE: {
+            // Present a VC without any of VerifiableAuthorisationForTrustChain, VerifiableAccreditationToAttest or VerifiableAccreditationToAccredit
+            vcPayload.type = ["VerifiableCredential", "VerifiableAttestation"];
+            expectedErrorTitle = "Invalid Presentation Submission";
+            expectedErrorMessage =
+              "FilterEvaluation tag: Input candidate failed filter evaluation: $.input_descriptors[0]: $.verifiableCredential[0];,MarkForSubmissionEvaluation tag: The input candidate is not eligible for submission: $.input_descriptors[0]: $.verifiableCredential[0];";
+            break;
+          }
+          case TIR_WRITE_SCOPE: {
+            // VP Signer is not registered in the TIR
+            vpSigner = await createLegalEntity("ES256K");
+            vpPayload.holder = vpSigner.did;
+
+            nock(domain)
+              .get(`/did-registry/v4/identifiers/${vpSigner.did}`)
+              .reply(200, vpSigner.didDocument)
+              .persist();
+
+            nock(domain)
+              .get(`/trusted-issuers-registry/v4/issuers/${vpSigner.did}`)
+              .reply(404, "Not found")
+              .persist();
+
+            expectedErrorTitle = "Invalid Verifiable Presentation";
+            expectedErrorMessage = `DID ${vpSigner.did} is not registered in the Trusted Issuers Registry`;
+            break;
+          }
+          default: {
+            expectedErrorTitle = "";
+            expectedErrorMessage = "";
+          }
+        }
+
+        if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
+          const vcJwt = await createVerifiableCredentialJwt(
+            vcPayload,
+            credentialIssuer,
+            {
+              ebsiAuthority: "example.net",
+              skipValidation: true,
+            }
+          );
+
+          vpPayload.verifiableCredential.push(vcJwt);
+        }
+
+        const nonce = randomUUID();
+
+        const vpJwt = await createVerifiablePresentationJwt(
+          vpPayload,
+          vpSigner,
+          serviceEndpoint,
+          {
+            ebsiAuthority: "example.net",
+            skipValidation: true,
+            nonce,
+            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
+              ? {
+                  // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
+                  exp: Math.floor(Date.now() / 1000) + 100,
+                  nbf: Math.floor(Date.now() / 1000) - 100,
+                }
+              : {}),
+          }
+        );
+
+        const response = await request(server)
+          .post("/token")
+          .set("Content-Type", "application/x-www-form-urlencoded")
+          .send(
+            qs.stringify({
+              grant_type: "vp_token",
+              scope,
+              vp_token: vpJwt,
+              presentation_submission: presentationSubmission,
+            })
+          );
+
+        expect(response.body).toStrictEqual({
+          type: "about:blank",
+          detail: expectedErrorMessage,
+          status: 400,
+          title: expectedErrorTitle,
+        });
+        expect(response.status).toBe(400);
+      });
+
       it("should return an access token and an ID token when the presentation is valid", async () => {
-        if (customScope !== "generic_write") {
+        if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
           const vcJwt = await createVerifiableCredentialJwt(
             vcPayload,
             credentialIssuer,
@@ -1248,7 +1470,7 @@ describe("Authorisation Module", () => {
             ebsiAuthority: "example.net",
             skipValidation: true,
             nonce,
-            ...(customScope === "generic_write"
+            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                   exp: Math.floor(Date.now() / 1000) + 100,

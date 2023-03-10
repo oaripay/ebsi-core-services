@@ -161,7 +161,7 @@ paths:
                   value:
                     title: "Bad Request"
                     status: 400
-                    detail: '["scope must be one of the following values: openid, did_write, tir_write, generic_write"]'
+                    detail: '["scope must be one of the following values: openid, didr_invite, didr_write, tir_invite, tir_write"]'
                     type: about:blank
   /authorisation/v3/token:
     post:
@@ -193,7 +193,7 @@ paths:
                   value:
                     title: "Bad Request"
                     status: 400
-                    detail: '["scope must be a combination of ''openid'' and one of the supported scopes (''did_write'', ''tir_write'', ''generic_write'')"]'
+                    detail: '["scope must be a combination of ''openid'' and one of the supported scopes (''didr_invite'', ''didr_write'', ''tir_invite'', ''tir_write'')"]'
                     type: about:blank
 components:
   schemas:
@@ -568,7 +568,7 @@ components:
       description: OIDC scope
       schema:
         type: string
-        example: openid did_write tir_write generic_write
+        example: openid didr_write tir_write
     # code:
     #   in: query
     #   name: code

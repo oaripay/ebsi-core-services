@@ -10,6 +10,8 @@ export interface ApiConfig {
   domain: string;
   localOrigin: string;
   logLevel: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
+  didRegistry: string;
+  trustedIssuersRegistry: string;
   externalEbsiApiHealthCheck: string;
   dockerContainerTag: string;
   // Test-specific variables
@@ -17,10 +19,13 @@ export interface ApiConfig {
   testIssuerKid?: string;
   testIssuerPrivateKey?: string;
   testIssuerAlg?: string;
+  testIssuerAttribute?: string;
   testOidSchemaPattern: string;
 }
 
 const HEALTH_CHECK_PATH = "/docs/";
+const DIDR_PATH = "/did-registry/v4/identifiers";
+const TIR_PATH = "/trusted-issuers-registry/v4/issuers";
 
 // Config factory
 // Note that process.env — for which provide typings in src/environment.d.ts —
@@ -36,6 +41,8 @@ export const loadConfig = (): ApiConfig => {
     logLevel: process.env.LOG_LEVEL || "warn",
     domain: DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
+    didRegistry: DOMAIN + DIDR_PATH,
+    trustedIssuersRegistry: DOMAIN + TIR_PATH,
     externalEbsiApiHealthCheck: DOMAIN + HEALTH_CHECK_PATH,
     dockerContainerTag: process.env.DOCKER_TAG || "",
     // Test-specific variables
@@ -43,6 +50,7 @@ export const loadConfig = (): ApiConfig => {
     testIssuerKid: process.env.TEST_ISSUER_KID,
     testIssuerPrivateKey: process.env.TEST_ISSUER_PRIVATE_KEY,
     testIssuerAlg: process.env.TEST_ISSUER_ALG,
+    testIssuerAttribute: process.env.TEST_ISSUER_ATTRIBUTE,
     testOidSchemaPattern: process.env.TEST_OID_SCHEMA_PATTERN || "",
   };
 };
@@ -79,6 +87,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_ISSUER_KID: Joi.string(),
     TEST_ISSUER_PRIVATE_KEY: Joi.string(),
     TEST_ISSUER_ALG: Joi.string(),
+    TEST_ISSUER_ATTRIBUTE: Joi.string().uri(),
     TEST_OID_SCHEMA_PATTERN: Joi.string(),
   }),
 });

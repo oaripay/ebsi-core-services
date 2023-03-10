@@ -7,9 +7,14 @@ import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
 import type { PresentationSubmission } from "@sphereon/pex-models";
 import {
   CUSTOM_SCOPES,
-  DID_WRITE_PRESENTATION_DEFINITION,
-  GENERIC_WRITE_PRESENTATION_DEFINITION,
+  DIDR_INVITE_PRESENTATION_DEFINITION,
+  DIDR_INVITE_SCOPE,
+  DIDR_WRITE_PRESENTATION_DEFINITION,
+  DIDR_WRITE_SCOPE,
+  TIR_INVITE_PRESENTATION_DEFINITION,
+  TIR_INVITE_SCOPE,
   TIR_WRITE_PRESENTATION_DEFINITION,
+  TIR_WRITE_SCOPE,
 } from "../../src/modules/authorisation/authorisation.constants";
 
 export function createDidDocument(
@@ -84,17 +89,22 @@ export function createPresentationSubmission(
   };
 
   switch (scope) {
-    case "did_write": {
+    case DIDR_INVITE_SCOPE: {
       testPresentationSubmission.definition_id =
-        DID_WRITE_PRESENTATION_DEFINITION.id;
+        DIDR_INVITE_PRESENTATION_DEFINITION.id;
       break;
     }
-    case "generic_write": {
+    case DIDR_WRITE_SCOPE: {
       testPresentationSubmission.definition_id =
-        GENERIC_WRITE_PRESENTATION_DEFINITION.id;
+        DIDR_WRITE_PRESENTATION_DEFINITION.id;
       break;
     }
-    case "tir_write": {
+    case TIR_INVITE_SCOPE: {
+      testPresentationSubmission.definition_id =
+        TIR_INVITE_PRESENTATION_DEFINITION.id;
+      break;
+    }
+    case TIR_WRITE_SCOPE: {
       testPresentationSubmission.definition_id =
         TIR_WRITE_PRESENTATION_DEFINITION.id;
       break;

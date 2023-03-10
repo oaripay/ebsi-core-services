@@ -1,11 +1,15 @@
 import { JsonWebKey, randomUUID } from "node:crypto";
-import { Injectable, Inject, CACHE_MANAGER } from "@nestjs/common";
+import { Injectable, Inject, Logger, CACHE_MANAGER } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { BadRequestError } from "@ebsiint-api/shared";
-import type { PresentationSubmission } from "@sphereon/pex-models";
 import {
+  BadRequestError,
+  InternalServerError,
+  logAxiosError,
+} from "@ebsiint-api/shared";
+import type { PresentationSubmission } from "@sphereon/pex-models";
+import { verifyPresentationJwt } from "@cef-ebsi/verifiable-presentation";
+import type {
   EbsiVerifiablePresentation,
-  verifyPresentationJwt,
   VpJwtPayload,
 } from "@cef-ebsi/verifiable-presentation";
 import { PEXv2 } from "@sphereon/pex";
@@ -13,6 +17,7 @@ import type { IPresentation } from "@sphereon/ssi-types";
 import { decodeJWT, createJWT, ES256Signer, hexToBytes } from "did-jwt";
 import type { JWTDecoded, JWTPayload } from "did-jwt/lib/JWT";
 import { MemoryCache } from "cache-manager";
+import axios, { AxiosResponse } from "axios";
 import type { ApiConfig } from "../../config/configuration";
 import type {
   JsonWebKeySet,
@@ -23,15 +28,26 @@ import type {
 import { CreateAccessTokenDto } from "./dto";
 import { fromHexToJWK } from "./authorisation.utils";
 import {
-  DID_WRITE_PRESENTATION_DEFINITION,
-  GENERIC_WRITE_PRESENTATION_DEFINITION,
-  SUPPORTED_SCOPES,
+  DIDR_INVITE_PRESENTATION_DEFINITION,
+  DIDR_WRITE_PRESENTATION_DEFINITION,
+  TIR_INVITE_PRESENTATION_DEFINITION,
   TIR_WRITE_PRESENTATION_DEFINITION,
+  SUPPORTED_SCOPES,
+  DIDR_INVITE_SCOPE,
+  DIDR_WRITE_SCOPE,
+  TIR_INVITE_SCOPE,
+  TIR_WRITE_SCOPE,
 } from "./authorisation.constants";
 import { PresentationDefinition } from "../../shared/interfaces/pex";
+import {
+  attributesSchema,
+  revisionsSchema,
+} from "./validators/attributes.validator";
 
 @Injectable()
 export class AuthorisationService {
+  private readonly logger = new Logger(AuthorisationService.name);
+
   private readonly issuer: string;
 
   private publicKeyJwk?: JsonWebKey;
@@ -42,6 +58,10 @@ export class AuthorisationService {
 
   private readonly apiES256PrivateKey: string;
 
+  private readonly didRegistry: string;
+
+  private readonly trustedIssuersRegistry: string;
+
   constructor(
     configService: ConfigService<ApiConfig, true>,
     @Inject(CACHE_MANAGER) private cacheManager: MemoryCache
@@ -50,6 +70,10 @@ export class AuthorisationService {
     this.ebsiAuthority = domain.replace(/^https?:\/\//, ""); // remove http protocol scheme
     const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
     this.issuer = `${domain}${apiUrlPrefix}`;
+    this.didRegistry = configService.get<string>("didRegistry");
+    this.trustedIssuersRegistry = configService.get<string>(
+      "trustedIssuersRegistry"
+    );
     this.apiES256PrivateKey = configService.get<string>("apiES256PrivateKey");
     this.pex = new PEXv2();
   }
@@ -105,20 +129,24 @@ export class AuthorisationService {
    * - https://identity.foundation/presentation-exchange/spec/v2.0.0/#presentation-definition
    * - https://ec.europa.eu/digital-building-blocks/wikis/pages/viewpage.action?spaceKey=BLOCKCHAININT&title=RFC+-+EBSI+Platform+Identity+and+Access+Management#RFCEBSIPlatformIdentityandAccessManagement-ServicetoService-TokenFlow
    *
-   * @param scope Array of supported scopes ("openid", "did_write", "tir_write", "generic_write")
+   * @param scope Array of supported scopes ("openid", "didr_invite", "didr_write", "tir_invite", "tir_write")
    * @returns A Presentation Definition.
    */
   getPresentationDefinitions(scope: Scope[]): PresentationDefinition {
-    if (scope.includes("did_write")) {
-      return DID_WRITE_PRESENTATION_DEFINITION;
+    if (scope.includes(DIDR_INVITE_SCOPE)) {
+      return DIDR_INVITE_PRESENTATION_DEFINITION;
     }
 
-    if (scope.includes("tir_write")) {
+    if (scope.includes(DIDR_WRITE_SCOPE)) {
+      return DIDR_WRITE_PRESENTATION_DEFINITION;
+    }
+
+    if (scope.includes(TIR_INVITE_SCOPE)) {
+      return TIR_INVITE_PRESENTATION_DEFINITION;
+    }
+
+    if (scope.includes(TIR_WRITE_SCOPE)) {
       return TIR_WRITE_PRESENTATION_DEFINITION;
-    }
-
-    if (scope.includes("generic_write")) {
-      return GENERIC_WRITE_PRESENTATION_DEFINITION;
     }
 
     throw new BadRequestError(BadRequestError.defaultTitle, {
@@ -254,6 +282,130 @@ export class AuthorisationService {
     }
   }
 
+  /**
+   * Checks if the given DID is registered in the DIDR.
+   *
+   * @param did - The issuer DID to verify.
+   * @returns True if the DID is registered, false otherwise.
+   */
+  async isDidRegistered(did: string): Promise<boolean> {
+    try {
+      await axios.get(`${this.didRegistry}/${did}`);
+    } catch (e) {
+      logAxiosError(e, this.logger);
+      return false;
+    }
+
+    return true;
+  }
+
+  async validateTrustedIssuer(
+    did: string,
+    requireNewUser: boolean
+  ): Promise<void> {
+    // 1. Check if the issuer has exactly 1 attribute
+    let attributesRequest: AxiosResponse<unknown>;
+
+    // 1.a Request TI attributes
+    try {
+      attributesRequest = await axios.get<unknown>(
+        `${this.trustedIssuersRegistry}/${did}/attributes`
+      );
+    } catch (e) {
+      logAxiosError(e, this.logger);
+
+      if (axios.isAxiosError(e)) {
+        if (e.status === 404) {
+          throw new BadRequestError("Invalid Verifiable Presentation", {
+            detail: `DID ${did} is not registered in the Trusted Issuers Registry`,
+          });
+        }
+
+        if (e.status === 500) {
+          throw new InternalServerError(InternalServerError.defaultTitle, {
+            detail: "Trusted Issuers Registry responded with an internal error",
+          });
+        }
+      }
+
+      // Fallback (should not be triggered)
+      throw new InternalServerError(InternalServerError.defaultTitle, {
+        detail: "Unexpected error",
+      });
+    }
+
+    // 1.b Parse response
+    const parsedAttributes = attributesSchema.safeParse(attributesRequest.data);
+    if (!parsedAttributes.success) {
+      throw new InternalServerError(InternalServerError.defaultTitle, {
+        detail: "Trusted Issuers Registry sent an invalid response",
+      });
+    }
+
+    // 1.c If the issuer has more than 1 attribute:
+    // - return an error if requireNewUser=true
+    // - consider the Trusted Issuer as accredited (return early)
+    if (parsedAttributes.data.items.length !== 1) {
+      if (requireNewUser) {
+        throw new BadRequestError("Invalid Verifiable Presentation", {
+          detail: `Trusted Issuer ${did} already has multiple attributes`,
+        });
+      }
+
+      // The Trusted Issuer has multiple attributes. Exit early.
+      return;
+    }
+
+    // 2. If the TI has exactly 1 attribute, check if the attribute has exactly 1 revision
+    const attribute = parsedAttributes.data.items[0];
+    let revisionsRequest: AxiosResponse<unknown>;
+
+    // 2.a Request attribute revisions
+    try {
+      revisionsRequest = await axios.get<unknown>(
+        `${attribute.href}/revisions`
+      );
+    } catch (e) {
+      logAxiosError(e, this.logger);
+
+      if (axios.isAxiosError(e)) {
+        if (e.status === 404) {
+          throw new BadRequestError("Invalid Verifiable Presentation", {
+            detail: `Attribute ${attribute.id} from Trusted Issuer ${did} can't be found`,
+          });
+        }
+
+        if (e.status === 500) {
+          throw new InternalServerError(InternalServerError.defaultTitle, {
+            detail: "Trusted Issuers Registry responded with an internal error",
+          });
+        }
+      }
+
+      // Fallback (should not be triggered)
+      throw new InternalServerError(InternalServerError.defaultTitle, {
+        detail: "Unexpected error",
+      });
+    }
+
+    // 2.b Parse response
+    const parsedRevisions = revisionsSchema.safeParse(revisionsRequest.data);
+    if (!parsedRevisions.success) {
+      throw new InternalServerError(InternalServerError.defaultTitle, {
+        detail: "Trusted Issuers Registry sent an invalid response",
+      });
+    }
+
+    // 2.c If the attribute has more than 1 revision:
+    // - return an error if requireNewUser=true
+    // - consider the Trusted Issuer as accredited
+    if (parsedRevisions.data.items.length !== 1 && requireNewUser) {
+      throw new BadRequestError("Invalid Verifiable Presentation", {
+        detail: `Trusted Issuer ${did} already has accreditations`,
+      });
+    }
+  }
+
   async createAccessToken(body: CreateAccessTokenDto): Promise<TokenResponse> {
     const {
       scope,
@@ -300,18 +452,35 @@ export class AuthorisationService {
     );
 
     // Verify VP JWT
-    await this.validateVpJwt(vpToken, scope.includes("did_write"));
+    await this.validateVpJwt(vpToken, scope.includes(DIDR_INVITE_SCOPE));
 
-    // TODO: Implement additional logic based on scope + VC type
+    // Additional verifications based on the requested scope
 
-    // https://ec.europa.eu/digital-building-blocks/tracker/browse/EBSIINT-5010
-    // did_write -> When VP contains only a valid VerifiableAuthorisationToOnboard, which was issued by Root TAO or TAO.
+    // `didr_invite`: the client must present a VP containing a valid VerifiableAuthorisationToOnboard VC.
+    // This is already done by the PEX library, based on the presentation definition.
+    // Verify that the DID is not registered yet.
+    if (
+      scope.includes(DIDR_INVITE_SCOPE) &&
+      (await this.isDidRegistered(vp.holder))
+    ) {
+      throw new BadRequestError("Invalid Verifiable Presentation", {
+        detail: `DID ${vp.holder} is already registered in the DID Registry`,
+      });
+    }
 
-    // https://ec.europa.eu/digital-building-blocks/tracker/browse/EBSIINT-5011
-    // tir_write -> When VP contains a valid VerifiableAuthorisationForTrustChain from EBSI TO, or Verifiable Accreditation (VerifiableAccreditationToAttest, or VerifiableAccreditationToAccredit), which was issued by Root TAO or TAO.
+    // `didr_write`: the client needs to have entry in DIDR / can prove her signature.
+    // This is already done in validateVpJwt.
 
-    // https://ec.europa.eu/digital-building-blocks/tracker/browse/EBSIINT-5012
-    // generic_write -> Verify that VP holder is a registered Trusted Issuer.
+    // `tir_invite`: the client must present a VP containing a valid VerifiableAuthorisationForTrustChain, VerifiableAccreditationToAttest, or VerifiableAccreditationToAccredit.
+    // This is already done by the PEX library, based on the presentation definition.
+    if (scope.includes(TIR_INVITE_SCOPE)) {
+      await this.validateTrustedIssuer(vp.holder, true);
+    }
+
+    // `tir_write`: the client needs to be registered as a Trusted Issuer with accreditations.
+    if (scope.includes(TIR_WRITE_SCOPE)) {
+      await this.validateTrustedIssuer(vp.holder, false);
+    }
 
     // Generate access token
     const scopes = scope.join(" ");
