@@ -16,7 +16,7 @@ import type { FastifyInstance } from "fastify";
 import { ethers } from "ethers";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { DidRegistry__factory } from "@ebsiint-sc/did-registry-v4";
-import { AsyncReturnType, encode } from "@ebsiint-api/shared";
+import { encode } from "@ebsiint-api/shared";
 import { IdentifiersModule } from "./identifiers.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { setupTestEnv } from "../../../tests/utils/didRegistry";
@@ -31,7 +31,7 @@ const DID_DOCUMENTS = 3;
 describe("Identifiers Module", () => {
   let app: INestApplication;
   let server: HttpServer;
-  let testEnv: AsyncReturnType<typeof setupTestEnv>;
+  let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
   let ledgerService: LedgerService;
   let configService: ConfigService<ApiConfig, true>;
   let users: UserDetails[];
@@ -39,7 +39,7 @@ describe("Identifiers Module", () => {
   beforeAll(async () => {
     // Spin up test blockchain (hardhat)
     testEnv = await setupTestEnv({
-      didDocuments: DID_DOCUMENTS,
+      didDocumentsTotal: DID_DOCUMENTS,
     });
     const { didRegistryContract } = testEnv;
     users = testEnv.users;
@@ -824,6 +824,7 @@ describe("Identifiers Module", () => {
           code: -32600,
           message: "The method 'bad method' is invalid",
         },
+        id: null,
       });
       expect(response.status).toBe(400);
 
@@ -842,6 +843,7 @@ describe("Identifiers Module", () => {
           message:
             "Validation error: each value in params must be an Ethereum address",
         },
+        id: null,
       });
       expect(response.status).toBe(400);
     });

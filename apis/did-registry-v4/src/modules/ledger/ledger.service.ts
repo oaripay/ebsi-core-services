@@ -1,10 +1,11 @@
 import { randomUUID } from "node:crypto";
 import { Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
-import { decodeJWT } from "did-jwt";
+import { decodeJwt } from "jose";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
-import axios, { AxiosResponse } from "axios";
+import axios from "axios";
+import type { AxiosResponse } from "axios";
 import { DidRegistry, DidRegistry__factory } from "@ebsiint-sc/did-registry-v4";
 import {
   DidRegistry as DidRegistryV3,
@@ -20,21 +21,21 @@ const REFRESH_LIMIT = 10 * 1000;
 export class LedgerService {
   private readonly logger = new Logger(LedgerService.name);
 
-  private ethersProvider: ethers.providers.JsonRpcProvider;
+  private ethersProvider?: ethers.providers.JsonRpcProvider;
 
-  private ethersProviderWithoutToken: ethers.providers.JsonRpcProvider;
+  private ethersProviderWithoutToken?: ethers.providers.JsonRpcProvider;
 
-  private didRegistryContract: DidRegistry;
+  private didRegistryContract?: DidRegistry;
 
-  private publicMethodsDidRegistryContract: DidRegistry;
+  private publicMethodsDidRegistryContract?: DidRegistry;
 
-  private publicMethodsDidRegistryV3Contract: DidRegistryV3;
+  private publicMethodsDidRegistryV3Contract?: DidRegistryV3;
 
   private didRegistryAddress: string;
 
   private didRegistryV3Address: string;
 
-  private accessTokenExp: number;
+  private accessTokenExp?: number;
 
   private agent: Agent;
 
@@ -53,7 +54,7 @@ export class LedgerService {
     this.didRegistryV3Address =
       this.configService.get<string>("contractAddrV3");
     this.authorisationApiUrl = this.configService.get<string>(
-      "authorisationApiUrl"
+      "authorisationApiV2Url"
     );
 
     this.agent = new Agent({
@@ -103,7 +104,7 @@ export class LedgerService {
         timeout: this.timeout,
       });
 
-      const { payload } = decodeJWT(accessToken);
+      const payload = decodeJwt(accessToken);
       this.accessTokenExp = payload.exp;
 
       return accessToken;
@@ -140,22 +141,25 @@ export class LedgerService {
           // Ignore debug
         }
       });
-    } else {
-      this.ethersProviderWithoutToken = new ethers.providers.JsonRpcProvider({
-        url,
-        timeout: this.timeout,
-      });
 
-      this.ethersProviderWithoutToken.on("debug", (...args) => {
-        try {
-          if (typeof args[0] === "object" && "error" in args[0]) {
-            this.logger.debug(JSON.stringify(args[0]));
-          }
-        } catch {
-          // Ignore debug
-        }
-      });
+      return this.ethersProvider;
     }
+
+    this.ethersProviderWithoutToken = new ethers.providers.JsonRpcProvider({
+      url,
+      timeout: this.timeout,
+    });
+
+    this.ethersProviderWithoutToken.on("debug", (...args) => {
+      try {
+        if (typeof args[0] === "object" && "error" in args[0]) {
+          this.logger.debug(JSON.stringify(args[0]));
+        }
+      } catch {
+        // Ignore debug
+      }
+    });
+    return this.ethersProviderWithoutToken;
   }
 
   private async connectProvider(token?: string) {
@@ -166,33 +170,30 @@ export class LedgerService {
           this.localOrigin
         );
         this.logger.debug(`Trying to connect to local Ledger API: ${localUrl}`);
-        this.setupProvider(localUrl, token);
-        if (token) {
-          await this.ethersProvider.getNetwork();
-        } else {
-          await this.ethersProviderWithoutToken.getNetwork();
-        }
+        const provider = this.setupProvider(localUrl, token);
+        await provider.getNetwork();
         this.logger.debug("Connected to local Ledger API");
+        return provider;
       } catch (e) {
         this.logger.debug(
           `Falling back to remote Ledger API: ${this.remoteLedgerApi}`
         );
-        this.setupProvider(this.remoteLedgerApi, token);
+        return this.setupProvider(this.remoteLedgerApi, token);
       }
-    } else {
-      this.logger.debug(`Using remote Ledger API: ${this.remoteLedgerApi}`);
-      this.setupProvider(this.remoteLedgerApi, token);
     }
+
+    this.logger.debug(`Using remote Ledger API: ${this.remoteLedgerApi}`);
+    return this.setupProvider(this.remoteLedgerApi, token);
   }
 
   private async refreshConnection() {
     const token = await this.getAccessToken();
 
-    await this.connectProvider(token);
+    const provider = await this.connectProvider(token);
 
     this.didRegistryContract = DidRegistry__factory.connect(
       this.didRegistryAddress,
-      this.ethersProvider
+      provider
     );
   }
 
@@ -201,11 +202,11 @@ export class LedgerService {
       return this.publicMethodsDidRegistryContract;
     }
 
-    await this.connectProvider();
+    const provider = await this.connectProvider();
 
     this.publicMethodsDidRegistryContract = DidRegistry__factory.connect(
       this.didRegistryAddress,
-      this.ethersProviderWithoutToken
+      provider
     );
 
     return this.publicMethodsDidRegistryContract;
@@ -216,11 +217,11 @@ export class LedgerService {
       return this.publicMethodsDidRegistryV3Contract;
     }
 
-    await this.connectProvider();
+    const provider = await this.connectProvider();
 
     this.publicMethodsDidRegistryV3Contract = DidRegistryV3__factory.connect(
       this.didRegistryV3Address,
-      this.ethersProviderWithoutToken
+      provider
     );
 
     return this.publicMethodsDidRegistryV3Contract;
@@ -229,7 +230,7 @@ export class LedgerService {
   async getContract({ protectedMethod = false } = {}): Promise<DidRegistry> {
     if (protectedMethod) {
       await this.checkSession();
-      return this.didRegistryContract;
+      return this.didRegistryContract as DidRegistry; // Assume it is not undefined
     }
 
     return this.getPublicMethodsDidRegistryContract();

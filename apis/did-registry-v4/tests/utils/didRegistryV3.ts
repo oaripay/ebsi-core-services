@@ -171,7 +171,7 @@ export async function insertDidDocument(
   const didDocument = createDidDocument(did);
   const didDocumentBuffer = Buffer.from(JSON.stringify(didDocument));
 
-  const canonicalizedDidDocument = canonicalize(didDocument);
+  const canonicalizedDidDocument = canonicalize(didDocument) as string;
 
   const canonicalizedDidDocumentBuffer = Buffer.from(canonicalizedDidDocument);
 
@@ -254,16 +254,14 @@ export async function insertHashAlgorithm(
 }
 
 export interface SetupOptions {
-  didDocuments?: number;
+  didDocumentsTotal?: number;
   hashAlgorithmsTotal?: number;
 }
 
-export async function setupTestEnv(
-  opts: SetupOptions = {
-    didDocuments: 1,
-    hashAlgorithmsTotal: 1,
-  }
-): Promise<{
+export async function setupTestEnv({
+  didDocumentsTotal = 1,
+  hashAlgorithmsTotal = 1,
+}: SetupOptions = {}): Promise<{
   provider: ethers.providers.JsonRpcProvider;
   didRegistryV3Contract: DidRegistryV3;
   policyContractMock: Contract;
@@ -280,7 +278,7 @@ export async function setupTestEnv(
 
   // Insert fake data
   const hashAlgorithms = await Promise.all(
-    Array(opts.hashAlgorithmsTotal ?? 1)
+    Array(hashAlgorithmsTotal)
       .fill(0)
       .map((i: number) => insertHashAlgorithm(didRegistryV3Contract, i))
   );
@@ -289,7 +287,7 @@ export async function setupTestEnv(
 
   didDocuments.push(
     ...(await Promise.all(
-      Array(opts.didDocuments ?? 1)
+      Array(didDocumentsTotal)
         .fill(0)
         .map(() =>
           insertDidDocument(

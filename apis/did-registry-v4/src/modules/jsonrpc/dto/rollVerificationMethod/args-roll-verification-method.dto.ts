@@ -14,33 +14,33 @@ import {
 
 export class ArgsRollVerificationMethod {
   @IsDidV1()
-  did: string;
+  did!: string;
 
   @IsString()
   @IsVerificationMethodId()
-  vMethodId: string;
+  vMethodId!: string;
 
   @IsHexadecimal()
   @IsPublicKeyHex()
-  publicKey: string;
+  publicKey!: string;
 
   @IsBoolean()
-  isSecp256k1: boolean;
+  isSecp256k1!: boolean;
 
   @IsInt()
   @Min(0)
-  notBefore: number;
+  notBefore!: number;
 
   @IsInt()
   @Min(0)
-  notAfter: number;
+  notAfter!: number;
 
   @IsString()
-  oldVMethodId: string;
+  oldVMethodId!: string;
 
   @IsInt()
   @Min(0)
-  duration: number;
+  duration!: number;
 }
 
 export default { ArgsRollVerificationMethod };

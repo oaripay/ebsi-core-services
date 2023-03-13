@@ -1,9 +1,9 @@
 import { DidRegistry } from "@ebsiint-sc/did-registry-v4";
-import { PaginatedList, paginate, AsyncReturnType } from "@ebsiint-api/shared";
+import { PaginatedList, paginate } from "@ebsiint-api/shared";
 import { DidLink } from "./identifiers.interface";
 
 export function formatIdentifiers(
-  identifiers: AsyncReturnType<DidRegistry["getDids"]>,
+  identifiers: Awaited<ReturnType<DidRegistry["getDids"]>>,
   page: number,
   pageSize: number,
   baseUrl: string,

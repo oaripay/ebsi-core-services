@@ -11,14 +11,14 @@ import { JsonRpcDto } from "../jsonrpc.dto";
 
 export class RequestSendSignedTransactionDto extends JsonRpcDto {
   @IsIn(["sendSignedTransaction", "signedTransaction"])
-  method: string;
+  method!: "sendSignedTransaction" | "signedTransaction";
 
   @IsArray()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @Type(() => SignedTransactionParam)
-  params: SignedTransactionParam[];
+  params!: SignedTransactionParam[];
 }
 
 export default { RequestSendSignedTransactionDto };

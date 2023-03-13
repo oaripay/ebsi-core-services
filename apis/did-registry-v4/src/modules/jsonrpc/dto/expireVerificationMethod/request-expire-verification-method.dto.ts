@@ -11,14 +11,14 @@ import { ExpireVerificationMethodParam } from "./expire-verification-method-para
 
 export class RequestExpireVerificationMethodDto extends JsonRpcDto {
   @Equals("expireVerificationMethod")
-  method: string;
+  method!: "expireVerificationMethod";
 
   @IsArray()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @Type(() => ExpireVerificationMethodParam)
-  params: ExpireVerificationMethodParam[];
+  params!: ExpireVerificationMethodParam[];
 }
 
 export default RequestExpireVerificationMethodDto;

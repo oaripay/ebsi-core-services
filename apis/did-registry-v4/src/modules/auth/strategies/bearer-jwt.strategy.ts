@@ -5,9 +5,9 @@ import { AuthService } from "../auth.service";
 import { SubjectInfo } from "../auth.interface";
 
 @Injectable()
-export class OAuth2OrSiopJwtStrategy extends PassportStrategy(
+export class BearerJwtStrategy extends PassportStrategy(
   Strategy,
-  "oauth2-siop-jwt"
+  "bearer-jwt"
 ) {
   constructor(private authService: AuthService) {
     super();
@@ -18,4 +18,4 @@ export class OAuth2OrSiopJwtStrategy extends PassportStrategy(
   }
 }
 
-export default OAuth2OrSiopJwtStrategy;
+export default BearerJwtStrategy;

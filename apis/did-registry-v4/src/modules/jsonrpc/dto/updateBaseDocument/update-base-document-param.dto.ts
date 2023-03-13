@@ -3,7 +3,7 @@ import { ArgsUpdateBaseDocument } from "./args-update-base-document.dto";
 
 export class UpdateBaseDocumentParam extends ArgsUpdateBaseDocument {
   @IsEthereumAddress()
-  from: string;
+  from!: string;
 }
 
 export default { UpdateBaseDocumentParam };

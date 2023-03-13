@@ -11,14 +11,14 @@ import { RevokeVerificationMethodParam } from "./revoke-verification-method-para
 
 export class RequestRevokeVerificationMethodDto extends JsonRpcDto {
   @Equals("revokeVerificationMethod")
-  method: string;
+  method!: "revokeVerificationMethod";
 
   @IsArray()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @Type(() => RevokeVerificationMethodParam)
-  params: RevokeVerificationMethodParam[];
+  params!: RevokeVerificationMethodParam[];
 }
 
 export default RequestRevokeVerificationMethodDto;

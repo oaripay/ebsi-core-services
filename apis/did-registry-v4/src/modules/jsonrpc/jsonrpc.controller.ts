@@ -2,7 +2,7 @@ import { Controller, Body, Post, HttpCode, UseGuards } from "@nestjs/common";
 import { JsonRpcService } from "./jsonrpc.service";
 import { InvalidRequestJsonRpcError } from "./errors";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
-import { OAuth2OrSiopJwtAuthGuard } from "../auth/guards";
+import { BearerJwtAuthGuard } from "../auth/guards";
 import {
   JsonRpcDto,
   RequestSendSignedTransactionDto,
@@ -20,7 +20,7 @@ import { Subject, SubjectInfo } from "../auth/decorators";
 
 function formatJsonRpcResponse(
   result: unknown,
-  id: string | number
+  id: string | number | null
 ): JsonRpcResponseObject {
   return { jsonrpc: "2.0", id: id ?? null, result };
 }
@@ -30,113 +30,108 @@ export default class AppController {
   constructor(private jsonRpcService: JsonRpcService) {}
 
   @HttpCode(200)
-  @UseGuards(OAuth2OrSiopJwtAuthGuard)
+  @UseGuards(BearerJwtAuthGuard)
   @Post()
   async jsonRPC(
     @Body() body: JsonRpcDto,
     @Subject() subject: SubjectInfo
   ): Promise<JsonRpcResponseObject> {
-    const { method, id } = body;
+    const { method, id: requestId } = body;
+    const id = requestId ?? null;
+    const { scp: scope, sub } = subject;
+
     switch (method) {
       case "insertDidDocument": {
         const transaction =
           await this.jsonRpcService.buildTransactionInsertDidDocument(
-            subject.sub,
             body as RequestInsertDidDocumentDto,
-            id
+            id,
+            sub,
+            scope
           );
         return formatJsonRpcResponse(transaction, id);
       }
-
       case "updateBaseDocument": {
         const transaction =
           await this.jsonRpcService.buildTransactionUpdateBaseDocument(
-            subject.sub,
             body as RequestUpdateBaseDocumentDto,
-            id
+            id,
+            scope
           );
         return formatJsonRpcResponse(transaction, id);
       }
-
       case "addController": {
         const transaction =
           await this.jsonRpcService.buildTransactionAddController(
-            subject.sub,
             body as RequestAddControllerDto,
-            id
+            id,
+            scope
           );
         return formatJsonRpcResponse(transaction, id);
       }
-
       case "revokeController": {
         const transaction =
           await this.jsonRpcService.buildTransactionRevokeController(
-            subject.sub,
             body as RequestRevokeControllerDto,
-            id
+            id,
+            scope
           );
         return formatJsonRpcResponse(transaction, id);
       }
-
       case "addVerificationMethod": {
         const transaction =
           await this.jsonRpcService.buildTransactionAddVerificationMethod(
-            subject.sub,
             body as RequestAddVerificationMethodDto,
-            id
+            id,
+            scope
           );
         return formatJsonRpcResponse(transaction, id);
       }
-
       case "addVerificationRelationship": {
         const transaction =
           await this.jsonRpcService.buildTransactionAddVerificationRelationship(
-            subject.sub,
             body as RequestAddVerificationRelationshipDto,
-            id
+            id,
+            scope
           );
         return formatJsonRpcResponse(transaction, id);
       }
-
       case "revokeVerificationMethod": {
         const transaction =
           await this.jsonRpcService.buildTransactionRevokeVerificationMethod(
-            subject.sub,
             body as RequestRevokeVerificationMethodDto,
-            id
+            id,
+            scope
           );
         return formatJsonRpcResponse(transaction, id);
       }
-
       case "expireVerificationMethod": {
         const transaction =
           await this.jsonRpcService.buildTransactionExpireVerificationMethod(
-            subject.sub,
             body as RequestExpireVerificationMethodDto,
-            id
+            id,
+            scope
           );
         return formatJsonRpcResponse(transaction, id);
       }
-
       case "rollVerificationMethod": {
         const transaction =
           await this.jsonRpcService.buildTransactionRollVerificationMethod(
-            subject.sub,
             body as RequestRollVerificationMethodDto,
-            id
+            id,
+            scope
           );
         return formatJsonRpcResponse(transaction, id);
       }
-
       case "sendSignedTransaction": {
         const result = await this.jsonRpcService.sendTransaction(
-          subject.sub,
           body as RequestSendSignedTransactionDto,
-          id
+          id,
+          sub,
+          scope
         );
         return formatJsonRpcResponse(result, id);
       }
-
       default:
         throw new InvalidRequestJsonRpcError(
           `The method '${method}' is invalid`,

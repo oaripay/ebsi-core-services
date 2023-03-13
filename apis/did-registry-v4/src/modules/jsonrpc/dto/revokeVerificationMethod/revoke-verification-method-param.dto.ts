@@ -3,7 +3,7 @@ import { ArgsRevokeVerificationMethod } from "./args-revoke-verification-method.
 
 export class RevokeVerificationMethodParam extends ArgsRevokeVerificationMethod {
   @IsEthereumAddress()
-  from: string;
+  from!: string;
 }
 
 export default { RevokeVerificationMethodParam };

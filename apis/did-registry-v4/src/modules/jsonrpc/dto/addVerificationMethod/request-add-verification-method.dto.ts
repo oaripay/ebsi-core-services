@@ -11,14 +11,14 @@ import { AddVerificationMethodParam } from "./add-verification-method-param.dto"
 
 export class RequestAddVerificationMethodDto extends JsonRpcDto {
   @Equals("addVerificationMethod")
-  method: string;
+  method!: "addVerificationMethod";
 
   @IsArray()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @Type(() => AddVerificationMethodParam)
-  params: AddVerificationMethodParam[];
+  params!: AddVerificationMethodParam[];
 }
 
 export default RequestAddVerificationMethodDto;

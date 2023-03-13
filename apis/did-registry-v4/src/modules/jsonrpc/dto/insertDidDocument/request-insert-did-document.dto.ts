@@ -11,14 +11,14 @@ import { InsertDidDocumentParam } from "./insert-did-document-param.dto";
 
 export class RequestInsertDidDocumentDto extends JsonRpcDto {
   @Equals("insertDidDocument")
-  method: string;
+  method!: "insertDidDocument";
 
   @IsArray()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @Type(() => InsertDidDocumentParam)
-  params: InsertDidDocumentParam[];
+  params!: InsertDidDocumentParam[];
 }
 
 export default RequestInsertDidDocumentDto;

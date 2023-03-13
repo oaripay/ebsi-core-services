@@ -7,18 +7,18 @@ import {
 
 export class ArgsAddVerificationMethod {
   @IsDidV1()
-  did: string;
+  did!: string;
 
   @IsString()
   @IsVerificationMethodId()
-  vMethodId: string;
+  vMethodId!: string;
 
   @IsHexadecimal()
   @IsPublicKeyHex()
-  publicKey: string;
+  publicKey!: string;
 
   @IsBoolean()
-  isSecp256k1: boolean;
+  isSecp256k1!: boolean;
 }
 
 export default { ArgsAddVerificationMethod };

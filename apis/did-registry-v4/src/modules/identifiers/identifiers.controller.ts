@@ -89,8 +89,9 @@ export default class IdentifiersController {
     @Body() body: JsonRpcDto
   ): Promise<JsonRpcResponseObject> {
     const { did } = params;
+    const { method, id: requestId } = body;
+    const id = requestId ?? null;
 
-    const { method, id } = body;
     switch (method) {
       case "checkController": {
         const result = await this.identifiersService.checkController(
@@ -98,7 +99,7 @@ export default class IdentifiersController {
           body as RequestCheckControllerDto,
           id
         );
-        return { jsonrpc: "2.0", id: id ?? null, result };
+        return { jsonrpc: "2.0", id, result };
       }
 
       default:

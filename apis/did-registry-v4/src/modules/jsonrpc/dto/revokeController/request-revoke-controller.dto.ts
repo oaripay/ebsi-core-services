@@ -11,14 +11,14 @@ import { RevokeControllerParam } from "./revoke-controller-param.dto";
 
 export class RequestRevokeControllerDto extends JsonRpcDto {
   @Equals("revokeController")
-  method: string;
+  method!: "revokeController";
 
   @IsArray()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @Type(() => RevokeControllerParam)
-  params: RevokeControllerParam[];
+  params!: RevokeControllerParam[];
 }
 
 export default RequestRevokeControllerDto;

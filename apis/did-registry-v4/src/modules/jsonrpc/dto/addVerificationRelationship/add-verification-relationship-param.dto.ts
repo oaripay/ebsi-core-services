@@ -3,7 +3,7 @@ import { ArgsAddVerificationRelationship } from "./args-add-verification-relatio
 
 export class AddVerificationRelationshipParam extends ArgsAddVerificationRelationship {
   @IsEthereumAddress()
-  from: string;
+  from!: string;
 }
 
 export default { AddVerificationRelationshipParam };

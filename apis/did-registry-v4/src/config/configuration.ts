@@ -7,8 +7,8 @@ export interface ApiConfig {
   apiPrivateKey: string;
   apiUrlPrefix: string;
   apiName: string;
-  authorisationApiName: string;
-  authorisationApiUrl: string;
+  authorisationApiV2Url: string;
+  authorisationApiV3Url: string;
   contractAddr: string;
   contractAddrV3: string;
   domain: string;
@@ -19,11 +19,9 @@ export interface ApiConfig {
   externalEbsiApiHealthCheck: string;
   requestTimeout: number;
   trustedAppsRegistryApiUrl: string;
-  authorisationCredentialSchema: string;
-  usersOnboardingApiDid: string;
-  usersOnboardingApiPrivateKey: string;
-  testClientKid: string;
-  testClientPrivateKey: string;
+  testExistingUserKid: string;
+  testExistingUserPrivateKey: string;
+  testAuthApiV3ES256PrivateKey: string;
   testLoadBalancerDomain: string;
   dockerContainerTag: string;
   blockscout: {
@@ -34,8 +32,8 @@ export interface ApiConfig {
 
 const LEDGER_API_PATH = "/ledger/v3";
 const TAR_API_PATH = "/trusted-apps-registry/v3";
-const TSR_API_PATH = "/trusted-schemas-registry/v2";
-const AUTH_API_PATH = "/authorisation/v2";
+const AUTH_API_V2_PATH = "/authorisation/v2";
+const AUTH_API_V3_PATH = "/authorisation/v3";
 const HEALTH_CHECK_PATH = "/docs/";
 
 // Config factory
@@ -49,9 +47,8 @@ export const loadConfig = (): ApiConfig => {
     apiPrivateKey: process.env.API_PRIVATE_KEY,
     apiName: process.env.API_NAME,
     apiUrlPrefix: process.env.API_URL_PREFIX || "/did-registry/v4",
-    authorisationApiName:
-      process.env.AUTHORISATION_API_NAME || "authorisation-api",
-    authorisationApiUrl: DOMAIN + AUTH_API_PATH,
+    authorisationApiV2Url: DOMAIN + AUTH_API_V2_PATH,
+    authorisationApiV3Url: DOMAIN + AUTH_API_V3_PATH,
     contractAddr: process.env.CONTRACT_ADDR,
     contractAddrV3: process.env.CONTRACT_ADDR_V3,
     domain: DOMAIN,
@@ -62,19 +59,16 @@ export const loadConfig = (): ApiConfig => {
     externalEbsiApiHealthCheck: DOMAIN + HEALTH_CHECK_PATH,
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     trustedAppsRegistryApiUrl: DOMAIN + TAR_API_PATH,
-    authorisationCredentialSchema: `${DOMAIN}${TSR_API_PATH}/schemas/${
-      process.env.AUTHORISATION_CREDENTIAL_SCHEMA || ""
-    }`,
-    usersOnboardingApiDid: process.env.USERS_ONBOARDING_API_DID || "",
-    usersOnboardingApiPrivateKey:
-      process.env.USERS_ONBOARDING_API_PRIVATE_KEY || "",
-    testClientKid: process.env.TEST_CLIENT_KID,
-    testClientPrivateKey: process.env.TEST_CLIENT_PRIVATE_KEY,
+    testExistingUserKid: process.env.TEST_EXISTING_USER_KID || "",
+    testExistingUserPrivateKey:
+      process.env.TEST_EXISTING_USER_PRIVATE_KEY || "",
+    testAuthApiV3ES256PrivateKey:
+      process.env.TEST_AUTH_API_V3_ES256_PRIVATE_KEY || "",
     testLoadBalancerDomain: process.env.TEST_LB_DOMAIN || "",
     dockerContainerTag: process.env.DOCKER_TAG || "",
     blockscout: {
-      url: process.env.BLOCKSCOUT_URL,
-      bearerToken: process.env.BLOCKSCOUT_BEARER_TOKEN,
+      url: process.env.BLOCKSCOUT_URL || "",
+      bearerToken: process.env.BLOCKSCOUT_BEARER_TOKEN || "",
     },
   };
 };
@@ -96,7 +90,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
     API_PRIVATE_KEY: Joi.string().required(),
     API_URL_PREFIX: Joi.string(),
     API_NAME: Joi.string().required(),
-    AUTHORISATION_API_NAME: Joi.string(),
     LOG_LEVEL: Joi.string().valid(
       "silent",
       "error",
@@ -111,11 +104,9 @@ export const ApiConfigModule = ConfigModule.forRoot({
     LOCAL_ORIGIN: Joi.string().uri(),
     LEDGER_API_NAME: Joi.string(),
     REQUEST_TIMEOUT: Joi.string(),
-    AUTHORISATION_CREDENTIAL_SCHEMA: Joi.string(),
-    USERS_ONBOARDING_API_DID: Joi.string(),
-    USERS_ONBOARDING_API_PRIVATE_KEY: Joi.string(),
-    TEST_CLIENT_KID: Joi.string(),
-    TEST_CLIENT_PRIVATE_KEY: Joi.string(),
+    TEST_EXISTING_USER_KID: Joi.string(),
+    TEST_EXISTING_USER_PRIVATE_KEY: Joi.string(),
+    TEST_AUTH_API_V3_ES256_PRIVATE_KEY: Joi.string(),
     TEST_LB_DOMAIN: Joi.string().uri(),
     BLOCKSCOUT_URL: Joi.string(),
     BLOCKSCOUT_BEARER_TOKEN: Joi.string(),

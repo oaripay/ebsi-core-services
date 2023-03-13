@@ -1,6 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
 import {
-  AsyncReturnType,
   encode,
   BadRequestError,
   NotFoundError,
@@ -35,9 +34,9 @@ export default class IdentifiersService {
   async getIdentifiers(
     page: number,
     pageSize: number,
-    controller: string,
-    vMethodId: string,
-    vRelationship: string
+    controller?: string,
+    vMethodId?: string,
+    vRelationship?: string
   ): ReturnType<DidRegistry["getDids"]> {
     if (controller) {
       if (vMethodId || vRelationship) {
@@ -104,7 +103,7 @@ export default class IdentifiersService {
     validAt?: string
   ): Promise<{ [x: string]: unknown }> {
     const contract = await this.ledgerService.getContract();
-    let document: AsyncReturnType<typeof contract.getDidDocument>;
+    let document: Awaited<ReturnType<typeof contract.getDidDocument>>;
 
     if (!validAt) {
       document = await contract.getDidDocument(did);
@@ -144,9 +143,9 @@ export default class IdentifiersService {
         controller: did,
         publicKeyJwk: vMethod.isSecp256k1
           ? encode.publicKey.fromHexToJWK(vMethod.publicKey)
-          : (JSON.parse(
+          : JSON.parse(
               Buffer.from(vMethod.publicKey.slice(2), "hex").toString()
-            ) as unknown),
+            ),
       }));
     } catch (error) {
       throw new BadRequestError(BadRequestError.defaultTitle, {
@@ -178,7 +177,7 @@ export default class IdentifiersService {
   async checkController(
     did: string,
     body: RequestCheckControllerDto,
-    id?: number | string
+    id: number | string | null
   ): Promise<boolean> {
     try {
       await validateClass(RequestCheckControllerDto, body);

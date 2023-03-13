@@ -11,14 +11,14 @@ import { AddVerificationRelationshipParam } from "./add-verification-relationshi
 
 export class RequestAddVerificationRelationshipDto extends JsonRpcDto {
   @Equals("addVerificationRelationship")
-  method: string;
+  method!: "addVerificationRelationship";
 
   @IsArray()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @Type(() => AddVerificationRelationshipParam)
-  params: AddVerificationRelationshipParam[];
+  params!: AddVerificationRelationshipParam[];
 }
 
 export default RequestAddVerificationRelationshipDto;

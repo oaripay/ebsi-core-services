@@ -3,7 +3,7 @@ import { ArgsRollVerificationMethod } from "./args-roll-verification-method.dto"
 
 export class RollVerificationMethodParam extends ArgsRollVerificationMethod {
   @IsEthereumAddress()
-  from: string;
+  from!: string;
 }
 
 export default { RollVerificationMethodParam };

@@ -26,7 +26,7 @@ import {
 
 export function formatEthersUnsignedTransaction(
   unsignedTransaction: UnsignedTransaction
-): ethers.UnsignedTransaction {
+) {
   return {
     to: unsignedTransaction.to,
     data: unsignedTransaction.data,
@@ -35,7 +35,7 @@ export function formatEthersUnsignedTransaction(
     chainId: Number(unsignedTransaction.chainId),
     gasLimit: unsignedTransaction.gasLimit,
     gasPrice: unsignedTransaction.gasPrice,
-  };
+  } satisfies ethers.UnsignedTransaction;
 }
 
 export function formatEthersSignature(
@@ -49,7 +49,7 @@ export function formatEthersSignature(
     v: Number(v),
     recoveryParam: null,
     _vs: null,
-  } as ethers.Signature;
+  } as unknown as ethers.Signature;
 }
 
 type JsonRpcDtos =

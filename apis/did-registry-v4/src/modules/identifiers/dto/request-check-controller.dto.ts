@@ -9,13 +9,13 @@ import { JsonRpcDto } from "../../jsonrpc/dto";
 
 export class RequestCheckControllerDto extends JsonRpcDto {
   @Equals("checkController")
-  method: string;
+  method!: "checkController";
 
   @IsArray()
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @IsEthereumAddress({ each: true })
-  params: string[];
+  params!: string[];
 }
 
 export default RequestCheckControllerDto;

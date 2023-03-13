@@ -23,14 +23,16 @@ import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { createJWT, ES256KSigner } from "did-jwt";
-import * as OAuth2Lib from "@cef-ebsi/oauth2-auth";
-import * as SiopLib from "@cef-ebsi/siop-auth";
-import type { JwtTarVerifyResult } from "@cef-ebsi/oauth2-auth";
 import { useContainer } from "class-validator";
-import { calculateJwkThumbprint, JWK, JWTVerifyResult } from "jose";
+import {
+  calculateJwkThumbprint,
+  SignJWT,
+  generateKeyPair,
+  exportJWK,
+} from "jose";
+import type { GenerateKeyPairResult, JWK } from "jose";
+import nock from "nock";
 import { DidRegistry, DidRegistry__factory } from "@ebsiint-sc/did-registry-v4";
-import { AsyncReturnType } from "@ebsiint-api/shared";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import {
@@ -51,34 +53,6 @@ import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { setupTestEnv } from "../../../tests/utils/didRegistry";
 import { ApiConfig } from "../../config/configuration";
 import { LedgerService } from "../ledger/ledger.service";
-
-jest.mock("@cef-ebsi/oauth2-auth", () => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const originalModule = jest.requireActual("@cef-ebsi/oauth2-auth");
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-  return {
-    __esModule: true,
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    ...originalModule,
-    verifyJwtTar: jest.fn(),
-  };
-});
-
-jest.mock("@cef-ebsi/siop-auth", () => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const originalModule = jest.requireActual("@cef-ebsi/siop-auth");
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-  return {
-    __esModule: true,
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    ...originalModule,
-    verifyJwtTar: jest.fn(),
-  };
-});
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -103,29 +77,35 @@ describe("JsonRpc Module", () => {
   let server: HttpServer;
   let didRegistryContract: DidRegistry;
   let configService: ConfigService<ApiConfig, true>;
-  let testEnv: AsyncReturnType<typeof setupTestEnv>;
+  let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
   let ledgerService: LedgerService;
 
-  let appAccessToken: string;
-  let adminAccessToken: string;
-  let testUserAccessToken: string;
+  let newUserDidrInviteAccessToken: string;
+  let newUserDidrWriteAccessToken: string;
+  let existingUserDidrInviteAccessToken: string;
+  let existingUserDidrWriteAccessToken: string;
 
-  let adminSigner: ethers.Wallet;
-  let adminDid: string;
-  let testUser: UserDetails;
+  let newUser: UserDetails;
+  let existingUser: UserDetails;
+  let existingUser2: UserDetails;
 
   let publicKeyJwk2: JWK;
   let thumbprint2: string;
   let publicKeyJwk3: JWK;
   let thumbprint3: string;
 
-  const mockAuthOAuth2 = jest.spyOn(OAuth2Lib, "verifyJwtTar");
-  const mockAuthSiop = jest.spyOn(SiopLib, "verifyJwtTar");
+  let authApiKeyPair: GenerateKeyPairResult;
+  let authApiKid: string;
 
   beforeAll(async () => {
+    // Disable external requests
+    nock.disableNetConnect();
+    // Allow localhost connections so we can test local routes and mock servers.
+    nock.enableNetConnect("127.0.0.1");
+
     // Spin up test blockchain (hardhat)
     testEnv = await setupTestEnv({
-      didDocuments: 2,
+      didDocumentsTotal: 2,
     });
 
     didRegistryContract = testEnv.didRegistryContract;
@@ -163,9 +143,8 @@ describe("JsonRpc Module", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
 
-    adminSigner = ethers.Wallet.createRandom();
-    adminDid = testEnv.users[0].did;
-    testUser = await createUser();
+    newUser = await createUser();
+    [existingUser, existingUser2] = testEnv.users;
 
     publicKeyJwk2 = {
       kty: "OKP",
@@ -194,45 +173,80 @@ describe("JsonRpc Module", () => {
         Promise.resolve(testEnv.setupV3.didRegistryV3Contract)
       );
 
-    // Mock libraries
-    mockAuthOAuth2.mockImplementation(
-      async (): Promise<JwtTarVerifyResult> =>
-        Promise.reject(
-          new Error("Forgot to implement the mock for OAuth2 verifyJwtTar?")
-        )
+    // Generate key pair for Authorisation API v3 and create access token
+    authApiKeyPair = await generateKeyPair("ES256");
+    const publicKeyJwk = await exportJWK(authApiKeyPair.publicKey);
+    authApiKid = await calculateJwkThumbprint(publicKeyJwk);
+
+    newUserDidrInviteAccessToken = await new SignJWT({
+      sub: newUser.did,
+      scp: "openid didr_invite",
+    })
+      .setProtectedHeader({
+        typ: "JWT",
+        alg: "ES256",
+        kid: authApiKid,
+      })
+      .sign(authApiKeyPair.privateKey);
+
+    newUserDidrWriteAccessToken = await new SignJWT({
+      sub: newUser.did,
+      scp: "openid didr_write",
+    })
+      .setProtectedHeader({
+        typ: "JWT",
+        alg: "ES256",
+        kid: authApiKid,
+      })
+      .sign(authApiKeyPair.privateKey);
+
+    existingUserDidrInviteAccessToken = await new SignJWT({
+      sub: existingUser.did,
+      scp: "openid didr_invite",
+    })
+      .setProtectedHeader({
+        typ: "JWT",
+        alg: "ES256",
+        kid: authApiKid,
+      })
+      .sign(authApiKeyPair.privateKey);
+
+    existingUserDidrWriteAccessToken = await new SignJWT({
+      sub: existingUser.did,
+      scp: "openid didr_write",
+    })
+      .setProtectedHeader({
+        typ: "JWT",
+        alg: "ES256",
+        kid: authApiKid,
+      })
+      .sign(authApiKeyPair.privateKey);
+
+    // Mock Auth API v3
+    const authorisationApiUrl = new URL(
+      configService.get<string>("authorisationApiV3Url")
     );
 
-    mockAuthSiop.mockImplementation(
-      async (): Promise<JWTVerifyResult> =>
-        Promise.reject(
-          new Error("Forgot to implement the mock for Siop verifyJwtTar?")
-        )
-    );
+    // Mock Auth API v3 /.well-known/openid-configuration endpoint
+    nock(authorisationApiUrl.origin)
+      .get(`${authorisationApiUrl.pathname}/.well-known/openid-configuration`)
+      .reply(200, {
+        jwks_uri: `${authorisationApiUrl.origin}${authorisationApiUrl.pathname}/jwks`,
+      })
+      .persist();
 
-    // Generate JWTs
-    appAccessToken = await createJWT(
-      { sub: "random-app" },
-      {
-        issuer: "any",
-        signer: ES256KSigner(crypto.randomBytes(32)),
-      }
-    );
-
-    adminAccessToken = await createJWT(
-      { sub: adminDid, login_hint: "did_siop" },
-      {
-        issuer: "any",
-        signer: ES256KSigner(crypto.randomBytes(32)),
-      }
-    );
-
-    testUserAccessToken = await createJWT(
-      { sub: testUser.did, login_hint: "did_siop" },
-      {
-        issuer: "any",
-        signer: ES256KSigner(crypto.randomBytes(32)),
-      }
-    );
+    // Mock Auth API v3 /jwks endpoint
+    nock(authorisationApiUrl.origin)
+      .get(`${authorisationApiUrl.pathname}/jwks`)
+      .reply(200, {
+        keys: [
+          {
+            ...publicKeyJwk,
+            kid: authApiKid,
+          },
+        ],
+      })
+      .persist();
   });
 
   afterEach(() => {
@@ -240,6 +254,7 @@ describe("JsonRpc Module", () => {
   });
 
   afterAll(async () => {
+    nock.restore();
     // Avoid jest open handle error
     await new Promise<void>((resolve) => {
       setTimeout(() => resolve(), 500);
@@ -275,7 +290,7 @@ describe("JsonRpc Module", () => {
 
       expect(response.body).toStrictEqual({
         detail:
-          "Invalid Authorisation Token: invalid_argument: Incorrect format JWT",
+          "Invalid Authorisation Token: Only JWTs using Compact JWS serialization can be decoded",
         status: 401,
         title: "Unauthorized",
         type: "about:blank",
@@ -286,22 +301,32 @@ describe("JsonRpc Module", () => {
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
 
-    it("should reject a POST with an invalid app token", async () => {
-      expect.assertions(4);
+    it("should reject a POST with an invalid access token", async () => {
+      expect.assertions(6);
 
-      // Mock reject JWT
-      const verifyAccessTokenSpy = mockAuthOAuth2.mockImplementation(
-        async (): Promise<JwtTarVerifyResult> =>
-          Promise.reject(new Error("error message"))
+      const signer = await generateKeyPair("ES256");
+      const kid = await calculateJwkThumbprint(
+        await exportJWK(signer.publicKey)
       );
+      const accessTokenWithInvalidKid = await new SignJWT({
+        sub: newUser.did,
+        scp: "openid didr_invite",
+      })
+        .setProtectedHeader({
+          typ: "JWT",
+          alg: "ES256",
+          kid,
+        })
+        .sign(signer.privateKey);
 
-      const response = await request(server)
+      let response = await request(server)
         .post("/jsonrpc")
-        .auth(appAccessToken, { type: "bearer" })
+        .auth(accessTokenWithInvalidKid, { type: "bearer" })
         .send();
 
       expect(response.body).toStrictEqual({
-        detail: "Invalid JWT: error message",
+        detail:
+          "Invalid Access Token. Couldn't find a public key related to the given kid.",
         status: 401,
         title: "Unauthorized",
         type: "about:blank",
@@ -310,30 +335,25 @@ describe("JsonRpc Module", () => {
       expect(
         (response.headers as { "content-type": string })["content-type"]
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
-      expect(verifyAccessTokenSpy).toHaveBeenCalledWith(appAccessToken, {
-        op: "authorisation-api",
-        trustedAppsRegistry: `${configService.get<string>(
-          "trustedAppsRegistryApiUrl"
-        )}/apps`,
-        timeout: expect.any(Number),
-      });
-    });
 
-    it("should reject a POST with an invalid user token", async () => {
-      expect.assertions(4);
+      const accessTokenWithInvalidSignature = await new SignJWT({
+        sub: newUser.did,
+        scp: "openid didr_invite",
+      })
+        .setProtectedHeader({
+          typ: "JWT",
+          alg: "ES256",
+          kid: authApiKid,
+        })
+        .sign(signer.privateKey);
 
-      // Mock reject JWT
-      const verifyAccessTokenSpy = mockAuthSiop.mockImplementation(async () =>
-        Promise.reject(new Error("error message"))
-      );
-
-      const response = await request(server)
+      response = await request(server)
         .post("/jsonrpc")
-        .auth(testUserAccessToken, { type: "bearer" })
+        .auth(accessTokenWithInvalidSignature, { type: "bearer" })
         .send();
 
       expect(response.body).toStrictEqual({
-        detail: "Invalid JWT: error message",
+        detail: "Access Token signature validation failed",
         status: 401,
         title: "Unauthorized",
         type: "about:blank",
@@ -342,27 +362,14 @@ describe("JsonRpc Module", () => {
       expect(
         (response.headers as { "content-type": string })["content-type"]
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
-      expect(verifyAccessTokenSpy).toHaveBeenCalledWith(testUserAccessToken, {
-        audience: "ebsi-core-services",
-        trustedAppsRegistry: `${configService.get<string>(
-          "trustedAppsRegistryApiUrl"
-        )}/apps`,
-        timeout: expect.any(Number),
-      });
     });
 
     it("should throw Bad Request for a bad JSON-RPC call", async () => {
       expect.assertions(2);
 
-      // Mock access token verification
-      mockAuthOAuth2.mockImplementation(
-        async (): Promise<JwtTarVerifyResult> =>
-          Promise.resolve({ payload: {} } as JwtTarVerifyResult)
-      );
-
       const response = await request(server)
         .post("/jsonrpc")
-        .auth(appAccessToken, { type: "bearer" })
+        .auth(newUserDidrInviteAccessToken, { type: "bearer" })
         .send();
 
       expect(response.body).toStrictEqual({
@@ -378,15 +385,9 @@ describe("JsonRpc Module", () => {
     it("should throw an Invalid Request error for bad method", async () => {
       expect.assertions(2);
 
-      // Mock access token verification
-      mockAuthOAuth2.mockImplementation(
-        async (): Promise<JwtTarVerifyResult> =>
-          Promise.resolve({ payload: {} } as JwtTarVerifyResult)
-      );
-
       const response = await request(server)
         .post("/jsonrpc")
-        .auth(appAccessToken, { type: "bearer" })
+        .auth(newUserDidrInviteAccessToken, { type: "bearer" })
         .send({
           jsonrpc: "2.0",
           method: "unknown-method",
@@ -410,42 +411,37 @@ describe("JsonRpc Module", () => {
     it("should throw an error when the unsignedTransaction has been tampered", async () => {
       expect.assertions(6);
 
-      // Mock access token verification
-      mockAuthSiop.mockImplementation(async () =>
-        Promise.resolve({ payload: {} } as JWTVerifyResult)
-      );
-
       const now = Math.floor(Date.now() / 1000);
       const notBefore = now;
       const notAfter = now + 300;
 
       const param1 = {
-        from: testUser.wallet.address,
-        did: testUser.did,
+        from: newUser.wallet.address,
+        did: newUser.did,
         baseDocument: JSON.stringify({
-          "@context": testUser.didDocument["@context"],
+          "@context": newUser.didDocument["@context"],
         }),
-        vMethodId: testUser.thumbprint,
-        publicKey: testUser.wallet.publicKey,
+        vMethodId: newUser.thumbprint,
+        publicKey: newUser.wallet.publicKey,
         isSecp256k1: true,
         notBefore,
         notAfter,
       } as InsertDidDocumentParam;
 
       const param2 = {
-        from: testUser.wallet.address,
-        did: testUser.did,
+        from: newUser.wallet.address,
+        did: newUser.did,
         baseDocument: JSON.stringify({
-          "@context": testUser.didDocument["@context"],
+          "@context": newUser.didDocument["@context"],
         }),
-        vMethodId: testUser.thumbprint,
-        publicKey: testUser.wallet.publicKey,
+        vMethodId: newUser.thumbprint,
+        publicKey: newUser.wallet.publicKey,
         isSecp256k1: true,
         notBefore,
         notAfter: notAfter + 1,
       } as InsertDidDocumentParam;
 
-      const accessToken = testUserAccessToken;
+      const accessToken = newUserDidrInviteAccessToken;
 
       const responseBuild1: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
@@ -475,9 +471,7 @@ describe("JsonRpc Module", () => {
 
       const randomSigner = ethers.Wallet.createRandom();
       const uTx = formatEthersUnsignedTransaction(
-        JSON.parse(
-          JSON.stringify(transaction1)
-        ) as unknown as UnsignedTransaction
+        JSON.parse(JSON.stringify(transaction1)) as UnsignedTransaction
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx1 = await randomSigner.signTransaction(uTx);
@@ -553,22 +547,17 @@ describe("JsonRpc Module", () => {
     it("should accept a request without id", async () => {
       expect.assertions(2);
 
-      // Mock access token verification
-      mockAuthSiop.mockImplementation(async () =>
-        Promise.resolve({ payload: {} } as JWTVerifyResult)
-      );
-
-      const signer = adminSigner;
-      const accessToken = testUserAccessToken;
+      const signer = ethers.Wallet.createRandom();
+      const accessToken = newUserDidrInviteAccessToken;
       const now = Math.floor(Date.now() / 1000);
       const param = {
         from: signer.address,
-        did: testUser.did,
+        did: newUser.did,
         baseDocument: JSON.stringify({
           "@context": ["https://www.w3.org/ns/did/v1"],
         }),
-        vMethodId: testUser.thumbprint,
-        publicKey: testUser.wallet.publicKey,
+        vMethodId: newUser.thumbprint,
+        publicKey: newUser.wallet.publicKey,
         isSecp256k1: true,
         notBefore: now,
         notAfter: now + 3600,
@@ -604,23 +593,17 @@ describe("JsonRpc Module", () => {
     "expireVerificationMethod",
     "revokeVerificationMethod",
     "rollVerificationMethod",
-  ])("/jsonrpc with method %s", (testMethod: string) => {
-    const method = testMethod
-      .replace("(test update attribute)", "")
-      .replace("(with optional params)", "")
-      .replace("(without validTo)", "");
-
+  ] as const)("/jsonrpc with method %s", (method) => {
     it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction", async () => {
       expect.assertions(4);
 
-      // Mock access token verification
-      mockAuthSiop.mockImplementation(async () =>
-        Promise.resolve({ payload: {} } as JWTVerifyResult)
-      );
+      let param: JsonRpcParams;
+      const accessToken =
+        method === "insertDidDocument"
+          ? newUserDidrInviteAccessToken
+          : existingUserDidrWriteAccessToken;
 
-      let param: JsonRpcParams = null;
-      let accessToken = adminAccessToken;
-      const signer = adminSigner;
+      const signer = ethers.Wallet.createRandom();
 
       const now = Math.floor(Date.now() / 1000);
 
@@ -628,121 +611,90 @@ describe("JsonRpc Module", () => {
         case "insertDidDocument": {
           param = {
             from: signer.address,
-            did: testUser.did,
+            did: newUser.did,
             baseDocument: JSON.stringify({
               "@context": ["https://www.w3.org/ns/did/v1"],
             }),
-            vMethodId: testUser.thumbprint,
-            publicKey: testUser.wallet.publicKey,
+            vMethodId: newUser.thumbprint,
+            publicKey: newUser.wallet.publicKey,
             isSecp256k1: true,
             notBefore: now,
             notAfter: now + 3600,
           } as InsertDidDocumentParam;
-
-          accessToken = testUserAccessToken;
-
           break;
         }
-
         case "updateBaseDocument": {
           param = {
             from: signer.address,
-            did: testUser.did,
+            did: existingUser.did,
             baseDocument: JSON.stringify({
-              "@context": testUser.didDocument["@context"],
+              "@context": existingUser.didDocument["@context"],
             }),
           } as UpdateBaseDocumentParam;
-
-          accessToken = testUserAccessToken;
-
           break;
         }
-
         case "addController": {
           param = {
             from: signer.address,
-            did: testUser.did,
-            controller: adminDid,
+            did: existingUser.did,
+            controller: existingUser2.did,
           } as AddControllerParam;
-
-          accessToken = testUserAccessToken;
 
           break;
         }
-
         case "revokeController": {
           param = {
             from: signer.address,
-            did: testUser.did,
-            controller: adminDid,
+            did: existingUser.did,
+            controller: existingUser2.did,
           } as RevokeControllerParam;
-
-          accessToken = testUserAccessToken;
-
           break;
         }
-
         case "addVerificationMethod": {
           param = {
             from: signer.address,
-            did: testUser.did,
+            did: existingUser.did,
             vMethodId: thumbprint2,
             publicKey: `0x${Buffer.from(JSON.stringify(publicKeyJwk2)).toString(
               "hex"
             )}`,
             isSecp256k1: false,
           } as AddVerificationMethodParam;
-
-          accessToken = testUserAccessToken;
-
           break;
         }
-
         case "addVerificationRelationship": {
           param = {
             from: signer.address,
-            did: testUser.did,
-            name: "assertionMethod",
-            vMethodId: testUser.thumbprint,
+            did: existingUser.did,
+            name: "capabilityDelegation",
+            vMethodId: existingUser.thumbprint,
             notBefore: now,
             notAfter: now + 3600,
           } as AddVerificationRelationshipParam;
-
-          accessToken = testUserAccessToken;
-
           break;
         }
-
         case "expireVerificationMethod": {
           param = {
             from: signer.address,
-            did: testUser.did,
+            did: existingUser.did,
             vMethodId: thumbprint2,
             notAfter: now + 600,
           } as ExpireVerificationMethodParam;
-
-          accessToken = testUserAccessToken;
-
           break;
         }
-
         case "revokeVerificationMethod": {
           param = {
             from: signer.address,
-            did: testUser.did,
+            did: existingUser.did,
             vMethodId: thumbprint2,
             notAfter: now - 600,
           } as RevokeVerificationMethodParam;
-
-          accessToken = testUserAccessToken;
-
           break;
         }
-
         case "rollVerificationMethod": {
           param = {
             from: signer.address,
-            did: testUser.did,
+            did: existingUser.did,
             vMethodId: thumbprint3,
             publicKey: `0x${Buffer.from(JSON.stringify(publicKeyJwk3)).toString(
               "hex"
@@ -753,12 +705,10 @@ describe("JsonRpc Module", () => {
             oldVMethodId: thumbprint2,
             duration: 360,
           } as RollVerificationMethodParam;
-
           break;
         }
-
         default: {
-          throw new Error(`Test Error: Invalid method ${method}`);
+          throw new Error(`Test Error: Invalid method ${method as string}`);
         }
       }
 
@@ -790,9 +740,7 @@ describe("JsonRpc Module", () => {
 
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
-        JSON.parse(
-          JSON.stringify(unsignedTransaction)
-        ) as unknown as UnsignedTransaction
+        JSON.parse(JSON.stringify(unsignedTransaction)) as UnsignedTransaction
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx = await signer.signTransaction(uTx);
@@ -826,80 +774,94 @@ describe("JsonRpc Module", () => {
     });
 
     it(`should throw an Invalid Request error for bad use of ${method}`, async () => {
-      // Mock access token verification
-      mockAuthSiop.mockImplementation(async () =>
-        Promise.resolve({ payload: {} } as JWTVerifyResult)
-      );
-
-      const signer = adminSigner;
+      const signer = ethers.Wallet.createRandom();
 
       const testSetup: {
         params: JsonRpcParams;
         expectedErrorMessage: string;
-        accessToken?: string;
+        accessToken: string;
       }[] = [];
 
       const now = Math.floor(Date.now() / 1000);
 
       switch (method) {
         case "insertDidDocument": {
+          // Invalid access token (not the right sub)
+          testSetup.push({
+            params: {
+              from: signer.address,
+              did: newUser.did,
+              baseDocument: JSON.stringify({
+                "@context": newUser.didDocument["@context"],
+              }),
+              vMethodId: newUser.thumbprint,
+              publicKey: newUser.wallet.publicKey,
+              isSecp256k1: true,
+              notBefore: now,
+              notAfter: now + 3600,
+            } as InsertDidDocumentParam,
+            expectedErrorMessage:
+              "Access token sub doesn't match the DID from the payload",
+            accessToken: existingUserDidrInviteAccessToken,
+          });
+
           testSetup.push({
             params: {
               from: signer.address,
               did: "did:ebsi:znxntxQrN369GsNyjFjYb8fuvU7g3sJGyYGwMTcUGdzuy",
               baseDocument: JSON.stringify({
-                "@context": testUser.didDocument["@context"],
+                "@context": newUser.didDocument["@context"],
               }),
-              vMethodId: testUser.thumbprint,
-              publicKey: testUser.wallet.publicKey,
+              vMethodId: newUser.thumbprint,
+              publicKey: newUser.wallet.publicKey,
               isSecp256k1: true,
               notBefore: now,
               notAfter: now + 3600,
             } as InsertDidDocumentParam,
             expectedErrorMessage:
               "Validation error: did must be a valid DID v1",
-            accessToken: testUserAccessToken,
+            accessToken: newUserDidrInviteAccessToken,
           });
 
           testSetup.push({
             params: {
               from: signer.address,
-              did: testUser.did,
+              did: newUser.did,
               baseDocument: "{}",
-              vMethodId: testUser.thumbprint,
-              publicKey: testUser.wallet.publicKey,
+              vMethodId: newUser.thumbprint,
+              publicKey: newUser.wallet.publicKey,
               isSecp256k1: true,
               notBefore: now,
               notAfter: now + 3600,
             } as InsertDidDocumentParam,
             expectedErrorMessage:
               "Validation error: baseDocument must be a valid JSON string with at least the field @context and without verification methods, verification relationships, controllers or id",
-            accessToken: testUserAccessToken,
+            accessToken: newUserDidrInviteAccessToken,
           });
 
           testSetup.push({
             params: {
               from: signer.address,
-              did: testUser.did,
+              did: newUser.did,
               // authentication can not be in the base document
               baseDocument: '{"@context":[],"authentication":[]}',
-              vMethodId: testUser.thumbprint,
-              publicKey: testUser.wallet.publicKey,
+              vMethodId: newUser.thumbprint,
+              publicKey: newUser.wallet.publicKey,
               isSecp256k1: true,
               notBefore: now,
               notAfter: now + 3600,
             } as InsertDidDocumentParam,
             expectedErrorMessage:
               "Validation error: baseDocument must be a valid JSON string with at least the field @context and without verification methods, verification relationships, controllers or id",
-            accessToken: testUserAccessToken,
+            accessToken: newUserDidrInviteAccessToken,
           });
 
           testSetup.push({
             params: {
               from: signer.address,
-              did: testUser.did,
+              did: newUser.did,
               baseDocument: JSON.stringify({
-                "@context": testUser.didDocument["@context"],
+                "@context": newUser.didDocument["@context"],
               }),
               vMethodId: "bad-thumbprint",
               publicKey:
@@ -910,17 +872,17 @@ describe("JsonRpc Module", () => {
             } as InsertDidDocumentParam,
             expectedErrorMessage:
               "Validation error: vMethodId must be the thumbprint of the publicKey",
-            accessToken: testUserAccessToken,
+            accessToken: newUserDidrInviteAccessToken,
           });
 
           testSetup.push({
             params: {
               from: signer.address,
-              did: testUser.did,
+              did: newUser.did,
               baseDocument: JSON.stringify({
-                "@context": testUser.didDocument["@context"],
+                "@context": newUser.didDocument["@context"],
               }),
-              vMethodId: testUser.thumbprint,
+              vMethodId: newUser.thumbprint,
               publicKey: `0x${crypto.randomBytes(35).toString("hex")}`,
               isSecp256k1: true,
               notBefore: now,
@@ -928,17 +890,17 @@ describe("JsonRpc Module", () => {
             } as InsertDidDocumentParam,
             expectedErrorMessage:
               "Validation error: The public key must be of 33 bytes (secp256k1 compressed) or 65 bytes (secp256k1 uncompressed)",
-            accessToken: testUserAccessToken,
+            accessToken: newUserDidrInviteAccessToken,
           });
 
           testSetup.push({
             params: {
               from: signer.address,
-              did: testUser.did,
+              did: newUser.did,
               baseDocument: JSON.stringify({
-                "@context": testUser.didDocument["@context"],
+                "@context": newUser.didDocument["@context"],
               }),
-              vMethodId: testUser.thumbprint,
+              vMethodId: newUser.thumbprint,
               publicKey: `0x00${crypto.randomBytes(32).toString("hex")}`,
               isSecp256k1: true,
               notBefore: now,
@@ -946,7 +908,7 @@ describe("JsonRpc Module", () => {
             } as InsertDidDocumentParam,
             expectedErrorMessage:
               "Validation error: Invalid public key. Unknown point format",
-            accessToken: testUserAccessToken,
+            accessToken: newUserDidrInviteAccessToken,
           });
 
           const publicKeyJwk = {
@@ -957,11 +919,13 @@ describe("JsonRpc Module", () => {
           const thumbprint = await calculateJwkThumbprint(publicKeyJwk);
 
           testSetup.push({
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error - isSecp256k1 should be true
             params: {
               from: signer.address,
-              did: testUser.did,
+              did: newUser.did,
               baseDocument: JSON.stringify({
-                "@context": testUser.didDocument["@context"],
+                "@context": newUser.didDocument["@context"],
               }),
               vMethodId: thumbprint,
               publicKey: Buffer.from(JSON.stringify(publicKeyJwk)).toString(
@@ -973,111 +937,172 @@ describe("JsonRpc Module", () => {
             } as InsertDidDocumentParam,
             expectedErrorMessage:
               "Validation error: isSecp256k1 must be equal to true",
-            accessToken: testUserAccessToken,
+            accessToken: newUserDidrInviteAccessToken,
           });
 
+          const v3Did = testEnv.setupV3.didDocuments[0].did;
+          const v3UserDidrInviteAccessToken = await new SignJWT({
+            sub: v3Did,
+            scp: "openid didr_invite",
+          })
+            .setProtectedHeader({
+              typ: "JWT",
+              alg: "ES256",
+              kid: authApiKid,
+            })
+            .sign(authApiKeyPair.privateKey);
           testSetup.push({
             params: {
               from: signer.address,
-              did: testEnv.setupV3.didDocuments[0].did,
+              did: v3Did,
               baseDocument: JSON.stringify({
-                "@context": testUser.didDocument["@context"],
+                "@context": newUser.didDocument["@context"],
               }),
-              vMethodId: testUser.thumbprint,
-              publicKey: testUser.wallet.publicKey,
+              vMethodId: newUser.thumbprint,
+              publicKey: newUser.wallet.publicKey,
               isSecp256k1: true,
               notBefore: now,
               notAfter: now + 3600,
             } as InsertDidDocumentParam,
-            expectedErrorMessage: `The address ${signer.address} is not the controller of ${testEnv.setupV3.didDocuments[0].did} in DID Registry V3`,
-            accessToken: testUserAccessToken,
+            expectedErrorMessage: `The address ${signer.address} is not the controller of ${v3Did} in DID Registry V3`,
+            accessToken: v3UserDidrInviteAccessToken,
           });
 
           break;
         }
-
         case "updateBaseDocument": {
+          // Invalid access token (not the correct scope)
           testSetup.push({
             params: {
               from: signer.address,
-              did: testUser.did,
-              baseDocument: "{}",
+              did: newUser.did,
+              baseDocument: JSON.stringify({
+                "@context": newUser.didDocument["@context"],
+              }),
             } as UpdateBaseDocumentParam,
             expectedErrorMessage:
-              "Validation error: baseDocument must be a valid JSON string with at least the field @context and without verification methods, verification relationships, controllers or id",
-            accessToken: testUserAccessToken,
+              "'updateBaseDocument' requires an access token with the scope 'didr_write'",
+            accessToken: newUserDidrInviteAccessToken,
           });
 
           testSetup.push({
             params: {
               from: signer.address,
-              did: testUser.did,
+              did: newUser.did,
+              baseDocument: "{}",
+            } as UpdateBaseDocumentParam,
+            expectedErrorMessage:
+              "Validation error: baseDocument must be a valid JSON string with at least the field @context and without verification methods, verification relationships, controllers or id",
+            accessToken: newUserDidrWriteAccessToken,
+          });
+
+          testSetup.push({
+            params: {
+              from: signer.address,
+              did: newUser.did,
               // authentication can not be in the base document
               baseDocument: '{"@context":[],"authentication":[]}',
             } as UpdateBaseDocumentParam,
             expectedErrorMessage:
               "Validation error: baseDocument must be a valid JSON string with at least the field @context and without verification methods, verification relationships, controllers or id",
-            accessToken: testUserAccessToken,
+            accessToken: newUserDidrWriteAccessToken,
           });
 
           break;
         }
-
         case "addController": {
+          // Invalid access token (not the correct scope)
           testSetup.push({
             params: {
               from: signer.address,
-              did: "did:ebsi:znxntxQrN369GsNyjFjYb8fuvU7g3sJGyYGwMTcUGdzuy",
-              controller: adminDid,
+              did: newUser.did,
+              controller: existingUser.did,
             } as AddControllerParam,
             expectedErrorMessage:
-              "Validation error: did must be a valid DID v1",
-            accessToken: testUserAccessToken,
+              "'addController' requires an access token with the scope 'didr_write'",
+            accessToken: newUserDidrInviteAccessToken,
           });
 
           testSetup.push({
             params: {
               from: signer.address,
-              did: testUser.did,
+              did: "did:ebsi:znxntxQrN369GsNyjFjYb8fuvU7g3sJGyYGwMTcUGdzuy",
+              controller: existingUser.did,
+            } as AddControllerParam,
+            expectedErrorMessage:
+              "Validation error: did must be a valid DID v1",
+            accessToken: newUserDidrWriteAccessToken,
+          });
+
+          testSetup.push({
+            params: {
+              from: signer.address,
+              did: newUser.did,
               controller:
                 "did:ebsi:znxntxQrN369GsNyjFjYb8fuvU7g3sJGyYGwMTcUGdzuy",
             } as AddControllerParam,
             expectedErrorMessage:
               "Validation error: controller must be a valid DID v1",
-            accessToken: testUserAccessToken,
+            accessToken: newUserDidrWriteAccessToken,
           });
 
           break;
         }
-
         case "revokeController": {
+          // Invalid access token (not the correct scope)
           testSetup.push({
             params: {
               from: signer.address,
-              did: "did:ebsi:znxntxQrN369GsNyjFjYb8fuvU7g3sJGyYGwMTcUGdzuy",
-              controller: adminDid,
+              did: newUser.did,
+              controller: existingUser.did,
             } as RevokeControllerParam,
             expectedErrorMessage:
-              "Validation error: did must be a valid DID v1",
-            accessToken: testUserAccessToken,
+              "'revokeController' requires an access token with the scope 'didr_write'",
+            accessToken: newUserDidrInviteAccessToken,
           });
 
           testSetup.push({
             params: {
               from: signer.address,
-              did: testUser.did,
+              did: "did:ebsi:znxntxQrN369GsNyjFjYb8fuvU7g3sJGyYGwMTcUGdzuy",
+              controller: existingUser.did,
+            } as RevokeControllerParam,
+            expectedErrorMessage:
+              "Validation error: did must be a valid DID v1",
+            accessToken: newUserDidrWriteAccessToken,
+          });
+
+          testSetup.push({
+            params: {
+              from: signer.address,
+              did: newUser.did,
               controller:
                 "did:ebsi:znxntxQrN369GsNyjFjYb8fuvU7g3sJGyYGwMTcUGdzuy",
             } as RevokeControllerParam,
             expectedErrorMessage:
               "Validation error: controller must be a valid DID v1",
-            accessToken: testUserAccessToken,
+            accessToken: newUserDidrWriteAccessToken,
           });
 
           break;
         }
-
         case "addVerificationMethod": {
+          // Invalid access token (not the correct scope)
+          testSetup.push({
+            params: {
+              from: signer.address,
+              did: newUser.did,
+              vMethodId: thumbprint2,
+              publicKey: `0x${Buffer.from(
+                JSON.stringify(publicKeyJwk2)
+              ).toString("hex")}`,
+              isSecp256k1: false,
+            } as AddVerificationMethodParam,
+            expectedErrorMessage:
+              "'addVerificationMethod' requires an access token with the scope 'didr_write'",
+            accessToken: newUserDidrInviteAccessToken,
+          });
+
           const publicKeyJwk = {
             kty: "OKP",
             crv: "Ed25519",
@@ -1088,7 +1113,7 @@ describe("JsonRpc Module", () => {
           testSetup.push({
             params: {
               from: signer.address,
-              did: testUser.did,
+              did: newUser.did,
               vMethodId: "bad vMethodId",
               publicKey: Buffer.from(JSON.stringify(publicKeyJwk)).toString(
                 "hex"
@@ -1097,128 +1122,187 @@ describe("JsonRpc Module", () => {
             } as AddVerificationMethodParam,
             expectedErrorMessage:
               "Validation error: vMethodId must be the thumbprint of the publicKey",
-            accessToken: testUserAccessToken,
+            accessToken: newUserDidrWriteAccessToken,
           });
 
           testSetup.push({
             params: {
               from: signer.address,
-              did: testUser.did,
+              did: newUser.did,
               vMethodId: thumbprint,
               publicKey: "0x32313029",
               isSecp256k1: false,
             } as AddVerificationMethodParam,
             expectedErrorMessage:
               "Validation error: Invalid public key. Unexpected token ) in JSON at position 3",
-            accessToken: testUserAccessToken,
+            accessToken: newUserDidrWriteAccessToken,
           });
 
           break;
         }
-
         case "addVerificationRelationship": {
+          // Invalid access token (not the correct scope)
+          testSetup.push({
+            params: {
+              from: signer.address,
+              did: newUser.did,
+              name: "assertionMethod",
+              vMethodId: newUser.thumbprint,
+              notBefore: now,
+              notAfter: now + 3600,
+            } as AddVerificationRelationshipParam,
+            expectedErrorMessage:
+              "'addVerificationRelationship' requires an access token with the scope 'didr_write'",
+            accessToken: newUserDidrInviteAccessToken,
+          });
+
           testSetup.push({
             params: {
               from: signer.address,
               did: "did:ebsi:znxntxQrN369GsNyjFjYb8fuvU7g3sJGyYGwMTcUGdzuy",
               name: "assertionMethod",
-              vMethodId: testUser.thumbprint,
+              vMethodId: newUser.thumbprint,
               notBefore: now,
               notAfter: now + 3600,
             } as AddVerificationRelationshipParam,
             expectedErrorMessage:
               "Validation error: did must be a valid DID v1",
-            accessToken: testUserAccessToken,
+            accessToken: newUserDidrWriteAccessToken,
           });
 
           testSetup.push({
             params: {
               from: signer.address,
-              did: testUser.did,
+              did: newUser.did,
               name: "assertionMethod",
-              vMethodId: testUser.thumbprint,
+              vMethodId: newUser.thumbprint,
               notBefore: now,
               notAfter: -10,
             } as AddVerificationRelationshipParam,
             expectedErrorMessage:
               "Validation error: notAfter must not be less than 0",
-            accessToken: testUserAccessToken,
+            accessToken: newUserDidrWriteAccessToken,
           });
 
           testSetup.push({
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-expect-error - `name: "bad-name` is invalid
             params: {
               from: signer.address,
-              did: testUser.did,
+              did: newUser.did,
               name: "bad-name",
-              vMethodId: testUser.thumbprint,
+              vMethodId: newUser.thumbprint,
               notBefore: now,
               notAfter: now + 3600,
             } as AddVerificationRelationshipParam,
             expectedErrorMessage:
               "Validation error: name must be one of the following values: authentication, assertionMethod, keyAgreement, capabilityInvocation, capabilityDelegation",
-            accessToken: testUserAccessToken,
+            accessToken: newUserDidrWriteAccessToken,
           });
 
           break;
         }
-
         case "expireVerificationMethod": {
+          // Invalid access token (not the correct scope)
           testSetup.push({
             params: {
               from: signer.address,
-              did: testUser.did,
-              vMethodId: testUser.thumbprint,
+              did: newUser.did,
+              vMethodId: thumbprint2,
+              notAfter: now + 600,
+            } as ExpireVerificationMethodParam,
+            expectedErrorMessage:
+              "'expireVerificationMethod' requires an access token with the scope 'didr_write'",
+            accessToken: newUserDidrInviteAccessToken,
+          });
+
+          testSetup.push({
+            params: {
+              from: signer.address,
+              did: newUser.did,
+              vMethodId: newUser.thumbprint,
               notAfter: -10,
             } as ExpireVerificationMethodParam,
             expectedErrorMessage:
               "Validation error: notAfter must not be less than 0",
-            accessToken: testUserAccessToken,
+            accessToken: newUserDidrWriteAccessToken,
           });
 
           testSetup.push({
             params: {
               from: signer.address,
               did: "did:ebsi:znxntxQrN369GsNyjFjYb8fuvU7g3sJGyYGwMTcUGdzuy",
-              vMethodId: testUser.thumbprint,
+              vMethodId: newUser.thumbprint,
               notAfter: now + 600,
             } as ExpireVerificationMethodParam,
             expectedErrorMessage:
               "Validation error: did must be a valid DID v1",
-            accessToken: testUserAccessToken,
+            accessToken: newUserDidrWriteAccessToken,
           });
 
           break;
         }
-
         case "revokeVerificationMethod": {
+          // Invalid access token (not the correct scope)
           testSetup.push({
             params: {
               from: signer.address,
-              did: testUser.did,
-              vMethodId: testUser.thumbprint,
+              did: newUser.did,
+              vMethodId: thumbprint2,
+              notAfter: now - 600,
+            } as RevokeVerificationMethodParam,
+            expectedErrorMessage:
+              "'revokeVerificationMethod' requires an access token with the scope 'didr_write'",
+            accessToken: newUserDidrInviteAccessToken,
+          });
+
+          testSetup.push({
+            params: {
+              from: signer.address,
+              did: newUser.did,
+              vMethodId: newUser.thumbprint,
               notAfter: -10,
             } as RevokeVerificationMethodParam,
             expectedErrorMessage:
               "Validation error: notAfter must not be less than 0",
-            accessToken: testUserAccessToken,
+            accessToken: newUserDidrWriteAccessToken,
           });
 
           testSetup.push({
             params: {
               from: signer.address,
               did: "did:ebsi:znxntxQrN369GsNyjFjYb8fuvU7g3sJGyYGwMTcUGdzuy",
-              vMethodId: testUser.thumbprint,
+              vMethodId: newUser.thumbprint,
               notAfter: now - 600,
             } as RevokeVerificationMethodParam,
             expectedErrorMessage:
               "Validation error: did must be a valid DID v1",
-            accessToken: testUserAccessToken,
+            accessToken: newUserDidrWriteAccessToken,
           });
 
           break;
         }
-
         case "rollVerificationMethod": {
+          // Invalid access token (not the correct scope)
+          testSetup.push({
+            params: {
+              from: signer.address,
+              did: newUser.did,
+              vMethodId: thumbprint3,
+              publicKey: `0x${Buffer.from(
+                JSON.stringify(publicKeyJwk3)
+              ).toString("hex")}`,
+              isSecp256k1: false,
+              notBefore: now,
+              notAfter: now + 3600,
+              oldVMethodId: thumbprint2,
+              duration: 360,
+            } as RollVerificationMethodParam,
+            expectedErrorMessage:
+              "'rollVerificationMethod' requires an access token with the scope 'didr_write'",
+            accessToken: newUserDidrInviteAccessToken,
+          });
+
           testSetup.push({
             params: {
               from: signer.address,
@@ -1235,13 +1319,13 @@ describe("JsonRpc Module", () => {
             } as RollVerificationMethodParam,
             expectedErrorMessage:
               "Validation error: did must be a valid DID v1",
-            accessToken: testUserAccessToken,
+            accessToken: newUserDidrWriteAccessToken,
           });
 
           testSetup.push({
             params: {
               from: signer.address,
-              did: testUser.did,
+              did: newUser.did,
               vMethodId: "bad-thumbprint",
               publicKey:
                 "0x0467ae84170dd193fd47d864caeaa36e995d62cab4a258cb9b7234b8cc6bb8aa5d6f4313b6f819d8334d4262094005700429c0e4e23b1e5427160f23f43c643d12",
@@ -1253,13 +1337,13 @@ describe("JsonRpc Module", () => {
             } as RollVerificationMethodParam,
             expectedErrorMessage:
               "Validation error: vMethodId must be the thumbprint of the publicKey",
-            accessToken: testUserAccessToken,
+            accessToken: newUserDidrWriteAccessToken,
           });
 
           testSetup.push({
             params: {
               from: signer.address,
-              did: testUser.did,
+              did: newUser.did,
               vMethodId: thumbprint3,
               publicKey: `0x${Buffer.from(
                 JSON.stringify(publicKeyJwk3)
@@ -1272,14 +1356,13 @@ describe("JsonRpc Module", () => {
             } as RollVerificationMethodParam,
             expectedErrorMessage:
               "Validation error: notBefore must not be less than 0",
-            accessToken: testUserAccessToken,
+            accessToken: newUserDidrWriteAccessToken,
           });
 
           break;
         }
-
         default: {
-          throw new Error(`Test Error: Invalid method ${method}`);
+          throw new Error(`Test Error: Invalid method ${method as string}`);
         }
       }
 
@@ -1289,9 +1372,7 @@ describe("JsonRpc Module", () => {
         testSetup.map(async (setup) => {
           const response = await request(server)
             .post("/jsonrpc")
-            .auth(setup.accessToken ?? adminAccessToken, {
-              type: "bearer",
-            })
+            .auth(setup.accessToken, { type: "bearer" })
             .send({
               jsonrpc: "2.0",
               method,

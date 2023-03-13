@@ -1,24 +1,26 @@
 import { IsIn, IsOptional, IsString } from "class-validator";
 import { IsDidV1, PaginationQuery } from "@ebsiint-api/shared";
 
+const verificationRelationships = [
+  "authentication",
+  "assertionMethod",
+  "keyAgreement",
+  "capabilityInvocation",
+  "capabilityDelegation",
+] as const;
+
 export class GetIdentifiersDto extends PaginationQuery {
   @IsOptional()
   @IsDidV1()
-  "controller": string;
+  "controller"?: string;
 
   @IsOptional()
   @IsString()
-  "verification-method-id": string;
+  "verification-method-id"?: string;
 
   @IsOptional()
-  @IsIn([
-    "authentication",
-    "assertionMethod",
-    "keyAgreement",
-    "capabilityInvocation",
-    "capabilityDelegation",
-  ])
-  "verification-relationship": string;
+  @IsIn(verificationRelationships)
+  "verification-relationship"?: (typeof verificationRelationships)[number];
 }
 
 export default GetIdentifiersDto;

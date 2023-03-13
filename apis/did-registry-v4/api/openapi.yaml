@@ -413,6 +413,7 @@ paths:
           #### insertDidDocument
 
           Call to build an unsigned transaction to insert a new DID Document.
+          Requires an access token with "didr_invite" or "didr_write" scope.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -428,6 +429,7 @@ paths:
 
           Call to build an unsigned transaction to update the base document
           of an existing DID.
+          Requires an access token with "didr_write" scope.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -438,6 +440,7 @@ paths:
 
           Call to build an unsigned transaction to add a new controller
           to an existing DID Document.
+          Requires an access token with "didr_write" scope.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -448,6 +451,7 @@ paths:
 
           Call to build an unsigned transaction to revoke a controller
           from a DID Document.
+          Requires an access token with "didr_write" scope.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -457,6 +461,7 @@ paths:
           #### addVerificationMethod
 
           Call to build an unsigned transaction to add a verification method.
+          Requires an access token with "didr_write" scope.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -471,6 +476,7 @@ paths:
           #### addVerificationRelationship
 
           Call to build an unsigned transaction to add a verification relationship.
+          Requires an access token with "didr_write" scope.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -483,6 +489,7 @@ paths:
           #### revokeVerificationMethod
 
           Call to build an unsigned transaction to revoke a verification method.
+          Requires an access token with "didr_write" scope.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -493,6 +500,7 @@ paths:
           #### expireVerificationMethod
 
           Call to build an unsigned transaction to expire a verification method.
+          Requires an access token with "didr_write" scope.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -503,6 +511,7 @@ paths:
           #### rollVerificationMethod
 
           Call to build an unsigned transaction to roll a verification method.
+          Requires an access token with "didr_write" scope.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -522,6 +531,7 @@ paths:
           #### sendSignedTransaction
 
           Call to send a signed transaction to the blockchain.
+          Requires an access token with "didr_invite" or "didr_write" scope.
 
           [conformance description]
 

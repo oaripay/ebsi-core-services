@@ -20,8 +20,8 @@ import { ApiConfig } from "../config/configuration";
 import { AllExceptionsFilter } from "./http-exception.filter";
 
 const mockGetResponse = jest.fn().mockImplementation(() => ({
-  code: jest.fn().mockImplementation((code: number) => ({
-    type: jest.fn().mockImplementation((type: string) => ({
+  code: jest.fn().mockImplementation((code: unknown) => ({
+    type: jest.fn().mockImplementation((type: unknown) => ({
       send: jest.fn().mockImplementation((send: unknown) => ({
         code,
         type,
@@ -152,7 +152,7 @@ describe("All exception filter tests", () => {
   describe("Axios errors", () => {
     const axiosError: AxiosError = {
       isAxiosError: true,
-      config: null,
+      config: undefined,
       toJSON: () => ({}),
       name: "Error",
       message: "error",

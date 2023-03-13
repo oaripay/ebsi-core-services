@@ -3,7 +3,7 @@ import { ArgsAddController } from "./args-add-controller.dto";
 
 export class AddControllerParam extends ArgsAddController {
   @IsEthereumAddress()
-  from: string;
+  from!: string;
 }
 
 export default { AddControllerParam };

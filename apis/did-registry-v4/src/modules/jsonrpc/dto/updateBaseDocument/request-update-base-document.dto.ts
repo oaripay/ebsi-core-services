@@ -11,14 +11,14 @@ import { UpdateBaseDocumentParam } from "./update-base-document-param.dto";
 
 export class RequestUpdateBaseDocumentDto extends JsonRpcDto {
   @Equals("updateBaseDocument")
-  method: string;
+  method!: "updateBaseDocument";
 
   @IsArray()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @Type(() => UpdateBaseDocumentParam)
-  params: UpdateBaseDocumentParam[];
+  params!: UpdateBaseDocumentParam[];
 }
 
 export default RequestUpdateBaseDocumentDto;

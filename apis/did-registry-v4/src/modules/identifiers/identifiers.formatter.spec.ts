@@ -1,7 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
 import { ethers } from "ethers";
 import { DidRegistry } from "@ebsiint-sc/did-registry-v4";
-import { AsyncReturnType } from "@ebsiint-api/shared";
 import { formatIdentifiers } from "./identifiers.formatter";
 
 describe("formatIdentifiers", () => {
@@ -15,7 +14,7 @@ describe("formatIdentifiers", () => {
     ],
     total: ethers.BigNumber.from("42"),
     howMany: ethers.BigNumber.from("3"),
-  } as AsyncReturnType<DidRegistry["getDids"]>;
+  } as Awaited<ReturnType<DidRegistry["getDids"]>>;
 
   it("should use the values returned by the smart contract (except pageSize)", () => {
     expect.assertions(1);

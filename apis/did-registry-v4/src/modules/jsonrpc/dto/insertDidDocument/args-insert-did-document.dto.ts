@@ -8,29 +8,29 @@ import {
 
 export class ArgsInsertDidDocument {
   @IsDidV1()
-  did: string;
+  did!: string;
 
   @IsBaseDocument()
-  baseDocument: string;
+  baseDocument!: string;
 
   @IsString()
   @IsVerificationMethodId()
-  vMethodId: string;
+  vMethodId!: string;
 
   @IsHexadecimal()
   @IsPublicKeyHex()
-  publicKey: string;
+  publicKey!: string;
 
   @Equals(true)
-  isSecp256k1: boolean;
+  isSecp256k1!: true;
 
   @IsInt()
   @Min(0)
-  notBefore: number;
+  notBefore!: number;
 
   @IsInt()
   @Min(0)
-  notAfter: number;
+  notAfter!: number;
 }
 
 export default { ArgsInsertDidDocument };

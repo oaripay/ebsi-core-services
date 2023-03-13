@@ -6,7 +6,7 @@ import { IdentifiersModule } from "./modules/identifiers/identifiers.module";
 import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { LedgerModule } from "./modules/ledger/ledger.module";
-import { LoggingInterceptor } from "./interceptors/logging.intereceptor";
+import { LoggingInterceptor } from "./interceptors/logging.interceptor";
 import { VersionInterceptor } from "./interceptors/version.interceptor";
 
 @Module({

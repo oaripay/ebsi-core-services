@@ -2,10 +2,10 @@ import { IsDidV1, IsBaseDocument } from "@ebsiint-api/shared";
 
 export class ArgsUpdateBaseDocument {
   @IsDidV1()
-  did: string;
+  did!: string;
 
   @IsBaseDocument()
-  baseDocument: string;
+  baseDocument!: string;
 }
 
 export default { ArgsUpdateBaseDocument };

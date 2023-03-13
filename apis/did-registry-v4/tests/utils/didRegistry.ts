@@ -4,7 +4,6 @@ import hre from "hardhat";
 import { FactoryOptions } from "hardhat/types";
 import "@nomiclabs/hardhat-ethers";
 import { Contract, ethers } from "ethers";
-import { AsyncReturnType } from "@ebsiint-api/shared";
 import { DidRegistry, PolicyRegistryMock } from "@ebsiint-sc/did-registry-v4";
 import { createUser, UserDetails } from "./data";
 import { setupTestEnv as setupTestEnvV3 } from "./didRegistryV3";
@@ -120,24 +119,22 @@ export async function insertDidDocument(
 }
 
 export interface SetupOptions {
-  didDocuments?: number;
+  didDocumentsTotal?: number;
 }
 
-export async function setupTestEnv(
-  opts: SetupOptions = {
-    didDocuments: 1,
-  }
-): Promise<{
+export async function setupTestEnv({
+  didDocumentsTotal = 1,
+}: SetupOptions = {}): Promise<{
   provider: ethers.providers.JsonRpcProvider;
   didRegistryContract: DidRegistry;
   policyContractMock: Contract;
   users: UserDetails[];
-  setupV3: AsyncReturnType<typeof setupTestEnvV3>;
+  setupV3: Awaited<ReturnType<typeof setupTestEnvV3>>;
 }> {
   const ethersProvider = hre.ethers.provider;
   const users: UserDetails[] = [];
 
-  const setupV3 = await setupTestEnvV3(opts);
+  const setupV3 = await setupTestEnvV3({ didDocumentsTotal });
 
   // Deploy contract
   const { didRegistryContract, policyContractMock } =
@@ -145,7 +142,7 @@ export async function setupTestEnv(
 
   users.push(
     ...(await Promise.all(
-      Array(opts.didDocuments ?? 1)
+      Array(didDocumentsTotal)
         .fill(0)
         .map((_, index) => insertDidDocument(didRegistryContract, index))
     ))

@@ -7,7 +7,6 @@ declare global {
       API_NAME: string;
       API_PORT?: string;
       API_URL_PREFIX?: string;
-      AUTHORISATION_API_NAME?: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
       DOCKER_TAG?: string;
       LEDGER_API_NAME?: string;
@@ -16,11 +15,9 @@ declare global {
       DOMAIN: string;
       LOCAL_ORIGIN?: string;
       REQUEST_TIMEOUT?: string;
-      AUTHORISATION_CREDENTIAL_SCHEMA?: string;
-      USERS_ONBOARDING_API_DID?: string;
-      USERS_ONBOARDING_API_PRIVATE_KEY?: string;
-      TEST_CLIENT_KID?: string;
-      TEST_CLIENT_PRIVATE_KEY?: string;
+      TEST_EXISTING_USER_KID?: string;
+      TEST_EXISTING_USER_PRIVATE_KEY?: string;
+      TEST_AUTH_API_V3_ES256_PRIVATE_KEY?: string;
       TEST_ENV?: string;
       TEST_ENABLE_WRITE_OPS?: string;
       TEST_LB_DOMAIN?: string;

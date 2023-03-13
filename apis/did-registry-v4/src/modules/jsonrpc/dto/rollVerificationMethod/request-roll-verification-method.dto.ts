@@ -11,14 +11,14 @@ import { RollVerificationMethodParam } from "./roll-verification-method-param.dt
 
 export class RequestRollVerificationMethodDto extends JsonRpcDto {
   @Equals("rollVerificationMethod")
-  method: string;
+  method!: "rollVerificationMethod";
 
   @IsArray()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @Type(() => RollVerificationMethodParam)
-  params: RollVerificationMethodParam[];
+  params!: RollVerificationMethodParam[];
 }
 
 export default RequestRollVerificationMethodDto;

@@ -3,7 +3,7 @@ import { ArgsExpireVerificationMethod } from "./args-expire-verification-method.
 
 export class ExpireVerificationMethodParam extends ArgsExpireVerificationMethod {
   @IsEthereumAddress()
-  from: string;
+  from!: string;
 }
 
 export default { ExpireVerificationMethodParam };

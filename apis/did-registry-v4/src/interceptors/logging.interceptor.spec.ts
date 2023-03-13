@@ -6,7 +6,6 @@ import {
   it,
   expect,
 } from "@jest/globals";
-import crypto from "node:crypto";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication, ValidationPipe, Logger } from "@nestjs/common";
@@ -16,29 +15,19 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { HttpService } from "@nestjs/axios";
+import nock from "nock";
 import type { FastifyInstance } from "fastify";
-import { createJWT, ES256KSigner } from "did-jwt";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { JWTVerifyResult } from "jose";
+import {
+  calculateJwkThumbprint,
+  exportJWK,
+  generateKeyPair,
+  SignJWT,
+} from "jose";
 import { of } from "rxjs";
 import { AppModule } from "../app.module";
 import { AllExceptionsFilter } from "../filters/http-exception.filter";
 import { ApiConfig } from "../config/configuration";
-
-jest.mock("@cef-ebsi/siop-auth", () => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const originalModule = jest.requireActual("@cef-ebsi/siop-auth");
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-  return {
-    __esModule: true,
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    ...originalModule,
-    verifyJwtTar: async () =>
-      Promise.resolve({ payload: {} } as JWTVerifyResult),
-  };
-});
 
 jest.setTimeout(60000);
 
@@ -155,14 +144,46 @@ describe("Logging interceptor", () => {
     it("should log the request and response", async () => {
       expect.assertions(2);
 
-      const controllerDid = EbsiWallet.createDid();
-      const userAccessToken = await createJWT(
-        { sub: controllerDid, login_hint: "did_siop" },
-        {
-          issuer: "any",
-          signer: ES256KSigner(crypto.randomBytes(32)),
-        }
+      // Mock Auth API v3
+      const authApiKeyPair = await generateKeyPair("ES256");
+      const authorisationApiUrl = new URL(
+        configService.get<string>("authorisationApiV3Url")
       );
+
+      // Mock Auth API v3 /.well-known/openid-configuration endpoint
+      nock(authorisationApiUrl.origin)
+        .get(`${authorisationApiUrl.pathname}/.well-known/openid-configuration`)
+        .reply(200, {
+          jwks_uri: `${authorisationApiUrl.origin}${authorisationApiUrl.pathname}/jwks`,
+        })
+        .persist();
+
+      // Mock Auth API v3 /jwks endpoint
+      const publicKeyJwk = await exportJWK(authApiKeyPair.publicKey);
+      const kid = await calculateJwkThumbprint(publicKeyJwk);
+      nock(authorisationApiUrl.origin)
+        .get(`${authorisationApiUrl.pathname}/jwks`)
+        .reply(200, {
+          keys: [
+            {
+              ...publicKeyJwk,
+              kid,
+            },
+          ],
+        })
+        .persist();
+
+      const controllerDid = EbsiWallet.createDid();
+      const userAccessToken = await new SignJWT({
+        sub: controllerDid,
+        scp: "openid didr_invite",
+      })
+        .setProtectedHeader({
+          typ: "JWT",
+          alg: "ES256",
+          kid,
+        })
+        .sign(authApiKeyPair.privateKey);
 
       await request(app.getHttpServer())
         .post("/jsonrpc")
