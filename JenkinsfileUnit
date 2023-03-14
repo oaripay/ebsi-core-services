@@ -1,10 +1,18 @@
 pipeline {
     agent any
-    triggers{
-        cron('0 8 * * *')
+    options {
+        buildDiscarder(
+            logRotator(
+                numToKeepStr: '5',
+                daysToKeepStr: '2'
+            )
+        )
     }
+    //triggers{
+    //    cron('0 8 * * *')
+    //}
     parameters {
-        extendedChoice(defaultValue: 'all', description: 'What API will be executed?', multiSelectDelimiter: ',', name: 'api', quoteValue: false, saveJSONParameterToFile: false, type: 'PT_CHECKBOX', value: 'all, authorisation-api, did-registry-api, ledger-api, notification-api, proxy-data-hub-api, storage-api, timestamp-api, trusted-apps-registry-api, trusted-issuers-registry-api, trusted-ledgers-sc-registry-api, trusted-policies-registry-api, trusted-schemas-registry-api, users-onboarding-api', visibleItemCount: 15)
+        extendedChoice(defaultValue: 'all', description: 'What API will be executed?', multiSelectDelimiter: ',', name: 'api', quoteValue: false, saveJSONParameterToFile: false, type: 'PT_CHECKBOX', value: 'all, authorisation-api-v2, authorisation-api-v3, did-registry-api-v3, did-registry-api-v4, ledger-api, notification-api, proxy-data-hub-api, storage-api, timestamp-api, trusted-apps-registry-api, trusted-issuers-registry-api-v3, trusted-issuers-registry-api-v4, trusted-ledgers-sc-registry-api, trusted-policies-registry-api, trusted-schemas-registry-api, users-onboarding-api', visibleItemCount: 17)
     }
     stages {
         stage('Setup') {
@@ -28,7 +36,7 @@ pipeline {
         }
         stage('Authorisation-Api') {
             when {
-                expression { params.api == 'all' || params.api.contains('authorisation-api')}
+                expression { params.api == 'all' || params.api.contains('authorisation-api-v2')}
             }
             steps {
                 
@@ -48,9 +56,30 @@ pipeline {
                 }
             }
         }
+        stage('Authorisation-Api-v3') {
+            when {
+                expression { params.api == 'all' || params.api.contains('authorisation-api-v3')}
+            }
+            steps {
+                nodejs(nodeJSInstallationName: '16.17.1') {
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
+                        sh 'yarn nx test:ci @ebsiint-api/authorisation-api-v3'
+                    }
+                }
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
+                    withSonarQubeEnv('LocalSonar'){
+                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=authorisation-api-v3-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=authorisation-api-v3-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/authorisation-v3"
+                    }
+                    waitForQualityGate abortPipeline: true
+                }
+                script {
+                    sh 'rm ${WORKSPACE}/apis/authorisation-v3/.scannerwork/report-task.txt'
+                }
+            }
+        }
         stage('Did-Registry-Api') {
             when {
-                expression { params.api == 'all' || params.api.contains('did-registry-api')}
+                expression { params.api == 'all' || params.api.contains('did-registry-api-v3')}
             }
             steps {
                 
@@ -67,6 +96,28 @@ pipeline {
                 }
                 script {
                     sh 'rm ${WORKSPACE}/apis/did-registry/.scannerwork/report-task.txt'
+                }
+            }
+        }
+        stage('Did-Registry-Api-v4') {
+            when {
+                expression { params.api == 'all' || params.api.contains('did-registry-api-v4')}
+            }
+            steps {
+                
+                nodejs(nodeJSInstallationName: '16.17.1') {
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
+                        sh 'yarn nx test:ci @ebsiint-api/did-registry-api-v4'
+                    }
+                }
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
+                    withSonarQubeEnv('LocalSonar'){
+                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=did-registry-api-v4 -Dsonar.projectVersion=1.0 -Dsonar.projectKey=did-registry-api-v4 -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/did-registry-v4"
+                    }
+                    waitForQualityGate abortPipeline: true
+                }
+                script {
+                    sh 'rm ${WORKSPACE}/apis/did-registry-v4/.scannerwork/report-task.txt'
                 }
             }
         }
@@ -198,7 +249,7 @@ pipeline {
         }
         stage('Trusted-issuers-registry-Api') {
             when {
-                expression { params.api == 'all' || params.api.contains('trusted-issuers-registry-api')}
+                expression { params.api == 'all' || params.api.contains('trusted-issuers-registry-api-v3')}
             }
             steps {
                 nodejs(nodeJSInstallationName: '16.17.1') {
