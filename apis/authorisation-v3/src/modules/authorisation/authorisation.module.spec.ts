@@ -240,7 +240,7 @@ describe("Authorisation Module", () => {
 
   describe("GET /jwks", () => {
     it("should return the OP's JWKS", async () => {
-      expect.assertions(3);
+      expect.assertions(4);
 
       const response = await request(server).get("/jwks");
 
@@ -258,6 +258,9 @@ describe("Authorisation Module", () => {
       });
 
       expect(response.status).toBe(200);
+      expect(
+        (response.headers as Record<string, unknown>)["content-type"]
+      ).toBe("application/jwk-set+json; charset=utf-8");
 
       const jwk = (response.body as { keys: JWK[] }).keys[0];
       const thumbprint = await calculateJwkThumbprint(jwk);
@@ -268,7 +271,7 @@ describe("Authorisation Module", () => {
 
   describe("GET /presentation-definitions", () => {
     it("should return an error if the scope is invalid", async () => {
-      expect.assertions(8);
+      expect.assertions(12);
 
       // Without explicit scope
       let response = await request(server).get("/presentation-definitions");
@@ -280,6 +283,9 @@ describe("Authorisation Module", () => {
         type: "about:blank",
       });
       expect(response.status).toBe(400);
+      expect(
+        (response.headers as Record<string, unknown>)["content-type"]
+      ).toBe("application/problem+json; charset=utf-8");
 
       // With an invalid scope
       response = await request(server).get(
@@ -293,6 +299,9 @@ describe("Authorisation Module", () => {
         type: "about:blank",
       });
       expect(response.status).toBe(400);
+      expect(
+        (response.headers as Record<string, unknown>)["content-type"]
+      ).toBe("application/problem+json; charset=utf-8");
 
       // Doesn't contain "openid"
       response = await request(server).get(
@@ -308,6 +317,9 @@ describe("Authorisation Module", () => {
         type: "about:blank",
       });
       expect(response.status).toBe(400);
+      expect(
+        (response.headers as Record<string, unknown>)["content-type"]
+      ).toBe("application/problem+json; charset=utf-8");
 
       // Includes only "openid"
       response = await request(server).get(
@@ -321,6 +333,9 @@ describe("Authorisation Module", () => {
         type: "about:blank",
       });
       expect(response.status).toBe(400);
+      expect(
+        (response.headers as Record<string, unknown>)["content-type"]
+      ).toBe("application/problem+json; charset=utf-8");
     });
 
     it("should return the expected presentation definition for the given scope", async () => {
@@ -370,7 +385,7 @@ describe("Authorisation Module", () => {
 
   describe("POST /token", () => {
     it("should return an error if the grant_type is invalid", async () => {
-      expect.assertions(2);
+      expect.assertions(3);
 
       const response = await request(server)
         .post("/token")
@@ -382,56 +397,61 @@ describe("Authorisation Module", () => {
         );
 
       expect(response.body).toStrictEqual({
-        detail: expect.stringMatching("grant_type must be equal to vp_token"),
-        status: 400,
-        title: "Bad Request",
-        type: "about:blank",
+        error: "invalid_request",
+        error_description: "grant_type must be equal to vp_token",
       });
       expect(response.status).toBe(400);
+      expect(
+        (response.headers as Record<string, unknown>)["content-type"]
+      ).toBe("application/json; charset=utf-8");
     });
 
     it("should return an error if the scope is invalid", async () => {
-      expect.assertions(2);
+      expect.assertions(3);
 
       const response = await request(server)
         .post("/token")
         .set("Content-Type", "application/x-www-form-urlencoded")
         .send(
           qs.stringify({
+            grant_type: "vp_token",
             scope: "test",
           })
         );
 
       expect(response.body).toStrictEqual({
-        detail: expect.stringContaining(
-          "scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write')"
-        ),
-        status: 400,
-        title: "Bad Request",
-        type: "about:blank",
+        error: "invalid_request",
+        error_description:
+          "scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write')",
       });
       expect(response.status).toBe(400);
+      expect(
+        (response.headers as Record<string, unknown>)["content-type"]
+      ).toBe("application/json; charset=utf-8");
     });
 
     it("should return an error if the vp_token is invalid", async () => {
-      expect.assertions(2);
+      expect.assertions(3);
 
       const response = await request(server)
         .post("/token")
         .set("Content-Type", "application/x-www-form-urlencoded")
         .send(
           qs.stringify({
+            grant_type: "vp_token",
+            scope: "openid didr_invite",
             vp_token: "test",
           })
         );
 
       expect(response.body).toStrictEqual({
-        detail: expect.stringMatching("vp_token must be a jwt string"),
-        status: 400,
-        title: "Bad Request",
-        type: "about:blank",
+        error: "invalid_request",
+        error_description: "vp_token must be a jwt string",
       });
       expect(response.status).toBe(400);
+      expect(
+        (response.headers as Record<string, unknown>)["content-type"]
+      ).toBe("application/json; charset=utf-8");
     });
 
     describe.each(CUSTOM_SCOPES)("with scope 'openid %s'", (customScope) => {
@@ -651,14 +671,13 @@ describe("Authorisation Module", () => {
             );
 
           expect(response.body).toStrictEqual({
-            detail: expect.stringContaining(
-              `JWT "aud" property MUST match the expected audience "${domain}/authorisation/v3"`
-            ),
-            status: 400,
-            title: "Invalid Verifiable Presentation",
-            type: "about:blank",
+            error: "invalid_request",
+            error_description: `Invalid Verifiable Presentation: JWT "aud" property MUST match the expected audience "${domain}/authorisation/v3"`,
           });
           expect(response.status).toBe(400);
+          expect(
+            (response.headers as Record<string, unknown>)["content-type"]
+          ).toBe("application/json; charset=utf-8");
         });
 
         it("should return an error if sub is not the client's DID", async () => {
@@ -721,14 +740,13 @@ describe("Authorisation Module", () => {
             );
 
           expect(response.body).toStrictEqual({
-            detail: expect.stringMatching(
-              `JWT "sub" property MUST match the VP holder "${credentialSubject.did}"`
-            ),
-            status: 400,
-            title: "Invalid Verifiable Presentation",
-            type: "about:blank",
+            error: "invalid_request",
+            error_description: `Invalid Verifiable Presentation: JWT "sub" property MUST match the VP holder "${credentialSubject.did}"`,
           });
           expect(response.status).toBe(400);
+          expect(
+            (response.headers as Record<string, unknown>)["content-type"]
+          ).toBe("application/json; charset=utf-8");
         });
 
         it("should return an error if the VP JWT has expired", async () => {
@@ -772,12 +790,14 @@ describe("Authorisation Module", () => {
             );
 
           expect(response.body).toStrictEqual({
-            detail: "JWT has expired",
-            status: 400,
-            title: "Invalid Verifiable Presentation",
-            type: "about:blank",
+            error: "invalid_request",
+            error_description:
+              "Invalid Verifiable Presentation: JWT has expired",
           });
           expect(response.status).toBe(400);
+          expect(
+            (response.headers as Record<string, unknown>)["content-type"]
+          ).toBe("application/json; charset=utf-8");
         });
 
         it("should return an error if the VP JWT is not valid yet", async () => {
@@ -821,12 +841,14 @@ describe("Authorisation Module", () => {
             );
 
           expect(response.body).toStrictEqual({
-            detail: "JWT is not valid yet",
-            status: 400,
-            title: "Invalid Verifiable Presentation",
-            type: "about:blank",
+            error: "invalid_request",
+            error_description:
+              "Invalid Verifiable Presentation: JWT is not valid yet",
           });
           expect(response.status).toBe(400);
+          expect(
+            (response.headers as Record<string, unknown>)["content-type"]
+          ).toBe("application/json; charset=utf-8");
         });
 
         it("should return an error if nonce is not included in vp_token", async () => {
@@ -875,13 +897,14 @@ describe("Authorisation Module", () => {
             );
 
           expect(response.body).toStrictEqual({
-            detail:
+            error: "invalid_request",
+            error_description:
               "The vp_token must contain a nonce in order to prevent replay attacks.",
-            status: 400,
-            title: "Invalid Verifiable Presentation",
-            type: "about:blank",
           });
           expect(response.status).toBe(400);
+          expect(
+            (response.headers as Record<string, unknown>)["content-type"]
+          ).toBe("application/json; charset=utf-8");
         });
 
         it("should return an error when a nonce has been used twice", async () => {
@@ -946,13 +969,14 @@ describe("Authorisation Module", () => {
             );
 
           expect(response.body).toStrictEqual({
-            detail:
+            error: "invalid_request",
+            error_description:
               "The vp_token contains a nonce which has already been used.",
-            status: 400,
-            title: "Invalid Verifiable Presentation",
-            type: "about:blank",
           });
           expect(response.status).toBe(400);
+          expect(
+            (response.headers as Record<string, unknown>)["content-type"]
+          ).toBe("application/json; charset=utf-8");
         });
       });
 
@@ -1018,18 +1042,15 @@ describe("Authorisation Module", () => {
           );
 
         expect(response.body).toStrictEqual({
-          detail: expect.any(String),
-          status: 400,
-          title: "Invalid Presentation Submission",
-          type: "about:blank",
+          error: "invalid_request",
+          error_description: `Invalid Presentation Submission:
+- [root.presentation_submission] each descriptor should have a one id in it, on all levels
+- [root.presentation_submission] each path should be a valid jsonPath`,
         });
-        expect(
-          (response.body as { detail: string }).detail.split("\n")
-        ).toStrictEqual([
-          "- [root.presentation_submission] each descriptor should have a one id in it, on all levels",
-          "- [root.presentation_submission] each path should be a valid jsonPath",
-        ]);
         expect(response.status).toBe(400);
+        expect(
+          (response.headers as Record<string, unknown>)["content-type"]
+        ).toBe("application/json; charset=utf-8");
 
         presentationSubmission = {
           id: randomUUID(),
@@ -1079,17 +1100,14 @@ describe("Authorisation Module", () => {
           );
 
         expect(response.body).toStrictEqual({
-          detail: expect.any(String),
-          status: 400,
-          title: "Invalid Presentation Submission",
-          type: "about:blank",
+          error: "invalid_request",
+          error_description: `Invalid Presentation Submission:
+- [root.presentation_submission] each descriptor should have a one id in it, on all levels`,
         });
-        expect(
-          (response.body as { detail: string }).detail.split("\n")
-        ).toStrictEqual([
-          "- [root.presentation_submission] each descriptor should have a one id in it, on all levels",
-        ]);
         expect(response.status).toBe(400);
+        expect(
+          (response.headers as Record<string, unknown>)["content-type"]
+        ).toBe("application/json; charset=utf-8");
 
         presentationSubmission = {
           id: randomUUID(),
@@ -1139,17 +1157,14 @@ describe("Authorisation Module", () => {
           );
 
         expect(response.body).toStrictEqual({
-          detail: expect.any(String),
-          status: 400,
-          title: "Invalid Presentation Submission",
-          type: "about:blank",
+          error: "invalid_request",
+          error_description: `Invalid Presentation Submission:
+- [root.presentation_submission] each descriptor should have a one id in it, on all levels`,
         });
-        expect(
-          (response.body as { detail: string }).detail.split("\n")
-        ).toStrictEqual([
-          "- [root.presentation_submission] each descriptor should have a one id in it, on all levels",
-        ]);
         expect(response.status).toBe(400);
+        expect(
+          (response.headers as Record<string, unknown>)["content-type"]
+        ).toBe("application/json; charset=utf-8");
 
         vpJwt = await createVerifiablePresentationJwt(
           vpPayload,
@@ -1182,12 +1197,14 @@ describe("Authorisation Module", () => {
           );
 
         expect(response.body).toStrictEqual({
-          type: "about:blank",
-          detail: '["presentation_submission must be a non-empty object"]',
-          status: 400,
-          title: "Bad Request",
+          error: "invalid_request",
+          error_description:
+            "presentation_submission must be a non-empty object",
         });
         expect(response.status).toBe(400);
+        expect(
+          (response.headers as Record<string, unknown>)["content-type"]
+        ).toBe("application/json; charset=utf-8");
 
         vpJwt = await createVerifiablePresentationJwt(
           vpPayload,
@@ -1220,19 +1237,16 @@ describe("Authorisation Module", () => {
           );
 
         expect(response.body).toStrictEqual({
-          detail: expect.any(String),
-          status: 400,
-          title: "Invalid Presentation Submission",
-          type: "about:blank",
+          error: "invalid_request",
+          error_description: `Invalid Presentation Submission:
+- [root.presentation_submission] id should not be empty
+- [root.presentation_submission] presentation_definition_id should not be empty
+- [root.presentation_submission] descriptor_map should be a non-empty list`,
         });
-        expect(
-          (response.body as { detail: string }).detail.split("\n")
-        ).toStrictEqual([
-          "- [root.presentation_submission] id should not be empty",
-          "- [root.presentation_submission] presentation_definition_id should not be empty",
-          "- [root.presentation_submission] descriptor_map should be a non-empty list",
-        ]);
         expect(response.status).toBe(400);
+        expect(
+          (response.headers as Record<string, unknown>)["content-type"]
+        ).toBe("application/json; charset=utf-8");
 
         vpJwt = await createVerifiablePresentationJwt(
           vpPayload,
@@ -1268,13 +1282,14 @@ describe("Authorisation Module", () => {
           );
 
         expect(response.body).toStrictEqual({
-          type: "about:blank",
-          detail:
-            "definition_id doesn't match the expected Presentation Definition ID for the requested scope",
-          status: 400,
-          title: "Invalid Presentation Submission",
+          error: "invalid_request",
+          error_description:
+            "Invalid Presentation Submission: definition_id doesn't match the expected Presentation Definition ID for the requested scope",
         });
         expect(response.status).toBe(400);
+        expect(
+          (response.headers as Record<string, unknown>)["content-type"]
+        ).toBe("application/json; charset=utf-8");
       });
 
       it("should return an error if the content is not application/x-www-form-urlencoded", async () => {
@@ -1322,17 +1337,17 @@ describe("Authorisation Module", () => {
           });
 
         expect(response.body).toStrictEqual({
-          detail: 'Content-type must be "application/x-www-form-urlencoded"',
-          status: 400,
-          title: "Bad Request",
-          type: "about:blank",
+          error: "invalid_request",
+          error_description:
+            "Content-type must be application/x-www-form-urlencoded",
         });
-
         expect(response.status).toBe(400);
+        expect(
+          (response.headers as Record<string, unknown>)["content-type"]
+        ).toBe("application/json; charset=utf-8");
       });
 
       it("should an error if the conditions specific to the scope are not met", async () => {
-        let expectedErrorTitle: string;
         let expectedErrorMessage: string;
         let vpSigner = credentialSubject;
 
@@ -1340,9 +1355,8 @@ describe("Authorisation Module", () => {
           case DIDR_INVITE_SCOPE: {
             // Present a VC without VerifiableAccreditationToAccredit
             vcPayload.type = ["VerifiableCredential", "VerifiableAttestation"];
-            expectedErrorTitle = "Invalid Presentation Submission";
             expectedErrorMessage =
-              "FilterEvaluation tag: Input candidate failed filter evaluation: $.input_descriptors[0]: $.verifiableCredential[0];,MarkForSubmissionEvaluation tag: The input candidate is not eligible for submission: $.input_descriptors[0]: $.verifiableCredential[0];";
+              "Invalid Presentation Submission:\nFilterEvaluation tag: Input candidate failed filter evaluation: $.input_descriptors[0]: $.verifiableCredential[0];,MarkForSubmissionEvaluation tag: The input candidate is not eligible for submission: $.input_descriptors[0]: $.verifiableCredential[0];";
             break;
           }
           case DIDR_WRITE_SCOPE: {
@@ -1355,16 +1369,14 @@ describe("Authorisation Module", () => {
               .reply(404, "Not found")
               .persist();
 
-            expectedErrorTitle = "Invalid Verifiable Presentation";
-            expectedErrorMessage = `VP JWT validation failed: Unable to resolve ${vpSigner.kid}. Error: notFound. Not Found | Registry used: ${domain}/did-registry/v4/identifiers`;
+            expectedErrorMessage = `Invalid Verifiable Presentation: VP JWT validation failed: Unable to resolve ${vpSigner.kid}. Error: notFound. Not Found | Registry used: ${domain}/did-registry/v4/identifiers`;
             break;
           }
           case TIR_INVITE_SCOPE: {
             // Present a VC without any of VerifiableAuthorisationForTrustChain, VerifiableAccreditationToAttest or VerifiableAccreditationToAccredit
             vcPayload.type = ["VerifiableCredential", "VerifiableAttestation"];
-            expectedErrorTitle = "Invalid Presentation Submission";
             expectedErrorMessage =
-              "FilterEvaluation tag: Input candidate failed filter evaluation: $.input_descriptors[0]: $.verifiableCredential[0];,MarkForSubmissionEvaluation tag: The input candidate is not eligible for submission: $.input_descriptors[0]: $.verifiableCredential[0];";
+              "Invalid Presentation Submission:\nFilterEvaluation tag: Input candidate failed filter evaluation: $.input_descriptors[0]: $.verifiableCredential[0];,MarkForSubmissionEvaluation tag: The input candidate is not eligible for submission: $.input_descriptors[0]: $.verifiableCredential[0];";
             break;
           }
           case TIR_WRITE_SCOPE: {
@@ -1382,12 +1394,10 @@ describe("Authorisation Module", () => {
               .reply(404, "Not found")
               .persist();
 
-            expectedErrorTitle = "Invalid Verifiable Presentation";
-            expectedErrorMessage = `DID ${vpSigner.did} is not registered in the Trusted Issuers Registry`;
+            expectedErrorMessage = `Invalid Verifiable Presentation: DID ${vpSigner.did} is not registered in the Trusted Issuers Registry`;
             break;
           }
           default: {
-            expectedErrorTitle = "";
             expectedErrorMessage = "";
           }
         }
@@ -1438,12 +1448,13 @@ describe("Authorisation Module", () => {
           );
 
         expect(response.body).toStrictEqual({
-          type: "about:blank",
-          detail: expectedErrorMessage,
-          status: 400,
-          title: expectedErrorTitle,
+          error: "invalid_request",
+          error_description: expectedErrorMessage,
         });
         expect(response.status).toBe(400);
+        expect(
+          (response.headers as Record<string, unknown>)["content-type"]
+        ).toBe("application/json; charset=utf-8");
       });
 
       it("should return an access token and an ID token when the presentation is valid", async () => {

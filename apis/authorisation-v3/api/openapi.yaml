@@ -62,7 +62,7 @@ paths:
         "200":
           description: JSON Web Key Set
           content:
-            application/json:
+            application/jwk-set+json:
               schema:
                 $ref: "#/components/schemas/jwks"
   # /authorisation/v3/authorize:
@@ -185,16 +185,14 @@ paths:
         "400":
           description: Bad Request
           content:
-            application/problem+json:
+            application/json:
               schema:
-                $ref: "#/components/schemas/ProblemDetails"
+                $ref: "#/components/schemas/OAuth20TokenError"
               examples:
                 Bad Request:
                   value:
-                    title: "Bad Request"
-                    status: 400
-                    detail: '["scope must be a combination of ''openid'' and one of the supported scopes (''didr_invite'', ''didr_write'', ''tir_invite'', ''tir_write'')"]'
-                    type: about:blank
+                    error: invalid_request
+                    error_description: "Invalid Verifiable Presentation: JWT has expired"
 components:
   schemas:
     # request_uri:
@@ -494,6 +492,21 @@ components:
           description: |
             An absolute URI that identifies the specific occurrence of the problem. It may or may
             not yield further information if dereferenced.
+    OAuth20TokenError:
+      title: OAuth2.0 Token Error
+      description: The authorization server [Token Error Response](https://www.rfc-editor.org/rfc/rfc6749#section-5.2) object.
+      type: object
+      properties:
+        error:
+          type: string
+          description: A single ASCII error code.
+          example: invalid_request
+        error_description:
+          type: string
+          description: |
+            Human-readable ASCII text providing additional information, used to assist the client
+            developer in understanding the error that occurred.
+          example: "Invalid Verifiable Presentation: JWT has expired"
   # responses:
   #   oidc_error:
   #     description: OIDC Error Response

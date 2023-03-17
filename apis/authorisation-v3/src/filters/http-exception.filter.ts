@@ -17,6 +17,7 @@ import {
   BadRequestError,
 } from "@ebsiint-api/shared";
 import { ApiConfig } from "../config/configuration";
+import { OAuth2Error } from "../modules/authorisation/errors";
 
 function getProblemDetailsError(
   error: unknown,
@@ -79,6 +80,47 @@ export class AllExceptionsFilter implements ExceptionFilter {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       response.header("EBSI-Image-Tag", this.tag);
     }
+
+    // Case 1: service-specific error
+    if (err instanceof OAuth2Error) {
+      return response
+        .code(err.statusCode)
+        .type("application/json")
+        .send(err.toJSON());
+    }
+
+    // Case 2: axios-specific error
+    if (axios.isAxiosError(err)) {
+      // Properly log error, https://github.com/axios/axios#handling-errors
+      this.logger.error("Axios error intercepted.", err.stack);
+      if (err.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        this.logger.error({
+          data: err.response.data as unknown,
+          status: err.response.status,
+          headers: err.response.headers,
+        });
+      } else if (err.request) {
+        // The request was made but no response was received
+        // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+        // http.ClientRequest in node.js
+        this.logger.error({
+          request: err.request as unknown,
+        });
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        this.logger.error({
+          message: err.message,
+        });
+      }
+
+      this.logger.error(err.toJSON());
+    } else {
+      this.logger.error(err.message, err.stack);
+    }
+
+    // Case 3: generic error
 
     const problemError = getProblemDetailsError(err, this.logger);
 

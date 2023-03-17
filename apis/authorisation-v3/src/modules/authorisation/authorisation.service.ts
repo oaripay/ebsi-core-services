@@ -1,11 +1,7 @@
 import { JsonWebKey, randomUUID } from "node:crypto";
 import { Injectable, Inject, Logger, CACHE_MANAGER } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  BadRequestError,
-  InternalServerError,
-  logAxiosError,
-} from "@ebsiint-api/shared";
+import { logAxiosError } from "@ebsiint-api/shared";
 import type { PresentationSubmission } from "@sphereon/pex-models";
 import { verifyPresentationJwt } from "@cef-ebsi/verifiable-presentation";
 import type {
@@ -26,7 +22,7 @@ import type {
   TokenResponse,
 } from "./authorisation.interfaces";
 import { CreateAccessTokenDto } from "./dto";
-import { fromHexToJWK } from "./authorisation.utils";
+import { fromHexToJWK, parseDto } from "./authorisation.utils";
 import {
   DIDR_INVITE_PRESENTATION_DEFINITION,
   DIDR_WRITE_PRESENTATION_DEFINITION,
@@ -43,6 +39,7 @@ import {
   attributesSchema,
   revisionsSchema,
 } from "./validators/attributes.validator";
+import { ClassValidatorError, OAuth2TokenError } from "./errors";
 
 @Injectable()
 export class AuthorisationService {
@@ -149,15 +146,15 @@ export class AuthorisationService {
       return TIR_WRITE_PRESENTATION_DEFINITION;
     }
 
-    throw new BadRequestError(BadRequestError.defaultTitle, {
-      detail: `Unhandled scope "${scope.join(" ")}"`,
+    throw new OAuth2TokenError("invalid_request", {
+      errorDescription: `Unhandled scope "${scope.join(" ")}"`,
     });
   }
 
   async preventReplayAttack(payload: JWTPayload) {
     if (!payload.nonce) {
-      throw new BadRequestError("Invalid Verifiable Presentation", {
-        detail:
+      throw new OAuth2TokenError("invalid_request", {
+        errorDescription:
           "The vp_token must contain a nonce in order to prevent replay attacks.",
       });
     }
@@ -165,8 +162,9 @@ export class AuthorisationService {
     const cacheKey = payload.nonce as string;
     const nonceUsed = await this.cacheManager.get(cacheKey);
     if (nonceUsed) {
-      throw new BadRequestError("Invalid Verifiable Presentation", {
-        detail: "The vp_token contains a nonce which has already been used.",
+      throw new OAuth2TokenError("invalid_request", {
+        errorDescription:
+          "The vp_token contains a nonce which has already been used.",
       });
     }
     await this.cacheManager.set(cacheKey, cacheKey, 300_000); // 5 minutes (5* 60 * 1000)
@@ -199,12 +197,12 @@ export class AuthorisationService {
     );
 
     if (errors && errors.length > 0) {
-      throw new BadRequestError("Invalid Presentation Submission", {
-        detail: errors
+      throw new OAuth2TokenError("invalid_request", {
+        errorDescription: `Invalid Presentation Submission:\n${errors
           .map(
             (error) => `${error.tag} tag: ${error.message ?? "Unknown error"};`
           )
-          .join(),
+          .join()}`,
       });
     }
   }
@@ -227,8 +225,10 @@ export class AuthorisationService {
         skipSignatureValidation: isDidUnresolvable,
       });
     } catch (e) {
-      throw new BadRequestError("Invalid Verifiable Presentation", {
-        detail: e instanceof Error ? e.message : "Unknown error",
+      throw new OAuth2TokenError("invalid_request", {
+        errorDescription: `Invalid Verifiable Presentation: ${
+          e instanceof Error ? e.message : "Unknown error"
+        }`,
       });
     }
   }
@@ -261,10 +261,10 @@ export class AuthorisationService {
       .filter(Boolean);
 
     if (errors.length > 0) {
-      throw new BadRequestError("Invalid Presentation Submission", {
-        detail: errors
+      throw new OAuth2TokenError("invalid_request", {
+        errorDescription: `Invalid Presentation Submission:\n${errors
           .map((err) => `- [${err.tag}] ${err.message ?? "Unknown error"}`)
-          .join("\n"),
+          .join("\n")}`,
       });
     }
 
@@ -275,9 +275,9 @@ export class AuthorisationService {
      * @see https://identity.foundation/presentation-exchange/#presentation-submission
      */
     if (presentationSubmission.definition_id !== definitionId) {
-      throw new BadRequestError("Invalid Presentation Submission", {
-        detail:
-          "definition_id doesn't match the expected Presentation Definition ID for the requested scope",
+      throw new OAuth2TokenError("invalid_request", {
+        errorDescription:
+          "Invalid Presentation Submission: definition_id doesn't match the expected Presentation Definition ID for the requested scope",
       });
     }
   }
@@ -316,29 +316,30 @@ export class AuthorisationService {
 
       if (axios.isAxiosError(e)) {
         if (e.status === 404) {
-          throw new BadRequestError("Invalid Verifiable Presentation", {
-            detail: `DID ${did} is not registered in the Trusted Issuers Registry`,
+          throw new OAuth2TokenError("invalid_request", {
+            errorDescription: `Invalid Verifiable Presentation: DID ${did} is not registered in the Trusted Issuers Registry`,
           });
         }
 
         if (e.status === 500) {
-          throw new InternalServerError(InternalServerError.defaultTitle, {
-            detail: "Trusted Issuers Registry responded with an internal error",
+          throw new OAuth2TokenError("server_error", {
+            errorDescription:
+              "Trusted Issuers Registry responded with an internal error",
           });
         }
       }
 
       // Fallback (should not be triggered)
-      throw new InternalServerError(InternalServerError.defaultTitle, {
-        detail: "Unexpected error",
+      throw new OAuth2TokenError("server_error", {
+        errorDescription: "Unexpected error",
       });
     }
 
     // 1.b Parse response
     const parsedAttributes = attributesSchema.safeParse(attributesRequest.data);
     if (!parsedAttributes.success) {
-      throw new InternalServerError(InternalServerError.defaultTitle, {
-        detail: "Trusted Issuers Registry sent an invalid response",
+      throw new OAuth2TokenError("server_error", {
+        errorDescription: "Trusted Issuers Registry sent an invalid response",
       });
     }
 
@@ -347,8 +348,8 @@ export class AuthorisationService {
     // - consider the Trusted Issuer as accredited (return early)
     if (parsedAttributes.data.items.length !== 1) {
       if (requireNewUser) {
-        throw new BadRequestError("Invalid Verifiable Presentation", {
-          detail: `Trusted Issuer ${did} already has multiple attributes`,
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription: `Invalid Verifiable Presentation: Trusted Issuer ${did} already has multiple attributes`,
         });
       }
 
@@ -370,29 +371,30 @@ export class AuthorisationService {
 
       if (axios.isAxiosError(e)) {
         if (e.status === 404) {
-          throw new BadRequestError("Invalid Verifiable Presentation", {
-            detail: `Attribute ${attribute.id} from Trusted Issuer ${did} can't be found`,
+          throw new OAuth2TokenError("invalid_request", {
+            errorDescription: `Invalid Verifiable Presentation: Attribute ${attribute.id} from Trusted Issuer ${did} can't be found`,
           });
         }
 
         if (e.status === 500) {
-          throw new InternalServerError(InternalServerError.defaultTitle, {
-            detail: "Trusted Issuers Registry responded with an internal error",
+          throw new OAuth2TokenError("server_error", {
+            errorDescription:
+              "Trusted Issuers Registry responded with an internal error",
           });
         }
       }
 
       // Fallback (should not be triggered)
-      throw new InternalServerError(InternalServerError.defaultTitle, {
-        detail: "Unexpected error",
+      throw new OAuth2TokenError("server_error", {
+        errorDescription: "Unexpected error",
       });
     }
 
     // 2.b Parse response
     const parsedRevisions = revisionsSchema.safeParse(revisionsRequest.data);
     if (!parsedRevisions.success) {
-      throw new InternalServerError(InternalServerError.defaultTitle, {
-        detail: "Trusted Issuers Registry sent an invalid response",
+      throw new OAuth2TokenError("server_error", {
+        errorDescription: "Trusted Issuers Registry sent an invalid response",
       });
     }
 
@@ -400,18 +402,46 @@ export class AuthorisationService {
     // - return an error if requireNewUser=true
     // - consider the Trusted Issuer as accredited
     if (parsedRevisions.data.items.length !== 1 && requireNewUser) {
-      throw new BadRequestError("Invalid Verifiable Presentation", {
-        detail: `Trusted Issuer ${did} already has accreditations`,
+      throw new OAuth2TokenError("invalid_request", {
+        errorDescription: `Invalid Verifiable Presentation: Trusted Issuer ${did} already has accreditations`,
       });
     }
   }
 
-  async createAccessToken(body: CreateAccessTokenDto): Promise<TokenResponse> {
+  async createAccessToken(body: unknown): Promise<TokenResponse> {
+    // Validate query params (full DTO)
+    let parsedDto: CreateAccessTokenDto;
+    try {
+      parsedDto = parseDto(body, CreateAccessTokenDto);
+    } catch (e) {
+      // Unknown error during validation
+      if (!(e instanceof ClassValidatorError)) {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription: e instanceof Error ? e.message : "Unknown error",
+        });
+      }
+
+      // Return first error
+      const { constraints } = e.validationError;
+
+      if (!constraints) {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription: "unknown error",
+        });
+      }
+
+      const errorDescription = Object.values(constraints)[0];
+
+      throw new OAuth2TokenError("invalid_request", {
+        errorDescription,
+      });
+    }
+
     const {
       scope,
       vp_token: vpToken,
       presentation_submission: presentationSubmission,
-    } = body;
+    } = parsedDto;
 
     let vpTokenDecoded: JWTDecoded;
     try {
@@ -423,8 +453,8 @@ export class AuthorisationService {
         message = error.message;
       }
 
-      throw new BadRequestError("Invalid Verifiable Presentation", {
-        detail: message,
+      throw new OAuth2TokenError("invalid_request", {
+        errorDescription: `Invalid Verifiable Presentation: ${message}`,
       });
     }
 
@@ -463,8 +493,8 @@ export class AuthorisationService {
       scope.includes(DIDR_INVITE_SCOPE) &&
       (await this.isDidRegistered(vp.holder))
     ) {
-      throw new BadRequestError("Invalid Verifiable Presentation", {
-        detail: `DID ${vp.holder} is already registered in the DID Registry`,
+      throw new OAuth2TokenError("invalid_request", {
+        errorDescription: `Invalid Verifiable Presentation: DID ${vp.holder} is already registered in the DID Registry`,
       });
     }
 
