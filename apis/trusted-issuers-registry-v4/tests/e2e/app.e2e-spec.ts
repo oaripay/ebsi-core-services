@@ -109,7 +109,7 @@ describe("App Module (e2e)", () => {
         .send();
 
       expect(response.body).toStrictEqual({
-        detail: `Invalid JWT: JWT with invalid kid. It should be hosted at ${trustedAppsRegistryUrl}/apps`,
+        detail: "Invalid JWT: empty or missing kid",
         status: 401,
         title: "Unauthorized",
         type: "about:blank",

@@ -11,14 +11,14 @@ import { SetAttributeMetadataParam } from "./set-attribute-metadata-param.dto";
 
 export class RequestSetAttributeMetadataDto extends JsonRpcDto {
   @Equals("setAttributeMetadata")
-  method: string;
+  method!: "setAttributeMetadata";
 
   @IsArray()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @Type(() => SetAttributeMetadataParam)
-  params: SetAttributeMetadataParam[];
+  params!: SetAttributeMetadataParam[];
 }
 
 export default RequestSetAttributeMetadataDto;

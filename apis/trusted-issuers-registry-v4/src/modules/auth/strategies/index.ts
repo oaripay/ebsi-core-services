@@ -1,1 +1,1 @@
-export * from "./siop-jwt.strategy";
+export * from "./bearer-jwt.strategy";

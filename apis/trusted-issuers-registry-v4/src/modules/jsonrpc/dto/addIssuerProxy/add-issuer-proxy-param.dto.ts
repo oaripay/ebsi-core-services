@@ -3,7 +3,7 @@ import { ArgsAddIssuerProxy } from "../sendSignedTransaction";
 
 export class AddIssuerProxyParam extends ArgsAddIssuerProxy {
   @IsEthereumAddress()
-  from: string;
+  from!: string;
 }
 
 export default { AddIssuerProxyParam };

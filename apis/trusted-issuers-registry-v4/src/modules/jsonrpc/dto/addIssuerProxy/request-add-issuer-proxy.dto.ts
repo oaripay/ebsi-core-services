@@ -11,14 +11,14 @@ import { AddIssuerProxyParam } from "./add-issuer-proxy-param.dto";
 
 export class RequestAddIssuerProxyDto extends JsonRpcDto {
   @Equals("addIssuerProxy")
-  method: string;
+  method!: "addIssuerProxy";
 
   @IsArray()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @Type(() => AddIssuerProxyParam)
-  params: AddIssuerProxyParam[];
+  params!: AddIssuerProxyParam[];
 }
 
 export default RequestAddIssuerProxyDto;

@@ -4,14 +4,14 @@ import { IsIssuerProxy } from "../../../../shared/validators/IsIssuerProxy";
 
 export class ArgsUpdateIssuerProxy {
   @IsDidV1()
-  did: string;
+  did!: string;
 
   @IsString()
   @Length(66) // 2 -> "0x" + 64 -> sha256
-  proxyId: string;
+  proxyId!: string;
 
   @Validate(IsIssuerProxy)
-  proxyData: string;
+  proxyData!: string;
 }
 
 export default ArgsUpdateIssuerProxy;

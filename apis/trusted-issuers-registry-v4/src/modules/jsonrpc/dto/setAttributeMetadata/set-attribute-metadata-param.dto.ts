@@ -3,7 +3,7 @@ import { ArgsSetAttributeMetadata } from "../sendSignedTransaction";
 
 export class SetAttributeMetadataParam extends ArgsSetAttributeMetadata {
   @IsEthereumAddress()
-  from: string;
+  from!: string;
 }
 
 export default SetAttributeMetadataParam;

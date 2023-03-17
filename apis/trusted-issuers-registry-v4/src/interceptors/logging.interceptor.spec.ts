@@ -16,24 +16,20 @@ import {
 } from "@nestjs/platform-fastify";
 import { HttpService } from "@nestjs/axios";
 import type { FastifyInstance } from "fastify";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { of } from "rxjs";
-import { JWTVerifyResult } from "jose";
+import {
+  calculateJwkThumbprint,
+  exportJWK,
+  generateKeyPair,
+  SignJWT,
+} from "jose";
+import nock from "nock";
 import { AppModule } from "../app.module";
 import { AllExceptionsFilter } from "../filters/http-exception.filter";
 import { ApiConfig } from "../config/configuration";
 
 jest.setTimeout(60000);
-
-// Mock access token verification
-jest.mock("@cef-ebsi/siop-auth", () => ({
-  verifyJwtTar: jest.fn().mockImplementationOnce(async () => {
-    return Promise.resolve({
-      payload: {
-        sub: "test",
-      },
-    } as JWTVerifyResult);
-  }),
-}));
 
 describe("Logging interceptor", () => {
   let app: INestApplication;
@@ -132,12 +128,50 @@ describe("Logging interceptor", () => {
     it("should log the request and response", async () => {
       expect.assertions(2);
 
-      const token =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+      // Mock Auth API v3
+      const authApiKeyPair = await generateKeyPair("ES256");
+      const authorisationApiUrl = new URL(
+        configService.get<string>("authorisationApiV3Url")
+      );
+
+      // Mock Auth API v3 /.well-known/openid-configuration endpoint
+      nock(authorisationApiUrl.origin)
+        .get(`${authorisationApiUrl.pathname}/.well-known/openid-configuration`)
+        .reply(200, {
+          jwks_uri: `${authorisationApiUrl.origin}${authorisationApiUrl.pathname}/jwks`,
+        })
+        .persist();
+
+      // Mock Auth API v3 /jwks endpoint
+      const publicKeyJwk = await exportJWK(authApiKeyPair.publicKey);
+      const kid = await calculateJwkThumbprint(publicKeyJwk);
+      nock(authorisationApiUrl.origin)
+        .get(`${authorisationApiUrl.pathname}/jwks`)
+        .reply(200, {
+          keys: [
+            {
+              ...publicKeyJwk,
+              kid,
+            },
+          ],
+        })
+        .persist();
+
+      const controllerDid = EbsiWallet.createDid();
+      const userAccessToken = await new SignJWT({
+        sub: controllerDid,
+        scp: "openid tir_invite",
+      })
+        .setProtectedHeader({
+          typ: "JWT",
+          alg: "ES256",
+          kid,
+        })
+        .sign(authApiKeyPair.privateKey);
 
       await request(app.getHttpServer())
         .post("/jsonrpc")
-        .auth(token, { type: "bearer" })
+        .auth(userAccessToken, { type: "bearer" })
         .send("invalid body");
 
       const logCalls = mockedLogger.log.mock.calls.length;
@@ -150,7 +184,7 @@ describe("Logging interceptor", () => {
           body: { "invalid body": "" },
           headers: {
             "accept-encoding": "gzip, deflate",
-            authorization: `Bearer ${token}`,
+            authorization: `Bearer ${userAccessToken}`,
             connection: "close",
             "content-length": "12",
             "content-type": "application/x-www-form-urlencoded",

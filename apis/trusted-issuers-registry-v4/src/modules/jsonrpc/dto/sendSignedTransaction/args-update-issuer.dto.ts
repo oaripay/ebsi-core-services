@@ -3,26 +3,26 @@ import { IsDidV1 } from "@ebsiint-api/shared";
 
 export class ArgsUpdateIssuer {
   @IsDidV1()
-  did: string;
+  did!: string;
 
   @IsHexadecimal()
-  attributeData: string;
+  attributeData!: string;
 
   @IsOptional()
   @IsHexadecimal()
-  prevAttributeHash: string;
+  prevAttributeHash?: string;
 
   // Undefined, RootTAO, TAO, TI, Revoked
   @IsNumber()
   @Min(0)
   @Max(4)
-  issuerType: number;
+  issuerType!: number;
 
   @IsDidV1()
-  taoDid: string;
+  taoDid!: string;
 
   @IsHexadecimal()
-  taoAttributeId: string;
+  taoAttributeId!: string;
 }
 
 export default ArgsUpdateIssuer;

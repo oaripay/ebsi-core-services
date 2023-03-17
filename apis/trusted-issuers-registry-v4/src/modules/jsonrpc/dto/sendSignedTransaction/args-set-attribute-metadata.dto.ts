@@ -3,22 +3,22 @@ import { IsDidV1 } from "@ebsiint-api/shared";
 
 export class ArgsSetAttributeMetadata {
   @IsDidV1()
-  did: string;
+  did!: string;
 
   @IsHexadecimal()
-  attributeId: string;
+  attributeId!: string;
 
   // Undefined, RootTAO, TAO, TI, Revoked
   @IsNumber()
   @Min(0)
   @Max(4)
-  issuerType: number;
+  issuerType!: number;
 
   @IsDidV1()
-  taoDid: string;
+  taoDid!: string;
 
   @IsHexadecimal()
-  taoAttributeId: string;
+  taoAttributeId!: string;
 }
 
 export default ArgsSetAttributeMetadata;

@@ -7,7 +7,6 @@ import {
   NotFoundError,
   isStatusList2021Credential,
   prefixWith0x,
-  AsyncReturnType,
 } from "@ebsiint-api/shared";
 import axios, { AxiosResponse } from "axios";
 import { LedgerService } from "../ledger/ledger.service";
@@ -15,9 +14,9 @@ import {
   AttributeObject,
   IssuerProxyResponseObject,
   IssuerResponseObject,
-  IssuerTypeNames,
 } from "./issuers.interface";
 import { ApiConfig } from "../../config/configuration";
+import { IssuerTypeNames } from "./issuers.constants";
 
 @Injectable()
 export class IssuersService {
@@ -43,7 +42,7 @@ export class IssuersService {
     // This function assumes that the attributeId exists
     const hash = prefixWith0x(attributeId);
 
-    let attributeByHash: AsyncReturnType<Tir["getIssuerAttributeByHash"]>;
+    let attributeByHash: Awaited<ReturnType<Tir["getIssuerAttributeByHash"]>>;
 
     try {
       attributeByHash = await (
@@ -167,7 +166,7 @@ export class IssuersService {
     // Make sure the issuer exists
     await this.assertIssuerExists(did);
 
-    let proxies: AsyncReturnType<Tir["getIssuerProxies"]>;
+    let proxies: Awaited<ReturnType<Tir["getIssuerProxies"]>>;
 
     try {
       proxies = await (

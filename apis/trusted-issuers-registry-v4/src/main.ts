@@ -5,7 +5,7 @@ import {
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
 import { ValidationPipe } from "@nestjs/common";
-import fastifyHelmet from "@fastify/helmet";
+import { fastifyHelmet } from "@fastify/helmet";
 import { setupInterceptors } from "@ebsiint-api/shared";
 import { AppModule } from "./app.module";
 import { AllExceptionsFilter } from "./filters/http-exception.filter";
@@ -39,16 +39,18 @@ async function bootstrap(): Promise<void> {
     consoleTransport.level = logLevel;
   }
 
-  logger.debug(
-    `Starting API with:
+  if (logger.debug) {
+    logger.debug(
+      `Starting API with:
 - NODE_ENV: ${process.env.NODE_ENV}
 - API_URL_PREFIX:${apiUrlPrefix}
 - API_PORT:${port}
 - LOG_LEVEL: ${logLevel}
 - Docker container tag: ${dockerContainerTag}
 `,
-    "main"
-  );
+      "main"
+    );
+  }
 
   // Starts listening for shutdown hooks
   app.enableShutdownHooks();

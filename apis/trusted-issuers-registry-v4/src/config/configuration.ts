@@ -17,7 +17,8 @@ export interface ApiConfig {
   ledgerApiName: string;
   besuTrustedIssuersRegistryAddress: string;
   // Authorisation API
-  authorisationApiUrl: string;
+  authorisationApiV3Url: string;
+  authorisationApiV2Url: string;
   // DID Registry API
   didRegistryApiUrl: string;
   // Trusted Apps Registry API
@@ -27,8 +28,7 @@ export interface ApiConfig {
   // Test variables
   testAdminKid: string;
   testAdminPrivateKey: string;
-  testUserKid: string;
-  testUserPrivateKey: string;
+  testAdminAccreditation: string;
   testIssuerWithProxyKid: string;
   testIssuerWithProxyPrivateKey: string;
   testVerifiableAttestationSchemaId: string;
@@ -43,7 +43,8 @@ export interface ApiConfig {
 
 const HEALTH_CHECK_PATH = "/docs/";
 const LEDGER_API_PATH = "/ledger/v3";
-const AUTH_API_PATH = "/authorisation/v2";
+const AUTH_API_V3_PATH = "/authorisation/v3";
+const AUTH_API_V2_PATH = "/authorisation/v2";
 const DIDR_API_PATH = "/did-registry/v4";
 const TAR_API_PATH = "/trusted-apps-registry/v3";
 const TSR_API_PATH = "/trusted-schemas-registry/v2";
@@ -67,7 +68,8 @@ export const loadConfig = (): ApiConfig => {
     besuTrustedIssuersRegistryAddress:
       process.env.BESU_TRUSTED_ISSUERS_REGISTRY_ADDRESS,
     // Authorisation API
-    authorisationApiUrl: DOMAIN + AUTH_API_PATH,
+    authorisationApiV3Url: DOMAIN + AUTH_API_V3_PATH,
+    authorisationApiV2Url: DOMAIN + AUTH_API_V2_PATH,
     // DID Registry API
     didRegistryApiUrl: DOMAIN + DIDR_API_PATH,
     // TSR API
@@ -75,21 +77,20 @@ export const loadConfig = (): ApiConfig => {
     // Trusted Apps Registry API
     trustedAppsRegistryApiUrl: DOMAIN + TAR_API_PATH,
     // Test vars
-    testAdminKid: process.env.TEST_ADMIN_KID,
-    testAdminPrivateKey: process.env.TEST_ADMIN_PRIVATE_KEY,
-    testUserKid: process.env.TEST_USER_KID,
-    testIssuerWithProxyKid: process.env.TEST_ISSUER_WITH_PROXY_KID,
+    testAdminKid: process.env.TEST_ADMIN_KID ?? "",
+    testAdminPrivateKey: process.env.TEST_ADMIN_PRIVATE_KEY ?? "",
+    testAdminAccreditation: process.env.TEST_ADMIN_ACCREDITATION ?? "",
+    testIssuerWithProxyKid: process.env.TEST_ISSUER_WITH_PROXY_KID ?? "",
     testIssuerWithProxyPrivateKey:
-      process.env.TEST_ISSUER_WITH_PROXY_PRIVATE_KEY,
-    testUserPrivateKey: process.env.TEST_USER_PRIVATE_KEY,
+      process.env.TEST_ISSUER_WITH_PROXY_PRIVATE_KEY ?? "",
     testVerifiableAttestationSchemaId:
-      process.env.TEST_VERIFIABLE_ATTESTATION_SCHEMA_ID,
-    testStatusListSchemaId: process.env.TEST_STATUS_LIST_SCHEMA_ID,
+      process.env.TEST_VERIFIABLE_ATTESTATION_SCHEMA_ID ?? "",
+    testStatusListSchemaId: process.env.TEST_STATUS_LIST_SCHEMA_ID ?? "",
     testLoadBalancerDomain: process.env.TEST_LB_DOMAIN || "",
     dockerContainerTag: process.env.DOCKER_TAG || "",
     blockscout: {
-      url: process.env.BLOCKSCOUT_URL,
-      bearerToken: process.env.BLOCKSCOUT_BEARER_TOKEN,
+      url: process.env.BLOCKSCOUT_URL ?? "",
+      bearerToken: process.env.BLOCKSCOUT_BEARER_TOKEN ?? "",
     },
   };
 };
@@ -129,10 +130,9 @@ export const ApiConfigModule = ConfigModule.forRoot({
     // Test vars
     TEST_ADMIN_KID: Joi.string(),
     TEST_ADMIN_PRIVATE_KEY: Joi.string(),
-    TEST_USER_KID: Joi.string(),
+    TEST_ADMIN_ACCREDITATION: Joi.string().uri(),
     TEST_ISSUER_WITH_PROXY_KID: Joi.string(),
     TEST_ISSUER_WITH_PROXY_PRIVATE_KEY: Joi.string(),
-    TEST_USER_PRIVATE_KEY: Joi.string(),
     TEST_VERIFIABLE_ATTESTATION_SCHEMA_ID: Joi.string(),
     TEST_STATUS_LIST_SCHEMA_ID: Joi.string(),
     TEST_LB_DOMAIN: Joi.string().uri(),

@@ -4,10 +4,10 @@ import { IsIssuerProxy } from "../../../../shared/validators/IsIssuerProxy";
 
 export class ArgsAddIssuerProxy {
   @IsDidV1()
-  did: string;
+  did!: string;
 
   @Validate(IsIssuerProxy)
-  proxyData: string;
+  proxyData!: string;
 }
 
 export default ArgsAddIssuerProxy;

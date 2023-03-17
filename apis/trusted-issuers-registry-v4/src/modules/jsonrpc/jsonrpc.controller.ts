@@ -6,25 +6,23 @@ import {
   JsonRpcDto,
   RequestInsertIssuerDto,
   RequestUpdateIssuerDto,
-  RequestInsertPolicyDto,
-  RequestUpdatePolicyDto,
   RequestSendSignedTransactionDto,
   RequestAddIssuerProxyDto,
   RequestUpdateIssuerProxyDto,
   RequestSetAttributeMetadataDto,
   RequestSetAttributeDataDto,
 } from "./dto";
-import { SiopJwtAuthGuard } from "../auth/guards";
-import { Client, ClientInfo } from "../auth/decorators";
+import { BearerJwtAuthGuard } from "../auth/guards";
+import { Subject, SubjectInfo } from "../auth/decorators";
 
 function jsonRpcResponse(
   result: unknown,
-  id: string | number
+  id: string | number | null
 ): JsonRpcResponseObject {
-  return { jsonrpc: "2.0", id: id ?? null, result };
+  return { jsonrpc: "2.0", id, result };
 }
 
-@UseGuards(SiopJwtAuthGuard)
+@UseGuards(BearerJwtAuthGuard)
 @Controller("/jsonrpc")
 export class JsonRpcController {
   constructor(private jsonRpcService: JsonRpcService) {}
@@ -33,15 +31,19 @@ export class JsonRpcController {
   @Post()
   async jsonRPC(
     @Body() body: JsonRpcDto,
-    @Client() client: ClientInfo
+    @Subject() subject: SubjectInfo
   ): Promise<JsonRpcResponseObject> {
-    const { method, id } = body;
+    const { method, id: requestId } = body;
+    const id = requestId ?? null;
+    const { scp: scope, sub } = subject;
+
     switch (method) {
       case "insertIssuer": {
         const transaction =
           await this.jsonRpcService.buildTransactionInsertIssuer(
             body as RequestInsertIssuerDto,
-            id
+            id,
+            scope
           );
         return jsonRpcResponse(transaction, id);
       }
@@ -49,7 +51,8 @@ export class JsonRpcController {
         const transaction =
           await this.jsonRpcService.buildTransactionUpdateIssuer(
             body as RequestUpdateIssuerDto,
-            id
+            id,
+            scope
           );
         return jsonRpcResponse(transaction, id);
       }
@@ -57,7 +60,8 @@ export class JsonRpcController {
         const transaction =
           await this.jsonRpcService.buildTransactionSetAttributeMetadata(
             body as RequestSetAttributeMetadataDto,
-            id
+            id,
+            scope
           );
         return jsonRpcResponse(transaction, id);
       }
@@ -65,23 +69,9 @@ export class JsonRpcController {
         const transaction =
           await this.jsonRpcService.buildTransactionSetAttributeData(
             body as RequestSetAttributeDataDto,
-            id
-          );
-        return jsonRpcResponse(transaction, id);
-      }
-      case "insertPolicy": {
-        const transaction =
-          await this.jsonRpcService.buildTransactionInsertPolicy(
-            body as RequestInsertPolicyDto,
-            id
-          );
-        return jsonRpcResponse(transaction, id);
-      }
-      case "updatePolicy": {
-        const transaction =
-          await this.jsonRpcService.buildTransactionUpdatePolicy(
-            body as RequestUpdatePolicyDto,
-            id
+            id,
+            sub,
+            scope
           );
         return jsonRpcResponse(transaction, id);
       }
@@ -89,7 +79,8 @@ export class JsonRpcController {
         const transaction =
           await this.jsonRpcService.buildTransactionAddIssuerProxy(
             body as RequestAddIssuerProxyDto,
-            id
+            id,
+            scope
           );
         return jsonRpcResponse(transaction, id);
       }
@@ -97,17 +88,17 @@ export class JsonRpcController {
         const transaction =
           await this.jsonRpcService.buildTransactionUpdateIssuerProxy(
             body as RequestUpdateIssuerProxyDto,
-            id
+            id,
+            scope
           );
         return jsonRpcResponse(transaction, id);
       }
-      case "sendSignedTransaction":
-      case "signedTransaction": {
-        // Note: "signedTransaction" is deprecated and will be replaced by "sendSignedTransaction" in the next major version
+      case "sendSignedTransaction": {
         const result = await this.jsonRpcService.sendTransaction(
-          client.did,
+          sub,
           body as RequestSendSignedTransactionDto,
-          id
+          id,
+          scope
         );
         return jsonRpcResponse(result, id);
       }

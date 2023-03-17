@@ -1,19 +1,16 @@
 import * as ClassValidator from "class-validator";
 import { ClassTransformer, ClassConstructor } from "class-transformer";
 import { ethers } from "ethers";
+import type { SignatureLike } from "@ethersproject/bytes";
 import {
   UnsignedTransaction,
   RequestInsertIssuerDto,
   RequestUpdateIssuerDto,
-  RequestInsertPolicyDto,
-  RequestUpdatePolicyDto,
   RequestSetAttributeMetadataDto,
   RequestSetAttributeDataDto,
   RequestSendSignedTransactionDto,
   ArgsInsertIssuer,
   ArgsUpdateIssuer,
-  ArgsInsertPolicy,
-  ArgsUpdatePolicy,
   ArgsSetAttributeMetadata,
   ArgsSetAttributeData,
   RequestAddIssuerProxyDto,
@@ -29,21 +26,17 @@ type JsonRpcDtos =
   | RequestSetAttributeDataDto
   | RequestAddIssuerProxyDto
   | RequestUpdateIssuerProxyDto
-  | RequestInsertPolicyDto
-  | RequestUpdatePolicyDto
   | RequestSendSignedTransactionDto
   | ArgsInsertIssuer
   | ArgsUpdateIssuer
   | ArgsSetAttributeMetadata
   | ArgsSetAttributeData
-  | ArgsInsertPolicy
-  | ArgsUpdatePolicy
   | ArgsAddIssuerProxy
   | ArgsUpdateIssuerProxy;
 
 export function formatEthersUnsignedTransaction(
   unsignedTransaction: UnsignedTransaction
-): ethers.UnsignedTransaction & ethers.providers.TransactionRequest {
+) {
   return {
     to: unsignedTransaction.to,
     data: unsignedTransaction.data,
@@ -52,21 +45,17 @@ export function formatEthersUnsignedTransaction(
     chainId: Number(unsignedTransaction.chainId),
     gasLimit: unsignedTransaction.gasLimit,
     gasPrice: unsignedTransaction.gasPrice,
-  };
+  } satisfies ethers.UnsignedTransaction;
 }
 
-export function formatEthersSignature(
-  r: string,
-  s: string,
-  v: string
-): ethers.Signature {
+export function formatEthersSignature(r: string, s: string, v: string) {
   return {
     r,
     s,
     v: Number(v),
-    recoveryParam: null,
-    _vs: null,
-  } as ethers.Signature;
+    recoveryParam: undefined,
+    _vs: undefined,
+  } satisfies SignatureLike;
 }
 
 export const validateClass = async (

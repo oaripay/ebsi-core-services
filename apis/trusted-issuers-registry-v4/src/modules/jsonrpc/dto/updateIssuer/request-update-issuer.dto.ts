@@ -11,14 +11,14 @@ import { UpdateIssuerParam } from "./update-issuer-param.dto";
 
 export class RequestUpdateIssuerDto extends JsonRpcDto {
   @Equals("updateIssuer")
-  method: string;
+  method!: "updateIssuer";
 
   @IsArray()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @Type(() => UpdateIssuerParam)
-  params: UpdateIssuerParam[];
+  params!: UpdateIssuerParam[];
 }
 
 export default RequestUpdateIssuerDto;

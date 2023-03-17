@@ -62,6 +62,7 @@ export async function isStatusList2021Credential(
     const credential = await verifyCredentialJwt(credentialJwt, {
       ...options,
       ebsiAuthority: authority,
+      skipAccreditationsValidation: true, // No need to check the accreditation
     });
 
     Joi.assert(credential, statusList2021CredentialSchema);

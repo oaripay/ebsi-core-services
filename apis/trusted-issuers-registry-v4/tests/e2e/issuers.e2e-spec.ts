@@ -1,14 +1,6 @@
-import {
-  describe,
-  beforeAll,
-  afterEach,
-  afterAll,
-  it,
-  expect,
-} from "@jest/globals";
+import { describe, beforeAll, afterEach, it, expect } from "@jest/globals";
 import request from "supertest";
 import crypto from "node:crypto";
-import { ethers } from "ethers";
 import nock from "nock";
 import { Test, TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
@@ -28,51 +20,25 @@ import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { ec as EC } from "elliptic";
 import { bytes } from "multiformats";
 import { base64url } from "multiformats/bases/base64";
-import {
-  createVerifiableCredentialJwt,
-  EbsiIssuer,
-} from "@cef-ebsi/verifiable-credential";
-import {
-  prefixWith0x,
+import { createVerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential";
+import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
+import type {
   StatusList2021Credential,
   PaginatedList,
-  remove0xPrefix,
 } from "@ebsiint-api/shared";
 import { ApiConfig } from "../../src/config/configuration";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
-import {
+import type {
   AttributeObject,
   IdLink,
   DidLink,
   IssuerResponseObject,
   ProxyLink,
   IssuerProxyResponseObject,
-  IssuerType,
-  IssuerTypeNames,
 } from "../../src/modules/issuers/issuers.interface";
-import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
-import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
-import { waitToBeMined } from "../utils/waitToBeMined";
-import { requestSiopJwt } from "../utils/siopJwt";
-import { createIssuer, IssuerObject } from "../utils/tir";
-import {
-  AddIssuerProxyParam,
-  InsertIssuerParam,
-  SetAttributeDataParam,
-  SetAttributeMetadataParam,
-  UnsignedTransaction,
-  UpdateIssuerParam,
-  UpdateIssuerProxyParam,
-} from "../../src/modules/jsonrpc/dto";
-import { describeWriteOps } from "../utils/describeWriteOps";
 import { getServer } from "../utils/getServer";
 import { describeLocalTestEnvOnly } from "../utils/describeLocalTestEnvOnly";
-
-interface SupertestJsonRpcResponse {
-  status: number;
-  body: JsonRpcResponseObject;
-}
 
 interface SupertestIssuersResponse {
   status: number;
@@ -139,27 +105,14 @@ describe("Issuers (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer | string;
   let configService: ConfigService<ApiConfig, true>;
-  let userTestWallet: ethers.Wallet;
-  let adminTestWallet: ethers.Wallet;
-  let issuerTestWallet: ethers.Wallet;
-  let testUserAccessToken: string;
-  let testAdminAccessToken: string;
-  let testIssuerAccessToken: string;
+  let testIssuerWithProxy: EbsiIssuer;
   let testIssuerWithProxyKid: string;
   let testIssuerWithProxyDid: string;
   let testIssuerWithProxyPrivateKey: string;
   let testIssuerWithProxyFirstProxyId: string;
-  let testIssuerWithProxyAttributeId: string;
   let testVerifiableAttestationSchemaId: string;
   let testStatusListSchemaId: string;
-  let ledgerApi: string;
   let trustedSchemasRegistryApiUrl: string;
-  let sampleTransaction: string;
-
-  let blockscout: {
-    url: string;
-    bearerToken: string;
-  };
   const randomDid = EbsiWallet.createDid();
 
   async function createStatusList2021CredentialJwt(
@@ -211,20 +164,10 @@ describe("Issuers (e2e)", () => {
     return newIssuer1StatusList2021CredentialJwt;
   }
 
-  let newIssuer1: IssuerObject;
-  let newIssuer2: IssuerObject;
-  let newIssuer3: IssuerObject;
-  let newIssuer4: IssuerObject;
-
   let lastExistingIssuerDid: string;
   let beforeLastExistingIssuerDid: string;
 
   beforeAll(async () => {
-    newIssuer1 = createIssuer(IssuerType.RootTAO);
-    newIssuer2 = createIssuer(IssuerType.RootTAO);
-    newIssuer3 = createIssuer(IssuerType.RootTAO);
-    newIssuer4 = createIssuer(IssuerType.RootTAO);
-
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -247,43 +190,6 @@ describe("Issuers (e2e)", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
 
     server = getServer(app, configService);
-
-    userTestWallet = new ethers.Wallet(
-      prefixWith0x(configService.get("testUserPrivateKey"))
-    );
-    adminTestWallet = new ethers.Wallet(
-      prefixWith0x(configService.get("testAdminPrivateKey"))
-    );
-
-    try {
-      // Generate a valid Client JWT (SIOP) for the tests
-      testUserAccessToken = await requestSiopJwt({
-        clientKid: configService.get<string>("testUserKid"),
-        clientPrivateKey: configService.get<string>("testUserPrivateKey"),
-        configService,
-      });
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error(e);
-      throw e;
-    }
-
-    try {
-      testAdminAccessToken = await requestSiopJwt({
-        clientKid: configService.get<string>("testAdminKid"),
-        clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
-        configService,
-      });
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error(e);
-      throw e;
-    }
-
-    blockscout = configService.get<{
-      url: string;
-      bearerToken: string;
-    }>("blockscout");
 
     // Get last 2 issuers DID
     let issuersResponse: SupertestIssuersResponse = await request(server).get(
@@ -313,29 +219,12 @@ describe("Issuers (e2e)", () => {
       "testIssuerWithProxyPrivateKey"
     );
 
-    // Get testIssuerWithProxy's first attribute id
-    const issuerAttributesResponse: SupertestAttributesResponse = await request(
-      server
-    ).get(`/issuers/${testIssuerWithProxyDid}/attributes`);
-    testIssuerWithProxyAttributeId = issuerAttributesResponse.body.items[0].id;
-
-    // get access token of testIssuerWithProxy
-    try {
-      testIssuerAccessToken = await requestSiopJwt({
-        clientKid: testIssuerWithProxyKid,
-        clientPrivateKey: testIssuerWithProxyPrivateKey,
-        configService,
-      });
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error(e);
-      throw e;
-    }
-    issuerTestWallet = new ethers.Wallet(
-      prefixWith0x(testIssuerWithProxyPrivateKey)
+    testIssuerWithProxy = getEbsiIssuer(
+      testIssuerWithProxyPrivateKey,
+      testIssuerWithProxyDid,
+      testIssuerWithProxyKid
     );
 
-    ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
     trustedSchemasRegistryApiUrl = configService.get<string>(
       "trustedSchemasRegistryApiUrl"
     );
@@ -942,16 +831,16 @@ describe("Issuers (e2e)", () => {
         expect.assertions(2);
 
         // Mock issuer's endpoint response
-        const issuer = getEbsiIssuer(
-          testIssuerWithProxyPrivateKey,
-          testIssuerWithProxyDid,
-          testIssuerWithProxyKid
-        );
         const authority = configService
           .get<string>("domain")
           .replace(/^https?:\/\//, "");
+
         const statusList2021CredentialJwt =
-          await createStatusList2021CredentialJwt(issuer, proxy, authority);
+          await createStatusList2021CredentialJwt(
+            testIssuerWithProxy,
+            proxy,
+            authority
+          );
 
         nock(proxy.prefix)
           .get(path)
@@ -1072,769 +961,5 @@ describe("Issuers (e2e)", () => {
       });
       expect(response.status).toBe(404);
     });
-  });
-
-  describeWriteOps().each([
-    "insertIssuer",
-    "updateIssuer",
-    "updateIssuer(test update attribute)",
-    "setAttributeMetadata",
-    "setAttributeData",
-  ])("/jsonrpc - method: %s", (testMethod: string) => {
-    const updateAttribute = testMethod.includes("(test update attribute)");
-    const method = testMethod.replace("(test update attribute)", "");
-
-    it(`should return a new unsigned transaction`, async () => {
-      expect.assertions(2);
-
-      let params = {};
-
-      switch (method) {
-        case "insertIssuer":
-        case "updateIssuer": {
-          const { did, attribute, tao, taoAttributeId, issuerType } =
-            createIssuer(IssuerType.RootTAO);
-          let prevAttributeHash = "";
-
-          if (updateAttribute) {
-            prevAttributeHash =
-              "0x9045517cc555c75cd7085900a900e6693439086f9eddeee513271fba278964fe";
-          }
-          params = {
-            from: adminTestWallet.address,
-            did,
-            attributeData: attribute.hex,
-            taoDid: tao,
-            taoAttributeId,
-            issuerType,
-            ...(prevAttributeHash && { prevAttributeHash }),
-          } as InsertIssuerParam;
-          break;
-        }
-        case "setAttributeMetadata": {
-          const { did, attribute, tao, taoAttributeId, issuerType } =
-            createIssuer(IssuerType.RootTAO);
-
-          params = {
-            from: adminTestWallet.address,
-            did,
-            attributeId: attribute.id,
-            taoDid: tao,
-            taoAttributeId,
-            issuerType,
-          } as SetAttributeMetadataParam;
-          break;
-        }
-        case "setAttributeData": {
-          const { did, attribute } = createIssuer(IssuerType.RootTAO);
-
-          params = {
-            from: adminTestWallet.address,
-            did,
-            attributeId: attribute.id,
-            attributeData: attribute.hex,
-          } as SetAttributeDataParam;
-          break;
-        }
-        default: {
-          throw new Error(`Invalid method ${method}`);
-        }
-      }
-
-      const responseBuild: SupertestJsonRpcResponse = await request(server)
-        .post("/jsonrpc")
-        .auth(testAdminAccessToken, { type: "bearer" })
-        .send({
-          jsonrpc: "2.0",
-          method,
-          params: [params],
-          id: 231,
-        });
-
-      expect(responseBuild.body).toStrictEqual({
-        jsonrpc: "2.0",
-        id: 231,
-        result: {
-          chainId: expect.any(String),
-          data: expect.any(String),
-          from: adminTestWallet.address,
-          gasLimit: expect.any(String),
-          gasPrice: expect.any(String),
-          nonce: expect.any(String),
-          to: expect.any(String),
-          value: expect.any(String),
-        },
-      });
-      expect(responseBuild.status).toBe(200);
-    });
-
-    it("should send a transaction", async () => {
-      expect.assertions(7);
-
-      const { did } = newIssuer1;
-      let extraTestUrl = "";
-      let extraTestExpectedResponse: unknown = {};
-      let params = {};
-
-      switch (method) {
-        case "insertIssuer": {
-          // create a new issuer and add newIssuer1.attribute
-          params = {
-            from: adminTestWallet.address,
-            did,
-            attributeData: newIssuer1.attribute.hex,
-            issuerType: newIssuer1.issuerType,
-            taoDid: newIssuer1.tao,
-            taoAttributeId: newIssuer1.taoAttributeId,
-          } as InsertIssuerParam;
-
-          extraTestUrl = `/issuers/${did}`;
-
-          extraTestExpectedResponse = {
-            did,
-            attributes: [
-              {
-                body: newIssuer1.attribute.utf8,
-                hash: remove0xPrefix(newIssuer1.attribute.id),
-                issuerType: IssuerTypeNames[newIssuer1.issuerType],
-                tao: newIssuer1.tao,
-                rootTao: newIssuer1.rootTao,
-              },
-            ],
-          };
-
-          break;
-        }
-        case "updateIssuer": {
-          if (updateAttribute) {
-            // update newIssuer1.attribute: change it to newIssuer3.attribute
-            params = {
-              from: adminTestWallet.address,
-              did,
-              attributeData: newIssuer3.attribute.hex,
-              prevAttributeHash: newIssuer1.attribute.id,
-              issuerType: newIssuer3.issuerType,
-              taoDid: newIssuer3.tao,
-              taoAttributeId: newIssuer3.taoAttributeId,
-            } as UpdateIssuerParam;
-
-            extraTestUrl = `/issuers/${did}`;
-
-            extraTestExpectedResponse = {
-              did,
-              attributes: [
-                {
-                  body: newIssuer3.attribute.utf8,
-                  hash: remove0xPrefix(newIssuer3.attribute.id),
-                  issuerType: IssuerTypeNames[newIssuer3.issuerType],
-                  tao: newIssuer1.tao,
-                  rootTao: newIssuer1.rootTao,
-                },
-                {
-                  body: newIssuer2.attribute.utf8,
-                  hash: remove0xPrefix(newIssuer2.attribute.id),
-                  issuerType: IssuerTypeNames[newIssuer2.issuerType],
-                  tao: newIssuer1.tao,
-                  rootTao: newIssuer1.rootTao,
-                },
-              ],
-            };
-          } else {
-            // updateIssuer: add newIssuer2.attribute
-            params = {
-              from: adminTestWallet.address,
-              did,
-              attributeData: newIssuer2.attribute.hex,
-              issuerType: newIssuer2.issuerType,
-              taoDid: newIssuer2.tao,
-              taoAttributeId: newIssuer2.taoAttributeId,
-            } as UpdateIssuerParam;
-
-            extraTestUrl = `/issuers/${did}`;
-
-            extraTestExpectedResponse = {
-              did,
-              attributes: [
-                {
-                  body: newIssuer1.attribute.utf8,
-                  hash: remove0xPrefix(newIssuer1.attribute.id),
-                  issuerType: IssuerTypeNames[newIssuer1.issuerType],
-                  tao: newIssuer1.tao,
-                  rootTao: newIssuer1.rootTao,
-                },
-                {
-                  body: newIssuer2.attribute.utf8,
-                  hash: remove0xPrefix(newIssuer2.attribute.id),
-                  issuerType: IssuerTypeNames[newIssuer2.issuerType],
-                  tao: newIssuer1.tao,
-                  rootTao: newIssuer1.rootTao,
-                },
-              ],
-            };
-          }
-          break;
-        }
-        case "setAttributeMetadata": {
-          params = {
-            from: adminTestWallet.address,
-            did: testIssuerWithProxyDid,
-            attributeId: prefixWith0x(testIssuerWithProxyAttributeId),
-            issuerType: 1, // RootTAO
-            taoDid: newIssuer1.tao,
-            taoAttributeId: newIssuer1.taoAttributeId,
-          } as SetAttributeMetadataParam;
-
-          extraTestUrl = `/issuers/${testIssuerWithProxyDid}`;
-
-          /* eslint-disable jest/no-conditional-expect */
-          extraTestExpectedResponse = {
-            did: testIssuerWithProxyDid,
-            attributes: expect.arrayContaining([
-              {
-                body: expect.any(String),
-                hash: expect.any(String),
-                issuerType: "RootTAO",
-                tao: testIssuerWithProxyDid,
-                rootTao: testIssuerWithProxyDid,
-              },
-            ]),
-          };
-          /* eslint-enable jest/no-conditional-expect */
-
-          break;
-        }
-        case "setAttributeData": {
-          const newAttributeData = `test - ${new Date().toISOString()}`;
-          const newAttributeDataBuffer = Buffer.from(newAttributeData);
-          const newAttributeId = ethers.utils.sha256(newAttributeDataBuffer);
-          params = {
-            from: issuerTestWallet.address,
-            did: testIssuerWithProxyDid,
-            attributeId: prefixWith0x(testIssuerWithProxyAttributeId),
-            attributeData: `0x${newAttributeDataBuffer.toString("hex")}`,
-          } as SetAttributeDataParam;
-
-          extraTestUrl = `/issuers/${testIssuerWithProxyDid}`;
-
-          /* eslint-disable jest/no-conditional-expect */
-          extraTestExpectedResponse = {
-            did: testIssuerWithProxyDid,
-            attributes: expect.arrayContaining([
-              {
-                body: newAttributeData,
-                hash: remove0xPrefix(newAttributeId),
-                issuerType: "RootTAO",
-                tao: testIssuerWithProxyDid,
-                rootTao: testIssuerWithProxyDid,
-              },
-            ]),
-          };
-          /* eslint-enable jest/no-conditional-expect */
-
-          break;
-        }
-        case "addIssuerProxy": {
-          params = {
-            from: adminTestWallet.address,
-            did,
-            proxyData: newIssuer1.proxy.utf8,
-          } as AddIssuerProxyParam;
-
-          extraTestUrl = `/issuers/${did}/proxies`;
-
-          extraTestExpectedResponse = {
-            items: [
-              {
-                proxyId: newIssuer1.proxy.id,
-                // eslint-disable-next-line jest/no-conditional-expect
-                href: expect.stringContaining(
-                  `/proxies/${newIssuer1.proxy.id}`
-                ),
-              },
-            ],
-            total: 1,
-          };
-
-          break;
-        }
-        case "updateIssuerProxy": {
-          params = {
-            from: adminTestWallet.address,
-            did,
-            proxyData: newIssuer2.proxy.utf8,
-            proxyId: newIssuer1.proxy.id,
-          } as UpdateIssuerProxyParam;
-
-          extraTestUrl = `/issuers/${did}/proxies/${newIssuer1.proxy.id}`;
-          extraTestExpectedResponse = newIssuer2.proxy.obj;
-          break;
-        }
-        default: {
-          throw new Error(`Invalid method ${method}`);
-        }
-      }
-
-      const isSetAttributeData = method === "setAttributeData";
-      const accessToken = isSetAttributeData
-        ? testIssuerAccessToken
-        : testAdminAccessToken;
-      const wallet = isSetAttributeData ? issuerTestWallet : adminTestWallet;
-
-      const responseBuild: SupertestJsonRpcResponse = await request(server)
-        .post("/jsonrpc")
-        .auth(accessToken, { type: "bearer" })
-        .send({
-          jsonrpc: "2.0",
-          method,
-          params: [params],
-          id: 231,
-        });
-
-      expect(responseBuild.body).toStrictEqual({
-        jsonrpc: "2.0",
-        id: 231,
-        result: {
-          chainId: expect.any(String),
-          data: expect.any(String),
-          from: expect.any(String),
-          gasLimit: expect.any(String),
-          gasPrice: expect.any(String),
-          nonce: expect.any(String),
-          to: expect.any(String),
-          value: expect.any(String),
-        },
-      });
-
-      const unsignedTransaction = responseBuild.body.result;
-      const uTx = formatEthersUnsignedTransaction(
-        JSON.parse(
-          JSON.stringify(unsignedTransaction)
-        ) as unknown as UnsignedTransaction
-      );
-      uTx.chainId = Number(uTx.chainId);
-      const sgnTx = await wallet.signTransaction(uTx);
-      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
-
-      const responseSend: SupertestJsonRpcResponse = await request(server)
-        .post("/jsonrpc")
-        .auth(accessToken, { type: "bearer" })
-        .send({
-          jsonrpc: "2.0",
-          method: "sendSignedTransaction",
-          params: [
-            {
-              protocol: "eth",
-              unsignedTransaction,
-              r,
-              s,
-              v: `0x${Number(v).toString(16)}`,
-              signedRawTransaction: sgnTx,
-            },
-          ],
-          id: "45",
-        });
-
-      expect(responseSend.body).toStrictEqual({
-        jsonrpc: "2.0",
-        id: "45",
-        result: expect.any(String),
-      });
-      expect(responseSend.status).toBe(200);
-
-      // wait to be mined
-      const receipt = await waitToBeMined(
-        ledgerApi,
-        responseSend.body.result as string
-      );
-      expect(receipt.revertReason).toBeUndefined();
-      expect(receipt.status).toBe(1);
-      sampleTransaction = responseSend.body.result as string;
-
-      // Extra test
-      const extraTestResponse = await request(server).get(extraTestUrl);
-
-      expect(extraTestResponse.body).toStrictEqual(extraTestExpectedResponse);
-      expect(extraTestResponse.status).toBe(200);
-    });
-
-    it("should send the transaction but the SC should reject no authorized users", async () => {
-      expect.assertions(4);
-
-      let params: unknown;
-
-      switch (method) {
-        case "insertIssuer": {
-          // create a new issuer and add newIssuer1.attribute
-          params = {
-            from: userTestWallet.address,
-            did: EbsiWallet.createDid(),
-            attributeData: newIssuer4.attribute.hex,
-            taoDid: newIssuer4.tao,
-            issuerType: newIssuer4.issuerType,
-            taoAttributeId: newIssuer4.taoAttributeId,
-          } as InsertIssuerParam;
-          break;
-        }
-        case "updateIssuer": {
-          if (updateAttribute) {
-            // update newIssuer1.attribute: change it to newIssuer3.attribute
-            const prevAttributeHash = newIssuer1.attribute.id;
-            params = {
-              from: userTestWallet.address,
-              did: newIssuer1.did,
-              attributeData: newIssuer4.attribute.hex,
-              ...(prevAttributeHash && { prevAttributeHash }),
-              taoDid: newIssuer1.tao,
-              issuerType: newIssuer1.issuerType,
-              taoAttributeId: newIssuer1.taoAttributeId,
-            };
-          } else {
-            // updateIssuer: add newIssuer4.attribute
-            params = {
-              from: userTestWallet.address,
-              did: configService.get<string>("testAdminKid").split("#")[0],
-              attributeData: newIssuer4.attribute.hex,
-              taoDid: newIssuer4.tao,
-              issuerType: newIssuer4.issuerType,
-              taoAttributeId: newIssuer4.taoAttributeId,
-            };
-          }
-          break;
-        }
-        case "setAttributeMetadata": {
-          params = {
-            from: userTestWallet.address,
-            did: EbsiWallet.createDid(),
-            attributeId: newIssuer4.attribute.id,
-            taoDid: newIssuer4.tao,
-            issuerType: newIssuer4.issuerType,
-            taoAttributeId: newIssuer4.taoAttributeId,
-          } as SetAttributeMetadataParam;
-          break;
-        }
-        case "setAttributeData": {
-          params = {
-            from: userTestWallet.address,
-            did: testIssuerWithProxyDid,
-            attributeId: newIssuer4.attribute.id,
-            attributeData: newIssuer4.attribute.hex,
-          } as SetAttributeDataParam;
-          break;
-        }
-        case "addIssuerProxy": {
-          params = {
-            from: userTestWallet.address,
-            did: newIssuer1.did,
-            proxyData: newIssuer1.proxy.utf8,
-          } as AddIssuerProxyParam;
-          break;
-        }
-        case "updateIssuerProxy": {
-          params = {
-            from: userTestWallet.address,
-            did: newIssuer1.did,
-            proxyData: newIssuer2.proxy.utf8,
-            proxyId: newIssuer1.proxy.id,
-          } as UpdateIssuerProxyParam;
-          break;
-        }
-        default: {
-          throw new Error(`Invalid method ${method}`);
-        }
-      }
-
-      const responseBuild: SupertestJsonRpcResponse = await request(server)
-        .post("/jsonrpc")
-        .auth(testUserAccessToken, { type: "bearer" })
-        .send({
-          jsonrpc: "2.0",
-          method,
-          params: [params],
-          id: 231,
-        });
-
-      expect(responseBuild.body).toStrictEqual({
-        jsonrpc: "2.0",
-        id: 231,
-        result: {
-          chainId: expect.any(String),
-          data: expect.any(String),
-          from: expect.any(String),
-          gasLimit: expect.any(String),
-          gasPrice: expect.any(String),
-          nonce: expect.any(String),
-          to: expect.any(String),
-          value: expect.any(String),
-        },
-      });
-
-      const unsignedTransaction = responseBuild.body.result;
-      const uTx = formatEthersUnsignedTransaction(
-        JSON.parse(
-          JSON.stringify(unsignedTransaction)
-        ) as unknown as UnsignedTransaction
-      );
-      uTx.chainId = Number(uTx.chainId);
-      const sgnTx = await userTestWallet.signTransaction(uTx);
-      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
-
-      const responseSend: SupertestJsonRpcResponse = await request(server)
-        .post("/jsonrpc")
-        .auth(testUserAccessToken, { type: "bearer" })
-        .send({
-          jsonrpc: "2.0",
-          method: "sendSignedTransaction",
-          params: [
-            {
-              protocol: "eth",
-              unsignedTransaction,
-              r,
-              s,
-              v: `0x${Number(v).toString(16)}`,
-              signedRawTransaction: sgnTx,
-            },
-          ],
-          id: "45",
-        });
-
-      expect(responseSend.body).toStrictEqual({
-        jsonrpc: "2.0",
-        id: "45",
-        result: expect.any(String),
-      });
-      expect(responseSend.status).toBe(200);
-
-      const expectedRevertReason =
-        method === "setAttributeData"
-          ? "Not the issuer itself"
-          : `doesn't have the attribute TIR:${method}`;
-
-      // wait to be mined
-      const receipt = await waitToBeMined(
-        ledgerApi,
-        responseSend.body.result as string
-      );
-      receipt.revertReason = Buffer.from(
-        (receipt.revertReason ?? "").slice(2),
-        "hex"
-      )
-        .toString()
-        .replace(/[^a-zA-Z:' ]/g, "");
-      expect(receipt).toStrictEqual(
-        expect.objectContaining({
-          status: 0,
-          revertReason: expect.stringContaining(expectedRevertReason),
-        })
-      );
-    });
-
-    it("should return transaction data from blockscout", async () => {
-      if (!blockscout.url || !sampleTransaction) return;
-
-      expect.assertions(1);
-
-      await new Promise((f) => {
-        setTimeout(f, 5000);
-      });
-
-      // check if blockscout is working properly
-      const blockscoutCheck: SupertestJsonRpcResponse = await request(
-        blockscout.url
-      )
-        .post("")
-        .set({ Authorization: blockscout.bearerToken })
-        .send({
-          query: `{transaction(hash: "${sampleTransaction}") { hash, blockNumber, value, gasUsed }}`,
-          variables: null,
-          operationName: null,
-        });
-
-      expect(blockscoutCheck.body).toStrictEqual({
-        data: {
-          transaction: {
-            blockNumber: expect.any(Number),
-            gasUsed: expect.any(String),
-            hash: sampleTransaction,
-            value: expect.any(String),
-          },
-        },
-      });
-    });
-  });
-
-  describeLocalTestEnvOnly()("with mocked issuer's endpoint", () => {
-    describeWriteOps().each(["addIssuerProxy", "updateIssuerProxy"])(
-      "/jsonrpc - method: %s",
-      (method: string) => {
-        let testIssuerWithProxyWallet: ethers.Wallet;
-        let testIssuerWithProxyAccessToken: string;
-
-        beforeAll(async () => {
-          const authority = configService
-            .get<string>("domain")
-            .replace(/^https?:\/\//, "");
-
-          testIssuerWithProxyWallet = new ethers.Wallet(
-            prefixWith0x(configService.get("testIssuerWithProxyPrivateKey"))
-          );
-
-          try {
-            testIssuerWithProxyAccessToken = await requestSiopJwt({
-              clientKid: configService.get<string>("testIssuerWithProxyKid"),
-              clientPrivateKey: configService.get<string>(
-                "testIssuerWithProxyPrivateKey"
-              ),
-              configService,
-            });
-          } catch (e) {
-            // eslint-disable-next-line no-console
-            console.error(e);
-            throw e;
-          }
-
-          // Mock Trusted Issuers' endpoint
-          const issuer = getEbsiIssuer(
-            testIssuerWithProxyPrivateKey,
-            testIssuerWithProxyDid,
-            testIssuerWithProxyKid
-          );
-          const statusList2021CredentialJwt =
-            await createStatusList2021CredentialJwt(
-              issuer,
-              newIssuer1.proxy.obj,
-              authority
-            );
-
-          nock(newIssuer1.proxy.obj.prefix)
-            .get(newIssuer1.proxy.obj.testSuffix)
-            .reply(200, statusList2021CredentialJwt)
-            .persist();
-
-          nock(newIssuer2.proxy.obj.prefix)
-            .get(newIssuer2.proxy.obj.testSuffix)
-            .reply(200, statusList2021CredentialJwt)
-            .persist();
-        });
-
-        afterAll(() => {
-          nock.cleanAll();
-        });
-
-        it("should add / update the proxy", async () => {
-          expect.assertions(5);
-
-          const did = testIssuerWithProxyDid;
-          let extraTestUrl = "";
-          let extraTestExpectedResponse: unknown = {};
-          let params = {};
-
-          switch (method) {
-            case "addIssuerProxy": {
-              params = {
-                from: testIssuerWithProxyWallet.address,
-                did,
-                proxyData: newIssuer1.proxy.utf8,
-              } as AddIssuerProxyParam;
-
-              extraTestUrl = `/issuers/${did}/proxies`;
-
-              extraTestExpectedResponse = {
-                // eslint-disable-next-line jest/no-conditional-expect
-                items: expect.arrayContaining([
-                  {
-                    proxyId: newIssuer1.proxy.id,
-                    // eslint-disable-next-line jest/no-conditional-expect
-                    href: expect.stringContaining(
-                      `/proxies/${newIssuer1.proxy.id}`
-                    ),
-                  },
-                ]),
-                // eslint-disable-next-line jest/no-conditional-expect
-                total: expect.any(Number),
-              };
-
-              break;
-            }
-            case "updateIssuerProxy": {
-              params = {
-                from: testIssuerWithProxyWallet.address,
-                did,
-                proxyData: newIssuer2.proxy.utf8,
-                proxyId: newIssuer1.proxy.id,
-              } as UpdateIssuerProxyParam;
-
-              extraTestUrl = `/issuers/${did}/proxies/${newIssuer1.proxy.id}`;
-              extraTestExpectedResponse = newIssuer2.proxy.obj;
-              break;
-            }
-            default: {
-              throw new Error(`Invalid method ${method}`);
-            }
-          }
-
-          const responseBuild: SupertestJsonRpcResponse = await request(server)
-            .post("/jsonrpc")
-            .auth(testIssuerWithProxyAccessToken, { type: "bearer" })
-            .send({
-              jsonrpc: "2.0",
-              method,
-              params: [params],
-              id: 231,
-            });
-
-          const unsignedTransaction = responseBuild.body.result;
-          const uTx = formatEthersUnsignedTransaction(
-            JSON.parse(
-              JSON.stringify(unsignedTransaction)
-            ) as unknown as UnsignedTransaction
-          );
-          uTx.chainId = Number(uTx.chainId);
-          const sgnTx = await testIssuerWithProxyWallet.signTransaction(uTx);
-          const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
-
-          const responseSend: SupertestJsonRpcResponse = await request(server)
-            .post("/jsonrpc")
-            .auth(testIssuerWithProxyAccessToken, { type: "bearer" })
-            .send({
-              jsonrpc: "2.0",
-              method: "sendSignedTransaction",
-              params: [
-                {
-                  protocol: "eth",
-                  unsignedTransaction,
-                  r,
-                  s,
-                  v: `0x${Number(v).toString(16)}`,
-                  signedRawTransaction: sgnTx,
-                },
-              ],
-              id: "45",
-            });
-
-          expect(responseSend.body).toStrictEqual({
-            jsonrpc: "2.0",
-            id: "45",
-            result: expect.any(String),
-          });
-          expect(responseSend.status).toBe(200);
-
-          // wait to be mined
-          const receipt = await waitToBeMined(
-            ledgerApi,
-            responseSend.body.result as string
-          );
-          expect(receipt.status).toBe(1);
-          sampleTransaction = responseSend.body.result as string;
-
-          // Extra test
-          const extraTestResponse = await request(server).get(extraTestUrl);
-
-          expect(extraTestResponse.body).toStrictEqual(
-            extraTestExpectedResponse
-          );
-          expect(extraTestResponse.status).toBe(200);
-        });
-      }
-    );
   });
 });

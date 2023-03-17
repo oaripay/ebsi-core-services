@@ -9,13 +9,7 @@ import { mergeMap, toArray } from "rxjs/operators";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { Tir } from "@ebsiint-sc/trusted-issuers-registry";
 import { StatusList2021Credential } from "@ebsiint-api/shared";
-import { IssuerType } from "../../src/modules/issuers/issuers.interface";
-
-interface PolicyObject {
-  policyId: string;
-  policyData: unknown;
-  policyHash: string;
-}
+import { IssuerType } from "../../src/modules/issuers/issuers.constants";
 
 export interface IssuerProxyObject {
   prefix: string;
@@ -105,7 +99,7 @@ export async function deployTirContract(): Promise<{
 export function createIssuer(
   issuerType: IssuerType,
   inputTaoDid?: string,
-  inputtaoAttributeId?: string,
+  inputTaoAttributeId?: string,
   inputRootTaoDid?: string
 ): IssuerObject {
   const issuerDid = EbsiWallet.createDid();
@@ -129,14 +123,15 @@ export function createIssuer(
   let taoDid: string;
   let rootTao: string;
   let taoAttributeId: string;
+
   if (issuerType === IssuerType.RootTAO) {
     rootTao = issuerDid;
     taoDid = issuerDid;
     taoAttributeId = `0x${"0".repeat(64)}`;
   } else {
-    rootTao = inputRootTaoDid;
-    taoDid = inputTaoDid;
-    taoAttributeId = inputtaoAttributeId;
+    rootTao = inputRootTaoDid as string;
+    taoDid = inputTaoDid as string;
+    taoAttributeId = inputTaoAttributeId as string;
   }
 
   // create proxy
@@ -195,13 +190,13 @@ export async function insertIssuer(
   contract: Tir,
   issuerType: IssuerType,
   inputTaoDid?: string,
-  inputtaoAttributeId?: string,
+  inputTaoAttributeId?: string,
   inputRootTaoDid?: string
 ): Promise<IssuerObject> {
   const issuer = createIssuer(
     issuerType,
     inputTaoDid,
-    inputtaoAttributeId,
+    inputTaoAttributeId,
     inputRootTaoDid
   );
   await contract.insertIssuer(
@@ -215,100 +210,24 @@ export async function insertIssuer(
   return issuer;
 }
 
-export async function insertPolicy(contract: Tir): Promise<PolicyObject> {
-  const policyId = `policy-test-${crypto.randomBytes(16).toString("hex")}`;
-
-  const policyData = {
-    // any object here
-    any: "Any attribute here",
-    type: "credential",
-    data: crypto.randomBytes(16).toString("hex"),
-  };
-
-  const policyBuffer = Buffer.from(JSON.stringify(policyData));
-  const policyHash = ethers.utils.sha256(policyBuffer);
-
-  await contract.insertPolicy(policyId, policyBuffer);
-
-  return { policyId, policyData: policyBuffer.toString("base64"), policyHash };
-}
-
-export async function updatePolicy(
-  contract: Tir,
-  policyId: string
-): Promise<PolicyObject> {
-  const policyData = {
-    // any object here
-    any: "Any attribute here",
-    type: "credential",
-    data: crypto.randomBytes(16).toString("hex"),
-  };
-
-  const policyBuffer = Buffer.from(JSON.stringify(policyData));
-  const policyHash = ethers.utils.sha256(policyBuffer);
-
-  await contract.updatePolicy(policyId, policyBuffer);
-
-  return { policyId, policyData: policyBuffer.toString("base64"), policyHash };
-}
-
 export interface SetupOptions {
-  policiesTotal?: number;
-  policiesRevisionsTotal?: number;
   issuersTotal?: number;
 }
 
-export async function setupTestEnv(
-  opts: SetupOptions = {
-    policiesTotal: 0,
-    issuersTotal: 0,
-  }
-): Promise<{
+export async function setupTestEnv({
+  issuersTotal = 0,
+}: SetupOptions = {}): Promise<{
   provider: ethers.providers.JsonRpcProvider;
   tirContract: Tir;
-  policyContractMock: Contract;
   didContractMock: Contract;
-  policies: PolicyObject[];
-  policyRevisions: { [x: string]: PolicyObject[] };
   issuers: IssuerObject[];
 }> {
   const ethersProvider = hre.ethers.provider;
 
   // Deploy contract
-  const { tirContract, policyContractMock, didContractMock } =
-    await deployTirContract();
+  const { tirContract, didContractMock } = await deployTirContract();
 
   // Insert fake data
-
-  const policyRevisions = {};
-
-  // Create as many policies as requested
-  const createPolicy = async () => {
-    const policy = await insertPolicy(tirContract);
-
-    const createRevision = async () =>
-      updatePolicy(tirContract, policy.policyId);
-
-    // For each policy, add revisions
-    policyRevisions[policy.policyId] = [
-      // The first revision is the policy itself
-      policy,
-      // Then, we add new revisions
-      ...(await range(0, opts.policiesRevisionsTotal - 1)
-        .pipe(mergeMap(createRevision), toArray())
-        .toPromise()),
-    ];
-
-    return policy;
-  };
-
-  const policies =
-    opts.policiesRevisionsTotal >= 1
-      ? await range(0, opts.policiesTotal)
-          .pipe(mergeMap(createPolicy), toArray())
-          .toPromise()
-      : [];
-
   const issuers: IssuerObject[] = [];
 
   // create a Root TAO
@@ -344,19 +263,16 @@ export async function setupTestEnv(
 
   // Create as many issuers as requested
   issuers.push(
-    ...(await range(0, opts.issuersTotal - 3)
+    ...((await range(0, issuersTotal - 3)
       .pipe(mergeMap(insertIssuerAsTI), toArray())
-      .toPromise())
+      .toPromise()) ?? [])
   );
 
   // Return test env variables
   return {
     provider: ethersProvider,
     tirContract,
-    policyContractMock,
     didContractMock,
-    policies,
-    policyRevisions,
     issuers,
   };
 }

@@ -3,22 +3,22 @@ import { IsDidV1 } from "@ebsiint-api/shared";
 
 export class ArgsInsertIssuer {
   @IsDidV1()
-  did: string;
+  did!: string;
 
   @IsHexadecimal()
-  attributeData: string;
+  attributeData!: string;
 
   // Undefined, RootTAO, TAO, TI, Revoked
   @IsNumber()
   @Min(0)
   @Max(4)
-  issuerType: number;
+  issuerType!: number;
 
   @IsDidV1()
-  taoDid: string;
+  taoDid!: string;
 
   @IsHexadecimal()
-  taoAttributeId: string;
+  taoAttributeId!: string;
 }
 
 export default ArgsInsertIssuer;

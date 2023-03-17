@@ -16,13 +16,13 @@ import type { FastifyInstance } from "fastify";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import * as vcLib from "@cef-ebsi/verifiable-credential";
-import { AsyncReturnType, remove0xPrefix } from "@ebsiint-api/shared";
+import { remove0xPrefix } from "@ebsiint-api/shared";
 import { IssuersModule } from "./issuers.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { IssuerObject, setupTestEnv } from "../../../tests/utils/tir";
 import { LedgerService } from "../ledger/ledger.service";
 import { ApiConfig } from "../../config/configuration";
-import { IssuerTypeNames } from "./issuers.interface";
+import { IssuerTypeNames } from "./issuers.constants";
 
 jest.setTimeout(90000);
 
@@ -31,7 +31,7 @@ const ISSUERS_TOTAL = 12;
 describe("Issuers Module", () => {
   let app: INestApplication;
   let server: HttpServer;
-  let testEnv: AsyncReturnType<typeof setupTestEnv>;
+  let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
   let rootTao: IssuerObject;
   let issuer: IssuerObject;
   let issuer2: IssuerObject;

@@ -6,7 +6,7 @@ declare global {
       API_PRIVATE_KEY: string;
       API_PORT?: string;
       API_URL_PREFIX?: string;
-      API_NAME?: string;
+      API_NAME: string;
       LOG_LEVEL?: "error" | "warn" | "log" | "verbose" | "debug" | "silent";
       DOMAIN: string;
       DOCKER_TAG?: string;
@@ -18,8 +18,7 @@ declare global {
       // Test vars
       TEST_ADMIN_KID?: string;
       TEST_ADMIN_PRIVATE_KEY?: string;
-      TEST_USER_KID?: string;
-      TEST_USER_PRIVATE_KEY?: string;
+      TEST_ADMIN_ACCREDITATION?: string;
       TEST_ISSUER_WITH_PROXY_KID?: string;
       TEST_ISSUER_WITH_PROXY_PRIVATE_KEY?: string;
       TEST_VERIFIABLE_ATTESTATION_SCHEMA_ID?: string;

@@ -1,7 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
 import { ethers } from "ethers";
 import { Tir } from "@ebsiint-sc/trusted-issuers-registry";
-import { AsyncReturnType } from "@ebsiint-api/shared";
 import {
   formatIssuers,
   formatAttributes,
@@ -16,7 +15,7 @@ describe("formatIssuers", () => {
     items: ["0x001", "0x002", "0x003"],
     total: ethers.BigNumber.from("42"),
     howMany: ethers.BigNumber.from("3"),
-  } as AsyncReturnType<Tir["getIssuers"]>;
+  } as Awaited<ReturnType<Tir["getIssuers"]>>;
 
   it("should use the values returned by the smart contract (except pageSize)", () => {
     expect.assertions(1);
@@ -246,8 +245,8 @@ describe("formatAttributes", () => {
 });
 
 describe("formatProxies", () => {
-  const proxies = ["0xProxy1", "0xProxy2"] as AsyncReturnType<
-    Tir["getIssuerProxies"]
+  const proxies = ["0xProxy1", "0xProxy2"] as Awaited<
+    ReturnType<Tir["getIssuerProxies"]>
   >;
   const baseUrl = "";
 

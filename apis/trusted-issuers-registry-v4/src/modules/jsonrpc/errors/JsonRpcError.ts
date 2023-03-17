@@ -5,7 +5,7 @@ interface JsonRpcErrorObject {
     message: string;
     data?: unknown;
   };
-  id: string | number;
+  id: string | number | null;
 }
 
 export class JsonRpcError extends Error {
@@ -17,7 +17,7 @@ export class JsonRpcError extends Error {
     data?: unknown;
   };
 
-  public id: number | string;
+  public id: number | string | null;
 
   public status: number;
 
@@ -32,7 +32,7 @@ export class JsonRpcError extends Error {
     code: number,
     status: number,
     message: string,
-    id: string | number,
+    id: string | number | null,
     data?: unknown
   ) {
     super(message);

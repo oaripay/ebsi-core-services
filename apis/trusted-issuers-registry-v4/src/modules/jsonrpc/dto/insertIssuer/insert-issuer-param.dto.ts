@@ -3,7 +3,7 @@ import { ArgsInsertIssuer } from "../sendSignedTransaction";
 
 export class InsertIssuerParam extends ArgsInsertIssuer {
   @IsEthereumAddress()
-  from: string;
+  from!: string;
 }
 
 export default { InsertIssuerParam };

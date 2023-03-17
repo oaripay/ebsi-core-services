@@ -1,5 +1,5 @@
 import { Tir } from "@ebsiint-sc/trusted-issuers-registry";
-import { paginate, PaginatedList, AsyncReturnType } from "@ebsiint-api/shared";
+import { paginate, PaginatedList } from "@ebsiint-api/shared";
 import {
   AttributeObject,
   IdLink,
@@ -8,7 +8,7 @@ import {
 } from "./issuers.interface";
 
 export function formatIssuers(
-  issuers: AsyncReturnType<Tir["getIssuers"]>,
+  issuers: Awaited<ReturnType<Tir["getIssuers"]>>,
   page: number,
   pageSize: number,
   baseUrl: string
@@ -54,7 +54,7 @@ export function formatRevisions(
 }
 
 export function formatProxies(
-  issuerProxies: AsyncReturnType<Tir["getIssuerProxies"]>,
+  issuerProxies: Awaited<ReturnType<Tir["getIssuerProxies"]>>,
   baseUrl: string
 ): PaginatedList<ProxyLink> {
   const items: ProxyLink[] = issuerProxies.map((proxy) => ({

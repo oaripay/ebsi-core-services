@@ -1,25 +1,11 @@
-export type IssuerTypeName = "undefined" | "RootTAO" | "TAO" | "TI" | "Revoked";
+import { IssuerTypeNames } from "./issuers.constants";
 
-export enum IssuerType {
-  Undefined = 0,
-  RootTAO = 1,
-  TAO = 2,
-  TI = 3,
-  Revoked = 4,
-}
-
-export const IssuerTypeNames: IssuerTypeName[] = [
-  "undefined",
-  "RootTAO",
-  "TAO",
-  "TI",
-  "Revoked",
-];
+export type IssuerTypeName = (typeof IssuerTypeNames)[number];
 
 export interface AttributeObject {
   hash: string;
   body: string;
-  issuerType: "undefined" | "RootTAO" | "TAO" | "TI" | "Revoked";
+  issuerType: IssuerTypeName;
   tao: string;
   rootTao: string;
 }

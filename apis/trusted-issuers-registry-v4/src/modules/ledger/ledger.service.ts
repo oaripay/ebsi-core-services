@@ -1,11 +1,11 @@
+import { randomUUID } from "node:crypto";
 import { Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
 import { InternalServerError, logAxiosError } from "@ebsiint-api/shared";
-import { decodeJWT } from "did-jwt";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import axios, { AxiosResponse } from "axios";
-import { randomUUID } from "node:crypto";
+import { decodeJwt } from "jose";
 import { Tir, Tir__factory } from "@ebsiint-sc/trusted-issuers-registry";
 import { ApiConfig } from "../../config/configuration";
 
@@ -16,36 +16,36 @@ const REFRESH_LIMIT = 10 * 1000;
 export class LedgerService {
   private readonly logger = new Logger(LedgerService.name);
 
-  private ethersProvider: ethers.providers.JsonRpcProvider;
+  private ethersProvider?: ethers.providers.JsonRpcProvider;
 
-  private ethersProviderWithoutToken: ethers.providers.JsonRpcProvider;
+  private ethersProviderWithoutToken?: ethers.providers.JsonRpcProvider;
 
-  private tirContract: Tir;
+  private tirContract?: Tir;
 
-  private publicMethodsTirContract: Tir;
+  private publicMethodsTirContract?: Tir;
 
-  private tirAddress: string;
+  private readonly tirAddress: string;
 
-  private accessTokenExp: number;
+  private accessTokenExp?: number;
 
-  private agent: Agent;
+  private readonly agent: Agent;
 
-  private authorisationApiUrl: string;
+  private readonly authorisationApiV2Url: string;
 
-  private domain: string;
+  private readonly domain: string;
 
-  private localOrigin: string;
+  private readonly localOrigin: string;
 
-  private remoteLedgerApi: string;
+  private readonly remoteLedgerApi: string;
 
-  private timeout: number;
+  private readonly timeout: number;
 
   constructor(private configService: ConfigService<ApiConfig, true>) {
     this.tirAddress = this.configService.get<string>(
       "besuTrustedIssuersRegistryAddress"
     );
-    this.authorisationApiUrl = this.configService.get<string>(
-      "authorisationApiUrl"
+    this.authorisationApiV2Url = this.configService.get<string>(
+      "authorisationApiV2Url"
     );
 
     this.agent = new Agent({
@@ -87,7 +87,7 @@ export class LedgerService {
       const res = await axios.post<
         typeof requestComponent,
         AxiosResponse<AkeResponse>
-      >(`${this.authorisationApiUrl}/oauth2-sessions`, requestComponent, {
+      >(`${this.authorisationApiV2Url}/oauth2-sessions`, requestComponent, {
         timeout: this.timeout,
       });
 
@@ -96,7 +96,7 @@ export class LedgerService {
         timeout: this.timeout,
       });
 
-      const { payload } = decodeJWT(accessToken);
+      const payload = decodeJwt(accessToken);
       this.accessTokenExp = payload.exp;
 
       return accessToken;
@@ -133,22 +133,26 @@ export class LedgerService {
           // Ignore debug
         }
       });
-    } else {
-      this.ethersProviderWithoutToken = new ethers.providers.JsonRpcProvider({
-        url,
-        timeout: this.timeout,
-      });
 
-      this.ethersProviderWithoutToken.on("debug", (...args) => {
-        try {
-          if (typeof args[0] === "object" && "error" in args[0]) {
-            this.logger.debug(JSON.stringify(args[0]));
-          }
-        } catch {
-          // Ignore debug
-        }
-      });
+      return this.ethersProvider;
     }
+
+    this.ethersProviderWithoutToken = new ethers.providers.JsonRpcProvider({
+      url,
+      timeout: this.timeout,
+    });
+
+    this.ethersProviderWithoutToken.on("debug", (...args) => {
+      try {
+        if (typeof args[0] === "object" && "error" in args[0]) {
+          this.logger.debug(JSON.stringify(args[0]));
+        }
+      } catch {
+        // Ignore debug
+      }
+    });
+
+    return this.ethersProviderWithoutToken;
   }
 
   private async connectProvider(token?: string) {
@@ -159,34 +163,28 @@ export class LedgerService {
           this.localOrigin
         );
         this.logger.debug(`Trying to connect to local Ledger API: ${localUrl}`);
-        this.setupProvider(localUrl, token);
-        if (token) {
-          await this.ethersProvider.getNetwork();
-        } else {
-          await this.ethersProviderWithoutToken.getNetwork();
-        }
+        const provider = this.setupProvider(localUrl, token);
+        await provider.getNetwork();
         this.logger.debug("Connected to local Ledger API");
+        return provider;
       } catch (e) {
         this.logger.debug(
           `Falling back to remote Ledger API: ${this.remoteLedgerApi}`
         );
-        this.setupProvider(this.remoteLedgerApi, token);
+        return this.setupProvider(this.remoteLedgerApi, token);
       }
-    } else {
-      this.logger.debug(`Using remote Ledger API: ${this.remoteLedgerApi}`);
-      this.setupProvider(this.remoteLedgerApi, token);
     }
+
+    this.logger.debug(`Using remote Ledger API: ${this.remoteLedgerApi}`);
+    return this.setupProvider(this.remoteLedgerApi, token);
   }
 
   private async refreshConnection() {
     const token = await this.getAccessToken();
 
-    await this.connectProvider(token);
+    const provider = await this.connectProvider(token);
 
-    this.tirContract = Tir__factory.connect(
-      this.tirAddress,
-      this.ethersProvider
-    );
+    this.tirContract = Tir__factory.connect(this.tirAddress, provider);
   }
 
   private async getPublicMethodsTirContract() {
@@ -194,11 +192,11 @@ export class LedgerService {
       return this.publicMethodsTirContract;
     }
 
-    await this.connectProvider();
+    const provider = await this.connectProvider();
 
     this.publicMethodsTirContract = Tir__factory.connect(
       this.tirAddress,
-      this.ethersProviderWithoutToken
+      provider
     );
 
     return this.publicMethodsTirContract;
@@ -207,7 +205,7 @@ export class LedgerService {
   async getContract({ protectedMethod = false } = {}): Promise<Tir> {
     if (protectedMethod) {
       await this.checkSession();
-      return this.tirContract;
+      return this.tirContract as Tir; // Assume tirContract is not undefined
     }
 
     return this.getPublicMethodsTirContract();

@@ -13,7 +13,7 @@ import { AllExceptionsFilter } from "./filters/http-exception.filter";
 import { ApiConfig } from "./config/configuration";
 
 interface ResponseHeaders {
-  "ebsi-image-tag"?: string;
+  "ebsi-image-tag": string;
   [key: string]: string;
 }
 

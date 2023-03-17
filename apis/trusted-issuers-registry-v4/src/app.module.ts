@@ -4,7 +4,6 @@ import { APP_INTERCEPTOR } from "@nestjs/core";
 import { ApiConfigModule } from "./config/configuration";
 import { IssuersModule } from "./modules/issuers/issuers.module";
 import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module";
-import { PoliciesModule } from "./modules/policies/policies.module";
 import { HealthModule } from "./modules/health/health.module";
 import { LoggingInterceptor } from "./interceptors/logging.interceptor";
 import { VersionInterceptor } from "./interceptors/version.interceptor";
@@ -15,7 +14,6 @@ import { VersionInterceptor } from "./interceptors/version.interceptor";
     TerminusModule,
     IssuersModule,
     JsonRpcModule,
-    PoliciesModule,
     HealthModule,
   ],
   controllers: [],
