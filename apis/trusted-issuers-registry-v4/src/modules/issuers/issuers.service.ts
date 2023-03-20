@@ -38,9 +38,9 @@ export class IssuersService {
     return (await this.ledgerService.getContract()).getIssuers(page, pageSize);
   }
 
-  async getAttribute(attributeId: string): Promise<AttributeObject> {
-    // This function assumes that the attributeId exists
-    const hash = prefixWith0x(attributeId);
+  async getAttributeRevision(revisionId: string): Promise<AttributeObject> {
+    // This function assumes that the revisionId exists
+    const hash = prefixWith0x(revisionId);
 
     let attributeByHash: Awaited<ReturnType<Tir["getIssuerAttributeByHash"]>>;
 
@@ -49,8 +49,8 @@ export class IssuersService {
         await this.ledgerService.getContract()
       ).getIssuerAttributeByHash(hash);
     } catch (e) {
-      throw new NotFoundError("Attribute Not Found", {
-        detail: `Attribute ${hash} not found`,
+      throw new NotFoundError("Revision Not Found", {
+        detail: `Revision ${hash} not found`,
       });
     }
 
@@ -64,6 +64,29 @@ export class IssuersService {
       tao,
       rootTao,
     };
+  }
+
+  async getAttribute(attributeId: string): Promise<AttributeObject> {
+    const hash = prefixWith0x(attributeId);
+    let revisionHashes: Awaited<ReturnType<Tir["getIssuerAttributeRevisions"]>>;
+    try {
+      // get the first attribute revision
+      revisionHashes = await (
+        await this.ledgerService.getContract()
+      ).getIssuerAttributeRevisions(hash, 1, 1);
+
+      // use total revisions to get the latest attribute revision
+      const totalRevisions = revisionHashes.total.toNumber();
+      revisionHashes = await (
+        await this.ledgerService.getContract()
+      ).getIssuerAttributeRevisions(hash, totalRevisions, 1);
+    } catch (error) {
+      throw new NotFoundError("Attribute Not Found", {
+        detail: `Attribute ${hash} not found`,
+      });
+    }
+
+    return this.getAttributeRevision(revisionHashes.items[0]);
   }
 
   async getAttributes(issuerDid: string): Promise<AttributeObject[]> {
@@ -85,7 +108,7 @@ export class IssuersService {
 
     return Promise.all(
       attributesLastHash.map(async (hash) => {
-        return this.getAttribute(hash);
+        return this.getAttributeRevision(hash);
       })
     );
   }
@@ -155,7 +178,7 @@ export class IssuersService {
 
     const revisions = await Promise.all(
       revisionHashes.items.map(async (revisionHash) => {
-        return this.getAttribute(revisionHash);
+        return this.getAttributeRevision(revisionHash);
       })
     );
 

@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import {
   describe,
   beforeAll,
@@ -412,28 +412,16 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
             .auth(adminIssuer.token, { type: "bearer" })
             .send({
               jsonrpc: "2.0",
-              method: "insertIssuer",
+              method: "setAttributeMetadata",
               params: [
                 {
                   from: adminIssuer.wallet.address,
                   did: newIssuerDid,
-                  attributeData: `0x${Buffer.from(
-                    // Create unique attribute
-                    JSON.stringify({
-                      "@context": {
-                        name: {
-                          "@id": "http://tir-api-test.org/name",
-                          "@type": "@id",
-                        },
-                        description: "http://tir-api-test.org/description",
-                      },
-                      name: `test-${newIssuerDid}`,
-                    })
-                  ).toString("hex")}`,
+                  attributeId: `0x${randomBytes(32).toString("hex")}`,
                   issuerType: IssuerType.RootTAO,
                   taoDid: newIssuerDid,
                   taoAttributeId: `0x${"0".repeat(64)}`,
-                } as InsertIssuerParam,
+                } as SetAttributeMetadataParam,
               ],
               id: 231,
             });

@@ -199,13 +199,23 @@ export async function insertIssuer(
     inputTaoAttributeId,
     inputRootTaoDid
   );
-  await contract.insertIssuer(
+
+  const firstAttributeId = crypto.randomBytes(32);
+
+  await contract.setAttributeMetadata(
     issuer.did,
-    issuer.attribute.buffer,
+    firstAttributeId,
     issuer.issuerType,
     issuer.tao,
     issuer.taoAttributeId
   );
+
+  await contract.setAttributeData(
+    issuer.did,
+    firstAttributeId,
+    issuer.attribute.buffer
+  );
+
   await contract.addIssuerProxy(issuer.did, issuer.proxy.utf8);
   return issuer;
 }

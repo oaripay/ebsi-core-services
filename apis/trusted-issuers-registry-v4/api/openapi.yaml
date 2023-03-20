@@ -317,7 +317,7 @@ paths:
     get:
       operationId: get-trusted-issuers-registry-v3-issuers-did-attributes-attributeid
       summary: Get an attribute
-      description: Returns an issuer attribute identified by its attribute ID.
+      description: Returns the latest revision of an issuer attribute.
       tags:
         - Issuers
       parameters:
