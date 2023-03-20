@@ -25,8 +25,8 @@
   "dependencies": {
     "@cef-ebsi/oauth2-auth": "^2.2.2",
     "@cef-ebsi/siop-auth": "^3.0.0",
-    "@cef-ebsi/verifiable-credential": "^4.0.0",
-    "@cef-ebsi/verifiable-presentation": "^5.0.0",
+    "@cef-ebsi/verifiable-credential": "^4.0.1",
+    "@cef-ebsi/verifiable-presentation": "^5.0.1",
     "@ebsiint-api/shared": "^1.1.0-rc.0",
     "@fastify/helmet": "^10.1.0",
     "@nestjs/axios": "^2.0.0",

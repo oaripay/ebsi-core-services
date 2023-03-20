@@ -978,6 +978,93 @@ describe("Authorisation Module", () => {
             (response.headers as Record<string, unknown>)["content-type"]
           ).toBe("application/json; charset=utf-8");
         });
+
+        // Fix: EBSIINT-5943
+        // Correctly handle PEX errors
+        it("should return error when the presentation exchange is invalid", async () => {
+          if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
+            // Skip test
+            return;
+          }
+
+          const badVcPayload = {
+            "@context": ["https://www.w3.org/2018/credentials/v1"],
+            id: `urn:uuid:${randomUUID()}`,
+            type: ["VerifiableCredential", "VerifiableAttestation"],
+            issuer: credentialIssuer.did,
+            issuanceDate: issuanceDate.toISOString(),
+            issued: issuanceDate.toISOString(),
+            validFrom: issuanceDate.toISOString(),
+            expirationDate: expirationDate.toISOString(),
+            credentialSubject: {
+              id: credentialSubject.did,
+              type: "same-device",
+            },
+            credentialSchema: {
+              id: configService.get<string>("testOidSchemaPattern"),
+              type: "FullJsonSchemaValidator2021",
+            },
+            termsOfUse: {
+              id: credentialIssuerAccreditationUrl,
+              type: "IssuanceCertificate",
+            },
+          };
+
+          const vcJwt = await createVerifiableCredentialJwt(
+            badVcPayload,
+            credentialIssuer,
+            {
+              ebsiAuthority: "example.net",
+              skipValidation: true,
+            }
+          );
+
+          vpPayload.verifiableCredential.push(vcJwt);
+          vpPayload.holder = credentialIssuer.did;
+
+          // Create VP JWT manually
+          const privateKey = await importJWK(
+            credentialIssuer.privateKeyJwk,
+            credentialIssuer.alg
+          );
+          const vpJwt = await new SignJWT({
+            aud: serviceEndpoint,
+            sub: credentialIssuer.did,
+            iat: Math.floor(issuanceDate.getTime() / 1000),
+            nbf: Math.floor(issuanceDate.getTime() / 1000),
+            exp: Math.floor(expirationDate.getTime() / 1000),
+            vp: vpPayload,
+            nonce: randomUUID(),
+            iss: credentialIssuer.did,
+          })
+            .setProtectedHeader({
+              alg: credentialIssuer.alg,
+              typ: "JWT",
+              kid: credentialIssuer.kid,
+            })
+            .sign(privateKey);
+
+          const response = await request(server)
+            .post("/token")
+            .set("Content-Type", "application/x-www-form-urlencoded")
+            .send(
+              qs.stringify({
+                grant_type: "vp_token",
+                scope,
+                vp_token: vpJwt,
+                presentation_submission: presentationSubmission,
+              })
+            );
+
+          // In a VC, the date doesn't contain milliseconds
+          const expectedValue = `${badVcPayload.issuanceDate.split(".")[0]}Z`;
+
+          expect(response.body).toStrictEqual({
+            error: "invalid_request",
+            error_description: `Invalid Presentation Submission:\nInconsistent issuance dates between JWT claim (${expectedValue}) and VC value (${badVcPayload.issuanceDate})`,
+          });
+          expect(response.status).toBe(400);
+        });
       });
 
       it("should return an error if the presentation submission is invalid (including error details)", async () => {

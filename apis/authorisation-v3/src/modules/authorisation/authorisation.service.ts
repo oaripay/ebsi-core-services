@@ -191,18 +191,27 @@ export class AuthorisationService {
       verifiableCredential: vp.verifiableCredential,
     } as IPresentation;
 
-    const { errors } = this.pex.evaluatePresentation(
-      presentationDefinition,
-      presentation
-    );
+    try {
+      const { errors } = this.pex.evaluatePresentation(
+        presentationDefinition,
+        presentation
+      );
 
-    if (errors && errors.length > 0) {
+      if (errors && errors.length > 0) {
+        throw new Error(
+          errors
+            .map(
+              (error) =>
+                `${error.tag} tag: ${error.message ?? "Unknown error"};`
+            )
+            .join()
+        );
+      }
+    } catch (e) {
       throw new OAuth2TokenError("invalid_request", {
-        errorDescription: `Invalid Presentation Submission:\n${errors
-          .map(
-            (error) => `${error.tag} tag: ${error.message ?? "Unknown error"};`
-          )
-          .join()}`,
+        errorDescription: `Invalid Presentation Submission:\n${
+          e instanceof Error ? e.message : "Unknown error"
+        }`,
       });
     }
   }
