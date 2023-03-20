@@ -38,7 +38,7 @@
     "chai": "^4.3.7",
     "ethereum-waffle": "^3.4.4",
     "ethers": "^5.7.2",
-    "hardhat": "^2.12.7",
+    "hardhat": "^2.13.0",
     "hardhat-abi-exporter": "^2.10.1",
     "solidity-coverage": "^0.8.2",
     "ts-generator": "^0.1.1",
