@@ -315,13 +315,13 @@ export class AuthorisationService {
       logAxiosError(e, this.logger);
 
       if (axios.isAxiosError(e)) {
-        if (e.status === 404) {
+        if (e.response?.status === 404) {
           throw new OAuth2TokenError("invalid_request", {
             errorDescription: `Invalid Verifiable Presentation: DID ${did} is not registered in the Trusted Issuers Registry`,
           });
         }
 
-        if (e.status === 500) {
+        if (e.response?.status === 500) {
           throw new OAuth2TokenError("server_error", {
             errorDescription:
               "Trusted Issuers Registry responded with an internal error",
@@ -370,13 +370,13 @@ export class AuthorisationService {
       logAxiosError(e, this.logger);
 
       if (axios.isAxiosError(e)) {
-        if (e.status === 404) {
+        if (e.response?.status === 404) {
           throw new OAuth2TokenError("invalid_request", {
             errorDescription: `Invalid Verifiable Presentation: Attribute ${attribute.id} from Trusted Issuer ${did} can't be found`,
           });
         }
 
-        if (e.status === 500) {
+        if (e.response?.status === 500) {
           throw new OAuth2TokenError("server_error", {
             errorDescription:
               "Trusted Issuers Registry responded with an internal error",

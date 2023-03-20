@@ -23,7 +23,6 @@
     "test:ci": "yarn test:unit --coverage --reporters=default --reporters=jest-sonar"
   },
   "dependencies": {
-    "@cef-ebsi/key-did-resolver": "^1.0.0-alpha.2",
     "@cef-ebsi/verifiable-credential": "^4.0.0-alpha.6",
     "@cef-ebsi/verifiable-presentation": "^5.0.0-alpha.8",
     "@cef-ebsi/wallet-lib": "^4.0.0-alpha.4",
@@ -44,10 +43,8 @@
     "class-validator": "^0.14.0",
     "did-jwt": "^6.11.1",
     "elliptic": "^6.5.4",
-    "ethers": "^5.7.2",
     "joi": "^17.8.3",
     "jose": "^4.13.0",
-    "multiformats": "^9.7.1",
     "nest-winston": "^1.9.0",
     "qs": "^6.11.0",
     "reflect-metadata": "^0.1.13",

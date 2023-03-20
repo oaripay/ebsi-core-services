@@ -1347,7 +1347,7 @@ describe("Authorisation Module", () => {
         ).toBe("application/json; charset=utf-8");
       });
 
-      it("should an error if the conditions specific to the scope are not met", async () => {
+      it("should return an error if the conditions specific to the scope are not met", async () => {
         let expectedErrorMessage: string;
         let vpSigner = credentialSubject;
 
@@ -1390,7 +1390,9 @@ describe("Authorisation Module", () => {
               .persist();
 
             nock(domain)
-              .get(`/trusted-issuers-registry/v4/issuers/${vpSigner.did}`)
+              .get(
+                `/trusted-issuers-registry/v4/issuers/${vpSigner.did}/attributes`
+              )
               .reply(404, "Not found")
               .persist();
 
@@ -1425,7 +1427,9 @@ describe("Authorisation Module", () => {
             ebsiAuthority: "example.net",
             skipValidation: true,
             nonce,
-            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
+            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE, TIR_INVITE_SCOPE].includes(
+              customScope
+            )
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                   exp: Math.floor(Date.now() / 1000) + 100,
@@ -1574,5 +1578,118 @@ describe("Authorisation Module", () => {
         await expect(jwtVerify(idToken, apiPublicKey)).resolves.not.toThrow();
       });
     });
+  });
+
+  // Bug fix: EBSIINT-5937
+  // Fix Axios error handling (was returning "Unexpected error")
+  it("Fix EBSIINT-5937", async () => {
+    const customScope = TIR_INVITE_SCOPE;
+
+    const scope = `openid ${customScope}`;
+
+    const issuanceDate = new Date();
+    // JWT access token must have 2 hours expiration time and there are no Refresh Tokens.
+    const expirationDate = new Date(
+      issuanceDate.getTime() + 2 * 60 * 60 * 1000
+    );
+
+    const vcPayload = {
+      "@context": ["https://www.w3.org/2018/credentials/v1"],
+      id: `urn:uuid:${randomUUID()}`,
+      type: ["VerifiableCredential", "VerifiableAttestation"],
+      issuer: credentialIssuer.did,
+      issuanceDate: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+      issued: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+      validFrom: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+      expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
+      credentialSubject: {
+        id: credentialSubject.did,
+        type: "same-device",
+      },
+      credentialSchema: {
+        id: configService.get<string>("testOidSchemaPattern"),
+        type: "FullJsonSchemaValidator2021",
+      },
+      termsOfUse: {
+        id: credentialIssuerAccreditationUrl,
+        type: "IssuanceCertificate",
+      },
+    };
+
+    if (customScope === TIR_INVITE_SCOPE) {
+      vcPayload.type.push("VerifiableAccreditationToAccredit");
+    } else if (customScope === DIDR_INVITE_SCOPE) {
+      vcPayload.type.push("VerifiableAuthorisationToOnboard");
+    }
+
+    const vpPayload = {
+      "@context": ["https://www.w3.org/2018/credentials/v1"],
+      id: randomUUID(),
+      type: ["VerifiablePresentation"],
+      verifiableCredential: [],
+      holder: credentialSubject.did,
+    };
+
+    // Reset to valid presentation submission before each test
+    const presentationSubmission = createPresentationSubmission(customScope);
+
+    // VP Signer is not registered in the TIR
+    const vpSigner = await createLegalEntity("ES256K");
+    vpPayload.holder = vpSigner.did;
+
+    nock(domain)
+      .get(`/did-registry/v4/identifiers/${vpSigner.did}`)
+      .reply(200, vpSigner.didDocument)
+      .persist();
+
+    nock(domain)
+      .get(`/trusted-issuers-registry/v4/issuers/${vpSigner.did}/attributes`)
+      .reply(404, "Not found")
+      .persist();
+
+    const expectedErrorMessage = `Invalid Verifiable Presentation: DID ${vpSigner.did} is not registered in the Trusted Issuers Registry`;
+
+    const nonce = randomUUID();
+
+    const vpJwt = await createVerifiablePresentationJwt(
+      vpPayload,
+      vpSigner,
+      serviceEndpoint,
+      {
+        ebsiAuthority: "example.net",
+        skipValidation: true,
+        nonce,
+        ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE, TIR_INVITE_SCOPE].includes(
+          customScope
+        )
+          ? {
+              // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
+              exp: Math.floor(Date.now() / 1000) + 100,
+              nbf: Math.floor(Date.now() / 1000) - 100,
+            }
+          : {}),
+      }
+    );
+
+    const response = await request(server)
+      .post("/token")
+      .set("Content-Type", "application/x-www-form-urlencoded")
+      .send(
+        qs.stringify({
+          grant_type: "vp_token",
+          scope,
+          vp_token: vpJwt,
+          presentation_submission: presentationSubmission,
+        })
+      );
+
+    expect(response.body).toStrictEqual({
+      error: "invalid_request",
+      error_description: expectedErrorMessage,
+    });
+    expect(response.status).toBe(400);
+    expect((response.headers as Record<string, unknown>)["content-type"]).toBe(
+      "application/json; charset=utf-8"
+    );
   });
 });
