@@ -1,7 +1,7 @@
 {
   "name": "@ebsiint-sc/admin-scripts",
   "private": true,
-  "version": "1.0.1-rc.0",
+  "version": "1.1.0-rc.1",
   "main": "index.js",
   "license": "EUPL-1.2",
   "scripts": {
@@ -18,15 +18,15 @@
     "test": "hardhat test"
   },
   "dependencies": {
-    "@ebsiint-sc/bootstrap": "^1.0.1-rc.0",
-    "@ebsiint-sc/did-registry": "^1.0.1-rc.0",
-    "@ebsiint-sc/proxy": "^1.0.1-rc.0",
-    "@ebsiint-sc/timestamp": "^1.0.1-rc.0",
-    "@ebsiint-sc/trusted-apps-registry": "^2.0.1-rc.0",
-    "@ebsiint-sc/trusted-issuers-registry": "^3.0.1-rc.0",
-    "@ebsiint-sc/trusted-ledgers-sc-registry": "^1.0.1-rc.0",
-    "@ebsiint-sc/trusted-policies-registry": "^1.0.1-rc.0",
-    "@ebsiint-sc/trusted-schemas-registry": "^1.0.1-rc.0",
+    "@ebsiint-sc/bootstrap": "^1.0.1-rc.1",
+    "@ebsiint-sc/did-registry": "^1.1.0-rc.1",
+    "@ebsiint-sc/proxy": "^1.0.1-rc.1",
+    "@ebsiint-sc/timestamp": "^1.0.1-rc.1",
+    "@ebsiint-sc/trusted-apps-registry": "^2.0.1-rc.1",
+    "@ebsiint-sc/trusted-issuers-registry": "^4.0.0-rc.1",
+    "@ebsiint-sc/trusted-ledgers-sc-registry": "^1.0.1-rc.1",
+    "@ebsiint-sc/trusted-policies-registry": "^1.0.1-rc.1",
+    "@ebsiint-sc/trusted-schemas-registry": "^1.0.1-rc.1",
     "@openzeppelin/contracts": "^4.8.2",
     "elliptic": "^6.5.4"
   },

@@ -1,7 +1,7 @@
 {
   "name": "@ebsiint-api/proxy-data-hub-api-v3",
   "private": true,
-  "version": "3.0.0-rc.3",
+  "version": "3.0.0-rc.4",
   "license": "EUPL-1.2",
   "scripts": {
     "prebuild": "rimraf dist",
@@ -25,7 +25,7 @@
   "dependencies": {
     "@cef-ebsi/oauth2-auth": "^2.2.2",
     "@cef-ebsi/siop-auth": "^3.0.0",
-    "@ebsiint-api/shared": "^1.1.0-rc.0",
+    "@ebsiint-api/shared": "^1.1.0-rc.1",
     "@fastify/helmet": "^10.1.0",
     "@nestjs/axios": "^2.0.0",
     "@nestjs/common": "^9.3.10",

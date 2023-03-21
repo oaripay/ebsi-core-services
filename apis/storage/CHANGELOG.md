@@ -1,5 +1,18 @@
 # Changelog
 
+## 3.0.0-rc.4
+
+### Patch Changes
+
+- [adc663ea](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/adc663ea): Bump dependencies.
+- [78ee438b](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/78ee438b): Bump dependencies.
+- [f95f3251](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/f95f3251): Bump @fastify/multipart.
+- Updated dependencies [adc663ea](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/adc663ea)
+- Updated dependencies [a6a1f685](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/a6a1f685)
+- Updated dependencies [f2257d7d](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/f2257d7d)
+- Updated dependencies [78ee438b](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/78ee438b)
+  - @ebsiint-api/shared@1.1.0-rc.1
+
 ## 3.0.0-rc.3
 
 ### Patch Changes

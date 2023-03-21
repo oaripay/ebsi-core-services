@@ -1,7 +1,7 @@
 {
   "name": "@ebsiint-api/trusted-issuers-registry-api-v3",
   "private": true,
-  "version": "3.0.0-rc.3",
+  "version": "3.0.0-rc.4",
   "license": "EUPL-1.2",
   "scripts": {
     "prebuild": "rimraf dist",
@@ -26,8 +26,8 @@
     "@cef-ebsi/oauth2-auth": "^2.2.2",
     "@cef-ebsi/siop-auth": "^3.0.0",
     "@cef-ebsi/verifiable-credential": "^4.0.1",
-    "@ebsiint-api/shared": "^1.1.0-rc.0",
-    "@ebsiint-sc/trusted-issuers-registry": "^3.0.1-rc.0",
+    "@ebsiint-api/shared": "^1.1.0-rc.1",
+    "@ebsiint-sc/trusted-issuers-registry": "^4.0.0-rc.1",
     "@fastify/helmet": "^10.1.0",
     "@nestjs/axios": "^2.0.0",
     "@nestjs/common": "^9.3.10",

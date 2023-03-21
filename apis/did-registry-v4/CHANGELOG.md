@@ -1,22 +1,23 @@
-# Changelog
+# @ebsiint-api/did-registry-api-v4
 
-## 3.0.0-rc.1
+## 4.0.0-rc.1
 
 ### Minor Changes
 
+- [bd126a51](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/bd126a51): Refactor Authorisation module.
 - [f2257d7d](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/f2257d7d): connect APIs with DID Registry API v4
 
 ### Patch Changes
 
+- [7bcf61d3](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/7bcf61d3): Add missing `cache-manager` dependency.
 - [adc663ea](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/adc663ea): Bump dependencies.
-- [668f7e8e](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/668f7e8e): Fix /token endpoint error responses.
-- [9a5d9e15](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/9a5d9e15): Make test environment variable optional.
-- [f1236463](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/f1236463): Fix OpenID scopes: support `didr_invite`, `didr_write`, `tir_invite` and `tir_write`.
 - [78ee438b](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/78ee438b): Bump dependencies.
-- [5b6b45bd](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/5b6b45bd): Fix Axios error handling.
-- [7cd160e3](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/7cd160e3): Handle PEX errors correctly.
 - Updated dependencies [adc663ea](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/adc663ea)
 - Updated dependencies [a6a1f685](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/a6a1f685)
 - Updated dependencies [f2257d7d](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/f2257d7d)
+- Updated dependencies [67281f59](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/67281f59)
+- Updated dependencies [4a7ea0a5](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/4a7ea0a5)
 - Updated dependencies [78ee438b](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/78ee438b)
+  - @ebsiint-sc/did-registry-v4@1.1.0-rc.0
+  - @ebsiint-sc/did-registry@1.1.0-rc.1
   - @ebsiint-api/shared@1.1.0-rc.1

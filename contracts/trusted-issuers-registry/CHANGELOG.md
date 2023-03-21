@@ -1,5 +1,29 @@
 # @ebsiint-sc/trusted-issuers-registry
 
+## 4.0.0-rc.1
+
+### Major Changes
+
+- [a6a1f685](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/a6a1f685): Updated functionality of insert issuers to support rootTao and TAO
+
+### Minor Changes
+
+- [a6a1f685](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/a6a1f685): TIR SC: checkController only using DIDv4
+- [c02634d2](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/c02634d2): Implement invite + acceptance flows
+- [1255f4d4](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/1255f4d4): fix setAttributeData function
+
+### Patch Changes
+
+- [adc663ea](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/adc663ea): Bump dependencies.
+- [78ee438b](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/78ee438b): Bump dependencies.
+- Updated dependencies [adc663ea](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/adc663ea)
+- Updated dependencies [f9d44039](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/f9d44039)
+- Updated dependencies [4a7ea0a5](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/4a7ea0a5)
+- Updated dependencies [78ee438b](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/78ee438b)
+  - @ebsiint-sc/trusted-policies-registry@1.0.1-rc.1
+  - @ebsiint-sc/did-registry@1.1.0-rc.1
+  - @ebsiint-sc/bootstrap@1.0.1-rc.1
+
 ## 3.0.1-rc.0
 
 ### Patch Changes

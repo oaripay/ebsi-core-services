@@ -1,6 +1,6 @@
 {
   "name": "@ebsiint-sc/proxy",
-  "version": "1.0.1-rc.0",
+  "version": "1.0.1-rc.1",
   "license": "EUPL-1.2",
   "private": true,
   "description": "Proxy Smart Contract",
@@ -19,7 +19,7 @@
     "test:ci": "hardhat compile && hardhat test"
   },
   "dependencies": {
-    "@ebsiint-sc/bootstrap": "^1.0.1-rc.0"
+    "@ebsiint-sc/bootstrap": "^1.0.1-rc.1"
   },
   "devDependencies": {
     "@jest/globals": "^29.5.0",

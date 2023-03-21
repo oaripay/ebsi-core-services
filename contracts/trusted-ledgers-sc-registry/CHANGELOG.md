@@ -1,5 +1,19 @@
 # @ebsiint-sc/trusted-ledgers-sc-registry
 
+## 1.0.1-rc.1
+
+### Patch Changes
+
+- [adc663ea](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/adc663ea): Bump dependencies.
+- [78ee438b](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/78ee438b): Bump dependencies.
+- Updated dependencies [adc663ea](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/adc663ea)
+- Updated dependencies [f9d44039](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/f9d44039)
+- Updated dependencies [4a7ea0a5](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/4a7ea0a5)
+- Updated dependencies [78ee438b](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/78ee438b)
+  - @ebsiint-sc/trusted-policies-registry@1.0.1-rc.1
+  - @ebsiint-sc/did-registry@1.1.0-rc.1
+  - @ebsiint-sc/bootstrap@1.0.1-rc.1
+
 ## 1.0.1-rc.0
 
 ### Patch Changes

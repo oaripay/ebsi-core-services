@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.0-rc.2
+
+### Patch Changes
+
+- [adc663ea](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/adc663ea): Bump dependencies.
+- [78ee438b](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/78ee438b): Bump dependencies.
+
 ## 2.0.0-rc.1
 
 ### Patch Changes
