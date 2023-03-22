@@ -10,6 +10,7 @@ import {
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
+import { exportJWK, generateKeyPair } from "jose";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { EbsiValidationPipe } from "../../src/pipes/ebsi-validation.pipe";
@@ -208,7 +209,12 @@ describeWriteOps()("Notifications module (e2e)", () => {
     it("should create a notification (LE to NP)", async () => {
       expect.assertions(3);
 
-      const naturalPersonDid = EbsiWallet.createDid("NATURAL_PERSON");
+      const { publicKey } = await generateKeyPair("ES256K");
+      const publicKeyJwk = await exportJWK(publicKey);
+      const naturalPersonDid = EbsiWallet.createDid(
+        "NATURAL_PERSON",
+        publicKeyJwk
+      );
       const notification = createNotification(testUser2.did, naturalPersonDid);
       const notificationId = crypto
         .createHash("sha3-256")

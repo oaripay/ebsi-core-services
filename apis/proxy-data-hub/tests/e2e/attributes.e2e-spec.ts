@@ -17,7 +17,7 @@ import {
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
 import { base64url } from "multiformats/bases/base64";
-import { calculateJwkThumbprint, exportJWK, generateKeyPair } from "jose";
+import { exportJWK, generateKeyPair } from "jose";
 import EbsiWallet from "@cef-ebsi/wallet-lib";
 import { PaginatedList2 } from "@ebsiint-api/shared";
 import { AppModule } from "../../src/app.module";
@@ -190,14 +190,12 @@ describeWriteOps()("Attributes", () => {
           const testUser1PublicKeyJwk = await exportJWK(
             testUser1Keys.publicKey
           );
-          const testUser1PublicKeyJwkThumbprint = await calculateJwkThumbprint(
-            testUser1PublicKeyJwk
-          );
           const testUser1Did = EbsiWallet.createDid(
             "NATURAL_PERSON",
-            base64url.baseDecode(testUser1PublicKeyJwkThumbprint)
+            testUser1PublicKeyJwk
           );
-          const testUser1Kid = `${testUser1Did}#${testUser1PublicKeyJwkThumbprint}`;
+          const fragmentIdentifier = testUser1Did.replace("did:key:", "");
+          const testUser1Kid = `${testUser1Did}#${fragmentIdentifier}`;
 
           try {
             testUser1 = {
