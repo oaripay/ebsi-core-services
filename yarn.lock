@@ -1221,10 +1221,10 @@
     multiformats "^9.9.0"
     uuid "^9.0.0"
 
-"@cef-ebsi/verifiable-credential@^4.0.1":
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-credential/-/verifiable-credential-4.0.1.tgz#2a324aeefee4af5007a7e77d72210db7fa290bc8"
-  integrity sha512-z5bjBasAypEV6smWKArxK6e7sl9dMzBdWy3SFpJHP6ZgYocKZ+qxxO5XdtI5S7/EY8YGcilmZf2GStMp25ytsg==
+"@cef-ebsi/verifiable-credential@^4.0.2":
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-credential/-/verifiable-credential-4.0.2.tgz#d26408a269e381d622e15cc4822b9d425d14a826"
+  integrity sha512-l372ds0k81O2nYYgkTRMEm2Q1f02/hwJiGmd5hffdrll8f4y2vskDk6Gz2qx0sFiTnoVuzHQHPeNqhC4dCPCZw==
   dependencies:
     "@cef-ebsi/ebsi-did-resolver" "^3.0.0"
     "@cef-ebsi/key-did-resolver" "^1.0.0"
@@ -1241,14 +1241,14 @@
     mem "^8.1.1"
     multiformats "^9.9.0"
 
-"@cef-ebsi/verifiable-presentation@^5.0.1":
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-presentation/-/verifiable-presentation-5.0.1.tgz#9ec0684ddcd2e56b788b8489457a828b98bd4f21"
-  integrity sha512-a1fYUwC9SECZqQp5w0IINVKAvSatQbYxAoq0iFAA8gCdVVvwh14zmunE1LvY5Ael11RYF178+dVs1IahD7D2kA==
+"@cef-ebsi/verifiable-presentation@^5.0.2":
+  version "5.0.2"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-presentation/-/verifiable-presentation-5.0.2.tgz#5bba8f306cdb4bbdbf05de2cc524684e74344575"
+  integrity sha512-tBxYEh1FOnmJEsTAyaq+pYPlzUWI7x3/wMCmIgB4wA2/uWb8Zf2D6ZKNKZQYWscqX5vW1w/x2iPls5NG35NjQw==
   dependencies:
     "@cef-ebsi/ebsi-did-resolver" "^3.0.0"
     "@cef-ebsi/key-did-resolver" "^1.0.0"
-    "@cef-ebsi/verifiable-credential" "^4.0.1"
+    "@cef-ebsi/verifiable-credential" "^4.0.2"
     "@transmute/json-web-signature" "^0.7.0-unstable.80"
     "@transmute/vc.js" "^0.7.0-unstable.80"
     ajv "^8.12.0"
@@ -1258,10 +1258,10 @@
     mem "^8.1.1"
     multiformats "^9.9.0"
 
-"@cef-ebsi/wallet-lib@^4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/wallet-lib/-/wallet-lib-4.0.0.tgz#7afd2ad88998f8fdbda8ffce68e3d84adef917c8"
-  integrity sha512-mWYlxDNQJwT0lOLIH8FTv0tYTfu5ibH4GxRuK3dOaZ7n2upUpujYPQSM/L2d2X5AEnszTZIrK5Hc+f5EjXh28w==
+"@cef-ebsi/wallet-lib@^4.0.1":
+  version "4.0.1"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/wallet-lib/-/wallet-lib-4.0.1.tgz#696da4be0468847fd31b64ec8fbbe6389ea40250"
+  integrity sha512-Bypc8QeOQc1fmhAlvhkkT6H4Op5J3O83yNVty2xrGmUr0jC9nbP2E23EnmfyOGm7k2Wuesh8vXmgp47lUUnDEg==
   dependencies:
     "@cef-ebsi/ebsi-did-resolver" "^3.0.0"
     "@cef-ebsi/key-did-resolver" "^1.0.0"

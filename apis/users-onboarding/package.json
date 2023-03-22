@@ -27,7 +27,7 @@
     "@cef-ebsi/ebsi-did-resolver": "^3.0.0",
     "@cef-ebsi/key-did-resolver": "^1.0.0",
     "@cef-ebsi/siop-auth": "^3.0.0",
-    "@cef-ebsi/verifiable-credential": "^4.0.1",
+    "@cef-ebsi/verifiable-credential": "^4.0.2",
     "@ebsiint-api/shared": "^1.1.0-rc.1",
     "@fastify/helmet": "^10.1.0",
     "@nestjs/axios": "^2.0.0",
@@ -51,7 +51,7 @@
     "xml2js": "^0.4.23"
   },
   "devDependencies": {
-    "@cef-ebsi/wallet-lib": "^4.0.0",
+    "@cef-ebsi/wallet-lib": "^4.0.1",
     "@jest/globals": "^29.5.0",
     "@nestjs/cli": "^9.3.0",
     "@nestjs/schematics": "^9.0.4",

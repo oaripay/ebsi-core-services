@@ -822,8 +822,7 @@ describe("Authorisation Module", () => {
             issuer: allowedIssuer,
             signer: ES256KSigner(
               Buffer.from(
-                EbsiWallet.generateKeyPair({ format: "hex" })
-                  .privateKey as string,
+                EbsiWallet.generateKeyPair({ format: "hex" }).privateKey,
                 "hex"
               )
             ),

@@ -155,7 +155,7 @@ describe("JsonRpc Module", () => {
   const walletApp = ethers.Wallet.createRandom();
   const publicKeyPemApp = new EbsiWallet(walletApp.privateKey).getPublicKey({
     format: "pem",
-  }) as string;
+  });
   const testApp = {
     token: genToken("trusted app", false),
     name: "my-trusted-app",

@@ -47,7 +47,7 @@
   },
   "devDependencies": {
     "@cef-ebsi/siop-auth": "^3.0.0",
-    "@cef-ebsi/wallet-lib": "^4.0.0",
+    "@cef-ebsi/wallet-lib": "^4.0.1",
     "@jest/globals": "^29.5.0",
     "@nestjs/cli": "^9.3.0",
     "@nestjs/schematics": "^9.0.4",
