@@ -393,7 +393,7 @@ abstract contract IssuerDetailed is IssuerStorage {
 
     function setAttributeMetadata(
         string calldata did,
-        bytes32 attributeId,
+        bytes32 revisionId,
         IssuerType issuerType,
         string calldata taoDid,
         bytes32 attributeIdTao
@@ -402,9 +402,9 @@ abstract contract IssuerDetailed is IssuerStorage {
         Issuers storage ds = issuerStorage();
 
         Entity storage iss = ds.issuerStore[did];
-        AttributeDetails storage atr = iss.attributesStore[attributeId];
+        AttributeDetails storage atr = iss.attributesStore[revisionId];
         AttributeMetadata storage attrMetadata = ds.attributeMetadataStore[
-            attributeId
+            revisionId
         ];
 
         // insert the issuer if it doesn't exist
@@ -412,16 +412,19 @@ abstract contract IssuerDetailed is IssuerStorage {
             ds.didStore.push(did);
         }
 
+        bytes32 attributeId;
         bytes32 lastRevisionId;
         bytes32 newRevisionId;
         if (compareStrings(attrMetadata.did, "")) {
             // new attribute
+            attributeId = revisionId;
             iss.attributes.push(attributeId);
-            lastRevisionId = attributeId;
-            newRevisionId = attributeId;
+            lastRevisionId = revisionId;
+            newRevisionId = revisionId;
         } else {
             // existing attribute
-            lastRevisionId = getLatestRevisionAttributeId(did, attributeId);
+            attributeId = attrMetadata.attributeId;
+            lastRevisionId = getLatestRevisionAttributeId(did, revisionId);
             bytes memory seedAttributeData = abi.encode(
                 "Some Random attr data",
                 did,

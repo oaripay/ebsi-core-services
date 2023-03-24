@@ -533,6 +533,87 @@ describe("Issuers", () => {
       });
     });
 
+    it("should accept any attribute revision as argument in setAttributeMetadata", async () => {
+      await policyContractMock.setPolicyResult(true);
+      await didContractMock.setDidResult(true);
+
+      // create rootTAO
+      const rootTAO = {
+        did: "did:ebsi:rootTAO",
+        attributeId: crypto.randomBytes(32),
+      };
+      await tir.setAttributeMetadata(
+        rootTAO.did,
+        rootTAO.attributeId,
+        IssuerType.RootTAO,
+        rootTAO.did,
+        rootTAO.attributeId
+      );
+
+      await policyContractMock.setPolicyResult(false);
+
+      // create TAO
+      const TAO = {
+        did: "did:ebsi:TAO",
+        attribute: {
+          firstId: crypto.randomBytes(32),
+          data: crypto.randomBytes(100),
+          revisionId2: crypto.randomBytes(32),
+        },
+      };
+      TAO.attribute.revisionId2 = ethers.utils.sha256(TAO.attribute.data);
+
+      // preregister the TAO (attributeId = firstId)
+      await tir.setAttributeMetadata(
+        TAO.did,
+        TAO.attribute.firstId,
+        IssuerType.TI,
+        rootTAO.did,
+        rootTAO.attributeId
+      );
+
+      // register attribute data (SC will create revisionId2)
+      await tir.setAttributeData(
+        TAO.did,
+        TAO.attribute.firstId,
+        TAO.attribute.data
+      );
+
+      // update the metadata of the TAO
+      // using latest revision ID
+      await tir.setAttributeMetadata(
+        TAO.did,
+        TAO.attribute.revisionId2, // using revisionId2 instead of firstId
+        IssuerType.TAO,
+        rootTAO.did,
+        rootTAO.attributeId
+      );
+
+      const attrRevisions = await tir.getIssuerAttributeRevisions(
+        TAO.attribute.firstId,
+        1,
+        10
+      );
+
+      // expect firstId and revisionId2 in the revisions
+      const revisions = getEthObject(attrRevisions);
+      expect(revisions.items)
+        .to.be.an("array")
+        .that.includes(`0x${TAO.attribute.firstId.toString("hex")}`);
+      expect(revisions.items)
+        .to.be.an("array")
+        .that.includes(TAO.attribute.revisionId2);
+
+      // expect 3 revisions: firstId, revisionId2, and third update
+      delete revisions.items;
+      expect(revisions).to.eql({
+        total: num(3),
+        howMany: num(3),
+        prev: num(1),
+        next: num(1),
+      });
+    });
+
     it("should be able to revoke a RootTAO by an admin from TPR", async () => {
       await policyContractMock.setPolicyResult(true);
       await didContractMock.setDidResult(true);
