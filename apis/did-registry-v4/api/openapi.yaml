@@ -1,16 +1,14 @@
-openapi: 3.1.0
+openapi: 3.0.0
 info:
   title: DID Registry API v4
   description: |
-    DID Registry is a generic core service of the EBSI platform providing the capability of
-    resolving EBSI Decentralised Identifiers (DIDs).
+    The DID Registry (DIDR) is a generic core service of the EBSI platform providing the capability of resolving EBSI Decentralised Identifiers (DIDs).
 
-    It enables consumers to interact with the DID Registry SC to:
+    It enables consumers to interact with the DID Registry Smart Contract to:
     - Insert a DID/DID Document
     - Update a DID Document
     - Revoke a DID/DID Controlling keys
     - Resolve a DID (and obtain a DID Document)
-    - Resolve a version of a DID Document at a certain point in time
 
     For more information, see:
     * [DID Registry API Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/DID+Registry+API)
@@ -84,35 +82,35 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api-test.ebsi.eu/did-registry/v4/identifiers?page[after]=3&page[size]=10
+                    self: https://api-test.ebsi.eu/did-registry/v4/identifiers?page[after]=1&page[size]=10
                     items:
-                      - did: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
-                        href: https://api-test.ebsi.eu/did-registry/v4/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
-                      - did: did:ebsi:zZssKY2QbbKEqVRgMP1iCLr
-                        href: https://api-test.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zZssKY2QbbKEqVRgMP1iCLr
-                      - did: did:ebsi:zb3EMmQSCWZHvFSrBTuoXsv
-                        href: https://api-test.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zb3EMmQSCWZHvFSrBTuoXsv
-                      - did: did:ebsi:zwkvdg7fEoiWnLm8zXWxcHf
-                        href: https://api-test.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zwkvdg7fEoiWnLm8zXWxcHf
-                      - did: did:ebsi:ziu9WCB3mDWMLVpF8GfEMG8
-                        href: https://api-test.ebsi.eu/did-registry/v4/identifiers/did:ebsi:ziu9WCB3mDWMLVpF8GfEMG8
-                      - did: did:ebsi:znrtw6tCorGWkUoAHiSPuz6
-                        href: https://api-test.ebsi.eu/did-registry/v4/identifiers/did:ebsi:znrtw6tCorGWkUoAHiSPuz6
-                      - did: did:ebsi:zqEozSTPA46JgCeP8d9XFGZ
-                        href: https://api-test.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zqEozSTPA46JgCeP8d9XFGZ
-                      - did: did:ebsi:z25a4Dcp8K7SULVfUCw4fFb7
-                        href: https://api-test.ebsi.eu/did-registry/v4/identifiers/did:ebsi:z25a4Dcp8K7SULVfUCw4fFb7
-                      - did: did:ebsi:z239Np1bLCJiJLdkaSqq9XxV
-                        href: https://api-test.ebsi.eu/did-registry/v4/identifiers/did:ebsi:z239Np1bLCJiJLdkaSqq9XxV
-                      - did: did:ebsi:z23ETkVyJGeLWysGD11s2Jof
-                        href: https://api-test.ebsi.eu/did-registry/v4/identifiers/did:ebsi:z23ETkVyJGeLWysGD11s2Jof
-                    total: 124
+                      - did: did:ebsi:zxAFkP2dnB5oL2A5iaaK5K3
+                        href: https://api-test.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zxAFkP2dnB5oL2A5iaaK5K3
+                      - did: did:ebsi:zz5f4mD24zdq5rAshHd9R57
+                        href: https://api-test.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zz5f4mD24zdq5rAshHd9R57
+                      - did: did:ebsi:zgUB1p2zNmGtymUwzHrxh24
+                        href: https://api-test.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zgUB1p2zNmGtymUwzHrxh24
+                      - did: did:ebsi:zjCwFPzJgv1dk42v9MsRahg
+                        href: https://api-test.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zjCwFPzJgv1dk42v9MsRahg
+                      - did: did:ebsi:z23S8YPCtw4XYdTPJKJdxYRP
+                        href: https://api-test.ebsi.eu/did-registry/v4/identifiers/did:ebsi:z23S8YPCtw4XYdTPJKJdxYRP
+                      - did: did:ebsi:zZ91pGjbnuQmEf3RJfi5K1t
+                        href: https://api-test.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zZ91pGjbnuQmEf3RJfi5K1t
+                      - did: did:ebsi:ztnQABC7mzp2yUq2uzLYEqJ
+                        href: https://api-test.ebsi.eu/did-registry/v4/identifiers/did:ebsi:ztnQABC7mzp2yUq2uzLYEqJ
+                      - did: did:ebsi:zdGrPkuKPmQ1QuATyoTCqVQ
+                        href: https://api-test.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zdGrPkuKPmQ1QuATyoTCqVQ
+                      - did: did:ebsi:zgEQpSQLSKoKG6dES7ab5xn
+                        href: https://api-test.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zgEQpSQLSKoKG6dES7ab5xn
+                      - did: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
+                        href: https://api-test.ebsi.eu/did-registry/v4/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z
+                    total: 98
                     pageSize: 10
                     links:
                       first: https://api-test.ebsi.eu/did-registry/v4/identifiers?page[after]=1&page[size]=10
-                      prev: https://api-test.ebsi.eu/did-registry/v4/identifiers?page[after]=2&page[size]=10
-                      next: https://api-test.ebsi.eu/did-registry/v4/identifiers?page[after]=4&page[size]=10
-                      last: https://api-test.ebsi.eu/did-registry/v4/identifiers?page[after]=13&page[size]=10
+                      prev: https://api-test.ebsi.eu/did-registry/v4/identifiers?page[after]=1&page[size]=10
+                      next: https://api-test.ebsi.eu/did-registry/v4/identifiers?page[after]=2&page[size]=10
+                      last: https://api-test.ebsi.eu/did-registry/v4/identifiers?page[after]=10&page[size]=10
                 "[test] Filter by controller":
                   value:
                     self: https://api-test.ebsi.eu/did-registry/v4/identifiers?page[after]=1&page[size]=10&controller=did:ebsi:z23ETkVyJGeLWysGD11s2Jof
@@ -128,35 +126,35 @@ paths:
                       last: https://api-test.ebsi.eu/did-registry/v4/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
                 "[pilot] Success":
                   value:
-                    self: https://api-pilot.ebsi.eu/did-registry/v4/identifiers?page[after]=3&page[size]=10
+                    self: https://api-pilot.ebsi.eu/did-registry/v4/identifiers?page[after]=1&page[size]=10
                     items:
-                      - did: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
-                        href: https://api-pilot.ebsi.eu/did-registry/v4/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
-                      - did: did:ebsi:zZssKY2QbbKEqVRgMP1iCLr
-                        href: https://api-pilot.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zZssKY2QbbKEqVRgMP1iCLr
-                      - did: did:ebsi:zb3EMmQSCWZHvFSrBTuoXsv
-                        href: https://api-pilot.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zb3EMmQSCWZHvFSrBTuoXsv
-                      - did: did:ebsi:zwkvdg7fEoiWnLm8zXWxcHf
-                        href: https://api-pilot.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zwkvdg7fEoiWnLm8zXWxcHf
-                      - did: did:ebsi:ziu9WCB3mDWMLVpF8GfEMG8
-                        href: https://api-pilot.ebsi.eu/did-registry/v4/identifiers/did:ebsi:ziu9WCB3mDWMLVpF8GfEMG8
-                      - did: did:ebsi:znrtw6tCorGWkUoAHiSPuz6
-                        href: https://api-pilot.ebsi.eu/did-registry/v4/identifiers/did:ebsi:znrtw6tCorGWkUoAHiSPuz6
-                      - did: did:ebsi:zqEozSTPA46JgCeP8d9XFGZ
-                        href: https://api-pilot.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zqEozSTPA46JgCeP8d9XFGZ
-                      - did: did:ebsi:z25a4Dcp8K7SULVfUCw4fFb7
-                        href: https://api-pilot.ebsi.eu/did-registry/v4/identifiers/did:ebsi:z25a4Dcp8K7SULVfUCw4fFb7
-                      - did: did:ebsi:z239Np1bLCJiJLdkaSqq9XxV
-                        href: https://api-pilot.ebsi.eu/did-registry/v4/identifiers/did:ebsi:z239Np1bLCJiJLdkaSqq9XxV
-                      - did: did:ebsi:z23ETkVyJGeLWysGD11s2Jof
-                        href: https://api-pilot.ebsi.eu/did-registry/v4/identifiers/did:ebsi:z23ETkVyJGeLWysGD11s2Jof
-                    total: 124
+                      - did: did:ebsi:zxAFkP2dnB5oL2A5iaaK5K3
+                        href: https://api-pilot.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zxAFkP2dnB5oL2A5iaaK5K3
+                      - did: did:ebsi:zz5f4mD24zdq5rAshHd9R57
+                        href: https://api-pilot.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zz5f4mD24zdq5rAshHd9R57
+                      - did: did:ebsi:zgUB1p2zNmGtymUwzHrxh24
+                        href: https://api-pilot.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zgUB1p2zNmGtymUwzHrxh24
+                      - did: did:ebsi:zjCwFPzJgv1dk42v9MsRahg
+                        href: https://api-pilot.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zjCwFPzJgv1dk42v9MsRahg
+                      - did: did:ebsi:z23S8YPCtw4XYdTPJKJdxYRP
+                        href: https://api-pilot.ebsi.eu/did-registry/v4/identifiers/did:ebsi:z23S8YPCtw4XYdTPJKJdxYRP
+                      - did: did:ebsi:zZ91pGjbnuQmEf3RJfi5K1t
+                        href: https://api-pilot.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zZ91pGjbnuQmEf3RJfi5K1t
+                      - did: did:ebsi:ztnQABC7mzp2yUq2uzLYEqJ
+                        href: https://api-pilot.ebsi.eu/did-registry/v4/identifiers/did:ebsi:ztnQABC7mzp2yUq2uzLYEqJ
+                      - did: did:ebsi:zdGrPkuKPmQ1QuATyoTCqVQ
+                        href: https://api-pilot.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zdGrPkuKPmQ1QuATyoTCqVQ
+                      - did: did:ebsi:zgEQpSQLSKoKG6dES7ab5xn
+                        href: https://api-pilot.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zgEQpSQLSKoKG6dES7ab5xn
+                      - did: did:ebsi:zgUB1p2zNmGtymUwzHrxh24
+                        href: https://api-pilot.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zgUB1p2zNmGtymUwzHrxh24
+                    total: 98
                     pageSize: 10
                     links:
                       first: https://api-pilot.ebsi.eu/did-registry/v4/identifiers?page[after]=1&page[size]=10
-                      prev: https://api-pilot.ebsi.eu/did-registry/v4/identifiers?page[after]=2&page[size]=10
-                      next: https://api-pilot.ebsi.eu/did-registry/v4/identifiers?page[after]=4&page[size]=10
-                      last: https://api-pilot.ebsi.eu/did-registry/v4/identifiers?page[after]=13&page[size]=10
+                      prev: https://api-pilot.ebsi.eu/did-registry/v4/identifiers?page[after]=1&page[size]=10
+                      next: https://api-pilot.ebsi.eu/did-registry/v4/identifiers?page[after]=2&page[size]=10
+                      last: https://api-pilot.ebsi.eu/did-registry/v4/identifiers?page[after]=10&page[size]=10
                 "[pilot] Filter by controller":
                   value:
                     self: https://api-pilot.ebsi.eu/did-registry/v4/identifiers?page[after]=1&page[size]=10&controller=did:ebsi:z23ETkVyJGeLWysGD11s2Jof
@@ -232,25 +230,40 @@ paths:
                   value:
                     "@context":
                       - https://www.w3.org/ns/did/v1
-                    id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                      - https://w3id.org/security/suites/jws-2020/v1
+                    id: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
+                    controller:
+                      - did:ebsi:z25F87e2MyLKF7DViuHi5b4z
                     verificationMethod:
-                      - controller: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
-                        id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH#vm-3
-                        type: EcdsaSecp256k1RecoveryMethod2020
-                        publicKeyBase58: H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV
+                      - id: did:ebsi:z25F87e2MyLKF7DViuHi5b4z#0NivQmyibuMALzL2VYcsZiPXRLNtBPOSy4G4-qHFHzU
+                        type: JsonWebKey2020
+                        controller: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
+                        publicKeyJwk:
+                          kty: EC
+                          crv: secp256k1
+                          x: bn0VlNS3FFt6m0Uyb3hs9AEUlyrQucseOGjzw4TUoY0
+                          y: 4KENQAlExFYMjI59fdA1mEBjkyL8D4-j4KwhPuX_zWA
+                    capabilityInvocation:
+                      - did:ebsi:z25F87e2MyLKF7DViuHi5b4z#0NivQmyibuMALzL2VYcsZiPXRLNtBPOSy4G4-qHFHzU
                 "[pilot] Success":
                   value:
-                    "@context": https://w3id.org/did/v1
-                    id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                    "@context":
+                      - https://www.w3.org/ns/did/v1
+                      - https://w3id.org/security/suites/jws-2020/v1
+                    id: did:ebsi:zgUB1p2zNmGtymUwzHrxh24
+                    controller:
+                      - did:ebsi:zgUB1p2zNmGtymUwzHrxh24
                     verificationMethod:
-                      - id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH#keys-1
-                        type: Secp256k1VerificationKey2018
-                        controller: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
-                        publicKeyHex: 04f9139fbd3b9780863b17e8390934a1017fc8d0f18b84f02acb04f24c9cae261e45745c6507881509b9e6d837329153ea75fafb2c1a5d504702d04f1e22a80ecc
-                    authentication:
-                      - did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
-                    assertionMethod:
-                      - did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH#keys-1
+                      - id: did:ebsi:zgUB1p2zNmGtymUwzHrxh24#0NivQmyibuMALzL2VYcsZiPXRLNtBPOSy4G4-qHFHzU
+                        type: JsonWebKey2020
+                        controller: did:ebsi:zgUB1p2zNmGtymUwzHrxh24
+                        publicKeyJwk:
+                          kty: EC
+                          crv: secp256k1
+                          x: bn0VlNS3FFt6m0Uyb3hs9AEUlyrQucseOGjzw4TUoY0
+                          y: 4KENQAlExFYMjI59fdA1mEBjkyL8D4-j4KwhPuX_zWA
+                    capabilityInvocation:
+                      - did:ebsi:zgUB1p2zNmGtymUwzHrxh24#0NivQmyibuMALzL2VYcsZiPXRLNtBPOSy4G4-qHFHzU
         "400":
           description: Bad Request
           content:
@@ -285,8 +298,8 @@ paths:
     post:
       tags:
         - DID Documents
-      summary: Perform actions in did
-      description: Perform actions in did like checking a controller
+      summary: Perform actions in DID
+      description: Perform actions in DID like checking a controller
       operationId: get-did-registry-v4-actions
       parameters:
         - in: path
@@ -370,6 +383,27 @@ paths:
                     jsonrpc: "2.0"
                     id: 1
                     result: true
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Invalid {did} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: The format of {did} parameter is not valid
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
   /did-registry/v4/jsonrpc:
     post:
       operationId: post-did-registry-v4-jsonrpc
@@ -567,158 +601,131 @@ paths:
                   type: integer
                   example: 1
             examples:
-              "[conformance] ct1_did_01":
-                summary: Build blockchain transaction to register a DID Document (CT ONBOARD_061)
-                description: |
-                  EBSI conformance test: Build blockchain transaction to register a DID Document (DID_01).
-
-                  A successful response (HTTP 200) means that the service (wallet) can:
-
-                    - create an [EBSI-compliant DID](https://ec.europa.eu/digital-building-blocks/wikis/x/x4XyGQ)
-                    - create an [EBSI-compliant DID Document](https://ec.europa.eu/digital-building-blocks/wikis/x/x4XyGQ)
-
-                value:
-                  jsonrpc: "2.0"
-                  method: insertDidDocument
-                  params:
-                    - from: "0xD8feEbc61E1a94efDE2999028ff3eAeC4898Cea3"
-                      did: "did:ebsi:zzGFTqDCm5PzcUL8we3cmNe"
-                      baseDocument: '{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/jws-2020/v1"]}'
-                      vMethodId: "TnaihEiXpx3-yDOpBw_qQXJj8wUJm4rYhCBGfIpUZpQ"
-                      publicKey: "0x040159d8e2aec4ce0b331cc440572dc8386b4a01095a27880373d359a7c014242de14421e2fa4571f0efb0827dd8604c1c101f65ab8fd9fd00b5c0377796bf6fa4"
-                      isSecp256k1: true
-                      notBefore: 1665742665
-                      notAfter: 1665746265
-                  id: 1
-              "[conformance] ct1_did_02":
-                summary: Send blockchain transaction to register a DID Document (CT ONBOARD_062)
-                description: >
-                  EBSI conformance test: Send blockchain transaction to register a DID Document (DID_02).
-
-                  A successful response (HTTP 200) means that the service (wallet) can:
-
-                    - create an [EBSI-compliant DID](https://ec.europa.eu/digital-building-blocks/wikis/x/x4XyGQ)
-                    - create an [EBSI-compliant DID Document](https://ec.europa.eu/digital-building-blocks/wikis/x/x4XyGQ)
-                    - [create signed blockchain transaction]()
-
-                value:
-                  jsonrpc: "2.0"
-                  method: sendSignedTransaction
-                  id: 1
-                  params:
-                    - protocol: eth
-                      unsignedTransaction:
-                        from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                        to: "0xFde86148db58f57787C06BeAf63a9c3f789357b3"
-                        data: 0x0000...
-                        nonce: "0x00"
-                        chainId: "0x1b3b"
-                        gasLimit: "0x10000"
-                        gasPrice: "0x00"
-                        value: "0x00"
-                      r: 0x...
-                      s: 0x...
-                      v: 0x...
-                      signedRawTransaction: "--- signed raw transaction ---"
               Build tx to insertDidDocument:
                 value:
                   jsonrpc: "2.0"
                   method: insertDidDocument
-                  id: 1
                   params:
-                    - from: "0xD8feEbc61E1a94efDE2999028ff3eAeC4898Cea3"
-                      did: "did:ebsi:zzGFTqDCm5PzcUL8we3cmNe"
+                    - from: "0xc9765eC58E49e6E386549CEAA34FB0d8bB69C320"
+                      did: did:ebsi:z23eve8qDNzYuNVqfSaErpuJ
                       baseDocument: '{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/jws-2020/v1"]}'
-                      vMethodId: "TnaihEiXpx3-yDOpBw_qQXJj8wUJm4rYhCBGfIpUZpQ"
-                      publicKey: "0x040159d8e2aec4ce0b331cc440572dc8386b4a01095a27880373d359a7c014242de14421e2fa4571f0efb0827dd8604c1c101f65ab8fd9fd00b5c0377796bf6fa4"
+                      vMethodId: axZAOKbj-YyMiIN2CRLCwPjSCgMwhBwCVNgEbOl3QJY
+                      publicKey: "0x04e98e599b648b3548468bc8da31937f11980159fd2c1af555b5db9cfab7b4095517d7094c829bb7d5f876ba2054ace767ca66f22df341bc6ad032f865cadb30cb"
                       isSecp256k1: true
-                      notBefore: 1665742665
-                      notAfter: 1665746265
+                      notBefore: 1676474669
+                      notAfter: 1830869669
+                  id: 474
               Build tx to updateBaseDocument:
                 value:
                   jsonrpc: "2.0"
                   method: updateBaseDocument
-                  id: 1
                   params:
-                    - from: "0xD8feEbc61E1a94efDE2999028ff3eAeC4898Cea3"
-                      did: "did:ebsi:zzGFTqDCm5PzcUL8we3cmNe"
+                    - from: "0xc9765eC58E49e6E386549CEAA34FB0d8bB69C320"
+                      did: did:ebsi:z23eve8qDNzYuNVqfSaErpuJ
                       baseDocument: '{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/jws-2020/v1"]}'
+                  id: 524
               Build tx to addController:
                 value:
                   jsonrpc: "2.0"
                   method: addController
-                  id: 1
                   params:
-                    - from: "0xD8feEbc61E1a94efDE2999028ff3eAeC4898Cea3"
-                      did: "did:ebsi:zzGFTqDCm5PzcUL8we3cmNe"
-                      controller: "did:ebsi:zpUnevx4dP2R2BvbjFEnnFF"
+                    - from: "0xc9765eC58E49e6E386549CEAA34FB0d8bB69C320"
+                      did: did:ebsi:z23eve8qDNzYuNVqfSaErpuJ
+                      controller: did:ebsi:zZviptEhFN1r2u18hhi7Hof
+                  id: 757
               Build tx to revokeController:
                 value:
                   jsonrpc: "2.0"
                   method: revokeController
-                  id: 1
                   params:
-                    - from: "0xD8feEbc61E1a94efDE2999028ff3eAeC4898Cea3"
-                      did: "did:ebsi:zzGFTqDCm5PzcUL8we3cmNe"
-                      controller: "did:ebsi:zpUnevx4dP2R2BvbjFEnnFF"
-              Build tx to addVerificationMethod:
+                    - from: "0xc9765eC58E49e6E386549CEAA34FB0d8bB69C320"
+                      did: did:ebsi:z23eve8qDNzYuNVqfSaErpuJ
+                      controller: did:ebsi:zZviptEhFN1r2u18hhi7Hof
+                  id: 165
+              Build tx to addVerificationMethod (for ES256K algorithm):
                 value:
                   jsonrpc: "2.0"
                   method: addVerificationMethod
-                  id: 1
                   params:
-                    - from: "0xD8feEbc61E1a94efDE2999028ff3eAeC4898Cea3"
-                      did: "did:ebsi:zzGFTqDCm5PzcUL8we3cmNe"
-                      vMethodId: "H5RhB6vyFgl2Uizk8IjL_9AkB5mfqgn5ApgfHUbkqdQ"
-                      publicKey: "0x049D51B5F7820079AECA6FD34A6E65732FCDC9B5577FDCEE5DCD46A1409D55143E5BAF0161BFA775B2B1B6A144735157A9CFA424539757D21AC3797DC900550F75"
+                    - from: "0xc9765eC58E49e6E386549CEAA34FB0d8bB69C320"
+                      did: did:ebsi:z23eve8qDNzYuNVqfSaErpuJ
+                      vMethodId: axZAOKbj-YyMiIN2CRLCwPjSCgMwhBwCVNgEbOl3QJY
+                      publicKey: "0x04e98e599b648b3548468bc8da31937f11980159fd2c1af555b5db9cfab7b4095517d7094c829bb7d5f876ba2054ace767ca66f22df341bc6ad032f865cadb30cb"
                       isSecp256k1: true
+                  id: 185
+              Build tx to addVerificationMethod (for algorithm different to ES256K):
+                value:
+                  jsonrpc: "2.0"
+                  method: addVerificationMethod
+                  params:
+                    - from: "0xc9765eC58E49e6E386549CEAA34FB0d8bB69C320"
+                      did: did:ebsi:z23eve8qDNzYuNVqfSaErpuJ
+                      vMethodId: HntX1odLlp_5w-W18Yk6OhR5dNNHsugaM2lOuAHDpmU
+                      publicKey: "0x7b226b7479223a224543222c2278223a227839756d53644855304a6458727a7155326130533569627034625a4c467877364e6a6f506b637035513173222c2279223a2276537767487062736c773757433472506a30676d706c324661504e337073414a6c397a4c39775963767a73222c22637276223a22502d323536227d"
+                      isSecp256k1: false
+                  id: 575
               Build tx to addVerificationRelationship:
                 value:
                   jsonrpc: "2.0"
                   method: addVerificationRelationship
-                  id: 1
                   params:
-                    - from: "0xD8feEbc61E1a94efDE2999028ff3eAeC4898Cea3"
-                      did: "did:ebsi:zzGFTqDCm5PzcUL8we3cmNe"
-                      name: "assertionMethod"
-                      vMethodId: "TnaihEiXpx3-yDOpBw_qQXJj8wUJm4rYhCBGfIpUZpQ"
-                      notBefore: 1665742665
-                      notAfter: 1665746265
+                    - from: "0xc9765eC58E49e6E386549CEAA34FB0d8bB69C320"
+                      did: did:ebsi:z23eve8qDNzYuNVqfSaErpuJ
+                      name: assertionMethod
+                      vMethodId: HntX1odLlp_5w-W18Yk6OhR5dNNHsugaM2lOuAHDpmU
+                      notBefore: 1676475339
+                      notAfter: 1830870339
+                  id: 585
               Build tx to revokeVerificationMethod:
                 value:
                   jsonrpc: "2.0"
                   method: revokeVerificationMethod
-                  id: 1
                   params:
-                    - from: "0xD8feEbc61E1a94efDE2999028ff3eAeC4898Cea3"
-                      did: "did:ebsi:zzGFTqDCm5PzcUL8we3cmNe"
-                      vMethodId: "TnaihEiXpx3-yDOpBw_qQXJj8wUJm4rYhCBGfIpUZpQ"
-                      notAfter: 1665746265
+                    - from: "0xc9765eC58E49e6E386549CEAA34FB0d8bB69C320"
+                      did: did:ebsi:z23eve8qDNzYuNVqfSaErpuJ
+                      vMethodId: HntX1odLlp_5w-W18Yk6OhR5dNNHsugaM2lOuAHDpmU
+                      notAfter: 1676475497
+                  id: 24
               Build tx to expireVerificationMethod:
                 value:
                   jsonrpc: "2.0"
                   method: expireVerificationMethod
-                  id: 1
                   params:
-                    - from: "0xD8feEbc61E1a94efDE2999028ff3eAeC4898Cea3"
-                      did: "did:ebsi:zzGFTqDCm5PzcUL8we3cmNe"
-                      vMethodId: "TnaihEiXpx3-yDOpBw_qQXJj8wUJm4rYhCBGfIpUZpQ"
-                      notAfter: 1665746265
-              Build tx to rollVerificationMethod:
+                    - from: "0xc9765eC58E49e6E386549CEAA34FB0d8bB69C320"
+                      did: did:ebsi:z23eve8qDNzYuNVqfSaErpuJ
+                      vMethodId: HntX1odLlp_5w-W18Yk6OhR5dNNHsugaM2lOuAHDpmU
+                      notAfter:
+                  id: 373
+              Build tx to rollVerificationMethod (for ES256K algorithm):
                 value:
                   jsonrpc: "2.0"
                   method: rollVerificationMethod
-                  id: 1
                   params:
-                    - from: "0xD8feEbc61E1a94efDE2999028ff3eAeC4898Cea3"
-                      did: "did:ebsi:zzGFTqDCm5PzcUL8we3cmNe"
-                      vMethodId: "TnaihEiXpx3-yDOpBw_qQXJj8wUJm4rYhCBGfIpUZpQ"
-                      publicKey: "0x040159d8e2aec4ce0b331cc440572dc8386b4a01095a27880373d359a7c014242de14421e2fa4571f0efb0827dd8604c1c101f65ab8fd9fd00b5c0377796bf6fa4"
+                    - from: "0xc9765eC58E49e6E386549CEAA34FB0d8bB69C320"
+                      did: did:ebsi:z23eve8qDNzYuNVqfSaErpuJ
+                      vMethodId: axZAOKbj-YyMiIN2CRLCwPjSCgMwhBwCVNgEbOl3QJY
+                      publicKey: "0x04e98e599b648b3548468bc8da31937f11980159fd2c1af555b5db9cfab7b4095517d7094c829bb7d5f876ba2054ace767ca66f22df341bc6ad032f865cadb30cb"
                       isSecp256k1: true
-                      notBefore: 1665742665
-                      notAfter: 1665746265
-                      oldVMethodId: "O_EWDo1JUm3glFxTw3a9f2YfeKwbLuvG9kdGrb6gzHE"
+                      notBefore: 1704067200
+                      notAfter: 1735689600
+                      oldVMethodId: HntX1odLlp_5w-W18Yk6OhR5dNNHsugaM2lOuAHDpmU
                       duration: 86400
+                  id: 260
+              Build tx to rollVerificationMethod (for algorithm different to ES256K):
+                value:
+                  jsonrpc: "2.0"
+                  method: rollVerificationMethod
+                  params:
+                    - from: "0xc9765eC58E49e6E386549CEAA34FB0d8bB69C320"
+                      did: did:ebsi:z23eve8qDNzYuNVqfSaErpuJ
+                      vMethodId: RCWXLj5EyKYqmaX2j6IUXTtGLIBzqCib6UdJZvRNUJw
+                      publicKey: "0x7b22637276223a2245643235353139222c2278223a22426430466f75497a3445527136544c7032736441474457434d58775749664671703944364865726b77736f222c226b7479223a224f4b50227d"
+                      isSecp256k1: false
+                      notBefore: 1704067200
+                      notAfter: 1735689600
+                      oldVMethodId: HntX1odLlp_5w-W18Yk6OhR5dNNHsugaM2lOuAHDpmU
+                      duration: 86400
+                  id: 558
               Send Transaction:
                 value:
                   jsonrpc: "2.0"
@@ -750,29 +757,29 @@ paths:
                 Build unsigned blockchain transaction to register a DID:
                   value:
                     jsonrpc: "2.0"
-                    id: 1
+                    id: 482
                     result:
-                      from: "0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7"
-                      to: "0xFde86148db58f57787C06BeAf63a9c3f789357b3"
-                      data: "0x0000..."
-                      nonce: "0x00"
-                      chainId: "0x1b3b"
-                      gasLimit: "0x10000"
-                      gasPrice: "0x00"
-                      value: "0x00"
+                      from: "0x8445fC96e27ceB0d1794be16a1Ac8BF5D765AACB"
+                      to: "0x823BBc0ceE3dE3B61AcfA0CEedb951AB9a013F05"
+                      data: "0x250f4d9700000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000e000000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000120fb33cccb447605de75846617385f6d2aac28010f53a89ecb5ce151751c53c8d400000000000000000000000000000000000000000000000000000000000000206469643a656273693a7a5a766970744568464e31723275313868686937486f66000000000000000000000000000000000000000000000000000000000000000865794a68622e2e2e00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000216469643a656273693a7a323536617342576d4842736a325a4e567847354d686b7000000000000000000000000000000000000000000000000000000000000000"
+                      value: "0x0"
+                      nonce: "0xb1d3"
+                      chainId: "0x181f"
+                      gasLimit: "0x1000000"
+                      gasPrice: "0x0"
                 Build tx:
                   value:
                     jsonrpc: "2.0"
-                    id: 1
+                    id: 482
                     result:
-                      from: "0x89205A3A3b2A69De6Dbf7f01ED13B2108B2c43e7"
-                      to: "0xFde86148db58f57787C06BeAf63a9c3f789357b3"
-                      data: "0x0000..."
-                      nonce: "0x00"
-                      chainId: "0x1b3b"
-                      gasLimit: "0x10000"
-                      gasPrice: "0x00"
-                      value: "0x00"
+                      from: "0x8445fC96e27ceB0d1794be16a1Ac8BF5D765AACB"
+                      to: "0x823BBc0ceE3dE3B61AcfA0CEedb951AB9a013F05"
+                      data: "0x250f4d9700000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000e000000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000120fb33cccb447605de75846617385f6d2aac28010f53a89ecb5ce151751c53c8d400000000000000000000000000000000000000000000000000000000000000206469643a656273693a7a5a766970744568464e31723275313868686937486f66000000000000000000000000000000000000000000000000000000000000000865794a68622e2e2e00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000216469643a656273693a7a323536617342576d4842736a325a4e567847354d686b7000000000000000000000000000000000000000000000000000000000000000"
+                      value: "0x0"
+                      nonce: "0xb1d3"
+                      chainId: "0x181f"
+                      gasLimit: "0x1000000"
+                      gasPrice: "0x0"
                 Send a transaction:
                   value:
                     jsonrpc: "2.0"
@@ -902,5 +909,5 @@ servers:
     description: EBSI Test Environment
   - url: https://api-pilot.ebsi.eu
     description: EBSI Pilot Environment
-  - url: "https://api-conformance.ebsi.eu"
+  - url: https://api-conformance.ebsi.eu
     description: EBSI Conformance Environment
