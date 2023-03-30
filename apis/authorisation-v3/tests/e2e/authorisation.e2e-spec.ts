@@ -82,17 +82,28 @@ describe("Authorisation (e2e)", () => {
         issuer: expect.any(String),
         authorization_endpoint: `${authorisationApiV3Url}/authorize`,
         token_endpoint: `${authorisationApiV3Url}/token`,
-        pushed_authorization_request_endpoint: `${authorisationApiV3Url}/par`,
         presentation_definition_endpoint: `${authorisationApiV3Url}/presentation-definitions`,
         jwks_uri: `${authorisationApiV3Url}/jwks`,
         scopes_supported: expect.arrayContaining(["openid"]),
-        response_types_supported: expect.arrayContaining(["code"]),
+        response_types_supported: expect.arrayContaining(["token"]),
         subject_types_supported: expect.arrayContaining(["public"]),
         id_token_signing_alg_values_supported: expect.arrayContaining(["none"]),
         subject_syntax_types_supported: expect.arrayContaining([
           "did:ebsi",
           "did:key",
         ]),
+        token_endpoint_auth_methods_supported: expect.arrayContaining([
+          "private_key_jwt",
+        ]),
+        vp_formats_supported: expect.objectContaining({
+          jwt_vp: expect.objectContaining({
+            alg_values_supported: expect.arrayContaining(["ES256"]),
+          }),
+          jwt_vc: expect.objectContaining({
+            alg_values_supported: expect.arrayContaining(["ES256"]),
+          }),
+        }),
+        grant_types_supported: expect.arrayContaining(["vp_token"]),
       });
 
       expect(response.status).toBe(200);

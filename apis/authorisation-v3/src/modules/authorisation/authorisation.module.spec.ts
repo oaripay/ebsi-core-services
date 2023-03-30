@@ -221,17 +221,28 @@ describe("Authorisation Module", () => {
         issuer: expect.any(String),
         authorization_endpoint: `${serviceEndpoint}/authorize`,
         token_endpoint: `${serviceEndpoint}/token`,
-        pushed_authorization_request_endpoint: `${serviceEndpoint}/par`,
         presentation_definition_endpoint: `${serviceEndpoint}/presentation-definitions`,
         jwks_uri: `${serviceEndpoint}/jwks`,
         scopes_supported: expect.arrayContaining(["openid"]),
-        response_types_supported: expect.arrayContaining(["code"]),
+        response_types_supported: expect.arrayContaining(["token"]),
         subject_types_supported: expect.arrayContaining(["public"]),
         id_token_signing_alg_values_supported: expect.arrayContaining(["none"]),
         subject_syntax_types_supported: expect.arrayContaining([
           "did:ebsi",
           "did:key",
         ]),
+        token_endpoint_auth_methods_supported: expect.arrayContaining([
+          "private_key_jwt",
+        ]),
+        vp_formats_supported: expect.objectContaining({
+          jwt_vp: expect.objectContaining({
+            alg_values_supported: expect.arrayContaining(["ES256"]),
+          }),
+          jwt_vc: expect.objectContaining({
+            alg_values_supported: expect.arrayContaining(["ES256"]),
+          }),
+        }),
+        grant_types_supported: expect.arrayContaining(["vp_token"]),
       });
 
       expect(response.status).toBe(200);

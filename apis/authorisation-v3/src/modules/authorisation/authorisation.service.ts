@@ -94,14 +94,19 @@ export class AuthorisationService {
       issuer: this.issuer,
       authorization_endpoint: `${this.issuer}/authorize`,
       token_endpoint: `${this.issuer}/token`,
-      pushed_authorization_request_endpoint: `${this.issuer}/par`,
       presentation_definition_endpoint: `${this.issuer}/presentation-definitions`,
       jwks_uri: `${this.issuer}/jwks`,
       scopes_supported: SUPPORTED_SCOPES,
-      response_types_supported: ["code"],
+      response_types_supported: ["token"],
       subject_types_supported: ["public"],
       id_token_signing_alg_values_supported: ["none"],
       subject_syntax_types_supported: ["did:ebsi", "did:key"],
+      token_endpoint_auth_methods_supported: ["private_key_jwt"],
+      vp_formats_supported: {
+        jwt_vp: { alg_values_supported: ["ES256"] },
+        jwt_vc: { alg_values_supported: ["ES256"] },
+      },
+      grant_types_supported: ["vp_token"],
     };
   }
 

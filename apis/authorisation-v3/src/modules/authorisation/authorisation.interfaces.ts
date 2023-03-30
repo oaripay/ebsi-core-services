@@ -11,6 +11,7 @@ export type Scope = (typeof SUPPORTED_SCOPES)[number];
  * - https://www.ietf.org/archive/id/draft-ietf-oauth-par-03.html#section-5
  * - https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#section-8.1
  * - https://openid.net/specs/openid-connect-self-issued-v2-1_0.html#section-9.2.3
+ * - https://openid.net/specs/openid-connect-federation-1_0-25.html#section-4.4
  * - https://ec.europa.eu/digital-building-blocks/wikis/display/BLOCKCHAININT/OpenAPI+specification+-+Onboarding+and+accreditations+for+EBSI+Authentication+service
  * - https://ec.europa.eu/digital-building-blocks/wikis/display/BLOCKCHAININT/RFC+-+EBSI+Platform+Identity+and+Access+Management#RFCEBSIPlatformIdentityandAccessManagement-PresentationDefinition
  */
@@ -141,7 +142,7 @@ export interface OPMetadata {
    * credential format supported by the AS.
    */
   vp_formats_supported?: Record<
-    "jwt_vc",
+    "jwt_vc" | "jwt_vp",
     {
       /**
        * An object where the value is an array of case sensitive strings that identify the
@@ -162,6 +163,11 @@ export interface OPMetadata {
    * sending did without any method-name.
    */
   subject_syntax_types_supported: string[];
+
+  /**
+   * OPTIONAL. JSON array containing a list of Client Authentication methods supported by this Token Endpoint.
+   */
+  token_endpoint_auth_methods_supported?: string[];
 }
 
 /**
