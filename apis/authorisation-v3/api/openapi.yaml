@@ -330,9 +330,8 @@ paths:
                     title: Supported ID Token types
                     description: |
                       OPTIONAL. A JSON array of strings containing the list of ID Token types supported by the OP, the default value is attester_signed_id_token. The ID Token types defined in this specification are:
-                        subject_signed_id_token: Self-Issued ID Token, i.e. the id token is signed with key material under the end-user's control.
-
-                        attester_signed_id_token: the id token is issued by the party operating the OP, i.e. this is the classical id token as defined in [OpenID.Core].
+                      - `subject_signed_id_token`: Self-Issued ID Token, i.e. the id token is signed with key material under the end-user's control.
+                      - `attester_signed_id_token`: the id token is issued by the party operating the OP, i.e. this is the classical id token as defined in [OpenID.Core].
 
                         MUST be subject_signed_id_token
                     type: array
@@ -340,7 +339,8 @@ paths:
                       type: string
                       enum:
                         - subject_signed_id_token
-                        - attester_signed_id_token
+                    example:
+                      - subject_signed_id_token
               examples:
                 authorisation_v3:
                   summary: |
@@ -356,8 +356,6 @@ paths:
                     presentation_definitions_endpoint: /presentation_definitions
                     response_types_supported:
                       - vp_token
-                    response_modes_supported:
-                      - query
                     request_parameter_supported: true
                     request_uri_parameter_supported: false
                     scopes_supported:
@@ -386,6 +384,8 @@ paths:
                       - "did:ebsi"
                     subject_trust_frameworks_supported:
                       - ebsi
+                    id_token_types_supported:
+                      - subject_signed_id_token
         "500":
           description: Internal Server Error
           content:

@@ -107,6 +107,8 @@ export class AuthorisationService {
         jwt_vc: { alg_values_supported: ["ES256"] },
       },
       grant_types_supported: ["vp_token"],
+      subject_trust_frameworks_supported: ["ebsi"],
+      id_token_types_supported: ["subject_signed_id_token"],
     };
   }
 

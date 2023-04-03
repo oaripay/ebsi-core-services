@@ -104,6 +104,10 @@ describe("Authorisation (e2e)", () => {
           }),
         }),
         grant_types_supported: expect.arrayContaining(["vp_token"]),
+        subject_trust_frameworks_supported: expect.arrayContaining(["ebsi"]),
+        id_token_types_supported: expect.arrayContaining([
+          "subject_signed_id_token",
+        ]),
       });
 
       expect(response.status).toBe(200);
