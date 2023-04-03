@@ -1221,10 +1221,10 @@
     multiformats "^9.9.0"
     uuid "^9.0.0"
 
-"@cef-ebsi/verifiable-credential@^4.0.2":
-  version "4.0.2"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-credential/-/verifiable-credential-4.0.2.tgz#d26408a269e381d622e15cc4822b9d425d14a826"
-  integrity sha512-l372ds0k81O2nYYgkTRMEm2Q1f02/hwJiGmd5hffdrll8f4y2vskDk6Gz2qx0sFiTnoVuzHQHPeNqhC4dCPCZw==
+"@cef-ebsi/verifiable-credential@^4.1.1":
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-credential/-/verifiable-credential-4.1.1.tgz#9a2cac1e1b0223f1be66e0c27ecf075d90523efb"
+  integrity sha512-LGE8GG71XEFB5E3eJ3YyTUe0GQc8NNR7vwh0XBvKrbIgJlA6b5Th8HM7kIaEyak8UoDgyZDyecI6cfhqvdr41Q==
   dependencies:
     "@cef-ebsi/ebsi-did-resolver" "^3.0.0"
     "@cef-ebsi/key-did-resolver" "^1.0.0"
@@ -1240,15 +1240,16 @@
     lodash.clonedeep "^4.5.0"
     mem "^8.1.1"
     multiformats "^9.9.0"
+    pako "^2.1.0"
 
-"@cef-ebsi/verifiable-presentation@^5.0.2":
-  version "5.0.2"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-presentation/-/verifiable-presentation-5.0.2.tgz#5bba8f306cdb4bbdbf05de2cc524684e74344575"
-  integrity sha512-tBxYEh1FOnmJEsTAyaq+pYPlzUWI7x3/wMCmIgB4wA2/uWb8Zf2D6ZKNKZQYWscqX5vW1w/x2iPls5NG35NjQw==
+"@cef-ebsi/verifiable-presentation@^5.0.4":
+  version "5.0.4"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-presentation/-/verifiable-presentation-5.0.4.tgz#eb75453a8c7303adb00da5ade6c00ce14d3b30a3"
+  integrity sha512-yzS3WSRq/Rr6ftnFzoV74ze7Quout7j+FYdGUBEyJfdjNylnBCgbSO3ScouPxHF1KxUmeFREuWJ3Yc+7sdx62g==
   dependencies:
     "@cef-ebsi/ebsi-did-resolver" "^3.0.0"
     "@cef-ebsi/key-did-resolver" "^1.0.0"
-    "@cef-ebsi/verifiable-credential" "^4.0.2"
+    "@cef-ebsi/verifiable-credential" "^4.1.1"
     "@transmute/json-web-signature" "^0.7.0-unstable.80"
     "@transmute/vc.js" "^0.7.0-unstable.80"
     ajv "^8.12.0"
@@ -17791,6 +17792,11 @@ pac-resolver@^5.0.0:
     degenerator "^3.0.2"
     ip "^1.1.5"
     netmask "^2.0.2"
+
+pako@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/pako/-/pako-2.1.0.tgz#266cc37f98c7d883545d11335c00fbd4062c9a86"
+  integrity sha512-w+eufiZ1WuJYgPXbV/PO3NCMEc3xqylkKHzp8bxp1uW4qaSNQUkwmLLEc3kKsfz8lpV1F8Ht3U1Cm+9Srog2ug==
 
 param-case@^2.1.0:
   version "2.1.1"
