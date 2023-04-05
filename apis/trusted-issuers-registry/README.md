@@ -4,7 +4,7 @@
 
 Trusted Issuers Registry (TIR) is a generic decentralised registry holding information about trusted issuers, like public information, accreditations and other. All information is stored in the smart contract in form of Attribute envelops (like Verifiable Credentials) that are issued by Trusted Issuers or self-issued. Generic Envelop (like Verifiable Credential) validation is performed outside EBSI.
 
-EBSI Trusted Issuers Registry (TIR) is a generic decentralised registry component and is used as a core component of the European Self Sovereign Identity Framework (ESSIF) that enables to validate the identity and accreditations of Trusted Issuers.
+EBSI Trusted Issuers Registry (TIR) is a core EBSI service that enables validation of identities and accreditations of Trusted Issuers.
 
 TIR smart contract is deployed on the permissioned EBSI ledger that has the advantages of being public while at the same time ensuring the highest level of trust and transparency. Furthermore, TIR has high availability due to the redundancy of the EBSI Ledger; has no single point of failure; is transparent, traceable, immutable and cryptographically secure. The immutable nature of the ledger enables one to validate whether an issuer was eligible to issue a specific Verifiable Credential/Claim/Attestation at a certain time.
 
