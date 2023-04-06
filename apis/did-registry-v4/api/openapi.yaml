@@ -1,8 +1,8 @@
-openapi: 3.0.0
+openapi: 3.1.0
 info:
   title: DID Registry API v4
   description: |
-    The DID Registry (DIDR) is a generic core service of the EBSI platform providing the capability of resolving EBSI Decentralised Identifiers (DIDs).
+    The DID Registry (DIDR) is a EBSI core service providing the capabilities of registering, managing, and resolving EBSI Decentralised Identifiers (DIDs) of the did:ebsi DID method.
 
     It enables consumers to interact with the DID Registry Smart Contract to:
     - Insert a DID/DID Document
@@ -10,10 +10,10 @@ info:
     - Revoke a DID/DID Controlling keys
     - Resolve a DID (and obtain a DID Document)
 
-    For more information, see:
+    For more information see:
     * [DID Registry API Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/DID+Registry+API)
-    * [DID Registry Smart Contract Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/DID+Registry+Smart+Contract)
-    * [Code Repository](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/browse)
+    * [CLI Tool page](https://api-pilot.ebsi.eu/docs/demonstrator): Test the capabilities using the EBSI CLI tool
+
   version: 4.0.0
   termsOfService: https://api-pilot.ebsi.eu/docs/terms
   contact:

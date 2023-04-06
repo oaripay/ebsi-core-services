@@ -3,21 +3,23 @@ info:
   title: Authorisation API v3
   version: 3.0.0
   description: |
-    The Authorisation API is a core EBSI service responsible for issuing Short Living Access Tokens (JWT) to the EBSI Platform for Legal Entities in exchange of their presentation of a EBSI Verifiable Credential. Access tokens are required by entities and applications to access the protected resources of EBSI.
 
+    The Authorisation API is a core EBSI service responsible for managing access to the protected EBSI services. Legal entities must present a valid Verifiable Authorisations or Verifiable Accreditations in a form of a Verifiable Presentations to get a short-lived access token with a lifetime of 2 hours. Access tokens have a limited scope according to the Legal Entity's authorisations.
     Users receive access tokens after they present a valid EBSI Verifiable Credential and prove ownership over their DID. There is one exception to this rule during the onboarding process. Since the user does not yet have ownership over a DID, they are only required to present a *VerifiableAuthorisationToOnboard* in this case.
 
-    EBSI Authorisation Service implements IAM that mints access tokens for protected services.
-
-    The following capabilities are required:
+    The following capabilities are used:
 
     + [Authorisation Server discovery](https://openid.net/specs/openid-connect-discovery-1_0.html) the /.well-known/openid-configuration
     + [OpenID for Verifiable Presentation](https://openid.net/specs/openid-4-verifiable-presentations-1_0-14.html) capabilities (v 0.14)
     + [OIDC](https://openid.net/specs/openid-connect-core-1_0.html) capabilities (v1.0)
 
     EBSI Platform distinguishes between identified and anonymous users. Both types of users have different sets of intents.
-    Identified users are legal entities who are using the trusted registries.
-    Anonymous users can only read public information.
+    Identified users are legal entities who are using the trusted registries (DID registry and Trusted Issuer Registry).
+    Anonymous users can only read public information, so they can call all the REST endpoints, but no the JSON-RPC endpoints.
+
+    For more information see:
+    + [CLI Tool page](https://api-pilot.ebsi.eu/docs/demonstrator): Test the capabilities using the EBSI CLI tool
+
   termsOfService: https://api-pilot.ebsi.eu/docs/terms
   contact:
     name: EBSI Support - Service Desk
