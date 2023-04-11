@@ -239,6 +239,7 @@ export class AuthorisationService {
         validAt: now, // The JWT VC(s) must be valid now
         skipHolderDidResolutionValidation: isDidUnresolvable,
         skipSignatureValidation: isDidUnresolvable,
+        validateAccreditationWithoutTermsOfUse: true, // The VC must contain terms of use (or be self-accredited)
       });
     } catch (e) {
       throw new OAuth2TokenError("invalid_request", {
