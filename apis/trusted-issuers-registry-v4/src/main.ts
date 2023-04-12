@@ -5,6 +5,7 @@ import {
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
 import { ValidationPipe } from "@nestjs/common";
+import { useContainer } from "class-validator";
 import { fastifyHelmet } from "@fastify/helmet";
 import { setupInterceptors } from "@ebsiint-api/shared";
 import { AppModule } from "./app.module";
@@ -61,6 +62,9 @@ async function bootstrap(): Promise<void> {
 
   app.useGlobalFilters(new AllExceptionsFilter(configService));
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
+  // Enable DI in IsIssuerProxy validator
+  useContainer(app.select(AppModule), { fallbackOnErrors: true });
 
   // Setup axios interceptors
   setupInterceptors(domain, localOrigin, logger);
