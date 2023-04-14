@@ -491,6 +491,24 @@ export class AuthorisationService {
     // Now, we can assert that vpTokenPayload is a VpJwtPayload
     const { vp } = vpTokenPayload as VpJwtPayload;
 
+    // Fix: EBSIINT-6065
+    // The PEX library is not forcing that all inputs listed in the
+    // input_descriptors array are required for submission. This means that
+    // if vp.verifiableCredential is an empty array the input_descriptors are
+    // skipped.
+    // To fix this we enforce that the didr_invite and tir_invite scopes
+    // must have at least one VC, so the PEX library is able to validate the
+    // corresponding credentials.
+    if (
+      (scope.includes(DIDR_INVITE_SCOPE) || scope.includes(TIR_INVITE_SCOPE)) &&
+      (!vp.verifiableCredential || vp.verifiableCredential.length === 0)
+    ) {
+      throw new OAuth2TokenError("invalid_request", {
+        errorDescription:
+          "Invalid Verifiable Presentation: The presentation must contain at least 1 verifiable credential",
+      });
+    }
+
     // Verify presentation exchange
     this.validatePresentationExchange(
       vp,

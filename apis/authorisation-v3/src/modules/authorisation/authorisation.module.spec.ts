@@ -1080,6 +1080,50 @@ describe("Authorisation Module", () => {
           });
           expect(response.status).toBe(400);
         });
+
+        // Fix: EBSIINT-6065
+        // require at least 1 verifiable credential
+        it("should return error when the number of verifiable credentials is not correct", async () => {
+          if ([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)) {
+            // Skip test
+            return;
+          }
+
+          const vpJwt = await createVerifiablePresentationJwt(
+            vpPayload,
+            credentialSubject,
+            serviceEndpoint,
+            {
+              ebsiAuthority: "example.net",
+              skipValidation: true,
+              nonce: randomUUID(),
+              exp: Math.floor(Date.now() / 1000) + 100,
+              nbf: Math.floor(Date.now() / 1000) - 100,
+            }
+          );
+
+          const response = await request(server)
+            .post("/token")
+            .set("Content-Type", "application/x-www-form-urlencoded")
+            .send(
+              qs.stringify({
+                grant_type: "vp_token",
+                scope,
+                vp_token: vpJwt,
+                presentation_submission: presentationSubmission,
+              })
+            );
+
+          expect(response.body).toStrictEqual({
+            error: "invalid_request",
+            error_description:
+              "Invalid Verifiable Presentation: The presentation must contain at least 1 verifiable credential",
+          });
+          expect(response.status).toBe(400);
+          expect(
+            (response.headers as Record<string, unknown>)["content-type"]
+          ).toBe("application/json; charset=utf-8");
+        });
       });
 
       it("should return an error if the presentation submission is invalid (including error details)", async () => {
@@ -1728,7 +1772,7 @@ describe("Authorisation Module", () => {
       "@context": ["https://www.w3.org/2018/credentials/v1"],
       id: randomUUID(),
       type: ["VerifiablePresentation"],
-      verifiableCredential: [],
+      verifiableCredential: [] as string[],
       holder: credentialSubject.did,
     };
 
@@ -1738,6 +1782,20 @@ describe("Authorisation Module", () => {
     // VP Signer is not registered in the TIR
     const vpSigner = await createLegalEntity("ES256K");
     vpPayload.holder = vpSigner.did;
+
+    if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
+      vcPayload.credentialSubject.id = vpPayload.holder;
+      const vcJwt = await createVerifiableCredentialJwt(
+        vcPayload,
+        credentialIssuer,
+        {
+          ebsiAuthority: "example.net",
+          skipValidation: true,
+        }
+      );
+
+      vpPayload.verifiableCredential.push(vcJwt);
+    }
 
     nock(domain)
       .get(`/did-registry/v4/identifiers/${vpSigner.did}`)
