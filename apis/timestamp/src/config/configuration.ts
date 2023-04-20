@@ -98,13 +98,13 @@ export const ApiConfigModule = ConfigModule.forRoot({
     ".env.default",
   ],
   load: [loadConfig],
-  validationSchema: Joi.object({
+  validationSchema: Joi.object<typeof process.env, true>({
     // Common API variables
     NODE_ENV: Joi.string()
       .valid("development", "production", "test")
       .default("development"),
     API_PORT: Joi.string().default("3000"),
-    // API_PRIVATE_KEY: Joi.string(),
+    API_PRIVATE_KEY: Joi.string().required(),
     API_URL_PREFIX: Joi.string(),
     API_NAME: Joi.string().required(),
     LOG_LEVEL: Joi.string().valid(
@@ -130,7 +130,11 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_APP_NAME: Joi.string(),
     TEST_APP_PRIVATE_KEY: Joi.string(),
     TEST_LB_DOMAIN: Joi.string().uri(),
+    TEST_ENV: Joi.string(),
+    TEST_ENABLE_WRITE_OPS: Joi.string(),
     BLOCKSCOUT_URL: Joi.string(),
     BLOCKSCOUT_BEARER_TOKEN: Joi.string(),
+    // Generic variables
+    TZ: Joi.string(),
   }),
 });

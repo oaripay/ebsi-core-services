@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@ebsiint-sc/bootstrap": "^1.0.1-rc.1",
-    "@openzeppelin/contracts": "^4.8.2"
+    "@openzeppelin/contracts": "^4.8.3"
   },
   "devDependencies": {
     "@ethersproject/abi": "^5.7.0",

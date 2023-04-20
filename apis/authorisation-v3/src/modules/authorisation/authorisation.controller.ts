@@ -43,8 +43,6 @@ export class AuthorisationController {
     return this.authorisationService.getPresentationDefinitions(query.scope);
   }
 
-  // TODO: error responses must follow the specs https://www.rfc-editor.org/rfc/rfc6749#section-5.2
-  // See https://ec.europa.eu/digital-building-blocks/tracker/browse/EBSIINT-5434
   @HttpCode(200)
   @Post("/token")
   @Header("Cache-Control", "no-store")

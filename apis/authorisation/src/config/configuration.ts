@@ -84,7 +84,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     ".env.default",
   ],
   load: [loadConfig],
-  validationSchema: Joi.object({
+  validationSchema: Joi.object<typeof process.env, true>({
     // Common API variables
     NODE_ENV: Joi.string()
       .valid("development", "production", "test")
@@ -121,5 +121,8 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_ISSUER_DID: Joi.string(),
     TEST_ISSUER_PRIVATE_KEY: Joi.string(),
     TEST_LB_DOMAIN: Joi.string().uri(),
+    TEST_ENV: Joi.string(),
+    // Generic variables
+    TZ: Joi.string(),
   }),
 });
