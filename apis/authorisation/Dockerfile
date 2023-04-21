@@ -10,6 +10,7 @@ COPY --from=builder /app/package.json ./package.json
 # Copy Authoristion API
 COPY --from=builder /app/apis/authorisation/package.json ./apis/authorisation/package.json
 COPY --from=builder /app/apis/authorisation/dist ./apis/authorisation/dist
+COPY --from=builder /app/apis/authorisation/api ./apis/authorisation/api
 # Copy shared code
 COPY --from=builder /app/apis/shared/package.json ./apis/shared/package.json
 COPY --from=builder /app/apis/shared/dist ./apis/shared/dist
