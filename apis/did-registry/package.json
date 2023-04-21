@@ -48,7 +48,8 @@
     "passport-http-bearer": "^1.0.1",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.0",
-    "winston": "^3.8.1"
+    "winston": "^3.8.1",
+    "yaml": "^2.2.1"
   },
   "devDependencies": {
     "@cef-ebsi/verifiable-credential": "^4.1.1",

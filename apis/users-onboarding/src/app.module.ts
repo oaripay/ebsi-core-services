@@ -6,6 +6,7 @@ import { SessionsModule } from "./modules/sessions/sessions.module";
 import { AuthenticationModule } from "./modules/authentication/authentication.module";
 import { LoggingInterceptor } from "./interceptors/logging.intereceptor";
 import { VersionInterceptor } from "./interceptors/version.interceptor";
+import { OpenApiModule } from "./modules/openapi/openapi.module";
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { VersionInterceptor } from "./interceptors/version.interceptor";
     HealthModule,
     AuthenticationModule,
     SessionsModule,
+    OpenApiModule,
   ],
   providers: [
     {

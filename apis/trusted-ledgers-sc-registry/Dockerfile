@@ -10,6 +10,7 @@ COPY --from=builder /app/package.json ./package.json
 # Copy TLSR API
 COPY --from=builder /app/apis/trusted-ledgers-sc-registry/package.json ./apis/trusted-ledgers-sc-registry/package.json
 COPY --from=builder /app/apis/trusted-ledgers-sc-registry/dist ./apis/trusted-ledgers-sc-registry/dist
+COPY --from=builder /app/apis/trusted-ledgers-sc-registry/api ./apis/trusted-ledgers-sc-registry/api
 # Copy Bootstrap SC
 COPY --from=builder /app/contracts/bootstrap/package.json ./contracts/bootstrap/package.json
 COPY --from=builder /app/contracts/bootstrap/dist ./contracts/bootstrap/dist

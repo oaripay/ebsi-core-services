@@ -7,6 +7,7 @@ import { SchemasModule } from "./modules/schemas/schemas.module";
 import { PoliciesModule } from "./modules/policies/policies.module";
 import { LoggingInterceptor } from "./interceptors/logging.interceptor";
 import { VersionInterceptor } from "./interceptors/version.interceptor";
+import { OpenApiModule } from "./modules/openapi/openapi.module";
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { VersionInterceptor } from "./interceptors/version.interceptor";
     JsonRpcModule,
     SchemasModule,
     PoliciesModule,
+    OpenApiModule,
   ],
   providers: [
     {

@@ -7,6 +7,7 @@ import { HealthModule } from "./modules/health/health.module";
 import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module";
 import { LedgersModule } from "./modules/ledgers/ledgers.module";
 import { SmartContractsModule } from "./modules/smart-contracts/smart-contracts.module";
+import { OpenApiModule } from "./modules/openapi/openapi.module";
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { SmartContractsModule } from "./modules/smart-contracts/smart-contracts.
     JsonRpcModule,
     LedgersModule,
     SmartContractsModule,
+    OpenApiModule,
   ],
   providers: [
     {

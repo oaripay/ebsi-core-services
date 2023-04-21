@@ -6,9 +6,10 @@ import { HealthModule } from "./modules/health/health.module";
 import { ApiConfigModule } from "./config/configuration";
 import { LoggingInterceptor } from "./interceptors/logging.interceptor";
 import { VersionInterceptor } from "./interceptors/version.interceptor";
+import { OpenApiModule } from "./modules/openapi/openapi.module";
 
 @Module({
-  imports: [ApiConfigModule, NotificationsModule, HealthModule],
+  imports: [ApiConfigModule, NotificationsModule, HealthModule, OpenApiModule],
   controllers: [AppController],
   providers: [
     {

@@ -7,6 +7,7 @@ import { HealthModule } from "./modules/health/health.module";
 import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module";
 import { PoliciesModule } from "./modules/policies/policies.module";
 import { UsersModule } from "./modules/users/users.module";
+import { OpenApiModule } from "./modules/openapi/openapi.module";
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { UsersModule } from "./modules/users/users.module";
     JsonRpcModule,
     PoliciesModule,
     UsersModule,
+    OpenApiModule,
   ],
   providers: [
     {

@@ -9,6 +9,7 @@ import { TimestampsModule } from "./modules/timestamps/timestamps.module";
 import { HealthModule } from "./modules/health/health.module";
 import { LoggingInterceptor } from "./interceptors/logging.interceptor";
 import { VersionInterceptor } from "./interceptors/version.interceptor";
+import { OpenApiModule } from "./modules/openapi/openapi.module";
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { VersionInterceptor } from "./interceptors/version.interceptor";
     RecordsModule,
     TimestampsModule,
     HealthModule,
+    OpenApiModule,
   ],
   controllers: [],
   providers: [

@@ -7,6 +7,7 @@ import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module";
 import { HealthModule } from "./modules/health/health.module";
 import { LoggingInterceptor } from "./interceptors/logging.interceptor";
 import { VersionInterceptor } from "./interceptors/version.interceptor";
+import { OpenApiModule } from "./modules/openapi/openapi.module";
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { VersionInterceptor } from "./interceptors/version.interceptor";
     IssuersModule,
     JsonRpcModule,
     HealthModule,
+    OpenApiModule,
   ],
   controllers: [],
   providers: [

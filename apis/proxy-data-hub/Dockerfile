@@ -10,6 +10,7 @@ COPY --from=builder /app/package.json ./package.json
 # Copy Proxy Data Hub API
 COPY --from=builder /app/apis/proxy-data-hub/package.json ./apis/proxy-data-hub/package.json
 COPY --from=builder /app/apis/proxy-data-hub/dist ./apis/proxy-data-hub/dist
+COPY --from=builder /app/apis/proxy-data-hub/api ./apis/proxy-data-hub/api
 # Copy shared code
 COPY --from=builder /app/apis/shared/package.json ./apis/shared/package.json
 COPY --from=builder /app/apis/shared/dist ./apis/shared/dist

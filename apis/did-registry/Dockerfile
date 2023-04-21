@@ -10,6 +10,7 @@ COPY --from=builder /app/package.json ./package.json
 # Copy DID Registry API
 COPY --from=builder /app/apis/did-registry/package.json ./apis/did-registry/package.json
 COPY --from=builder /app/apis/did-registry/dist ./apis/did-registry/dist
+COPY --from=builder /app/apis/did-registry/api ./apis/did-registry/api
 # Copy Bootstrap SC
 COPY --from=builder /app/contracts/bootstrap/package.json ./contracts/bootstrap/package.json
 COPY --from=builder /app/contracts/bootstrap/dist ./contracts/bootstrap/dist

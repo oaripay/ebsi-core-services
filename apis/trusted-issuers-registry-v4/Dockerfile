@@ -10,6 +10,7 @@ COPY --from=builder /app/package.json ./package.json
 # Copy TIR API
 COPY --from=builder /app/apis/trusted-issuers-registry-v4/package.json ./apis/trusted-issuers-registry-v4/package.json
 COPY --from=builder /app/apis/trusted-issuers-registry-v4/dist ./apis/trusted-issuers-registry-v4/dist
+COPY --from=builder /app/apis/trusted-issuers-registry-v4/api ./apis/trusted-issuers-registry-v4/api
 # Copy Bootstrap SC
 COPY --from=builder /app/contracts/bootstrap/package.json ./contracts/bootstrap/package.json
 COPY --from=builder /app/contracts/bootstrap/dist ./contracts/bootstrap/dist

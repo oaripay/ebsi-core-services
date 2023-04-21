@@ -10,6 +10,7 @@ COPY --from=builder /app/package.json ./package.json
 # Copy Storage API
 COPY --from=builder /app/apis/storage/package.json ./apis/storage/package.json
 COPY --from=builder /app/apis/storage/dist ./apis/storage/dist
+COPY --from=builder /app/apis/storage/api ./apis/storage/api
 # Copy shared code
 COPY --from=builder /app/apis/shared/package.json ./apis/shared/package.json
 COPY --from=builder /app/apis/shared/dist ./apis/shared/dist

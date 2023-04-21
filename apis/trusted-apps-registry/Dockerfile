@@ -10,6 +10,7 @@ COPY --from=builder /app/package.json ./package.json
 # Copy TAR API
 COPY --from=builder /app/apis/trusted-apps-registry/package.json ./apis/trusted-apps-registry/package.json
 COPY --from=builder /app/apis/trusted-apps-registry/dist ./apis/trusted-apps-registry/dist
+COPY --from=builder /app/apis/trusted-apps-registry/api ./apis/trusted-apps-registry/api
 # Copy Bootstrap SC
 COPY --from=builder /app/contracts/bootstrap/package.json ./contracts/bootstrap/package.json
 COPY --from=builder /app/contracts/bootstrap/dist ./contracts/bootstrap/dist

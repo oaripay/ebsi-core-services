@@ -10,6 +10,7 @@ COPY --from=builder /app/package.json ./package.json
 # Copy Notifications API
 COPY --from=builder /app/apis/notifications/package.json ./apis/notifications/package.json
 COPY --from=builder /app/apis/notifications/dist ./apis/notifications/dist
+COPY --from=builder /app/apis/notifications/api ./apis/notifications/api
 # Copy shared code
 COPY --from=builder /app/apis/shared/package.json ./apis/shared/package.json
 COPY --from=builder /app/apis/shared/dist ./apis/shared/dist

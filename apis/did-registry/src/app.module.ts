@@ -10,6 +10,7 @@ import { AuthModule } from "./modules/auth/auth.module";
 import { LedgerModule } from "./modules/ledger/ledger.module";
 import { LoggingInterceptor } from "./interceptors/logging.intereceptor";
 import { VersionInterceptor } from "./interceptors/version.interceptor";
+import { OpenApiModule } from "./modules/openapi/openapi.module";
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { VersionInterceptor } from "./interceptors/version.interceptor";
     DidTimestampsModule,
     HashAlgorithmsModule,
     IdentifiersModule,
+    OpenApiModule,
   ],
   providers: [
     {

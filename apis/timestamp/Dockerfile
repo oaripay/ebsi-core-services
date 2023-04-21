@@ -10,6 +10,7 @@ COPY --from=builder /app/package.json ./package.json
 # Copy TAR API
 COPY --from=builder /app/apis/timestamp/package.json ./apis/timestamp/package.json
 COPY --from=builder /app/apis/timestamp/dist ./apis/timestamp/dist
+COPY --from=builder /app/apis/timestamp/api ./apis/timestamp/api
 # Copy Bootstrap SC
 COPY --from=builder /app/contracts/bootstrap/package.json ./contracts/bootstrap/package.json
 COPY --from=builder /app/contracts/bootstrap/dist ./contracts/bootstrap/dist
