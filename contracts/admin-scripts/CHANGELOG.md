@@ -19,7 +19,6 @@
 - Updated dependencies [4a7ea0a5](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/4a7ea0a5)
 - Updated dependencies [78ee438b](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/78ee438b)
 - Updated dependencies [a6a1f685](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/a6a1f685)
-  - @ebsiint-sc/trusted-ledgers-sc-registry@1.0.1-rc.1
   - @ebsiint-sc/trusted-policies-registry@1.0.1-rc.1
   - @ebsiint-sc/trusted-issuers-registry@4.0.0-rc.1
   - @ebsiint-sc/trusted-schemas-registry@1.0.1-rc.1
@@ -41,7 +40,6 @@
   - @ebsiint-sc/did-registry@1.0.1-rc.0
   - @ebsiint-sc/trusted-apps-registry@2.0.1-rc.0
   - @ebsiint-sc/trusted-issuers-registry@3.0.1-rc.0
-  - @ebsiint-sc/trusted-ledgers-sc-registry@1.0.1-rc.0
   - @ebsiint-sc/trusted-policies-registry@1.0.1-rc.0
   - @ebsiint-sc/trusted-schemas-registry@1.0.1-rc.0
   - @ebsiint-sc/bootstrap@1.0.1-rc.0

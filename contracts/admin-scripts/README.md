@@ -121,7 +121,6 @@ STORAGE = Storage of version location from the appendix below
            | TrustedIssuersRegistry | Tir              	| diamond.standard.tir.storage                            	|
            | DidRegistry           	| DidRegistry      	| diamond.standard.did.registry.storage                   	|
            | TrustedSchemaRegistry 	| SchemaSCRegistry 	| diamond.standard.trusted.schema.smart.contracts.storage 	|
-           | TrustedLedgerRegistry 	| LedgerSCRegistry 	| diamond.standard.trusted.ledger.smart.contracts.storage 	|
            | Timestamp             	| Timestamp        	| diamond.standard.timestamp.storage                      	|
            | PolicyRegisty         	| PolicyRegistry   	| diamond.standard.policy.registry.storage                 	|
 
@@ -166,7 +165,6 @@ trusted-issuers-registry-api
 trusted-schemas-registry-api
 trusted-apps-registry-api
 trusted-iam-registry-api
-trusted-ledgers-sc-registry-api
 verifiable-credential-api
 verifiable-presentation-api
 identity-hub-api

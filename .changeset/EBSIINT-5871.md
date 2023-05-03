@@ -1,11 +1,9 @@
 ---
-"@ebsiint-sc/trusted-ledgers-sc-registry": patch
 "@ebsiint-app/users-onboarding-web-client-v2": patch
 "@ebsiint-sc/trusted-policies-registry": patch
 "@ebsiint-sc/trusted-issuers-registry": patch
 "@ebsiint-sc/trusted-schemas-registry": patch
 "@ebsiint-api/trusted-issuers-registry-api-v4": patch
-"@ebsiint-api/trusted-ledgers-sc-registry-api-v2": patch
 "@ebsiint-sc/trusted-apps-registry": patch
 "@ebsiint-api/trusted-policies-registry-api-v2": patch
 "@ebsiint-api/trusted-issuers-registry-api-v3": patch

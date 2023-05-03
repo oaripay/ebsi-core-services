@@ -33,9 +33,6 @@ cp -r ${SCRIPT_DIR}/../../trusted-apps-registry/contracts ${SCRIPT_DIR}/../contr
 echo Copy the trusted-issuers-registry
 cp -r ${SCRIPT_DIR}/../../trusted-issuers-registry/contracts ${SCRIPT_DIR}/../contracts/trusted-issuers-registry
 
-echo Copy the trusted-ledgers-sc-registry
-cp -r ${SCRIPT_DIR}/../../trusted-ledgers-sc-registry/contracts ${SCRIPT_DIR}/../contracts/trusted-ledgers-sc-registry
-
 echo Copy the trusted-policies-registry
 cp -r ${SCRIPT_DIR}/../../trusted-policies-registry/contracts ${SCRIPT_DIR}/../contracts/trusted-policies-registry
 

@@ -1,6 +1,5 @@
 ---
 "@ebsiint-api/trusted-issuers-registry-api-v4": patch
-"@ebsiint-api/trusted-ledgers-sc-registry-api-v2": patch
 "@ebsiint-api/trusted-policies-registry-api-v2": patch
 "@ebsiint-api/trusted-issuers-registry-api-v3": patch
 "@ebsiint-api/trusted-schemas-registry-api-v2": patch
