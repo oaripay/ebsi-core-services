@@ -192,7 +192,7 @@ describe("Timestamp Hashes", () => {
       ts.getTimestampById(ethers.constants.HashZero)
     ).to.be.revertedWith("tsId empty");
   });
-  it("timestampHashes should failed if > 3", async () => {
+  it("timestampHashes should fail if > 3", async () => {
     await expect(
       ts.timestampHashes(
         [0, 1, 2, 3],
@@ -261,7 +261,7 @@ describe("Timestamp Hashes", () => {
       )
     ).to.be.revertedWith("timestampData>3");
   });
-  it("timestampHashes should failed for unknown hash algo", async () => {
+  it("timestampHashes should fail for unknown hash algo", async () => {
     await expect(
       ts.timestampHashes(
         [7, 1, 2],
@@ -278,7 +278,7 @@ describe("Timestamp Hashes", () => {
       )
     ).to.be.revertedWith("hashAlgo unknown");
   });
-  it("timestampHashes should failed for empty value and hash", async () => {
+  it("timestampHashes should fail for empty value and hash", async () => {
     await expect(ts.insertHashAlgorithm(256, "SHA256", "oid", 1, "")).to.emit(
       ts,
       "AddNewHashAlgo"
@@ -353,7 +353,7 @@ describe("Timestamp Hashes", () => {
     ]);
   });
 
-  it("getTimestamps should failed with wrong page and pageSize", async () => {
+  it("getTimestamps should fail with wrong page and pageSize", async () => {
     const resTsIds: string[] = [];
     for (let i = 1; i < 12; i += 1) {
       const data = `SHA-${i}`;

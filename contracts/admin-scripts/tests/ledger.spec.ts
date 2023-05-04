@@ -65,7 +65,7 @@ describe("Ledger", () => {
     await policyContractMock.setPolicyResult(true);
   });
 
-  it("insertLedgerInfo should failed for empty params", async () => {
+  it("insertLedgerInfo should fail for empty params", async () => {
     const info = ethers.utils.toUtf8Bytes("ledger info");
     await expect(ts.insertLedgerInfo("", info)).to.be.revertedWith(
       "name empty"
@@ -74,7 +74,7 @@ describe("Ledger", () => {
       "info empty"
     );
   });
-  it("insertLedgerInfo should failed when already registered", async () => {
+  it("insertLedgerInfo should fail when already registered", async () => {
     const info = ethers.utils.toUtf8Bytes("ledger info");
     await ts.insertLedgerInfo("ledger name", info);
 
@@ -118,7 +118,7 @@ describe("Ledger", () => {
     const ledgerInfo = await ts.getLatestLedgerInfoByName("ledger name");
     expect(ledgerInfo).to.equal(ethers.utils.hexlify(newInfo));
   });
-  it("updateLedgerInfoById should failed for empty params", async () => {
+  it("updateLedgerInfoById should fail for empty params", async () => {
     const info = ethers.utils.toUtf8Bytes("ledger info");
     await expect(
       ts.updateLedgerInfoById(ethers.constants.HashZero, info)
@@ -127,7 +127,7 @@ describe("Ledger", () => {
       ts.updateLedgerInfoById(ethers.utils.sha256(info), [])
     ).to.be.revertedWith("info empty");
   });
-  it("updateLedgerInfoById should failed when already registered", async () => {
+  it("updateLedgerInfoById should fail when already registered", async () => {
     const info = ethers.utils.toUtf8Bytes("ledger info");
 
     await expect(
@@ -154,7 +154,7 @@ describe("Ledger", () => {
     const ledgerInfo = await ts.getLatestLedgerInfoByName("ledger name");
     expect(ledgerInfo).to.equal(ethers.utils.hexlify(newInfo));
   });
-  it("updateLedgerInfoByName should failed for empty params", async () => {
+  it("updateLedgerInfoByName should fail for empty params", async () => {
     const info = ethers.utils.toUtf8Bytes("ledger info");
     await expect(ts.updateLedgerInfoByName("", info)).to.be.revertedWith(
       "name empty"
@@ -163,7 +163,7 @@ describe("Ledger", () => {
       ts.updateLedgerInfoByName("ledger name", [])
     ).to.be.revertedWith("info empty");
   });
-  it("updateLedgerInfoByName should failed when already registered", async () => {
+  it("updateLedgerInfoByName should fail when already registered", async () => {
     const info = ethers.utils.toUtf8Bytes("ledger info");
 
     await expect(
@@ -193,7 +193,7 @@ describe("Ledger", () => {
     const oldLedgerInfo = await ts.getLatestLedgerInfoByName(ledgerName);
     expect(oldLedgerInfo).to.equal(ethers.utils.hexlify(newInfo));
   });
-  it("updateLedgerName should failed for empty params", async () => {
+  it("updateLedgerName should fail for empty params", async () => {
     await expect(ts.updateLedgerName("", "info")).to.be.revertedWith(
       "oldName empty"
     );
@@ -201,7 +201,7 @@ describe("Ledger", () => {
       "newName empty"
     );
   });
-  it("updateLedgerName should failed when already registered", async () => {
+  it("updateLedgerName should fail when already registered", async () => {
     const info = ethers.utils.toUtf8Bytes("ledger info");
     const ledgerName = "ledger name";
     await ts.insertLedgerInfo(ledgerName, info);
@@ -214,7 +214,7 @@ describe("Ledger", () => {
     ).to.be.revertedWith("new name exists");
   });
 
-  it("getLedgerInfoIds should failed with wrong page and pageSize", async () => {
+  it("getLedgerInfoIds should fail with wrong page and pageSize", async () => {
     const info = ethers.utils.toUtf8Bytes("ledger info");
 
     const ledgerName = "ledger name";
@@ -271,7 +271,7 @@ describe("Ledger", () => {
     expect(r1.next).to.equal(1);
   });
 
-  it("getLatestLedgerInfoById should failed for empty params", async () => {
+  it("getLatestLedgerInfoById should fail for empty params", async () => {
     await expect(
       ts.getLatestLedgerInfoById(ethers.constants.HashZero)
     ).to.be.revertedWith("ledgerInfoId empty");
@@ -305,7 +305,7 @@ describe("Ledger", () => {
     }
   });
 
-  it("getLatestLedgerInfoByName should failed for empty params", async () => {
+  it("getLatestLedgerInfoByName should fail for empty params", async () => {
     await expect(ts.getLatestLedgerInfoByName("")).to.be.revertedWith(
       "name empty"
     );
@@ -337,7 +337,7 @@ describe("Ledger", () => {
     }
   });
 
-  it("getLedgerInfoIdByName should failed for empty params", async () => {
+  it("getLedgerInfoIdByName should fail for empty params", async () => {
     await expect(ts.getLedgerInfoIdByName("")).to.be.revertedWith("name empty");
   });
   it("getLedgerInfoIdByName should fail when ledger is unknown", async () => {
@@ -372,7 +372,7 @@ describe("Ledger", () => {
     }
   });
 
-  it("getLedgerInfoByRevisionId should failed for empty params", async () => {
+  it("getLedgerInfoByRevisionId should fail for empty params", async () => {
     await expect(
       ts.getLedgerInfoByRevisionId(ethers.constants.HashZero)
     ).to.be.revertedWith("ledgerInfoRevisionId empty");
@@ -404,12 +404,12 @@ describe("Ledger", () => {
     }
   });
 
-  it("getLedgerInfoRevisionIds should failed for empty params", async () => {
+  it("getLedgerInfoRevisionIds should fail for empty params", async () => {
     await expect(
       ts.getLedgerInfoRevisionIds(ethers.constants.HashZero, 1, 10)
     ).to.be.revertedWith("ledgerInfoId empty");
   });
-  it("getLedgerInfoRevisionIds should failed with wrong page and pageSize", async () => {
+  it("getLedgerInfoRevisionIds should fail with wrong page and pageSize", async () => {
     const info = ethers.utils.toUtf8Bytes("ledger info");
 
     const ledgerName = "ledger name";

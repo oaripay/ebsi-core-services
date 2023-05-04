@@ -8,7 +8,7 @@ module.exports = {
     "no-inline-assembly": "off",
     // needed for virtual functions
     "no-empty-blocks": "off",
-    // needed forproxy delegatecall
+    // needed for proxy delegatecall
     "avoid-low-level-calls": "off",
   },
 };

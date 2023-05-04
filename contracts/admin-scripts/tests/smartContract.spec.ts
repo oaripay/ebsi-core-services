@@ -71,7 +71,7 @@ describe("SmartContract", () => {
     await policyContractMock.setPolicyResult(true);
   });
 
-  it("insertSmartContractInfo should failed for empty params", async () => {
+  it("insertSmartContractInfo should fail for empty params", async () => {
     const info = ethers.utils.toUtf8Bytes("smartContract info");
     await expect(ts.insertSmartContractInfo("", info)).to.be.revertedWith(
       "name empty"
@@ -80,7 +80,7 @@ describe("SmartContract", () => {
       "info empty"
     );
   });
-  it("insertSmartContractInfo should failed when already registered", async () => {
+  it("insertSmartContractInfo should fail when already registered", async () => {
     const info = ethers.utils.toUtf8Bytes("smartContract info");
     await ts.insertSmartContractInfo("smartContract name", info);
 
@@ -135,7 +135,7 @@ describe("SmartContract", () => {
     );
     expect(smartContractInfo).to.equal(ethers.utils.hexlify(newInfo));
   });
-  it("updateSmartContractInfoById should failed for empty params", async () => {
+  it("updateSmartContractInfoById should fail for empty params", async () => {
     const info = ethers.utils.toUtf8Bytes("smartContract info");
     await expect(
       ts.updateSmartContractInfoById(ethers.constants.HashZero, info)
@@ -144,7 +144,7 @@ describe("SmartContract", () => {
       ts.updateSmartContractInfoById(ethers.utils.sha256(info), [])
     ).to.be.revertedWith("info empty");
   });
-  it("updateSmartContractInfoById should failed when already registered", async () => {
+  it("updateSmartContractInfoById should fail when already registered", async () => {
     const info = ethers.utils.toUtf8Bytes("smartContract info");
 
     await expect(
@@ -175,7 +175,7 @@ describe("SmartContract", () => {
     );
     expect(smartContractInfo).to.equal(ethers.utils.hexlify(newInfo));
   });
-  it("updateSmartContractInfoByName should failed for empty params", async () => {
+  it("updateSmartContractInfoByName should fail for empty params", async () => {
     const info = ethers.utils.toUtf8Bytes("smartContract info");
     await expect(ts.updateSmartContractInfoByName("", info)).to.be.revertedWith(
       "name empty"
@@ -184,7 +184,7 @@ describe("SmartContract", () => {
       ts.updateSmartContractInfoByName("smartContract name", [])
     ).to.be.revertedWith("info empty");
   });
-  it("updateSmartContractInfoByName should failed when already registered", async () => {
+  it("updateSmartContractInfoByName should fail when already registered", async () => {
     const info = ethers.utils.toUtf8Bytes("smartContract info");
 
     await expect(
@@ -220,7 +220,7 @@ describe("SmartContract", () => {
     );
     expect(oldSmartContractInfo).to.equal(ethers.utils.hexlify(newInfo));
   });
-  it("updateSmartContractName should failed for empty params", async () => {
+  it("updateSmartContractName should fail for empty params", async () => {
     await expect(ts.updateSmartContractName("", "info")).to.be.revertedWith(
       "oldName empty"
     );
@@ -228,7 +228,7 @@ describe("SmartContract", () => {
       ts.updateSmartContractName("smartContract name", "")
     ).to.be.revertedWith("newName empty");
   });
-  it("updateSmartContractName should failed when already registered", async () => {
+  it("updateSmartContractName should fail when already registered", async () => {
     const info = ethers.utils.toUtf8Bytes("smartContract info");
     const smartContractName = "smartContract name";
     await ts.insertSmartContractInfo(smartContractName, info);
@@ -241,7 +241,7 @@ describe("SmartContract", () => {
     ).to.be.revertedWith("new name exists");
   });
 
-  it("getSmartContractInfoIds should failed with wrong page and pageSize", async () => {
+  it("getSmartContractInfoIds should fail with wrong page and pageSize", async () => {
     const info = ethers.utils.toUtf8Bytes("smartContract info");
 
     const smartContractName = "smartContract name";
@@ -302,7 +302,7 @@ describe("SmartContract", () => {
     expect(r1.next).to.equal(1);
   });
 
-  it("getLatestSmartContractInfoById should failed for empty params", async () => {
+  it("getLatestSmartContractInfoById should fail for empty params", async () => {
     await expect(
       ts.getLatestSmartContractInfoById(ethers.constants.HashZero)
     ).to.be.revertedWith("smartContractInfoId empty");
@@ -336,7 +336,7 @@ describe("SmartContract", () => {
     }
   });
 
-  it("getLatestSmartContractInfoByName should failed for empty params", async () => {
+  it("getLatestSmartContractInfoByName should fail for empty params", async () => {
     await expect(ts.getLatestSmartContractInfoByName("")).to.be.revertedWith(
       "name empty"
     );
@@ -368,7 +368,7 @@ describe("SmartContract", () => {
     }
   });
 
-  it("getSmartContractInfoIdByName should failed for empty params", async () => {
+  it("getSmartContractInfoIdByName should fail for empty params", async () => {
     await expect(ts.getSmartContractInfoIdByName("")).to.be.revertedWith(
       "name empty"
     );
@@ -405,7 +405,7 @@ describe("SmartContract", () => {
     }
   });
 
-  it("getSmartContractInfoByRevisionId should failed for empty params", async () => {
+  it("getSmartContractInfoByRevisionId should fail for empty params", async () => {
     await expect(
       ts.getSmartContractInfoByRevisionId(ethers.constants.HashZero)
     ).to.be.revertedWith("smartContractInfoRevisionId empty");
@@ -443,12 +443,12 @@ describe("SmartContract", () => {
     }
   });
 
-  it("getSmartContractInfoRevisionIds should failed for empty params", async () => {
+  it("getSmartContractInfoRevisionIds should fail for empty params", async () => {
     await expect(
       ts.getSmartContractInfoRevisionIds(ethers.constants.HashZero, 1, 10)
     ).to.be.revertedWith("smartContractInfoId empty");
   });
-  it("getSmartContractInfoRevisionIds should failed with wrong page and pageSize", async () => {
+  it("getSmartContractInfoRevisionIds should fail with wrong page and pageSize", async () => {
     const info = ethers.utils.toUtf8Bytes("smartContract info");
 
     const smartContractName = "smartContract name";

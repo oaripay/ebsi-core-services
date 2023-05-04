@@ -131,7 +131,7 @@ describe("SchemaPolicies", () => {
       const resAttributeHash = [...Array(11).keys()].map((i) =>
         ethers.utils.sha256(ethers.utils.toUtf8Bytes(`data-update-${i}`))
       );
-      it("should failed with wrong page size", async () => {
+      it("should fail with wrong page size", async () => {
         const did = `didi`;
         const firstinputdata = ethers.utils.toUtf8Bytes("data-update-0");
         const didFirstInputHash = ethers.utils.sha256(firstinputdata);
@@ -321,7 +321,7 @@ describe("SchemaPolicies", () => {
         "10",
       ];
 
-      it("should failed with wrong page size", async () => {
+      it("should fail with wrong page size", async () => {
         for (let i = 0; i < 11; i += 1) {
           const did = `${i}`;
           const data = `data${i}`;

@@ -2,7 +2,6 @@ import { ethers, waffle, network } from "hardhat";
 import { Contract } from "ethers";
 import { expect } from "chai";
 import StringManipArtifact from "@ebsiint-sc/bootstrap/artifacts/contracts/utils/StringManip.sol/StringManip.json";
-
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { testTprAddress } from "./testAddress";
 
@@ -64,6 +63,7 @@ describe("Hash Algorithm", () => {
       "Policy error: sender doesn't have the attribute TS:insertHashAlgorithm"
     );
   });
+
   it("should fail when user does not have attribute updateHashAlgorithm", async () => {
     await policyContractMock.setPolicyResult(false);
     await expect(
@@ -72,6 +72,7 @@ describe("Hash Algorithm", () => {
       "Policy error: sender doesn't have the attribute TS:updateHashAlgorithm"
     );
   });
+
   it("getHashAlgorithmById should succeed", async () => {
     await expect(
       ts.insertHashAlgorithm(256, "SHA256", "oid256", 1, "multi")
@@ -99,11 +100,13 @@ describe("Hash Algorithm", () => {
     expect(receipt3.status).to.equal(1);
     expect(receipt3.multiHash).to.equal("multi2-256");
   });
+
   it("getHashAlgorithmById should revert if hash is unknown", async () => {
     await expect(ts.getHashAlgorithmById(0)).to.be.revertedWith(
       "hashAlgo unknown"
     );
   });
+
   it("insertHashAlgorithm should revert for incorrect parameters", async () => {
     await expect(
       ts.connect(admin).insertHashAlgorithm(0, "SHA256", "oid", 1, "")
@@ -117,6 +120,7 @@ describe("Hash Algorithm", () => {
       ts.insertHashAlgorithm(256, "", "oid", 1, "")
     ).to.be.revertedWith("ianaName unknown");
   });
+
   it("insertHashAlgorithm should work", async () => {
     await expect(
       ts.connect(admin).insertHashAlgorithm(256, "SHA256", "oid", 1, "")
@@ -135,6 +139,7 @@ describe("Hash Algorithm", () => {
     expect(receipt.status).to.equal(1);
     expect(receipt.multiHash).to.equal("tt");
   });
+
   it("updateHashAlgorithm should revert for incorrect parameters", async () => {
     await expect(
       ts.updateHashAlgorithm(0, 0, "SHA256", "oid", 1, "")
@@ -146,6 +151,7 @@ describe("Hash Algorithm", () => {
       ts.updateHashAlgorithm(0, 1, "SHA256", "oid", 1, "")
     ).to.be.revertedWith("hashAlgorithmId unknown");
   });
+
   it("updateHashAlgorithm should revert for empty ianaName", async () => {
     await expect(ts.insertHashAlgorithm(256, "SHA256", "oid", 1, "")).to.emit(
       ts,
@@ -165,6 +171,7 @@ describe("Hash Algorithm", () => {
       ts.updateHashAlgorithm(1, 1024, "", "oid3", 2, "")
     ).to.be.revertedWith("ianaName unknown");
   });
+
   it("updateHashAlgorithm should fail for ianaName having the same value", async () => {
     await expect(ts.insertHashAlgorithm(256, "SHA256", "oid", 1, "")).to.emit(
       ts,
@@ -184,6 +191,7 @@ describe("Hash Algorithm", () => {
       ts.updateHashAlgorithm(1, 1024, "SHA3-512", "oid3", 2, "")
     ).to.be.revertedWith("ianaName value already set");
   });
+
   it("updateHashAlgorithm should work", async () => {
     await expect(ts.insertHashAlgorithm(256, "SHA256", "oid", 1, "")).to.emit(
       ts,
@@ -209,7 +217,8 @@ describe("Hash Algorithm", () => {
     expect(updated.status).to.equal(2);
     expect(updated.multiHash).to.equal("");
   });
-  it("getHashAlgorithms should failed with wrong page and pageSize", async () => {
+
+  it("getHashAlgorithms should fail with wrong page and pageSize", async () => {
     const resHashIds: number[] = [];
     for (let i = 1; i < 12; i += 1) {
       const name = `SHA-${i}`;
@@ -232,6 +241,7 @@ describe("Hash Algorithm", () => {
       "PSize not <= 50"
     );
   });
+
   it("getHashAlgorithms should work with correct page and pageSize", async () => {
     const resHashIds: number[] = [];
     for (let i = 1; i < 12; i += 1) {

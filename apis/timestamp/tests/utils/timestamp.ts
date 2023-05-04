@@ -1,9 +1,9 @@
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="../../../../contracts/timestamp/src/types/hardhat.d.ts" />
+import { createHash, randomBytes, randomInt } from "node:crypto";
 import hre from "hardhat";
 import "@nomiclabs/hardhat-ethers";
 import { ContractTransaction, Contract, ethers } from "ethers";
-import crypto from "node:crypto";
 import { HashName } from "multihashes";
 import { Timestamp } from "@ebsiint-sc/timestamp";
 
@@ -127,8 +127,7 @@ const outputLengths = {
 export async function insertHashAlgorithm(
   contract: Timestamp
 ): Promise<HashAlgorithmObject> {
-  const ianaName =
-    validHashAlgorithms[Math.floor(Math.random() * validHashAlgorithms.length)];
+  const ianaName = validHashAlgorithms[randomInt(validHashAlgorithms.length)];
   const outputLength = outputLengths[ianaName];
   const oid = "oid-test";
   const status = 1;
@@ -161,15 +160,14 @@ export async function insertRecord(
     .fill(0)
     .map(
       () =>
-        `0x${crypto
-          .createHash(multihashToNodeHashAlg[hashAlgorithm.multihash])
-          .update(crypto.randomBytes(32).toString("hex"), "hex")
+        `0x${createHash(multihashToNodeHashAlg[hashAlgorithm.multihash])
+          .update(randomBytes(32).toString("hex"), "hex")
           .digest()
           .toString("hex")}`
     );
   const timestampData = Array(3)
     .fill(0)
-    .map(() => `0x${crypto.randomBytes(4).toString("hex")}`);
+    .map(() => `0x${randomBytes(4).toString("hex")}`);
   const versionInfo = `0x${Buffer.from(
     JSON.stringify({ test: "my test" }),
     "utf8"
@@ -202,13 +200,12 @@ export async function insertHash(
 ): Promise<HashObect> {
   const hashAlgorithmIds = [0];
   const hashValues = [
-    `0x${crypto
-      .createHash(multihashToNodeHashAlg[hashAlgorithm.multihash])
-      .update(crypto.randomBytes(32).toString("hex"), "hex")
+    `0x${createHash(multihashToNodeHashAlg[hashAlgorithm.multihash])
+      .update(randomBytes(32).toString("hex"), "hex")
       .digest()
       .toString("hex")}`,
   ];
-  const timestampData = [`0x${crypto.randomBytes(4).toString("hex")}`];
+  const timestampData = [`0x${randomBytes(4).toString("hex")}`];
 
   const tx = await contract.timestampHashes(
     hashAlgorithmIds,

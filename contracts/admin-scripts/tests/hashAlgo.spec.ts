@@ -212,7 +212,7 @@ describe("Hash Algorithm", () => {
     expect(updated.status).to.equal(2);
     expect(updated.multiHash).to.equal("");
   });
-  it("getHashAlgorithms should failed with wrong page and pageSize", async () => {
+  it("getHashAlgorithms should fail with wrong page and pageSize", async () => {
     const resHashIds: number[] = [];
     for (let i = 1; i < 12; i += 1) {
       const name = `SHA-${i}`;

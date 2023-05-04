@@ -1,3 +1,4 @@
+import { randomInt } from "node:crypto";
 import jsonwebtoken from "jsonwebtoken";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { Notification } from "../../src/modules/notifications/notifications.interface";
@@ -20,7 +21,7 @@ function createNotification(
   to = EbsiWallet.createDid(),
   ttl = 3600
 ): Notification {
-  const now = Date.now() + Math.trunc(Math.random() * 1000);
+  const now = Date.now() + randomInt(1000);
   return {
     schemaId: "notifications-001",
     type: ["Notification", "StoreVerifiableCredential"],

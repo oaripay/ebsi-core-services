@@ -6,7 +6,6 @@ import "@nomiclabs/hardhat-etherscan";
 import "hardhat-abi-exporter";
 import "solidity-coverage";
 import "@openzeppelin/hardhat-upgrades";
-import "hardhat-gas-reporter";
 import * as fs from "node:fs";
 
 const mnemonicPath = `${__dirname}/.secret.mnemonic`;
