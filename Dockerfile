@@ -50,7 +50,7 @@ RUN yarn install --frozen-lockfile --silent && yarn cache clean
 # Copy all other files
 COPY . .
 
-# Build affected projects
-RUN yarn build
+# Build affected projects and delete node_modules
+RUN yarn build && rm -rf ./**/node_modules
 
 USER node
