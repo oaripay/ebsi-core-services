@@ -1,6 +1,2 @@
 ignored:
-  - DL3006 # allow starting from core-services without specific tag
-  - DL3008 # allow non-strict package version on apt get install
-  - DL3015 # allow installing recommended packages
-  - DL3018
-  - DL3059 # allow loose version package on apk installation
+  - DL3059 # allow multiple consecutive RUN instructions
