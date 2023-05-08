@@ -16,8 +16,6 @@
     "@ebsiint-api/trusted-issuers-registry-api-v3": "3.0.0-rc.2",
     "@ebsiint-api/trusted-policies-registry-api-v2": "2.0.0-rc.2",
     "@ebsiint-api/trusted-schemas-registry-api-v2": "2.0.0-rc.2",
-    "@ebsiint-api/users-onboarding-api-v2": "2.0.0-rc.2",
-    "@ebsiint-app/users-onboarding-web-client-v2": "2.0.0-rc.0",
     "@ebsiint-sc/admin-scripts": "1.0.0",
     "@ebsiint-sc/bootstrap": "1.0.0",
     "@ebsiint-sc/did-registry": "1.0.0",

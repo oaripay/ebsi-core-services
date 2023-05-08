@@ -31,8 +31,6 @@ COPY ./apis/trusted-issuers-registry/package.json ./apis/trusted-issuers-registr
 COPY ./apis/trusted-issuers-registry-v4/package.json ./apis/trusted-issuers-registry-v4/
 COPY ./apis/trusted-policies-registry/package.json ./apis/trusted-policies-registry/
 COPY ./apis/trusted-schemas-registry/package.json ./apis/trusted-schemas-registry/
-COPY ./apis/users-onboarding/package.json ./apis/users-onboarding/
-COPY ./apps/users-onboarding-web-client-v2/package.json ./apps/users-onboarding-web-client-v2/
 COPY ./contracts/bootstrap/package.json ./contracts/bootstrap/
 COPY ./contracts/did-registry/package.json ./contracts/did-registry/
 COPY ./contracts/did-registry-v4/package.json ./contracts/did-registry-v4/

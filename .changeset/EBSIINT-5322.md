@@ -3,7 +3,6 @@
 "@ebsiint-api/trusted-issuers-registry-api-v3": patch
 "@ebsiint-api/trusted-schemas-registry-api-v2": patch
 "@ebsiint-api/trusted-apps-registry-api-v3": patch
-"@ebsiint-api/users-onboarding-api-v2": patch
 "@ebsiint-api/proxy-data-hub-api-v3": patch
 "@ebsiint-api/authorisation-api-v2": patch
 "@ebsiint-api/notifications-api-v2": patch

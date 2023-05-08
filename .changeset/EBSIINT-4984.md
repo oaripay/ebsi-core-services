@@ -10,7 +10,6 @@
 "@ebsiint-api/trusted-issuers-registry-api-v3": patch
 "@ebsiint-api/trusted-policies-registry-api-v2": patch
 "@ebsiint-api/trusted-schemas-registry-api-v2": patch
-"@ebsiint-api/users-onboarding-api-v2": patch
 ---
 
 Refactor common code with Sonar-reported high complexity.

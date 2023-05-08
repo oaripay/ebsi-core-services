@@ -151,8 +151,8 @@ npx hardhat --network localWithData fixTarStatus --proxy <PROXY OF TAR> --app <A
 
 Note:
 PROXY OF TAR: address of the proxy of TAR
-APP_TO_BE_UPDATED: the name of the app to be updated, i.e. : users-onboarding-api
-APP_AUTH: list of apps with comma or all to update all, i.e. : users-onboarding-api,ledger-api or all (this parameter can be ommited and it will take all by default)
+APP_TO_BE_UPDATED: the name of the app to be updated, i.e. : did-registry-api
+APP_AUTH: list of apps with comma or all to update all, i.e. : did-registry-api,ledger-api or all (this parameter can be omitted and it will take all by default)
 
 ####APPENDIX LIST OF APPS:
 user-wallet-web-client
@@ -171,7 +171,6 @@ identity-hub-api
 did-registry-api
 eidas-bridge-api
 authorisation-api
-users-onboarding-api
 reverse-proxy
 wallet-api
 timestamp-api

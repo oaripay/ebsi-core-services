@@ -7,9 +7,6 @@
 yarn-error.log
 JenkinsfileTest
 
-# Apps
-apps/users-onboarding-web-client-v2/build
-
 ## APIs
 apis/*/coverage
 apis/*/dist

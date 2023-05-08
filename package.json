@@ -65,7 +65,6 @@
   "workspaces": {
     "packages": [
       "apis/*",
-      "apps/*",
       "contracts/*"
     ],
     "nohoist": [

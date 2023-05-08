@@ -1,5 +1,4 @@
 ---
-"@ebsiint-app/users-onboarding-web-client-v2": patch
 "@ebsiint-sc/trusted-policies-registry": patch
 "@ebsiint-sc/trusted-issuers-registry": patch
 "@ebsiint-sc/trusted-schemas-registry": patch
@@ -13,7 +12,6 @@
 "@ebsiint-sc/admin-scripts": patch
 "@ebsiint-sc/did-registry": patch
 "@ebsiint-api/authorisation-api-v3": patch
-"@ebsiint-api/users-onboarding-api-v2": patch
 "@ebsiint-api/did-registry-api-v4": patch
 "@ebsiint-api/proxy-data-hub-api-v3": patch
 "@ebsiint-sc/bootstrap": patch
