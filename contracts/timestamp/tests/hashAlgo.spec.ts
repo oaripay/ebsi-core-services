@@ -1,16 +1,12 @@
-import { ethers, waffle, network } from "hardhat";
-import { Contract } from "ethers";
+import { ethers, network } from "hardhat";
+import type { Contract, Signer } from "ethers";
 import { expect } from "chai";
-import StringManipArtifact from "@ebsiint-sc/bootstrap/artifacts/contracts/utils/StringManip.sol/StringManip.json";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { testTprAddress } from "./testAddress";
-
-const { deployContract } = waffle;
 
 describe("Hash Algorithm", () => {
   let ts: Contract;
-  let admin: SignerWithAddress;
   let policyContractMock: Contract;
+  let admin: Signer;
 
   before(async () => {
     const policyRegistryFactory = await ethers.getContractFactory(
@@ -24,7 +20,8 @@ describe("Hash Algorithm", () => {
 
   beforeEach(async () => {
     [admin] = await ethers.getSigners();
-    const stringManipLib = await deployContract(admin, StringManipArtifact, []);
+    const stringManipFactory = await ethers.getContractFactory("StringManip");
+    const stringManipLib = await stringManipFactory.deploy();
 
     const haFactory = await ethers.getContractFactory("HashAlgoLib", {});
     const haLib = await haFactory.deploy();

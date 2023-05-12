@@ -34,8 +34,6 @@ paths:
       operationId: get-storage-v3-stores
       summary: List stores
       description: Returns a list of available stores.
-      security:
-        - bearerAuth: []
       parameters:
         - in: query
           name: page[before]
@@ -95,8 +93,6 @@ paths:
       operationId: get-storage-v3-stores-distributed
       summary: Check if a store exists
       description: Checks if a store exists.
-      security:
-        - bearerAuth: []
       parameters:
         - name: store
           in: path
