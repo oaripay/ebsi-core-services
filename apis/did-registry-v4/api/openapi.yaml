@@ -5,10 +5,10 @@ info:
     The DID Registry (DIDR) is a EBSI core service providing the capabilities of registering, managing, and resolving EBSI Decentralised Identifiers (DIDs) of the did:ebsi DID method.
 
     It enables consumers to interact with the DID Registry Smart Contract to:
-    - Insert a DID/DID Document
-    - Update a DID Document
+    - Insert a DID/DID document
+    - Update a DID document
     - Revoke a DID/DID Controlling keys
-    - Resolve a DID (and obtain a DID Document)
+    - Resolve a DID (and obtain a DID document)
 
     For more information see:
     * [DID Registry API Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/DID+Registry+API)
@@ -26,7 +26,7 @@ paths:
   /did-registry/v4/identifiers:
     get:
       tags:
-        - DID Documents
+        - DID documents
       summary: List identifiers
       description: Returns a list of identifiers.
       operationId: get-did-registry-v4-identifiers
@@ -192,9 +192,9 @@ paths:
   /did-registry/v4/identifiers/{did}:
     get:
       tags:
-        - DID Documents
-      summary: Get a DID Document
-      description: Gets the DID Document corresponding to the DID.
+        - DID documents
+      summary: Get a DID document
+      description: Gets the DID document corresponding to the DID.
       operationId: get-did-registry-v4-identifier
       parameters:
         - in: path
@@ -215,7 +215,7 @@ paths:
           name: valid-at
           description: |
             This option is used to get a the version in the past
-            of a DID Document. It must be a date in ISO-8601 format
+            of a DID document. It must be a date in ISO-8601 format
           schema:
             type: string
       responses:
@@ -297,7 +297,7 @@ paths:
   /did-registry/v4/identifiers/{did}/actions:
     post:
       tags:
-        - DID Documents
+        - DID documents
       summary: Perform actions in DID
       description: Perform actions in DID like checking a controller
       operationId: get-did-registry-v4-actions
@@ -446,13 +446,13 @@ paths:
 
           #### insertDidDocument
 
-          Call to build an unsigned transaction to insert a new DID Document.
+          Call to build an unsigned transaction to insert a new DID document.
           Requires an access token with "didr_invite" or "didr_write" scope.
 
           Parameters:
           - **from**: Ethereum address of the signer
           - **did**: DID to insert. It must be for a legal entity (DID v1)
-          - **baseDocument**: JSON string containing the @context of the DID Document
+          - **baseDocument**: JSON string containing the @context of the DID document
           - **vMethodId**: Thumbprint of the public key
           - **publicKey**: Public key for secp256k1 in compressed or uncompressed format
           - **isSecp256k1**: It must be true
@@ -468,12 +468,12 @@ paths:
           Parameters:
           - **from**: Ethereum address of the signer
           - **did**: Existing DID
-          - **baseDocument**: JSON string containing the @context of the DID Document
+          - **baseDocument**: JSON string containing the @context of the DID document
 
           #### addController
 
           Call to build an unsigned transaction to add a new controller
-          to an existing DID Document.
+          to an existing DID document.
           Requires an access token with "didr_write" scope.
 
           Parameters:
@@ -484,7 +484,7 @@ paths:
           #### revokeController
 
           Call to build an unsigned transaction to revoke a controller
-          from a DID Document.
+          from a DID document.
           Requires an access token with "didr_write" scope.
 
           Parameters:
@@ -850,13 +850,13 @@ components:
           type: string
           description: URI of the first page
     DIDDocument:
-      title: DID Document
-      description: DID Document as a JSON-LD document
+      title: DID document
+      description: DID document as a JSON-LD document
       type: object
       additionalProperties: true
       properties:
         "@context":
-          description: DID Document @context
+          description: DID document @context
           oneOf:
             - type: string
               format: uri

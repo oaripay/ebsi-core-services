@@ -990,7 +990,7 @@ describe("DID Registry (e2e)", () => {
   });
 
   describe("GET /identifiers/{did}/versions/{versionId}/metadata", () => {
-    it("should return a paginated collection of DID Document metadata", async () => {
+    it("should return a paginated collection of DID document metadata", async () => {
       expect.assertions(2);
 
       const { did } = lastIdentifier;
@@ -1162,7 +1162,7 @@ describe("DID Registry (e2e)", () => {
   });
 
   describe("GET /identifiers/{did}/versions/{versionId}/metadata/{metadataId}", () => {
-    it("should return a specific DID Document metadata", async () => {
+    it("should return a specific DID document metadata", async () => {
       expect.assertions(3);
 
       const { did } = lastIdentifier;

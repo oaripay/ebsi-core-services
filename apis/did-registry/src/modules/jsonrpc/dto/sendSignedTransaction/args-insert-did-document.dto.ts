@@ -21,12 +21,12 @@ export class ArgsInsertDidDocument {
   @Min(0)
   hashAlgorithmId: number;
 
-  // Hash value of the canonicalized (https://tools.ietf.org/html/rfc8785) JSON DID Document, computed by the user calling the function.
+  // Hash value of the canonicalized (https://tools.ietf.org/html/rfc8785) JSON DID document, computed by the user calling the function.
   @IsHexadecimal()
   @Matches(/^0x/)
   hashValue: string;
 
-  // Stringified JSON DID Document (hex-encoded)
+  // Stringified JSON DID document (hex-encoded)
   @IsHexadecimalJsonLdDidDocument()
   @Matches(/^0x/)
   didVersionInfo: string;

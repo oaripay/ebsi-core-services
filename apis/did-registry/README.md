@@ -6,11 +6,11 @@ DID Registry is a generic core service of the EBSI platform providing the capabi
 
 It enables consumers to interact with the DID Registry Smart Contract to:
 
-- Insert a DID/DID Document
-- Update a DID Document
+- Insert a DID/DID document
+- Update a DID document
 - Revoke a DID/DID Controlling keys
-- Resolve a DID (and obtain a DID Document)
-- Resolve a version of a DID Document at a certain point in time
+- Resolve a DID (and obtain a DID document)
+- Resolve a version of a DID document at a certain point in time
 
 For more information, see:
 

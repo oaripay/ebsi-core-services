@@ -82,7 +82,7 @@ describe("Identifiers Module", () => {
   });
 
   describe("GET /identifiers", () => {
-    it("should return a paginated collection of DID Documents", async () => {
+    it("should return a paginated collection of DID documents", async () => {
       expect.assertions(3);
 
       const { didDocuments } = testEnv;
@@ -366,7 +366,7 @@ describe("Identifiers Module", () => {
   });
 
   describe("GET /identifiers/{did}", () => {
-    it("should return a specific DID Document", async () => {
+    it("should return a specific DID document", async () => {
       expect.assertions(3);
 
       const { didDocuments } = testEnv;
@@ -381,7 +381,7 @@ describe("Identifiers Module", () => {
       ).toStrictEqual(expect.stringContaining("application/did+ld+json"));
     });
 
-    it("should return a specific DID Document as 'application/did+json' if 'Accept' header is 'application/did+json'", async () => {
+    it("should return a specific DID document as 'application/did+json' if 'Accept' header is 'application/did+json'", async () => {
       expect.assertions(4);
 
       const { didDocuments } = testEnv;
@@ -434,7 +434,7 @@ describe("Identifiers Module", () => {
   });
 
   describe("GET /identifiers/{did}/versions", () => {
-    it("should return a paginated collection of DID Document versions", async () => {
+    it("should return a paginated collection of DID document versions", async () => {
       expect.assertions(2);
 
       const { didDocuments } = testEnv;
@@ -767,7 +767,7 @@ describe("Identifiers Module", () => {
   });
 
   describe("GET /identifiers/{did}/versions/{versionId}/metadata", () => {
-    it("should return a paginated collection of DID Document metadata", async () => {
+    it("should return a paginated collection of DID document metadata", async () => {
       expect.assertions(2);
 
       const { didDocuments } = testEnv;
@@ -1067,7 +1067,7 @@ describe("Identifiers Module", () => {
   });
 
   describe("GET /identifiers/{did}/versions/{versionId}/metadata/{metadataId}", () => {
-    it("should return a specific DID Document metadata", async () => {
+    it("should return a specific DID document metadata", async () => {
       expect.assertions(3);
 
       const { didDocuments } = testEnv;

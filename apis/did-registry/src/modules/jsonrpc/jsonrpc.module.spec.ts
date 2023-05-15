@@ -161,7 +161,7 @@ describe("JsonRpc Module", () => {
 
     const didDocumentBuffer = Buffer.from(JSON.stringify(didDocument));
 
-    // Canonicalize DID Document
+    // Canonicalize DID document
     const canonicalizedDidDocument = canonicalize(didDocument);
 
     const canonicalizedDidDocumentHash = computeHash(
@@ -703,7 +703,7 @@ describe("JsonRpc Module", () => {
         id: "45",
         error: {
           code: -32600,
-          message: `DID Document's "id" ${did} doesn't match JWT's DID ${newUserDid}`,
+          message: `DID document's "id" ${did} doesn't match JWT's DID ${newUserDid}`,
         },
       });
       expect(responseSend.status).toBe(400);
@@ -1485,7 +1485,7 @@ describe("JsonRpc Module", () => {
               timestampData,
               didVersionMetadata,
             } as InsertDidDocumentParam,
-            expectedErrorMessage: `DID Document's "id" ${badControllerDid} doesn't match JWT's DID ${newUserDid}`,
+            expectedErrorMessage: `DID document's "id" ${badControllerDid} doesn't match JWT's DID ${newUserDid}`,
             accessToken: newUserAccessToken,
           });
 

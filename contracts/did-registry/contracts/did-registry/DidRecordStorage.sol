@@ -46,7 +46,7 @@ contract DidRecordStorage is DidTimestampStorage {
         mapping(bytes32 => bytes) didVersionInfoStore;
         // a list of all record ids. recordId is comuted as SHA2-256(tx.signer.Address|blocknumber|hashvalue)
         bytes[] didRecordIdentifiersList;
-        // A collection of version DID Document Metadata (JSON-LD serialized, base64URL).
+        // A collection of version DID document Metadata (JSON-LD serialized, base64URL).
         mapping(bytes32 => bytes) didVersionMetadataStore;
         // A hash map for finding the VersionId number of a specific DID Doc version
         // map: sha2-256(didVersionInfo) => VersionId(uint)

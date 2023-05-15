@@ -6,11 +6,11 @@ info:
     Decentralised Identifiers (DIDs).
 
     It enables consumers to interact with the DID Registry SC to:
-    - Insert a DID/DID Document
-    - Update a DID Document
+    - Insert a DID/DID document
+    - Update a DID document
     - Revoke a DID/DID Controlling keys
-    - Resolve a DID (and obtain a DID Document)
-    - Resolve a version of a DID Document at a certain point in time
+    - Resolve a DID (and obtain a DID document)
+    - Resolve a version of a DID document at a certain point in time
   version: 3.0.0
   termsOfService: https://api-pilot.ebsi.eu/docs/terms
   contact:
@@ -23,7 +23,7 @@ paths:
   /did-registry/v3/identifiers:
     get:
       tags:
-        - DID Documents
+        - DID documents
       summary: List identifiers
       description: Returns a list of identifiers.
       operationId: get-did-registry-v3-identifiers
@@ -189,9 +189,9 @@ paths:
   /did-registry/v3/identifiers/{did}:
     get:
       tags:
-        - DID Documents
-      summary: Get a DID Document
-      description: Gets the DID Document corresponding to the DID.
+        - DID documents
+      summary: Get a DID document
+      description: Gets the DID document corresponding to the DID.
       operationId: get-did-registry-v3-identifier
       parameters:
         - in: path
@@ -272,9 +272,9 @@ paths:
   /did-registry/v3/identifiers/{did}/versions:
     get:
       tags:
-        - DID Documents
-      summary: List DID Document versions
-      description: Returns a list of DID Document versions.
+        - DID documents
+      summary: List DID document versions
+      description: Returns a list of DID document versions.
       operationId: get-did-registry-v3-identifiers-versions
       parameters:
         - in: query
@@ -311,7 +311,7 @@ paths:
                     description: Absolute path to the collection (consult)
                   items:
                     type: array
-                    description: List of DID Document versions
+                    description: List of DID document versions
                     items:
                       type: object
                       properties:
@@ -396,9 +396,9 @@ paths:
   /did-registry/v3/identifiers/{did}/versions/{versionId}:
     get:
       tags:
-        - DID Documents
-      summary: Get a DID Document by version ID
-      description: Gets a DID Document based on its version ID
+        - DID documents
+      summary: Get a DID document by version ID
+      description: Gets a DID document based on its version ID
       operationId: get-did-registry-v3-identifier-version
       parameters:
         - in: path
@@ -494,9 +494,9 @@ paths:
   /did-registry/v3/identifiers/{did}/versions/{versionId}/metadata:
     get:
       tags:
-        - DID Documents
-      summary: List DID Document metadata
-      description: Returns a list of DID Document metadata.
+        - DID documents
+      summary: List DID document metadata
+      description: Returns a list of DID document metadata.
       operationId: get-did-registry-v3-identifiers-versions-metadata
       parameters:
         - in: query
@@ -544,7 +544,7 @@ paths:
                     description: Absolute path to the collection (consult)
                   items:
                     type: array
-                    description: List of DID Document versions
+                    description: List of DID document versions
                     items:
                       type: object
                       properties:
@@ -636,9 +636,9 @@ paths:
   /did-registry/v3/identifiers/{did}/versions/{versionId}/metadata/{metadataId}:
     get:
       tags:
-        - DID Documents
-      summary: Get DID Document metadata
-      description: Returns the DID Document metadata based on their ID.
+        - DID documents
+      summary: Get DID document metadata
+      description: Returns the DID document metadata based on their ID.
       operationId: get-did-registry-v3-identifier-version-metadata
       parameters:
         - in: path
@@ -1221,33 +1221,33 @@ paths:
 
           #### insertDidDocument
 
-          Call to build an unsigned transaction to insert a new DID Document.
+          Call to build an unsigned transaction to insert a new DID document.
 
           Parameters:
           - **from**: Ethereum address of the signer
           - **identifier**: DID identifier (hexadecimal)
-          - **hashAlgorithmId**: ID of the hash algorithm used to hash the DID Document
-          - **hashValue**: hash of the canonicalized DID Document
-          - **didVersionInfo**: stringified JSON DID Document (hex-encoded)
+          - **hashAlgorithmId**: ID of the hash algorithm used to hash the DID document
+          - **hashValue**: hash of the canonicalized DID document
+          - **didVersionInfo**: stringified JSON DID document (hex-encoded)
           - **timestampData**: data to be added to the timestamp (stringified JSON encoded in hexadecimal)
-          - **didVersionMetadata**: DID Document metadata (stringified JSON encoded in hexadecimal)
+          - **didVersionMetadata**: DID document metadata (stringified JSON encoded in hexadecimal)
 
           #### updateDidDocument
 
-          Call to build an unsigned transaction to update an existing DID Document.
+          Call to build an unsigned transaction to update an existing DID document.
 
           Parameters:
           - **from**: Ethereum address of the signer
           - **identifier**: DID identifier (hexadecimal)
-          - **hashAlgorithmId**: ID of the hash algorithm used to hash the DID Document
-          - **hashValue**: hash of the canonicalized DID Document
-          - **didVersionInfo**: stringified JSON DID Document (hex-encoded)
+          - **hashAlgorithmId**: ID of the hash algorithm used to hash the DID document
+          - **hashValue**: hash of the canonicalized DID document
+          - **didVersionInfo**: stringified JSON DID document (hex-encoded)
           - **timestampData**: data to be added to the timestamp (stringified JSON encoded in hexadecimal)
-          - **didVersionMetadata**: DID Document metadata (stringified JSON encoded in hexadecimal)
+          - **didVersionMetadata**: DID document metadata (stringified JSON encoded in hexadecimal)
 
           #### insertDidController
 
-          Call to build an unsigned transaction to insert a new DID Controller to an existing DID Document.
+          Call to build an unsigned transaction to insert a new DID Controller to an existing DID document.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -1285,7 +1285,7 @@ paths:
           - **identifier**: DID identifier (hexadecimal)
           - **hashAlgorithmId**: The new hash algorithm id used to compute the new hashValue of an existing DID Doc version
           - **hashValue**: new hash value of an existing DID Doc version
-          - **didVersionInfo**: DID Document content (stringified JSON encoded in hexadecimal)
+          - **didVersionInfo**: DID document content (stringified JSON encoded in hexadecimal)
           - **timestampData** (optional): additional timestamping data. If set, it should be serialized JSON-LD file. The data can be added only at the timestamp.
 
           #### detachDidDocumentVersionHash
@@ -1297,7 +1297,7 @@ paths:
           - **identifier**: DID identifier (hexadecimal)
           - **hashAlgorithmId**: The new hash algorithm id used to compute the new hashValue of an existing DID Doc version
           - **hashValue**: new hash value of an existing DID Doc version
-          - **didVersionInfo**: DID Document content (stringified JSON encoded in hexadecimal)
+          - **didVersionInfo**: DID document content (stringified JSON encoded in hexadecimal)
 
           #### appendDidDocumentVersionMetadata
 
@@ -1306,8 +1306,8 @@ paths:
           Parameters:
           - **from**: Ethereum address of the signer
           - **identifier**: DID identifier (hexadecimal)
-          - **didVersionInfo**: DID Document content (stringified JSON encoded in hexadecimal)
-          - **didVersionMetadata**: DID Document Version Metadata content (stringified JSON encoded in hexadecimal)
+          - **didVersionInfo**: DID document content (stringified JSON encoded in hexadecimal)
+          - **didVersionMetadata**: DID document Version Metadata content (stringified JSON encoded in hexadecimal)
 
           #### detachDidDocumentVersionMetadata
 
@@ -1316,8 +1316,8 @@ paths:
           Parameters:
           - **from**: Ethereum address of the signer
           - **identifier**: DID identifier (hexadecimal)
-          - **didVersionInfo**: DID Document content (stringified JSON encoded in hexadecimal)
-          - **didVersionMetadata**: DID Document Version Metadata content (stringified JSON encoded in hexadecimal)
+          - **didVersionInfo**: DID document content (stringified JSON encoded in hexadecimal)
+          - **didVersionMetadata**: DID document Version Metadata content (stringified JSON encoded in hexadecimal)
 
           #### sendSignedTransaction
 
@@ -1358,14 +1358,14 @@ paths:
                   example: 1
             examples:
               "[conformance] ct1_did_01":
-                summary: Build blockchain transaction to register a DID Document (CT ONBOARD_061)
+                summary: Build blockchain transaction to register a DID document (CT ONBOARD_061)
                 description: |
-                  EBSI conformance test: Build blockchain transaction to register a DID Document (DID_01).
+                  EBSI conformance test: Build blockchain transaction to register a DID document (DID_01).
 
                   A successful response (HTTP 200) means that the service (wallet) can:
 
                     - create an [EBSI-compliant DID](https://ec.europa.eu/digital-building-blocks/wikis/x/x4XyGQ)
-                    - create an [EBSI-compliant DID Document](https://ec.europa.eu/digital-building-blocks/wikis/x/x4XyGQ)
+                    - create an [EBSI-compliant DID document](https://ec.europa.eu/digital-building-blocks/wikis/x/x4XyGQ)
 
                 value:
                   jsonrpc: "2.0"
@@ -1380,14 +1380,14 @@ paths:
                       didVersionMetadata: "0x7b226d657461223a2238313239336463633863623537623930663835383662396237343139333530653636316166623530663563633461656666376632643532373863623530353562227d"
                   id: 1
               "[conformance] ct1_did_02":
-                summary: Send blockchain transaction to register a DID Document (CT ONBOARD_062)
+                summary: Send blockchain transaction to register a DID document (CT ONBOARD_062)
                 description: >
-                  EBSI conformance test: Send blockchain transaction to register a DID Document (DID_02).
+                  EBSI conformance test: Send blockchain transaction to register a DID document (DID_02).
 
                   A successful response (HTTP 200) means that the service (wallet) can:
 
                     - create an [EBSI-compliant DID](https://ec.europa.eu/digital-building-blocks/wikis/x/x4XyGQ)
-                    - create an [EBSI-compliant DID Document](https://ec.europa.eu/digital-building-blocks/wikis/x/x4XyGQ)
+                    - create an [EBSI-compliant DID document](https://ec.europa.eu/digital-building-blocks/wikis/x/x4XyGQ)
                     - [create signed blockchain transaction]()
 
                 value:
@@ -1691,13 +1691,13 @@ components:
         body:
           description: Base64 encoded content
     DIDDocument:
-      title: DID Document
-      description: DID Document as a JSON-LD document
+      title: DID document
+      description: DID document as a JSON-LD document
       type: object
       additionalProperties: true
       properties:
         "@context":
-          description: DID Document @context
+          description: DID document @context
           oneOf:
             - type: string
               format: uri
@@ -1706,8 +1706,8 @@ components:
                 type: string
                 format: uri
     DIDDocumentMetadata:
-      title: DID Document metadata
-      description: DID Document metadata as a JSON document
+      title: DID document metadata
+      description: DID document metadata as a JSON document
       type: object
     DIDTimestamp:
       title: DID Timestamp

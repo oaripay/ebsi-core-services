@@ -176,14 +176,14 @@ export class JsonRpcService {
 
     if (!didDocument) return;
 
-    // Check if DID Document's "id" matches with the JWT's DID
+    // Check if DID document's "id" matches with the JWT's DID
     const parsedDidDocument = JSON.parse(
       Buffer.from(remove0xPrefix(didDocument), "hex").toString("utf-8")
     ) as { id?: string };
 
     if (clientId !== parsedDidDocument.id) {
       throw new Error(
-        `DID Document's "id" ${parsedDidDocument.id} doesn't match JWT's DID ${clientId}`
+        `DID document's "id" ${parsedDidDocument.id} doesn't match JWT's DID ${clientId}`
       );
     }
   }

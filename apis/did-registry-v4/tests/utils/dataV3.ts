@@ -19,13 +19,13 @@ export const createDid = (): string => {
 };
 
 /**
- * Generates a new DID Document.
+ * Generates a new DID document.
  *
  * Example taken from:
  * https://www.w3.org/TR/2021/CR-did-core-20210318/#example-33-did-document-with-many-different-verification-methods
  *
  * @param did - Any DID
- * @returns A DID Document for the given DID
+ * @returns A DID document for the given DID
  */
 export const createDidDocument = (did: string): DIDDocument => {
   return {

@@ -50,7 +50,7 @@ library DidDocumentLib {
 
         // check all controllers
         for (uint256 i = 0; i < d.controllers.length; i++) {
-            // get DID Document of the controller
+            // get DID document of the controller
             DidDocumentStorage.DidDocument storage docController = ds.didList[
                 d.controllers[i]
             ];

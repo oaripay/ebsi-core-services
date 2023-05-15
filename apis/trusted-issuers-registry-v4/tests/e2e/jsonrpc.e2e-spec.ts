@@ -336,7 +336,7 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
             newIssuerDid
           );
 
-          // Admin issuer inserts the new TI's DID Document
+          // Admin issuer inserts the new TI's DID document
           const didWriteAccessToken = await getDidrWriteAccessToken(
             authorisationApiV3Url,
             adminIssuer.info

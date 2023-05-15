@@ -73,10 +73,10 @@ contract DidRecordDetailed is DidRecordStorage {
 
     /**
      * @dev  insertDidDocument enables insert on the DID registry SC for the first time
-     *       a new DID Document that they are the controllers. The method will create
+     *       a new DID document that they are the controllers. The method will create
      *       didTimestamp object and create a new didRecord Object (containing the DID,
      *       the controller, the didTimestamp, pointer to didVersionInfoStore), plus store
-     *       the DID Document in the didVersionInfoStore.
+     *       the DID document in the didVersionInfoStore.
      */
     function insertDidDocument(
         bytes calldata identifier,
@@ -108,8 +108,8 @@ contract DidRecordDetailed is DidRecordStorage {
     }
 
     /**
-     * @dev  updateDidDocument enables subjects to update an existing DID Document
-     *       they control, by adding a new version of the DID Document.
+     * @dev  updateDidDocument enables subjects to update an existing DID document
+     *       they control, by adding a new version of the DID document.
      */
     function updateDidDocument(
         bytes calldata identifier,
@@ -207,7 +207,7 @@ contract DidRecordDetailed is DidRecordStorage {
      * @dev  appendDidDocumentVersionHash enables to append a new type of hash for given DID Doc version.
      *       The method will timestamp the hash and add them to the didRecord,
      *       under the good version. This enables a user to add a more robust
-     *       hash value for an existing DID Document version, if in the future
+     *       hash value for an existing DID document version, if in the future
      *       new hash algorithm provide more security.
      */
     function appendDidDocumentVersionHash(
@@ -365,7 +365,7 @@ contract DidRecordDetailed is DidRecordStorage {
 
     /**
      * @dev getLatestDidDocumentVersion returns for a specific identifier
-     * (did), the didVersionInfo for the latest version of the DID Document.
+     * (did), the didVersionInfo for the latest version of the DID document.
      */
     function getLatestDidDocumentVersion(
         bytes calldata identifier

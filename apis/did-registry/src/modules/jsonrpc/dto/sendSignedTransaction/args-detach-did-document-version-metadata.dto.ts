@@ -10,7 +10,7 @@ export class ArgsDetachDidDocumentVersionMetadata {
   @IsHexadecimalDidRule()
   identifier: string;
 
-  // Stringified JSON DID Document (hex-encoded)
+  // Stringified JSON DID document (hex-encoded)
   @IsHexadecimalJsonLdDidDocument()
   @Matches(/^0x/)
   didVersionInfo: string;

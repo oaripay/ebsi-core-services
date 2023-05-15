@@ -89,7 +89,7 @@ describe("Identifiers Module", () => {
   });
 
   describe("GET /identifiers", () => {
-    it("should return a paginated collection of DID Documents", async () => {
+    it("should return a paginated collection of DID documents", async () => {
       expect.assertions(3);
 
       const response = await request(server).get("/identifiers");
@@ -378,7 +378,7 @@ describe("Identifiers Module", () => {
   });
 
   describe("GET /identifiers/{did}", () => {
-    it("should return a specific DID Document", async () => {
+    it("should return a specific DID document", async () => {
       expect.assertions(3);
 
       const { did, didDocument } = users[0];
@@ -392,7 +392,7 @@ describe("Identifiers Module", () => {
       ).toStrictEqual(expect.stringContaining("application/did+ld+json"));
     });
 
-    it("should return a DID Document from V3 if it doesn't exist on V4", async () => {
+    it("should return a DID document from V3 if it doesn't exist on V4", async () => {
       expect.assertions(3);
 
       const [didDocumentV3] = testEnv.setupV3.didDocuments;
@@ -407,7 +407,7 @@ describe("Identifiers Module", () => {
       ).toStrictEqual(expect.stringContaining("application/did+ld+json"));
     });
 
-    it("should return a specific DID Document as 'application/did+json' if 'Accept' header is 'application/did+json'", async () => {
+    it("should return a specific DID document as 'application/did+json' if 'Accept' header is 'application/did+json'", async () => {
       expect.assertions(4);
 
       const { did, didDocument } = users[0];
@@ -428,7 +428,7 @@ describe("Identifiers Module", () => {
       ).toStrictEqual(expect.stringContaining("application/did+json"));
     });
 
-    it("should return a DID Document valid at a specific time", async () => {
+    it("should return a DID document valid at a specific time", async () => {
       expect.assertions(10);
 
       const user = await createUser();
