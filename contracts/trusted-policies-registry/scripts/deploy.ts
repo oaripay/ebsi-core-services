@@ -1,5 +1,4 @@
 import { ethers } from "hardhat";
-import { PolicyRegistry } from "../src/types";
 
 async function main() {
   const paginationFactory = await ethers.getContractFactory("Pagination");
@@ -12,8 +11,7 @@ async function main() {
       },
     }
   );
-  const policyContract =
-    (await policyRegistryFactory.deploy()) as PolicyRegistry;
+  const policyContract = await policyRegistryFactory.deploy();
   await policyContract.deployed();
 
   console.log("Policy deployed at :", policyContract.address);

@@ -22,24 +22,5 @@ module.exports = {
         bundledDependencies: false,
       },
     ],
-    "@typescript-eslint/no-var-requires": "off",
-    // Disallow the use of undeclared variables
-    "no-undef": "error",
-  },
-  globals: {
-    // Disable Jest globals
-    afterAll: "off",
-    afterEach: "off",
-    beforeAll: "off",
-    beforeEach: "off",
-    describe: "off",
-    expect: "off",
-    fit: "off",
-    it: "off",
-    jest: "off",
-    test: "off",
-    xdescribe: "off",
-    xit: "off",
-    xtest: "off",
   },
 };

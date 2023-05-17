@@ -1,6 +1,4 @@
 import { ethers } from "hardhat";
-import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry";
-import { Tir } from "../src/types";
 
 async function main() {
   const paginationFactory = await ethers.getContractFactory("Pagination", {});
@@ -13,16 +11,52 @@ async function main() {
       },
     }
   );
-  const policyContract =
-    (await policyRegistryFactory.deploy()) as PolicyRegistry;
+  const policyContract = await policyRegistryFactory.deploy();
   await policyContract.deployed();
 
   console.log("Policy deployed at :", policyContract.address);
 
   await policyContract.initialize(ethers.BigNumber.from(1));
 
+  const hashAlgoFactory = await ethers.getContractFactory("HashAlgoLib", {});
+  const hashAlgoLib = await hashAlgoFactory.deploy();
+
+  const didTimestampFactory = await ethers.getContractFactory(
+    "DidTimestampLib"
+  );
+  const didTimestampLib = await didTimestampFactory.deploy();
+
+  const didRecordFactory = await ethers.getContractFactory("DidRecordLib", {
+    libraries: {
+      Pagination: pagination.address,
+    },
+  });
+  const didRecordLib = await didRecordFactory.deploy();
+
+  const policyFactory = await ethers.getContractFactory("PolicyLib", {
+    libraries: {
+      Pagination: pagination.address,
+    },
+  });
+  const policyLib = await policyFactory.deploy();
+
+  const didContractFactory = await ethers.getContractFactory("DidRegistry", {
+    libraries: {
+      HashAlgoLib: hashAlgoLib.address,
+      DidTimestampLib: didTimestampLib.address,
+      DidRecordLib: didRecordLib.address,
+      PolicyLib: policyLib.address,
+    },
+  });
+  const didContract = await didContractFactory.deploy(policyContract.address);
+  await didContract.initialize(16);
+  await didContract.setTrustedPoliciesRegistryAddress();
+
   const tirFactory = await ethers.getContractFactory("Tir", {});
-  const tir = (await tirFactory.deploy()) as Tir;
+  const tir = await tirFactory.deploy(
+    policyContract.address,
+    didContract.address
+  );
 
   await tir.initialize(25);
   await tir.setRegistryAddresses();

@@ -1,8 +1,8 @@
 import fs from "node:fs";
 import path from "path";
 import { ethers } from "hardhat";
-import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry";
-import { DidRegistry } from "../src/types";
+
+const didRegistryV3Address = "0x0000000000000000000000000000000000000000";
 
 async function main() {
   const paginationFactory = await ethers.getContractFactory("Pagination", {});
@@ -28,8 +28,7 @@ async function main() {
       },
     }
   );
-  const policyContract =
-    (await policyRegistryFactory.deploy()) as PolicyRegistry;
+  const policyContract = await policyRegistryFactory.deploy();
   await policyContract.deployed();
 
   console.log("Policy deployed at :", policyContract.address);
@@ -63,7 +62,10 @@ async function main() {
       VRelationshipsLib: vRelationshipsLib.address,
     },
   });
-  const ts = (await contractFactory.deploy()) as DidRegistry;
+  const ts = await contractFactory.deploy(
+    policyContract.address,
+    didRegistryV3Address
+  );
   await ts.initialize(16);
   await ts.setRegistryAddresses();
 

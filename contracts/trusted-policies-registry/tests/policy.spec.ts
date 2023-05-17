@@ -89,7 +89,7 @@ describe("Policy", () => {
     snapshotId = await ethers.provider.send("evm_snapshot", []);
   });
 
-  afterEach(async function () {
+  afterEach(async () => {
     await ethers.provider.send("evm_revert", [snapshotId]);
   });
 
@@ -187,7 +187,7 @@ describe("Policy", () => {
         value: "policy-1",
         invalidValue: "bad-policy",
       },
-    ];
+    ] as const;
 
     tests.forEach(({ type, override, value, invalidValue }) => {
       let deactivatePolicy: ContractFunction;
@@ -247,7 +247,7 @@ describe("Policy", () => {
         value: "policy-1",
         invalidValue: "bad-policy",
       },
-    ];
+    ] as const;
 
     tests.forEach(({ type, override, value, invalidValue }) => {
       let activatePolicy: ContractFunction;
@@ -313,7 +313,7 @@ describe("Policy", () => {
         value: "policy-1",
         invalidValue: "bad-policy",
       },
-    ];
+    ] as const;
 
     tests.forEach(({ type, override, value, invalidValue }) => {
       let updatePolicy: ContractFunction;
@@ -386,7 +386,7 @@ describe("Policy", () => {
         value: "policy-0",
         invalidValue: "bad-policy",
       },
-    ];
+    ] as const;
 
     tests.forEach(({ type, override, value, invalidValue }) => {
       let addPolicyConditions: ContractFunction;
@@ -495,7 +495,7 @@ describe("Policy", () => {
         value: "policy-0",
         invalidValue: "bad-policy",
       },
-    ];
+    ] as const;
 
     tests.forEach(({ type, override, value, invalidValue }) => {
       let deletePolicyCondition: ContractFunction;

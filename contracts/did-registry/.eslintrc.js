@@ -14,8 +14,6 @@ module.exports = {
   rules: {
     // we use it for scripts
     "no-console": "off",
-    // we use it for tests
-    "func-names": "off",
     "import/no-extraneous-dependencies": [
       "error",
       {
@@ -25,6 +23,5 @@ module.exports = {
         bundledDependencies: false,
       },
     ],
-    "no-unused-expressions": "off",
   },
 };

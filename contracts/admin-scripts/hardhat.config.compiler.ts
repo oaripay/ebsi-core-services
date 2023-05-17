@@ -4,15 +4,24 @@ import "@typechain/hardhat";
 import "hardhat-deploy";
 import "hardhat-deploy-ethers";
 import "hardhat-abi-exporter";
-import "solidity-coverage";
-import { HardhatUserConfig } from "hardhat/config";
-import "@nomiclabs/hardhat-etherscan";
+import type { HardhatUserConfig } from "hardhat/config";
+import type { TypechainUserConfig } from "@typechain/hardhat/dist/types";
+import type { AbiExporterUserConfig } from "hardhat-abi-exporter";
 
 // The solhint plugin overrides the check task, runs solhint
 // on the project's sources and prints the report to the console
 // when running yarn test
 
-const config: HardhatUserConfig = {
+const config: HardhatUserConfig & {
+  typechain: TypechainUserConfig;
+  abiExporter: AbiExporterUserConfig;
+  namedAccounts?: {
+    [name: string]:
+      | string
+      | number
+      | { [network: string]: null | number | string };
+  };
+} = {
   defaultNetwork: "hardhat",
   typechain: {
     outDir: "src/types",
@@ -39,7 +48,6 @@ const config: HardhatUserConfig = {
   },
   paths: {
     sources: "./contracts",
-    tests: "./tests",
     cache: "./cache",
     artifacts: "src/artifacts",
   },

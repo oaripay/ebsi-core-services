@@ -1,13 +1,14 @@
 import { ethers, network } from "hardhat";
-import type { Contract, Signer } from "ethers";
+import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { testTprAddress } from "./testAddress";
+import type { PolicyRegistryMock, Timestamp } from "../src/types";
 
 describe("Record Hashes", () => {
-  let ts: Contract;
-  let admin: Signer;
-  let user: Signer;
-  let policyContractMock: Contract;
+  let ts: Timestamp;
+  let admin: SignerWithAddress;
+  let user: SignerWithAddress;
+  let policyContractMock: PolicyRegistryMock;
 
   before(async () => {
     const policyRegistryFactory = await ethers.getContractFactory(
@@ -50,6 +51,7 @@ describe("Record Hashes", () => {
     await ts.setTrustedPoliciesRegistryAddress();
     const initialVersion = await ts.version();
     expect(initialVersion).to.equal(42);
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(ts.address).to.be.properAddress;
     await policyContractMock.setPolicyResult(true);
     await ts.insertHashAlgorithm(256, "SHA256", "oid", 1, "");
@@ -2617,6 +2619,7 @@ describe("Record Hashes", () => {
     );
     expect(inf1.notBefore).to.equal(blockTs.timestamp);
     expect(inf1.notAfter).to.equal(0);
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(inf1.revoked).to.be.false;
 
     // add ownerdIds and revoke some
@@ -2626,6 +2629,7 @@ describe("Record Hashes", () => {
     const inf2 = await ts.getRecordOwnerInfo(recordId, "anotherownerId");
     expect(inf2.notBefore).to.equal(notBefore);
     expect(inf2.notAfter).to.equal(notAfter);
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(inf2.revoked).to.be.false;
 
     // revoke the second owner
@@ -2633,6 +2637,7 @@ describe("Record Hashes", () => {
     const inf3 = await ts.getRecordOwnerInfo(recordId, "anotherownerId");
     expect(inf3.notBefore).to.equal(notBefore);
     expect(inf3.notAfter).to.equal(notAfter);
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(inf3.revoked).to.be.true;
 
     // revoke the first owner warning ownerId is case sensitive
@@ -2643,6 +2648,7 @@ describe("Record Hashes", () => {
     );
     expect(inf4.notBefore).to.equal(blockTs.timestamp);
     expect(inf4.notAfter).to.equal(0);
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(inf4.revoked).to.be.true;
   });
 });

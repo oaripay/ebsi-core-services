@@ -37,12 +37,30 @@ async function main() {
   console.log("initialVersion:", initialVersion.toString());
 
   // add hashAlgo
-  await ts.insertHashAlgorithm(256, "SHA256", "oid", 1);
-  await ts.insertHashAlgorithm(512, "SHA512", "oid2", 1);
-  await ts.insertHashAlgorithm(256, "SHA3-256", "oid3", 1);
-  const halgo = await ts.getHashAlgorithmById(1);
+  await ts.insertHashAlgorithm(
+    256,
+    "sha-256",
+    "2.16.840.1.101.3.4.2.1",
+    1,
+    "sha2-256"
+  );
+  await ts.insertHashAlgorithm(
+    512,
+    "sha-512",
+    "2.16.840.1.101.3.4.2.3",
+    1,
+    "sha2-512"
+  );
+  await ts.insertHashAlgorithm(
+    256,
+    "sha3-256",
+    "2.16.840.1.101.3.4.2.8",
+    1,
+    "sha3-256"
+  );
+  const algo = await ts.getHashAlgorithmById(1);
   console.log(
-    `halgorithm ${halgo.ianaName} oid:${halgo.oid} length:${halgo.outputLength} status:${halgo.status}`
+    `algorithm ${algo.ianaName} oid:${algo.oid} length:${algo.outputLength} status:${algo.status}`
   );
 }
 

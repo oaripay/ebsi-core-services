@@ -72,6 +72,6 @@
     ]
   },
   "resolutions": {
-    "**/ganache-core/**/underscore": "1.12.1"
+    "**/solidity-coverage/mocha": "^10.0.0"
   }
 }

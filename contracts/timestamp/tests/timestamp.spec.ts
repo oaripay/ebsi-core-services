@@ -1,12 +1,13 @@
 import { ethers, network } from "hardhat";
-import type { Contract, Signer } from "ethers";
+import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
 import { testTprAddress } from "./testAddress";
+import type { Timestamp, PolicyRegistryMock } from "../src/types";
 
 describe("Timestamp Hashes", () => {
-  let ts: Contract;
-  let admin: Signer;
-  let policyContractMock: Contract;
+  let ts: Timestamp;
+  let admin: SignerWithAddress;
+  let policyContractMock: PolicyRegistryMock;
 
   before(async () => {
     const policyRegistryFactory = await ethers.getContractFactory(
@@ -50,6 +51,7 @@ describe("Timestamp Hashes", () => {
     await ts.setTrustedPoliciesRegistryAddress();
     const initialVersion = await ts.version();
     expect(initialVersion).to.equal(42);
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     expect(ts.address).to.properAddress;
     await policyContractMock.setPolicyResult(true);
     await ts.insertHashAlgorithm(256, "SHA256", "oid", 1, "");

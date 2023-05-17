@@ -1,9 +1,9 @@
 import { ethers, network } from "hardhat";
 import crypto from "node:crypto";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
-import { Contract } from "ethers";
 import { testDidrAddress, testTprAddress } from "./testAddress";
+import type { DidRegistryMock, PolicyRegistryMock, Tir } from "../src/types";
 
 const num = ethers.BigNumber.from;
 enum IssuerType {
@@ -47,11 +47,11 @@ function randomHash(): string {
 }
 
 describe("Issuers", () => {
-  let tir: Contract;
+  let tir: Tir;
   let userWithDid: SignerWithAddress;
   let issuer: SignerWithAddress;
-  let policyContractMock: Contract;
-  let didContractMock: Contract;
+  let policyContractMock: PolicyRegistryMock;
+  let didContractMock: DidRegistryMock;
 
   const attributeData1 = randomAttribute();
   const attributeData2 = randomAttribute();
@@ -553,15 +553,15 @@ describe("Issuers", () => {
       await policyContractMock.setPolicyResult(false);
 
       // create TAO
+      const taoAttributeData = crypto.randomBytes(100);
       const TAO = {
         did: "did:ebsi:TAO",
         attribute: {
           firstId: crypto.randomBytes(32),
-          data: crypto.randomBytes(100),
-          revisionId2: crypto.randomBytes(32),
+          data: taoAttributeData,
+          revisionId2: ethers.utils.sha256(taoAttributeData),
         },
       };
-      TAO.attribute.revisionId2 = ethers.utils.sha256(TAO.attribute.data);
 
       // preregister the TAO (attributeId = firstId)
       await tir.setAttributeMetadata(

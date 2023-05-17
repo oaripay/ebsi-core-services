@@ -64,7 +64,7 @@ describe("Policies", () => {
         AuthLib: await deployContract("AuthLib"),
       },
     });
-    ts = (await contractFactory.deploy(testTprAddress, testDidrAddress)) as Tar;
+    ts = await contractFactory.deploy(testTprAddress, testDidrAddress);
     await ts.initialize(42);
     const initialVersion = await ts.version();
     expect(initialVersion).to.equal(42);

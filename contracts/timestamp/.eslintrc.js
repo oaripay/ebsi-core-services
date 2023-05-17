@@ -24,6 +24,5 @@ module.exports = {
         bundledDependencies: false,
       },
     ],
-    "@typescript-eslint/no-unused-expressions": "off",
   },
 };

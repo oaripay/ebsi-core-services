@@ -13,6 +13,23 @@ async function main() {
   // manually to make sure everything is compiled
   // await hre.run('compile');
 
+  const paginationFactory = await ethers.getContractFactory("Pagination", {});
+  const pagination = await paginationFactory.deploy();
+  const policyRegistryFactory = await ethers.getContractFactory(
+    "PolicyRegistry",
+    {
+      libraries: {
+        Pagination: pagination.address,
+      },
+    }
+  );
+  const policyContract = await policyRegistryFactory.deploy();
+  await policyContract.deployed();
+
+  console.log("Policy deployed at :", policyContract.address);
+
+  await policyContract.initialize(ethers.BigNumber.from(1));
+
   // We get the contract to deploy
   const haFactory = await ethers.getContractFactory("HashAlgoLib");
   const haLib = await haFactory.deploy();
@@ -36,7 +53,7 @@ async function main() {
     },
   });
 
-  const ts = await contractFactory.deploy();
+  const ts = await contractFactory.deploy(policyContract.address);
 
   console.log(
     `Timestamp deployed to: ${ts.address}

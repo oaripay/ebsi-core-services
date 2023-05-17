@@ -62,7 +62,7 @@ describe("SchemaPolicies", () => {
         },
       }
     );
-    ts = (await contractFactory.deploy(testTprAddress)) as SchemaSCRegistry;
+    ts = await contractFactory.deploy(testTprAddress);
     await ts.initialize(42);
     const initialVersion = await ts.version();
     expect(initialVersion).to.equal(42);

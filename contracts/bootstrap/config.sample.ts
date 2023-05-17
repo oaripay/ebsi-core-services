@@ -1,5 +1,4 @@
 import { NetworksUserConfig } from "hardhat/types";
-import { EtherscanConfig } from "@nomiclabs/hardhat-etherscan/dist/src/types";
 
 export const networks: NetworksUserConfig = {
   // Needed for `solidity-coverage`
@@ -33,8 +32,4 @@ export const networks: NetworksUserConfig = {
   },
 };
 
-// Use to verify contracts on Etherscan
-// https://buidler.dev/plugins/nomiclabs-buidler-etherscan.html
-export const etherscan: EtherscanConfig = {
-  apiKey: "YOUR-ETHERSCAN-API-KEY",
-};
+export default networks;

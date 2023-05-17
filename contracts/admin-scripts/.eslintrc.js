@@ -15,7 +15,6 @@ module.exports = {
   rules: {
     // we use it for scripts
     "no-console": "off",
-    // we use it for tests
     "import/no-extraneous-dependencies": [
       "error",
       {
@@ -25,9 +24,5 @@ module.exports = {
         bundledDependencies: false,
       },
     ],
-    "@typescript-eslint/no-var-requires": "off",
-    "@typescript-eslint/no-unused-expressions": "off",
-    "@typescript-eslint/ban-ts-comment": "off",
-    "@nomiclabs/eslint-plugin-hardhat-internal-rules": "off",
   },
 };

@@ -1,6 +1,10 @@
 import { ethers, network, config } from "hardhat";
 import { expect } from "chai";
-import { DidRegistry, PolicyRegistryMock, DidRegistryMock } from "../src/types";
+import type {
+  DidRegistry,
+  PolicyRegistryMock,
+  DidRegistryMock,
+} from "../src/types";
 import { testTprAddress, testDidV3Address } from "./testAddress";
 import { getEthObject } from "./utils";
 
@@ -55,9 +59,7 @@ describe("Did Documents", () => {
       bytecodeTpr,
     ]);
 
-    policyContractMock = policyRegistryFactory.attach(
-      testTprAddress
-    ) as PolicyRegistryMock;
+    policyContractMock = policyRegistryFactory.attach(testTprAddress);
 
     const didRegistryV3Factory = await ethers.getContractFactory(
       "DidRegistryMock"
@@ -70,9 +72,7 @@ describe("Did Documents", () => {
       bytecodeDid,
     ]);
 
-    didV3ContractMock = didRegistryV3Factory.attach(
-      testDidV3Address
-    ) as DidRegistryMock;
+    didV3ContractMock = didRegistryV3Factory.attach(testDidV3Address);
   });
 
   beforeEach(async () => {
@@ -115,7 +115,7 @@ describe("Did Documents", () => {
 
     reg = (
       await contractFactory.deploy(testTprAddress, testDidV3Address)
-    ).connect(user) as DidRegistry;
+    ).connect(user);
 
     await reg.initialize(42);
     await reg.setRegistryAddresses();

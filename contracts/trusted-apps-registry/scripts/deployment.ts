@@ -1,6 +1,5 @@
 import { ethers } from "hardhat";
 import type { FactoryOptions } from "hardhat/types";
-import { Tar } from "../src/types";
 
 async function main() {
   const deployContract = async (
@@ -11,7 +10,58 @@ async function main() {
     const contract = await factory.deploy();
     return contract.address;
   };
+
   const Pagination = await deployContract("Pagination");
+
+  const policyRegistryFactory = await ethers.getContractFactory(
+    "PolicyRegistry",
+    {
+      libraries: {
+        Pagination,
+      },
+    }
+  );
+  const policyContract = await policyRegistryFactory.deploy();
+  await policyContract.deployed();
+
+  console.log("Policy deployed at :", policyContract.address);
+
+  await policyContract.initialize(ethers.BigNumber.from(1));
+
+  const hashAlgoFactory = await ethers.getContractFactory("HashAlgoLib", {});
+  const hashAlgoLib = await hashAlgoFactory.deploy();
+
+  const didTimestampFactory = await ethers.getContractFactory(
+    "DidTimestampLib"
+  );
+  const didTimestampLib = await didTimestampFactory.deploy();
+
+  const didRecordFactory = await ethers.getContractFactory("DidRecordLib", {
+    libraries: {
+      Pagination,
+    },
+  });
+  const didRecordLib = await didRecordFactory.deploy();
+
+  const policyFactory = await ethers.getContractFactory("PolicyLib", {
+    libraries: {
+      Pagination,
+    },
+  });
+  const policyLib = await policyFactory.deploy();
+
+  const didContractFactory = await ethers.getContractFactory("DidRegistry", {
+    libraries: {
+      HashAlgoLib: hashAlgoLib.address,
+      DidTimestampLib: didTimestampLib.address,
+      DidRecordLib: didRecordLib.address,
+      PolicyLib: policyLib.address,
+    },
+  });
+  const didContract = await didContractFactory.deploy(policyContract.address);
+  await didContract.initialize(16);
+  await didContract.setTrustedPoliciesRegistryAddress();
+
   const contractFactory = await ethers.getContractFactory("Tar", {
     libraries: {
       AppLib: await deployContract("AppLib", {
@@ -24,7 +74,10 @@ async function main() {
       AuthLib: await deployContract("AuthLib"),
     },
   });
-  const ts = (await contractFactory.deploy()) as Tar;
+  const ts = await contractFactory.deploy(
+    policyContract.address,
+    didContract.address
+  );
   await ts.initialize(16);
   await ts.setRegistryAddresses();
 

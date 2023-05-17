@@ -2,7 +2,7 @@ module.exports = {
   extends: "solhint:recommended",
 
   rules: {
-    "compiler-version": ["error", "^0.8.12"],
+    "compiler-version": ["error", "0.8.12"],
     // inline are needed to store data at a specific location see *Storage.sol
     "no-inline-assembly": "off",
     // we use library wich trigger to often this rule

@@ -1,12 +1,11 @@
 import { ethers, network } from "hardhat";
-import { Contract } from "ethers";
 import { expect } from "chai";
-import { SchemaSCRegistry } from "../src/types";
 import { testTprAddress } from "./testAddress";
+import type { PolicyRegistryMock, SchemaSCRegistry } from "../src/types";
 
 describe("Schema", () => {
-  let ts: Contract;
-  let policyContractMock: Contract;
+  let ts: SchemaSCRegistry;
+  let policyContractMock: PolicyRegistryMock;
 
   before(async () => {
     const policyRegistryFactory = await ethers.getContractFactory(
@@ -38,7 +37,7 @@ describe("Schema", () => {
         },
       }
     );
-    ts = (await contractFactory.deploy(testTprAddress)) as SchemaSCRegistry;
+    ts = await contractFactory.deploy(testTprAddress);
     await ts.initialize(42);
     await ts.setTrustedPoliciesRegistryAddress();
     const initialVersion = await ts.version();

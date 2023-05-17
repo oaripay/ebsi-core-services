@@ -15,8 +15,6 @@ module.exports = {
     // we use it for scripts
     "no-console": "off",
     // we use it for tests
-    "func-names": "off",
-    // we use it for tests
     "import/no-extraneous-dependencies": [
       "error",
       {
@@ -26,7 +24,5 @@ module.exports = {
         bundledDependencies: false,
       },
     ],
-    // we use it for tests
-    "no-unused-expressions": "off",
   },
 };

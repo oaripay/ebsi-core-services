@@ -1,6 +1,6 @@
-import type { ContractFactory } from "@ethersproject/contracts";
-import { Contract } from "ethers";
 import { ethers } from "hardhat";
+import type { ContractFactory } from "@ethersproject/contracts";
+import type { Contract } from "ethers";
 
 export default async function deployContract(
   name: string,

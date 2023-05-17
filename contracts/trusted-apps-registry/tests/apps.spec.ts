@@ -1,9 +1,8 @@
 import { ethers, network } from "hardhat";
 import crypto from "node:crypto";
 import { expect } from "chai";
-import { Contract } from "ethers";
 import type { FactoryOptions } from "hardhat/types";
-import { Tar } from "../src/types";
+import type { Tar, PolicyRegistryMock, DidRegistryMock } from "../src/types";
 import { testDidrAddress, testTprAddress } from "./testAddress";
 
 const num = ethers.BigNumber.from;
@@ -36,8 +35,8 @@ function calcAuthorizationId(
 
 describe("Trusted Apps", () => {
   let tar: Tar;
-  let policyContractMock: Contract;
-  let didContractMock: Contract;
+  let policyContractMock: PolicyRegistryMock;
+  let didContractMock: DidRegistryMock;
 
   const randomData = crypto.randomBytes(32);
   const randomData2 = crypto.randomBytes(32);
@@ -122,10 +121,7 @@ describe("Trusted Apps", () => {
       },
     });
 
-    tar = (await contractFactory.deploy(
-      testTprAddress,
-      testDidrAddress
-    )) as Tar;
+    tar = await contractFactory.deploy(testTprAddress, testDidrAddress);
     await tar.initialize(42);
     await tar.setRegistryAddresses();
     const initialVersion = await tar.version();

@@ -1,6 +1,5 @@
 import { ethers } from "hardhat";
 import { BigNumber } from "ethers";
-// import OwnedUpgradeabilityProxyArtifact from "@ebsiint-sc/proxy/build/contracts/OwnedUpgradeabilityProxy.json";
 
 async function main() {
   const proxyDeployedAddr = `0x7FC3C7805095a6863243bFc73Da563A1E1CA2763`;
@@ -21,12 +20,6 @@ async function main() {
     `OwnedUpgradeabilityProxy`,
     proxyDeployedAddr
   );
-
-  // const proxyCtr: OwnedUpgradeabilityProxyInstance =
-  //   (await ethers.getContractAt(
-  //     `OwnedUpgradeabilityProxy`,
-  //     proxyDeployedAddr
-  //   )) as OwnedUpgradeabilityProxyContract;
 
   // these infos are not easily accessible as they are restricted by an onlyAdmin modifier
   // to retrieve them we use the low level getStorage call

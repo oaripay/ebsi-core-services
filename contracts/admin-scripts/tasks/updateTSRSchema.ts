@@ -2,7 +2,7 @@ import { task } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
 import canonicalize from "canonicalize";
 import { readFile } from "fs/promises";
-import { SchemaSCRegistry } from "../src/types";
+import type { SchemaSCRegistry } from "../src/types";
 
 // follows ETH/BTC's BIP 39 protocol
 // https://iancoleman.io/bip39/
@@ -12,16 +12,14 @@ task(
   "Update existing schema in TSR Contract ",
   async (
     taskArgs: { proxy: string; schema: string; file: string },
-    // eslint-disable-next-line @typescript-eslint/no-shadow
     { ethers }
   ) => {
     const [deployer, admin] = await ethers.getSigners();
-    // @ts-ignore
-    const tsr: SchemaSCRegistry = await ethers.getContractAt(
+    const tsr = (await ethers.getContractAt(
       "SchemaSCRegistry",
       taskArgs.proxy,
       admin
-    );
+    )) as SchemaSCRegistry;
 
     console.log(
       `deployer:${deployer.address}

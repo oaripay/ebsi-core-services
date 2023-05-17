@@ -1,7 +1,7 @@
 import { ethers, network } from "hardhat";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
-import { DidRegistry } from "../src/types";
+import type { DidRegistry } from "../src/types";
 import { testTprAddress } from "./testAddress";
 
 describe("Timestamp Hashes", () => {
@@ -47,7 +47,7 @@ describe("Timestamp Hashes", () => {
       },
     });
 
-    ts = (await contractFactory.deploy(testTprAddress)) as DidRegistry;
+    ts = await contractFactory.deploy(testTprAddress);
 
     await ts.initialize(42);
     await ts.setTrustedPoliciesRegistryAddress();

@@ -1,10 +1,10 @@
 /* eslint-disable no-await-in-loop */
 import { ethers } from "hardhat";
 import crypto from "node:crypto";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { expect } from "chai";
-import { Contract } from "ethers";
 import { testDidrAddress, testTprAddress } from "./testAddress";
+import type { Tir } from "../src/types";
 
 const num = ethers.BigNumber.from;
 
@@ -27,7 +27,7 @@ function randomPolicyName(): string {
 }
 
 describe("Policies", () => {
-  let ts: Contract;
+  let ts: Tir;
   let user: SignerWithAddress;
 
   const policyName = randomPolicyName();

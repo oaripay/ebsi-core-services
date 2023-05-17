@@ -1,7 +1,7 @@
 import { ethers } from "hardhat";
 import { expect } from "chai";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { PolicyRegistry } from "../src/types";
+import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import type { PolicyRegistry } from "../src/types";
 
 describe("UserAttributesManagement", () => {
   let snapshotId: string;
@@ -60,7 +60,7 @@ describe("UserAttributesManagement", () => {
         },
       }
     );
-    policyContract = (await policyRegistryFactory.deploy()) as PolicyRegistry;
+    policyContract = await policyRegistryFactory.deploy();
     await policyContract.deployed();
 
     await policyContract.initialize(10);
@@ -82,7 +82,7 @@ describe("UserAttributesManagement", () => {
     snapshotId = await ethers.provider.send("evm_snapshot", []);
   });
 
-  afterEach(async function () {
+  afterEach(async () => {
     await ethers.provider.send("evm_revert", [snapshotId]);
   });
 

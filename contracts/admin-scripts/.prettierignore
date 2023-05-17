@@ -2,7 +2,6 @@ artifacts
 build
 cache
 contracts
-coverage
 node_modules
 src
 deployments

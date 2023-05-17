@@ -1,12 +1,11 @@
 import { ethers, network } from "hardhat";
-import { Contract } from "ethers";
 import { expect } from "chai";
-import { DidRegistry } from "../src/types";
+import type { DidRegistry, PolicyRegistryMock } from "../src/types";
 import { testTprAddress } from "./testAddress";
 
 describe("Hash Algorithm", () => {
   let ts: DidRegistry;
-  let policyContractMock: Contract;
+  let policyContractMock: PolicyRegistryMock;
 
   before(async () => {
     const policyRegistryFactory = await ethers.getContractFactory(
@@ -44,7 +43,7 @@ describe("Hash Algorithm", () => {
         DidRecordLib: didRecordLib.address,
       },
     });
-    ts = (await contractFactory.deploy(testTprAddress)) as DidRegistry;
+    ts = await contractFactory.deploy(testTprAddress);
     await ts.initialize(42);
     await ts.setTrustedPoliciesRegistryAddress();
     const initialVersion = await ts.version();

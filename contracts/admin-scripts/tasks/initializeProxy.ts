@@ -29,7 +29,7 @@ task("initProxy", "init proxy with implementation")
         ethers.utils.toUtf8Bytes("diamond.standard.diamond.storage.proxy")
       );
 
-      const proxyCtr: OwnedUpgradeabilityProxy = (await ethers.getContractAt(
+      const proxyCtr = (await ethers.getContractAt(
         `OwnedUpgradeabilityProxy`,
         proxyDeployedAddr
       )) as OwnedUpgradeabilityProxy;

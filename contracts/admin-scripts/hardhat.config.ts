@@ -1,17 +1,14 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-solhint";
-import "@nomiclabs/hardhat-etherscan";
 import "@typechain/hardhat";
 import "hardhat-deploy";
 import "hardhat-deploy-ethers";
 import "hardhat-abi-exporter";
-import "solidity-coverage";
 import "./tasks/index";
 import * as fs from "node:fs";
 import { resolve } from "node:path";
 import * as dotenv from "dotenv";
-import type { EtherscanUserConfig } from "@nomiclabs/hardhat-etherscan/dist/src/types";
 import type { TypechainUserConfig } from "@typechain/hardhat/dist/types";
 import type { AbiExporterUserConfig } from "hardhat-abi-exporter";
 
@@ -38,10 +35,9 @@ const accounts = {
   mnemonic,
 };
 
-const { HARDHAT_NETWORK_URL, ETHERSCAN_API_KEY } = process.env;
+const { HARDHAT_NETWORK_URL } = process.env;
 
 const config: HardhatUserConfig & {
-  etherscan: EtherscanUserConfig;
   typechain: TypechainUserConfig;
   abiExporter: AbiExporterUserConfig;
   namedAccounts?: {
@@ -82,21 +78,6 @@ const config: HardhatUserConfig & {
       url: `https://api.prod.ebsi.xyz/ledger/v2/blockchains/besu`,
       accounts,
     },
-  },
-  etherscan: {
-    // Your API key for Etherscan
-    // Obtain one at https://etherscan.io/
-    apiKey: ETHERSCAN_API_KEY,
-    customChains: [
-      {
-        network: "conformance",
-        chainId: 6178,
-        urls: {
-          apiURL: "https://blockscout-conformance.ebsi.eu/api",
-          browserURL: "https://blockscout-conformance.ebsi.eu/",
-        },
-      },
-    ],
   },
   typechain: {
     outDir: "src/types",

@@ -1,7 +1,6 @@
 .env
 
 node_modules
-coverage
 artifacts
 cache
 src

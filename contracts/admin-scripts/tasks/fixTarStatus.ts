@@ -2,7 +2,7 @@
 /* eslint-disable no-await-in-loop */
 import { task } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
-import { Tar } from "../src/types";
+import type { Tar } from "../src/types";
 
 // follows ETH/BTC's BIP 39 protocol
 // https://iancoleman.io/bip39/
@@ -12,12 +12,14 @@ task(
   "Update tar statuses for apps ",
   async (
     taskArgs: { proxy: string; app: string; auth: string },
-    // eslint-disable-next-line @typescript-eslint/no-shadow
     { ethers }
   ) => {
     const [deployer, admin] = await ethers.getSigners();
-    // @ts-ignore
-    const ts: Tar = await ethers.getContractAt("Tar", taskArgs.proxy, admin);
+    const ts = (await ethers.getContractAt(
+      "Tar",
+      taskArgs.proxy,
+      admin
+    )) as Tar;
 
     console.log(
       `deployer:${deployer.address}
