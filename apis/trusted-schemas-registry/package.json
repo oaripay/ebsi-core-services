@@ -24,8 +24,8 @@
   },
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^10.1.0",
-    "@cef-ebsi/oauth2-auth": "^2.2.2",
-    "@cef-ebsi/siop-auth": "^3.0.0",
+    "@cef-ebsi/oauth2-auth": "^2.3.0",
+    "@cef-ebsi/siop-auth": "^3.1.0",
     "@ebsiint-api/shared": "^1.1.0-rc.1",
     "@ebsiint-sc/trusted-schemas-registry": "^1.0.1-rc.1",
     "@fastify/helmet": "^10.1.0",
@@ -54,7 +54,7 @@
     "yaml": "^2.2.1"
   },
   "devDependencies": {
-    "@cef-ebsi/wallet-lib": "^4.0.1",
+    "@cef-ebsi/wallet-lib": "^4.1.0",
     "@ethersproject/abstract-provider": "^5.7.0",
     "@jest/globals": "^29.5.0",
     "@nestjs/cli": "^9.4.2",

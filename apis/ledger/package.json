@@ -23,7 +23,7 @@
     "test:ci": "yarn test:unit --coverage --reporters=default --reporters=jest-sonar"
   },
   "dependencies": {
-    "@cef-ebsi/oauth2-auth": "^2.2.2",
+    "@cef-ebsi/oauth2-auth": "^2.3.0",
     "@ebsiint-api/shared": "^1.1.0-rc.1",
     "@ethereumjs/common": "^3.1.2",
     "@ethereumjs/tx": "^4.1.2",
@@ -47,8 +47,8 @@
     "yaml": "^2.2.1"
   },
   "devDependencies": {
-    "@cef-ebsi/siop-auth": "^3.0.0",
-    "@cef-ebsi/wallet-lib": "^4.0.1",
+    "@cef-ebsi/siop-auth": "^3.1.0",
+    "@cef-ebsi/wallet-lib": "^4.1.0",
     "@jest/globals": "^29.5.0",
     "@nestjs/cli": "^9.4.2",
     "@nestjs/schematics": "^9.0.4",

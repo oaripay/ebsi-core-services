@@ -1138,50 +1138,50 @@
   resolved "https://registry.yarnpkg.com/@bitauth/libauth/-/libauth-1.19.1.tgz#713751bbc09815b667f8fe00a1cc5b0f3bf45dd1"
   integrity sha512-R524tD5VwOt3QRHr7N518nqTVR/HKgfWL4LypekcGuNQN8R4PWScvuRcRzrY39A28kLztMv+TJdiKuMNbkU1ug==
 
-"@cef-ebsi/ebsi-did-resolver@^3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/ebsi-did-resolver/-/ebsi-did-resolver-3.0.0.tgz#6eba745f87a805db8fce3c0f47f03f50cecdb24a"
-  integrity sha512-XzX5aWnhao1ecWFZz2PjjBATormtnaWP4HSFQ+iRn7+lf0NA0irIh4X4D0IBRS36xTRQFOj9wnid5uR7a8AVhg==
+"@cef-ebsi/ebsi-did-resolver@^3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/ebsi-did-resolver/-/ebsi-did-resolver-3.1.0.tgz#040d611fbe18c84410e2d346da0231ee09a9eb9c"
+  integrity sha512-UKYsux0+wKwiDLeMGEHeLrSAItKoD8ckp0PH3SzNQJTfFgcJOni8pj3wlW0Kf0W5pTyPXpi4z+ntPwmNOhg2pQ==
   dependencies:
-    axios "^1.3.4"
+    axios "^1.4.0"
     did-resolver "^4.1.0"
-    jose "^4.13.1"
+    jose "^4.14.4"
     multiformats "^9.9.0"
 
-"@cef-ebsi/key-did-resolver@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/key-did-resolver/-/key-did-resolver-1.0.0.tgz#61b0f62ad685717132d3128550012c6e31b8435d"
-  integrity sha512-2tnoKeh0iFPVxvgMPU5AdsA3Ck2TfgzqjJGhMyqBoiy8plNYXkWy2V7l3BdOQReH0AxR2awo81kX2USrYFeqxg==
+"@cef-ebsi/key-did-resolver@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/key-did-resolver/-/key-did-resolver-1.1.0.tgz#3523a824c34ac0a52c416d1c91938541e153a05d"
+  integrity sha512-fx8otCet0vRM/PnndGHHhuWBy5EpX142RsfKT3DTH8/a3Yjkdo8S+C9bGHbDdc6PowPyp4FgF/6XVQUH45iu1A==
   dependencies:
     did-resolver "^4.1.0"
-    jose "^4.13.1"
+    jose "^4.14.4"
     lodash.isplainobject "^4.0.6"
     multiformats "^9.9.0"
     web-encoding "^1.1.5"
 
-"@cef-ebsi/oauth2-auth@^2.2.2":
-  version "2.2.2"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/oauth2-auth/-/oauth2-auth-2.2.2.tgz#36a2c246c59480930da02e82d4eb2239eee643f2"
-  integrity sha512-dSi5zmMGUK9V+v8jtUnn9v3GaoPdhC7Fhn1cFoX4dPw32HrkjHQvcHUIhXlwsIg4XzJaoKpH7Z/ULjNfxGd9Lg==
+"@cef-ebsi/oauth2-auth@^2.3.0":
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/oauth2-auth/-/oauth2-auth-2.3.0.tgz#54eec4fd918c4dd1c1eb89394396e686aa1f4019"
+  integrity sha512-JYMwK2JrwBFhtzLo6fEZjaDybwT49xZ0GdmvG4KcQB5JUR7MC/fgwCOfD1UlvXJYDjHo5epghevh1nU+ZYo1fA==
   dependencies:
-    "@cef-ebsi/siop-auth" "^3.0.0"
-    axios "^1.3.4"
+    "@cef-ebsi/siop-auth" "^3.1.0"
+    axios "^1.4.0"
     did-jwt "^6.11.5"
     elliptic "^6.5.4"
     eth-crypto "^2.6.0"
-    jose "^4.13.1"
+    jose "^4.14.4"
     key-encoder "^2.0.3"
     multiformats "^9.9.0"
     uuid "^9.0.0"
 
-"@cef-ebsi/siop-auth@^3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/siop-auth/-/siop-auth-3.0.0.tgz#1578c55633a5fe9fe166f307bcc3384a5c6323b6"
-  integrity sha512-VUt1J8q2HqUOsSkyyNcz/5VJ23QGHDg+RbIDALqVp5zRnYXdBzGFupO3MsBfItPmBqohmxRSlswjJKMFxE0twA==
+"@cef-ebsi/siop-auth@^3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/siop-auth/-/siop-auth-3.1.0.tgz#17b3c8ec10e67256effcf839f9b017b7e882ec34"
+  integrity sha512-IWUYwO2pN6iupZ/TznpmuDt+wqK+8R+E3hRjP8Y3zMuHJR4FQNBgH/sHZJ+w3ZcYzHg4r4xT+fY0DJzvrVK33A==
   dependencies:
-    "@cef-ebsi/ebsi-did-resolver" "^3.0.0"
-    "@cef-ebsi/key-did-resolver" "^1.0.0"
-    axios "^1.3.4"
+    "@cef-ebsi/ebsi-did-resolver" "^3.1.0"
+    "@cef-ebsi/key-did-resolver" "^1.1.0"
+    axios "^1.4.0"
     did-jwt "^6.11.5"
     did-resolver "^4.1.0"
     elliptic "^6.5.4"
@@ -1191,57 +1191,57 @@
     multiformats "^9.9.0"
     uuid "^9.0.0"
 
-"@cef-ebsi/verifiable-credential@^4.2.0":
-  version "4.2.0"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-credential/-/verifiable-credential-4.2.0.tgz#5ca3810ee7e00176aa904e18d3bce03d06d80f0b"
-  integrity sha512-FxOVKZAXAVlU+P8aXNV224mn3jpqE8trynowP4NbqLRoB5V30QSYfLLobH16Ms2GdGwot9QHJsnya6JXCUjHxA==
+"@cef-ebsi/verifiable-credential@^4.3.0":
+  version "4.3.0"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-credential/-/verifiable-credential-4.3.0.tgz#3f8e633eb4c91508cb2a8409b60140a80bbec9ad"
+  integrity sha512-mZVUzW9AthVgaRhaMYI617IYgcOZexzwY4yonSvAb57ooXum8taiDKLXTv/DOUS1g5h9sQpyvEETQTP6P+SwNQ==
   dependencies:
-    "@cef-ebsi/ebsi-did-resolver" "^3.0.0"
-    "@cef-ebsi/key-did-resolver" "^1.0.0"
+    "@cef-ebsi/ebsi-did-resolver" "^3.1.0"
+    "@cef-ebsi/key-did-resolver" "^1.1.0"
     "@transmute/json-web-signature" "^0.7.0-unstable.80"
     "@transmute/vc.js" "^0.7.0-unstable.80"
     ajv "^8.12.0"
     ajv-formats "^2.1.1"
-    axios "^1.3.4"
+    axios "^1.4.0"
     did-resolver "^4.1.0"
     elliptic "^6.5.4"
     ethers "^5.7.2"
-    jose "^4.13.1"
+    jose "^4.14.4"
     lodash.clonedeep "^4.5.0"
     mem "^8.1.1"
     multiformats "^9.9.0"
     pako "^2.1.0"
 
-"@cef-ebsi/verifiable-presentation@^5.1.0":
-  version "5.1.0"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-presentation/-/verifiable-presentation-5.1.0.tgz#4dcb3d359f1b57b7b854aeff13fd9463428f331e"
-  integrity sha512-5Qjz9OFlh6Ac1fqJBPU+t2etECfw7WbkPZy4cuV2/wq1/qcM03Ozl4cmZ1HA+ud9PmOScqFIvqSSnqPerp2VEQ==
+"@cef-ebsi/verifiable-presentation@^5.2.0":
+  version "5.2.0"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-presentation/-/verifiable-presentation-5.2.0.tgz#28e0aef4b129d4d2888937e8100599f1dfa37d59"
+  integrity sha512-2j+m2dMxq9XpM1yN0VhqixfKP0SLSIYo/5Ga3tyWvNYj/C6d43R1smhk3xaQVdc3B/z1v/SWapL7/iihgNAE8w==
   dependencies:
-    "@cef-ebsi/ebsi-did-resolver" "^3.0.0"
-    "@cef-ebsi/key-did-resolver" "^1.0.0"
-    "@cef-ebsi/verifiable-credential" "^4.2.0"
+    "@cef-ebsi/ebsi-did-resolver" "^3.1.0"
+    "@cef-ebsi/key-did-resolver" "^1.1.0"
+    "@cef-ebsi/verifiable-credential" "^4.3.0"
     "@transmute/json-web-signature" "^0.7.0-unstable.80"
     "@transmute/vc.js" "^0.7.0-unstable.80"
     ajv "^8.12.0"
-    axios "^1.3.4"
+    axios "^1.4.0"
     did-resolver "^4.1.0"
-    jose "^4.13.1"
+    jose "^4.14.4"
     mem "^8.1.1"
     multiformats "^9.9.0"
 
-"@cef-ebsi/wallet-lib@^4.0.1":
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/wallet-lib/-/wallet-lib-4.0.1.tgz#696da4be0468847fd31b64ec8fbbe6389ea40250"
-  integrity sha512-Bypc8QeOQc1fmhAlvhkkT6H4Op5J3O83yNVty2xrGmUr0jC9nbP2E23EnmfyOGm7k2Wuesh8vXmgp47lUUnDEg==
+"@cef-ebsi/wallet-lib@^4.1.0":
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/wallet-lib/-/wallet-lib-4.1.0.tgz#5c212e43b6d6d75db362b55a11b68eb26284a379"
+  integrity sha512-5889wAJLejCYY69bz+IO38CilBqwwGH8TnBfUn1Frf0QiJpaPGmv+3xhrKJ77Tr65ZYy9mjZ85/I1yKzjz2jew==
   dependencies:
-    "@cef-ebsi/ebsi-did-resolver" "^3.0.0"
-    "@cef-ebsi/key-did-resolver" "^1.0.0"
+    "@cef-ebsi/ebsi-did-resolver" "^3.1.0"
+    "@cef-ebsi/key-did-resolver" "^1.1.0"
     "@ethersproject/providers" "^5.7.2"
     "@ethersproject/random" "^5.7.0"
     bn.js "^5.2.1"
     did-jwt "^6.11.5"
     elliptic "^6.5.4"
-    jose "^4.13.1"
+    jose "^4.14.4"
     js-sha3 "^0.8.0"
     key-encoder "^2.0.3"
     multiformats "^9.9.0"
@@ -5478,7 +5478,7 @@ axios@^0.21.1:
   dependencies:
     follow-redirects "^1.14.0"
 
-axios@^1.0.0, axios@^1.3.4, axios@^1.4.0:
+axios@^1.0.0, axios@^1.4.0:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/axios/-/axios-1.4.0.tgz#38a7bf1224cd308de271146038b551d725f0be1f"
   integrity sha512-S4XCWMEmzvo64T9GfvQDOXgYRDJ/wsSZc7Jvdgx5u1sd0JwsuPLqb3SYmusag+edF6ziyMensPVqLTSc1PiSEA==
