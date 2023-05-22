@@ -1,4 +1,3 @@
-import type { PresentationSubmission } from "@sphereon/pex-models";
 import { Transform } from "class-transformer";
 import {
   Equals,
@@ -8,6 +7,7 @@ import {
   IsObject,
   IsNotEmptyObject,
 } from "class-validator";
+import type { JsonObject } from "type-fest";
 import { Scope } from "../authorisation.interfaces";
 import { IsScope } from "../validators";
 
@@ -31,7 +31,7 @@ export class CreateAccessTokenDto {
 
   @IsObject()
   @IsNotEmptyObject()
-  readonly "presentation_submission": PresentationSubmission;
+  readonly "presentation_submission": JsonObject;
 }
 
 export default CreateAccessTokenDto;

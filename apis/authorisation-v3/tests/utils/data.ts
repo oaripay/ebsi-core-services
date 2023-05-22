@@ -74,39 +74,54 @@ export function createPresentationSubmission(
   const testPresentationSubmission: PresentationSubmission = {
     id: randomUUID(),
     definition_id: "",
-    descriptor_map: [
-      {
-        id: "Any type of Verifiable Attestation",
-        format: "jwt_vp",
-        path: "$",
-        path_nested: {
-          id: "Any type of Verifiable Attestation",
-          format: "jwt_vc",
-          path: "$.verifiableCredential[0]",
-        },
-      },
-    ],
+    descriptor_map: [],
   };
 
   switch (scope) {
     case DIDR_INVITE_SCOPE: {
       testPresentationSubmission.definition_id =
         DIDR_INVITE_PRESENTATION_DEFINITION.id;
+
+      testPresentationSubmission.descriptor_map.push({
+        id: DIDR_INVITE_PRESENTATION_DEFINITION.input_descriptors[0].id,
+        format: "jwt_vp",
+        path: "$",
+        path_nested: {
+          id: DIDR_INVITE_PRESENTATION_DEFINITION.input_descriptors[0].id,
+          format: "jwt_vc",
+          path: "$.verifiableCredential[0]",
+        },
+      });
+
       break;
     }
     case DIDR_WRITE_SCOPE: {
       testPresentationSubmission.definition_id =
         DIDR_WRITE_PRESENTATION_DEFINITION.id;
+
       break;
     }
     case TIR_INVITE_SCOPE: {
       testPresentationSubmission.definition_id =
         TIR_INVITE_PRESENTATION_DEFINITION.id;
+
+      testPresentationSubmission.descriptor_map.push({
+        id: TIR_INVITE_PRESENTATION_DEFINITION.input_descriptors[0].id,
+        format: "jwt_vp",
+        path: "$",
+        path_nested: {
+          id: TIR_INVITE_PRESENTATION_DEFINITION.input_descriptors[0].id,
+          format: "jwt_vc",
+          path: "$.verifiableCredential[0]",
+        },
+      });
+
       break;
     }
     case TIR_WRITE_SCOPE: {
       testPresentationSubmission.definition_id =
         TIR_WRITE_PRESENTATION_DEFINITION.id;
+
       break;
     }
     default: {

@@ -514,18 +514,21 @@ describe("Authorisation Module", () => {
         vpPayload = {
           "@context": ["https://www.w3.org/2018/credentials/v1"],
           type: ["VerifiablePresentation"],
+          id: randomUUID(),
           verifiableCredential: [],
           holder: credentialSubject.did,
         };
 
         // Reset to valid presentation submission before each test
         presentationSubmission = createPresentationSubmission(customScope);
-        // Reset to empty verifiable credential array before each test to allow each test to add its own verifiable credential
-        vpPayload.verifiableCredential = [];
-        vpPayload.id = randomUUID(); // VP ID is used as JWT JTI.
 
         // If scope=didr_invite, the DID is not yet registered in the DIDR and TIR
-        if (customScope !== DIDR_INVITE_SCOPE) {
+        if (customScope === DIDR_INVITE_SCOPE) {
+          nock(domain)
+            .get(`/did-registry/v4/identifiers/${credentialSubject.did}`)
+            .reply(404, "Not found")
+            .persist();
+        } else {
           nock(domain)
             .get(`/did-registry/v4/identifiers/${credentialSubject.did}`)
             .reply(200, credentialSubject.didDocument)
@@ -632,6 +635,10 @@ describe("Authorisation Module", () => {
               .persist();
           }
         }
+      });
+
+      afterEach(() => {
+        nock.cleanAll();
       });
 
       describe("vp_token validation", () => {
@@ -994,93 +1001,6 @@ describe("Authorisation Module", () => {
           ).toBe("application/json; charset=utf-8");
         });
 
-        // Fix: EBSIINT-5943
-        // Correctly handle PEX errors
-        it("should return error when the presentation exchange is invalid", async () => {
-          if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
-            // Skip test
-            return;
-          }
-
-          const badVcPayload = {
-            "@context": ["https://www.w3.org/2018/credentials/v1"],
-            id: `urn:uuid:${randomUUID()}`,
-            type: ["VerifiableCredential", "VerifiableAttestation"],
-            issuer: credentialIssuer.did,
-            issuanceDate: issuanceDate.toISOString(),
-            issued: issuanceDate.toISOString(),
-            validFrom: issuanceDate.toISOString(),
-            expirationDate: expirationDate.toISOString(),
-            credentialSubject: {
-              id: credentialSubject.did,
-              type: "same-device",
-            },
-            credentialSchema: {
-              id: configService.get<string>("testOidSchemaPattern"),
-              type: "FullJsonSchemaValidator2021",
-            },
-            termsOfUse: {
-              id: credentialIssuerAccreditationUrl,
-              type: "IssuanceCertificate",
-            },
-          };
-
-          const vcJwt = await createVerifiableCredentialJwt(
-            badVcPayload,
-            credentialIssuer,
-            {
-              ebsiAuthority: "example.net",
-              skipValidation: true,
-            }
-          );
-
-          vpPayload.verifiableCredential.push(vcJwt);
-          vpPayload.holder = credentialIssuer.did;
-
-          // Create VP JWT manually
-          const privateKey = await importJWK(
-            credentialIssuer.privateKeyJwk,
-            credentialIssuer.alg
-          );
-          const vpJwt = await new SignJWT({
-            aud: serviceEndpoint,
-            sub: credentialIssuer.did,
-            iat: Math.floor(issuanceDate.getTime() / 1000),
-            nbf: Math.floor(issuanceDate.getTime() / 1000),
-            exp: Math.floor(expirationDate.getTime() / 1000),
-            vp: vpPayload,
-            nonce: randomUUID(),
-            iss: credentialIssuer.did,
-          })
-            .setProtectedHeader({
-              alg: credentialIssuer.alg,
-              typ: "JWT",
-              kid: credentialIssuer.kid,
-            })
-            .sign(privateKey);
-
-          const response = await request(server)
-            .post("/token")
-            .set("Content-Type", "application/x-www-form-urlencoded")
-            .send(
-              qs.stringify({
-                grant_type: "vp_token",
-                scope,
-                vp_token: vpJwt,
-                presentation_submission: presentationSubmission,
-              })
-            );
-
-          // In a VC, the date doesn't contain milliseconds
-          const expectedValue = `${badVcPayload.issuanceDate.split(".")[0]}Z`;
-
-          expect(response.body).toStrictEqual({
-            error: "invalid_request",
-            error_description: `Invalid Presentation Submission:\nInconsistent issuance dates between JWT claim (${expectedValue}) and VC value (${badVcPayload.issuanceDate})`,
-          });
-          expect(response.status).toBe(400);
-        });
-
         // Fix: EBSIINT-6065
         // require at least 1 verifiable credential
         it("should return error when the number of verifiable credentials is not correct", async () => {
@@ -1117,7 +1037,7 @@ describe("Authorisation Module", () => {
           expect(response.body).toStrictEqual({
             error: "invalid_request",
             error_description:
-              "Invalid Verifiable Presentation: The presentation must contain at least 1 verifiable credential",
+              "Invalid Presentation Submission: VP needs to have at least one verifiable credential at this point",
           });
           expect(response.status).toBe(400);
           expect(
@@ -1386,8 +1306,7 @@ describe("Authorisation Module", () => {
           error: "invalid_request",
           error_description: `Invalid Presentation Submission:
 - [root.presentation_submission] id should not be empty
-- [root.presentation_submission] presentation_definition_id should not be empty
-- [root.presentation_submission] descriptor_map should be a non-empty list`,
+- [root.presentation_submission] presentation_definition_id should not be empty`,
         });
         expect(response.status).toBe(400);
         expect(

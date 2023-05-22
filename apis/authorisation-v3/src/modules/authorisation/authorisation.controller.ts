@@ -8,6 +8,7 @@ import {
   Headers,
   Header,
 } from "@nestjs/common";
+import type { ReadonlyDeep } from "type-fest";
 import { AuthorisationService } from "./authorisation.service";
 import type {
   JsonWebKeySet,
@@ -39,7 +40,7 @@ export class AuthorisationController {
   @Get("/presentation-definitions")
   getPresentationDefinitions(
     @Query() query: GetPresentationDefinitionsDto
-  ): PresentationDefinition {
+  ): ReadonlyDeep<PresentationDefinition> {
     return this.authorisationService.getPresentationDefinitions(query.scope);
   }
 

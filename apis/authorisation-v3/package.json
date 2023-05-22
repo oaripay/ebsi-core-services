@@ -35,7 +35,7 @@
     "@nestjs/core": "^9.4.0",
     "@nestjs/platform-fastify": "^9.4.0",
     "@nestjs/terminus": "^9.2.2",
-    "@sphereon/pex": "^1.1.5",
+    "@sphereon/pex": "^2.0.1",
     "axios": "^1.4.0",
     "cache-manager": "^5.2.1",
     "class-transformer": "^0.5.1",
@@ -57,7 +57,7 @@
     "@nestjs/cli": "^9.4.2",
     "@nestjs/schematics": "^9.0.4",
     "@nestjs/testing": "^9.4.0",
-    "@sphereon/pex-models": "^1.2.2",
+    "@sphereon/pex-models": "^2.0.2",
     "@stoplight/spectral-cli": "^6.6.0",
     "@total-typescript/ts-reset": "^0.4.2",
     "@tsconfig/node16": "^1.0.3",
@@ -73,6 +73,7 @@
     "supertest": "^6.3.3",
     "ts-jest": "^29.1.0",
     "ts-node": "^10.9.1",
+    "type-fest": "^3.9.0",
     "typescript": "4.9.5"
   },
   "jestSonar": {

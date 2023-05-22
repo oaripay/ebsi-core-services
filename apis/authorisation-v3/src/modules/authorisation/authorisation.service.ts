@@ -1,6 +1,7 @@
 import { JsonWebKey, randomUUID } from "node:crypto";
 import { Injectable, Inject, Logger, CACHE_MANAGER } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import type { ReadonlyDeep } from "type-fest";
 import { logAxiosError } from "@ebsiint-api/shared";
 import type { PresentationSubmission } from "@sphereon/pex-models";
 import { verifyPresentationJwt } from "@cef-ebsi/verifiable-presentation";
@@ -9,7 +10,8 @@ import type {
   VpJwtPayload,
 } from "@cef-ebsi/verifiable-presentation";
 import { PEXv2 } from "@sphereon/pex";
-import type { IPresentation } from "@sphereon/ssi-types";
+import type { Checked } from "@sphereon/pex";
+import type { IPresentation, IVerifiableCredential } from "@sphereon/ssi-types";
 import { decodeJWT, createJWT, ES256Signer, hexToBytes } from "did-jwt";
 import type { JWTDecoded, JWTPayload } from "did-jwt/lib/JWT";
 import { MemoryCache } from "cache-manager";
@@ -51,8 +53,6 @@ export class AuthorisationService {
 
   private readonly ebsiAuthority: string;
 
-  private readonly pex: PEXv2;
-
   private readonly apiES256PrivateKey: string;
 
   private readonly didRegistry: string;
@@ -72,7 +72,6 @@ export class AuthorisationService {
       "trustedIssuersRegistry"
     );
     this.apiES256PrivateKey = configService.get<string>("apiES256PrivateKey");
-    this.pex = new PEXv2();
   }
 
   /**
@@ -136,7 +135,7 @@ export class AuthorisationService {
    * @param scope Array of supported scopes ("openid", "didr_invite", "didr_write", "tir_invite", "tir_write")
    * @returns A Presentation Definition.
    */
-  getPresentationDefinitions(scope: Scope[]): PresentationDefinition {
+  getPresentationDefinitions(scope: Scope[]) {
     if (scope.includes(DIDR_INVITE_SCOPE)) {
       return DIDR_INVITE_PRESENTATION_DEFINITION;
     }
@@ -187,38 +186,65 @@ export class AuthorisationService {
    */
   validatePresentationExchange(
     vp: EbsiVerifiablePresentation,
-    presentationDefinition: PresentationDefinition,
+    presentationDefinition: ReadonlyDeep<PresentationDefinition>,
     presentationSubmission: PresentationSubmission
   ) {
-    const presentation = {
-      "@context": vp["@context"],
-      type: vp.type,
-      holder: vp.holder,
-      presentation_submission: presentationSubmission,
-      verifiableCredential: vp.verifiableCredential,
-    } as IPresentation;
+    const errors: Checked[] = [];
 
-    try {
-      const { errors } = this.pex.evaluatePresentation(
-        presentationDefinition,
-        presentation
-      );
+    // Exit early if the presentation submission is empty (e.g. for didr_write or tir_write)
+    if (
+      !presentationSubmission.descriptor_map ||
+      presentationSubmission.descriptor_map.length === 0
+    ) {
+      return;
+    }
 
-      if (errors && errors.length > 0) {
-        throw new Error(
-          errors
-            .map(
-              (error) =>
-                `${error.tag} tag: ${error.message ?? "Unknown error"};`
-            )
-            .join()
+    // Evaluate each descriptor_map[x] individually
+    presentationSubmission.descriptor_map.forEach((descriptor) => {
+      // Trim presentation definition: keep only the constraints related to descriptor.id
+      // Reason: the PEX library tries to apply every constraint to every input
+      const trimmedPresentationDefinition = {
+        ...presentationDefinition,
+        input_descriptors: presentationDefinition.input_descriptors.filter(
+          (inputDescriptor) => inputDescriptor.id === descriptor.id
+        ),
+      } as const;
+
+      const presentation = {
+        "@context": vp["@context"],
+        type: vp.type,
+        holder: vp.holder,
+        presentation_submission: presentationSubmission,
+        verifiableCredential:
+          vp.verifiableCredential as unknown as IVerifiableCredential[],
+      } satisfies IPresentation;
+
+      try {
+        const pex = new PEXv2();
+        const result = pex.evaluatePresentation(
+          trimmedPresentationDefinition as PresentationDefinition,
+          presentation
         );
+
+        if (result.errors) {
+          errors.push(...result.errors);
+        }
+      } catch (error) {
+        if (error instanceof Error) {
+          throw new OAuth2TokenError("invalid_request", {
+            errorDescription: `Invalid Presentation Submission: ${error.message}`,
+          });
+        }
       }
-    } catch (e) {
+    });
+
+    if (errors && errors.length > 0) {
       throw new OAuth2TokenError("invalid_request", {
-        errorDescription: `Invalid Presentation Submission:\n${
-          e instanceof Error ? e.message : "Unknown error"
-        }`,
+        errorDescription: `Invalid Presentation Submission:\n${errors
+          .map(
+            (error) => `${error.tag} tag: ${error.message ?? "Unknown error"};`
+          )
+          .join()}`,
       });
     }
   }
@@ -257,11 +283,11 @@ export class AuthorisationService {
    * @param definitionId - The Presentation Definition ID that the presentation_submission.definition_id must match.
    */
   validatePresentationSubmissionObject(
-    presentationSubmission: PresentationSubmission,
-    definitionId: string
-  ) {
-    const validationResult = this.pex.validateSubmission(
-      presentationSubmission
+    presentationSubmissionObject: unknown,
+    presentationDefinition: ReadonlyDeep<PresentationDefinition>
+  ): asserts presentationSubmissionObject is PresentationSubmission {
+    const validationResult = PEXv2.validateSubmission(
+      presentationSubmissionObject as PresentationSubmission
     );
 
     const checkedArray = Array.isArray(validationResult)
@@ -270,9 +296,15 @@ export class AuthorisationService {
 
     const errors = checkedArray
       .map((checked) => {
+        if (checked.message === "descriptor_map should be a non-empty list") {
+          // Accept presentation submissions with empty descriptor map (e.g. for didr_write and tir_write)
+          return null;
+        }
+
         if (checked.status === "error") {
           return checked;
         }
+
         return null;
       })
       .filter(Boolean);
@@ -285,18 +317,54 @@ export class AuthorisationService {
       });
     }
 
+    // Assume presentationSubmissionObject is a correctly-formatted PresentationSubmission
+    const presentationSubmission =
+      presentationSubmissionObject as PresentationSubmission;
+
     /**
      * The presentation_submission object MUST contain a definition_id property.
      * The value of this property MUST be the id value of a valid Presentation Definition.
      *
      * @see https://identity.foundation/presentation-exchange/#presentation-submission
      */
-    if (presentationSubmission.definition_id !== definitionId) {
+    if (presentationSubmission.definition_id !== presentationDefinition.id) {
       throw new OAuth2TokenError("invalid_request", {
         errorDescription:
           "Invalid Presentation Submission: definition_id doesn't match the expected Presentation Definition ID for the requested scope",
       });
     }
+
+    /**
+     * Make sure every descriptor_map[x].id of the Presentation Submission
+     * matches an existing input_descriptors[x].id of the Presentation Definition
+     */
+    (presentationSubmission.descriptor_map || []).forEach((descriptor) => {
+      const matchingDescriptor = presentationDefinition.input_descriptors.find(
+        (inputDescriptor) => inputDescriptor.id === descriptor.id
+      );
+
+      if (!matchingDescriptor) {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription: `The presentation definition doesn't contain any input descriptor with the ID ${descriptor.id}`,
+        });
+      }
+    });
+
+    /**
+     * Make sure every input_descriptors[x] of the Presentation Definition is
+     * satisfied, i.e. there's at least 1 descriptor_map[x] with the same id.
+     */
+    presentationDefinition.input_descriptors.forEach((inputDescriptor) => {
+      const matchingDescriptor = (
+        presentationSubmission.descriptor_map || []
+      ).find((descriptor) => descriptor.id === inputDescriptor.id);
+
+      if (!matchingDescriptor) {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription: `Input descriptor ${inputDescriptor.id} is missing`,
+        });
+      }
+    });
   }
 
   /**
@@ -485,29 +553,11 @@ export class AuthorisationService {
     // Verify presentation_submission object
     this.validatePresentationSubmissionObject(
       presentationSubmission,
-      presentationDefinition.id
+      presentationDefinition
     );
 
     // Now, we can assert that vpTokenPayload is a VpJwtPayload
     const { vp } = vpTokenPayload as VpJwtPayload;
-
-    // Fix: EBSIINT-6065
-    // The PEX library is not forcing that all inputs listed in the
-    // input_descriptors array are required for submission. This means that
-    // if vp.verifiableCredential is an empty array the input_descriptors are
-    // skipped.
-    // To fix this we enforce that the didr_invite and tir_invite scopes
-    // must have at least one VC, so the PEX library is able to validate the
-    // corresponding credentials.
-    if (
-      (scope.includes(DIDR_INVITE_SCOPE) || scope.includes(TIR_INVITE_SCOPE)) &&
-      (!vp.verifiableCredential || vp.verifiableCredential.length === 0)
-    ) {
-      throw new OAuth2TokenError("invalid_request", {
-        errorDescription:
-          "Invalid Verifiable Presentation: The presentation must contain at least 1 verifiable credential",
-      });
-    }
 
     // Verify presentation exchange
     this.validatePresentationExchange(

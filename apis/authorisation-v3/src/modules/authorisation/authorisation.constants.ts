@@ -1,3 +1,4 @@
+import type { ReadonlyDeep } from "type-fest";
 import { PresentationDefinition } from "../../shared/interfaces/pex";
 
 export const OPENID_SCOPE = "openid";
@@ -16,7 +17,7 @@ export const CUSTOM_SCOPES = [
 
 export const SUPPORTED_SCOPES = [OPENID_SCOPE, ...CUSTOM_SCOPES] as const;
 
-export const DIDR_INVITE_PRESENTATION_DEFINITION: PresentationDefinition = {
+export const DIDR_INVITE_PRESENTATION_DEFINITION = {
   id: "didr_invite_presentation",
   input_descriptors: [
     {
@@ -43,9 +44,9 @@ export const DIDR_INVITE_PRESENTATION_DEFINITION: PresentationDefinition = {
     jwt_vc: { alg: ["ES256"] },
     jwt_vp: { alg: ["ES256"] },
   },
-};
+} as const satisfies ReadonlyDeep<PresentationDefinition>;
 
-export const DIDR_WRITE_PRESENTATION_DEFINITION: PresentationDefinition = {
+export const DIDR_WRITE_PRESENTATION_DEFINITION = {
   id: "didr_write_presentation",
   name: "Any type of Verifiable Attestation",
   purpose:
@@ -55,9 +56,9 @@ export const DIDR_WRITE_PRESENTATION_DEFINITION: PresentationDefinition = {
     jwt_vc: { alg: ["ES256"] },
     jwt_vp: { alg: ["ES256"] },
   },
-};
+} as const satisfies ReadonlyDeep<PresentationDefinition>;
 
-export const TIR_INVITE_PRESENTATION_DEFINITION: PresentationDefinition = {
+export const TIR_INVITE_PRESENTATION_DEFINITION = {
   id: "tir_invite_presentation",
   input_descriptors: [
     {
@@ -88,9 +89,9 @@ export const TIR_INVITE_PRESENTATION_DEFINITION: PresentationDefinition = {
     jwt_vc: { alg: ["ES256"] },
     jwt_vp: { alg: ["ES256"] },
   },
-};
+} as const satisfies ReadonlyDeep<PresentationDefinition>;
 
-export const TIR_WRITE_PRESENTATION_DEFINITION: PresentationDefinition = {
+export const TIR_WRITE_PRESENTATION_DEFINITION = {
   id: "tir_write_presentation",
   name: "Any type of Verifiable Attestation",
   purpose: "Please present a valid Presentation signed by a Trusted Issuer.",
@@ -99,4 +100,4 @@ export const TIR_WRITE_PRESENTATION_DEFINITION: PresentationDefinition = {
     jwt_vc: { alg: ["ES256"] },
     jwt_vp: { alg: ["ES256"] },
   },
-};
+} as const satisfies ReadonlyDeep<PresentationDefinition>;

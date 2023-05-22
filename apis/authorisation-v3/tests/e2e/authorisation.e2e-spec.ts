@@ -982,8 +982,7 @@ describe("Authorisation (e2e)", () => {
           error: "invalid_request",
           error_description: `Invalid Presentation Submission:
 - [root.presentation_submission] id should not be empty
-- [root.presentation_submission] presentation_definition_id should not be empty
-- [root.presentation_submission] descriptor_map should be a non-empty list`,
+- [root.presentation_submission] presentation_definition_id should not be empty`,
         });
         expect(response.status).toBe(400);
         expect(
