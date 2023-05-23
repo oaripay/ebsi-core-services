@@ -6,6 +6,7 @@ import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import axios, { AxiosResponse } from "axios";
 import { decodeJwt } from "jose";
+import { Mutex } from "async-mutex";
 import { Tir, Tir__factory } from "@ebsiint-sc/trusted-issuers-registry";
 import { ApiConfig } from "../../config/configuration";
 
@@ -40,6 +41,10 @@ export class LedgerService {
 
   private readonly timeout: number;
 
+  private readonly publicProviderMutex: Mutex;
+
+  private readonly privateProviderMutex: Mutex;
+
   constructor(private configService: ConfigService<ApiConfig, true>) {
     this.tirAddress = this.configService.get<string>(
       "besuTrustedIssuersRegistryAddress"
@@ -63,6 +68,8 @@ export class LedgerService {
     )}/blockchains/besu`;
 
     this.timeout = configService.get<number>("requestTimeout");
+    this.publicProviderMutex = new Mutex();
+    this.privateProviderMutex = new Mutex();
   }
 
   private async checkSession(): Promise<void> {
@@ -162,7 +169,11 @@ export class LedgerService {
           this.domain,
           this.localOrigin
         );
-        this.logger.debug(`Trying to connect to local Ledger API: ${localUrl}`);
+        this.logger.debug(
+          `Trying to connect to local Ledger API: ${localUrl} (${
+            token ? "with" : "without"
+          } access token)`
+        );
         const provider = this.setupProvider(localUrl, token);
         await provider.getNetwork();
         this.logger.debug("Connected to local Ledger API");
@@ -180,11 +191,17 @@ export class LedgerService {
   }
 
   private async refreshConnection() {
-    const token = await this.getAccessToken();
-
-    const provider = await this.connectProvider(token);
-
-    this.tirContract = Tir__factory.connect(this.tirAddress, provider);
+    if (this.privateProviderMutex.isLocked()) {
+      // A connection is already being made, wait until it's finished
+      await this.privateProviderMutex.waitForUnlock();
+    } else {
+      // Create a new connection
+      await this.privateProviderMutex.runExclusive(async () => {
+        const token = await this.getAccessToken();
+        const provider = await this.connectProvider(token);
+        this.tirContract = Tir__factory.connect(this.tirAddress, provider);
+      });
+    }
   }
 
   private async getPublicMethodsTirContract() {
@@ -192,14 +209,21 @@ export class LedgerService {
       return this.publicMethodsTirContract;
     }
 
-    const provider = await this.connectProvider();
+    if (this.publicProviderMutex.isLocked()) {
+      // A connection is already being made, wait until it's finished
+      await this.publicProviderMutex.waitForUnlock();
+    } else {
+      // Create a new connection
+      await this.publicProviderMutex.runExclusive(async () => {
+        const provider = await this.connectProvider();
+        this.publicMethodsTirContract = Tir__factory.connect(
+          this.tirAddress,
+          provider
+        );
+      });
+    }
 
-    this.publicMethodsTirContract = Tir__factory.connect(
-      this.tirAddress,
-      provider
-    );
-
-    return this.publicMethodsTirContract;
+    return this.publicMethodsTirContract as unknown as Tir;
   }
 
   async getContract({ protectedMethod = false } = {}): Promise<Tir> {

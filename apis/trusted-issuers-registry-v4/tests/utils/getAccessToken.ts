@@ -39,11 +39,11 @@ export async function getTirInviteAccessToken(
     definition_id: "tir_invite_presentation",
     descriptor_map: [
       {
-        id: "Any type of Verifiable Attestation",
+        id: "tir_invite_credential",
         format: "jwt_vp",
         path: "$",
         path_nested: {
-          id: "Any type of Verifiable Attestation",
+          id: "tir_invite_credential",
           format: "jwt_vc",
           path: "$.verifiableCredential[0]",
         },
@@ -106,18 +106,7 @@ export async function getTirWriteAccessToken(
   const presentationSubmission = {
     id: randomUUID(),
     definition_id: "tir_write_presentation",
-    descriptor_map: [
-      {
-        id: "Any type of Verifiable Attestation",
-        format: "jwt_vp",
-        path: "$",
-        path_nested: {
-          id: "Any type of Verifiable Attestation",
-          format: "jwt_vc",
-          path: "$.verifiableCredential[0]",
-        },
-      },
-    ],
+    descriptor_map: [],
   };
 
   const response = await axios.post(
@@ -175,18 +164,7 @@ export async function getDidrWriteAccessToken(
   const presentationSubmission = {
     id: randomUUID(),
     definition_id: "didr_write_presentation",
-    descriptor_map: [
-      {
-        id: "Any type of Verifiable Attestation",
-        format: "jwt_vp",
-        path: "$",
-        path_nested: {
-          id: "Any type of Verifiable Attestation",
-          format: "jwt_vc",
-          path: "$.verifiableCredential[0]",
-        },
-      },
-    ],
+    descriptor_map: [],
   };
 
   const response = await axios.post(
