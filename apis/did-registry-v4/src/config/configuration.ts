@@ -19,8 +19,6 @@ export interface ApiConfig {
   externalEbsiApiHealthCheck: string;
   requestTimeout: number;
   trustedAppsRegistryApiUrl: string;
-  testExistingUserKid: string;
-  testExistingUserPrivateKey: string;
   testAuthApiV3ES256PrivateKey: string;
   testLoadBalancerDomain: string;
   dockerContainerTag: string;
@@ -59,9 +57,6 @@ export const loadConfig = (): ApiConfig => {
     externalEbsiApiHealthCheck: DOMAIN + HEALTH_CHECK_PATH,
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     trustedAppsRegistryApiUrl: DOMAIN + TAR_API_PATH,
-    testExistingUserKid: process.env.TEST_EXISTING_USER_KID || "",
-    testExistingUserPrivateKey:
-      process.env.TEST_EXISTING_USER_PRIVATE_KEY || "",
     testAuthApiV3ES256PrivateKey:
       process.env.TEST_AUTH_API_V3_ES256_PRIVATE_KEY || "",
     testLoadBalancerDomain: process.env.TEST_LB_DOMAIN || "",
@@ -106,8 +101,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
     LOCAL_ORIGIN: Joi.string().uri(),
     LEDGER_API_NAME: Joi.string(),
     REQUEST_TIMEOUT: Joi.string(),
-    TEST_EXISTING_USER_KID: Joi.string(),
-    TEST_EXISTING_USER_PRIVATE_KEY: Joi.string(),
     TEST_AUTH_API_V3_ES256_PRIVATE_KEY: Joi.string(),
     TEST_LB_DOMAIN: Joi.string().uri(),
     TEST_ENV: Joi.string(),

@@ -15,8 +15,6 @@ declare global {
       DOMAIN: string;
       LOCAL_ORIGIN?: string;
       REQUEST_TIMEOUT?: string;
-      TEST_EXISTING_USER_KID?: string;
-      TEST_EXISTING_USER_PRIVATE_KEY?: string;
       TEST_AUTH_API_V3_ES256_PRIVATE_KEY?: string;
       TEST_ENV?: string;
       TEST_ENABLE_WRITE_OPS?: string;
