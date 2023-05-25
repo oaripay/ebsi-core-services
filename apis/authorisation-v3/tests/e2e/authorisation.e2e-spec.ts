@@ -1,4 +1,5 @@
 import { randomBytes, randomUUID } from "node:crypto";
+import { URLSearchParams } from "node:url";
 import { describe, beforeAll, it, expect, beforeEach } from "@jest/globals";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
@@ -35,11 +36,13 @@ import {
 } from "../../src/modules/authorisation/authorisation.constants";
 import type {
   JsonWebKeySet,
+  Scope,
   TokenResponse,
 } from "../../src/modules/authorisation/authorisation.interfaces";
 import { getServer } from "../utils/getServer";
 import { configureApp } from "../utils/app";
 import { createLegalEntity, createPresentationSubmission } from "../utils/data";
+import { CreateAccessTokenDto } from "../../src/modules/authorisation/dto";
 
 describe("Authorisation (e2e)", () => {
   let app: INestApplication;
@@ -214,9 +217,9 @@ describe("Authorisation (e2e)", () => {
         .post("/token")
         .set("Content-Type", "application/x-www-form-urlencoded")
         .send(
-          qs.stringify({
+          new URLSearchParams({
             grant_type: "test",
-          })
+          }).toString()
         );
 
       expect(response.body).toStrictEqual({
@@ -236,10 +239,10 @@ describe("Authorisation (e2e)", () => {
         .post("/token")
         .set("Content-Type", "application/x-www-form-urlencoded")
         .send(
-          qs.stringify({
+          new URLSearchParams({
             grant_type: "vp_token",
             scope: "test",
-          })
+          }).toString()
         );
 
       expect(response.body).toStrictEqual({
@@ -260,11 +263,11 @@ describe("Authorisation (e2e)", () => {
         .post("/token")
         .set("Content-Type", "application/x-www-form-urlencoded")
         .send(
-          qs.stringify({
+          new URLSearchParams({
             grant_type: "vp_token",
             scope: "openid didr_invite",
             vp_token: "test",
-          })
+          }).toString()
         );
 
       expect(response.body).toStrictEqual({
@@ -278,7 +281,7 @@ describe("Authorisation (e2e)", () => {
     });
 
     describe.each(CUSTOM_SCOPES)("with scope 'openid %s'", (customScope) => {
-      const scope = `openid ${customScope}`;
+      const scope: Scope = `openid ${customScope}`;
       let issuer: EbsiIssuer;
       let client: EbsiIssuer;
       let vcPayload: EbsiVerifiableAttestation;
@@ -413,12 +416,12 @@ describe("Authorisation (e2e)", () => {
             .post("/token")
             .set("Content-Type", "application/x-www-form-urlencoded")
             .send(
-              qs.stringify({
+              new URLSearchParams({
                 grant_type: "vp_token",
                 scope,
                 vp_token: vpJwt,
-                presentation_submission: presentationSubmission,
-              })
+                presentation_submission: JSON.stringify(presentationSubmission),
+              } satisfies CreateAccessTokenDto).toString()
             );
 
           expect(response.body).toStrictEqual({
@@ -483,12 +486,12 @@ describe("Authorisation (e2e)", () => {
             .post("/token")
             .set("Content-Type", "application/x-www-form-urlencoded")
             .send(
-              qs.stringify({
+              new URLSearchParams({
                 grant_type: "vp_token",
                 scope,
                 vp_token: vpTokenTampered,
-                presentation_submission: presentationSubmission,
-              })
+                presentation_submission: JSON.stringify(presentationSubmission),
+              } satisfies CreateAccessTokenDto).toString()
             );
 
           expect(response.body).toStrictEqual({
@@ -533,12 +536,12 @@ describe("Authorisation (e2e)", () => {
             .post("/token")
             .set("Content-Type", "application/x-www-form-urlencoded")
             .send(
-              qs.stringify({
+              new URLSearchParams({
                 grant_type: "vp_token",
                 scope,
                 vp_token: vpJwt,
-                presentation_submission: presentationSubmission,
-              })
+                presentation_submission: JSON.stringify(presentationSubmission),
+              } satisfies CreateAccessTokenDto).toString()
             );
 
           expect(response.body).toStrictEqual({
@@ -584,12 +587,12 @@ describe("Authorisation (e2e)", () => {
             .post("/token")
             .set("Content-Type", "application/x-www-form-urlencoded")
             .send(
-              qs.stringify({
+              new URLSearchParams({
                 grant_type: "vp_token",
                 scope,
                 vp_token: vpJwt,
-                presentation_submission: presentationSubmission,
-              })
+                presentation_submission: JSON.stringify(presentationSubmission),
+              } satisfies CreateAccessTokenDto).toString()
             );
 
           expect(response.body).toStrictEqual({
@@ -640,12 +643,12 @@ describe("Authorisation (e2e)", () => {
             .post("/token")
             .set("Content-Type", "application/x-www-form-urlencoded")
             .send(
-              qs.stringify({
+              new URLSearchParams({
                 grant_type: "vp_token",
                 scope,
                 vp_token: vpJwt,
-                presentation_submission: presentationSubmission,
-              })
+                presentation_submission: JSON.stringify(presentationSubmission),
+              } satisfies CreateAccessTokenDto).toString()
             );
 
           expect(response.body).toStrictEqual({
@@ -696,12 +699,12 @@ describe("Authorisation (e2e)", () => {
             .post("/token")
             .set("Content-Type", "application/x-www-form-urlencoded")
             .send(
-              qs.stringify({
+              new URLSearchParams({
                 grant_type: "vp_token",
                 scope,
                 vp_token: vpJwt,
-                presentation_submission: presentationSubmission,
-              })
+                presentation_submission: JSON.stringify(presentationSubmission),
+              } satisfies CreateAccessTokenDto).toString()
             );
 
           // Try submitting the same VP again.
@@ -709,12 +712,12 @@ describe("Authorisation (e2e)", () => {
             .post("/token")
             .set("Content-Type", "application/x-www-form-urlencoded")
             .send(
-              qs.stringify({
+              new URLSearchParams({
                 grant_type: "vp_token",
                 scope,
                 vp_token: vpJwt,
-                presentation_submission: presentationSubmission,
-              })
+                presentation_submission: JSON.stringify(presentationSubmission),
+              } satisfies CreateAccessTokenDto).toString()
             );
 
           expect(response.body).toStrictEqual({
@@ -775,12 +778,12 @@ describe("Authorisation (e2e)", () => {
           .post("/token")
           .set("Content-Type", "application/x-www-form-urlencoded")
           .send(
-            qs.stringify({
+            new URLSearchParams({
               grant_type: "vp_token",
               scope,
               vp_token: vpJwt,
-              presentation_submission: presentationSubmission,
-            })
+              presentation_submission: JSON.stringify(presentationSubmission),
+            } satisfies CreateAccessTokenDto).toString()
           );
 
         expect(response.body).toStrictEqual({
@@ -833,12 +836,12 @@ describe("Authorisation (e2e)", () => {
           .post("/token")
           .set("Content-Type", "application/x-www-form-urlencoded")
           .send(
-            qs.stringify({
+            new URLSearchParams({
               grant_type: "vp_token",
               scope,
               vp_token: vpJwt,
-              presentation_submission: presentationSubmission,
-            })
+              presentation_submission: JSON.stringify(presentationSubmission),
+            } satisfies CreateAccessTokenDto).toString()
           );
 
         expect(response.body).toStrictEqual({
@@ -890,12 +893,12 @@ describe("Authorisation (e2e)", () => {
           .post("/token")
           .set("Content-Type", "application/x-www-form-urlencoded")
           .send(
-            qs.stringify({
+            new URLSearchParams({
               grant_type: "vp_token",
               scope,
               vp_token: vpJwt,
-              presentation_submission: presentationSubmission,
-            })
+              presentation_submission: JSON.stringify(presentationSubmission),
+            } satisfies CreateAccessTokenDto).toString()
           );
 
         expect(response.body).toStrictEqual({
@@ -934,14 +937,13 @@ describe("Authorisation (e2e)", () => {
               grant_type: "vp_token",
               scope,
               vp_token: vpJwt,
-              presentation_submission: '{"foo":"bar"}', // Stringified JSON
+              presentation_submission: presentationSubmission,
             })
           );
 
         expect(response.body).toStrictEqual({
           error: "invalid_request",
-          error_description:
-            "presentation_submission must be a non-empty object",
+          error_description: "presentation_submission must be a json string",
         });
         expect(response.status).toBe(400);
         expect(
@@ -970,19 +972,20 @@ describe("Authorisation (e2e)", () => {
           .post("/token")
           .set("Content-Type", "application/x-www-form-urlencoded")
           .send(
-            qs.stringify({
+            new URLSearchParams({
               grant_type: "vp_token",
               scope,
               vp_token: vpJwt,
-              presentation_submission: { foo: "bar" }, // invalid json
-            })
+              presentation_submission: JSON.stringify({ foo: "bar" }), // invalid json
+            } satisfies CreateAccessTokenDto).toString()
           );
 
         expect(response.body).toStrictEqual({
           error: "invalid_request",
           error_description: `Invalid Presentation Submission:
-- [root.presentation_submission] id should not be empty
-- [root.presentation_submission] presentation_definition_id should not be empty`,
+- Validation error. Path: 'presentation_submission.id'. Reason: Required
+- Validation error. Path: 'presentation_submission.definition_id'. Reason: Required
+- Validation error. Path: 'presentation_submission.descriptor_map'. Reason: Required`,
         });
         expect(response.status).toBe(400);
         expect(
@@ -1087,12 +1090,12 @@ describe("Authorisation (e2e)", () => {
           .post("/token")
           .set("Content-Type", "application/x-www-form-urlencoded")
           .send(
-            qs.stringify({
+            new URLSearchParams({
               grant_type: "vp_token",
               scope,
               vp_token: vpJwt,
-              presentation_submission: presentationSubmission,
-            })
+              presentation_submission: JSON.stringify(presentationSubmission),
+            } satisfies CreateAccessTokenDto).toString()
           );
 
         expect(response.status).toBe(200);

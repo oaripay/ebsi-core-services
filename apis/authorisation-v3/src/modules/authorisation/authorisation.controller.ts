@@ -18,6 +18,7 @@ import type {
 import { GetPresentationDefinitionsDto } from "./dto";
 import { PresentationDefinition } from "../../shared/interfaces/pex";
 import { OAuth2TokenError } from "./errors";
+import { CUSTOM_SCOPES } from "./authorisation.constants";
 
 @Controller("/")
 export class AuthorisationController {
@@ -39,9 +40,10 @@ export class AuthorisationController {
   @HttpCode(200)
   @Get("/presentation-definitions")
   getPresentationDefinitions(
-    @Query() query: GetPresentationDefinitionsDto
+    @Query() { scope }: GetPresentationDefinitionsDto
   ): ReadonlyDeep<PresentationDefinition> {
-    return this.authorisationService.getPresentationDefinitions(query.scope);
+    const customScope = scope.split(" ")[1] as (typeof CUSTOM_SCOPES)[number];
+    return this.authorisationService.getPresentationDefinitions(customScope);
   }
 
   @HttpCode(200)

@@ -20,7 +20,6 @@ import type { ApiConfig } from "../../config/configuration";
 import type {
   JsonWebKeySet,
   OPMetadata,
-  Scope,
   TokenResponse,
 } from "./authorisation.interfaces";
 import { CreateAccessTokenDto } from "./dto";
@@ -35,12 +34,14 @@ import {
   DIDR_WRITE_SCOPE,
   TIR_INVITE_SCOPE,
   TIR_WRITE_SCOPE,
+  CUSTOM_SCOPES,
 } from "./authorisation.constants";
-import { PresentationDefinition } from "../../shared/interfaces/pex";
+import type { PresentationDefinition } from "../../shared/interfaces/pex";
 import {
   attributesSchema,
   revisionsSchema,
-} from "./validators/attributes.validator";
+  presentationSubmissionSchema,
+} from "./validators";
 import { ClassValidatorError, OAuth2TokenError } from "./errors";
 
 @Injectable()
@@ -135,25 +136,25 @@ export class AuthorisationService {
    * @param scope Array of supported scopes ("openid", "didr_invite", "didr_write", "tir_invite", "tir_write")
    * @returns A Presentation Definition.
    */
-  getPresentationDefinitions(scope: Scope[]) {
-    if (scope.includes(DIDR_INVITE_SCOPE)) {
+  getPresentationDefinitions(scope: (typeof CUSTOM_SCOPES)[number]) {
+    if (scope === DIDR_INVITE_SCOPE) {
       return DIDR_INVITE_PRESENTATION_DEFINITION;
     }
 
-    if (scope.includes(DIDR_WRITE_SCOPE)) {
+    if (scope === DIDR_WRITE_SCOPE) {
       return DIDR_WRITE_PRESENTATION_DEFINITION;
     }
 
-    if (scope.includes(TIR_INVITE_SCOPE)) {
+    if (scope === TIR_INVITE_SCOPE) {
       return TIR_INVITE_PRESENTATION_DEFINITION;
     }
 
-    if (scope.includes(TIR_WRITE_SCOPE)) {
+    if (scope === TIR_WRITE_SCOPE) {
       return TIR_WRITE_PRESENTATION_DEFINITION;
     }
 
     throw new OAuth2TokenError("invalid_request", {
-      errorDescription: `Unhandled scope "${scope.join(" ")}"`,
+      errorDescription: `Unhandled scope "${scope as string}"`,
     });
   }
 
@@ -283,12 +284,10 @@ export class AuthorisationService {
    * @param definitionId - The Presentation Definition ID that the presentation_submission.definition_id must match.
    */
   validatePresentationSubmissionObject(
-    presentationSubmissionObject: unknown,
+    presentationSubmission: PresentationSubmission,
     presentationDefinition: ReadonlyDeep<PresentationDefinition>
-  ): asserts presentationSubmissionObject is PresentationSubmission {
-    const validationResult = PEXv2.validateSubmission(
-      presentationSubmissionObject as PresentationSubmission
-    );
+  ) {
+    const validationResult = PEXv2.validateSubmission(presentationSubmission);
 
     const checkedArray = Array.isArray(validationResult)
       ? validationResult
@@ -316,10 +315,6 @@ export class AuthorisationService {
           .join("\n")}`,
       });
     }
-
-    // Assume presentationSubmissionObject is a correctly-formatted PresentationSubmission
-    const presentationSubmission =
-      presentationSubmissionObject as PresentationSubmission;
 
     /**
      * The presentation_submission object MUST contain a definition_id property.
@@ -525,8 +520,36 @@ export class AuthorisationService {
     const {
       scope,
       vp_token: vpToken,
-      presentation_submission: presentationSubmission,
+      presentation_submission: presentationSubmissionString,
     } = parsedDto;
+
+    const unsafePresentationSubmission = JSON.parse(
+      presentationSubmissionString
+    );
+
+    const parsedPresentationSubmission = presentationSubmissionSchema.safeParse(
+      unsafePresentationSubmission
+    );
+
+    if (!parsedPresentationSubmission.success) {
+      const errorDescription = `Invalid Presentation Submission:\n${parsedPresentationSubmission.error.issues
+        .map(
+          (issue) =>
+            `- Validation error. Path: '${[
+              "presentation_submission",
+              ...issue.path,
+            ]
+              .filter(Boolean)
+              .join(".")}'. Reason: ${issue.message}`
+        )
+        .join("\n")}`;
+
+      throw new OAuth2TokenError("invalid_request", {
+        errorDescription,
+      });
+    }
+
+    const presentationSubmission = parsedPresentationSubmission.data;
 
     let vpTokenDecoded: JWTDecoded;
     try {
@@ -548,7 +571,8 @@ export class AuthorisationService {
     await this.preventReplayAttack(vpTokenPayload);
 
     // Get Presentation Definition corresponding to the requested scope
-    const presentationDefinition = this.getPresentationDefinitions(scope);
+    const customScope = scope.split(" ")[1] as (typeof CUSTOM_SCOPES)[number];
+    const presentationDefinition = this.getPresentationDefinitions(customScope);
 
     // Verify presentation_submission object
     this.validatePresentationSubmissionObject(
@@ -567,7 +591,7 @@ export class AuthorisationService {
     );
 
     // Verify VP JWT
-    await this.validateVpJwt(vpToken, scope.includes(DIDR_INVITE_SCOPE));
+    await this.validateVpJwt(vpToken, customScope === DIDR_INVITE_SCOPE);
 
     // Additional verifications based on the requested scope
 
@@ -575,7 +599,7 @@ export class AuthorisationService {
     // This is already done by the PEX library, based on the presentation definition.
     // Verify that the DID is not registered yet.
     if (
-      scope.includes(DIDR_INVITE_SCOPE) &&
+      customScope === DIDR_INVITE_SCOPE &&
       (await this.isDidRegistered(vp.holder))
     ) {
       throw new OAuth2TokenError("invalid_request", {
@@ -588,17 +612,16 @@ export class AuthorisationService {
 
     // `tir_invite`: the client must present a VP containing a valid VerifiableAuthorisationForTrustChain, VerifiableAccreditationToAttest, or VerifiableAccreditationToAccredit.
     // This is already done by the PEX library, based on the presentation definition.
-    if (scope.includes(TIR_INVITE_SCOPE)) {
+    if (customScope === TIR_INVITE_SCOPE) {
       await this.validateTrustedIssuer(vp.holder, true);
     }
 
     // `tir_write`: the client needs to be registered as a Trusted Issuer with accreditations.
-    if (scope.includes(TIR_WRITE_SCOPE)) {
+    if (customScope === TIR_WRITE_SCOPE) {
       await this.validateTrustedIssuer(vp.holder, false);
     }
 
     // Generate access token
-    const scopes = scope.join(" ");
     const expiresIn = 7200;
     const iat = Math.floor(Date.now() / 1000);
     const exp = iat + expiresIn;
@@ -608,7 +631,7 @@ export class AuthorisationService {
       {
         sub: vpTokenPayload.sub, // sub: Legal entity DID
         aud: this.issuer, // aud: Must be equal to 'iss'
-        scp: scopes, // scp: string of space separated scopes that we granted
+        scp: scope, // scp: string of space separated scopes that we granted
         jti: randomUUID(), // jti: A unique random identifier
         iat,
         exp,
@@ -709,7 +732,7 @@ export class AuthorisationService {
       access_token: accessToken,
       token_type: "Bearer",
       expires_in: expiresIn,
-      scope: scopes,
+      scope,
       id_token: idToken,
     };
   }

@@ -9,6 +9,7 @@ import {
 } from "@jest/globals";
 import { randomUUID, randomBytes } from "node:crypto";
 import type { JsonWebKey } from "node:crypto";
+import { URLSearchParams } from "node:url";
 import request from "supertest";
 import nock from "nock";
 import { Test, TestingModule } from "@nestjs/testing";
@@ -29,7 +30,11 @@ import { calculateJwkThumbprint, importJWK, SignJWT, jwtVerify } from "jose";
 import type { JWK } from "jose";
 import qs from "qs";
 import { AuthorisationModule } from "./authorisation.module";
-import type { JsonWebKeySet, TokenResponse } from "./authorisation.interfaces";
+import type {
+  JsonWebKeySet,
+  Scope,
+  TokenResponse,
+} from "./authorisation.interfaces";
 import type { ApiConfig } from "../../config/configuration";
 import {
   CUSTOM_SCOPES,
@@ -52,6 +57,7 @@ import {
   JWS_2020_CONTEXT,
 } from "../../../tests/utils/contexts";
 import { configureApp } from "../../../tests/utils/app";
+import { CreateAccessTokenDto } from "./dto";
 
 describe("Authorisation Module", () => {
   let app: INestApplication;
@@ -292,7 +298,7 @@ describe("Authorisation Module", () => {
       let response = await request(server).get("/presentation-definitions");
 
       expect(response.body).toStrictEqual({
-        detail: '["scope should not be null or undefined"]',
+        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write')"]`,
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -320,9 +326,9 @@ describe("Authorisation Module", () => {
 
       // Doesn't contain "openid"
       response = await request(server).get(
-        `/presentation-definitions?${qs.stringify({
+        `/presentation-definitions?${new URLSearchParams({
           scope: "didr_write tir_write",
-        })}`
+        }).toString()}`
       );
 
       expect(response.body).toStrictEqual({
@@ -406,9 +412,9 @@ describe("Authorisation Module", () => {
         .post("/token")
         .set("Content-Type", "application/x-www-form-urlencoded")
         .send(
-          qs.stringify({
+          new URLSearchParams({
             grant_type: "test",
-          })
+          }).toString()
         );
 
       expect(response.body).toStrictEqual({
@@ -428,10 +434,10 @@ describe("Authorisation Module", () => {
         .post("/token")
         .set("Content-Type", "application/x-www-form-urlencoded")
         .send(
-          qs.stringify({
+          new URLSearchParams({
             grant_type: "vp_token",
             scope: "test",
-          })
+          }).toString()
         );
 
       expect(response.body).toStrictEqual({
@@ -452,11 +458,11 @@ describe("Authorisation Module", () => {
         .post("/token")
         .set("Content-Type", "application/x-www-form-urlencoded")
         .send(
-          qs.stringify({
+          new URLSearchParams({
             grant_type: "vp_token",
             scope: "openid didr_invite",
             vp_token: "test",
-          })
+          }).toString()
         );
 
       expect(response.body).toStrictEqual({
@@ -470,7 +476,7 @@ describe("Authorisation Module", () => {
     });
 
     describe.each(CUSTOM_SCOPES)("with scope 'openid %s'", (customScope) => {
-      const scope = `openid ${customScope}`;
+      const scope: Scope = `openid ${customScope}`;
       let vcPayload: EbsiVerifiableAttestation;
       let vpPayload: EbsiVerifiablePresentation;
       let presentationSubmission: PresentationSubmission;
@@ -684,12 +690,12 @@ describe("Authorisation Module", () => {
             .post("/token")
             .set("Content-Type", "application/x-www-form-urlencoded")
             .send(
-              qs.stringify({
+              new URLSearchParams({
                 grant_type: "vp_token",
                 scope,
                 vp_token: vpJwt,
-                presentation_submission: presentationSubmission,
-              })
+                presentation_submission: JSON.stringify(presentationSubmission),
+              } satisfies CreateAccessTokenDto).toString()
             );
 
           expect(response.body).toStrictEqual({
@@ -753,12 +759,12 @@ describe("Authorisation Module", () => {
             .post("/token")
             .set("Content-Type", "application/x-www-form-urlencoded")
             .send(
-              qs.stringify({
+              new URLSearchParams({
                 grant_type: "vp_token",
                 scope,
                 vp_token: vpTokenTampered,
-                presentation_submission: presentationSubmission,
-              })
+                presentation_submission: JSON.stringify(presentationSubmission),
+              } satisfies CreateAccessTokenDto).toString()
             );
 
           expect(response.body).toStrictEqual({
@@ -803,12 +809,12 @@ describe("Authorisation Module", () => {
             .post("/token")
             .set("Content-Type", "application/x-www-form-urlencoded")
             .send(
-              qs.stringify({
+              new URLSearchParams({
                 grant_type: "vp_token",
                 scope,
                 vp_token: vpJwt,
-                presentation_submission: presentationSubmission,
-              })
+                presentation_submission: JSON.stringify(presentationSubmission),
+              } satisfies CreateAccessTokenDto).toString()
             );
 
           expect(response.body).toStrictEqual({
@@ -854,12 +860,12 @@ describe("Authorisation Module", () => {
             .post("/token")
             .set("Content-Type", "application/x-www-form-urlencoded")
             .send(
-              qs.stringify({
+              new URLSearchParams({
                 grant_type: "vp_token",
                 scope,
                 vp_token: vpJwt,
-                presentation_submission: presentationSubmission,
-              })
+                presentation_submission: JSON.stringify(presentationSubmission),
+              } satisfies CreateAccessTokenDto).toString()
             );
 
           expect(response.body).toStrictEqual({
@@ -910,12 +916,12 @@ describe("Authorisation Module", () => {
             .post("/token")
             .set("Content-Type", "application/x-www-form-urlencoded")
             .send(
-              qs.stringify({
+              new URLSearchParams({
                 grant_type: "vp_token",
                 scope,
                 vp_token: vpJwt,
-                presentation_submission: presentationSubmission,
-              })
+                presentation_submission: JSON.stringify(presentationSubmission),
+              } satisfies CreateAccessTokenDto).toString()
             );
 
           expect(response.body).toStrictEqual({
@@ -969,12 +975,12 @@ describe("Authorisation Module", () => {
             .post("/token")
             .set("Content-Type", "application/x-www-form-urlencoded")
             .send(
-              qs.stringify({
+              new URLSearchParams({
                 grant_type: "vp_token",
                 scope,
                 vp_token: vpJwt,
-                presentation_submission: presentationSubmission,
-              })
+                presentation_submission: JSON.stringify(presentationSubmission),
+              } satisfies CreateAccessTokenDto).toString()
             );
 
           // Try submitting the same VP again.
@@ -982,12 +988,12 @@ describe("Authorisation Module", () => {
             .post("/token")
             .set("Content-Type", "application/x-www-form-urlencoded")
             .send(
-              qs.stringify({
+              new URLSearchParams({
                 grant_type: "vp_token",
                 scope,
                 vp_token: vpJwt,
-                presentation_submission: presentationSubmission,
-              })
+                presentation_submission: JSON.stringify(presentationSubmission),
+              } satisfies CreateAccessTokenDto).toString()
             );
 
           expect(response.body).toStrictEqual({
@@ -1026,12 +1032,12 @@ describe("Authorisation Module", () => {
             .post("/token")
             .set("Content-Type", "application/x-www-form-urlencoded")
             .send(
-              qs.stringify({
+              new URLSearchParams({
                 grant_type: "vp_token",
                 scope,
                 vp_token: vpJwt,
-                presentation_submission: presentationSubmission,
-              })
+                presentation_submission: JSON.stringify(presentationSubmission),
+              } satisfies CreateAccessTokenDto).toString()
             );
 
           expect(response.body).toStrictEqual({
@@ -1044,6 +1050,129 @@ describe("Authorisation Module", () => {
             (response.headers as Record<string, unknown>)["content-type"]
           ).toBe("application/json; charset=utf-8");
         });
+      });
+
+      it("should return an error if the content is not application/x-www-form-urlencoded", async () => {
+        if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
+          const vcJwt = await createVerifiableCredentialJwt(
+            vcPayload,
+            credentialIssuer,
+            {
+              ebsiAuthority: "example.net",
+              skipValidation: true,
+            }
+          );
+
+          vpPayload.verifiableCredential.push(vcJwt);
+        }
+
+        const nonce = randomUUID();
+
+        const vpJwt = await createVerifiablePresentationJwt(
+          vpPayload,
+          credentialSubject,
+          serviceEndpoint,
+          {
+            ebsiAuthority: "example.net",
+            skipValidation: true,
+            nonce,
+            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
+              ? {
+                  // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
+                  exp: Math.floor(Date.now() / 1000) + 100,
+                  nbf: Math.floor(Date.now() / 1000) - 100,
+                }
+              : {}),
+          }
+        );
+
+        const response = await request(server)
+          .post("/token")
+          .set("Content-Type", "application/json")
+          .send({
+            grant_type: "vp_token",
+            scope,
+            vp_token: vpJwt,
+            presentation_submission: presentationSubmission,
+          });
+
+        expect(response.body).toStrictEqual({
+          error: "invalid_request",
+          error_description:
+            "Content-type must be application/x-www-form-urlencoded",
+        });
+        expect(response.status).toBe(400);
+        expect(
+          (response.headers as Record<string, unknown>)["content-type"]
+        ).toBe("application/json; charset=utf-8");
+      });
+
+      it("should return an error if the presentation submission is not a JSON string", async () => {
+        presentationSubmission = {
+          id: randomUUID(),
+          definition_id: "openid_presentation",
+          descriptor_map: [
+            {
+              id: "same-device-in-time-credential",
+              path: "$",
+              format: "jwt_vp",
+              path_nested: {
+                id: randomUUID(),
+                format: "jwt_vc",
+                path: "$vp.verifiableCredential[0]", // wrong path
+              },
+            },
+          ],
+        };
+
+        if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
+          const vcJwt = await createVerifiableCredentialJwt(
+            vcPayload,
+            credentialIssuer,
+            {
+              ebsiAuthority: "example.net",
+              skipValidation: true,
+            }
+          );
+
+          vpPayload.verifiableCredential.push(vcJwt);
+        }
+
+        const vpJwt = await createVerifiablePresentationJwt(
+          vpPayload,
+          credentialSubject,
+          serviceEndpoint,
+          {
+            ebsiAuthority: "example.net",
+            skipValidation: true,
+            nonce: randomUUID(),
+            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
+              ? {
+                  // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
+                  exp: Math.floor(Date.now() / 1000) + 100,
+                  nbf: Math.floor(Date.now() / 1000) - 100,
+                }
+              : {}),
+          }
+        );
+
+        const response = await request(server)
+          .post("/token")
+          .set("Content-Type", "application/x-www-form-urlencoded")
+          .send(
+            qs.stringify({
+              grant_type: "vp_token",
+              scope,
+              vp_token: vpJwt,
+              presentation_submission: presentationSubmission,
+            })
+          );
+
+        expect(response.body).toStrictEqual({
+          error: "invalid_request",
+          error_description: "presentation_submission must be a json string",
+        });
+        expect(response.status).toBe(400);
       });
 
       it("should return an error if the presentation submission is invalid (including error details)", async () => {
@@ -1099,12 +1228,12 @@ describe("Authorisation Module", () => {
           .post("/token")
           .set("Content-Type", "application/x-www-form-urlencoded")
           .send(
-            qs.stringify({
+            new URLSearchParams({
               grant_type: "vp_token",
               scope,
               vp_token: vpJwt,
-              presentation_submission: presentationSubmission,
-            })
+              presentation_submission: JSON.stringify(presentationSubmission),
+            } satisfies CreateAccessTokenDto).toString()
           );
 
         expect(response.body).toStrictEqual({
@@ -1157,12 +1286,12 @@ describe("Authorisation Module", () => {
           .post("/token")
           .set("Content-Type", "application/x-www-form-urlencoded")
           .send(
-            qs.stringify({
+            new URLSearchParams({
               grant_type: "vp_token",
               scope,
               vp_token: vpJwt,
-              presentation_submission: presentationSubmission,
-            })
+              presentation_submission: JSON.stringify(presentationSubmission),
+            } satisfies CreateAccessTokenDto).toString()
           );
 
         expect(response.body).toStrictEqual({
@@ -1214,12 +1343,12 @@ describe("Authorisation Module", () => {
           .post("/token")
           .set("Content-Type", "application/x-www-form-urlencoded")
           .send(
-            qs.stringify({
+            new URLSearchParams({
               grant_type: "vp_token",
               scope,
               vp_token: vpJwt,
-              presentation_submission: presentationSubmission,
-            })
+              presentation_submission: JSON.stringify(presentationSubmission),
+            } satisfies CreateAccessTokenDto).toString()
           );
 
         expect(response.body).toStrictEqual({
@@ -1254,59 +1383,20 @@ describe("Authorisation Module", () => {
           .post("/token")
           .set("Content-Type", "application/x-www-form-urlencoded")
           .send(
-            qs.stringify({
+            new URLSearchParams({
               grant_type: "vp_token",
               scope,
               vp_token: vpJwt,
-              presentation_submission: '{"foo":"bar"}', // Stringified JSON
-            })
-          );
-
-        expect(response.body).toStrictEqual({
-          error: "invalid_request",
-          error_description:
-            "presentation_submission must be a non-empty object",
-        });
-        expect(response.status).toBe(400);
-        expect(
-          (response.headers as Record<string, unknown>)["content-type"]
-        ).toBe("application/json; charset=utf-8");
-
-        vpJwt = await createVerifiablePresentationJwt(
-          vpPayload,
-          credentialSubject,
-          serviceEndpoint,
-          {
-            ebsiAuthority: "example.net",
-            skipValidation: true,
-            nonce: randomUUID(),
-            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
-              ? {
-                  // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                  exp: Math.floor(Date.now() / 1000) + 100,
-                  nbf: Math.floor(Date.now() / 1000) - 100,
-                }
-              : {}),
-          }
-        );
-
-        response = await request(server)
-          .post("/token")
-          .set("Content-Type", "application/x-www-form-urlencoded")
-          .send(
-            qs.stringify({
-              grant_type: "vp_token",
-              scope,
-              vp_token: vpJwt,
-              presentation_submission: { foo: "bar" }, // invalid json
-            })
+              presentation_submission: JSON.stringify({ foo: "bar" }), // invalid json
+            } satisfies CreateAccessTokenDto).toString()
           );
 
         expect(response.body).toStrictEqual({
           error: "invalid_request",
           error_description: `Invalid Presentation Submission:
-- [root.presentation_submission] id should not be empty
-- [root.presentation_submission] presentation_definition_id should not be empty`,
+- Validation error. Path: 'presentation_submission.id'. Reason: Required
+- Validation error. Path: 'presentation_submission.definition_id'. Reason: Required
+- Validation error. Path: 'presentation_submission.descriptor_map'. Reason: Required`,
         });
         expect(response.status).toBe(400);
         expect(
@@ -1338,73 +1428,20 @@ describe("Authorisation Module", () => {
           .post("/token")
           .set("Content-Type", "application/x-www-form-urlencoded")
           .send(
-            qs.stringify({
+            new URLSearchParams({
               grant_type: "vp_token",
               scope,
               vp_token: vpJwt,
-              presentation_submission: invalidPresentationSubmission,
-            })
+              presentation_submission: JSON.stringify(
+                invalidPresentationSubmission
+              ),
+            } satisfies CreateAccessTokenDto).toString()
           );
 
         expect(response.body).toStrictEqual({
           error: "invalid_request",
           error_description:
             "Invalid Presentation Submission: definition_id doesn't match the expected Presentation Definition ID for the requested scope",
-        });
-        expect(response.status).toBe(400);
-        expect(
-          (response.headers as Record<string, unknown>)["content-type"]
-        ).toBe("application/json; charset=utf-8");
-      });
-
-      it("should return an error if the content is not application/x-www-form-urlencoded", async () => {
-        if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
-          const vcJwt = await createVerifiableCredentialJwt(
-            vcPayload,
-            credentialIssuer,
-            {
-              ebsiAuthority: "example.net",
-              skipValidation: true,
-            }
-          );
-
-          vpPayload.verifiableCredential.push(vcJwt);
-        }
-
-        const nonce = randomUUID();
-
-        const vpJwt = await createVerifiablePresentationJwt(
-          vpPayload,
-          credentialSubject,
-          serviceEndpoint,
-          {
-            ebsiAuthority: "example.net",
-            skipValidation: true,
-            nonce,
-            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
-              ? {
-                  // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                  exp: Math.floor(Date.now() / 1000) + 100,
-                  nbf: Math.floor(Date.now() / 1000) - 100,
-                }
-              : {}),
-          }
-        );
-
-        const response = await request(server)
-          .post("/token")
-          .set("Content-Type", "application/json")
-          .send({
-            grant_type: "vp_token",
-            scope,
-            vp_token: vpJwt,
-            presentation_submission: presentationSubmission,
-          });
-
-        expect(response.body).toStrictEqual({
-          error: "invalid_request",
-          error_description:
-            "Content-type must be application/x-www-form-urlencoded",
         });
         expect(response.status).toBe(400);
         expect(
@@ -1508,12 +1545,12 @@ describe("Authorisation Module", () => {
           .post("/token")
           .set("Content-Type", "application/x-www-form-urlencoded")
           .send(
-            qs.stringify({
+            new URLSearchParams({
               grant_type: "vp_token",
               scope,
               vp_token: vpJwt,
-              presentation_submission: presentationSubmission,
-            })
+              presentation_submission: JSON.stringify(presentationSubmission),
+            } satisfies CreateAccessTokenDto).toString()
           );
 
         expect(response.body).toStrictEqual({
@@ -1564,12 +1601,12 @@ describe("Authorisation Module", () => {
           .post("/token")
           .set("Content-Type", "application/x-www-form-urlencoded")
           .send(
-            qs.stringify({
+            new URLSearchParams({
               grant_type: "vp_token",
               scope,
               vp_token: vpJwt,
-              presentation_submission: presentationSubmission,
-            })
+              presentation_submission: JSON.stringify(presentationSubmission),
+            } satisfies CreateAccessTokenDto).toString()
           );
 
         expect(response.status).toBe(200);
@@ -1650,7 +1687,7 @@ describe("Authorisation Module", () => {
   it("Fix EBSIINT-5937", async () => {
     const customScope = TIR_INVITE_SCOPE;
 
-    const scope = `openid ${customScope}`;
+    const scope: Scope = `openid ${customScope}`;
 
     const issuanceDate = new Date();
     // JWT access token must have 2 hours expiration time and there are no Refresh Tokens.
@@ -1754,12 +1791,12 @@ describe("Authorisation Module", () => {
       .post("/token")
       .set("Content-Type", "application/x-www-form-urlencoded")
       .send(
-        qs.stringify({
+        new URLSearchParams({
           grant_type: "vp_token",
           scope,
           vp_token: vpJwt,
-          presentation_submission: presentationSubmission,
-        })
+          presentation_submission: JSON.stringify(presentationSubmission),
+        } satisfies CreateAccessTokenDto).toString()
       );
 
     expect(response.body).toStrictEqual({

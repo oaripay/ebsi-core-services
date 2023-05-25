@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
 import type { JsonWebKey } from "node:crypto";
+import { URLSearchParams } from "node:url";
 import { createVerifiablePresentationJwt } from "@cef-ebsi/verifiable-presentation";
 import type { EbsiIssuer } from "@cef-ebsi/verifiable-presentation";
 import axios from "axios";
-import qs from "qs";
 import { importJWK, SignJWT, base64url, calculateJwkThumbprint } from "jose";
 import { ec as EC } from "elliptic";
 
@@ -116,12 +116,12 @@ export async function getDidrWriteAccessToken(
 
   const response = await axios.post(
     `${authorisationApiUrl}/token`,
-    qs.stringify({
+    new URLSearchParams({
       grant_type: "vp_token",
       scope: "openid didr_write",
       vp_token: vpJwt,
-      presentation_submission: presentationSubmission,
-    }),
+      presentation_submission: JSON.stringify(presentationSubmission),
+    }).toString(),
     {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",

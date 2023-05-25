@@ -1,13 +1,4 @@
-import { Transform } from "class-transformer";
-import {
-  Equals,
-  IsString,
-  IsJWT,
-  IsDefined,
-  IsObject,
-  IsNotEmptyObject,
-} from "class-validator";
-import type { JsonObject } from "type-fest";
+import { Equals, IsString, IsJWT, IsJSON } from "class-validator";
 import { Scope } from "../authorisation.interfaces";
 import { IsScope } from "../validators";
 
@@ -16,22 +7,14 @@ export class CreateAccessTokenDto {
   @Equals("vp_token")
   readonly "grant_type": string;
 
-  @IsDefined()
-  @Transform(({ value }) => {
-    if (value && typeof value === "string") {
-      return value.split(" ");
-    }
-    return [];
-  })
   @IsScope()
-  readonly "scope": [Scope, Scope];
+  readonly "scope": Scope;
 
   @IsJWT()
   readonly "vp_token": string;
 
-  @IsObject()
-  @IsNotEmptyObject()
-  readonly "presentation_submission": JsonObject;
+  @IsJSON()
+  readonly "presentation_submission": string;
 }
 
 export default CreateAccessTokenDto;

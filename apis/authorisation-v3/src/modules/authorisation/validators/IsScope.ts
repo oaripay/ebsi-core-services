@@ -1,32 +1,27 @@
 import { ValidateBy, ValidationOptions, buildMessage } from "class-validator";
-import {
-  CUSTOM_SCOPES,
-  OPENID_SCOPE,
-  SUPPORTED_SCOPES,
-} from "../authorisation.constants";
+import { CUSTOM_SCOPES, OPENID_SCOPE } from "../authorisation.constants";
 
 export const IS_SCOPE = "isScope";
 
 export function isScope(value: unknown): boolean {
-  // "scope" must be a non-empty array
-  if (!Array.isArray(value) || value.length <= 0) {
+  if (typeof value !== "string") {
     return false;
   }
 
-  // The scope must contain 2 unique items ("openid" + any other valid scope)
-  if (new Set(value).size !== 2) {
+  const valueAsArray = value.split(" ");
+
+  // scope must contain 2 items
+  if (valueAsArray.length !== 2) {
     return false;
   }
 
-  // "openid" must be present
-  if (!value.includes(OPENID_SCOPE)) {
+  // The first item must be "openid"
+  if (valueAsArray[0] !== OPENID_SCOPE) {
     return false;
   }
 
-  // Each value must be one of the supported scopes
-  return value.every(
-    (val) => typeof val === "string" && SUPPORTED_SCOPES.includes(val)
-  );
+  // The second item must be one of the custom scopes
+  return CUSTOM_SCOPES.includes(valueAsArray[1]);
 }
 
 export function IsScope(

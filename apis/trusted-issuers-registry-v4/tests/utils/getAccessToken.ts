@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
+import { URLSearchParams } from "node:url";
 import { createVerifiablePresentationJwt } from "@cef-ebsi/verifiable-presentation";
 import type { EbsiIssuer } from "@cef-ebsi/verifiable-presentation";
 import axios from "axios";
-import qs from "qs";
 
 /**
  * Get an actual "tir_invite" access token from Authorisation API v3.
@@ -53,12 +53,12 @@ export async function getTirInviteAccessToken(
 
   const response = await axios.post(
     `${authorisationApiUrl}/token`,
-    qs.stringify({
+    new URLSearchParams({
       grant_type: "vp_token",
       scope: "openid tir_invite",
       vp_token: vpJwt,
-      presentation_submission: presentationSubmission,
-    }),
+      presentation_submission: JSON.stringify(presentationSubmission),
+    }).toString(),
     {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -111,12 +111,12 @@ export async function getTirWriteAccessToken(
 
   const response = await axios.post(
     `${authorisationApiUrl}/token`,
-    qs.stringify({
+    new URLSearchParams({
       grant_type: "vp_token",
       scope: "openid tir_write",
       vp_token: vpJwt,
-      presentation_submission: presentationSubmission,
-    }),
+      presentation_submission: JSON.stringify(presentationSubmission),
+    }).toString(),
     {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -169,12 +169,12 @@ export async function getDidrWriteAccessToken(
 
   const response = await axios.post(
     `${authorisationApiUrl}/token`,
-    qs.stringify({
+    new URLSearchParams({
       grant_type: "vp_token",
       scope: "openid didr_write",
       vp_token: vpJwt,
-      presentation_submission: presentationSubmission,
-    }),
+      presentation_submission: JSON.stringify(presentationSubmission),
+    }).toString(),
     {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
