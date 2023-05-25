@@ -107,6 +107,12 @@ pipeline {
             }
           }
         }
+        stage('Run trivy scan') {
+          when { expression { deployment_needed == true } }
+          steps {
+            sh 'scripts/run_trivy.sh main'
+          }
+        }
         stage('Push to ECR') {
           when { expression { deployment_needed == true } }
           steps {
