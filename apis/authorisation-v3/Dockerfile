@@ -4,14 +4,8 @@ FROM ebsi/core-services:$DOCKER_TAG as builder
 
 FROM node:16.20.0-alpine3.17@sha256:f1657204d3463bce763cefa5b25e48c28af6fe0cdb0f68b354f0f8225ef61be7
 
-# Fix vulnerable dependencies
-# Note: after upgrading the base image, remove this and check if the vulnerabilities are still present
-RUN apk update && \
-  apk upgrade && \
-  apk add --no-cache \
-  libcrypto3=3.0.8-r4 \
-  libssl3=3.0.8-r4
-
+# Update dependencies
+RUN apk update && apk upgrade
 WORKDIR /app
 # Copy root package.json + lockfile
 COPY --from=builder /app/yarn.lock ./yarn.lock
