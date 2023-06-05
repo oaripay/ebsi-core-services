@@ -6,6 +6,7 @@ import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import axios from "axios";
 import type { AxiosResponse } from "axios";
+import { Mutex } from "async-mutex";
 import { DidRegistry, DidRegistry__factory } from "@ebsiint-sc/did-registry-v4";
 import {
   DidRegistry as DidRegistryV3,
@@ -49,6 +50,10 @@ export class LedgerService {
 
   private timeout: number;
 
+  private readonly publicProviderMutex: Mutex;
+
+  private readonly privateProviderMutex: Mutex;
+
   constructor(private configService: ConfigService<ApiConfig, true>) {
     this.didRegistryAddress = this.configService.get<string>("contractAddr");
     this.didRegistryV3Address =
@@ -71,6 +76,8 @@ export class LedgerService {
       "ledgerApiUrl"
     )}/blockchains/besu`;
     this.timeout = configService.get<number>("requestTimeout");
+    this.publicProviderMutex = new Mutex();
+    this.privateProviderMutex = new Mutex();
   }
 
   private async checkSession(): Promise<void> {
@@ -169,7 +176,11 @@ export class LedgerService {
           this.domain,
           this.localOrigin
         );
-        this.logger.debug(`Trying to connect to local Ledger API: ${localUrl}`);
+        this.logger.debug(
+          `Trying to connect to local Ledger API: ${localUrl} (${
+            token ? "with" : "without"
+          } access token)`
+        );
         const provider = this.setupProvider(localUrl, token);
         await provider.getNetwork();
         this.logger.debug("Connected to local Ledger API");
@@ -187,14 +198,22 @@ export class LedgerService {
   }
 
   private async refreshConnection() {
-    const token = await this.getAccessToken();
+    if (this.privateProviderMutex.isLocked()) {
+      // A connection is already being made, wait until it's finished
+      await this.privateProviderMutex.waitForUnlock();
+    } else {
+      // Create a new connection
+      await this.privateProviderMutex.runExclusive(async () => {
+        const token = await this.getAccessToken();
 
-    const provider = await this.connectProvider(token);
+        const provider = await this.connectProvider(token);
 
-    this.didRegistryContract = DidRegistry__factory.connect(
-      this.didRegistryAddress,
-      provider
-    );
+        this.didRegistryContract = DidRegistry__factory.connect(
+          this.didRegistryAddress,
+          provider
+        );
+      });
+    }
   }
 
   private async getPublicMethodsDidRegistryContract() {
@@ -202,14 +221,22 @@ export class LedgerService {
       return this.publicMethodsDidRegistryContract;
     }
 
-    const provider = await this.connectProvider();
+    if (this.publicProviderMutex.isLocked()) {
+      // A connection is already being made, wait until it's finished
+      await this.publicProviderMutex.waitForUnlock();
+    } else {
+      // Create a new connection
+      await this.publicProviderMutex.runExclusive(async () => {
+        const provider = await this.connectProvider();
 
-    this.publicMethodsDidRegistryContract = DidRegistry__factory.connect(
-      this.didRegistryAddress,
-      provider
-    );
+        this.publicMethodsDidRegistryContract = DidRegistry__factory.connect(
+          this.didRegistryAddress,
+          provider
+        );
+      });
+    }
 
-    return this.publicMethodsDidRegistryContract;
+    return this.publicMethodsDidRegistryContract as unknown as DidRegistry;
   }
 
   private async getPublicMethodsDidRegistryV3Contract() {

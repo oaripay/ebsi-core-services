@@ -1,10 +1,11 @@
+import { randomUUID } from "node:crypto";
 import { Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
 import { decodeJWT } from "did-jwt";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import axios, { AxiosResponse } from "axios";
-import { randomUUID } from "node:crypto";
+import { Mutex } from "async-mutex";
 import {
   SchemaSCRegistry,
   SchemaSCRegistry__factory,
@@ -43,6 +44,10 @@ export class ContractService {
 
   private timeout: number;
 
+  private readonly publicProviderMutex: Mutex;
+
+  private readonly privateProviderMutex: Mutex;
+
   constructor(private configService: ConfigService<ApiConfig, true>) {
     this.tsrAddress = this.configService.get<string>("contractAddr");
     this.authorisationApiUrl = this.configService.get<string>(
@@ -63,6 +68,8 @@ export class ContractService {
       "ledgerApiUrl"
     )}/blockchains/besu`;
     this.timeout = configService.get<number>("requestTimeout");
+    this.publicProviderMutex = new Mutex();
+    this.privateProviderMutex = new Mutex();
   }
 
   private async checkSession(): Promise<void> {
@@ -158,7 +165,11 @@ export class ContractService {
           this.domain,
           this.localOrigin
         );
-        this.logger.debug(`Trying to connect to local Ledger API: ${localUrl}`);
+        this.logger.debug(
+          `Trying to connect to local Ledger API: ${localUrl} (${
+            token ? "with" : "without"
+          } access token)`
+        );
         this.setupProvider(localUrl, token);
         if (token) {
           await this.ethersProvider.getNetwork();
@@ -179,14 +190,22 @@ export class ContractService {
   }
 
   private async refreshConnection() {
-    const token = await this.getAccessToken();
+    if (this.privateProviderMutex.isLocked()) {
+      // A connection is already being made, wait until it's finished
+      await this.privateProviderMutex.waitForUnlock();
+    } else {
+      // Create a new connection
+      await this.privateProviderMutex.runExclusive(async () => {
+        const token = await this.getAccessToken();
 
-    await this.connectProvider(token);
+        await this.connectProvider(token);
 
-    this.tsrContract = SchemaSCRegistry__factory.connect(
-      this.tsrAddress,
-      this.ethersProvider
-    );
+        this.tsrContract = SchemaSCRegistry__factory.connect(
+          this.tsrAddress,
+          this.ethersProvider
+        );
+      });
+    }
   }
 
   private async getPublicMethodsTsrContract() {
@@ -194,12 +213,20 @@ export class ContractService {
       return this.publicMethodsTsrContract;
     }
 
-    await this.connectProvider();
+    if (this.publicProviderMutex.isLocked()) {
+      // A connection is already being made, wait until it's finished
+      await this.publicProviderMutex.waitForUnlock();
+    } else {
+      // Create a new connection
+      await this.publicProviderMutex.runExclusive(async () => {
+        await this.connectProvider();
 
-    this.publicMethodsTsrContract = SchemaSCRegistry__factory.connect(
-      this.tsrAddress,
-      this.ethersProviderWithoutToken
-    );
+        this.publicMethodsTsrContract = SchemaSCRegistry__factory.connect(
+          this.tsrAddress,
+          this.ethersProviderWithoutToken
+        );
+      });
+    }
 
     return this.publicMethodsTsrContract;
   }

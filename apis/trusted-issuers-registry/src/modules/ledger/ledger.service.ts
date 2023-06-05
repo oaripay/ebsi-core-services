@@ -1,10 +1,11 @@
+import { randomUUID } from "node:crypto";
 import { Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
 import { decodeJWT } from "did-jwt";
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import axios, { AxiosResponse } from "axios";
-import { randomUUID } from "node:crypto";
+import { Mutex } from "async-mutex";
 import { Tir, Tir__factory } from "@ebsiint-sc/trusted-issuers-registry";
 import { logAxiosError, InternalServerError } from "@ebsiint-api/shared";
 import { ApiConfig } from "../../config/configuration";
@@ -40,6 +41,10 @@ export class LedgerService {
 
   private timeout: number;
 
+  private readonly publicProviderMutex: Mutex;
+
+  private readonly privateProviderMutex: Mutex;
+
   constructor(private configService: ConfigService<ApiConfig, true>) {
     this.tirAddress = this.configService.get<string>(
       "besuTrustedIssuersRegistryAddress"
@@ -63,6 +68,8 @@ export class LedgerService {
     )}/blockchains/besu`;
 
     this.timeout = configService.get<number>("requestTimeout");
+    this.publicProviderMutex = new Mutex();
+    this.privateProviderMutex = new Mutex();
   }
 
   private async checkSession(): Promise<void> {
@@ -158,7 +165,11 @@ export class LedgerService {
           this.domain,
           this.localOrigin
         );
-        this.logger.debug(`Trying to connect to local Ledger API: ${localUrl}`);
+        this.logger.debug(
+          `Trying to connect to local Ledger API: ${localUrl} (${
+            token ? "with" : "without"
+          } access token)`
+        );
         this.setupProvider(localUrl, token);
         if (token) {
           await this.ethersProvider.getNetwork();
@@ -179,14 +190,22 @@ export class LedgerService {
   }
 
   private async refreshConnection() {
-    const token = await this.getAccessToken();
+    if (this.privateProviderMutex.isLocked()) {
+      // A connection is already being made, wait until it's finished
+      await this.privateProviderMutex.waitForUnlock();
+    } else {
+      // Create a new connection
+      await this.privateProviderMutex.runExclusive(async () => {
+        const token = await this.getAccessToken();
 
-    await this.connectProvider(token);
+        await this.connectProvider(token);
 
-    this.tirContract = Tir__factory.connect(
-      this.tirAddress,
-      this.ethersProvider
-    );
+        this.tirContract = Tir__factory.connect(
+          this.tirAddress,
+          this.ethersProvider
+        );
+      });
+    }
   }
 
   private async getPublicMethodsTirContract() {
@@ -194,12 +213,20 @@ export class LedgerService {
       return this.publicMethodsTirContract;
     }
 
-    await this.connectProvider();
+    if (this.publicProviderMutex.isLocked()) {
+      // A connection is already being made, wait until it's finished
+      await this.publicProviderMutex.waitForUnlock();
+    } else {
+      // Create a new connection
+      await this.publicProviderMutex.runExclusive(async () => {
+        await this.connectProvider();
 
-    this.publicMethodsTirContract = Tir__factory.connect(
-      this.tirAddress,
-      this.ethersProviderWithoutToken
-    );
+        this.publicMethodsTirContract = Tir__factory.connect(
+          this.tirAddress,
+          this.ethersProviderWithoutToken
+        );
+      });
+    }
 
     return this.publicMethodsTirContract;
   }

@@ -35,6 +35,7 @@
     "@nestjs/passport": "^9.0.3",
     "@nestjs/platform-fastify": "^9.4.0",
     "@nestjs/terminus": "^9.2.2",
+    "async-mutex": "^0.4.0",
     "axios": "^1.4.0",
     "cache-manager": "^5.2.1",
     "canonicalize": "^1.0.8",
