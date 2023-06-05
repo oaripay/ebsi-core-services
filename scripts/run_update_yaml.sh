@@ -40,4 +40,4 @@ done
 
 ## Push all changes to remote
 
-cd ${conf_data}/${ebsi_env} && git push
+  /bin/sudo -E -u ebsi1-robot /usr/bin/bash -c "cd ${conf_data}/${ebsi_env} && git push"
