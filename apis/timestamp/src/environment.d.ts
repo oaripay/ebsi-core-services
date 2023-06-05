@@ -15,6 +15,7 @@ declare global {
       DOMAIN: string;
       LOCAL_ORIGIN?: string;
       REQUEST_TIMEOUT?: string;
+      AXIOS_RETRY_DELAY?: string;
       TEST_ADMIN_KID?: string;
       TEST_ADMIN_PRIVATE_KEY?: string;
       TEST_USER_KID?: string;

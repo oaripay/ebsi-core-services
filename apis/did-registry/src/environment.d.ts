@@ -15,6 +15,7 @@ declare global {
       DOMAIN: string;
       LOCAL_ORIGIN?: string;
       REQUEST_TIMEOUT?: string;
+      AXIOS_RETRY_DELAY?: string;
       AUTHORISATION_CREDENTIAL_SCHEMA?: string;
       USERS_ONBOARDING_API_DID?: string;
       USERS_ONBOARDING_API_PRIVATE_KEY?: string;

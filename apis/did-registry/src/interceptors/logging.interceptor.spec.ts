@@ -5,6 +5,7 @@ import {
   afterEach,
   it,
   expect,
+  afterAll,
 } from "@jest/globals";
 import crypto from "node:crypto";
 import request from "supertest";
@@ -20,6 +21,7 @@ import type { FastifyInstance } from "fastify";
 import { createJWT, ES256KSigner } from "did-jwt";
 import { JWTVerifyResult } from "jose";
 import { of } from "rxjs";
+import nock from "nock";
 import { AppModule } from "../app.module";
 import { AllExceptionsFilter } from "../filters/http-exception.filter";
 import { ApiConfig } from "../config/configuration";
@@ -40,8 +42,6 @@ jest.mock("@cef-ebsi/siop-auth", () => {
   };
 });
 
-jest.setTimeout(60000);
-
 describe("Logging interceptor", () => {
   let app: INestApplication;
   let httpService: HttpService;
@@ -54,6 +54,11 @@ describe("Logging interceptor", () => {
   };
 
   beforeAll(async () => {
+    // Disable external requests
+    nock.disableNetConnect();
+    // Allow localhost connections so we can test local routes and mock servers.
+    nock.enableNetConnect("127.0.0.1");
+
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -67,6 +72,20 @@ describe("Logging interceptor", () => {
 
     Logger.overrideLogger(mockedLogger);
 
+    // Mock dependencies
+    const ledgerApiUrl = new URL(
+      `${configService.get<string>("ledgerApiUrl")}/health`
+    );
+    const authorisationApiUrl = new URL(
+      `${configService.get<string>("authorisationApiUrl")}/health`
+    );
+
+    nock(ledgerApiUrl.origin).get(ledgerApiUrl.pathname).reply(200).persist();
+    nock(authorisationApiUrl.origin)
+      .get(authorisationApiUrl.pathname)
+      .reply(200)
+      .persist();
+
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
 
@@ -77,9 +96,19 @@ describe("Logging interceptor", () => {
     jest.clearAllMocks();
   });
 
+  afterAll(() => {
+    nock.restore();
+  });
+
   describe("GET /health", () => {
     it("should NOT log the request and response", async () => {
       expect.assertions(1);
+
+      jest
+        .spyOn(httpService, "request")
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        .mockImplementation(() => of({}));
 
       await request(app.getHttpServer()).get(`/health`);
 

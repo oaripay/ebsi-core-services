@@ -8,6 +8,7 @@ import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module";
 import { PoliciesModule } from "./modules/policies/policies.module";
 import { UsersModule } from "./modules/users/users.module";
 import { OpenApiModule } from "./modules/openapi/openapi.module";
+import { AppService } from "./app.service";
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { OpenApiModule } from "./modules/openapi/openapi.module";
       provide: APP_INTERCEPTOR,
       useClass: VersionInterceptor,
     },
+    AppService,
   ],
 })
 export class AppModule {}

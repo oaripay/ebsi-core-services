@@ -29,8 +29,6 @@ import { AppModule } from "../app.module";
 import { AllExceptionsFilter } from "../filters/http-exception.filter";
 import { ApiConfig } from "../config/configuration";
 
-jest.setTimeout(60000);
-
 describe("Logging interceptor", () => {
   let app: INestApplication;
   let httpService: HttpService;

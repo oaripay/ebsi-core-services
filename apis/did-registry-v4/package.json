@@ -37,6 +37,7 @@
     "@nestjs/terminus": "^9.2.2",
     "async-mutex": "^0.4.0",
     "axios": "^1.4.0",
+    "axios-retry": "^3.5.0",
     "cache-manager": "^5.2.1",
     "canonicalize": "^1.0.8",
     "class-transformer": "^0.5.1",

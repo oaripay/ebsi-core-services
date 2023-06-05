@@ -19,6 +19,7 @@ export interface ApiConfig {
   logLevel: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
   externalEbsiApiHealthCheck: string;
   requestTimeout: number;
+  axiosRetryDelay: number;
   testAdmin: {
     kid: string;
     privateKey: string;
@@ -69,6 +70,7 @@ export const loadConfig = (): ApiConfig => {
     logLevel: process.env.LOG_LEVEL || "warn",
     externalEbsiApiHealthCheck: DOMAIN + HEALTH_CHECK_PATH,
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
+    axiosRetryDelay: parseInt(process.env.AXIOS_RETRY_DELAY || "10000", 10),
     testAdmin: {
       kid: process.env.TEST_ADMIN_KID,
       privateKey: process.env.TEST_ADMIN_PRIVATE_KEY,
@@ -123,6 +125,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     LEDGER_API_NAME: Joi.string(),
     CONTRACT_ADDR: Joi.string(),
     REQUEST_TIMEOUT: Joi.string(),
+    AXIOS_RETRY_DELAY: Joi.string(),
     TEST_ADMIN_KID: Joi.string(),
     TEST_ADMIN_PRIVATE_KEY: Joi.string(),
     TEST_USER_KID: Joi.string(),

@@ -9,6 +9,7 @@ import { LedgerModule } from "./modules/ledger/ledger.module";
 import { LoggingInterceptor } from "./interceptors/logging.interceptor";
 import { VersionInterceptor } from "./interceptors/version.interceptor";
 import { OpenApiModule } from "./modules/openapi/openapi.module";
+import { AppService } from "./app.service";
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { OpenApiModule } from "./modules/openapi/openapi.module";
       provide: APP_INTERCEPTOR,
       useClass: VersionInterceptor,
     },
+    AppService,
   ],
 })
 export class AppModule {}

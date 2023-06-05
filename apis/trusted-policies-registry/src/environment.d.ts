@@ -12,6 +12,7 @@ declare global {
       DOMAIN: string;
       LOCAL_ORIGIN?: string;
       REQUEST_TIMEOUT?: string;
+      AXIOS_RETRY_DELAY?: string;
       LEDGER_API_NAME: string;
       CONTRACT_ADDR: string;
       // Tests

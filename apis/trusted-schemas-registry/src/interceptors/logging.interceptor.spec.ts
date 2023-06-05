@@ -5,6 +5,7 @@ import {
   afterEach,
   it,
   expect,
+  afterAll,
 } from "@jest/globals";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
@@ -18,11 +19,10 @@ import { HttpService } from "@nestjs/axios";
 import type { FastifyInstance } from "fastify";
 import { of } from "rxjs";
 import { JWTVerifyResult } from "jose";
+import nock from "nock";
 import { AppModule } from "../app.module";
 import { AllExceptionsFilter } from "../filters/http-exception.filter";
 import { ApiConfig } from "../config/configuration";
-
-jest.setTimeout(60000);
 
 // Mock access token verification
 jest.mock("@cef-ebsi/siop-auth", () => ({
@@ -47,6 +47,11 @@ describe("Logging interceptor", () => {
   };
 
   beforeAll(async () => {
+    // Disable external requests
+    nock.disableNetConnect();
+    // Allow localhost connections so we can test local routes and mock servers.
+    nock.enableNetConnect("127.0.0.1");
+
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -61,6 +66,20 @@ describe("Logging interceptor", () => {
 
     Logger.overrideLogger(mockedLogger);
 
+    // Mock dependencies
+    const ledgerApiUrl = new URL(
+      `${configService.get<string>("ledgerApiUrl")}/health`
+    );
+    const authorisationApiUrl = new URL(
+      `${configService.get<string>("authorisationApiUrl")}/health`
+    );
+
+    nock(ledgerApiUrl.origin).get(ledgerApiUrl.pathname).reply(200).persist();
+    nock(authorisationApiUrl.origin)
+      .get(authorisationApiUrl.pathname)
+      .reply(200)
+      .persist();
+
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
 
@@ -69,6 +88,10 @@ describe("Logging interceptor", () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterAll(() => {
+    nock.restore();
   });
 
   describe("GET /health", () => {

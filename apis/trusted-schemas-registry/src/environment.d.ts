@@ -11,6 +11,7 @@ declare global {
       DOCKER_TAG?: string;
       LEDGER_API_NAME?: string;
       REQUEST_TIMEOUT?: string;
+      AXIOS_RETRY_DELAY?: string;
       CONTRACT_ADDR: string;
       DOMAIN: string;
       LOCAL_ORIGIN?: string;

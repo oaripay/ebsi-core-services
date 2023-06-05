@@ -12,6 +12,7 @@ export interface ApiConfig {
   logLevel: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
   externalEbsiApiHealthCheck: string;
   requestTimeout: number;
+  axiosRetryDelay: number;
   // Ledger & SC
   ledgerApiUrl: string;
   ledgerApiName: string;
@@ -57,6 +58,7 @@ export const loadConfig = (): ApiConfig => {
     logLevel: process.env.LOG_LEVEL || "warn",
     externalEbsiApiHealthCheck: DOMAIN + HEALTH_CHECK_PATH,
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
+    axiosRetryDelay: parseInt(process.env.AXIOS_RETRY_DELAY || "10000", 10),
     // Ledger & SC
     ledgerApiUrl: DOMAIN + LEDGER_API_PATH,
     ledgerApiName: process.env.LEDGER_API_NAME || "ledger-api",
@@ -109,6 +111,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     DOMAIN: Joi.string().uri().required(),
     LOCAL_ORIGIN: Joi.string().uri(),
     REQUEST_TIMEOUT: Joi.string(),
+    AXIOS_RETRY_DELAY: Joi.string(),
     // Ledger & SC
     CONTRACT_ADDR: Joi.string().required(),
     LEDGER_API_NAME: Joi.string(),

@@ -17,6 +17,7 @@ export interface ApiConfig {
   ledgerApiName: string;
   externalEbsiApiHealthCheck: string;
   requestTimeout: number;
+  axiosRetryDelay: number;
   trustedAppsRegistryApiUrl: string;
   authorisationCredentialSchema: string;
   usersOnboardingApiDid: string;
@@ -59,6 +60,7 @@ export const loadConfig = (): ApiConfig => {
     ledgerApiName: process.env.LEDGER_API_NAME || "ledger-api",
     externalEbsiApiHealthCheck: DOMAIN + HEALTH_CHECK_PATH,
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
+    axiosRetryDelay: parseInt(process.env.AXIOS_RETRY_DELAY || "10000", 10),
     trustedAppsRegistryApiUrl: DOMAIN + TAR_API_PATH,
     authorisationCredentialSchema: `${DOMAIN}${TSR_API_PATH}/schemas/${
       process.env.AUTHORISATION_CREDENTIAL_SCHEMA || ""
@@ -110,6 +112,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     LOCAL_ORIGIN: Joi.string().uri(),
     LEDGER_API_NAME: Joi.string(),
     REQUEST_TIMEOUT: Joi.string(),
+    AXIOS_RETRY_DELAY: Joi.string(),
     AUTHORISATION_CREDENTIAL_SCHEMA: Joi.string(),
     USERS_ONBOARDING_API_DID: Joi.string(),
     USERS_ONBOARDING_API_PRIVATE_KEY: Joi.string(),
