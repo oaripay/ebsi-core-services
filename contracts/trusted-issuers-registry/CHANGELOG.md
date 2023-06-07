@@ -1,5 +1,20 @@
 # @ebsiint-sc/trusted-issuers-registry
 
+## 4.0.0-rc.2
+
+### Minor Changes
+
+- [3f2dbd72](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/3f2dbd72): Accept any revision ID in setAttributeMetadata
+
+### Patch Changes
+
+- [1fb98741](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/1fb98741): Bump dependencies.
+- Updated dependencies [a623008a](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/a623008a)
+- Updated dependencies [1fb98741](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/1fb98741)
+  - @ebsiint-sc/did-registry@1.1.0-rc.2
+  - @ebsiint-sc/trusted-policies-registry@1.0.1-rc.2
+  - @ebsiint-sc/bootstrap@1.0.1-rc.2
+
 ## 4.0.0-rc.1
 
 ### Major Changes

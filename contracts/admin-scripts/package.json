@@ -1,7 +1,7 @@
 {
   "name": "@ebsiint-sc/admin-scripts",
   "private": true,
-  "version": "1.1.0-rc.1",
+  "version": "1.1.0-rc.2",
   "main": "index.js",
   "license": "EUPL-1.2",
   "scripts": {
@@ -16,14 +16,14 @@
     "lint:prettier": "prettier . --check"
   },
   "dependencies": {
-    "@ebsiint-sc/bootstrap": "^1.0.1-rc.1",
-    "@ebsiint-sc/did-registry": "^1.1.0-rc.1",
-    "@ebsiint-sc/proxy": "^1.0.1-rc.1",
-    "@ebsiint-sc/timestamp": "^1.0.1-rc.1",
-    "@ebsiint-sc/trusted-apps-registry": "^2.0.1-rc.1",
-    "@ebsiint-sc/trusted-issuers-registry": "^4.0.0-rc.1",
-    "@ebsiint-sc/trusted-policies-registry": "^1.0.1-rc.1",
-    "@ebsiint-sc/trusted-schemas-registry": "^1.0.1-rc.1",
+    "@ebsiint-sc/bootstrap": "^1.0.1-rc.2",
+    "@ebsiint-sc/did-registry": "^1.1.0-rc.2",
+    "@ebsiint-sc/proxy": "^1.0.1-rc.2",
+    "@ebsiint-sc/timestamp": "^1.0.1-rc.2",
+    "@ebsiint-sc/trusted-apps-registry": "^2.0.1-rc.2",
+    "@ebsiint-sc/trusted-issuers-registry": "^4.0.0-rc.2",
+    "@ebsiint-sc/trusted-policies-registry": "^1.0.1-rc.2",
+    "@ebsiint-sc/trusted-schemas-registry": "^1.0.1-rc.2",
     "@openzeppelin/contracts": "^4.8.3",
     "elliptic": "^6.5.4"
   },

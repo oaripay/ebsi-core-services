@@ -1,5 +1,30 @@
 # Changelog
 
+## 3.0.0-rc.2
+
+### Minor Changes
+
+- [70631f93](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/70631f93): bump VC/VP libraries
+- [b8d1b3ec](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/b8d1b3ec): Change Token Endpoint request parameter `presentation_submission` encoding. It must be a stringified JSON object.
+
+### Patch Changes
+
+- [2966fa3c](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/2966fa3c): Expose service OpenAPI specification
+- [d60c6707](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/d60c6707): Require VC to have termsOfUse.
+- [443664aa](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/443664aa): Bump EBSI libraries.
+- [e69a986e](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/e69a986e): Remove unused environment variable.
+- [5ef86d01](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/5ef86d01): Add missing OpenID Provider Metadata properties.
+- [ee99bb4e](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/ee99bb4e): require VC for didr_invite and tir_invite
+- [99de03df](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/99de03df): Improve PEX
+- [357775c1](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/357775c1): Fix vulnerabilities related to the Docker image.
+- [1fb98741](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/1fb98741): Bump dependencies.
+- [8a245129](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/8a245129): Bump EBSI libraries.
+- Updated dependencies [443664aa](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/443664aa)
+- Updated dependencies [70631f93](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/70631f93)
+- Updated dependencies [1fb98741](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/1fb98741)
+- Updated dependencies [8a245129](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/8a245129)
+  - @ebsiint-api/shared@1.1.0-rc.2
+
 ## 3.0.0-rc.1
 
 ### Minor Changes

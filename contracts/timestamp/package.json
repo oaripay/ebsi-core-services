@@ -1,7 +1,7 @@
 {
   "name": "@ebsiint-sc/timestamp",
   "private": true,
-  "version": "1.0.1-rc.1",
+  "version": "1.0.1-rc.2",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "EUPL-1.2",
@@ -22,8 +22,8 @@
     "test:ci": "hardhat compile && hardhat test && yarn coverage"
   },
   "dependencies": {
-    "@ebsiint-sc/bootstrap": "^1.0.1-rc.1",
-    "@ebsiint-sc/trusted-policies-registry": "^1.0.1-rc.1"
+    "@ebsiint-sc/bootstrap": "^1.0.1-rc.2",
+    "@ebsiint-sc/trusted-policies-registry": "^1.0.1-rc.2"
   },
   "devDependencies": {
     "@ethersproject/abi": "^5.7.0",

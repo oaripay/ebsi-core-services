@@ -1,5 +1,28 @@
 # Changelog
 
+## 3.0.0-rc.5
+
+### Minor Changes
+
+- [70631f93](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/70631f93): bump VC/VP libraries
+
+### Patch Changes
+
+- [2966fa3c](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/2966fa3c): Expose service OpenAPI specification
+- [443664aa](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/443664aa): Bump EBSI libraries.
+- [357775c1](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/357775c1): Fix vulnerabilities related to the Docker image.
+- [1fb98741](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/1fb98741): Bump dependencies.
+- [8a245129](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/8a245129): Bump EBSI libraries.
+- [44412117](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/44412117): Prevent connecting multiple times to Ledger API concurrently.
+- [cdfb5f61](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/cdfb5f61): Wait for dependencies to be up and running.
+- Updated dependencies [443664aa](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/443664aa)
+- Updated dependencies [3f2dbd72](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/3f2dbd72)
+- Updated dependencies [70631f93](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/70631f93)
+- Updated dependencies [1fb98741](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/1fb98741)
+- Updated dependencies [8a245129](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/8a245129)
+  - @ebsiint-api/shared@1.1.0-rc.2
+  - @ebsiint-sc/trusted-issuers-registry@4.0.0-rc.2
+
 ## 3.0.0-rc.4
 
 ### Major Changes

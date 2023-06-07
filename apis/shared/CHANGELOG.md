@@ -1,5 +1,17 @@
 # @ebsiint-api/shared
 
+## 1.1.0-rc.2
+
+### Minor Changes
+
+- [70631f93](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/70631f93): bump VC/VP libraries
+
+### Patch Changes
+
+- [443664aa](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/443664aa): Bump EBSI libraries.
+- [1fb98741](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/1fb98741): Bump dependencies.
+- [8a245129](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/8a245129): Bump EBSI libraries.
+
 ## 1.1.0-rc.1
 
 ### Minor Changes

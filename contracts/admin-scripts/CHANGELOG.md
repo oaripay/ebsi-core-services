@@ -1,5 +1,23 @@
 # @ebsiint-sc/admin-scripts
 
+## 1.1.0-rc.2
+
+### Patch Changes
+
+- [1fb98741](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/1fb98741): Bump dependencies.
+- Updated dependencies [3f2dbd72](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/3f2dbd72)
+- Updated dependencies [a623008a](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/a623008a)
+- Updated dependencies [1fb98741](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/1fb98741)
+- Updated dependencies [8a6f31d2](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/8a6f31d2)
+  - @ebsiint-sc/trusted-issuers-registry@4.0.0-rc.2
+  - @ebsiint-sc/did-registry@1.1.0-rc.2
+  - @ebsiint-sc/trusted-policies-registry@1.0.1-rc.2
+  - @ebsiint-sc/trusted-schemas-registry@1.0.1-rc.2
+  - @ebsiint-sc/trusted-apps-registry@2.0.1-rc.2
+  - @ebsiint-sc/bootstrap@1.0.1-rc.2
+  - @ebsiint-sc/timestamp@1.0.1-rc.2
+  - @ebsiint-sc/proxy@1.0.1-rc.2
+
 ## 1.1.0-rc.1
 
 ### Minor Changes
