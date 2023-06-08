@@ -639,19 +639,6 @@ paths:
                     - openid didr_invite
                     - openid tir_write
                     - openid tir_invite
-                  examples:
-                    didr_write:
-                      summary: Write to DID Registry
-                      value: openid didr_write
-                    didr_invite:
-                      summary: Register DID into DID Registry
-                      value: openid didr_invite
-                    tir_write:
-                      summary: Write to TIR Registry
-                      value: openid tir_write
-                    tir_invite:
-                      summary: Register VC into Trusted Issuers Registry
-                      value: openid tir_invite
       responses:
         "200":
           description: Success
