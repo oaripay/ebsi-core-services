@@ -10,6 +10,7 @@ declare global {
       DOCKER_TAG?: string;
       DOMAIN: string;
       LOCAL_ORIGIN?: string;
+      TRUSTED_HOSTNAMES?: string;
       TEST_ENV?: string;
       TEST_ISSUER_KID?: string;
       TEST_ISSUER_PRIVATE_KEY?: string;

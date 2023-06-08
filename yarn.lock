@@ -1191,10 +1191,10 @@
     multiformats "^9.9.0"
     uuid "^9.0.0"
 
-"@cef-ebsi/verifiable-credential@^4.3.0":
-  version "4.3.0"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-credential/-/verifiable-credential-4.3.0.tgz#3f8e633eb4c91508cb2a8409b60140a80bbec9ad"
-  integrity sha512-mZVUzW9AthVgaRhaMYI617IYgcOZexzwY4yonSvAb57ooXum8taiDKLXTv/DOUS1g5h9sQpyvEETQTP6P+SwNQ==
+"@cef-ebsi/verifiable-credential@^4.4.1":
+  version "4.4.1"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-credential/-/verifiable-credential-4.4.1.tgz#91c2e4dc762d7d2661c06e4605cf5068f6b6bae0"
+  integrity sha512-zBbinkub7z9TGBRxwQ42cnzliOCc8790TqDhu2S0OAKhslRaBaavz/7BMjPT2FMXlBF5twkcr8KRM/3SDVHTwA==
   dependencies:
     "@cef-ebsi/ebsi-did-resolver" "^3.1.0"
     "@cef-ebsi/key-did-resolver" "^1.1.0"
@@ -1212,14 +1212,14 @@
     multiformats "^9.9.0"
     pako "^2.1.0"
 
-"@cef-ebsi/verifiable-presentation@^5.2.0":
-  version "5.2.0"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-presentation/-/verifiable-presentation-5.2.0.tgz#28e0aef4b129d4d2888937e8100599f1dfa37d59"
-  integrity sha512-2j+m2dMxq9XpM1yN0VhqixfKP0SLSIYo/5Ga3tyWvNYj/C6d43R1smhk3xaQVdc3B/z1v/SWapL7/iihgNAE8w==
+"@cef-ebsi/verifiable-presentation@^5.3.1":
+  version "5.3.1"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-presentation/-/verifiable-presentation-5.3.1.tgz#69d354bfbf647dc82299b6671a96f50a53db75e9"
+  integrity sha512-SCfIBP5QfFoYa40HYYqcykSZ0BYfLJWp+raxGzZwWEGm/i6hLn2Ow8jvKGsXIEHvm5f1zfj0NPBKK3bYhsWspA==
   dependencies:
     "@cef-ebsi/ebsi-did-resolver" "^3.1.0"
     "@cef-ebsi/key-did-resolver" "^1.1.0"
-    "@cef-ebsi/verifiable-credential" "^4.3.0"
+    "@cef-ebsi/verifiable-credential" "^4.4.1"
     "@transmute/json-web-signature" "^0.7.0-unstable.80"
     "@transmute/vc.js" "^0.7.0-unstable.80"
     ajv "^8.12.0"

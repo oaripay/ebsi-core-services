@@ -13,6 +13,7 @@ declare global {
       LOCAL_ORIGIN?: string;
       REQUEST_TIMEOUT?: string;
       AXIOS_RETRY_DELAY?: string;
+      TRUSTED_HOSTNAMES?: string;
       // Ledger & SC
       LEDGER_API_NAME?: string;
       BESU_TRUSTED_ISSUERS_REGISTRY_ADDRESS: string;

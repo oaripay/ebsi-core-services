@@ -11,7 +11,8 @@ export async function createVerifiableAuthorisation(
   authorisationCredentialSchema: string,
   privateKey: string,
   applicationDid: string,
-  ebsiAuthority: string
+  ebsiAuthority: string,
+  trustedHostnames?: string[]
 ): Promise<string> {
   const issuanceDate = new Date();
   const expirationDate = new Date(
@@ -48,6 +49,7 @@ export async function createVerifiableAuthorisation(
   return createVerifiableCredentialJwt(credential, issuer, {
     ebsiAuthority,
     skipValidation: true,
+    trustedHostnames,
   });
 }
 

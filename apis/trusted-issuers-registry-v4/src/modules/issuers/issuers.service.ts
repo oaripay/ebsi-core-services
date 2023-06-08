@@ -24,11 +24,14 @@ export class IssuersService {
 
   private timeout: number;
 
+  private trustedHostnames: string[];
+
   constructor(
     private ledgerService: LedgerService,
     private configService: ConfigService<ApiConfig, true>
   ) {
     this.timeout = configService.get<number>("requestTimeout");
+    this.trustedHostnames = configService.get<string[]>("trustedHostnames");
   }
 
   async getIssuers(
@@ -278,7 +281,11 @@ export class IssuersService {
     const domain = this.configService.get<string>("domain");
     const authority = domain.replace(/^https?:\/\//, "");
 
-    if (!(await isStatusList2021Credential(res.data, authority))) {
+    if (
+      !(await isStatusList2021Credential(res.data, authority, {
+        trustedHostnames: this.trustedHostnames,
+      }))
+    ) {
       throw new InternalServerError("Invalid Status List Credential", {
         detail:
           "The Status List Credential returned by the Issuer's proxy is invalid",

@@ -113,6 +113,7 @@ describe("Issuers (e2e)", () => {
   let testVerifiableAttestationSchemaId: string;
   let testStatusListSchemaId: string;
   let trustedSchemasRegistryApiUrl: string;
+  let trustedHostnames: string[];
   const randomDid = EbsiWallet.createDid();
 
   async function createStatusList2021CredentialJwt(
@@ -158,6 +159,7 @@ describe("Issuers (e2e)", () => {
         {
           ebsiAuthority,
           skipValidation: true,
+          trustedHostnames,
         }
       );
 
@@ -190,6 +192,8 @@ describe("Issuers (e2e)", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
 
     server = getServer(app, configService);
+
+    trustedHostnames = configService.get<string[]>("trustedHostnames");
 
     // Get last 2 issuers DID
     let issuersResponse: SupertestIssuersResponse = await request(server).get(

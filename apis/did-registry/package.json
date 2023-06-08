@@ -54,8 +54,8 @@
     "yaml": "^2.2.1"
   },
   "devDependencies": {
-    "@cef-ebsi/verifiable-credential": "^4.3.0",
-    "@cef-ebsi/verifiable-presentation": "^5.2.0",
+    "@cef-ebsi/verifiable-credential": "^4.4.1",
+    "@cef-ebsi/verifiable-presentation": "^5.3.1",
     "@cef-ebsi/wallet-lib": "^4.1.0",
     "@ethersproject/abstract-provider": "^5.7.0",
     "@jest/globals": "^29.5.0",

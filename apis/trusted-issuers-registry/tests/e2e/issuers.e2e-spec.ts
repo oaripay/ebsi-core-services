@@ -190,6 +190,7 @@ describe("Issuers (e2e)", () => {
   let ledgerApi: string;
   let trustedSchemasRegistryApiUrl: string;
   let sampleTransaction: string;
+  let trustedHostnames: string[];
 
   let blockscout: {
     url: string;
@@ -272,6 +273,7 @@ describe("Issuers (e2e)", () => {
         {
           ebsiAuthority,
           skipValidation: true,
+          trustedHostnames,
         }
       );
 
@@ -315,6 +317,8 @@ describe("Issuers (e2e)", () => {
       url: string;
       bearerToken: string;
     }>("blockscout");
+
+    trustedHostnames = configService.get<string[]>("trustedHostnames");
 
     // Get last 2 issuers DID
     let issuersResponse: SupertestIssuersResponse = await request(server).get(

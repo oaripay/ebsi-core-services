@@ -15,6 +15,7 @@ declare global {
       DOMAIN: string;
       LOCAL_ORIGIN?: string;
       REQUEST_TIMEOUT?: string;
+      TRUSTED_HOSTNAMES?: string;
       TEST_APP_NAME?: string;
       TEST_APP_PRIVATE_KEY?: string;
       TEST_CLIENT_DID?: string;

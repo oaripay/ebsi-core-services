@@ -135,7 +135,7 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
     url: string;
     bearerToken: string;
   };
-
+  let trustedHostnames: string[];
   let adminIssuer: TestIssuer;
   let testIssuerWithProxy: TestIssuer;
 
@@ -182,6 +182,7 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
         {
           ebsiAuthority,
           skipValidation: true,
+          trustedHostnames,
         }
       );
 
@@ -226,7 +227,7 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
       url: string;
       bearerToken: string;
     }>("blockscout");
-
+    trustedHostnames = configService.get<string[]>("trustedHostnames");
     ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
     trustedSchemasRegistryApiUrl = configService.get<string>(
       "trustedSchemasRegistryApiUrl"
@@ -275,7 +276,8 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
         info: testIssuerWithProxyInfo,
         token: await getTirWriteAccessToken(
           authorisationApiV3Url,
-          testIssuerWithProxyInfo
+          testIssuerWithProxyInfo,
+          trustedHostnames
         ),
         wallet: testIssuerWithProxyWallet,
       };
@@ -301,7 +303,8 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
         info: adminIssuerInfo,
         token: await getTirWriteAccessToken(
           authorisationApiV3Url,
-          adminIssuerInfo
+          adminIssuerInfo,
+          trustedHostnames
         ),
         wallet: adminWallet,
       };
@@ -339,7 +342,8 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
           // Admin issuer inserts the new TI's DID document
           const didWriteAccessToken = await getDidrWriteAccessToken(
             authorisationApiV3Url,
-            adminIssuer.info
+            adminIssuer.info,
+            trustedHostnames
           );
           const didRegistryApiUrl =
             configService.get<string>("didRegistryApiUrl");
@@ -493,6 +497,7 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
                 .get<string>("domain")
                 .replace(/^https?:\/\//, ""), // remove http protocol scheme
               skipValidation: true,
+              trustedHostnames,
             }
           );
 
@@ -503,7 +508,8 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
               token: await getTirInviteAccessToken(
                 authorisationApiV3Url,
                 newIssuerInfo,
-                vcJwt
+                vcJwt,
+                trustedHostnames
               ),
               wallet: newIssuerWallet,
             };

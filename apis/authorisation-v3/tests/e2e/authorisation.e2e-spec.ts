@@ -49,6 +49,7 @@ describe("Authorisation (e2e)", () => {
   let server: HttpServer | string;
   let configService: ConfigService<ApiConfig, true>;
   let authorisationApiV3Url: string;
+  let trustedHostnames: string[];
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -71,6 +72,7 @@ describe("Authorisation (e2e)", () => {
     const domain = configService.get<string>("domain");
     const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
     authorisationApiV3Url = `${domain}${apiUrlPrefix}`;
+    trustedHostnames = configService.get<string[]>("trustedHostnames");
   });
 
   describe("GET /.well-known/openid-configuration", () => {
@@ -388,6 +390,7 @@ describe("Authorisation (e2e)", () => {
               {
                 ebsiAuthority: "example.net",
                 skipValidation: true,
+                trustedHostnames,
               }
             );
 
@@ -402,6 +405,7 @@ describe("Authorisation (e2e)", () => {
               ebsiAuthority: "example.net",
               skipValidation: true,
               nonce: randomUUID(),
+              trustedHostnames,
               ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
                 ? {
                     // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
@@ -442,6 +446,7 @@ describe("Authorisation (e2e)", () => {
               {
                 ebsiAuthority: "example.net",
                 skipValidation: true,
+                trustedHostnames,
               }
             );
 
@@ -456,6 +461,7 @@ describe("Authorisation (e2e)", () => {
               ebsiAuthority: "example.net",
               skipValidation: true,
               nonce: randomUUID(),
+              trustedHostnames,
               ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
                 ? {
                     // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
@@ -512,6 +518,7 @@ describe("Authorisation (e2e)", () => {
               {
                 ebsiAuthority: "example.net",
                 skipValidation: true,
+                trustedHostnames,
               }
             );
 
@@ -526,6 +533,7 @@ describe("Authorisation (e2e)", () => {
               ebsiAuthority: "example.net",
               skipValidation: true,
               nonce: randomUUID(),
+              trustedHostnames,
               // Override "exp" and "nbf"
               exp: Math.floor(Date.now() / 1000) - 100,
               nbf: Math.floor(Date.now() / 1000) - 1000,
@@ -563,6 +571,7 @@ describe("Authorisation (e2e)", () => {
               {
                 ebsiAuthority: "example.net",
                 skipValidation: true,
+                trustedHostnames,
               }
             );
 
@@ -577,6 +586,7 @@ describe("Authorisation (e2e)", () => {
               ebsiAuthority: "example.net",
               skipValidation: true,
               nonce: randomUUID(),
+              trustedHostnames,
               // Override "exp" and "nbf"
               exp: Math.floor(Date.now() / 1000) + 1000,
               nbf: Math.floor(Date.now() / 1000) + 100,
@@ -614,6 +624,7 @@ describe("Authorisation (e2e)", () => {
               {
                 ebsiAuthority: "example.net",
                 skipValidation: true,
+                trustedHostnames,
               }
             );
 
@@ -627,6 +638,7 @@ describe("Authorisation (e2e)", () => {
             {
               ebsiAuthority: "example.net",
               skipValidation: true,
+              trustedHostnames,
               // We don't add any nonce
               ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
                 ? {
@@ -670,6 +682,7 @@ describe("Authorisation (e2e)", () => {
               {
                 ebsiAuthority: "example.net",
                 skipValidation: true,
+                trustedHostnames,
               }
             );
 
@@ -751,6 +764,7 @@ describe("Authorisation (e2e)", () => {
           const vcJwt = await createVerifiableCredentialJwt(vcPayload, issuer, {
             ebsiAuthority: "example.net",
             skipValidation: true,
+            trustedHostnames,
           });
 
           vpPayload.verifiableCredential.push(vcJwt);
@@ -764,6 +778,7 @@ describe("Authorisation (e2e)", () => {
             ebsiAuthority: "example.net",
             skipValidation: true,
             nonce: randomUUID(),
+            trustedHostnames,
             ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
@@ -822,6 +837,7 @@ describe("Authorisation (e2e)", () => {
             ebsiAuthority: "example.net",
             skipValidation: true,
             nonce: randomUUID(),
+            trustedHostnames,
             ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
@@ -879,6 +895,7 @@ describe("Authorisation (e2e)", () => {
             ebsiAuthority: "example.net",
             skipValidation: true,
             nonce: randomUUID(),
+            trustedHostnames,
             ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
@@ -919,6 +936,7 @@ describe("Authorisation (e2e)", () => {
             ebsiAuthority: "example.net",
             skipValidation: true,
             nonce: randomUUID(),
+            trustedHostnames,
             ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
@@ -958,6 +976,7 @@ describe("Authorisation (e2e)", () => {
             ebsiAuthority: "example.net",
             skipValidation: true,
             nonce: randomUUID(),
+            trustedHostnames,
             ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
@@ -998,6 +1017,7 @@ describe("Authorisation (e2e)", () => {
           const vcJwt = await createVerifiableCredentialJwt(vcPayload, issuer, {
             ebsiAuthority: "example.net",
             skipValidation: true,
+            trustedHostnames,
           });
 
           vpPayload.verifiableCredential.push(vcJwt);
@@ -1013,6 +1033,7 @@ describe("Authorisation (e2e)", () => {
             ebsiAuthority: "example.net",
             skipValidation: true,
             nonce,
+            trustedHostnames,
             ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
@@ -1061,6 +1082,7 @@ describe("Authorisation (e2e)", () => {
           const vcJwt = await createVerifiableCredentialJwt(vcPayload, issuer, {
             ebsiAuthority: "example.net",
             skipValidation: true,
+            trustedHostnames,
           });
 
           vpPayload.verifiableCredential.push(vcJwt);
@@ -1076,6 +1098,7 @@ describe("Authorisation (e2e)", () => {
             ebsiAuthority: "example.net",
             skipValidation: true,
             nonce,
+            trustedHostnames,
             ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from

@@ -18,6 +18,7 @@ export interface ApiConfig {
   logLevel: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
   externalEbsiApiHealthCheck: string;
   requestTimeout: number;
+  trustedHostnames: string[];
   testAppName: string;
   testAppPrivateKey: string;
   testClientDid: string;
@@ -60,6 +61,9 @@ export const loadConfig = (): ApiConfig => {
     localOrigin: process.env.LOCAL_ORIGIN || "",
     externalEbsiApiHealthCheck: DOMAIN + HEALTH_CHECK_PATH,
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
+    trustedHostnames: (process.env.TRUSTED_HOSTNAMES || "")
+      .split(",")
+      .filter(Boolean),
     testAppName: process.env.TEST_APP_NAME || "",
     testAppPrivateKey: process.env.TEST_APP_PRIVATE_KEY || "",
     testClientDid: process.env.TEST_CLIENT_DID || "",
@@ -109,6 +113,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     ONBOARDING_API_PRIVATE_KEY: Joi.string(),
     AUTHORISATION_CREDENTIAL_SCHEMA: Joi.string().required(),
     REQUEST_TIMEOUT: Joi.string(),
+    TRUSTED_HOSTNAMES: Joi.string(),
     // Test specific variables
     TEST_APP_NAME: Joi.string(),
     TEST_APP_PRIVATE_KEY: Joi.string(),

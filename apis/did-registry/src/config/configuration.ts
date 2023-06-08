@@ -22,6 +22,7 @@ export interface ApiConfig {
   authorisationCredentialSchema: string;
   usersOnboardingApiDid: string;
   usersOnboardingApiPrivateKey: string;
+  trustedHostnames: string[];
   testClientKid: string;
   testClientPrivateKey: string;
   testLoadBalancerDomain: string;
@@ -68,6 +69,9 @@ export const loadConfig = (): ApiConfig => {
     usersOnboardingApiDid: process.env.USERS_ONBOARDING_API_DID || "",
     usersOnboardingApiPrivateKey:
       process.env.USERS_ONBOARDING_API_PRIVATE_KEY || "",
+    trustedHostnames: (process.env.TRUSTED_HOSTNAMES || "")
+      .split(",")
+      .filter(Boolean),
     testClientKid: process.env.TEST_CLIENT_KID,
     testClientPrivateKey: process.env.TEST_CLIENT_PRIVATE_KEY,
     testLoadBalancerDomain: process.env.TEST_LB_DOMAIN || "",
@@ -116,6 +120,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     AUTHORISATION_CREDENTIAL_SCHEMA: Joi.string(),
     USERS_ONBOARDING_API_DID: Joi.string(),
     USERS_ONBOARDING_API_PRIVATE_KEY: Joi.string(),
+    TRUSTED_HOSTNAMES: Joi.string(),
     TEST_CLIENT_KID: Joi.string(),
     TEST_CLIENT_PRIVATE_KEY: Joi.string(),
     TEST_LB_DOMAIN: Joi.string().uri(),

@@ -65,6 +65,7 @@ describe("Authorisation (e2e)", () => {
   let domain: string;
   let ebsiAuthority: string;
   let testLoadBalancerDomain: string;
+  let trustedHostnames: string[];
 
   // Fake audience used for the creation of the VP JWT (not checked by the API)
   const audience = "authorisation-api";
@@ -115,6 +116,7 @@ describe("Authorisation (e2e)", () => {
     };
     domain = configService.get<string>("domain");
     ebsiAuthority = domain.replace(/^https?:\/\//, "");
+    trustedHostnames = configService.get<string[]>("trustedHostnames");
 
     testLoadBalancerDomain = configService.get<string>(
       "testLoadBalancerDomain"
@@ -912,7 +914,8 @@ describe("Authorisation (e2e)", () => {
             verifiableCredentialJwt,
             audience,
             ebsiAuthority,
-            alg
+            alg,
+            trustedHostnames
           );
 
           const nonce = randomUUID();
@@ -1032,7 +1035,9 @@ describe("Authorisation (e2e)", () => {
         privateKeyJwk,
         verifiableCredentialJwt,
         audience,
-        ebsiAuthority
+        ebsiAuthority,
+        "ES256K",
+        trustedHostnames
       );
 
       const nonce = randomUUID();

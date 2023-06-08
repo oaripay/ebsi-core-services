@@ -28,7 +28,8 @@ function isRequestHeaders(
 export async function isIssuerProxy(
   value: unknown,
   authority: string,
-  timeout: number
+  timeout: number,
+  trustedHostnames?: string[]
 ): Promise<boolean> {
   if (typeof value !== "string") return false;
 
@@ -55,7 +56,11 @@ export async function isIssuerProxy(
 
     if (testResponse.status !== 200) return false;
 
-    if (!(await isStatusList2021Credential(testResponse.data, authority))) {
+    if (
+      !(await isStatusList2021Credential(testResponse.data, authority, {
+        trustedHostnames,
+      }))
+    ) {
       return false;
     }
   } catch {
@@ -72,15 +77,23 @@ export class IsIssuerProxy implements ValidatorConstraintInterface {
 
   private timeout: number;
 
+  private trustedHostnames: string[];
+
   constructor(configService: ConfigService<ApiConfig, true>) {
     this.authority = configService
       .get<string>("domain")
       .replace(/^https?:\/\//, "");
     this.timeout = configService.get<number>("requestTimeout");
+    this.trustedHostnames = configService.get<string[]>("trustedHostnames");
   }
 
   async validate(value: unknown) {
-    return isIssuerProxy(value, this.authority, this.timeout);
+    return isIssuerProxy(
+      value,
+      this.authority,
+      this.timeout,
+      this.trustedHostnames
+    );
   }
 
   defaultMessage(validationArguments?: ValidationArguments) {

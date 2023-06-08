@@ -60,6 +60,8 @@ export class AuthorisationService {
 
   private readonly trustedIssuersRegistry: string;
 
+  private readonly trustedHostnames: string[];
+
   constructor(
     configService: ConfigService<ApiConfig, true>,
     @Inject(CACHE_MANAGER) private cacheManager: MemoryCache
@@ -73,6 +75,7 @@ export class AuthorisationService {
       "trustedIssuersRegistry"
     );
     this.apiES256PrivateKey = configService.get<string>("apiES256PrivateKey");
+    this.trustedHostnames = configService.get<string[]>("trustedHostnames");
   }
 
   /**
@@ -267,6 +270,7 @@ export class AuthorisationService {
         skipHolderDidResolutionValidation: isDidUnresolvable,
         skipSignatureValidation: isDidUnresolvable,
         validateAccreditationWithoutTermsOfUse: true, // The VC must contain terms of use (or be self-accredited)
+        trustedHostnames: this.trustedHostnames,
       });
     } catch (e) {
       throw new OAuth2TokenError("invalid_request", {

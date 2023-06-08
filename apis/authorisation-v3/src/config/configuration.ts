@@ -13,6 +13,7 @@ export interface ApiConfig {
   trustedIssuersRegistry: string;
   externalEbsiApiHealthCheck: string;
   dockerContainerTag: string;
+  trustedHostnames: string[];
   // Test-specific variables
   testEnv?: string;
   testIssuerKid?: string;
@@ -43,6 +44,9 @@ export const loadConfig = (): ApiConfig => {
     trustedIssuersRegistry: DOMAIN + TIR_PATH,
     externalEbsiApiHealthCheck: DOMAIN + HEALTH_CHECK_PATH,
     dockerContainerTag: process.env.DOCKER_TAG || "",
+    trustedHostnames: (process.env.TRUSTED_HOSTNAMES || "")
+      .split(",")
+      .filter(Boolean),
     // Test-specific variables
     testEnv: process.env.TEST_ENV,
     testIssuerKid: process.env.TEST_ISSUER_KID,
@@ -79,6 +83,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     DOCKER_TAG: Joi.string(),
     DOMAIN: Joi.string().uri().required(),
     LOCAL_ORIGIN: Joi.string().uri(),
+    TRUSTED_HOSTNAMES: Joi.string(),
     // Test-specific variables
     TEST_ENV: Joi.string(),
     TEST_ISSUER_KID: Joi.string(),

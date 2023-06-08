@@ -24,11 +24,14 @@ export class IssuersService {
 
   private timeout: number;
 
+  private trustedHostnames: string[];
+
   constructor(
     private ledgerService: LedgerService,
     private configService: ConfigService<ApiConfig, true>
   ) {
     this.timeout = configService.get<number>("requestTimeout");
+    this.trustedHostnames = configService.get<string[]>("trustedHostnames");
   }
 
   async getIssuers(
@@ -258,6 +261,7 @@ export class IssuersService {
     if (
       !(await isStatusList2021Credential(res.data, authority, {
         skipAccreditationsValidation: true,
+        trustedHostnames: this.trustedHostnames,
       }))
     ) {
       throw new InternalServerError("Invalid Status List Credential", {

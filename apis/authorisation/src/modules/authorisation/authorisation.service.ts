@@ -57,6 +57,8 @@ export class AuthorisationService {
 
   private timeout: number;
 
+  private trustedHostnames: string[];
+
   constructor(private configService: ConfigService<ApiConfig, true>) {
     const domain = this.configService.get<string>("domain");
     const urlPrefix = this.configService.get<string>("apiUrlPrefix");
@@ -75,6 +77,7 @@ export class AuthorisationService {
       "authorisationCredentialSchema"
     );
     this.timeout = configService.get<number>("requestTimeout");
+    this.trustedHostnames = configService.get<string[]>("trustedHostnames");
 
     this.oauth2RP = new OAuth2RP({
       privateKey: this.configService.get<string>("apiPrivateKey"),
@@ -188,6 +191,7 @@ export class AuthorisationService {
               ebsiAuthority: domain.replace(/^https?:\/\//, ""), // remove http protocol scheme
               timeout: this.timeout,
               skipAccreditationsValidation: true,
+              trustedHostnames: this.trustedHostnames,
             });
           } catch (e) {
             if (e instanceof Error) {

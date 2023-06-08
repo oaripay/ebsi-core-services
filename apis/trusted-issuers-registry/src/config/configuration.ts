@@ -13,6 +13,7 @@ export interface ApiConfig {
   externalEbsiApiHealthCheck: string;
   requestTimeout: number;
   axiosRetryDelay: number;
+  trustedHostnames: string[];
   // Ledger & SC
   ledgerApiUrl: string;
   ledgerApiName: string;
@@ -62,6 +63,9 @@ export const loadConfig = (): ApiConfig => {
     externalEbsiApiHealthCheck: DOMAIN + HEALTH_CHECK_PATH,
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     axiosRetryDelay: parseInt(process.env.AXIOS_RETRY_DELAY || "10000", 10),
+    trustedHostnames: (process.env.TRUSTED_HOSTNAMES || "")
+      .split(",")
+      .filter(Boolean),
     // Ledger & SC
     ledgerApiUrl: DOMAIN + LEDGER_API_PATH,
     ledgerApiName: process.env.LEDGER_API_NAME || "ledger-api",
@@ -123,6 +127,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     LOCAL_ORIGIN: Joi.string().uri(),
     REQUEST_TIMEOUT: Joi.string(),
     AXIOS_RETRY_DELAY: Joi.string(),
+    TRUSTED_HOSTNAMES: Joi.string(),
     // Ledger & SC
     BESU_TRUSTED_ISSUERS_REGISTRY_ADDRESS: Joi.string().required(),
     LEDGER_API_NAME: Joi.string(),

@@ -73,7 +73,8 @@ export async function getDidrInviteAccessToken(
  */
 export async function getDidrWriteAccessToken(
   authorisationApiUrl: string,
-  issuer: EbsiIssuer
+  issuer: EbsiIssuer,
+  trustedHostnames: string[]
 ) {
   const nonce = randomUUID();
   const vpPayload = {
@@ -91,6 +92,7 @@ export async function getDidrWriteAccessToken(
       ebsiAuthority: "example.net",
       skipValidation: true,
       nonce,
+      trustedHostnames,
       // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
       exp: Math.floor(Date.now() / 1000) + 100,
       nbf: Math.floor(Date.now() / 1000) - 100,

@@ -21,7 +21,7 @@
     "@apidevtools/json-schema-ref-parser": "^10.1.0",
     "@cef-ebsi/ebsi-did-resolver": "^3.1.0",
     "@cef-ebsi/key-did-resolver": "^1.1.0",
-    "@cef-ebsi/verifiable-credential": "^4.3.0",
+    "@cef-ebsi/verifiable-credential": "^4.4.1",
     "@nestjs/common": "^9.4.0",
     "axios": "^1.4.0",
     "canonicalize": "^1.0.8",
