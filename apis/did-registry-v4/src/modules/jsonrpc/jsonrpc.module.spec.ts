@@ -544,6 +544,115 @@ describe("JsonRpc Module", () => {
       expect(responseSend1.status).toBe(400);
     });
 
+    it("should handle blockchain exception NONCE_EXPIRED", async () => {
+      expect.assertions(5);
+
+      // Using test-specific setup in order to avoid conflicts with other
+      const testUser = await createUser();
+      const now = Math.floor(Date.now() / 1000);
+      const notBefore = now;
+      const notAfter = now + 300;
+
+      const param = {
+        from: testUser.wallet.address,
+        did: testUser.did,
+        baseDocument: JSON.stringify({
+          "@context": testUser.didDocument["@context"],
+        }),
+        vMethodId: testUser.thumbprint,
+        publicKey: testUser.wallet.publicKey,
+        isSecp256k1: true,
+        notBefore,
+        notAfter,
+      } as InsertDidDocumentParam;
+
+      const accessToken = await new SignJWT({
+        sub: testUser.did,
+        scp: "openid didr_invite",
+      })
+        .setProtectedHeader({
+          typ: "JWT",
+          alg: "ES256",
+          kid: authApiKid,
+        })
+        .sign(authApiKeyPair.privateKey);
+
+      const responseBuild: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .auth(accessToken, { type: "bearer" })
+        .send({
+          jsonrpc: "2.0",
+          method: "insertDidDocument",
+          params: [param],
+          id: 231,
+        });
+
+      expect(responseBuild.status).toBe(200);
+      const unsignedTransaction = responseBuild.body.result;
+      const uTx = formatEthersUnsignedTransaction(
+        JSON.parse(JSON.stringify(unsignedTransaction)) as UnsignedTransaction
+      );
+      uTx.chainId = Number(uTx.chainId);
+      const sgnTx = await testUser.wallet.signTransaction(uTx);
+      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+      let responseSend = await request(server)
+        .post("/jsonrpc")
+        .auth(accessToken, { type: "bearer" })
+        .send({
+          jsonrpc: "2.0",
+          method: "sendSignedTransaction",
+          params: [
+            {
+              protocol: "eth",
+              unsignedTransaction,
+              r,
+              s,
+              v: `0x${Number(v).toString(16)}`,
+              signedRawTransaction: sgnTx,
+            },
+          ],
+          id: "45",
+        });
+
+      expect(responseSend.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: "45",
+        result: expect.any(String),
+      });
+      expect(responseSend.status).toBe(200);
+
+      // replay same transaction
+      responseSend = await request(server)
+        .post("/jsonrpc")
+        .auth(accessToken, { type: "bearer" })
+        .send({
+          jsonrpc: "2.0",
+          method: "sendSignedTransaction",
+          params: [
+            {
+              protocol: "eth",
+              unsignedTransaction,
+              r,
+              s,
+              v: `0x${Number(v).toString(16)}`,
+              signedRawTransaction: sgnTx,
+            },
+          ],
+          id: "45",
+        });
+
+      expect(responseSend.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: "45",
+        error: {
+          code: -32600,
+          message: "nonce has already been used",
+        },
+      });
+      expect(responseSend.status).toBe(400);
+    });
+
     it("should accept a request without id", async () => {
       expect.assertions(2);
 

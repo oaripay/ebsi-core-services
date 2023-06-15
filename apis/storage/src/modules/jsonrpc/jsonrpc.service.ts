@@ -1,7 +1,7 @@
 import { Injectable, Logger, OnApplicationBootstrap } from "@nestjs/common";
+import { InvalidRequestJsonRpcError } from "@ebsiint-api/shared";
 import { Client, QueryOptions, types } from "cassandra-driver";
 import { RequestCassandraCallDto } from "./dto";
-import { InvalidRequestJsonRpcError } from "./errors";
 import { validateClass, isReadOperation } from "./jsonrpc.utils";
 import { CassandraService } from "../cassandra/cassandra.service";
 import { CassandraConsistency } from "../../config/cassandra.config";

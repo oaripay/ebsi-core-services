@@ -1,6 +1,10 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { DidRegistry } from "@ebsiint-sc/did-registry";
-import { AsyncReturnType, NotFoundError } from "@ebsiint-api/shared";
+import {
+  AsyncReturnType,
+  isEthersError,
+  NotFoundError,
+} from "@ebsiint-api/shared";
 import { LedgerService } from "../ledger/ledger.service";
 import { HashAlgorithmResponseObject } from "./hash-algorithms.interface";
 
@@ -13,11 +17,19 @@ export class HashAlgorithmsService {
   async getHashAlgorithms(
     page: number,
     pageSize: number
-  ): ReturnType<DidRegistry["getHashAlgorithms"]> {
-    return (await this.ledgerService.getContract()).getHashAlgorithms(
-      page,
-      pageSize
-    );
+  ): Promise<ReturnType<DidRegistry["getHashAlgorithms"]>> {
+    try {
+      return await (
+        await this.ledgerService.getContract()
+      ).getHashAlgorithms(page, pageSize);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
+      throw new NotFoundError("Hash algorithm Not Found", {
+        detail: "Hash algorithm Not Found",
+      });
+    }
   }
 
   async getHashAlgorithm(
@@ -30,6 +42,9 @@ export class HashAlgorithmsService {
         await this.ledgerService.getContract()
       ).getHashAlgorithmById(hashAlgorithmId);
     } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
       throw new NotFoundError("Hash algorithm Not Found", {
         detail: `Hash algorithm ${hashAlgorithmId} not found`,
       });

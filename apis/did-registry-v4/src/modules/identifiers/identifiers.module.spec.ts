@@ -846,6 +846,25 @@ describe("Identifiers Module", () => {
         id: null,
       });
       expect(response.status).toBe(400);
+
+      const randomDid = EbsiWallet.createDid();
+      response = await request(server)
+        .post(`/identifiers/${randomDid}/actions`)
+        .send({
+          jsonrpc: "2.0",
+          method: "checkController",
+          params: [randomAddress],
+        });
+
+      expect(response.body).toStrictEqual({
+        jsonrpc: "2.0",
+        error: {
+          code: -32600,
+          message: "record unknown",
+        },
+        id: null,
+      });
+      expect(response.status).toBe(400);
     });
   });
 });

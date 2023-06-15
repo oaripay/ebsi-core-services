@@ -1,5 +1,4 @@
 import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
-import { hasOwnProperty } from "@ebsiint-api/shared";
 import { UserInfo } from "../auth.interface";
 import { AuthService } from "../auth.service";
 
@@ -50,7 +49,7 @@ export class JwtAuthGuard implements CanActivate {
       url.includes("/blockchains/besu") &&
       body &&
       typeof body === "object" &&
-      hasOwnProperty(body, "method") &&
+      "method" in body &&
       typeof body.method === "string" &&
       PUBLIC_BESU_METHODS.has(body.method)
     ) {

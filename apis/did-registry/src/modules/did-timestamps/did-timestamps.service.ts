@@ -7,6 +7,7 @@ import {
   AsyncReturnType,
   BadRequestError,
   NotFoundError,
+  isEthersError,
 } from "@ebsiint-api/shared";
 import { DidTimestampResponseObject } from "./did-timestamps.interface";
 import { LedgerService } from "../ledger/ledger.service";
@@ -47,7 +48,10 @@ export class DidTimestampsService {
           items,
           total: items.length,
         };
-      } catch {
+      } catch (err) {
+        if (isEthersError(err)) {
+          this.logger.error(err);
+        }
         return {
           items: [],
           total: 0,
@@ -55,14 +59,25 @@ export class DidTimestampsService {
       }
     }
 
-    const didTimestamps = await (
-      await this.ledgerService.getContract()
-    ).getDidTimestamps(page, pageSize);
+    try {
+      const didTimestamps = await (
+        await this.ledgerService.getContract()
+      ).getDidTimestamps(page, pageSize);
 
-    return {
-      items: didTimestamps.items,
-      total: didTimestamps.total.toNumber(),
-    };
+      return {
+        items: didTimestamps.items,
+        total: didTimestamps.total.toNumber(),
+      };
+    } catch (err) {
+      if (isEthersError(err)) {
+        this.logger.error(err);
+      }
+
+      return {
+        items: [],
+        total: 0,
+      };
+    }
   }
 
   async getDidTimestamp(
@@ -78,29 +93,45 @@ export class DidTimestampsService {
         await this.ledgerService.getContract()
       ).getDidTimestampById(timestampIdDecoded);
     } catch (e) {
+      if (isEthersError(e)) {
+        this.logger.error(e);
+      }
       throw new NotFoundError("Timestamp Not Found", {
         detail: `Timestamp ${timestampId} not found`,
       });
     }
 
-    const hashAlg = await (
-      await this.ledgerService.getContract()
-    ).getHashAlgorithmById(timestamp.hash.algorithm);
+    try {
+      const hashAlg = await (
+        await this.ledgerService.getContract()
+      ).getHashAlgorithmById(timestamp.hash.algorithm);
 
-    // Multihash
-    const { multihash, outputLength } = hashAlg;
-    const multihashEncodedHash = multihashEncode(
-      timestamp.hash.value,
-      multihash as HashName,
-      outputLength.toNumber() / 8
-    );
+      // Multihash
+      const { multihash, outputLength } = hashAlg;
+      const multihashEncodedHash = multihashEncode(
+        timestamp.hash.value,
+        multihash as HashName,
+        outputLength.toNumber() / 8
+      );
 
-    return {
-      hash: multibase.base64.encode(multihashEncodedHash),
-      timestampedBy: timestamp.timestampedBy,
-      blockNumber: timestamp.blockNumber.toNumber(),
-      data: timestamp.data,
-    };
+      return {
+        hash: multibase.base64.encode(multihashEncodedHash),
+        timestampedBy: timestamp.timestampedBy,
+        blockNumber: timestamp.blockNumber.toNumber(),
+        data: timestamp.data,
+      };
+    } catch (err) {
+      if (isEthersError(err)) {
+        this.logger.error(err);
+      }
+
+      return {
+        hash: "",
+        timestampedBy: "",
+        blockNumber: 0,
+        data: "",
+      };
+    }
   }
 }
 

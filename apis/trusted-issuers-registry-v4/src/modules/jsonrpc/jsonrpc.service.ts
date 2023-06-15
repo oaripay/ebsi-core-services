@@ -3,9 +3,11 @@ import axios from "axios";
 import { ethers } from "ethers";
 import { ConfigService } from "@nestjs/config";
 import {
-  ProblemDetailsError,
+  getErrorMessage,
   prefixWith0x,
   logAxiosError,
+  InvalidRequestJsonRpcError,
+  isEthersError,
 } from "@ebsiint-api/shared";
 import { LedgerService } from "../ledger/ledger.service";
 import {
@@ -24,7 +26,6 @@ import {
   ArgsSetAttributeMetadata,
   ArgsSetAttributeData,
 } from "./dto";
-import { InvalidRequestJsonRpcError } from "./errors";
 import {
   formatEthersUnsignedTransaction,
   formatEthersSignature,
@@ -32,13 +33,6 @@ import {
 } from "./jsonrpc.utils";
 import { ApiConfig } from "../../config/configuration";
 import { RequestUpdateIssuerProxyDto } from "./dto/updateIssuerProxy";
-
-function getErrorMessage(error: unknown) {
-  if (error instanceof ProblemDetailsError && error.detail) {
-    return error.detail;
-  }
-  return (error as Error).message;
-}
 
 function assertScopeContains(
   scope: string,
@@ -88,10 +82,17 @@ export class JsonRpcService {
 
   async getChainId(): Promise<string> {
     if (!this.chainId) {
-      const { chainId } = await (
-        await this.ledgerService.getContract()
-      ).provider.getNetwork();
-      this.chainId = ethers.BigNumber.from(chainId).toHexString();
+      try {
+        const { chainId } = await (
+          await this.ledgerService.getContract()
+        ).provider.getNetwork();
+        this.chainId = ethers.BigNumber.from(chainId).toHexString();
+      } catch (error) {
+        if (isEthersError(error)) {
+          this.logger.error(error);
+        }
+        throw new Error(getErrorMessage(error));
+      }
     }
     return this.chainId;
   }
@@ -101,14 +102,21 @@ export class JsonRpcService {
   ): Promise<ethers.BigNumber> {
     const { from, to, data, value } = transaction;
 
-    return (
-      await this.ledgerService.getContract({ protectedMethod: true })
-    ).provider.estimateGas({
-      from,
-      to,
-      data,
-      value,
-    });
+    try {
+      return await (
+        await this.ledgerService.getContract({ protectedMethod: true })
+      ).provider.estimateGas({
+        from,
+        to,
+        data,
+        value,
+      });
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
+      throw new Error(getErrorMessage(error));
+    }
   }
 
   async isDidControlledByAddress(
@@ -518,9 +526,16 @@ export class JsonRpcService {
       ).provider.sendTransaction(request.signedRawTransaction);
       return tx.hash;
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
-      throw error;
+      if (isEthersError(err)) {
+        this.logger.error(err); // Log the original error with all ethers.js details for internal debugging
+        throw new InvalidRequestJsonRpcError(err.reason, id); // throw simplified ethers error to the user
+      }
+      if (err instanceof Error) {
+        const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
+        error.stack = err.stack;
+        throw error;
+      }
+      throw err;
     }
   }
 }

@@ -1,6 +1,11 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ethers } from "ethers";
-import { remove0xPrefix, ProblemDetailsError } from "@ebsiint-api/shared";
+import {
+  remove0xPrefix,
+  getErrorMessage,
+  InvalidRequestJsonRpcError,
+  isEthersError,
+} from "@ebsiint-api/shared";
 import {
   RequestSendSignedTransactionDto,
   SignedTransactionParam,
@@ -28,7 +33,6 @@ import {
   RequestDetachDidDocumentVersionMetadataDto,
   ArgsDetachDidDocumentVersionMetadata,
 } from "./dto";
-import { InvalidRequestJsonRpcError } from "./errors";
 import {
   formatEthersUnsignedTransaction,
   formatEthersSignature,
@@ -38,13 +42,6 @@ import { LedgerService } from "../ledger/ledger.service";
 
 // Cache algorithms' output lengths for 30 minutes
 const ALGORITHMS_EXP = 30 * 60 * 1000; // 30 minutes
-
-function getErrorMessage(error: unknown) {
-  if (error instanceof ProblemDetailsError && error.detail) {
-    return error.detail;
-  }
-  return (error as Error).message;
-}
 
 @Injectable()
 export class JsonRpcService {
@@ -65,10 +62,17 @@ export class JsonRpcService {
 
   async getChainId(): Promise<string> {
     if (!this.chainId) {
-      const { chainId } = await (
-        await this.ledgerService.getContract()
-      ).provider.getNetwork();
-      this.chainId = ethers.BigNumber.from(chainId).toHexString();
+      try {
+        const { chainId } = await (
+          await this.ledgerService.getContract()
+        ).provider.getNetwork();
+        this.chainId = ethers.BigNumber.from(chainId).toHexString();
+      } catch (error) {
+        if (isEthersError(error)) {
+          this.logger.error(error);
+        }
+        throw new Error(getErrorMessage(error));
+      }
     }
     return this.chainId;
   }
@@ -78,14 +82,21 @@ export class JsonRpcService {
   ): Promise<ethers.BigNumber> {
     const { from, to, data, value } = transaction;
 
-    return (
-      await this.ledgerService.getContract({ protectedMethod: true })
-    ).provider.estimateGas({
-      from,
-      to,
-      data,
-      value,
-    });
+    try {
+      return await (
+        await this.ledgerService.getContract({ protectedMethod: true })
+      ).provider.estimateGas({
+        from,
+        to,
+        data,
+        value,
+      });
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
+      throw new Error(getErrorMessage(error));
+    }
   }
 
   async verifyDidRegistry(
@@ -95,28 +106,39 @@ export class JsonRpcService {
   ): Promise<boolean> {
     const pageSize = 50;
 
-    const data = await (
-      await this.ledgerService.getContract()
-    ).getDidRecordIdentifiersByControllerId(
-      controllerAddress,
-      currentPage,
-      pageSize
-    );
+    try {
+      const data = await (
+        await this.ledgerService.getContract()
+      ).getDidRecordIdentifiersByControllerId(
+        controllerAddress,
+        currentPage,
+        pageSize
+      );
 
-    // Check if DID is in the list
-    if (
-      data.items
-        .map((hexDid) =>
-          Buffer.from(remove0xPrefix(hexDid), "hex").toString("utf8")
-        )
-        .includes(did)
-    ) {
-      return true;
-    }
+      // Check if DID is in the list
+      if (
+        data.items
+          .map((hexDid) =>
+            Buffer.from(remove0xPrefix(hexDid), "hex").toString("utf8")
+          )
+          .includes(did)
+      ) {
+        return true;
+      }
 
-    // Recursive call if there are more pages
-    if (currentPage * pageSize < data.total.toNumber()) {
-      return this.verifyDidRegistry(controllerAddress, did, currentPage + 1);
+      // Recursive call if there are more pages
+      if (currentPage * pageSize < data.total.toNumber()) {
+        return await this.verifyDidRegistry(
+          controllerAddress,
+          did,
+          currentPage + 1
+        );
+      }
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
+      return false;
     }
 
     return false;
@@ -143,6 +165,9 @@ export class JsonRpcService {
           exp: now + ALGORITHMS_EXP,
         };
       } catch (error) {
+        if (isEthersError(error)) {
+          this.logger.error(error);
+        }
         throw new Error(
           `Can't find hash algorithm with ID: ${hashAlgorithmId}`
         );
@@ -153,7 +178,7 @@ export class JsonRpcService {
     const expectedOutputLength =
       this.algIdsToOutputLength[hashAlgorithmId].outputLength;
     const hashLength =
-      Buffer.from(hashValue.replace("0x", ""), "hex").byteLength * 8;
+      Buffer.from(remove0xPrefix(hashValue), "hex").byteLength * 8;
     if (hashLength !== expectedOutputLength) {
       throw new Error(
         `Hash ${hashValue}'s length (${hashLength} bits) is different from the expected length (${expectedOutputLength} bits)`
@@ -329,42 +354,49 @@ export class JsonRpcService {
     from: string,
     params: string
   ): Promise<UnsignedTransaction> {
-    const nonceInt = await (
-      await this.ledgerService.getContract()
-    ).provider.getTransactionCount(from);
-
-    const unsignedTransaction: UnsignedTransaction = {
-      from,
-      to: this.contractAddress,
-      data: params,
-      value: "0x0",
-      nonce: ethers.BigNumber.from(nonceInt).toHexString(),
-      chainId: await this.getChainId(),
-      gasLimit: "0x1000000",
-      gasPrice: "0x0",
-    };
-
-    let gasEstimation: string | ethers.BigNumber = "unset";
-
     try {
-      gasEstimation = await this.estimateGas(unsignedTransaction);
-      // Multiply by 1.4
-      unsignedTransaction.gasLimit = gasEstimation
-        .mul(14)
-        .div(10)
-        .toHexString();
-    } catch (error) {
-      this.logger.warn(
-        `Gas could not be estimated.${
-          gasEstimation === "unset"
-            ? ""
-            : `Received ${gasEstimation.toString()}.`
-        } Using 0x1000000`
-      );
-      unsignedTransaction.gasLimit = "0x1000000";
-    }
+      const nonceInt = await (
+        await this.ledgerService.getContract()
+      ).provider.getTransactionCount(from);
 
-    return unsignedTransaction;
+      const unsignedTransaction: UnsignedTransaction = {
+        from,
+        to: this.contractAddress,
+        data: params,
+        value: "0x0",
+        nonce: ethers.BigNumber.from(nonceInt).toHexString(),
+        chainId: await this.getChainId(),
+        gasLimit: "0x1000000",
+        gasPrice: "0x0",
+      };
+
+      let gasEstimation: string | ethers.BigNumber = "unset";
+
+      try {
+        gasEstimation = await this.estimateGas(unsignedTransaction);
+        // Multiply by 1.4
+        unsignedTransaction.gasLimit = gasEstimation
+          .mul(14)
+          .div(10)
+          .toHexString();
+      } catch (error) {
+        this.logger.warn(
+          `Gas could not be estimated.${
+            gasEstimation === "unset"
+              ? ""
+              : `Received ${gasEstimation.toString()}.`
+          } Using 0x1000000`
+        );
+        unsignedTransaction.gasLimit = "0x1000000";
+      }
+
+      return unsignedTransaction;
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
+      throw new Error("Could not build transaction.");
+    }
   }
 
   async buildTransactionInsertHashAlgorithm(
@@ -724,7 +756,13 @@ export class JsonRpcService {
   ): Promise<string> {
     try {
       await validateClass(RequestSendSignedTransactionDto, body);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
 
+    try {
       const request = body.params[0];
       const { signer, functionName } = await this.verifyTransaction(
         clientId,
@@ -743,10 +781,15 @@ export class JsonRpcService {
         await this.ledgerService.getContract({ protectedMethod: true })
       ).provider.sendTransaction(request.signedRawTransaction);
       return tx.hash;
-    } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
-      throw error;
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+        throw new InvalidRequestJsonRpcError(error.reason, id);
+      }
+
+      const err = new InvalidRequestJsonRpcError(getErrorMessage(error), id);
+      err.stack = (err as Error).stack;
+      throw err;
     }
   }
 }

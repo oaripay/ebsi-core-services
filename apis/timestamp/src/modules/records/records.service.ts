@@ -6,6 +6,9 @@ import {
   multibase,
   BadRequestError,
   NotFoundError,
+  isEthersError,
+  remove0xPrefix,
+  getErrorMessage,
 } from "@ebsiint-api/shared";
 import { LedgerService } from "../ledger/ledger.service";
 import {
@@ -31,10 +34,24 @@ export default class RecordsService {
   }> {
     switch (fnName) {
       case "getRecordVersion": {
-        const { hashValues, infoIds, total } = await (
-          await this.ledgerService.getContract()
-        ).getRecordVersion(params[0] as string, params[1] as number, page, 50);
-        return { hashValues, infoIds, total };
+        try {
+          const { hashValues, infoIds, total } = await (
+            await this.ledgerService.getContract()
+          ).getRecordVersion(
+            params[0] as string,
+            params[1] as number,
+            page,
+            50
+          );
+          return { hashValues, infoIds, total };
+        } catch (error) {
+          if (isEthersError(error)) {
+            this.logger.error(error);
+          }
+          throw new NotFoundError("Record Not Found", {
+            detail: "Record not found",
+          });
+        }
       }
       default:
         throw new Error(`Timestamp function ${fnName} not implemented`);
@@ -73,10 +90,18 @@ export default class RecordsService {
     page: number,
     pageSize: number
   ): ReturnType<Timestamp["getRecordIds"]> {
-    return (await this.ledgerService.getContract()).getRecordIds(
-      page,
-      pageSize
-    );
+    try {
+      return await (
+        await this.ledgerService.getContract()
+      ).getRecordIds(page, pageSize);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
+      throw new BadRequestError("Invalid page or pageSize", {
+        detail: "Invalid page or pageSize",
+      });
+    }
   }
 
   async getRecordIdsByFirstVersionHash(
@@ -84,9 +109,18 @@ export default class RecordsService {
     page: number,
     pageSize: number
   ): ReturnType<Timestamp["getRecordIdsByFirstVersionHash"]> {
-    return (
-      await this.ledgerService.getContract()
-    ).getRecordIdsByFirstVersionHash(firstVersion, page, pageSize);
+    try {
+      return await (
+        await this.ledgerService.getContract()
+      ).getRecordIdsByFirstVersionHash(firstVersion, page, pageSize);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
+      throw new BadRequestError("Invalid firstVersion, page or pageSize", {
+        detail: "Invalid firstVersion, page or pageSize",
+      });
+    }
   }
 
   async getRecordIdsByOwnerId(
@@ -94,11 +128,18 @@ export default class RecordsService {
     page: number,
     pageSize: number
   ): ReturnType<Timestamp["getRecordIdsByOwnerId"]> {
-    return (await this.ledgerService.getContract()).getRecordIdsByOwnerId(
-      owner.toLowerCase(),
-      page,
-      pageSize
-    );
+    try {
+      return await (
+        await this.ledgerService.getContract()
+      ).getRecordIdsByOwnerId(owner.toLowerCase(), page, pageSize);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
+      throw new BadRequestError("Invalid owner, page or pageSize", {
+        detail: "Invalid owner, page or pageSize",
+      });
+    }
   }
 
   async getRecord(recordIdEncoded: string): Promise<RecordResponseObject> {
@@ -112,6 +153,9 @@ export default class RecordsService {
         await this.ledgerService.getContract()
       ).getRecord(recordId);
     } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
       throw new NotFoundError("Record Not Found", {
         detail: `Record ${recordIdEncoded} not found`,
       });
@@ -149,6 +193,9 @@ export default class RecordsService {
         await this.ledgerService.getContract()
       ).getRecord(recordId);
     } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
       throw new NotFoundError("Record Not Found", {
         detail: `Record ${recordIdEncoded} not found`,
       });
@@ -178,27 +225,35 @@ export default class RecordsService {
       Number(versionId),
     ]);
 
-    const contract = await this.ledgerService.getContract();
-    const infosBytes = await Promise.all(
-      infoIds.map((infoId) => contract.getRecordVersionInfo(infoId))
-    );
-
-    const info: InfoObject[] = infosBytes.map((infoBytes) => {
-      const infoString = Buffer.from(infoBytes.slice(2), "hex").toString(
-        "utf8"
+    try {
+      const contract = await this.ledgerService.getContract();
+      const infosBytes = await Promise.all(
+        infoIds.map((infoId) => contract.getRecordVersionInfo(infoId))
       );
-      try {
-        return JSON.parse(infoString) as InfoObject;
-      } catch (error) {
-        throw new BadRequestError("Info can not be parsed", {
-          detail: `The info related to this versionId can not be parsed to JSON. infoBytes: ${infoBytes}`,
-        });
-      }
-    });
 
-    return {
-      hashes: hashValues,
-      info,
-    };
+      const info: InfoObject[] = infosBytes.map((infoBytes) => {
+        const infoString = Buffer.from(
+          remove0xPrefix(infoBytes),
+          "hex"
+        ).toString("utf8");
+        try {
+          return JSON.parse(infoString) as InfoObject;
+        } catch (error) {
+          throw new BadRequestError("Info can not be parsed", {
+            detail: `The info related to this versionId can not be parsed to JSON. infoBytes: ${infoBytes}`,
+          });
+        }
+      });
+
+      return {
+        hashes: hashValues,
+        info,
+      };
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
+      throw new Error(getErrorMessage(error));
+    }
   }
 }

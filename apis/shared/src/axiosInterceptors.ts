@@ -1,6 +1,5 @@
 import { LoggerService } from "@nestjs/common";
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
-import { hasOwnProperty } from "./utils";
 
 interface AxiosResponseError {
   config?: AxiosRequestConfig;
@@ -10,11 +9,7 @@ interface AxiosResponseError {
 const isNotFoundError = (data?: unknown): boolean => {
   if (!data || typeof data !== "object" || data === null) return false;
 
-  if (!hasOwnProperty(data, "title") || !hasOwnProperty(data, "status")) {
-    return false;
-  }
-
-  return data.status === 404;
+  return "title" in data && "status" in data && data.status === 404;
 };
 
 const validateRequestConfigHeaders = (config: AxiosRequestConfig): boolean => {

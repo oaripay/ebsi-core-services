@@ -3,7 +3,9 @@ import { Tar } from "@ebsiint-sc/trusted-apps-registry";
 import {
   AsyncReturnType,
   generateMultihash,
+  isEthersError,
   NotFoundError,
+  remove0xPrefix,
 } from "@ebsiint-api/shared";
 import { PolicyRevisions } from "./policies.interface";
 import LedgerService from "../ledger/ledger.service";
@@ -31,6 +33,9 @@ export default class PoliciesService {
     try {
       policy = await this.tarContract.getPolicy(policyId);
     } catch (e) {
+      if (isEthersError(e)) {
+        this.logger.error(e);
+      }
       throw new NotFoundError("Policy Not Found", {
         detail: `Policy ${policyId} not found`,
       });
@@ -38,7 +43,7 @@ export default class PoliciesService {
 
     const [rawPolicy, rawPolicyHash] = policy;
 
-    const base64Policy = Buffer.from(rawPolicy.slice(2), "hex").toString(
+    const base64Policy = Buffer.from(remove0xPrefix(rawPolicy), "hex").toString(
       "base64"
     );
 
@@ -61,6 +66,9 @@ export default class PoliciesService {
         pageSize
       );
     } catch (e) {
+      if (isEthersError(e)) {
+        this.logger.error(e);
+      }
       throw new NotFoundError("Policy Not Found", {
         detail: `Policy ${policyId} not found`,
       });
@@ -75,7 +83,10 @@ export default class PoliciesService {
     try {
       policies = await Promise.all(getPoliciesByRevisions);
     } catch (e) {
-      throw new Error("ach");
+      if (isEthersError(e)) {
+        this.logger.error(e);
+      }
+      throw new Error("Failed to fetch policies revisions");
     }
 
     return {

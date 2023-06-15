@@ -3,7 +3,7 @@ export * from "./byteLength.utils";
 export * from "./crypto.utils";
 export * from "./encode.utils";
 export * from "./getErrorMessages.utils";
-export * from "./hasOwnProperty";
+export * from "./isEthersError";
 export * from "./isStatusList2021Credential";
 export * from "./jsonSchema.utils";
 export * from "./multibase.utils";

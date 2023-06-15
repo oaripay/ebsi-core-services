@@ -2,7 +2,11 @@ import { Injectable, Logger } from "@nestjs/common";
 import axios from "axios";
 import { ethers } from "ethers";
 import { ConfigService } from "@nestjs/config";
-import { ProblemDetailsError } from "@ebsiint-api/shared";
+import {
+  getErrorMessage,
+  InvalidRequestJsonRpcError,
+  isEthersError,
+} from "@ebsiint-api/shared";
 import { Tar } from "@ebsiint-sc/trusted-apps-registry";
 import {
   RequestDeleteAppAdministratorDto,
@@ -33,7 +37,6 @@ import {
   ArgsUpdateAuthorization,
   SignedTransactionParam,
 } from "./dto";
-import { InvalidRequestJsonRpcError } from "./errors";
 import {
   formatEthersUnsignedTransaction,
   formatEthersSignature,
@@ -41,13 +44,6 @@ import {
 } from "./jsonrpc.utils";
 import LedgerService from "../ledger/ledger.service";
 import { ApiConfig } from "../../config/configuration";
-
-function getErrorMessage(error: unknown) {
-  if (error instanceof ProblemDetailsError && error.detail) {
-    return error.detail;
-  }
-  return (error as Error).message;
-}
 
 @Injectable()
 export class JsonRpcService {
@@ -72,8 +68,15 @@ export class JsonRpcService {
 
   async getChainId(): Promise<string> {
     if (!this.chainId) {
-      const { chainId } = await this.tarContract.provider.getNetwork();
-      this.chainId = ethers.BigNumber.from(chainId).toHexString();
+      try {
+        const { chainId } = await this.tarContract.provider.getNetwork();
+        this.chainId = ethers.BigNumber.from(chainId).toHexString();
+      } catch (error) {
+        if (isEthersError(error)) {
+          this.logger.error(error);
+        }
+        throw new Error(getErrorMessage(error));
+      }
     }
     return this.chainId;
   }
@@ -83,12 +86,19 @@ export class JsonRpcService {
   ): Promise<ethers.BigNumber> {
     const { from, to, data, value } = transaction;
 
-    return this.tarContract.provider.estimateGas({
-      from,
-      to,
-      data,
-      value,
-    });
+    try {
+      return await this.tarContract.provider.estimateGas({
+        from,
+        to,
+        data,
+        value,
+      });
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
+      throw new Error(getErrorMessage(error));
+    }
   }
 
   async isDidControlledByAddress(
@@ -578,9 +588,16 @@ export class JsonRpcService {
 
       return tx.hash;
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
-      throw error;
+      if (isEthersError(err)) {
+        this.logger.error(err); // Log the original error with all ethers.js details for internal debugging
+        throw new InvalidRequestJsonRpcError(err.reason, id); // throw simplified ethers error to the user
+      }
+      if (err instanceof Error) {
+        const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
+        error.stack = err.stack;
+        throw error;
+      }
+      throw err;
     }
   }
 }

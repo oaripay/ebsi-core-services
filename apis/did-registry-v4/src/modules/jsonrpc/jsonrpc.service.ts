@@ -1,6 +1,10 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ethers } from "ethers";
-import { ProblemDetailsError } from "@ebsiint-api/shared";
+import {
+  InvalidRequestJsonRpcError,
+  isEthersError,
+  getErrorMessage,
+} from "@ebsiint-api/shared";
 import {
   RequestSendSignedTransactionDto,
   UnsignedTransaction,
@@ -24,7 +28,6 @@ import {
   RequestRollVerificationMethodDto,
   ArgsRollVerificationMethod,
 } from "./dto";
-import { InvalidRequestJsonRpcError } from "./errors";
 import {
   formatEthersUnsignedTransaction,
   formatEthersSignature,
@@ -32,13 +35,6 @@ import {
 } from "./jsonrpc.utils";
 import { LedgerService } from "../ledger/ledger.service";
 import { DIDR_INVITE_SCOPE, DIDR_WRITE_SCOPE } from "../auth/auth.constants";
-
-function getErrorMessage(error: unknown) {
-  if (error instanceof ProblemDetailsError && error.detail) {
-    return error.detail;
-  }
-  return (error as Error).message;
-}
 
 function assertScopeContains(
   scope: string,
@@ -100,10 +96,17 @@ export class JsonRpcService {
 
   async getChainId(): Promise<string> {
     if (!this.chainId) {
-      const { chainId } = await (
-        await this.ledgerService.getContract()
-      ).provider.getNetwork();
-      this.chainId = ethers.BigNumber.from(chainId).toHexString();
+      try {
+        const { chainId } = await (
+          await this.ledgerService.getContract()
+        ).provider.getNetwork();
+        this.chainId = ethers.BigNumber.from(chainId).toHexString();
+      } catch (error) {
+        if (isEthersError(error)) {
+          this.logger.error(error);
+        }
+        throw new Error(getErrorMessage(error));
+      }
     }
     return this.chainId;
   }
@@ -113,14 +116,21 @@ export class JsonRpcService {
   ): Promise<ethers.BigNumber> {
     const { from, to, data, value } = transaction;
 
-    return (
-      await this.ledgerService.getContract({ protectedMethod: true })
-    ).provider.estimateGas({
-      from,
-      to,
-      data,
-      value,
-    });
+    try {
+      return await (
+        await this.ledgerService.getContract({ protectedMethod: true })
+      ).provider.estimateGas({
+        from,
+        to,
+        data,
+        value,
+      });
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
+      throw new Error(getErrorMessage(error));
+    }
   }
 
   async verifyTransaction(
@@ -253,42 +263,49 @@ export class JsonRpcService {
     from: string,
     params: string
   ): Promise<UnsignedTransaction> {
-    const nonceInt = await (
-      await this.ledgerService.getContract()
-    ).provider.getTransactionCount(from);
-
-    const unsignedTransaction: UnsignedTransaction = {
-      from,
-      to: this.contractAddress,
-      data: params,
-      value: "0x0",
-      nonce: ethers.BigNumber.from(nonceInt).toHexString(),
-      chainId: await this.getChainId(),
-      gasLimit: "0x1000000",
-      gasPrice: "0x0",
-    };
-
-    let gasEstimation: string | ethers.BigNumber = "unset";
-
     try {
-      gasEstimation = await this.estimateGas(unsignedTransaction);
-      // Multiply by 1.4
-      unsignedTransaction.gasLimit = gasEstimation
-        .mul(14)
-        .div(10)
-        .toHexString();
-    } catch (error) {
-      this.logger.warn(
-        `Gas could not be estimated.${
-          gasEstimation === "unset"
-            ? ""
-            : `Received ${gasEstimation.toString()}.`
-        } Using 0x1000000`
-      );
-      unsignedTransaction.gasLimit = "0x1000000";
-    }
+      const nonceInt = await (
+        await this.ledgerService.getContract()
+      ).provider.getTransactionCount(from);
 
-    return unsignedTransaction;
+      const unsignedTransaction: UnsignedTransaction = {
+        from,
+        to: this.contractAddress,
+        data: params,
+        value: "0x0",
+        nonce: ethers.BigNumber.from(nonceInt).toHexString(),
+        chainId: await this.getChainId(),
+        gasLimit: "0x1000000",
+        gasPrice: "0x0",
+      };
+
+      let gasEstimation: string | ethers.BigNumber = "unset";
+
+      try {
+        gasEstimation = await this.estimateGas(unsignedTransaction);
+        // Multiply by 1.4
+        unsignedTransaction.gasLimit = gasEstimation
+          .mul(14)
+          .div(10)
+          .toHexString();
+      } catch (error) {
+        this.logger.warn(
+          `Gas could not be estimated.${
+            gasEstimation === "unset"
+              ? ""
+              : `Received ${gasEstimation.toString()}.`
+          } Using 0x1000000`
+        );
+        unsignedTransaction.gasLimit = "0x1000000";
+      }
+
+      return unsignedTransaction;
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
+      throw new Error("Could not build transaction.");
+    }
   }
 
   async buildTransactionInsertDidDocument(
@@ -607,9 +624,16 @@ export class JsonRpcService {
 
       return tx.hash;
     } catch (err) {
-      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
-      throw error;
+      if (isEthersError(err)) {
+        this.logger.error(err); // Log the original error with all ethers.js details for internal debugging
+        throw new InvalidRequestJsonRpcError(err.reason, id); // throw simplified ethers error to the user
+      }
+      if (err instanceof Error) {
+        const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
+        error.stack = err.stack;
+        throw error;
+      }
+      throw err;
     }
   }
 }

@@ -17,8 +17,8 @@ import { ApiConfig } from "../../config/configuration";
 const REFRESH_LIMIT = 10 * 1000;
 
 @Injectable()
-export class ContractService {
-  private readonly logger = new Logger(ContractService.name);
+export class LedgerService {
+  private readonly logger = new Logger(LedgerService.name);
 
   private ethersProvider: ethers.providers.JsonRpcProvider;
 
@@ -247,4 +247,4 @@ export class ContractService {
   }
 }
 
-export default ContractService;
+export default LedgerService;

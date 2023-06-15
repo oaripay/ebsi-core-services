@@ -1,6 +1,10 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { DidRegistry } from "@ebsiint-sc/did-registry";
-import { remove0xPrefix, NotFoundError } from "@ebsiint-api/shared";
+import {
+  remove0xPrefix,
+  NotFoundError,
+  isEthersError,
+} from "@ebsiint-api/shared";
 import { LedgerService } from "../ledger/ledger.service";
 
 @Injectable()
@@ -15,30 +19,56 @@ export default class IdentifiersService {
     controllerId?: string
   ): ReturnType<DidRegistry["getDidRecordIdentifiers"]> {
     if (controllerId) {
-      return (
-        await this.ledgerService.getContract()
-      ).getDidRecordIdentifiersByControllerId(
-        controllerId.toLowerCase(),
-        page,
-        pageSize
-      );
+      try {
+        return await (
+          await this.ledgerService.getContract()
+        ).getDidRecordIdentifiersByControllerId(
+          controllerId.toLowerCase(),
+          page,
+          pageSize
+        );
+      } catch (error) {
+        if (isEthersError(error)) {
+          this.logger.error(error);
+        }
+        throw new NotFoundError("Could not retreive identifiers", {
+          detail: `Could not retreive identifiers by controller ID ${controllerId}`,
+        });
+      }
     }
 
-    return (await this.ledgerService.getContract()).getDidRecordIdentifiers(
-      page,
-      pageSize
-    );
+    try {
+      return await (
+        await this.ledgerService.getContract()
+      ).getDidRecordIdentifiers(page, pageSize);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
+      throw new NotFoundError("Could not retreive identifiers", {
+        detail: "Could not retreive identifiers",
+      });
+    }
   }
 
   private async retrieveIdentifier(
     hexIdentifier: string
   ): Promise<{ [x: string]: unknown }> {
-    const latesteDidDoc = await (
-      await this.ledgerService.getContract()
-    ).getLatestDidDocumentVersion(hexIdentifier);
-    return JSON.parse(
-      Buffer.from(remove0xPrefix(latesteDidDoc), "hex").toString()
-    ) as { [x: string]: unknown };
+    try {
+      const latesteDidDoc = await (
+        await this.ledgerService.getContract()
+      ).getLatestDidDocumentVersion(hexIdentifier);
+      return JSON.parse(
+        Buffer.from(remove0xPrefix(latesteDidDoc), "hex").toString()
+      ) as { [x: string]: unknown };
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
+      throw new NotFoundError("Identifier Not Found", {
+        detail: `Identifier ${hexIdentifier} not found`,
+      });
+    }
   }
 
   async getIdentifier(did: string): Promise<{ [x: string]: unknown }> {
@@ -46,6 +76,9 @@ export default class IdentifiersService {
       const hexDid = `0x${Buffer.from(did).toString("hex")}`;
       return await this.retrieveIdentifier(hexDid);
     } catch (e) {
+      if (isEthersError(e)) {
+        this.logger.error(e);
+      }
       throw new NotFoundError("Identifier Not Found", {
         detail: `Identifier ${did} not found`,
       });
@@ -57,11 +90,18 @@ export default class IdentifiersService {
     page: number,
     pageSize: number
   ) {
-    return (await this.ledgerService.getContract()).getDidDocumentVersionIds(
-      hexDid,
-      page,
-      pageSize
-    );
+    try {
+      return await (
+        await this.ledgerService.getContract()
+      ).getDidDocumentVersionIds(hexDid, page, pageSize);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
+      throw new NotFoundError("Identifier Not Found", {
+        detail: `Identifier ${hexDid} not found`,
+      });
+    }
   }
 
   async getIdentifiersVersions(
@@ -79,6 +119,9 @@ export default class IdentifiersService {
       const hexDid = `0x${Buffer.from(did).toString("hex")}`;
       return await this.retrieveIdentifiersVersions(hexDid, page, pageSize);
     } catch (e) {
+      if (isEthersError(e)) {
+        this.logger.error(e);
+      }
       throw new NotFoundError("Identifier Not Found", {
         detail: `Identifier ${did} not found`,
       });
@@ -100,6 +143,9 @@ export default class IdentifiersService {
         Buffer.from(remove0xPrefix(versionInfo), "hex").toString()
       ) as { [x: string]: unknown };
     } catch (e) {
+      if (isEthersError(e)) {
+        this.logger.error(e);
+      }
       throw new NotFoundError("Version Not Found", {
         detail: `Version ${versionId} not found`,
       });
@@ -121,6 +167,9 @@ export default class IdentifiersService {
         await this.ledgerService.getContract()
       ).getDidDocumentVersionMetadataIds(hexDid, versionId, page, pageSize);
     } catch (e) {
+      if (isEthersError(e)) {
+        this.logger.error(e);
+      }
       throw new NotFoundError("Identifier Not Found", {
         detail: `Identifier ${did} not found`,
       });
@@ -144,6 +193,9 @@ export default class IdentifiersService {
         Buffer.from(remove0xPrefix(metadata), "hex").toString()
       ) as { [x: string]: unknown };
     } catch (e) {
+      if (isEthersError(e)) {
+        this.logger.error(e);
+      }
       throw new NotFoundError("Metadata Not Found", {
         detail: `Metadata ${metadataId} not found`,
       });

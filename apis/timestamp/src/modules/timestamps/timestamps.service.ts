@@ -9,6 +9,7 @@ import {
   multihashDecode,
   InternalServerError,
   NotFoundError,
+  isEthersError,
 } from "@ebsiint-api/shared";
 import { LedgerService } from "../ledger/ledger.service";
 import { TimestampResponseObject } from "./timestamps.interface";
@@ -23,10 +24,18 @@ export default class TimestampsService {
     page: number,
     pageSize: number
   ): ReturnType<Timestamp["getTimestamps"]> {
-    return (await this.ledgerService.getContract()).getTimestamps(
-      page,
-      pageSize
-    );
+    try {
+      return await (
+        await this.ledgerService.getContract()
+      ).getTimestamps(page, pageSize);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
+      throw new NotFoundError("No timestamps found", {
+        detail: "No timestamps found",
+      });
+    }
   }
 
   async getTimestamp(timestampId: string): Promise<TimestampResponseObject> {
@@ -48,89 +57,100 @@ export default class TimestampsService {
 
     const { hash, timestampedBy, blockNumber, data } = timestamp;
 
-    // Parallelize SC calls
-    const [hashAlgorithm, block] = await Promise.all([
-      (
-        await this.ledgerService.getContract()
-      ).getHashAlgorithmById(hash.algorithm.toNumber()),
-      (
-        await this.ledgerService.getContract()
-      ).provider.getBlockWithTransactions(blockNumber.toNumber()),
-    ]);
+    try {
+      // Parallelize SC calls
+      const [hashAlgorithm, block] = await Promise.all([
+        (
+          await this.ledgerService.getContract()
+        ).getHashAlgorithmById(hash.algorithm.toNumber()),
+        (
+          await this.ledgerService.getContract()
+        ).provider.getBlockWithTransactions(blockNumber.toNumber()),
+      ]);
 
-    // Multi-hash (multibase base64url)
-    const { multiHash, outputLength } = hashAlgorithm;
-    const multihashEncodedHash = multibase.base64.encode(
-      multihashEncode(
-        timestamp.hash.value,
-        multiHash as HashName,
-        outputLength.toNumber() / 8
-      )
-    );
-
-    // Find correct tx hash
-    let transactionHash = "";
-
-    if (block.transactions.length === 0) {
-      this.logger.error(
-        `Timestamp ${timestampId} refers to an empty block: ${blockNumber.toNumber()}`
+      // Multi-hash (multibase base64url)
+      const { multiHash, outputLength } = hashAlgorithm;
+      const multihashEncodedHash = multibase.base64.encode(
+        multihashEncode(
+          timestamp.hash.value,
+          multiHash as HashName,
+          outputLength.toNumber() / 8
+        )
       );
-      throw new InternalServerError(InternalServerError.defaultTitle, {
-        detail: "Invalid record",
-      });
-    }
 
-    const { interface: contractInterface } =
-      await this.ledgerService.getContract();
+      // Find correct tx hash
+      let transactionHash = "";
 
-    // Find the transaction in the block that was sent with:
-    // {
-    //   hashAlgorithmIds: [..., hash.algorithm, ...],
-    //   hashValues: [..., hash.value, ...],
-    //   ...
-    // }
-    const transaction = block.transactions.find((tx) => {
-      let parsedTx: ethers.utils.TransactionDescription;
-      try {
-        parsedTx = contractInterface.parseTransaction(tx);
-      } catch (e) {
-        return false;
+      if (block.transactions.length === 0) {
+        this.logger.error(
+          `Timestamp ${timestampId} refers to an empty block: ${blockNumber.toNumber()}`
+        );
+        throw new InternalServerError(InternalServerError.defaultTitle, {
+          detail: "Invalid record",
+        });
       }
 
-      if (
-        !Array.isArray(parsedTx.args.hashAlgorithmIds) ||
-        !Array.isArray(parsedTx.args.hashValues) ||
-        parsedTx.args.hashAlgorithmIds.length === 0 ||
-        parsedTx.args.hashValues.length === 0
-      ) {
-        return false;
+      const { interface: contractInterface } =
+        await this.ledgerService.getContract();
+
+      // Find the transaction in the block that was sent with:
+      // {
+      //   hashAlgorithmIds: [..., hash.algorithm, ...],
+      //   hashValues: [..., hash.value, ...],
+      //   ...
+      // }
+      const transaction = block.transactions.find((tx) => {
+        let parsedTx: ethers.utils.TransactionDescription;
+        try {
+          parsedTx = contractInterface.parseTransaction(tx);
+        } catch (e) {
+          return false;
+        }
+
+        if (
+          !Array.isArray(parsedTx.args.hashAlgorithmIds) ||
+          !Array.isArray(parsedTx.args.hashValues) ||
+          parsedTx.args.hashAlgorithmIds.length === 0 ||
+          parsedTx.args.hashValues.length === 0
+        ) {
+          return false;
+        }
+
+        return parsedTx.args.hashAlgorithmIds.some(
+          (hashAlgId, index) =>
+            // Compare hash algorithm ID
+            hash.algorithm.eq(hashAlgId as ethers.BigNumberish) &&
+            // Compare hash value
+            index in parsedTx.args.hashValues &&
+            (parsedTx.args.hashValues as string[])[index] === hash.value
+        );
+      });
+
+      if (!transaction) {
+        throw new InternalServerError(InternalServerError.defaultTitle, {
+          detail: "Unable to find the corresponding transaction",
+        });
       }
 
-      return parsedTx.args.hashAlgorithmIds.some(
-        (hashAlgId, index) =>
-          // Compare hash algorithm ID
-          hash.algorithm.eq(hashAlgId as ethers.BigNumberish) &&
-          // Compare hash value
-          index in parsedTx.args.hashValues &&
-          (parsedTx.args.hashValues as string[])[index] === hash.value
-      );
-    });
+      transactionHash = transaction.hash;
 
-    if (!transaction) {
-      throw new InternalServerError(InternalServerError.defaultTitle, {
-        detail: "Unable to find the corresponding transaction",
-      });
+      return {
+        hash: multihashEncodedHash,
+        timestampedBy,
+        blockNumber: blockNumber.toNumber(),
+        timestamp: new Date(block.timestamp * 1000).toISOString(),
+        data,
+        transactionHash,
+      };
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+        // Throw the user-friendly error hiding details of blockchain/besu issues
+        throw new NotFoundError("Timestamp Not Found", {
+          detail: `Timestamp ${timestampId} not found`,
+        });
+      }
+      throw error;
     }
-
-    transactionHash = transaction.hash;
-
-    return {
-      hash: multihashEncodedHash,
-      timestampedBy,
-      blockNumber: blockNumber.toNumber(),
-      timestamp: new Date(block.timestamp * 1000).toISOString(),
-      data,
-      transactionHash,
-    };
   }
 }

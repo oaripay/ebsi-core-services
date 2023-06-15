@@ -3,7 +3,7 @@ import { ethers } from "ethers";
 import { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry";
 import { AsyncReturnType } from "@ebsiint-api/shared";
 import { formatPolicies, formatRevisions } from "./policies.formatter";
-import PoliciesService from "./policies.service";
+import { PoliciesService } from "./policies.service";
 
 describe("formatPolicies", () => {
   const policies = {

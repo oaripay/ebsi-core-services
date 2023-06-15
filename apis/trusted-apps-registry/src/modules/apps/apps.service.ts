@@ -1,7 +1,12 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ethers } from "ethers";
 import { Tar } from "@ebsiint-sc/trusted-apps-registry";
-import { AsyncReturnType, NotFoundError } from "@ebsiint-api/shared";
+import {
+  AsyncReturnType,
+  isEthersError,
+  NotFoundError,
+  remove0xPrefix,
+} from "@ebsiint-api/shared";
 import LedgerService from "../ledger/ledger.service";
 import {
   AppResponseObject,
@@ -36,30 +41,44 @@ export default class AppsService {
     params: string[],
     page: number
   ): Promise<{ items: unknown[]; total: ethers.BigNumber }> {
-    switch (fnName) {
-      case "getAppAdministratorIds": {
-        const { items, total } =
-          await this.getContract().getAppAdministratorIds(params[0], page, 50);
-        return { items, total };
+    try {
+      switch (fnName) {
+        case "getAppAdministratorIds": {
+          const { items, total } =
+            await this.getContract().getAppAdministratorIds(
+              params[0],
+              page,
+              50
+            );
+          return { items, total };
+        }
+        case "getAppPublicKeyIds": {
+          const { items, total } = await this.getContract().getAppPublicKeyIds(
+            params[0],
+            page,
+            50
+          );
+          return { items, total };
+        }
+        case "getAppInfoIds": {
+          const { items, total } = await this.getContract().getAppInfoIds(
+            params[0],
+            page,
+            50
+          );
+          return { items, total };
+        }
+        default:
+          throw new Error(`TAR function ${fnName} not implemented`);
       }
-      case "getAppPublicKeyIds": {
-        const { items, total } = await this.getContract().getAppPublicKeyIds(
-          params[0],
-          page,
-          50
-        );
-        return { items, total };
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+        throw new NotFoundError("No results found for the query", {
+          detail: "No results found for the query",
+        });
       }
-      case "getAppInfoIds": {
-        const { items, total } = await this.getContract().getAppInfoIds(
-          params[0],
-          page,
-          50
-        );
-        return { items, total };
-      }
-      default:
-        throw new Error(`TAR function ${fnName} not implemented`);
+      throw error;
     }
   }
 
@@ -81,13 +100,22 @@ export default class AppsService {
   }
 
   async getApps(page: number, pageSize: number): ReturnType<Tar["getApps"]> {
-    return this.getContract().getApps(page, pageSize);
+    try {
+      return await this.getContract().getApps(page, pageSize);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+        throw new NotFoundError("No apps found", {
+          detail: "No apps found",
+        });
+      }
+      throw error;
+    }
   }
 
   async getAppByName(appName: string): ReturnType<Tar["getAppByName"]> {
     try {
-      const app = await this.getContract().getAppByName(appName);
-      return app;
+      return await this.getContract().getAppByName(appName);
     } catch (e) {
       this.logger.error(e);
       throw new NotFoundError("App Not Found", {
@@ -99,11 +127,31 @@ export default class AppsService {
   async getAppByPublicKeyId(
     publicKeyId: string
   ): ReturnType<Tar["getAppByPublicKeyId"]> {
-    return this.getContract().getAppByPublicKeyId(publicKeyId);
+    try {
+      return await this.getContract().getAppByPublicKeyId(publicKeyId);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+        throw new NotFoundError("App Not Found", {
+          detail: `App with public key id ${publicKeyId} not found`,
+        });
+      }
+      throw error;
+    }
   }
 
   async getAppById(applicationId: string): ReturnType<Tar["getAppById"]> {
-    return this.getContract().getAppById(applicationId);
+    try {
+      return await this.getContract().getAppById(applicationId);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+        throw new NotFoundError("App Not Found", {
+          detail: `App with id ${applicationId} not found`,
+        });
+      }
+      throw error;
+    }
   }
 
   async getApp(appName: string): Promise<AppResponseObject> {
@@ -119,49 +167,63 @@ export default class AppsService {
     const publicKeyIds = (await this.getAllPages("getAppPublicKeyIds", [
       applicationId,
     ])) as string[];
-    const publicKeys = await Promise.all(
-      publicKeyIds.map(async (publicKeyId) => {
-        const { publicKey } = await this.getContract().getPublicKey(
-          publicKeyId
-        );
-        return Buffer.from(publicKey.slice(2), "hex").toString("base64");
-      })
-    );
-    const infoIds = (await this.getAllPages("getAppInfoIds", [
-      applicationId,
-    ])) as string[];
-    let info = {};
-    if (infoIds.length > 0) {
-      const infoBytes = await this.getContract().getAppInfoByInfoId(
-        infoIds[infoIds.length - 1]
-      );
-      const infoStr = Buffer.from(infoBytes.slice(2), "hex").toString("utf8");
-      info = JSON.parse(infoStr) as { [x: string]: unknown };
-    }
-    const authorizationItems = await this.getAllAuthorizations(applicationId);
-    const authorizations = await Promise.all(
-      authorizationItems.map(async (auth) =>
-        this.getAuthorization(appName, auth.authorizationId)
-      )
-    );
-    const revocationStatus = await this.getAppRevocationStatus(applicationId);
-    const revocation = revocationStatus
-      ? {
-          revokedBy: revocationStatus.revokedBy,
-          notBefore: revocationStatus.notBefore.toNumber(),
-        }
-      : null;
 
-    return {
-      applicationId,
-      name: appName,
-      domain: domainName[domain],
-      administrators,
-      publicKeys,
-      info,
-      authorizations,
-      revocation,
-    };
+    try {
+      const publicKeys = await Promise.all(
+        publicKeyIds.map(async (publicKeyId) => {
+          const { publicKey } = await this.getContract().getPublicKey(
+            publicKeyId
+          );
+          return Buffer.from(remove0xPrefix(publicKey), "hex").toString(
+            "base64"
+          );
+        })
+      );
+      const infoIds = (await this.getAllPages("getAppInfoIds", [
+        applicationId,
+      ])) as string[];
+      let info = {};
+      if (infoIds.length > 0) {
+        const infoBytes = await this.getContract().getAppInfoByInfoId(
+          infoIds[infoIds.length - 1]
+        );
+        const infoStr = Buffer.from(remove0xPrefix(infoBytes), "hex").toString(
+          "utf8"
+        );
+        info = JSON.parse(infoStr) as { [x: string]: unknown };
+      }
+      const authorizationItems = await this.getAllAuthorizations(applicationId);
+      const authorizations = await Promise.all(
+        authorizationItems.map(async (auth) =>
+          this.getAuthorization(appName, auth.authorizationId)
+        )
+      );
+      const revocationStatus = await this.getAppRevocationStatus(applicationId);
+      const revocation = revocationStatus
+        ? {
+            revokedBy: revocationStatus.revokedBy,
+            notBefore: revocationStatus.notBefore.toNumber(),
+          }
+        : null;
+
+      return {
+        applicationId,
+        name: appName,
+        domain: domainName[domain],
+        administrators,
+        publicKeys,
+        info,
+        authorizations,
+        revocation,
+      };
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
+      throw new NotFoundError("App Not Found", {
+        detail: `App with name ${appName} not found`,
+      });
+    }
   }
 
   async getAppRevocationStatus(
@@ -172,7 +234,10 @@ export default class AppsService {
         applicationId
       );
       return revocationStatus;
-    } catch {
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
       return null;
     }
   }
@@ -186,7 +251,20 @@ export default class AppsService {
       appName
     );
     const [applicationId] = app;
-    return this.getContract().getAppPublicKeyIds(applicationId, page, pageSize);
+    try {
+      return await this.getContract().getAppPublicKeyIds(
+        applicationId,
+        page,
+        pageSize
+      );
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
+      throw new NotFoundError("Public Keys Not Found", {
+        detail: `Public keys for ${appName} not found`,
+      });
+    }
   }
 
   async getPublicKey(
@@ -201,6 +279,9 @@ export default class AppsService {
     try {
       result = await this.getContract().getPublicKey(publicKeyId);
     } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
       throw new NotFoundError("Public Key Not Found", {
         detail: `Public key ${publicKeyId} not found`,
       });
@@ -213,7 +294,9 @@ export default class AppsService {
 
     return {
       applicationId,
-      publicKey: Buffer.from(publicKey.slice(2), "hex").toString("base64"),
+      publicKey: Buffer.from(remove0xPrefix(publicKey), "hex").toString(
+        "base64"
+      ),
       status: statusName[status],
       notBefore: notBefore.toNumber(),
       notAfter: notAfter.toNumber(),
@@ -232,7 +315,9 @@ export default class AppsService {
         50
       );
     } catch (error) {
-      /* empty */
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
     }
 
     // remove duplications - TODO on SC
@@ -257,7 +342,9 @@ export default class AppsService {
           50
         );
       } catch (error) {
-        /* empty */
+        if (isEthersError(error)) {
+          this.logger.error(error);
+        }
       }
       if (!auths) {
         return {
@@ -305,12 +392,21 @@ export default class AppsService {
       }));
     });
 
-    const allAppAuths = await Promise.all(promisesAuths);
-    const authorizations: AuthorizationItemObject[] = [];
-    allAppAuths.forEach((itemsAuth: AuthorizationItemObject[]) =>
-      authorizations.push(...itemsAuth)
-    );
-    return authorizations;
+    try {
+      const allAppAuths = await Promise.all(promisesAuths);
+      const authorizations: AuthorizationItemObject[] = [];
+      allAppAuths.forEach((itemsAuth: AuthorizationItemObject[]) =>
+        authorizations.push(...itemsAuth)
+      );
+      return authorizations;
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
+      throw new NotFoundError("Authorizations Not Found", {
+        detail: `Authorizations for ${resourceApplicationId} not found`,
+      });
+    }
   }
 
   async getAuthorizations(
@@ -354,7 +450,9 @@ export default class AppsService {
         pageSize
       );
     } catch (error) {
-      /* empty */
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
     }
     if (!auths) {
       return { items: [], total: 0 };
@@ -383,6 +481,9 @@ export default class AppsService {
         authorizationId
       );
     } catch (e) {
+      if (isEthersError(e)) {
+        this.logger.error(e);
+      }
       throw new NotFoundError("Authorization Not Found", {
         detail: `Authorization ${authorizationId} not found`,
       });

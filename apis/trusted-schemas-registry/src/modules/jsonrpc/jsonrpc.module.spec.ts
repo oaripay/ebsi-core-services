@@ -52,7 +52,7 @@ import {
   createSchema,
   createVerifiableAuthorisationSchema,
 } from "../../../tests/utils/data";
-import { ContractService } from "../contract/contract.service";
+import { LedgerService } from "../ledger/ledger.service";
 import { ApiConfig } from "../../config/configuration";
 
 interface SupertestJsonRpcResponse {
@@ -97,7 +97,7 @@ describe("JsonRpc Module", () => {
   let server: HttpServer;
   let schemasRegistryContract: SchemaSCRegistry;
   let jsonRpcService: JsonRpcService;
-  let contractService: ContractService;
+  let ledgerService: LedgerService;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
   let policies: PolicyObject[];
   let userAccessToken: string;
@@ -186,7 +186,7 @@ describe("JsonRpc Module", () => {
     policies = testEnv.policies;
 
     jest
-      .spyOn(ContractService.prototype, "getContractAddress")
+      .spyOn(LedgerService.prototype, "getContractAddress")
       .mockImplementation(() => schemasRegistryContract.address);
 
     // Start server
@@ -213,7 +213,7 @@ describe("JsonRpc Module", () => {
     server = app.getHttpServer() as HttpServer;
 
     jsonRpcService = moduleFixture.get<JsonRpcService>(JsonRpcService);
-    contractService = moduleFixture.get<ContractService>(ContractService);
+    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
     // Generate JWTs
     userAccessTokenPayload = { sub: adminDid };
@@ -237,7 +237,7 @@ describe("JsonRpc Module", () => {
   beforeEach(() => {
     // Mock TSR contract
     jest
-      .spyOn(contractService, "getContract")
+      .spyOn(ledgerService, "getContract")
       .mockImplementation(async () =>
         Promise.resolve(testEnv.schemasRegistryContract)
       );

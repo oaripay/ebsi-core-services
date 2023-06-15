@@ -24,7 +24,7 @@
     "@ebsiint-sc/trusted-issuers-registry": "^4.0.0-rc.2",
     "@ebsiint-sc/trusted-policies-registry": "^1.0.1-rc.2",
     "@ebsiint-sc/trusted-schemas-registry": "^1.0.1-rc.2",
-    "@openzeppelin/contracts": "^4.8.3",
+    "@openzeppelin/contracts": "^4.9.1",
     "elliptic": "^6.5.4"
   },
   "devDependencies": {

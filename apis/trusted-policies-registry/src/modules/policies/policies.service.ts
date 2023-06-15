@@ -4,6 +4,7 @@ import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry";
 import {
   AsyncReturnType,
   InternalServerError,
+  isEthersError,
   NotFoundError,
 } from "@ebsiint-api/shared";
 import { LedgerService } from "../ledger/ledger.service";
@@ -61,10 +62,18 @@ export class PoliciesService {
     page: number,
     pageSize: number
   ): ReturnType<PolicyRegistry["getPolicyNames"]> {
-    return (await this.ledgerService.getContract()).getPolicyNames(
-      page,
-      pageSize
-    );
+    try {
+      return await (
+        await this.ledgerService.getContract()
+      ).getPolicyNames(page, pageSize);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error.message);
+      }
+      throw new NotFoundError("Policies not found", {
+        detail: "Policies not found",
+      });
+    }
   }
 
   async getPolicy(policyName: string): Promise<PolicyResponseObject> {
@@ -75,6 +84,9 @@ export class PoliciesService {
         await this.ledgerService.getContract()
       )["getPolicy(string)"](policyName);
     } catch (e) {
+      if (isEthersError(e)) {
+        this.logger.error(e.message);
+      }
       throw new NotFoundError("Policy Not Found", {
         detail: `Policy ${policyName} not found`,
       });

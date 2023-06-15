@@ -4,24 +4,34 @@ import {
   generateMultihash,
   AsyncReturnType,
   NotFoundError,
+  isEthersError,
+  remove0xPrefix,
 } from "@ebsiint-api/shared";
-import { ContractService } from "../contract/contract.service";
+import { LedgerService } from "../ledger/ledger.service";
 import { PolicyRevisions } from "./policies.interface";
 
 @Injectable()
-export default class PoliciesService {
+export class PoliciesService {
   private readonly logger = new Logger(PoliciesService.name);
 
-  constructor(private contractService: ContractService) {}
+  constructor(private ledgerService: LedgerService) {}
 
   async getPolicies(
     page: number,
     pageSize: number
   ): ReturnType<SchemaSCRegistry["getPolicies"]> {
-    return (await this.contractService.getContract()).getPolicies(
-      page,
-      pageSize
-    );
+    try {
+      return await (
+        await this.ledgerService.getContract()
+      ).getPolicies(page, pageSize);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
+      throw new NotFoundError("Policies Not Found", {
+        detail: `Policies not found`,
+      });
+    }
   }
 
   async getPolicy(policyId: string): Promise<[string, string]> {
@@ -30,9 +40,12 @@ export default class PoliciesService {
     try {
       // Preserve case! Don't lowercase the policyId
       policy = await (
-        await this.contractService.getContract()
+        await this.ledgerService.getContract()
       ).getPolicy(policyId);
     } catch (e) {
+      if (isEthersError(e)) {
+        this.logger.error(e);
+      }
       throw new NotFoundError("Policy Not Found", {
         detail: `Policy ${policyId} not found`,
       });
@@ -40,7 +53,7 @@ export default class PoliciesService {
 
     const [rawPolicy, rawPolicyHash] = policy;
 
-    const base64Policy = Buffer.from(rawPolicy.slice(2), "hex").toString(
+    const base64Policy = Buffer.from(remove0xPrefix(rawPolicy), "hex").toString(
       "base64"
     );
 
@@ -58,15 +71,18 @@ export default class PoliciesService {
 
     try {
       revisions = await (
-        await this.contractService.getContract()
+        await this.ledgerService.getContract()
       ).getPolicyRevisions(policyId, page, pageSize);
     } catch (e) {
+      if (isEthersError(e)) {
+        this.logger.error(e);
+      }
       throw new NotFoundError("Policy Not Found", {
         detail: `Policy ${policyId} not found`,
       });
     }
 
-    const contract = await this.contractService.getContract();
+    const contract = await this.ledgerService.getContract();
     const getPoliciesByRevisions = revisions.items.map((hash) =>
       contract.getPolicyByHash(hash)
     );
@@ -76,7 +92,12 @@ export default class PoliciesService {
     try {
       policies = await Promise.all(getPoliciesByRevisions);
     } catch (e) {
-      throw new Error("ach");
+      if (isEthersError(e)) {
+        this.logger.error(e);
+      }
+      throw new NotFoundError("Revisions not found", {
+        detail: `Revisions for ${policyId} not found`,
+      });
     }
 
     return {
@@ -89,3 +110,5 @@ export default class PoliciesService {
     };
   }
 }
+
+export default PoliciesService;

@@ -5,6 +5,8 @@ export * from "./ExpectationFailedError";
 export * from "./ForbiddenError";
 export * from "./GoneError";
 export * from "./InternalServerError";
+export * from "./InvalidRequestJsonRpcError";
+export * from "./JsonRpcError";
 export * from "./LengthRequiredError";
 export * from "./LockedError";
 export * from "./MethodNotAllowedError";

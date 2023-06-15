@@ -7,6 +7,8 @@ import {
   NotFoundError,
   isStatusList2021Credential,
   prefixWith0x,
+  isEthersError,
+  remove0xPrefix,
 } from "@ebsiint-api/shared";
 import axios, { AxiosResponse } from "axios";
 import { LedgerService } from "../ledger/ledger.service";
@@ -38,7 +40,18 @@ export class IssuersService {
     page: number,
     pageSize: number
   ): ReturnType<Tir["getIssuers"]> {
-    return (await this.ledgerService.getContract()).getIssuers(page, pageSize);
+    try {
+      return await (
+        await this.ledgerService.getContract()
+      ).getIssuers(page, pageSize);
+    } catch (e) {
+      if (isEthersError(e)) {
+        this.logger.error(e);
+      }
+      throw new NotFoundError("Failed to get issuers", {
+        detail: "Failed to get issuers",
+      });
+    }
   }
 
   async getAttributeRevision(revisionId: string): Promise<AttributeObject> {
@@ -52,13 +65,19 @@ export class IssuersService {
         await this.ledgerService.getContract()
       ).getIssuerAttributeByHash(hash);
     } catch (e) {
+      if (isEthersError(e)) {
+        this.logger.error(e);
+      }
       throw new NotFoundError("Revision Not Found", {
         detail: `Revision ${hash} not found`,
       });
     }
 
     const { attribData, tao, rootTao, issuerType } = attributeByHash;
-    const attributeData = Buffer.from(attribData.slice(2), "hex").toString();
+    const attributeData = Buffer.from(
+      remove0xPrefix(attribData),
+      "hex"
+    ).toString();
 
     return {
       hash: hash.slice(2),
@@ -84,6 +103,9 @@ export class IssuersService {
         await this.ledgerService.getContract()
       ).getIssuerAttributeRevisions(hash, totalRevisions, 1);
     } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
       throw new NotFoundError("Attribute Not Found", {
         detail: `Attribute ${hash} not found`,
       });
@@ -104,6 +126,9 @@ export class IssuersService {
         throw new Error();
       }
     } catch (e) {
+      if (isEthersError(e)) {
+        this.logger.error(e);
+      }
       throw new NotFoundError("Issuer Not Found", {
         detail: `Issuer ${issuerDid} not found`,
       });
@@ -120,6 +145,9 @@ export class IssuersService {
     try {
       await (await this.ledgerService.getContract()).getIssuer(did);
     } catch (e) {
+      if (isEthersError(e)) {
+        this.logger.error(e);
+      }
       throw new NotFoundError("Issuer Not Found", {
         detail: `Issuer ${did} not found`,
       });
@@ -143,6 +171,9 @@ export class IssuersService {
         await this.ledgerService.getContract()
       ).getIssuer(did);
     } catch (e) {
+      if (isEthersError(e)) {
+        this.logger.error(e);
+      }
       throw new NotFoundError("Issuer Not Found", {
         detail: `Issuer ${did} not found`,
       });
@@ -154,17 +185,26 @@ export class IssuersService {
 
     // /!\ only checks the first 50 revisions of each hash
     // Known issue: if there are more than 50 revisions, didIncludesAttribute may wrongly return false
-    const revisionHashesList = await Promise.all(
-      attributesLastHash.map(async (hash) => {
-        return (
-          await this.ledgerService.getContract()
-        ).getIssuerAttributeRevisions(hash, 1, 50);
-      })
-    );
+    try {
+      const revisionHashesList = await Promise.all(
+        attributesLastHash.map(async (hash) => {
+          return (
+            await this.ledgerService.getContract()
+          ).getIssuerAttributeRevisions(hash, 1, 50);
+        })
+      );
 
-    return !!revisionHashesList.find((revisionHashes) => {
-      return revisionHashes.items.find((hash) => hash === attribId);
-    });
+      return !!revisionHashesList.find((revisionHashes) => {
+        return revisionHashes.items.find((hash) => hash === attribId);
+      });
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
+      throw new NotFoundError("Attribute Not Found", {
+        detail: `Attribute ${attribId} not found`,
+      });
+    }
   }
 
   async getIssuerAttributeIdRevisions(
@@ -175,17 +215,26 @@ export class IssuersService {
     // This function assumes that the attributeId exists
     const hash = prefixWith0x(attributeId);
 
-    const revisionHashes = await (
-      await this.ledgerService.getContract()
-    ).getIssuerAttributeRevisions(hash, page, pageSize);
+    try {
+      const revisionHashes = await (
+        await this.ledgerService.getContract()
+      ).getIssuerAttributeRevisions(hash, page, pageSize);
 
-    const revisions = await Promise.all(
-      revisionHashes.items.map(async (revisionHash) => {
-        return this.getAttributeRevision(revisionHash);
-      })
-    );
+      const revisions = await Promise.all(
+        revisionHashes.items.map(async (revisionHash) => {
+          return this.getAttributeRevision(revisionHash);
+        })
+      );
 
-    return { revisions, total: revisionHashes.total.toNumber() };
+      return { revisions, total: revisionHashes.total.toNumber() };
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
+      throw new NotFoundError("Attribute Not Found", {
+        detail: `Attribute with ${hash} not found`,
+      });
+    }
   }
 
   async getIssuerProxies(did: string) {
@@ -199,6 +248,9 @@ export class IssuersService {
         await this.ledgerService.getContract()
       ).getIssuerProxies(did);
     } catch (e) {
+      if (isEthersError(e)) {
+        this.logger.error(e);
+      }
       throw new NotFoundError("Issuer Not Found", {
         detail: `Issuer ${did} not found`,
       });
@@ -220,6 +272,9 @@ export class IssuersService {
       // Throw an error if the proxy is empty (i.e. not found)
       if (!proxy) throw new Error();
     } catch (e) {
+      if (isEthersError(e)) {
+        this.logger.error(e);
+      }
       throw new NotFoundError("Proxy Not Found", {
         detail: `Proxy ${proxyId} of issuer ${did} can't be found`,
       });

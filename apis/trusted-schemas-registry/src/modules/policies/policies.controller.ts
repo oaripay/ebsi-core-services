@@ -1,13 +1,13 @@
 import { Controller, Get, Query, Param } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PaginationQuery, PaginatedList } from "@ebsiint-api/shared";
-import PoliciesService from "./policies.service";
+import { PoliciesService } from "./policies.service";
 import { formatPolicies, formatRevisions } from "./policies.formatter";
 import { PolicyResponseObject, PolicyLink } from "./policies.interface";
 import { ApiConfig } from "../../config/configuration";
 
 @Controller("/policies")
-export default class PoliciesController {
+export class PoliciesController {
   constructor(
     private policiesService: PoliciesService,
     private configService: ConfigService<ApiConfig, true>
@@ -76,3 +76,5 @@ export default class PoliciesController {
     );
   }
 }
+
+export default PoliciesController;

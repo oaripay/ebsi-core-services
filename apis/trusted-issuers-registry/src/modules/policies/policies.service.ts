@@ -4,6 +4,8 @@ import {
   generateMultihash,
   AsyncReturnType,
   NotFoundError,
+  isEthersError,
+  remove0xPrefix,
 } from "@ebsiint-api/shared";
 import { PolicyRevisions } from "./policies.interface";
 import { LedgerService } from "../ledger/ledger.service";
@@ -18,7 +20,18 @@ export class PoliciesService {
     page: number,
     pageSize: number
   ): ReturnType<Tir["getPolicies"]> {
-    return (await this.ledgerService.getContract()).getPolicies(page, pageSize);
+    try {
+      return await (
+        await this.ledgerService.getContract()
+      ).getPolicies(page, pageSize);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
+      throw new NotFoundError("No policies found", {
+        detail: "No policies found",
+      });
+    }
   }
 
   async getPolicy(policyId: string): Promise<[string, string]> {
@@ -30,6 +43,9 @@ export class PoliciesService {
         await this.ledgerService.getContract()
       ).getPolicy(policyId);
     } catch (e) {
+      if (isEthersError(e)) {
+        this.logger.error(e);
+      }
       throw new NotFoundError("Policy Not Found", {
         detail: `Policy ${policyId} not found`,
       });
@@ -37,7 +53,7 @@ export class PoliciesService {
 
     const [rawPolicy, rawPolicyHash] = policy;
 
-    const base64Policy = Buffer.from(rawPolicy.slice(2), "hex").toString(
+    const base64Policy = Buffer.from(remove0xPrefix(rawPolicy), "hex").toString(
       "base64"
     );
 
@@ -58,6 +74,9 @@ export class PoliciesService {
         await this.ledgerService.getContract()
       ).getPolicyRevisions(policyId, page, pageSize);
     } catch (e) {
+      if (isEthersError(e)) {
+        this.logger.error(e);
+      }
       throw new NotFoundError("Policy Not Found", {
         detail: `Policy ${policyId} not found`,
       });
@@ -68,16 +87,25 @@ export class PoliciesService {
       contract.getPolicyByHash(hash)
     );
 
-    const policies = await Promise.all(getPoliciesByRevisions);
+    try {
+      const policies = await Promise.all(getPoliciesByRevisions);
 
-    return {
-      items: revisions.items.map((hash, index) => ({
-        policyId,
-        policy: policies[index],
-        hash,
-      })),
-      total: revisions.total.toNumber(),
-    };
+      return {
+        items: revisions.items.map((hash, index) => ({
+          policyId,
+          policy: policies[index],
+          hash,
+        })),
+        total: revisions.total.toNumber(),
+      };
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
+      throw new NotFoundError("Policy revisions not found", {
+        detail: `Policy revisions for ${policyId} not found`,
+      });
+    }
   }
 }
 

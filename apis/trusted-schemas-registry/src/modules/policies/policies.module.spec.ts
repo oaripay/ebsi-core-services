@@ -17,7 +17,7 @@ import { generateMultihash, AsyncReturnType } from "@ebsiint-api/shared";
 import { PoliciesModule } from "./policies.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { setupTestEnv } from "../../../tests/utils/schemaRegistry";
-import { ContractService } from "../contract/contract.service";
+import { LedgerService } from "../ledger/ledger.service";
 import { ApiConfig } from "../../config/configuration";
 
 const POLICIES_TOTAL = 12;
@@ -27,7 +27,7 @@ describe("Policies Module", () => {
   let app: INestApplication;
   let server: HttpServer;
   let testEnv: AsyncReturnType<typeof setupTestEnv>;
-  let contractService: ContractService;
+  let ledgerService: LedgerService;
   let configService: ConfigService<ApiConfig, true>;
 
   beforeAll(async () => {
@@ -45,7 +45,7 @@ describe("Policies Module", () => {
       new FastifyAdapter()
     );
 
-    contractService = moduleFixture.get<ContractService>(ContractService);
+    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
     // Turn off logger
     Logger.overrideLogger(false);
@@ -63,7 +63,7 @@ describe("Policies Module", () => {
 
     // Mock TSR contract
     jest
-      .spyOn(contractService, "getContract")
+      .spyOn(ledgerService, "getContract")
       .mockImplementation(async () =>
         Promise.resolve(testEnv.schemasRegistryContract)
       );

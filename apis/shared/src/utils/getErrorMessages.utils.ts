@@ -1,4 +1,6 @@
 import * as ClassValidator from "class-validator";
+import { ProblemDetailsError } from "../errors/ProblemDetailsError";
+import { isEthersError } from "./isEthersError";
 
 export function getErrorMessages(
   errors: ClassValidator.ValidationError[]
@@ -17,6 +19,16 @@ export function getErrorMessages(
       return errorMessages;
     })
     .flat();
+}
+
+export function getErrorMessage(error: unknown) {
+  if (isEthersError(error)) {
+    return error.reason;
+  }
+  if (error instanceof ProblemDetailsError && error.detail) {
+    return error.detail;
+  }
+  return (error as Error).message;
 }
 
 export default getErrorMessages;

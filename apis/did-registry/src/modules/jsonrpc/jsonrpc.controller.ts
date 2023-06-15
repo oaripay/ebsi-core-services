@@ -1,6 +1,6 @@
 import { Controller, Body, Post, HttpCode, UseGuards } from "@nestjs/common";
+import { InvalidRequestJsonRpcError } from "@ebsiint-api/shared";
 import { JsonRpcService } from "./jsonrpc.service";
-import { InvalidRequestJsonRpcError } from "./errors";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import { OAuth2OrSiopJwtAuthGuard } from "../auth/guards";
 import {

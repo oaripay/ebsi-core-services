@@ -13,10 +13,10 @@ import {
   NotFoundError,
   BadRequestError,
   logAxiosError,
+  InvalidRequestJsonRpcError,
 } from "@ebsiint-api/shared";
 import type { FastifyReply } from "fastify";
 import axios, { AxiosError } from "axios";
-import { InvalidRequestJsonRpcError } from "../modules/jsonrpc/errors";
 import { ApiConfig } from "../config/configuration";
 
 function getProblemDetailsError(

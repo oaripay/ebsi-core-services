@@ -7,7 +7,6 @@ import {
   BadRequestError,
   ForbiddenError,
   InternalServerError,
-  hasOwnProperty,
 } from "@ebsiint-api/shared";
 import { BesuResponseObject, BesuServiceResponse } from "./besu.interface";
 import { ApiConfig } from "../../config/configuration";
@@ -43,7 +42,7 @@ function isJsonRpcResponseError(value: unknown): value is JsonRpcResponseError {
   }
 
   // Check error properties (must at least have "body")
-  return hasOwnProperty(value, "body") && typeof value.body === "string";
+  return "body" in value && typeof value.body === "string";
 }
 
 // As returned by Besu

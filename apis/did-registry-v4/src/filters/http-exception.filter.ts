@@ -15,8 +15,8 @@ import {
   InternalServerError,
   NotFoundError,
   BadRequestError,
+  InvalidRequestJsonRpcError,
 } from "@ebsiint-api/shared";
-import { InvalidRequestJsonRpcError } from "../modules/jsonrpc/errors";
 import { ApiConfig } from "../config/configuration";
 
 function getProblemDetailsError(
