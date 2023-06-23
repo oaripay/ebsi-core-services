@@ -480,7 +480,7 @@ paths:
                   value:
                     id: didr_invite_presentation
                     input_descriptors:
-                      - id: didr_write_credential
+                      - id: didr_invite_credential
                         name: Accreditation to write to the DID Registry
                         purpose: >-
                           Please present a valid VerifiableAuthorisationToOnboard issued by Root TAO
@@ -682,8 +682,6 @@ paths:
                     detail: Internal error
 components:
   schemas:
-    access_token:
-      title: Access Token
     access_token_response:
       title: Access Token Response
       type: object
@@ -723,6 +721,29 @@ components:
           format: '^(([A-Za-z0-9\-_])+\.)([A-Za-z0-9\-_]+)(\.([A-Za-z0-9\-_]+)?$'
     id_token:
       title: ID Token
+      type: object
+      properties:
+        nonce:
+          type: string
+          example: d59fcb62-4773-4204-921d-fdb2b8f83dc9
+        sub:
+          type: string
+          example: did:ebsi:zv9SjR4kvy5Pd1VMXg5UecG
+        iss:
+          type: string
+          example: did:ebsi:zv9SjR4kvy5Pd1VMXg5UecG
+        aud:
+          type: string
+          example: https://conformance-test.ebsi.eu/conformance/v3/auth-mock
+        iat:
+          type: integer
+          example: 1681919060
+        exp:
+          type: integer
+          example: 1681919360
+        jti:
+          type: string
+          example: 55ea7b2b-845d-4d0e-a59f-83b52109d0f4
     jwk:
       title: JSON Web Key
       type: object
