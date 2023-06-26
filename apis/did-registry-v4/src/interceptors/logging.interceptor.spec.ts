@@ -3,6 +3,7 @@ import {
   describe,
   beforeAll,
   afterEach,
+  afterAll,
   it,
   expect,
 } from "@jest/globals";
@@ -41,6 +42,11 @@ describe("Logging interceptor", () => {
   };
 
   beforeAll(async () => {
+    // Disable external requests
+    nock.disableNetConnect();
+    // Allow localhost connections so we can test local routes and mock servers.
+    nock.enableNetConnect("127.0.0.1");
+
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -54,6 +60,20 @@ describe("Logging interceptor", () => {
 
     Logger.overrideLogger(mockedLogger);
 
+    // Mock dependencies
+    const ledgerApiUrl = new URL(
+      `${configService.get<string>("ledgerApiUrl")}/health`
+    );
+    const authorisationApiV2Url = new URL(
+      `${configService.get<string>("authorisationApiV2Url")}/health`
+    );
+
+    nock(ledgerApiUrl.origin).get(ledgerApiUrl.pathname).reply(200).persist();
+    nock(authorisationApiV2Url.origin)
+      .get(authorisationApiV2Url.pathname)
+      .reply(200)
+      .persist();
+
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
 
@@ -64,9 +84,19 @@ describe("Logging interceptor", () => {
     jest.clearAllMocks();
   });
 
+  afterAll(() => {
+    nock.restore();
+  });
+
   describe("GET /health", () => {
     it("should NOT log the request and response", async () => {
       expect.assertions(1);
+
+      jest
+        .spyOn(httpService, "request")
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        .mockImplementation(() => of({}));
 
       await request(app.getHttpServer()).get(`/health`);
 

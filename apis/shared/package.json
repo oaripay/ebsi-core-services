@@ -43,7 +43,7 @@
     "@jest/globals": "^29.5.0",
     "@nestjs/cli": "^9.4.2",
     "@nestjs/schematics": "^9.0.4",
-    "@tsconfig/node16": "^1.0.3",
+    "@tsconfig/node16": "^1.0.4",
     "@types/elliptic": "^6.4.14",
     "@types/lodash.clonedeep": "^4.5.7",
     "@types/node": "^16.18.11",

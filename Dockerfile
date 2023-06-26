@@ -1,16 +1,11 @@
-FROM node:16.20.0-alpine3.17@sha256:f1657204d3463bce763cefa5b25e48c28af6fe0cdb0f68b354f0f8225ef61be7
+FROM node:16.20.1-alpine3.18@sha256:6c381d5dc2a11dcdb693f0301e8587e43f440c90cdb8933eaaaabb905d44cdb9
 
 WORKDIR /app
 
 # Install build dependencies
-# Note: after updating the base image, make sure to update the packages versions
-# See https://pkgs.alpinelinux.org/packages?name=libssl3&branch=v3.17&repo=&arch=&maintainer=
 RUN apk update && \
   apk upgrade && \
-  apk add --no-cache \
-  build-base=0.5-r3 \
-  git=2.38.5-r0 \
-  py3-pip=22.3.1-r1
+  apk add --no-cache build-base git py3-pip
 
 # Copy root package.json + yarn.lock
 COPY yarn.lock package.json ./
