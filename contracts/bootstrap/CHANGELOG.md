@@ -1,5 +1,11 @@
 # @ebsiint-sc/bootstrap
 
+## 1.0.1-rc.3
+
+### Patch Changes
+
+- [f520c43a](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/f520c43a): Bump dependencies and update Node.js to v16.20.1
+
 ## 1.0.1-rc.2
 
 ### Patch Changes

@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.0.0-rc.6
+
+### Patch Changes
+
+- [f0d3dde3](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/f0d3dde3): Improve error handling
+- [f520c43a](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/f520c43a): Bump dependencies and update Node.js to v16.20.1
+- Updated dependencies [f0d3dde3](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/f0d3dde3)
+- Updated dependencies [38b9d313](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/38b9d313)
+- Updated dependencies [f520c43a](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/f520c43a)
+- Updated dependencies [07e3176d](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/07e3176d)
+  - @ebsiint-api/shared@1.1.0-rc.3
+
 ## 3.0.0-rc.5
 
 ### Patch Changes

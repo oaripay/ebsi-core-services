@@ -1,5 +1,14 @@
 # @ebsiint-sc/did-registry-v4
 
+## 1.1.0-rc.2
+
+### Patch Changes
+
+- [f520c43a](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/f520c43a): Bump dependencies and update Node.js to v16.20.1
+- Updated dependencies [f520c43a](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/f520c43a)
+  - @ebsiint-sc/trusted-policies-registry@1.0.1-rc.3
+  - @ebsiint-sc/bootstrap@1.0.1-rc.3
+
 ## 1.1.0-rc.1
 
 ### Patch Changes
