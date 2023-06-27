@@ -13,7 +13,7 @@ export interface StatusList2021Credential extends EbsiVerifiableAttestation {
     "https://w3id.org/vc/status-list/2021/v1",
     ...string[]
   ];
-  type: ["VerifiableCredential", "StatusList2021Credential", ...string[]];
+  type: ["VerifiableCredential", ...string[]];
   credentialSubject: {
     id: string;
     type: "StatusList2021";
@@ -32,10 +32,14 @@ export const statusList2021CredentialSchema = Joi.object({
     .required(),
   type: Joi.array()
     .ordered(
-      Joi.string().valid("VerifiableCredential").required(),
-      Joi.string().valid("StatusList2021Credential").required()
+      // First item must be "VerifiableCredential"
+      Joi.string().valid("VerifiableCredential").required()
     )
-    .items(Joi.string())
+    .items(
+      // "StatusList2021Credential" must be present
+      Joi.string().valid("StatusList2021Credential").required(),
+      Joi.string()
+    )
     .required(),
   credentialSubject: Joi.object({
     id: Joi.string().uri().required(),

@@ -150,7 +150,11 @@ export function createIssuer(
       "https://w3id.org/vc/status-list/2021/v1",
     ],
     id: `${proxyObject.prefix}${proxyObject.testSuffix}`,
-    type: ["VerifiableCredential", "StatusList2021Credential"],
+    type: [
+      "VerifiableCredential",
+      "VerifiableAttestation",
+      "StatusList2021Credential",
+    ],
     issuer: issuerDid,
     issued: "2021-04-05T14:27:40Z",
     issuanceDate: "2021-04-05T14:27:40Z",
