@@ -25,7 +25,7 @@
   "dependencies": {
     "@cef-ebsi/oauth2-auth": "^2.3.0",
     "@cef-ebsi/siop-auth": "^3.1.0",
-    "@cef-ebsi/verifiable-credential": "^4.4.1",
+    "@cef-ebsi/verifiable-credential": "^4.4.2",
     "@ebsiint-api/shared": "^1.1.0-rc.3",
     "@ebsiint-sc/trusted-issuers-registry": "^4.0.0-rc.3",
     "@fastify/helmet": "^10.1.1",

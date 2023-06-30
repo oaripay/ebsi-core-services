@@ -23,8 +23,8 @@
     "test:ci": "yarn test:unit --coverage --reporters=default --reporters=jest-sonar"
   },
   "dependencies": {
-    "@cef-ebsi/verifiable-credential": "^4.4.1",
-    "@cef-ebsi/verifiable-presentation": "^5.3.1",
+    "@cef-ebsi/verifiable-credential": "^4.4.2",
+    "@cef-ebsi/verifiable-presentation": "^5.3.2",
     "@cef-ebsi/wallet-lib": "^4.1.0",
     "@ebsiint-api/shared": "^1.1.0-rc.3",
     "@fastify/formbody": "^7.4.0",
