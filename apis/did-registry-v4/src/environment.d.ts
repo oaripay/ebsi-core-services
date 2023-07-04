@@ -11,7 +11,7 @@ declare global {
       DOCKER_TAG?: string;
       LEDGER_API_NAME?: string;
       CONTRACT_ADDR: string;
-      CONTRACT_ADDR_V3: string;
+      CONTRACT_V1_ADDR: string;
       DOMAIN: string;
       LOCAL_ORIGIN?: string;
       REQUEST_TIMEOUT?: string;

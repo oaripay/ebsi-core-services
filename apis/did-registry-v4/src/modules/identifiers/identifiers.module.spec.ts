@@ -15,7 +15,7 @@ import {
 import type { FastifyInstance } from "fastify";
 import { ethers } from "ethers";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { DidRegistry__factory } from "@ebsiint-sc/did-registry-v4";
+import { DidRegistry__factory } from "@ebsiint-sc/did-registry-v2";
 import { encode } from "@ebsiint-api/shared";
 import { IdentifiersModule } from "./identifiers.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
@@ -74,9 +74,9 @@ describe("Identifiers Module", () => {
       .spyOn(ledgerService, "getContract")
       .mockImplementation(async () => Promise.resolve(didRegistryContract));
     jest
-      .spyOn(ledgerService, "getContractV3")
+      .spyOn(ledgerService, "getContractV1")
       .mockImplementation(async () =>
-        Promise.resolve(testEnv.setupV3.didRegistryV3Contract)
+        Promise.resolve(testEnv.setupV1.didRegistryV1Contract)
       );
   });
 
@@ -395,8 +395,8 @@ describe("Identifiers Module", () => {
     it("should return a DID document from V3 if it doesn't exist on V4", async () => {
       expect.assertions(3);
 
-      const [didDocumentV3] = testEnv.setupV3.didDocuments;
-      const { did, didDocument } = didDocumentV3;
+      const [didDocumentV1] = testEnv.setupV1.didDocuments;
+      const { did, didDocument } = didDocumentV1;
 
       const response = await request(server).get(`/identifiers/${did}`);
 
@@ -771,8 +771,8 @@ describe("Identifiers Module", () => {
     it("should perform the action checkController for a DID registered in DID Registry V3", async () => {
       expect.assertions(2);
 
-      const [didDocumentV3] = testEnv.setupV3.didDocuments;
-      const { did, controller } = didDocumentV3;
+      const [didDocumentV1] = testEnv.setupV1.didDocuments;
+      const { did, controller } = didDocumentV1;
 
       const response = await request(server)
         .post(`/identifiers/${did}/actions`)

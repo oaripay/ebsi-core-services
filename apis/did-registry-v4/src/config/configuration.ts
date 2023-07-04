@@ -10,7 +10,7 @@ export interface ApiConfig {
   authorisationApiV2Url: string;
   authorisationApiV3Url: string;
   contractAddr: string;
-  contractAddrV3: string;
+  contractAddrV1: string;
   domain: string;
   localOrigin: string;
   logLevel: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
@@ -50,7 +50,7 @@ export const loadConfig = (): ApiConfig => {
     authorisationApiV2Url: DOMAIN + AUTH_API_V2_PATH,
     authorisationApiV3Url: DOMAIN + AUTH_API_V3_PATH,
     contractAddr: process.env.CONTRACT_ADDR,
-    contractAddrV3: process.env.CONTRACT_ADDR_V3,
+    contractAddrV1: process.env.CONTRACT_V1_ADDR,
     domain: DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
     logLevel: process.env.LOG_LEVEL || "warn",
@@ -101,7 +101,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     ),
     DOCKER_TAG: Joi.string(),
     CONTRACT_ADDR: Joi.string().required(),
-    CONTRACT_ADDR_V3: Joi.string().required(),
+    CONTRACT_V1_ADDR: Joi.string().required(),
     // DID Registry specific variables
     DOMAIN: Joi.string().uri().required(),
     LOCAL_ORIGIN: Joi.string().uri(),

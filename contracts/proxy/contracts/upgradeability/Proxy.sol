@@ -76,5 +76,7 @@ abstract contract Proxy {
         _delegate(_implementation());
     }
 
-    receive() external payable {}
+    receive() external payable {
+        _fallback();
+    }
 }

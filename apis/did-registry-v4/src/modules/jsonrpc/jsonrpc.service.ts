@@ -78,7 +78,7 @@ export class JsonRpcService {
    * DID Registry V4
    */
   async validateControllerOnV3(did: string, controller: string): Promise<void> {
-    const contract = await this.ledgerService.getContractV3();
+    const contract = await this.ledgerService.getContractV1();
     const didHex = `0x${Buffer.from(did).toString("hex")}`;
     try {
       await contract.getLatestDidDocumentVersion(didHex);

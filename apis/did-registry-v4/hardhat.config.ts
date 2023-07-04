@@ -4,7 +4,7 @@ import "@nomiclabs/hardhat-ethers";
 import type { HardhatUserConfig } from "hardhat/config";
 
 const didrScPath = path.resolve(
-  require.resolve("@ebsiint-sc/did-registry-v4"),
+  require.resolve("@ebsiint-sc/did-registry-v2"),
   "../.." // relative to "dist/index.js"
 );
 

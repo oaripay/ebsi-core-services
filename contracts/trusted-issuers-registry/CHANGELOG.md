@@ -1,6 +1,6 @@
 # @ebsiint-sc/trusted-issuers-registry
 
-## 4.0.0-rc.3
+## 2.0.0-rc.3
 
 ### Patch Changes
 
@@ -10,7 +10,7 @@
   - @ebsiint-sc/did-registry@1.1.0-rc.3
   - @ebsiint-sc/bootstrap@1.0.1-rc.3
 
-## 4.0.0-rc.2
+## 2.0.0-rc.2
 
 ### Minor Changes
 
@@ -25,7 +25,7 @@
   - @ebsiint-sc/trusted-policies-registry@1.0.1-rc.2
   - @ebsiint-sc/bootstrap@1.0.1-rc.2
 
-## 4.0.0-rc.1
+## 2.0.0-rc.1
 
 ### Major Changes
 
@@ -49,7 +49,7 @@
   - @ebsiint-sc/did-registry@1.1.0-rc.1
   - @ebsiint-sc/bootstrap@1.0.1-rc.1
 
-## 3.0.1-rc.0
+## 1.0.1-rc.0
 
 ### Patch Changes
 

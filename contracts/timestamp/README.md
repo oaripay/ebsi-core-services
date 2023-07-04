@@ -1,4 +1,4 @@
-# Notary - smart contract
+# Timestamp Smart Contract v1
 
 Smart contract to timestamp a hash in the blockchain.
 

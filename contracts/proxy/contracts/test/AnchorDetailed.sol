@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: EUPL V1.2
 pragma solidity 0.8.12;
 
-import "@ebsiint-sc/bootstrap/contracts/utils/upgradeability/Initializable.sol";
+import "@ebsiint-sc/bootstrap-v2/contracts/utils/upgradeability/Initializable.sol";
 
 /**
  * @title example of stored values on a SC with an initialization.

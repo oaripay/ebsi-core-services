@@ -23,7 +23,7 @@ abstract contract InitializableUpgradeabilityProxy is BaseUpgradeabilityProxy {
     ) public payable virtual {
         require(_logic != address(0), "_logic address can't be zero");
         require(_implementation() == address(0), "implementation must be zero");
-        assert(
+        require(
             DIAMOND_STORAGE_POSITION ==
                 keccak256("diamond.standard.diamond.storage.proxy")
         );

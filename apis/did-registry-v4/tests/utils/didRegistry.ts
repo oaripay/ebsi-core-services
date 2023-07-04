@@ -1,12 +1,12 @@
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
-/// <reference path="../../../../contracts/did-registry-v4/src/types/hardhat.d.ts" />
+/// <reference path="../../../../contracts/did-registry-v2/src/types/hardhat.d.ts" />
 import hre from "hardhat";
 import { FactoryOptions } from "hardhat/types";
 import "@nomiclabs/hardhat-ethers";
 import { Contract, ethers } from "ethers";
-import { DidRegistry, PolicyRegistryMock } from "@ebsiint-sc/did-registry-v4";
+import { DidRegistry, PolicyRegistryMock } from "@ebsiint-sc/did-registry-v2";
 import { createUser, UserDetails } from "./data";
-import { setupTestEnv as setupTestEnvV3 } from "./didRegistryV3";
+import { setupTestEnv as setupTestEnvV1 } from "./didRegistryV1";
 
 const deployContract = async (
   name: string,
@@ -129,16 +129,16 @@ export async function setupTestEnv({
   didRegistryContract: DidRegistry;
   policyContractMock: Contract;
   users: UserDetails[];
-  setupV3: Awaited<ReturnType<typeof setupTestEnvV3>>;
+  setupV1: Awaited<ReturnType<typeof setupTestEnvV1>>;
 }> {
   const ethersProvider = hre.ethers.provider;
   const users: UserDetails[] = [];
 
-  const setupV3 = await setupTestEnvV3({ didDocumentsTotal });
+  const setupV1 = await setupTestEnvV1({ didDocumentsTotal });
 
   // Deploy contract
   const { didRegistryContract, policyContractMock } =
-    await deployDidRegistryContract(setupV3.didRegistryV3Contract.address);
+    await deployDidRegistryContract(setupV1.didRegistryV1Contract.address);
 
   users.push(
     ...(await Promise.all(
@@ -154,6 +154,6 @@ export async function setupTestEnv({
     didRegistryContract,
     policyContractMock,
     users,
-    setupV3,
+    setupV1,
   };
 }

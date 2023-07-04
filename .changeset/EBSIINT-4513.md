@@ -1,6 +1,6 @@
 ---
 "@ebsiint-api/did-registry-api-v4": major
-"@ebsiint-sc/did-registry-v4": major
+"@ebsiint-sc/did-registry-v2": major
 ---
 
 Major update in DIDR API and SC: This new version 4 handles the consistency

@@ -9,5 +9,5 @@ import "@total-typescript/ts-reset/dist/set-has";
 // import "@total-typescript/ts-reset/dist/array-includes";
 //
 // Errors:
-// - ../../contracts/did-registry-v4/src/types/common.ts:7:18 - error TS2430: Interface 'TypedEvent<TArgsArray, TArgsObject>' incorrectly extends interface 'Event'.
+// - ../../contracts/did-registry-v2/src/types/common.ts:7:18 - error TS2430: Interface 'TypedEvent<TArgsArray, TArgsObject>' incorrectly extends interface 'Event'.
 // - ../../contracts/did-registry/src/types/common.ts:7:18 - error TS2430: Interface 'TypedEvent<TArgsArray, TArgsObject>' incorrectly extends interface 'Event'.

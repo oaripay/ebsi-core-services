@@ -1,6 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
 import { ethers } from "ethers";
-import { DidRegistry } from "@ebsiint-sc/did-registry-v4";
+import { DidRegistry } from "@ebsiint-sc/did-registry-v2";
 import { formatIdentifiers } from "./identifiers.formatter";
 
 describe("formatIdentifiers", () => {

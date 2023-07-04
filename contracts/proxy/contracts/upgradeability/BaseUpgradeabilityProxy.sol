@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: EUPL V1.2
 pragma solidity 0.8.12;
 
-import "@ebsiint-sc/bootstrap/contracts/utils/Address.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 
 import "./Proxy.sol";
 

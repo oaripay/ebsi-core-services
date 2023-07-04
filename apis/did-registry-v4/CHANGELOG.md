@@ -15,7 +15,7 @@
 - Updated dependencies [f520c43a](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/f520c43a)
 - Updated dependencies [07e3176d](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/07e3176d)
   - @ebsiint-api/shared@1.1.0-rc.3
-  - @ebsiint-sc/did-registry-v4@1.1.0-rc.2
+  - @ebsiint-sc/did-registry-v2@1.1.0-rc.2
   - @ebsiint-sc/did-registry@1.1.0-rc.3
 
 ## 4.0.0-rc.2
@@ -41,7 +41,7 @@
 - Updated dependencies [1fb98741](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/1fb98741)
 - Updated dependencies [8a245129](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/8a245129)
   - @ebsiint-api/shared@1.1.0-rc.2
-  - @ebsiint-sc/did-registry-v4@1.1.0-rc.1
+  - @ebsiint-sc/did-registry-v2@1.1.0-rc.1
   - @ebsiint-sc/did-registry@1.1.0-rc.2
 
 ## 4.0.0-rc.1
@@ -62,6 +62,6 @@
 - Updated dependencies [67281f59](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/67281f59)
 - Updated dependencies [4a7ea0a5](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/4a7ea0a5)
 - Updated dependencies [78ee438b](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/78ee438b)
-  - @ebsiint-sc/did-registry-v4@1.1.0-rc.0
+  - @ebsiint-sc/did-registry-v2@1.1.0-rc.0
   - @ebsiint-sc/did-registry@1.1.0-rc.1
   - @ebsiint-api/shared@1.1.0-rc.1

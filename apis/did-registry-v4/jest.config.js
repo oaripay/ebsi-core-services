@@ -19,7 +19,7 @@ module.exports = {
   transformIgnorePatterns: [
     "/node_modules/",
     "/apis/shared/dist/",
-    "/contracts/did-registry-v4/dist/",
+    "/contracts/did-registry-v2/dist/",
     "/contracts/did-registry/dist/",
   ],
   moduleFileExtensions: ["js", "json", "ts"],

@@ -19,14 +19,14 @@ COPY --from=builder /app/apis/did-registry-v4/api ./apis/did-registry-v4/api
 COPY --from=builder /app/contracts/bootstrap/package.json ./contracts/bootstrap/package.json
 COPY --from=builder /app/contracts/bootstrap/dist ./contracts/bootstrap/dist
 COPY --from=builder /app/contracts/bootstrap/artifacts ./contracts/bootstrap/artifacts
-# Copy DID Registry SC v3
+# Copy DID Registry SC v1
 COPY --from=builder /app/contracts/did-registry/package.json ./contracts/did-registry/package.json
 COPY --from=builder /app/contracts/did-registry/dist ./contracts/did-registry/dist
 COPY --from=builder /app/contracts/did-registry/artifacts ./contracts/did-registry/artifacts
-# Copy DID Registry SC v4
-COPY --from=builder /app/contracts/did-registry-v4/package.json ./contracts/did-registry-v4/package.json
-COPY --from=builder /app/contracts/did-registry-v4/dist ./contracts/did-registry-v4/dist
-COPY --from=builder /app/contracts/did-registry-v4/artifacts ./contracts/did-registry-v4/artifacts
+# Copy DID Registry SC v2
+COPY --from=builder /app/contracts/did-registry-v2/package.json ./contracts/did-registry-v2/package.json
+COPY --from=builder /app/contracts/did-registry-v2/dist ./contracts/did-registry-v2/dist
+COPY --from=builder /app/contracts/did-registry-v2/artifacts ./contracts/did-registry-v2/artifacts
 # Copy TPR SC
 COPY --from=builder /app/contracts/trusted-policies-registry/package.json ./contracts/trusted-policies-registry/package.json
 COPY --from=builder /app/contracts/trusted-policies-registry/dist ./contracts/trusted-policies-registry/dist

@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: EUPL V1.2
 pragma solidity 0.8.12;
 
-import "@ebsiint-sc/bootstrap/contracts/utils/upgradeability/Initializable.sol";
-import "@ebsiint-sc/bootstrap/contracts/utils/pausable/Pausable.sol";
+import "@ebsiint-sc/bootstrap-v2/contracts/utils/upgradeability/Initializable.sol";
 
 import "./TirDetailed.sol";
 
@@ -10,18 +9,11 @@ import "./TirDetailed.sol";
  * @title example of stored values on a SC with pause functionality.
  *
  */
-contract Tir is Initializable, TirDetailed, Pausable {
+contract Tir is Initializable, TirDetailed {
     function initialize(
         uint256 version,
-        address[] calldata pausers
+        address[] memory pausers
     ) public initializer {
         TirDetailed.initialize(version);
-
-        Pausable.initialize(address(this));
-        _removePauser(address(this));
-
-        for (uint256 i = 0; i < pausers.length; ++i) {
-            _addPauser(pausers[i]);
-        }
     }
 }

@@ -18,7 +18,7 @@ abstract contract UpgradeabilityProxy is BaseUpgradeabilityProxy {
      * This parameter is optional, if no data is given the initialization call to proxied contract will be skipped.
      */
     constructor(address _logic, bytes memory _data) payable {
-        assert(
+        require(
             DIAMOND_STORAGE_POSITION ==
                 keccak256("diamond.standard.diamond.storage.proxy")
         );

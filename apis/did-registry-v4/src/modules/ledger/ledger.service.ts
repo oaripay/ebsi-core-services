@@ -7,10 +7,10 @@ import { ethers } from "ethers";
 import axios from "axios";
 import type { AxiosResponse } from "axios";
 import { Mutex } from "async-mutex";
-import { DidRegistry, DidRegistry__factory } from "@ebsiint-sc/did-registry-v4";
+import { DidRegistry, DidRegistry__factory } from "@ebsiint-sc/did-registry-v2";
 import {
-  DidRegistry as DidRegistryV3,
-  DidRegistry__factory as DidRegistryV3__factory,
+  DidRegistry as DidRegistryV1,
+  DidRegistry__factory as DidRegistryV1__factory,
 } from "@ebsiint-sc/did-registry";
 import { logAxiosError, InternalServerError } from "@ebsiint-api/shared";
 import { ApiConfig } from "../../config/configuration";
@@ -30,11 +30,11 @@ export class LedgerService {
 
   private publicMethodsDidRegistryContract?: DidRegistry;
 
-  private publicMethodsDidRegistryV3Contract?: DidRegistryV3;
+  private publicMethodsDidRegistryV1Contract?: DidRegistryV1;
 
   private didRegistryAddress: string;
 
-  private didRegistryV3Address: string;
+  private didRegistryV1Address: string;
 
   private accessTokenExp?: number;
 
@@ -56,8 +56,8 @@ export class LedgerService {
 
   constructor(private configService: ConfigService<ApiConfig, true>) {
     this.didRegistryAddress = this.configService.get<string>("contractAddr");
-    this.didRegistryV3Address =
-      this.configService.get<string>("contractAddrV3");
+    this.didRegistryV1Address =
+      this.configService.get<string>("contractAddrV1");
     this.authorisationApiUrl = this.configService.get<string>(
       "authorisationApiV2Url"
     );
@@ -239,19 +239,19 @@ export class LedgerService {
     return this.publicMethodsDidRegistryContract as unknown as DidRegistry;
   }
 
-  private async getPublicMethodsDidRegistryV3Contract() {
-    if (this.publicMethodsDidRegistryV3Contract) {
-      return this.publicMethodsDidRegistryV3Contract;
+  private async getPublicMethodsDidRegistryV1Contract() {
+    if (this.publicMethodsDidRegistryV1Contract) {
+      return this.publicMethodsDidRegistryV1Contract;
     }
 
     const provider = await this.connectProvider();
 
-    this.publicMethodsDidRegistryV3Contract = DidRegistryV3__factory.connect(
-      this.didRegistryV3Address,
+    this.publicMethodsDidRegistryV1Contract = DidRegistryV1__factory.connect(
+      this.didRegistryV1Address,
       provider
     );
 
-    return this.publicMethodsDidRegistryV3Contract;
+    return this.publicMethodsDidRegistryV1Contract;
   }
 
   async getContract({ protectedMethod = false } = {}): Promise<DidRegistry> {
@@ -263,8 +263,8 @@ export class LedgerService {
     return this.getPublicMethodsDidRegistryContract();
   }
 
-  async getContractV3(): Promise<DidRegistryV3> {
-    return this.getPublicMethodsDidRegistryV3Contract();
+  async getContractV1(): Promise<DidRegistryV1> {
+    return this.getPublicMethodsDidRegistryV1Contract();
   }
 
   getContractAddress() {

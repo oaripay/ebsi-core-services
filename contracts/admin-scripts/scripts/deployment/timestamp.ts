@@ -28,7 +28,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     log: true,
   });
   const stringManip = await deployments.deploy("StringManip", {
-    contract: "contracts/bootstrap/utils/StringManip.sol:StringManip",
+    contract: "contracts/bootstrap-v2/utils/StringManip.sol:StringManip",
     from: deployer,
     log: true,
   });

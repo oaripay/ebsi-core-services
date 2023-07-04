@@ -1,5 +1,5 @@
-![Logo of the project](https://ec.europa.eu/digital-building-blocks/wikis/images/logo/default-space-logo.svg)
+# Trusted Issuers Registry Smart Contract v2
 
-# Trusted Issuers Registry Smart Contract
+![Logo of the project](https://ec.europa.eu/digital-building-blocks/wikis/images/logo/default-space-logo.svg)
 
 > Smart Contract to store the trusted Issuers

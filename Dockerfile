@@ -27,13 +27,20 @@ COPY ./apis/trusted-issuers-registry-v4/package.json ./apis/trusted-issuers-regi
 COPY ./apis/trusted-policies-registry/package.json ./apis/trusted-policies-registry/
 COPY ./apis/trusted-schemas-registry/package.json ./apis/trusted-schemas-registry/
 COPY ./contracts/bootstrap/package.json ./contracts/bootstrap/
+COPY ./contracts/bootstrap-v2/package.json ./contracts/bootstrap-v2/
 COPY ./contracts/did-registry/package.json ./contracts/did-registry/
-COPY ./contracts/did-registry-v4/package.json ./contracts/did-registry-v4/
+COPY ./contracts/did-registry-v2/package.json ./contracts/did-registry-v2/
+COPY ./contracts/did-registry-v3/package.json ./contracts/did-registry-v3/
 COPY ./contracts/timestamp/package.json ./contracts/timestamp/
+COPY ./contracts/timestamp-v2/package.json ./contracts/timestamp-v2/
 COPY ./contracts/trusted-apps-registry/package.json ./contracts/trusted-apps-registry/
+COPY ./contracts/trusted-apps-registry-v3/package.json ./contracts/trusted-apps-registry-v3/
 COPY ./contracts/trusted-issuers-registry/package.json ./contracts/trusted-issuers-registry/
+COPY ./contracts/trusted-issuers-registry-v3/package.json ./contracts/trusted-issuers-registry-v3/
 COPY ./contracts/trusted-policies-registry/package.json ./contracts/trusted-policies-registry/
+COPY ./contracts/trusted-policies-registry-v2/package.json ./contracts/trusted-policies-registry-v2/
 COPY ./contracts/trusted-schemas-registry/package.json ./contracts/trusted-schemas-registry/
+COPY ./contracts/trusted-schemas-registry-v2/package.json ./contracts/trusted-schemas-registry-v2/
 
 # Copy patches
 COPY ./patches ./patches

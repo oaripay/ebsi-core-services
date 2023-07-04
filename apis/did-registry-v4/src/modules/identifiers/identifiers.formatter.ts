@@ -1,4 +1,4 @@
-import { DidRegistry } from "@ebsiint-sc/did-registry-v4";
+import { DidRegistry } from "@ebsiint-sc/did-registry-v2";
 import { PaginatedList, paginate } from "@ebsiint-api/shared";
 import { DidLink } from "./identifiers.interface";
 

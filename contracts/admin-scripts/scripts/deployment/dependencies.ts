@@ -27,8 +27,7 @@ export const dependencies: Dependencies = {
   },
   6179: {
     tprAddress: "0x3591e30eaea83343ed69A077D059821c5099154A",
-    didAddress: "0x755DEd5d5e81282F0BE85EDaE8e6852814bAC3fa", // did V4
-    didV3Address: "0xD55bDf1407E57D55C92BdB67088ECdA554b76B45", // did V3
+    didAddress: "0xD55bDf1407E57D55C92BdB67088ECdA554b76B45",
   },
 };
 

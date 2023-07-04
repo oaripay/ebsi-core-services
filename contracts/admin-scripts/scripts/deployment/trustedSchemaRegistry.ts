@@ -24,7 +24,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   console.log(`Trusted Policy Registry Address is ${tprAddress}`);
   const pagination = await deployments.deploy("Pagination", {
     ...opts,
-    contract: "contracts/bootstrap/utils/Pagination.sol/Pagination",
+    contract: "contracts/bootstrap-v2/utils/Pagination.sol/Pagination",
   });
 
   const schemaLib = await deployments.deploy("SchemaLib", {

@@ -33,7 +33,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
   const pagination = await deployments.deploy("Pagination", {
     ...opts,
-    contract: "contracts/bootstrap/utils/Pagination.sol/Pagination",
+    contract: "contracts/bootstrap-v2/utils/Pagination.sol/Pagination",
   });
   const optsPagination = {
     from: deployer,
@@ -46,11 +46,6 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const appLib = await deployments.deploy("AppLib", optsPagination);
   const authLib = await deployments.deploy("AuthLib", opts);
   const revocationLib = await deployments.deploy("RevocationLib", opts);
-  const TarPolicyLib = await deployments.deploy("TarPolicyLib", {
-    ...optsPagination,
-    contract:
-      "contracts/trusted-apps-registry/tar/TarPolicyLib.sol:TarPolicyLib",
-  });
 
   const ts = await deployments.deploy("Tar", {
     from: deployer,
@@ -58,7 +53,6 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     libraries: {
       AppLib: appLib.address,
       AuthLib: authLib.address,
-      TarPolicyLib: TarPolicyLib.address,
       RevocationLib: revocationLib.address,
     },
     log: true,

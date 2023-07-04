@@ -1,12 +1,7 @@
-node_modules
-coverage
 artifacts
 cache
-src
-build
-*.log
-*log
-all.sol
-.secret*
-.idea
+coverage
 coverage.json
+dist
+node_modules
+src

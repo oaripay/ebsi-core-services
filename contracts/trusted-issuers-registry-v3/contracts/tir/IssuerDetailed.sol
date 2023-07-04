@@ -1,0 +1,485 @@
+// SPDX-License-Identifier: EUPL V1.2
+pragma solidity 0.8.12;
+
+// solhint-disable-next-line max-line-length
+import "./IssuerStorage.sol";
+import "@ebsiint-sc/bootstrap-v2/contracts/utils/Pagination.sol";
+import "@ebsiint-sc/did-registry/contracts/did-registry/interfaces/IDidRegistry.sol";
+import "@ebsiint-sc/trusted-policies-registry/contracts/trusted-policies-registry/interfaces/IPolicyRegistry.sol";
+
+// solhint-disable-next-line indent
+abstract contract IssuerDetailed is IssuerStorage {
+    using Pagination for bytes32[];
+    using Pagination for string[];
+
+    event AddAtrributeRevision(
+        string did,
+        bytes32 indexed attributeId,
+        bytes32 indexed revisionId,
+        IssuerType issuerType
+    );
+
+    event AddIssuerProxy(string did, bytes32 indexed proxyId);
+    event UpdateIssuerProxy(string did, bytes32 indexed proxyId);
+
+    // external functions
+
+    function setAttributeMetadata(
+        string calldata did,
+        bytes32 revisionId,
+        IssuerType issuerType,
+        string calldata taoDid,
+        bytes32 attributeIdTao
+    ) external {
+        require(issuerType != IssuerType.Undefined, "invalid issuerType");
+        Issuers storage ds = issuerStorage();
+
+        Entity storage iss = ds.issuerStore[did];
+        AttributeMetadata storage attrMetadata = ds.attributeMetadataStore[
+            revisionId
+        ];
+
+        // insert the issuer if it doesn't exist
+        if (iss.attributes.length == 0) {
+            ds.didStore.push(did);
+        }
+
+        bytes32 attributeId;
+        bytes32 lastRevisionId;
+        bytes32 newRevisionId;
+        if (compareStrings(attrMetadata.did, "")) {
+            // new attribute
+            attributeId = revisionId;
+            iss.attributes.push(attributeId);
+            lastRevisionId = revisionId;
+            newRevisionId = revisionId;
+        } else {
+            // existing attribute
+            attributeId = attrMetadata.attributeId;
+            require(
+                compareStrings(attrMetadata.did, did),
+                "attribute already stored"
+            );
+            lastRevisionId = getLatestRevisionAttributeId(did, revisionId);
+            bytes memory seedAttributeData = abi.encode(
+                block.timestamp,
+                did,
+                lastRevisionId
+            );
+            newRevisionId = sha256(seedAttributeData);
+        }
+
+        string memory _rootTaoDid;
+        bytes32 lastRevisionIdTao = bytes32(0);
+        if (issuerType == IssuerType.RootTAO) {
+            taoDid = did;
+            _rootTaoDid = did;
+        } else {
+            lastRevisionIdTao = getLatestRevisionAttributeId(
+                taoDid,
+                attributeIdTao
+            );
+            _rootTaoDid = ds
+                .attributeMetadataStore[lastRevisionIdTao]
+                .rootTaoDid;
+        }
+
+        checkEligibility(
+            did,
+            lastRevisionId,
+            issuerType,
+            taoDid,
+            lastRevisionIdTao,
+            "TIR:setAttributeMetadata"
+        );
+
+        addRevision(
+            did,
+            attributeId,
+            newRevisionId,
+            issuerType,
+            taoDid,
+            _rootTaoDid,
+            ""
+        );
+    }
+
+    function setAttributeData(
+        string calldata did,
+        bytes32 attributeId,
+        bytes calldata attributeData
+    ) external {
+        require(
+            checkController(bytes(did), msg.sender),
+            "Not the issuer itself"
+        );
+        Issuers storage ds = issuerStorage();
+
+        bytes32 lastRevisionId = getLatestRevisionAttributeId(did, attributeId);
+        AttributeMetadata memory lastAttrMetadata = ds.attributeMetadataStore[
+            lastRevisionId
+        ];
+
+        bytes32 newRevisionId = sha256(attributeData);
+        string memory taoDid = lastAttrMetadata.taoDid;
+        string memory rootTaoDid = lastAttrMetadata.rootTaoDid;
+
+        addRevision(
+            did,
+            lastAttrMetadata.attributeId,
+            newRevisionId,
+            lastAttrMetadata.issuerType,
+            taoDid,
+            rootTaoDid,
+            attributeData
+        );
+    }
+
+    /**
+     * @dev Add a proxy record to an issuer.
+     */
+    function addIssuerProxy(
+        string calldata did,
+        string calldata proxyData
+    ) external {
+        Issuers storage ds = issuerStorage();
+
+        require(
+            getTrustedPolicyRegistry().checkPolicy(
+                "TIR:updateIssuer",
+                msg.sender
+            ) || checkController(bytes(did), msg.sender),
+            string(
+                abi.encodePacked(
+                    "Policy error: sender is not controller of the did ",
+                    did,
+                    " and it doesn't have the attribute TIR:updateIssuer"
+                )
+            )
+        );
+
+        bytes32 proxyId = sha256(bytes(proxyData));
+        Entity storage iss = ds.issuerStore[did];
+
+        require(
+            bytes(iss.proxiesStore[proxyId]).length == 0,
+            "proxy already stored"
+        );
+        iss.proxies.push(proxyId);
+        iss.proxiesStore[proxyId] = proxyData;
+        emit AddIssuerProxy(did, proxyId);
+    }
+
+    /**
+     * @dev Update a given issuer proxy.
+     */
+    function updateIssuerProxy(
+        string calldata did,
+        bytes32 proxyId,
+        string calldata proxyData
+    ) external {
+        Issuers storage ds = issuerStorage();
+
+        require(
+            getTrustedPolicyRegistry().checkPolicy(
+                "TIR:updateIssuer",
+                msg.sender
+            ) || checkController(bytes(did), msg.sender),
+            string(
+                abi.encodePacked(
+                    "Policy error: sender is not controller of the did ",
+                    did,
+                    " and it doesn't have the attribute TIR:updateIssuer"
+                )
+            )
+        );
+
+        Entity storage iss = ds.issuerStore[did];
+
+        require(bytes(iss.proxiesStore[proxyId]).length > 0, "proxy not found");
+        iss.proxiesStore[proxyId] = proxyData;
+        emit UpdateIssuerProxy(did, proxyId);
+    }
+
+    /**
+     * @dev get an issuer by its did
+     * @param did string
+     * @return bytes32[] attributeLastHash
+     */
+
+    function getIssuer(
+        string memory did
+    ) external view returns (bytes32[] memory) {
+        Issuers storage ds = issuerStorage();
+        bytes32[] memory attributesFirstHash = ds.issuerStore[did].attributes;
+        require(attributesFirstHash.length > 0, "issuer does not exist");
+        bytes32[] memory attributesLastHash = new bytes32[](
+            attributesFirstHash.length
+        );
+        //list all the attributes
+        for (uint256 index = 0; index < attributesFirstHash.length; index++) {
+            // get all the versions for the current attribute
+            bytes32[] memory versions = ds.issuerStore[did].revisionHashes[
+                attributesFirstHash[index]
+            ];
+
+            //get the last version hash for this attribute
+            attributesLastHash[index] = versions[versions.length - 1];
+        }
+        return attributesLastHash;
+    }
+
+    function getIssuers(
+        uint256 page,
+        uint256 pageSize
+    )
+        external
+        view
+        returns (
+            string[] memory items,
+            uint256 total,
+            uint256 howMany,
+            uint256 prev,
+            uint256 next
+        )
+    {
+        require(pageSize <= 50, "PageSize must be <= 50");
+        require(pageSize > 0, "PageSize must be > 0");
+        require(page > 0, "Page must be > 0");
+        Issuers storage ds = issuerStorage();
+        return ds.didStore.paginate(page, pageSize);
+    }
+
+    function getIssuerAttributeRevisions(
+        bytes32 anyAttrVersHash,
+        uint256 page,
+        uint256 pageSize
+    )
+        external
+        view
+        returns (
+            bytes32[] memory items,
+            uint256 total,
+            uint256 howMany,
+            uint256 prev,
+            uint256 next
+        )
+    {
+        require(pageSize <= 50, "PageSize must be <= 50");
+        require(pageSize > 0, "PageSize must be > 0");
+        require(page > 0, "Page must be > 0");
+        Issuers storage ds = issuerStorage();
+        // retrieve first the did and attrId (firstHash of attribute)
+        AttributeMetadata memory am = ds.attributeMetadataStore[
+            anyAttrVersHash
+        ];
+        require(
+            keccak256(bytes(am.did)) != keccak256(bytes("")),
+            "attribute has not been found"
+        );
+
+        // retrieve the issuer and the attribute detail
+        return
+            ds.issuerStore[am.did].revisionHashes[am.attributeId].paginate(
+                page,
+                pageSize
+            );
+    }
+
+    function getIssuerAttributeByHash(
+        bytes32 anyAttrVersHash
+    )
+        external
+        view
+        returns (
+            string memory did,
+            bytes memory attribData,
+            string memory tao,
+            string memory rootTao,
+            IssuerType issuerType
+        )
+    {
+        Issuers storage ds = issuerStorage();
+        // retrieve first the did and attrId (firstHash of attribute)
+        AttributeMetadata memory i = ds.attributeMetadataStore[anyAttrVersHash];
+        require(
+            keccak256(bytes(i.did)) != keccak256(bytes("")),
+            "attribute has not been found"
+        );
+        did = i.did;
+        // retrieve the issuer and the attribute detail
+        Entity storage iss = ds.issuerStore[i.did];
+        attribData = iss.revisions[anyAttrVersHash];
+        tao = i.taoDid;
+        rootTao = i.rootTaoDid;
+        issuerType = i.issuerType;
+    }
+
+    /**
+     * @dev Get proxy data by its id/hash.
+     */
+    function getIssuerProxyById(
+        string memory did,
+        bytes32 proxyId
+    ) external view returns (string memory proxyData) {
+        Issuers storage ds = issuerStorage();
+        return ds.issuerStore[did].proxiesStore[proxyId];
+    }
+
+    /**
+     * @dev Return the list of proxies of a given issuer.
+     */
+    function getIssuerProxies(
+        string memory did
+    ) external view returns (bytes32[] memory) {
+        Issuers storage ds = issuerStorage();
+        return ds.issuerStore[did].proxies;
+    }
+
+    // internal functions
+
+    function addRevision(
+        string memory did,
+        bytes32 attributeId,
+        bytes32 newRevisionId,
+        IssuerType issuerType,
+        string memory taoDid,
+        string memory _rootTaoDid,
+        bytes memory attributeData
+    ) internal {
+        Issuers storage ds = issuerStorage();
+        Entity storage iss = ds.issuerStore[did];
+
+        require(
+            compareStrings(ds.attributeMetadataStore[newRevisionId].did, ""),
+            "revision already stored"
+        );
+
+        // push the new version hash for this attribute
+        iss.revisionHashes[attributeId].push(newRevisionId);
+        // push the new version data for this attribute
+        iss.revisions[newRevisionId] = attributeData;
+        // push the new version metadata for this attribute
+        ds.attributeMetadataStore[newRevisionId] = AttributeMetadata(
+            did,
+            attributeId,
+            issuerType,
+            taoDid,
+            _rootTaoDid
+        );
+
+        emit AddAtrributeRevision(did, attributeId, newRevisionId, issuerType);
+    }
+
+    // internal view functions
+
+    function checkEligibility(
+        string memory did,
+        bytes32 lastRevisionId,
+        IssuerType issuerType,
+        string memory taoDid,
+        bytes32 lastRevisionIdTao,
+        string memory policy
+    ) internal view {
+        Issuers storage ds = issuerStorage();
+        Entity storage iss = ds.issuerStore[did];
+        bool hasTprPolicy = getTrustedPolicyRegistry().checkPolicy(
+            policy,
+            msg.sender
+        );
+        if (hasTprPolicy) return;
+        require(
+            issuerType != IssuerType.RootTAO,
+            string(
+                abi.encodePacked(
+                    "Policy error: sender doesn't have the attribute ",
+                    policy
+                )
+            )
+        );
+        AttributeMetadata memory lastAttrMetadata = ds.attributeMetadataStore[
+            lastRevisionId
+        ];
+
+        AttributeMetadata memory lastTaoAttrMetadata = ds
+            .attributeMetadataStore[lastRevisionIdTao];
+        require(
+            checkController(bytes(taoDid), msg.sender) &&
+                (lastTaoAttrMetadata.issuerType == IssuerType.RootTAO ||
+                    lastTaoAttrMetadata.issuerType == IssuerType.TAO),
+            string(
+                abi.encodePacked(
+                    "Policy error: sender is not TAO/RootTao it doesn't have the attribute ",
+                    policy
+                )
+            )
+        );
+
+        // in the case of existing attributes make sure the TAO/RootTAO
+        // is part of the trust chain of the attribute
+        bool isNewAttribute = compareStrings(lastAttrMetadata.did, "");
+        bool isTaoOfAttribute = compareStrings(lastAttrMetadata.taoDid, taoDid);
+        bool isRootTaoOfAttribute = compareStrings(
+            lastAttrMetadata.rootTaoDid,
+            taoDid
+        );
+        require(
+            isNewAttribute || isTaoOfAttribute || isRootTaoOfAttribute,
+            string(
+                abi.encodePacked(
+                    "Policy error: sender is not TAO/RootTao of current did ",
+                    did,
+                    " and it doesn't have the attribute ",
+                    policy
+                )
+            )
+        );
+    }
+
+    function getLatestRevisionAttributeId(
+        string calldata did,
+        bytes32 attributeId
+    ) internal view returns (bytes32 latestRevisionAttributeId) {
+        Issuers storage ds = issuerStorage();
+        Entity storage iss = ds.issuerStore[did];
+        require(iss.attributes.length > 0, "issuer does not exist");
+        require(
+            keccak256(bytes(ds.attributeMetadataStore[attributeId].did)) ==
+                keccak256(bytes(did)),
+            "attributeId is not link to DID"
+        );
+        bytes32 firstAttrHash = ds
+            .attributeMetadataStore[attributeId]
+            .attributeId;
+        bytes32[] memory revisionHashes = iss.revisionHashes[firstAttrHash];
+        latestRevisionAttributeId = revisionHashes[revisionHashes.length - 1];
+    }
+
+    function checkController(
+        bytes memory identifier,
+        address ctrl
+    ) internal view returns (bool) {
+        return getDidRegistry().checkController(identifier, ctrl);
+    }
+
+    function getDidRegistry() internal view virtual returns (IDidRegistry);
+
+    function getTrustedPolicyRegistry()
+        internal
+        view
+        virtual
+        returns (IPolicyRegistry);
+
+    // pure functions
+
+    function compareStrings(
+        string memory str1,
+        string memory str2
+    ) internal pure returns (bool) {
+        return
+            keccak256(abi.encodePacked(str1)) ==
+            keccak256(abi.encodePacked(str2));
+    }
+
+    uint256[50] private ______gap;
+}

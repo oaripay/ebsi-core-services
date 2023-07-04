@@ -8,7 +8,7 @@
 "@ebsiint-api/trusted-issuers-registry-api-v3": patch
 "@ebsiint-api/trusted-schemas-registry-api-v2": patch
 "@ebsiint-api/trusted-apps-registry-api-v3": patch
-"@ebsiint-sc/did-registry-v4": patch
+"@ebsiint-sc/did-registry-v2": patch
 "@ebsiint-sc/admin-scripts": patch
 "@ebsiint-sc/did-registry": patch
 "@ebsiint-api/authorisation-api-v3": patch

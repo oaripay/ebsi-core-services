@@ -19,7 +19,7 @@
     "test:ci": "hardhat compile && hardhat test"
   },
   "dependencies": {
-    "@ebsiint-sc/bootstrap": "^1.0.1-rc.3"
+    "@ebsiint-sc/bootstrap-v2": "^2.0.0-rc.0"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.2.3",

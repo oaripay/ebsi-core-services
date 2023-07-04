@@ -8,7 +8,7 @@ import {
   isEthersError,
   getErrorMessage,
 } from "@ebsiint-api/shared";
-import { DidRegistry } from "@ebsiint-sc/did-registry-v4";
+import { DidRegistry } from "@ebsiint-sc/did-registry-v2";
 import { LedgerService } from "../ledger/ledger.service";
 import { RequestCheckControllerDto } from "./dto/request-check-controller.dto";
 import { validateClass } from "./identifiers.utils";
@@ -24,7 +24,7 @@ export default class IdentifiersService {
   async getDidDocumentV3(did: string): Promise<{ [x: string]: unknown }> {
     const hexDid = `0x${Buffer.from(did).toString("hex")}`;
     const latestDidDoc = await (
-      await this.ledgerService.getContractV3()
+      await this.ledgerService.getContractV1()
     ).getLatestDidDocumentVersion(hexDid);
     return JSON.parse(
       Buffer.from(remove0xPrefix(latestDidDoc), "hex").toString()

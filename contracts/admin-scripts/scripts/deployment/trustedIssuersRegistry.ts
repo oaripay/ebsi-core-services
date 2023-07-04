@@ -35,7 +35,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
   const pagination = await deployments.deploy("Pagination", {
     ...opts,
-    contract: "contracts/bootstrap/utils/Pagination.sol/Pagination",
+    contract: "contracts/bootstrap-v2/utils/Pagination.sol/Pagination",
   });
 
   const ts = await deployments.deploy("Tir", {

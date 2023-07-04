@@ -16,5 +16,7 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true
-  }
+  },
+  "include": ["./src", "./scripts", "./hardhat.config.ts", "./tasks"],
+  "exclude": ["node_modules", "artifacts", "cache"]
 }

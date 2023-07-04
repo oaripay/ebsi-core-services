@@ -32,7 +32,7 @@ import {
 } from "jose";
 import type { GenerateKeyPairResult, JWK } from "jose";
 import nock from "nock";
-import { DidRegistry, DidRegistry__factory } from "@ebsiint-sc/did-registry-v4";
+import { DidRegistry, DidRegistry__factory } from "@ebsiint-sc/did-registry-v2";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import {
@@ -168,9 +168,9 @@ describe("JsonRpc Module", () => {
       .spyOn(ledgerService, "getContract")
       .mockImplementation(async () => Promise.resolve(didRegistryContract));
     jest
-      .spyOn(ledgerService, "getContractV3")
+      .spyOn(ledgerService, "getContractV1")
       .mockImplementation(async () =>
-        Promise.resolve(testEnv.setupV3.didRegistryV3Contract)
+        Promise.resolve(testEnv.setupV1.didRegistryV1Contract)
       );
 
     // Generate key pair for Authorisation API v3 and create access token
@@ -1049,9 +1049,9 @@ describe("JsonRpc Module", () => {
             accessToken: newUserDidrInviteAccessToken,
           });
 
-          const v3Did = testEnv.setupV3.didDocuments[0].did;
-          const v3UserDidrInviteAccessToken = await new SignJWT({
-            sub: v3Did,
+          const v1Did = testEnv.setupV1.didDocuments[0].did;
+          const v1UserDidrInviteAccessToken = await new SignJWT({
+            sub: v1Did,
             scp: "openid didr_invite",
           })
             .setProtectedHeader({
@@ -1063,7 +1063,7 @@ describe("JsonRpc Module", () => {
           testSetup.push({
             params: {
               from: signer.address,
-              did: v3Did,
+              did: v1Did,
               baseDocument: JSON.stringify({
                 "@context": newUser.didDocument["@context"],
               }),
@@ -1073,8 +1073,8 @@ describe("JsonRpc Module", () => {
               notBefore: now,
               notAfter: now + 3600,
             } as InsertDidDocumentParam,
-            expectedErrorMessage: `The address ${signer.address} is not the controller of ${v3Did} in DID Registry V3`,
-            accessToken: v3UserDidrInviteAccessToken,
+            expectedErrorMessage: `The address ${signer.address} is not the controller of ${v1Did} in DID Registry V3`,
+            accessToken: v1UserDidrInviteAccessToken,
           });
 
           break;

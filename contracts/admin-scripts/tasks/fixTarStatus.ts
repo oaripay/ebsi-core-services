@@ -65,14 +65,7 @@ task(
           // console.log("contract auth :", contractAuth);
           if (contractAuth.status === 0) {
             // status needs to be moved to 1
-            await (
-              await ts.updateAuthorization(
-                auth,
-                1,
-                contractAuth.permissions,
-                contractAuth.notAfter
-              )
-            ).wait(1);
+            await (await ts.updateAuthorization(auth, 1)).wait(1);
             console.log("auth updated: ", auth);
           }
         }
