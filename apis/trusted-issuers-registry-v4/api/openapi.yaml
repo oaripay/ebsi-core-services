@@ -153,8 +153,8 @@ paths:
               description: valid test did
               value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
             "[pilot] did":
-              description: valid preprod did
-              value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
+              description: valid pilot did
+              value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
           required: true
       responses:
         "200":
@@ -229,8 +229,8 @@ paths:
               description: valid test did
               value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
             "[pilot] did":
-              description: valid preprod did
-              value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
+              description: valid pilot did
+              value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
           required: true
         - in: query
           name: page[after]
@@ -348,8 +348,8 @@ paths:
               description: valid test did
               value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
             "[pilot] did":
-              description: valid preprod did
-              value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
+              description: valid pilot did
+              value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
           required: true
         - name: attributeId
           in: path
@@ -360,8 +360,8 @@ paths:
               description: valid test attributeId
               value: 25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
             "[pilot] attributeId":
-              description: valid preprod attributeId
-              value: db14d3c6ee1a499c2719a9e2c93c240105cc82545fc491f7eea15e738d45ea73
+              description: valid pilot attributeId
+              value: 4763114aaa3ba460849a5da50797ab6709f2b346788c6749067ac5b3413ad83e
           required: true
       responses:
         "200":
@@ -436,8 +436,8 @@ paths:
               description: valid test did
               value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
             "[pilot] did":
-              description: valid preprod did
-              value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
+              description: valid pilot did
+              value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
           required: true
         - name: attributeId
           in: path
@@ -448,8 +448,8 @@ paths:
               description: valid test attributeId
               value: 25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
             "[pilot] attributeId":
-              description: valid preprod attributeId
-              value: db14d3c6ee1a499c2719a9e2c93c240105cc82545fc491f7eea15e738d45ea73
+              description: valid pilot attributeId
+              value: 4763114aaa3ba460849a5da50797ab6709f2b346788c6749067ac5b3413ad83e
           required: true
         - in: query
           name: page[after]
@@ -566,8 +566,8 @@ paths:
               description: valid test did
               value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
             "[pilot] did":
-              description: valid preprod did
-              value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
+              description: valid pilot did
+              value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
           required: true
       responses:
         "200":
@@ -652,8 +652,8 @@ paths:
               description: valid test did
               value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
             "[pilot] did":
-              description: valid preprod did
-              value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
+              description: valid pilot did
+              value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
           required: true
         - name: proxyId
           in: path
@@ -664,8 +664,8 @@ paths:
               description: valid test proxyId
               value: 25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
             "[pilot] proxyId":
-              description: valid preprod proxyId
-              value: db14d3c6ee1a499c2719a9e2c93c240105cc82545fc491f7eea15e738d45ea73
+              description: valid pilot proxyId
+              value: "0xe34e137dbefa842d71c0c840ddb4900af3611e297d8403e80f99a13e187e8d63"
           required: true
       responses:
         "200":
@@ -734,8 +734,8 @@ paths:
               description: valid test did
               value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
             "[pilot] did":
-              description: valid preprod did
-              value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
+              description: valid pilot did
+              value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
           required: true
         - name: proxyId
           in: path
@@ -746,8 +746,8 @@ paths:
               description: valid test proxyId
               value: 25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
             "[pilot] proxyId":
-              description: valid preprod proxyId
-              value: db14d3c6ee1a499c2719a9e2c93c240105cc82545fc491f7eea15e738d45ea73
+              description: valid pilot proxyId
+              value: "0xe34e137dbefa842d71c0c840ddb4900af3611e297d8403e80f99a13e187e8d63"
           required: true
         - name: path
           in: path
@@ -756,7 +756,7 @@ paths:
           examples:
             StatusList2021Credential path:
               description: Path to a StatusList2021Credential
-              value: /credentials/status/3
+              value: credentials/status/1
           required: true
       responses:
         "200":

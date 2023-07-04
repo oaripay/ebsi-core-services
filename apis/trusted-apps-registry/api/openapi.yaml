@@ -145,10 +145,10 @@ paths:
           examples:
             "[test] applicationName":
               description: valid test applicationName
-              value: "ledger-api"
+              value: ledger-api
             "[pilot] applicationName":
-              description: valid preprod applicationName
-              value: "ledger-api"
+              description: valid pilot applicationName
+              value: authorisation-api
           required: true
       responses:
         "200":
@@ -261,10 +261,10 @@ paths:
           examples:
             "[test] applicationName":
               description: valid test applicationName
-              value: "ledger-api"
+              value: ledger-api
             "[pilot] applicationName":
-              description: valid preprod applicationName
-              value: "ledger-api"
+              description: valid pilot applicationName
+              value: authorisation-api
           required: true
       responses:
         "200":
@@ -364,10 +364,10 @@ paths:
           examples:
             "[test] applicationName":
               description: valid test applicationName
-              value: "ledger-api"
+              value: ledger-api
             "[pilot] applicationName":
-              description: valid preprod applicationName
-              value: "ledger-api"
+              description: valid pilot applicationName
+              value: authorisation-api
           required: true
         - name: publicKeyId
           in: path
@@ -378,8 +378,8 @@ paths:
               description: valid test publicKeyId
               value: "0xb9f5523a132d9c22c552bf126691a0c9dfa3ba550c8de3e8409c0c21b28e0e99"
             "[pilot] publicKeyId":
-              description: valid preprod publicKeyId
-              value: "0x7623198d13d51cc485e4ec6bd52af05f6b691c1d9dd06a4b3f609d9c19efb985"
+              description: valid pilot publicKeyId
+              value: "0xc2ff9172fdcec92d583b7f139153109dd502f206fa723d35ca8b610e5543b290"
           required: true
       responses:
         "200":
@@ -456,7 +456,7 @@ paths:
   /trusted-apps-registry/v3/apps/{applicationName}/authorizations:
     get:
       operationId: get-apps-resourceApplicationId-authorizations
-      summary: List authorizations
+      summary: List authorisations
       description: Returns the authorisations of a given app.
       tags:
         - Apps
@@ -468,10 +468,10 @@ paths:
           examples:
             "[test] applicationName":
               description: valid test applicationName
-              value: "ledger-api"
+              value: ledger-api
             "[pilot] applicationName":
-              description: valid preprod applicationName
-              value: "ledger-api"
+              description: valid pilot applicationName
+              value: ledger-api
           required: true
         - name: requesterApplicationId
           in: query
@@ -482,7 +482,7 @@ paths:
               description: valid test requesterApplicationName
               value: "notifications-api"
             "[pilot] requesterApplicationName":
-              description: valid preprod requesterApplicationName
+              description: valid pilot requesterApplicationName
               value: "notifications-api"
       responses:
         "200":
@@ -589,10 +589,10 @@ paths:
           examples:
             "[test] applicationName":
               description: valid test applicationName
-              value: "ledger-api"
+              value: ledger-api
             "[pilot] applicationName":
-              description: valid preprod applicationName
-              value: "ledger-api"
+              description: valid pilot applicationName
+              value: ledger-api
           required: true
         - name: authorizationId
           in: path
@@ -603,8 +603,8 @@ paths:
               description: valid test authorizationId
               value: "0x62c0cd975b022bb3169a61de2ca2a3be3941d2d2b037ff5888241e33aef15d27"
             "[pilot] authorizationId":
-              description: valid preprod authorizationId
-              value: "0x743072ec11502736ecc5f4bcb1d2ffd435131b2d03003b4a2d222ab9b384a663"
+              description: valid pilot authorizationId
+              value: "0x570dd3f4d15cb5f13f939b0c8553093bdee3f6dc5f2a56a85c0ac89a4dfdc806"
           required: true
       responses:
         "200":
@@ -671,277 +671,6 @@ paths:
           description: Internal Server Error
           content:
             application/json:
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
-  /trusted-apps-registry/v3/policies:
-    get:
-      operationId: get-trusted-apps-registry-v2-policies
-      summary: List policies
-      description: Returns a list of policies.
-      tags:
-        - Policies
-      parameters:
-        - in: query
-          name: page[after]
-          schema:
-            type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
-          name: page[size]
-          description: Defines the maximum number of objects that may be returned.
-      responses:
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  self:
-                    type: string
-                    description: URI to policies
-                  items:
-                    type: array
-                    description: List of policies
-                    items:
-                      type: object
-                      properties:
-                        policyId:
-                          type: string
-                          description: ID of the policy
-                        href:
-                          type: string
-                          description: Link to the resource
-                  total:
-                    type: integer
-                    description: Total number of items in a collection
-                  pageSize:
-                    type: integer
-                    description: Number of items to be returned per page
-                  links:
-                    $ref: "#/components/schemas/Links"
-              examples:
-                "[test] Success":
-                  value:
-                    self: https://api-test.ebsi.eu/trusted-apps-registry/v3/policies?page[after]=3&page[size]=2
-                    items:
-                      - policyId: test-policy-1
-                        href: https://api-test.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-1
-                      - policyId: test-policy-2
-                        href: https://api-test.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-2
-                    total: 124
-                    pageSize: 2
-                    links:
-                      first: https://api-test.ebsi.eu/trusted-apps-registry/v3/policies?page[after]=1&page[size]=2
-                      prev: https://api-test.ebsi.eu/trusted-apps-registry/v3/policies?page[after]=2&page[size]=2
-                      next: https://api-test.ebsi.eu/trusted-apps-registry/v3/policies?page[after]=4&page[size]=2
-                      last: https://api-test.ebsi.eu/trusted-apps-registry/v3/policies?page[after]=62&page[size]=2
-                "[pilot] Success":
-                  value:
-                    self: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/policies?page[after]=3&page[size]=2
-                    items:
-                      - policyId: test-policy-1
-                        href: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-1
-                      - policyId: test-policy-2
-                        href: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-2
-                    total: 124
-                    pageSize: 2
-                    links:
-                      first: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/policies?page[after]=1&page[size]=2
-                      prev: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/policies?page[after]=2&page[size]=2
-                      next: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/policies?page[after]=4&page[size]=2
-                      last: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/policies?page[after]=62&page[size]=2
-        "400":
-          description: Bad Request Error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                Bad Paging Request:
-                  value:
-                    title: Bad Paging Request
-                    status: 400
-                    detail: PageSize should not be greater than 50
-        "500":
-          description: Internal Server Error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
-  /trusted-apps-registry/v3/policies/{policyId}:
-    get:
-      operationId: get-trusted-apps-registry-v2-policy
-      summary: Get a policy
-      description: Returns a trusted policy identified by its ID.
-      tags:
-        - Policies
-      parameters:
-        - name: policyId
-          in: path
-          schema:
-            type: string
-          example: test-policy-1
-          required: true
-      responses:
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Policy"
-              examples:
-                Success:
-                  value:
-                    policyId: test-policy-1
-                    policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
-                    hash: 1220511332fb87107116af196c23125bd9070c0516124f978ce043fd792e1fc9562a
-        "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                Invalid {policyId} Parameter:
-                  value:
-                    title: Bad Request
-                    status: 400
-                    detail: The format of {policyId} parameter is not valid
-        "404":
-          description: Not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                DID Not Found:
-                  $ref: "#/components/examples/NotFound"
-        "500":
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
-  /trusted-apps-registry/v3/policies/{policyId}/revisions:
-    get:
-      operationId: get-trusted-apps-registry-v2-policy-revisions
-      summary: List policy revisions
-      description: Returns a list of policy revisions.
-      tags:
-        - Policies
-      parameters:
-        - name: policyId
-          in: path
-          schema:
-            type: string
-          example: test-policy-1
-          required: true
-        - in: query
-          name: page[after]
-          schema:
-            type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
-          name: page[size]
-          description: Defines the maximum number of objects that may be returned.
-      responses:
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  self:
-                    type: string
-                    description: URI to policies
-                  items:
-                    type: array
-                    description: List of policies
-                    items:
-                      $ref: "#/components/schemas/Policy"
-                  total:
-                    type: integer
-                    description: Total number of items in a collection
-                  pageSize:
-                    type: integer
-                    description: Number of items to be returned per page
-                  links:
-                    $ref: "#/components/schemas/Links"
-              examples:
-                "[test] Success":
-                  value:
-                    self: https://api-test.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=3&page[size]=2
-                    items:
-                      - policyId: test-policy-1
-                        policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
-                        hash: 1220511332fb87107116af196c23125bd9070c0516124f978ce043fd792e1fc9562a
-                      - policyId: test-policy-1
-                        policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ8
-                        hash: 1220511332fb87107116af196c23125bd9070c0516124f978ce043fd792e1fc9562b
-                    total: 61
-                    pageSize: 2
-                    links:
-                      first: https://api-test.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=1&page[size]=2
-                      prev: https://api-test.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=2&page[size]=2
-                      next: https://api-test.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=4&page[size]=2
-                      last: https://api-test.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=31&page[size]=2
-                "[pilot] Success":
-                  value:
-                    self: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=3&page[size]=2
-                    items:
-                      - policyId: test-policy-1
-                        policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
-                        hash: 1220511332fb87107116af196c23125bd9070c0516124f978ce043fd792e1fc9562a
-                      - policyId: test-policy-1
-                        policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ8
-                        hash: 1220511332fb87107116af196c23125bd9070c0516124f978ce043fd792e1fc9562b
-                    total: 61
-                    pageSize: 2
-                    links:
-                      first: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=1&page[size]=2
-                      prev: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=2&page[size]=2
-                      next: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=4&page[size]=2
-                      last: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/policies/test-policy-1/revisions?page[after]=31&page[size]=2
-        "400":
-          description: Bad Request Error
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                Bad Paging Request:
-                  value:
-                    title: Bad Paging Request
-                    status: 400
-                    detail: PageSize should not be greater than 50
-        "404":
-          description: Not found
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                DID Not Found:
-                  $ref: "#/components/examples/NotFound"
-        "500":
-          description: Internal Server Error
-          content:
-            application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
               examples:
@@ -1035,15 +764,6 @@ paths:
           - **notBefore**: Point in time when the authorisation becomes valid. It should be defined in epoch time.
           - **notAfter**: Point in time when the authorisation becomes invalid. It should be defined in epoch time.
 
-          #### insertPolicy
-
-          Call to build an unsigned transaction to insert a policy in the registry. This method requires user attributes in the Trusted Policies Registry.
-
-          Parameters:
-          - **from**: Ethereum address of the administrator
-          - **policyId**: Policy Id
-          - **policyData**: Policy data. This field must be a JSON stringified and converted into hex string
-
           #### insertRevocation
 
           Call to build an unsigned transaction to insert a revocation. This method requires user attributes in the Trusted Policies Registry.
@@ -1083,15 +803,6 @@ paths:
           - **status**: Status. 1 (active), 2 (revoked), or 3 (suspended)
           - **permissions**: CRUD permissions. It must be a number between 0 and 15 (default). It's binary representation enables or disables each one of the 4 CRUD permissions (create, read, update, delete).
           - **notAfter**: Point in time when the authorisation becomes invalid. It should be defined in epoch time.
-
-          #### updatePolicy.
-
-          Call to build an unsigned transaction to update a policy. This method requires user attributes in the Trusted Policies Registry.
-
-          Parameters:
-          - **from**: Ethereum address of the administrator
-          - **policyId**: Policy Id
-          - **policyData**: Policy data. This field must be a JSON stringified and converted into hex string
 
           #### sendSignedTransaction
 
@@ -1194,15 +905,6 @@ paths:
                       notBefore: 1609926740
                       notAfter: 1709926740
                   id: 1
-              Build tx to insert a policy:
-                value:
-                  jsonrpc: "2.0"
-                  method: insertPolicy
-                  id: 1
-                  params:
-                    - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
-                      policyId: my-policy
-                      policyData: "0x7b22706f6c696379223a22396361663735323733373936353135656465613631323165227d"
               Build tx to insertRevocation:
                 value:
                   jsonrpc: "2.0"
@@ -1243,15 +945,6 @@ paths:
                       permissions: 15
                       notAfter: 1709926740
                   id: 1
-              Build tx to update a policy:
-                value:
-                  jsonrpc: "2.0"
-                  method: updatePolicy
-                  id: 1
-                  params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      policyId: test-policy-1
-                      policyData: "0x1234567890..."
               Send Transaction:
                 description: Call to send a signed transaction to the blockchain.
                 value:
@@ -1462,20 +1155,6 @@ components:
           oneOf:
             - type: object
             - type: string
-    Policy:
-      title: Policy
-      description: Policy data model.
-      type: object
-      properties:
-        policyId:
-          type: string
-          description: Unique policy ID
-        policy:
-          type: string
-          description: Base64 encoded policy
-        hash:
-          type: string
-          description: Hash (multihash) of the policy
     ProblemDetails:
       title: Problem Details
       description: A [Problem Details](https://datatracker.ietf.org/doc/html/rfc7807) object.

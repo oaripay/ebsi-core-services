@@ -81,8 +81,8 @@ paths:
                   value:
                     self: https://api-test.ebsi.eu/did-registry/v3/identifiers?page[after]=3&page[size]=10
                     items:
-                      - did: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
-                        href: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                      - did: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
+                        href: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z
                       - did: did:ebsi:zZssKY2QbbKEqVRgMP1iCLr
                         href: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:zZssKY2QbbKEqVRgMP1iCLr
                       - did: did:ebsi:zb3EMmQSCWZHvFSrBTuoXsv
@@ -112,8 +112,8 @@ paths:
                   value:
                     self: https://api-test.ebsi.eu/did-registry/v3/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
                     items:
-                      - did: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
-                        href: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                      - did: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
+                        href: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z
                     total: 1
                     pageSize: 10
                     links:
@@ -125,8 +125,8 @@ paths:
                   value:
                     self: https://api-pilot.ebsi.eu/did-registry/v3/identifiers?page[after]=3&page[size]=10
                     items:
-                      - did: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
-                        href: https://api-pilot.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                      - did: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
+                        href: https://api-pilot.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z
                       - did: did:ebsi:zZssKY2QbbKEqVRgMP1iCLr
                         href: https://api-pilot.ebsi.eu/did-registry/v3/identifiers/did:ebsi:zZssKY2QbbKEqVRgMP1iCLr
                       - did: did:ebsi:zb3EMmQSCWZHvFSrBTuoXsv
@@ -156,8 +156,8 @@ paths:
                   value:
                     self: https://api-pilot.ebsi.eu/did-registry/v3/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
                     items:
-                      - did: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
-                        href: https://api-pilot.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                      - did: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
+                        href: https://api-pilot.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z
                     total: 1
                     pageSize: 10
                     links:
@@ -205,9 +205,9 @@ paths:
             type: string
           examples:
             "[test] DID":
-              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+              value: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
             "[pilot] DID":
-              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+              value: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw
       responses:
         "200":
           description: Success. A user wallet gets DID resolution (CT ONBOARD_063)
@@ -220,25 +220,59 @@ paths:
                   value:
                     "@context":
                       - https://www.w3.org/ns/did/v1
-                    id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                    id: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
                     verificationMethod:
-                      - controller: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
-                        id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH#vm-3
+                      - controller: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
+                        id: did:ebsi:z25F87e2MyLKF7DViuHi5b4z#vm-3
                         type: EcdsaSecp256k1RecoveryMethod2020
                         publicKeyBase58: H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV
                 "[pilot] Success":
                   value:
-                    "@context": https://w3id.org/did/v1
-                    id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                    "@context":
+                      - https://www.w3.org/ns/did/v1
+                      - https://w3id.org/security/suites/jws-2020/v1
+                    id: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw
                     verificationMethod:
-                      - id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH#keys-1
-                        type: Secp256k1VerificationKey2018
-                        controller: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
-                        publicKeyHex: 04f9139fbd3b9780863b17e8390934a1017fc8d0f18b84f02acb04f24c9cae261e45745c6507881509b9e6d837329153ea75fafb2c1a5d504702d04f1e22a80ecc
+                      - id: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw#keys-1
+                        type: JsonWebKey2020
+                        controller: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw
+                        publicKeyJwk:
+                          kty: EC
+                          crv: secp256k1
+                          x: Ep9OMTayvbrJZYrB_qrS-e6JXNAVbGAhS18E09Los6g
+                          y: mu5kfpcdbG7RLAj0clEg05s7yhdxQ2d6bSww4RBWqWU
+                      - id: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw#keys-2
+                        type: JsonWebKey2020
+                        controller: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw
+                        publicKeyJwk:
+                          kty: EC
+                          crv: P-256
+                          x: a3eW4ByH5abaHIMYrjbWKhIh_HAilcVM-BvHsk3YUE4
+                          y: vdNbhQKv39Ta4x-1nwtIkCt3n7QX-qyKqgTZbTQ2O5Q
+                      - id: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw#keys-3
+                        type: JsonWebKey2020
+                        controller: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw
+                        publicKeyJwk:
+                          kty: RSA
+                          n: ulFF1PmOgWoLrlCCi1sRdeQIGTtj7IXAfasKhuvrT6C2lGiwP3Oy6Fhb5PZdODs81d3-WB9zVGHUVx9Lrkfd0HkIeDHGaCIslUY-X9kgeYtvvgGRKqIyrgo0vmZi8q_SiP5O7XIFhJMbj6lf_iubpPDYu7psh_Dw_M1FDNlfLOidGIpYudE8wbwkbZm_wKq5rGRKsnfwBp2fs2jIFomu2jy0g6oBOsWfgZKYI4sWueJDNok-HFLGZlDtVCorqOGNc1bHUi0LyDFxLk-jr_lQ58erWsrqBmXrxl8ZHRS3kUeiQ1eZZt8xzwvYBzCyEniokKrwmwvWvD7VkSNdJJsirQ
+                          e: AQAB
+                      - id: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw#keys-4
+                        type: JsonWebKey2020
+                        controller: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw
+                        publicKeyJwk:
+                          kty: OKP
+                          crv: Ed25519
+                          x: 4r9_nYy4tcS_BEdyxeseS4_dNkZAjCqM5v7F-r-bV4Q
                     authentication:
-                      - did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                      - did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw#keys-1
+                      - did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw#keys-2
+                      - did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw#keys-3
+                      - did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw#keys-4
                     assertionMethod:
-                      - did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH#keys-1
+                      - did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw#keys-1
+                      - did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw#keys-2
+                      - did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw#keys-3
+                      - did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw#keys-4
         "400":
           description: Bad Request
           content:
@@ -295,9 +329,9 @@ paths:
             type: string
           examples:
             "[test] DID":
-              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+              value: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
             "[pilot] DID":
-              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+              value: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw
       responses:
         "200":
           description: Success
@@ -334,30 +368,30 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
+                    self: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions?page[after]=1&page[size]=10
                     items:
                       - versionId: "0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a"
-                        href: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a
+                        href: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
-                      prev: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
-                      next: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
-                      last: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
+                      first: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions?page[after]=1&page[size]=10
+                      prev: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions?page[after]=1&page[size]=10
+                      next: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions?page[after]=1&page[size]=10
+                      last: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions?page[after]=1&page[size]=10
                 "[pilot] Success":
                   value:
-                    self: https://api-pilot.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
+                    self: https://api-pilot.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions?page[after]=1&page[size]=10
                     items:
                       - versionId: "0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c"
-                        href: https://api-pilot.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c
+                        href: https://api-pilot.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api-pilot.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
-                      prev: https://api-pilot.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
-                      next: https://api-pilot.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
-                      last: https://api-pilot.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions?page[after]=1&page[size]=10
+                      first: https://api-pilot.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions?page[after]=1&page[size]=10
+                      prev: https://api-pilot.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions?page[after]=1&page[size]=10
+                      next: https://api-pilot.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions?page[after]=1&page[size]=10
+                      last: https://api-pilot.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions?page[after]=1&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -409,9 +443,9 @@ paths:
             type: string
           examples:
             "[test] DID":
-              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+              value: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
             "[pilot] DID":
-              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+              value: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw
         - in: path
           name: versionId
           description: A unique version ID.
@@ -422,7 +456,7 @@ paths:
             "[test] Version ID":
               value: "0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a"
             "[pilot] Version ID":
-              value: "0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c"
+              value: "0xa009395f9e2a7809f1b550e0efbe2443dce931fe747d269a5c312e5ad75f88e1"
       responses:
         "200":
           description: Success
@@ -435,25 +469,25 @@ paths:
                   value:
                     "@context":
                       - https://www.w3.org/ns/did/v1
-                    id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                    id: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
                     verificationMethod:
-                      - controller: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
-                        id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH#vm-3
+                      - controller: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
+                        id: did:ebsi:z25F87e2MyLKF7DViuHi5b4z#vm-3
                         type: EcdsaSecp256k1RecoveryMethod2020
                         publicKeyBase58: H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV
                 "[pilot] Success":
                   value:
                     "@context": https://w3id.org/did/v1
-                    id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                    id: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
                     verificationMethod:
-                      - id: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH#keys-1
+                      - id: did:ebsi:z25F87e2MyLKF7DViuHi5b4z#keys-1
                         type: Secp256k1VerificationKey2018
-                        controller: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                        controller: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
                         publicKeyHex: 04f9139fbd3b9780863b17e8390934a1017fc8d0f18b84f02acb04f24c9cae261e45745c6507881509b9e6d837329153ea75fafb2c1a5d504702d04f1e22a80ecc
                     authentication:
-                      - did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                      - did:ebsi:z25F87e2MyLKF7DViuHi5b4z
                     assertionMethod:
-                      - did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH#keys-1
+                      - did:ebsi:z25F87e2MyLKF7DViuHi5b4z#keys-1
         "400":
           description: Bad Request
           content:
@@ -517,9 +551,9 @@ paths:
             type: string
           examples:
             "[test] DID":
-              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+              value: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
             "[pilot] DID":
-              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+              value: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw
         - in: path
           name: versionId
           description: A unique version ID.
@@ -530,7 +564,7 @@ paths:
             "[test] Version ID":
               value: "0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a"
             "[pilot] Version ID":
-              value: "0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c"
+              value: "0xa009395f9e2a7809f1b550e0efbe2443dce931fe747d269a5c312e5ad75f88e1"
       responses:
         "200":
           description: Success
@@ -567,30 +601,30 @@ paths:
               examples:
                 "[test] Success":
                   value:
-                    self: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
+                    self: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
                     items:
                       - metadataId: "0xb5ed423b79dd39df26194f708414e394eb924638a0b8e8e0a09c760dc7cdc607"
-                        href: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata/0xb5ed423b79dd39df26194f708414e394eb924638a0b8e8e0a09c760dc7cdc607
+                        href: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata/0xb5ed423b79dd39df26194f708414e394eb924638a0b8e8e0a09c760dc7cdc607
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
-                      prev: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
-                      next: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
-                      last: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
+                      first: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
+                      prev: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
+                      next: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
+                      last: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
                 "[pilot] Success":
                   value:
-                    self: https://api-pilot.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
+                    self: https://api-pilot.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
                     items:
                       - metadataId: "0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c"
-                        href: https://api-pilot.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c
+                        href: https://api-pilot.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api-pilot.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
-                      prev: https://api-pilot.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
-                      next: https://api-pilot.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
-                      last: https://api-pilot.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
+                      first: https://api-pilot.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
+                      prev: https://api-pilot.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
+                      next: https://api-pilot.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
+                      last: https://api-pilot.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -649,9 +683,9 @@ paths:
             type: string
           examples:
             "[test] DID":
-              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+              value: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
             "[pilot] DID":
-              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+              value: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw
         - in: path
           name: versionId
           description: A unique version ID.
@@ -662,7 +696,7 @@ paths:
             "[test] Version ID":
               value: "0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a"
             "[pilot] Version ID":
-              value: "0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c"
+              value: "0xa009395f9e2a7809f1b550e0efbe2443dce931fe747d269a5c312e5ad75f88e1"
         - in: path
           name: metadataId
           description: A unique metadata ID.
@@ -673,7 +707,7 @@ paths:
             "[test] Metadata ID":
               value: "0xb5ed423b79dd39df26194f708414e394eb924638a0b8e8e0a09c760dc7cdc607"
             "[pilot] Metadata ID":
-              value: "0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c"
+              value: "0x7469f0576c88bc878adf6d0091228c2081d28fc6fc87af630a1fd3d252d644fc"
       responses:
         "200":
           description: Success
@@ -1680,16 +1714,6 @@ components:
         first:
           type: string
           description: URI of the first page
-    Attribute:
-      title: Attribute
-      description: Generic attribute model
-      type: object
-      properties:
-        hash:
-          type: string
-          description: sha256 hash of the payload
-        body:
-          description: Base64 encoded content
     DIDDocument:
       title: DID document
       description: DID document as a JSON-LD document
@@ -1779,8 +1803,6 @@ components:
         detail: Internal error
   securitySchemes:
     bearerAuth:
-      description: >
-
       type: http
       scheme: bearer
       bearerFormat: JWT

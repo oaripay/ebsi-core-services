@@ -115,8 +115,8 @@ paths:
                   value:
                     self: https://api-test.ebsi.eu/did-registry/v4/identifiers?page[after]=1&page[size]=10&controller=did:ebsi:z23ETkVyJGeLWysGD11s2Jof
                     items:
-                      - did: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
-                        href: https://api-test.ebsi.eu/did-registry/v4/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                      - did: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
+                        href: https://api-test.ebsi.eu/did-registry/v4/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z
                     total: 1
                     pageSize: 10
                     links:
@@ -159,8 +159,8 @@ paths:
                   value:
                     self: https://api-pilot.ebsi.eu/did-registry/v4/identifiers?page[after]=1&page[size]=10&controller=did:ebsi:z23ETkVyJGeLWysGD11s2Jof
                     items:
-                      - did: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
-                        href: https://api-pilot.ebsi.eu/did-registry/v4/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                      - did: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw
+                        href: https://api-pilot.ebsi.eu/did-registry/v4/identifiers/did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw
                     total: 1
                     pageSize: 10
                     links:
@@ -208,9 +208,9 @@ paths:
             type: string
           examples:
             "[test] DID":
-              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+              value: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
             "[pilot] DID":
-              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+              value: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw
         - in: query
           name: valid-at
           description: |
@@ -250,20 +250,48 @@ paths:
                     "@context":
                       - https://www.w3.org/ns/did/v1
                       - https://w3id.org/security/suites/jws-2020/v1
-                    id: did:ebsi:zgUB1p2zNmGtymUwzHrxh24
-                    controller:
-                      - did:ebsi:zgUB1p2zNmGtymUwzHrxh24
+                    id: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw
                     verificationMethod:
-                      - id: did:ebsi:zgUB1p2zNmGtymUwzHrxh24#0NivQmyibuMALzL2VYcsZiPXRLNtBPOSy4G4-qHFHzU
+                      - id: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw#keys-1
                         type: JsonWebKey2020
-                        controller: did:ebsi:zgUB1p2zNmGtymUwzHrxh24
+                        controller: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw
                         publicKeyJwk:
                           kty: EC
                           crv: secp256k1
-                          x: bn0VlNS3FFt6m0Uyb3hs9AEUlyrQucseOGjzw4TUoY0
-                          y: 4KENQAlExFYMjI59fdA1mEBjkyL8D4-j4KwhPuX_zWA
-                    capabilityInvocation:
-                      - did:ebsi:zgUB1p2zNmGtymUwzHrxh24#0NivQmyibuMALzL2VYcsZiPXRLNtBPOSy4G4-qHFHzU
+                          x: Ep9OMTayvbrJZYrB_qrS-e6JXNAVbGAhS18E09Los6g
+                          y: mu5kfpcdbG7RLAj0clEg05s7yhdxQ2d6bSww4RBWqWU
+                      - id: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw#keys-2
+                        type: JsonWebKey2020
+                        controller: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw
+                        publicKeyJwk:
+                          kty: EC
+                          crv: P-256
+                          x: a3eW4ByH5abaHIMYrjbWKhIh_HAilcVM-BvHsk3YUE4
+                          y: vdNbhQKv39Ta4x-1nwtIkCt3n7QX-qyKqgTZbTQ2O5Q
+                      - id: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw#keys-3
+                        type: JsonWebKey2020
+                        controller: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw
+                        publicKeyJwk:
+                          kty: RSA
+                          n: ulFF1PmOgWoLrlCCi1sRdeQIGTtj7IXAfasKhuvrT6C2lGiwP3Oy6Fhb5PZdODs81d3-WB9zVGHUVx9Lrkfd0HkIeDHGaCIslUY-X9kgeYtvvgGRKqIyrgo0vmZi8q_SiP5O7XIFhJMbj6lf_iubpPDYu7psh_Dw_M1FDNlfLOidGIpYudE8wbwkbZm_wKq5rGRKsnfwBp2fs2jIFomu2jy0g6oBOsWfgZKYI4sWueJDNok-HFLGZlDtVCorqOGNc1bHUi0LyDFxLk-jr_lQ58erWsrqBmXrxl8ZHRS3kUeiQ1eZZt8xzwvYBzCyEniokKrwmwvWvD7VkSNdJJsirQ
+                          e: AQAB
+                      - id: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw#keys-4
+                        type: JsonWebKey2020
+                        controller: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw
+                        publicKeyJwk:
+                          kty: OKP
+                          crv: Ed25519
+                          x: 4r9_nYy4tcS_BEdyxeseS4_dNkZAjCqM5v7F-r-bV4Q
+                    authentication:
+                      - did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw#keys-1
+                      - did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw#keys-2
+                      - did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw#keys-3
+                      - did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw#keys-4
+                    assertionMethod:
+                      - did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw#keys-1
+                      - did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw#keys-2
+                      - did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw#keys-3
+                      - did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw#keys-4
         "400":
           description: Bad Request
           content:
@@ -310,9 +338,9 @@ paths:
             type: string
           examples:
             "[test] DID":
-              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+              value: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
             "[pilot] DID":
-              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+              value: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw
       requestBody:
         description: |
           The body follows the
@@ -897,8 +925,6 @@ components:
         detail: Internal error
   securitySchemes:
     bearerAuth:
-      description: >
-
       type: http
       scheme: bearer
       bearerFormat: JWT

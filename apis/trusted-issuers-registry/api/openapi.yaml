@@ -136,8 +136,8 @@ paths:
               description: valid test did
               value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
             "[pilot] did":
-              description: valid preprod did
-              value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
+              description: valid pilot did
+              value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
           required: true
       responses:
         "200":
@@ -206,8 +206,8 @@ paths:
               description: valid test did
               value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
             "[pilot] did":
-              description: valid preprod did
-              value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
+              description: valid pilot did
+              value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
           required: true
         - in: query
           name: page[after]
@@ -324,8 +324,8 @@ paths:
               description: valid test did
               value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
             "[pilot] did":
-              description: valid preprod did
-              value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
+              description: valid pilot did
+              value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
           required: true
         - name: attributeId
           in: path
@@ -336,8 +336,8 @@ paths:
               description: valid test attributeId
               value: 25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
             "[pilot] attributeId":
-              description: valid preprod attributeId
-              value: db14d3c6ee1a499c2719a9e2c93c240105cc82545fc491f7eea15e738d45ea73
+              description: valid pilot attributeId
+              value: 4763114aaa3ba460849a5da50797ab6709f2b346788c6749067ac5b3413ad83e
           required: true
       responses:
         "200":
@@ -406,8 +406,8 @@ paths:
               description: valid test did
               value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
             "[pilot] did":
-              description: valid preprod did
-              value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
+              description: valid pilot did
+              value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
           required: true
         - name: attributeId
           in: path
@@ -418,8 +418,8 @@ paths:
               description: valid test attributeId
               value: 25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
             "[pilot] attributeId":
-              description: valid preprod attributeId
-              value: db14d3c6ee1a499c2719a9e2c93c240105cc82545fc491f7eea15e738d45ea73
+              description: valid pilot attributeId
+              value: 4763114aaa3ba460849a5da50797ab6709f2b346788c6749067ac5b3413ad83e
           required: true
         - in: query
           name: page[after]
@@ -534,8 +534,8 @@ paths:
               description: valid test did
               value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
             "[pilot] did":
-              description: valid preprod did
-              value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
+              description: valid pilot did
+              value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
           required: true
       responses:
         "200":
@@ -620,8 +620,8 @@ paths:
               description: valid test did
               value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
             "[pilot] did":
-              description: valid preprod did
-              value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
+              description: valid pilot did
+              value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
           required: true
         - name: proxyId
           in: path
@@ -632,8 +632,8 @@ paths:
               description: valid test proxyId
               value: 25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
             "[pilot] proxyId":
-              description: valid preprod proxyId
-              value: db14d3c6ee1a499c2719a9e2c93c240105cc82545fc491f7eea15e738d45ea73
+              description: valid pilot proxyId
+              value: "0xe34e137dbefa842d71c0c840ddb4900af3611e297d8403e80f99a13e187e8d63"
           required: true
       responses:
         "200":
@@ -696,8 +696,8 @@ paths:
               description: valid test did
               value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
             "[pilot] did":
-              description: valid preprod did
-              value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
+              description: valid pilot did
+              value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
           required: true
         - name: proxyId
           in: path
@@ -708,8 +708,8 @@ paths:
               description: valid test proxyId
               value: 25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
             "[pilot] proxyId":
-              description: valid preprod proxyId
-              value: db14d3c6ee1a499c2719a9e2c93c240105cc82545fc491f7eea15e738d45ea73
+              description: valid pilot proxyId
+              value: "0xe34e137dbefa842d71c0c840ddb4900af3611e297d8403e80f99a13e187e8d63"
           required: true
         - name: path
           in: path
@@ -718,7 +718,7 @@ paths:
           examples:
             StatusList2021Credential path:
               description: Path to a StatusList2021Credential
-              value: /credentials/status/3
+              value: credentials/status/1
           required: true
       responses:
         "200":
@@ -755,277 +755,6 @@ paths:
           description: Internal Server Error
           content:
             application/json:
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
-  /trusted-issuers-registry/v3/policies:
-    get:
-      operationId: get-trusted-issuers-registry-v3-policies
-      summary: List policies
-      description: Returns a list of policies.
-      tags:
-        - Policies
-      parameters:
-        - in: query
-          name: page[after]
-          schema:
-            type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
-          name: page[size]
-          description: Defines the maximum number of objects that may be returned.
-      responses:
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  self:
-                    type: string
-                    description: URI to policies
-                  items:
-                    type: array
-                    description: List of policies
-                    items:
-                      type: object
-                      properties:
-                        policyId:
-                          type: string
-                          description: ID of the policy
-                        href:
-                          type: string
-                          description: Link to the resource
-                  total:
-                    type: integer
-                    description: Total number of items in a collection
-                  pageSize:
-                    type: integer
-                    description: Number of items to be returned per page
-                  links:
-                    $ref: "#/components/schemas/links"
-              examples:
-                "[test] Success":
-                  value:
-                    self: https://api-test.ebsi.eu/trusted-issuers-registry/v3/policies?page[after]=3&page[size]=2
-                    items:
-                      - policyId: test-policy-1
-                        href: https://api-test.ebsi.eu/trusted-issuers-registry/v3/policies/test-policy-1
-                      - policyId: test-policy-2
-                        href: https://api-test.ebsi.eu/trusted-issuers-registry/v3/policies/test-policy-2
-                    total: 124
-                    pageSize: 2
-                    links:
-                      first: https://api-test.ebsi.eu/trusted-issuers-registry/v3/policies?page[after]=1&page[size]=2
-                      prev: https://api-test.ebsi.eu/trusted-issuers-registry/v3/policies?page[after]=2&page[size]=2
-                      next: https://api-test.ebsi.eu/trusted-issuers-registry/v3/policies?page[after]=4&page[size]=2
-                      last: https://api-test.ebsi.eu/trusted-issuers-registry/v3/policies?page[after]=62&page[size]=2
-                "[pilot] Success":
-                  value:
-                    self: https://api-pilot.ebsi.eu/trusted-issuers-registry/v3/policies?page[after]=3&page[size]=2
-                    items:
-                      - policyId: test-policy-1
-                        href: https://api-pilot.ebsi.eu/trusted-issuers-registry/v3/policies/test-policy-1
-                      - policyId: test-policy-2
-                        href: https://api-pilot.ebsi.eu/trusted-issuers-registry/v3/policies/test-policy-2
-                    total: 124
-                    pageSize: 2
-                    links:
-                      first: https://api-pilot.ebsi.eu/trusted-issuers-registry/v3/policies?page[after]=1&page[size]=2
-                      prev: https://api-pilot.ebsi.eu/trusted-issuers-registry/v3/policies?page[after]=2&page[size]=2
-                      next: https://api-pilot.ebsi.eu/trusted-issuers-registry/v3/policies?page[after]=4&page[size]=2
-                      last: https://api-pilot.ebsi.eu/trusted-issuers-registry/v3/policies?page[after]=62&page[size]=2
-        "400":
-          description: Bad Request Error
-          content:
-            "application/problem+json":
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                Bad Paging Request:
-                  value:
-                    title: Bad Paging Request
-                    status: 400
-                    detail: PageSize should not be greater than 50
-        "500":
-          description: Internal Server Error
-          content:
-            "application/problem+json":
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
-  /trusted-issuers-registry/v3/policies/{policyId}:
-    get:
-      operationId: get-trusted-issuers-registry-v3-policy
-      summary: Get a policy
-      description: Returns a policy identified by its ID.
-      tags:
-        - Policies
-      parameters:
-        - name: policyId
-          in: path
-          schema:
-            type: string
-          example: test-policy-1
-          required: true
-      responses:
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/policy"
-              examples:
-                Success:
-                  value:
-                    policyId: test-policy-1
-                    policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
-                    hash: 1220511332fb87107116af196c23125bd9070c0516124f978ce043fd792e1fc9562a
-        "400":
-          description: Bad Request
-          content:
-            "application/problem+json":
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                Invalid {policyId} Parameter:
-                  value:
-                    title: Bad Request
-                    status: 400
-                    detail: The format of {policyId} parameter is not valid
-        "404":
-          description: Not found
-          content:
-            "application/problem+json":
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                DID Not Found:
-                  $ref: "#/components/examples/NotFound"
-        "500":
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                Internal Server Error:
-                  $ref: "#/components/examples/InternalError"
-  /trusted-issuers-registry/v3/policies/{policyId}/revisions:
-    get:
-      operationId: get-trusted-issuers-registry-v3-policy-revisions
-      summary: List revisions
-      description: Returns a paginated list of policy revisions.
-      tags:
-        - Policies
-      parameters:
-        - name: policyId
-          in: path
-          schema:
-            type: string
-          example: test-policy-1
-          required: true
-        - in: query
-          name: page[after]
-          schema:
-            type: string
-          description: Cursor that points to the end of the page of data that has been returned.
-        - schema:
-            type: integer
-          in: query
-          name: page[size]
-          description: Defines the maximum number of objects that may be returned.
-      responses:
-        "200":
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  self:
-                    type: string
-                    description: URI to policies
-                  items:
-                    type: array
-                    description: List of policies
-                    items:
-                      $ref: "#/components/schemas/policy"
-                  total:
-                    type: integer
-                    description: Total number of items in a collection
-                  pageSize:
-                    type: integer
-                    description: Number of items to be returned per page
-                  links:
-                    $ref: "#/components/schemas/links"
-              examples:
-                "[test] Success":
-                  value:
-                    self: https://api-test.ebsi.eu/trusted-issuers-registry/v3/policies/test-policy-1/revisions?page[after]=3&page[size]=2
-                    items:
-                      - policyId: test-policy-1
-                        policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
-                        hash: 1220511332fb87107116af196c23125bd9070c0516124f978ce043fd792e1fc9562a
-                      - policyId: test-policy-1
-                        policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ8
-                        hash: 1220511332fb87107116af196c23125bd9070c0516124f978ce043fd792e1fc9562b
-                    total: 61
-                    pageSize: 2
-                    links:
-                      first: https://api-test.ebsi.eu/trusted-issuers-registry/v3/policies/test-policy-1/revisions?page[after]=1&page[size]=2
-                      prev: https://api-test.ebsi.eu/trusted-issuers-registry/v3/policies/test-policy-1/revisions?page[after]=2&page[size]=2
-                      next: https://api-test.ebsi.eu/trusted-issuers-registry/v3/policies/test-policy-1/revisions?page[after]=4&page[size]=2
-                      last: https://api-test.ebsi.eu/trusted-issuers-registry/v3/policies/test-policy-1/revisions?page[after]=31&page[size]=2
-                "[pilot] Success":
-                  value:
-                    self: https://api-pilot.ebsi.eu/trusted-issuers-registry/v3/policies/test-policy-1/revisions?page[after]=3&page[size]=2
-                    items:
-                      - policyId: test-policy-1
-                        policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ9
-                        hash: 1220511332fb87107116af196c23125bd9070c0516124f978ce043fd792e1fc9562a
-                      - policyId: test-policy-1
-                        policy: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiIwZjQ4YmY1MWE3NjU4MGY2NDlhYTEzZDdhMDU4NGRhZSJ8
-                        hash: 1220511332fb87107116af196c23125bd9070c0516124f978ce043fd792e1fc9562b
-                    total: 61
-                    pageSize: 2
-                    links:
-                      first: https://api-pilot.ebsi.eu/trusted-issuers-registry/v3/policies/test-policy-1/revisions?page[after]=1&page[size]=2
-                      prev: https://api-pilot.ebsi.eu/trusted-issuers-registry/v3/policies/test-policy-1/revisions?page[after]=2&page[size]=2
-                      next: https://api-pilot.ebsi.eu/trusted-issuers-registry/v3/policies/test-policy-1/revisions?page[after]=4&page[size]=2
-                      last: https://api-pilot.ebsi.eu/trusted-issuers-registry/v3/policies/test-policy-1/revisions?page[after]=31&page[size]=2
-        "400":
-          description: Bad Request Error
-          content:
-            "application/problem+json":
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                Bad Paging Request:
-                  value:
-                    title: Bad Paging Request
-                    status: 400
-                    detail: PageSize should not be greater than 50
-        "404":
-          description: Not found
-          content:
-            "application/problem+json":
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                DID Not Found:
-                  $ref: "#/components/examples/NotFound"
-        "500":
-          description: Internal Server Error
-          content:
-            "application/problem+json":
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
               examples:
@@ -1099,24 +828,6 @@ paths:
             any VCs are issued. The validation will fail if the credential status proxy doesn't exist.
             It must be a JSON object converted to hex string. Example: `Buffer.from('{"prefix":"https://example.net","headers":{"Authorization":"Bearer 1234567890"},"testSuffix":"/cred/1"}').toString("hex")`.
 
-          #### insertPolicy
-
-          Call to build an unsigned transaction to insert a policy in the registry. This method requires admin rights in the Trusted Policies Registry.
-
-          Parameters:
-          - **from**: Ethereum address of the administrator
-          - **policyId**: Policy Id
-          - **policyData**: Policy data. This field must be a JSON stringified and converted into hex string
-
-          #### updatePolicy
-
-          Call to build an unsigned transaction to update a policy. This method requires admin rights in the Trusted Policies Registry.
-
-          Parameters:
-          - **from**: Ethereum address of the administrator
-          - **policyId**: Policy Id
-          - **policyData**: Policy data. This field must be a JSON stringified and converted into hex string
-
           #### sendSignedTransaction
 
           Call to send a signed transaction to the blockchain.
@@ -1174,24 +885,6 @@ paths:
                       did: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
                       attributeData: "0x7b22616e79223a22416e79206174747269627574652068657265222c2274797065223a2263726564656e7469616c222c2264617461223a223730373634663965353838646438306465343133363261373339646362303133227d"
                       prevAttributeHash: "0x9045517cc555c75cd7085900a900e6693439086f9eddeee513271fba278964fe"
-              Build tx to insert a policy:
-                value:
-                  jsonrpc: "2.0"
-                  method: insertPolicy
-                  id: 1
-                  params:
-                    - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
-                      policyId: my-policy
-                      policyData: "0x7b22706f6c696379223a22396361663735323733373936353135656465613631323165227d"
-              Build tx to update a policy:
-                value:
-                  jsonrpc: "2.0"
-                  method: updatePolicy
-                  id: 1
-                  params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      policyId: test-policy-1
-                      policyData: "0x1234567890..."
               Send Transaction:
                 description: Call to send a signed transaction to the blockchain.
                 value:
@@ -1383,20 +1076,6 @@ components:
           description: DID of the attribute owner
         attribute:
           $ref: "#/components/schemas/attribute"
-    policy:
-      title: Policy
-      type: object
-      description: Policy data model
-      properties:
-        policyId:
-          type: string
-          description: Unique policy ID
-        policy:
-          type: string
-          description: Base64 encoded policy
-        hash:
-          type: string
-          description: Hash (multihash) of the policy
   examples:
     BadRequest:
       value:

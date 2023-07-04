@@ -209,8 +209,8 @@ paths:
                     items:
                       - address: "0x7E918E979A5FFa5e540d8C8d6dB220E3f0704858"
                         href: https://api-test.ebsi.eu/trusted-policies-registry/v2/users/0x7E918E979A5FFa5e540d8C8d6dB220E3f0704858
-                      - address: "0xe83C2eF9F05A47C14141F5ec3438beD89799eD92"
-                        href: https://api-test.ebsi.eu/trusted-policies-registry/v2/users/0xe83C2eF9F05A47C14141F5ec3438beD89799eD92
+                      - address: "0x69e48d89bf5e09588E858D757323b4abBBB3f814"
+                        href: https://api-test.ebsi.eu/trusted-policies-registry/v2/users/0x69e48d89bf5e09588E858D757323b4abBBB3f814
                     total: 124
                     pageSize: 2
                     links:
@@ -224,8 +224,8 @@ paths:
                     items:
                       - address: "0x7E918E979A5FFa5e540d8C8d6dB220E3f0704858"
                         href: https://api-pilot.ebsi.eu/trusted-policies-registry/v2/users/0x7E918E979A5FFa5e540d8C8d6dB220E3f0704858
-                      - address: "0xe83C2eF9F05A47C14141F5ec3438beD89799eD92"
-                        href: https://api-pilot.ebsi.eu/trusted-policies-registry/v2/users/0xe83C2eF9F05A47C14141F5ec3438beD89799eD92
+                      - address: "0x69e48d89bf5e09588E858D757323b4abBBB3f814"
+                        href: https://api-pilot.ebsi.eu/trusted-policies-registry/v2/users/0x69e48d89bf5e09588E858D757323b4abBBB3f814
                     total: 124
                     pageSize: 2
                     links:
@@ -249,8 +249,14 @@ paths:
           in: path
           schema:
             type: string
-          example: "0xe83C2eF9F05A47C14141F5ec3438beD89799eD92"
           required: true
+          examples:
+            "[test] address":
+              description: valid test address
+              value: "0x69e48d89bf5e09588E858D757323b4abBBB3f814"
+            "[pilot] address":
+              description: valid pilot address
+              value: "0x69e48d89bf5e09588E858D757323b4abBBB3f814"
       responses:
         "200":
           description: Success
@@ -261,7 +267,7 @@ paths:
               examples:
                 Success:
                   value:
-                    address: "0xe83C2eF9F05A47C14141F5ec3438beD89799eD92"
+                    address: "0x69e48d89bf5e09588E858D757323b4abBBB3f814"
                     attributes:
                       "TIR:insertIssuer": "0x0000000000000000000000000000000000000000000000000000000000000001"
                       "TIR:updateIssuer": "0x0000000000000000000000000000000000000000000000000000000000000001"
