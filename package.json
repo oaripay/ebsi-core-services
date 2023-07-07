@@ -6,7 +6,7 @@
   "scripts": {
     "audit": "audit-ci --skip-dev --moderate -a GHSA-j8xg-fqg3-53r7",
     "clean": "nx run-many --target=clean --all",
-    "build": "nx affected --target=build",
+    "build": "nx affected --target=build --parallel=1",
     "build:all": "nx run-many --target=build --all",
     "docker-build:core": "docker build . -t ebsi/core-services:${GIT_COMMIT}",
     "docker-build:affected": "yarn docker-build:core && nx affected --target=docker:build",

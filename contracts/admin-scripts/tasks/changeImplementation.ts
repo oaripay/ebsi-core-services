@@ -1,35 +1,24 @@
-import { task, types } from "hardhat/config";
+import { task } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
 import { BigNumber } from "ethers";
 import { OwnedUpgradeabilityProxy } from "../src/types";
+import { getDiamondStorage } from "../utils/getDiamondStorage";
 
 task("changeImplementation", "change proxy implementation")
   .addParam("proxy", "The proxy address")
   .addParam("implementation", "The implementation contract name")
-  .addOptionalParam(
-    "storage",
-    "The storage slot string for the smart contract. required if increment is true"
-  )
-  .addOptionalParam(
-    "increment",
-    "Call the set version on the implementation to increase the version",
-    false,
-    types.boolean
-  )
   .setAction(
     async (
       taskArgs: {
         proxy: string;
         implementation: string;
-        storage?: string;
-        increment?: boolean;
       },
       { ethers, deployments }
     ) => {
       const proxyDeployedAddr = taskArgs.proxy;
-      // i.e "diamond.standard.trusted.ledger.smart.contracts.storage"
+      const storage = getDiamondStorage(taskArgs.implementation);
       const TSC_DIAMOND_STORAGE_SLOT = ethers.utils.keccak256(
-        ethers.utils.toUtf8Bytes(taskArgs.storage)
+        ethers.utils.toUtf8Bytes(storage)
       );
 
       const IMPLEMENTATION_SLOT = ethers.utils.keccak256(
@@ -80,24 +69,8 @@ task("changeImplementation", "change proxy implementation")
       });
       const ts = await deployments.get(taskArgs.implementation);
       console.log(`${taskArgs.implementation} deployed at ${ts.address} `);
-      let receipt;
-      if (taskArgs.increment) {
-        const iface = new ethers.utils.Interface([
-          "function setVersion(uint version)",
-        ]);
-        const initializeData = iface.encodeFunctionData("setVersion", [
-          BigNumber.from(version).add(1),
-        ]);
-        console.log(
-          `will upgrade and increment version with data: ${initializeData}`
-        );
-        receipt = await (
-          await proxyCtr.upgradeToAndCall(ts.address, initializeData)
-        ).wait(1);
-      } else {
-        console.log(`will upgrade to: ${ts.address}`);
-        receipt = await (await proxyCtr.upgradeTo(ts.address)).wait(1);
-      }
+      console.log(`will upgrade to: ${ts.address}`);
+      const receipt = await (await proxyCtr.upgradeTo(ts.address)).wait(1);
 
       const newImplementationAddr = BigNumber.from(
         await ethers.provider.getStorageAt(

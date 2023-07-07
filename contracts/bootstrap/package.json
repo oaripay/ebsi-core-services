@@ -17,6 +17,9 @@
     "test:unit": "yarn test",
     "test:ci": "hardhat compile && hardhat test"
   },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.9.2"
+  },
   "devDependencies": {
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/providers": "^5.7.0",

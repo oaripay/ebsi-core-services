@@ -8,17 +8,12 @@ import "./DidDocumentDetailed.sol";
 
 contract DidRegistry is DidStorage, DidDocumentDetailed, Initializable {
     IPolicyRegistry public immutable policyRegistryContract;
-    IDidRegistry public immutable didRegistryContractV2;
 
     event NewVersion(uint);
 
-    constructor(address _tprAddress, address _didRegistryV2Address) {
-        require(
-            _tprAddress != address(0) && _didRegistryV2Address != address(0),
-            "zero address"
-        );
+    constructor(address _tprAddress) {
+        require(_tprAddress != address(0), "zero address");
         policyRegistryContract = IPolicyRegistry(_tprAddress);
-        didRegistryContractV2 = IDidRegistry(_didRegistryV2Address);
         _disableInitializers();
     }
 
@@ -57,15 +52,5 @@ contract DidRegistry is DidStorage, DidDocumentDetailed, Initializable {
         returns (IPolicyRegistry)
     {
         return policyRegistryContract;
-    }
-
-    function getDidRegistryV2()
-        internal
-        view
-        virtual
-        override
-        returns (IDidRegistry)
-    {
-        return didRegistryContractV2;
     }
 }

@@ -15,6 +15,7 @@ COPY ./apis/authorisation/package.json ./apis/authorisation/
 COPY ./apis/authorisation-v3/package.json ./apis/authorisation-v3/
 COPY ./apis/did-registry/package.json ./apis/did-registry/
 COPY ./apis/did-registry-v4/package.json ./apis/did-registry-v4/
+COPY ./apis/did-registry-v5/package.json ./apis/did-registry-v5/
 COPY ./apis/ledger/package.json ./apis/ledger/
 COPY ./apis/notifications/package.json ./apis/notifications/
 COPY ./apis/proxy-data-hub/package.json ./apis/proxy-data-hub/
@@ -43,6 +44,7 @@ COPY ./contracts/trusted-schemas-registry/package.json ./contracts/trusted-schem
 COPY ./contracts/trusted-schemas-registry-v2/package.json ./contracts/trusted-schemas-registry-v2/
 
 # Copy patches
+COPY ./.git ./.git
 COPY ./patches ./patches
 
 # Install all the dependencies

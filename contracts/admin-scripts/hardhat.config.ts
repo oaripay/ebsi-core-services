@@ -35,7 +35,11 @@ const accounts = {
   mnemonic,
 };
 
-const { HARDHAT_NETWORK_URL } = process.env;
+const {
+  TEST_HARDHAT_NETWORK_URL,
+  PILOT_HARDHAT_NETWORK_URL,
+  CONFORMANCE_HARDHAT_NETWORK_URL,
+} = process.env;
 
 const config: HardhatUserConfig & {
   typechain: TypechainUserConfig;
@@ -50,8 +54,32 @@ const config: HardhatUserConfig & {
   defaultNetwork: "local",
   networks: {
     hardhat: {},
+    test: {
+      url: TEST_HARDHAT_NETWORK_URL,
+      accounts: [privKey],
+      gas: 20000000,
+      gasPrice: 0,
+      loggingEnabled: true,
+      saveDeployments: true,
+    },
+    pilot: {
+      url: PILOT_HARDHAT_NETWORK_URL,
+      accounts: [privKey],
+      gas: 20000000,
+      gasPrice: 0,
+      loggingEnabled: true,
+      saveDeployments: true,
+    },
+    conformance: {
+      url: CONFORMANCE_HARDHAT_NETWORK_URL,
+      accounts: [privKey],
+      gas: 20000000,
+      gasPrice: 0,
+      loggingEnabled: true,
+      saveDeployments: true,
+    },
     local: {
-      url: HARDHAT_NETWORK_URL,
+      url: TEST_HARDHAT_NETWORK_URL,
       accounts: [privKey],
       gas: 20000000,
       gasPrice: 0,
@@ -59,7 +87,7 @@ const config: HardhatUserConfig & {
       saveDeployments: true,
     },
     sokol: {
-      url: HARDHAT_NETWORK_URL,
+      url: TEST_HARDHAT_NETWORK_URL,
       accounts: [privKey],
       gas: 20000000,
       gasPrice: 0,
@@ -67,16 +95,12 @@ const config: HardhatUserConfig & {
       saveDeployments: true,
     },
     localWithData: {
-      url: HARDHAT_NETWORK_URL,
+      url: TEST_HARDHAT_NETWORK_URL,
       accounts,
       gas: 60000000,
       gasPrice: 0,
       loggingEnabled: true,
       saveDeployments: true,
-    },
-    ebsi: {
-      url: `https://api.prod.ebsi.xyz/ledger/v2/blockchains/besu`,
-      accounts,
     },
   },
   typechain: {

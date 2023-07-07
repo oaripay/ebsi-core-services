@@ -16,13 +16,13 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const didTimestampLib = await deployments.deploy("DidTimestampLib", {
     ...opts,
     contract:
-      "contracts/did-registry/did-registry/DidTimestampLib.sol:DidTimestampLib",
+      "contracts/did-registry-v3/did-registry/DidTimestampLib.sol:DidTimestampLib",
   });
 
   await deployments.deploy("DidRecordLib", {
     ...opts,
     contract:
-      "contracts/did-registry/did-registry/DidRecordLib.sol/DidRecordLib",
+      "contracts/did-registry-v3/did-registry/DidRecordLib.sol/DidRecordLib",
     libraries: {
       Pagination: pagination.address,
       DidTimestampLib: didTimestampLib.address,

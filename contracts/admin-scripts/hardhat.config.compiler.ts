@@ -41,6 +41,7 @@ const config: HardhatUserConfig & {
             enabled: true,
             runs: 200,
           },
+          // remove viaIR when legacy contract are deprecated
           viaIR: true,
         },
       },

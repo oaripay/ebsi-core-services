@@ -15,7 +15,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   // get Proxy of TPR
   const { chainId } = await ethers.provider.getNetwork();
   console.log(`chain id ${chainId}`);
-  let tprAddress = dependencies[chainId]?.tprAddress;
+  let tprAddress = dependencies[chainId]?.tprV1Address;
   if (!ethers.utils.isAddress(tprAddress)) {
     console.log(`Deploying TPR for testnet`);
     // deploy for testnet
@@ -26,7 +26,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
   const pagination = await deployments.deploy("Pagination", {
     ...opts,
-    contract: "contracts/bootstrap-v2/utils/Pagination.sol/Pagination",
+    contract: "contracts/bootstrap/utils/Pagination.sol/Pagination",
   });
   const optsPagination = {
     from: deployer,

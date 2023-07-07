@@ -5,7 +5,7 @@ import "./DidDocumentStorage.sol";
 import "./ControllersStorage.sol";
 import "./DidDocumentLib.sol";
 import "./ControllersLib.sol";
-import "@ebsiint-sc/trusted-policies-registry/contracts/trusted-policies-registry/interfaces/IPolicyRegistry.sol";
+import "@ebsiint-sc/trusted-policies-registry-v2/contracts/trusted-policies-registry/interfaces/IPolicyRegistry.sol";
 import "./interfaces/IDidRegistry.sol";
 
 abstract contract DidDocumentDetailed is
@@ -339,26 +339,14 @@ abstract contract DidDocumentDetailed is
         string memory did,
         address controller
     ) external view returns (bool) {
-        DidDocuments storage ds = didDocumentStorage();
-        if (bytes(ds.didList[did].baseDocument).length > 0) {
-            return _checkController(did, controller);
-        }
-
-        // the DID doesn't exist. Check in the previous version of DID SC
-        return getDidRegistryV2().checkController(bytes(did), controller);
+        return _checkController(did, controller);
     }
 
     function checkController(
         bytes memory did,
         address controller
     ) external view returns (bool) {
-        DidDocuments storage ds = didDocumentStorage();
-        if (bytes(ds.didList[string(did)].baseDocument).length > 0) {
-            return _checkController(string(did), controller);
-        }
-
-        // the DID doesn't exist. Check in the previous version of DID SC
-        return getDidRegistryV2().checkController(did, controller);
+        return _checkController(string(did), controller);
     }
 
     // internal
@@ -444,8 +432,6 @@ abstract contract DidDocumentDetailed is
         view
         virtual
         returns (IPolicyRegistry);
-
-    function getDidRegistryV2() internal view virtual returns (IDidRegistry);
 
     // Reserved storage space to allow for layout changes in the future.
     uint256[50] private __gap;

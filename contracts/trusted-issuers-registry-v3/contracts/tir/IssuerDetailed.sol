@@ -4,8 +4,8 @@ pragma solidity 0.8.12;
 // solhint-disable-next-line max-line-length
 import "./IssuerStorage.sol";
 import "@ebsiint-sc/bootstrap-v2/contracts/utils/Pagination.sol";
-import "@ebsiint-sc/did-registry/contracts/did-registry/interfaces/IDidRegistry.sol";
-import "@ebsiint-sc/trusted-policies-registry/contracts/trusted-policies-registry/interfaces/IPolicyRegistry.sol";
+import "@ebsiint-sc/did-registry-v3/contracts/did-registry/interfaces/IDidRegistry.sol";
+import "@ebsiint-sc/trusted-policies-registry-v2/contracts/trusted-policies-registry/interfaces/IPolicyRegistry.sol";
 
 // solhint-disable-next-line indent
 abstract contract IssuerDetailed is IssuerStorage {

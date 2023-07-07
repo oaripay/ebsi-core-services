@@ -2,27 +2,25 @@ import { task } from "hardhat/config";
 import "@nomiclabs/hardhat-waffle";
 import { BigNumber } from "ethers";
 import { OwnedUpgradeabilityProxy } from "../src/types";
+import { getDiamondStorage } from "../utils/getDiamondStorage";
 
 task("initProxy", "init proxy with implementation")
   .addParam("proxy", "The proxy address")
   .addParam("implementation", "The implementation contract name")
-  .addOptionalParam(
-    "storage",
-    "The storage slot string for the smart contract. required if increment is true"
-  )
+  .addOptionalParam("scversion", "Version of the contract")
   .setAction(
     async (
       taskArgs: {
         proxy: string;
         implementation: string;
-        storage?: string;
+        scversion: string;
       },
       { ethers, deployments }
     ) => {
       const proxyDeployedAddr = taskArgs.proxy;
-      // i.e "diamond.standard.trusted.ledger.smart.contracts.storage"
+      const storage = getDiamondStorage(taskArgs.implementation);
       const TSC_DIAMOND_STORAGE_SLOT = ethers.utils.keccak256(
-        ethers.utils.toUtf8Bytes(taskArgs.storage)
+        ethers.utils.toUtf8Bytes(storage)
       );
 
       const IMPLEMENTATION_SLOT = ethers.utils.keccak256(

@@ -6,6 +6,7 @@
     "@ebsiint-api/authorisation-api-v3": "3.0.0-rc.0",
     "@ebsiint-api/did-registry-api-v3": "3.0.0-rc.2",
     "@ebsiint-api/did-registry-api-v4": "4.0.0-rc.0",
+    "@ebsiint-api/did-registry-api-v5": "5.0.0-rc.0",
     "@ebsiint-api/ledger-api-v3": "3.0.0-rc.2",
     "@ebsiint-api/notifications-api-v2": "2.0.0-rc.2",
     "@ebsiint-api/proxy-data-hub-api-v3": "3.0.0-rc.2",

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: EUPL V1.2
 pragma solidity 0.8.12;
 
-import "@ebsiint-sc/did-registry/contracts/did-registry/interfaces/IDidRegistry.sol";
-import "@ebsiint-sc/trusted-policies-registry/contracts/trusted-policies-registry/interfaces/IPolicyRegistry.sol";
+import "@ebsiint-sc/did-registry-v3/contracts/did-registry/interfaces/IDidRegistry.sol";
+import "@ebsiint-sc/trusted-policies-registry-v2/contracts/trusted-policies-registry/interfaces/IPolicyRegistry.sol";
 import "./AppStoreLib.sol";
 import "./AppStorage.sol";
 
