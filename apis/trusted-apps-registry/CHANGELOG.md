@@ -1,4 +1,4 @@
-# Changelog
+# @ebsiint-api/trusted-apps-registry-api-v3
 
 ## 3.0.0-rc.6
 

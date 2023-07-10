@@ -23,6 +23,7 @@ COPY ./apis/shared/package.json ./apis/shared/
 COPY ./apis/storage/package.json ./apis/storage/
 COPY ./apis/timestamp/package.json ./apis/timestamp/
 COPY ./apis/trusted-apps-registry/package.json ./apis/trusted-apps-registry/
+COPY ./apis/trusted-apps-registry-v4/package.json ./apis/trusted-apps-registry-v4/
 COPY ./apis/trusted-issuers-registry/package.json ./apis/trusted-issuers-registry/
 COPY ./apis/trusted-issuers-registry-v4/package.json ./apis/trusted-issuers-registry-v4/
 COPY ./apis/trusted-policies-registry/package.json ./apis/trusted-policies-registry/
