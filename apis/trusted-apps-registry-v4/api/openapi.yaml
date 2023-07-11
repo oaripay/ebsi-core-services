@@ -19,7 +19,7 @@ info:
 paths:
   /trusted-apps-registry/v4/apps:
     get:
-      operationId: get-trusted-apps-registry-v2-apps
+      operationId: get-trusted-apps-registry-v4-apps
       summary: List apps
       description: Returns a list of apps.
       tags:
@@ -132,7 +132,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /trusted-apps-registry/v4/apps/{applicationName}:
     get:
-      operationId: get-trusted-apps-registry-v2-app
+      operationId: get-trusted-apps-registry-v4-app
       summary: Get an app
       description: Returns a trusted app identified by its ID.
       tags:
@@ -566,7 +566,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /trusted-apps-registry/v4/apps/{applicationName}/authorizations/{authorizationId}:
     get:
-      operationId: get-trusted-apps-registry-v2-authorizationId
+      operationId: get-trusted-apps-registry-v4-authorizationId
       summary: Get an authorisation
       description: Returns an authorisation identified by its ID.
       tags:
@@ -654,7 +654,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /trusted-apps-registry/v4/jsonrpc:
     post:
-      operationId: post-ledger-v2-blockchains-besu
+      operationId: post-ledger-v4-blockchains-besu
       summary: JSON-RPC API
       description: |
         The JSON-RPC API provides methods assisting the construction of blockchain transactions and

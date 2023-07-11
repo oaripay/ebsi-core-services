@@ -3,7 +3,7 @@ const path = require("path");
 
 /** @type {import('ts-jest').JestConfigWithTsJest} */
 module.exports = {
-  testTimeout: 120000,
+  testTimeout: 60000,
   maxConcurrency: 1,
   testEnvironment: "node",
   injectGlobals: false,
@@ -11,15 +11,12 @@ module.exports = {
   roots: ["<rootDir>/src/", "<rootDir>/tests/"],
   testMatch: ["**/?(*.|*-)+(spec|test).ts"],
   transform: {
-    "^.+\\.[tj]sx?$": [
-      "ts-jest",
-      { tsconfig: "<rootDir>/tsconfig.test.json", isolatedModules: true },
-    ],
+    "^.+\\.[tj]sx?$": ["ts-jest", { tsconfig: "<rootDir>/tsconfig.test.json" }],
   },
   transformIgnorePatterns: [
-    "/node_modules/",
+    "node_modules/(?!(axios))",
     "/apis/shared/dist/",
-    "/contracts/trusted-apps-registry-v3/dist/",
+    "/contracts/trusted-issuers-registry-v3/dist/",
   ],
   moduleFileExtensions: ["js", "json", "ts"],
   coverageDirectory: "./coverage/",

@@ -208,23 +208,23 @@ describe("Apps (e2e)", () => {
       expect(response.body).toStrictEqual(
         expect.objectContaining({
           self: expect.stringContaining(
-            "/trusted-apps-registry/v3/apps?page[after]=1&page[size]=10"
+            "/trusted-apps-registry/v4/apps?page[after]=1&page[size]=10"
           ),
           items: expect.arrayContaining([]),
           total: expect.any(Number),
           pageSize: expect.any(Number),
           links: expect.objectContaining({
             first: expect.stringContaining(
-              "/trusted-apps-registry/v3/apps?page[after]=1&page[size]=10"
+              "/trusted-apps-registry/v4/apps?page[after]=1&page[size]=10"
             ),
             prev: expect.stringContaining(
-              "/trusted-apps-registry/v3/apps?page[after]=1&page[size]=10"
+              "/trusted-apps-registry/v4/apps?page[after]=1&page[size]=10"
             ),
             next: expect.stringContaining(
-              "/trusted-apps-registry/v3/apps?page[after]="
+              "/trusted-apps-registry/v4/apps?page[after]="
             ),
             last: expect.stringContaining(
-              "/trusted-apps-registry/v3/apps?page[after]="
+              "/trusted-apps-registry/v4/apps?page[after]="
             ),
           }),
         })
@@ -251,16 +251,16 @@ describe("Apps (e2e)", () => {
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/trusted-apps-registry/v3/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId0}`
+            `/trusted-apps-registry/v4/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId0}`
           ),
           prev: expect.stringContaining(
-            `/trusted-apps-registry/v3/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId0}`
+            `/trusted-apps-registry/v4/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId0}`
           ),
           next: expect.stringContaining(
-            "/trusted-apps-registry/v3/apps?page[after]="
+            "/trusted-apps-registry/v4/apps?page[after]="
           ),
           last: expect.stringContaining(
-            "/trusted-apps-registry/v3/apps?page[after]="
+            "/trusted-apps-registry/v4/apps?page[after]="
           ),
         },
       });
@@ -284,23 +284,23 @@ describe("Apps (e2e)", () => {
       ).get(`/apps/${applicationName0}/authorizations`);
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          `/trusted-apps-registry/v3/apps/${applicationName0}/authorizations?page[after]=1&page[size]=10`
+          `/trusted-apps-registry/v4/apps/${applicationName0}/authorizations?page[after]=1&page[size]=10`
         ),
         items: expect.arrayContaining([]),
         total: expect.any(Number),
         pageSize: expect.any(Number),
         links: {
           first: expect.stringContaining(
-            `/trusted-apps-registry/v3/apps/${applicationName0}/authorizations?page[after]=1&page[size]=10`
+            `/trusted-apps-registry/v4/apps/${applicationName0}/authorizations?page[after]=1&page[size]=10`
           ),
           prev: expect.stringContaining(
-            `/trusted-apps-registry/v3/apps/${applicationName0}/authorizations?page[after]=1&page[size]=10`
+            `/trusted-apps-registry/v4/apps/${applicationName0}/authorizations?page[after]=1&page[size]=10`
           ),
           next: expect.stringContaining(
-            `/trusted-apps-registry/v3/apps/${applicationName0}/authorizations?page[after]=`
+            `/trusted-apps-registry/v4/apps/${applicationName0}/authorizations?page[after]=`
           ),
           last: expect.stringContaining(
-            `/trusted-apps-registry/v3/apps/${applicationName0}/authorizations?page[after]=`
+            `/trusted-apps-registry/v4/apps/${applicationName0}/authorizations?page[after]=`
           ),
         },
       });
@@ -336,16 +336,16 @@ describe("Apps (e2e)", () => {
         pageSize: expect.any(Number),
         links: {
           first: expect.stringContaining(
-            `/trusted-apps-registry/v3/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${applicationName2}`
+            `/trusted-apps-registry/v4/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${applicationName2}`
           ),
           prev: expect.stringContaining(
-            `/trusted-apps-registry/v3/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${applicationName2}`
+            `/trusted-apps-registry/v4/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${applicationName2}`
           ),
           next: expect.stringContaining(
-            `/trusted-apps-registry/v3/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${applicationName2}`
+            `/trusted-apps-registry/v4/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${applicationName2}`
           ),
           last: expect.stringContaining(
-            `/trusted-apps-registry/v3/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${applicationName2}`
+            `/trusted-apps-registry/v4/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${applicationName2}`
           ),
         },
       });
@@ -413,23 +413,23 @@ describe("Apps (e2e)", () => {
       expect(response.body).toStrictEqual(
         expect.objectContaining({
           self: expect.stringContaining(
-            `/trusted-apps-registry/v3/apps/${name}/public-keys?page[after]=1&page[size]=10`
+            `/trusted-apps-registry/v4/apps/${name}/public-keys?page[after]=1&page[size]=10`
           ),
           items: expect.arrayContaining([]),
           total: expect.any(Number),
           pageSize: expect.any(Number),
           links: expect.objectContaining({
             first: expect.stringContaining(
-              `/trusted-apps-registry/v3/apps/${name}/public-keys?page[after]=1&page[size]=10`
+              `/trusted-apps-registry/v4/apps/${name}/public-keys?page[after]=1&page[size]=10`
             ),
             prev: expect.stringContaining(
-              `/trusted-apps-registry/v3/apps/${name}/public-keys?page[after]=1&page[size]=10`
+              `/trusted-apps-registry/v4/apps/${name}/public-keys?page[after]=1&page[size]=10`
             ),
             next: expect.stringContaining(
-              `/trusted-apps-registry/v3/apps/${name}/public-keys?page[after]=`
+              `/trusted-apps-registry/v4/apps/${name}/public-keys?page[after]=`
             ),
             last: expect.stringContaining(
-              `/trusted-apps-registry/v3/apps/${name}/public-keys?page[after]=`
+              `/trusted-apps-registry/v4/apps/${name}/public-keys?page[after]=`
             ),
           }),
         })

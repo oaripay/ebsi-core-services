@@ -26,6 +26,7 @@ COPY ./apis/trusted-apps-registry/package.json ./apis/trusted-apps-registry/
 COPY ./apis/trusted-apps-registry-v4/package.json ./apis/trusted-apps-registry-v4/
 COPY ./apis/trusted-issuers-registry/package.json ./apis/trusted-issuers-registry/
 COPY ./apis/trusted-issuers-registry-v4/package.json ./apis/trusted-issuers-registry-v4/
+COPY ./apis/trusted-issuers-registry-v5/package.json ./apis/trusted-issuers-registry-v5/
 COPY ./apis/trusted-policies-registry/package.json ./apis/trusted-policies-registry/
 COPY ./apis/trusted-schemas-registry/package.json ./apis/trusted-schemas-registry/
 COPY ./contracts/bootstrap/package.json ./contracts/bootstrap/

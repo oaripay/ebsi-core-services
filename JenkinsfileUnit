@@ -12,7 +12,7 @@ pipeline {
     //    cron('0 8 * * *')
     //}
     parameters {
-        extendedChoice(defaultValue: 'all', description: 'What API will be executed?', multiSelectDelimiter: ',', name: 'api', quoteValue: false, saveJSONParameterToFile: false, type: 'PT_CHECKBOX', value: 'all, authorisation-api-v2, authorisation-api-v3, did-registry-api-v3, did-registry-api-v4, did-registry-api-v5, ledger-api, notification-api, proxy-data-hub-api, storage-api, timestamp-api, trusted-apps-registry-api, trusted-issuers-registry-api-v3, trusted-issuers-registry-api-v4, trusted-policies-registry-api, trusted-schemas-registry-api', visibleItemCount: 17)
+        extendedChoice(defaultValue: 'all', description: 'What API will be executed?', multiSelectDelimiter: ',', name: 'api', quoteValue: false, saveJSONParameterToFile: false, type: 'PT_CHECKBOX', value: 'all, authorisation-api-v2, authorisation-api-v3, did-registry-api-v3, did-registry-api-v4, did-registry-api-v5, ledger-api, notification-api, proxy-data-hub-api, storage-api, timestamp-api, trusted-apps-registry-api, trusted-apps-registry-api-v4, trusted-issuers-registry-api-v3, trusted-issuers-registry-api-v4, trusted-issuers-registry-api-v5, trusted-policies-registry-api, trusted-schemas-registry-api', visibleItemCount: 17)
     }
     stages {
         stage('Setup') {
@@ -269,6 +269,27 @@ pipeline {
                 }
             }
         }
+        stage('Trusted-apps-registry-Api-v4') {
+            when {
+                expression { params.api == 'all' || params.api.contains('trusted-apps-registry-api-v4')}
+            }
+            steps {
+                nodejs(nodeJSInstallationName: '16.17.1') {
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
+                        sh 'yarn nx test:ci @ebsiint-api/trusted-apps-registry-api-v4'
+                    }
+                }
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
+                    withSonarQubeEnv('LocalSonar'){
+                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=trusted-apps-registry-api-v4-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=trusted-apps-registry-api-v4-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/trusted-apps-registry-v4"
+                    }
+                    waitForQualityGate abortPipeline: true
+                }
+                script {
+                    sh 'rm ${WORKSPACE}/apis/trusted-apps-registry-v4/.scannerwork/report-task.txt'
+                }
+            }
+        }
         stage('Trusted-issuers-registry-Api') {
             when {
                 expression { params.api == 'all' || params.api.contains('trusted-issuers-registry-api-v3')}
@@ -308,6 +329,27 @@ pipeline {
                 }
                 script {
                     sh 'rm ${WORKSPACE}/apis/trusted-issuers-registry-v4/.scannerwork/report-task.txt'
+                }
+            }
+        }
+        stage('Trusted-issuers-registry-Api-v5') {
+            when {
+                expression { params.api == 'all' || params.api.contains('trusted-issuers-registry-api-v5')}
+            }
+            steps {
+                nodejs(nodeJSInstallationName: '16.17.1') {
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
+                        sh 'yarn nx test:ci @ebsiint-api/trusted-issuers-registry-api-v5'
+                    }
+                }
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
+                    withSonarQubeEnv('LocalSonar'){
+                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=trusted-issuers-api-v5-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=trusted-issuers-api-v5-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/trusted-issuers-registry-v5"
+                    }
+                    waitForQualityGate abortPipeline: true
+                }
+                script {
+                    sh 'rm ${WORKSPACE}/apis/trusted-issuers-registry-v5/.scannerwork/report-task.txt'
                 }
             }
         }
