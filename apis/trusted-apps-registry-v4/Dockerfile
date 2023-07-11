@@ -42,4 +42,4 @@ ARG DOCKER_TAG
 RUN echo "DOCKER_TAG=$DOCKER_TAG" >> .env.default
 RUN chown node:node /app
 USER node
-CMD [ "node", "apis/trusted-apps-registry/dist/main" ]
+CMD [ "node", "apis/trusted-apps-registry-v4/dist/main" ]
