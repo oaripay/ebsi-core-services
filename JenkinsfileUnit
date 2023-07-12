@@ -12,7 +12,7 @@ pipeline {
     //    cron('0 8 * * *')
     //}
     parameters {
-        extendedChoice(defaultValue: 'all', description: 'What API will be executed?', multiSelectDelimiter: ',', name: 'api', quoteValue: false, saveJSONParameterToFile: false, type: 'PT_CHECKBOX', value: 'all, authorisation-api-v2, authorisation-api-v3, did-registry-api-v3, did-registry-api-v4, did-registry-api-v5, ledger-api, notification-api, proxy-data-hub-api, storage-api, timestamp-api, trusted-apps-registry-api, trusted-apps-registry-api-v4, trusted-issuers-registry-api-v3, trusted-issuers-registry-api-v4, trusted-issuers-registry-api-v5, trusted-policies-registry-api, trusted-schemas-registry-api', visibleItemCount: 17)
+        extendedChoice(defaultValue: 'all', description: 'What API will be executed?', multiSelectDelimiter: ',', name: 'api', quoteValue: false, saveJSONParameterToFile: false, type: 'PT_CHECKBOX', value: 'all, authorisation-api-v2, authorisation-api-v3, did-registry-api-v3, did-registry-api-v4, did-registry-api-v5, ledger-api, notification-api, proxy-data-hub-api, storage-api, timestamp-api, trusted-apps-registry-api, trusted-apps-registry-api-v4, trusted-issuers-registry-api-v3, trusted-issuers-registry-api-v4, trusted-issuers-registry-api-v5, trusted-policies-registry-api, trusted-schemas-registry-api, trusted-schemas-registry-api-v3', visibleItemCount: 17)
     }
     stages {
         stage('Setup') {
@@ -392,6 +392,27 @@ pipeline {
                 }
                 script {
                     sh 'rm ${WORKSPACE}/apis/trusted-schemas-registry/.scannerwork/report-task.txt'
+                }
+            }
+        }
+        stage('Trusted-schemas-registry-Api-v3') {
+            when {
+                expression { params.api == 'all' || params.api.contains('trusted-schemas-registry-api-v3')}
+            }
+            steps {
+                nodejs(nodeJSInstallationName: '16.17.1') {
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
+                        sh 'yarn nx test:ci @ebsiint-api/trusted-schemas-registry-api-v3'
+                    }
+                }
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
+                    withSonarQubeEnv('LocalSonar'){
+                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=trusted-schemas-registry-api-v3-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=trusted-schemas-registry-api-v3-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/trusted-schemas-registry-v3"
+                    }
+                    waitForQualityGate abortPipeline: true
+                }
+                script {
+                    sh 'rm ${WORKSPACE}/apis/trusted-schemas-registry-v3/.scannerwork/report-task.txt'
                 }
             }
         }
