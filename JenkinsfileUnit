@@ -12,7 +12,7 @@ pipeline {
     //    cron('0 8 * * *')
     //}
     parameters {
-        extendedChoice(defaultValue: 'all', description: 'What API will be executed?', multiSelectDelimiter: ',', name: 'api', quoteValue: false, saveJSONParameterToFile: false, type: 'PT_CHECKBOX', value: 'all, authorisation-api-v2, authorisation-api-v3, did-registry-api-v3, did-registry-api-v4, did-registry-api-v5, ledger-api, notification-api, proxy-data-hub-api, storage-api, timestamp-api, trusted-apps-registry-api, trusted-apps-registry-api-v4, trusted-issuers-registry-api-v3, trusted-issuers-registry-api-v4, trusted-issuers-registry-api-v5, trusted-policies-registry-api, trusted-schemas-registry-api, trusted-schemas-registry-api-v3', visibleItemCount: 17)
+        extendedChoice(defaultValue: 'all', description: 'What API will be executed?', multiSelectDelimiter: ',', name: 'api', quoteValue: false, saveJSONParameterToFile: false, type: 'PT_CHECKBOX', value: 'all, authorisation-api-v2, authorisation-api-v3, authorisation-api-v4, did-registry-api-v3, did-registry-api-v4, did-registry-api-v5, ledger-api, notification-api, proxy-data-hub-api, storage-api, timestamp-api, trusted-apps-registry-api, trusted-apps-registry-api-v4, trusted-issuers-registry-api-v3, trusted-issuers-registry-api-v4, trusted-issuers-registry-api-v5, trusted-policies-registry-api, trusted-schemas-registry-api, trusted-schemas-registry-api-v3', visibleItemCount: 17)
     }
     stages {
         stage('Setup') {
@@ -74,6 +74,27 @@ pipeline {
                 }
                 script {
                     sh 'rm ${WORKSPACE}/apis/authorisation-v3/.scannerwork/report-task.txt'
+                }
+            }
+        }
+        stage('Authorisation-Api-v4') {
+            when {
+                expression { params.api == 'all' || params.api.contains('authorisation-api-v4')}
+            }
+            steps {
+                nodejs(nodeJSInstallationName: '16.17.1') {
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
+                        sh 'yarn nx test:ci @ebsiint-api/authorisation-api-v4'
+                    }
+                }
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE'){
+                    withSonarQubeEnv('LocalSonar'){
+                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=authorisation-api-v4-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=authorisation-api-v4-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/authorisation-v4"
+                    }
+                    waitForQualityGate abortPipeline: true
+                }
+                script {
+                    sh 'rm ${WORKSPACE}/apis/authorisation-v4/.scannerwork/report-task.txt'
                 }
             }
         }

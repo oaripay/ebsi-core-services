@@ -124,7 +124,7 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
   let testStatusListSchemaId: string;
   let ledgerApi: string;
   let trustedSchemasRegistryApiUrl: string;
-  let authorisationApiV3Url: string;
+  let authorisationApiUrl: string;
   let sampleTransaction: string;
   let blockscout: {
     url: string;
@@ -229,7 +229,7 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
     trustedSchemasRegistryApiUrl = configService.get<string>(
       "trustedSchemasRegistryApiUrl"
     );
-    authorisationApiV3Url = configService.get<string>("authorisationApiV3Url");
+    authorisationApiUrl = configService.get<string>("authorisationApiUrl");
     testVerifiableAttestationSchemaId = configService.get<string>(
       "testVerifiableAttestationSchemaId"
     );
@@ -272,7 +272,7 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
       testIssuerWithProxy = {
         info: testIssuerWithProxyInfo,
         token: await getTirWriteAccessToken(
-          authorisationApiV3Url,
+          authorisationApiUrl,
           testIssuerWithProxyInfo,
           trustedHostnames
         ),
@@ -299,7 +299,7 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
       adminIssuer = {
         info: adminIssuerInfo,
         token: await getTirWriteAccessToken(
-          authorisationApiV3Url,
+          authorisationApiUrl,
           adminIssuerInfo,
           trustedHostnames
         ),
@@ -333,7 +333,7 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
 
         // Admin issuer inserts the new TI's DID document
         const didWriteAccessToken = await getDidrWriteAccessToken(
-          authorisationApiV3Url,
+          authorisationApiUrl,
           adminIssuer.info,
           trustedHostnames
         );
@@ -494,7 +494,7 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
           newIssuer = {
             info: newIssuerInfo,
             token: await getTirInviteAccessToken(
-              authorisationApiV3Url,
+              authorisationApiUrl,
               newIssuerInfo,
               vcJwt,
               trustedHostnames

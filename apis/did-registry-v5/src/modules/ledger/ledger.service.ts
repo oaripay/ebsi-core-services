@@ -49,7 +49,7 @@ export class LedgerService {
   constructor(private configService: ConfigService<ApiConfig, true>) {
     this.didRegistryAddress = this.configService.get<string>("contractAddr");
     this.authorisationApiUrl = this.configService.get<string>(
-      "authorisationApiV2Url"
+      "authorisationApiUrl"
     );
 
     this.agent = new Agent({

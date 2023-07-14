@@ -203,12 +203,12 @@ describe("JsonRpc Module", () => {
     const authApiPublicKeyJwk = await exportJWK(authApiKeyPair.publicKey);
     authApiKid = await calculateJwkThumbprint(authApiPublicKeyJwk);
 
-    // Mock Auth API v3
+    // Mock Auth API
     const authorisationApiUrl = new URL(
-      configService.get<string>("authorisationApiV3Url")
+      configService.get<string>("authorisationApiUrl")
     );
 
-    // Mock Auth API v3 /.well-known/openid-configuration endpoint
+    // Mock Auth API /.well-known/openid-configuration endpoint
     nock(authorisationApiUrl.origin)
       .get(`${authorisationApiUrl.pathname}/.well-known/openid-configuration`)
       .reply(200, {
@@ -216,7 +216,7 @@ describe("JsonRpc Module", () => {
       })
       .persist();
 
-    // Mock Auth API v3 /jwks endpoint
+    // Mock Auth API /jwks endpoint
     nock(authorisationApiUrl.origin)
       .get(`${authorisationApiUrl.pathname}/jwks`)
       .reply(200, {

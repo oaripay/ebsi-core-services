@@ -141,8 +141,8 @@ describe("App Module", () => {
       const ledgerApiUrl = new URL(
         `${configService.get<string>("ledgerApiUrl")}/health`
       );
-      const authorisationApiV2Url = new URL(
-        `${configService.get<string>("authorisationApiV2Url")}/health`
+      const authorisationApiUrl = new URL(
+        `${configService.get<string>("authorisationApiUrl")}/health`
       );
 
       // Ledger API first responds 15 times with a 404 (because it's starting)
@@ -152,8 +152,8 @@ describe("App Module", () => {
         .reply(404, "Not Found");
       // Then, it responds with a 200
       nock(ledgerApiUrl.origin).get(ledgerApiUrl.pathname).reply(200).persist();
-      nock(authorisationApiV2Url.origin)
-        .get(authorisationApiV2Url.pathname)
+      nock(authorisationApiUrl.origin)
+        .get(authorisationApiUrl.pathname)
         .reply(200)
         .persist();
 
@@ -194,13 +194,13 @@ describe("App Module", () => {
       const ledgerApiUrl = new URL(
         `${configService.get<string>("ledgerApiUrl")}/health`
       );
-      const authorisationApiV2Url = new URL(
-        `${configService.get<string>("authorisationApiV2Url")}/health`
+      const authorisationApiUrl = new URL(
+        `${configService.get<string>("authorisationApiUrl")}/health`
       );
 
       nock(ledgerApiUrl.origin).get(ledgerApiUrl.pathname).reply(200).persist();
-      nock(authorisationApiV2Url.origin)
-        .get(authorisationApiV2Url.pathname)
+      nock(authorisationApiUrl.origin)
+        .get(authorisationApiUrl.pathname)
         .reply(200)
         .persist();
 

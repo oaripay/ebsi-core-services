@@ -7,8 +7,7 @@ export interface ApiConfig {
   apiPrivateKey: string;
   apiUrlPrefix: string;
   apiName: string;
-  authorisationApiV2Url: string;
-  authorisationApiV3Url: string;
+  authorisationApiUrl: string;
   contractAddr: string;
   domain: string;
   localOrigin: string;
@@ -30,9 +29,8 @@ export interface ApiConfig {
 }
 
 const LEDGER_API_PATH = "/ledger/v3";
-const TAR_API_PATH = "/trusted-apps-registry/v3";
-const AUTH_API_V2_PATH = "/authorisation/v2";
-const AUTH_API_V3_PATH = "/authorisation/v3";
+const TAR_API_PATH = "/trusted-apps-registry/v4";
+const AUTH_API_PATH = "/authorisation/v4";
 const HEALTH_CHECK_PATH = "/docs/";
 
 // Config factory
@@ -46,8 +44,7 @@ export const loadConfig = (): ApiConfig => {
     apiPrivateKey: process.env.API_PRIVATE_KEY,
     apiName: process.env.API_NAME,
     apiUrlPrefix: process.env.API_URL_PREFIX || "/did-registry/v5",
-    authorisationApiV2Url: DOMAIN + AUTH_API_V2_PATH,
-    authorisationApiV3Url: DOMAIN + AUTH_API_V3_PATH,
+    authorisationApiUrl: DOMAIN + AUTH_API_PATH,
     contractAddr: process.env.CONTRACT_ADDR,
     domain: DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",

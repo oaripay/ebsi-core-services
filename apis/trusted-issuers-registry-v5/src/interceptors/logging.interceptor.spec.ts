@@ -68,13 +68,13 @@ describe("Logging interceptor", () => {
     const ledgerApiUrl = new URL(
       `${configService.get<string>("ledgerApiUrl")}/health`
     );
-    const authorisationApiV2Url = new URL(
-      `${configService.get<string>("authorisationApiV2Url")}/health`
+    const authorisationApiUrl = new URL(
+      `${configService.get<string>("authorisationApiUrl")}/health`
     );
 
     nock(ledgerApiUrl.origin).get(ledgerApiUrl.pathname).reply(200).persist();
-    nock(authorisationApiV2Url.origin)
-      .get(authorisationApiV2Url.pathname)
+    nock(authorisationApiUrl.origin)
+      .get(authorisationApiUrl.pathname)
       .reply(200)
       .persist();
 
@@ -152,13 +152,13 @@ describe("Logging interceptor", () => {
     it("should log the request and response", async () => {
       expect.assertions(2);
 
-      // Mock Auth API v3
+      // Mock Auth API
       const authApiKeyPair = await generateKeyPair("ES256");
       const authorisationApiUrl = new URL(
-        configService.get<string>("authorisationApiV3Url")
+        configService.get<string>("authorisationApiUrl")
       );
 
-      // Mock Auth API v3 /.well-known/openid-configuration endpoint
+      // Mock Auth API /.well-known/openid-configuration endpoint
       nock(authorisationApiUrl.origin)
         .get(`${authorisationApiUrl.pathname}/.well-known/openid-configuration`)
         .reply(200, {
@@ -166,7 +166,7 @@ describe("Logging interceptor", () => {
         })
         .persist();
 
-      // Mock Auth API v3 /jwks endpoint
+      // Mock Auth API /jwks endpoint
       const publicKeyJwk = await exportJWK(authApiKeyPair.publicKey);
       const kid = await calculateJwkThumbprint(publicKeyJwk);
       nock(authorisationApiUrl.origin)

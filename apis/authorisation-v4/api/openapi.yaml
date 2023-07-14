@@ -1,0 +1,1257 @@
+openapi: 3.1.0
+info:
+  title: Authorisation API v4
+  version: 4.0.0
+  description: |
+    The Authorisation API is a core EBSI service responsible for managing access to the protected EBSI services. Legal entities must present a valid Verifiable Authorisations or Verifiable Accreditations in a form of a Verifiable Presentations to get a short-lived access token with a lifetime of 2 hours. Access tokens have a limited scope according to the Legal Entity's authorisations.
+    Users receive access tokens after they present a valid EBSI Verifiable Credential and prove ownership over their DID. There is one exception to this rule during the onboarding process. Since the user does not yet have ownership over a DID, they are only required to present a *VerifiableAuthorisationToOnboard* in this case.
+
+    The following capabilities are used:
+
+    + [Authorisation Server discovery](https://openid.net/specs/openid-connect-discovery-1_0.html) the /.well-known/openid-configuration
+    + [OpenID for Verifiable Presentation](https://openid.net/specs/openid-4-verifiable-presentations-1_0-14.html) capabilities (v 0.14)
+    + [OIDC](https://openid.net/specs/openid-connect-core-1_0.html) capabilities (v1.0)
+
+    EBSI Platform distinguishes between identified and anonymous users. Both types of users have different sets of intents.
+    Identified users are legal entities who are using the trusted registries (DID registry and Trusted Issuer Registry).
+    Anonymous users can only read public information, so they can call all the REST endpoints, but no the JSON-RPC endpoints.
+
+    For more information see:
+    + [CLI Tool page](https://api-pilot.ebsi.eu/docs/demonstrator): Test the capabilities using the EBSI CLI tool
+
+  termsOfService: https://api-pilot.ebsi.eu/docs/terms
+  contact:
+    name: EBSI Support - Service Desk
+    url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11
+  license:
+    name: EUPL-1.2
+    url: https://joinup.ec.europa.eu/page/eupl-text-11-12
+servers:
+  - url: http://localhost
+    description: Local Computer Environment
+  - url: https://api-test.ebsi.eu
+    description: EBSI Test Environment
+  - url: https://api-pilot.ebsi.eu
+    description: EBSI Pilot Environment
+  - url: https://api-conformance.ebsi.eu
+    description: EBSI Conformance Environment
+tags:
+  - name: Authorisation Service
+    description: A service responsible for issuing short living access tokens
+paths:
+  /authorisation/v4/.well-known/openid-configuration:
+    get:
+      summary: OpenID Provider Metadata
+      operationId: get-v4-well-known-openid-config
+      tags:
+        - Authorisation Service
+      description: Exposes the configuration of the OpenID Provider
+      responses:
+        "200":
+          description: OpenID Provider Metadata
+          content:
+            application/json:
+              schema:
+                title: OpenID Configuration
+                description: |
+                  It builds on the following specifications:
+                  - [OIDC - Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
+                  - [OAuth 2.0 Pushed Authorization Requests](https://www.rfc-editor.org/rfc/rfc9126.html)
+                  - [SIOPv2 - Provider Metadata](https://openid.net/specs/openid-connect-self-issued-v2-1_0.html#name-self-issued-openid-provider-)
+                  - [OID4VP - Authorisation Server Metadata](https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#name-authorization-server-metada)
+                type: object
+                required:
+                  - issuer
+                  - authorization_endpoint
+                  - token_endpoint
+                  - jwks_uri
+                  - scopes_supported
+                  - response_types_supported
+                  - subject_types_supported
+                  - id_token_signing_alg_values_supported
+                properties:
+                  issuer:
+                    title: Issuer
+                    description: |
+                      REQUIRED. URL using the https scheme with no query or fragment component that the OP asserts as its Issuer Identifier. MUST be identical to the iss Claim value in ID Tokens issued from this Issuer.
+
+                      Note: issuer refers to OpenID Connect issuer or the Authorization Server and not to the Verifiable Credential issuer.
+
+                      Ref: [OIDC](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
+                    type: string
+                    format: URI
+                    example: https://api-test.ebsi.eu/authorisation/v4
+                  authorization_endpoint:
+                    title: Authorization Endpoint
+                    description: |
+                      REQUIRED. URL of the OP's OAuth 2.0 Authorization Endpoint [OpenID.Core].
+
+                      Note: The Authorization Endpoint is a conceptual entity and does not have a physical manifestation. The Token Endpoint and Presentation Endpoint serve as the primary components responsible for providing user authorization.
+
+                      Ref: [OIDC](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
+                    type: string
+                    format: URI
+                    example: https://api-test.ebsi.eu/authorisation/v4/authorize
+                  token_endpoint:
+                    title: Token Endpoint
+                    description: |
+                      CONDITIONAL. URL of the OP's OAuth 2.0 Token Endpoint.
+
+                      Note: This endpoint is REQUIRED unless implicit flow is used.
+
+                      Ref: [OIDC](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
+                    type: string
+                    format: URI
+                    example: https://api-test.ebsi.eu/authorisation/v4/token
+                  presentation_definition_endpoint:
+                    title: Presentation Definitions Endpoint
+                    description: |
+                      OPTIONAL. URL of the OP's presentation definitions endpoint.
+
+                      Non-standard (yet). Used in EBSI.
+                    type: string
+                    format: URI
+                    example: https://api-test.ebsi.eu/authorisation/v4/presentation-definitions
+                  jwks_uri:
+                    title: JWKS URI
+                    description: |
+                      REQUIRED. URL of the authorization server's JWK Set [JWK] document.  The referenced document contains the signing key(s) the client uses to validate signatures from the authorization server. This URL MUST use the \"https\" scheme.  The JWK Set MAY also contain the server's encryption key(s), which are used by clients to encrypt requests to the server.  When both signing and encryption keys are made available, a \"use\" (public key use) parameter value is REQUIRED for all keys in the referenced JWK Set to indicate each key's intended usage.
+
+                      Ref: [OIDC](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
+                    type: string
+                    format: URI
+                    example: https://api-test.ebsi.eu/authorisation/v4/jwks
+                  scopes_supported:
+                    title: Supported Scopes
+                    description: |
+                      REQUIRED (by SIOP v2). JSON array containing a list of the OAuth 2.0 [RFC6749] scope values that this server supports. The server MUST support the openid scope value. Servers MAY choose not to advertise some supported scope values even when this parameter is used, although those defined in [OpenID.Core] SHOULD be listed, if supported.
+
+                      MUST contain 'openid'
+
+                      Ref:
+                      - [OIDC](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
+                      - [SIOPv2](https://openid.net/specs/openid-connect-self-issued-v2-1_0.html#name-self-issued-openid-provider-)
+                    type: array
+                    items:
+                      description: A list of openid scope values
+                      type: string
+                    example:
+                      - openid
+                      - didr_invite
+                      - didr_write
+                      - tir_invite
+                      - tir_write
+                  response_types_supported:
+                    title: Supported Response Types
+                    description: |
+                      REQUIRED (by SIOP v2). JSON array containing a list of the OAuth 2.0 \"response_type\" values that this authorization server supports. The array values used are the same as those used with the \"response_types\" parameter defined by \"OAuth 2.0 Dynamic Client Registration Protocol\" [RFC7591].
+
+                      If SIOP v2 is used: MUST be id_token
+
+                      Ref:
+                      - [OIDC](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
+                      - [SIOPv2](https://openid.net/specs/openid-connect-self-issued-v2-1_0.html#name-self-issued-openid-provider-)
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - token
+                  response_mode_supported:
+                    title: Supported Response Modes
+                    description: |
+                      OPTIONAL. JSON array containing a list of the OAuth 2.0 response_mode values that this OP supports, as specified in OAuth 2.0 Multiple Response Type Encoding Practices [OAuth.Responses]. If omitted, the default for Dynamic OpenID Providers is ["query", "fragment"].
+
+                      MUST be 'query'
+
+                      Ref:
+                      - [OIDC](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - query
+                      - fragment
+                  grant_types_supported:
+                    title: Supported Grant Types
+                    description: |
+                      JSON array containing a list of the OAuth 2.0 grant type values that this authorization server supports.  The array values used are the same as those used with the \"grant_types\" parameter defined by \"OAuth 2.0 Dynamic Client Registration Protocol\" [RFC7591].  If omitted, the default value is \"[\"authorization_code\", \"implicit\"]\".
+
+                      Ref:
+                      - [OIDC](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - vp_token
+                  subject_types_supported:
+                    title: Supported Subject Types
+                    description: |
+                      REQUIRED. JSON array containing a list of the Subject Identifier types that this OP supports. Valid types include pairwise and public.
+
+                      MUST be ['public']
+
+                      Ref:
+                      - [OIDC](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - public
+                  id_token_signing_alg_values_supported:
+                    title: ID Token Signing Algorithms
+                    description: |
+                      REQUIRED. JSON array containing a list of the JWS signing algorithms (alg values) supported by the OP for the ID Token to encode the Claims in a JWT [JWT].
+
+                      The algorithm ES256 MUST be included.
+                      Ref:
+                      - [OIDC](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
+                      - [SIOPv2](https://openid.net/specs/openid-connect-self-issued-v2-1_0.html)
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - ES256
+                  request_object_signing_alg_values_supported:
+                    title: Request Object Signing Algorithms
+                    description: |
+                      OPTIONAL. JSON array containing a list of the JWS signing algorithms (alg values) supported by the OP for Request Objects, which are described in Section 6.1 of OpenID Connect Core 1.0 [OpenID.Core]. These algorithms are used both when the Request Object is passed by value (using the request parameter) and when it is passed by reference (using the request_uri parameter).
+
+                      Servers MUST support none and ES256.
+
+                      Ref:
+                      - [OIDC](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
+                      - [SIOPv2](https://openid.net/specs/openid-connect-self-issued-v2-1_0.html)
+                    type: array
+                    items:
+                      type: string
+                      enum:
+                        - none
+                        - ES256
+                        - RS256
+                        - ES256K
+                        - EdDSA
+                  request_parameter_supported:
+                    title: Supported Request Parameters
+                    description: |
+                      OPTIONAL. Boolean value specifying whether the OP supports use of the request parameter, with true indicating support. If omitted, the default value is false.
+
+                      EBSI: MUST be true
+
+                      Ref:
+                      - [OIDC](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
+                    type: boolean
+                    example: true
+                  token_endpoint_auth_methods_supported:
+                    title: Token Endpoint Auth Methods
+                    description: |
+                      JSON array containing a list of client authentication methods supported by this token endpoint
+
+                      MUST contain 'private_key_jwt'
+                    type: array
+                    items:
+                      type: string
+                      enum:
+                        - private_key_jwt
+                  request_authentication_methods_supported:
+                    title: Request Authentication Methods
+                    description: |
+                      OPTIONAL. A JSON Object defining the client authentications supported for each endpoint. The endpoint names are defined in the IANA "OAuth Authorization Server Metadata" registry [IANA.OAuth.Parameters]. Other endpoints and authentication methods are possible if made recognizable according to established standards and not in conflict with the operating principles of this specification. In OpenID Connect Core, no client authentication is performed at the authentication endpoint. Instead, because the request itself is authenticated. What it amounts to is that the OP maps information in the request (like the redirect_uri) to information it has gained on the client through static or dynamic registration. If the map is successful, the request can be processed. If the RP uses Automatic Registration, as defined in Section 10.1, the OP has no prior knowledge of the RP. Therefore, the OP must start by gathering information about the RP using the process outlined in Section 6. Once it has the RP's metadata, the OP can verify the request in the same way as if it had known the RP's metadata beforehand. To make the request verification more secure, we demand the use of a client authentication or verification method that proves that the RP is in possession of a key that appears in the RP's metadata.
+
+                      Reference: <https://openid.net/specs/openid-connect-federation-1_0.html#name-op-metadata>
+                    type: object
+                    properties:
+                      authorization_endpoint:
+                        description: |
+                          MUST be present. The value MUST be 'request_object'
+                        type: array
+                        items:
+                          type: string
+                          enum:
+                            - request_object
+                  vp_formats_supported:
+                    title: Supported VP Formats
+                    description: |
+                      REQUIRED. An object containing a list of key value pairs, where the key is a string identifying a credential format supported by the AS. Valid credential format identifiers values are defined in Annex E of [OpenID.VCI]. Other values may be used when defined in the profiles of this specification.
+                    type: object
+                    properties:
+                      jwt_vp:
+                        title: JWC VP
+                        type: object
+                        properties:
+                          alg_values_supported:
+                            description: |
+                              An object where the value is an array of case sensitive strings that identify the cryptographic suites that are supported. Cryptosuites for Verifiable Presentations.
+                              MUST contain ES256
+                            type: array
+                            items:
+                              type: string
+                              enum:
+                                - ES256
+                      jwt_vc:
+                        title: JWC VC
+                        type: object
+                        properties:
+                          alg_values_supported:
+                            description: |
+                              An object where the value is an array of case sensitive strings that identify the cryptographic suites that are supported. Cryptosuites for Verifiable Credentials in jwt_vc_json, json_vc_json-ld, jwt_vp_json, json_vp_json-ld formats should use algorithm names defined in IANA JOSE Algorithms Registry. Cryptosuites for Verifiable Credentials in ldp_vc and ldp_vp format should use signature suites names defined in Linked Data Cryptographic Suite Registry. Cryptosuites for Verifiable Credentials in mso_mdoc format should use signature suites names defined in ISO/IEC 18013-5:2021. Parties using other credential formats will need to agree upon the meanings of the values used, which may be context-specific.
+
+                              MUST contain ES256
+                            type: array
+                            items:
+                              type: string
+                              enum:
+                                - ES256
+                  subject_syntax_types_supported:
+                    title: Supported Subject Syntax Types
+                    description: |
+                      REQUIRED. A JSON array of strings representing URI scheme identifiers and optionally method names of supported Subject Syntax Types defined in {#sub-syntax-type}. When Subject Syntax Type is JWK Thumbprint, valid value is urn:ietf:params:oauth:jwk-thumbprint defined in [RFC9278]. When Subject Syntax Type is Decentralized Identifier, valid values MUST be a did: prefix followed by a supported DID method without a : suffix. For example, support for the DID method with a method-name "example" would be represented by did:example. Support for all DID methods listed in Section 13 of [DID_Specification_Registries] is indicated by sending did without any method-name.
+
+                      Reference: https://openid.net/specs/openid-connect-self-issued-v2-1_0.html
+
+                      MUST contain: did:ebsi, did:key
+                    type: array
+                    items:
+                      type: string
+                      format: URI
+                    example:
+                      - "did:ebsi"
+                      - "did:key"
+                  subject_trust_frameworks_supported:
+                    title: Supported Trust Frameworks
+                    description: |
+                      REQUIRED. A JSON array of supported trust frameworks.
+
+                      MUST contain: 'ebsi'
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - ebsi
+                  id_token_types_supported:
+                    title: Supported ID Token types
+                    description: |
+                      OPTIONAL. A JSON array of strings containing the list of ID Token types supported by the OP, the default value is attester_signed_id_token. The ID Token types defined in this specification are:
+                      - `subject_signed_id_token`: Self-Issued ID Token, i.e. the id token is signed with key material under the end-user's control.
+                      - `attester_signed_id_token`: the id token is issued by the party operating the OP, i.e. this is the classical id token as defined in [OpenID.Core].
+
+                        MUST be subject_signed_id_token
+                    type: array
+                    items:
+                      type: string
+                      enum:
+                        - subject_signed_id_token
+                    example:
+                      - subject_signed_id_token
+              examples:
+                authorisation_v3:
+                  summary: |
+                    Profile: Authorisation Server v3
+                  value:
+                    issuer: https://api-test.ebsi.eu/authorisation/v4
+                    authorization_endpoint: https://api-test.ebsi.eu/authorisation/v4/authorize
+                    id_token_signing_alg_values_supported:
+                      - ES256
+                    grant_types_supported:
+                      - vp_token
+                    jwks_uri: /jwks
+                    presentation_definitions_endpoint: https://api-test.ebsi.eu/authorisation/v4/presentation_definitions
+                    response_types_supported:
+                      - vp_token
+                    request_parameter_supported: true
+                    request_uri_parameter_supported: false
+                    scopes_supported:
+                      - openid
+                      - didr_invite
+                      - didr_write
+                      - tir_invite
+                      - tir_write
+                    token_endpoint: https://api-test.ebsi.eu/authorisation/v4/token
+                    subject_types_supported:
+                      - public
+                    token_endpoint_auth_methods_supported:
+                      - private_key_jwt
+                    request_authentication_methods_supported:
+                      token_endpoint:
+                        - vp_token
+                    vp_formats_supported:
+                      jwt_vp:
+                        alg_values_supported:
+                          - ES256
+                      jwt_vc:
+                        alg_values_supported:
+                          - ES256
+                    subject_syntax_types_supported:
+                      - "did:key"
+                      - "did:ebsi"
+                    subject_trust_frameworks_supported:
+                      - ebsi
+                    id_token_types_supported:
+                      - subject_signed_id_token
+        "500":
+          description: Internal Server Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  value:
+                    title: Internal error
+                    status: 500
+                    detail: Internal error
+  /authorisation/v4/jwks:
+    get:
+      operationId: get-v3-jwks
+      description: Exposes the public keys of the authorisation service in JWKS format
+      tags:
+        - Authorisation Service
+      summary: OpenID Provider's public keys
+      responses:
+        "200":
+          description: JSON Web Key Set
+          content:
+            application/jwk-set+json:
+              schema:
+                $ref: "#/components/schemas/jwks"
+              examples:
+                JSON Web Key Set:
+                  summary: JSON Web Key Set
+                  value:
+                    keys:
+                      - kty: EC
+                        crv: P-256
+                        alg: ES256
+                        x: 9Cn5hmFfG-uVuixEk4zCdeF6ZLeeWuvqfGPPWMKDKOw
+                        y: yNnt9p06g8gzoKToQZwzJ-7z6ES-dR2PkyV6oQecaUA
+                        kid: hcpxQ2xL8ncXKB9SoEgW2ImiG_4WR5NXJvQ_PGuHO5k
+        "500":
+          description: Internal Server Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  value:
+                    title: Internal error
+                    status: 500
+                    detail: Internal error
+  /authorisation/v4/presentation-definitions:
+    get:
+      operationId: get-v3-presentation-definitions
+      tags:
+        - Authorisation Service
+      summary: Presentation definition requirements
+      description: Get presentation definition requirements
+      parameters:
+        - in: query
+          name: scope
+          description: OIDC scope
+          schema:
+            type: string
+            enum:
+              - openid didr_write
+              - openid didr_invite
+              - openid tir_write
+              - openid tir_invite
+          examples:
+            didr_write:
+              summary: Write to DID Registry
+              value: openid didr_write
+            didr_invite:
+              summary: Register DID into DID Registry
+              value: openid didr_invite
+            tir_write:
+              summary: Write to TIR Registry
+              value: openid tir_write
+            tir_invite:
+              summary: Register VC into Trusted Issuers Registry
+              value: openid tir_invite
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/presentation_definition_response"
+              examples:
+                didr_invite:
+                  summary: DIDR invite
+                  value:
+                    id: didr_invite_presentation
+                    input_descriptors:
+                      - id: didr_invite_credential
+                        name: Accreditation to write to the DID Registry
+                        purpose: >-
+                          Please present a valid VerifiableAuthorisationToOnboard issued by Root TAO
+                          or TAO
+                        constraints:
+                          fields:
+                            - path:
+                                - $.type
+                              filter:
+                                type: array
+                                contains:
+                                  const: VerifiableAuthorisationToOnboard
+                    format:
+                      jwt_vc:
+                        alg:
+                          - ES256
+                      jwt_vp:
+                        alg:
+                          - ES256
+                tir_invite:
+                  summary: TIR invite
+                  value:
+                    id: tir_invite_presentation
+                    input_descriptors:
+                      - id: tir_invite_credential
+                        name: Accreditation to write to the Trusted Issuers Registry
+                        purpose: >-
+                          Please present a valid VerifiableAuthorisationForTrustChain from EBSI TO,
+                          or a Verifiable Accreditation (VerifiableAccreditationToAttest,
+                          VerifiableAccreditationToAccredit) issued by Root TAO or TAO.
+                        constraints:
+                          fields:
+                            - path:
+                                - $.type
+                              filter:
+                                type: array
+                                contains:
+                                  anyOf:
+                                    - const: VerifiableAuthorisationForTrustChain
+                                    - const: VerifiableAccreditationToAttest
+                                    - const: VerifiableAccreditationToAccredit
+                    format:
+                      jwt_vc:
+                        alg:
+                          - ES256
+                      jwt_vp:
+                        alg:
+                          - ES256
+                didr_write:
+                  summary: DIDR write
+                  value:
+                    id: didr_write_presentation
+                    name: Any type of Verifiable Attestation
+                    purpose: >-
+                      Please present a valid Presentation signed by a registered Legal Entity.
+                    input_descriptors: []
+                    format:
+                      jwt_vc:
+                        alg:
+                          - ES256
+                      jwt_vp:
+                        alg:
+                          - ES256
+                tir_write:
+                  summary: TIR write
+                  value:
+                    id: tir_write_presentation
+                    name: Any type of Verifiable Attestation
+                    purpose: >-
+                      Please present a valid Presentation signed by a Trusted Issuer.
+                    input_descriptors: []
+                    format:
+                      jwt_vc:
+                        alg:
+                          - ES256
+                      jwt_vp:
+                        alg:
+                          - ES256
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Bad Request:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: '["scope must be a combination of ''openid'' and one of the supported scopes (''did_write'', ''tir_write'')"]'
+                    type: "about:blank"
+        "500":
+          description: Internal Server Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  value:
+                    title: Internal error
+                    status: 500
+                    detail: Internal error
+  /authorisation/v4/token:
+    post:
+      operationId: post-v3-token
+      tags:
+        - Authorisation Service
+      summary: Token Endpoint
+      description: Users receive access tokens after they present a valid EBSI Verifiable Credential and prove ownership over their DID.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              required:
+                - grant_type
+                - vp_token
+                - presentation_submission
+                - scope
+              type: object
+              properties:
+                grant_type:
+                  description: MUST be set to "vp_token"
+                  type: string
+                  example: vp_token
+                vp_token:
+                  description: Signed Verifiable Presentation. See also the VP Token schema definition.
+                  type: string
+                  example: eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsImtpZCI6ImRpZDplYnNpOnp2SFdYMzU5QTNDdmZKbkNZYUFpQWRlI0YwcjVPeXRfbGFodnZ6Nk1XbFlzM21jWU5LWmlpUWRVZnF2OHRzaEhOOXcifQ.eyJpc3MiOiJkaWQ6ZWJzaTowMDAxMjM0NSIsImF1ZCI6ImRpZDplYnNpOnp4QTl0NFoydW9yRVZueDlualdVWXZSIiwibm9uY2UiOiIxMjM0NTY3ODkwIiwiZXhwIjoxNjY4NzU1NzY4LCJpYXQiOjE2Njg3NTQyNjgsInZwIjp7IkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIl0sInR5cGUiOlsiVmVyaWZpYWJsZVByZXNlbnRhdGlvbiJdLCJob2xkZXIiOiJkaWQ6ZWJzaTowMDAxMjM0NSIsInZlcmlmaWFibGVDcmVkZW50aWFsIjpbImV5SjBlWEFpT2lKS1YxUWlMQ0poYkdjaU9pSkZVekkxTmlJc0ltdHBaQ0k2SW1ScFpEcGxZbk5wT25wMlNGZFlNelU1UVRORGRtWktia05aWVVGcFFXUmxJMFl3Y2pWUGVYUmZiR0ZvZG5aNk5rMVhiRmx6TTIxaldVNUxXbWxwVVdSVlpuRjJPSFJ6YUVoT09YY2lmUS5lMzAuMFUzZzVrZjJqZDZhN1hNTjBtNXhva091UmhkSlZRZzhFR3UtclQwUVJ2bWJUbm41a0RYbi1tVWhCRWp4SVQxeFkxRmc5YWtRWlBrQmNlR3BuWXZpSFEiXX19.CfwWBrkwOYyrm93A4QEaCCKvG14G0iqr-smrUyrUyC7YBOxhSkYPZgvOy6YCsjFT59Gczd_C0K8Pbni-AH7NRQ
+                presentation_submission:
+                  description: Descriptor for the vp_token, linked by presentation_definition. See also the Presentation Definition schema.
+                  type: string
+                  example: |
+                    Non-normative example:
+                    {
+                      "id": "jwt_vp with one jwt_vc",
+                      "definition_id": "Selecting JWT from credentials",
+                      "descriptor_map": [
+                        {
+                          "id": "requested credential id",
+                          "format": "jwt_vp",
+                          "path": "$",
+                          "path_nested": {
+                            "format": "jwt_vc",
+                            "path": "$.vp.verifiableCredential[0]"
+                          }
+                        }
+                      ]
+                    }
+                scope:
+                  description: OIDC scope
+                  type: string
+                  enum:
+                    - openid didr_write
+                    - openid didr_invite
+                    - openid tir_write
+                    - openid tir_invite
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/access_token_response"
+              examples:
+                Token Response:
+                  summary: Token Response
+                  value:
+                    access_token: jwt
+                    id_token: jwt
+                    token_type: Bearer
+                    scope: openid tir_write
+                    expires_in: 7200
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Bad Request:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: '["grant_type must be equal to vp_token","scope should not be null or undefined","vp_token must be a jwt string","presentation_submission must be a non-empty object)"]'
+                    type: "about:blank"
+        "500":
+          description: Internal Server Error
+          content:
+            "application/problem+json":
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  value:
+                    title: Internal error
+                    status: 500
+                    detail: Internal error
+  /authorisation/v4/authentication-requests:
+    post:
+      operationId: post-authorisation-v2-authentication-requests
+      summary: Initiate a SIOP DID Auth request
+      description: Natural Person and Legal Entities entry point to initiate a SIOP DID Auth Request.
+      requestBody:
+        description: |
+          [conformance description]
+          [EBSI conformance testing](https://api-conformance.ebsi.eu/docs/wallet-conformance)
+
+          The API supports the following EBSI conformance tests
+          - Request Access Token (CT ONBOARD_051)
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthenticationRequest"
+            examples:
+              OIDC SIOP Authentication Request:
+                description: |
+                  EBSI supports OIDC and OAuth2 authentication, hence the scope MUST a valid EBSI authentication scope.
+                  The endpoint returns an OIDC SIOP V2 authentication request as URI string.
+                value:
+                  scope: openid did_authn
+        required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticationRequestResponse"
+              examples:
+                Authentication Request:
+                  value:
+                    uri: "openid://?response_type=id_token&client_id=https%3A%2F%2Fapi-pilot.ebsi.eu%2Fauthorisation%2Fv2%2Fsiop-sessions&scope=openid+did_authn&nonce=09e8ebfe-674e-4e4c-82b3-da153f8625c2&request=eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJodHRwczovL2FwaS1waWxvdC5lYnNpLmV1L3RydXN0ZWQtYXBwcy1yZWdpc3RyeS92My9hcHBzL2F1dGhvcmlzYXRpb24tYXBpX3BpbG90LXRlbXAtMDEifQ.eyJzY29wZSI6Im9wZW5pZCBkaWRfYXV0aG4iLCJyZXNwb25zZV90eXBlIjoiaWRfdG9rZW4iLCJyZXNwb25zZV9tb2RlIjoicG9zdCIsImNsaWVudF9pZCI6Imh0dHBzOi8vYXBpLXBpbG90LmVic2kuZXUvYXV0aG9yaXNhdGlvbi92Mi9zaW9wLXNlc3Npb25zIiwicmVkaXJlY3RfdXJpIjoiaHR0cHM6Ly9hcGktcGlsb3QuZWJzaS5ldS9hdXRob3Jpc2F0aW9uL3YyL3Npb3Atc2Vzc2lvbnMiLCJub25jZSI6IjA5ZThlYmZlLTY3NGUtNGU0Yy04MmIzLWRhMTUzZjg2MjVjMiIsImNsYWltcyI6eyJpZF90b2tlbiI6eyJ2ZXJpZmllZF9jbGFpbXMiOnsidmVyaWZpY2F0aW9uIjp7InRydXN0X2ZyYW1ld29yayI6IkVCU0kiLCJldmlkZW5jZSI6eyJ0eXBlIjp7InZhbHVlIjoidmVyaWZpYWJsZV9jcmVkZW50aWFsIn0sImRvY3VtZW50Ijp7InR5cGUiOnsiZXNzZW50aWFsIjp0cnVlLCJ2YWx1ZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCIsIlZlcmlmaWFibGVBdXRob3Jpc2F0aW9uIl19LCJjcmVkZW50aWFsU2NoZW1hIjp7ImlkIjp7ImVzc2VudGlhbCI6dHJ1ZSwidmFsdWUiOiJodHRwczovL2FwaS1waWxvdC5lYnNpLmV1L3RydXN0ZWQtc2NoZW1hcy1yZWdpc3RyeS92Mi9zY2hlbWFzL3pITXA1MkxxSldvY21oQTlSa3puVFd1RWVjSlhvUERLdzNrV1FwODFZWTlwQyJ9fX19fX19fSwiaWF0IjoxNjcyODQxODgxLCJpc3MiOiJhdXRob3Jpc2F0aW9uLWFwaV9waWxvdC10ZW1wLTAxIiwiZXhwIjoxNjcyODQyMTgxfQ.Z8jVzKtcTtSD1kBlYin_1jnfZ6BhhYdo18lUSf5xz0RFtkoPonsQyKsS7u72w7fV3oxWUs8YV7QAynGyUxuR_w"
+        "400":
+          $ref: "#/components/responses/400"
+        "500":
+          $ref: "#/components/responses/500"
+  /authorisation/v4/siop-sessions:
+    post:
+      operationId: post-authorisation-v2-siop-sessions
+      summary: Create a SIOP Session
+      description: Sessions Token endpoint as the callback for DID SIOP Response.
+      requestBody:
+        description: |
+          The request body must contain an ID Token (parameter name: `id_token`).
+          The VP token is deprecated.
+
+          The ID Token should be a JWT.
+          Its header must contain the signer's `kid` (e.g. `"kid": "did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw#keys-1"`).
+          The ID Token payload must contain the following fields:
+          - `aud`: the URL of the /siop-sessions endpoint, e.g. "https://api-pilot.ebsi.eu/authorisation/v2/siop-sessions"
+          - `sub`: the subject
+          - `sub_jwk`: the JWK used to sign the JWT
+          - `nonce`: a random UUID
+          - `claims`:
+            - `encryption_key`: public key used to encrypt the response
+          - `responseMode`: should be "form_post",
+          - `iss`: should be "https://self-issued.me/v2",
+          - `_vp_token`: only if the request also contains a VP token.
+            - `presentation_submission`: a VP submission object (https://identity.foundation/presentation-exchange/spec/v2.0.0/#presentation-submission).
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/SiopSessionsRequest"
+        required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ake1SiopResponse"
+              examples:
+                Encrypted access token:
+                  value:
+                    ake1_enc_payload: ce527bf1e06bd6241625d54e76bdb5ac029c455f97324ed20a5038724966ba5d9befd49195b4841b513c7f23e785c99f87bad2e255cbceb1152cef05b15137a1411520d8d578961f16d6c59ec042889e45cb4d3965d9d859dac8f217b3b3776ad342a605f2bb985d820ad8b0f6cb2c7c40da4d1ebd3efb5a3d57507e0479801c088e68b277fac799f852c1053a1dacc7cdb921cff2006eaf1b3fa3a5b64de91e991390b7317814625f490a1354dc2b69498b2bfad7caf0e819ebd93cccb2ef26e399d996ab19910605d798dacf9f78489dd7bac8613b5da28314e1153d929a9059decedce00eeb2848ee95f14e523f9f12372e71b9db4ebe702ce508d2dbc1e5cbdafcd5a15afe397fb35f9a45424c6aac43380b054185cbac4f498a5db4dcf517cf8bc760354c26e2e1af37dbdf06f888e5d424a66ab9546475b187787b557d197af20c7ac1e0639acf0304f051194da4be7c8badb0747b3e669ffd7ffe5a2c9c2060f338d8e4eb3010e10e6a67a1c8fe21d48ee7bc5d540497071f80dd36e58d309e868837c193dd5646b33baa61c3c190d5ce44d08bc6820d240e14edd12af9ae8242e5a7186c1697426d14e97101313331cb1d803030cd2d6d2799852bda0dbc80b3c927efffc19d170327ac11c5d645b83c38fdcfb9ac779d9eac795d8eb671fe0ade56cdcb020261e1bf6d2e1d2fdfc1f954959c2d5516adf3f2abcee298c92b5451e3dee89d1903b8390fe9a426278ec879a59e682eabf8b8f3ad4482de9c636a41e506c82d7d0be1a92d926ba7fb05779f2612a86f8b47e10477b1d6080044d1f983cf3cb81e35af5b3ea4205e1d25ce0b6d20755442904d670380082203e25d4326df0ab47ee8bb404f98d5184a3949e043a0656e856f78f442fb33a2ec63c7347520c796fb721bfc0c6106c0db9e0580ba17aa3f96abf1a4744256635803f90bcfce185ddba20a8635a1c59f68760220ddaf296ac3a582ea953f928290c50f186ea8909a9a94a82b6b1c8204f243a4ed4cef5fd672959cec8359a57ac08c4b41ccb515b963f675af7cf4a9bef97f13942a63678680fb8f9e2de766f3c578d6f5913d7e71aafbd5ebc965b90ce4c3dc4a7bc2af74754c3e7c05fc3fbd1851ee5caa4723fe7bf5a9cd804a979bbd341836bcb3e82ad164748cb46f5d9fd4b599d27a307962eea6465eb91a6155
+                    ake1_sig_payload:
+                      iat: 1672841881
+                      exp: 1672842781
+                      ake1_nonce: 53a6e914-ef94-412b-b226-82da24be3dd9
+                      ake1_enc_payload: ce527bf1e06bd6241625d54e76bdb5ac029c455f97324ed20a5038724966ba5d9befd49195b4841b513c7f23e785c99f87bad2e255cbceb1152cef05b15137a1411520d8d578961f16d6c59ec042889e45cb4d3965d9d859dac8f217b3b3776ad342a605f2bb985d820ad8b0f6cb2c7c40da4d1ebd3efb5a3d57507e0479801c088e68b277fac799f852c1053a1dacc7cdb921cff2006eaf1b3fa3a5b64de91e991390b7317814625f490a1354dc2b69498b2bfad7caf0e819ebd93cccb2ef26e399d996ab19910605d798dacf9f78489dd7bac8613b5da28314e1153d929a9059decedce00eeb2848ee95f14e523f9f12372e71b9db4ebe702ce508d2dbc1e5cbdafcd5a15afe397fb35f9a45424c6aac43380b054185cbac4f498a5db4dcf517cf8bc760354c26e2e1af37dbdf06f888e5d424a66ab9546475b187787b557d197af20c7ac1e0639acf0304f051194da4be7c8badb0747b3e669ffd7ffe5a2c9c2060f338d8e4eb3010e10e6a67a1c8fe21d48ee7bc5d540497071f80dd36e58d309e868837c193dd5646b33baa61c3c190d5ce44d08bc6820d240e14edd12af9ae8242e5a7186c1697426d14e97101313331cb1d803030cd2d6d2799852bda0dbc80b3c927efffc19d170327ac11c5d645b83c38fdcfb9ac779d9eac795d8eb671fe0ade56cdcb020261e1bf6d2e1d2fdfc1f954959c2d5516adf3f2abcee298c92b5451e3dee89d1903b8390fe9a426278ec879a59e682eabf8b8f3ad4482de9c636a41e506c82d7d0be1a92d926ba7fb05779f2612a86f8b47e10477b1d6080044d1f983cf3cb81e35af5b3ea4205e1d25ce0b6d20755442904d670380082203e25d4326df0ab47ee8bb404f98d5184a3949e043a0656e856f78f442fb33a2ec63c7347520c796fb721bfc0c6106c0db9e0580ba17aa3f96abf1a4744256635803f90bcfce185ddba20a8635a1c59f68760220ddaf296ac3a582ea953f928290c50f186ea8909a9a94a82b6b1c8204f243a4ed4cef5fd672959cec8359a57ac08c4b41ccb515b963f675af7cf4a9bef97f13942a63678680fb8f9e2de766f3c578d6f5913d7e71aafbd5ebc965b90ce4c3dc4a7bc2af74754c3e7c05fc3fbd1851ee5caa4723fe7bf5a9cd804a979bbd341836bcb3e82ad164748cb46f5d9fd4b599d27a307962eea6465eb91a6155
+                      did: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw
+                      iss: authorisation-api_pilot-temp-01
+                    ake1_jws_detached: eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJodHRwczovL2FwaS1waWxvdC5lYnNpLmV1L3RydXN0ZWQtYXBwcy1yZWdpc3RyeS92My9hcHBzL2F1dGhvcmlzYXRpb24tYXBpX3BpbG90LXRlbXAtMDEifQ..bJ5gwcsgYcRTpMAJYpkUPGSYA962eioQ94Yju7buVGneuCCmelxWH-ZhKxMf7RolebgdVrrnNIIhdTZLJ8NpMw
+                    kid: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps/authorisation-api_pilot-temp-01
+        "400":
+          $ref: "#/components/responses/400"
+        "500":
+          $ref: "#/components/responses/500"
+  /authorisation/v4/oauth2-sessions:
+    post:
+      operationId: post-authorisation-v4-oauth2-sessions
+      summary: Create an OAuth2 Session
+      description: Session Token endpoint for Component Authorisation (DID Auth - CCG Flow).
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OAuth2SessionsRequest"
+            examples:
+              OAuth2 Session Request:
+                value:
+                  grantType: client_credentials
+                  clientAssertionType: "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+                  clientAssertion: eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS1waWxvdC5lYnNpLmV1L3RydXN0ZWQtYXBwcy1yZWdpc3RyeS92My9hcHBzL3Rlc3QtYXBwLXBpbG90MiJ9.eyJpYXQiOjE2NzI4NDUxOTYsImV4cCI6MTY3Mjg0NTIxMSwianRpIjoiZDQwNzdmMzctNzMxYy00Y2M0LThmYmItZDE0MWE5MjUyODViIiwiYXVkIjoibGVkZ2VyLWFwaSIsInN1YiI6InRlc3QtYXBwLXBpbG90MiIsIm5vbmNlIjoiOWEzNTQxODQtMzlmMy00MGJiLTg1NDctMjc5N2YzZDhlNThhIiwiaXNzIjoidGVzdC1hcHAtcGlsb3QyIn0.enmQemuwwkBSPTokpUjacOSgjM4JIo6OnHLaOiw_A3lwwJqGssBjHOfrxEIVOBCvdtLOSFDa6he8qCnqGef95Q
+                  scope: openid did_authn
+        required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ake1OAuth2Response"
+              examples:
+                OAuth2 response:
+                  value:
+                    ake1_enc_payload: a5c94fe3c30baec627ab0afb26cf4b5f0319f3eb08752991fb98149e16549a2be069461ce0de3b83f3066027da8565d4516d043c1572b837a0263ffe493c5ded124bf4aaf060e87006e21d4b658abf43b6953f1f23ff982acc74d2c341545f976c5052e07730b304aa6bd37bbc8f54535c6ff84fffcf6caadb1757a854c8d559000bd1fb255e83b2e6a79e5a23a7b67c429ffa4a3e1a7acdc18c4cc7b623584a2ce612ae8052ecc42e116a0664c85c0c30f366c9a42d8d3ffc76e0da3b2c16e0cf19a90086d9c0f9db05218197f8bf07060d27b5c6caac3afdb90b4292123f80df6dbd7922b975335f408b74671790413e02c30d9db9ca96cb9bc25a9e51853f408bd565cadfaaf06526799deb2be248d67c82aaf13010dddaa40dbffe2e0e1fb5689ccbca3785707e188d2cf10f320aca678ff48491d4dec3227e2c17c9843fd8283ce79a3ee212c81063248507dbb694c11eb893235e0b6dc69e78eb69c4fc85ecaa91c8c72c43fd5362fe1f382f57f4dd7b0ee03a5542c83602a437e4b03fb434f6a44e4a04f0adbf30abacdaa69a5b826c77ac3faa27a650f3bcff21cdd1f6793df3dad9bae33496c9da4acba4c8fd793bc23f0d9032d416e753cd802153dc0ea3925d1110367322cba5450ceceb3cd3d4228228177dd8d667eda5691030183e0d3f1be40ac793d1d42af344895d85fb84d9374a344e8f95a33b1c740fa4c84ee016765a63fceda74d5decbf5ee76df9119c73491449a70554541900348b306ab07111312d2b74c226df7f194be00b8335a207bd41399487bd4216edf078a11b8a8b9b93d50e2cb673ccbce0b97d994b54b97068ef317e1136193b17d34764e6ec9c68be69b42aaf1aa1c9bb448dd38eb3a96957fc0a5b81c4710921c6605da420614042518739a02f8ed44338236733a5b2964a3bba2e4333034cb14746e6c2692445c65e8ec124c8e49413d01d86cd1b3dbd863807dc1d9a408e47c46c02f3e7bacbcbc387b03ebd26be6bd1d6f70f5c308081a8ca66beaea71ffee9d1cc375fc299323c938f5c200a2f031380f5347d1604d57a4af3c35a4891e5b1e2bb8573e36a4e1af5fbe62e1b188d119a6b07b25bda8086f3f0aa2139ee4e7144cd
+                    ake1_sig_payload:
+                      iat: 1672845197
+                      exp: 1672846097
+                      ake1_nonce: 9a354184-39f3-40bb-8547-2797f3d8e58a
+                      ake1_enc_payload: a5c94fe3c30baec627ab0afb26cf4b5f0319f3eb08752991fb98149e16549a2be069461ce0de3b83f3066027da8565d4516d043c1572b837a0263ffe493c5ded124bf4aaf060e87006e21d4b658abf43b6953f1f23ff982acc74d2c341545f976c5052e07730b304aa6bd37bbc8f54535c6ff84fffcf6caadb1757a854c8d559000bd1fb255e83b2e6a79e5a23a7b67c429ffa4a3e1a7acdc18c4cc7b623584a2ce612ae8052ecc42e116a0664c85c0c30f366c9a42d8d3ffc76e0da3b2c16e0cf19a90086d9c0f9db05218197f8bf07060d27b5c6caac3afdb90b4292123f80df6dbd7922b975335f408b74671790413e02c30d9db9ca96cb9bc25a9e51853f408bd565cadfaaf06526799deb2be248d67c82aaf13010dddaa40dbffe2e0e1fb5689ccbca3785707e188d2cf10f320aca678ff48491d4dec3227e2c17c9843fd8283ce79a3ee212c81063248507dbb694c11eb893235e0b6dc69e78eb69c4fc85ecaa91c8c72c43fd5362fe1f382f57f4dd7b0ee03a5542c83602a437e4b03fb434f6a44e4a04f0adbf30abacdaa69a5b826c77ac3faa27a650f3bcff21cdd1f6793df3dad9bae33496c9da4acba4c8fd793bc23f0d9032d416e753cd802153dc0ea3925d1110367322cba5450ceceb3cd3d4228228177dd8d667eda5691030183e0d3f1be40ac793d1d42af344895d85fb84d9374a344e8f95a33b1c740fa4c84ee016765a63fceda74d5decbf5ee76df9119c73491449a70554541900348b306ab07111312d2b74c226df7f194be00b8335a207bd41399487bd4216edf078a11b8a8b9b93d50e2cb673ccbce0b97d994b54b97068ef317e1136193b17d34764e6ec9c68be69b42aaf1aa1c9bb448dd38eb3a96957fc0a5b81c4710921c6605da420614042518739a02f8ed44338236733a5b2964a3bba2e4333034cb14746e6c2692445c65e8ec124c8e49413d01d86cd1b3dbd863807dc1d9a408e47c46c02f3e7bacbcbc387b03ebd26be6bd1d6f70f5c308081a8ca66beaea71ffee9d1cc375fc299323c938f5c200a2f031380f5347d1604d57a4af3c35a4891e5b1e2bb8573e36a4e1af5fbe62e1b188d119a6b07b25bda8086f3f0aa2139ee4e7144cd
+                      kid: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps/test-app-pilot2
+                      iss: authorisation-api_pilot-temp-01
+                    ake1_jws_detached: eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS1waWxvdC5lYnNpLmV1L3RydXN0ZWQtYXBwcy1yZWdpc3RyeS92My9hcHBzL2F1dGhvcmlzYXRpb24tYXBpX3BpbG90LXRlbXAtMDEifQ..PHbuIxA7oSp8-6oh7BED0fEiFL8gItKETlFzaiuFIKH0aF3RRjJQv-CKc5kEfmhGSO8_46yD2qFXZnsTrHAJFg
+                    kid: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps/authorisation-api_pilot-temp-01
+        "400":
+          $ref: "#/components/responses/400"
+        "500":
+          $ref: "#/components/responses/500"
+components:
+  schemas:
+    access_token_response:
+      title: Access Token Response
+      type: object
+      required:
+        - access_token
+        - id_token
+        - token_type
+        - scope
+      properties:
+        access_token:
+          description: |
+            The access token issued by the authorization server in JWS format. See also the "Access Token" schema definition
+          type: string
+          example: 32164be2809b7e8acdaf
+          format: '^(([A-Za-z0-9\-_])+\.)([A-Za-z0-9\-_]+)(\.([A-Za-z0-9\-_]+)?$'
+        token_type:
+          description: MUST be Bearer
+          type: string
+          enum:
+            - Bearer
+          example: Bearer
+        expires_in:
+          minimum: 1
+          type: integer
+          description: The lifetime in seconds of the access token
+          example: 7200
+        scope:
+          description: The scope of the access token
+          type: string
+          enum:
+            - openid did_write
+            - openid tir_write
+        id_token:
+          description: ID Token value associated with the authenticated session. Presents client's identity. ID Token is issued in a JWS format. See also the "ID Token" schema definition.
+          example: eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJpYXQiOjE2NDE1NTI2MDAsInN1YiI6Imh0dHA6Ly9sb2NhbGhvc3Q6MzAwMCIsImF1ZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6MzAwMCIsImlzcyI6ImRpZDplYnNpOnoyMVNxTUo1M2ZZUzY5VlpSWVRVRURhZyJ9.YIdjUCinbG2DRU0VhFTOPcHK9D0iLcx6zBPmF94phfVOx8IVZwOLMfnEp_9xx87-UNODVCLWNR2UdjUgQyv14A
+          type: string
+          format: '^(([A-Za-z0-9\-_])+\.)([A-Za-z0-9\-_]+)(\.([A-Za-z0-9\-_]+)?$'
+    id_token:
+      title: ID Token
+      type: object
+      properties:
+        nonce:
+          type: string
+          example: d59fcb62-4773-4204-921d-fdb2b8f83dc9
+        sub:
+          type: string
+          example: did:ebsi:zv9SjR4kvy5Pd1VMXg5UecG
+        iss:
+          type: string
+          example: did:ebsi:zv9SjR4kvy5Pd1VMXg5UecG
+        aud:
+          type: string
+          example: https://conformance-test.ebsi.eu/conformance/v4/auth-mock
+        iat:
+          type: integer
+          example: 1681919060
+        exp:
+          type: integer
+          example: 1681919360
+        jti:
+          type: string
+          example: 55ea7b2b-845d-4d0e-a59f-83b52109d0f4
+    jwk:
+      title: JSON Web Key
+      type: object
+      properties:
+        kty:
+          type: string
+          example: EC
+        crv:
+          type: string
+          example: P-256
+        alg:
+          type: string
+          example: ES256
+        x:
+          type: string
+          example: ZYE6uX3XvQ9rLc6s0eeo2YiOM2VfwrEZOZXzTOthcHE
+        "y":
+          type: string
+          example: k-t1bfe-MmmXWQ0QaxK3uJMYlMNkJHYGUSLpxP9RQak
+        kid:
+          type: string
+          example: CG4OE7FEwwh4Nr7ip3l8gq31FZq3jYAJZMru362H9pU
+    jwks:
+      title: JSON Web Key Set
+      type: object
+      properties:
+        keys:
+          type: array
+          items:
+            $ref: "#/components/schemas/jwk"
+    # example_tir_write
+    presentation_definition_response:
+      title: Presentation Definition
+      description: |
+        Presentation Definition schema as defined in [Presentation Exchange
+         V2.0.0 JSON Schemas](https://identity.foundation/presentation-exchange/spec/v2.0.0/#json-schemas)
+         section
+      type: object
+      properties:
+        id:
+          type: string
+          example: didr_write_credential
+        name:
+          type: string
+          example: Accreditation to write to the DID Registry
+        purpose:
+          type: string
+          example: Please present a valid VerifiableAuthorisationToOnboard issued by Root TAO or TAO
+        format:
+          title: Presentation Definition Claim Format Designations
+          description: |
+            [DIF - Presentation Definition Claim Format Designations](https://identity.foundation/claim-format-registry/schemas/presentation-definition-claim-format-designations.json)
+          type: object
+          additionalProperties: false
+          properties:
+            jwt_vc:
+              type: object
+              additionalProperties: false
+              properties:
+                alg:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: string
+                    example: ES256
+            jwt_vp:
+              type: object
+              additionalProperties: false
+              properties:
+                alg:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: string
+                    example: ES256
+    #Removed "Submission requirement" since its a optional extension we dont use, thus better not include.
+    presentation_submission:
+      title: Presentation Submission
+      type: object
+      properties:
+        presentation_submission:
+          type: object
+          properties:
+            id:
+              type: string
+            definition_id:
+              type: string
+            descriptor_map:
+              type: array
+              items:
+                title: Descriptor
+                type: object
+                properties:
+                  id:
+                    type: string
+                  path:
+                    type: string
+                  path_nested:
+                    $ref: "#/components/schemas/presentation_submission/properties/presentation_submission/properties/descriptor_map/items"
+                  format:
+                    type: string
+                    enum:
+                      - jwt
+                      - jwt_vc
+                      - jwt_vp
+                      - ldp
+                      - ldp_vc
+                      - ldp_vp
+                required:
+                  - id
+                  - path
+                  - format
+                additionalProperties: false
+          required:
+            - id
+            - definition_id
+            - descriptor_map
+          additionalProperties: false
+      required:
+        - presentation_submission
+      additionalProperties: false
+    ProblemDetails:
+      title: Problem Details
+      description: A [Problem Details](https://datatracker.ietf.org/doc/html/rfc7807) object.
+      type: object
+      properties:
+        type:
+          type: string
+          format: uri
+          description: |
+            An absolute URI that identifies the problem type. When dereferenced, it SHOULD provide
+            human-readable documentation for the problem type.
+          default: "about:blank"
+        title:
+          type: string
+          description: A short summary of the problem type.
+          example: Internal Server Error
+        status:
+          type: integer
+          format: int32
+          description: |
+            The HTTP status code generated by the origin server for this occurrence of the problem.
+          minimum: 400
+          maximum: 600
+          example: 500
+        detail:
+          type: string
+          description: |
+            A human readable explanation specific to this occurrence of the problem.
+          example: Connection timeout
+        instance:
+          type: string
+          format: uri
+          description: |
+            An absolute URI that identifies the specific occurrence of the problem. It may or may
+            not yield further information if dereferenced.
+    vp_token:
+      title: VP Token
+      description: |
+        OPTIONAL. This object is used to return Verifiable Presentations (VPs) if
+        VPs were requested using VP token request (vp_token property in the claims parameter).
+      type: array
+      items:
+        type: object
+        required:
+          - format
+          - presentation
+        properties:
+          format:
+            description: |
+              REQUIRED. MUST specify format of the returned VP. MUST be jwt_vp
+              if Verifiable Presentation is returned in a JWT (JWS) format or
+              ldp_vp if the Verifiable Presentation is returned in a JSON-LD
+              format with Linked-Data Proof.
+            type: string
+          presentation:
+            description: REQUIRED. Base64 encoded W3C Verifiable Presentation
+            type: array
+            items:
+              type: string
+              format: Base64 encoded Verifiable Presentation
+      example:
+        - format: jwt_vp
+          presentation:
+            - ewogICAgImlzcyI6Imh0dHBzOi8vYm9vay5pdHNvdXJ3ZWIub...IH0
+    Ake1SiopResponse:
+      title: SIOP Session Response
+      description: Ake1 Response for OAuth2 authentication
+      type: object
+      properties:
+        ake1_enc_payload:
+          description: Encrypted payload with user's public key
+          type: string
+          example: ce527bf1e06bd6241625d54e76bdb5ac029c455f97324ed20a5038724966ba5d9befd49195b4841b513c7f23e785c99f87bad2e255cbceb1152cef05b15137a1411520d8d578961f16d6c59ec042889e45cb4d3965d9d859dac8f217b3b3776ad342a605f2bb985d820ad8b0f6cb2c7c40da4d1ebd3efb5a3d57507e0479801c088e68b277fac799f852c1053a1dacc7cdb921cff2006eaf1b3fa3a5b64de91e991390b7317814625f490a1354dc2b69498b2bfad7caf0e819ebd93cccb2ef26e399d996ab19910605d798dacf9f78489dd7bac8613b5da28314e1153d929a9059decedce00eeb2848ee95f14e523f9f12372e71b9db4ebe702ce508d2dbc1e5cbdafcd5a15afe397fb35f9a45424c6aac43380b054185cbac4f498a5db4dcf517cf8bc760354c26e2e1af37dbdf06f888e5d424a66ab9546475b187787b557d197af20c7ac1e0639acf0304f051194da4be7c8badb0747b3e669ffd7ffe5a2c9c2060f338d8e4eb3010e10e6a67a1c8fe21d48ee7bc5d540497071f80dd36e58d309e868837c193dd5646b33baa61c3c190d5ce44d08bc6820d240e14edd12af9ae8242e5a7186c1697426d14e97101313331cb1d803030cd2d6d2799852bda0dbc80b3c927efffc19d170327ac11c5d645b83c38fdcfb9ac779d9eac795d8eb671fe0ade56cdcb020261e1bf6d2e1d2fdfc1f954959c2d5516adf3f2abcee298c92b5451e3dee89d1903b8390fe9a426278ec879a59e682eabf8b8f3ad4482de9c636a41e506c82d7d0be1a92d926ba7fb05779f2612a86f8b47e10477b1d6080044d1f983cf3cb81e35af5b3ea4205e1d25ce0b6d20755442904d670380082203e25d4326df0ab47ee8bb404f98d5184a3949e043a0656e856f78f442fb33a2ec63c7347520c796fb721bfc0c6106c0db9e0580ba17aa3f96abf1a4744256635803f90bcfce185ddba20a8635a1c59f68760220ddaf296ac3a582ea953f928290c50f186ea8909a9a94a82b6b1c8204f243a4ed4cef5fd672959cec8359a57ac08c4b41ccb515b963f675af7cf4a9bef97f13942a63678680fb8f9e2de766f3c578d6f5913d7e71aafbd5ebc965b90ce4c3dc4a7bc2af74754c3e7c05fc3fbd1851ee5caa4723fe7bf5a9cd804a979bbd341836bcb3e82ad164748cb46f5d9fd4b599d27a307962eea6465eb91a6155
+        ake1_jws_detached:
+          description: Detached JWS of AKE1 Signing Payload
+          type: string
+          example: eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJodHRwczovL2FwaS1waWxvdC5lYnNpLmV1L3RydXN0ZWQtYXBwcy1yZWdpc3RyeS92My9hcHBzL2F1dGhvcmlzYXRpb24tYXBpX3BpbG90LXRlbXAtMDEifQ..bJ5gwcsgYcRTpMAJYpkUPGSYA962eioQ94Yju7buVGneuCCmelxWH-ZhKxMf7RolebgdVrrnNIIhdTZLJ8NpMw
+        ake1_sig_payload:
+          type: object
+          properties:
+            ake1_enc_payload:
+              description: Encrypted payload with user's public key
+              type: string
+              example: ce527bf1e06bd6241625d54e76bdb5ac029c455f97324ed20a5038724966ba5d9befd49195b4841b513c7f23e785c99f87bad2e255cbceb1152cef05b15137a1411520d8d578961f16d6c59ec042889e45cb4d3965d9d859dac8f217b3b3776ad342a605f2bb985d820ad8b0f6cb2c7c40da4d1ebd3efb5a3d57507e0479801c088e68b277fac799f852c1053a1dacc7cdb921cff2006eaf1b3fa3a5b64de91e991390b7317814625f490a1354dc2b69498b2bfad7caf0e819ebd93cccb2ef26e399d996ab19910605d798dacf9f78489dd7bac8613b5da28314e1153d929a9059decedce00eeb2848ee95f14e523f9f12372e71b9db4ebe702ce508d2dbc1e5cbdafcd5a15afe397fb35f9a45424c6aac43380b054185cbac4f498a5db4dcf517cf8bc760354c26e2e1af37dbdf06f888e5d424a66ab9546475b187787b557d197af20c7ac1e0639acf0304f051194da4be7c8badb0747b3e669ffd7ffe5a2c9c2060f338d8e4eb3010e10e6a67a1c8fe21d48ee7bc5d540497071f80dd36e58d309e868837c193dd5646b33baa61c3c190d5ce44d08bc6820d240e14edd12af9ae8242e5a7186c1697426d14e97101313331cb1d803030cd2d6d2799852bda0dbc80b3c927efffc19d170327ac11c5d645b83c38fdcfb9ac779d9eac795d8eb671fe0ade56cdcb020261e1bf6d2e1d2fdfc1f954959c2d5516adf3f2abcee298c92b5451e3dee89d1903b8390fe9a426278ec879a59e682eabf8b8f3ad4482de9c636a41e506c82d7d0be1a92d926ba7fb05779f2612a86f8b47e10477b1d6080044d1f983cf3cb81e35af5b3ea4205e1d25ce0b6d20755442904d670380082203e25d4326df0ab47ee8bb404f98d5184a3949e043a0656e856f78f442fb33a2ec63c7347520c796fb721bfc0c6106c0db9e0580ba17aa3f96abf1a4744256635803f90bcfce185ddba20a8635a1c59f68760220ddaf296ac3a582ea953f928290c50f186ea8909a9a94a82b6b1c8204f243a4ed4cef5fd672959cec8359a57ac08c4b41ccb515b963f675af7cf4a9bef97f13942a63678680fb8f9e2de766f3c578d6f5913d7e71aafbd5ebc965b90ce4c3dc4a7bc2af74754c3e7c05fc3fbd1851ee5caa4723fe7bf5a9cd804a979bbd341836bcb3e82ad164748cb46f5d9fd4b599d27a307962eea6465eb91a6155
+            ake1_nonce:
+              description: Nonce used during the authentication process
+              type: string
+              example: 53a6e914-ef94-412b-b226-82da24be3dd9
+            did:
+              description: API DID
+              type: string
+              example: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw
+            iat:
+              description: Issued at
+              type: number
+              example: 1627652364
+            exp:
+              description: Expires
+              type: number
+              example: 1627653264
+            iss:
+              description: Issuer (Authorisation API)
+              type: string
+              example: authorisation-api_pilot-temp-01
+        kid:
+          description: API KID
+          type: string
+          example: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps/authorisation-api_pilot-temp-01
+    SiopSessionsRequest:
+      title: SIOP Session Request
+      description: Access token request.
+      type: object
+      properties:
+        id_token:
+          type: string
+          description: JWS compact serialised ID Token
+        vp_token:
+          type: string
+          description: A Verifiable Presentation JWT. Only for onboarding.
+      required:
+        - id_token
+    AuthenticationRequest:
+      title: SIOP Authentication Request
+      description: Request to initiate a SIOP authentication process.
+      type: object
+      properties:
+        scope:
+          type: string
+          description: Scope is used to define the authentication response method.
+          example: openid did_authn
+      required:
+        - scope
+    AuthenticationRequestResponse:
+      title: SIOP Authentication Request Response
+      type: object
+      properties:
+        uri:
+          description: OpenId DID SIOP Uri response.
+          type: string
+          example: "openid://?response_type=id_token&client_id=https%3A%2F%2Fapi-pilot.ebsi.eu%2Fauthorisation%2Fv2%2Fsiop-sessions&scope=openid+did_authn&nonce=09e8ebfe-674e-4e4c-82b3-da153f8625c2&request=eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJodHRwczovL2FwaS1waWxvdC5lYnNpLmV1L3RydXN0ZWQtYXBwcy1yZWdpc3RyeS92My9hcHBzL2F1dGhvcmlzYXRpb24tYXBpX3BpbG90LXRlbXAtMDEifQ.eyJzY29wZSI6Im9wZW5pZCBkaWRfYXV0aG4iLCJyZXNwb25zZV90eXBlIjoiaWRfdG9rZW4iLCJyZXNwb25zZV9tb2RlIjoicG9zdCIsImNsaWVudF9pZCI6Imh0dHBzOi8vYXBpLXBpbG90LmVic2kuZXUvYXV0aG9yaXNhdGlvbi92Mi9zaW9wLXNlc3Npb25zIiwicmVkaXJlY3RfdXJpIjoiaHR0cHM6Ly9hcGktcGlsb3QuZWJzaS5ldS9hdXRob3Jpc2F0aW9uL3YyL3Npb3Atc2Vzc2lvbnMiLCJub25jZSI6IjA5ZThlYmZlLTY3NGUtNGU0Yy04MmIzLWRhMTUzZjg2MjVjMiIsImNsYWltcyI6eyJpZF90b2tlbiI6eyJ2ZXJpZmllZF9jbGFpbXMiOnsidmVyaWZpY2F0aW9uIjp7InRydXN0X2ZyYW1ld29yayI6IkVCU0kiLCJldmlkZW5jZSI6eyJ0eXBlIjp7InZhbHVlIjoidmVyaWZpYWJsZV9jcmVkZW50aWFsIn0sImRvY3VtZW50Ijp7InR5cGUiOnsiZXNzZW50aWFsIjp0cnVlLCJ2YWx1ZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCIsIlZlcmlmaWFibGVBdXRob3Jpc2F0aW9uIl19LCJjcmVkZW50aWFsU2NoZW1hIjp7ImlkIjp7ImVzc2VudGlhbCI6dHJ1ZSwidmFsdWUiOiJodHRwczovL2FwaS1waWxvdC5lYnNpLmV1L3RydXN0ZWQtc2NoZW1hcy1yZWdpc3RyeS92Mi9zY2hlbWFzL3pITXA1MkxxSldvY21oQTlSa3puVFd1RWVjSlhvUERLdzNrV1FwODFZWTlwQyJ9fX19fX19fSwiaWF0IjoxNjcyODQxODgxLCJpc3MiOiJhdXRob3Jpc2F0aW9uLWFwaV9waWxvdC10ZW1wLTAxIiwiZXhwIjoxNjcyODQyMTgxfQ.Z8jVzKtcTtSD1kBlYin_1jnfZ6BhhYdo18lUSf5xz0RFtkoPonsQyKsS7u72w7fV3oxWUs8YV7QAynGyUxuR_w"
+      description: DID SIOP OIDC URI
+    OAuth2SessionsRequest:
+      title: OAuth2 Session Request
+      description: Request for JWT bearer assertion grant.
+      type: object
+      properties:
+        grantType:
+          description: |
+            Grant type. Must be set to "client_credentials"
+          type: string
+          example: client_credentials
+        clientAssertionType:
+          description: |
+            Client Assertion type. Must be set to "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+          type: string
+          example: "urn:ietf:params:oauth:client-assertion-type:jwt-bearer"
+        clientAssertion:
+          type: string
+          description: Self-signed JWT
+          example: eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS1waWxvdC5lYnNpLmV1L3RydXN0ZWQtYXBwcy1yZWdpc3RyeS92My9hcHBzL3Rlc3QtYXBwLXBpbG90MiJ9.eyJpYXQiOjE2NzI4NDUxOTYsImV4cCI6MTY3Mjg0NTIxMSwianRpIjoiZDQwNzdmMzctNzMxYy00Y2M0LThmYmItZDE0MWE5MjUyODViIiwiYXVkIjoibGVkZ2VyLWFwaSIsInN1YiI6InRlc3QtYXBwLXBpbG90MiIsIm5vbmNlIjoiOWEzNTQxODQtMzlmMy00MGJiLTg1NDctMjc5N2YzZDhlNThhIiwiaXNzIjoidGVzdC1hcHAtcGlsb3QyIn0.enmQemuwwkBSPTokpUjacOSgjM4JIo6OnHLaOiw_A3lwwJqGssBjHOfrxEIVOBCvdtLOSFDa6he8qCnqGef95Q
+        scope:
+          type: string
+          description: Scope is used to define the authentication method. Must be set to "openid did_authn"
+          example: openid did_authn
+      required:
+        - grantType
+        - clientAssertionType
+        - clientAssertion
+        - scope
+    Ake1OAuth2Response:
+      title: OAuth2 Session Response
+      type: object
+      properties:
+        ake1_enc_payload:
+          description: Encrypted payload with user's public key
+          type: string
+          example: a5c94fe3c30baec627ab0afb26cf4b5f0319f3eb08752991fb98149e16549a2be069461ce0de3b83f3066027da8565d4516d043c1572b837a0263ffe493c5ded124bf4aaf060e87006e21d4b658abf43b6953f1f23ff982acc74d2c341545f976c5052e07730b304aa6bd37bbc8f54535c6ff84fffcf6caadb1757a854c8d559000bd1fb255e83b2e6a79e5a23a7b67c429ffa4a3e1a7acdc18c4cc7b623584a2ce612ae8052ecc42e116a0664c85c0c30f366c9a42d8d3ffc76e0da3b2c16e0cf19a90086d9c0f9db05218197f8bf07060d27b5c6caac3afdb90b4292123f80df6dbd7922b975335f408b74671790413e02c30d9db9ca96cb9bc25a9e51853f408bd565cadfaaf06526799deb2be248d67c82aaf13010dddaa40dbffe2e0e1fb5689ccbca3785707e188d2cf10f320aca678ff48491d4dec3227e2c17c9843fd8283ce79a3ee212c81063248507dbb694c11eb893235e0b6dc69e78eb69c4fc85ecaa91c8c72c43fd5362fe1f382f57f4dd7b0ee03a5542c83602a437e4b03fb434f6a44e4a04f0adbf30abacdaa69a5b826c77ac3faa27a650f3bcff21cdd1f6793df3dad9bae33496c9da4acba4c8fd793bc23f0d9032d416e753cd802153dc0ea3925d1110367322cba5450ceceb3cd3d4228228177dd8d667eda5691030183e0d3f1be40ac793d1d42af344895d85fb84d9374a344e8f95a33b1c740fa4c84ee016765a63fceda74d5decbf5ee76df9119c73491449a70554541900348b306ab07111312d2b74c226df7f194be00b8335a207bd41399487bd4216edf078a11b8a8b9b93d50e2cb673ccbce0b97d994b54b97068ef317e1136193b17d34764e6ec9c68be69b42aaf1aa1c9bb448dd38eb3a96957fc0a5b81c4710921c6605da420614042518739a02f8ed44338236733a5b2964a3bba2e4333034cb14746e6c2692445c65e8ec124c8e49413d01d86cd1b3dbd863807dc1d9a408e47c46c02f3e7bacbcbc387b03ebd26be6bd1d6f70f5c308081a8ca66beaea71ffee9d1cc375fc299323c938f5c200a2f031380f5347d1604d57a4af3c35a4891e5b1e2bb8573e36a4e1af5fbe62e1b188d119a6b07b25bda8086f3f0aa2139ee4e7144cd
+        ake1_jws_detached:
+          description: Detached JWS of AKE1 Signing Payload
+          type: string
+          example: eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksiLCJraWQiOiJodHRwczovL2FwaS1waWxvdC5lYnNpLmV1L3RydXN0ZWQtYXBwcy1yZWdpc3RyeS92My9hcHBzL2F1dGhvcmlzYXRpb24tYXBpX3BpbG90LXRlbXAtMDEifQ..PHbuIxA7oSp8-6oh7BED0fEiFL8gItKETlFzaiuFIKH0aF3RRjJQv-CKc5kEfmhGSO8_46yD2qFXZnsTrHAJFg
+        ake1_sig_payload:
+          type: object
+          properties:
+            ake1_enc_payload:
+              description: Encrypted payload with user's public key
+              type: string
+              example: a5c94fe3c30baec627ab0afb26cf4b5f0319f3eb08752991fb98149e16549a2be069461ce0de3b83f3066027da8565d4516d043c1572b837a0263ffe493c5ded124bf4aaf060e87006e21d4b658abf43b6953f1f23ff982acc74d2c341545f976c5052e07730b304aa6bd37bbc8f54535c6ff84fffcf6caadb1757a854c8d559000bd1fb255e83b2e6a79e5a23a7b67c429ffa4a3e1a7acdc18c4cc7b623584a2ce612ae8052ecc42e116a0664c85c0c30f366c9a42d8d3ffc76e0da3b2c16e0cf19a90086d9c0f9db05218197f8bf07060d27b5c6caac3afdb90b4292123f80df6dbd7922b975335f408b74671790413e02c30d9db9ca96cb9bc25a9e51853f408bd565cadfaaf06526799deb2be248d67c82aaf13010dddaa40dbffe2e0e1fb5689ccbca3785707e188d2cf10f320aca678ff48491d4dec3227e2c17c9843fd8283ce79a3ee212c81063248507dbb694c11eb893235e0b6dc69e78eb69c4fc85ecaa91c8c72c43fd5362fe1f382f57f4dd7b0ee03a5542c83602a437e4b03fb434f6a44e4a04f0adbf30abacdaa69a5b826c77ac3faa27a650f3bcff21cdd1f6793df3dad9bae33496c9da4acba4c8fd793bc23f0d9032d416e753cd802153dc0ea3925d1110367322cba5450ceceb3cd3d4228228177dd8d667eda5691030183e0d3f1be40ac793d1d42af344895d85fb84d9374a344e8f95a33b1c740fa4c84ee016765a63fceda74d5decbf5ee76df9119c73491449a70554541900348b306ab07111312d2b74c226df7f194be00b8335a207bd41399487bd4216edf078a11b8a8b9b93d50e2cb673ccbce0b97d994b54b97068ef317e1136193b17d34764e6ec9c68be69b42aaf1aa1c9bb448dd38eb3a96957fc0a5b81c4710921c6605da420614042518739a02f8ed44338236733a5b2964a3bba2e4333034cb14746e6c2692445c65e8ec124c8e49413d01d86cd1b3dbd863807dc1d9a408e47c46c02f3e7bacbcbc387b03ebd26be6bd1d6f70f5c308081a8ca66beaea71ffee9d1cc375fc299323c938f5c200a2f031380f5347d1604d57a4af3c35a4891e5b1e2bb8573e36a4e1af5fbe62e1b188d119a6b07b25bda8086f3f0aa2139ee4e7144cd
+            ake1_nonce:
+              description: Nonce used during the authentication process
+              type: string
+              example: 9a354184-39f3-40bb-8547-2797f3d8e58a
+            kid:
+              description: Trusted App KID
+              type: string
+              example: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps/test-app-pilot2
+            iat:
+              description: Issued at
+              type: number
+              example: 1672845197
+            exp:
+              description: Expires
+              type: number
+              example: 1672846097
+            iss:
+              description: Issuer (Authorisation API)
+              type: string
+              example: authorisation-api_pilot-temp-01
+        kid:
+          description: API KID
+          type: string
+          example: https://api-pilot.ebsi.eu/trusted-apps-registry/v3/apps/authorisation-api_pilot-temp-01
+      description: Ake1 Response for OAuth2 authentication
+  responses:
+    "400":
+      description: Bad Request
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+          examples:
+            Bad Request:
+              $ref: "#/components/examples/BadRequest"
+            Token Expired:
+              $ref: "#/components/examples/TokenExpired"
+            Issuer Not Found:
+              $ref: "#/components/examples/IssuerNotFound"
+    "500":
+      description: Internal Error
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+          examples:
+            Internal Server Error:
+              $ref: "#/components/examples/InternalError"
+  examples:
+    BadRequest:
+      value:
+        title: Bad Request
+        status: 400
+        detail: Bad request.
+    IssuerNotFound:
+      value:
+        title: Issuer Not Found
+        status: 400
+        detail: Issuer not found in the trusted apps registry.
+    TokenExpired:
+      value:
+        title: Token Expired
+        status: 400
+        detail: The token has expired.
+    InternalError:
+      value:
+        title: Internal Server Error
+        status: 500
+        detail: The server encountered an internal error and was unable to process your request.

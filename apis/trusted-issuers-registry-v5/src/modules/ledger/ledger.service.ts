@@ -31,7 +31,7 @@ export class LedgerService {
 
   private readonly agent: Agent;
 
-  private readonly authorisationApiV2Url: string;
+  private readonly authorisationApiUrl: string;
 
   private readonly domain: string;
 
@@ -49,8 +49,8 @@ export class LedgerService {
     this.tirAddress = this.configService.get<string>(
       "besuTrustedIssuersRegistryAddress"
     );
-    this.authorisationApiV2Url = this.configService.get<string>(
-      "authorisationApiV2Url"
+    this.authorisationApiUrl = this.configService.get<string>(
+      "authorisationApiUrl"
     );
 
     this.agent = new Agent({
@@ -94,7 +94,7 @@ export class LedgerService {
       const res = await axios.post<
         typeof requestComponent,
         AxiosResponse<AkeResponse>
-      >(`${this.authorisationApiV2Url}/oauth2-sessions`, requestComponent, {
+      >(`${this.authorisationApiUrl}/oauth2-sessions`, requestComponent, {
         timeout: this.timeout,
       });
 

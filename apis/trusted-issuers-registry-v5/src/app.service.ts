@@ -10,7 +10,7 @@ export class AppService implements OnApplicationBootstrap {
 
   private readonly ledgerApiUrl: string;
 
-  private readonly authorisationApiV2Url: string;
+  private readonly authorisationApiUrl: string;
 
   private readonly axiosClient: AxiosInstance;
 
@@ -20,9 +20,7 @@ export class AppService implements OnApplicationBootstrap {
 
   constructor(configService: ConfigService<ApiConfig, true>) {
     this.ledgerApiUrl = configService.get<string>("ledgerApiUrl");
-    this.authorisationApiV2Url = configService.get<string>(
-      "authorisationApiV2Url"
-    );
+    this.authorisationApiUrl = configService.get<string>("authorisationApiUrl");
     this.domain = configService.get<string>("domain");
     this.localOrigin = configService.get<string>("localOrigin");
 
@@ -67,7 +65,7 @@ export class AppService implements OnApplicationBootstrap {
     this.logger.debug("Checking dependencies...");
 
     await this.check(this.ledgerApiUrl);
-    await this.check(this.authorisationApiV2Url);
+    await this.check(this.authorisationApiUrl);
 
     // Let's go!
     this.logger.debug("All the dependencies are ready");

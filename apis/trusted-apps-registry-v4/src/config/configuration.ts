@@ -28,7 +28,7 @@ export interface ApiConfig {
   };
 }
 
-const AUTH_API_PATH = "/authorisation/v3";
+const AUTH_API_PATH = "/authorisation/v4";
 const DIDR_API_PATH = "/did-registry/v5";
 const HEALTH_CHECK_PATH = "/docs/";
 

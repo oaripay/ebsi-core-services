@@ -19,8 +19,7 @@ export interface ApiConfig {
   ledgerApiName: string;
   besuTrustedIssuersRegistryAddress: string;
   // Authorisation API
-  authorisationApiV3Url: string;
-  authorisationApiV2Url: string;
+  authorisationApiUrl: string;
   // DID Registry API
   didRegistryApiUrl: string;
   // Trusted Apps Registry API
@@ -45,8 +44,7 @@ export interface ApiConfig {
 
 const HEALTH_CHECK_PATH = "/docs/";
 const LEDGER_API_PATH = "/ledger/v3";
-const AUTH_API_V3_PATH = "/authorisation/v3";
-const AUTH_API_V2_PATH = "/authorisation/v2";
+const AUTH_API_PATH = "/authorisation/v4";
 const DIDR_API_PATH = "/did-registry/v5";
 const TAR_API_PATH = "/trusted-apps-registry/v4";
 const TSR_API_PATH = "/trusted-schemas-registry/v2";
@@ -74,8 +72,7 @@ export const loadConfig = (): ApiConfig => {
     besuTrustedIssuersRegistryAddress:
       process.env.BESU_TRUSTED_ISSUERS_REGISTRY_ADDRESS,
     // Authorisation API
-    authorisationApiV3Url: DOMAIN + AUTH_API_V3_PATH,
-    authorisationApiV2Url: DOMAIN + AUTH_API_V2_PATH,
+    authorisationApiUrl: DOMAIN + AUTH_API_PATH,
     // DID Registry API
     didRegistryApiUrl: DOMAIN + DIDR_API_PATH,
     // TSR API

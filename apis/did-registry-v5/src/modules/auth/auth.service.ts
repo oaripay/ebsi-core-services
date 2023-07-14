@@ -36,9 +36,7 @@ export class AuthService {
     @Inject(CACHE_MANAGER) private cacheManager: Cache
   ) {
     this.timeout = configService.get<number>("requestTimeout");
-    this.authorisationApiUrl = configService.get<string>(
-      "authorisationApiV3Url"
-    );
+    this.authorisationApiUrl = configService.get<string>("authorisationApiUrl");
   }
 
   private async getAuthorisationApiJwk(kid: string) {

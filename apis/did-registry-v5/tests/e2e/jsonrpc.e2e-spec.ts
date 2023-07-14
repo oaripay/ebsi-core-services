@@ -246,7 +246,7 @@ describeWriteOps()("DID Registry - JSON RPC - e2e", () => {
     beforeAll(async () => {
       try {
         const didrWriteToken = await getDidrWriteAccessToken(
-          configService.get<string>("authorisationApiV3Url"),
+          configService.get<string>("authorisationApiUrl"),
           user.info
         );
         user.token = didrWriteToken;
