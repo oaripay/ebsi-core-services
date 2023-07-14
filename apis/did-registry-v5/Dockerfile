@@ -15,26 +15,14 @@ COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/apis/did-registry-v5/package.json ./apis/did-registry-v5/package.json
 COPY --from=builder /app/apis/did-registry-v5/dist ./apis/did-registry-v5/dist
 COPY --from=builder /app/apis/did-registry-v5/api ./apis/did-registry-v5/api
-# Copy Bootstrap SC
-COPY --from=builder /app/contracts/bootstrap/package.json ./contracts/bootstrap/package.json
-COPY --from=builder /app/contracts/bootstrap/dist ./contracts/bootstrap/dist
-COPY --from=builder /app/contracts/bootstrap/artifacts ./contracts/bootstrap/artifacts
 # Copy Bootstrap SC v2
 COPY --from=builder /app/contracts/bootstrap-v2/package.json ./contracts/bootstrap-v2/package.json
 COPY --from=builder /app/contracts/bootstrap-v2/dist ./contracts/bootstrap-v2/dist
 COPY --from=builder /app/contracts/bootstrap-v2/artifacts ./contracts/bootstrap-v2/artifacts
-# Copy DID Registry SC v2
-COPY --from=builder /app/contracts/did-registry-v2/package.json ./contracts/did-registry-v2/package.json
-COPY --from=builder /app/contracts/did-registry-v2/dist ./contracts/did-registry-v2/dist
-COPY --from=builder /app/contracts/did-registry-v2/artifacts ./contracts/did-registry-v2/artifacts
 # Copy DID Registry SC v3
 COPY --from=builder /app/contracts/did-registry-v3/package.json ./contracts/did-registry-v3/package.json
 COPY --from=builder /app/contracts/did-registry-v3/dist ./contracts/did-registry-v3/dist
 COPY --from=builder /app/contracts/did-registry-v3/artifacts ./contracts/did-registry-v3/artifacts
-# Copy TPR SC
-COPY --from=builder /app/contracts/trusted-policies-registry/package.json ./contracts/trusted-policies-registry/package.json
-COPY --from=builder /app/contracts/trusted-policies-registry/dist ./contracts/trusted-policies-registry/dist
-COPY --from=builder /app/contracts/trusted-policies-registry/artifacts ./contracts/trusted-policies-registry/artifacts
 # Copy TPR SC v2
 COPY --from=builder /app/contracts/trusted-policies-registry-v2/package.json ./contracts/trusted-policies-registry-v2/package.json
 COPY --from=builder /app/contracts/trusted-policies-registry-v2/dist ./contracts/trusted-policies-registry-v2/dist

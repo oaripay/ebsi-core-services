@@ -33,7 +33,7 @@ const HEALTH_CHECK_PATH = "/docs/";
 const DIDR_PATH = "/did-registry/v5/identifiers";
 const TIR_PATH = "/trusted-issuers-registry/v5/issuers";
 const TAR_PATH = "/trusted-apps-registry/v4/apps";
-const TPR_PATH = "/trusted-policies-registry/v2";
+const TPR_PATH = "/trusted-policies-registry/v3";
 const TSR_PATH = "/trusted-schemas-registry/v3/schemas";
 
 // Config factory

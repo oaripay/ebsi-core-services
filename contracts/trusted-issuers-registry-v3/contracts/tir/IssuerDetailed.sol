@@ -12,7 +12,7 @@ abstract contract IssuerDetailed is IssuerStorage {
     using Pagination for bytes32[];
     using Pagination for string[];
 
-    event AddAtrributeRevision(
+    event AddAttributeRevision(
         string did,
         bytes32 indexed attributeId,
         bytes32 indexed revisionId,
@@ -368,7 +368,7 @@ abstract contract IssuerDetailed is IssuerStorage {
             _rootTaoDid
         );
 
-        emit AddAtrributeRevision(did, attributeId, newRevisionId, issuerType);
+        emit AddAttributeRevision(did, attributeId, newRevisionId, issuerType);
     }
 
     // internal view functions

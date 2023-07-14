@@ -165,7 +165,7 @@ abstract contract PolicyListManagement is PolicyStorage, AccessControl, Roles {
     function _activatePolicy(uint256 policyId) internal {
         PolicyContractStorage storage ps = policyStorage();
         require(
-            policyId < ps.policyCount && policyId > 0,
+            policyId <= ps.policyCount && policyId > 0,
             "Policy: invalid policy"
         );
         Policy storage policy = ps.policies[policyId];

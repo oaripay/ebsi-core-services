@@ -149,7 +149,7 @@ describe("Issuers", () => {
         rootTAO1.did,
         rootTAO1.attributeId
       )
-    ).to.emit(tir, "AddAtrributeRevision");
+    ).to.emit(tir, "AddAttributeRevision");
 
     // get RootTAO attribute
     let issuerHashes = await tir.getIssuer(rootTAO1.did);
@@ -179,7 +179,7 @@ describe("Issuers", () => {
         rootTAO1.attributeId,
         rootTAO1.attribute
       )
-    ).to.emit(tir, "AddAtrributeRevision");
+    ).to.emit(tir, "AddAttributeRevision");
 
     // get RootTAO attribute
     issuerHashes = await tir.getIssuer(rootTAO1.did);
@@ -207,12 +207,12 @@ describe("Issuers", () => {
         rootTAO1.did,
         rootTAO1.attributeId
       )
-    ).to.emit(tir, "AddAtrributeRevision");
+    ).to.emit(tir, "AddAttributeRevision");
 
     // TAO registers the credential
     await expect(
       tir.setAttributeData(tao1.did, tao1.attributeId, tao1.attribute)
-    ).to.emit(tir, "AddAtrributeRevision");
+    ).to.emit(tir, "AddAttributeRevision");
 
     // get TAO attribute
     const issuerHashes = await tir.getIssuer(tao1.did);
@@ -240,12 +240,12 @@ describe("Issuers", () => {
         rootTAO1.did,
         rootTAO1.attributeId
       )
-    ).to.emit(tir, "AddAtrributeRevision");
+    ).to.emit(tir, "AddAttributeRevision");
 
     // TAO registers the credential
     await expect(
       tir.setAttributeData(tao2.did, tao2.attributeId, tao2.attribute)
-    ).to.emit(tir, "AddAtrributeRevision");
+    ).to.emit(tir, "AddAttributeRevision");
 
     // get TAO attribute
     const issuerHashes = await tir.getIssuer(tao2.did);
@@ -273,12 +273,12 @@ describe("Issuers", () => {
         tao1.did,
         tao1.attributeId
       )
-    ).to.emit(tir, "AddAtrributeRevision");
+    ).to.emit(tir, "AddAttributeRevision");
 
     // TI registers the credential
     await expect(
       tir.setAttributeData(ti1.did, ti1.attributeId1, ti1.attribute1)
-    ).to.emit(tir, "AddAtrributeRevision");
+    ).to.emit(tir, "AddAttributeRevision");
 
     // get TI attribute
     const issuerHashes = await tir.getIssuer(ti1.did);
@@ -330,7 +330,7 @@ describe("Issuers", () => {
           rootTAO1.did,
           rootTAO1.attributeId
         )
-      ).to.emit(tir, "AddAtrributeRevision");
+      ).to.emit(tir, "AddAttributeRevision");
 
       // get TAO attribute
       const issuerHashes = await tir.getIssuer(tao1.did);
@@ -659,7 +659,7 @@ describe("Issuers", () => {
           rootTAO1.did,
           rootTAO1.attributeId
         )
-      ).to.emit(tir, "AddAtrributeRevision");
+      ).to.emit(tir, "AddAttributeRevision");
 
       await expect(
         tir.setAttributeMetadata(
@@ -669,7 +669,7 @@ describe("Issuers", () => {
           tao1.did,
           tao1.attributeId
         )
-      ).to.emit(tir, "AddAtrributeRevision");
+      ).to.emit(tir, "AddAttributeRevision");
 
       await expect(
         tir.setAttributeMetadata(
@@ -679,7 +679,7 @@ describe("Issuers", () => {
           rootTAO1.did,
           rootTAO1.attributeId
         )
-      ).to.emit(tir, "AddAtrributeRevision");
+      ).to.emit(tir, "AddAttributeRevision");
     });
 
     it("should reject invalid authorization for setAttributeData", async () => {
@@ -695,7 +695,7 @@ describe("Issuers", () => {
           rootTAO1.did,
           rootTAO1.attributeId
         )
-      ).to.emit(tir, "AddAtrributeRevision");
+      ).to.emit(tir, "AddAttributeRevision");
 
       // The admin cannot update data
       await expect(
@@ -764,7 +764,7 @@ describe("Issuers", () => {
           tao2.did,
           tao2.attributeId
         )
-      ).to.emit(tir, "AddAtrributeRevision");
+      ).to.emit(tir, "AddAttributeRevision");
 
       await expect(
         tir.setAttributeMetadata(
