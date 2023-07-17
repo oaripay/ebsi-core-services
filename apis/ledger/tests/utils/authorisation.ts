@@ -26,22 +26,22 @@ export async function createFakeToken({
   useKidAuthApi: boolean;
   configService: ConfigService<ApiConfig, true>;
 }): Promise<string> {
-  let trustedAppsRegistryApiUrl = configService.get<string>(
-    "trustedAppsRegistryApiUrl"
+  let trustedAppsRegistryApiV3Url = configService.get<string>(
+    "trustedAppsRegistryApiV3Url"
   );
 
   // Use TEST_LB_DOMAIN if defined
   if (configService.get<string>("testLoadBalancerDomain")) {
-    trustedAppsRegistryApiUrl = trustedAppsRegistryApiUrl.replace(
+    trustedAppsRegistryApiV3Url = trustedAppsRegistryApiV3Url.replace(
       configService.get<string>("domain"),
       configService.get<string>("testLoadBalancerDomain")
     );
   }
 
-  let kid = `${trustedAppsRegistryApiUrl}/0x${"0".repeat(64)}`;
+  let kid = `${trustedAppsRegistryApiV3Url}/0x${"0".repeat(64)}`;
 
   if (useKidAuthApi) {
-    kid = `${trustedAppsRegistryApiUrl}/apps/${authorisationApiName}`;
+    kid = `${trustedAppsRegistryApiV3Url}/apps/${authorisationApiName}`;
   }
 
   if (loginHint === "did_siop") {
@@ -97,8 +97,8 @@ export async function requestOAuth2Jwt({
   configService: ConfigService<ApiConfig, true>;
 }): Promise<string> {
   let authorisationApiUrl = configService.get<string>("authorisationApiUrl");
-  let trustedAppsRegistryApiUrl = configService.get<string>(
-    "trustedAppsRegistryApiUrl"
+  let trustedAppsRegistryApiV3Url = configService.get<string>(
+    "trustedAppsRegistryApiV3Url"
   );
 
   // Use TEST_LB_DOMAIN if defined
@@ -107,7 +107,7 @@ export async function requestOAuth2Jwt({
       configService.get<string>("domain"),
       configService.get<string>("testLoadBalancerDomain")
     );
-    trustedAppsRegistryApiUrl = trustedAppsRegistryApiUrl.replace(
+    trustedAppsRegistryApiV3Url = trustedAppsRegistryApiV3Url.replace(
       configService.get<string>("domain"),
       configService.get<string>("testLoadBalancerDomain")
     );
@@ -117,7 +117,7 @@ export async function requestOAuth2Jwt({
   const agent = new OAuth2Agent({
     privateKey: trustedAppPrivateKey,
     name: trustedAppName,
-    trustedAppsRegistry: `${trustedAppsRegistryApiUrl}/apps`,
+    trustedAppsRegistry: `${trustedAppsRegistryApiV3Url}/apps`,
   });
 
   const authRequest = await agent.createRequest("ledger-api", {
@@ -146,8 +146,8 @@ export const requestSiopJwt = async ({
   const privateEncryptionKeyJwk = await exportJWK(encryptionKeyPair.privateKey);
 
   let authorisationApiUrl = configService.get<string>("authorisationApiUrl");
-  let trustedAppsRegistryApiUrl = configService.get<string>(
-    "trustedAppsRegistryApiUrl"
+  let trustedAppsRegistryApiV3Url = configService.get<string>(
+    "trustedAppsRegistryApiV3Url"
   );
 
   // Use TEST_LB_DOMAIN if defined
@@ -156,7 +156,7 @@ export const requestSiopJwt = async ({
       configService.get<string>("domain"),
       configService.get<string>("testLoadBalancerDomain")
     );
-    trustedAppsRegistryApiUrl = trustedAppsRegistryApiUrl.replace(
+    trustedAppsRegistryApiV3Url = trustedAppsRegistryApiV3Url.replace(
       configService.get<string>("domain"),
       configService.get<string>("testLoadBalancerDomain")
     );
@@ -190,7 +190,7 @@ export const requestSiopJwt = async ({
   });
 
   const { payload } = await verifyJwtTar(params.request, {
-    trustedAppsRegistry: `${trustedAppsRegistryApiUrl}/apps`,
+    trustedAppsRegistry: `${trustedAppsRegistryApiV3Url}/apps`,
   });
 
   // 3. The client creates an authentication response and gets an ID Token
@@ -228,7 +228,7 @@ export const requestSiopJwt = async ({
     {
       nonce,
       privateEncryptionKeyJwk,
-      trustedAppsRegistry: `${trustedAppsRegistryApiUrl}/apps`,
+      trustedAppsRegistry: `${trustedAppsRegistryApiV3Url}/apps`,
       alg,
     }
   );

@@ -5,13 +5,15 @@ import { verifyJwtTar } from "@cef-ebsi/oauth2-auth";
 import { UnauthorizedError } from "@ebsiint-api/shared";
 import { ApiConfig } from "../../config/configuration";
 import { JwtCacheService } from "./jwt-cache.service";
-import { Payload } from "./auth.interface";
+import { JWTDecoded, Payload } from "./auth.interface";
 
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
-  private trustedAppsRegistry: string;
+  private trustedAppsRegistryV3: string;
+
+  private trustedAppsRegistryV4: string;
 
   private authorisationApiName: string;
 
@@ -24,8 +26,11 @@ export class AuthService {
     this.authorisationApiName = configService.get<string>(
       "authorisationApiName"
     );
-    this.trustedAppsRegistry = `${configService.get<string>(
-      "trustedAppsRegistryApiUrl"
+    this.trustedAppsRegistryV3 = `${configService.get<string>(
+      "trustedAppsRegistryApiV3Url"
+    )}/apps`;
+    this.trustedAppsRegistryV4 = `${configService.get<string>(
+      "trustedAppsRegistryApiV4Url"
     )}/apps`;
     this.timeout = configService.get<number>("requestTimeout");
   }
@@ -68,9 +73,7 @@ export class AuthService {
     try {
       this.logger.debug(`Verifying token: ${token}`);
 
-      const { payload } = decodeJWT(token) as unknown as {
-        payload: Payload;
-      };
+      const { header, payload } = decodeJWT(token) as unknown as JWTDecoded;
 
       if (payload.login_hint === "did_siop") {
         throw new Error(
@@ -78,11 +81,19 @@ export class AuthService {
         );
       }
 
-      await verifyJwtTar(token, {
-        trustedAppsRegistry: this.trustedAppsRegistry,
-        op: this.authorisationApiName,
-        timeout: this.timeout,
-      });
+      if (header.kid.startsWith(this.trustedAppsRegistryV4)) {
+        await verifyJwtTar(token, {
+          trustedAppsRegistry: this.trustedAppsRegistryV4,
+          op: this.authorisationApiName,
+          timeout: this.timeout,
+        });
+      } else {
+        await verifyJwtTar(token, {
+          trustedAppsRegistry: this.trustedAppsRegistryV3,
+          op: this.authorisationApiName,
+          timeout: this.timeout,
+        });
+      }
 
       // Try to store valid JWT in cache
       this.storeJwt(token, now, payload.exp, requestHost);

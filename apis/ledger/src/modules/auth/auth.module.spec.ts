@@ -1,5 +1,6 @@
 import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
 import { Test, TestingModule } from "@nestjs/testing";
+import { ConfigService } from "@nestjs/config";
 import { INestApplication, Logger } from "@nestjs/common";
 import * as DidJwt from "did-jwt";
 import type { FastifyInstance } from "fastify";
@@ -12,6 +13,7 @@ import type { JwtTarVerifyResult } from "@cef-ebsi/oauth2-auth";
 import { AuthModule } from "./auth.module";
 import { AuthService } from "./auth.service";
 import { JwtCacheService } from "./jwt-cache.service";
+import { ApiConfig } from "../../config/configuration";
 
 jest.mock("did-jwt", () => ({
   decodeJWT: jest.fn(),
@@ -25,6 +27,8 @@ describe("Auth Module", () => {
   let app: INestApplication;
   let authService: AuthService;
   let jwtCacheService: JwtCacheService;
+  let trustedAppsRegistryApiV3Url: string;
+  let trustedAppsRegistryApiV4Url: string;
 
   const mockVerifyAccessToken = jest.spyOn(OAuth2lib, "verifyJwtTar");
   const mockDecodeJwt = jest.spyOn(DidJwt, "decodeJWT");
@@ -42,11 +46,20 @@ describe("Auth Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
+    const configService =
+      app.get<ConfigService<ApiConfig, true>>(ConfigService);
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
 
     authService = moduleFixture.get<AuthService>(AuthService);
     jwtCacheService = moduleFixture.get<JwtCacheService>(JwtCacheService);
+
+    trustedAppsRegistryApiV3Url = configService.get(
+      "trustedAppsRegistryApiV3Url"
+    );
+    trustedAppsRegistryApiV4Url = configService.get(
+      "trustedAppsRegistryApiV4Url"
+    );
   });
 
   afterAll(async () => {
@@ -58,19 +71,24 @@ describe("Auth Module", () => {
       expect.assertions(24);
 
       const now = Math.floor(Date.now() / 1000);
+      const kid = trustedAppsRegistryApiV3Url;
 
       let jwtPayload = { exp: now + 30 };
 
       // Prepare mocks
       mockVerifyAccessToken.mockImplementation(
         async (): Promise<JwtTarVerifyResult> =>
-          Promise.resolve({ payload: jwtPayload } as JwtTarVerifyResult)
+          Promise.resolve({
+            payload: jwtPayload,
+            protectedHeader: { kid },
+          } as JwtTarVerifyResult)
       );
 
       mockDecodeJwt.mockImplementation(() => ({
         header: {
           typ: "JWT",
           alg: "ES256K",
+          kid,
         },
         signature: "",
         payload: jwtPayload,
@@ -125,13 +143,17 @@ describe("Auth Module", () => {
       // Update mocks
       mockVerifyAccessToken.mockImplementation(
         async (): Promise<JwtTarVerifyResult> =>
-          Promise.resolve({ payload: jwtPayload } as JwtTarVerifyResult)
+          Promise.resolve({
+            payload: jwtPayload,
+            protectedHeader: { kid },
+          } as JwtTarVerifyResult)
       );
 
       mockDecodeJwt.mockImplementation(() => ({
         header: {
           typ: "JWT",
           alg: "ES256K",
+          kid,
         },
         signature: "",
         payload: jwtPayload,
@@ -166,13 +188,17 @@ describe("Auth Module", () => {
 
       mockVerifyAccessToken.mockImplementation(
         async (): Promise<JwtTarVerifyResult> =>
-          Promise.resolve({ payload: jwtPayload } as JwtTarVerifyResult)
+          Promise.resolve({
+            payload: jwtPayload,
+            protectedHeader: { kid },
+          } as JwtTarVerifyResult)
       );
 
       mockDecodeJwt.mockImplementation(() => ({
         header: {
           typ: "JWT",
           alg: "ES256K",
+          kid,
         },
         signature: "",
         payload: jwtPayload,
@@ -191,6 +217,78 @@ describe("Auth Module", () => {
       // The new JWT is added to the cache
       expect(jwtCacheAddSpy).toHaveBeenCalledTimes(3);
       expect(jwtCacheAddSpy).toHaveBeenLastCalledWith("token", jwtPayload.exp);
+    });
+
+    it("should accept tokens issued by from legacy Authorisation API", async () => {
+      expect.assertions(1);
+
+      const now = Math.floor(Date.now() / 1000);
+      const jwtPayload = { exp: now + 30 };
+
+      // kid using TAR v3
+      const kid = `${trustedAppsRegistryApiV3Url}/apps/authorisation-api`;
+
+      mockVerifyAccessToken.mockImplementation(
+        async (): Promise<JwtTarVerifyResult> =>
+          Promise.resolve({
+            payload: jwtPayload,
+            protectedHeader: { kid },
+          } as JwtTarVerifyResult)
+      );
+      mockDecodeJwt.mockImplementation(() => ({
+        header: {
+          typ: "JWT",
+          alg: "ES256K",
+          kid,
+        },
+        signature: "",
+        payload: jwtPayload,
+        data: "",
+      }));
+
+      await authService.validateToken("tokenV3", "api.local");
+
+      expect(mockVerifyAccessToken).toHaveBeenLastCalledWith("tokenV3", {
+        trustedAppsRegistry: `${trustedAppsRegistryApiV3Url}/apps`,
+        op: expect.any(String),
+        timeout: expect.any(Number),
+      });
+    });
+
+    it("should accept tokens issued by from Authorisation API v4", async () => {
+      expect.assertions(1);
+
+      const now = Math.floor(Date.now() / 1000);
+      const jwtPayload = { exp: now + 30 };
+
+      // kid using TAR v4
+      const kid = `${trustedAppsRegistryApiV4Url}/apps/authorisation-api`;
+
+      mockVerifyAccessToken.mockImplementation(
+        async (): Promise<JwtTarVerifyResult> =>
+          Promise.resolve({
+            payload: jwtPayload,
+            protectedHeader: { kid },
+          } as JwtTarVerifyResult)
+      );
+      mockDecodeJwt.mockImplementation(() => ({
+        header: {
+          typ: "JWT",
+          alg: "ES256K",
+          kid,
+        },
+        signature: "",
+        payload: jwtPayload,
+        data: "",
+      }));
+
+      await authService.validateToken("tokenV4", "api.local");
+
+      expect(mockVerifyAccessToken).toHaveBeenLastCalledWith("tokenV4", {
+        trustedAppsRegistry: `${trustedAppsRegistryApiV4Url}/apps`,
+        op: expect.any(String),
+        timeout: expect.any(Number),
+      });
     });
   });
 });

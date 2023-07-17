@@ -12,7 +12,8 @@ export interface ApiConfig {
   localOrigin: string;
   authorisationApiName: string;
   authorisationApiUrl: string; // Only used in e2e tests
-  trustedAppsRegistryApiUrl: string;
+  trustedAppsRegistryApiV3Url: string;
+  trustedAppsRegistryApiV4Url: string;
   requestTimeout: number;
   testUser: {
     kid: string;
@@ -27,7 +28,8 @@ export interface ApiConfig {
 }
 
 const AUTH_API_URL = "/authorisation/v2";
-const TAR_API_PATH = "/trusted-apps-registry/v3";
+const TAR_API_V3_PATH = "/trusted-apps-registry/v3";
+const TAR_API_V4_PATH = "/trusted-apps-registry/v4";
 const HEALTH_CHECK_PATH = "/docs/";
 
 // Config factory
@@ -43,7 +45,8 @@ export const loadConfig = (): ApiConfig => {
     besuRpcNode: process.env.BESU_RPC_NODE,
     domain: DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
-    trustedAppsRegistryApiUrl: DOMAIN + TAR_API_PATH,
+    trustedAppsRegistryApiV3Url: DOMAIN + TAR_API_V3_PATH,
+    trustedAppsRegistryApiV4Url: DOMAIN + TAR_API_V4_PATH,
     authorisationApiName:
       process.env.AUTHORISATION_API_NAME || "authorisation-api",
     authorisationApiUrl: DOMAIN + AUTH_API_URL,
