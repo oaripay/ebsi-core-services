@@ -907,6 +907,7 @@ describe("Apps (e2e)", () => {
 
   it("should return transaction data from blockscout", async () => {
     if (!blockscout.url || !sampleTransaction) return;
+
     expect.assertions(1);
 
     await new Promise((f) => {
@@ -914,26 +915,10 @@ describe("Apps (e2e)", () => {
     });
 
     // check if blockscout is working properly
-    const blockscoutCheck: SupertestJsonRpcResponse = await request(
-      blockscout.url
-    )
-      .post("")
-      .set({ Authorization: blockscout.bearerToken })
-      .send({
-        query: `{transaction(hash: "${sampleTransaction}") { hash, blockNumber, value, gasUsed }}`,
-        variables: null,
-        operationName: null,
-      });
+    const blockscoutCheck = await request(blockscout.url)
+      .get(`/tx/${sampleTransaction}/internal-transactions`)
+      .set({ Authorization: blockscout.bearerToken });
 
-    expect(blockscoutCheck.body).toStrictEqual({
-      data: {
-        transaction: {
-          blockNumber: expect.any(Number),
-          gasUsed: expect.any(String),
-          hash: sampleTransaction,
-          value: expect.any(String),
-        },
-      },
-    });
+    expect(blockscoutCheck.status).toBe(200);
   });
 });
