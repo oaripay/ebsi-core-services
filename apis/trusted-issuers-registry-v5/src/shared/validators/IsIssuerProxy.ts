@@ -61,6 +61,7 @@ export async function isIssuerProxy(
     if (
       !(await isStatusList2021Credential(testResponse.data, authority, {
         trustedHostnames,
+        ebsiEnvConfig,
       }))
     ) {
       return false;
