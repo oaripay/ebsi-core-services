@@ -10,6 +10,7 @@ import {
   isEthersError,
   remove0xPrefix,
 } from "@ebsiint-api/shared";
+import { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
 import axios, { AxiosResponse } from "axios";
 import { LedgerService } from "../ledger/ledger.service";
 import {
@@ -28,12 +29,25 @@ export class IssuersService {
 
   private trustedHostnames: string[];
 
+  private ebsiEnvConfig: EbsiEnvConfiguration;
+
   constructor(
     private ledgerService: LedgerService,
     private configService: ConfigService<ApiConfig, true>
   ) {
     this.timeout = configService.get<number>("requestTimeout");
     this.trustedHostnames = configService.get<string[]>("trustedHostnames");
+    this.ebsiEnvConfig = {
+      didRegistry: `${configService.get<string>(
+        "didRegistryApiUrl"
+      )}/identifiers`,
+      trustedIssuersRegistry: `${configService.get<string>(
+        "domain"
+      )}${configService.get<string>("apiUrlPrefix")}/issuers`,
+      trustedPoliciesRegistry: `${configService.get<string>(
+        "trustedPoliciesRegistryApiUrl"
+      )}/users`,
+    };
   }
 
   async getIssuers(
@@ -339,6 +353,7 @@ export class IssuersService {
     if (
       !(await isStatusList2021Credential(res.data, authority, {
         trustedHostnames: this.trustedHostnames,
+        ebsiEnvConfig: this.ebsiEnvConfig,
       }))
     ) {
       throw new InternalServerError("Invalid Status List Credential", {

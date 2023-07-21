@@ -7,6 +7,7 @@ import {
 } from "class-validator";
 import axios from "axios";
 import { ConfigService } from "@nestjs/config";
+import { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
 import { isStatusList2021Credential } from "@ebsiint-api/shared";
 import { ApiConfig } from "../../config/configuration";
 
@@ -29,7 +30,8 @@ export async function isIssuerProxy(
   value: unknown,
   authority: string,
   timeout: number,
-  trustedHostnames?: string[]
+  trustedHostnames?: string[],
+  ebsiEnvConfig?: EbsiEnvConfiguration
 ): Promise<boolean> {
   if (typeof value !== "string") return false;
 
@@ -79,12 +81,25 @@ export class IsIssuerProxy implements ValidatorConstraintInterface {
 
   private trustedHostnames: string[];
 
+  private ebsiEnvConfig: EbsiEnvConfiguration;
+
   constructor(configService: ConfigService<ApiConfig, true>) {
     this.authority = configService
       .get<string>("domain")
       .replace(/^https?:\/\//, "");
     this.timeout = configService.get<number>("requestTimeout");
     this.trustedHostnames = configService.get<string[]>("trustedHostnames");
+    this.ebsiEnvConfig = {
+      didRegistry: `${configService.get<string>(
+        "didRegistryApiUrl"
+      )}/identifiers`,
+      trustedIssuersRegistry: `${configService.get<string>(
+        "domain"
+      )}${configService.get<string>("apiUrlPrefix")}/issuers`,
+      trustedPoliciesRegistry: `${configService.get<string>(
+        "trustedPoliciesRegistryApiUrl"
+      )}/users`,
+    };
   }
 
   async validate(value: unknown) {
@@ -92,7 +107,8 @@ export class IsIssuerProxy implements ValidatorConstraintInterface {
       value,
       this.authority,
       this.timeout,
-      this.trustedHostnames
+      this.trustedHostnames,
+      this.ebsiEnvConfig
     );
   }
 
