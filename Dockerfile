@@ -23,6 +23,7 @@ COPY ./apis/proxy-data-hub/package.json ./apis/proxy-data-hub/
 COPY ./apis/shared/package.json ./apis/shared/
 COPY ./apis/storage/package.json ./apis/storage/
 COPY ./apis/timestamp/package.json ./apis/timestamp/
+COPY ./apis/timestamp-v4/package.json ./apis/timestamp-v4/
 COPY ./apis/trusted-apps-registry/package.json ./apis/trusted-apps-registry/
 COPY ./apis/trusted-apps-registry-v4/package.json ./apis/trusted-apps-registry-v4/
 COPY ./apis/trusted-issuers-registry/package.json ./apis/trusted-issuers-registry/
