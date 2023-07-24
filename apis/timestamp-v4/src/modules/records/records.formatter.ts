@@ -1,4 +1,4 @@
-import { Timestamp } from "@ebsiint-sc/timestamp";
+import { Timestamp } from "@ebsiint-sc/timestamp-v2";
 import {
   PaginatedList,
   AsyncReturnType,

@@ -13,7 +13,7 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
-import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp";
+import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp-v2";
 import { AsyncReturnType } from "@ebsiint-api/shared";
 import { HashAlgorithmsModule } from "./hash-algorithms.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";

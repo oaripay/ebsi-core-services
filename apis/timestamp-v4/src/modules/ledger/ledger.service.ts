@@ -6,7 +6,7 @@ import { Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
 import { decodeJWT } from "did-jwt";
 import axios, { AxiosResponse } from "axios";
 import { Mutex } from "async-mutex";
-import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp";
+import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp-v2";
 import { logAxiosError, InternalServerError } from "@ebsiint-api/shared";
 import { ApiConfig } from "../../config/configuration";
 

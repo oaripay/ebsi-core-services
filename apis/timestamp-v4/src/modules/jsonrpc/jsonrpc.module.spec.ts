@@ -22,7 +22,7 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { HashName } from "multihashes";
-import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp";
+import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp-v2";
 import { multibase, AsyncReturnType } from "@ebsiint-api/shared";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";

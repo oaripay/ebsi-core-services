@@ -1,7 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { HashName } from "multihashes";
 import type { ethers } from "ethers";
-import { Timestamp } from "@ebsiint-sc/timestamp";
+import { Timestamp } from "@ebsiint-sc/timestamp-v2";
 import {
   AsyncReturnType,
   multibase,

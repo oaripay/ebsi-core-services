@@ -1,6 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
 import { ethers } from "ethers";
-import { Timestamp } from "@ebsiint-sc/timestamp";
+import { Timestamp } from "@ebsiint-sc/timestamp-v2";
 import { AsyncReturnType } from "@ebsiint-api/shared";
 import { formatHashAlgorithms } from "./hash-algorithms.formatter";
 

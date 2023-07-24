@@ -1,7 +1,7 @@
 import { describe, it, expect } from "@jest/globals";
 import crypto from "node:crypto";
 import { ethers } from "ethers";
-import { Timestamp } from "@ebsiint-sc/timestamp";
+import { Timestamp } from "@ebsiint-sc/timestamp-v2";
 import { multibase, AsyncReturnType } from "@ebsiint-api/shared";
 import { formatRecords, formatRecordVersions } from "./records.formatter";
 

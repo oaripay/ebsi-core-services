@@ -4,7 +4,7 @@ import "@nomiclabs/hardhat-ethers";
 import type { HardhatUserConfig } from "hardhat/config";
 
 const timestampScPath = path.resolve(
-  require.resolve("@ebsiint-sc/timestamp"),
+  require.resolve("@ebsiint-sc/timestamp-v2"),
   "../.." // relative to "dist/index.js"
 );
 

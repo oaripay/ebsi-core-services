@@ -1,11 +1,11 @@
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
-/// <reference path="../../../../contracts/timestamp/src/types/hardhat.d.ts" />
+/// <reference path="../../../../contracts/timestamp-v2/src/types/hardhat.d.ts" />
 import { createHash, randomBytes, randomInt } from "node:crypto";
 import hre from "hardhat";
 import "@nomiclabs/hardhat-ethers";
 import { ContractTransaction, Contract, ethers } from "ethers";
 import { HashName } from "multihashes";
-import { Timestamp } from "@ebsiint-sc/timestamp";
+import { Timestamp } from "@ebsiint-sc/timestamp-v2";
 
 interface HashAlgorithmObject {
   outputLength: number;
@@ -81,8 +81,6 @@ export async function deployTimestampContract(): Promise<{
     testTprAddress
   );
 
-  await timestampContract.initialize(1);
-  await timestampContract.setTrustedPoliciesRegistryAddress();
   await policyContractMock.setPolicyResult(true);
 
   return { timestampContract, policyContractMock };

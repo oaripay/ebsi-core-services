@@ -1,6 +1,6 @@
 import { Controller, Get, Query, Param } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { Timestamp } from "@ebsiint-sc/timestamp";
+import { Timestamp } from "@ebsiint-sc/timestamp-v2";
 import { PaginatedList, AsyncReturnType } from "@ebsiint-api/shared";
 import RecordsService from "./records.service";
 import { formatRecords, formatRecordVersions } from "./records.formatter";

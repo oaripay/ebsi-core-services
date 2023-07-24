@@ -19,7 +19,7 @@ module.exports = {
   transformIgnorePatterns: [
     "/node_modules/",
     "/apis/shared/dist/",
-    "/contracts/timestamp/dist/",
+    "/contracts/timestamp-v2/dist/",
   ],
   moduleFileExtensions: ["js", "json", "ts"],
   coverageDirectory: "./coverage/",

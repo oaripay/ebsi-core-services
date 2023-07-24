@@ -12,7 +12,7 @@ For more information, see:
 
 - [Timestamp API Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/x/VIiWFQ)
 - [Timestamp Smart Contract Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/x/hYiWFQ)
-- [Timestamp Smart Contract](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/browse/contracts/timestamp)
+- [Timestamp Smart Contract](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/browse/contracts/timestamp-v2)
 - API catalogs:
   - [EBSI Pilot network API Catalog](https://api-pilot.ebsi.eu/docs/apis)
   - [EBSI Conformance network API Catalog](https://api-conformance.ebsi.eu/docs/apis)

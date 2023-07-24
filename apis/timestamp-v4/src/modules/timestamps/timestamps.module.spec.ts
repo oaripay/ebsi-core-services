@@ -15,7 +15,7 @@ import {
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
 import { ethers } from "ethers";
-import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp";
+import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp-v2";
 import {
   multibase,
   multihashEncode,

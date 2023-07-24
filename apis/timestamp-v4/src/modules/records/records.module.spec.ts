@@ -14,7 +14,7 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
-import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp";
+import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp-v2";
 import { AsyncReturnType, multibase } from "@ebsiint-api/shared";
 import { RecordsModule } from "./records.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
