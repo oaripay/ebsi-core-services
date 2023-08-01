@@ -41,40 +41,16 @@ interface SupertestJsonRpcResponse {
 
 type JsonRpcParams = InsertHashAlgorithmParam | UpdateHashAlgorithmParam;
 
-const validHashAlgorithms: Record<
-  string,
-  { outputLength: number; multihash: HashName; oid: string }
-> = {
-  "sha-256": {
-    outputLength: 256,
-    multihash: "sha2-256",
-    oid: "2.16.840.1.101.3.4.2.1",
-  },
-  "sha-512": {
-    outputLength: 512,
-    multihash: "sha2-512",
-    oid: "2.16.840.1.101.3.4.2.3",
-  },
-  "sha3-224": {
-    outputLength: 224,
-    multihash: "sha3-224",
-    oid: "2.16.840.1.101.3.4.2.7",
-  },
-  "sha3-256": {
-    outputLength: 256,
-    multihash: "sha3-256",
-    oid: "2.16.840.1.101.3.4.2.8",
-  },
-  "sha3-384": {
-    outputLength: 384,
-    multihash: "sha3-384",
-    oid: "2.16.840.1.101.3.4.2.9",
-  },
-  "sha3-512": {
-    outputLength: 512,
-    multihash: "sha3-512",
-    oid: "2.16.840.1.101.3.4.2.10",
-  },
+const newHashAlgorithm: {
+  ianaName: string;
+  outputLength: number;
+  multihash: HashName;
+  oid: string;
+} = {
+  ianaName: `test-${Date.now()}`,
+  outputLength: 256,
+  multihash: "sha2-256",
+  oid: "2.16.840.1.101.3.4.2.1",
 } as const;
 
 describe("HashAlgorithms (e2e)", () => {
@@ -239,19 +215,17 @@ describe("HashAlgorithms (e2e)", () => {
         expect.assertions(5);
 
         let params: JsonRpcParams | null = null;
+        const { outputLength, ianaName, oid, multihash } = newHashAlgorithm;
 
         switch (method) {
           case "insertHashAlgorithm": {
-            const hashes = Object.keys(validHashAlgorithms);
-            const randomHash = hashes[randomInt(hashes.length)];
-
             params = {
               from: testAdmin.wallet.address,
-              outputLength: validHashAlgorithms[randomHash].outputLength,
-              ianaName: randomHash,
-              oid: validHashAlgorithms[randomHash].oid,
+              outputLength,
+              ianaName,
+              oid,
               status: 1,
-              multihash: validHashAlgorithms[randomHash].multihash,
+              multihash,
             } as InsertHashAlgorithmParam;
             break;
           }
@@ -260,17 +234,14 @@ describe("HashAlgorithms (e2e)", () => {
             const hashAlgorithmId =
               (response.body as { total: number }).total - 1;
 
-            const hashes = Object.keys(validHashAlgorithms);
-            const randomHash = hashes[randomInt(hashes.length)];
-
             params = {
               from: testAdmin.wallet.address,
               hashAlgorithmId,
-              outputLength: validHashAlgorithms[randomHash].outputLength,
-              ianaName: randomHash,
-              oid: validHashAlgorithms[randomHash].oid,
+              outputLength,
+              ianaName,
+              oid,
               status: 1,
-              multihash: validHashAlgorithms[randomHash].multihash,
+              multihash,
             } as UpdateHashAlgorithmParam;
             break;
           }
@@ -356,16 +327,15 @@ describe("HashAlgorithms (e2e)", () => {
   it("should reject impersonating transactions: admin wallet using jwt from user", async () => {
     expect.assertions(2);
 
-    const hashes = Object.keys(validHashAlgorithms);
-    const randomHash = hashes[randomInt(hashes.length)];
+    const { outputLength, ianaName, oid, multihash } = newHashAlgorithm;
 
     const param = {
       from: testAdmin.wallet.address,
-      outputLength: validHashAlgorithms[randomHash].outputLength,
-      ianaName: randomHash,
-      oid: validHashAlgorithms[randomHash].oid,
+      outputLength,
+      ianaName,
+      oid,
       status: 1,
-      multihash: validHashAlgorithms[randomHash].multihash,
+      multihash,
     } as InsertHashAlgorithmParam;
 
     const responseBuild: SupertestJsonRpcResponse = await request(server)

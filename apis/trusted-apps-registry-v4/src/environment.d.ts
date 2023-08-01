@@ -13,10 +13,11 @@ declare global {
       CONTRACT_ADDR: string;
       AUTHORISATION_API_NAME?: string;
       REQUEST_TIMEOUT?: string;
-      TEST_ADMIN_DID?: string;
+      TEST_ADMIN_KID?: string;
       TEST_ADMIN_PRIVATE_KEY?: string;
-      TEST_USER_DID?: string;
+      TEST_USER_KID?: string;
       TEST_USER_PRIVATE_KEY?: string;
+      TEST_APP_NAME?: string;
       TEST_ENV?: string;
       TEST_ENABLE_WRITE_OPS?: string;
       TEST_LB_DOMAIN?: string;

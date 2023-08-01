@@ -99,6 +99,7 @@ describe("Apps (e2e)", () => {
   let adminUserAccessToken: string;
   let userTestWallet: ethers.Wallet;
   let userAccessToken: string;
+  let testAppName: string;
   let besuRpcNode: string;
   let didAppAdmin: string;
   let configService: ConfigService<ApiConfig, true>;
@@ -155,11 +156,12 @@ describe("Apps (e2e)", () => {
     userTestWallet = new ethers.Wallet(
       prefixWith0x(configService.get("testUserPrivateKey"))
     );
+    testAppName = configService.get<string>("testAppName");
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
     try {
       adminUserAccessToken = await requestSiopJwt({
-        clientDid: configService.get<string>("testAdminDid"),
+        clientKid: configService.get<string>("testAdminKid"),
         clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
         configService,
       });
@@ -171,7 +173,7 @@ describe("Apps (e2e)", () => {
 
     try {
       userAccessToken = await requestSiopJwt({
-        clientDid: configService.get<string>("testUserDid"),
+        clientKid: configService.get<string>("testUserKid"),
         clientPrivateKey: configService.get<string>("testUserPrivateKey"),
         configService,
       });
@@ -181,7 +183,7 @@ describe("Apps (e2e)", () => {
       throw e;
     }
 
-    didAppAdmin = configService.get<string>("testAdminDid");
+    [didAppAdmin] = configService.get<string>("testAdminKid").split("#");
     besuRpcNode = configService.get("besuRpcNode");
 
     blockscout = configService.get<{
@@ -235,10 +237,12 @@ describe("Apps (e2e)", () => {
     it("should return an app when query public_key_id is defined", async () => {
       expect.assertions(3);
 
-      const responseApps: SupertestAppsResponse = await request(server).get(
-        "/apps"
+      const responseApps: SupertestAppResponse = await request(server).get(
+        `/apps/${testAppName}`
       );
-      const publicKeyId0 = responseApps.body.items[0].id;
+      const publicKeyId0 = ethers.utils.sha256(
+        Buffer.from(responseApps.body.publicKeys[0], "base64")
+      );
       const response: SupertestAppsResponse = await request(server).get(
         `/apps?public_key_id=${publicKeyId0}`
       );
@@ -441,23 +445,18 @@ describe("Apps (e2e)", () => {
   describe("GET /apps/{name}/public-keys/{publicKeyId}", () => {
     it("should return a specific public key", async () => {
       expect.assertions(2);
-      const appsResponse: SupertestAppsResponse = await request(server).get(
-        "/apps"
-      );
-      const { name, id }: AppLink =
-        appsResponse.body.items[appsResponse.body.items.length - 1];
       const responseKeys: SupertestPublicKeysResponse = await request(
         server
-      ).get(`/apps/${name}/public-keys`);
+      ).get(`/apps/${testAppName}/public-keys`);
 
       const pubKeyId = responseKeys.body.items[0].id;
 
       const response: SupertestPublicKeyResponse = await request(server).get(
-        `/apps/${name}/public-keys/${pubKeyId}`
+        `/apps/${testAppName}/public-keys/${pubKeyId}`
       );
 
       expect(response.body).toStrictEqual({
-        applicationId: id,
+        applicationId: expect.any(String),
         publicKey: expect.any(String),
         status: expect.any(String),
       });
@@ -661,7 +660,7 @@ describe("Apps (e2e)", () => {
           param = {
             from: adminTestWallet.address,
             applicationId,
-            domain: 0,
+            domain: 1,
           } as UpdateAppParam;
           break;
         case "insertAppPublicKey":
@@ -669,7 +668,7 @@ describe("Apps (e2e)", () => {
             from: adminTestWallet.address,
             applicationId,
             publicKey: `0x${publicKeyBuffer.toString("hex")}`,
-            status: 3,
+            status: 1,
           } as InsertAppPublicKeyParam;
           break;
         case "updateAppPublicKey":
@@ -677,7 +676,7 @@ describe("Apps (e2e)", () => {
           param = {
             from: adminTestWallet.address,
             publicKeyId,
-            status: 3,
+            status: 2,
           } as UpdateAppPublicKeyParam;
           break;
         default:

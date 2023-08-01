@@ -16,10 +16,11 @@ export interface ApiConfig {
   besuRpcNode: string;
   externalEbsiApiHealthCheck: string;
   requestTimeout: number;
-  testAdminDid: string;
+  testAdminKid: string;
   testAdminPrivateKey: string;
-  testUserDid: string;
+  testUserKid: string;
   testUserPrivateKey: string;
+  testAppName: string;
   testLoadBalancerDomain: string;
   dockerContainerTag: string;
   blockscout: {
@@ -58,10 +59,11 @@ export const loadConfig = (): ApiConfig => {
     // DID Registry API
     didRegistryApiUrl: DOMAIN + DIDR_API_PATH,
     // Test variables
-    testAdminDid: process.env.TEST_ADMIN_DID,
+    testAdminKid: process.env.TEST_ADMIN_KID,
     testAdminPrivateKey: process.env.TEST_ADMIN_PRIVATE_KEY,
-    testUserDid: process.env.TEST_USER_DID,
+    testUserKid: process.env.TEST_USER_KID,
     testUserPrivateKey: process.env.TEST_USER_PRIVATE_KEY,
+    testAppName: process.env.TEST_APP_NAME,
     testLoadBalancerDomain: process.env.TEST_LB_DOMAIN || "",
     dockerContainerTag: process.env.DOCKER_TAG || "",
     blockscout: {
@@ -106,10 +108,11 @@ export const ApiConfigModule = ConfigModule.forRoot({
     // Authorisation API
     AUTHORISATION_API_NAME: Joi.string(),
     // Test vars
-    TEST_ADMIN_DID: Joi.string(),
+    TEST_ADMIN_KID: Joi.string(),
     TEST_ADMIN_PRIVATE_KEY: Joi.string(),
-    TEST_USER_DID: Joi.string(),
+    TEST_USER_KID: Joi.string(),
     TEST_USER_PRIVATE_KEY: Joi.string(),
+    TEST_APP_NAME: Joi.string(),
     TEST_LB_DOMAIN: Joi.string().uri(),
     BLOCKSCOUT_URL: Joi.string(),
     BLOCKSCOUT_BEARER_TOKEN: Joi.string(),

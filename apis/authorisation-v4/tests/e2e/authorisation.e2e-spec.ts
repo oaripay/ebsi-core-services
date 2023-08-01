@@ -1121,8 +1121,6 @@ describe("Authorisation (e2e)", () => {
             } satisfies CreateAccessTokenDto).toString()
           );
 
-        expect(response.status).toBe(200);
-
         expect(response.body).toStrictEqual({
           access_token: expect.any(String),
           expires_in: 7200,
@@ -1130,6 +1128,8 @@ describe("Authorisation (e2e)", () => {
           scope,
           token_type: "Bearer",
         });
+
+        expect(response.status).toBe(200);
 
         // Decode access token
         const { access_token: accessToken } = response.body as TokenResponse;

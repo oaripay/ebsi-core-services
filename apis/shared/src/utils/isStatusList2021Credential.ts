@@ -53,13 +53,17 @@ export const statusList2021CredentialSchema = Joi.object({
   // Allow additional properties
   .unknown(true);
 
-export async function isStatusList2021Credential(
+export async function checkStatusList2021Credential(
   credentialJwt: unknown,
   authority: string,
   options?: Omit<VerifyCredentialOptions, "ebsiAuthority">
-): Promise<boolean> {
+): Promise<{ success: boolean; error?: string }> {
   // Note: we only support VC JWT for now -> the StatusList2021Credential must be a JWT
-  if (!credentialJwt || typeof credentialJwt !== "string") return false;
+  if (!credentialJwt || typeof credentialJwt !== "string")
+    return {
+      success: false,
+      error: "JWT is not a string",
+    };
 
   try {
     // Verify credential and its signature
@@ -70,10 +74,24 @@ export async function isStatusList2021Credential(
     });
 
     Joi.assert(credential, statusList2021CredentialSchema);
-  } catch {
-    return false;
+  } catch (error) {
+    return {
+      success: false,
+      error: (error as Error).message,
+    };
   }
 
-  return true;
+  return { success: true };
 }
+
+export async function isStatusList2021Credential(
+  credentialJwt: unknown,
+  authority: string,
+  options?: Omit<VerifyCredentialOptions, "ebsiAuthority">
+): Promise<boolean> {
+  return (
+    await checkStatusList2021Credential(credentialJwt, authority, options)
+  ).success;
+}
+
 export default isStatusList2021Credential;

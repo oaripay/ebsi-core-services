@@ -1,6 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="../../../../contracts/timestamp-v2/src/types/hardhat.d.ts" />
-import { createHash, randomBytes, randomInt } from "node:crypto";
+import { createHash, randomBytes } from "node:crypto";
 import hre from "hardhat";
 import "@nomiclabs/hardhat-ethers";
 import { ContractTransaction, Contract, ethers } from "ethers";
@@ -90,7 +90,7 @@ const validHashAlgorithms = [
   "sha-256",
   "sha-512",
   "sha3-224",
-  "sha3-256",
+  // "sha3-256", // to be inserted in the unit tests
   "sha3-384",
   "sha3-512",
 ] as const;
@@ -123,9 +123,10 @@ const outputLengths = {
 };
 
 export async function insertHashAlgorithm(
-  contract: Timestamp
+  contract: Timestamp,
+  index: number
 ): Promise<HashAlgorithmObject> {
-  const ianaName = validHashAlgorithms[randomInt(validHashAlgorithms.length)];
+  const ianaName = validHashAlgorithms[index];
   const outputLength = outputLengths[ianaName];
   const oid = "oid-test";
   const status = 1;
@@ -252,7 +253,7 @@ export async function setupTestEnv(
   const hashAlgorithms = await Promise.all(
     Array(opts.hashAlgorithmsTotal)
       .fill(0)
-      .map(() => insertHashAlgorithm(timestampContract))
+      .map((_, i) => insertHashAlgorithm(timestampContract, i))
   );
 
   const records = await Promise.all(

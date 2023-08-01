@@ -10,11 +10,11 @@ import { encode } from "@ebsiint-api/shared";
 import { ApiConfig } from "../../src/config/configuration";
 
 export const requestSiopJwt = async ({
-  clientDid,
+  clientKid,
   clientPrivateKey,
   configService,
 }: {
-  clientDid: string;
+  clientKid: string;
   clientPrivateKey: string;
   configService: ConfigService<ApiConfig, true>;
 }): Promise<string> => {
@@ -45,7 +45,7 @@ export const requestSiopJwt = async ({
       encode.privateKey.fromHexToJWK(clientPrivateKey),
       alg
     ),
-    kid: `${clientDid}#keys-1`,
+    kid: clientKid,
     alg,
     siopV2: true,
   });

@@ -966,7 +966,7 @@ describe("Records (e2e)", () => {
       expect((response.body as { items: string }).items).not.toHaveLength(0);
       expect(response.status).toBe(200);
       const responseLast = await request(server).get(
-        (response.body as PaginatedList<unknown>).links?.last.split("v3")[1] ||
+        (response.body as PaginatedList<unknown>).links?.last.split("v4")[1] ||
           ""
       );
 

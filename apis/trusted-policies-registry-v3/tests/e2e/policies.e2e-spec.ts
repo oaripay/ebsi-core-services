@@ -44,6 +44,11 @@ interface SupertestPoliciesResponse {
   body: PaginatedList<PolicyLink>;
 }
 
+interface SupertestPolicyResponse {
+  status: number;
+  body: PolicyResponseObject;
+}
+
 interface SupertestJsonRpcResponse {
   status: number;
   body: JsonRpcResponseObject;
@@ -131,6 +136,32 @@ describe("Policies (e2e)", () => {
   });
 
   describe("/jsonrpc", () => {
+    // policy id to test "activate" and "deactivate"
+    let policyA: PolicyResponseObject;
+    beforeAll(async () => {
+      let getPoliciesResponse: SupertestPoliciesResponse = await request(
+        server
+      ).get("/policies");
+      const { last } = getPoliciesResponse.body.links;
+      getPoliciesResponse = await request(server).get(
+        `/policies${last.slice(last.indexOf("?"))}`
+      );
+      if (getPoliciesResponse.body.items.length === 1) {
+        const { prev } = getPoliciesResponse.body.links;
+        getPoliciesResponse = await request(server).get(
+          `/policies${prev.slice(last.indexOf("?"))}`
+        );
+      }
+      const name =
+        getPoliciesResponse.body.items[
+          getPoliciesResponse.body.items.length - 2
+        ].policyName;
+      const policyResponse: SupertestPolicyResponse = await request(server).get(
+        `/policies/${name}`
+      );
+      policyA = policyResponse.body;
+    });
+
     it("should reject a POST without JWT", async () => {
       expect.assertions(3);
 
@@ -404,7 +435,7 @@ describe("Policies (e2e)", () => {
             "/policies"
           );
           // Update last policy
-          const lastPolicyId = `${response.body.total - 1}`;
+          const lastPolicyId = `${response.body.total}`;
 
           // Use test account, as defined in hardhat.config.ts
           const signer = adminTestWallet;
@@ -429,18 +460,16 @@ describe("Policies (e2e)", () => {
               break;
             }
             case "deactivatePolicy": {
-              const { policyName } = policy1;
               param = {
                 from: signer.address,
-                policyName,
+                policyName: policyA.policyName,
               } as DeactivatePolicyParam;
               break;
             }
             case "activatePolicy": {
-              const { policyName } = policy1;
               param = {
                 from: signer.address,
-                policyName,
+                policyName: policyA.policyName,
               } as ActivatePolicyParam;
               break;
             }
@@ -531,7 +560,7 @@ describe("Policies (e2e)", () => {
               const getPoliciesResponse: SupertestPoliciesResponse =
                 await request(server).get("/policies");
 
-              const policyId = `${getPoliciesResponse.body.total - 1}`;
+              const policyId = `${getPoliciesResponse.body.total}`;
 
               // Expected response
               expectedResponseBody = {
@@ -567,37 +596,26 @@ describe("Policies (e2e)", () => {
               break;
             }
             case "deactivatePolicy": {
-              const { policyName, description } = policy2;
-
               // Expected response
               expectedResponseBody = {
-                policyId: `${lastPolicyId}`,
-                policyName,
-                description,
+                ...policyA,
                 status: false,
               } as PolicyResponseObject;
 
               // Actual response
               actualResponse = await request(server).get(
-                `/policies/${policyName}`
+                `/policies/${policyA.policyName}`
               );
 
               break;
             }
             case "activatePolicy": {
-              const { policyName, description } = policy2;
-
               // Expected response
-              expectedResponseBody = {
-                policyId: `${lastPolicyId}`,
-                policyName,
-                description,
-                status: true,
-              } as PolicyResponseObject;
+              expectedResponseBody = policyA;
 
               // Actual response
               actualResponse = await request(server).get(
-                `/policies/${policyName}`
+                `/policies/${policyA.policyName}`
               );
 
               break;
@@ -1046,7 +1064,7 @@ describe("Policies (e2e)", () => {
         server
       ).get("/policies");
 
-      const policyId = `${getPoliciesResponse.body.total - 1}`;
+      const policyId = `${getPoliciesResponse.body.total}`;
       const lastPageUrl = getPoliciesResponse.body.links.last;
       const lastPage: SupertestPoliciesResponse = await request(server).get(
         lastPageUrl.slice(lastPageUrl.lastIndexOf("/policies"))
@@ -1059,7 +1077,7 @@ describe("Policies (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        policyId: `${policyId}`,
+        policyId,
         policyName: expect.any(String),
         description: expect.any(String),
         status: expect.any(Boolean),

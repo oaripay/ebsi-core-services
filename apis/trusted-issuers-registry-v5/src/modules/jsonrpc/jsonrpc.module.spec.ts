@@ -319,10 +319,10 @@ describe("JsonRpc Module", () => {
       .spyOn(jsonRpcService, "isDidControlledByAddress")
       .mockImplementation(async () => Promise.resolve(true));
 
-    // Mock isStatusList2021Credential
+    // Mock checkStatusList2021Credential
     jest
-      .spyOn(StatusList2021CredentialHelpers, "isStatusList2021Credential")
-      .mockImplementation(() => Promise.resolve(true));
+      .spyOn(StatusList2021CredentialHelpers, "checkStatusList2021Credential")
+      .mockImplementation(() => Promise.resolve({ success: true }));
   });
 
   afterEach(() => {

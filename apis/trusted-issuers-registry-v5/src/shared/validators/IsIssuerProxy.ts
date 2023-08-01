@@ -8,7 +8,7 @@ import {
 import axios from "axios";
 import { ConfigService } from "@nestjs/config";
 import { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
-import { isStatusList2021Credential } from "@ebsiint-api/shared";
+import { checkStatusList2021Credential } from "@ebsiint-api/shared";
 import { ApiConfig } from "../../config/configuration";
 
 export const IS_ISSUER_PROXY = "isIssuerProxy";
@@ -57,15 +57,15 @@ export async function isIssuerProxy(
     });
 
     if (testResponse.status !== 200) return false;
-
-    if (
-      !(await isStatusList2021Credential(testResponse.data, authority, {
+    const resultStatusList2021 = await checkStatusList2021Credential(
+      testResponse.data,
+      authority,
+      {
         trustedHostnames,
         ebsiEnvConfig,
-      }))
-    ) {
-      return false;
-    }
+      }
+    );
+    if (!resultStatusList2021.success) return false;
   } catch {
     return false;
   }
