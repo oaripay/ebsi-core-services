@@ -5,7 +5,7 @@ import { LoggerService } from "@nestjs/common";
 export const consoleTransport = new transports.Console({
   format: format.combine(
     format.timestamp(),
-    winstonUtilities.format.nestLike("Timestamp API")
+    winstonUtilities.format.nestLike("Timestamp API v3")
   ),
   handleExceptions: true,
 });
