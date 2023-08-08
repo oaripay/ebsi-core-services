@@ -100,8 +100,8 @@ paths:
                     items:
                       - did: did:ebsi:zppVrNT9bBgMqxrJqVEnvyk
                         href: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zppVrNT9bBgMqxrJqVEnvyk
-                      - did: did:ebsi:zr2rWDHHrUCdZAW7wsSb5nQ
-                        href: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zr2rWDHHrUCdZAW7wsSb5nQ
+                      - did: did:ebsi:zZeKyEJfUTGwajhNyNX928z
+                        href: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zZeKyEJfUTGwajhNyNX928z
                       - did: did:ebsi:zzQar5zYxUCo1bPypeN3tiF
                         href: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zzQar5zYxUCo1bPypeN3tiF
                       - did: did:ebsi:z23usJB14wsPNwTds2esnoJt
@@ -154,7 +154,7 @@ paths:
               value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
             "[pilot] did":
               description: valid pilot did
-              value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
+              value: did:ebsi:zZeKyEJfUTGwajhNyNX928z
           required: true
       responses:
         "200":
@@ -175,13 +175,13 @@ paths:
                         rootTao: did:ebsi:zppVrNT9bBgMqxrJqVEnvyk
                 "[pilot] Success":
                   value:
-                    did: did:ebsi:zr2rWDHHrUCdZAW7wsSb5nQ
+                    did: did:ebsi:zZeKyEJfUTGwajhNyNX928z
                     attributes:
                       - hash: 317ee465aa7c80ec734c1291da037dd0e25faf549c43964f9f9f0658474d199b
                         body: eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJkaWQ6ZWJzaTp6MjU2YXNCV21IQnNqMlpOVnhHNU1oa3Aja2V5cy0yIn0.eyJpYXQiOjE2NzYzNzY0NTYsImp0aSI6InVybjp1dWlkOjFkMWMwODk4LTAwYWYtNDY0ZC1hZWZkLTI1YmYxMjZjYTA4OCIsIm5iZiI6MTY3NjM3NjQ1NiwiZXhwIjoxNzA3OTEyNDU2LCJzdWIiOiJkaWQ6ZWJzaTp6eW1COVdkR3g3SGN5bWFIb0JxQVZoZiIsInZjIjp7IkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIl0sImlkIjoidXJuOnV1aWQ6MWQxYzA4OTgtMDBhZi00NjRkLWFlZmQtMjViZjEyNmNhMDg4IiwidHlwZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCIsIkFjY3JlZGl0ZWRWZXJpZmlhYmxlQXR0ZXN0YXRpb24iLCJWZXJpZmlhYmxlQWNjcmVkaXRhdGlvblRJUERBMSJdLCJpc3N1ZXIiOiJkaWQ6ZWJzaTp6blZxSEttVDE0WTI0TG5CZEF5eHZoNSIsImlzc3VhbmNlRGF0ZSI6IjIwMjItMDYtMjdUMDk6MDA6MDBaIiwidmFsaWRGcm9tIjoiMjAyMi0wNi0yN1QwOTowMDowMFoiLCJleHBpcmF0aW9uRGF0ZSI6IjIwMzAtMDYtMjdUMDk6MDA6MDBaIiwidGVybXNPZlVzZSI6W3sidHlwZSI6IlZlcmlmaWFibGVBY2NyZWRpdGF0aW9uIiwiaWQiOiJodHRwczovL2FwaS1waWxvdC5lYnNpLmV1L3RydXN0ZWQtaXNzdWVycy1yZWdpc3RyeS92Mi9pc3N1ZXJzL2RpZDplYnNpOnpuVnFIS21UMTRZMjRMbkJkQXl4dmg1L2F0dHJpYnV0ZXMvYzIzOTU4OTY2NTc1MmE3ZDg0MmY4Y2ZkN2MzNGY4ZTNjZjJiYWE3YzRmMmFiMGEwMTFiMDdlZDdjNWNiZWQ2MiJ9XSwiaXNzdWVkIjoiMjAyMi0wNi0yN1QwOTowMDowMFoiLCJjcmVkZW50aWFsU3ViamVjdCI6eyJpZCI6ImRpZDplYnNpOnp5bUI5V2RHeDdIY3ltYUhvQnFBVmhmIiwiYXV0aG9yaXNhdGlvbkNsYWltcyI6W3siYXV0aG9yaXNlZFNjaGVtYUlkIjoiaHR0cHM6Ly9hcGktcGlsb3QuZWJzaS5ldS90cnVzdGVkLXNjaGVtYXMtcmVnaXN0cnkvdjEvc2NoZW1hcy8weDUwNDkwZWM0ZTJiMzA1M2Y3MDdjYzEyMWMyNjIxN2NiZWMzNjNmM2I5ZTkwOTE3NWQwNzNkMDRjNzM4OTBmOWEifV19LCJjcmVkZW50aWFsU3RhdHVzIjp7ImlkIjoiaHR0cHM6Ly9lc3NpZi5ldXJvcGEuZXUvc3RhdHVzLzEiLCJ0eXBlIjoiQ3JlZGVudGlhbHNTdGF0dXNMaXN0MjAyMCJ9LCJjcmVkZW50aWFsU2NoZW1hIjp7ImlkIjoiaHR0cHM6Ly9hcGktcGlsb3QuZWJzaS5ldS90cnVzdGVkLXNjaGVtYXMtcmVnaXN0cnkvdjEvc2NoZW1hcy8weDljMjZkMTkwMzJkZWI1ZDcyZjRhYzU2ZjNiODhjNDAyNWM2YmU4MTIzYzI0NGZlNTdhN2Q2ZTUzNDNiNzFiNjUiLCJ0eXBlIjoiRnVsbEpzb25TY2hlbWFWYWxpZGF0b3IyMDIxIn19LCJpc3MiOiJkaWQ6ZWJzaTp6MjU2YXNCV21IQnNqMlpOVnhHNU1oa3AifQ.00Cl-pnL-YSEQYTKA02MVWwryUX_i76l39BRXLiwLV1nnugIKHT7zJoiXnS3vFeaZ2R4HFNx1EK38CCs6gNh2g
                         issuerType: TAO
-                        tao: did:ebsi:zppVrNT9bBgMqxrJqVEnvyk
-                        rootTao: did:ebsi:zppVrNT9bBgMqxrJqVEnvyk
+                        tao: did:ebsi:zZeKyEJfUTGwajhNyNX928z
+                        rootTao: did:ebsi:zZeKyEJfUTGwajhNyNX928z
         "400":
           description: Bad Request
           content:
@@ -230,7 +230,7 @@ paths:
               value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
             "[pilot] did":
               description: valid pilot did
-              value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
+              value: did:ebsi:zZeKyEJfUTGwajhNyNX928z
           required: true
         - in: query
           name: page[after]
@@ -289,17 +289,17 @@ paths:
                       last: https://api-test.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zwTCXnY8azCDqmpDz4dkmHP/attributes?page[after]=1&page[size]=10
                 "[pilot] Success":
                   value:
-                    self: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zr2rWDHHrUCdZAW7wsSb5nQ/attributes?page[after]=1&page[size]=10
+                    self: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zZeKyEJfUTGwajhNyNX928z/attributes?page[after]=1&page[size]=10
                     items:
-                      - id: 317ee465aa7c80ec734c1291da037dd0e25faf549c43964f9f9f0658474d199b
-                        href: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zr2rWDHHrUCdZAW7wsSb5nQ/attributes/317ee465aa7c80ec734c1291da037dd0e25faf549c43964f9f9f0658474d199b
+                      - id: 447867bafab4c4ad26d4f4650e2390f92a831b6343b7c36ecb7c51fee336fa14
+                        href: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zZeKyEJfUTGwajhNyNX928z/attributes/447867bafab4c4ad26d4f4650e2390f92a831b6343b7c36ecb7c51fee336fa14
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zr2rWDHHrUCdZAW7wsSb5nQ/attributes?page[after]=1&page[size]=10
-                      prev: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zr2rWDHHrUCdZAW7wsSb5nQ/attributes?page[after]=1&page[size]=10
-                      next: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zr2rWDHHrUCdZAW7wsSb5nQ/attributes?page[after]=1&page[size]=10
-                      last: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zr2rWDHHrUCdZAW7wsSb5nQ/attributes?page[after]=1&page[size]=10
+                      first: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zZeKyEJfUTGwajhNyNX928z/attributes?page[after]=1&page[size]=10
+                      prev: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zZeKyEJfUTGwajhNyNX928z/attributes?page[after]=1&page[size]=10
+                      next: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zZeKyEJfUTGwajhNyNX928z/attributes?page[after]=1&page[size]=10
+                      last: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zZeKyEJfUTGwajhNyNX928z/attributes?page[after]=1&page[size]=10
 
         "400":
           description: Bad Request Error
@@ -349,7 +349,7 @@ paths:
               value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
             "[pilot] did":
               description: valid pilot did
-              value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
+              value: did:ebsi:zZeKyEJfUTGwajhNyNX928z
           required: true
         - name: attributeId
           in: path
@@ -361,7 +361,7 @@ paths:
               value: 25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
             "[pilot] attributeId":
               description: valid pilot attributeId
-              value: 4763114aaa3ba460849a5da50797ab6709f2b346788c6749067ac5b3413ad83e
+              value: 447867bafab4c4ad26d4f4650e2390f92a831b6343b7c36ecb7c51fee336fa14
           required: true
       responses:
         "200":
@@ -382,7 +382,7 @@ paths:
                       rootTao: did:ebsi:zppVrNT9bBgMqxrJqVEnvyk
                 "[pilot] Success":
                   value:
-                    did: did:ebsi:zr2rWDHHrUCdZAW7wsSb5nQ
+                    did: did:ebsi:zZeKyEJfUTGwajhNyNX928z
                     attribute:
                       hash: 317ee465aa7c80ec734c1291da037dd0e25faf549c43964f9f9f0658474d199b
                       body: eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJkaWQ6ZWJzaTp6MjU2YXNCV21IQnNqMlpOVnhHNU1oa3Aja2V5cy0yIn0.eyJpYXQiOjE2NzYzNzY0NTYsImp0aSI6InVybjp1dWlkOjFkMWMwODk4LTAwYWYtNDY0ZC1hZWZkLTI1YmYxMjZjYTA4OCIsIm5iZiI6MTY3NjM3NjQ1NiwiZXhwIjoxNzA3OTEyNDU2LCJzdWIiOiJkaWQ6ZWJzaTp6eW1COVdkR3g3SGN5bWFIb0JxQVZoZiIsInZjIjp7IkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIl0sImlkIjoidXJuOnV1aWQ6MWQxYzA4OTgtMDBhZi00NjRkLWFlZmQtMjViZjEyNmNhMDg4IiwidHlwZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCIsIkFjY3JlZGl0ZWRWZXJpZmlhYmxlQXR0ZXN0YXRpb24iLCJWZXJpZmlhYmxlQWNjcmVkaXRhdGlvblRJUERBMSJdLCJpc3N1ZXIiOiJkaWQ6ZWJzaTp6blZxSEttVDE0WTI0TG5CZEF5eHZoNSIsImlzc3VhbmNlRGF0ZSI6IjIwMjItMDYtMjdUMDk6MDA6MDBaIiwidmFsaWRGcm9tIjoiMjAyMi0wNi0yN1QwOTowMDowMFoiLCJleHBpcmF0aW9uRGF0ZSI6IjIwMzAtMDYtMjdUMDk6MDA6MDBaIiwidGVybXNPZlVzZSI6W3sidHlwZSI6IlZlcmlmaWFibGVBY2NyZWRpdGF0aW9uIiwiaWQiOiJodHRwczovL2FwaS1waWxvdC5lYnNpLmV1L3RydXN0ZWQtaXNzdWVycy1yZWdpc3RyeS92Mi9pc3N1ZXJzL2RpZDplYnNpOnpuVnFIS21UMTRZMjRMbkJkQXl4dmg1L2F0dHJpYnV0ZXMvYzIzOTU4OTY2NTc1MmE3ZDg0MmY4Y2ZkN2MzNGY4ZTNjZjJiYWE3YzRmMmFiMGEwMTFiMDdlZDdjNWNiZWQ2MiJ9XSwiaXNzdWVkIjoiMjAyMi0wNi0yN1QwOTowMDowMFoiLCJjcmVkZW50aWFsU3ViamVjdCI6eyJpZCI6ImRpZDplYnNpOnp5bUI5V2RHeDdIY3ltYUhvQnFBVmhmIiwiYXV0aG9yaXNhdGlvbkNsYWltcyI6W3siYXV0aG9yaXNlZFNjaGVtYUlkIjoiaHR0cHM6Ly9hcGktcGlsb3QuZWJzaS5ldS90cnVzdGVkLXNjaGVtYXMtcmVnaXN0cnkvdjEvc2NoZW1hcy8weDUwNDkwZWM0ZTJiMzA1M2Y3MDdjYzEyMWMyNjIxN2NiZWMzNjNmM2I5ZTkwOTE3NWQwNzNkMDRjNzM4OTBmOWEifV19LCJjcmVkZW50aWFsU3RhdHVzIjp7ImlkIjoiaHR0cHM6Ly9lc3NpZi5ldXJvcGEuZXUvc3RhdHVzLzEiLCJ0eXBlIjoiQ3JlZGVudGlhbHNTdGF0dXNMaXN0MjAyMCJ9LCJjcmVkZW50aWFsU2NoZW1hIjp7ImlkIjoiaHR0cHM6Ly9hcGktcGlsb3QuZWJzaS5ldS90cnVzdGVkLXNjaGVtYXMtcmVnaXN0cnkvdjEvc2NoZW1hcy8weDljMjZkMTkwMzJkZWI1ZDcyZjRhYzU2ZjNiODhjNDAyNWM2YmU4MTIzYzI0NGZlNTdhN2Q2ZTUzNDNiNzFiNjUiLCJ0eXBlIjoiRnVsbEpzb25TY2hlbWFWYWxpZGF0b3IyMDIxIn19LCJpc3MiOiJkaWQ6ZWJzaTp6MjU2YXNCV21IQnNqMlpOVnhHNU1oa3AifQ.00Cl-pnL-YSEQYTKA02MVWwryUX_i76l39BRXLiwLV1nnugIKHT7zJoiXnS3vFeaZ2R4HFNx1EK38CCs6gNh2g
@@ -437,7 +437,7 @@ paths:
               value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
             "[pilot] did":
               description: valid pilot did
-              value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
+              value: did:ebsi:zZeKyEJfUTGwajhNyNX928z
           required: true
         - name: attributeId
           in: path
@@ -449,7 +449,7 @@ paths:
               value: 25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
             "[pilot] attributeId":
               description: valid pilot attributeId
-              value: 4763114aaa3ba460849a5da50797ab6709f2b346788c6749067ac5b3413ad83e
+              value: 447867bafab4c4ad26d4f4650e2390f92a831b6343b7c36ecb7c51fee336fa14
           required: true
         - in: query
           name: page[after]
@@ -504,7 +504,7 @@ paths:
                       last: https://api-test.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zwTCXnY8azCDqmpDz4dkmHP/attributes/317ee465aa7c80ec734c1291da037dd0e25faf549c43964f9f9f0658474d199b/revisions?page[after]=1&page[size]=10
                 "[pilot] Success":
                   value:
-                    self: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zr2rWDHHrUCdZAW7wsSb5nQ/attributes/317ee465aa7c80ec734c1291da037dd0e25faf549c43964f9f9f0658474d199b/revisions?page[after]=1&page[size]=10
+                    self: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zZeKyEJfUTGwajhNyNX928z/attributes/317ee465aa7c80ec734c1291da037dd0e25faf549c43964f9f9f0658474d199b/revisions?page[after]=1&page[size]=10
                     items:
                       - hash: 317ee465aa7c80ec734c1291da037dd0e25faf549c43964f9f9f0658474d199b
                         body: eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJkaWQ6ZWJzaTp6MjU2YXNCV21IQnNqMlpOVnhHNU1oa3Aja2V5cy0yIn0.eyJpYXQiOjE2NzYzNzY0NTYsImp0aSI6InVybjp1dWlkOjFkMWMwODk4LTAwYWYtNDY0ZC1hZWZkLTI1YmYxMjZjYTA4OCIsIm5iZiI6MTY3NjM3NjQ1NiwiZXhwIjoxNzA3OTEyNDU2LCJzdWIiOiJkaWQ6ZWJzaTp6eW1COVdkR3g3SGN5bWFIb0JxQVZoZiIsInZjIjp7IkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIl0sImlkIjoidXJuOnV1aWQ6MWQxYzA4OTgtMDBhZi00NjRkLWFlZmQtMjViZjEyNmNhMDg4IiwidHlwZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCIsIkFjY3JlZGl0ZWRWZXJpZmlhYmxlQXR0ZXN0YXRpb24iLCJWZXJpZmlhYmxlQWNjcmVkaXRhdGlvblRJUERBMSJdLCJpc3N1ZXIiOiJkaWQ6ZWJzaTp6blZxSEttVDE0WTI0TG5CZEF5eHZoNSIsImlzc3VhbmNlRGF0ZSI6IjIwMjItMDYtMjdUMDk6MDA6MDBaIiwidmFsaWRGcm9tIjoiMjAyMi0wNi0yN1QwOTowMDowMFoiLCJleHBpcmF0aW9uRGF0ZSI6IjIwMzAtMDYtMjdUMDk6MDA6MDBaIiwidGVybXNPZlVzZSI6W3sidHlwZSI6IlZlcmlmaWFibGVBY2NyZWRpdGF0aW9uIiwiaWQiOiJodHRwczovL2FwaS1waWxvdC5lYnNpLmV1L3RydXN0ZWQtaXNzdWVycy1yZWdpc3RyeS92Mi9pc3N1ZXJzL2RpZDplYnNpOnpuVnFIS21UMTRZMjRMbkJkQXl4dmg1L2F0dHJpYnV0ZXMvYzIzOTU4OTY2NTc1MmE3ZDg0MmY4Y2ZkN2MzNGY4ZTNjZjJiYWE3YzRmMmFiMGEwMTFiMDdlZDdjNWNiZWQ2MiJ9XSwiaXNzdWVkIjoiMjAyMi0wNi0yN1QwOTowMDowMFoiLCJjcmVkZW50aWFsU3ViamVjdCI6eyJpZCI6ImRpZDplYnNpOnp5bUI5V2RHeDdIY3ltYUhvQnFBVmhmIiwiYXV0aG9yaXNhdGlvbkNsYWltcyI6W3siYXV0aG9yaXNlZFNjaGVtYUlkIjoiaHR0cHM6Ly9hcGktcGlsb3QuZWJzaS5ldS90cnVzdGVkLXNjaGVtYXMtcmVnaXN0cnkvdjEvc2NoZW1hcy8weDUwNDkwZWM0ZTJiMzA1M2Y3MDdjYzEyMWMyNjIxN2NiZWMzNjNmM2I5ZTkwOTE3NWQwNzNkMDRjNzM4OTBmOWEifV19LCJjcmVkZW50aWFsU3RhdHVzIjp7ImlkIjoiaHR0cHM6Ly9lc3NpZi5ldXJvcGEuZXUvc3RhdHVzLzEiLCJ0eXBlIjoiQ3JlZGVudGlhbHNTdGF0dXNMaXN0MjAyMCJ9LCJjcmVkZW50aWFsU2NoZW1hIjp7ImlkIjoiaHR0cHM6Ly9hcGktcGlsb3QuZWJzaS5ldS90cnVzdGVkLXNjaGVtYXMtcmVnaXN0cnkvdjEvc2NoZW1hcy8weDljMjZkMTkwMzJkZWI1ZDcyZjRhYzU2ZjNiODhjNDAyNWM2YmU4MTIzYzI0NGZlNTdhN2Q2ZTUzNDNiNzFiNjUiLCJ0eXBlIjoiRnVsbEpzb25TY2hlbWFWYWxpZGF0b3IyMDIxIn19LCJpc3MiOiJkaWQ6ZWJzaTp6MjU2YXNCV21IQnNqMlpOVnhHNU1oa3AifQ.00Cl-pnL-YSEQYTKA02MVWwryUX_i76l39BRXLiwLV1nnugIKHT7zJoiXnS3vFeaZ2R4HFNx1EK38CCs6gNh2g
@@ -514,10 +514,10 @@ paths:
                     total: 1
                     pageSize: 10
                     links:
-                      first: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zr2rWDHHrUCdZAW7wsSb5nQ/attributes/317ee465aa7c80ec734c1291da037dd0e25faf549c43964f9f9f0658474d199b/revisions?page[after]=1&page[size]=10
-                      prev: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zr2rWDHHrUCdZAW7wsSb5nQ/attributes/317ee465aa7c80ec734c1291da037dd0e25faf549c43964f9f9f0658474d199b/revisions?page[after]=1&page[size]=10
-                      next: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zr2rWDHHrUCdZAW7wsSb5nQ/attributes/317ee465aa7c80ec734c1291da037dd0e25faf549c43964f9f9f0658474d199b/revisions?page[after]=1&page[size]=10
-                      last: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zr2rWDHHrUCdZAW7wsSb5nQ/attributes/317ee465aa7c80ec734c1291da037dd0e25faf549c43964f9f9f0658474d199b/revisions?page[after]=1&page[size]=10
+                      first: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zZeKyEJfUTGwajhNyNX928z/attributes/317ee465aa7c80ec734c1291da037dd0e25faf549c43964f9f9f0658474d199b/revisions?page[after]=1&page[size]=10
+                      prev: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zZeKyEJfUTGwajhNyNX928z/attributes/317ee465aa7c80ec734c1291da037dd0e25faf549c43964f9f9f0658474d199b/revisions?page[after]=1&page[size]=10
+                      next: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zZeKyEJfUTGwajhNyNX928z/attributes/317ee465aa7c80ec734c1291da037dd0e25faf549c43964f9f9f0658474d199b/revisions?page[after]=1&page[size]=10
+                      last: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zZeKyEJfUTGwajhNyNX928z/attributes/317ee465aa7c80ec734c1291da037dd0e25faf549c43964f9f9f0658474d199b/revisions?page[after]=1&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -567,7 +567,7 @@ paths:
               value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
             "[pilot] did":
               description: valid pilot did
-              value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
+              value: did:ebsi:zZeKyEJfUTGwajhNyNX928z
           required: true
       responses:
         "200":
@@ -603,7 +603,7 @@ paths:
                   value:
                     items:
                       - proxyId: "0x22523141178108904061a339205ca512d19a59bdc101b220dba5a378a18ffb5f"
-                        href: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zr2rWDHHrUCdZAW7wsSb5nQ/proxies/0x22523141178108904061a339205ca512d19a59bdc101b220dba5a378a18ffb5f
+                        href: https://api-pilot.ebsi.eu/trusted-issuers-registry/v5/issuers/did:ebsi:zZeKyEJfUTGwajhNyNX928z/proxies/0x22523141178108904061a339205ca512d19a59bdc101b220dba5a378a18ffb5f
                     total: 1
         "400":
           description: Bad Request Error
@@ -653,7 +653,7 @@ paths:
               value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
             "[pilot] did":
               description: valid pilot did
-              value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
+              value: did:ebsi:zZeKyEJfUTGwajhNyNX928z
           required: true
         - name: proxyId
           in: path
@@ -735,7 +735,7 @@ paths:
               value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
             "[pilot] did":
               description: valid pilot did
-              value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
+              value: did:ebsi:zZeKyEJfUTGwajhNyNX928z
           required: true
         - name: proxyId
           in: path

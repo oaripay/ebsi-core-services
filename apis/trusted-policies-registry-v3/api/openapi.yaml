@@ -56,10 +56,10 @@ paths:
                   value:
                     self: https://api-test.ebsi.eu/trusted-policies-registry/v3/policies?page[after]=3&page[size]=2
                     items:
-                      - policyName: "TIR:insertIssuer"
-                        href: https://api-test.ebsi.eu/trusted-policies-registry/v3/policies/TIR:insertIssuer
-                      - policyName: "TIR:updateIssuer"
-                        href: https://api-test.ebsi.eu/trusted-policies-registry/v3/policies/TIR:updateIssuer
+                      - policyName: "TSR:insertSchema"
+                        href: https://api-test.ebsi.eu/trusted-policies-registry/v3/policies/TSR:insertSchema
+                      - policyName: "TSR:updateSchema"
+                        href: https://api-test.ebsi.eu/trusted-policies-registry/v3/policies/TSR:updateSchema
                     total: 124
                     pageSize: 2
                     links:
@@ -71,10 +71,10 @@ paths:
                   value:
                     self: https://api-pilot.ebsi.eu/trusted-policies-registry/v3/policies?page[after]=3&page[size]=2
                     items:
-                      - policyName: "TIR:insertIssuer"
-                        href: https://api-pilot.ebsi.eu/trusted-policies-registry/v3/policies/TIR:insertIssuer
-                      - policyName: "TIR:updateIssuer"
-                        href: https://api-pilot.ebsi.eu/trusted-policies-registry/v3/policies/TIR:updateIssuer
+                      - policyName: "TSR:insertSchema"
+                        href: https://api-pilot.ebsi.eu/trusted-policies-registry/v3/policies/TSR:insertSchema
+                      - policyName: "TSR:updateSchema"
+                        href: https://api-pilot.ebsi.eu/trusted-policies-registry/v3/policies/TSR:updateSchema
                     total: 124
                     pageSize: 2
                     links:
@@ -98,7 +98,7 @@ paths:
           in: path
           schema:
             type: string
-          example: "TIR:insertIssuer"
+          example: "TSR:insertSchema"
           required: true
       responses:
         "200":
@@ -269,8 +269,8 @@ paths:
                   value:
                     address: "0x69e48d89bf5e09588E858D757323b4abBBB3f814"
                     attributes:
-                      "TIR:insertIssuer": "0x0000000000000000000000000000000000000000000000000000000000000001"
-                      "TIR:updateIssuer": "0x0000000000000000000000000000000000000000000000000000000000000001"
+                      "TSR:insertSchema": "0x0000000000000000000000000000000000000000000000000000000000000001"
+                      "TSR:updateSchema": "0x0000000000000000000000000000000000000000000000000000000000000001"
         "400":
           description: Bad Request
           content:
@@ -582,7 +582,7 @@ paths:
                   id: 1
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      policyName: "TIR:insertIssuer"
+                      policyName: "TSR:insertSchema"
                       opType: 0
                       description: description-test-867fc5181e2a0df61094cb565cf18d96
               Build tx to addPolicyConditions (by policyName):
@@ -592,7 +592,7 @@ paths:
                   id: 1
                   params:
                     - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
-                      policyName: "TIR:insertIssuer"
+                      policyName: "TSR:insertSchema"
                       policyConditions:
                         - name: condition-string
                           attributeName: any
@@ -626,7 +626,7 @@ paths:
                   id: 1
                   params:
                     - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
-                      policyName: "TIR:insertIssuer"
+                      policyName: "TSR:insertSchema"
                       policyConditionId: "2"
               Build tx to deactivatePolicy (by policyName):
                 value:
@@ -635,7 +635,7 @@ paths:
                   id: 1
                   params:
                     - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
-                      policyName: "TIR:insertIssuer"
+                      policyName: "TSR:insertSchema"
               Build tx to activatePolicy (by policyName):
                 value:
                   jsonrpc: "2.0"
@@ -643,7 +643,7 @@ paths:
                   id: 1
                   params:
                     - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
-                      policyName: "TIR:insertIssuer"
+                      policyName: "TSR:insertSchema"
               Build tx to insertUserAttributes:
                 value:
                   jsonrpc: "2.0"
@@ -653,7 +653,7 @@ paths:
                     - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
                       address: "0x5B740B7aB0A383F6F03579B90e591B4B06a81BF6"
                       attributeNames:
-                        - TIR:insertIssuer
+                        - TSR:insertSchema
                         - TAR:insertApp
                       attributeValues:
                         - "0x0000000000000000000000000000000000000000000000000000000000000001"
@@ -666,7 +666,7 @@ paths:
                   params:
                     - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
                       address: "0x5B740B7aB0A383F6F03579B90e591B4B06a81BF6"
-                      attributeName: TIR:insertIssuer
+                      attributeName: TSR:insertSchema
                       attributeValue: "0x0000000000000000000000000000000000000000000000000000000000000001"
               Build tx to deleteUserAttribute:
                 value:
@@ -676,7 +676,7 @@ paths:
                   params:
                     - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
                       address: "0x5B740B7aB0A383F6F03579B90e591B4B06a81BF6"
-                      attributeName: TIR:insertIssuer
+                      attributeName: TSR:insertSchema
               Send Transaction:
                 description: Call to send a signed transaction to the blockchain.
                 value:

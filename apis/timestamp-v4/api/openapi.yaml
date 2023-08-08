@@ -348,7 +348,7 @@ paths:
               value: uEiAbFEn1TXr__LSFdj16CqLZR48_R9TQfd088lEXspM-5A
             "[pilot] timestampId":
               description: Valid pilot timestampId
-              value: uEiBrUuxV-ybYtSQ4oiczDhFkmUR7Wk6QtF26SXaD9h9RTg
+              value: uEiCyzskEVXTNJVok_wI3wHty3LIJ3Apz_4HDocgAUtKGjg
           required: true
       responses:
         "200":
@@ -477,8 +477,8 @@ paths:
                   value:
                     self: https://api-pilot.ebsi.eu/timestamp/v4/records?page[after]=1&page[size]=2
                     items:
-                      - recordId: uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE
-                        href: https://api-pilot.ebsi.eu/timestamp/v4/records/uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE
+                      - recordId: u6QSSvW57IyOocLlWQS3rB3w3qwXj4rTImwusvMkt9ZM
+                        href: https://api-pilot.ebsi.eu/timestamp/v4/records/u6QSSvW57IyOocLlWQS3rB3w3qwXj4rTImwusvMkt9ZM
                     total: 1
                     pageSize: 1
                     links:
@@ -539,7 +539,7 @@ paths:
               value: utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8
             "[pilot] recordId":
               description: valid pilot multibase base64url encoded recordId
-              value: uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE
+              value: u6QSSvW57IyOocLlWQS3rB3w3qwXj4rTImwusvMkt9ZM
           required: true
       responses:
         "200":
@@ -610,7 +610,7 @@ paths:
               value: utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8
             "[pilot] recordId":
               description: valid pilot multibase base64url encoded recordId
-              value: uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE
+              value: u6QSSvW57IyOocLlWQS3rB3w3qwXj4rTImwusvMkt9ZM
           description: Record ID (multibase base64url encoded)
           required: true
         - in: query
@@ -672,17 +672,17 @@ paths:
                       last: https://api-test.ebsi.eu/timestamp/v4/records/utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8/versions?page[after]=1&page[size]=2
                 "[pilot] Success":
                   value:
-                    self: https://api-pilot.ebsi.eu/timestamp/v4/records/uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE/versions?page[after]=1&page[size]=2
+                    self: https://api-pilot.ebsi.eu/timestamp/v4/records/u6QSSvW57IyOocLlWQS3rB3w3qwXj4rTImwusvMkt9ZM/versions?page[after]=1&page[size]=2
                     items:
                       - versionId: 0
-                        href: https://api-pilot.ebsi.eu/timestamp/v4/records/uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE/versions/0
+                        href: https://api-pilot.ebsi.eu/timestamp/v4/records/u6QSSvW57IyOocLlWQS3rB3w3qwXj4rTImwusvMkt9ZM/versions/0
                     total: 1
                     pageSize: 2
                     links:
-                      first: https://api-pilot.ebsi.eu/timestamp/v4/records/uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE/versions?page[after]=1&page[size]=2
-                      prev: https://api-pilot.ebsi.eu/timestamp/v4/records/uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE/versions?page[after]=1&page[size]=2
-                      next: https://api-pilot.ebsi.eu/timestamp/v4/records/uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE/versions?page[after]=1&page[size]=2
-                      last: https://api-pilot.ebsi.eu/timestamp/v4/records/uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE/versions?page[after]=1&page[size]=2
+                      first: https://api-pilot.ebsi.eu/timestamp/v4/records/u6QSSvW57IyOocLlWQS3rB3w3qwXj4rTImwusvMkt9ZM/versions?page[after]=1&page[size]=2
+                      prev: https://api-pilot.ebsi.eu/timestamp/v4/records/u6QSSvW57IyOocLlWQS3rB3w3qwXj4rTImwusvMkt9ZM/versions?page[after]=1&page[size]=2
+                      next: https://api-pilot.ebsi.eu/timestamp/v4/records/u6QSSvW57IyOocLlWQS3rB3w3qwXj4rTImwusvMkt9ZM/versions?page[after]=1&page[size]=2
+                      last: https://api-pilot.ebsi.eu/timestamp/v4/records/u6QSSvW57IyOocLlWQS3rB3w3qwXj4rTImwusvMkt9ZM/versions?page[after]=1&page[size]=2
                 "[conformance] Success":
                   value:
                     self: https://api-conformance.ebsi.eu/timestamp/v4/records/uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE/versions?page[after]=1&page[size]=2
@@ -735,7 +735,7 @@ paths:
               value: utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8
             "[pilot] recordId":
               description: valid pilot multibase base64url encoded recordId
-              value: uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE
+              value: u6QSSvW57IyOocLlWQS3rB3w3qwXj4rTImwusvMkt9ZM
           description: Record ID (multibase base64url encoded)
           required: true
         - in: path

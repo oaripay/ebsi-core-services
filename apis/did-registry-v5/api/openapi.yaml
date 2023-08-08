@@ -210,7 +210,7 @@ paths:
             "[test] DID":
               value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
             "[pilot] DID":
-              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+              value: did:ebsi:zZeKyEJfUTGwajhNyNX928z
         - in: query
           name: valid-at
           description: |
@@ -250,20 +250,33 @@ paths:
                     "@context":
                       - https://www.w3.org/ns/did/v1
                       - https://w3id.org/security/suites/jws-2020/v1
-                    id: did:ebsi:zgUB1p2zNmGtymUwzHrxh24
+                    id: did:ebsi:zZeKyEJfUTGwajhNyNX928z
                     controller:
-                      - did:ebsi:zgUB1p2zNmGtymUwzHrxh24
+                      - did:ebsi:zZeKyEJfUTGwajhNyNX928z
                     verificationMethod:
-                      - id: did:ebsi:zgUB1p2zNmGtymUwzHrxh24#0NivQmyibuMALzL2VYcsZiPXRLNtBPOSy4G4-qHFHzU
+                      - id: did:ebsi:zZeKyEJfUTGwajhNyNX928z#RqnJsdrEXgSMJgCdlxFGya2oLmVEP1zz0Jo-VMFqq6E
                         type: JsonWebKey2020
-                        controller: did:ebsi:zgUB1p2zNmGtymUwzHrxh24
+                        controller: did:ebsi:zZeKyEJfUTGwajhNyNX928z
                         publicKeyJwk:
                           kty: EC
                           crv: secp256k1
-                          x: bn0VlNS3FFt6m0Uyb3hs9AEUlyrQucseOGjzw4TUoY0
-                          y: 4KENQAlExFYMjI59fdA1mEBjkyL8D4-j4KwhPuX_zWA
+                          x: wBmAchcZfv7IIWzLdSPysdT_33r02KH18nJM_r01pig
+                          y: MABWTgJIKuObHLi8G8ta_OoUpqwBShoKlbT2_PcEybI
+                      - id: did:ebsi:zZeKyEJfUTGwajhNyNX928z#So1HIRt0Kqf0_BSwqv4VMNgkax3mCF9IjcQJwMnB3bs
+                        type: JsonWebKey2020
+                        controller: did:ebsi:zZeKyEJfUTGwajhNyNX928z
+                        publicKeyJwk:
+                          kty: EC
+                          x: AfLzzSLO_rH1n7fIJsGS9AUyZXCql78npwshtYE0Rf4
+                          y: vVoDE_-A4Yptu0oelJD2OYdTARMF52lSQXc2IqiwIMQ
+                          crv: P-256
+                    authentication:
+                      - did:ebsi:zZeKyEJfUTGwajhNyNX928z#RqnJsdrEXgSMJgCdlxFGya2oLmVEP1zz0Jo-VMFqq6E
+                      - did:ebsi:zZeKyEJfUTGwajhNyNX928z#So1HIRt0Kqf0_BSwqv4VMNgkax3mCF9IjcQJwMnB3bs
+                    assertionMethod:
+                      - did:ebsi:zZeKyEJfUTGwajhNyNX928z#So1HIRt0Kqf0_BSwqv4VMNgkax3mCF9IjcQJwMnB3bs
                     capabilityInvocation:
-                      - did:ebsi:zgUB1p2zNmGtymUwzHrxh24#0NivQmyibuMALzL2VYcsZiPXRLNtBPOSy4G4-qHFHzU
+                      - did:ebsi:zZeKyEJfUTGwajhNyNX928z#RqnJsdrEXgSMJgCdlxFGya2oLmVEP1zz0Jo-VMFqq6E
         "400":
           description: Bad Request
           content:
@@ -312,7 +325,7 @@ paths:
             "[test] DID":
               value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
             "[pilot] DID":
-              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+              value: did:ebsi:zZeKyEJfUTGwajhNyNX928z
       requestBody:
         description: |
           The body follows the
