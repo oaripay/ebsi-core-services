@@ -1,5 +1,12 @@
 # @ebsiint-api/shared
 
+## 1.1.0-rc.4
+
+### Patch Changes
+
+- [d5a179ce](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/d5a179ce): Bump VC and VP libraries.
+- [915b2da7](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/915b2da7): checkStatusList2021Credential in shared-api, update e2e tests
+
 ## 1.1.0-rc.3
 
 ### Minor Changes

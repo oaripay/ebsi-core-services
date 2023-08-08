@@ -1,5 +1,37 @@
 # @ebsiint-sc/admin-scripts
 
+## 2.0.0-rc.4
+
+### Major Changes
+
+- [bf5c8a42](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/bf5c8a42): Update deployments in admin-scripts.
+
+### Minor Changes
+
+- [b8b79ac3](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/b8b79ac3): New smart contracts after the audit
+
+### Patch Changes
+
+- Updated dependencies [a060911f](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/a060911f)
+- Updated dependencies [bf5c8a42](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/bf5c8a42)
+- Updated dependencies [b8b79ac3](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/b8b79ac3)
+  - @ebsiint-sc/trusted-policies-registry-v2@2.0.0-rc.1
+  - @ebsiint-sc/trusted-issuers-registry-v3@3.0.0-rc.1
+  - @ebsiint-sc/trusted-schemas-registry-v2@2.0.0-rc.1
+  - @ebsiint-sc/trusted-apps-registry-v3@3.0.0-rc.1
+  - @ebsiint-sc/did-registry-v3@3.0.0-rc.1
+  - @ebsiint-sc/timestamp-v2@2.0.0-rc.1
+  - @ebsiint-sc/bootstrap-v2@2.0.0-rc.1
+  - @ebsiint-sc/proxy@2.0.0-rc.4
+  - @ebsiint-sc/trusted-policies-registry@1.0.1-rc.4
+  - @ebsiint-sc/trusted-issuers-registry@2.0.0-rc.4
+  - @ebsiint-sc/trusted-schemas-registry@1.0.1-rc.4
+  - @ebsiint-sc/trusted-apps-registry@2.0.1-rc.4
+  - @ebsiint-sc/did-registry-v2@2.0.0-rc.3
+  - @ebsiint-sc/did-registry@1.1.0-rc.4
+  - @ebsiint-sc/timestamp@1.0.1-rc.4
+  - @ebsiint-sc/bootstrap@1.0.1-rc.4
+
 ## 1.1.0-rc.3
 
 ### Patch Changes

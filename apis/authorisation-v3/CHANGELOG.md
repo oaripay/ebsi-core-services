@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.0.0-rc.4
+
+### Patch Changes
+
+- [d5a179ce](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/d5a179ce): Bump VC and VP libraries.
+- Updated dependencies [d5a179ce](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/d5a179ce)
+- Updated dependencies [915b2da7](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/915b2da7)
+  - @ebsiint-api/shared@1.1.0-rc.4
+
 ## 3.0.0-rc.3
 
 ### Minor Changes

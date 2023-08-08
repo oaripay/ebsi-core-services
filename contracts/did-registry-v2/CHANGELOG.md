@@ -1,5 +1,14 @@
 # @ebsiint-sc/did-registry-v2
 
+## 2.0.0-rc.3
+
+### Patch Changes
+
+- [b8b79ac3](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/b8b79ac3): New smart contracts after the audit
+- Updated dependencies [b8b79ac3](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/b8b79ac3)
+  - @ebsiint-sc/trusted-policies-registry@1.0.1-rc.4
+  - @ebsiint-sc/bootstrap@1.0.1-rc.4
+
 ## 2.0.0-rc.2
 
 ### Patch Changes

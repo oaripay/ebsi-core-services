@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.0.0-rc.7
+
+### Patch Changes
+
+- [d5a179ce](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/d5a179ce): Bump VC and VP libraries.
+- [548f2121](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/548f2121): Minor updates in the APIs (logger)
+- Updated dependencies [d5a179ce](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/d5a179ce)
+- Updated dependencies [915b2da7](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/915b2da7)
+  - @ebsiint-api/shared@1.1.0-rc.4
+
 ## 2.0.0-rc.6
 
 ### Minor Changes

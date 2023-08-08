@@ -1,5 +1,18 @@
 # Changelog
 
+## 3.0.0-rc.7
+
+### Minor Changes
+
+- [469152af](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/469152af): Support access tokens issued by Authorisation API v4
+
+### Patch Changes
+
+- [548f2121](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/548f2121): Minor updates in the APIs (logger)
+- Updated dependencies [d5a179ce](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/d5a179ce)
+- Updated dependencies [915b2da7](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/915b2da7)
+  - @ebsiint-api/shared@1.1.0-rc.4
+
 ## 3.0.0-rc.6
 
 ### Patch Changes

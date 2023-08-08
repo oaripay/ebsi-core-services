@@ -1,5 +1,11 @@
 # @ebsiint-sc/bootstrap
 
+## 1.0.1-rc.4
+
+### Patch Changes
+
+- [b8b79ac3](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/b8b79ac3): New smart contracts after the audit
+
 ## 1.0.1-rc.3
 
 ### Patch Changes

@@ -1,5 +1,20 @@
 # Changelog
 
+## 3.0.0-rc.7
+
+### Minor Changes
+
+- [91470e6d](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/91470e6d): Fixed blockscout E2E errors
+
+### Patch Changes
+
+- [548f2121](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/548f2121): Minor updates in the APIs (logger)
+- Updated dependencies [d5a179ce](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/d5a179ce)
+- Updated dependencies [b8b79ac3](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/b8b79ac3)
+- Updated dependencies [915b2da7](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/915b2da7)
+  - @ebsiint-api/shared@1.1.0-rc.4
+  - @ebsiint-sc/timestamp@1.0.1-rc.4
+
 ## 3.0.0-rc.6
 
 ### Patch Changes

@@ -1,5 +1,21 @@
 # Changelog
 
+## 4.0.0-rc.4
+
+### Minor Changes
+
+- [91470e6d](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/91470e6d): Fixed blockscout E2E errors
+
+### Patch Changes
+
+- [d5a179ce](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/d5a179ce): Bump VC and VP libraries.
+- [b8b79ac3](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/b8b79ac3): New smart contracts after the audit
+- Updated dependencies [d5a179ce](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/d5a179ce)
+- Updated dependencies [b8b79ac3](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/b8b79ac3)
+- Updated dependencies [915b2da7](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/915b2da7)
+  - @ebsiint-api/shared@1.1.0-rc.4
+  - @ebsiint-sc/trusted-issuers-registry@2.0.0-rc.4
+
 ## 4.0.0-rc.3
 
 ### Minor Changes

@@ -1,7 +1,7 @@
 {
   "name": "@ebsiint-api/authorisation-api-v3",
   "private": true,
-  "version": "3.0.0-rc.3",
+  "version": "3.0.0-rc.4",
   "license": "EUPL-1.2",
   "scripts": {
     "prebuild": "rimraf dist",
@@ -26,7 +26,7 @@
     "@cef-ebsi/verifiable-credential": "^4.4.2",
     "@cef-ebsi/verifiable-presentation": "^5.3.2",
     "@cef-ebsi/wallet-lib": "^4.1.0",
-    "@ebsiint-api/shared": "^1.1.0-rc.3",
+    "@ebsiint-api/shared": "^1.1.0-rc.4",
     "@fastify/formbody": "^7.4.0",
     "@fastify/helmet": "^10.1.1",
     "@nestjs/axios": "^2.0.0",
