@@ -419,13 +419,25 @@ paths:
           schema:
             type: string
           description: Filter records by first version hash
-          example: "0xd301a3ed77f70f18511ce5e4cf1895b1a38622c8d177b6b06a66c593a836a000"
+          examples:
+            "[test] first-version":
+              description: Valid test first-version
+              value: "0xa3ae912d3e6133480ad4ce8bd16588a80fc6a9071a7edbcd743fd53e3fe0c11a"
+            "[pilot] first-version":
+              description: Valid pilot first-version
+              value: "0xc44c79e0e1f1f4a61a580d3146c13657a6622fcc2f586c63297c76722a6049ff"
         - in: query
           name: owner
           schema:
             type: string
           description: Filter records by owner address
-          example: "0x94e88a60f272309fdedef19498d8e05b3f632f9f"
+          examples:
+            "[test] owner":
+              description: Valid test owner
+              value: "0x43d3cd3a351acd502c53a7b4a63b299b62665b6f"
+            "[pilot] owner":
+              description: Valid pilot owner
+              value: "0x8a5f8001e772b325cfc2898a51300b0afaf71b65"
       responses:
         "200":
           description: Success
@@ -536,7 +548,7 @@ paths:
           examples:
             "[test] recordId":
               description: valid test multibase base64url encoded recordId
-              value: utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8
+              value: uN70SX6SsuY1s0qZK0eD0uFbfoswfmyuSdcVj2gQaFZI
             "[pilot] recordId":
               description: valid pilot multibase base64url encoded recordId
               value: u6QSSvW57IyOocLlWQS3rB3w3qwXj4rTImwusvMkt9ZM
@@ -607,7 +619,7 @@ paths:
           examples:
             "[test] recordId":
               description: valid test multibase base64url encoded recordId
-              value: utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8
+              value: uN70SX6SsuY1s0qZK0eD0uFbfoswfmyuSdcVj2gQaFZI
             "[pilot] recordId":
               description: valid pilot multibase base64url encoded recordId
               value: u6QSSvW57IyOocLlWQS3rB3w3qwXj4rTImwusvMkt9ZM
@@ -732,7 +744,7 @@ paths:
           examples:
             "[test] recordId":
               description: valid test multibase base64url encoded recordId
-              value: utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8
+              value: uN70SX6SsuY1s0qZK0eD0uFbfoswfmyuSdcVj2gQaFZI
             "[pilot] recordId":
               description: valid pilot multibase base64url encoded recordId
               value: u6QSSvW57IyOocLlWQS3rB3w3qwXj4rTImwusvMkt9ZM
