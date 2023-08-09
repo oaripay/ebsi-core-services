@@ -12,7 +12,7 @@ import { ConfigService } from "@nestjs/config";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { ApiConfig } from "../../src/config/configuration";
-import { describeWriteOps } from "../utils/describeWriteOps";
+import { describeWriteOps } from "../utils/writeOps";
 import { getServer } from "../utils/getServer";
 
 describe("TAR API (generic tests)", () => {

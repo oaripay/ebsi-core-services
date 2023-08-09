@@ -33,7 +33,7 @@ import { waitToBeMined } from "../utils/waitToBeMined";
 import { requestSiopJwt } from "../utils/siopJwt";
 import { createVerifiableAuthorisationSchema } from "../utils/data";
 import { hexToMultibaseBase58Btc } from "../../src/modules/schemas/schemas.utils";
-import { describeWriteOps } from "../utils/describeWriteOps";
+import { describeWriteOps, writeOps } from "../utils/writeOps";
 import { getServer } from "../utils/getServer";
 
 interface SupertestJsonRpcResponse {
@@ -106,17 +106,20 @@ describe("Schemas (e2e)", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
 
     server = getServer(app, configService);
-    adminTestWallet = new ethers.Wallet(
-      prefixWith0x(configService.get("testAdminPrivateKey"))
-    );
 
-    try {
-      // Generate a valid Client JWT (SIOP) for the tests
-      testUserAccessToken = await requestSiopJwt(configService);
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error(e);
-      throw e;
+    if (writeOps()) {
+      adminTestWallet = new ethers.Wallet(
+        prefixWith0x(configService.get("testAdminPrivateKey"))
+      );
+
+      try {
+        // Generate a valid Client JWT (SIOP) for the tests
+        testUserAccessToken = await requestSiopJwt(configService);
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error(e);
+        throw e;
+      }
     }
 
     ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;

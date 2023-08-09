@@ -46,7 +46,7 @@ import { ApiConfig } from "../../src/config/configuration";
 import LedgerService from "../../src/modules/ledger/ledger.service";
 import { waitToBeMined } from "../utils/waitToBeMined";
 import { requestSiopJwt } from "../utils/siopJwt";
-import { describeWriteOps } from "../utils/describeWriteOps";
+import { describeWriteOps, itWriteOps, writeOps } from "../utils/writeOps";
 import { getServer } from "../utils/getServer";
 
 interface SupertestJsonRpcResponse {
@@ -150,40 +150,43 @@ describe("Apps (e2e)", () => {
 
     server = getServer(app, configService);
 
-    adminTestWallet = new ethers.Wallet(
-      prefixWith0x(configService.get("testAdminPrivateKey"))
-    );
-    userTestWallet = new ethers.Wallet(
-      prefixWith0x(configService.get("testUserPrivateKey"))
-    );
     testAppName = configService.get<string>("testAppName");
-    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
-    try {
-      adminUserAccessToken = await requestSiopJwt({
-        clientKid: configService.get<string>("testAdminKid"),
-        clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
-        configService,
-      });
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error(e);
-      throw e;
+    if (writeOps()) {
+      adminTestWallet = new ethers.Wallet(
+        prefixWith0x(configService.get("testAdminPrivateKey"))
+      );
+      userTestWallet = new ethers.Wallet(
+        prefixWith0x(configService.get("testUserPrivateKey"))
+      );
+      ledgerService = moduleFixture.get<LedgerService>(LedgerService);
+
+      try {
+        adminUserAccessToken = await requestSiopJwt({
+          clientKid: configService.get<string>("testAdminKid"),
+          clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
+          configService,
+        });
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error(e);
+        throw e;
+      }
+
+      try {
+        userAccessToken = await requestSiopJwt({
+          clientKid: configService.get<string>("testUserKid"),
+          clientPrivateKey: configService.get<string>("testUserPrivateKey"),
+          configService,
+        });
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error(e);
+        throw e;
+      }
+
+      [didAppAdmin] = configService.get<string>("testAdminKid").split("#");
     }
-
-    try {
-      userAccessToken = await requestSiopJwt({
-        clientKid: configService.get<string>("testUserKid"),
-        clientPrivateKey: configService.get<string>("testUserPrivateKey"),
-        configService,
-      });
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error(e);
-      throw e;
-    }
-
-    [didAppAdmin] = configService.get<string>("testAdminKid").split("#");
     besuRpcNode = configService.get("besuRpcNode");
 
     blockscout = configService.get<{
@@ -805,86 +808,95 @@ describe("Apps (e2e)", () => {
     });
   });
 
-  it("should revert the transaction if the sender has not the right attribute in TPR", async () => {
-    expect.assertions(2);
+  itWriteOps()(
+    "should revert the transaction if the sender has not the right attribute in TPR",
+    async () => {
+      // eslint-disable-next-line jest/no-standalone-expect
+      expect.assertions(2);
 
-    const randomApp = {
-      name: `test-app-${new Date().toISOString()}`,
-      domain: 1,
-      appAdministrator: EbsiWallet.createDid(),
-    };
+      const randomApp = {
+        name: `test-app-${new Date().toISOString()}`,
+        domain: 1,
+        appAdministrator: EbsiWallet.createDid(),
+      };
 
-    const param = {
-      from: userTestWallet.address,
-      ...randomApp,
-    } as InsertAppParam;
+      const param = {
+        from: userTestWallet.address,
+        ...randomApp,
+      } as InsertAppParam;
 
-    const method = "insertApp";
-    const responseBuild: SupertestJsonRpcResponse = await request(server)
-      .post("/jsonrpc")
-      .auth(userAccessToken, { type: "bearer" })
-      .send({
-        jsonrpc: "2.0",
-        method,
-        params: [param],
-        id: 231,
-      });
+      const method = "insertApp";
+      const responseBuild: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .auth(userAccessToken, { type: "bearer" })
+        .send({
+          jsonrpc: "2.0",
+          method,
+          params: [param],
+          id: 231,
+        });
 
-    const unsignedTransaction = responseBuild.body.result;
-    const uTx = formatEthersUnsignedTransaction(
-      JSON.parse(
-        JSON.stringify(unsignedTransaction)
-      ) as unknown as UnsignedTransaction
-    );
-    uTx.chainId = Number(uTx.chainId);
-    const sgnTx = await userTestWallet.signTransaction(
-      uTx as TransactionRequest
-    );
-    const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+      const unsignedTransaction = responseBuild.body.result;
+      const uTx = formatEthersUnsignedTransaction(
+        JSON.parse(
+          JSON.stringify(unsignedTransaction)
+        ) as unknown as UnsignedTransaction
+      );
+      uTx.chainId = Number(uTx.chainId);
+      const sgnTx = await userTestWallet.signTransaction(
+        uTx as TransactionRequest
+      );
+      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
-    const responseSend: SupertestJsonRpcResponse = await request(server)
-      .post("/jsonrpc")
-      .auth(userAccessToken, { type: "bearer" })
-      .send({
-        jsonrpc: "2.0",
-        method: "sendSignedTransaction",
-        params: [
-          {
-            protocol: "eth",
-            unsignedTransaction,
-            r,
-            s,
-            v: `0x${Number(v).toString(16)}`,
-            signedRawTransaction: sgnTx,
-          },
-        ],
-        id: "45",
-      });
-    // wait to be mined
-    const receipt = await waitToBeMined(
-      besuRpcNode,
-      responseSend.body.result as string
-    );
-    expect(receipt.status).toBe(0);
-    receipt.revertReason = Buffer.from(
-      (receipt.revertReason ?? "").slice(2),
-      "hex"
-    )
-      .toString()
-      .replace(/[^a-zA-Z:' ]/g, "");
-    expect(receipt).toStrictEqual(
-      expect.objectContaining({
-        status: 0,
-        revertReason: expect.stringContaining(
-          `Policy error: sender doesn't have the attribute TAR:insertApp`
-        ),
-      })
-    );
-  });
+      const responseSend: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .auth(userAccessToken, { type: "bearer" })
+        .send({
+          jsonrpc: "2.0",
+          method: "sendSignedTransaction",
+          params: [
+            {
+              protocol: "eth",
+              unsignedTransaction,
+              r,
+              s,
+              v: `0x${Number(v).toString(16)}`,
+              signedRawTransaction: sgnTx,
+            },
+          ],
+          id: "45",
+        });
+      // wait to be mined
+      const receipt = await waitToBeMined(
+        besuRpcNode,
+        responseSend.body.result as string
+      );
 
-  it("should return transaction data from blockscout", async () => {
+      // eslint-disable-next-line jest/no-standalone-expect
+      expect(receipt.status).toBe(0);
+      receipt.revertReason = Buffer.from(
+        (receipt.revertReason ?? "").slice(2),
+        "hex"
+      )
+        .toString()
+        .replace(/[^a-zA-Z:' ]/g, "");
+
+      // eslint-disable-next-line jest/no-standalone-expect
+      expect(receipt).toStrictEqual(
+        expect.objectContaining({
+          status: 0,
+          revertReason: expect.stringContaining(
+            `Policy error: sender doesn't have the attribute TAR:insertApp`
+          ),
+        })
+      );
+    }
+  );
+
+  itWriteOps()("should return transaction data from blockscout", async () => {
     if (!blockscout.url || !sampleTransaction) return;
 
+    // eslint-disable-next-line jest/no-standalone-expect
     expect.assertions(1);
 
     await new Promise((f) => {
@@ -896,6 +908,7 @@ describe("Apps (e2e)", () => {
       .get(`/tx/${sampleTransaction}/internal-transactions`)
       .set({ Authorization: blockscout.bearerToken });
 
+    // eslint-disable-next-line jest/no-standalone-expect
     expect(blockscoutCheck.status).toBe(200);
   });
 });

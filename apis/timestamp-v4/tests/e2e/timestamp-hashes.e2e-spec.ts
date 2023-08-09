@@ -30,7 +30,7 @@ import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonr
 import { ApiConfig } from "../../src/config/configuration";
 import { waitToBeMined } from "../utils/waitToBeMined";
 import { requestOAuth2Jwt, requestSiopJwt } from "../utils/auth";
-import { describeWriteOps } from "../utils/describeWriteOps";
+import { describeWriteOps, writeOps } from "../utils/writeOps";
 import { getServer } from "../utils/getServer";
 
 interface SupertestJsonRpcResponse {
@@ -109,69 +109,72 @@ describe("Timestamp (e2e)", () => {
 
     server = getServer(app, configService);
 
-    const configAdmin = configService.get<{
-      kid: string;
-      privateKey: string;
-    }>("testAdmin");
-    const configUser = configService.get<{
-      kid: string;
-      privateKey: string;
-    }>("testUser");
-    const configApp = configService.get<{
-      name: string;
-      privateKey: string;
-    }>("testApp");
     const configBlockscout = configService.get<{
       url: string;
       bearerToken: string;
     }>("blockscout");
 
-    try {
-      testAdmin = {
-        ...configAdmin,
-        wallet: new ethers.Wallet(prefixWith0x(configAdmin.privateKey)),
-        token: await requestSiopJwt({
-          clientKid: configAdmin.kid,
-          clientPrivateKey: configAdmin.privateKey,
-          configService,
-        }),
-      };
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error(e);
-      throw e;
-    }
+    if (writeOps()) {
+      const configAdmin = configService.get<{
+        kid: string;
+        privateKey: string;
+      }>("testAdmin");
+      const configUser = configService.get<{
+        kid: string;
+        privateKey: string;
+      }>("testUser");
+      const configApp = configService.get<{
+        name: string;
+        privateKey: string;
+      }>("testApp");
 
-    try {
-      testUser = {
-        ...configUser,
-        wallet: new ethers.Wallet(prefixWith0x(configUser.privateKey)),
-        token: await requestSiopJwt({
-          clientKid: configUser.kid,
-          clientPrivateKey: configUser.privateKey,
-          configService,
-        }),
-      };
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error(e);
-      throw e;
-    }
+      try {
+        testAdmin = {
+          ...configAdmin,
+          wallet: new ethers.Wallet(prefixWith0x(configAdmin.privateKey)),
+          token: await requestSiopJwt({
+            clientKid: configAdmin.kid,
+            clientPrivateKey: configAdmin.privateKey,
+            configService,
+          }),
+        };
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error(e);
+        throw e;
+      }
 
-    try {
-      testApp = {
-        ...configApp,
-        wallet: new ethers.Wallet(prefixWith0x(configApp.privateKey)),
-        token: await requestOAuth2Jwt({
-          trustedAppPrivateKey: configApp.privateKey,
-          trustedAppName: configApp.name,
-          configService,
-        }),
-      };
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error(e);
-      throw e;
+      try {
+        testUser = {
+          ...configUser,
+          wallet: new ethers.Wallet(prefixWith0x(configUser.privateKey)),
+          token: await requestSiopJwt({
+            clientKid: configUser.kid,
+            clientPrivateKey: configUser.privateKey,
+            configService,
+          }),
+        };
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error(e);
+        throw e;
+      }
+
+      try {
+        testApp = {
+          ...configApp,
+          wallet: new ethers.Wallet(prefixWith0x(configApp.privateKey)),
+          token: await requestOAuth2Jwt({
+            trustedAppPrivateKey: configApp.privateKey,
+            trustedAppName: configApp.name,
+            configService,
+          }),
+        };
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error(e);
+        throw e;
+      }
     }
 
     blockscout = configBlockscout;

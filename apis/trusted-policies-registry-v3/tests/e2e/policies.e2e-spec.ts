@@ -36,7 +36,7 @@ import { createPolicy } from "../utils/data";
 import { requestSiopJwt } from "../utils/siopJwt";
 import { waitToBeMined } from "../utils/waitToBeMined";
 import { LedgerService } from "../../src/modules/ledger/ledger.service";
-import { describeWriteOps } from "../utils/describeWriteOps";
+import { describeWriteOps, writeOps } from "../utils/writeOps";
 import { getServer } from "../utils/getServer";
 
 interface SupertestPoliciesResponse {
@@ -106,27 +106,29 @@ describe("Policies (e2e)", () => {
 
     server = getServer(app, configService);
 
-    adminTestWallet = new ethers.Wallet(
-      prefixWith0x(configService.get("testAdminPrivateKey"))
-    );
+    if (writeOps()) {
+      adminTestWallet = new ethers.Wallet(
+        prefixWith0x(configService.get("testAdminPrivateKey"))
+      );
 
-    // Generate a valid Client JWT (SIOP) for the tests
-    try {
-      testUserAccessToken = await requestSiopJwt({
-        clientKid: configService.get<string>("testUserKid"),
-        clientPrivateKey: configService.get<string>("testUserPrivateKey"),
-        configService,
-      });
+      // Generate a valid Client JWT (SIOP) for the tests
+      try {
+        testUserAccessToken = await requestSiopJwt({
+          clientKid: configService.get<string>("testUserKid"),
+          clientPrivateKey: configService.get<string>("testUserPrivateKey"),
+          configService,
+        });
 
-      testAdminAccessToken = await requestSiopJwt({
-        clientKid: configService.get<string>("testAdminKid"),
-        clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
-        configService,
-      });
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error(e);
-      throw e;
+        testAdminAccessToken = await requestSiopJwt({
+          clientKid: configService.get<string>("testAdminKid"),
+          clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
+          configService,
+        });
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error(e);
+        throw e;
+      }
     }
 
     blockscout = configService.get<{
@@ -135,7 +137,7 @@ describe("Policies (e2e)", () => {
     }>("blockscout");
   });
 
-  describe("/jsonrpc", () => {
+  describeWriteOps()("/jsonrpc", () => {
     // policy id to test "activate" and "deactivate"
     let policyA: PolicyResponseObject;
     beforeAll(async () => {

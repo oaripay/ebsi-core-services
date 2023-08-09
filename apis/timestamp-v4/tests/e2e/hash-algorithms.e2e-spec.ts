@@ -31,7 +31,7 @@ import { HashAlgorithmLink } from "../../src/modules/hash-algorithms/hash-algori
 import { ApiConfig } from "../../src/config/configuration";
 import { waitToBeMined } from "../utils/waitToBeMined";
 import { requestSiopJwt } from "../utils/auth";
-import { describeWriteOps } from "../utils/describeWriteOps";
+import { describeWriteOps, itWriteOps, writeOps } from "../utils/writeOps";
 import { getServer } from "../utils/getServer";
 
 interface SupertestJsonRpcResponse {
@@ -90,45 +90,47 @@ describe("HashAlgorithms (e2e)", () => {
 
     server = getServer(app, configService);
 
-    try {
-      const configUser = configService.get<{
-        kid: string;
-        privateKey: string;
-      }>("testUser");
+    if (writeOps()) {
+      try {
+        const configUser = configService.get<{
+          kid: string;
+          privateKey: string;
+        }>("testUser");
 
-      testUser = {
-        ...configUser,
-        token: await requestSiopJwt({
-          clientKid: configUser.kid,
-          clientPrivateKey: configUser.privateKey,
-          configService,
-        }),
-      };
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error(e);
-      throw e;
-    }
+        testUser = {
+          ...configUser,
+          token: await requestSiopJwt({
+            clientKid: configUser.kid,
+            clientPrivateKey: configUser.privateKey,
+            configService,
+          }),
+        };
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error(e);
+        throw e;
+      }
 
-    try {
-      const configAdmin = configService.get<{
-        kid: string;
-        privateKey: string;
-      }>("testAdmin");
+      try {
+        const configAdmin = configService.get<{
+          kid: string;
+          privateKey: string;
+        }>("testAdmin");
 
-      testAdmin = {
-        ...configAdmin,
-        wallet: new ethers.Wallet(prefixWith0x(configAdmin.privateKey)),
-        token: await requestSiopJwt({
-          clientKid: configAdmin.kid,
-          clientPrivateKey: configAdmin.privateKey,
-          configService,
-        }),
-      };
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error(e);
-      throw e;
+        testAdmin = {
+          ...configAdmin,
+          wallet: new ethers.Wallet(prefixWith0x(configAdmin.privateKey)),
+          token: await requestSiopJwt({
+            clientKid: configAdmin.kid,
+            clientPrivateKey: configAdmin.privateKey,
+            configService,
+          }),
+        };
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error(e);
+        throw e;
+      }
     }
 
     ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
@@ -324,71 +326,78 @@ describe("HashAlgorithms (e2e)", () => {
     }
   );
 
-  it("should reject impersonating transactions: admin wallet using jwt from user", async () => {
-    expect.assertions(2);
+  itWriteOps()(
+    "should reject impersonating transactions: admin wallet using jwt from user",
+    async () => {
+      // eslint-disable-next-line jest/no-standalone-expect
+      expect.assertions(2);
 
-    const { outputLength, ianaName, oid, multihash } = newHashAlgorithm;
+      const { outputLength, ianaName, oid, multihash } = newHashAlgorithm;
 
-    const param = {
-      from: testAdmin.wallet.address,
-      outputLength,
-      ianaName,
-      oid,
-      status: 1,
-      multihash,
-    } as InsertHashAlgorithmParam;
+      const param = {
+        from: testAdmin.wallet.address,
+        outputLength,
+        ianaName,
+        oid,
+        status: 1,
+        multihash,
+      } as InsertHashAlgorithmParam;
 
-    const responseBuild: SupertestJsonRpcResponse = await request(server)
-      .post("/jsonrpc")
-      .auth(testUser.token, { type: "bearer" })
-      .send({
+      const responseBuild: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .auth(testUser.token, { type: "bearer" })
+        .send({
+          jsonrpc: "2.0",
+          method: "insertHashAlgorithm",
+          params: [param],
+          id: 231,
+        });
+
+      const unsignedTransaction = responseBuild.body.result;
+      const uTx = formatEthersUnsignedTransaction(
+        JSON.parse(
+          JSON.stringify(unsignedTransaction)
+        ) as unknown as UnsignedTransaction
+      );
+      uTx.chainId = Number(uTx.chainId);
+      const sgnTx = await testAdmin.wallet.signTransaction(
+        uTx as TransactionRequest
+      );
+      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+      const responseSend: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .auth(testUser.token, { type: "bearer" })
+        .send({
+          jsonrpc: "2.0",
+          method: "sendSignedTransaction",
+          params: [
+            {
+              protocol: "eth",
+              unsignedTransaction,
+              r,
+              s,
+              v: `0x${Number(v).toString(16)}`,
+              signedRawTransaction: sgnTx,
+            },
+          ],
+          id: "45",
+        });
+
+      // eslint-disable-next-line jest/no-standalone-expect
+      expect(responseSend.body).toStrictEqual({
         jsonrpc: "2.0",
-        method: "insertHashAlgorithm",
-        params: [param],
-        id: 231,
-      });
-
-    const unsignedTransaction = responseBuild.body.result;
-    const uTx = formatEthersUnsignedTransaction(
-      JSON.parse(
-        JSON.stringify(unsignedTransaction)
-      ) as unknown as UnsignedTransaction
-    );
-    uTx.chainId = Number(uTx.chainId);
-    const sgnTx = await testAdmin.wallet.signTransaction(
-      uTx as TransactionRequest
-    );
-    const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
-
-    const responseSend: SupertestJsonRpcResponse = await request(server)
-      .post("/jsonrpc")
-      .auth(testUser.token, { type: "bearer" })
-      .send({
-        jsonrpc: "2.0",
-        method: "sendSignedTransaction",
-        params: [
-          {
-            protocol: "eth",
-            unsignedTransaction,
-            r,
-            s,
-            v: `0x${Number(v).toString(16)}`,
-            signedRawTransaction: sgnTx,
-          },
-        ],
         id: "45",
+        error: {
+          code: -32600,
+          message: `The DID ${
+            testUser.kid.split("#")[0]
+          } is not controlled by the address ${testAdmin.wallet.address.toLowerCase()}`,
+        },
       });
 
-    expect(responseSend.body).toStrictEqual({
-      jsonrpc: "2.0",
-      id: "45",
-      error: {
-        code: -32600,
-        message: `The DID ${
-          testUser.kid.split("#")[0]
-        } is not controlled by the address ${testAdmin.wallet.address.toLowerCase()}`,
-      },
-    });
-    expect(responseSend.status).toBe(400);
-  });
+      // eslint-disable-next-line jest/no-standalone-expect
+      expect(responseSend.status).toBe(400);
+    }
+  );
 });

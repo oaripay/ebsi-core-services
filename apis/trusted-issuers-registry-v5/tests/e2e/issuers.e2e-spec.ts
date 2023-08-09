@@ -105,7 +105,6 @@ describe("Issuers (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer | string;
   let configService: ConfigService<ApiConfig, true>;
-  let testIssuerWithProxy: EbsiIssuer;
   let testIssuerWithProxyKid: string;
   let testIssuerWithProxyDid: string;
   let testIssuerWithProxyPrivateKey: string;
@@ -225,12 +224,6 @@ describe("Issuers (e2e)", () => {
       issuerProxiesResponse.body.items[0].proxyId;
     testIssuerWithProxyPrivateKey = configService.get<string>(
       "testIssuerWithProxyPrivateKey"
-    );
-
-    testIssuerWithProxy = getEbsiIssuer(
-      testIssuerWithProxyPrivateKey,
-      testIssuerWithProxyDid,
-      testIssuerWithProxyKid
     );
 
     trustedSchemasRegistryApiUrl = configService.get<string>(
@@ -842,6 +835,12 @@ describe("Issuers (e2e)", () => {
         const authority = configService
           .get<string>("domain")
           .replace(/^https?:\/\//, "");
+
+        const testIssuerWithProxy = getEbsiIssuer(
+          testIssuerWithProxyPrivateKey,
+          testIssuerWithProxyDid,
+          testIssuerWithProxyKid
+        );
 
         const statusList2021CredentialJwt =
           await createStatusList2021CredentialJwt(
