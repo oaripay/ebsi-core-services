@@ -24,7 +24,7 @@
   "dependencies": {
     "@ebsiint-sc/bootstrap-v2": "^2.0.0-rc.0",
     "@ebsiint-sc/trusted-policies-registry-v2": "^2.0.0-rc.0",
-    "@openzeppelin/contracts": "^4.9.2",
+    "@openzeppelin/contracts": "^4.9.3",
     "@openzeppelin/hardhat-upgrades": "^1.28.0"
   },
   "devDependencies": {

@@ -18,7 +18,7 @@
     "test:ci": "hardhat compile && hardhat test"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^4.9.2"
+    "@openzeppelin/contracts": "^4.9.3"
   },
   "devDependencies": {
     "@ethersproject/abi": "^5.7.0",

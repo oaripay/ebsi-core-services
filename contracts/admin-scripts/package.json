@@ -32,7 +32,7 @@
     "@ebsiint-sc/trusted-policies-registry-v2": "^2.0.0-rc.0",
     "@ebsiint-sc/trusted-schemas-registry": "^1.0.1-rc.4",
     "@ebsiint-sc/trusted-schemas-registry-v2": "^2.0.0-rc.0",
-    "@openzeppelin/contracts": "^4.9.2",
+    "@openzeppelin/contracts": "^4.9.3",
     "elliptic": "^6.5.4"
   },
   "devDependencies": {

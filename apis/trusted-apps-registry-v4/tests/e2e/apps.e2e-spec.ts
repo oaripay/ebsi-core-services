@@ -43,7 +43,6 @@ import {
   PublicKeyLink,
 } from "../../src/modules/apps/apps.interface";
 import { ApiConfig } from "../../src/config/configuration";
-import LedgerService from "../../src/modules/ledger/ledger.service";
 import { waitToBeMined } from "../utils/waitToBeMined";
 import { requestSiopJwt } from "../utils/siopJwt";
 import { describeWriteOps, itWriteOps, writeOps } from "../utils/writeOps";
@@ -94,7 +93,6 @@ type JsonRpcParams =
 describe("Apps (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer | string;
-  let ledgerService: LedgerService;
   let adminTestWallet: ethers.Wallet;
   let adminUserAccessToken: string;
   let userTestWallet: ethers.Wallet;
@@ -159,7 +157,6 @@ describe("Apps (e2e)", () => {
       userTestWallet = new ethers.Wallet(
         prefixWith0x(configService.get("testUserPrivateKey"))
       );
-      ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
       try {
         adminUserAccessToken = await requestSiopJwt({
@@ -643,14 +640,18 @@ describe("Apps (e2e)", () => {
         }
         case "updateAuthorization": {
           // Dynamically get the authorizationId that we've just inserted
-          const appId = ethers.utils.sha256(
-            ethers.utils.toUtf8Bytes(newApp.name)
+          const responseApp: SupertestAppResponse = await request(server).get(
+            `/apps/${newApp.name}`
           );
-          const authorizationId = (
-            await ledgerService
-              .getContract()
-              .getAuthorizations(appId, appId, 1, 10)
-          ).items[0];
+          if (
+            !responseApp.body.authorizations ||
+            responseApp.body.authorizations.length === 0
+          ) {
+            throw new Error(
+              `no authorizations found in the app ${newApp.name}`
+            );
+          }
+          const { authorizationId } = responseApp.body.authorizations[0];
 
           param = {
             from: adminTestWallet.address,
