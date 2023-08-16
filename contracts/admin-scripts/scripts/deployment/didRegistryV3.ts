@@ -38,6 +38,8 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
   const controller = await deployments.deploy("ControllersLib", {
     ...optsPagination,
+    contract:
+      "contracts/did-registry-v3/did-registry/ControllersLib.sol:ControllersLib",
   });
   console.log(`Controller deployed;`);
 
@@ -64,6 +66,8 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   };
   const didDocument = await deployments.deploy("DidDocumentLib", {
     ...optsPagVrel,
+    contract:
+      "contracts/did-registry-v3/did-registry/DidDocumentLib.sol:DidDocumentLib",
   });
 
   console.log(`Did Document deployed;`);

@@ -43,9 +43,19 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     },
   };
 
-  const appLib = await deployments.deploy("AppLib", optsPagination);
-  const authLib = await deployments.deploy("AuthLib", opts);
-  const revocationLib = await deployments.deploy("RevocationLib", opts);
+  const appLib = await deployments.deploy("AppLib", {
+    ...optsPagination,
+    contract: "contracts/trusted-apps-registry-v3/tar/AppLib.sol:AppLib",
+  });
+  const authLib = await deployments.deploy("AuthLib", {
+    ...opts,
+    contract: "contracts/trusted-apps-registry-v3/tar/AuthLib.sol:AuthLib",
+  });
+  const revocationLib = await deployments.deploy("RevocationLib", {
+    ...opts,
+    contract:
+      "contracts/trusted-apps-registry-v3/tar/RevocationLib.sol:RevocationLib",
+  });
 
   const ts = await deployments.deploy("TarV3", {
     from: deployer,

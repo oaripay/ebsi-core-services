@@ -26,6 +26,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const timestampLib = await deployments.deploy("TimestampLib", {
     from: deployer,
     log: true,
+    contract: "contracts/timestamp-v2/timestamp/TimestampLib.sol:TimestampLib",
   });
   const stringManip = await deployments.deploy("StringManip", {
     contract: "contracts/bootstrap-v2/utils/StringManip.sol:StringManip",
