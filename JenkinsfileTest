@@ -113,6 +113,18 @@ pipeline {
             sh 'scripts/run_trivy.sh main'
           }
         }
+        stage('Run Slither Scan') {
+          when { expression { deployment_needed == true } }
+          steps {
+            script {
+              catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                dir('core-services') {
+                  sh 'scripts/run_slither.sh 0.8.12 "Error,High,Medium,Low,Informational,Optimization" ./contracts ./slither_report.json'
+                }
+              }
+            }
+          }
+        }
         stage('Push to ECR') {
           when { expression { deployment_needed == true } }
           steps {
