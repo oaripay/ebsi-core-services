@@ -1,0 +1,5 @@
+{
+"remappings": [
+        "@ebsiint-sc/=/tmp/core-services/node_modules/@ebsiint-sc/",
+        "@openzeppelin/=/tmp/core-services/node_modules/@openzeppelin/"
+]

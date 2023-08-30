@@ -125,6 +125,18 @@ pipeline {
             }
           }
         }
+        stage('Run Mythril Scan') {
+          when { expression { deployment_needed == true } }
+          steps {
+            script {
+              catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                dir('core-services') {
+                  sh 'scripts/run_mythril.sh 10 "./contracts" "./mythril_reports"'
+                }
+              }
+            }
+          }
+        }
         stage('Push to ECR') {
           when { expression { deployment_needed == true } }
           steps {
@@ -159,6 +171,11 @@ pipeline {
 
   post {
     always {
+
+      // Stop and remove any lingering Mythril containers	
+      sh 'docker stop $(docker ps -a -q --filter label=mythril) || true'
+      sh 'docker rm $(docker ps -a -q --filter label=mythril) || true'
+
       cleanWs()
       dir("${env.WORKSPACE}@script") {
         deleteDir()
