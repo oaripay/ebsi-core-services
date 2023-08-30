@@ -9,7 +9,6 @@ info:
     * manage application administrators,
     * obtain application information,
     * obtain application authorizations.
-  termsOfService: https://api-pilot.ebsi.eu/docs/terms
   contact:
     name: EBSI Support - Service Desk
     url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11

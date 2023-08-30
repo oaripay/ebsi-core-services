@@ -5,7 +5,6 @@ info:
   description: |
     Trusted Policies Registry API provides an interface to interact with policies stored at the
     ledger administrated by Policies Registry Smart Contract.
-  termsOfService: https://api-pilot.ebsi.eu/docs/terms
   contact:
     name: EBSI Support - Service Desk
     url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11

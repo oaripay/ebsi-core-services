@@ -18,7 +18,6 @@ info:
   contact:
     name: EBSI Support - Service Desk
     url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11
-  termsOfService: https://api-pilot.ebsi.eu/docs/terms
 paths:
   /ledger/v3/blockchains/besu:
     post:

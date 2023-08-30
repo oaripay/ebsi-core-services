@@ -12,7 +12,6 @@ info:
     - Resolve a DID (and obtain a DID document)
     - Resolve a version of a DID document at a certain point in time
   version: 3.0.0
-  termsOfService: https://api-pilot.ebsi.eu/docs/terms
   contact:
     name: EBSI Support - Service Desk
     url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11

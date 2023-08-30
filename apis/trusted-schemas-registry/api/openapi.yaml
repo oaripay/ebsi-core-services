@@ -14,7 +14,6 @@ info:
     whatever scheme the consumer needs to anchor, being it JSON, JSON-LD, XML, etc.).
 
     TSR API is a microservice, hosted on the EBSI infrastructure.
-  termsOfService: https://api-pilot.ebsi.eu/docs/terms
   contact:
     name: EBSI Support - Service Desk
     url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11

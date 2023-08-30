@@ -7,7 +7,6 @@ info:
     * timestamp hashes,
     * supports timestamping records/versions (and linking the timestamps)
     * verify timestamps.
-  termsOfService: https://api-pilot.ebsi.eu/docs/terms
   contact:
     name: EBSI Support - Service Desk
     url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11
