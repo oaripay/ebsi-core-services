@@ -118,9 +118,7 @@ pipeline {
           steps {
             script {
               catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                dir('core-services') {
                   sh 'scripts/run_slither.sh 0.8.12 "Error,High,Medium,Low,Informational,Optimization" ./contracts ./slither_report.json'
-                }
               }
             }
           }
@@ -130,9 +128,7 @@ pipeline {
           steps {
             script {
               catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                dir('core-services') {
                   sh 'scripts/run_mythril.sh 10 "./contracts" "./mythril_reports"'
-                }
               }
             }
           }
