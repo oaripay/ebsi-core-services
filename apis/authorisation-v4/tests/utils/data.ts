@@ -15,6 +15,8 @@ import {
   TIR_INVITE_SCOPE,
   TIR_WRITE_PRESENTATION_DEFINITION,
   TIR_WRITE_SCOPE,
+  TIMESTAMP_WRITE_PRESENTATION_DEFINITION,
+  TIMESTAMP_WRITE_SCOPE,
 } from "../../src/modules/authorisation/authorisation.constants";
 
 export function createDidDocument(
@@ -121,6 +123,12 @@ export function createPresentationSubmission(
     case TIR_WRITE_SCOPE: {
       testPresentationSubmission.definition_id =
         TIR_WRITE_PRESENTATION_DEFINITION.id;
+
+      break;
+    }
+    case TIMESTAMP_WRITE_SCOPE: {
+      testPresentationSubmission.definition_id =
+        TIMESTAMP_WRITE_PRESENTATION_DEFINITION.id;
 
       break;
     }

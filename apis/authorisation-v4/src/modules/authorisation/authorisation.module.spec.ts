@@ -57,6 +57,8 @@ import {
   TIR_INVITE_SCOPE,
   TIR_WRITE_PRESENTATION_DEFINITION,
   TIR_WRITE_SCOPE,
+  TIMESTAMP_WRITE_PRESENTATION_DEFINITION,
+  TIMESTAMP_WRITE_SCOPE,
 } from "./authorisation.constants";
 import {
   createLegalEntity,
@@ -345,7 +347,7 @@ describe("Authorisation Module", () => {
       let response = await request(server).get("/presentation-definitions");
 
       expect(response.body).toStrictEqual({
-        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write')"]`,
+        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write')"]`,
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -361,7 +363,7 @@ describe("Authorisation Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write')"]`,
+        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write')"]`,
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -379,7 +381,7 @@ describe("Authorisation Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write')"]`,
+        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write')"]`,
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -395,7 +397,7 @@ describe("Authorisation Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write')"]`,
+        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write')"]`,
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -407,7 +409,7 @@ describe("Authorisation Module", () => {
     });
 
     it("should return the expected presentation definition for the given scope", async () => {
-      expect.assertions(8);
+      expect.assertions(10);
 
       //  With explicit scope "openid didr_invite"
       let response = await request(server).get(
@@ -447,6 +449,18 @@ describe("Authorisation Module", () => {
       );
 
       expect(response.body).toStrictEqual(TIR_WRITE_PRESENTATION_DEFINITION);
+      expect(response.status).toBe(200);
+
+      // With explicit scope "openid timestamp_write"
+      response = await request(server).get(
+        `/presentation-definitions?scope=${encodeURIComponent(
+          `openid ${TIMESTAMP_WRITE_SCOPE}`
+        )}`
+      );
+
+      expect(response.body).toStrictEqual(
+        TIMESTAMP_WRITE_PRESENTATION_DEFINITION
+      );
       expect(response.status).toBe(200);
     });
   });
@@ -490,7 +504,7 @@ describe("Authorisation Module", () => {
       expect(response.body).toStrictEqual({
         error: "invalid_request",
         error_description:
-          "scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write')",
+          "scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write')",
       });
       expect(response.status).toBe(400);
       expect(
@@ -723,7 +737,11 @@ describe("Authorisation Module", () => {
               ebsiAuthority: "example.net",
               skipValidation: true,
               nonce: randomUUID(),
-              ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
+              ...([
+                DIDR_WRITE_SCOPE,
+                TIR_WRITE_SCOPE,
+                TIMESTAMP_WRITE_SCOPE,
+              ].includes(customScope)
                 ? {
                     // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                     exp: Math.floor(Date.now() / 1000) + 100,
@@ -777,7 +795,11 @@ describe("Authorisation Module", () => {
               ebsiAuthority: "example.net",
               skipValidation: true,
               nonce: randomUUID(),
-              ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
+              ...([
+                DIDR_WRITE_SCOPE,
+                TIR_WRITE_SCOPE,
+                TIMESTAMP_WRITE_SCOPE,
+              ].includes(customScope)
                 ? {
                     // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                     exp: Math.floor(Date.now() / 1000) + 100,
@@ -948,7 +970,11 @@ describe("Authorisation Module", () => {
               ebsiAuthority: "example.net",
               skipValidation: true,
               // We don't add any nonce
-              ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
+              ...([
+                DIDR_WRITE_SCOPE,
+                TIR_WRITE_SCOPE,
+                TIMESTAMP_WRITE_SCOPE,
+              ].includes(customScope)
                 ? {
                     // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                     exp: Math.floor(Date.now() / 1000) + 100,
@@ -1057,7 +1083,11 @@ describe("Authorisation Module", () => {
         // Fix: EBSIINT-6065
         // require at least 1 verifiable credential
         it("should return error when the number of verifiable credentials is not correct", async () => {
-          if ([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)) {
+          if (
+            [DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE, TIMESTAMP_WRITE_SCOPE].includes(
+              customScope
+            )
+          ) {
             // Skip test
             return;
           }
@@ -1123,7 +1153,11 @@ describe("Authorisation Module", () => {
             ebsiAuthority: "example.net",
             skipValidation: true,
             nonce,
-            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
+            ...([
+              DIDR_WRITE_SCOPE,
+              TIR_WRITE_SCOPE,
+              TIMESTAMP_WRITE_SCOPE,
+            ].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                   exp: Math.floor(Date.now() / 1000) + 100,
@@ -1193,7 +1227,11 @@ describe("Authorisation Module", () => {
             ebsiAuthority: "example.net",
             skipValidation: true,
             nonce: randomUUID(),
-            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
+            ...([
+              DIDR_WRITE_SCOPE,
+              TIR_WRITE_SCOPE,
+              TIMESTAMP_WRITE_SCOPE,
+            ].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                   exp: Math.floor(Date.now() / 1000) + 100,
@@ -1261,7 +1299,11 @@ describe("Authorisation Module", () => {
             ebsiAuthority: "example.net",
             skipValidation: true,
             nonce: randomUUID(),
-            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
+            ...([
+              DIDR_WRITE_SCOPE,
+              TIR_WRITE_SCOPE,
+              TIMESTAMP_WRITE_SCOPE,
+            ].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                   exp: Math.floor(Date.now() / 1000) + 100,
@@ -1319,7 +1361,11 @@ describe("Authorisation Module", () => {
             ebsiAuthority: "example.net",
             skipValidation: true,
             nonce: randomUUID(),
-            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
+            ...([
+              DIDR_WRITE_SCOPE,
+              TIR_WRITE_SCOPE,
+              TIMESTAMP_WRITE_SCOPE,
+            ].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                   exp: Math.floor(Date.now() / 1000) + 100,
@@ -1376,7 +1422,11 @@ describe("Authorisation Module", () => {
             ebsiAuthority: "example.net",
             skipValidation: true,
             nonce: randomUUID(),
-            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
+            ...([
+              DIDR_WRITE_SCOPE,
+              TIR_WRITE_SCOPE,
+              TIMESTAMP_WRITE_SCOPE,
+            ].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                   exp: Math.floor(Date.now() / 1000) + 100,
@@ -1416,7 +1466,11 @@ describe("Authorisation Module", () => {
             ebsiAuthority: "example.net",
             skipValidation: true,
             nonce: randomUUID(),
-            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
+            ...([
+              DIDR_WRITE_SCOPE,
+              TIR_WRITE_SCOPE,
+              TIMESTAMP_WRITE_SCOPE,
+            ].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                   exp: Math.floor(Date.now() / 1000) + 100,
@@ -1458,7 +1512,11 @@ describe("Authorisation Module", () => {
             ebsiAuthority: "example.net",
             skipValidation: true,
             nonce: randomUUID(),
-            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
+            ...([
+              DIDR_WRITE_SCOPE,
+              TIR_WRITE_SCOPE,
+              TIMESTAMP_WRITE_SCOPE,
+            ].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                   exp: Math.floor(Date.now() / 1000) + 100,
@@ -1548,6 +1606,19 @@ describe("Authorisation Module", () => {
             expectedErrorMessage = `Invalid Verifiable Presentation: DID ${vpSigner.did} is not registered in the Trusted Issuers Registry`;
             break;
           }
+          case TIMESTAMP_WRITE_SCOPE: {
+            // VP Signer is not registered in the DIDR
+            vpSigner = await createLegalEntity("ES256K");
+            vpPayload.holder = vpSigner.did;
+
+            nock(domain)
+              .get(`/did-registry/v5/identifiers/${vpSigner.did}`)
+              .reply(404, "Not found")
+              .persist();
+
+            expectedErrorMessage = `Invalid Verifiable Presentation: VP JWT validation failed: Unable to resolve ${vpSigner.kid}. Error: notFound. Not Found | Registry used: ${domain}/did-registry/v5/identifiers`;
+            break;
+          }
           default: {
             expectedErrorMessage = "";
           }
@@ -1576,9 +1647,12 @@ describe("Authorisation Module", () => {
             ebsiAuthority: "example.net",
             skipValidation: true,
             nonce,
-            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE, TIR_INVITE_SCOPE].includes(
-              customScope
-            )
+            ...([
+              DIDR_WRITE_SCOPE,
+              TIR_WRITE_SCOPE,
+              TIR_INVITE_SCOPE,
+              TIMESTAMP_WRITE_SCOPE,
+            ].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                   exp: Math.floor(Date.now() / 1000) + 100,
@@ -1634,7 +1708,11 @@ describe("Authorisation Module", () => {
             ebsiAuthority: "example.net",
             skipValidation: true,
             nonce,
-            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
+            ...([
+              DIDR_WRITE_SCOPE,
+              TIR_WRITE_SCOPE,
+              TIMESTAMP_WRITE_SCOPE,
+            ].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                   exp: Math.floor(Date.now() / 1000) + 100,

@@ -7,12 +7,14 @@ export const DIDR_INVITE_SCOPE = "didr_invite";
 export const DIDR_WRITE_SCOPE = "didr_write";
 export const TIR_INVITE_SCOPE = "tir_invite";
 export const TIR_WRITE_SCOPE = "tir_write";
+export const TIMESTAMP_WRITE_SCOPE = "timestamp_write";
 
 export const CUSTOM_SCOPES = [
   DIDR_INVITE_SCOPE,
   DIDR_WRITE_SCOPE,
   TIR_INVITE_SCOPE,
   TIR_WRITE_SCOPE,
+  TIMESTAMP_WRITE_SCOPE,
 ] as const;
 
 export const SUPPORTED_SCOPES = [OPENID_SCOPE, ...CUSTOM_SCOPES] as const;
@@ -95,6 +97,18 @@ export const TIR_WRITE_PRESENTATION_DEFINITION = {
   id: "tir_write_presentation",
   name: "Any type of Verifiable Attestation",
   purpose: "Please present a valid Presentation signed by a Trusted Issuer.",
+  input_descriptors: [],
+  format: {
+    jwt_vc: { alg: ["ES256"] },
+    jwt_vp: { alg: ["ES256"] },
+  },
+} as const satisfies ReadonlyDeep<PresentationDefinition>;
+
+export const TIMESTAMP_WRITE_PRESENTATION_DEFINITION = {
+  id: "timestamp_write_presentation",
+  name: "Any type of Verifiable Attestation",
+  purpose:
+    "Please present an empty Presentation signed by a registered Legal Entity.",
   input_descriptors: [],
   format: {
     jwt_vc: { alg: ["ES256"] },

@@ -51,11 +51,13 @@ import {
   DIDR_WRITE_PRESENTATION_DEFINITION,
   TIR_INVITE_PRESENTATION_DEFINITION,
   TIR_WRITE_PRESENTATION_DEFINITION,
+  TIMESTAMP_WRITE_PRESENTATION_DEFINITION,
   SUPPORTED_SCOPES,
   DIDR_INVITE_SCOPE,
   DIDR_WRITE_SCOPE,
   TIR_INVITE_SCOPE,
   TIR_WRITE_SCOPE,
+  TIMESTAMP_WRITE_SCOPE,
   CUSTOM_SCOPES,
 } from "./authorisation.constants";
 import type { PresentationDefinition } from "../../shared/interfaces/pex";
@@ -386,6 +388,10 @@ export class AuthorisationService {
 
     if (scope === TIR_WRITE_SCOPE) {
       return TIR_WRITE_PRESENTATION_DEFINITION;
+    }
+
+    if (scope === TIMESTAMP_WRITE_SCOPE) {
+      return TIMESTAMP_WRITE_PRESENTATION_DEFINITION;
     }
 
     throw new OAuth2TokenError("invalid_request", {
@@ -861,6 +867,9 @@ export class AuthorisationService {
     if (customScope === TIR_WRITE_SCOPE) {
       await this.validateTrustedIssuer(vp.holder, false);
     }
+
+    // `timestamp_write`: the client needs to have entry in DIDR / can prove her signature.
+    // This is already done in validateVpJwt.
 
     // Generate access token
     const expiresIn = 7200;

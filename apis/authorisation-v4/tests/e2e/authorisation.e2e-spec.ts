@@ -29,6 +29,8 @@ import {
   DIDR_INVITE_SCOPE,
   DIDR_WRITE_PRESENTATION_DEFINITION,
   DIDR_WRITE_SCOPE,
+  TIMESTAMP_WRITE_PRESENTATION_DEFINITION,
+  TIMESTAMP_WRITE_SCOPE,
   TIR_INVITE_PRESENTATION_DEFINITION,
   TIR_INVITE_SCOPE,
   TIR_WRITE_PRESENTATION_DEFINITION,
@@ -158,7 +160,7 @@ describe("Authorisation (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write')"]`,
+        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write')"]`,
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -167,7 +169,7 @@ describe("Authorisation (e2e)", () => {
     });
 
     it("should return the expected presentation definition for the given scope", async () => {
-      expect.assertions(8);
+      expect.assertions(10);
 
       //  With explicit scope "openid didr_invite"
       let response = await request(server).get(
@@ -207,6 +209,18 @@ describe("Authorisation (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual(TIR_WRITE_PRESENTATION_DEFINITION);
+      expect(response.status).toBe(200);
+
+      // With explicit scope "openid timestamp_write"
+      response = await request(server).get(
+        `/presentation-definitions?scope=${encodeURIComponent(
+          `openid ${TIMESTAMP_WRITE_SCOPE}`
+        )}`
+      );
+
+      expect(response.body).toStrictEqual(
+        TIMESTAMP_WRITE_PRESENTATION_DEFINITION
+      );
       expect(response.status).toBe(200);
     });
   });
@@ -250,7 +264,7 @@ describe("Authorisation (e2e)", () => {
       expect(response.body).toStrictEqual({
         error: "invalid_request",
         error_description:
-          "scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write')",
+          "scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write')",
       });
       expect(response.status).toBe(400);
       expect(
@@ -406,7 +420,11 @@ describe("Authorisation (e2e)", () => {
               skipValidation: true,
               nonce: randomUUID(),
               trustedHostnames,
-              ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
+              ...([
+                DIDR_WRITE_SCOPE,
+                TIR_WRITE_SCOPE,
+                TIMESTAMP_WRITE_SCOPE,
+              ].includes(customScope)
                 ? {
                     // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                     exp: Math.floor(Date.now() / 1000) + 100,
@@ -462,7 +480,11 @@ describe("Authorisation (e2e)", () => {
               skipValidation: true,
               nonce: randomUUID(),
               trustedHostnames,
-              ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
+              ...([
+                DIDR_WRITE_SCOPE,
+                TIR_WRITE_SCOPE,
+                TIMESTAMP_WRITE_SCOPE,
+              ].includes(customScope)
                 ? {
                     // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                     exp: Math.floor(Date.now() / 1000) + 100,
@@ -640,7 +662,11 @@ describe("Authorisation (e2e)", () => {
               skipValidation: true,
               trustedHostnames,
               // We don't add any nonce
-              ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
+              ...([
+                DIDR_WRITE_SCOPE,
+                TIR_WRITE_SCOPE,
+                TIMESTAMP_WRITE_SCOPE,
+              ].includes(customScope)
                 ? {
                     // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                     exp: Math.floor(Date.now() / 1000) + 100,
@@ -779,7 +805,11 @@ describe("Authorisation (e2e)", () => {
             skipValidation: true,
             nonce: randomUUID(),
             trustedHostnames,
-            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
+            ...([
+              DIDR_WRITE_SCOPE,
+              TIR_WRITE_SCOPE,
+              TIMESTAMP_WRITE_SCOPE,
+            ].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                   exp: Math.floor(Date.now() / 1000) + 100,
@@ -838,7 +868,11 @@ describe("Authorisation (e2e)", () => {
             skipValidation: true,
             nonce: randomUUID(),
             trustedHostnames,
-            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
+            ...([
+              DIDR_WRITE_SCOPE,
+              TIR_WRITE_SCOPE,
+              TIMESTAMP_WRITE_SCOPE,
+            ].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                   exp: Math.floor(Date.now() / 1000) + 100,
@@ -896,7 +930,11 @@ describe("Authorisation (e2e)", () => {
             skipValidation: true,
             nonce: randomUUID(),
             trustedHostnames,
-            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
+            ...([
+              DIDR_WRITE_SCOPE,
+              TIR_WRITE_SCOPE,
+              TIMESTAMP_WRITE_SCOPE,
+            ].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                   exp: Math.floor(Date.now() / 1000) + 100,
@@ -937,7 +975,11 @@ describe("Authorisation (e2e)", () => {
             skipValidation: true,
             nonce: randomUUID(),
             trustedHostnames,
-            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
+            ...([
+              DIDR_WRITE_SCOPE,
+              TIR_WRITE_SCOPE,
+              TIMESTAMP_WRITE_SCOPE,
+            ].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                   exp: Math.floor(Date.now() / 1000) + 100,
@@ -977,7 +1019,11 @@ describe("Authorisation (e2e)", () => {
             skipValidation: true,
             nonce: randomUUID(),
             trustedHostnames,
-            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
+            ...([
+              DIDR_WRITE_SCOPE,
+              TIR_WRITE_SCOPE,
+              TIMESTAMP_WRITE_SCOPE,
+            ].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                   exp: Math.floor(Date.now() / 1000) + 100,
@@ -1034,7 +1080,11 @@ describe("Authorisation (e2e)", () => {
             skipValidation: true,
             nonce,
             trustedHostnames,
-            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
+            ...([
+              DIDR_WRITE_SCOPE,
+              TIR_WRITE_SCOPE,
+              TIMESTAMP_WRITE_SCOPE,
+            ].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                   exp: Math.floor(Date.now() / 1000) + 100,
@@ -1099,7 +1149,11 @@ describe("Authorisation (e2e)", () => {
             skipValidation: true,
             nonce,
             trustedHostnames,
-            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
+            ...([
+              DIDR_WRITE_SCOPE,
+              TIR_WRITE_SCOPE,
+              TIMESTAMP_WRITE_SCOPE,
+            ].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
                   exp: Math.floor(Date.now() / 1000) + 100,
