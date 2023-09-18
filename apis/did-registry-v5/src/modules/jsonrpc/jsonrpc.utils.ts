@@ -22,6 +22,8 @@ import {
   RequestExpireVerificationMethodDto,
   ArgsRollVerificationMethod,
   RequestRollVerificationMethodDto,
+  RequestAddServiceDto,
+  RequestRevokeServiceDto,
 } from "./dto";
 
 export function formatEthersUnsignedTransaction(
@@ -71,7 +73,9 @@ type JsonRpcDtos =
   | ArgsExpireVerificationMethod
   | RequestExpireVerificationMethodDto
   | ArgsRollVerificationMethod
-  | RequestRollVerificationMethodDto;
+  | RequestRollVerificationMethodDto
+  | RequestAddServiceDto
+  | RequestRevokeServiceDto;
 
 const getErrorMessages = (
   errors: ClassValidator.ValidationError[]

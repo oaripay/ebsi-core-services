@@ -9,3 +9,5 @@ export * from "./addVerificationRelationship";
 export * from "./revokeVerificationMethod";
 export * from "./expireVerificationMethod";
 export * from "./rollVerificationMethod";
+export * from "./addService";
+export * from "./revokeService";

@@ -15,6 +15,8 @@ import {
   RequestRevokeVerificationMethodDto,
   RequestExpireVerificationMethodDto,
   RequestRollVerificationMethodDto,
+  RequestAddServiceDto,
+  RequestRevokeServiceDto,
 } from "./dto";
 import { Subject, SubjectInfo } from "../auth/decorators";
 
@@ -55,6 +57,24 @@ export default class AppController {
         const transaction =
           await this.jsonRpcService.buildTransactionUpdateBaseDocument(
             body as RequestUpdateBaseDocumentDto,
+            id,
+            scope
+          );
+        return formatJsonRpcResponse(transaction, id);
+      }
+      case "addService": {
+        const transaction =
+          await this.jsonRpcService.buildTransactionAddService(
+            body as RequestAddServiceDto,
+            id,
+            scope
+          );
+        return formatJsonRpcResponse(transaction, id);
+      }
+      case "revokeService": {
+        const transaction =
+          await this.jsonRpcService.buildTransactionRevokeService(
+            body as RequestRevokeServiceDto,
             id,
             scope
           );

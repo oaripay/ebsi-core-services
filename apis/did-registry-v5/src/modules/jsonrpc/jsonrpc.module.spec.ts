@@ -46,6 +46,8 @@ import {
   RevokeVerificationMethodParam,
   ExpireVerificationMethodParam,
   RollVerificationMethodParam,
+  AddServiceParam,
+  RevokeServiceParam,
 } from "./dto";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
 import { createUser, UserDetails } from "../../../tests/utils/data";
@@ -68,7 +70,9 @@ type JsonRpcParams =
   | AddVerificationRelationshipParam
   | RevokeVerificationMethodParam
   | ExpireVerificationMethodParam
-  | RollVerificationMethodParam;
+  | RollVerificationMethodParam
+  | AddServiceParam
+  | RevokeServiceParam;
 
 jest.setTimeout(300000);
 
@@ -697,6 +701,8 @@ describe("JsonRpc Module", () => {
     "expireVerificationMethod",
     "revokeVerificationMethod",
     "rollVerificationMethod",
+    "addService",
+    "revokeService",
   ] as const)("/jsonrpc with method %s", (method) => {
     it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction", async () => {
       expect.assertions(4);
@@ -735,6 +741,33 @@ describe("JsonRpc Module", () => {
               "@context": existingUser.didDocument["@context"],
             }),
           } as UpdateBaseDocumentParam;
+          break;
+        }
+        case "addService": {
+          param = {
+            from: signer.address,
+            did: existingUser.did,
+            service: JSON.stringify({
+              id: "1",
+              type: "CredentialRegistry",
+              serviceEndpoint: {
+                registries: [
+                  "https://registry.example.com/{credentialSubject.id}",
+                  "https://identity.foundation/vcs/{credentialSubject.id}",
+                ],
+                byId: "/vc/{id}",
+                byType: "/type/{type}",
+              },
+            }),
+          } as AddServiceParam;
+          break;
+        }
+        case "revokeService": {
+          param = {
+            from: signer.address,
+            did: existingUser.did,
+            serviceId: "1",
+          } as RevokeServiceParam;
           break;
         }
         case "addController": {
@@ -1162,6 +1195,33 @@ describe("JsonRpc Module", () => {
             accessToken: newUserDidrWriteAccessToken,
           });
 
+          break;
+        }
+        case "addService": {
+          testSetup.push({
+            params: {
+              from: signer.address,
+              did: newUser.did,
+              service: JSON.stringify({}),
+            } as AddServiceParam,
+            expectedErrorMessage:
+              "Validation error: service must be a valid JSON string with the fields id, type, serviceEndpoint",
+            accessToken: newUserDidrWriteAccessToken,
+          });
+
+          break;
+        }
+        case "revokeService": {
+          testSetup.push({
+            params: {
+              from: signer.address,
+              did: newUser.did,
+              serviceId: "1",
+            } as RevokeServiceParam,
+            expectedErrorMessage:
+              "'updateBaseDocument' requires an access token with the scope 'didr_write'",
+            accessToken: newUserDidrInviteAccessToken,
+          });
           break;
         }
         case "addVerificationMethod": {

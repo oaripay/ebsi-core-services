@@ -7,6 +7,8 @@ info:
     It enables consumers to interact with the DID Registry Smart Contract to:
     - Insert a DID/DID document
     - Update a DID document
+    - Add a service
+    - Revoke a service
     - Revoke a DID/DID Controlling keys
     - Resolve a DID (and obtain a DID document)
 
@@ -481,6 +483,26 @@ paths:
           - **did**: Existing DID
           - **baseDocument**: JSON string containing the @context of the DID document
 
+          #### addService
+
+          Call to build an unsigned transaction to create a service for an existing DID.
+          Requires an access token with "didr_write" scope.
+
+          Parameters:
+          - **from**: Ethereum address of the signer
+          - **did**: Existing DID
+          - **service**: JSON string containing the service schema that needs to be added
+
+          #### revokeService
+
+          Call to build an unsigned transaction to revoke a service from a DID by a service id.
+          Requires an access token with "didr_write" scope.
+
+          Parameters:
+          - **from**: Ethereum address of the signer
+          - **did**: Existing DID
+          - **serviceId**: Identifier of the service
+
           #### addController
 
           Call to build an unsigned transaction to add a new controller
@@ -635,6 +657,24 @@ paths:
                     - from: "0xc9765eC58E49e6E386549CEAA34FB0d8bB69C320"
                       did: did:ebsi:z23eve8qDNzYuNVqfSaErpuJ
                       baseDocument: '{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/jws-2020/v1"]}'
+                  id: 524
+              Build tx to addService:
+                value:
+                  jsonrpc: "2.0"
+                  method: addService
+                  params:
+                    - from: "0xc9765eC58E49e6E386549CEAA34FB0d8bB69C320"
+                      did: did:ebsi:z23eve8qDNzYuNVqfSaErpuJ
+                      service: '{"id":"1","type":"CredentialRegistry","serviceEndpoint":{"registries":["https://registry.example.com/{credentialSubject.id}","https://identity.foundation/vcs/{credentialSubject.id}"],"byId":"/vc/{id}","byType":"/type/{type}"}}'
+                  id: 524
+              Build tx to revokeService:
+                value:
+                  jsonrpc: "2.0"
+                  method: revokeService
+                  params:
+                    - from: "0xc9765eC58E49e6E386549CEAA34FB0d8bB69C320"
+                      did: did:ebsi:z23eve8qDNzYuNVqfSaErpuJ
+                      serviceId: "1"
                   id: 524
               Build tx to addController:
                 value:

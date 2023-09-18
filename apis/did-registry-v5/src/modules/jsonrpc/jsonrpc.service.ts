@@ -5,6 +5,7 @@ import {
   isEthersError,
   getErrorMessage,
 } from "@ebsiint-api/shared";
+import { DidRegistry } from "@ebsiint-sc/did-registry-v3";
 import {
   RequestSendSignedTransactionDto,
   UnsignedTransaction,
@@ -27,6 +28,8 @@ import {
   ArgsExpireVerificationMethod,
   RequestRollVerificationMethodDto,
   ArgsRollVerificationMethod,
+  RequestAddServiceDto,
+  RequestRevokeServiceDto,
 } from "./dto";
 import {
   formatEthersUnsignedTransaction,
@@ -327,6 +330,124 @@ export class JsonRpcService {
         isSecp256k1,
         notBefore,
         notAfter,
+      ]);
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async getDidDocument(did: string): ReturnType<DidRegistry["getDidDocument"]> {
+    const contract = await this.ledgerService.getContract();
+    try {
+      return await contract.getDidDocument(did);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+        // Throw a generic error to avoid leaking information.
+        throw new InvalidRequestJsonRpcError(
+          `Identifier ${did} Not Found`,
+          did
+        );
+      }
+
+      throw error;
+    }
+  }
+
+  async buildTransactionAddService(
+    body: RequestAddServiceDto,
+    id: number | string | null,
+    scope: string
+  ) {
+    try {
+      // Access Token must contain DIDR_WRITE_SCOPE scope
+      assertScopeContains(scope, DIDR_WRITE_SCOPE, "updateBaseDocument");
+
+      await validateClass(RequestAddServiceDto, body);
+
+      const { from, did, service } = body.params[0];
+      const didDocument = await this.getDidDocument(did);
+
+      let baseDocument: { [x: string]: unknown; service?: unknown[] };
+      try {
+        baseDocument = JSON.parse(didDocument.baseDocument) as {
+          [x: string]: unknown;
+        };
+      } catch (error) {
+        throw new InvalidRequestJsonRpcError(
+          `Identifier ${did} contains an invalid base document. ${
+            (error as Error).message
+          }`,
+          id
+        );
+      }
+
+      if (!baseDocument.service) {
+        baseDocument.service = [];
+      }
+
+      baseDocument.service.push(JSON.parse(service));
+
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData("updateBaseDocument", [
+        did,
+        JSON.stringify(baseDocument),
+      ]);
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
+      error.stack = (err as Error).stack;
+      throw error;
+    }
+  }
+
+  async buildTransactionRevokeService(
+    body: RequestRevokeServiceDto,
+    id: number | string | null,
+    scope: string
+  ) {
+    try {
+      // Access Token must contain DIDR_WRITE_SCOPE scope
+      assertScopeContains(scope, DIDR_WRITE_SCOPE, "updateBaseDocument");
+
+      await validateClass(RequestRevokeServiceDto, body);
+
+      const { from, did, serviceId } = body.params[0];
+
+      const didDocument = await this.getDidDocument(did);
+
+      let baseDocument: { [x: string]: unknown; service?: { id: string }[] };
+      try {
+        baseDocument = JSON.parse(didDocument.baseDocument) as {
+          [x: string]: unknown;
+        };
+      } catch (error) {
+        throw new InvalidRequestJsonRpcError(
+          `Identifier ${did} contains an invalid base document. ${
+            (error as Error).message
+          }`,
+          id
+        );
+      }
+
+      if (baseDocument.service) {
+        const i = baseDocument.service.findIndex((s) => s.id === serviceId);
+        if (i !== -1) {
+          baseDocument.service.splice(i, 1);
+        }
+      }
+
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData("updateBaseDocument", [
+        did,
+        JSON.stringify(baseDocument),
       ]);
 
       return await this.buildTransaction(from, data);

@@ -35,6 +35,8 @@ import {
   RevokeVerificationMethodParam,
   ExpireVerificationMethodParam,
   RollVerificationMethodParam,
+  AddServiceParam,
+  RevokeServiceParam,
 } from "../../src/modules/jsonrpc/dto";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
 import { describeWriteOps } from "../utils/describeWriteOps";
@@ -55,7 +57,9 @@ type JsonRpcParams =
   | AddVerificationRelationshipParam
   | RevokeVerificationMethodParam
   | ExpireVerificationMethodParam
-  | RollVerificationMethodParam;
+  | RollVerificationMethodParam
+  | AddServiceParam
+  | RevokeServiceParam;
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -280,6 +284,8 @@ describeWriteOps()("DID Registry - JSON RPC - e2e", () => {
       "expireVerificationMethod",
       "revokeVerificationMethod",
       "rollVerificationMethod",
+      "addService",
+      "revokeService",
     ] as const)("/jsonrpc - send transaction for %s", (method) => {
       it("should work", async () => {
         expect.assertions(5);
@@ -375,6 +381,33 @@ describeWriteOps()("DID Registry - JSON RPC - e2e", () => {
                 duration: 3600,
               },
             } as RollVerificationMethodParam;
+            break;
+          }
+          case "addService": {
+            params = {
+              from: user.wallet.address,
+              did: user.info.did,
+              service: JSON.stringify({
+                id: "1",
+                type: "CredentialRegistry",
+                serviceEndpoint: {
+                  registries: [
+                    "https://registry.example.com/{credentialSubject.id}",
+                    "https://identity.foundation/vcs/{credentialSubject.id}",
+                  ],
+                  byId: "/vc/{id}",
+                  byType: "/type/{type}",
+                },
+              }),
+            } as AddServiceParam;
+            break;
+          }
+          case "revokeService": {
+            params = {
+              from: user.wallet.address,
+              did: user.info.did,
+              serviceId: "1",
+            } as RevokeServiceParam;
             break;
           }
           default: {
