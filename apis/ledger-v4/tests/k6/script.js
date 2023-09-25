@@ -1,0 +1,46 @@
+import http from "k6/http";
+import { group, check } from "k6";
+
+const BASE_URL = __ENV.BASE_URL || "http://0.0.0.0:3000";
+const token = __ENV.JWT;
+
+export const options = {
+  stages: [
+    { duration: "15s", target: 100 },
+    { duration: "2m", target: 100 },
+    { duration: "15s", target: 0 },
+  ],
+};
+
+export default function loadTesting() {
+  const pathname = "/ledger/v4/blockchains/besu";
+
+  group(pathname, () => {
+    const url = `${BASE_URL}${pathname}`;
+    const request = http.post(
+      url,
+      JSON.stringify({
+        jsonrpc: "2.0",
+        method: "eth_chainId",
+        params: [],
+        id: "42",
+      }),
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    check(request, {
+      200: (r) => r.status === 200,
+      500: (r) => r.status === 500,
+      other: (r) => {
+        if (![200, 500].includes(r.status)) {
+          return true;
+        }
+        return false;
+      },
+    });
+  });
+}
