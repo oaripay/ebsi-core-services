@@ -38,6 +38,7 @@ import {
   prefixWith0x,
   StatusList2021Credential,
   PaginatedList,
+  waitToBeMined,
 } from "@ebsiint-api/shared";
 import { ApiConfig } from "../../src/config/configuration";
 import { AppModule } from "../../src/app.module";
@@ -52,7 +53,6 @@ import {
 } from "../../src/modules/issuers/issuers.interface";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
-import { waitToBeMined } from "../utils/waitToBeMined";
 import { requestSiopJwt } from "../utils/siopJwt";
 import {
   AddIssuerProxyParam,

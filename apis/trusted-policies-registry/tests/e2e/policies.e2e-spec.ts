@@ -15,7 +15,11 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
-import { PaginatedList, prefixWith0x } from "@ebsiint-api/shared";
+import {
+  PaginatedList,
+  prefixWith0x,
+  waitToBeMined,
+} from "@ebsiint-api/shared";
 import { ApiConfig } from "../../src/config/configuration";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
@@ -39,7 +43,6 @@ import {
 } from "../../src/modules/jsonrpc/dto";
 import { createPolicy } from "../utils/data";
 import { requestSiopJwt } from "../utils/siopJwt";
-import { waitToBeMined } from "../utils/waitToBeMined";
 import { LedgerService } from "../../src/modules/ledger/ledger.service";
 import { describeWriteOps } from "../utils/describeWriteOps";
 import { getServer } from "../utils/getServer";
@@ -68,7 +71,7 @@ describe("Policies (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer | string;
   let configService: ConfigService<ApiConfig, true>;
-  let ledgerService: LedgerService;
+  let ledgerApi: string;
   let adminTestWallet: ethers.Wallet;
   let testAdminAccessToken: string;
   let testUserAccessToken: string;
@@ -105,7 +108,7 @@ describe("Policies (e2e)", () => {
     await app.init();
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
 
-    ledgerService = moduleFixture.get<LedgerService>(LedgerService);
+    ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
 
     server = getServer(app, configService);
 
@@ -390,7 +393,7 @@ describe("Policies (e2e)", () => {
 
       // Wait to be mined
       const receipt = await waitToBeMined(
-        ledgerService,
+        ledgerApi,
         responseSend.body.result as string
       );
 
@@ -549,7 +552,7 @@ describe("Policies (e2e)", () => {
 
           // Wait to be mined
           const receipt = await waitToBeMined(
-            ledgerService,
+            ledgerApi,
             responseSend.body.result as string
           );
           expect(receipt.status).toBe(1);

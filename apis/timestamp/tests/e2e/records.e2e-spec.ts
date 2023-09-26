@@ -16,7 +16,12 @@ import {
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
-import { prefixWith0x, multibase, PaginatedList } from "@ebsiint-api/shared";
+import {
+  prefixWith0x,
+  multibase,
+  PaginatedList,
+  waitToBeMined,
+} from "@ebsiint-api/shared";
 import type { TransactionRequest } from "@ethersproject/abstract-provider";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
@@ -38,7 +43,6 @@ import {
   VersionLink,
 } from "../../src/modules/records/records.interface";
 import { ApiConfig } from "../../src/config/configuration";
-import { waitToBeMined } from "../utils/waitToBeMined";
 import { requestSiopJwt } from "../utils/auth";
 import { describeWriteOps } from "../utils/describeWriteOps";
 import { getServer } from "../utils/getServer";
@@ -1130,12 +1134,6 @@ describe("Records (e2e)", () => {
         ledgerApi,
         responseSend.body.result as string
       );
-      receipt.revertReason = Buffer.from(
-        (receipt.revertReason ?? "").slice(2),
-        "hex"
-      )
-        .toString()
-        .replace(/[^a-zA-Z:' ]/g, "");
       expect(receipt).toStrictEqual(
         expect.objectContaining({
           status: 0,

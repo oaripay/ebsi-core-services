@@ -10,3 +10,5 @@ export * from "./multibase.utils";
 export * from "./multihash.utils";
 export * from "./pagination.utils";
 export * from "./strings.utils";
+export * from "./parseRevertReason";
+export * from "./waitToBeMined";

@@ -20,6 +20,7 @@ import type { JWK } from "jose";
 import type { FastifyInstance } from "fastify";
 import { useContainer } from "class-validator";
 import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
+import { waitToBeMined } from "@ebsiint-api/shared";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { ApiConfig } from "../../src/config/configuration";
@@ -39,7 +40,6 @@ import {
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
 import { describeWriteOps } from "../utils/describeWriteOps";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
-import { waitToBeMined } from "../utils/waitToBeMined";
 import {
   getDidrInviteAccessToken,
   getDidrWriteAccessToken,

@@ -19,12 +19,12 @@ import canonicalize from "canonicalize";
 import { useContainer } from "class-validator";
 import type { DIDDocument } from "did-resolver";
 import type { TransactionRequest } from "@ethersproject/abstract-provider";
+import { waitToBeMined } from "@ebsiint-api/shared";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
-import { waitToBeMined } from "../utils/waitToBeMined";
 import {
   InsertDidControllerParam,
   InsertDidDocumentParam,

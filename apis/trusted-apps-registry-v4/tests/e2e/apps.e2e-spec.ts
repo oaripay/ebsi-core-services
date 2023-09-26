@@ -14,7 +14,11 @@ import {
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import EbsiWallet from "@cef-ebsi/wallet-lib";
-import { prefixWith0x, PaginatedList } from "@ebsiint-api/shared";
+import {
+  prefixWith0x,
+  PaginatedList,
+  waitToBeMined,
+} from "@ebsiint-api/shared";
 import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
 import type { TransactionRequest } from "@ethersproject/abstract-provider";
@@ -43,7 +47,6 @@ import {
   PublicKeyLink,
 } from "../../src/modules/apps/apps.interface";
 import { ApiConfig } from "../../src/config/configuration";
-import { waitToBeMined } from "../utils/waitToBeMined";
 import { requestSiopJwt } from "../utils/siopJwt";
 import { describeWriteOps, itWriteOps, writeOps } from "../utils/writeOps";
 import { getServer } from "../utils/getServer";
@@ -875,12 +878,6 @@ describe("Apps (e2e)", () => {
 
       // eslint-disable-next-line jest/no-standalone-expect
       expect(receipt.status).toBe(0);
-      receipt.revertReason = Buffer.from(
-        (receipt.revertReason ?? "").slice(2),
-        "hex"
-      )
-        .toString()
-        .replace(/[^a-zA-Z:' ]/g, "");
 
       // eslint-disable-next-line jest/no-standalone-expect
       expect(receipt).toStrictEqual(

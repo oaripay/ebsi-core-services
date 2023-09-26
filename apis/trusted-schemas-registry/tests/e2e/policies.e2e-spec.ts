@@ -19,6 +19,7 @@ import {
   generateMultihash,
   prefixWith0x,
   PaginatedList,
+  waitToBeMined,
 } from "@ebsiint-api/shared";
 import type { TransactionRequest } from "@ethersproject/abstract-provider";
 import { AppModule } from "../../src/app.module";
@@ -30,7 +31,6 @@ import {
   PolicyLink,
   PolicyResponseObject,
 } from "../../src/modules/policies/policies.interface";
-import { waitToBeMined } from "../utils/waitToBeMined";
 import { requestSiopJwt } from "../utils/siopJwt";
 import { UnsignedTransaction } from "../../src/modules/jsonrpc/dto";
 import { describeWriteOps } from "../utils/describeWriteOps";

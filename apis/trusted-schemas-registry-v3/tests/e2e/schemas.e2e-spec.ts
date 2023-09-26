@@ -17,7 +17,7 @@ import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
 import type { TransactionRequest } from "@ethersproject/abstract-provider";
 import type { JSONSchema } from "@apidevtools/json-schema-ref-parser/dist/lib/types";
-import { prefixWith0x, computeId } from "@ebsiint-api/shared";
+import { prefixWith0x, computeId, waitToBeMined } from "@ebsiint-api/shared";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
@@ -29,7 +29,6 @@ import {
 } from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
-import { waitToBeMined } from "../utils/waitToBeMined";
 import { requestSiopJwt } from "../utils/siopJwt";
 import { createVerifiableAuthorisationSchema } from "../utils/data";
 import { hexToMultibaseBase58Btc } from "../../src/modules/schemas/schemas.utils";

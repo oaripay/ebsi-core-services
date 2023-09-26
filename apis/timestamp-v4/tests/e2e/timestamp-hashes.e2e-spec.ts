@@ -15,7 +15,12 @@ import {
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
 import type { FastifyInstance } from "fastify";
-import { prefixWith0x, multibase, multihashEncode } from "@ebsiint-api/shared";
+import {
+  prefixWith0x,
+  multibase,
+  multihashEncode,
+  waitToBeMined,
+} from "@ebsiint-api/shared";
 import type { TransactionRequest } from "@ethersproject/abstract-provider";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
@@ -28,7 +33,6 @@ import {
 } from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
-import { waitToBeMined } from "../utils/waitToBeMined";
 import { requestOAuth2Jwt, requestSiopJwt } from "../utils/auth";
 import { describeWriteOps, writeOps } from "../utils/writeOps";
 import { getServer } from "../utils/getServer";

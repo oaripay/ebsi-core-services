@@ -33,7 +33,11 @@ import {
   createVerifiableCredentialJwt,
   EbsiIssuer,
 } from "@cef-ebsi/verifiable-credential";
-import { prefixWith0x, remove0xPrefix } from "@ebsiint-api/shared";
+import {
+  prefixWith0x,
+  remove0xPrefix,
+  waitToBeMined,
+} from "@ebsiint-api/shared";
 import type {
   StatusList2021Credential,
   PaginatedList,
@@ -52,7 +56,6 @@ import {
 } from "../../src/modules/issuers/issuers.constants";
 import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
-import { waitToBeMined } from "../utils/waitToBeMined";
 import { createIssuer } from "../utils/tir";
 import type { IssuerObject } from "../utils/tir";
 import type {
@@ -1008,12 +1011,6 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
           ledgerApi,
           responseSend.body.result as string
         );
-        receipt.revertReason = Buffer.from(
-          (receipt.revertReason ?? "").slice(2),
-          "hex"
-        )
-          .toString()
-          .replace(/[^a-zA-Z:' ]/g, "");
 
         expect(receipt).toStrictEqual(
           expect.objectContaining({
