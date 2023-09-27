@@ -36,7 +36,7 @@ export interface ApiConfig {
 const HEALTH_CHECK_PATH = "/docs/";
 const AUTH_API_PATH = "/authorisation/v4";
 const DIDR_API_PATH = "/did-registry/v5";
-const LEDGER_API_PATH = "/ledger/v3";
+const LEDGER_API_PATH = "/ledger/v4";
 const TAR_API_PATH = "/trusted-apps-registry/v4";
 
 // Config factory

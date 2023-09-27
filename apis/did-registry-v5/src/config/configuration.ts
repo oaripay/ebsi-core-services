@@ -28,7 +28,7 @@ export interface ApiConfig {
   };
 }
 
-const LEDGER_API_PATH = "/ledger/v3";
+const LEDGER_API_PATH = "/ledger/v4";
 const TAR_API_PATH = "/trusted-apps-registry/v4";
 const AUTH_API_PATH = "/authorisation/v4";
 const HEALTH_CHECK_PATH = "/docs/";
