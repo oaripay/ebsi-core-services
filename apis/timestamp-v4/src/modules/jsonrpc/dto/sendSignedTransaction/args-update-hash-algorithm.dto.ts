@@ -4,7 +4,7 @@ import { ArgsInsertHashAlgorithm } from "./args-insert-hash-algorithm.dto";
 export class ArgsUpdateHashAlgorithm extends ArgsInsertHashAlgorithm {
   @IsInt()
   @Min(0)
-  hashAlgorithmId: number;
+  hashAlgorithmId!: number;
 }
 
 export default { ArgsUpdateHashAlgorithm };

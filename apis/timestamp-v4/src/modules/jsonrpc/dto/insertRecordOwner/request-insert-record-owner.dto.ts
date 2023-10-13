@@ -11,14 +11,14 @@ import { InsertRecordOwnerParam } from "./insert-record-owner-param.dto";
 
 export class RequestInsertRecordOwnerDto extends JsonRpcDto {
   @Equals("insertRecordOwner")
-  method: string;
+  method!: string;
 
   @IsArray()
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @ValidateNested({ each: true })
   @Type(() => InsertRecordOwnerParam)
-  params: InsertRecordOwnerParam[];
+  params!: InsertRecordOwnerParam[];
 }
 
 export default RequestInsertRecordOwnerDto;

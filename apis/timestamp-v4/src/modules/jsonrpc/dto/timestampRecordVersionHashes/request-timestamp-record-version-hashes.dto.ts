@@ -11,14 +11,14 @@ import { TimestampRecordVersionHashesParam } from "./timestamp-record-version-ha
 
 export class RequestTimestampRecordVersionHashesDto extends JsonRpcDto {
   @Equals("timestampRecordVersionHashes")
-  method: string;
+  method!: string;
 
   @IsArray()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @Type(() => TimestampRecordVersionHashesParam)
-  params: TimestampRecordVersionHashesParam[];
+  params!: TimestampRecordVersionHashesParam[];
 }
 
 export default RequestTimestampRecordVersionHashesDto;

@@ -40,18 +40,12 @@ export function formatEthersUnsignedTransaction(
   };
 }
 
-export function formatEthersSignature(
-  r: string,
-  s: string,
-  v: string
-): ethers.Signature {
+export function formatEthersSignature(r: string, s: string, v: string) {
   return {
     r,
     s,
     v: Number(v),
-    recoveryParam: null,
-    _vs: null,
-  } as ethers.Signature;
+  } satisfies Partial<ethers.Signature>;
 }
 
 type JsonRpcDtos =

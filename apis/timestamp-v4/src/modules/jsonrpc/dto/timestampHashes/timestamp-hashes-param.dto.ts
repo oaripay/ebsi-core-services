@@ -3,7 +3,7 @@ import { ArgsTimestampHashes } from "../sendSignedTransaction";
 
 export class TimestampHashesParam extends ArgsTimestampHashes {
   @IsEthereumAddress()
-  from: string;
+  from!: string;
 }
 
 export default { TimestampHashesParam };

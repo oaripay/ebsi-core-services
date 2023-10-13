@@ -3,25 +3,25 @@ import { IsHexadecimalJSON } from "../../validators";
 
 export class ArgsAppendRecordVersionHashes {
   @IsHexadecimal()
-  recordId: string;
+  recordId!: string;
 
   @IsInt()
   @Min(0)
-  versionId: number;
+  versionId!: number;
 
   @IsInt({ each: true })
   @Min(0, { each: true })
-  hashAlgorithmIds: number[];
+  hashAlgorithmIds!: number[];
 
   @IsHexadecimal({ each: true })
-  hashValues: string[];
+  hashValues!: string[];
 
   @IsOptional()
   @IsHexadecimalJSON({ each: true })
-  timestampData: string[];
+  timestampData!: string[];
 
   @IsHexadecimalJSON()
-  versionInfo: string;
+  versionInfo!: string;
 }
 
 export default { ArgsAppendRecordVersionHashes };

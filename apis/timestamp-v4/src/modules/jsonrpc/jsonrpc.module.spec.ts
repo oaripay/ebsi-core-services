@@ -1,6 +1,5 @@
 import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
 import crypto from "node:crypto";
-import axios, { AxiosError } from "axios";
 import request from "supertest";
 import { Test, TestingModule } from "@nestjs/testing";
 import {
@@ -12,18 +11,22 @@ import {
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import type { FastifyInstance } from "fastify";
-import * as OAuth2Lib from "@cef-ebsi/oauth2-auth";
-import * as SiopLib from "@cef-ebsi/siop-auth";
-import type { JwtTarVerifyResult } from "@cef-ebsi/oauth2-auth";
-import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import type { JWTVerifyResult } from "jose";
+import {
+  SignJWT,
+  GenerateKeyPairResult,
+  generateKeyPair,
+  exportJWK,
+  calculateJwkThumbprint,
+} from "jose";
 import {
   FastifyAdapter,
   NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { HashName } from "multihashes";
 import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp-v2";
-import { multibase, AsyncReturnType } from "@ebsiint-api/shared";
+import { TransactionRequest } from "@ethersproject/abstract-provider";
+import nock from "nock";
+import axios from "axios";
 import { JsonRpcModule } from "./jsonrpc.module";
 import { JsonRpcResponseObject } from "./jsonrpc.interface";
 import {
@@ -45,6 +48,7 @@ import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { setupTestEnv } from "../../../tests/utils/timestamp";
 import { LedgerService } from "../ledger/ledger.service";
 import { ApiConfig } from "../../config/configuration";
+import { createUser, UserDetails } from "../../../tests/utils/data";
 
 jest.mock("@cef-ebsi/oauth2-auth", () => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -92,82 +96,46 @@ type JsonRpcParams =
   | AppendRecordVersionHashesParam
   | TimestampRecordHashesParam;
 
-const axiosError = (status: number, message: string): AxiosError =>
-  ({
-    response: {
-      status,
-      data: message,
-      statusText: message,
-      headers: {},
-      config: {},
-    },
-    isAxiosError: true,
-    name: "error",
-    message,
-    config: {},
-    toJSON: null,
-  } as AxiosError);
-
 describe("JsonRpc Module", () => {
   let app: INestApplication;
   let configService: ConfigService<ApiConfig, true>;
   let server: HttpServer;
   let timestampContract: Timestamp;
-  let testEnv: AsyncReturnType<typeof setupTestEnv>;
+  let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
   let ledgerService: LedgerService;
   let firstHashValue: string;
   let secondHashValue: string;
   let recordId: string;
   let blockNumber = 0;
   let provider: ethers.providers.JsonRpcProvider;
-  const genToken = (sub: string, siop = true) =>
-    `${multibase.base64url.baseEncode(
-      Buffer.from(
-        JSON.stringify({
-          alg: "ES256K",
-          typ: "JWT",
-        })
-      )
-    )}.${multibase.base64url.baseEncode(
-      Buffer.from(
-        JSON.stringify({
-          sub,
-          ...(siop && { login_hint: "did_siop" }),
-        })
-      )
-    )}.${multibase.base64url.baseEncode(Buffer.from("signature"))}`;
+  let newUserTimestampWriteAccessToken: string;
+  let adminUserTimestampWriteAccessToken: string;
+  let fakeUserTimestampWriteAccessToken: string;
+  let newUser: UserDetails;
+  let authApiKeyPair: GenerateKeyPairResult;
+  let authApiKid: string;
+
   const testAdmin = {
-    token: genToken("admin"),
+    token: "",
     did: "did:ebsi:admin",
     wallet: ethers.Wallet.createRandom(),
   };
   const testUser = {
-    token: genToken("user"),
+    token: "",
     did: "did:ebsi:user",
     wallet: ethers.Wallet.createRandom(),
   };
   const testFakeUser = {
-    token: genToken("fake user"),
+    token: "",
     did: "did:ebsi:fakeuser",
     wallet: ethers.Wallet.createRandom(),
   };
 
-  const walletApp = ethers.Wallet.createRandom();
-  const publicKeyPemApp = new EbsiWallet(walletApp.privateKey).getPublicKey({
-    format: "pem",
-  });
-  const testApp = {
-    token: genToken("trusted app", false),
-    name: "my-trusted-app",
-    id: `0x${crypto.randomBytes(32).toString("hex")}`,
-    wallet: walletApp,
-    publicKeys: [
-      Buffer.from(publicKeyPemApp).toString("base64"),
-      crypto.randomBytes(50).toString("base64"), // bad format
-    ],
-  };
-
   beforeAll(async () => {
+    // Disable external requests
+    nock.disableNetConnect();
+    // Allow localhost connections so we can test local routes and mock servers.
+    nock.enableNetConnect("127.0.0.1");
     // Spin up test blockchain (hardhat)
     testEnv = await setupTestEnv();
     timestampContract = testEnv.timestampContract;
@@ -186,14 +154,63 @@ describe("JsonRpc Module", () => {
       "sha3-512": "sha3-512",
     };
 
+    newUser = await createUser();
+
+    // Generate key pair for Authorisation API v4 and create access token
+    authApiKeyPair = await generateKeyPair("ES256");
+    const publicKeyJwk = await exportJWK(authApiKeyPair.publicKey);
+    authApiKid = await calculateJwkThumbprint(publicKeyJwk);
+
+    newUserTimestampWriteAccessToken = await new SignJWT({
+      sub: testUser.did,
+      scp: "openid timestamp_write",
+    })
+      .setProtectedHeader({
+        typ: "JWT",
+        alg: "ES256",
+        kid: authApiKid,
+      })
+      .sign(authApiKeyPair.privateKey);
+
+    adminUserTimestampWriteAccessToken = await new SignJWT({
+      sub: testAdmin.did,
+      scp: "openid timestamp_write",
+    })
+      .setProtectedHeader({
+        typ: "JWT",
+        alg: "ES256",
+        kid: authApiKid,
+      })
+      .sign(authApiKeyPair.privateKey);
+
+    fakeUserTimestampWriteAccessToken = await new SignJWT({
+      sub: testFakeUser.did,
+      scp: "openid timestamp_write",
+    })
+      .setProtectedHeader({
+        typ: "JWT",
+        alg: "ES256",
+        kid: authApiKid,
+      })
+      .sign(authApiKeyPair.privateKey);
+
+    // For now all users have same token just for testing
+    testAdmin.token = adminUserTimestampWriteAccessToken;
+    testUser.token = newUserTimestampWriteAccessToken;
+    testFakeUser.token = fakeUserTimestampWriteAccessToken;
+
     firstHashValue = `0x${crypto
-      .createHash(multihashToNodeHashAlg[testEnv.hashAlgorithms[0].multihash])
+      .createHash(
+        multihashToNodeHashAlg[testEnv.hashAlgorithms[0].multihash] as string
+      )
       .update(crypto.randomBytes(32).toString("hex"), "hex")
       .digest()
       .toString("hex")}`;
 
     secondHashValue = `0x${crypto
-      .createHash(multihashToNodeHashAlg[testEnv.hashAlgorithms[0].multihash])
+      .createHash(
+        multihashToNodeHashAlg[testEnv.hashAlgorithms[0].multihash] as string
+      )
       .update(crypto.randomBytes(32).toString("hex"), "hex")
       .digest()
       .toString("hex")}`;
@@ -215,7 +232,8 @@ describe("JsonRpc Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
 
     app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
@@ -223,111 +241,60 @@ describe("JsonRpc Module", () => {
     await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
     server = app.getHttpServer() as HttpServer;
 
-    // Make sure we never use axios.post in tests ;-)
-    jest
-      .spyOn(axios, "post")
-      .mockImplementation((url, data: { params: string[] }) => {
-        if (url.includes("/actions")) {
-          const urlParts = url.split("/");
-          const did = urlParts[urlParts.length - 2];
-          const [address] = data.params;
-          const result =
-            (testAdmin.did === did &&
-              testAdmin.wallet.address.toLocaleLowerCase() ===
-                address.toLocaleLowerCase()) ||
-            (testUser.did === did &&
-              testUser.wallet.address.toLocaleLowerCase() ===
-                address.toLocaleLowerCase());
-          return Promise.resolve({
-            data: {
-              jsonrpc: "2.0",
-              result,
-            },
-          });
-        }
-        throw new Error("Forgot to mock an axios post call?");
-      });
-
-    jest.spyOn(axios, "get").mockImplementation((url): Promise<unknown> => {
-      // accessing administrators in TAR
-      if (url.includes("/administrators")) {
-        if (!url.includes(testAdmin.did)) {
-          throw axiosError(404, "Not found");
-        }
-        return Promise.resolve({
-          data: {
-            did: testAdmin.did,
-            attributes: [
-              {
-                hash: "",
-                body: Buffer.from(
-                  JSON.stringify({
-                    validFrom: new Date().toISOString(),
-                  })
-                ).toString("base64"),
-              },
-            ],
-          },
-        });
-      }
-
-      // accessing apps in TAR by id
-      if (url.includes("/apps/")) {
-        if (!url.includes(testApp.name)) {
-          throw new Error("App not found");
-        }
-        return Promise.resolve({
-          data: {
-            applicationId: testApp.id,
-            name: testApp.name,
-            domain: "ebsi",
-            publicKeys: testApp.publicKeys,
-          },
-        });
-      }
-
-      throw new Error("Forgot to mock an axios call?");
-    });
-
-    jest
-      .spyOn(SiopLib, "verifyJwtTar")
-      .mockImplementation((token: string): Promise<JWTVerifyResult> => {
-        if (token === testAdmin.token) {
-          return Promise.resolve({
-            payload: {
-              sub: testAdmin.did,
-              login_hint: "did_siop",
-            },
-          } as unknown as JWTVerifyResult);
-        }
-
-        if (token === testUser.token) {
-          return Promise.resolve({
-            payload: { sub: testUser.did, login_hint: "did_siop" },
-          } as unknown as JWTVerifyResult);
-        }
-
-        return Promise.reject(new Error("verifyJwtTar failed (siop)"));
-      });
-
-    jest
-      .spyOn(OAuth2Lib, "verifyJwtTar")
-      .mockImplementation((token: string): Promise<JwtTarVerifyResult> => {
-        if (token === testApp.token) {
-          return Promise.resolve({
-            payload: { sub: testApp.name },
-          } as JwtTarVerifyResult);
-        }
-
-        return Promise.reject(new Error("verifyJwtTar failed (siop)"));
-        throw new Error("verifyAccessToken failed (oauth2)");
-      });
-
     // Mock Contract service
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
     jest
       .spyOn(ledgerService, "getContract")
       .mockImplementation(async () => Promise.resolve(timestampContract));
+
+    // Mock Auth API
+    const authorisationApiUrl = new URL(
+      configService.get<string>("authorisationApiUrl")
+    );
+
+    // Mock Auth API /.well-known/openid-configuration endpoint
+    nock(authorisationApiUrl.origin)
+      .get(`${authorisationApiUrl.pathname}/.well-known/openid-configuration`)
+      .reply(200, {
+        jwks_uri: `${authorisationApiUrl.origin}${authorisationApiUrl.pathname}/jwks`,
+      })
+      .persist();
+
+    // Mock Auth API /jwks endpoint
+    nock(authorisationApiUrl.origin)
+      .get(`${authorisationApiUrl.pathname}/jwks`)
+      .reply(200, {
+        keys: [
+          {
+            ...publicKeyJwk,
+            kid: authApiKid,
+          },
+        ],
+      })
+      .persist();
+
+    jest.spyOn(axios, "post").mockImplementation((url, data) => {
+      const dataType: { params: string[] } = data as { params: string[] };
+      if (url.includes("/actions")) {
+        const urlParts = url.split("/");
+        const did = urlParts[urlParts.length - 2];
+        const [address] = dataType.params;
+        const result =
+          (testAdmin.did === did &&
+            testAdmin.wallet.address.toLocaleLowerCase() ===
+              address.toLocaleLowerCase()) ||
+          (testUser.did === did &&
+            testUser.wallet.address.toLocaleLowerCase() ===
+              address.toLocaleLowerCase());
+        return Promise.resolve({
+          data: {
+            jsonrpc: "2.0",
+            result,
+          },
+        });
+      }
+      throw new Error("Forgot to mock an axios post call?");
+    });
   });
 
   afterAll(async () => {
@@ -339,99 +306,105 @@ describe("JsonRpc Module", () => {
   });
 
   describe("JWT Authentication", () => {
-    it("should reject bad authentication", async () => {
-      expect.assertions(4);
-      let response = await request(server)
+    it("should reject a POST without JWT", async () => {
+      expect.assertions(3);
+
+      const response = await request(server).post("/jsonrpc").send();
+
+      expect(response.body).toStrictEqual({
+        detail: "Invalid or missing JWT",
+        status: 401,
+        title: "Unauthorized",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(401);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should reject a POST with an invalid token", async () => {
+      expect.assertions(3);
+
+      const response = await request(server)
         .post("/jsonrpc")
-        .auth(testFakeUser.token, { type: "bearer" })
+        .auth("very.bad.token.123.abc", { type: "bearer" })
         .send();
 
       expect(response.body).toStrictEqual({
-        title: "Unauthorized",
+        detail:
+          "Invalid Authorisation Token: Only JWTs using Compact JWS serialization can be decoded",
         status: 401,
-        detail: "verifyJwtTar failed (siop)",
+        title: "Unauthorized",
         type: "about:blank",
       });
       expect(response.status).toBe(401);
-
-      response = await request(server).post("/jsonrpc").send();
-
-      expect(response.body).toStrictEqual({
-        title: "Unauthorized",
-        status: 401,
-        detail: "Missing JWT",
-        type: "about:blank",
-      });
-      expect(response.status).toBe(401);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
 
-    it("should reject impersonating requests", async () => {
-      expect.assertions(2);
+    it("should reject a POST with an invalid access token", async () => {
+      expect.assertions(6);
 
-      const param: TimestampHashesParam = {
-        from: testUser.wallet.address, // test user in the transaction
-        hashAlgorithmIds: [0],
-        hashValues: [firstHashValue],
-        timestampData: [
-          `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-            "hex"
-          )}`,
-        ],
-      };
-
-      const responseBuild: SupertestJsonRpcResponse = await request(server)
-        .post("/jsonrpc")
-        // admin in the jwt
-        .auth(testAdmin.token, { type: "bearer" })
-        .send({
-          jsonrpc: "2.0",
-          method: "timestampHashes",
-          params: [param],
-          id: 231,
-        });
-
-      const unsignedTransaction = responseBuild.body.result;
-      const uTx = formatEthersUnsignedTransaction(
-        JSON.parse(
-          JSON.stringify(unsignedTransaction)
-        ) as unknown as UnsignedTransaction
+      const signer = await generateKeyPair("ES256");
+      const kid = await calculateJwkThumbprint(
+        await exportJWK(signer.publicKey)
       );
-      uTx.chainId = Number(uTx.chainId);
-      // user in the transaction
-      const sgnTx = await testUser.wallet.signTransaction(uTx);
-      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+      const accessTokenWithInvalidKid = await new SignJWT({
+        sub: newUser.did,
+        scp: "openid timestampt_write",
+      })
+        .setProtectedHeader({
+          typ: "JWT",
+          alg: "ES256",
+          kid,
+        })
+        .sign(signer.privateKey);
 
-      const responseSend = await request(server)
+      let response = await request(server)
         .post("/jsonrpc")
-        // admin in the jwt
-        .auth(testAdmin.token, { type: "bearer" })
-        .send({
-          jsonrpc: "2.0",
-          method: "sendSignedTransaction",
-          params: [
-            {
-              protocol: "eth",
-              unsignedTransaction,
-              r,
-              s,
-              v: `0x${Number(v).toString(16)}`,
-              signedRawTransaction: sgnTx,
-            },
-          ],
-          id: "45",
-        });
+        .auth(accessTokenWithInvalidKid, { type: "bearer" })
+        .send();
 
-      expect(responseSend.body).toStrictEqual({
-        jsonrpc: "2.0",
-        id: "45",
-        error: {
-          code: -32600,
-          message: expect.stringContaining(
-            "The DID did:ebsi:admin is not controlled by the address 0x"
-          ),
-        },
+      expect(response.body).toStrictEqual({
+        detail:
+          "Invalid Access Token. Couldn't find a public key related to the given kid.",
+        status: 401,
+        title: "Unauthorized",
+        type: "about:blank",
       });
-      expect(responseSend.status).toBe(400);
+      expect(response.status).toBe(401);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+
+      const accessTokenWithInvalidSignature = await new SignJWT({
+        sub: newUser.did,
+        scp: "openid timestampt_write",
+      })
+        .setProtectedHeader({
+          typ: "JWT",
+          alg: "ES256",
+          kid: authApiKid,
+        })
+        .sign(signer.privateKey);
+
+      response = await request(server)
+        .post("/jsonrpc")
+        .auth(accessTokenWithInvalidSignature, { type: "bearer" })
+        .send();
+
+      expect(response.body).toStrictEqual({
+        detail: "Access Token signature validation failed",
+        status: 401,
+        title: "Unauthorized",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(401);
+      expect(
+        (response.headers as { "content-type": string })["content-type"]
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
   });
 
@@ -475,7 +448,9 @@ describe("JsonRpc Module", () => {
       JSON.parse(JSON.stringify(transaction)) as unknown as UnsignedTransaction
     );
     uTx.chainId = Number(uTx.chainId);
-    const sgnTx = await testUser.wallet.signTransaction(uTx);
+    const sgnTx = await testUser.wallet.signTransaction(
+      uTx as TransactionRequest
+    );
     const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
     const responseSend = await request(server)
@@ -554,7 +529,7 @@ describe("JsonRpc Module", () => {
     it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction", async () => {
       expect.assertions(4);
 
-      let param: JsonRpcParams = null;
+      let param: JsonRpcParams;
 
       switch (method) {
         case "insertHashAlgorithm": {
@@ -777,7 +752,9 @@ describe("JsonRpc Module", () => {
         ) as unknown as UnsignedTransaction
       );
       uTx.chainId = Number(uTx.chainId);
-      const sgnTx = await testAdmin.wallet.signTransaction(uTx);
+      const sgnTx = await testAdmin.wallet.signTransaction(
+        uTx as TransactionRequest
+      );
       const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
       const responseSend = await request(server)
@@ -813,7 +790,7 @@ describe("JsonRpc Module", () => {
     it("should accept a request without id", async () => {
       expect.assertions(2);
 
-      let param: JsonRpcParams = null;
+      let param: JsonRpcParams;
 
       switch (method) {
         case "insertHashAlgorithm": {
@@ -994,9 +971,9 @@ describe("JsonRpc Module", () => {
     it(`should throw an Invalid Request error for bad use of ${method}`, async () => {
       expect.assertions(6);
 
-      let param1: JsonRpcParams = null;
-      let param2: JsonRpcParams = null;
-      let param3: JsonRpcParams = null;
+      let param1: JsonRpcParams;
+      let param2: JsonRpcParams;
+      let param3: JsonRpcParams;
 
       let expectedErrorMessage1: string;
       let expectedErrorMessage2: string;
@@ -1910,7 +1887,9 @@ describe("JsonRpc Module", () => {
         ) as unknown as UnsignedTransaction
       );
       uTx.chainId = Number(uTx.chainId);
-      const sgnTx1 = await testUser.wallet.signTransaction(uTx);
+      const sgnTx1 = await testUser.wallet.signTransaction(
+        uTx as TransactionRequest
+      );
       const { r, s, v } = ethers.utils.parseTransaction(sgnTx1);
 
       // Tampering signatures
@@ -1991,7 +1970,7 @@ describe("JsonRpc Module", () => {
       it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction even if timestamp data is empty", async () => {
         expect.assertions(4);
 
-        let param: JsonRpcParams = null;
+        let param: JsonRpcParams;
 
         switch (method) {
           case "timestampHashes": {
@@ -2103,7 +2082,9 @@ describe("JsonRpc Module", () => {
           ) as unknown as UnsignedTransaction
         );
         uTx.chainId = Number(uTx.chainId);
-        const sgnTx = await testAdmin.wallet.signTransaction(uTx);
+        const sgnTx = await testAdmin.wallet.signTransaction(
+          uTx as TransactionRequest
+        );
         const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
         const responseSend = await request(server)
@@ -2134,507 +2115,6 @@ describe("JsonRpc Module", () => {
           result: expect.any(String),
         });
         expect(responseSend.status).toBe(200);
-      });
-    }
-  );
-
-  // Tests using trusted apps
-  describe.each([
-    "timestampHashes",
-    "timestampRecordHashes",
-    "timestampRecordVersionHashes",
-    "appendRecordVersionHashes",
-  ])(
-    "/jsonrpc with method %s using a Trusted App as user",
-    (method: string) => {
-      it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction", async () => {
-        expect.assertions(4);
-
-        let param: JsonRpcParams = null;
-
-        switch (method) {
-          case "timestampHashes": {
-            param = {
-              from: testApp.wallet.address,
-              hashAlgorithmIds: [0],
-              hashValues: [firstHashValue],
-              timestampData: [
-                `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                  "hex"
-                )}`,
-              ],
-            } as TimestampHashesParam;
-            break;
-          }
-          case "timestampRecordHashes": {
-            param = {
-              from: testApp.wallet.address,
-              hashAlgorithmIds: [0],
-              hashValues: [firstHashValue],
-              timestampData: [
-                `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                  "hex"
-                )}`,
-              ],
-              versionInfo: `0x${Buffer.from(
-                JSON.stringify({ test: 54 }),
-                "utf8"
-              ).toString("hex")}`,
-            } as TimestampRecordHashesParam;
-            break;
-          }
-          case "timestampRecordVersionHashes": {
-            recordId = ethers.utils.sha256(
-              ethers.utils.defaultAbiCoder.encode(
-                ["address", "uint256", "bytes"],
-                [testApp.wallet.address, blockNumber, firstHashValue]
-              )
-            );
-            param = {
-              from: testApp.wallet.address,
-              recordId,
-              hashAlgorithmIds: [0],
-              hashValues: [firstHashValue],
-              timestampData: [
-                `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                  "hex"
-                )}`,
-              ],
-              versionInfo: `0x${Buffer.from(
-                JSON.stringify({ test: 54 }),
-                "utf8"
-              ).toString("hex")}`,
-            } as TimestampRecordVersionHashesParam;
-            break;
-          }
-          case "appendRecordVersionHashes": {
-            recordId = ethers.utils.sha256(
-              ethers.utils.defaultAbiCoder.encode(
-                ["address", "uint256", "bytes"],
-                [testApp.wallet.address, blockNumber, firstHashValue]
-              )
-            );
-            param = {
-              from: testApp.wallet.address,
-              recordId,
-              versionId: 1,
-              hashAlgorithmIds: [0],
-              hashValues: [firstHashValue],
-              timestampData: [
-                `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                  "hex"
-                )}`,
-              ],
-              versionInfo: `0x${Buffer.from(
-                JSON.stringify({ test: 54 }),
-                "utf8"
-              ).toString("hex")}`,
-            } as AppendRecordVersionHashesParam;
-            break;
-          }
-          default:
-            throw new Error(`Test Error: Invalid method ${method}`);
-        }
-
-        const responseBuild: SupertestJsonRpcResponse = await request(server)
-          .post("/jsonrpc")
-          .auth(testApp.token, { type: "bearer" })
-          .send({
-            jsonrpc: "2.0",
-            method,
-            params: [param],
-            id: 231,
-          });
-
-        expect(responseBuild.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: 231,
-          result: {
-            chainId: expect.any(String),
-            data: expect.any(String),
-            from: param.from,
-            gasLimit: expect.any(String),
-            gasPrice: expect.any(String),
-            nonce: expect.any(String),
-            to: expect.any(String),
-            value: "0x0",
-          },
-        });
-        expect(responseBuild.status).toBe(200);
-
-        const unsignedTransaction = responseBuild.body.result;
-        const uTx = formatEthersUnsignedTransaction(
-          JSON.parse(
-            JSON.stringify(unsignedTransaction)
-          ) as unknown as UnsignedTransaction
-        );
-        uTx.chainId = Number(uTx.chainId);
-        const sgnTx = await testApp.wallet.signTransaction(uTx);
-        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
-
-        const responseSend = await request(server)
-          .post("/jsonrpc")
-          .auth(testApp.token, { type: "bearer" })
-          .send({
-            jsonrpc: "2.0",
-            method: "sendSignedTransaction",
-            params: [
-              {
-                protocol: "eth",
-                unsignedTransaction,
-                r,
-                s,
-                v: `0x${Number(v).toString(16)}`,
-                signedRawTransaction: sgnTx,
-              },
-            ],
-            id: "45",
-          });
-
-        // blocknumber needed to compute the recordid
-        if (method === "timestampRecordHashes") {
-          blockNumber = await provider.getBlockNumber();
-        }
-
-        expect(responseSend.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: "45",
-          result: expect.any(String),
-        });
-        expect(responseSend.status).toBe(200);
-      });
-
-      it("should return an error if the hash length doesn't match with the hash algorithm output length", async () => {
-        expect.assertions(2);
-
-        let param: JsonRpcParams = null;
-
-        const hashValue = `0x${crypto.randomBytes(37).toString("hex")}`;
-
-        switch (method) {
-          case "timestampHashes": {
-            param = {
-              from: testApp.wallet.address,
-              hashAlgorithmIds: [0],
-              hashValues: [hashValue],
-              timestampData: [
-                `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                  "hex"
-                )}`,
-              ],
-            } as TimestampHashesParam;
-            break;
-          }
-          case "timestampRecordHashes": {
-            param = {
-              from: testApp.wallet.address,
-              hashAlgorithmIds: [0],
-              hashValues: [hashValue],
-              timestampData: [
-                `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                  "hex"
-                )}`,
-              ],
-              versionInfo: `0x${Buffer.from(
-                JSON.stringify({ test: 54 }),
-                "utf8"
-              ).toString("hex")}`,
-            } as TimestampRecordHashesParam;
-            break;
-          }
-          case "timestampRecordVersionHashes": {
-            recordId = ethers.utils.sha256(
-              ethers.utils.defaultAbiCoder.encode(
-                ["address", "uint256", "bytes"],
-                [testApp.wallet.address, blockNumber, hashValue]
-              )
-            );
-            param = {
-              from: testApp.wallet.address,
-              recordId,
-              hashAlgorithmIds: [0],
-              hashValues: [hashValue],
-              timestampData: [
-                `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                  "hex"
-                )}`,
-              ],
-              versionInfo: `0x${Buffer.from(
-                JSON.stringify({ test: 54 }),
-                "utf8"
-              ).toString("hex")}`,
-            } as TimestampRecordVersionHashesParam;
-            break;
-          }
-          case "appendRecordVersionHashes": {
-            recordId = ethers.utils.sha256(
-              ethers.utils.defaultAbiCoder.encode(
-                ["address", "uint256", "bytes"],
-                [testApp.wallet.address, blockNumber, hashValue]
-              )
-            );
-            param = {
-              from: testApp.wallet.address,
-              recordId,
-              versionId: 1,
-              hashAlgorithmIds: [0],
-              hashValues: [hashValue],
-              timestampData: [
-                `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                  "hex"
-                )}`,
-              ],
-              versionInfo: `0x${Buffer.from(
-                JSON.stringify({ test: 54 }),
-                "utf8"
-              ).toString("hex")}`,
-            } as AppendRecordVersionHashesParam;
-            break;
-          }
-          default:
-            throw new Error(`Test Error: Invalid method ${method}`);
-        }
-
-        const responseBuild: SupertestJsonRpcResponse = await request(server)
-          .post("/jsonrpc")
-          .auth(testApp.token, { type: "bearer" })
-          .send({
-            jsonrpc: "2.0",
-            method,
-            params: [param],
-            id: 231,
-          });
-
-        expect(responseBuild.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: 231,
-          error: {
-            code: -32600,
-            message: `Hash ${hashValue}'s length (296 bits) is different from the expected length (${testEnv.hashAlgorithms[0].outputLength} bits)`,
-          },
-        });
-        expect(responseBuild.status).toBe(400);
-      });
-
-      it("should return an error if the hash algorithm ID doesn't exist", async () => {
-        expect.assertions(2);
-
-        let param: JsonRpcParams = null;
-
-        switch (method) {
-          case "timestampHashes": {
-            param = {
-              from: testApp.wallet.address,
-              hashAlgorithmIds: [193],
-              hashValues: [firstHashValue],
-              timestampData: [
-                `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                  "hex"
-                )}`,
-              ],
-            } as TimestampHashesParam;
-            break;
-          }
-          case "timestampRecordHashes": {
-            param = {
-              from: testApp.wallet.address,
-              hashAlgorithmIds: [193],
-              hashValues: [firstHashValue],
-              timestampData: [
-                `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                  "hex"
-                )}`,
-              ],
-              versionInfo: `0x${Buffer.from(
-                JSON.stringify({ test: 54 }),
-                "utf8"
-              ).toString("hex")}`,
-            } as TimestampRecordHashesParam;
-            break;
-          }
-          case "timestampRecordVersionHashes": {
-            recordId = ethers.utils.sha256(
-              ethers.utils.defaultAbiCoder.encode(
-                ["address", "uint256", "bytes"],
-                [testApp.wallet.address, blockNumber, firstHashValue]
-              )
-            );
-            param = {
-              from: testApp.wallet.address,
-              recordId,
-              hashAlgorithmIds: [193],
-              hashValues: [firstHashValue],
-              timestampData: [
-                `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                  "hex"
-                )}`,
-              ],
-              versionInfo: `0x${Buffer.from(
-                JSON.stringify({ test: 54 }),
-                "utf8"
-              ).toString("hex")}`,
-            } as TimestampRecordVersionHashesParam;
-            break;
-          }
-          case "appendRecordVersionHashes": {
-            recordId = ethers.utils.sha256(
-              ethers.utils.defaultAbiCoder.encode(
-                ["address", "uint256", "bytes"],
-                [testApp.wallet.address, blockNumber, firstHashValue]
-              )
-            );
-            param = {
-              from: testApp.wallet.address,
-              recordId,
-              versionId: 1,
-              hashAlgorithmIds: [193],
-              hashValues: [firstHashValue],
-              timestampData: [
-                `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                  "hex"
-                )}`,
-              ],
-              versionInfo: `0x${Buffer.from(
-                JSON.stringify({ test: 54 }),
-                "utf8"
-              ).toString("hex")}`,
-            } as AppendRecordVersionHashesParam;
-            break;
-          }
-          default:
-            throw new Error(`Test Error: Invalid method ${method}`);
-        }
-
-        const responseBuild: SupertestJsonRpcResponse = await request(server)
-          .post("/jsonrpc")
-          .auth(testApp.token, { type: "bearer" })
-          .send({
-            jsonrpc: "2.0",
-            method,
-            params: [param],
-            id: 231,
-          });
-
-        expect(responseBuild.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: 231,
-          error: {
-            code: -32600,
-            message: "Can't find hash algorithm with ID: 193",
-          },
-        });
-        expect(responseBuild.status).toBe(400);
-      });
-
-      it("should return an error if there are more hashValues than hashAlgorithmIds", async () => {
-        expect.assertions(2);
-
-        let param: JsonRpcParams = null;
-
-        switch (method) {
-          case "timestampHashes": {
-            param = {
-              from: testApp.wallet.address,
-              hashAlgorithmIds: [0],
-              hashValues: [firstHashValue, firstHashValue],
-              timestampData: [
-                `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                  "hex"
-                )}`,
-              ],
-            } as TimestampHashesParam;
-            break;
-          }
-          case "timestampRecordHashes": {
-            param = {
-              from: testApp.wallet.address,
-              hashAlgorithmIds: [0],
-              hashValues: [firstHashValue, firstHashValue],
-              timestampData: [
-                `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                  "hex"
-                )}`,
-              ],
-              versionInfo: `0x${Buffer.from(
-                JSON.stringify({ test: 54 }),
-                "utf8"
-              ).toString("hex")}`,
-            } as TimestampRecordHashesParam;
-            break;
-          }
-          case "timestampRecordVersionHashes": {
-            recordId = ethers.utils.sha256(
-              ethers.utils.defaultAbiCoder.encode(
-                ["address", "uint256", "bytes"],
-                [testApp.wallet.address, blockNumber, firstHashValue]
-              )
-            );
-            param = {
-              from: testApp.wallet.address,
-              recordId,
-              hashAlgorithmIds: [0],
-              hashValues: [firstHashValue, firstHashValue],
-              timestampData: [
-                `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                  "hex"
-                )}`,
-              ],
-              versionInfo: `0x${Buffer.from(
-                JSON.stringify({ test: 54 }),
-                "utf8"
-              ).toString("hex")}`,
-            } as TimestampRecordVersionHashesParam;
-            break;
-          }
-          case "appendRecordVersionHashes": {
-            recordId = ethers.utils.sha256(
-              ethers.utils.defaultAbiCoder.encode(
-                ["address", "uint256", "bytes"],
-                [testApp.wallet.address, blockNumber, firstHashValue]
-              )
-            );
-            param = {
-              from: testApp.wallet.address,
-              recordId,
-              versionId: 1,
-              hashAlgorithmIds: [0],
-              hashValues: [firstHashValue, firstHashValue],
-              timestampData: [
-                `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                  "hex"
-                )}`,
-              ],
-              versionInfo: `0x${Buffer.from(
-                JSON.stringify({ test: 54 }),
-                "utf8"
-              ).toString("hex")}`,
-            } as AppendRecordVersionHashesParam;
-            break;
-          }
-          default:
-            throw new Error(`Test Error: Invalid method ${method}`);
-        }
-
-        const responseBuild: SupertestJsonRpcResponse = await request(server)
-          .post("/jsonrpc")
-          .auth(testApp.token, { type: "bearer" })
-          .send({
-            jsonrpc: "2.0",
-            method,
-            params: [param],
-            id: 231,
-          });
-
-        expect(responseBuild.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: 231,
-          error: {
-            code: -32600,
-            message:
-              "hashAlgorithmIds and hashValues don't have the same length",
-          },
-        });
-        expect(responseBuild.status).toBe(400);
       });
     }
   );

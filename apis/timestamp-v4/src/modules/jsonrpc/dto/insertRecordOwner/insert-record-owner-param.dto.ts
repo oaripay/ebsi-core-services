@@ -3,7 +3,7 @@ import { ArgsInsertRecordOwner } from "../sendSignedTransaction";
 
 export class InsertRecordOwnerParam extends ArgsInsertRecordOwner {
   @IsEthereumAddress()
-  from: string;
+  from!: string;
 }
 
 export default { InsertRecordOwnerParam };

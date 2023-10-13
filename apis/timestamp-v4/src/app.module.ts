@@ -11,10 +11,12 @@ import { LoggingInterceptor } from "./interceptors/logging.interceptor";
 import { VersionInterceptor } from "./interceptors/version.interceptor";
 import { OpenApiModule } from "./modules/openapi/openapi.module";
 import { AppService } from "./app.service";
+import { AuthModule } from "./modules/auth/auth.module";
 
 @Module({
   imports: [
     ApiConfigModule,
+    AuthModule,
     JsonRpcModule,
     HashAlgorithmsModule,
     RecordsModule,

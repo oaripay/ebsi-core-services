@@ -1,14 +1,9 @@
 import { Timestamp } from "@ebsiint-sc/timestamp-v2";
-import {
-  PaginatedList,
-  AsyncReturnType,
-  paginate,
-  multibase,
-} from "@ebsiint-api/shared";
+import { PaginatedList, paginate, multibase } from "@ebsiint-api/shared";
 import { RecordLink, VersionLink } from "./records.interface";
 
 export function formatRecords(
-  records: AsyncReturnType<Timestamp["getRecordIds"]>,
+  records: Awaited<ReturnType<Timestamp["getRecordIds"]>>,
   page: number,
   pageSize: number,
   baseUrl: string,

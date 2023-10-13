@@ -16,11 +16,7 @@ import {
 import type { FastifyInstance } from "fastify";
 import { ethers } from "ethers";
 import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp-v2";
-import {
-  multibase,
-  multihashEncode,
-  AsyncReturnType,
-} from "@ebsiint-api/shared";
+import { multibase, multihashEncode } from "@ebsiint-api/shared";
 import { TimestampsModule } from "./timestamps.module";
 import { TimestampLink } from "./timestamps.interface";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
@@ -34,7 +30,7 @@ describe("Timestamps Module", () => {
   let app: INestApplication;
   let server: HttpServer;
   let timestampContract: Timestamp;
-  let testEnv: AsyncReturnType<typeof setupTestEnv>;
+  let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
   let ledgerService: LedgerService;
   let configService: ConfigService<ApiConfig, true>;
 

@@ -3,14 +3,14 @@ import { IsHexadecimalJSON } from "../../validators";
 
 export class ArgsInsertRecordVersionInfo {
   @IsHexadecimal()
-  recordId: string;
+  recordId!: string;
 
   @IsInt()
   @Min(0)
-  versionId: number;
+  versionId!: number;
 
   @IsHexadecimalJSON()
-  versionInfo: string;
+  versionInfo!: string;
 }
 
 export default { ArgsInsertRecordVersionInfo };

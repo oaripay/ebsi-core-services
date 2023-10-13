@@ -28,16 +28,13 @@ export interface ApiConfig {
     kid: string;
     privateKey: string;
   };
-  testApp: {
-    name: string;
-    privateKey: string;
-  };
   testLoadBalancerDomain: string;
   dockerContainerTag: string;
   blockscout: {
     url: string;
     bearerToken: string;
   };
+  trustedHostnames: string[];
 }
 
 const AUTH_API_PATH = "/authorisation/v4";
@@ -72,23 +69,22 @@ export const loadConfig = (): ApiConfig => {
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     axiosRetryDelay: parseInt(process.env.AXIOS_RETRY_DELAY || "10000", 10),
     testAdmin: {
-      kid: process.env.TEST_ADMIN_KID,
-      privateKey: process.env.TEST_ADMIN_PRIVATE_KEY,
+      kid: process.env.TEST_ADMIN_KID || "",
+      privateKey: process.env.TEST_ADMIN_PRIVATE_KEY || "",
     },
     testUser: {
-      kid: process.env.TEST_USER_KID,
-      privateKey: process.env.TEST_USER_PRIVATE_KEY,
-    },
-    testApp: {
-      name: process.env.TEST_APP_NAME,
-      privateKey: process.env.TEST_APP_PRIVATE_KEY,
+      kid: process.env.TEST_USER_KID || "",
+      privateKey: process.env.TEST_USER_PRIVATE_KEY || "",
     },
     testLoadBalancerDomain: process.env.TEST_LB_DOMAIN || "",
     dockerContainerTag: process.env.DOCKER_TAG || "",
     blockscout: {
-      url: process.env.BLOCKSCOUT_URL,
-      bearerToken: process.env.BLOCKSCOUT_BEARER_TOKEN,
+      url: process.env.BLOCKSCOUT_URL || "",
+      bearerToken: process.env.BLOCKSCOUT_BEARER_TOKEN || "",
     },
+    trustedHostnames: (process.env.TRUSTED_HOSTNAMES || "")
+      .split(",")
+      .filter(Boolean),
   };
 };
 
@@ -130,13 +126,12 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_ADMIN_PRIVATE_KEY: Joi.string(),
     TEST_USER_KID: Joi.string(),
     TEST_USER_PRIVATE_KEY: Joi.string(),
-    TEST_APP_NAME: Joi.string(),
-    TEST_APP_PRIVATE_KEY: Joi.string(),
     TEST_LB_DOMAIN: Joi.string().uri(),
     TEST_ENV: Joi.string(),
     TEST_ENABLE_WRITE_OPS: Joi.string(),
     BLOCKSCOUT_URL: Joi.string(),
     BLOCKSCOUT_BEARER_TOKEN: Joi.string(),
+    TRUSTED_HOSTNAMES: Joi.string(),
     // Generic variables
     TZ: Joi.string(),
   }),

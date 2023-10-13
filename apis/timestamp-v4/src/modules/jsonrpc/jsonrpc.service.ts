@@ -7,7 +7,6 @@ import {
   isEthersError,
   getErrorMessage,
 } from "@ebsiint-api/shared";
-import KeyEncoder from "key-encoder";
 import {
   ArgsInsertHashAlgorithm,
   ArgsUpdateHashAlgorithm,
@@ -44,7 +43,6 @@ import { LedgerService } from "../ledger/ledger.service";
 import { ApiConfig } from "../../config/configuration";
 import { UserInfo } from "../auth/auth.interface";
 
-const keyEncoder = new KeyEncoder("secp256k1");
 // Cache algorightms' output lengths for 30 minutes
 const ALGORITHMS_EXP = 30 * 60 * 1000; // 30 minutes
 
@@ -52,11 +50,9 @@ const ALGORITHMS_EXP = 30 * 60 * 1000; // 30 minutes
 export class JsonRpcService {
   private readonly logger = new Logger(JsonRpcService.name);
 
-  private trustedAppsRegistry: string;
-
   private didRegistry: string;
 
-  private chainId: string = null;
+  private chainId!: string;
 
   private contractAddress: string;
 
@@ -71,9 +67,6 @@ export class JsonRpcService {
     private configService: ConfigService<ApiConfig, true>,
     private ledgerService: LedgerService
   ) {
-    this.trustedAppsRegistry = this.configService.get<string>(
-      "trustedAppsRegistryApiUrl"
-    );
     this.didRegistry = this.configService.get<string>("didRegistryApiUrl");
     this.contractAddress = ledgerService.getContractAddress();
     this.timeout = configService.get<number>("requestTimeout");
@@ -135,47 +128,6 @@ export class JsonRpcService {
     );
 
     return data.result;
-  }
-
-  async verifyEthereumAddress(address: string, user: UserInfo): Promise<void> {
-    if (user.login_hint === "did_siop") {
-      if (!(await this.isDidControlledByAddress(user.sub, address))) {
-        throw new Error(
-          `The DID ${user.sub} is not controlled by the address ${address}`
-        );
-      }
-
-      return;
-    }
-
-    // Get and verify the ethereum address from the Trusted Apps Registry
-    const response = await axios.get(
-      `${this.trustedAppsRegistry}/apps/${user.sub}`,
-      { timeout: this.timeout }
-    );
-
-    const { publicKeys } = response.data as { publicKeys: string[] };
-
-    const addresses = publicKeys.map((publicKey) => {
-      try {
-        const publicKeyPem = Buffer.from(publicKey, "base64").toString("utf8");
-        const publicKeyHex = keyEncoder.encodePublic(
-          publicKeyPem,
-          "pem",
-          "raw"
-        );
-
-        return ethers.utils.computeAddress(`0x${publicKeyHex}`).toLowerCase();
-      } catch (error) {
-        return "0x0000000000000000000000000000000000000000";
-      }
-    });
-
-    if (!addresses.includes(address.toLowerCase())) {
-      throw new Error(
-        `Address ${address} can not be derived from public keys of ${user.sub}`
-      );
-    }
   }
 
   async checkHashes(
@@ -416,7 +368,7 @@ export class JsonRpcService {
 
   async buildTransactionInsertHashAlgorithm(
     body: RequestInsertHashAlgorithmDto,
-    id?: number | string
+    id: number | string
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestInsertHashAlgorithmDto, body);
@@ -444,7 +396,7 @@ export class JsonRpcService {
 
   async buildTransactionUpdateHashAlgorithm(
     body: RequestUpdateHashAlgorithmDto,
-    id?: number | string
+    id: number | string
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestUpdateHashAlgorithmDto, body);
@@ -480,7 +432,7 @@ export class JsonRpcService {
 
   async buildTransactionTimestampHashes(
     body: RequestTimestampHashesDto,
-    id?: number | string
+    id: number | string
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestTimestampHashesDto, body);
@@ -508,7 +460,7 @@ export class JsonRpcService {
 
   async buildTransactionTimestampVersionHashes(
     body: RequestTimestampVersionHashesDto,
-    id?: number | string
+    id: number | string
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestTimestampVersionHashesDto, body);
@@ -544,7 +496,7 @@ export class JsonRpcService {
 
   async buildTransactionInsertRecordOwner(
     body: RequestInsertRecordOwnerDto,
-    id?: number | string
+    id: number | string
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestInsertRecordOwnerDto, body);
@@ -569,7 +521,7 @@ export class JsonRpcService {
 
   async buildTransactionRevokeRecordOwner(
     body: RequestRevokeRecordOwnerDto,
-    id?: number | string
+    id: number | string
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestRevokeRecordOwnerDto, body);
@@ -592,7 +544,7 @@ export class JsonRpcService {
 
   async buildTransactionInsertRecordVersionInfo(
     body: RequestInsertRecordVersionInfoDto,
-    id?: number | string
+    id: number | string
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestInsertRecordVersionInfoDto, body);
@@ -616,7 +568,7 @@ export class JsonRpcService {
 
   async buildTransactionDetachRecordVersionHash(
     body: RequestDetachRecordVersionHashDto,
-    id?: number | string
+    id: number | string
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestDetachRecordVersionHashDto, body);
@@ -640,7 +592,7 @@ export class JsonRpcService {
 
   async buildTransactionTimestampRecordHashes(
     body: RequestTimestampRecordHashesDto,
-    id?: number | string
+    id: number | string
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestTimestampRecordHashesDto, body);
@@ -669,7 +621,7 @@ export class JsonRpcService {
 
   async buildTransactionTimestampRecordVersionHashes(
     body: RequestTimestampRecordVersionHashesDto,
-    id?: number | string
+    id: number | string
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestTimestampRecordVersionHashesDto, body);
@@ -705,7 +657,7 @@ export class JsonRpcService {
 
   async buildTransactionAppendRecordVersionHashes(
     body: RequestAppendRecordVersionHashesDto,
-    id?: number | string
+    id: number | string
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestAppendRecordVersionHashesDto, body);
@@ -741,10 +693,18 @@ export class JsonRpcService {
     }
   }
 
+  async verifyEthereumAddress(address: string, user: UserInfo): Promise<void> {
+    if (!(await this.isDidControlledByAddress(user.sub, address))) {
+      throw new Error(
+        `The DID ${user.sub} is not controlled by the address ${address}`
+      );
+    }
+  }
+
   async sendTransaction(
     body: RequestSendSignedTransactionDto,
     user: UserInfo,
-    id?: number | string
+    id: number | string
   ): Promise<string> {
     try {
       await validateClass(RequestSendSignedTransactionDto, body);

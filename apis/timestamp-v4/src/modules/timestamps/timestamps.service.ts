@@ -3,7 +3,6 @@ import { HashName } from "multihashes";
 import type { ethers } from "ethers";
 import { Timestamp } from "@ebsiint-sc/timestamp-v2";
 import {
-  AsyncReturnType,
   multibase,
   multihashEncode,
   multihashDecode,
@@ -39,7 +38,7 @@ export default class TimestampsService {
   }
 
   async getTimestamp(timestampId: string): Promise<TimestampResponseObject> {
-    let timestamp: AsyncReturnType<Timestamp["getTimestamp"]>;
+    let timestamp: Awaited<ReturnType<Timestamp["getTimestamp"]>>;
     try {
       const timestampIdDecoded = `0x${Buffer.from(
         multihashDecode(multibase.base64url.decode(timestampId))

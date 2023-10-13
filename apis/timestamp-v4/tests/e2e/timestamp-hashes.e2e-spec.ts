@@ -22,6 +22,8 @@ import {
   waitToBeMined,
 } from "@ebsiint-api/shared";
 import type { TransactionRequest } from "@ethersproject/abstract-provider";
+
+import { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
@@ -33,9 +35,10 @@ import {
 } from "../../src/modules/jsonrpc/dto";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { ApiConfig } from "../../src/config/configuration";
-import { requestOAuth2Jwt, requestSiopJwt } from "../utils/auth";
 import { describeWriteOps, writeOps } from "../utils/writeOps";
 import { getServer } from "../utils/getServer";
+import getTimestampWriteAccessToken from "../utils/getAccessToken";
+import getEbsiIssuer from "../utils/getEbsiIssuer";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -46,6 +49,12 @@ type JsonRpcParams =
   | InsertHashAlgorithmParam
   | UpdateHashAlgorithmParam
   | TimestampHashesParam;
+
+type TestUser = {
+  info: EbsiIssuer;
+  token: string;
+  wallet: ethers.Wallet;
+};
 
 const multihashToNodeHashAlg = {
   "sha2-256": "sha256",
@@ -65,27 +74,10 @@ describe("Timestamp (e2e)", () => {
   let hashValue2: string;
   let ledgerApi: string;
   let sampleTransaction: string;
-
-  let testAdmin: {
-    kid: string;
-    privateKey: string;
-    wallet: ethers.Wallet;
-    token: string;
-  };
-
-  let testUser: {
-    kid: string;
-    privateKey: string;
-    wallet: ethers.Wallet;
-    token: string;
-  };
-
-  let testApp: {
-    name: string;
-    privateKey: string;
-    wallet: ethers.Wallet;
-    token: string;
-  };
+  let authorisationApiUrl: string;
+  let trustedHostnames: string[];
+  let adminUser: TestUser;
+  let testUser: TestUser;
 
   let blockscout: {
     url: string;
@@ -118,61 +110,59 @@ describe("Timestamp (e2e)", () => {
       bearerToken: string;
     }>("blockscout");
 
+    authorisationApiUrl = configService.get<string>("authorisationApiUrl");
+    trustedHostnames = configService.get<string[]>("trustedHostnames");
+
     if (writeOps()) {
-      const configAdmin = configService.get<{
+      const configTestAdmin = configService.get<{
         kid: string;
         privateKey: string;
       }>("testAdmin");
-      const configUser = configService.get<{
+      const adminKid = configTestAdmin.kid;
+      const adminPrivateKeyHex = configTestAdmin.privateKey;
+      const adminDid = adminKid.split("#")[0];
+      const adminWallet = new ethers.Wallet(prefixWith0x(adminPrivateKeyHex));
+      const adminIssuerInfo = await getEbsiIssuer(
+        adminPrivateKeyHex,
+        adminDid,
+        adminKid
+      );
+
+      try {
+        adminUser = {
+          info: adminIssuerInfo,
+          token: await getTimestampWriteAccessToken(
+            authorisationApiUrl,
+            adminIssuerInfo,
+            trustedHostnames
+          ),
+          wallet: adminWallet,
+        };
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error(e);
+        throw e;
+      }
+
+      const configTestUser = configService.get<{
         kid: string;
         privateKey: string;
       }>("testUser");
-      const configApp = configService.get<{
-        name: string;
-        privateKey: string;
-      }>("testApp");
-
-      try {
-        testAdmin = {
-          ...configAdmin,
-          wallet: new ethers.Wallet(prefixWith0x(configAdmin.privateKey)),
-          token: await requestSiopJwt({
-            clientKid: configAdmin.kid,
-            clientPrivateKey: configAdmin.privateKey,
-            configService,
-          }),
-        };
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.error(e);
-        throw e;
-      }
+      const userKid = configTestUser.kid;
+      const userDid = userKid.split("#")[0];
+      const userPrivateKeyHex = configTestUser.privateKey;
+      const userWallet = new ethers.Wallet(prefixWith0x(userPrivateKeyHex));
+      const userInfo = await getEbsiIssuer(userPrivateKeyHex, userDid, userKid);
 
       try {
         testUser = {
-          ...configUser,
-          wallet: new ethers.Wallet(prefixWith0x(configUser.privateKey)),
-          token: await requestSiopJwt({
-            clientKid: configUser.kid,
-            clientPrivateKey: configUser.privateKey,
-            configService,
-          }),
-        };
-      } catch (e) {
-        // eslint-disable-next-line no-console
-        console.error(e);
-        throw e;
-      }
-
-      try {
-        testApp = {
-          ...configApp,
-          wallet: new ethers.Wallet(prefixWith0x(configApp.privateKey)),
-          token: await requestOAuth2Jwt({
-            trustedAppPrivateKey: configApp.privateKey,
-            trustedAppName: configApp.name,
-            configService,
-          }),
+          info: userInfo,
+          token: await getTimestampWriteAccessToken(
+            authorisationApiUrl,
+            userInfo,
+            trustedHostnames
+          ),
+          wallet: userWallet,
         };
       } catch (e) {
         // eslint-disable-next-line no-console
@@ -418,7 +408,7 @@ describe("Timestamp (e2e)", () => {
         switch (method) {
           case "timestampHashes": {
             param = {
-              from: testAdmin.wallet.address,
+              from: adminUser.wallet.address,
               hashAlgorithmIds: [hashAlgorithmId, hashAlgorithmId],
               hashValues: [hashValue1, hashValue2],
               timestampData: [
@@ -455,7 +445,7 @@ describe("Timestamp (e2e)", () => {
           ) as unknown as UnsignedTransaction
         );
         uTx.chainId = Number(uTx.chainId);
-        const sgnTx = await testAdmin.wallet.signTransaction(
+        const sgnTx = await adminUser.wallet.signTransaction(
           uTx as TransactionRequest
         );
         const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
@@ -485,111 +475,11 @@ describe("Timestamp (e2e)", () => {
           error: {
             code: -32600,
             message: `The DID ${
-              testUser.kid.split("#")[0]
-            } is not controlled by the address ${testAdmin.wallet.address.toLowerCase()}`,
+              testUser.info.did
+            } is not controlled by the address ${adminUser.wallet.address.toLowerCase()}`,
           },
         });
         expect(responseSend.status).toBe(400);
-      });
-
-      it("should work with a trusted app", async () => {
-        expect.assertions(5);
-
-        let param: JsonRpcParams | null = null;
-
-        switch (method) {
-          case "timestampHashes": {
-            param = {
-              from: testApp.wallet.address,
-              hashAlgorithmIds: [hashAlgorithmId, hashAlgorithmId],
-              hashValues: [hashValue1, hashValue2],
-              timestampData: [
-                `0x${Buffer.from(
-                  JSON.stringify({ test: 742 }),
-                  "utf8"
-                ).toString("hex")}`,
-                `0x${Buffer.from(
-                  JSON.stringify({ test: 842 }),
-                  "utf8"
-                ).toString("hex")}`,
-              ],
-            } as TimestampHashesParam;
-            break;
-          }
-          default:
-            throw new Error(`Test Error: Invalid method ${method}`);
-        }
-
-        const responseBuild: SupertestJsonRpcResponse = await request(server)
-          .post("/jsonrpc")
-          .auth(testApp.token, { type: "bearer" })
-          .send({
-            jsonrpc: "2.0",
-            method,
-            params: [param],
-            id: 231,
-          });
-
-        expect(responseBuild.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: 231,
-          result: {
-            chainId: expect.any(String),
-            data: expect.any(String),
-            from: testApp.wallet.address,
-            gasLimit: expect.any(String),
-            gasPrice: expect.any(String),
-            nonce: expect.any(String),
-            to: expect.any(String),
-            value: expect.any(String),
-          },
-        });
-        expect(responseBuild.status).toBe(200);
-
-        const unsignedTransaction = responseBuild.body.result;
-        const uTx = formatEthersUnsignedTransaction(
-          JSON.parse(
-            JSON.stringify(unsignedTransaction)
-          ) as unknown as UnsignedTransaction
-        );
-        uTx.chainId = Number(uTx.chainId);
-        const sgnTx = await testApp.wallet.signTransaction(
-          uTx as TransactionRequest
-        );
-        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
-
-        const responseSend: SupertestJsonRpcResponse = await request(server)
-          .post("/jsonrpc")
-          .auth(testApp.token, { type: "bearer" })
-          .send({
-            jsonrpc: "2.0",
-            method: "sendSignedTransaction",
-            params: [
-              {
-                protocol: "eth",
-                unsignedTransaction,
-                r,
-                s,
-                v: `0x${Number(v).toString(16)}`,
-                signedRawTransaction: sgnTx,
-              },
-            ],
-            id: "45",
-          });
-
-        expect(responseSend.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: "45",
-          result: expect.any(String),
-        });
-        expect(responseSend.status).toBe(200);
-
-        // wait to be mined
-        const receipt = await waitToBeMined(
-          ledgerApi,
-          responseSend.body.result as string
-        );
-        expect(receipt.status).toBe(1);
       });
 
       it("should return transaction data from blockscout", async () => {

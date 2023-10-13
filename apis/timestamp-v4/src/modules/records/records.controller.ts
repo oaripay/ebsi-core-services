@@ -1,7 +1,7 @@
 import { Controller, Get, Query, Param } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Timestamp } from "@ebsiint-sc/timestamp-v2";
-import { PaginatedList, AsyncReturnType } from "@ebsiint-api/shared";
+import { PaginatedList } from "@ebsiint-api/shared";
 import RecordsService from "./records.service";
 import { formatRecords, formatRecordVersions } from "./records.formatter";
 import {
@@ -27,7 +27,7 @@ export default class RecordsController {
   async getRecords(
     @Query() query: GetRecordsDto
   ): Promise<PaginatedList<RecordLink>> {
-    let records: AsyncReturnType<Timestamp["getRecordIds"]>;
+    let records: Awaited<ReturnType<Timestamp["getRecordIds"]>>;
     const pageAfter = query["page[after]"];
     const pageSize = query["page[size]"];
     let extraQuery = "";

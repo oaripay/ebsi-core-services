@@ -17,7 +17,7 @@ import {
   RequestInsertRecordVersionInfoDto,
   RequestTimestampVersionHashesDto,
 } from "./dto";
-import { JwtAuthGuard } from "../auth/guards";
+import { BearerJwtAuthGuard } from "../auth/guards";
 import { User, UserInfo } from "../auth/decorators";
 
 function jsonRpcResponse(
@@ -32,7 +32,7 @@ export default class AppController {
   constructor(private jsonRpcService: JsonRpcService) {}
 
   @HttpCode(200)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(BearerJwtAuthGuard)
   @Post()
   async jsonRPC(
     @Body() body: JsonRpcDto,

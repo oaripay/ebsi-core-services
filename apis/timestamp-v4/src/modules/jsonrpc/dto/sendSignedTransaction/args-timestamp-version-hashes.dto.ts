@@ -4,20 +4,20 @@ import { IsHexadecimalJSON } from "../../validators";
 export class ArgsTimestampVersionHashes {
   @IsInt({ each: true })
   @Min(0, { each: true })
-  hashAlgorithmIds: number[];
+  hashAlgorithmIds!: number[];
 
   @IsHexadecimal({ each: true })
-  hashValues: string[];
+  hashValues!: string[];
 
   @IsOptional()
   @IsHexadecimalJSON({ each: true })
-  timestampData: string[];
+  timestampData!: string[];
 
   @IsHexadecimal()
-  versionHash: string;
+  versionHash!: string;
 
   @IsHexadecimalJSON()
-  versionInfo: string;
+  versionInfo!: string;
 }
 
 export default { ArgsTimestampVersionHashes };

@@ -11,14 +11,14 @@ import { RevokeRecordOwnerParam } from "./revoke-record-owner-param.dto";
 
 export class RequestRevokeRecordOwnerDto extends JsonRpcDto {
   @Equals("revokeRecordOwner")
-  method: string;
+  method!: string;
 
   @IsArray()
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @ValidateNested({ each: true })
   @Type(() => RevokeRecordOwnerParam)
-  params: RevokeRecordOwnerParam[];
+  params!: RevokeRecordOwnerParam[];
 }
 
 export default RequestRevokeRecordOwnerDto;

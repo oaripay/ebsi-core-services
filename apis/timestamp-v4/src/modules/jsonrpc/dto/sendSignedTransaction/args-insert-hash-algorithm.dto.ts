@@ -4,7 +4,7 @@ import { IsMultihash } from "../../validators";
 export class ArgsInsertHashAlgorithm {
   @IsInt()
   @Min(0)
-  outputLength: number;
+  outputLength!: number;
 
   @IsString()
   @IsOptional()
@@ -20,10 +20,10 @@ export class ArgsInsertHashAlgorithm {
   @IsInt()
   @Min(1)
   @Max(2)
-  status: number;
+  status!: number;
 
   @IsMultihash()
-  multihash: string;
+  multihash!: string;
 }
 
 export default { ArgsInsertHashAlgorithm };

@@ -2,7 +2,7 @@ import { describe, it, expect } from "@jest/globals";
 import crypto from "node:crypto";
 import { ethers } from "ethers";
 import { Timestamp } from "@ebsiint-sc/timestamp-v2";
-import { multibase, AsyncReturnType } from "@ebsiint-api/shared";
+import { multibase } from "@ebsiint-api/shared";
 import { formatRecords, formatRecordVersions } from "./records.formatter";
 
 describe("formatRecords", () => {
@@ -15,7 +15,7 @@ describe("formatRecords", () => {
     howMany: ethers.BigNumber.from("2"),
     prev: ethers.BigNumber.from("0"),
     next: ethers.BigNumber.from("0"),
-  } as AsyncReturnType<Timestamp["getRecordIds"]>;
+  } as Awaited<ReturnType<Timestamp["getRecordIds"]>>;
 
   it("should use the values returned by the smart contract (except pageSize)", () => {
     expect.assertions(1);

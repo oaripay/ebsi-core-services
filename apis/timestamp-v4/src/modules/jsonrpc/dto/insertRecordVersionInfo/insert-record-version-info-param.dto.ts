@@ -3,7 +3,7 @@ import { ArgsInsertRecordVersionInfo } from "../sendSignedTransaction";
 
 export class InsertRecordVersionInfoParam extends ArgsInsertRecordVersionInfo {
   @IsEthereumAddress()
-  from: string;
+  from!: string;
 }
 
 export default { InsertRecordVersionInfoParam };

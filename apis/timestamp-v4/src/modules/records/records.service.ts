@@ -2,7 +2,6 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ethers } from "ethers";
 import { Timestamp } from "@ebsiint-sc/timestamp-v2";
 import {
-  AsyncReturnType,
   multibase,
   BadRequestError,
   NotFoundError,
@@ -143,7 +142,7 @@ export default class RecordsService {
   }
 
   async getRecord(recordIdEncoded: string): Promise<RecordResponseObject> {
-    let record: AsyncReturnType<Timestamp["getRecord"]>;
+    let record: Awaited<ReturnType<Timestamp["getRecord"]>>;
     const recordId = `0x${Buffer.from(
       multibase.base64url.decode(recordIdEncoded)
     ).toString("hex")}`;
@@ -183,7 +182,7 @@ export default class RecordsService {
   }
 
   async getRecordVersions(recordIdEncoded: string): Promise<number> {
-    let record: AsyncReturnType<Timestamp["getRecord"]>;
+    let record: Awaited<ReturnType<Timestamp["getRecord"]>>;
     const recordId = `0x${Buffer.from(
       multibase.base64url.decode(recordIdEncoded)
     ).toString("hex")}`;

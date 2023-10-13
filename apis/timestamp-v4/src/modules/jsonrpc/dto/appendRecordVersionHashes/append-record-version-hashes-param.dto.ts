@@ -3,7 +3,7 @@ import { ArgsAppendRecordVersionHashes } from "../sendSignedTransaction";
 
 export class AppendRecordVersionHashesParam extends ArgsAppendRecordVersionHashes {
   @IsEthereumAddress()
-  from: string;
+  from!: string;
 }
 
 export default { AppendRecordVersionHashesParam };

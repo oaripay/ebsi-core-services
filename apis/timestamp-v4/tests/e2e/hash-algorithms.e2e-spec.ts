@@ -18,6 +18,7 @@ import type { FastifyInstance } from "fastify";
 import { HashName } from "multihashes";
 import { prefixWith0x, waitToBeMined } from "@ebsiint-api/shared";
 import type { TransactionRequest } from "@ethersproject/abstract-provider";
+import { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
 import { AppModule } from "../../src/app.module";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
 import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
@@ -29,9 +30,10 @@ import {
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
 import { HashAlgorithmLink } from "../../src/modules/hash-algorithms/hash-algorithms.interface";
 import { ApiConfig } from "../../src/config/configuration";
-import { requestSiopJwt } from "../utils/auth";
 import { describeWriteOps, itWriteOps, writeOps } from "../utils/writeOps";
 import { getServer } from "../utils/getServer";
+import getTimestampWriteAccessToken from "../utils/getAccessToken";
+import getEbsiIssuer from "../utils/getEbsiIssuer";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -39,6 +41,12 @@ interface SupertestJsonRpcResponse {
 }
 
 type JsonRpcParams = InsertHashAlgorithmParam | UpdateHashAlgorithmParam;
+
+type TestUser = {
+  info: EbsiIssuer;
+  token: string;
+  wallet: ethers.Wallet;
+};
 
 const newHashAlgorithm: {
   ianaName: string;
@@ -55,17 +63,11 @@ const newHashAlgorithm: {
 describe("HashAlgorithms (e2e)", () => {
   let app: INestApplication;
   let server: HttpServer | string;
-  let testAdmin: {
-    kid: string;
-    privateKey: string;
-    wallet: ethers.Wallet;
-    token: string;
-  };
-  let testUser: {
-    kid: string;
-    privateKey: string;
-    token: string;
-  };
+  let authorisationApiUrl: string;
+  let trustedHostnames: string[];
+  let adminUser: TestUser;
+  let testUser: TestUser;
+
   let ledgerApi: string;
 
   beforeAll(async () => {
@@ -89,20 +91,33 @@ describe("HashAlgorithms (e2e)", () => {
 
     server = getServer(app, configService);
 
-    if (writeOps()) {
-      try {
-        const configUser = configService.get<{
-          kid: string;
-          privateKey: string;
-        }>("testUser");
+    authorisationApiUrl = configService.get<string>("authorisationApiUrl");
+    trustedHostnames = configService.get<string[]>("trustedHostnames");
 
-        testUser = {
-          ...configUser,
-          token: await requestSiopJwt({
-            clientKid: configUser.kid,
-            clientPrivateKey: configUser.privateKey,
-            configService,
-          }),
+    if (writeOps()) {
+      const configTestAdmin = configService.get<{
+        kid: string;
+        privateKey: string;
+      }>("testAdmin");
+      const adminKid = configTestAdmin.kid;
+      const adminPrivateKeyHex = configTestAdmin.privateKey;
+      const adminDid = adminKid.split("#")[0];
+      const adminWallet = new ethers.Wallet(prefixWith0x(adminPrivateKeyHex));
+      const adminIssuerInfo = await getEbsiIssuer(
+        adminPrivateKeyHex,
+        adminDid,
+        adminKid
+      );
+
+      try {
+        adminUser = {
+          info: adminIssuerInfo,
+          token: await getTimestampWriteAccessToken(
+            authorisationApiUrl,
+            adminIssuerInfo,
+            trustedHostnames
+          ),
+          wallet: adminWallet,
         };
       } catch (e) {
         // eslint-disable-next-line no-console
@@ -110,20 +125,25 @@ describe("HashAlgorithms (e2e)", () => {
         throw e;
       }
 
-      try {
-        const configAdmin = configService.get<{
-          kid: string;
-          privateKey: string;
-        }>("testAdmin");
+      const configTestUser = configService.get<{
+        kid: string;
+        privateKey: string;
+      }>("testUser");
+      const userKid = configTestUser.kid;
+      const userDid = userKid.split("#")[0];
+      const userPrivateKeyHex = configTestUser.privateKey;
+      const userWallet = new ethers.Wallet(prefixWith0x(userPrivateKeyHex));
+      const userInfo = await getEbsiIssuer(userPrivateKeyHex, userDid, userKid);
 
-        testAdmin = {
-          ...configAdmin,
-          wallet: new ethers.Wallet(prefixWith0x(configAdmin.privateKey)),
-          token: await requestSiopJwt({
-            clientKid: configAdmin.kid,
-            clientPrivateKey: configAdmin.privateKey,
-            configService,
-          }),
+      try {
+        testUser = {
+          info: userInfo,
+          token: await getTimestampWriteAccessToken(
+            authorisationApiUrl,
+            userInfo,
+            trustedHostnames
+          ),
+          wallet: userWallet,
         };
       } catch (e) {
         // eslint-disable-next-line no-console
@@ -221,7 +241,7 @@ describe("HashAlgorithms (e2e)", () => {
         switch (method) {
           case "insertHashAlgorithm": {
             params = {
-              from: testAdmin.wallet.address,
+              from: adminUser.wallet.address,
               outputLength,
               ianaName,
               oid,
@@ -236,7 +256,7 @@ describe("HashAlgorithms (e2e)", () => {
               (response.body as { total: number }).total - 1;
 
             params = {
-              from: testAdmin.wallet.address,
+              from: adminUser.wallet.address,
               hashAlgorithmId,
               outputLength,
               ianaName,
@@ -253,7 +273,7 @@ describe("HashAlgorithms (e2e)", () => {
 
         const responseBuild: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
-          .auth(testAdmin.token, { type: "bearer" })
+          .auth(adminUser.token, { type: "bearer" })
           .send({
             jsonrpc: "2.0",
             method,
@@ -267,7 +287,7 @@ describe("HashAlgorithms (e2e)", () => {
           result: {
             chainId: expect.any(String),
             data: expect.any(String),
-            from: testAdmin.wallet.address,
+            from: adminUser.wallet.address,
             gasLimit: expect.any(String),
             gasPrice: expect.any(String),
             nonce: expect.any(String),
@@ -284,14 +304,14 @@ describe("HashAlgorithms (e2e)", () => {
           ) as unknown as UnsignedTransaction
         );
         uTx.chainId = Number(uTx.chainId);
-        const sgnTx = await testAdmin.wallet.signTransaction(
+        const sgnTx = await adminUser.wallet.signTransaction(
           uTx as TransactionRequest
         );
         const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
         const responseSend: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
-          .auth(testAdmin.token, { type: "bearer" })
+          .auth(adminUser.token, { type: "bearer" })
           .send({
             jsonrpc: "2.0",
             method: "sendSignedTransaction",
@@ -325,6 +345,129 @@ describe("HashAlgorithms (e2e)", () => {
     }
   );
 
+  describeWriteOps().each([
+    "insertHashAlgorithm",
+    "updateHashAlgorithm",
+  ] as const)(
+    "/jsonrpc - send transaction for %s",
+    (method: "insertHashAlgorithm" | "updateHashAlgorithm") => {
+      it("should not work with testUser data", async () => {
+        expect.assertions(6);
+
+        let params: JsonRpcParams | null = null;
+        const { outputLength, ianaName, oid, multihash } = newHashAlgorithm;
+
+        switch (method) {
+          case "insertHashAlgorithm": {
+            params = {
+              from: testUser.wallet.address,
+              outputLength,
+              ianaName,
+              oid,
+              status: 1,
+              multihash,
+            } as InsertHashAlgorithmParam;
+            break;
+          }
+          case "updateHashAlgorithm": {
+            const response = await request(server).get("/hash-algorithms");
+            const hashAlgorithmId =
+              (response.body as { total: number }).total - 1;
+
+            params = {
+              from: testUser.wallet.address,
+              hashAlgorithmId,
+              outputLength,
+              ianaName,
+              oid,
+              status: 1,
+              multihash,
+            } as UpdateHashAlgorithmParam;
+            break;
+          }
+          default:
+            // Never happens
+            break;
+        }
+
+        const responseBuild: SupertestJsonRpcResponse = await request(server)
+          .post("/jsonrpc")
+          .auth(testUser.token, { type: "bearer" })
+          .send({
+            jsonrpc: "2.0",
+            method,
+            params: [params],
+            id: 231,
+          });
+
+        expect(responseBuild.body).toStrictEqual({
+          jsonrpc: "2.0",
+          id: 231,
+          result: {
+            chainId: expect.any(String),
+            data: expect.any(String),
+            from: testUser.wallet.address,
+            gasLimit: expect.any(String),
+            gasPrice: expect.any(String),
+            nonce: expect.any(String),
+            to: expect.any(String),
+            value: expect.any(String),
+          },
+        });
+        expect(responseBuild.status).toBe(200);
+
+        const unsignedTransaction = responseBuild.body.result;
+        const uTx = formatEthersUnsignedTransaction(
+          JSON.parse(
+            JSON.stringify(unsignedTransaction)
+          ) as unknown as UnsignedTransaction
+        );
+        uTx.chainId = Number(uTx.chainId);
+        const sgnTx = await testUser.wallet.signTransaction(
+          uTx as TransactionRequest
+        );
+        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+        const responseSend: SupertestJsonRpcResponse = await request(server)
+          .post("/jsonrpc")
+          .auth(testUser.token, { type: "bearer" })
+          .send({
+            jsonrpc: "2.0",
+            method: "sendSignedTransaction",
+            params: [
+              {
+                protocol: "eth",
+                unsignedTransaction,
+                r,
+                s,
+                v: `0x${Number(v).toString(16)}`,
+                signedRawTransaction: sgnTx,
+              },
+            ],
+            id: "45",
+          });
+
+        expect(responseSend.body).toStrictEqual({
+          jsonrpc: "2.0",
+          id: "45",
+          result: expect.any(String),
+        });
+        expect(responseSend.status).toBe(200);
+
+        // wait to be mined
+        const receipt = await waitToBeMined(
+          ledgerApi,
+          responseSend.body.result as string
+        );
+
+        expect(receipt.revertReason).toBe(
+          `Policy error: sender doesn't have the attribute TS:${method}`
+        );
+        expect(receipt.status).toBe(0);
+      });
+    }
+  );
+
   itWriteOps()(
     "should reject impersonating transactions: admin wallet using jwt from user",
     async () => {
@@ -334,7 +477,7 @@ describe("HashAlgorithms (e2e)", () => {
       const { outputLength, ianaName, oid, multihash } = newHashAlgorithm;
 
       const param = {
-        from: testAdmin.wallet.address,
+        from: adminUser.wallet.address,
         outputLength,
         ianaName,
         oid,
@@ -359,7 +502,7 @@ describe("HashAlgorithms (e2e)", () => {
         ) as unknown as UnsignedTransaction
       );
       uTx.chainId = Number(uTx.chainId);
-      const sgnTx = await testAdmin.wallet.signTransaction(
+      const sgnTx = await adminUser.wallet.signTransaction(
         uTx as TransactionRequest
       );
       const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
@@ -390,8 +533,8 @@ describe("HashAlgorithms (e2e)", () => {
         error: {
           code: -32600,
           message: `The DID ${
-            testUser.kid.split("#")[0]
-          } is not controlled by the address ${testAdmin.wallet.address.toLowerCase()}`,
+            testUser.info.did
+          } is not controlled by the address ${adminUser.wallet.address.toLowerCase()}`,
         },
       });
 

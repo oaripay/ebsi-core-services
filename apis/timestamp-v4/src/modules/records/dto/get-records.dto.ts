@@ -14,5 +14,5 @@ export default class GetRecordsDto extends PaginationQuery {
 
   @IsOptional()
   @IsEthereumAddress()
-  owner: string;
+  owner!: string;
 }

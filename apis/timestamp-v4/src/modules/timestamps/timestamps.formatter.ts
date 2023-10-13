@@ -4,12 +4,11 @@ import {
   multibase,
   multihashEncode,
   PaginatedList,
-  AsyncReturnType,
 } from "@ebsiint-api/shared";
 import { TimestampLink } from "./timestamps.interface";
 
 export function formatTimestamps(
-  timestamps: AsyncReturnType<Timestamp["getTimestamps"]>,
+  timestamps: Awaited<ReturnType<Timestamp["getTimestamps"]>>,
   page: number,
   pageSize: number,
   baseUrl: string,

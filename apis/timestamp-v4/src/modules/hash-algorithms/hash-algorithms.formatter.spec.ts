@@ -1,7 +1,6 @@
 import { describe, it, expect } from "@jest/globals";
 import { ethers } from "ethers";
 import { Timestamp } from "@ebsiint-sc/timestamp-v2";
-import { AsyncReturnType } from "@ebsiint-api/shared";
 import { formatHashAlgorithms } from "./hash-algorithms.formatter";
 
 describe("formatHashAlgorithms", () => {
@@ -11,7 +10,7 @@ describe("formatHashAlgorithms", () => {
     howMany: ethers.BigNumber.from("2"),
     prev: ethers.BigNumber.from("0"),
     next: ethers.BigNumber.from("0"),
-  } as AsyncReturnType<Timestamp["getHashAlgorithms"]>;
+  } as Awaited<ReturnType<Timestamp["getHashAlgorithms"]>>;
 
   it("should use the values returned by the smart contract (except pageSize)", () => {
     expect.assertions(1);

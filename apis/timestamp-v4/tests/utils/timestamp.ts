@@ -159,7 +159,9 @@ export async function insertRecord(
     .fill(0)
     .map(
       () =>
-        `0x${createHash(multihashToNodeHashAlg[hashAlgorithm.multihash])
+        `0x${createHash(
+          multihashToNodeHashAlg[hashAlgorithm.multihash] as string
+        )
           .update(randomBytes(32).toString("hex"), "hex")
           .digest()
           .toString("hex")}`
@@ -199,7 +201,7 @@ export async function insertHash(
 ): Promise<HashObect> {
   const hashAlgorithmIds = [0];
   const hashValues = [
-    `0x${createHash(multihashToNodeHashAlg[hashAlgorithm.multihash])
+    `0x${createHash(multihashToNodeHashAlg[hashAlgorithm.multihash] as string)
       .update(randomBytes(32).toString("hex"), "hex")
       .digest()
       .toString("hex")}`,

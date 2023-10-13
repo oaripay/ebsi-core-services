@@ -11,14 +11,14 @@ import { TimestampHashesParam } from "./timestamp-hashes-param.dto";
 
 export class RequestTimestampHashesDto extends JsonRpcDto {
   @Equals("timestampHashes")
-  method: string;
+  method!: string;
 
   @IsArray()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @Type(() => TimestampHashesParam)
-  params: TimestampHashesParam[];
+  params!: TimestampHashesParam[];
 }
 
 export default RequestTimestampHashesDto;

@@ -15,7 +15,7 @@ import {
 } from "@nestjs/platform-fastify";
 import type { FastifyInstance } from "fastify";
 import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp-v2";
-import { AsyncReturnType, multibase } from "@ebsiint-api/shared";
+import { multibase } from "@ebsiint-api/shared";
 import { RecordsModule } from "./records.module";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter";
 import { setupTestEnv } from "../../../tests/utils/timestamp";
@@ -29,7 +29,7 @@ describe("Records Module", () => {
   let app: INestApplication;
   let server: HttpServer;
   let timestampContract: Timestamp;
-  let testEnv: AsyncReturnType<typeof setupTestEnv>;
+  let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
   let ledgerService: LedgerService;
   let sender: string;
   let configService: ConfigService<ApiConfig, true>;

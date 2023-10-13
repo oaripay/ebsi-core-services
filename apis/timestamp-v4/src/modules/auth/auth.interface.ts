@@ -9,3 +9,8 @@ export interface UserInfo {
 export interface Payload extends JWTPayload {
   login_hint: string;
 }
+
+export interface SubjectInfo {
+  sub: string;
+  scp: string;
+}

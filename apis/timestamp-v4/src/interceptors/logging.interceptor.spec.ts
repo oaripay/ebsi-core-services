@@ -17,29 +17,20 @@ import {
 } from "@nestjs/platform-fastify";
 import { HttpService } from "@nestjs/axios";
 import type { FastifyInstance } from "fastify";
-import type { JWTDecoded } from "did-jwt/lib/JWT";
-import didJwt from "did-jwt";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { of } from "rxjs";
+import {
+  calculateJwkThumbprint,
+  exportJWK,
+  generateKeyPair,
+  SignJWT,
+} from "jose";
 import nock from "nock";
-import type { JWTVerifyResult } from "jose";
 import { AppModule } from "../app.module";
 import { AllExceptionsFilter } from "../filters/http-exception.filter";
 import { ApiConfig } from "../config/configuration";
 
-jest.mock("@cef-ebsi/siop-auth", () => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const originalModule = jest.requireActual("@cef-ebsi/siop-auth");
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-  return {
-    __esModule: true,
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    ...originalModule,
-    verifyJwtTar: async () =>
-      Promise.resolve({ payload: {} } as JWTVerifyResult),
-  };
-});
+jest.setTimeout(60000);
 
 describe("Logging interceptor", () => {
   let app: INestApplication;
@@ -65,6 +56,7 @@ describe("Logging interceptor", () => {
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter()
     );
+
     configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
 
     app.useGlobalFilters(new AllExceptionsFilter(configService));
@@ -160,22 +152,50 @@ describe("Logging interceptor", () => {
     it("should log the request and response", async () => {
       expect.assertions(2);
 
-      const decodedToken: Partial<JWTDecoded> = {
-        payload: {
-          login_hint: "did_siop",
-        },
-      };
+      // Mock Auth API
+      const authApiKeyPair = await generateKeyPair("ES256");
+      const authorisationApiUrl = new URL(
+        configService.get<string>("authorisationApiUrl")
+      );
 
-      jest
-        .spyOn(didJwt, "decodeJWT")
-        .mockImplementation(() => decodedToken as JWTDecoded);
+      // Mock Auth API /.well-known/openid-configuration endpoint
+      nock(authorisationApiUrl.origin)
+        .get(`${authorisationApiUrl.pathname}/.well-known/openid-configuration`)
+        .reply(200, {
+          jwks_uri: `${authorisationApiUrl.origin}${authorisationApiUrl.pathname}/jwks`,
+        })
+        .persist();
 
-      const token =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+      // Mock Auth API /jwks endpoint
+      const publicKeyJwk = await exportJWK(authApiKeyPair.publicKey);
+      const kid = await calculateJwkThumbprint(publicKeyJwk);
+      nock(authorisationApiUrl.origin)
+        .get(`${authorisationApiUrl.pathname}/jwks`)
+        .reply(200, {
+          keys: [
+            {
+              ...publicKeyJwk,
+              kid,
+            },
+          ],
+        })
+        .persist();
+
+      const controllerDid = EbsiWallet.createDid();
+      const userAccessToken = await new SignJWT({
+        sub: controllerDid,
+        scp: "openid timestamp_write",
+      })
+        .setProtectedHeader({
+          typ: "JWT",
+          alg: "ES256",
+          kid,
+        })
+        .sign(authApiKeyPair.privateKey);
 
       await request(app.getHttpServer())
         .post("/jsonrpc")
-        .auth(token, { type: "bearer" })
+        .auth(userAccessToken, { type: "bearer" })
         .send("invalid body");
 
       const logCalls = mockedLogger.log.mock.calls.length;
@@ -188,7 +208,7 @@ describe("Logging interceptor", () => {
           body: { "invalid body": "" },
           headers: {
             "accept-encoding": "gzip, deflate",
-            authorization: `Bearer ${token}`,
+            authorization: `Bearer ${userAccessToken}`,
             connection: "close",
             "content-length": "12",
             "content-type": "application/x-www-form-urlencoded",

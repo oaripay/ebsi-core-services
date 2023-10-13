@@ -5,7 +5,7 @@ export class GetHashAlgorithmDto {
   @IsNumber()
   @Min(0)
   @Type(() => Number) // We receive a string (in the URL), we must convert it to Number
-  hashAlgorithmId: string;
+  hashAlgorithmId!: number;
 }
 
 export default GetHashAlgorithmDto;

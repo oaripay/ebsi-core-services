@@ -39,16 +39,18 @@ async function bootstrap(): Promise<void> {
     consoleTransport.level = logLevel;
   }
 
-  logger.debug(
-    `Starting API with:
+  if (logger.debug) {
+    logger.debug(
+      `Starting API with:
 - NODE_ENV: ${process.env.NODE_ENV}
 - API_URL_PREFIX:${apiUrlPrefix}
 - API_PORT:${port}
 - LOG_LEVEL: ${logLevel}
 - Docker container tag: ${dockerContainerTag}
 `,
-    "main"
-  );
+      "main"
+    );
+  }
 
   // Starts listening for shutdown hooks
   app.enableShutdownHooks();

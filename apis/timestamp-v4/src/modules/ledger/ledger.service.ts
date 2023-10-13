@@ -17,17 +17,17 @@ const REFRESH_LIMIT = 10 * 1000;
 export class LedgerService {
   private readonly logger = new Logger(LedgerService.name);
 
-  private ethersProvider: ethers.providers.JsonRpcProvider;
+  private ethersProvider!: ethers.providers.JsonRpcProvider;
 
-  private ethersProviderWithoutToken: ethers.providers.JsonRpcProvider;
+  private ethersProviderWithoutToken!: ethers.providers.JsonRpcProvider;
 
-  private timestampContract: Timestamp;
+  private timestampContract!: Timestamp;
 
-  private publicMethodsTimestampContract: Timestamp;
+  private publicMethodsTimestampContract!: Timestamp;
 
   private timestampAddress: string;
 
-  private accessTokenExp: number;
+  private accessTokenExp!: number;
 
   private agent: Agent;
 
@@ -101,7 +101,7 @@ export class LedgerService {
       });
 
       const { payload } = decodeJWT(accessToken);
-      this.accessTokenExp = payload.exp;
+      this.accessTokenExp = payload.exp as number;
 
       return accessToken;
     } catch (err) {

@@ -20,13 +20,12 @@ declare global {
       TEST_ADMIN_PRIVATE_KEY?: string;
       TEST_USER_KID?: string;
       TEST_USER_PRIVATE_KEY?: string;
-      TEST_APP_NAME?: string;
-      TEST_APP_PRIVATE_KEY?: string;
       TEST_ENV?: string;
       TEST_ENABLE_WRITE_OPS?: string;
       TEST_LB_DOMAIN?: string;
       BLOCKSCOUT_URL?: string;
       BLOCKSCOUT_BEARER_TOKEN?: string;
+      TRUSTED_HOSTNAMES?: string;
     }
   }
 

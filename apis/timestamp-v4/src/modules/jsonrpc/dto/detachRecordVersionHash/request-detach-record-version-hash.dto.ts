@@ -11,14 +11,14 @@ import { DetachRecordVersionHashParam } from "./detach-record-version-hash-param
 
 export class RequestDetachRecordVersionHashDto extends JsonRpcDto {
   @Equals("detachRecordVersionHash")
-  method: string;
+  method!: string;
 
   @IsArray()
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @ValidateNested({ each: true })
   @Type(() => DetachRecordVersionHashParam)
-  params: DetachRecordVersionHashParam[];
+  params!: DetachRecordVersionHashParam[];
 }
 
 export default RequestDetachRecordVersionHashDto;

@@ -3,7 +3,7 @@ import { ArgsInsertHashAlgorithm } from "../sendSignedTransaction";
 
 export class InsertHashAlgorithmParam extends ArgsInsertHashAlgorithm {
   @IsEthereumAddress()
-  from: string;
+  from!: string;
 }
 
 export default { InsertHashAlgorithmParam };

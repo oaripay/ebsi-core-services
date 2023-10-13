@@ -3,7 +3,7 @@ import { ArgsRevokeRecordOwner } from "../sendSignedTransaction";
 
 export class RevokeRecordOwnerParam extends ArgsRevokeRecordOwner {
   @IsEthereumAddress()
-  from: string;
+  from!: string;
 }
 
 export default { RevokeRecordOwnerParam };

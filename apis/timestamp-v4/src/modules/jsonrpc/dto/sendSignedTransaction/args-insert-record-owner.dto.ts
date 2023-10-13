@@ -2,18 +2,18 @@ import { IsInt, IsHexadecimal, IsString, Min } from "class-validator";
 
 export class ArgsInsertRecordOwner {
   @IsHexadecimal()
-  recordId: string;
+  recordId!: string;
 
   @IsString()
-  ownerId: string;
+  ownerId!: string;
 
   @IsInt()
   @Min(0)
-  notBefore: number;
+  notBefore!: number;
 
   @IsInt()
   @Min(0)
-  notAfter: number;
+  notAfter!: number;
 }
 
 export default { ArgsInsertRecordOwner };

@@ -11,14 +11,14 @@ import { AppendRecordVersionHashesParam } from "./append-record-version-hashes-p
 
 export class RequestAppendRecordVersionHashesDto extends JsonRpcDto {
   @Equals("appendRecordVersionHashes")
-  method: string;
+  method!: string;
 
   @IsArray()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @Type(() => AppendRecordVersionHashesParam)
-  params: AppendRecordVersionHashesParam[];
+  params!: AppendRecordVersionHashesParam[];
 }
 
 export default RequestAppendRecordVersionHashesDto;
