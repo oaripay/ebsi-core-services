@@ -1,5 +1,5 @@
 import {
-  jest,
+  vi,
   describe,
   beforeAll,
   beforeEach,
@@ -7,32 +7,26 @@ import {
   afterAll,
   it,
   expect,
-} from "@jest/globals";
+} from "vitest";
 import crypto from "node:crypto";
 import axios from "axios";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
+import { Test, type TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
-import {
-  INestApplication,
-  ValidationPipe,
-  Logger,
-  HttpServer,
-} from "@nestjs/common";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { ethers } from "ethers";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { createJWT, ES256KSigner } from "did-jwt";
 import * as SiopLib from "@cef-ebsi/siop-auth";
 import type { JWTVerifyResult } from "jose";
 import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry";
-import { AsyncReturnType } from "@ebsiint-api/shared";
-import { JsonRpcModule } from "./jsonrpc.module";
-import { JsonRpcService } from "./jsonrpc.service";
-import { JsonRpcResponseObject } from "./jsonrpc.interface";
+import { JsonRpcModule } from "./jsonrpc.module.js";
+import { JsonRpcService } from "./jsonrpc.service.js";
+import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
 import {
   UnsignedTransaction,
   InsertPolicyParam,
@@ -44,26 +38,23 @@ import {
   InsertUserAttributesParam,
   UpdateUserAttributeParam,
   DeleteUserAttributeParam,
-} from "./dto";
-import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { setupTestEnv } from "../../../tests/utils/trustedPoliciesRegistry";
-import { ApiConfig } from "../../config/configuration";
-import { LedgerService } from "../ledger/ledger.service";
-import { ATTRIBUTE_OPERATIONS } from "../policies/policies.interface";
-import { createPolicy } from "../../../tests/utils/data";
+} from "./dto/index.js";
+import { formatEthersUnsignedTransaction } from "./jsonrpc.utils.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import { setupTestEnv } from "../../../tests/utils/trustedPoliciesRegistry.js";
+import type { ApiConfig } from "../../config/configuration.js";
+import { LedgerService } from "../ledger/ledger.service.js";
+import { ATTRIBUTE_OPERATIONS } from "../policies/policies.interface.js";
+import { createPolicy } from "../../../tests/utils/data.js";
 
-jest.mock("@cef-ebsi/siop-auth", () => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const originalModule = jest.requireActual("@cef-ebsi/siop-auth");
+vi.mock("@cef-ebsi/siop-auth", async () => {
+  const mod = await vi.importActual<typeof import("@cef-ebsi/siop-auth")>(
+    "@cef-ebsi/siop-auth",
+  );
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return {
-    __esModule: true,
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    ...originalModule,
-    verifyJwtTar: jest.fn(),
+    ...mod,
+    verifyJwtTar: vi.fn(),
   };
 });
 
@@ -80,16 +71,14 @@ type JsonRpcParams =
   | ActivatePolicyParam
   | DeactivatePolicyParam;
 
-jest.setTimeout(180000);
-
 describe("JsonRpc Module", () => {
-  let app: INestApplication;
-  let server: HttpServer;
+  let app: NestFastifyApplication;
+  let server: RawServerDefault;
   let policiesRegistryContract: PolicyRegistry;
   let jsonRpcService: JsonRpcService;
   let configService: ConfigService<ApiConfig, true>;
   let ledgerService: LedgerService;
-  let testEnv: AsyncReturnType<typeof setupTestEnv>;
+  let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
   let userAccessToken: string;
   let userAccessTokenPayload: { [x: string]: unknown };
   let defaultSignerSiopAccessToken: string;
@@ -105,9 +94,9 @@ describe("JsonRpc Module", () => {
     testEnv = await setupTestEnv();
     policiesRegistryContract = testEnv.policiesRegistryContract;
 
-    jest
-      .spyOn(LedgerService.prototype, "getContractAddress")
-      .mockImplementation(() => policiesRegistryContract.address);
+    vi.spyOn(LedgerService.prototype, "getContractAddress").mockImplementation(
+      () => policiesRegistryContract.address,
+    );
 
     // Start server
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -115,7 +104,7 @@ describe("JsonRpc Module", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     // Turn off logger
@@ -128,9 +117,9 @@ describe("JsonRpc Module", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
-    server = app.getHttpServer() as HttpServer;
+    server = app.getHttpServer();
 
     jsonRpcService = moduleFixture.get<JsonRpcService>(JsonRpcService);
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
@@ -150,42 +139,36 @@ describe("JsonRpc Module", () => {
       {
         issuer: "any",
         signer: ES256KSigner(crypto.randomBytes(32)),
-      }
+      },
     );
   });
 
   beforeEach(() => {
     // Mock TSR contract
-    jest
-      .spyOn(ledgerService, "getContract")
-      .mockImplementation(async () =>
-        Promise.resolve(testEnv.policiesRegistryContract)
-      );
+    vi.spyOn(ledgerService, "getContract").mockImplementation(async () =>
+      Promise.resolve(testEnv.policiesRegistryContract),
+    );
 
     // Make sure we never use axios.post or axios.get in tests ;-)
-    jest.spyOn(axios, "post").mockImplementation((url: string) => {
+    vi.spyOn(axios, "post").mockImplementation((url: string) => {
       throw new Error(`Forgot to mock an axios call? POST ${url}`);
     });
 
-    jest.spyOn(axios, "get").mockImplementation((url: string) => {
+    vi.spyOn(axios, "get").mockImplementation((url: string) => {
       throw new Error(`Forgot to mock an axios call? GET ${url}`);
     });
 
     // For the tests, we assume that the DID is controlled by the signer
-    jest
-      .spyOn(jsonRpcService, "isDidControlledByAddress")
-      .mockImplementation(async () => Promise.resolve(true));
+    vi.spyOn(jsonRpcService, "isDidControlledByAddress").mockImplementation(
+      async () => Promise.resolve(true),
+    );
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   afterAll(async () => {
-    // Avoid jest open handle error
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
     await app.close();
   });
 
@@ -203,7 +186,7 @@ describe("JsonRpc Module", () => {
     });
     expect(response.status).toBe(401);
     expect(
-      (response.headers as { "content-type": string })["content-type"]
+      (response.headers as { "content-type": string })["content-type"],
     ).toStrictEqual(expect.stringContaining("application/problem+json"));
   });
 
@@ -211,11 +194,11 @@ describe("JsonRpc Module", () => {
     expect.assertions(4);
 
     // Mock reject JWT
-    const verifyAccessTokenSpy = jest
+    const verifyAccessTokenSpy = vi
       .spyOn(SiopLib, "verifyJwtTar")
       .mockImplementation(
         async (): Promise<JWTVerifyResult> =>
-          Promise.reject(new Error("error message"))
+          Promise.reject(new Error("error message")),
       );
 
     const response = await request(server)
@@ -231,12 +214,12 @@ describe("JsonRpc Module", () => {
     });
     expect(response.status).toBe(401);
     expect(
-      (response.headers as { "content-type": string })["content-type"]
+      (response.headers as { "content-type": string })["content-type"],
     ).toStrictEqual(expect.stringContaining("application/problem+json"));
     expect(verifyAccessTokenSpy).toHaveBeenCalledWith(userAccessToken, {
       audience: "ebsi-core-services",
       trustedAppsRegistry: `${configService.get<string>(
-        "trustedAppsRegistryApiUrl"
+        "trustedAppsRegistryApiUrl",
       )}/apps`,
       timeout: expect.any(Number),
     });
@@ -246,11 +229,11 @@ describe("JsonRpc Module", () => {
     expect.assertions(2);
 
     // Mock access token verification
-    jest.spyOn(SiopLib, "verifyJwtTar").mockImplementation(
+    vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(
       async (): Promise<JWTVerifyResult> =>
         Promise.resolve({
           payload: userAccessTokenPayload,
-        } as unknown as JWTVerifyResult)
+        } as unknown as JWTVerifyResult),
     );
 
     const response = await request(server)
@@ -275,11 +258,11 @@ describe("JsonRpc Module", () => {
     const { opType, policyConditions, policyName, description } = policy1;
 
     // Mock access token verification
-    jest.spyOn(SiopLib, "verifyJwtTar").mockImplementation(
+    vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(
       async (): Promise<JWTVerifyResult> =>
         Promise.resolve({
           payload: userAccessTokenPayload,
-        } as unknown as JWTVerifyResult)
+        } as unknown as JWTVerifyResult),
     );
 
     const transaction = {
@@ -287,7 +270,7 @@ describe("JsonRpc Module", () => {
       to: policiesRegistryContract.address,
       data: policiesRegistryContract.interface.encodeFunctionData(
         "insertPolicy",
-        [opType, policyConditions, policyName, description]
+        [opType, policyConditions, policyName, description],
       ),
       value: "0x00",
       nonce: "0x00",
@@ -297,7 +280,7 @@ describe("JsonRpc Module", () => {
     };
 
     const uTx = formatEthersUnsignedTransaction(
-      JSON.parse(JSON.stringify(transaction)) as unknown as UnsignedTransaction
+      JSON.parse(JSON.stringify(transaction)) as unknown as UnsignedTransaction,
     );
     uTx.chainId = Number(uTx.chainId);
     const sgnTx = await wallet.signTransaction(uTx);
@@ -340,11 +323,11 @@ describe("JsonRpc Module", () => {
     expect.assertions(2);
 
     // Mock access token verification
-    jest.spyOn(SiopLib, "verifyJwtTar").mockImplementation(
+    vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(
       async (): Promise<JWTVerifyResult> =>
         Promise.resolve({
           payload: userAccessTokenPayload,
-        } as unknown as JWTVerifyResult)
+        } as unknown as JWTVerifyResult),
     );
 
     const response = await request(server)
@@ -363,7 +346,7 @@ describe("JsonRpc Module", () => {
       error: {
         code: -32600,
         message: expect.stringContaining(
-          "The method 'unknown-method' is invalid"
+          "The method 'unknown-method' is invalid",
         ),
       },
     });
@@ -376,17 +359,17 @@ describe("JsonRpc Module", () => {
     const signer = ethers.Wallet.createRandom();
 
     // Mock access token verification
-    jest.spyOn(SiopLib, "verifyJwtTar").mockImplementation(
+    vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(
       async (): Promise<JWTVerifyResult> =>
         Promise.resolve({
           payload: defaultSignerSiopAccessTokenPayload,
-        } as unknown as JWTVerifyResult)
+        } as unknown as JWTVerifyResult),
     );
 
     // The DID is not controlled by the signer
-    jest
-      .spyOn(jsonRpcService, "isDidControlledByAddress")
-      .mockImplementation(async () => Promise.resolve(false));
+    vi.spyOn(jsonRpcService, "isDidControlledByAddress").mockImplementation(
+      async () => Promise.resolve(false),
+    );
 
     const { opType, policyConditions, policyName, description } = policy1;
     const param = {
@@ -426,8 +409,8 @@ describe("JsonRpc Module", () => {
     const unsignedTransaction = responseBuild.body.result;
     const uTx = formatEthersUnsignedTransaction(
       JSON.parse(
-        JSON.stringify(unsignedTransaction)
-      ) as unknown as UnsignedTransaction
+        JSON.stringify(unsignedTransaction),
+      ) as unknown as UnsignedTransaction,
     );
     uTx.chainId = Number(uTx.chainId);
     const sgnTx = await signer.signTransaction(uTx);
@@ -467,14 +450,14 @@ describe("JsonRpc Module", () => {
     expect.assertions(4);
 
     // Mock access token verification
-    jest.spyOn(SiopLib, "verifyJwtTar").mockImplementation(
+    vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(
       async (): Promise<JWTVerifyResult> =>
         Promise.resolve({
           payload: defaultSignerSiopAccessTokenPayload,
-        } as unknown as JWTVerifyResult)
+        } as unknown as JWTVerifyResult),
     );
 
-    let param: JsonRpcParams = null;
+    let param: JsonRpcParams | null = null;
 
     const signer = ethers.Wallet.createRandom();
 
@@ -516,8 +499,8 @@ describe("JsonRpc Module", () => {
     const unsignedTransaction = responseBuild.body.result;
     const uTx = formatEthersUnsignedTransaction(
       JSON.parse(
-        JSON.stringify(unsignedTransaction)
-      ) as unknown as UnsignedTransaction
+        JSON.stringify(unsignedTransaction),
+      ) as unknown as UnsignedTransaction,
     );
     uTx.chainId = Number(uTx.chainId);
     const sgnTx = await signer.signTransaction(uTx);
@@ -546,7 +529,7 @@ describe("JsonRpc Module", () => {
       error: {
         code: -32600,
         message: expect.stringContaining(
-          `reverted with reason string 'AccessControl: account ${signer.address.toLowerCase()} is missing role 0x97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929'`
+          `reverted with reason string 'AccessControl: account ${signer.address.toLowerCase()} is missing role 0x97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929'`,
         ),
       },
       jsonrpc: "2.0",
@@ -580,14 +563,14 @@ describe("JsonRpc Module", () => {
       expect.assertions(4);
 
       // Mock access token verification
-      jest.spyOn(SiopLib, "verifyJwtTar").mockImplementation(
+      vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(
         async (): Promise<JWTVerifyResult> =>
           Promise.resolve({
             payload: defaultSignerSiopAccessTokenPayload,
-          } as unknown as JWTVerifyResult)
+          } as unknown as JWTVerifyResult),
       );
 
-      let param: JsonRpcParams = null;
+      let param: JsonRpcParams | null = null;
 
       const signer = testEnv.adminWallet;
 
@@ -712,8 +695,8 @@ describe("JsonRpc Module", () => {
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
         JSON.parse(
-          JSON.stringify(unsignedTransaction)
-        ) as unknown as UnsignedTransaction
+          JSON.stringify(unsignedTransaction),
+        ) as unknown as UnsignedTransaction,
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx = await signer.signTransaction(uTx);
@@ -750,16 +733,16 @@ describe("JsonRpc Module", () => {
       expect.assertions(2);
 
       // Mock access token verification
-      jest.spyOn(SiopLib, "verifyJwtTar").mockImplementation(
+      vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(
         async (): Promise<JWTVerifyResult> =>
           Promise.resolve({
             payload: defaultSignerSiopAccessTokenPayload,
-          } as unknown as JWTVerifyResult)
+          } as unknown as JWTVerifyResult),
       );
 
       const signer = ethers.Wallet.createRandom();
 
-      let param: JsonRpcParams = null;
+      let param: JsonRpcParams | null = null;
 
       switch (method) {
         case "insertPolicy": {
@@ -866,271 +849,277 @@ describe("JsonRpc Module", () => {
       expect(responseBuild.body).toStrictEqual({
         jsonrpc: "2.0",
         id: null,
-        result: expect.objectContaining({}) as unknown,
+        result: expect.objectContaining({}),
       });
       expect(responseBuild.status).toBe(200);
     });
 
     it(`should throw an Invalid Request error for bad use of ${method}`, async () => {
       // Mock access token verification
-      jest.spyOn(SiopLib, "verifyJwtTar").mockImplementation(
+      vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(
         async (): Promise<JWTVerifyResult> =>
           Promise.resolve({
             payload: defaultSignerSiopAccessTokenPayload,
-          } as unknown as JWTVerifyResult)
+          } as unknown as JWTVerifyResult),
       );
 
       const signer = ethers.Wallet.createRandom();
 
-      const params: JsonRpcParams[] = [];
-      const expectedErrorMessages: string[] = [];
+      const testSetup: {
+        params: JsonRpcParams;
+        expectedErrorMessage: string;
+        accessToken?: string;
+      }[] = [];
 
       switch (method) {
         case "insertPolicy": {
-          params.push({
-            from: signer.address,
-            opType: policy1.opType,
-            policyConditions: policy1.policyConditions.map(
-              ({ expectedValue, ...condition }) => condition
-            ),
-            policyName: policy1.policyName,
-            // description: policy1.description, <- missing description
-          } as InsertPolicyParam);
+          testSetup.push({
+            params: {
+              from: signer.address,
+              opType: policy1.opType,
+              policyConditions: policy1.policyConditions.map(
+                ({ expectedValue, ...condition }) => condition,
+              ),
+              policyName: policy1.policyName,
+              // description: policy1.description, <- missing description
+            } as InsertPolicyParam,
+            expectedErrorMessage:
+              "- Invalid params.0.description provided: description must be a string",
+          });
 
-          expectedErrorMessages.push(
-            "- Invalid params.0.description provided: description must be a string"
-          );
+          testSetup.push({
+            params: {
+              from: signer.address,
+              opType: policy2.opType,
+              // policyConditions: policy2.policyConditions, <- missing policyConditions
+              policyName: policy2.policyName,
+              description: policy2.description,
+            } as InsertPolicyParam,
+            expectedErrorMessage:
+              "Invalid params.0.policyConditions provided: policyConditions must be an array",
+          });
 
-          params.push({
-            from: signer.address,
-            opType: policy2.opType,
-            // policyConditions: policy2.policyConditions, <- missing policyConditions
-            policyName: policy2.policyName,
-            description: policy2.description,
-          } as InsertPolicyParam);
+          testSetup.push({
+            params: {
+              from: signer.address,
+              opType: policy2.opType,
+              policyConditions: [
+                ...policy2.policyConditions,
+                {
+                  name: "condition-string",
+                  attributeName: "any",
+                  value: `0x${Buffer.from("vxc4gdbfgb", "utf-8").toString(
+                    "hex",
+                  )}`,
+                  expectedValue: "vxc4gdbfgb",
+                  attributeOperation: ATTRIBUTE_OPERATIONS.indexOf("EQUAL"),
+                  typeOfValue: 47, // invalid typeOfValue
+                },
+              ].map(({ expectedValue, ...condition }) => condition),
+              policyName: policy2.policyName,
+              description: policy2.description,
+            } as InsertPolicyParam,
+            expectedErrorMessage:
+              "Invalid params.0.policyConditions provided: each value in policyConditions. condition 5: typeOfValue must be 0 (UINT256), 1 (BYTES), 2 (ADDRESS), 3 (BYTES32), 4 (STRING), or 5 (BOOLEAN)",
+          });
 
-          expectedErrorMessages.push(
-            "Invalid params.0.policyConditions provided: policyConditions must be an array"
-          );
-
-          params.push({
-            from: signer.address,
-            opType: policy2.opType,
-            policyConditions: [
-              ...policy2.policyConditions,
-              {
-                name: "condition-string",
-                attributeName: "any",
-                value: `0x${Buffer.from("vxc4gdbfgb", "utf-8").toString(
-                  "hex"
-                )}`,
-                expectedValue: "vxc4gdbfgb",
-                attributeOperation: ATTRIBUTE_OPERATIONS.indexOf("EQUAL"),
-                typeOfValue: 47, // invalid typeOfValue
-              },
-            ].map(({ expectedValue, ...condition }) => condition),
-            policyName: policy2.policyName,
-            description: policy2.description,
-          } as InsertPolicyParam);
-
-          expectedErrorMessages.push(
-            "Invalid params.0.policyConditions provided: each value in policyConditions. condition 5: typeOfValue must be 0 (UINT256), 1 (BYTES), 2 (ADDRESS), 3 (BYTES32), 4 (STRING), or 5 (BOOLEAN)"
-          );
-
-          params.push({
-            from: "bad address",
-            opType: policy2.opType,
-            policyConditions: policy2.policyConditions,
-            policyName: policy2.policyName,
-            description: policy2.description,
-          } as InsertPolicyParam);
-
-          expectedErrorMessages.push(
-            "Invalid params.0.from provided: from must be an Ethereum address"
-          );
+          testSetup.push({
+            params: {
+              from: "bad address",
+              opType: policy2.opType,
+              policyConditions: policy2.policyConditions,
+              policyName: policy2.policyName,
+              description: policy2.description,
+            } as InsertPolicyParam,
+            expectedErrorMessage:
+              "Invalid params.0.from provided: from must be an Ethereum address",
+          });
 
           break;
         }
         case "updatePolicy": {
-          params.push({
-            from: signer.address,
-            opType: policy1.opType,
-            policyId: "1",
-            policyName: policy1.policyName,
-            // description: policy1.description, <- missing description
-          } as UpdatePolicyParam);
+          testSetup.push({
+            params: {
+              from: signer.address,
+              opType: policy1.opType,
+              policyId: "1",
+              policyName: policy1.policyName,
+              // description: policy1.description, <- missing description
+            } as UpdatePolicyParam,
+            expectedErrorMessage:
+              "- Invalid params.0.description provided: description must be a string",
+          });
 
-          expectedErrorMessages.push(
-            "- Invalid params.0.description provided: description must be a string"
-          );
+          testSetup.push({
+            params: {
+              from: signer.address,
+              opType: policy2.opType,
+              policyId: "1",
+              policyName: policy2.policyName,
+              description: 15, // Invalid description
+            } as unknown as UpdatePolicyParam,
+            expectedErrorMessage:
+              "Invalid params.0.description provided: description must be a string",
+          });
 
-          params.push({
-            from: signer.address,
-            opType: policy2.opType,
-            policyId: "1",
-            policyName: policy2.policyName,
-            description: 15, // Invalid description
-          } as unknown as UpdatePolicyParam);
+          testSetup.push({
+            params: {
+              from: signer.address,
+              opType: policy2.opType,
+              policyId: "0x69042",
+              policyName: policy2.policyName,
+              description: policy2.description,
+            } as UpdatePolicyParam,
+            expectedErrorMessage:
+              "Invalid params.0.policyId provided: policyId must be a number string",
+          });
 
-          expectedErrorMessages.push(
-            "Invalid params.0.description provided: description must be a string"
-          );
-
-          params.push({
-            from: signer.address,
-            opType: policy2.opType,
-            policyId: "0x69042",
-            policyName: policy2.policyName,
-            description: policy2.description,
-          } as UpdatePolicyParam);
-
-          expectedErrorMessages.push(
-            "Invalid params.0.policyId provided: policyId must be a number string"
-          );
-
-          params.push({
-            from: "bad address",
-            opType: policy2.opType,
-            policyId: "1",
-            policyName: policy2.policyName,
-            description: policy2.description,
-          } as UpdatePolicyParam);
-
-          expectedErrorMessages.push(
-            "Invalid params.0.from provided: from must be an Ethereum address"
-          );
+          testSetup.push({
+            params: {
+              from: "bad address",
+              opType: policy2.opType,
+              policyId: "1",
+              policyName: policy2.policyName,
+              description: policy2.description,
+            } as UpdatePolicyParam,
+            expectedErrorMessage:
+              "Invalid params.0.from provided: from must be an Ethereum address",
+          });
 
           break;
         }
         case "addPolicyConditions": {
-          params.push({
-            from: signer.address,
-            policyId: "test",
-            policyConditions: policy3.policyConditions.map(
-              ({ expectedValue, ...condition }) => condition
-            ),
-          } as AddPolicyConditionsParam);
+          testSetup.push({
+            params: {
+              from: signer.address,
+              policyId: "test",
+              policyConditions: policy3.policyConditions.map(
+                ({ expectedValue, ...condition }) => condition,
+              ),
+            } as AddPolicyConditionsParam,
+            expectedErrorMessage:
+              "- Invalid params.0.policyId provided: policyId must be a number string",
+          });
 
-          expectedErrorMessages.push(
-            "- Invalid params.0.policyId provided: policyId must be a number string"
-          );
+          testSetup.push({
+            params: {
+              from: signer.address,
+              policyId: "1",
+              // policyConditions: policy3.policyConditions, <- missing policyConditions
+            } as AddPolicyConditionsParam,
+            expectedErrorMessage:
+              "- Invalid params.0.policyConditions provided: policyConditions must be an array",
+          });
 
-          params.push({
-            from: signer.address,
-            policyId: "1",
-            // policyConditions: policy3.policyConditions, <- missing policyConditions
-          } as AddPolicyConditionsParam);
+          testSetup.push({
+            params: {
+              from: signer.address,
+              policyId: "1",
+              policyConditions: [
+                ...policy2.policyConditions,
+                {
+                  name: "condition-string",
+                  attributeName: "any",
+                  value: `0x${Buffer.from("vxc4gdbfgb", "utf-8").toString(
+                    "hex",
+                  )}`,
+                  expectedValue: "vxc4gdbfgb",
+                  attributeOperation: ATTRIBUTE_OPERATIONS.indexOf("EQUAL"),
+                  typeOfValue: 47, // invalid typeOfValue
+                },
+              ].map(({ expectedValue, ...condition }) => condition),
+            } as AddPolicyConditionsParam,
+            expectedErrorMessage:
+              "Invalid params.0.policyConditions provided: each value in policyConditions. condition 5: typeOfValue must be 0 (UINT256), 1 (BYTES), 2 (ADDRESS), 3 (BYTES32), 4 (STRING), or 5 (BOOLEAN)",
+          });
 
-          expectedErrorMessages.push(
-            "- Invalid params.0.policyConditions provided: policyConditions must be an array"
-          );
-
-          params.push({
-            from: signer.address,
-            policyId: "1",
-            policyConditions: [
-              ...policy2.policyConditions,
-              {
-                name: "condition-string",
-                attributeName: "any",
-                value: `0x${Buffer.from("vxc4gdbfgb", "utf-8").toString(
-                  "hex"
-                )}`,
-                expectedValue: "vxc4gdbfgb",
-                attributeOperation: ATTRIBUTE_OPERATIONS.indexOf("EQUAL"),
-                typeOfValue: 47, // invalid typeOfValue
-              },
-            ].map(({ expectedValue, ...condition }) => condition),
-          } as AddPolicyConditionsParam);
-
-          expectedErrorMessages.push(
-            "Invalid params.0.policyConditions provided: each value in policyConditions. condition 5: typeOfValue must be 0 (UINT256), 1 (BYTES), 2 (ADDRESS), 3 (BYTES32), 4 (STRING), or 5 (BOOLEAN)"
-          );
           break;
         }
         case "deletePolicyCondition": {
-          params.push({
-            from: signer.address,
-            policyId: "test",
-            policyConditionId: "1",
-          } as DeletePolicyConditionParam);
+          testSetup.push({
+            params: {
+              from: signer.address,
+              policyId: "test",
+              policyConditionId: "1",
+            } as DeletePolicyConditionParam,
+            expectedErrorMessage:
+              "- Invalid params.0.policyId provided: policyId must be a number string",
+          });
 
-          expectedErrorMessages.push(
-            "- Invalid params.0.policyId provided: policyId must be a number string"
-          );
-
-          params.push({
-            from: signer.address,
-            policyId: "1",
-            policyConditionId: "test",
-          } as DeletePolicyConditionParam);
-
-          expectedErrorMessages.push(
-            "- Invalid params.0.policyConditionId provided: policyConditionId must be a number string"
-          );
+          testSetup.push({
+            params: {
+              from: signer.address,
+              policyId: "1",
+              policyConditionId: "test",
+            } as DeletePolicyConditionParam,
+            expectedErrorMessage:
+              "- Invalid params.0.policyConditionId provided: policyConditionId must be a number string",
+          });
 
           break;
         }
         case "deactivatePolicy": {
-          params.push({
-            from: signer.address,
-            policyId: "test",
-          } as DeactivatePolicyParam);
-
-          expectedErrorMessages.push(
-            "- Invalid params.0.policyId provided: policyId must be a number string"
-          );
+          testSetup.push({
+            params: {
+              from: signer.address,
+              policyId: "test",
+            } as DeactivatePolicyParam,
+            expectedErrorMessage:
+              "- Invalid params.0.policyId provided: policyId must be a number string",
+          });
 
           break;
         }
         case "activatePolicy": {
-          params.push({
-            from: signer.address,
-            policyId: "test",
-          } as ActivatePolicyParam);
-
-          expectedErrorMessages.push(
-            "- Invalid params.0.policyId provided: policyId must be a number string"
-          );
+          testSetup.push({
+            params: {
+              from: signer.address,
+              policyId: "test",
+            } as ActivatePolicyParam,
+            expectedErrorMessage:
+              "- Invalid params.0.policyId provided: policyId must be a number string",
+          });
 
           break;
         }
         case "insertUserAttributes": {
-          params.push({
-            from: signer.address,
-            address: userAddress,
-            attributeNames: "attr1",
-            attributeValues: ["0x00", "0x01"],
-          } as unknown as InsertUserAttributesParam);
+          testSetup.push({
+            params: {
+              from: signer.address,
+              address: userAddress,
+              attributeNames: "attr1",
+              attributeValues: ["0x00", "0x01"],
+            } as unknown as InsertUserAttributesParam,
+            expectedErrorMessage:
+              "- Invalid params.0.attributeNames provided: attributeNames must be an array",
+          });
 
-          expectedErrorMessages.push(
-            "- Invalid params.0.attributeNames provided: attributeNames must be an array"
-          );
           break;
         }
         case "updateUserAttribute": {
-          params.push({
-            from: signer.address,
-            address: userAddress,
-            attributeName: 12,
-            attributeValue: "0x01",
-          } as unknown as UpdateUserAttributeParam);
+          testSetup.push({
+            params: {
+              from: signer.address,
+              address: userAddress,
+              attributeName: 12,
+              attributeValue: "0x01",
+            } as unknown as UpdateUserAttributeParam,
+            expectedErrorMessage:
+              "- Invalid params.0.attributeName provided: attributeName must be a string",
+          });
 
-          expectedErrorMessages.push(
-            "- Invalid params.0.attributeName provided: attributeName must be a string"
-          );
           break;
         }
         case "deleteUserAttribute": {
-          params.push({
-            from: signer.address,
-            address: userAddress,
-            attributeName: 12,
-          } as unknown as DeleteUserAttributeParam);
-
-          expectedErrorMessages.push(
-            "- Invalid params.0.attributeName provided: attributeName must be a string"
-          );
+          testSetup.push({
+            params: {
+              from: signer.address,
+              address: userAddress,
+              attributeName: 12,
+            } as unknown as DeleteUserAttributeParam,
+            expectedErrorMessage:
+              "- Invalid params.0.attributeName provided: attributeName must be a string",
+          });
           break;
         }
         default: {
@@ -1138,42 +1127,43 @@ describe("JsonRpc Module", () => {
         }
       }
 
-      expect.assertions(params.length * 2);
+      expect.assertions(testSetup.length * 2);
 
-      await Promise.all(
-        params.map(async (param, index) => {
-          const response1 = await request(server)
-            .post("/jsonrpc")
-            .auth(defaultSignerSiopAccessToken, { type: "bearer" })
-            .send({
-              jsonrpc: "2.0",
-              method,
-              params: [param],
-              id: 231,
-            });
-
-          expect(response1.body).toStrictEqual({
+      // Run requests sequentially
+      // eslint-disable-next-line no-restricted-syntax
+      for (const setup of testSetup) {
+        // eslint-disable-next-line no-await-in-loop
+        const response1 = await request(server)
+          .post("/jsonrpc")
+          .auth(defaultSignerSiopAccessToken, { type: "bearer" })
+          .send({
             jsonrpc: "2.0",
+            method,
+            params: [setup.params],
             id: 231,
-            error: {
-              code: -32600,
-              message: expect.stringContaining(expectedErrorMessages[index]),
-            },
           });
-          expect(response1.status).toBe(400);
-        })
-      );
+
+        expect(response1.body).toStrictEqual({
+          jsonrpc: "2.0",
+          id: 231,
+          error: {
+            code: -32600,
+            message: expect.stringContaining(setup.expectedErrorMessage),
+          },
+        });
+        expect(response1.status).toBe(400);
+      }
     });
 
     it("should throw an error when the unsignedTransaction has been tampered", async () => {
       expect.assertions(6);
 
       // Mock access token verification
-      jest.spyOn(SiopLib, "verifyJwtTar").mockImplementation(
+      vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(
         async (): Promise<JWTVerifyResult> =>
           Promise.resolve({
             payload: defaultSignerSiopAccessTokenPayload,
-          } as unknown as JWTVerifyResult)
+          } as unknown as JWTVerifyResult),
       );
 
       const signer = ethers.Wallet.createRandom();
@@ -1358,8 +1348,8 @@ describe("JsonRpc Module", () => {
 
       const uTx = formatEthersUnsignedTransaction(
         JSON.parse(
-          JSON.stringify(transaction1)
-        ) as unknown as UnsignedTransaction
+          JSON.stringify(transaction1),
+        ) as unknown as UnsignedTransaction,
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx1 = await randomSigner.signTransaction(uTx);
@@ -1391,7 +1381,7 @@ describe("JsonRpc Module", () => {
         error: {
           code: -32600,
           message: expect.stringContaining(
-            "does not match with the signedRawTransaction"
+            "does not match with the signedRawTransaction",
           ),
         },
       });
@@ -1424,7 +1414,7 @@ describe("JsonRpc Module", () => {
         error: {
           code: -32600,
           message: expect.stringContaining(
-            "does not match with unsignedTransaction.from"
+            "does not match with unsignedTransaction.from",
           ),
         },
       });

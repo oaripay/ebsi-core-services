@@ -24,14 +24,14 @@ export interface ApiConfig {
   // Trusted Apps Registry API
   trustedAppsRegistryApiUrl: string;
   // Test variables
-  testAdminKid: string;
-  testAdminPrivateKey: string;
+  testAdminKid: string | undefined;
+  testAdminPrivateKey: string | undefined;
   testVaSchemaUrl: string;
   testLoadBalancerDomain: string;
   dockerContainerTag: string;
   blockscout: {
-    url: string;
-    bearerToken: string;
+    url: string | undefined;
+    bearerToken: string | undefined;
   };
 }
 
@@ -73,8 +73,8 @@ export const loadConfig = (): ApiConfig => {
     testAdminKid: process.env.TEST_ADMIN_KID,
     testAdminPrivateKey: process.env.TEST_ADMIN_PRIVATE_KEY,
     testVaSchemaUrl: DOMAIN + TSR_API_PATH + process.env.TEST_VA_SCHEMA,
-    testLoadBalancerDomain: process.env.TEST_LB_DOMAIN,
-    dockerContainerTag: process.env.DOCKER_TAG,
+    testLoadBalancerDomain: process.env.TEST_LB_DOMAIN || "",
+    dockerContainerTag: process.env.DOCKER_TAG || "",
     blockscout: {
       url: process.env.BLOCKSCOUT_URL,
       bearerToken: process.env.BLOCKSCOUT_BEARER_TOKEN,
@@ -105,7 +105,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "warn",
       "info",
       "verbose",
-      "debug"
+      "debug",
     ),
     DOCKER_TAG: Joi.string(),
     DOMAIN: Joi.string().uri().required(),

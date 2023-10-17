@@ -2,7 +2,7 @@ import { IsHexadecimal } from "class-validator";
 
 export class AttributeHashDto {
   @IsHexadecimal()
-  hash: string;
+  hash!: string;
 }
 
 export default AttributeHashDto;

@@ -1,12 +1,11 @@
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 import { ethers } from "ethers";
 import { DidRegistry } from "@ebsiint-sc/did-registry";
-import { AsyncReturnType } from "@ebsiint-api/shared";
 import {
   formatIdentifiers,
   formatVersions,
   formatMetadata,
-} from "./identifiers.formatter";
+} from "./identifiers.formatter.js";
 
 describe("formatIdentifiers", () => {
   const identifiers = {
@@ -19,7 +18,7 @@ describe("formatIdentifiers", () => {
     ],
     total: ethers.BigNumber.from("42"),
     howMany: ethers.BigNumber.from("3"),
-  } as AsyncReturnType<DidRegistry["getDidRecordIdentifiers"]>;
+  } as Awaited<ReturnType<DidRegistry["getDidRecordIdentifiers"]>>;
 
   it("should use the values returned by the smart contract (except pageSize)", () => {
     expect.assertions(1);
@@ -66,7 +65,7 @@ describe("formatVersions", () => {
     ],
     total: ethers.BigNumber.from("42"),
     howMany: ethers.BigNumber.from("3"),
-  } as AsyncReturnType<DidRegistry["getDidDocumentVersionIds"]>;
+  } as Awaited<ReturnType<DidRegistry["getDidDocumentVersionIds"]>>;
 
   it("should use the values returned by the smart contract (except pageSize)", () => {
     expect.assertions(1);
@@ -104,7 +103,7 @@ describe("formatVersions", () => {
         pageSize,
         self: `?page[after]=${page}&page[size]=${pageSize}&valid-at=${validAt}`,
         total: 42,
-      }
+      },
     );
   });
 });
@@ -120,7 +119,7 @@ describe("formatMetadata", () => {
     ],
     total: ethers.BigNumber.from("42"),
     howMany: ethers.BigNumber.from("3"),
-  } as AsyncReturnType<DidRegistry["getDidDocumentVersionIds"]>;
+  } as Awaited<ReturnType<DidRegistry["getDidDocumentVersionIds"]>>;
 
   it("should use the values returned by the smart contract (except pageSize)", () => {
     expect.assertions(1);

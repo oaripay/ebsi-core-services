@@ -16,12 +16,12 @@ export interface ApiConfig {
   trustedAppsRegistryApiV4Url: string;
   requestTimeout: number;
   testUser: {
-    kid: string;
-    privateKey: string;
+    kid: string | undefined;
+    privateKey: string | undefined;
   };
   testApp: {
-    name: string;
-    privateKey: string;
+    name: string | undefined;
+    privateKey: string | undefined;
   };
   testLoadBalancerDomain: string;
   dockerContainerTag: string;
@@ -87,7 +87,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "warn",
       "info",
       "verbose",
-      "debug"
+      "debug",
     ),
     DOCKER_TAG: Joi.string(),
     BESU_RPC_NODE: Joi.string().uri().required(),

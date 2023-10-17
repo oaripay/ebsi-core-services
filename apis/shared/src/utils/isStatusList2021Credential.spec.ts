@@ -1,13 +1,23 @@
-import { jest, describe, it, expect } from "@jest/globals";
+import { vi, describe, it, expect } from "vitest";
 import * as vcLib from "@cef-ebsi/verifiable-credential";
-import { EBSIVerifiableAttestation } from "@cef-ebsi/verifiable-credential/dist/types/EBSIVerifiableAttestation";
+import type { EbsiVerifiableAttestation } from "@cef-ebsi/verifiable-credential";
 import Joi from "joi";
 import {
   isStatusList2021Credential,
   statusList2021CredentialSchema,
-} from "./isStatusList2021Credential";
+} from "./isStatusList2021Credential.js";
 
-const validStatusListCredential: EBSIVerifiableAttestation = {
+vi.mock("@cef-ebsi/verifiable-credential", async () => {
+  const mod = await vi.importActual<
+    typeof import("@cef-ebsi/verifiable-credential")
+  >("@cef-ebsi/verifiable-credential");
+  // Return a mocked version so we can redefine property `verifyCredentialJwt` later
+  return {
+    ...mod,
+  };
+});
+
+const validStatusListCredential: EbsiVerifiableAttestation = {
   "@context": [
     "https://www.w3.org/2018/credentials/v1",
     "https://w3id.org/vc/status-list/2021/v1",
@@ -31,7 +41,7 @@ const validStatusListCredential: EBSIVerifiableAttestation = {
   },
 };
 
-const validStatusListCredentialWithVerifiableAttestation: EBSIVerifiableAttestation =
+const validStatusListCredentialWithVerifiableAttestation: EbsiVerifiableAttestation =
   {
     "@context": [
       "https://www.w3.org/2018/credentials/v1",
@@ -69,65 +79,61 @@ describe("isStatusList2021Credential", () => {
         {
           not: "a string",
         },
-        "example.net"
-      )
+        "example.net",
+      ),
     ).resolves.toBe(false);
   });
 
   it("should return false when the credential JWT verification fails", async () => {
     expect.assertions(1);
 
-    jest
-      .spyOn(vcLib, "verifyCredentialJwt")
-      .mockImplementation(async () => Promise.reject(new Error("Invalid JWT")));
+    vi.spyOn(vcLib, "verifyCredentialJwt").mockImplementation(async () =>
+      Promise.reject(new Error("Invalid JWT")),
+    );
 
     await expect(
-      isStatusList2021Credential("jwt", "example.net")
+      isStatusList2021Credential("jwt", "example.net"),
     ).resolves.toBe(false);
   });
 
   it("should return false when the credential is not a valid StatusList2021Credential", async () => {
     expect.assertions(1);
 
-    jest.spyOn(vcLib, "verifyCredentialJwt").mockImplementation(async () =>
+    vi.spyOn(vcLib, "verifyCredentialJwt").mockImplementation(async () =>
       Promise.resolve({
         ...validStatusListCredential,
         ...{
           type: ["VerifiableCredential", "InvalidStatusList2021Credential"],
         },
-      })
+      }),
     );
 
     await expect(
-      isStatusList2021Credential("jwt", "example.net")
+      isStatusList2021Credential("jwt", "example.net"),
     ).resolves.toBe(false);
   });
 
   it("should return true when the credential JWT verification succeeds", async () => {
     expect.assertions(1);
 
-    jest
-      .spyOn(vcLib, "verifyCredentialJwt")
-      .mockImplementation(async () =>
-        Promise.resolve(validStatusListCredential)
-      );
+    vi.spyOn(vcLib, "verifyCredentialJwt").mockImplementation(async () =>
+      Promise.resolve(validStatusListCredential),
+    );
 
     await expect(
-      isStatusList2021Credential("jwt", "example.net")
+      isStatusList2021Credential("jwt", "example.net"),
     ).resolves.toBe(true);
   });
 
   it("should return true when the credential JWT verification succeeds (with VerifiableAttestation)", async () => {
     expect.assertions(1);
 
-    jest
-      .spyOn(vcLib, "verifyCredentialJwt")
-      .mockImplementation(async () =>
-        Promise.resolve(validStatusListCredentialWithVerifiableAttestation)
-      );
+    vi.spyOn(vcLib, "verifyCredentialJwt").mockImplementation(async () =>
+      Promise.resolve(validStatusListCredentialWithVerifiableAttestation),
+    );
 
     await expect(
-      isStatusList2021Credential("jwt", "example.net")
+      isStatusList2021Credential("jwt", "example.net"),
     ).resolves.toBe(true);
   });
 });
@@ -135,14 +141,14 @@ describe("isStatusList2021Credential", () => {
 describe("statusList2021CredentialSchema", () => {
   it("should not throw when asserting a valid objet", () => {
     expect(() =>
-      Joi.assert(validStatusListCredential, statusList2021CredentialSchema)
+      Joi.assert(validStatusListCredential, statusList2021CredentialSchema),
     ).not.toThrow();
 
     expect(() =>
       Joi.assert(
         validStatusListCredentialWithVerifiableAttestation,
-        statusList2021CredentialSchema
-      )
+        statusList2021CredentialSchema,
+      ),
     ).not.toThrow();
   });
 
@@ -181,7 +187,7 @@ describe("statusList2021CredentialSchema", () => {
     expect(() =>
       Joi.assert(invalidObject, statusList2021CredentialSchema, {
         abortEarly: false,
-      })
+      }),
     ).toThrowErrorMatchingSnapshot();
   });
 });

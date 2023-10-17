@@ -1,2 +1,2 @@
-export * from "./request-set-attribute-data.dto";
-export * from "./set-attribute-data-param.dto";
+export * from "./request-set-attribute-data.dto.js";
+export * from "./set-attribute-data-param.dto.js";

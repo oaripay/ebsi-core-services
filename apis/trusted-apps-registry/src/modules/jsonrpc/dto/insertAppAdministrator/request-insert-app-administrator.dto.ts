@@ -6,19 +6,19 @@ import {
   Equals,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { JsonRpcDto } from "../jsonrpc.dto";
-import { InsertAppAdministratorParam } from "./insert-app-administrator-param.dto";
+import { JsonRpcDto } from "../jsonrpc.dto.js";
+import { InsertAppAdministratorParam } from "./insert-app-administrator-param.dto.js";
 
 export class RequestInsertAppAdministratorDto extends JsonRpcDto {
   @Equals("insertAppAdministrator")
-  method: string;
+  declare method: string;
 
   @IsArray()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @Type(() => InsertAppAdministratorParam)
-  params: InsertAppAdministratorParam[];
+  declare params: InsertAppAdministratorParam[];
 }
 
 export default RequestInsertAppAdministratorDto;

@@ -1,5 +1,5 @@
-import { describe, it, expect } from "@jest/globals";
-import { MethodNotAllowedError, ProblemDetailsError } from "../index";
+import { describe, it, expect } from "vitest";
+import { MethodNotAllowedError, ProblemDetailsError } from "../index.js";
 
 describe("error MethodNotAllowedError", () => {
   it("should extend ProblemDetailsError", () => {
@@ -69,7 +69,7 @@ describe("error MethodNotAllowedError", () => {
     });
 
     expect(error.toString()).toBe(
-      `${MethodNotAllowedError.statusCode} - Test Error`
+      `${MethodNotAllowedError.statusCode} - Test Error`,
     );
   });
 });

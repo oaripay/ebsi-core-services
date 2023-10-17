@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call */
 import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry";
-import { PaginatedList, paginate, AsyncReturnType } from "@ebsiint-api/shared";
-import { PolicyLink } from "./policies.interface";
+import { PaginatedList, paginate } from "@ebsiint-api/shared";
+import { PolicyLink } from "./policies.interface.js";
 
 export function formatPolicies(
-  policies: AsyncReturnType<PolicyRegistry["getPolicyNames"]>,
+  policies: Awaited<ReturnType<PolicyRegistry["getPolicyNames"]>>,
   page: number,
   pageSize: number,
-  baseUrl: string
+  baseUrl: string,
 ): PaginatedList<PolicyLink> {
   const total = policies.total.toNumber();
 

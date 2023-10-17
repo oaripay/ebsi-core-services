@@ -1,30 +1,25 @@
 import { randomUUID } from "node:crypto";
-import { describe, beforeAll, it, expect } from "@jest/globals";
+import { describe, beforeAll, it, expect } from "vitest";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  Logger,
-  HttpServer,
-} from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
+import type { RawServerDefault } from "fastify";
 import { ConfigService } from "@nestjs/config";
 import { TransactionRequest } from "@ethersproject/abstract-provider";
 import { ethers } from "ethers";
 import { calculateJwkThumbprint, exportJWK, generateKeyPair } from "jose";
 import type { JWK } from "jose";
-import type { FastifyInstance } from "fastify";
 import { useContainer } from "class-validator";
 import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
 import { waitToBeMined } from "@ebsiint-api/shared";
-import { AppModule } from "../../src/app.module";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
-import { ApiConfig } from "../../src/config/configuration";
-import { getServer } from "../utils/getServer";
+import { AppModule } from "../../src/app.module.js";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
+import type { ApiConfig } from "../../src/config/configuration.js";
+import { getServer } from "../utils/getServer.js";
 import {
   UnsignedTransaction,
   InsertDidDocumentParam,
@@ -36,15 +31,15 @@ import {
   RevokeVerificationMethodParam,
   ExpireVerificationMethodParam,
   RollVerificationMethodParam,
-} from "../../src/modules/jsonrpc/dto";
-import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
-import { describeWriteOps } from "../utils/describeWriteOps";
-import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
+} from "../../src/modules/jsonrpc/dto/index.js";
+import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
+import { describeWriteOps } from "../utils/describeWriteOps.js";
+import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
 import {
   getDidrInviteAccessToken,
   getDidrWriteAccessToken,
-} from "../utils/getAccessToken";
-import { createUser } from "../utils/data";
+} from "../utils/getAccessToken.js";
+import { createUser } from "../utils/data.js";
 
 type JsonRpcParams =
   | InsertDidDocumentParam
@@ -69,8 +64,8 @@ type TestUser = {
 };
 
 describeWriteOps()("DID Registry - JSON RPC - e2e", () => {
-  let app: INestApplication;
-  let server: HttpServer | string;
+  let app: NestFastifyApplication;
+  let server: RawServerDefault | string;
   let configService: ConfigService<ApiConfig, true>;
   let ledgerApi: string;
   const now = Math.floor(Date.now() / 1000);
@@ -84,7 +79,7 @@ describeWriteOps()("DID Registry - JSON RPC - e2e", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     useContainer(app.select(AppModule), { fallbackOnErrors: true });
@@ -98,7 +93,7 @@ describeWriteOps()("DID Registry - JSON RPC - e2e", () => {
     app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
     server = getServer(app, configService);
 
@@ -110,7 +105,7 @@ describeWriteOps()("DID Registry - JSON RPC - e2e", () => {
       total: number;
     };
     const getIdentifiersLastPage = await request(server).get(
-      `/identifiers?page[after]=${Math.ceil(total / 10)}&page[size]=10`
+      `/identifiers?page[after]=${Math.ceil(total / 10)}&page[size]=10`,
     );
     const { items: identifiers } = getIdentifiersLastPage.body as {
       items: {
@@ -127,12 +122,12 @@ describeWriteOps()("DID Registry - JSON RPC - e2e", () => {
       const userDetails = await createUser();
 
       const authApiV3ES256PrivateKey = configService.get<string>(
-        "testAuthApiV3ES256PrivateKey"
+        "testAuthApiV3ES256PrivateKey",
       );
 
       const userAccessToken = await getDidrInviteAccessToken(
         userDetails.did,
-        authApiV3ES256PrivateKey
+        authApiV3ES256PrivateKey,
       );
 
       user = {
@@ -194,7 +189,9 @@ describeWriteOps()("DID Registry - JSON RPC - e2e", () => {
 
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
-          JSON.parse(JSON.stringify(unsignedTransaction)) as UnsignedTransaction
+          JSON.parse(
+            JSON.stringify(unsignedTransaction),
+          ) as UnsignedTransaction,
         ) as TransactionRequest;
         uTx.chainId = Number(uTx.chainId);
         const sgnTx = await user.wallet.signTransaction(uTx);
@@ -229,7 +226,7 @@ describeWriteOps()("DID Registry - JSON RPC - e2e", () => {
         // wait to be mined
         const receipt = await waitToBeMined(
           ledgerApi,
-          responseSend.body.result as string
+          responseSend.body.result as string,
         );
         expect(receipt.status).toBe(1);
       });
@@ -246,7 +243,7 @@ describeWriteOps()("DID Registry - JSON RPC - e2e", () => {
       try {
         const didrWriteToken = await getDidrWriteAccessToken(
           configService.get<string>("authorisationApiV3Url"),
-          user.info
+          user.info,
         );
         user.token = didrWriteToken;
       } catch (e) {
@@ -256,16 +253,12 @@ describeWriteOps()("DID Registry - JSON RPC - e2e", () => {
       }
 
       publicKeyJwk2 = await exportJWK(
-        (
-          await generateKeyPair("EdDSA", { crv: "Ed25519" })
-        ).publicKey
+        (await generateKeyPair("EdDSA", { crv: "Ed25519" })).publicKey,
       );
       thumbprint2 = await calculateJwkThumbprint(publicKeyJwk2);
 
       publicKeyJwk3 = await exportJWK(
-        (
-          await generateKeyPair("ES256")
-        ).publicKey
+        (await generateKeyPair("ES256")).publicKey,
       );
       thumbprint3 = await calculateJwkThumbprint(publicKeyJwk3);
     });
@@ -323,7 +316,7 @@ describeWriteOps()("DID Registry - JSON RPC - e2e", () => {
               did: user.info.did,
               vMethodId: thumbprint2,
               publicKey: `0x${Buffer.from(
-                JSON.stringify(publicKeyJwk2)
+                JSON.stringify(publicKeyJwk2),
               ).toString("hex")}`,
               isSecp256k1: false,
             } as AddVerificationMethodParam;
@@ -364,7 +357,7 @@ describeWriteOps()("DID Registry - JSON RPC - e2e", () => {
               did: user.info.did,
               vMethodId: thumbprint3,
               publicKey: `0x${Buffer.from(
-                JSON.stringify(publicKeyJwk3)
+                JSON.stringify(publicKeyJwk3),
               ).toString("hex")}`,
               isSecp256k1: false,
               notBefore: now,
@@ -407,7 +400,9 @@ describeWriteOps()("DID Registry - JSON RPC - e2e", () => {
 
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
-          JSON.parse(JSON.stringify(unsignedTransaction)) as UnsignedTransaction
+          JSON.parse(
+            JSON.stringify(unsignedTransaction),
+          ) as UnsignedTransaction,
         ) as TransactionRequest;
         uTx.chainId = Number(uTx.chainId);
         const sgnTx = await user.wallet.signTransaction(uTx);
@@ -442,7 +437,7 @@ describeWriteOps()("DID Registry - JSON RPC - e2e", () => {
         // wait to be mined
         const receipt = await waitToBeMined(
           ledgerApi,
-          responseSend.body.result as string
+          responseSend.body.result as string,
         );
         expect(receipt.status).toBe(1);
       });

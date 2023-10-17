@@ -43,7 +43,7 @@ async function main() {
    HashAlgoLib deployed to: ${haLib.address}
    TimestampLib deployed to: ${tsLib.address}
    RecordLib deployed to: ${rsLib.address}
-   stringManipLib deployed to: ${stringManipLib.address}`
+   stringManipLib deployed to: ${stringManipLib.address}`,
   );
 }
 

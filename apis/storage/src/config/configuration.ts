@@ -18,10 +18,10 @@ export interface ApiConfig {
   // TAR API
   trustedAppsRegistryApiUrl: string;
   // Test variables
-  testAppName: string;
-  testAppPrivateKey: string;
-  testClientKid: string;
-  testClientPrivateKey: string;
+  testAppName: string | undefined;
+  testAppPrivateKey: string | undefined;
+  testClientKid: string | undefined;
+  testClientPrivateKey: string | undefined;
   testLoadBalancerDomain: string;
   dockerContainerTag: string;
 }
@@ -81,7 +81,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "warn",
       "info",
       "verbose",
-      "debug"
+      "debug",
     ),
     DOCKER_TAG: Joi.string(),
     DOMAIN: Joi.string().uri().required(),
@@ -105,7 +105,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "eachQuorum",
       "serial",
       "localSerial",
-      "localOne"
+      "localOne",
     ),
     CASSANDRA_CONSISTENCY_WRITE: Joi.string().valid(
       "any",
@@ -118,7 +118,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "eachQuorum",
       "serial",
       "localSerial",
-      "localOne"
+      "localOne",
     ),
     CASSANDRA_CONTACT_POINTS: Joi.string(),
     CASSANDRA_LOCAL_DATACENTER: Joi.string(),

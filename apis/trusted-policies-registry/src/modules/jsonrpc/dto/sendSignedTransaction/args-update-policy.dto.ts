@@ -6,7 +6,7 @@ import {
   IsNumberString,
   IsOptional,
 } from "class-validator";
-import { OPERATION_TYPES } from "../../../policies/policies.interface";
+import { OPERATION_TYPES } from "../../../policies/policies.interface.js";
 
 export class ArgsUpdatePolicy {
   @IsOptional()
@@ -20,10 +20,10 @@ export class ArgsUpdatePolicy {
   @IsNumber()
   @Min(0)
   @Max(OPERATION_TYPES.length - 1)
-  opType: number;
+  opType!: number;
 
   @IsString()
-  description: string;
+  description!: string;
 }
 
 export default { ArgsUpdatePolicy };

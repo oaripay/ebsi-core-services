@@ -1,1 +1,1 @@
-export * from "./IsHexadecimalJSON";
+export * from "./IsHexadecimalJSON.js";

@@ -6,5 +6,5 @@ task("chainId", "Prints the current chain ID").setAction(
     await ethers.provider.getNetwork().then((net) => {
       console.log(`Current chain ID: ${net.chainId}`);
     });
-  }
+  },
 );

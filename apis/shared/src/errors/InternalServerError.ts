@@ -1,4 +1,4 @@
-import { ProblemDetailsError } from "./ProblemDetailsError";
+import { ProblemDetailsError } from "./ProblemDetailsError.js";
 
 /**
  * InternalServerError defines the Internal Server Error (500) error type.
@@ -24,7 +24,7 @@ export class InternalServerError extends ProblemDetailsError {
       detail?: string;
       instance?: string;
       extensions?: { [x: string]: unknown };
-    }
+    },
   ) {
     super(InternalServerError.statusCode, title, options);
     this.name = "InternalServerError";

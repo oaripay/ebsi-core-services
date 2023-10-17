@@ -4,7 +4,7 @@ import type { FactoryOptions } from "hardhat/types";
 async function main() {
   const deployContract = async (
     name: string,
-    opts: FactoryOptions = {}
+    opts: FactoryOptions = {},
   ): Promise<string> => {
     const factory = await ethers.getContractFactory(name, opts);
     const contract = await factory.deploy();
@@ -19,7 +19,7 @@ async function main() {
       libraries: {
         Pagination,
       },
-    }
+    },
   );
   const policyContract = await policyRegistryFactory.deploy();
   await policyContract.deployed();
@@ -31,9 +31,8 @@ async function main() {
   const hashAlgoFactory = await ethers.getContractFactory("HashAlgoLib", {});
   const hashAlgoLib = await hashAlgoFactory.deploy();
 
-  const didTimestampFactory = await ethers.getContractFactory(
-    "DidTimestampLib"
-  );
+  const didTimestampFactory =
+    await ethers.getContractFactory("DidTimestampLib");
   const didTimestampLib = await didTimestampFactory.deploy();
 
   const didRecordFactory = await ethers.getContractFactory("DidRecordLib", {
@@ -76,7 +75,7 @@ async function main() {
   });
   const ts = await contractFactory.deploy(
     policyContract.address,
-    didContract.address
+    didContract.address,
   );
   await ts.initialize(16);
   await ts.setRegistryAddresses();

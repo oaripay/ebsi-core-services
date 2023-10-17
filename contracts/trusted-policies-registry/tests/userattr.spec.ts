@@ -58,7 +58,7 @@ describe("UserAttributesManagement", () => {
         libraries: {
           Pagination: pagination.address,
         },
-      }
+      },
     );
     policyContract = await policyRegistryFactory.deploy();
     await policyContract.deployed();
@@ -74,7 +74,7 @@ describe("UserAttributesManagement", () => {
     await policyContract.insertUserAttributes(
       user.address,
       userAttr,
-      userAttrVal
+      userAttrVal,
     );
   });
 
@@ -92,14 +92,14 @@ describe("UserAttributesManagement", () => {
         policyContract.insertUserAttributes(
           ethers.constants.AddressZero,
           ["attr"],
-          []
-        )
+          [],
+        ),
       ).to.be.revertedWith("Policy: invalid user address");
     });
 
     it("Should fail for empty attributes", async () => {
       await expect(
-        policyContract.insertUserAttributes(user.address, [], [])
+        policyContract.insertUserAttributes(user.address, [], []),
       ).to.be.revertedWith("Policy: invalid attr list");
     });
 
@@ -108,14 +108,14 @@ describe("UserAttributesManagement", () => {
         policyContract.insertUserAttributes(
           user.address,
           ["attrX"],
-          [ethers.utils.randomBytes(3), ethers.utils.randomBytes(4)]
-        )
+          [ethers.utils.randomBytes(3), ethers.utils.randomBytes(4)],
+        ),
       ).to.be.revertedWith("Policy: invalid attr length");
     });
 
     it("Should fail for invalid attr value array length", async () => {
       await expect(
-        policyContract.insertUserAttributes(user.address, ["attrX"], [])
+        policyContract.insertUserAttributes(user.address, ["attrX"], []),
       ).to.be.revertedWith("Policy: invalid attr length");
     });
 
@@ -124,8 +124,8 @@ describe("UserAttributesManagement", () => {
         policyContract.insertUserAttributes(
           user.address,
           ["attr1"],
-          [ethers.utils.randomBytes(5)]
-        )
+          [ethers.utils.randomBytes(5)],
+        ),
       ).to.be.revertedWith("Attribute already defined");
     });
 
@@ -134,24 +134,24 @@ describe("UserAttributesManagement", () => {
         policyContract.insertUserAttributes(
           user.address,
           ["attrX"],
-          [ethers.utils.toUtf8Bytes("attrXValue")]
-        )
+          [ethers.utils.toUtf8Bytes("attrXValue")],
+        ),
       )
         .to.emit(policyContract, "UserAttributeInserted")
         .withArgs(
           user.address,
           "attrX",
-          ethers.utils.hexlify(ethers.utils.toUtf8Bytes("attrXValue"))
+          ethers.utils.hexlify(ethers.utils.toUtf8Bytes("attrXValue")),
         );
 
       expect(
-        await policyContract.getUserAttribute(user.address, "attrX")
+        await policyContract.getUserAttribute(user.address, "attrX"),
       ).to.equal(ethers.utils.hexlify(ethers.utils.toUtf8Bytes("attrXValue")));
 
       const userAttributes = await policyContract.getUserAttributes(
         user.address,
         1,
-        10
+        10,
       );
       expect(userAttributes.items).to.have.length(6);
     });
@@ -163,8 +163,8 @@ describe("UserAttributesManagement", () => {
         policyContract.updateUserAttribute(
           ethers.constants.AddressZero,
           "",
-          ethers.utils.randomBytes(3)
-        )
+          ethers.utils.randomBytes(3),
+        ),
       ).to.revertedWith("Policy: invalid user address");
     });
 
@@ -173,8 +173,8 @@ describe("UserAttributesManagement", () => {
         policyContract.updateUserAttribute(
           user2.address,
           "",
-          ethers.utils.randomBytes(3)
-        )
+          ethers.utils.randomBytes(3),
+        ),
       ).to.revertedWith("Policy: attr invalid");
     });
 
@@ -183,8 +183,8 @@ describe("UserAttributesManagement", () => {
         policyContract.updateUserAttribute(
           user.address,
           "",
-          ethers.utils.randomBytes(3)
-        )
+          ethers.utils.randomBytes(3),
+        ),
       ).to.revertedWith("Policy: attr invalid");
     });
 
@@ -193,14 +193,14 @@ describe("UserAttributesManagement", () => {
         policyContract.updateUserAttribute(
           user.address,
           "missingAttr",
-          ethers.utils.randomBytes(3)
-        )
+          ethers.utils.randomBytes(3),
+        ),
       ).to.revertedWith("Policy: attr invalid");
     });
 
     it("Should fail for empty attribute value", async () => {
       await expect(
-        policyContract.updateUserAttribute(user.address, "attr1", [])
+        policyContract.updateUserAttribute(user.address, "attr1", []),
       ).to.revertedWith("Policy: invalid value");
     });
 
@@ -209,20 +209,20 @@ describe("UserAttributesManagement", () => {
         policyContract.updateUserAttribute(
           user.address,
           "attr1",
-          ethers.utils.toUtf8Bytes("attr1Updated")
-        )
+          ethers.utils.toUtf8Bytes("attr1Updated"),
+        ),
       )
         .to.emit(policyContract, "UserAttributeUpdated")
         .withArgs(
           user.address,
           "attr1",
-          ethers.utils.hexlify(ethers.utils.toUtf8Bytes("attr1Updated"))
+          ethers.utils.hexlify(ethers.utils.toUtf8Bytes("attr1Updated")),
         );
 
       expect(
-        await policyContract.getUserAttribute(user.address, "attr1")
+        await policyContract.getUserAttribute(user.address, "attr1"),
       ).to.equal(
-        ethers.utils.hexlify(ethers.utils.toUtf8Bytes("attr1Updated"))
+        ethers.utils.hexlify(ethers.utils.toUtf8Bytes("attr1Updated")),
       );
     });
   });
@@ -232,18 +232,18 @@ describe("UserAttributesManagement", () => {
       await expect(
         policyContract.deleteUserAttribute(
           ethers.constants.AddressZero,
-          "attr1"
-        )
+          "attr1",
+        ),
       ).to.be.revertedWith("Policy: invalid user address");
     });
 
     it("Should fail for empty/missing attribute", async () => {
       await expect(
-        policyContract.deleteUserAttribute(user.address, "attr1111")
+        policyContract.deleteUserAttribute(user.address, "attr1111"),
       ).to.be.revertedWith("Policy: attr invalid");
 
       await expect(
-        policyContract.deleteUserAttribute(user.address, "")
+        policyContract.deleteUserAttribute(user.address, ""),
       ).to.be.revertedWith("Policy: attr invalid");
     });
 
@@ -255,7 +255,7 @@ describe("UserAttributesManagement", () => {
       const userAttributes = await policyContract.getUserAttributes(
         user.address,
         1,
-        10
+        10,
       );
       expect(userAttributes.items).to.deep.equal([
         "attr1",
@@ -269,17 +269,17 @@ describe("UserAttributesManagement", () => {
   describe("getUsers", () => {
     it("Should fail for invalid page size", async () => {
       await expect(policyContract.getUsers(1, 0)).to.be.revertedWith(
-        "PSize not >0"
+        "PSize not >0",
       );
 
       await expect(policyContract.getUsers(1, 51)).to.be.revertedWith(
-        "PSize not <=50"
+        "PSize not <=50",
       );
     });
 
     it("Should fail for invalid page", async () => {
       await expect(policyContract.getUsers(0, 1)).to.be.revertedWith(
-        "Page not >0"
+        "Page not >0",
       );
     });
 
@@ -287,7 +287,7 @@ describe("UserAttributesManagement", () => {
       await policyContract.insertUserAttributes(
         user2.address,
         ["attr1"],
-        [ethers.utils.randomBytes(3)]
+        [ethers.utils.randomBytes(3)],
       );
 
       let result = await policyContract.getUsers(1, 1);
@@ -307,27 +307,27 @@ describe("UserAttributesManagement", () => {
   describe("getUserAttributes", () => {
     it("Should fail for invalid page size", async () => {
       await expect(
-        policyContract.getUserAttributes(user.address, 1, 0)
+        policyContract.getUserAttributes(user.address, 1, 0),
       ).to.be.revertedWith("PSize not >0");
 
       await expect(
-        policyContract.getUserAttributes(user.address, 1, 51)
+        policyContract.getUserAttributes(user.address, 1, 51),
       ).to.be.revertedWith("PSize not <=50");
     });
 
     it("Should fail for invalid page", async () => {
       await expect(
-        policyContract.getUserAttributes(user.address, 0, 1)
+        policyContract.getUserAttributes(user.address, 0, 1),
       ).to.be.revertedWith("Page not >0");
     });
 
     it("Should fail for missing user", async () => {
       await expect(
-        policyContract.getUserAttributes(user2.address, 1, 1)
+        policyContract.getUserAttributes(user2.address, 1, 1),
       ).to.be.revertedWith("Policy: invalid user");
 
       await expect(
-        policyContract.getUserAttributes(ethers.constants.AddressZero, 1, 1)
+        policyContract.getUserAttributes(ethers.constants.AddressZero, 1, 1),
       ).to.be.revertedWith("Policy: invalid user address");
     });
 
@@ -348,23 +348,23 @@ describe("UserAttributesManagement", () => {
   describe("getUserAttribute", () => {
     it("Should fail for invalid user", async () => {
       await expect(
-        policyContract.getUserAttribute(ethers.constants.AddressZero, "attr1")
+        policyContract.getUserAttribute(ethers.constants.AddressZero, "attr1"),
       ).to.be.revertedWith("Policy: invalid user address");
     });
 
     it("Should return empty attribute", async () => {
       expect(
-        await policyContract.getUserAttribute(user.address, "attr22")
+        await policyContract.getUserAttribute(user.address, "attr22"),
       ).to.equal(ethers.utils.hexlify([]));
 
       expect(
-        await policyContract.getUserAttribute(user2.address, "attr1")
+        await policyContract.getUserAttribute(user2.address, "attr1"),
       ).to.equal(ethers.utils.hexlify([]));
     });
 
     it("Should return user attribute", async () => {
       expect(
-        await policyContract.getUserAttribute(user.address, "attr1")
+        await policyContract.getUserAttribute(user.address, "attr1"),
       ).to.equal(ethers.utils.hexlify(ethers.utils.toUtf8Bytes("val1")));
     });
   });

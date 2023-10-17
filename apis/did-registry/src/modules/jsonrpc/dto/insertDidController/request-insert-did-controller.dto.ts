@@ -6,19 +6,19 @@ import {
   Equals,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { JsonRpcDto } from "../jsonrpc.dto";
-import { InsertDidControllerParam } from "./insert-did-controller-param.dto";
+import { JsonRpcDto } from "../jsonrpc.dto.js";
+import { InsertDidControllerParam } from "./insert-did-controller-param.dto.js";
 
 export class RequestInsertDidControllerDto extends JsonRpcDto {
   @Equals("insertDidController")
-  method: string;
+  declare method: string;
 
   @IsArray()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @Type(() => InsertDidControllerParam)
-  params: InsertDidControllerParam[];
+  declare params: InsertDidControllerParam[];
 }
 
 export default RequestInsertDidControllerDto;

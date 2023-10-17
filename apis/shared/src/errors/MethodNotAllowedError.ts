@@ -1,4 +1,4 @@
-import { ProblemDetailsError } from "./ProblemDetailsError";
+import { ProblemDetailsError } from "./ProblemDetailsError.js";
 
 /**
  * MethodNotAllowedError defines the Method Not Allowed (405) error type.
@@ -24,7 +24,7 @@ export class MethodNotAllowedError extends ProblemDetailsError {
       detail?: string;
       instance?: string;
       extensions?: { [x: string]: unknown };
-    }
+    },
   ) {
     super(MethodNotAllowedError.statusCode, title, options);
     this.name = "MethodNotAllowedError";

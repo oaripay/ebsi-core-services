@@ -1,6 +1,6 @@
 import { IsString, IsArray, IsNumberString, IsOptional } from "class-validator";
-import { IsPolicyConditions } from "../../validators";
-import { PolicyConditionDto } from "../shared/policy-condition.dto";
+import { IsPolicyConditions } from "../../validators/index.js";
+import { PolicyConditionDto } from "../shared/policy-condition.dto.js";
 
 export class ArgsAddPolicyConditions {
   @IsOptional()
@@ -13,7 +13,7 @@ export class ArgsAddPolicyConditions {
 
   @IsArray()
   @IsPolicyConditions({ each: true })
-  policyConditions: PolicyConditionDto[];
+  policyConditions!: PolicyConditionDto[];
 }
 
 export default { ArgsAddPolicyConditions };

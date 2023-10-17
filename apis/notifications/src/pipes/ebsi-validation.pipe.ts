@@ -2,7 +2,7 @@ import {
   ValidationPipe,
   ValidationError as ValidationPipeError,
 } from "@nestjs/common";
-import { ValidationError } from "../errors/ValidationError";
+import { ValidationError } from "../errors/ValidationError.js";
 
 const exceptionFactory = (errors: ValidationPipeError[]) =>
   new ValidationError(errors);

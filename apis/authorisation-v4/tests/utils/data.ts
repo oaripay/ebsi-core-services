@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { calculateJwkThumbprint, exportJWK, generateKeyPair } from "jose";
 import type { JWK } from "jose";
-import EbsiWallet from "@cef-ebsi/wallet-lib";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import type { DIDDocument, JsonWebKey } from "did-resolver";
 import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
 import type { PresentationSubmission } from "@sphereon/pex-models";
@@ -17,12 +17,12 @@ import {
   TIR_WRITE_SCOPE,
   TIMESTAMP_WRITE_PRESENTATION_DEFINITION,
   TIMESTAMP_WRITE_SCOPE,
-} from "../../src/modules/authorisation/authorisation.constants";
+} from "../../src/modules/authorisation/authorisation.constants.js";
 
 export function createDidDocument(
   did: string,
   kid: string,
-  publicKeyJwk: JWK
+  publicKeyJwk: JWK,
 ): DIDDocument {
   return {
     "@context": [
@@ -48,7 +48,7 @@ export interface LegalEntity extends EbsiIssuer {
 }
 
 export async function createLegalEntity(
-  alg: "ES256" | "ES256K" | "EdDSA"
+  alg: "ES256" | "ES256K" | "EdDSA",
 ): Promise<LegalEntity> {
   const did = EbsiWallet.createDid();
   const keypair = await generateKeyPair(alg);
@@ -70,7 +70,7 @@ export async function createLegalEntity(
 }
 
 export function createPresentationSubmission(
-  scope: (typeof CUSTOM_SCOPES)[number]
+  scope: (typeof CUSTOM_SCOPES)[number],
 ): PresentationSubmission {
   // Note that there are no .vc or .vp in path or path_nested below.
   const testPresentationSubmission: PresentationSubmission = {

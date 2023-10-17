@@ -1,3 +1,3 @@
-export * from "./unsigned-transaction.dto";
-export * from "./signed-transaction-param.dto";
-export * from "./request-send-signed-transaction.dto";
+export * from "./unsigned-transaction.dto.js";
+export * from "./signed-transaction-param.dto.js";
+export * from "./request-send-signed-transaction.dto.js";

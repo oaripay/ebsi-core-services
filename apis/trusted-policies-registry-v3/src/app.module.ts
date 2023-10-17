@@ -1,14 +1,14 @@
 import { Module } from "@nestjs/common";
 import { APP_INTERCEPTOR } from "@nestjs/core";
-import { ApiConfigModule } from "./config/configuration";
-import { LoggingInterceptor } from "./interceptors/logging.interceptor";
-import { VersionInterceptor } from "./interceptors/version.interceptor";
-import { HealthModule } from "./modules/health/health.module";
-import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module";
-import { PoliciesModule } from "./modules/policies/policies.module";
-import { UsersModule } from "./modules/users/users.module";
-import { OpenApiModule } from "./modules/openapi/openapi.module";
-import { AppService } from "./app.service";
+import { ApiConfigModule } from "./config/configuration.js";
+import { LoggingInterceptor } from "./interceptors/logging.interceptor.js";
+import { VersionInterceptor } from "./interceptors/version.interceptor.js";
+import { HealthModule } from "./modules/health/health.module.js";
+import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module.js";
+import { PoliciesModule } from "./modules/policies/policies.module.js";
+import { UsersModule } from "./modules/users/users.module.js";
+import { OpenApiModule } from "./modules/openapi/openapi.module.js";
+import { AppService } from "./app.service.js";
 
 @Module({
   imports: [

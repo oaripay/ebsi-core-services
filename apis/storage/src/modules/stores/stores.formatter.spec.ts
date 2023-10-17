@@ -1,6 +1,6 @@
-import { describe, it, expect } from "@jest/globals";
-import { formatStores } from "./stores.formatter";
-import { STORES } from "./stores.constants";
+import { describe, it, expect } from "vitest";
+import { formatStores } from "./stores.formatter.js";
+import { STORES } from "./stores.constants.js";
 
 describe("formatStores", () => {
   it("should paginate the list of stores", () => {
@@ -12,21 +12,21 @@ describe("formatStores", () => {
     const stores = STORES.slice((page - 1) * pageSize, page * pageSize);
 
     expect(
-      formatStores(stores, page, pageSize, "", "?test=true")
+      formatStores(stores, page, pageSize, "", "?test=true"),
     ).toStrictEqual({
       items: stores,
       links: {
         first: `?page[after]=1&page[size]=${pageSize}?test=true`,
         prev: `?page[after]=${Math.min(
           page - 1,
-          Math.ceil(STORES.length / pageSize)
+          Math.ceil(STORES.length / pageSize),
         )}&page[size]=${pageSize}?test=true`,
         next: `?page[after]=${Math.min(
           page + 1,
-          Math.ceil(STORES.length / pageSize)
+          Math.ceil(STORES.length / pageSize),
         )}&page[size]=${pageSize}?test=true`,
         last: `?page[after]=${Math.ceil(
-          STORES.length / pageSize
+          STORES.length / pageSize,
         )}&page[size]=${pageSize}?test=true`,
       },
       pageSize,

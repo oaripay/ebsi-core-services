@@ -22,24 +22,24 @@ import {
   multihashEncode2,
   PaginatedList2,
 } from "@ebsiint-api/shared";
-import { AttributesService } from "./attributes.service";
-import { AttributeResponseObject } from "./attributes.interface";
-import { ApiConfig } from "../../config/configuration";
-import { JwtAuthGuard, JwtOptionalAuthGuard } from "../auth/guards";
-import { User, UserInfo } from "../auth/decorators";
+import { AttributesService } from "./attributes.service.js";
+import { AttributeResponseObject } from "./attributes.interface.js";
+import type { ApiConfig } from "../../config/configuration.js";
+import { JwtAuthGuard, JwtOptionalAuthGuard } from "../auth/guards/index.js";
+import { User, type UserInfo } from "../auth/decorators/index.js";
 import {
   AttributeBodyDto,
   AttributeHashDto,
   GetAttributesDto,
   PatchAttributeBody,
-} from "./dto";
-import { formatAttributes } from "./attributes.formatter";
+} from "./dto/index.js";
+import { formatAttributes } from "./attributes.formatter.js";
 
 @Controller("/attributes")
 export default class AttributesController {
   constructor(
     private attributesService: AttributesService,
-    private configService: ConfigService<ApiConfig, true>
+    private configService: ConfigService<ApiConfig, true>,
   ) {}
 
   @UseGuards(JwtAuthGuard)
@@ -47,7 +47,7 @@ export default class AttributesController {
   async insertAttribute(
     @Body() body: AttributeBodyDto,
     @User() user: UserInfo,
-    @Response() res: FastifyReply
+    @Response() res: FastifyReply,
   ): Promise<AttributeResponseObject> {
     if (user.did !== body.did) {
       throw new BadRequestError("DID Mismatch", {
@@ -60,7 +60,7 @@ export default class AttributesController {
         .createHash("sha3-256")
         .update(`${body.data}${body.did}`)
         .digest("hex"),
-      "sha3-256"
+      "sha3-256",
     );
 
     if (await this.attributesService.getDidByAttributeHash(hash)) {
@@ -77,7 +77,7 @@ export default class AttributesController {
   @Get("")
   async getAttributes(
     @User() user: UserInfo,
-    @Query() query: GetAttributesDto
+    @Query() query: GetAttributesDto,
   ): Promise<PaginatedList2<AttributeResponseObject>> {
     const currentPage = query["page[after]"];
     const pageSize = query["page[size]"];
@@ -86,7 +86,7 @@ export default class AttributesController {
       await this.attributesService.getAttributes(
         user.did,
         currentPage,
-        pageSize
+        pageSize,
       );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
@@ -98,7 +98,7 @@ export default class AttributesController {
       currentPage,
       nextPage,
       pageSize,
-      baseUrl
+      baseUrl,
     );
   }
 
@@ -106,7 +106,7 @@ export default class AttributesController {
   @Get("/:hash")
   async getAttribute(
     @Param() params: AttributeHashDto,
-    @User() user: UserInfo
+    @User() user: UserInfo,
   ): Promise<AttributeResponseObject> {
     const attribute = await this.attributesService.getAttribute(params.hash);
     const { visibility } = attribute;
@@ -130,7 +130,7 @@ export default class AttributesController {
   @Delete("/:hash")
   async deleteAttribute(
     @Param() params: AttributeHashDto,
-    @User() user: UserInfo
+    @User() user: UserInfo,
   ): Promise<void> {
     const { hash } = params;
 
@@ -157,7 +157,7 @@ export default class AttributesController {
     @Param() params: AttributeHashDto,
     @Body(new ParseArrayPipe({ items: PatchAttributeBody }))
     patch: PatchAttributeBody[],
-    @User() user: UserInfo
+    @User() user: UserInfo,
   ): Promise<AttributeResponseObject> {
     // verify visibility
     if (
@@ -166,7 +166,7 @@ export default class AttributesController {
           p.path === "/visibility" &&
           p.value !== "" &&
           p.value !== "private" &&
-          p.value !== "shared"
+          p.value !== "shared",
       )
     ) {
       throw new BadRequestError(BadRequestError.defaultTitle, {

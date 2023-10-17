@@ -1,14 +1,13 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { Tar } from "@ebsiint-sc/trusted-apps-registry";
 import {
-  AsyncReturnType,
   generateMultihash,
   isEthersError,
   NotFoundError,
   remove0xPrefix,
 } from "@ebsiint-api/shared";
-import { PolicyRevisions } from "./policies.interface";
-import LedgerService from "../ledger/ledger.service";
+import { PolicyRevisions } from "./policies.interface.js";
+import LedgerService from "../ledger/ledger.service.js";
 
 @Injectable()
 export default class PoliciesService {
@@ -22,13 +21,13 @@ export default class PoliciesService {
 
   async getPolicies(
     page: number,
-    pageSize: number
+    pageSize: number,
   ): ReturnType<Tar["getPolicies"]> {
     return this.tarContract.getPolicies(page, pageSize);
   }
 
   async getPolicy(policyId: string): Promise<[string, string]> {
-    let policy: AsyncReturnType<Tar["getPolicy"]>;
+    let policy: Awaited<ReturnType<Tar["getPolicy"]>>;
 
     try {
       policy = await this.tarContract.getPolicy(policyId);
@@ -44,7 +43,7 @@ export default class PoliciesService {
     const [rawPolicy, rawPolicyHash] = policy;
 
     const base64Policy = Buffer.from(remove0xPrefix(rawPolicy), "hex").toString(
-      "base64"
+      "base64",
     );
 
     // Compute multihash from hash
@@ -55,15 +54,15 @@ export default class PoliciesService {
   async getPolicyRevisions(
     policyId: string,
     page: number,
-    pageSize: number
+    pageSize: number,
   ): Promise<PolicyRevisions> {
-    let revisions: AsyncReturnType<Tar["getPolicyRevisions"]>;
+    let revisions: Awaited<ReturnType<Tar["getPolicyRevisions"]>>;
 
     try {
       revisions = await this.tarContract.getPolicyRevisions(
         policyId,
         page,
-        pageSize
+        pageSize,
       );
     } catch (e) {
       if (isEthersError(e)) {
@@ -75,10 +74,10 @@ export default class PoliciesService {
     }
 
     const getPoliciesByRevisions = revisions.items.map((hash) =>
-      this.tarContract.getPolicyByHash(hash)
+      this.tarContract.getPolicyByHash(hash),
     );
 
-    let policies: AsyncReturnType<Tar["getPolicyByHash"]>[];
+    let policies: Awaited<ReturnType<Tar["getPolicyByHash"]>>[];
 
     try {
       policies = await Promise.all(getPoliciesByRevisions);
@@ -92,7 +91,7 @@ export default class PoliciesService {
     return {
       items: revisions.items.map((hash, index) => ({
         policyId,
-        policy: policies[index],
+        policy: policies[index]!,
         hash,
       })),
       total: revisions.total.toNumber(),

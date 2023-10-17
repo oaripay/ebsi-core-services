@@ -1,2 +1,2 @@
-export * from "./get-store.dto";
-export * from "./get-stores.dto";
+export * from "./get-store.dto.js";
+export * from "./get-stores.dto.js";

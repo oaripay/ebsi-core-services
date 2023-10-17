@@ -4,7 +4,7 @@ import { PaginationQuery } from "@ebsiint-api/shared";
 export class GetIdentifiersVersionsDto extends PaginationQuery {
   @IsOptional()
   @IsDateString()
-  "valid-at": string;
+  "valid-at"?: string;
 }
 
 export default GetIdentifiersVersionsDto;

@@ -16,16 +16,16 @@ export interface ApiConfig {
   besuRpcNode: string;
   externalEbsiApiHealthCheck: string;
   requestTimeout: number;
-  testAdminKid: string;
-  testAdminPrivateKey: string;
-  testUserKid: string;
-  testUserPrivateKey: string;
-  testAppName: string;
+  testAdminKid: string | undefined;
+  testAdminPrivateKey: string | undefined;
+  testUserKid: string | undefined;
+  testUserPrivateKey: string | undefined;
+  testAppName: string | undefined;
   testLoadBalancerDomain: string;
   dockerContainerTag: string;
   blockscout: {
-    url: string;
-    bearerToken: string;
+    url: string | undefined;
+    bearerToken: string | undefined;
   };
 }
 
@@ -96,7 +96,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "warn",
       "info",
       "verbose",
-      "debug"
+      "debug",
     ),
     DOCKER_TAG: Joi.string(),
     DOMAIN: Joi.string().uri().required(),

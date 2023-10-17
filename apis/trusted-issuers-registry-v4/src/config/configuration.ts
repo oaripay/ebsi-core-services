@@ -25,7 +25,9 @@ export interface ApiConfig {
   didRegistryApiUrl: string;
   // Trusted Apps Registry API
   trustedAppsRegistryApiUrl: string;
-  // TSR API (using in tests only)
+  // Trusted Policies Registry API
+  trustedPoliciesRegistryApiUrl: string;
+  // TSR API (used in tests only)
   trustedSchemasRegistryApiUrl: string;
   // Test variables
   testAdminKid: string;
@@ -50,6 +52,7 @@ const AUTH_API_V2_PATH = "/authorisation/v2";
 const DIDR_API_PATH = "/did-registry/v4";
 const TAR_API_PATH = "/trusted-apps-registry/v3";
 const TSR_API_PATH = "/trusted-schemas-registry/v2";
+const TPR_API_PATH = "/trusted-policies-registry/v2";
 
 export const loadConfig = (): ApiConfig => {
   const { DOMAIN } = process.env;
@@ -82,6 +85,8 @@ export const loadConfig = (): ApiConfig => {
     trustedSchemasRegistryApiUrl: DOMAIN + TSR_API_PATH,
     // Trusted Apps Registry API
     trustedAppsRegistryApiUrl: DOMAIN + TAR_API_PATH,
+    // TPR API
+    trustedPoliciesRegistryApiUrl: DOMAIN + TPR_API_PATH,
     // Test vars
     testAdminKid: process.env.TEST_ADMIN_KID ?? "",
     testAdminPrivateKey: process.env.TEST_ADMIN_PRIVATE_KEY ?? "",
@@ -124,7 +129,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "warn",
       "info",
       "verbose",
-      "debug"
+      "debug",
     ),
     DOMAIN: Joi.string().uri().required(),
     DOCKER_TAG: Joi.string(),

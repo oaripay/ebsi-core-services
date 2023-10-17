@@ -15,21 +15,21 @@ task("initProxy", "init proxy with implementation")
         implementation: string;
         scversion: string;
       },
-      { ethers, deployments }
+      { ethers, deployments },
     ) => {
       const proxyDeployedAddr = taskArgs.proxy;
       const storage = getDiamondStorage(taskArgs.implementation);
       const TSC_DIAMOND_STORAGE_SLOT = ethers.utils.keccak256(
-        ethers.utils.toUtf8Bytes(storage)
+        ethers.utils.toUtf8Bytes(storage),
       );
 
       const IMPLEMENTATION_SLOT = ethers.utils.keccak256(
-        ethers.utils.toUtf8Bytes("diamond.standard.diamond.storage.proxy")
+        ethers.utils.toUtf8Bytes("diamond.standard.diamond.storage.proxy"),
       );
 
       const proxyCtr = (await ethers.getContractAt(
         `OwnedUpgradeabilityProxy`,
-        proxyDeployedAddr
+        proxyDeployedAddr,
       )) as OwnedUpgradeabilityProxy;
       // these infos are not easily accessible as they are restricted by an onlyAdmin modifier
       // to retrieve them we use the low level getStorage call
@@ -38,8 +38,8 @@ task("initProxy", "init proxy with implementation")
         adminAddr = BigNumber.from(
           await ethers.provider.getStorageAt(
             proxyCtr.address,
-            IMPLEMENTATION_SLOT
-          )
+            IMPLEMENTATION_SLOT,
+          ),
         ).toHexString();
         // eslint-disable-next-line no-empty
       } catch (e) {}
@@ -50,21 +50,21 @@ task("initProxy", "init proxy with implementation")
         implementationAddr = BigNumber.from(
           await ethers.provider.getStorageAt(
             proxyCtr.address,
-            BigNumber.from(IMPLEMENTATION_SLOT).add(1)
-          )
+            BigNumber.from(IMPLEMENTATION_SLOT).add(1),
+          ),
         ).toHexString();
         // eslint-disable-next-line no-empty
       } catch (e) {}
       console.log(
-        `Proxy current implementation address: ${implementationAddr}`
+        `Proxy current implementation address: ${implementationAddr}`,
       );
       let version = "0x0";
       try {
         version = BigNumber.from(
           await ethers.provider.getStorageAt(
             proxyCtr.address,
-            TSC_DIAMOND_STORAGE_SLOT
-          )
+            TSC_DIAMOND_STORAGE_SLOT,
+          ),
         ).toHexString();
         // eslint-disable-next-line no-empty
       } catch (e) {}
@@ -87,7 +87,7 @@ task("initProxy", "init proxy with implementation")
         await proxyCtr["initialize(address,address,bytes)"](
           ts.address,
           accounts[0].address,
-          setVersionData
+          setVersionData,
         )
       ).wait(1);
       console.log(receipt);
@@ -95,21 +95,21 @@ task("initProxy", "init proxy with implementation")
       const newImplementationAddr = BigNumber.from(
         await ethers.provider.getStorageAt(
           proxyCtr.address,
-          BigNumber.from(IMPLEMENTATION_SLOT).add(1)
-        )
+          BigNumber.from(IMPLEMENTATION_SLOT).add(1),
+        ),
       ).toHexString();
       console.log(`Proxy implementation address: ${newImplementationAddr}`);
 
       const newVersion = BigNumber.from(
         await ethers.provider.getStorageAt(
           proxyCtr.address,
-          TSC_DIAMOND_STORAGE_SLOT
-        )
+          TSC_DIAMOND_STORAGE_SLOT,
+        ),
       ).toHexString();
       console.log(`new version : ${newVersion}`);
       console.log(
         "Initialization:",
-        (receipt as { status: number }).status === 1 ? "ok" : "error"
+        (receipt as { status: number }).status === 1 ? "ok" : "error",
       );
-    }
+    },
   );

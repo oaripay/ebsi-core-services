@@ -1,43 +1,39 @@
-import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
-import { Test, TestingModule } from "@nestjs/testing";
-import { INestApplication, Logger } from "@nestjs/common";
+import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { Logger } from "@nestjs/common";
 import * as DidJwt from "did-jwt";
-import type { FastifyInstance } from "fastify";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import * as OAuth2Lib from "@cef-ebsi/oauth2-auth";
 import type { JwtTarVerifyResult } from "@cef-ebsi/oauth2-auth";
-import { AuthModule } from "./auth.module";
-import { AuthService } from "./auth.service";
-import { JwtCacheService } from "./jwt-cache.service";
+import { AuthModule } from "./auth.module.js";
+import { AuthService } from "./auth.service.js";
+import { JwtCacheService } from "./jwt-cache.service.js";
 
-jest.mock("did-jwt", () => ({
-  decodeJWT: jest.fn(),
+vi.mock("did-jwt", () => ({
+  decodeJWT: vi.fn(),
 }));
 
-jest.mock("@cef-ebsi/oauth2-auth", () => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const originalModule = jest.requireActual("@cef-ebsi/oauth2-auth");
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+vi.mock("@cef-ebsi/oauth2-auth", async () => {
+  const mod = await vi.importActual<typeof import("@cef-ebsi/oauth2-auth")>(
+    "@cef-ebsi/oauth2-auth",
+  );
+  // Return a mocked version so we can redefine property `verifyJwtTar` later
   return {
-    __esModule: true,
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    ...originalModule,
-    verifyJwtTar: jest.fn(),
+    ...mod,
+    verifyJwtTar: vi.fn(),
   };
 });
 
 describe("Auth Module", () => {
-  let app: INestApplication;
+  let app: NestFastifyApplication;
   let authService: AuthService;
   let jwtCacheService: JwtCacheService;
 
-  const mockVerifyAccessToken = jest.spyOn(OAuth2Lib, "verifyJwtTar");
-  const mockDecodeJwt = jest.spyOn(DidJwt, "decodeJWT");
+  const mockVerifyAccessToken = vi.spyOn(OAuth2Lib, "verifyJwtTar");
+  const mockDecodeJwt = vi.spyOn(DidJwt, "decodeJWT");
 
   beforeAll(async () => {
     // Start server
@@ -46,24 +42,20 @@ describe("Auth Module", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     // Turn off logger
     Logger.overrideLogger(false);
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
     authService = moduleFixture.get<AuthService>(AuthService);
     jwtCacheService = moduleFixture.get<JwtCacheService>(JwtCacheService);
   });
 
   afterAll(async () => {
-    // Avoid jest open handle error
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
     await app.close();
   });
 
@@ -80,12 +72,12 @@ describe("Auth Module", () => {
         async (): Promise<JwtTarVerifyResult> =>
           Promise.resolve({
             payload: jwtPayload,
-          } as unknown as JwtTarVerifyResult)
+          } as unknown as JwtTarVerifyResult),
       );
 
       mockDecodeJwt.mockImplementation(() => ({
         header: {
-          typ: "JWT",
+          typ: "JWT" as const,
           alg: "ES256K",
         },
         signature: "",
@@ -94,17 +86,17 @@ describe("Auth Module", () => {
       }));
 
       // Setup spies
-      const jwtCacheAddSpy = jest.spyOn(jwtCacheService, "add");
-      const jwtCacheIsValidSpy = jest.spyOn(jwtCacheService, "isValid");
-      const jwtCacheRemoveSpy = jest.spyOn(jwtCacheService, "remove");
-      const jwtCacheClearSpy = jest.spyOn(jwtCacheService, "clear");
+      const jwtCacheAddSpy = vi.spyOn(jwtCacheService, "add");
+      const jwtCacheIsValidSpy = vi.spyOn(jwtCacheService, "isValid");
+      const jwtCacheRemoveSpy = vi.spyOn(jwtCacheService, "remove");
+      const jwtCacheClearSpy = vi.spyOn(jwtCacheService, "clear");
 
       /*
        * Validate a token for the first time
        */
       let returnedPayload = await authService.validateOAuth2Token(
         "token",
-        "api.local"
+        "api.local",
       );
 
       expect(returnedPayload).toStrictEqual({ name: "test" });
@@ -121,7 +113,7 @@ describe("Auth Module", () => {
        */
       returnedPayload = await authService.validateOAuth2Token(
         "token",
-        "api.local"
+        "api.local",
       );
       expect(returnedPayload).toStrictEqual({ name: "test" });
       // Check that mockVerifyAccessToken has not been called a second time, and mockDecodeJwt has been called
@@ -136,7 +128,7 @@ describe("Auth Module", () => {
        * Run a third time
        * Back to the future: the cached JWT should be expired
        */
-      const dateSpy = jest
+      const dateSpy = vi
         .spyOn(global.Date, "now")
         .mockImplementation(() => (now + 35) * 1000);
 
@@ -148,12 +140,12 @@ describe("Auth Module", () => {
         async (): Promise<JwtTarVerifyResult> =>
           Promise.resolve({
             payload: jwtPayload,
-          } as unknown as JwtTarVerifyResult)
+          } as unknown as JwtTarVerifyResult),
       );
 
       mockDecodeJwt.mockImplementation(() => ({
         header: {
-          typ: "JWT",
+          typ: "JWT" as const,
           alg: "ES256K",
         },
         signature: "",
@@ -163,7 +155,7 @@ describe("Auth Module", () => {
 
       returnedPayload = await authService.validateOAuth2Token(
         "token",
-        "api.local"
+        "api.local",
       );
 
       expect(returnedPayload).toStrictEqual({ name: "test 2" });
@@ -195,12 +187,12 @@ describe("Auth Module", () => {
         async (): Promise<JwtTarVerifyResult> =>
           Promise.resolve({
             payload: jwtPayload,
-          } as unknown as JwtTarVerifyResult)
+          } as unknown as JwtTarVerifyResult),
       );
 
       mockDecodeJwt.mockImplementation(() => ({
         header: {
-          typ: "JWT",
+          typ: "JWT" as const,
           alg: "ES256K",
         },
         signature: "",
@@ -210,7 +202,7 @@ describe("Auth Module", () => {
 
       returnedPayload = await authService.validateOAuth2Token(
         "token",
-        "api.local"
+        "api.local",
       );
 
       expect(returnedPayload).toStrictEqual({ name: "test 3" });

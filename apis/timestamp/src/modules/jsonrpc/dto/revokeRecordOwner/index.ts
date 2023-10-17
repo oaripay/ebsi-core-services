@@ -1,2 +1,2 @@
-export * from "./revoke-record-owner-param.dto";
-export * from "./request-revoke-record-owner.dto";
+export * from "./revoke-record-owner-param.dto.js";
+export * from "./request-revoke-record-owner.dto.js";

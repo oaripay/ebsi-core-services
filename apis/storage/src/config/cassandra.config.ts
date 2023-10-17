@@ -24,7 +24,7 @@ export const cassandraConfig = registerAs(
       keyspace: process.env.CASSANDRA_KEYSPACE,
       authProvider: new auth.PlainTextAuthProvider(
         process.env.CASSANDRA_USER,
-        process.env.CASSANDRA_PASSWORD
+        process.env.CASSANDRA_PASSWORD,
       ),
     },
     consistency: {
@@ -37,7 +37,7 @@ export const cassandraConfig = registerAs(
           types.consistencies[process.env.CASSANDRA_CONSISTENCY_WRITE]) ||
         types.consistencies.two,
     },
-  })
+  }),
 );
 
 export default cassandraConfig;

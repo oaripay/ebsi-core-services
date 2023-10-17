@@ -4,7 +4,7 @@ export interface BesuResponseErrorObject {
 
 export interface BesuResponseObject {
   jsonrpc: string;
-  id: string | number;
+  id: string | number | null;
   result?: unknown;
   error?: BesuResponseErrorObject;
 }

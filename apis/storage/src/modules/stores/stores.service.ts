@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { NotFoundError } from "@ebsiint-api/shared";
-import { STORES } from "./stores.constants";
+import { STORES } from "./stores.constants.js";
 
 @Injectable()
 export class StoresService {

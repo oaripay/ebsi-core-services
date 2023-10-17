@@ -2,7 +2,7 @@ import {
   OAuth2Error,
   OAuth2ErrorCode,
   OAuth2ErrorOptions,
-} from "./OAuth2Error";
+} from "./OAuth2Error.js";
 
 /**
  * OAuth2 Token Error

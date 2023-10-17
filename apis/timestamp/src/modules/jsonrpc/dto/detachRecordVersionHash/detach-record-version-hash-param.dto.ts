@@ -1,9 +1,9 @@
 import { IsEthereumAddress } from "class-validator";
-import { ArgsDetachRecordVersionHash } from "../sendSignedTransaction";
+import { ArgsDetachRecordVersionHash } from "../sendSignedTransaction/index.js";
 
 export class DetachRecordVersionHashParam extends ArgsDetachRecordVersionHash {
   @IsEthereumAddress()
-  from: string;
+  from!: string;
 }
 
 export default { DetachRecordVersionHashParam };

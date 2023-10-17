@@ -1,2 +1,2 @@
-export * from "./detach-record-version-hash-param.dto";
-export * from "./request-detach-record-version-hash.dto";
+export * from "./detach-record-version-hash-param.dto.js";
+export * from "./request-detach-record-version-hash.dto.js";

@@ -1,5 +1,5 @@
 import { IsEthereumAddress } from "class-validator";
-import { ArgsAppendRecordVersionHashes } from "../sendSignedTransaction";
+import { ArgsAppendRecordVersionHashes } from "../sendSignedTransaction/index.js";
 
 export class AppendRecordVersionHashesParam extends ArgsAppendRecordVersionHashes {
   @IsEthereumAddress()

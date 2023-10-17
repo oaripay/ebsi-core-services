@@ -1,4 +1,4 @@
-import { ProblemDetailsError } from "./ProblemDetailsError";
+import { ProblemDetailsError } from "./ProblemDetailsError.js";
 
 /**
  * PreconditionFailedError defines the Precondition Failed (412) error type.
@@ -24,7 +24,7 @@ export class PreconditionFailedError extends ProblemDetailsError {
       detail?: string;
       instance?: string;
       extensions?: { [x: string]: unknown };
-    }
+    },
   ) {
     super(PreconditionFailedError.statusCode, title, options);
     this.name = "PreconditionFailedError";

@@ -1,6 +1,6 @@
-import { describe, it, expect } from "@jest/globals";
-import { formatAttributes } from "./attributes.formatter";
-import { AttributeResponseObject } from "./attributes.interface";
+import { describe, it, expect } from "vitest";
+import { formatAttributes } from "./attributes.formatter.js";
+import { AttributeResponseObject } from "./attributes.interface.js";
 
 const attributes: AttributeResponseObject[] = [
   {
@@ -45,8 +45,8 @@ describe("formatAttributes", () => {
         nextPageToken,
         pageSize,
         "",
-        "?test=true"
-      )
+        "?test=true",
+      ),
     ).toStrictEqual({
       items: attributes,
       links: {
@@ -65,8 +65,8 @@ describe("formatAttributes", () => {
         nextPageToken,
         pageSize,
         "",
-        "?test=true"
-      )
+        "?test=true",
+      ),
     ).toStrictEqual({
       items: attributes,
       links: {
@@ -92,8 +92,8 @@ describe("formatAttributes", () => {
         nextPageToken,
         pageSize,
         "",
-        "?test=true"
-      )
+        "?test=true",
+      ),
     ).toStrictEqual({
       items: attributes,
       links: {},

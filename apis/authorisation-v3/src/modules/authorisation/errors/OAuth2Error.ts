@@ -46,7 +46,7 @@ export class OAuth2Error<T extends string = OAuth2ErrorCode> extends Error {
    * @see https://www.rfc-editor.org/rfc/rfc6749.html#section-4.2.2.1
    * @see https://www.rfc-editor.org/rfc/rfc6749.html#section-5.2
    */
-  errorDescription?: string;
+  errorDescription: string | undefined;
 
   /**
    * OPTIONAL. A URI identifying a human-readable web page with information about the error, used
@@ -59,7 +59,7 @@ export class OAuth2Error<T extends string = OAuth2ErrorCode> extends Error {
    * @see https://www.rfc-editor.org/rfc/rfc6749.html#section-4.2.2.1
    * @see https://www.rfc-editor.org/rfc/rfc6749.html#section-5.2
    */
-  errorUri?: string;
+  errorUri: string | undefined;
 
   constructor(errorCode: T, options?: OAuth2ErrorOptions) {
     super(options?.errorDescription);
@@ -70,7 +70,7 @@ export class OAuth2Error<T extends string = OAuth2ErrorCode> extends Error {
     this.statusCode = options?.statusCode ?? 400;
   }
 
-  toString(): string {
+  override toString(): string {
     return `${this.name} - ${this.error}`;
   }
 

@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { importJWK } from "jose";
-import { ec as EC } from "elliptic";
+import elliptic from "elliptic";
 import { ethers } from "hardhat";
 
 export function hex2base64url(dataHex: string): string {
@@ -25,6 +25,7 @@ export async function getPublicKey(_privateKey: string): Promise<{
 }> {
   let privateKey = _privateKey;
   if (privateKey.startsWith("0x")) privateKey = privateKey.slice(2);
+  const EC = elliptic.ec;
   const ec = new EC("secp256k1");
   const privKey = ec.keyFromPrivate(privateKey);
   const pubPoint = privKey.getPublic();
@@ -35,7 +36,7 @@ export async function getPublicKey(_privateKey: string): Promise<{
       x: hex2base64url(pubPoint.getX().toString("hex")),
       y: hex2base64url(pubPoint.getY().toString("hex")),
     },
-    "ES256K"
+    "ES256K",
   );
   const publicKeyObject = publicKey as crypto.KeyObject;
   const publicKeyPem = publicKeyObject

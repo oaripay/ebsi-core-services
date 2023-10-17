@@ -1,6 +1,6 @@
-import { describe, it, expect } from "@jest/globals";
-import { formatNotifications } from "./notifications.formatter";
-import { NotificationResponseObject } from "./notifications.interface";
+import { describe, it, expect } from "vitest";
+import { formatNotifications } from "./notifications.formatter.js";
+import { NotificationResponseObject } from "./notifications.interface.js";
 
 const notifications: NotificationResponseObject[] = [
   {
@@ -100,8 +100,8 @@ describe("formatNotifications", () => {
         pageSize,
         "",
         3,
-        "?test=true"
-      )
+        "?test=true",
+      ),
     ).toStrictEqual({
       items: notifications,
       links: {
@@ -122,8 +122,8 @@ describe("formatNotifications", () => {
         pageSize,
         "",
         3,
-        "?test=true"
-      )
+        "?test=true",
+      ),
     ).toStrictEqual({
       items: notifications,
       links: {
@@ -151,8 +151,8 @@ describe("formatNotifications", () => {
         pageSize,
         "",
         3,
-        "?test=true"
-      )
+        "?test=true",
+      ),
     ).toStrictEqual({
       items: notifications,
       links: {},

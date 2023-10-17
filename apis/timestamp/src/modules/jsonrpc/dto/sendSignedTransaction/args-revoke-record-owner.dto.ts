@@ -2,10 +2,10 @@ import { IsHexadecimal, IsString } from "class-validator";
 
 export class ArgsRevokeRecordOwner {
   @IsHexadecimal()
-  recordId: string;
+  recordId!: string;
 
   @IsString()
-  ownerId: string;
+  ownerId!: string;
 }
 
 export default { ArgsRevokeRecordOwner };

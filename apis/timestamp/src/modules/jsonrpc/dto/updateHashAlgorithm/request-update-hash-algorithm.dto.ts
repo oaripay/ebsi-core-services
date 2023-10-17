@@ -6,19 +6,19 @@ import {
   Equals,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { JsonRpcDto } from "../jsonrpc.dto";
-import { UpdateHashAlgorithmParam } from "./update-hash-algorithm-param.dto";
+import { JsonRpcDto } from "../jsonrpc.dto.js";
+import { UpdateHashAlgorithmParam } from "./update-hash-algorithm-param.dto.js";
 
 export class RequestUpdateHashAlgorithmDto extends JsonRpcDto {
   @Equals("updateHashAlgorithm")
-  method: string;
+  declare method: string;
 
   @IsArray()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @Type(() => UpdateHashAlgorithmParam)
-  params: UpdateHashAlgorithmParam[];
+  declare params: UpdateHashAlgorithmParam[];
 }
 
 export default RequestUpdateHashAlgorithmDto;

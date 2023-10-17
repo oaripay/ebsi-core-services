@@ -3,7 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import type { JWTPayload } from "did-jwt";
 import { verifyJwtTar } from "@cef-ebsi/siop-auth";
 import { UnauthorizedError } from "@ebsiint-api/shared";
-import type { ApiConfig } from "../../config/configuration";
+import type { ApiConfig } from "../../config/configuration.js";
 
 @Injectable()
 export class AuthService {
@@ -13,7 +13,7 @@ export class AuthService {
 
   constructor(configService: ConfigService<ApiConfig, true>) {
     this.trustedAppsRegistry = `${configService.get<string>(
-      "trustedAppsRegistryApiUrl"
+      "trustedAppsRegistryApiUrl",
     )}/apps`;
     this.timeout = configService.get<number>("requestTimeout");
   }

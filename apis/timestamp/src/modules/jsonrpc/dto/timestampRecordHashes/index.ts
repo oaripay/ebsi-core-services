@@ -1,2 +1,2 @@
-export * from "./timestamp-record-hashes-param.dto";
-export * from "./request-timestamp-record-hashes.dto";
+export * from "./timestamp-record-hashes-param.dto.js";
+export * from "./request-timestamp-record-hashes.dto.js";

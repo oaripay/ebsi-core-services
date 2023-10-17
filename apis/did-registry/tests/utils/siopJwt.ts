@@ -1,6 +1,6 @@
 import { URLSearchParams } from "node:url";
 import { randomUUID } from "node:crypto";
-import axios, { AxiosResponse } from "axios";
+import axios, { type AxiosResponse } from "axios";
 import { ConfigService } from "@nestjs/config";
 import {
   Agent as SiopAgent,
@@ -9,9 +9,9 @@ import {
 } from "@cef-ebsi/siop-auth";
 import { exportJWK, generateKeyPair, importJWK } from "jose";
 import { encode } from "@ebsiint-api/shared";
-import { createVP } from "./verifiablePresentation";
-import { createVerifiableAuthorisation } from "./verifiableAuthorisation";
-import { ApiConfig } from "../../src/config/configuration";
+import { createVP } from "./verifiablePresentation.js";
+import { createVerifiableAuthorisation } from "./verifiableAuthorisation.js";
+import type { ApiConfig } from "../../src/config/configuration.js";
 
 export const requestSiopJwt = async ({
   configService,
@@ -27,25 +27,25 @@ export const requestSiopJwt = async ({
   const clientPrivateKey = configService.get<string>("testClientPrivateKey");
   let authorisationApiUrl = configService.get<string>("authorisationApiUrl");
   let trustedAppsRegistryUrl = configService.get<string>(
-    "trustedAppsRegistryApiUrl"
+    "trustedAppsRegistryApiUrl",
   );
 
   // Use TEST_LB_DOMAIN if defined
   if (configService.get<string>("testLoadBalancerDomain")) {
     authorisationApiUrl = authorisationApiUrl.replace(
       configService.get<string>("domain"),
-      configService.get<string>("testLoadBalancerDomain")
+      configService.get<string>("testLoadBalancerDomain"),
     );
     trustedAppsRegistryUrl = trustedAppsRegistryUrl.replace(
       configService.get<string>("domain"),
-      configService.get<string>("testLoadBalancerDomain")
+      configService.get<string>("testLoadBalancerDomain"),
     );
   }
 
   const siopAgent = new SiopAgent({
     privateKey: await importJWK(
       encode.privateKey.fromHexToJWK(clientPrivateKey),
-      alg
+      alg,
     ),
     kid: clientKid,
     alg,
@@ -97,7 +97,7 @@ export const requestSiopJwt = async ({
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-    }
+    },
   );
 
   // 5. Finally, the client verifies the SIOP authentication response and gets an access token
@@ -108,7 +108,7 @@ export const requestSiopJwt = async ({
       privateEncryptionKeyJwk,
       trustedAppsRegistry: `${trustedAppsRegistryUrl}/apps`,
       alg,
-    }
+    },
   );
 
   return accessToken;
@@ -126,16 +126,16 @@ export const requestNewUserSiopJwt = async ({
 }): Promise<string> => {
   let authorisationApiUrl = configService.get<string>("authorisationApiUrl");
   const authorisationCredentialSchema = configService.get<string>(
-    "authorisationCredentialSchema"
+    "authorisationCredentialSchema",
   );
   const usersOnboardingApiPrivateKey = configService.get<string>(
-    "usersOnboardingApiPrivateKey"
+    "usersOnboardingApiPrivateKey",
   );
   const usersOnboardingApiDid = configService.get<string>(
-    "usersOnboardingApiDid"
+    "usersOnboardingApiDid",
   );
   let trustedAppsRegistryUrl = configService.get<string>(
-    "trustedAppsRegistryApiUrl"
+    "trustedAppsRegistryApiUrl",
   );
   let ebsiAuthority = configService
     .get<string>("domain")
@@ -145,15 +145,15 @@ export const requestNewUserSiopJwt = async ({
   if (configService.get<string>("testLoadBalancerDomain")) {
     authorisationApiUrl = authorisationApiUrl.replace(
       configService.get<string>("domain"),
-      configService.get<string>("testLoadBalancerDomain")
+      configService.get<string>("testLoadBalancerDomain"),
     );
     trustedAppsRegistryUrl = trustedAppsRegistryUrl.replace(
       configService.get<string>("domain"),
-      configService.get<string>("testLoadBalancerDomain")
+      configService.get<string>("testLoadBalancerDomain"),
     );
     ebsiAuthority = ebsiAuthority.replace(
       configService.get<string>("domain"),
-      configService.get<string>("testLoadBalancerDomain")
+      configService.get<string>("testLoadBalancerDomain"),
     );
   }
 
@@ -162,7 +162,7 @@ export const requestNewUserSiopJwt = async ({
     authorisationCredentialSchema,
     usersOnboardingApiPrivateKey,
     usersOnboardingApiDid,
-    ebsiAuthority
+    ebsiAuthority,
   );
 
   const nonce = randomUUID();
@@ -183,7 +183,7 @@ export const requestNewUserSiopJwt = async ({
   const agent = new SiopAgent({
     privateKey: await importJWK(
       encode.privateKey.fromHexToJWK(clientPrivateKey),
-      alg
+      alg,
     ),
     kid: clientKid,
     alg,
@@ -247,7 +247,7 @@ export const requestNewUserSiopJwt = async ({
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-    }
+    },
   );
 
   const accessToken = await SiopAgent.verifyAkeResponse(
@@ -257,7 +257,7 @@ export const requestNewUserSiopJwt = async ({
       privateEncryptionKeyJwk,
       trustedAppsRegistry: `${trustedAppsRegistryUrl}/apps`,
       alg,
-    }
+    },
   );
 
   return accessToken;

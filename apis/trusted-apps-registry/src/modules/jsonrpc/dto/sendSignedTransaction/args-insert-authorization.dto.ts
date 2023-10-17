@@ -3,31 +3,31 @@ import { IsDidV1 } from "@ebsiint-api/shared";
 
 export class ArgsInsertAuthorization {
   @IsString()
-  name: string;
+  name!: string;
 
   @IsString()
-  authorizedAppName: string;
+  authorizedAppName!: string;
 
   @IsDidV1()
-  iss: string;
+  iss!: string;
 
   @IsInt()
   @Min(0)
   @Max(3)
-  status: number;
+  status!: number;
 
   @IsInt()
   @Min(0)
   @Max(15)
-  permissions: number;
+  permissions!: number;
 
   @IsInt()
   @Min(0)
-  notBefore: number;
+  notBefore!: number;
 
   @IsInt()
   @Min(0)
-  notAfter: number;
+  notAfter!: number;
 }
 
 export default { ArgsInsertAuthorization };

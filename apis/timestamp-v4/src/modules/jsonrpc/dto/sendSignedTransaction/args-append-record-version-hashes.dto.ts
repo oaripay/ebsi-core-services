@@ -1,5 +1,5 @@
 import { IsInt, IsHexadecimal, Min, IsOptional } from "class-validator";
-import { IsHexadecimalJSON } from "../../validators";
+import { IsHexadecimalJSON } from "../../validators/index.js";
 
 export class ArgsAppendRecordVersionHashes {
   @IsHexadecimal()
@@ -18,7 +18,7 @@ export class ArgsAppendRecordVersionHashes {
 
   @IsOptional()
   @IsHexadecimalJSON({ each: true })
-  timestampData!: string[];
+  timestampData?: string[];
 
   @IsHexadecimalJSON()
   versionInfo!: string;

@@ -1,4 +1,4 @@
-import { ProblemDetailsError } from "./ProblemDetailsError";
+import { ProblemDetailsError } from "./ProblemDetailsError.js";
 
 /**
  * PayloadTooLargeError defines the Payload Too Large (413) error type.
@@ -24,7 +24,7 @@ export class PayloadTooLargeError extends ProblemDetailsError {
       detail?: string;
       instance?: string;
       extensions?: { [x: string]: unknown };
-    }
+    },
   ) {
     super(PayloadTooLargeError.statusCode, title, options);
     this.name = "PayloadTooLargeError";

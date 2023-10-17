@@ -1,3 +1,3 @@
-export * from "./app-usage.repository";
-export * from "./files.repository";
-export * from "./key-values.repository";
+export * from "./app-usage.repository.js";
+export * from "./files.repository.js";
+export * from "./key-values.repository.js";

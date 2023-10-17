@@ -1,5 +1,5 @@
 import { multibase, paginate, PaginatedList } from "@ebsiint-api/shared";
-import { TimestampLink } from "./did-timestamps.interface";
+import { TimestampLink } from "./did-timestamps.interface.js";
 
 export function formatDidTimestamps(
   didTimestamps: {
@@ -10,7 +10,7 @@ export function formatDidTimestamps(
   pageSize: number,
   baseUrl: string,
   identifier?: string,
-  versionId?: number
+  versionId?: number,
 ): PaginatedList<TimestampLink> {
   const { total } = didTimestamps;
 
@@ -23,7 +23,7 @@ export function formatDidTimestamps(
     // Manual pagination when getDidDocumentVersionDidTimestampIds is used
     paginatedItems = didTimestamps.items.slice(
       (page - 1) * pageSize,
-      page * pageSize
+      page * pageSize,
     );
   } else {
     paginatedItems = didTimestamps.items;
@@ -32,7 +32,7 @@ export function formatDidTimestamps(
   // Reshape items
   const items = paginatedItems.map((hash) => {
     const multibaseBase64urlHash = multibase.base64url.encode(
-      Buffer.from(hash.replace(/^0x/, ""), "hex")
+      Buffer.from(hash.replace(/^0x/, ""), "hex"),
     );
 
     return {
@@ -47,7 +47,7 @@ export function formatDidTimestamps(
     total,
     page,
     pageSize,
-    extraQuery
+    extraQuery,
   );
 }
 

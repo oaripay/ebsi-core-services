@@ -1,4 +1,4 @@
-import { ProblemDetailsError } from "./ProblemDetailsError";
+import { ProblemDetailsError } from "./ProblemDetailsError.js";
 
 /**
  * NotAcceptableError defines the Not Acceptable (406) error type.
@@ -24,7 +24,7 @@ export class NotAcceptableError extends ProblemDetailsError {
       detail?: string;
       instance?: string;
       extensions?: { [x: string]: unknown };
-    }
+    },
   ) {
     super(NotAcceptableError.statusCode, title, options);
     this.name = "NotAcceptableError";

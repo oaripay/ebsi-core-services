@@ -11,7 +11,7 @@ export async function getTirInviteAccessToken(
   authorisationApiUrl: string,
   subject: EbsiIssuer,
   vcJwt: string,
-  trustedHostnames: string[]
+  trustedHostnames: string[],
 ) {
   const nonce = randomUUID();
   const vpPayload = {
@@ -33,7 +33,7 @@ export async function getTirInviteAccessToken(
       // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
       exp: Math.floor(Date.now() / 1000) + 100,
       nbf: Math.floor(Date.now() / 1000) - 100,
-    }
+    },
   );
 
   const presentationSubmission = {
@@ -65,7 +65,7 @@ export async function getTirInviteAccessToken(
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-    }
+    },
   );
 
   // Decode access token
@@ -82,7 +82,7 @@ export async function getTirInviteAccessToken(
 export async function getTirWriteAccessToken(
   authorisationApiUrl: string,
   subject: EbsiIssuer,
-  trustedHostnames: string[]
+  trustedHostnames: string[],
 ) {
   const nonce = randomUUID();
   const vpPayload = {
@@ -104,7 +104,7 @@ export async function getTirWriteAccessToken(
       // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
       exp: Math.floor(Date.now() / 1000) + 100,
       nbf: Math.floor(Date.now() / 1000) - 100,
-    }
+    },
   );
 
   const presentationSubmission = {
@@ -125,7 +125,7 @@ export async function getTirWriteAccessToken(
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-    }
+    },
   );
 
   // Decode access token
@@ -142,7 +142,7 @@ export async function getTirWriteAccessToken(
 export async function getDidrWriteAccessToken(
   authorisationApiUrl: string,
   issuer: EbsiIssuer,
-  trustedHostnames: string[]
+  trustedHostnames: string[],
 ) {
   const nonce = randomUUID();
   const vpPayload = {
@@ -164,7 +164,7 @@ export async function getDidrWriteAccessToken(
       // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
       exp: Math.floor(Date.now() / 1000) + 100,
       nbf: Math.floor(Date.now() / 1000) - 100,
-    }
+    },
   );
 
   const presentationSubmission = {
@@ -185,7 +185,7 @@ export async function getDidrWriteAccessToken(
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-    }
+    },
   );
 
   // Decode access token

@@ -1,5 +1,5 @@
 import { IsString, IsInt, Min, Max, IsOptional } from "class-validator";
-import { IsMultihash } from "../../validators";
+import { IsMultihash } from "../../validators/index.js";
 
 export class ArgsInsertHashAlgorithm {
   @IsInt()

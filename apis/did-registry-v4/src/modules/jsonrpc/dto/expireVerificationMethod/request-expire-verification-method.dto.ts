@@ -6,19 +6,19 @@ import {
   Equals,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { JsonRpcDto } from "../jsonrpc.dto";
-import { ExpireVerificationMethodParam } from "./expire-verification-method-param.dto";
+import { JsonRpcDto } from "../jsonrpc.dto.js";
+import { ExpireVerificationMethodParam } from "./expire-verification-method-param.dto.js";
 
 export class RequestExpireVerificationMethodDto extends JsonRpcDto {
   @Equals("expireVerificationMethod")
-  method!: "expireVerificationMethod";
+  declare method: "expireVerificationMethod";
 
   @IsArray()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @Type(() => ExpireVerificationMethodParam)
-  params!: ExpireVerificationMethodParam[];
+  declare params: ExpireVerificationMethodParam[];
 }
 
 export default RequestExpireVerificationMethodDto;

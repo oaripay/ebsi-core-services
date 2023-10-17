@@ -10,22 +10,22 @@ import {
   decrypt,
 } from "@ebsiint-api/shared";
 import { ConfigService } from "@nestjs/config";
-import axios, { AxiosResponse } from "axios";
+import axios, { type AxiosResponse } from "axios";
 import jsonpatch, { Operation } from "fast-json-patch";
 import { decodeJWT } from "did-jwt";
 import { Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
-import { ApiConfig } from "../../config/configuration";
+import type { ApiConfig } from "../../config/configuration.js";
 import {
   AttributeResponseObject,
   AttributeCassandraModel,
   AxiosResponseJsonRpc,
   CassandraResponse,
-} from "./attributes.interface";
-import { AttributeBodyDto, PatchAttributeBody } from "./dto";
+} from "./attributes.interface.js";
+import { AttributeBodyDto, PatchAttributeBody } from "./dto/index.js";
 
 interface PageOpts {
-  fetchSize: number;
-  pageState: string;
+  fetchSize?: number;
+  pageState?: string;
 }
 
 const SHARED_PREFIX = "__shared__";
@@ -47,9 +47,9 @@ export class AttributesService {
 
   private storageUri: string;
 
-  private accessTokenExp: number;
+  private accessTokenExp: number | undefined;
 
-  private accessToken: string;
+  private accessToken: string | undefined;
 
   private agent: Agent;
 
@@ -70,7 +70,7 @@ export class AttributesService {
       privateKey: configService.get<string>("apiPrivateKey"),
       name: configService.get<string>("apiName"),
       trustedAppsRegistry: `${configService.get<string>(
-        "trustedAppsRegistryApiUrl"
+        "trustedAppsRegistryApiUrl",
       )}/apps`,
     });
     this.timeout = configService.get<number>("requestTimeout");
@@ -90,7 +90,7 @@ export class AttributesService {
 
     const requestComponent = await this.agent.createRequest(
       this.storageApiName,
-      { nonce }
+      { nonce },
     );
 
     // Send request payload to Authorisation API
@@ -126,7 +126,7 @@ export class AttributesService {
   }
 
   async storageJsonrpc(
-    params: (string | PageOpts)[]
+    params: (string | PageOpts)[],
   ): Promise<CassandraResponse> {
     await this.checkSession();
 
@@ -147,7 +147,7 @@ export class AttributesService {
     const response: AxiosResponseJsonRpc = await axios.post(
       this.urlJsonrpcStorage,
       data,
-      opts
+      opts,
     );
     return response.data.result as CassandraResponse;
   }
@@ -165,7 +165,7 @@ export class AttributesService {
   async getAttributes(
     did: string,
     pageAfter: string,
-    fetchSize: number
+    fetchSize: number,
   ): Promise<{ attributes: AttributeResponseObject[]; pageAfter: string }> {
     // Note: The page state token can be manipulated to retrieve other results within the same
     // column family, so it is not safe to expose it to the users in plain text.
@@ -256,7 +256,7 @@ export class AttributesService {
 
   async insertAttribute(
     hash: string,
-    attribute: AttributeBodyDto
+    attribute: AttributeBodyDto,
   ): Promise<AttributeResponseObject> {
     await this.storageJsonrpc([
       "insert into attribute_storage (hash, did, visibility, shared_with, content_type, data, data_label) values (?, ?, ?, ?, ?, ?, ?)",
@@ -285,7 +285,7 @@ export class AttributesService {
   async patchAttribute(
     hash: string,
     did: string,
-    patch: PatchAttributeBody[]
+    patch: PatchAttributeBody[],
   ): Promise<AttributeResponseObject> {
     const oldAttribute = await this.getAttribute(hash);
 
@@ -308,7 +308,7 @@ export class AttributesService {
       oldAttribute,
       patch as Operation[],
       false,
-      false
+      false,
     ).newDocument;
 
     await this.storageJsonrpc([

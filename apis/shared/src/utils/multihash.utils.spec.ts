@@ -1,5 +1,5 @@
-import { describe, it, expect } from "@jest/globals";
-import { multihashEncode } from "./multihash.utils";
+import { describe, it, expect } from "vitest";
+import { multihashEncode } from "./multihash.utils.js";
 
 describe("multihashEncode", () => {
   it("should produce the expected result", () => {
@@ -9,22 +9,22 @@ describe("multihashEncode", () => {
       Buffer.from(
         multihashEncode(
           "41dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8",
-          "sha2-256"
-        )
-      ).toString("hex")
+          "sha2-256",
+        ),
+      ).toString("hex"),
     ).toBe(
-      "122041dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8"
+      "122041dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8",
     );
 
     expect(
       Buffer.from(
         multihashEncode(
           "41dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8",
-          "sha3-256"
-        )
-      ).toString("hex")
+          "sha3-256",
+        ),
+      ).toString("hex"),
     ).toBe(
-      "162041dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8"
+      "162041dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8",
     );
 
     // Same result whether the input string is prefixed with 0x or not
@@ -32,11 +32,11 @@ describe("multihashEncode", () => {
       Buffer.from(
         multihashEncode(
           "0x41dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8",
-          "sha2-256"
-        )
-      ).toString("hex")
+          "sha2-256",
+        ),
+      ).toString("hex"),
     ).toBe(
-      "122041dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8"
+      "122041dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8",
     );
 
     // Should support truncated hashes (here, 8 bytes)
@@ -45,14 +45,14 @@ describe("multihashEncode", () => {
         multihashEncode(
           Buffer.from(
             "41dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8",
-            "hex"
+            "hex",
           )
             .slice(0, 8)
             .toString("hex"),
           "sha2-256",
-          8
-        )
-      ).toString("hex")
+          8,
+        ),
+      ).toString("hex"),
     ).toBe("120841dd7b6443542e75");
   });
 
@@ -62,15 +62,15 @@ describe("multihashEncode", () => {
     expect(() =>
       multihashEncode(
         "41dd7b6443542e75701aa98a0c235951a28a0d851b11XXX64d20022ab11d2589a8",
-        "sha2-256"
-      )
+        "sha2-256",
+      ),
     ).toThrow(new Error("Non-base16 character"));
 
     expect(() =>
       multihashEncode(
         "41dd7b6443542e75701aa98a0c235951a28a0d851b11564d22ab11d2589a8",
-        "sha2-256"
-      )
+        "sha2-256",
+      ),
     ).toThrow(new Error("Unexpected end of data"));
   });
 
@@ -82,8 +82,8 @@ describe("multihashEncode", () => {
         "41dd7b6443542e75701aa98a0c235951a28a0d851b11564d20022ab11d2589a8",
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore Ignored for the test
-        "test"
-      )
+        "test",
+      ),
     ).toThrow(new Error("Unrecognized hash function named: test"));
   });
 });

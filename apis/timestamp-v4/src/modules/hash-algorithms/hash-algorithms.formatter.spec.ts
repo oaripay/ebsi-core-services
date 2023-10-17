@@ -1,7 +1,7 @@
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 import { ethers } from "ethers";
 import { Timestamp } from "@ebsiint-sc/timestamp-v2";
-import { formatHashAlgorithms } from "./hash-algorithms.formatter";
+import { formatHashAlgorithms } from "./hash-algorithms.formatter.js";
 
 describe("formatHashAlgorithms", () => {
   const hashAlgorithms = {
@@ -19,7 +19,7 @@ describe("formatHashAlgorithms", () => {
     const pageSize = 2;
 
     expect(
-      formatHashAlgorithms(hashAlgorithms, page, pageSize, "", "?test=true")
+      formatHashAlgorithms(hashAlgorithms, page, pageSize, "", "?test=true"),
     ).toStrictEqual({
       items: [
         {

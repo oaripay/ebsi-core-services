@@ -1,9 +1,9 @@
 import { Module } from "@nestjs/common";
 import { PassportModule } from "@nestjs/passport";
-import { ApiConfigModule } from "../../config/configuration";
-import { AuthService } from "./auth.service";
-import { OAuth2JwtStrategy, SiopJwtStrategy } from "./strategies";
-import { JwtCacheService } from "./jwt-cache.service";
+import { ApiConfigModule } from "../../config/configuration.js";
+import { AuthService } from "./auth.service.js";
+import { OAuth2JwtStrategy, SiopJwtStrategy } from "./strategies/index.js";
+import { JwtCacheService } from "./jwt-cache.service.js";
 
 @Module({
   imports: [ApiConfigModule, PassportModule],

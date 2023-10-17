@@ -1,7 +1,7 @@
 // Copied from https://github.com/algoan/nestjs-components/blob/master/packages/logging-interceptor/src/logging.interceptor.ts
 import {
-  CallHandler,
-  ExecutionContext,
+  type CallHandler,
+  type ExecutionContext,
   HttpException,
   HttpStatus,
   Injectable,
@@ -28,7 +28,7 @@ export class LoggingInterceptor implements NestInterceptor {
    */
   public intercept(
     context: ExecutionContext,
-    call$: CallHandler
+    call$: CallHandler,
   ): Observable<unknown> {
     const req: FastifyRequest = context
       .switchToHttp()
@@ -44,7 +44,7 @@ export class LoggingInterceptor implements NestInterceptor {
         body,
         headers,
       },
-      ctx
+      ctx,
     );
 
     return call$.handle().pipe(
@@ -55,7 +55,7 @@ export class LoggingInterceptor implements NestInterceptor {
         error: (err: Error): void => {
           this.logError(err, context);
         },
-      })
+      }),
     );
   }
 
@@ -81,7 +81,7 @@ export class LoggingInterceptor implements NestInterceptor {
         message,
         body,
       },
-      ctx
+      ctx,
     );
   }
 
@@ -100,7 +100,7 @@ export class LoggingInterceptor implements NestInterceptor {
       const statusCode: number = error.getStatus();
       const ctx = `${this.ctxPrefix} - ${statusCode} - ${method} - ${url}`;
       const message = `Outgoing response - ${statusCode} - ${method} - ${url}`;
-
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
       if (statusCode >= HttpStatus.INTERNAL_SERVER_ERROR) {
         this.logger.error(
           {
@@ -111,7 +111,7 @@ export class LoggingInterceptor implements NestInterceptor {
             error,
           },
           error.stack,
-          ctx
+          ctx,
         );
       } else {
         this.logger.warn(
@@ -122,7 +122,7 @@ export class LoggingInterceptor implements NestInterceptor {
             body,
             message,
           },
-          ctx
+          ctx,
         );
       }
     } else {
@@ -131,7 +131,7 @@ export class LoggingInterceptor implements NestInterceptor {
           message: `Outgoing response - ${method} - ${url}`,
         },
         error.stack,
-        `${this.ctxPrefix} - ${method} - ${url}`
+        `${this.ctxPrefix} - ${method} - ${url}`,
       );
     }
   }

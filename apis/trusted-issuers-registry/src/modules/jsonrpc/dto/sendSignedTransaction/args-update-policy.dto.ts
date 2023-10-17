@@ -2,10 +2,10 @@ import { IsString, IsHexadecimal } from "class-validator";
 
 export class ArgsUpdatePolicy {
   @IsString()
-  policyId: string;
+  policyId!: string;
 
   @IsHexadecimal()
-  policyData: string;
+  policyData!: string;
 }
 
 export default ArgsUpdatePolicy;

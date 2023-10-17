@@ -1,11 +1,11 @@
 import { Controller, Post, Body, HttpCode } from "@nestjs/common";
 import type { AkeResponse } from "@cef-ebsi/oauth2-auth";
-import { AuthorisationService } from "./authorisation.service";
+import { AuthorisationService } from "./authorisation.service.js";
 import {
   AuthenticationRequestDto,
   OAuth2SessionDto,
   SiopSessionDto,
-} from "./dto";
+} from "./dto/index.js";
 
 @Controller("/")
 export class AuthorisationController {
@@ -15,7 +15,7 @@ export class AuthorisationController {
   @Post("/authentication-requests")
   async authenticationRequests(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    @Body() _body: AuthenticationRequestDto
+    @Body() _body: AuthenticationRequestDto,
   ): Promise<string> {
     return this.authorisationService.authenticationRequest();
   }

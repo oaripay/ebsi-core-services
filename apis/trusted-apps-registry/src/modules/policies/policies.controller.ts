@@ -1,25 +1,25 @@
 import { Controller, Get, Query, Param } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PaginationQuery, PaginatedList } from "@ebsiint-api/shared";
-import PoliciesService from "./policies.service";
-import { formatPolicies, formatRevisions } from "./policies.formatter";
-import { PolicyResponseObject, PolicyLink } from "./policies.interface";
-import { ApiConfig } from "../../config/configuration";
+import PoliciesService from "./policies.service.js";
+import { formatPolicies, formatRevisions } from "./policies.formatter.js";
+import { PolicyResponseObject, PolicyLink } from "./policies.interface.js";
+import type { ApiConfig } from "../../config/configuration.js";
 
 @Controller("/policies")
 export default class PoliciesController {
   constructor(
     private policiesService: PoliciesService,
-    private configService: ConfigService<ApiConfig, true>
+    private configService: ConfigService<ApiConfig, true>,
   ) {}
 
   @Get("")
   async getPolicies(
-    @Query() query: PaginationQuery
+    @Query() query: PaginationQuery,
   ): Promise<PaginatedList<PolicyLink>> {
     const policies = await this.policiesService.getPolicies(
       query["page[after]"],
-      query["page[size]"]
+      query["page[size]"],
     );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
@@ -30,13 +30,13 @@ export default class PoliciesController {
       policies,
       query["page[after]"],
       query["page[size]"],
-      baseUrl
+      baseUrl,
     );
   }
 
   @Get("/:policyId")
   async getPolicy(
-    @Param() params: { policyId?: string }
+    @Param() params: { policyId: string },
   ): Promise<PolicyResponseObject> {
     const { policyId } = params;
 
@@ -51,28 +51,28 @@ export default class PoliciesController {
 
   @Get("/:policyId/revisions")
   async getPolicyRevisions(
-    @Param() params: { policyId?: string },
-    @Query() query: PaginationQuery
+    @Param() params: { policyId: string },
+    @Query() query: PaginationQuery,
   ): Promise<PaginatedList<PolicyResponseObject>> {
     const { policyId } = params;
 
     const revisions = await this.policiesService.getPolicyRevisions(
       policyId,
       query["page[after]"],
-      query["page[size]"]
+      query["page[size]"],
     );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
     const domain = this.configService.get<string>("domain");
     const baseUrl = `${domain}${apiUrlPrefix}/policies/${encodeURIComponent(
-      policyId
+      policyId,
     )}/revisions`;
 
     return formatRevisions(
       revisions,
       query["page[after]"],
       query["page[size]"],
-      baseUrl
+      baseUrl,
     );
   }
 }

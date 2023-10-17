@@ -6,7 +6,7 @@ import crypto from "node:crypto";
 import { Contract, ethers } from "ethers";
 import { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry-v2";
 import { computeId } from "@ebsiint-api/shared";
-import { createDid, createSchema } from "./data";
+import { createDid, createSchema } from "./data.js";
 
 interface User {
   wallet: ethers.Wallet;
@@ -27,7 +27,7 @@ interface SchemaMetadataObject {
 }
 
 export async function insertSchema(
-  contract: SchemaSCRegistry
+  contract: SchemaSCRegistry,
 ): Promise<SchemaObject> {
   const schema = createSchema();
 
@@ -56,7 +56,7 @@ export async function insertSchema(
 
 export async function updateSchema(
   schemaId: string,
-  contract: SchemaSCRegistry
+  contract: SchemaSCRegistry,
 ): Promise<SchemaObject> {
   const schema = createSchema();
 
@@ -83,7 +83,7 @@ export async function updateSchema(
 
 export async function updateMetadata(
   schemaRevisionId: string,
-  contract: SchemaSCRegistry
+  contract: SchemaSCRegistry,
 ): Promise<SchemaMetadataObject> {
   const metadata = {
     meta: "value",
@@ -104,13 +104,12 @@ export async function deploySchemasRegistryContract(): Promise<{
   policyContractMock: Contract;
 }> {
   const testTprAddress = "0xb2a560271ce08135e245F490b8794794A13a1208";
-  const policyRegistryFactory = await hre.ethers.getContractFactory(
-    "PolicyRegistryMock"
-  );
+  const policyRegistryFactory =
+    await hre.ethers.getContractFactory("PolicyRegistryMock");
   const tempPolicyContract = await policyRegistryFactory.deploy();
   await tempPolicyContract.deployed();
   const bytecode = await hre.ethers.provider.getCode(
-    tempPolicyContract.address
+    tempPolicyContract.address,
   );
   await hre.network.provider.send("hardhat_setCode", [
     testTprAddress,
@@ -134,7 +133,7 @@ export async function deploySchemasRegistryContract(): Promise<{
       libraries: {
         SchemaLib: schemaLib.address,
       },
-    }
+    },
   );
   const schemasRegistry = await schemasRegistryFactory.deploy(testTprAddress);
   await policyContractMock.setPolicyResult(true);
@@ -153,7 +152,7 @@ export async function setupTestEnv(
     schemasTotal: 1,
     schemaRevisionsTotal: 1,
     schemaMetadataTotal: 1,
-  }
+  },
 ): Promise<{
   provider: ethers.providers.JsonRpcProvider;
   schemasRegistryContract: SchemaSCRegistry;
@@ -182,20 +181,20 @@ export async function setupTestEnv(
   const schemas = await Promise.all(
     Array(opts.schemasTotal ?? 1)
       .fill(0)
-      .map(() => insertSchema(schemasRegistryContract))
+      .map(() => insertSchema(schemasRegistryContract)),
   );
 
   const schemaRevisions = await Promise.all(
     Array(Math.max(0, (opts.schemaRevisionsTotal ?? 1) - 1))
       .fill(0)
-      .map(() => updateSchema(schemas[0].schemaId, schemasRegistryContract))
+      .map(() => updateSchema(schemas[0]!.schemaId, schemasRegistryContract)),
   );
 
-  const schemaRevisionId = ethers.utils.sha256(schemas[0].serializedSchema);
+  const schemaRevisionId = ethers.utils.sha256(schemas[0]!.serializedSchema);
   const schemaMetadata = await Promise.all(
     Array(Math.max(0, (opts.schemaMetadataTotal ?? 1) - 1))
       .fill(0)
-      .map(() => updateMetadata(schemaRevisionId, schemasRegistryContract))
+      .map(() => updateMetadata(schemaRevisionId, schemasRegistryContract)),
   );
 
   // Return test env variables

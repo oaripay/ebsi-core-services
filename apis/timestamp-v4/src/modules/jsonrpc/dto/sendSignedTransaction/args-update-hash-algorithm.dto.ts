@@ -1,5 +1,5 @@
 import { IsInt, Min } from "class-validator";
-import { ArgsInsertHashAlgorithm } from "./args-insert-hash-algorithm.dto";
+import { ArgsInsertHashAlgorithm } from "./args-insert-hash-algorithm.dto.js";
 
 export class ArgsUpdateHashAlgorithm extends ArgsInsertHashAlgorithm {
   @IsInt()

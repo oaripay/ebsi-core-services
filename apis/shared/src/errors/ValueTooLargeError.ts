@@ -1,4 +1,4 @@
-import { PayloadTooLargeError } from "./PayloadTooLargeError";
+import { PayloadTooLargeError } from "./PayloadTooLargeError.js";
 
 export class ValueTooLargeError extends PayloadTooLargeError {
   constructor(detail: string) {

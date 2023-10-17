@@ -1,9 +1,9 @@
-import { JsonWebKey } from "node:crypto";
-import { ec as EC } from "elliptic";
+import type { JsonWebKey } from "node:crypto";
+import elliptic from "elliptic";
 import { base64url, calculateJwkThumbprint } from "jose";
 import { validateSync } from "class-validator";
-import { ClassConstructor, ClassTransformer } from "class-transformer";
-import { ClassValidatorError } from "./errors";
+import { type ClassConstructor, ClassTransformer } from "class-transformer";
+import { ClassValidatorError } from "./errors/index.js";
 
 /**
  * Transform an ES256 private key into a JWK public key.
@@ -16,6 +16,7 @@ export async function fromHexToJWK(hexPrivateKey: string): Promise<JsonWebKey> {
     throw new Error("You must provide a non-empty hexadecimal private key");
   }
 
+  const EC = elliptic.ec;
   const ec = new EC("p256");
 
   // Get key pair from hex private key
@@ -29,13 +30,13 @@ export async function fromHexToJWK(hexPrivateKey: string): Promise<JsonWebKey> {
 
   // Format as JWK
   const pubPoint = keyPair.getPublic();
-  const jwk: JsonWebKey = {
+  const jwk = {
     kty: "EC",
     crv: "P-256",
     alg: "ES256",
     x: base64url.encode(pubPoint.getX().toBuffer("be", 32)),
     y: base64url.encode(pubPoint.getY().toBuffer("be", 32)),
-  };
+  } satisfies JsonWebKey;
 
   const thumbprint = await calculateJwkThumbprint(jwk);
 
@@ -52,7 +53,7 @@ export async function fromHexToJWK(hexPrivateKey: string): Promise<JsonWebKey> {
  */
 export function parseDto<T extends object>(
   data: unknown,
-  cls: ClassConstructor<T>
+  cls: ClassConstructor<T>,
 ): T {
   const dataClass = new ClassTransformer().plainToInstance(cls, data);
 
@@ -61,7 +62,7 @@ export function parseDto<T extends object>(
   });
 
   if (errors.length > 0) {
-    throw new ClassValidatorError(errors[0]); // Return only the first error
+    throw new ClassValidatorError(errors[0]!); // Return only the first error
   }
 
   return dataClass;

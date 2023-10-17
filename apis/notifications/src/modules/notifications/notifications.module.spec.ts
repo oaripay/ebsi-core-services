@@ -1,72 +1,61 @@
-import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
-import crypto, { randomBytes } from "node:crypto";
+import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
+import crypto from "node:crypto";
 import axios from "axios";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import { INestApplication, Logger, HttpServer } from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import * as SiopLib from "@cef-ebsi/siop-auth";
 import type { JWTVerifyResult } from "jose";
 import * as OAuth2Lib from "@cef-ebsi/oauth2-auth";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import jsonwebtoken from "jsonwebtoken";
-import {
-  EBSI_DID_METHOD_PREFIX,
-  EBSI_DID_SPECS,
-} from "@cef-ebsi/ebsi-did-resolver";
-import { base58btc } from "multiformats/bases/base58";
-import { NotificationsModule } from "./notifications.module";
-import { CassandraResponse, Notification } from "./notifications.interface";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { EbsiValidationPipe } from "../../pipes/ebsi-validation.pipe";
+import { NotificationsModule } from "./notifications.module.js";
+import { CassandraResponse, Notification } from "./notifications.interface.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import { EbsiValidationPipe } from "../../pipes/ebsi-validation.pipe.js";
 import {
   createNotification,
   createToken,
-} from "../../../tests/utils/notifications";
-import { ApiConfig } from "../../config/configuration";
+} from "../../../tests/utils/notifications.js";
+import type { ApiConfig } from "../../config/configuration.js";
 
-jest.mock("@cef-ebsi/siop-auth", () => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const originalModule = jest.requireActual("@cef-ebsi/siop-auth");
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+vi.mock("@cef-ebsi/siop-auth", async () => {
+  const mod = await vi.importActual<typeof import("@cef-ebsi/siop-auth")>(
+    "@cef-ebsi/siop-auth",
+  );
+  // Return a mocked version so we can redefine property `verifyJwtTar` later
   return {
-    __esModule: true,
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    ...originalModule,
-    verifyJwtTar: jest.fn(),
+    ...mod,
+    verifyJwtTar: vi.fn(),
   };
 });
 
-jest.mock("@cef-ebsi/oauth2-auth", () => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const originalModule = jest.requireActual("@cef-ebsi/oauth2-auth");
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+vi.mock("@cef-ebsi/oauth2-auth", async () => {
+  const mod = await vi.importActual<typeof import("@cef-ebsi/oauth2-auth")>(
+    "@cef-ebsi/oauth2-auth",
+  );
+  // Return a mocked version so we can redefine property `verifyJwtTar` later
   return {
-    __esModule: true,
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    ...originalModule,
-    verifyJwtTar: jest.fn(),
+    ...mod,
+    verifyJwtTar: vi.fn(),
   };
 });
 
 describe("Notifications module", () => {
-  let app: INestApplication;
-  let server: HttpServer;
+  let app: NestFastifyApplication;
+  let server: RawServerDefault;
   let selectCountResponse: CassandraResponse;
   let selectResponse: CassandraResponse;
   let modifyResponse: CassandraResponse;
   let configService: ConfigService<ApiConfig, true>;
 
-  function cassandraResponse(rows: unknown[], pageState: string = null) {
+  function cassandraResponse(rows: unknown[], pageState: string = "") {
     return {
       info: { isSchemaInAgreement: true },
       first: () => rows[0],
@@ -101,7 +90,7 @@ describe("Notifications module", () => {
       audience: "storage-api",
       issuer: "authorisation-api",
       expiresIn: 3600,
-    }
+    },
   );
 
   beforeAll(async () => {
@@ -110,7 +99,7 @@ describe("Notifications module", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     // Turn off logger
@@ -122,10 +111,10 @@ describe("Notifications module", () => {
     app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new EbsiValidationPipe());
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    await app.getHttpAdapter().getInstance().ready();
+    server = app.getHttpServer();
 
-    jest.spyOn(axios, "get").mockImplementation(async (url) => {
+    vi.spyOn(axios, "get").mockImplementation(async (url) => {
       if (url.includes(sender.did) || url.includes(legalEntityRecipient.did))
         return Promise.resolve({
           data: {
@@ -135,7 +124,7 @@ describe("Notifications module", () => {
       throw new Error("Forgot to mock axios get?");
     });
 
-    jest.spyOn(axios, "post").mockImplementation(async (url, data) => {
+    vi.spyOn(axios, "post").mockImplementation(async (url, data) => {
       if (url.includes("/oauth2-sessions")) return { data: {} };
       if (!url.includes("/jsonrpc"))
         throw new Error(`Forgot to mock axios post? url: ${url}`);
@@ -144,11 +133,11 @@ describe("Notifications module", () => {
       const { params } = d;
       if (!Array.isArray(params))
         throw new Error("mock: data must be an Array");
-      if (params[0].includes("count(*)"))
+      if (params[0]!.includes("count(*)"))
         return Promise.resolve({
           data: { result: selectCountResponse },
         });
-      if (params[0].includes("select"))
+      if (params[0]!.includes("select"))
         return Promise.resolve({
           data: { result: selectResponse },
         });
@@ -157,9 +146,8 @@ describe("Notifications module", () => {
       });
     });
 
-    jest
-      .spyOn(SiopLib, "verifyJwtTar")
-      .mockImplementation(async (token: string): Promise<JWTVerifyResult> => {
+    vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(
+      async (token: string): Promise<JWTVerifyResult> => {
         if (token === sender.token) {
           return Promise.resolve({
             payload: { sub: sender.did },
@@ -173,18 +161,15 @@ describe("Notifications module", () => {
         }
 
         throw new Error("verifyAccessToken failed");
-      });
+      },
+    );
 
-    jest
-      .spyOn(OAuth2Lib.Agent.prototype, "verifyAkeResponse")
-      .mockImplementation(async () => Promise.resolve(accessTokenApi));
+    vi.spyOn(OAuth2Lib.Agent.prototype, "verifyAkeResponse").mockImplementation(
+      async () => Promise.resolve(accessTokenApi),
+    );
   });
 
   afterAll(async () => {
-    // Avoid jest open handle error
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
     await app.close();
   });
 
@@ -212,7 +197,7 @@ describe("Notifications module", () => {
 
       const notification = createNotification(
         sender.did,
-        legalEntityRecipient.did
+        legalEntityRecipient.did,
       );
 
       const notificationId = crypto
@@ -232,44 +217,7 @@ describe("Notifications module", () => {
       expect(response.headers).toStrictEqual(
         expect.objectContaining({
           location: expect.stringContaining(`/notifications/${notificationId}`),
-        })
-      );
-    });
-
-    it("should accept a valid payload with a NP (did:ebsi v2, legacy) as recipient", async () => {
-      expect.assertions(3);
-
-      const bytesArray = new Uint8Array(
-        1 + EBSI_DID_SPECS.NATURAL_PERSON.BYTE_LENGTH
-      );
-      bytesArray.set([EBSI_DID_SPECS.NATURAL_PERSON.VERSION_ID]);
-      bytesArray.set(randomBytes(EBSI_DID_SPECS.NATURAL_PERSON.BYTE_LENGTH), 1);
-      const methodSpecificIdentifier = base58btc.encode(bytesArray);
-      const naturalPersonRecipientDid = `${EBSI_DID_METHOD_PREFIX}${methodSpecificIdentifier}`;
-
-      const notification = createNotification(
-        sender.did,
-        naturalPersonRecipientDid
-      );
-
-      const notificationId = crypto
-        .createHash("sha3-256")
-        .update(JSON.stringify(notification), "utf8")
-        .digest("hex");
-
-      modifyResponse = cassandraResponse([]);
-
-      const response = await request(server)
-        .post("/notifications")
-        .auth(sender.token, { type: "bearer" })
-        .send(notification);
-
-      expect(response.body).toStrictEqual(notification);
-      expect(response.status).toBe(201);
-      expect(response.headers).toStrictEqual(
-        expect.objectContaining({
-          location: expect.stringContaining(`/notifications/${notificationId}`),
-        })
+        }),
       );
     });
 
@@ -285,12 +233,12 @@ describe("Notifications module", () => {
 
       const naturalPersonRecipientDid = EbsiWallet.createDid(
         "NATURAL_PERSON",
-        naturalPersonRecipientJwk
+        naturalPersonRecipientJwk,
       );
 
       const notification = createNotification(
         sender.did,
-        naturalPersonRecipientDid
+        naturalPersonRecipientDid,
       );
 
       const notificationId = crypto
@@ -310,7 +258,7 @@ describe("Notifications module", () => {
       expect(response.headers).toStrictEqual(
         expect.objectContaining({
           location: expect.stringContaining(`/notifications/${notificationId}`),
-        })
+        }),
       );
     });
 
@@ -473,7 +421,7 @@ describe("Notifications module", () => {
       // Expiration date greater than 5 days
       notification = createNotification(sender.did, legalEntityRecipient.did);
       notification.expirationDate = new Date(
-        new Date(notification.issuanceDate).getTime() + 6 * 86400 * 1000
+        new Date(notification.issuanceDate).getTime() + 6 * 86400 * 1000,
       ).toISOString();
 
       response = await request(server)
@@ -500,14 +448,14 @@ describe("Notifications module", () => {
         {
           notification: createNotification(
             sender.did,
-            legalEntityRecipient.did
+            legalEntityRecipient.did,
           ),
           id: "id1",
         },
         {
           notification: createNotification(
             sender.did,
-            legalEntityRecipient.did
+            legalEntityRecipient.did,
           ),
           id: "id2",
         },
@@ -527,7 +475,7 @@ describe("Notifications module", () => {
       selectResponse = cassandraResponse(storedNotifications, "123");
 
       resultNotifications.sort((a, b) =>
-        a.notification.issuanceDate > b.notification.issuanceDate ? 1 : -1
+        a.notification.issuanceDate > b.notification.issuanceDate ? 1 : -1,
       );
 
       const response = await request(server)
@@ -566,7 +514,7 @@ describe("Notifications module", () => {
         {
           notification: createNotification(
             sender.did,
-            legalEntityRecipient.did
+            legalEntityRecipient.did,
           ),
           id: "id1",
         },
@@ -583,14 +531,14 @@ describe("Notifications module", () => {
       selectCountResponse = cassandraResponseCount(1);
       selectResponse = cassandraResponse(storedNotifications, "123");
 
-      const notificationId = storedNotifications[0].id;
+      const notificationId = storedNotifications[0]!.id;
 
       const response = await request(server)
         .get(`/notifications/${notificationId}`)
         .auth(legalEntityRecipient.token, { type: "bearer" })
         .send();
 
-      expect(response.body).toStrictEqual(resultNotifications[0].notification);
+      expect(response.body).toStrictEqual(resultNotifications[0]!.notification);
       expect(response.status).toBe(200);
     });
 
@@ -623,7 +571,7 @@ describe("Notifications module", () => {
         {
           notification: createNotification(
             sender.did,
-            legalEntityRecipient.did
+            legalEntityRecipient.did,
           ),
           id: "id1",
         },

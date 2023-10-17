@@ -1,6 +1,6 @@
 import { URLSearchParams } from "node:url";
 import { randomUUID } from "node:crypto";
-import axios, { AxiosResponse } from "axios";
+import axios, { type AxiosResponse } from "axios";
 import {
   Agent as SiopAgent,
   AkeResponse as SiopAkeResponse,
@@ -9,7 +9,7 @@ import {
 import { encode } from "@ebsiint-api/shared";
 import { exportJWK, generateKeyPair, importJWK, JWK } from "jose";
 import { ConfigService } from "@nestjs/config";
-import { ApiConfig } from "../../src/config/configuration";
+import type { ApiConfig } from "../../src/config/configuration.js";
 
 export const requestSiopJwt = async ({
   clientKid,
@@ -29,18 +29,18 @@ export const requestSiopJwt = async ({
 
   let authorisationApiUrl = configService.get<string>("authorisationApiUrl");
   let trustedAppsRegistryApiUrl = configService.get<string>(
-    "trustedAppsRegistryApiUrl"
+    "trustedAppsRegistryApiUrl",
   );
 
   // Use TEST_LB_DOMAIN if defined
   if (configService.get<string>("testLoadBalancerDomain")) {
     authorisationApiUrl = authorisationApiUrl.replace(
       configService.get<string>("domain"),
-      configService.get<string>("testLoadBalancerDomain")
+      configService.get<string>("testLoadBalancerDomain"),
     );
     trustedAppsRegistryApiUrl = trustedAppsRegistryApiUrl.replace(
       configService.get<string>("domain"),
-      configService.get<string>("testLoadBalancerDomain")
+      configService.get<string>("testLoadBalancerDomain"),
     );
   }
 
@@ -49,7 +49,7 @@ export const requestSiopJwt = async ({
       typeof clientPrivateKey === "string"
         ? encode.privateKey.fromHexToJWK(clientPrivateKey)
         : clientPrivateKey,
-      alg
+      alg,
     ),
     kid: clientKid,
     alg,
@@ -90,7 +90,7 @@ export const requestSiopJwt = async ({
     {
       responseMode: "form_post",
       syntaxType,
-    }
+    },
   );
 
   const { idToken } = authenticationResponse;
@@ -110,7 +110,7 @@ export const requestSiopJwt = async ({
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-    }
+    },
   );
 
   // 5. Finally, the client verifies the SIOP authentication response and gets an access token
@@ -121,7 +121,7 @@ export const requestSiopJwt = async ({
       privateEncryptionKeyJwk,
       trustedAppsRegistry: `${trustedAppsRegistryApiUrl}/apps`,
       alg,
-    }
+    },
   );
 
   return accessToken;

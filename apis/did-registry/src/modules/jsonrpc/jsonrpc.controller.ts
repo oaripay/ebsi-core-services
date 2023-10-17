@@ -1,8 +1,8 @@
 import { Controller, Body, Post, HttpCode, UseGuards } from "@nestjs/common";
 import { InvalidRequestJsonRpcError } from "@ebsiint-api/shared";
-import { JsonRpcService } from "./jsonrpc.service";
-import { JsonRpcResponseObject } from "./jsonrpc.interface";
-import { OAuth2OrSiopJwtAuthGuard } from "../auth/guards";
+import { JsonRpcService } from "./jsonrpc.service.js";
+import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
+import { OAuth2OrSiopJwtAuthGuard } from "../auth/guards/index.js";
 import {
   JsonRpcDto,
   RequestSendSignedTransactionDto,
@@ -17,12 +17,12 @@ import {
   RequestDetachDidDocumentVersionHashDto,
   RequestAppendDidDocumentVersionMetadataDto,
   RequestDetachDidDocumentVersionMetadataDto,
-} from "./dto";
-import { Subject, SubjectInfo } from "../auth/decorators";
+} from "./dto/index.js";
+import { Subject, type SubjectInfo } from "../auth/decorators/index.js";
 
 function formatJsonRpcResponse(
   result: unknown,
-  id: string | number
+  id: string | number | null | undefined,
 ): JsonRpcResponseObject {
   return { jsonrpc: "2.0", id: id ?? null, result };
 }
@@ -36,15 +36,16 @@ export default class AppController {
   @Post()
   async jsonRPC(
     @Body() body: JsonRpcDto,
-    @Subject() subject: SubjectInfo
+    @Subject() subject: SubjectInfo,
   ): Promise<JsonRpcResponseObject> {
     const { method, id } = body;
+
     switch (method) {
       case "insertHashAlgorithm": {
         const result =
           await this.jsonRpcService.buildTransactionInsertHashAlgorithm(
             body as RequestInsertHashAlgorithmDto,
-            id
+            id,
           );
         return formatJsonRpcResponse(result, id);
       }
@@ -52,7 +53,7 @@ export default class AppController {
         const result =
           await this.jsonRpcService.buildTransactionUpdateHashAlgorithm(
             body as RequestUpdateHashAlgorithmDto,
-            id
+            id,
           );
         return formatJsonRpcResponse(result, id);
       }
@@ -61,7 +62,7 @@ export default class AppController {
           await this.jsonRpcService.buildTransactionInsertDidDocument(
             subject.sub,
             body as RequestInsertDidDocumentDto,
-            id
+            id,
           );
         return formatJsonRpcResponse(transaction, id);
       }
@@ -70,7 +71,7 @@ export default class AppController {
           await this.jsonRpcService.buildTransactionUpdateDidDocument(
             subject.sub,
             body as RequestUpdateDidDocumentDto,
-            id
+            id,
           );
         return formatJsonRpcResponse(transaction, id);
       }
@@ -79,7 +80,7 @@ export default class AppController {
           await this.jsonRpcService.buildTransactionInsertDidController(
             subject.sub,
             body as RequestInsertDidControllerDto,
-            id
+            id,
           );
         return formatJsonRpcResponse(transaction, id);
       }
@@ -88,7 +89,7 @@ export default class AppController {
           await this.jsonRpcService.buildTransactionUpdateDidController(
             subject.sub,
             body as RequestUpdateDidControllerDto,
-            id
+            id,
           );
         return formatJsonRpcResponse(transaction, id);
       }
@@ -97,7 +98,7 @@ export default class AppController {
           await this.jsonRpcService.buildTransactionRevokeDidController(
             subject.sub,
             body as RequestRevokeDidControllerDto,
-            id
+            id,
           );
         return formatJsonRpcResponse(transaction, id);
       }
@@ -106,7 +107,7 @@ export default class AppController {
           await this.jsonRpcService.buildTransactionAppendDidDocumentVersionHash(
             subject.sub,
             body as RequestAppendDidDocumentVersionHashDto,
-            id
+            id,
           );
         return formatJsonRpcResponse(transaction, id);
       }
@@ -115,7 +116,7 @@ export default class AppController {
           await this.jsonRpcService.buildTransactionDetachDidDocumentVersionHash(
             subject.sub,
             body as RequestDetachDidDocumentVersionHashDto,
-            id
+            id,
           );
         return formatJsonRpcResponse(transaction, id);
       }
@@ -124,7 +125,7 @@ export default class AppController {
           await this.jsonRpcService.buildTransactionAppendDidDocumentVersionMetadata(
             subject.sub,
             body as RequestAppendDidDocumentVersionMetadataDto,
-            id
+            id,
           );
         return formatJsonRpcResponse(transaction, id);
       }
@@ -133,7 +134,7 @@ export default class AppController {
           await this.jsonRpcService.buildTransactionDetachDidDocumentVersionMetadata(
             subject.sub,
             body as RequestDetachDidDocumentVersionMetadataDto,
-            id
+            id,
           );
         return formatJsonRpcResponse(transaction, id);
       }
@@ -143,14 +144,14 @@ export default class AppController {
         const result = await this.jsonRpcService.sendTransaction(
           subject.sub,
           body as RequestSendSignedTransactionDto,
-          id
+          id,
         );
         return formatJsonRpcResponse(result, id);
       }
       default:
         throw new InvalidRequestJsonRpcError(
           `The method '${method}' is invalid`,
-          id
+          id,
         );
     }
   }

@@ -1,5 +1,5 @@
-import { describe, it, expect } from "@jest/globals";
-import { PayloadTooLargeError, ProblemDetailsError } from "../index";
+import { describe, it, expect } from "vitest";
+import { PayloadTooLargeError, ProblemDetailsError } from "../index.js";
 
 describe("error PayloadTooLargeError", () => {
   it("should extend ProblemDetailsError", () => {
@@ -69,7 +69,7 @@ describe("error PayloadTooLargeError", () => {
     });
 
     expect(error.toString()).toBe(
-      `${PayloadTooLargeError.statusCode} - Test Error`
+      `${PayloadTooLargeError.statusCode} - Test Error`,
     );
   });
 });

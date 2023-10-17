@@ -1,13 +1,12 @@
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 import { ethers } from "ethers";
 import { Tir } from "@ebsiint-sc/trusted-issuers-registry";
-import { AsyncReturnType } from "@ebsiint-api/shared";
 import {
   formatIssuers,
   formatAttributes,
   formatProxies,
-} from "./issuers.formatter";
-import { AttributeObject } from "./issuers.interface";
+} from "./issuers.formatter.js";
+import type { AttributeObject } from "./issuers.interface.js";
 
 describe("formatIssuers", () => {
   const issuers = {
@@ -16,7 +15,7 @@ describe("formatIssuers", () => {
     items: ["0x001", "0x002", "0x003"],
     total: ethers.BigNumber.from("42"),
     howMany: ethers.BigNumber.from("3"),
-  } as AsyncReturnType<Tir["getIssuers"]>;
+  } as Awaited<ReturnType<Tir["getIssuers"]>>;
 
   it("should use the values returned by the smart contract (except pageSize)", () => {
     expect.assertions(1);
@@ -80,12 +79,12 @@ describe("formatAttributes", () => {
     expect(formatAttributes(attributes, page, 2, "")).toStrictEqual({
       items: [
         {
-          href: `/${attributes[0].hash}`,
-          id: attributes[0].hash,
+          href: `/${attributes[0]!.hash}`,
+          id: attributes[0]!.hash,
         },
         {
-          href: `/${attributes[1].hash}`,
-          id: attributes[1].hash,
+          href: `/${attributes[1]!.hash}`,
+          id: attributes[1]!.hash,
         },
       ],
       links: {
@@ -109,8 +108,8 @@ describe("formatAttributes", () => {
     expect(formatAttributes(attributes, page, pageSize, "")).toStrictEqual({
       items: [
         {
-          href: `/${attributes[14].hash}`,
-          id: attributes[14].hash,
+          href: `/${attributes[14]!.hash}`,
+          id: attributes[14]!.hash,
         },
       ],
       links: {
@@ -134,12 +133,12 @@ describe("formatAttributes", () => {
     expect(formatAttributes(attributes, page, pageSize, "")).toStrictEqual({
       items: [
         {
-          href: `/${attributes[4].hash}`,
-          id: attributes[4].hash,
+          href: `/${attributes[4]!.hash}`,
+          id: attributes[4]!.hash,
         },
         {
-          href: `/${attributes[5].hash}`,
-          id: attributes[5].hash,
+          href: `/${attributes[5]!.hash}`,
+          id: attributes[5]!.hash,
         },
       ],
       links: {
@@ -156,8 +155,8 @@ describe("formatAttributes", () => {
 });
 
 describe("formatProxies", () => {
-  const proxies = ["0xProxy1", "0xProxy2"] as AsyncReturnType<
-    Tir["getIssuerProxies"]
+  const proxies = ["0xProxy1", "0xProxy2"] as Awaited<
+    ReturnType<Tir["getIssuerProxies"]>
   >;
   const baseUrl = "";
 

@@ -1,4 +1,4 @@
-import { ProblemDetailsError } from "./ProblemDetailsError";
+import { ProblemDetailsError } from "./ProblemDetailsError.js";
 
 /**
  * RequestTimeoutError defines the Request Timeout (408) error type.
@@ -24,7 +24,7 @@ export class RequestTimeoutError extends ProblemDetailsError {
       detail?: string;
       instance?: string;
       extensions?: { [x: string]: unknown };
-    }
+    },
   ) {
     super(RequestTimeoutError.statusCode, title, options);
     this.name = "RequestTimeoutError";

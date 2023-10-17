@@ -2,10 +2,10 @@ import {
   Agent as OAuth2Agent,
   AkeResponse as OAuth2AkeResponse,
 } from "@cef-ebsi/oauth2-auth";
-import axios, { AxiosResponse } from "axios";
+import axios, { type AxiosResponse } from "axios";
 import { randomUUID } from "node:crypto";
 import { ConfigService } from "@nestjs/config";
-import { ApiConfig } from "../../src/config/configuration";
+import type { ApiConfig } from "../../src/config/configuration.js";
 
 export async function requestOAuth2Jwt({
   trustedAppPrivateKey,
@@ -18,18 +18,18 @@ export async function requestOAuth2Jwt({
 }): Promise<string> {
   let authorisationApiUrl = configService.get<string>("authorisationApiUrl");
   let trustedAppsRegistryApiUrl = configService.get<string>(
-    "trustedAppsRegistryApiUrl"
+    "trustedAppsRegistryApiUrl",
   );
 
   // Use TEST_LB_DOMAIN if defined
   if (configService.get<string>("testLoadBalancerDomain")) {
     authorisationApiUrl = authorisationApiUrl.replace(
       configService.get<string>("domain"),
-      configService.get<string>("testLoadBalancerDomain")
+      configService.get<string>("testLoadBalancerDomain"),
     );
     trustedAppsRegistryApiUrl = trustedAppsRegistryApiUrl.replace(
       configService.get<string>("domain"),
-      configService.get<string>("testLoadBalancerDomain")
+      configService.get<string>("testLoadBalancerDomain"),
     );
   }
 
@@ -55,7 +55,7 @@ export async function requestOAuth2Jwt({
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-    }
+    },
   );
 
   return agent.verifyAkeResponse(oauth2SessionsResponse.data, { nonce });

@@ -1,5 +1,5 @@
 import { IsHexadecimal, Matches } from "class-validator";
-import { GetIdentifierParamsDto } from "./get-identifier.params.dto";
+import { GetIdentifierParamsDto } from "./get-identifier.params.dto.js";
 
 export class GetIdentifierVersionParamsDto extends GetIdentifierParamsDto {
   @IsHexadecimal()

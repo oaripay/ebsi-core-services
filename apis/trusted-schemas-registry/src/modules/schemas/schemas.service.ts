@@ -2,14 +2,13 @@ import { Injectable, Logger } from "@nestjs/common";
 import pLimit from "p-limit";
 import { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry";
 import {
-  AsyncReturnType,
   isEthersError,
   NotFoundError,
   remove0xPrefix,
 } from "@ebsiint-api/shared";
-import { LedgerService } from "../ledger/ledger.service";
-import { ItemsList } from "./schemas.interface";
-import { range, schemaIdToHex } from "./schemas.utils";
+import { LedgerService } from "../ledger/ledger.service.js";
+import { ItemsList } from "./schemas.interface.js";
+import { range, schemaIdToHex } from "./schemas.utils.js";
 
 const MAX_RESULTS_PER_PAGE = 50;
 const MAX_CONCURRENT_PROMISES = 10;
@@ -41,7 +40,9 @@ export class SchemasService {
   }
 
   async getSchema(schemaId: string): Promise<unknown> {
-    let schema: AsyncReturnType<SchemaSCRegistry["getLatestSchemaRevision"]>;
+    let schema: Awaited<
+      ReturnType<SchemaSCRegistry["getLatestSchemaRevision"]>
+    >;
     const hexSchemaId = schemaIdToHex(schemaId);
 
     try {
@@ -58,7 +59,7 @@ export class SchemasService {
     }
 
     const decodedSchemaInfo = JSON.parse(
-      Buffer.from(remove0xPrefix(schema), "hex").toString("utf-8")
+      Buffer.from(remove0xPrefix(schema), "hex").toString("utf-8"),
     ) as unknown;
 
     return decodedSchemaInfo;
@@ -68,7 +69,7 @@ export class SchemasService {
     schemaId: string,
     page: number,
     pageSize: number,
-    validAt?: string
+    validAt?: string,
   ): Promise<ItemsList> {
     const hexSchemaId = schemaIdToHex(schemaId);
 
@@ -114,12 +115,12 @@ export class SchemasService {
                       contract.getSchemaRevisionIds(
                         hexSchemaId,
                         pageIndex,
-                        MAX_RESULTS_PER_PAGE
-                      )
-                    )
-                )
+                        MAX_RESULTS_PER_PAGE,
+                      ),
+                    ),
+                ),
               )
-            ).reduce((arr, row) => arr.concat(row.items), [] as string[])
+            ).reduce((arr, row) => arr.concat(row.items), [] as string[]),
           );
         }
 
@@ -128,37 +129,37 @@ export class SchemasService {
         const allMetadata = await Promise.all(
           allRevisionsIds.map((id) =>
             limit(() =>
-              contract.getLatestSchemaRevisionMetadataByRevisionId(id)
-            )
-          )
+              contract.getLatestSchemaRevisionMetadataByRevisionId(id),
+            ),
+          ),
         );
 
         const validRevisionsIds: string[] = [];
         allMetadata.forEach((metadata, index) => {
           try {
             const decodedMetadata = JSON.parse(
-              Buffer.from(remove0xPrefix(metadata), "hex").toString("utf-8")
+              Buffer.from(remove0xPrefix(metadata), "hex").toString("utf-8"),
             ) as { [x: string]: unknown };
 
             const validAtDate = new Date(validAt);
 
             // If validFrom > validAt, ignore
             if (
-              decodedMetadata.validFrom &&
-              new Date(decodedMetadata.validFrom as string) > validAtDate
+              decodedMetadata["validFrom"] &&
+              new Date(decodedMetadata["validFrom"] as string) > validAtDate
             ) {
               return;
             }
 
             // If validTo < validAt, ignore
             if (
-              decodedMetadata.validTo &&
-              new Date(decodedMetadata.validTo as string) < validAtDate
+              decodedMetadata["validTo"] &&
+              new Date(decodedMetadata["validTo"] as string) < validAtDate
             ) {
               return;
             }
 
-            validRevisionsIds.push(allRevisionsIds[index]);
+            validRevisionsIds.push(allRevisionsIds[index]!);
           } catch (e) {
             // Ignore
           }
@@ -167,7 +168,7 @@ export class SchemasService {
         return {
           items: validRevisionsIds.slice(
             (page - 1) * pageSize,
-            page * pageSize
+            page * pageSize,
           ),
           total: validRevisionsIds.length,
         };
@@ -194,7 +195,7 @@ export class SchemasService {
 
   async getSchemaRevision(
     schemaId: string,
-    schemaRevisionId: string
+    schemaRevisionId: string,
   ): Promise<unknown> {
     const hexSchemaId = schemaIdToHex(schemaId);
 
@@ -213,7 +214,7 @@ export class SchemasService {
     }
 
     // Get revision
-    let revision: AsyncReturnType<SchemaSCRegistry["getSchemaRevision"]>;
+    let revision: Awaited<ReturnType<SchemaSCRegistry["getSchemaRevision"]>>;
     try {
       revision = await (
         await this.ledgerService.getContract()
@@ -228,7 +229,7 @@ export class SchemasService {
     }
 
     const decodedSchemaRevisionInfo = JSON.parse(
-      Buffer.from(remove0xPrefix(revision), "hex").toString("utf-8")
+      Buffer.from(remove0xPrefix(revision), "hex").toString("utf-8"),
     ) as unknown;
 
     return decodedSchemaRevisionInfo;
@@ -238,7 +239,7 @@ export class SchemasService {
     schemaId: string,
     schemaRevisionId: string,
     page: number,
-    pageSize: number
+    pageSize: number,
   ): Promise<ItemsList> {
     const hexSchemaId = schemaIdToHex(schemaId);
 
@@ -293,7 +294,7 @@ export class SchemasService {
   async getSchemaRevisionMetadata(
     schemaId: string,
     schemaRevisionId: string,
-    metadataId: string
+    metadataId: string,
   ): Promise<unknown> {
     const hexSchemaId = schemaIdToHex(schemaId);
 
@@ -326,8 +327,8 @@ export class SchemasService {
     }
 
     // Get metadata
-    let metadata: AsyncReturnType<
-      SchemaSCRegistry["getSchemaRevisionMetadataByMetadataId"]
+    let metadata: Awaited<
+      ReturnType<SchemaSCRegistry["getSchemaRevisionMetadataByMetadataId"]>
     >;
     try {
       metadata = await (
@@ -343,7 +344,7 @@ export class SchemasService {
     }
 
     const decodedMetadata = JSON.parse(
-      Buffer.from(remove0xPrefix(metadata), "hex").toString("utf-8")
+      Buffer.from(remove0xPrefix(metadata), "hex").toString("utf-8"),
     ) as unknown;
 
     return decodedMetadata;

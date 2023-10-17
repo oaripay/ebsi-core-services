@@ -4,7 +4,7 @@ import { PaginationQuery } from "@ebsiint-api/shared";
 export class GetIdentifiersDto extends PaginationQuery {
   @IsOptional()
   @IsEthereumAddress()
-  "controller": string;
+  "controller"?: string;
 }
 
 export default GetIdentifiersDto;

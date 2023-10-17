@@ -13,11 +13,11 @@ import {
 import {
   AppUsageRepository,
   KeyValuesRepository,
-} from "../cassandra/repositories";
-import { KeyValueModel } from "../cassandra/models";
-import { CASSANDRA_EXCEPTIONS } from "../cassandra/cassandra.constants";
-import { PutKeyValuesResponseObject } from "./key-values.interface";
-import { ApiConfig } from "../../config/configuration";
+} from "../cassandra/repositories/index.js";
+import { KeyValueModel } from "../cassandra/models/index.js";
+import { CASSANDRA_EXCEPTIONS } from "../cassandra/cassandra.constants.js";
+import { PutKeyValuesResponseObject } from "./key-values.interface.js";
+import type { ApiConfig } from "../../config/configuration.js";
 
 const MAX_SIZE_VALUE = 5 * 1024 * 1024; // 5 MB
 const MAX_APP_USAGE = 1024 * 1024 * 1024; // 1GB
@@ -29,13 +29,13 @@ export class KeyValuesService {
   constructor(
     private configService: ConfigService<ApiConfig, true>,
     private keyValuesRepository: KeyValuesRepository,
-    private appUsageRepository: AppUsageRepository
+    private appUsageRepository: AppUsageRepository,
   ) {}
 
   async getKeys(
     did: string,
     requestedPageState: string,
-    pageSize: number
+    pageSize: number,
   ): Promise<{ keys: string[]; pageState: string }> {
     // Note: The page state token can be manipulated to retrieve other results within the same
     // column family, so it is not safe to expose it to the users in plain text.
@@ -46,7 +46,7 @@ export class KeyValuesService {
         // Decrypt pageState
         decryptedPageState = decrypt(
           requestedPageState,
-          this.configService.get("encryptionSecret")
+          this.configService.get("encryptionSecret"),
         );
       } catch (e) {
         this.logger.error((e as Error).message, (e as Error).stack);
@@ -62,7 +62,7 @@ export class KeyValuesService {
       result = await this.keyValuesRepository.getKeyValues(
         did,
         decryptedPageState,
-        pageSize
+        pageSize,
       );
     } catch (e) {
       if (
@@ -85,7 +85,7 @@ export class KeyValuesService {
       // Encrypt page state
       encryptedPageState = encrypt(
         rawPageState,
-        this.configService.get("encryptionSecret")
+        this.configService.get("encryptionSecret"),
       );
     }
 
@@ -113,7 +113,7 @@ export class KeyValuesService {
   async putKeyValue(
     did: string,
     key: string,
-    value: unknown
+    value: unknown,
   ): Promise<{ keyValue: PutKeyValuesResponseObject; isNew: boolean }> {
     if (typeof value !== "string") {
       throw new BadRequestError(BadRequestError.defaultTitle, {
@@ -131,7 +131,7 @@ export class KeyValuesService {
 
     if (bytesLength > MAX_SIZE_VALUE) {
       throw new ValueTooLargeError(
-        `Max size for 'value' is ${MAX_SIZE_VALUE} bytes. Received ${bytesLength}`
+        `Max size for 'value' is ${MAX_SIZE_VALUE} bytes. Received ${bytesLength}`,
       );
     }
 
@@ -161,7 +161,7 @@ export class KeyValuesService {
     await Promise.all([
       this.appUsageRepository.setAppUsage(
         { did, numberBytes: `${didAppUsageInBytes}` },
-        isNewAppUsage
+        isNewAppUsage,
       ),
       this.keyValuesRepository.setKeyValue(keyValue, isNewKeyValue),
     ]);
@@ -193,14 +193,15 @@ export class KeyValuesService {
       ? 0
       : Math.max(
           0,
-          parseInt(currentAppUsage.numberBytes, 10) - byteLength(keyValue.value)
+          parseInt(currentAppUsage.numberBytes, 10) -
+            byteLength(keyValue.value),
         );
 
     await Promise.all([
       this.keyValuesRepository.deleteKeyValue({ did, key }),
       this.appUsageRepository.setAppUsage(
         { did, numberBytes: `${didAppUsageInBytes}` },
-        isNewAppUsage
+        isNewAppUsage,
       ),
     ]);
   }

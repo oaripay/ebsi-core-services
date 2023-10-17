@@ -17,7 +17,7 @@ export class JsonRpcError extends Error {
     data?: unknown;
   };
 
-  public id: number | string | null;
+  public id: string | number | null | undefined;
 
   public status: number;
 
@@ -32,8 +32,8 @@ export class JsonRpcError extends Error {
     code: number,
     status: number,
     message: string,
-    id: string | number | null,
-    data?: unknown
+    id?: string | number | null | undefined,
+    data?: unknown,
   ) {
     super(message);
     this.name = "JsonRpcError";
@@ -47,11 +47,11 @@ export class JsonRpcError extends Error {
     return {
       jsonrpc: this.jsonrpc,
       error: this.error,
-      id: this.id,
+      id: this.id ?? null,
     };
   }
 
-  toString(): string {
+  override toString(): string {
     return `${this.error.code} - ${this.error.message}`;
   }
 }

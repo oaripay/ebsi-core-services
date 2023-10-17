@@ -6,19 +6,19 @@ import {
   ArrayMaxSize,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { JsonRpcDto } from "../jsonrpc.dto";
-import { SetAttributeMetadataParam } from "./set-attribute-metadata-param.dto";
+import { JsonRpcDto } from "../jsonrpc.dto.js";
+import { SetAttributeMetadataParam } from "./set-attribute-metadata-param.dto.js";
 
 export class RequestSetAttributeMetadataDto extends JsonRpcDto {
   @Equals("setAttributeMetadata")
-  method!: "setAttributeMetadata";
+  declare method: "setAttributeMetadata";
 
   @IsArray()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @Type(() => SetAttributeMetadataParam)
-  params!: SetAttributeMetadataParam[];
+  declare params: SetAttributeMetadataParam[];
 }
 
 export default RequestSetAttributeMetadataDto;

@@ -1,5 +1,5 @@
 import { PaginatedList2, paginateForCassandra } from "@ebsiint-api/shared";
-import { NotificationResponseObject } from "./notifications.interface";
+import { NotificationResponseObject } from "./notifications.interface.js";
 
 export function formatNotifications(
   attributes: NotificationResponseObject[],
@@ -8,7 +8,7 @@ export function formatNotifications(
   pageSize: number,
   baseUrl: string,
   total: number,
-  extraQuery?: string
+  extraQuery?: string,
 ): PaginatedList2<NotificationResponseObject> {
   return paginateForCassandra<NotificationResponseObject>(
     attributes,
@@ -17,7 +17,7 @@ export function formatNotifications(
     currentPage,
     nextPage,
     pageSize,
-    extraQuery
+    extraQuery,
   );
 }
 

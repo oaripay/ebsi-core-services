@@ -1,14 +1,15 @@
 import crypto from "node:crypto";
 import { importJWK, exportJWK, generateKeyPair } from "jose";
 import type { JWK } from "jose";
-import { ec as EC } from "elliptic";
+import elliptic from "elliptic";
 import secp256k1 from "secp256k1";
 import { ethers } from "ethers";
-import KeyEncoder from "key-encoder";
+import { KeyEncoder } from "@cef-ebsi/key-encoder";
 import { base64url } from "multiformats/bases/base64";
-import EbsiWallet from "@cef-ebsi/wallet-lib";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 
 const keyEncoder = new KeyEncoder("secp256k1");
+const EC = elliptic.ec;
 const ec = new EC("secp256k1");
 
 export interface PublicKey {
@@ -27,12 +28,7 @@ export function randomPrivateKeySecp256k1(): string {
   return privateKey.toString("hex");
 }
 
-export async function generateKeys(alg: string): Promise<{
-  publicKey: crypto.KeyObject;
-  privateKey: crypto.KeyObject;
-  publicKeyEncryption?: crypto.KeyObject;
-  privateKeyEncryption?: crypto.KeyObject;
-}> {
+export async function generateKeys(alg: string) {
   const { publicKey, privateKey } = (await generateKeyPair(alg)) as {
     publicKey: crypto.KeyObject;
     privateKey: crypto.KeyObject;
@@ -56,7 +52,7 @@ export async function generateKeys(alg: string): Promise<{
 }
 
 export async function getPrivateKeyHex(
-  privateKey: crypto.KeyObject
+  privateKey: crypto.KeyObject,
 ): Promise<string> {
   const privateJwk = await exportJWK(privateKey);
   if (!privateJwk.d) {

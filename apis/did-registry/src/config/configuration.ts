@@ -23,13 +23,13 @@ export interface ApiConfig {
   usersOnboardingApiDid: string;
   usersOnboardingApiPrivateKey: string;
   trustedHostnames: string[];
-  testClientKid: string;
-  testClientPrivateKey: string;
-  testLoadBalancerDomain: string;
+  testClientKid: string | undefined;
+  testClientPrivateKey: string | undefined;
+  testLoadBalancerDomain: string | undefined;
   dockerContainerTag: string;
   blockscout: {
-    url: string;
-    bearerToken: string;
+    url: string | undefined;
+    bearerToken: string | undefined;
   };
 }
 
@@ -107,7 +107,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "warn",
       "info",
       "verbose",
-      "debug"
+      "debug",
     ),
     DOCKER_TAG: Joi.string(),
     CONTRACT_ADDR: Joi.string().required(),

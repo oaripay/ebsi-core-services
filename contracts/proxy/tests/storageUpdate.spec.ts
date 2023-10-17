@@ -6,17 +6,17 @@ const initializeData = async (pauser: SignerWithAddress) => {
   const tirFactory = await ethers.getContractFactory("Tir");
   return tirFactory.interface.encodeFunctionData(
     "initialize(uint256,address[])",
-    ["1", [pauser.address]]
+    ["1", [pauser.address]],
   );
 };
 
 const setupProxy = async (
   initializeDataString: string,
   proxyOwner: SignerWithAddress,
-  proxyAdmin: SignerWithAddress
+  proxyAdmin: SignerWithAddress,
 ) => {
   const proxyFactory = await ethers.getContractFactory(
-    "OwnedUpgradeabilityProxy"
+    "OwnedUpgradeabilityProxy",
   );
   const proxy = await proxyFactory.connect(proxyOwner).deploy();
   await proxy.deployed();
@@ -44,7 +44,7 @@ const setupProxy = async (
   await proxy["initialize(address,address,bytes)"](
     implV0.address,
     proxyAdmin.address,
-    initializeDataString
+    initializeDataString,
   );
 
   return {
@@ -68,7 +68,7 @@ describe("upgrade and call new version struct", () => {
     const { proxy, tir, tirV1, implV1, implV2, tirV2 } = await setupProxy(
       await initializeData(anchorOwner),
       proxyOwner,
-      proxyAdmin
+      proxyAdmin,
     );
 
     const adm = await proxy.connect(proxyAdmin).callStatic.admin();
@@ -120,7 +120,7 @@ describe("upgrade and call new version struct", () => {
       await setupProxy(
         await initializeData(anchorOwner),
         proxyOwner,
-        proxyAdmin
+        proxyAdmin,
       );
 
     const adm = await proxy.connect(proxyAdmin).callStatic.admin();

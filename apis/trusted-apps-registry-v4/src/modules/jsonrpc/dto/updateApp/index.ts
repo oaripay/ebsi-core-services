@@ -1,2 +1,2 @@
-export * from "./request-update-app.dto";
-export * from "./update-app-param.dto";
+export * from "./request-update-app.dto.js";
+export * from "./update-app-param.dto.js";

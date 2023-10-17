@@ -1,4 +1,4 @@
-import { ProblemDetailsError } from "./ProblemDetailsError";
+import { ProblemDetailsError } from "./ProblemDetailsError.js";
 
 /**
  * ProxyAuthenticationRequiredError defines the Proxy Authentication Required (407) error type.
@@ -24,7 +24,7 @@ export class ProxyAuthenticationRequiredError extends ProblemDetailsError {
       detail?: string;
       instance?: string;
       extensions?: { [x: string]: unknown };
-    }
+    },
   ) {
     super(ProxyAuthenticationRequiredError.statusCode, title, options);
     this.name = "ProxyAuthenticationRequiredError";

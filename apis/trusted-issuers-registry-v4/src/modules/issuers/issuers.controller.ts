@@ -6,13 +6,13 @@ import {
   PaginationQuery,
 } from "@ebsiint-api/shared";
 import type { FastifyRequest } from "fastify";
-import { IssuersService } from "./issuers.service";
+import { IssuersService } from "./issuers.service.js";
 import {
   formatIssuers,
   formatAttributes,
   formatRevisions,
   formatProxies,
-} from "./issuers.formatter";
+} from "./issuers.formatter.js";
 import {
   IdLink,
   IssuerResponseObject,
@@ -21,28 +21,28 @@ import {
   DidLink,
   IssuerProxyResponseObject,
   ProxyLink,
-} from "./issuers.interface";
-import { ApiConfig } from "../../config/configuration";
+} from "./issuers.interface.js";
+import type { ApiConfig } from "../../config/configuration.js";
 import {
   GetIssuerAttributeParamsDto,
   GetIssuerParamsDto,
   GetIssuerProxyParamsDto,
-} from "./dto";
+} from "./dto/index.js";
 
 @Controller("/issuers")
 export class IssuersController {
   constructor(
     private issuersService: IssuersService,
-    private configService: ConfigService<ApiConfig, true>
+    private configService: ConfigService<ApiConfig, true>,
   ) {}
 
   @Get("")
   async issuers(
-    @Query() query: PaginationQuery
+    @Query() query: PaginationQuery,
   ): Promise<PaginatedList<DidLink>> {
     const issuers = await this.issuersService.getIssuers(
       query["page[after]"],
-      query["page[size]"]
+      query["page[size]"],
     );
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
     const domain = this.configService.get<string>("domain");
@@ -52,13 +52,13 @@ export class IssuersController {
       issuers,
       query["page[after]"],
       query["page[size]"],
-      baseUrl
+      baseUrl,
     );
   }
 
   @Get("/:did")
   async getIssuer(
-    @Param() params: GetIssuerParamsDto
+    @Param() params: GetIssuerParamsDto,
   ): Promise<IssuerResponseObject> {
     const { did } = params;
     return this.issuersService.getIssuer(did);
@@ -67,7 +67,7 @@ export class IssuersController {
   @Get("/:did/attributes")
   async getIssuerAttributes(
     @Param() params: GetIssuerParamsDto,
-    @Query() query: PaginationQuery
+    @Query() query: PaginationQuery,
   ): Promise<PaginatedList<IdLink>> {
     const { did } = params;
 
@@ -81,13 +81,13 @@ export class IssuersController {
       attributes,
       query["page[after]"],
       query["page[size]"],
-      baseUrl
+      baseUrl,
     );
   }
 
   @Get("/:did/attributes/:attributeId")
   async issuerAttributeId(
-    @Param() params: GetIssuerAttributeParamsDto
+    @Param() params: GetIssuerAttributeParamsDto,
   ): Promise<AttributeDetailsObject> {
     const { did, attributeId } = params;
 
@@ -108,7 +108,7 @@ export class IssuersController {
   @Get("/:did/attributes/:attributeId/revisions")
   async issuerAttributeIdRevisions(
     @Param() params: GetIssuerAttributeParamsDto,
-    @Query() query: PaginationQuery
+    @Query() query: PaginationQuery,
   ): Promise<PaginatedList<AttributeObject>> {
     const { did, attributeId } = params;
 
@@ -122,7 +122,7 @@ export class IssuersController {
       await this.issuersService.getIssuerAttributeIdRevisions(
         attributeId,
         query["page[after]"],
-        query["page[size]"]
+        query["page[size]"],
       );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
@@ -134,13 +134,13 @@ export class IssuersController {
       total,
       query["page[after]"],
       query["page[size]"],
-      baseUrl
+      baseUrl,
     );
   }
 
   @Get("/:did/proxies")
   async getIssuerProxies(
-    @Param() params: GetIssuerParamsDto
+    @Param() params: GetIssuerParamsDto,
   ): Promise<PaginatedList<ProxyLink>> {
     const { did } = params;
 
@@ -155,7 +155,7 @@ export class IssuersController {
 
   @Get("/:did/proxies/:proxyId")
   async getIssuerProxy(
-    @Param() params: GetIssuerProxyParamsDto
+    @Param() params: GetIssuerProxyParamsDto,
   ): Promise<IssuerProxyResponseObject> {
     const { did, proxyId } = params;
 
@@ -166,7 +166,7 @@ export class IssuersController {
   @Header("content-type", "text/plain; charset=utf-8")
   async proxyRequest(
     @Param() params: GetIssuerProxyParamsDto,
-    @Req() req: FastifyRequest
+    @Req() req: FastifyRequest,
   ): Promise<string> {
     const { did, proxyId } = params;
     const { url } = req;

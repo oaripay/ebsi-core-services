@@ -1,36 +1,29 @@
-import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
+import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  Logger,
-  HttpServer,
-} from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import { ethers } from "ethers";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { DidRegistry__factory } from "@ebsiint-sc/did-registry-v3";
 import { encode } from "@ebsiint-api/shared";
-import { IdentifiersModule } from "./identifiers.module";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { setupTestEnv } from "../../../tests/utils/didRegistry";
-import { LedgerService } from "../ledger/ledger.service";
-import { ApiConfig } from "../../config/configuration";
-import { createUser, UserDetails } from "../../../tests/utils/data";
-
-jest.setTimeout(120000);
+import { IdentifiersModule } from "./identifiers.module.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import { setupTestEnv } from "../../../tests/utils/didRegistry.js";
+import { LedgerService } from "../ledger/ledger.service.js";
+import type { ApiConfig } from "../../config/configuration.js";
+import { createUser, UserDetails } from "../../../tests/utils/data.js";
 
 const DID_DOCUMENTS = 3;
 
 describe("Identifiers Module", () => {
-  let app: INestApplication;
-  let server: HttpServer;
+  let app: NestFastifyApplication;
+  let server: RawServerDefault;
   let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
   let ledgerService: LedgerService;
   let configService: ConfigService<ApiConfig, true>;
@@ -45,16 +38,16 @@ describe("Identifiers Module", () => {
     users = testEnv.users;
 
     // Mock TSR contract
-    jest
-      .spyOn(DidRegistry__factory, "connect")
-      .mockImplementation(() => didRegistryContract);
+    vi.spyOn(DidRegistry__factory, "connect").mockImplementation(
+      () => didRegistryContract,
+    );
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [IdentifiersModule],
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     // Turn off logger
@@ -65,21 +58,17 @@ describe("Identifiers Module", () => {
     app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    await app.getHttpAdapter().getInstance().ready();
+    server = app.getHttpServer();
 
     // Mock Contract service
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
-    jest
-      .spyOn(ledgerService, "getContract")
-      .mockImplementation(async () => Promise.resolve(didRegistryContract));
+    vi.spyOn(ledgerService, "getContract").mockImplementation(async () =>
+      Promise.resolve(didRegistryContract),
+    );
   });
 
   afterAll(async () => {
-    // Avoid jest open handle error
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
     await app.close();
   });
 
@@ -90,33 +79,33 @@ describe("Identifiers Module", () => {
       const response = await request(server).get("/identifiers");
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          "/identifiers?page[after]=1&page[size]=10"
+          "/identifiers?page[after]=1&page[size]=10",
         ),
         items: expect.arrayContaining(
           users.map((user) => ({
             did: user.did,
             href: expect.stringContaining(`/identifiers/${user.did}`),
-          }))
+          })),
         ),
         total: DID_DOCUMENTS,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            "/identifiers?page[after]=1&page[size]=10"
+            "/identifiers?page[after]=1&page[size]=10",
           ),
           prev: expect.stringContaining(
-            "/identifiers?page[after]=1&page[size]=10"
+            "/identifiers?page[after]=1&page[size]=10",
           ),
           next: expect.stringContaining(
-            "/identifiers?page[after]=1&page[size]=10"
+            "/identifiers?page[after]=1&page[size]=10",
           ),
           last: expect.stringContaining(
-            "/identifiers?page[after]=1&page[size]=10"
+            "/identifiers?page[after]=1&page[size]=10",
           ),
         },
       });
       expect((response.body as { items: string }).items).toHaveLength(
-        DID_DOCUMENTS
+        DID_DOCUMENTS,
       );
       expect(response.status).toBe(200);
     });
@@ -127,7 +116,7 @@ describe("Identifiers Module", () => {
       const controller = EbsiWallet.createDid();
 
       const response = await request(server).get(
-        `/identifiers?controller=${controller}`
+        `/identifiers?controller=${controller}`,
       );
       expect(response.body).toStrictEqual({
         title: "Not Found",
@@ -141,14 +130,14 @@ describe("Identifiers Module", () => {
     it("should return DIDs filtered by controller", async () => {
       expect.assertions(2);
 
-      const controller = users[0].did;
+      const controller = users[0]!.did;
 
       const response = await request(server).get(
-        `/identifiers?controller=${controller}`
+        `/identifiers?controller=${controller}`,
       );
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          `/identifiers?page[after]=1&page[size]=10&controller=${controller}`
+          `/identifiers?page[after]=1&page[size]=10&controller=${controller}`,
         ),
         items: [
           {
@@ -160,16 +149,16 @@ describe("Identifiers Module", () => {
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/identifiers?page[after]=1&page[size]=10&controller=${controller}`
+            `/identifiers?page[after]=1&page[size]=10&controller=${controller}`,
           ),
           prev: expect.stringContaining(
-            `/identifiers?page[after]=1&page[size]=10&controller=${controller}`
+            `/identifiers?page[after]=1&page[size]=10&controller=${controller}`,
           ),
           next: expect.stringContaining(
-            `/identifiers?page[after]=1&page[size]=10&controller=${controller}`
+            `/identifiers?page[after]=1&page[size]=10&controller=${controller}`,
           ),
           last: expect.stringContaining(
-            `/identifiers?page[after]=1&page[size]=10&controller=${controller}`
+            `/identifiers?page[after]=1&page[size]=10&controller=${controller}`,
           ),
         },
       });
@@ -179,15 +168,17 @@ describe("Identifiers Module", () => {
     it("should return DIDs filtered by verification relationship", async () => {
       expect.assertions(2);
 
-      const extraQuery = `verification-method-id=${users[0].thumbprint}&verification-relationship=capabilityInvocation`;
+      const extraQuery = `verification-method-id=${
+        users[0]!.thumbprint
+      }&verification-relationship=capabilityInvocation`;
       const response = await request(server).get(`/identifiers?${extraQuery}`);
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          `/identifiers?page[after]=1&page[size]=10&${extraQuery}`
+          `/identifiers?page[after]=1&page[size]=10&${extraQuery}`,
         ),
         items: [
           {
-            did: users[0].did,
+            did: users[0]!.did,
             href: expect.any(String),
           },
         ],
@@ -195,16 +186,16 @@ describe("Identifiers Module", () => {
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/identifiers?page[after]=1&page[size]=10&${extraQuery}`
+            `/identifiers?page[after]=1&page[size]=10&${extraQuery}`,
           ),
           prev: expect.stringContaining(
-            `/identifiers?page[after]=1&page[size]=10&${extraQuery}`
+            `/identifiers?page[after]=1&page[size]=10&${extraQuery}`,
           ),
           next: expect.stringContaining(
-            `/identifiers?page[after]=1&page[size]=10&${extraQuery}`
+            `/identifiers?page[after]=1&page[size]=10&${extraQuery}`,
           ),
           last: expect.stringContaining(
-            `/identifiers?page[after]=1&page[size]=10&${extraQuery}`
+            `/identifiers?page[after]=1&page[size]=10&${extraQuery}`,
           ),
         },
       });
@@ -217,23 +208,23 @@ describe("Identifiers Module", () => {
       const response1 = await request(server).get("/identifiers?page[size]=2");
       expect(response1.body).toStrictEqual({
         self: expect.stringContaining(
-          "/identifiers?page[after]=1&page[size]=2"
+          "/identifiers?page[after]=1&page[size]=2",
         ),
         items: expect.arrayContaining([]),
         total: DID_DOCUMENTS,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
-            "/identifiers?page[after]=1&page[size]=2"
+            "/identifiers?page[after]=1&page[size]=2",
           ),
           prev: expect.stringContaining(
-            "/identifiers?page[after]=1&page[size]=2"
+            "/identifiers?page[after]=1&page[size]=2",
           ),
           next: expect.stringContaining(
-            "/identifiers?page[after]=2&page[size]=2"
+            "/identifiers?page[after]=2&page[size]=2",
           ),
           last: expect.stringContaining(
-            "/identifiers?page[after]=2&page[size]=2"
+            "/identifiers?page[after]=2&page[size]=2",
           ),
         },
       });
@@ -242,27 +233,27 @@ describe("Identifiers Module", () => {
 
       // next page
       const response2 = await request(server).get(
-        "/identifiers?page[after]=2&page[size]=2"
+        "/identifiers?page[after]=2&page[size]=2",
       );
       expect(response2.body).toStrictEqual({
         self: expect.stringContaining(
-          "/identifiers?page[after]=2&page[size]=2"
+          "/identifiers?page[after]=2&page[size]=2",
         ),
         items: expect.arrayContaining([]),
         total: DID_DOCUMENTS,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
-            "/identifiers?page[after]=1&page[size]=2"
+            "/identifiers?page[after]=1&page[size]=2",
           ),
           prev: expect.stringContaining(
-            "/identifiers?page[after]=1&page[size]=2"
+            "/identifiers?page[after]=1&page[size]=2",
           ),
           next: expect.stringContaining(
-            "/identifiers?page[after]=2&page[size]=2"
+            "/identifiers?page[after]=2&page[size]=2",
           ),
           last: expect.stringContaining(
-            "/identifiers?page[after]=2&page[size]=2"
+            "/identifiers?page[after]=2&page[size]=2",
           ),
         },
       });
@@ -271,27 +262,27 @@ describe("Identifiers Module", () => {
 
       // big page
       const response3 = await request(server).get(
-        "/identifiers?page[after]=100&page[size]=2"
+        "/identifiers?page[after]=100&page[size]=2",
       );
       expect(response3.body).toStrictEqual({
         self: expect.stringContaining(
-          "/identifiers?page[after]=100&page[size]=2"
+          "/identifiers?page[after]=100&page[size]=2",
         ),
         items: expect.arrayContaining([]),
         total: DID_DOCUMENTS,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
-            "/identifiers?page[after]=1&page[size]=2"
+            "/identifiers?page[after]=1&page[size]=2",
           ),
           prev: expect.stringContaining(
-            "/identifiers?page[after]=2&page[size]=2"
+            "/identifiers?page[after]=2&page[size]=2",
           ),
           next: expect.stringContaining(
-            "/identifiers?page[after]=2&page[size]=2"
+            "/identifiers?page[after]=2&page[size]=2",
           ),
           last: expect.stringContaining(
-            "/identifiers?page[after]=2&page[size]=2"
+            "/identifiers?page[after]=2&page[size]=2",
           ),
         },
       });
@@ -302,23 +293,23 @@ describe("Identifiers Module", () => {
       const response4 = await request(server).get("/identifiers?page[after]=1");
       expect(response4.body).toStrictEqual({
         self: expect.stringContaining(
-          "/identifiers?page[after]=1&page[size]=10"
+          "/identifiers?page[after]=1&page[size]=10",
         ),
         items: expect.arrayContaining([]),
         total: DID_DOCUMENTS,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            "/identifiers?page[after]=1&page[size]=10"
+            "/identifiers?page[after]=1&page[size]=10",
           ),
           prev: expect.stringContaining(
-            "/identifiers?page[after]=1&page[size]=10"
+            "/identifiers?page[after]=1&page[size]=10",
           ),
           next: expect.stringContaining(
-            "/identifiers?page[after]=1&page[size]=10"
+            "/identifiers?page[after]=1&page[size]=10",
           ),
           last: expect.stringContaining(
-            "/identifiers?page[after]=1&page[size]=10"
+            "/identifiers?page[after]=1&page[size]=10",
           ),
         },
       });
@@ -330,7 +321,7 @@ describe("Identifiers Module", () => {
       expect.assertions(8);
 
       const response1 = await request(server).get(
-        "/identifiers?page[size]=100"
+        "/identifiers?page[size]=100",
       );
       expect(response1.body).toStrictEqual({
         title: "Bad Request",
@@ -359,7 +350,7 @@ describe("Identifiers Module", () => {
       expect(response3.status).toBe(400);
 
       const response4 = await request(server).get(
-        "/identifiers?page[after]=abc"
+        "/identifiers?page[after]=abc",
       );
       expect(response4.body).toStrictEqual({
         title: "Bad Request",
@@ -376,21 +367,21 @@ describe("Identifiers Module", () => {
     it("should return a specific DID document", async () => {
       expect.assertions(3);
 
-      const { did, didDocument } = users[0];
+      const { did, didDocument } = users[0]!;
 
       const response = await request(server).get(`/identifiers/${did}`);
 
       expect(response.body).toStrictEqual(didDocument);
       expect(response.status).toBe(200);
       expect(
-        (response.headers as { "content-type": string })["content-type"]
+        (response.headers as { "content-type": string })["content-type"],
       ).toStrictEqual(expect.stringContaining("application/did+ld+json"));
     });
 
     it("should return a specific DID document as 'application/did+json' if 'Accept' header is 'application/did+json'", async () => {
       expect.assertions(4);
 
-      const { did, didDocument } = users[0];
+      const { did, didDocument } = users[0]!;
 
       const response = await request(server)
         .get(`/identifiers/${did}`)
@@ -400,11 +391,11 @@ describe("Identifiers Module", () => {
 
       expect(response.body).toStrictEqual(didDocWithoutContext);
       expect(
-        (response.body as { [x: string]: unknown })["@context"]
+        (response.body as { [x: string]: unknown })["@context"],
       ).toBeUndefined();
       expect(response.status).toBe(200);
       expect(
-        (response.headers as { "content-type": string })["content-type"]
+        (response.headers as { "content-type": string })["content-type"],
       ).toStrictEqual(expect.stringContaining("application/did+json"));
     });
 
@@ -413,7 +404,7 @@ describe("Identifiers Module", () => {
 
       const user = await createUser();
       const publicKeyJwk1 = encode.publicKey.fromHexToJWK(
-        user.wallet.publicKey
+        user.wallet.publicKey,
       );
       const thumbprint1 = user.thumbprint;
       const publicKeyJwk2 = {
@@ -439,7 +430,7 @@ describe("Identifiers Module", () => {
           user.wallet.publicKey,
           true,
           new Date("2022-01-01").getTime() / 1000,
-          new Date("2030-01-01").getTime() / 1000
+          new Date("2030-01-01").getTime() / 1000,
         )
       ).wait();
 
@@ -449,7 +440,7 @@ describe("Identifiers Module", () => {
           user.did,
           thumbprint2,
           Buffer.from(JSON.stringify(publicKeyJwk2)),
-          false
+          false,
         )
       ).wait();
 
@@ -459,7 +450,7 @@ describe("Identifiers Module", () => {
           "authentication",
           thumbprint2,
           new Date("2024-01-01").getTime() / 1000,
-          new Date("2029-01-01").getTime() / 1000
+          new Date("2029-01-01").getTime() / 1000,
         )
       ).wait();
 
@@ -479,15 +470,15 @@ describe("Identifiers Module", () => {
 
       // new controller added
       await (
-        await testEnv.didRegistryContract.addController(user.did, users[0].did)
+        await testEnv.didRegistryContract.addController(user.did, users[0]!.did)
       ).wait();
 
       // controllers are the same for the whole history
-      const controllers = [user.did, users[0].did];
+      const controllers = [user.did, users[0]!.did];
 
       // expect first key in 2022
       let response = await request(server).get(
-        `/identifiers/${user.did}?valid-at=2022-02-01`
+        `/identifiers/${user.did}?valid-at=2022-02-01`,
       );
       expect(response.body).toStrictEqual({
         "@context": user.didDocument["@context"],
@@ -508,7 +499,7 @@ describe("Identifiers Module", () => {
 
       // expect 2 keys in 2024
       response = await request(server).get(
-        `/identifiers/${user.did}?valid-at=2024-02-01`
+        `/identifiers/${user.did}?valid-at=2024-02-01`,
       );
       expect(response.body).toStrictEqual({
         "@context": user.didDocument["@context"],
@@ -538,7 +529,7 @@ describe("Identifiers Module", () => {
 
       // expect 3 keys in the beginning of 2027 (because of the transition period for the rolling)
       response = await request(server).get(
-        `/identifiers/${user.did}?valid-at=2027-02-01`
+        `/identifiers/${user.did}?valid-at=2027-02-01`,
       );
       expect(response.body).toStrictEqual({
         "@context": user.didDocument["@context"],
@@ -578,7 +569,7 @@ describe("Identifiers Module", () => {
 
       // expect 2 keys in the middle of 2027 (first key removed after rolling)
       response = await request(server).get(
-        `/identifiers/${user.did}?valid-at=2027-06-01`
+        `/identifiers/${user.did}?valid-at=2027-06-01`,
       );
       expect(response.body).toStrictEqual({
         "@context": user.didDocument["@context"],
@@ -608,7 +599,7 @@ describe("Identifiers Module", () => {
 
       // expect only 1 key by 2030 (second key expired)
       response = await request(server).get(
-        `/identifiers/${user.did}?valid-at=2030-02-01`
+        `/identifiers/${user.did}?valid-at=2030-02-01`,
       );
       expect(response.body).toStrictEqual({
         "@context": user.didDocument["@context"],
@@ -670,7 +661,7 @@ describe("Identifiers Module", () => {
           user.wallet.publicKey,
           true,
           now,
-          now + 3600
+          now + 3600,
         )
       ).wait();
 
@@ -693,7 +684,7 @@ describe("Identifiers Module", () => {
           "0x1234567890", // bad public key
           true,
           now,
-          now + 3600
+          now + 3600,
         )
       ).wait();
 
@@ -713,7 +704,7 @@ describe("Identifiers Module", () => {
     it("should perform the action checkController", async () => {
       expect.assertions(4);
 
-      const { did, wallet } = users[0];
+      const { did, wallet } = users[0]!;
       let response = await request(server)
         .post(`/identifiers/${did}/actions`)
         .send({
@@ -750,7 +741,7 @@ describe("Identifiers Module", () => {
 
     it("should throw an error for bad use of actions", async () => {
       const randomAddress = ethers.Wallet.createRandom().address;
-      const { did } = users[0];
+      const { did } = users[0]!;
       let response = await request(server)
         .post(`/identifiers/bad-did/actions`)
         .send({

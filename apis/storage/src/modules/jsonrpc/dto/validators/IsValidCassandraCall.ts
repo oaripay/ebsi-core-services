@@ -1,5 +1,9 @@
 import { QueryOptions } from "cassandra-driver";
-import { ValidateBy, ValidationOptions, buildMessage } from "class-validator";
+import {
+  ValidateBy,
+  type ValidationOptions,
+  buildMessage,
+} from "class-validator";
 
 export const IS_VALID_CASSANDRA_CALL = "isValidCassandraCall";
 
@@ -39,7 +43,7 @@ export function isValidCassandraCall(value: unknown): boolean {
 }
 
 export function IsValidCassandraCall(
-  validationOptions?: ValidationOptions
+  validationOptions?: ValidationOptions,
 ): PropertyDecorator {
   return ValidateBy(
     {
@@ -49,10 +53,10 @@ export function IsValidCassandraCall(
         defaultMessage: buildMessage(
           (eachPrefix) =>
             `${eachPrefix}$property must be a valid cassandra call`,
-          validationOptions
+          validationOptions,
         ),
       },
     },
-    validationOptions
+    validationOptions,
   );
 }

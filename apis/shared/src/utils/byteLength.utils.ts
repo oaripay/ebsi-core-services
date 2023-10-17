@@ -10,7 +10,7 @@ export const byteLength = (
   /* global NodeJS */
   input: string | NodeJS.ArrayBufferView | ArrayBuffer | SharedArrayBuffer,
   /* global BufferEncoding */
-  encoding?: BufferEncoding
+  encoding?: BufferEncoding,
 ): number => {
   // Auto-detect hex strings starting with 0x
   if (typeof input === "string" && input.startsWith("0x")) {

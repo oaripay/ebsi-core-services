@@ -9,11 +9,11 @@ import {
   DidRegistry__factory,
   PolicyRegistryMock,
 } from "@ebsiint-sc/did-registry-v3";
-import { createUser, UserDetails } from "./data";
+import { createUser, UserDetails } from "./data.js";
 
 const deployContract = async (
   name: string,
-  opts: FactoryOptions = {}
+  opts: FactoryOptions = {},
 ): Promise<string> => {
   const factory = await hre.ethers.getContractFactory(name, opts);
   const contract = await factory.deploy();
@@ -26,13 +26,12 @@ export async function deployDidRegistryContract(): Promise<{
 }> {
   // mock trusted policies registry
   const testTprAddress = "0xb2a560271ce08135e245F490b8794794A13a1208";
-  const policyRegistryFactory = await hre.ethers.getContractFactory(
-    "PolicyRegistryMock"
-  );
+  const policyRegistryFactory =
+    await hre.ethers.getContractFactory("PolicyRegistryMock");
   const tempPolicyContract = await policyRegistryFactory.deploy();
   await tempPolicyContract.deployed();
   const bytecode = await hre.ethers.provider.getCode(
-    tempPolicyContract.address
+    tempPolicyContract.address,
   );
 
   await hre.network.provider.send("hardhat_setCode", [
@@ -40,7 +39,7 @@ export async function deployDidRegistryContract(): Promise<{
     bytecode,
   ]);
   const policyContractMock = policyRegistryFactory.attach(
-    testTprAddress
+    testTprAddress,
   ) as PolicyRegistryMock;
 
   const paginationAddress = await deployContract("Pagination");
@@ -63,16 +62,15 @@ export async function deployDidRegistryContract(): Promise<{
         }),
         ControllersLib: await deployContract(
           "ControllersLib",
-          linkLibPagination
+          linkLibPagination,
         ),
         VRelationshipsLib: vRelationshipsLibAddress,
       },
-    }
+    },
   )) as DidRegistry__factory;
 
-  const didRegistryContract = await didRegistryContractFactory.deploy(
-    testTprAddress
-  );
+  const didRegistryContract =
+    await didRegistryContractFactory.deploy(testTprAddress);
 
   await policyContractMock.setPolicyResult(true);
 
@@ -84,12 +82,12 @@ export async function deployDidRegistryContract(): Promise<{
 
 export async function insertDidDocument(
   contract: DidRegistry,
-  indexAccount: number
+  indexAccount: number,
 ): Promise<UserDetails> {
   const acc = hre.config.networks.hardhat.accounts as { mnemonic: string };
   const hd = ethers.utils.HDNode.fromMnemonic(acc.mnemonic);
   const wallet = new ethers.Wallet(
-    hd.derivePath(`m/44'/60'/0'/0/${indexAccount}`).privateKey
+    hd.derivePath(`m/44'/60'/0'/0/${indexAccount}`).privateKey,
   );
   const user = await createUser(wallet);
 
@@ -102,7 +100,7 @@ export async function insertDidDocument(
     wallet.publicKey,
     true,
     now,
-    now + 3600
+    now + 3600,
   );
 
   await contract.addVerificationRelationship(
@@ -110,7 +108,7 @@ export async function insertDidDocument(
     "assertionMethod",
     user.thumbprint,
     now,
-    now + 3600
+    now + 3600,
   );
 
   return user;
@@ -139,8 +137,8 @@ export async function setupTestEnv({
     ...(await Promise.all(
       Array(didDocumentsTotal)
         .fill(0)
-        .map((_, index) => insertDidDocument(didRegistryContract, index))
-    ))
+        .map((_, index) => insertDidDocument(didRegistryContract, index)),
+    )),
   );
 
   // Return test env variables

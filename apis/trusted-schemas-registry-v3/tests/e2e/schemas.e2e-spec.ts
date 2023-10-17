@@ -1,39 +1,34 @@
-import { describe, beforeAll, it, expect } from "@jest/globals";
+import { describe, beforeAll, it, expect } from "vitest";
 import crypto from "node:crypto";
 import { ethers } from "ethers";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  Logger,
-  HttpServer,
-} from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import type { TransactionRequest } from "@ethersproject/abstract-provider";
 import type { JSONSchema } from "@apidevtools/json-schema-ref-parser/dist/lib/types";
 import { prefixWith0x, computeId, waitToBeMined } from "@ebsiint-api/shared";
-import { AppModule } from "../../src/app.module";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
-import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
+import { AppModule } from "../../src/app.module.js";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
+import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
 import {
   InsertSchemaParam,
   UnsignedTransaction,
   UpdateMetadataParam,
   UpdateSchemaParam,
-} from "../../src/modules/jsonrpc/dto";
-import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
-import { ApiConfig } from "../../src/config/configuration";
-import { requestSiopJwt } from "../utils/siopJwt";
-import { createVerifiableAuthorisationSchema } from "../utils/data";
-import { hexToMultibaseBase58Btc } from "../../src/modules/schemas/schemas.utils";
-import { describeWriteOps, writeOps } from "../utils/writeOps";
-import { getServer } from "../utils/getServer";
+} from "../../src/modules/jsonrpc/dto/index.js";
+import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
+import type { ApiConfig } from "../../src/config/configuration.js";
+import { requestSiopJwt } from "../utils/siopJwt.js";
+import { createVerifiableAuthorisationSchema } from "../utils/data.js";
+import { hexToMultibaseBase58Btc } from "../../src/modules/schemas/schemas.utils.js";
+import { describeWriteOps, writeOps } from "../utils/writeOps.js";
+import { getServer } from "../utils/getServer.js";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -46,8 +41,8 @@ type JsonRpcParams =
   | UpdateMetadataParam;
 
 describe("Schemas (e2e)", () => {
-  let app: INestApplication;
-  let server: HttpServer | string;
+  let app: NestFastifyApplication;
+  let server: RawServerDefault | string;
   let adminTestWallet: ethers.Wallet;
   let testUserAccessToken: string;
 
@@ -89,7 +84,7 @@ describe("Schemas (e2e)", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     // Turn off logger
@@ -102,13 +97,13 @@ describe("Schemas (e2e)", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
     server = getServer(app, configService);
 
     if (writeOps()) {
       adminTestWallet = new ethers.Wallet(
-        prefixWith0x(configService.get("testAdminPrivateKey"))
+        prefixWith0x(configService.get("testAdminPrivateKey")),
       );
 
       try {
@@ -124,7 +119,7 @@ describe("Schemas (e2e)", () => {
     ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
 
     rawSchema = createVerifiableAuthorisationSchema(
-      configService.get<string>("testVaSchemaUrl")
+      configService.get<string>("testVaSchemaUrl"),
     );
 
     blockscout = configService.get<{
@@ -242,12 +237,12 @@ describe("Schemas (e2e)", () => {
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
           JSON.parse(
-            JSON.stringify(unsignedTransaction)
-          ) as unknown as UnsignedTransaction
+            JSON.stringify(unsignedTransaction),
+          ) as unknown as UnsignedTransaction,
         );
         uTx.chainId = Number(uTx.chainId);
         const sgnTx = await adminTestWallet.signTransaction(
-          uTx as TransactionRequest
+          uTx as TransactionRequest,
         );
         const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
@@ -280,7 +275,7 @@ describe("Schemas (e2e)", () => {
         // wait to be mined
         const receipt = await waitToBeMined(
           ledgerApi,
-          responseSend.body.result as string
+          responseSend.body.result as string,
         );
         expect(receipt.status).toBe(1);
         sampleTransaction = responseSend.body.result as string;
@@ -302,7 +297,7 @@ describe("Schemas (e2e)", () => {
 
         expect(blockscoutCheck.status).toBe(200);
       });
-    }
+    },
   );
 
   describe("GET /schemas", () => {
@@ -318,7 +313,7 @@ describe("Schemas (e2e)", () => {
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            "/schemas?page[after]=1&page[size]=10"
+            "/schemas?page[after]=1&page[size]=10",
           ),
           prev: expect.stringContaining("/schemas?page[after]=1&page[size]=10"),
           next: expect.stringContaining("/schemas?page[after]="),
@@ -339,7 +334,7 @@ describe("Schemas (e2e)", () => {
         expect(response.body).toStrictEqual(rawUpdatedSchema);
         expect(response.status).toBe(200);
         expect(
-          (response.headers as { "content-type": string })["content-type"]
+          (response.headers as { "content-type": string })["content-type"],
         ).toStrictEqual(expect.stringContaining("application/json"));
       });
 
@@ -349,13 +344,13 @@ describe("Schemas (e2e)", () => {
         const multibaseSchemaId = hexToMultibaseBase58Btc(schemaId);
 
         const response = await request(server).get(
-          `/schemas/${multibaseSchemaId}`
+          `/schemas/${multibaseSchemaId}`,
         );
 
         expect(response.body).toStrictEqual(rawUpdatedSchema);
         expect(response.status).toBe(200);
         expect(
-          (response.headers as { "content-type": string })["content-type"]
+          (response.headers as { "content-type": string })["content-type"],
         ).toStrictEqual(expect.stringContaining("application/json"));
       });
     });
@@ -375,7 +370,7 @@ describe("Schemas (e2e)", () => {
       });
       expect(response.status).toBe(404);
       expect(
-        (response.headers as { "content-type": string })["content-type"]
+        (response.headers as { "content-type": string })["content-type"],
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
   });
@@ -385,7 +380,7 @@ describe("Schemas (e2e)", () => {
       expect.assertions(3);
 
       const response = await request(server).get(
-        "/schemas/no-schema/revisions"
+        "/schemas/no-schema/revisions",
       );
 
       expect(response.body).toStrictEqual({
@@ -396,7 +391,7 @@ describe("Schemas (e2e)", () => {
       });
       expect(response.status).toBe(400);
       expect(
-        (response.headers as { "content-type": string })["content-type"]
+        (response.headers as { "content-type": string })["content-type"],
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
 
@@ -405,7 +400,7 @@ describe("Schemas (e2e)", () => {
 
       const fakeId = `0x${crypto.randomBytes(32).toString("hex")}`;
       const response = await request(server).get(
-        `/schemas/${fakeId}/revisions`
+        `/schemas/${fakeId}/revisions`,
       );
 
       expect(response.body).toStrictEqual({
@@ -416,7 +411,7 @@ describe("Schemas (e2e)", () => {
       });
       expect(response.status).toBe(404);
       expect(
-        (response.headers as { "content-type": string })["content-type"]
+        (response.headers as { "content-type": string })["content-type"],
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
 
@@ -424,7 +419,7 @@ describe("Schemas (e2e)", () => {
       expect.assertions(3);
 
       const response = await request(server).get(
-        `/schemas/${schemaId}/revisions?valid-at=yesterday`
+        `/schemas/${schemaId}/revisions?valid-at=yesterday`,
       );
 
       expect(response.body).toStrictEqual({
@@ -435,7 +430,7 @@ describe("Schemas (e2e)", () => {
       });
       expect(response.status).toBe(400);
       expect(
-        (response.headers as { "content-type": string })["content-type"]
+        (response.headers as { "content-type": string })["content-type"],
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
 
@@ -443,7 +438,7 @@ describe("Schemas (e2e)", () => {
       expect.assertions(12);
 
       const response1 = await request(server).get(
-        `/schemas/${schemaId}/revisions?page[size]=100`
+        `/schemas/${schemaId}/revisions?page[size]=100`,
       );
       expect(response1.body).toStrictEqual({
         title: "Bad Request",
@@ -453,11 +448,11 @@ describe("Schemas (e2e)", () => {
       });
       expect(response1.status).toBe(400);
       expect(
-        (response1.headers as { "content-type": string })["content-type"]
+        (response1.headers as { "content-type": string })["content-type"],
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
 
       const response2 = await request(server).get(
-        `/schemas/${schemaId}/revisions?page[size]=0`
+        `/schemas/${schemaId}/revisions?page[size]=0`,
       );
       expect(response2.body).toStrictEqual({
         title: "Bad Request",
@@ -467,11 +462,11 @@ describe("Schemas (e2e)", () => {
       });
       expect(response2.status).toBe(400);
       expect(
-        (response2.headers as { "content-type": string })["content-type"]
+        (response2.headers as { "content-type": string })["content-type"],
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
 
       const response3 = await request(server).get(
-        `/schemas/${schemaId}/revisions?page[after]=0`
+        `/schemas/${schemaId}/revisions?page[after]=0`,
       );
       expect(response3.body).toStrictEqual({
         title: "Bad Request",
@@ -481,11 +476,11 @@ describe("Schemas (e2e)", () => {
       });
       expect(response3.status).toBe(400);
       expect(
-        (response3.headers as { "content-type": string })["content-type"]
+        (response3.headers as { "content-type": string })["content-type"],
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
 
       const response4 = await request(server).get(
-        `/schemas/${schemaId}/revisions?page[after]=abc`
+        `/schemas/${schemaId}/revisions?page[after]=abc`,
       );
       expect(response4.body).toStrictEqual({
         title: "Bad Request",
@@ -496,7 +491,7 @@ describe("Schemas (e2e)", () => {
       });
       expect(response4.status).toBe(400);
       expect(
-        (response4.headers as { "content-type": string })["content-type"]
+        (response4.headers as { "content-type": string })["content-type"],
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
 
@@ -505,51 +500,51 @@ describe("Schemas (e2e)", () => {
         expect.assertions(3);
 
         const response = await request(server).get(
-          `/schemas/${schemaId}/revisions`
+          `/schemas/${schemaId}/revisions`,
         );
 
         const revisionId2 = ethers.utils.sha256(
-          Buffer.from(serializedUpdatedSchema)
+          Buffer.from(serializedUpdatedSchema),
         );
 
         expect(response.body).toStrictEqual({
           items: expect.arrayContaining([
             {
               href: expect.stringContaining(
-                `/schemas/${schemaId}/revisions/${schemaRevisionId}`
+                `/schemas/${schemaId}/revisions/${schemaRevisionId}`,
               ),
               schemaRevisionId,
             },
             {
               href: expect.stringContaining(
-                `/schemas/${schemaId}/revisions/${revisionId2}`
+                `/schemas/${schemaId}/revisions/${revisionId2}`,
               ),
               schemaRevisionId: revisionId2,
             },
           ]),
           links: {
             first: expect.stringContaining(
-              `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`
+              `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`,
             ),
             last: expect.stringContaining(
-              `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`
+              `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`,
             ),
             next: expect.stringContaining(
-              `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`
+              `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`,
             ),
             prev: expect.stringContaining(
-              `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`
+              `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`,
             ),
           },
           pageSize: 10,
           self: expect.stringContaining(
-            `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`
+            `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`,
           ),
           total: expect.any(Number),
         });
         expect(response.status).toBe(200);
         expect(
-          (response.headers as { "content-type": string })["content-type"]
+          (response.headers as { "content-type": string })["content-type"],
         ).toStrictEqual(expect.stringContaining("application/json"));
       });
 
@@ -557,51 +552,51 @@ describe("Schemas (e2e)", () => {
         expect.assertions(3);
 
         const response = await request(server).get(
-          `/schemas/${schemaId}/revisions?valid-at${new Date().toISOString()}`
+          `/schemas/${schemaId}/revisions?valid-at${new Date().toISOString()}`,
         );
 
         const revisionId2 = ethers.utils.sha256(
-          Buffer.from(serializedUpdatedSchema)
+          Buffer.from(serializedUpdatedSchema),
         );
 
         expect(response.body).toStrictEqual({
           items: expect.arrayContaining([
             {
               href: expect.stringContaining(
-                `/schemas/${schemaId}/revisions/${schemaRevisionId}`
+                `/schemas/${schemaId}/revisions/${schemaRevisionId}`,
               ),
               schemaRevisionId,
             },
             {
               href: expect.stringContaining(
-                `/schemas/${schemaId}/revisions/${revisionId2}`
+                `/schemas/${schemaId}/revisions/${revisionId2}`,
               ),
               schemaRevisionId: revisionId2,
             },
           ]),
           links: {
             first: expect.stringContaining(
-              `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`
+              `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`,
             ),
             last: expect.stringContaining(
-              `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`
+              `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`,
             ),
             next: expect.stringContaining(
-              `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`
+              `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`,
             ),
             prev: expect.stringContaining(
-              `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`
+              `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`,
             ),
           },
           pageSize: 10,
           self: expect.stringContaining(
-            `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`
+            `/schemas/${schemaId}/revisions?page[after]=1&page[size]=10`,
           ),
           total: expect.any(Number),
         });
         expect(response.status).toBe(200);
         expect(
-          (response.headers as { "content-type": string })["content-type"]
+          (response.headers as { "content-type": string })["content-type"],
         ).toStrictEqual(expect.stringContaining("application/json"));
       });
     });
@@ -616,7 +611,7 @@ describe("Schemas (e2e)", () => {
         .toString("hex")}`;
 
       const response = await request(server).get(
-        `/schemas/no-schema/revisions/${fakeSchemaRevisionId}`
+        `/schemas/no-schema/revisions/${fakeSchemaRevisionId}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -627,7 +622,7 @@ describe("Schemas (e2e)", () => {
       });
       expect(response.status).toBe(400);
       expect(
-        (response.headers as { "content-type": string })["content-type"]
+        (response.headers as { "content-type": string })["content-type"],
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
 
@@ -640,7 +635,7 @@ describe("Schemas (e2e)", () => {
         .toString("hex")}`;
 
       const response = await request(server).get(
-        `/schemas/${fakeSchemaId}/revisions/${fakeSchemaRevisionId}`
+        `/schemas/${fakeSchemaId}/revisions/${fakeSchemaRevisionId}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -651,7 +646,7 @@ describe("Schemas (e2e)", () => {
       });
       expect(response.status).toBe(404);
       expect(
-        (response.headers as { "content-type": string })["content-type"]
+        (response.headers as { "content-type": string })["content-type"],
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
 
@@ -661,7 +656,7 @@ describe("Schemas (e2e)", () => {
       const fakeSchemaId = `0x${crypto.randomBytes(32).toString("hex")}`;
 
       const response = await request(server).get(
-        `/schemas/${fakeSchemaId}/revisions/no-revision`
+        `/schemas/${fakeSchemaId}/revisions/no-revision`,
       );
 
       expect(response.body).toStrictEqual({
@@ -673,7 +668,7 @@ describe("Schemas (e2e)", () => {
       });
       expect(response.status).toBe(400);
       expect(
-        (response.headers as { "content-type": string })["content-type"]
+        (response.headers as { "content-type": string })["content-type"],
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
 
@@ -686,7 +681,7 @@ describe("Schemas (e2e)", () => {
           .toString("hex")}`;
 
         const response = await request(server).get(
-          `/schemas/${schemaId}/revisions/${fakeSchemaRevisionId}`
+          `/schemas/${schemaId}/revisions/${fakeSchemaRevisionId}`,
         );
 
         expect(response.body).toStrictEqual({
@@ -697,7 +692,7 @@ describe("Schemas (e2e)", () => {
         });
         expect(response.status).toBe(404);
         expect(
-          (response.headers as { "content-type": string })["content-type"]
+          (response.headers as { "content-type": string })["content-type"],
         ).toStrictEqual(expect.stringContaining("application/problem+json"));
       });
 
@@ -705,13 +700,13 @@ describe("Schemas (e2e)", () => {
         expect.assertions(3);
 
         const response = await request(server).get(
-          `/schemas/${schemaId}/revisions/${schemaRevisionId}`
+          `/schemas/${schemaId}/revisions/${schemaRevisionId}`,
         );
 
         expect(response.body).toStrictEqual(rawSchema);
         expect(response.status).toBe(200);
         expect(
-          (response.headers as { "content-type": string })["content-type"]
+          (response.headers as { "content-type": string })["content-type"],
         ).toStrictEqual(expect.stringContaining("application/json"));
       });
     });
@@ -726,7 +721,7 @@ describe("Schemas (e2e)", () => {
         .toString("hex")}`;
 
       const response = await request(server).get(
-        `/schemas/no-schema/revisions/${fakeSchemaRevisionId}/metadata`
+        `/schemas/no-schema/revisions/${fakeSchemaRevisionId}/metadata`,
       );
 
       expect(response.body).toStrictEqual({
@@ -737,7 +732,7 @@ describe("Schemas (e2e)", () => {
       });
       expect(response.status).toBe(400);
       expect(
-        (response.headers as { "content-type": string })["content-type"]
+        (response.headers as { "content-type": string })["content-type"],
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
 
@@ -750,7 +745,7 @@ describe("Schemas (e2e)", () => {
         .toString("hex")}`;
 
       const response = await request(server).get(
-        `/schemas/${fakeSchemaId}/revisions/${fakeSchemaRevisionId}/metadata`
+        `/schemas/${fakeSchemaId}/revisions/${fakeSchemaRevisionId}/metadata`,
       );
 
       expect(response.body).toStrictEqual({
@@ -761,7 +756,7 @@ describe("Schemas (e2e)", () => {
       });
       expect(response.status).toBe(404);
       expect(
-        (response.headers as { "content-type": string })["content-type"]
+        (response.headers as { "content-type": string })["content-type"],
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
 
@@ -771,7 +766,7 @@ describe("Schemas (e2e)", () => {
       const fakeSchemaId = `0x${crypto.randomBytes(32).toString("hex")}`;
 
       const response = await request(server).get(
-        `/schemas/${fakeSchemaId}/revisions/no-revision/metadata`
+        `/schemas/${fakeSchemaId}/revisions/no-revision/metadata`,
       );
 
       expect(response.body).toStrictEqual({
@@ -783,7 +778,7 @@ describe("Schemas (e2e)", () => {
       });
       expect(response.status).toBe(400);
       expect(
-        (response.headers as { "content-type": string })["content-type"]
+        (response.headers as { "content-type": string })["content-type"],
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
 
@@ -796,7 +791,7 @@ describe("Schemas (e2e)", () => {
           .toString("hex")}`;
 
         const response = await request(server).get(
-          `/schemas/${schemaId}/revisions/${fakeSchemaRevisionId}/metadata`
+          `/schemas/${schemaId}/revisions/${fakeSchemaRevisionId}/metadata`,
         );
 
         expect(response.body).toStrictEqual({
@@ -807,7 +802,7 @@ describe("Schemas (e2e)", () => {
         });
         expect(response.status).toBe(404);
         expect(
-          (response.headers as { "content-type": string })["content-type"]
+          (response.headers as { "content-type": string })["content-type"],
         ).toStrictEqual(expect.stringContaining("application/problem+json"));
       });
 
@@ -815,41 +810,41 @@ describe("Schemas (e2e)", () => {
         expect.assertions(3);
 
         const response = await request(server).get(
-          `/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata`
+          `/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata`,
         );
 
         expect(response.body).toStrictEqual({
           items: expect.arrayContaining([
             {
               href: expect.stringContaining(
-                `/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata/${schemaRevisionMetadataId}`
+                `/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata/${schemaRevisionMetadataId}`,
               ),
               metadataId: schemaRevisionMetadataId,
             },
           ]),
           links: {
             first: expect.stringContaining(
-              `/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata?page[after]=1&page[size]=10`
+              `/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata?page[after]=1&page[size]=10`,
             ),
             last: expect.stringContaining(
-              `/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata?page[after]=1&page[size]=10`
+              `/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata?page[after]=1&page[size]=10`,
             ),
             next: expect.stringContaining(
-              `/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata?page[after]=1&page[size]=10`
+              `/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata?page[after]=1&page[size]=10`,
             ),
             prev: expect.stringContaining(
-              `/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata?page[after]=1&page[size]=10`
+              `/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata?page[after]=1&page[size]=10`,
             ),
           },
           pageSize: 10,
           self: expect.stringContaining(
-            `/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata?page[after]=1&page[size]=10`
+            `/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata?page[after]=1&page[size]=10`,
           ),
           total: expect.any(Number),
         });
         expect(response.status).toBe(200);
         expect(
-          (response.headers as { "content-type": string })["content-type"]
+          (response.headers as { "content-type": string })["content-type"],
         ).toStrictEqual(expect.stringContaining("application/json"));
       });
     });
@@ -868,7 +863,7 @@ describe("Schemas (e2e)", () => {
         .toString("hex")}`;
 
       const response = await request(server).get(
-        `/schemas/no-schema/revisions/${fakeSchemaRevisionId}/metadata/${fakeSchemaMetadataId}`
+        `/schemas/no-schema/revisions/${fakeSchemaRevisionId}/metadata/${fakeSchemaMetadataId}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -879,7 +874,7 @@ describe("Schemas (e2e)", () => {
       });
       expect(response.status).toBe(400);
       expect(
-        (response.headers as { "content-type": string })["content-type"]
+        (response.headers as { "content-type": string })["content-type"],
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
 
@@ -895,7 +890,7 @@ describe("Schemas (e2e)", () => {
         .toString("hex")}`;
 
       const response = await request(server).get(
-        `/schemas/${fakeSchemaId}/revisions/${fakeSchemaRevisionId}/metadata/${fakeSchemaMetadataId}`
+        `/schemas/${fakeSchemaId}/revisions/${fakeSchemaRevisionId}/metadata/${fakeSchemaMetadataId}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -906,7 +901,7 @@ describe("Schemas (e2e)", () => {
       });
       expect(response.status).toBe(404);
       expect(
-        (response.headers as { "content-type": string })["content-type"]
+        (response.headers as { "content-type": string })["content-type"],
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
 
@@ -919,7 +914,7 @@ describe("Schemas (e2e)", () => {
         .toString("hex")}`;
 
       const response = await request(server).get(
-        `/schemas/${fakeSchemaId}/revisions/no-revision/metadata/${fakeSchemaMetadataId}`
+        `/schemas/${fakeSchemaId}/revisions/no-revision/metadata/${fakeSchemaMetadataId}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -931,7 +926,7 @@ describe("Schemas (e2e)", () => {
       });
       expect(response.status).toBe(400);
       expect(
-        (response.headers as { "content-type": string })["content-type"]
+        (response.headers as { "content-type": string })["content-type"],
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
 
@@ -947,7 +942,7 @@ describe("Schemas (e2e)", () => {
           .toString("hex")}`;
 
         const response = await request(server).get(
-          `/schemas/${schemaId}/revisions/${fakeSchemaRevisionId}/metadata/${fakeSchemaMetadataId}`
+          `/schemas/${schemaId}/revisions/${fakeSchemaRevisionId}/metadata/${fakeSchemaMetadataId}`,
         );
 
         expect(response.body).toStrictEqual({
@@ -958,7 +953,7 @@ describe("Schemas (e2e)", () => {
         });
         expect(response.status).toBe(404);
         expect(
-          (response.headers as { "content-type": string })["content-type"]
+          (response.headers as { "content-type": string })["content-type"],
         ).toStrictEqual(expect.stringContaining("application/problem+json"));
       });
 
@@ -966,7 +961,7 @@ describe("Schemas (e2e)", () => {
         expect.assertions(3);
 
         const response = await request(server).get(
-          `/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata/no-metadata`
+          `/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata/no-metadata`,
         );
 
         expect(response.body).toStrictEqual({
@@ -978,7 +973,7 @@ describe("Schemas (e2e)", () => {
         });
         expect(response.status).toBe(400);
         expect(
-          (response.headers as { "content-type": string })["content-type"]
+          (response.headers as { "content-type": string })["content-type"],
         ).toStrictEqual(expect.stringContaining("application/problem+json"));
       });
 
@@ -986,13 +981,13 @@ describe("Schemas (e2e)", () => {
         expect.assertions(3);
 
         const response = await request(server).get(
-          `/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata/${schemaRevisionMetadataId}`
+          `/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata/${schemaRevisionMetadataId}`,
         );
 
         expect(response.body).toStrictEqual(rawMetadata);
         expect(response.status).toBe(200);
         expect(
-          (response.headers as { "content-type": string })["content-type"]
+          (response.headers as { "content-type": string })["content-type"],
         ).toStrictEqual(expect.stringContaining("application/ld+json"));
       });
 
@@ -1004,7 +999,7 @@ describe("Schemas (e2e)", () => {
           .toString("hex")}`;
 
         const response = await request(server).get(
-          `/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata/${fakeSchemaMetadataId}`
+          `/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata/${fakeSchemaMetadataId}`,
         );
 
         expect(response.body).toStrictEqual({
@@ -1015,7 +1010,7 @@ describe("Schemas (e2e)", () => {
         });
         expect(response.status).toBe(404);
         expect(
-          (response.headers as { "content-type": string })["content-type"]
+          (response.headers as { "content-type": string })["content-type"],
         ).toStrictEqual(expect.stringContaining("application/problem+json"));
       });
     });

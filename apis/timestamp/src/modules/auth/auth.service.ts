@@ -4,8 +4,8 @@ import { decodeJWT } from "did-jwt";
 import { verifyJwtTar as verifyOAuth2Token } from "@cef-ebsi/oauth2-auth";
 import { verifyJwtTar as verifySiopToken } from "@cef-ebsi/siop-auth";
 import { UnauthorizedError } from "@ebsiint-api/shared";
-import { ApiConfig } from "../../config/configuration";
-import { Payload } from "./auth.interface";
+import type { ApiConfig } from "../../config/configuration.js";
+import { Payload } from "./auth.interface.js";
 
 @Injectable()
 export class AuthService {
@@ -17,11 +17,11 @@ export class AuthService {
 
   constructor(configService: ConfigService<ApiConfig, true>) {
     this.authorisationApiName = configService.get<string>(
-      "authorisationApiName"
+      "authorisationApiName",
     );
 
     this.trustedAppsRegistry = `${configService.get<string>(
-      "trustedAppsRegistryApiUrl"
+      "trustedAppsRegistryApiUrl",
     )}/apps`;
 
     this.timeout = configService.get<number>("requestTimeout");

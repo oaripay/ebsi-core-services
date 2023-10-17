@@ -1,8 +1,8 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { Timestamp } from "@ebsiint-sc/timestamp-v2";
 import { isEthersError, NotFoundError } from "@ebsiint-api/shared";
-import { LedgerService } from "../ledger/ledger.service";
-import { HashAlgorithmResponseObject } from "./hash-algorithms.interface";
+import { LedgerService } from "../ledger/ledger.service.js";
+import { HashAlgorithmResponseObject } from "./hash-algorithms.interface.js";
 
 @Injectable()
 export class HashAlgorithmsService {
@@ -12,7 +12,7 @@ export class HashAlgorithmsService {
 
   async getHashAlgorithms(
     page: number,
-    pageSize: number
+    pageSize: number,
   ): Promise<ReturnType<Timestamp["getHashAlgorithms"]>> {
     try {
       return await (
@@ -29,7 +29,7 @@ export class HashAlgorithmsService {
   }
 
   async getHashAlgorithm(
-    hashAlgorithmId: number
+    hashAlgorithmId: number,
   ): Promise<HashAlgorithmResponseObject> {
     let hashAlgorithm: Awaited<ReturnType<Timestamp["getHashAlgorithmById"]>>;
 

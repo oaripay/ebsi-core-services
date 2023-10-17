@@ -4,13 +4,12 @@ import { DidRegistry } from "@ebsiint-sc/did-registry";
 import {
   multibase,
   multihashEncode,
-  AsyncReturnType,
   BadRequestError,
   NotFoundError,
   isEthersError,
 } from "@ebsiint-api/shared";
-import { DidTimestampResponseObject } from "./did-timestamps.interface";
-import { LedgerService } from "../ledger/ledger.service";
+import { DidTimestampResponseObject } from "./did-timestamps.interface.js";
+import { LedgerService } from "../ledger/ledger.service.js";
 
 @Injectable()
 export class DidTimestampsService {
@@ -22,7 +21,7 @@ export class DidTimestampsService {
     page: number,
     pageSize: number,
     identifier?: string,
-    versionId?: number
+    versionId?: number,
   ): Promise<{
     items: string[];
     total: number;
@@ -81,11 +80,11 @@ export class DidTimestampsService {
   }
 
   async getDidTimestamp(
-    timestampId: string
+    timestampId: string,
   ): Promise<DidTimestampResponseObject> {
-    let timestamp: AsyncReturnType<DidRegistry["getDidTimestampById"]>;
+    let timestamp: Awaited<ReturnType<DidRegistry["getDidTimestampById"]>>;
     const timestampIdDecoded = `0x${Buffer.from(
-      multibase.base64url.decode(timestampId)
+      multibase.base64url.decode(timestampId),
     ).toString("hex")}`;
 
     try {
@@ -111,7 +110,7 @@ export class DidTimestampsService {
       const multihashEncodedHash = multihashEncode(
         timestamp.hash.value,
         multihash as HashName,
-        outputLength.toNumber() / 8
+        outputLength.toNumber() / 8,
       );
 
       return {

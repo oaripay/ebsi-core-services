@@ -1,5 +1,5 @@
 import { IsEthereumAddress } from "class-validator";
-import { ArgsInsertDidDocument } from "./args-insert-did-document.dto";
+import { ArgsInsertDidDocument } from "./args-insert-did-document.dto.js";
 
 export class InsertDidDocumentParam extends ArgsInsertDidDocument {
   @IsEthereumAddress()

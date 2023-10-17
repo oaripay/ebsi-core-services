@@ -1,13 +1,13 @@
 import { Strategy } from "passport-http-bearer";
 import { PassportStrategy } from "@nestjs/passport";
 import { Injectable } from "@nestjs/common";
-import { AuthService } from "../auth.service";
-import { AppInfo } from "../auth.interface";
+import { AuthService } from "../auth.service.js";
+import { AppInfo } from "../auth.interface.js";
 
 @Injectable()
 export class OAuth2JwtStrategy extends PassportStrategy(
   Strategy,
-  "oauth2-jwt"
+  "oauth2-jwt",
 ) {
   constructor(private authService: AuthService) {
     super();

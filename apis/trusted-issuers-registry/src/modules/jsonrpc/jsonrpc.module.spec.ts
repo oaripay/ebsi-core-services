@@ -1,28 +1,23 @@
 import {
-  jest,
+  vi,
   describe,
   beforeAll,
   beforeEach,
   afterAll,
   it,
   expect,
-} from "@jest/globals";
+} from "vitest";
 import request from "supertest";
-import axios, { AxiosResponse } from "axios";
-import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  Logger,
-  HttpServer,
-} from "@nestjs/common";
+import axios, { type AxiosResponse } from "axios";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import crypto from "node:crypto";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { createJWT, ES256KSigner } from "did-jwt";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
@@ -34,23 +29,23 @@ import {
 import * as vcLib from "@cef-ebsi/verifiable-credential";
 import { exportJWK, generateKeyPair, JWTVerifyResult } from "jose";
 import { useContainer } from "class-validator";
-import { AsyncReturnType, StatusList2021Credential } from "@ebsiint-api/shared";
-import { JsonRpcModule } from "./jsonrpc.module";
-import { JsonRpcResponseObject } from "./jsonrpc.interface";
-import { JsonRpcService } from "./jsonrpc.service";
+import { StatusList2021Credential } from "@ebsiint-api/shared";
+import { JsonRpcModule } from "./jsonrpc.module.js";
+import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
+import { JsonRpcService } from "./jsonrpc.service.js";
 import {
   UnsignedTransaction,
   InsertPolicyParam,
   UpdatePolicyParam,
   AddIssuerProxyParam,
   UpdateIssuerProxyParam,
-} from "./dto";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
-import { setupTestEnv } from "../../../tests/utils/tir";
-import { LedgerService } from "../ledger/ledger.service";
-import { AttributeObject } from "../issuers/issuers.interface";
-import { ApiConfig } from "../../config/configuration";
+} from "./dto/index.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import { formatEthersUnsignedTransaction } from "./jsonrpc.utils.js";
+import { setupTestEnv } from "../../../tests/utils/tir.js";
+import { LedgerService } from "../ledger/ledger.service.js";
+import { AttributeObject } from "../issuers/issuers.interface.js";
+import type { ApiConfig } from "../../config/configuration.js";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -63,23 +58,19 @@ type JsonRpcParams =
   | AddIssuerProxyParam
   | UpdateIssuerProxyParam;
 
-jest.setTimeout(90000);
-
 let tokenVerificationResolve = true;
 let customPayload = {
   sub: "test",
 } as unknown;
 
-jest.mock("@cef-ebsi/siop-auth", () => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const originalModule = jest.requireActual("@cef-ebsi/siop-auth");
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+vi.mock("@cef-ebsi/siop-auth", async () => {
+  const originalModule = await vi.importActual<
+    typeof import("@cef-ebsi/siop-auth")
+  >("@cef-ebsi/siop-auth");
+
   return {
-    __esModule: true, // Use it when dealing with esModules
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
     ...originalModule,
-    verifyJwtTar: jest.fn().mockImplementation(async () => {
+    verifyJwtTar: vi.fn().mockImplementation(async () => {
       if (!tokenVerificationResolve)
         return Promise.reject(new Error("error message"));
       return Promise.resolve({
@@ -89,13 +80,23 @@ jest.mock("@cef-ebsi/siop-auth", () => {
   };
 });
 
+vi.mock("@cef-ebsi/verifiable-credential", async () => {
+  const mod = await vi.importActual<
+    typeof import("@cef-ebsi/verifiable-credential")
+  >("@cef-ebsi/verifiable-credential");
+
+  return {
+    ...mod,
+  };
+});
+
 describe("JsonRpc Module", () => {
-  let app: INestApplication;
-  let server: HttpServer;
+  let app: NestFastifyApplication;
+  let server: RawServerDefault;
   let tirContract: Tir;
   let tirContractAddress: string;
   let jsonRpcService: JsonRpcService;
-  let testEnv: AsyncReturnType<typeof setupTestEnv>;
+  let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
   let ledgerService: LedgerService;
   let userAccessToken: string;
   let userAccessTokenPayload: { [x: string]: unknown };
@@ -249,9 +250,9 @@ describe("JsonRpc Module", () => {
     tirContract = testEnv.tirContract;
     tirContractAddress = tirContract.address;
 
-    jest
-      .spyOn(LedgerService.prototype, "getContractAddress")
-      .mockImplementation(() => tirContract.address);
+    vi.spyOn(LedgerService.prototype, "getContractAddress").mockImplementation(
+      () => tirContract.address,
+    );
 
     // Start server
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -259,7 +260,7 @@ describe("JsonRpc Module", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     // Turn off logger
@@ -272,8 +273,8 @@ describe("JsonRpc Module", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     useContainer(app.select(JsonRpcModule), { fallbackOnErrors: true });
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    await app.getHttpAdapter().getInstance().ready();
+    server = app.getHttpServer();
 
     jsonRpcService = moduleFixture.get<JsonRpcService>(JsonRpcService);
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
@@ -293,7 +294,7 @@ describe("JsonRpc Module", () => {
       {
         issuer: "any",
         signer: ES256KSigner(crypto.randomBytes(32)),
-      }
+      },
     );
 
     const keyPair = await generateKeyPair("ES256K");
@@ -314,32 +315,32 @@ describe("JsonRpc Module", () => {
       {
         ebsiAuthority: "example.net",
         skipValidation: true,
-      }
+      },
     );
 
     // Mock VC Lib validation
-    jest
-      .spyOn(vcLib, "verifyCredentialJwt")
-      .mockImplementation(async (jwt: string) => {
+    vi.spyOn(vcLib, "verifyCredentialJwt").mockImplementation(
+      async (jwt: string) => {
         if (jwt === issuerV1StatusList2021CredentialJwt)
           return Promise.resolve(issuerV1StatusList2021Credential);
 
         return Promise.reject(new Error("Invalid JWT"));
-      });
+      },
+    );
   });
 
   beforeEach(() => {
     // Mock TIR contract
-    jest
-      .spyOn(ledgerService, "getContract")
-      .mockImplementation(async () => Promise.resolve(tirContract));
+    vi.spyOn(ledgerService, "getContract").mockImplementation(async () =>
+      Promise.resolve(tirContract),
+    );
 
     // Make sure we never use axios.post or axios.get in tests ;-)
-    jest.spyOn(axios, "post").mockImplementation(() => {
+    vi.spyOn(axios, "post").mockImplementation(() => {
       throw new Error("Forgot to mock an axios call?");
     });
 
-    jest.spyOn(axios, "get").mockImplementation((url: string) => {
+    vi.spyOn(axios, "get").mockImplementation((url: string) => {
       if (
         url ===
         `${issuerV1Proxy1.rawProxyData.prefix}${issuerV1Proxy1.rawProxyData.testSuffix}`
@@ -355,16 +356,12 @@ describe("JsonRpc Module", () => {
     });
 
     // For the tests, we assume that the DID is controlled by the signer
-    jest
-      .spyOn(jsonRpcService, "isDidControlledByAddress")
-      .mockImplementation(async () => Promise.resolve(true));
+    vi.spyOn(jsonRpcService, "isDidControlledByAddress").mockImplementation(
+      async () => Promise.resolve(true),
+    );
   });
 
   afterAll(async () => {
-    // Avoid jest open handle error
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
     await app.close();
   });
 
@@ -382,7 +379,7 @@ describe("JsonRpc Module", () => {
     });
     expect(response.status).toBe(401);
     expect(
-      (response.headers as { "content-type": string })["content-type"]
+      (response.headers as { "content-type": string })["content-type"],
     ).toStrictEqual(expect.stringContaining("application/problem+json"));
   });
 
@@ -405,7 +402,7 @@ describe("JsonRpc Module", () => {
     });
     expect(response.status).toBe(401);
     expect(
-      (response.headers as { "content-type": string })["content-type"]
+      (response.headers as { "content-type": string })["content-type"],
     ).toStrictEqual(expect.stringContaining("application/problem+json"));
   });
 
@@ -451,7 +448,7 @@ describe("JsonRpc Module", () => {
     };
 
     const uTx = formatEthersUnsignedTransaction(
-      JSON.parse(JSON.stringify(transaction)) as unknown as UnsignedTransaction
+      JSON.parse(JSON.stringify(transaction)) as unknown as UnsignedTransaction,
     );
     uTx.chainId = Number(uTx.chainId);
     const sgnTx = await wallet.signTransaction(uTx);
@@ -513,7 +510,7 @@ describe("JsonRpc Module", () => {
       error: {
         code: -32600,
         message: expect.stringContaining(
-          "The method 'unknown-method' is invalid"
+          "The method 'unknown-method' is invalid",
         ),
       },
     });
@@ -536,9 +533,9 @@ describe("JsonRpc Module", () => {
     customPayload = defaultSignerSiopAccessTokenPayload;
 
     // The DID is not controlled by the signer
-    jest
-      .spyOn(jsonRpcService, "isDidControlledByAddress")
-      .mockImplementation(async () => Promise.resolve(false));
+    vi.spyOn(jsonRpcService, "isDidControlledByAddress").mockImplementation(
+      async () => Promise.resolve(false),
+    );
 
     const responseBuild: SupertestJsonRpcResponse = await request(server)
       .post("/jsonrpc")
@@ -569,8 +566,8 @@ describe("JsonRpc Module", () => {
     const unsignedTransaction = responseBuild.body.result;
     const uTx = formatEthersUnsignedTransaction(
       JSON.parse(
-        JSON.stringify(unsignedTransaction)
-      ) as unknown as UnsignedTransaction
+        JSON.stringify(unsignedTransaction),
+      ) as unknown as UnsignedTransaction,
     );
     uTx.chainId = Number(uTx.chainId);
     const sgnTx = await signer.signTransaction(uTx);
@@ -655,8 +652,8 @@ describe("JsonRpc Module", () => {
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
         JSON.parse(
-          JSON.stringify(unsignedTransaction)
-        ) as unknown as UnsignedTransaction
+          JSON.stringify(unsignedTransaction),
+        ) as unknown as UnsignedTransaction,
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx = await signer.signTransaction(uTx);
@@ -713,7 +710,7 @@ describe("JsonRpc Module", () => {
       expect(responseBuild.body).toStrictEqual({
         jsonrpc: "2.0",
         id: null,
-        result: expect.objectContaining({}) as unknown,
+        result: expect.objectContaining({}),
       });
       expect(responseBuild.status).toBe(200);
     });
@@ -738,10 +735,12 @@ describe("JsonRpc Module", () => {
       switch (method) {
         case "insertPolicy":
         case "updatePolicy":
+          // @ts-expect-error "The operand of a 'delete' operator must be optional"
           delete (param1 as InsertPolicyParam).policyData;
           expectedErrorMessage1 =
             "property params[0].policyData has failed the following constraints: isHexadecimal";
 
+          // @ts-expect-error "The operand of a 'delete' operator must be optional"
           delete (param2 as InsertPolicyParam).policyId;
           expectedErrorMessage2 =
             "property params[0].policyId has failed the following constraints: isString";
@@ -752,10 +751,12 @@ describe("JsonRpc Module", () => {
           break;
         case "addIssuerProxy":
         case "updateIssuerProxy":
+          // @ts-expect-error "The operand of a 'delete' operator must be optional"
           delete (param1 as AddIssuerProxyParam).did;
           expectedErrorMessage1 =
             "property params[0].did has failed the following constraints: isDidV1";
 
+          // @ts-expect-error "The operand of a 'delete' operator must be optional"
           delete (param2 as AddIssuerProxyParam).proxyData;
           expectedErrorMessage2 =
             "property params[0].proxyData has failed the following constraints: isIssuerProxy";
@@ -869,8 +870,8 @@ describe("JsonRpc Module", () => {
 
       const uTx = formatEthersUnsignedTransaction(
         JSON.parse(
-          JSON.stringify(transaction1)
-        ) as unknown as UnsignedTransaction
+          JSON.stringify(transaction1),
+        ) as unknown as UnsignedTransaction,
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx1 = await wallet1.signTransaction(uTx);
@@ -901,7 +902,7 @@ describe("JsonRpc Module", () => {
         error: {
           code: -32600,
           message: expect.stringContaining(
-            "does not match with the signedRawTransaction"
+            "does not match with the signedRawTransaction",
           ),
         },
       });

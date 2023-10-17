@@ -12,11 +12,11 @@ import {
   RequestUpdateMetadataDto,
   ArgsUpdateSchema,
   RequestUpdateSchemaDto,
-} from "./dto";
+} from "./dto/index.js";
 
 export function formatEthersUnsignedTransaction(
-  unsignedTransaction: UnsignedTransaction
-): ethers.UnsignedTransaction {
+  unsignedTransaction: UnsignedTransaction,
+) {
   return {
     to: unsignedTransaction.to,
     data: unsignedTransaction.data,
@@ -25,21 +25,15 @@ export function formatEthersUnsignedTransaction(
     chainId: Number(unsignedTransaction.chainId),
     gasLimit: unsignedTransaction.gasLimit,
     gasPrice: unsignedTransaction.gasPrice,
-  };
+  } satisfies ethers.UnsignedTransaction;
 }
 
-export function formatEthersSignature(
-  r: string,
-  s: string,
-  v: string
-): ethers.Signature {
+export function formatEthersSignature(r: string, s: string, v: string) {
   return {
     r,
     s,
     v: Number(v),
-    recoveryParam: null,
-    _vs: null,
-  } as ethers.Signature;
+  } satisfies Partial<ethers.Signature>;
 }
 
 type JsonRpcDtos =
@@ -53,7 +47,7 @@ type JsonRpcDtos =
 
 export const validateClass = async (
   classType: ClassConstructor<JsonRpcDtos>,
-  data: JsonRpcDtos
+  data: JsonRpcDtos,
 ): Promise<void> => {
   const dataClass = new ClassTransformer().plainToInstance<
     JsonRpcDtos,
@@ -67,11 +61,11 @@ export const validateClass = async (
 
 export const validateSchemaId = async (
   hexJsonSchema: string,
-  expectedSchemaId: string
+  expectedSchemaId: string,
 ): Promise<void> => {
   // 1. Hex JSON -> JSON
   const jsonSchema = JSON.parse(
-    Buffer.from(remove0xPrefix(hexJsonSchema), "hex").toString("utf8")
+    Buffer.from(remove0xPrefix(hexJsonSchema), "hex").toString("utf8"),
   ) as JSONSchema;
 
   // 2. Compute schema ID
@@ -81,7 +75,7 @@ export const validateSchemaId = async (
   // 3. Compare
   if (actualSchemaId !== expectedSchemaId) {
     throw new Error(
-      `Invalid schema ID: "${expectedSchemaId}" is different from the actual schema ID "${actualSchemaId}"`
+      `Invalid schema ID: "${expectedSchemaId}" is different from the actual schema ID "${actualSchemaId}"`,
     );
   }
 };

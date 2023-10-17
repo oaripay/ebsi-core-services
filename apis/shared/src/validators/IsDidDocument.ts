@@ -40,7 +40,7 @@ export const contextSchema = Joi.alternatives()
       .items(Joi.string().uri())
       .ordered(Joi.string().valid("https://www.w3.org/ns/did/v1").required())
       .required(),
-    Joi.string().valid("https://www.w3.org/ns/did/v1").required()
+    Joi.string().valid("https://www.w3.org/ns/did/v1").required(),
   )
   .required();
 
@@ -50,28 +50,28 @@ export const didDocumentSchema = Joi.object<DIDDocument>({
   alsoKnownAs: Joi.array().items(Joi.string()),
   controller: Joi.alternatives().try(
     Joi.array().items(Joi.string()),
-    Joi.string()
+    Joi.string(),
   ),
   verificationMethod: Joi.array().items(verificationMethodSchema),
   authentication: Joi.alternatives().try(
     Joi.array().items(Joi.string()),
-    Joi.array().items(verificationMethodSchema)
+    Joi.array().items(verificationMethodSchema),
   ),
   assertionMethod: Joi.alternatives().try(
     Joi.array().items(Joi.string()),
-    Joi.array().items(verificationMethodSchema)
+    Joi.array().items(verificationMethodSchema),
   ),
   keyAgreement: Joi.alternatives().try(
     Joi.array().items(Joi.string()),
-    Joi.array().items(verificationMethodSchema)
+    Joi.array().items(verificationMethodSchema),
   ),
   capabilityInvocation: Joi.alternatives().try(
     Joi.array().items(Joi.string()),
-    Joi.array().items(verificationMethodSchema)
+    Joi.array().items(verificationMethodSchema),
   ),
   capabilityDelegation: Joi.alternatives().try(
     Joi.array().items(Joi.string()),
-    Joi.array().items(verificationMethodSchema)
+    Joi.array().items(verificationMethodSchema),
   ),
   service: Joi.array().items(
     Joi.object<ServiceEndpoint>({
@@ -79,7 +79,7 @@ export const didDocumentSchema = Joi.object<DIDDocument>({
       type: Joi.string().required(),
       serviceEndpoint: Joi.string().required(),
       description: Joi.string(),
-    })
+    }),
   ),
   /**
    * @deprecated

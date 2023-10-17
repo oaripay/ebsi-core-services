@@ -1,5 +1,5 @@
 import { IsEthereumAddress } from "class-validator";
-import { ArgsRevokeRecordOwner } from "../sendSignedTransaction";
+import { ArgsRevokeRecordOwner } from "../sendSignedTransaction/index.js";
 
 export class RevokeRecordOwnerParam extends ArgsRevokeRecordOwner {
   @IsEthereumAddress()

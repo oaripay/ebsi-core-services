@@ -3,22 +3,22 @@ import {
   IsHexadecimalDidRule,
   IsHexadecimalJson,
   IsHexadecimalJsonLdDidDocument,
-} from "../../validators";
+} from "../../validators/index.js";
 
 export class ArgsDetachDidDocumentVersionMetadata {
   // Consumer calling function must convert Base58 DID identifier into bytes in hex format
   @IsHexadecimalDidRule()
-  identifier: string;
+  identifier!: string;
 
   // Stringified JSON DID document (hex-encoded)
   @IsHexadecimalJsonLdDidDocument()
   @Matches(/^0x/)
-  didVersionInfo: string;
+  didVersionInfo!: string;
 
   // Stringified JSON metadata (hex-encoded)
   @IsHexadecimalJson()
   @Matches(/^0x/)
-  didVersionMetadata: string;
+  didVersionMetadata!: string;
 }
 
 export default { ArgsDetachDidDocumentVersionMetadata };

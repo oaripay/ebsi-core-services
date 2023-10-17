@@ -1,21 +1,21 @@
-import { describe, beforeAll, afterAll, it, expect } from "@jest/globals";
+import { describe, beforeAll, afterAll, it, expect } from "vitest";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import { ValidationPipe, Logger, HttpServer } from "@nestjs/common";
-import type { FastifyInstance } from "fastify";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
+import type { RawServerDefault } from "fastify";
 import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { AppModule } from "../../src/app.module";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
-import { ApiConfig } from "../../src/config/configuration";
-import { getServer } from "../utils/getServer";
+import { AppModule } from "../../src/app.module.js";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
+import type { ApiConfig } from "../../src/config/configuration.js";
+import { getServer } from "../utils/getServer.js";
 
 describe("App Module", () => {
   let app: NestFastifyApplication;
-  let server: HttpServer | string;
+  let server: RawServerDefault | string;
   let apiUrlPrefix = "";
   let configService: ConfigService<ApiConfig, true>;
 
@@ -26,7 +26,7 @@ describe("App Module", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     // Turn off logger
@@ -39,7 +39,7 @@ describe("App Module", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
     server = getServer(app, configService);
 
@@ -49,10 +49,6 @@ describe("App Module", () => {
   });
 
   afterAll(async () => {
-    // Avoid jest open handle error
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
     await app.close();
   });
 

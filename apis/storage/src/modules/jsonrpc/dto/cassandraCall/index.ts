@@ -1,1 +1,1 @@
-export * from "./request-cassandra-call.dto";
+export * from "./request-cassandra-call.dto.js";

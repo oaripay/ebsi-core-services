@@ -1,20 +1,15 @@
-import { describe, beforeAll, it, expect } from "@jest/globals";
+import { describe, beforeAll, it, expect } from "vitest";
 import crypto from "node:crypto";
 import { ethers } from "ethers";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  Logger,
-  HttpServer,
-} from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import {
   generateMultihash,
   prefixWith0x,
@@ -22,19 +17,19 @@ import {
   waitToBeMined,
 } from "@ebsiint-api/shared";
 import type { TransactionRequest } from "@ethersproject/abstract-provider";
-import { AppModule } from "../../src/app.module";
-import { ApiConfig } from "../../src/config/configuration";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
-import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
-import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
+import { AppModule } from "../../src/app.module.js";
+import type { ApiConfig } from "../../src/config/configuration.js";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
+import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
+import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
 import {
   PolicyLink,
   PolicyResponseObject,
-} from "../../src/modules/policies/policies.interface";
-import { requestSiopJwt } from "../utils/siopJwt";
-import { UnsignedTransaction } from "../../src/modules/jsonrpc/dto";
-import { describeWriteOps } from "../utils/describeWriteOps";
-import { getServer } from "../utils/getServer";
+} from "../../src/modules/policies/policies.interface.js";
+import { requestSiopJwt } from "../utils/siopJwt.js";
+import { UnsignedTransaction } from "../../src/modules/jsonrpc/dto/index.js";
+import { describeWriteOps } from "../utils/describeWriteOps.js";
+import { getServer } from "../utils/getServer.js";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -57,13 +52,13 @@ interface SupertestRevisionsResponse {
 }
 
 describe("Policies (e2e)", () => {
-  let app: INestApplication;
-  let server: HttpServer | string;
+  let app: NestFastifyApplication;
+  let server: RawServerDefault | string;
   let adminTestWallet: ethers.Wallet;
   let testUserAccessToken: string;
 
   const createPolicy = (
-    n: string | number
+    n: string | number,
   ): { policyId: string; policyData: string } => {
     const policyId = `policy-test-${n}`;
     const json = {
@@ -89,7 +84,7 @@ describe("Policies (e2e)", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     // Turn off logger
@@ -102,12 +97,12 @@ describe("Policies (e2e)", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
     server = getServer(app, configService);
 
     adminTestWallet = new ethers.Wallet(
-      prefixWith0x(configService.get("testAdminPrivateKey"))
+      prefixWith0x(configService.get("testAdminPrivateKey")),
     );
 
     try {
@@ -125,33 +120,32 @@ describe("Policies (e2e)", () => {
   describe("/policies", () => {
     it("should return a collection of policies", async () => {
       expect.assertions(2);
-      const response: SupertestPoliciesResponse = await request(server).get(
-        "/policies"
-      );
+      const response: SupertestPoliciesResponse =
+        await request(server).get("/policies");
 
       expect(response.body).toStrictEqual(
         expect.objectContaining({
           self: expect.stringContaining(
-            "/trusted-schemas-registry/v2/policies?page[after]=1&page[size]=10"
+            "/trusted-schemas-registry/v2/policies?page[after]=1&page[size]=10",
           ),
           items: expect.arrayContaining([]),
           total: expect.any(Number),
           pageSize: expect.any(Number),
           links: expect.objectContaining({
             first: expect.stringContaining(
-              "/trusted-schemas-registry/v2/policies?page[after]=1&page[size]=10"
+              "/trusted-schemas-registry/v2/policies?page[after]=1&page[size]=10",
             ),
             prev: expect.stringContaining(
-              "/trusted-schemas-registry/v2/policies?page[after]=1&page[size]=10"
+              "/trusted-schemas-registry/v2/policies?page[after]=1&page[size]=10",
             ),
             next: expect.stringContaining(
-              "/trusted-schemas-registry/v2/policies?page[after]="
+              "/trusted-schemas-registry/v2/policies?page[after]=",
             ),
             last: expect.stringContaining(
-              "/trusted-schemas-registry/v2/policies?page[after]="
+              "/trusted-schemas-registry/v2/policies?page[after]=",
             ),
           }),
-        })
+        }),
       );
       expect(response.status).toBe(200);
     });
@@ -162,16 +156,15 @@ describe("Policies (e2e)", () => {
       it("should return a specific policy", async () => {
         expect.assertions(3);
 
-        const policiesResponse: SupertestPoliciesResponse = await request(
-          server
-        ).get("/policies");
+        const policiesResponse: SupertestPoliciesResponse =
+          await request(server).get("/policies");
 
         expect(policiesResponse.status).toBe(200);
         const { policyId }: PolicyLink =
           policiesResponse.body.items[policiesResponse.body.items.length - 1];
 
         const response: SupertestPolicyResponse = await request(server).get(
-          `/policies/${encodeURIComponent(policyId)}`
+          `/policies/${encodeURIComponent(policyId)}`,
         );
 
         expect(response.body).toStrictEqual({
@@ -200,24 +193,23 @@ describe("Policies (e2e)", () => {
     describeWriteOps()("Test requiring actual data", () => {
       it("should return a paginated list of revisions", async () => {
         expect.assertions(3);
-        const policiesResponse: SupertestPoliciesResponse = await request(
-          server
-        ).get("/policies");
+        const policiesResponse: SupertestPoliciesResponse =
+          await request(server).get("/policies");
 
         expect(policiesResponse.status).toBe(200);
         const { policyId }: PolicyLink =
           policiesResponse.body.items[policiesResponse.body.items.length - 1];
 
         const response: SupertestRevisionsResponse = await request(server).get(
-          `/policies/${encodeURIComponent(policyId)}/revisions`
+          `/policies/${encodeURIComponent(policyId)}/revisions`,
         );
 
         expect(response.body).toStrictEqual(
           expect.objectContaining({
             self: expect.stringContaining(
               `/trusted-schemas-registry/v2/policies/${encodeURIComponent(
-                policyId
-              )}/revisions?page[after]=1&page[size]=10`
+                policyId,
+              )}/revisions?page[after]=1&page[size]=10`,
             ),
             items: expect.arrayContaining([
               expect.objectContaining({
@@ -231,26 +223,26 @@ describe("Policies (e2e)", () => {
             links: expect.objectContaining({
               first: expect.stringContaining(
                 `/trusted-schemas-registry/v2/policies/${encodeURIComponent(
-                  policyId
-                )}/revisions?page[after]=1&page[size]=10`
+                  policyId,
+                )}/revisions?page[after]=1&page[size]=10`,
               ),
               prev: expect.stringContaining(
                 `/trusted-schemas-registry/v2/policies/${encodeURIComponent(
-                  policyId
-                )}/revisions?page[after]=1&page[size]=10`
+                  policyId,
+                )}/revisions?page[after]=1&page[size]=10`,
               ),
               next: expect.stringContaining(
                 `/trusted-schemas-registry/v2/policies/${encodeURIComponent(
-                  policyId
-                )}/revisions?page[after]=`
+                  policyId,
+                )}/revisions?page[after]=`,
               ),
               last: expect.stringContaining(
                 `/trusted-schemas-registry/v2/policies/${encodeURIComponent(
-                  policyId
-                )}/revisions?page[after]=`
+                  policyId,
+                )}/revisions?page[after]=`,
               ),
             }),
-          })
+          }),
         );
         expect(response.status).toBe(200);
       });
@@ -260,7 +252,7 @@ describe("Policies (e2e)", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        "/policies/unknown-policy/revisions"
+        "/policies/unknown-policy/revisions",
       );
 
       expect(response.body).toStrictEqual({
@@ -313,7 +305,7 @@ describe("Policies (e2e)", () => {
         });
         expect(responseBuild.status).toBe(200);
       });
-    }
+    },
   );
 
   describeWriteOps().each(["insertPolicy", "updatePolicy"])(
@@ -357,12 +349,12 @@ describe("Policies (e2e)", () => {
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
           JSON.parse(
-            JSON.stringify(unsignedTransaction)
-          ) as unknown as UnsignedTransaction
+            JSON.stringify(unsignedTransaction),
+          ) as unknown as UnsignedTransaction,
         );
         uTx.chainId = Number(uTx.chainId);
         const sgnTx = await adminTestWallet.signTransaction(
-          uTx as TransactionRequest
+          uTx as TransactionRequest,
         );
         const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
@@ -395,18 +387,18 @@ describe("Policies (e2e)", () => {
         // wait to be mined
         const receipt = await waitToBeMined(
           ledgerApi,
-          responseSend.body.result as string
+          responseSend.body.result as string,
         );
         expect(receipt.status).toBe(1);
 
         // get policy
         const policyResponse = await request(server).get(
-          `/policies/${policyId}`
+          `/policies/${policyId}`,
         );
 
         const bufferPolicyData = Buffer.from(policyData.slice(2), "hex");
         const expectedHash = generateMultihash(
-          ethers.utils.sha256(bufferPolicyData)
+          ethers.utils.sha256(bufferPolicyData),
         );
 
         expect(policyResponse.body).toStrictEqual({
@@ -416,6 +408,6 @@ describe("Policies (e2e)", () => {
         });
         expect(policyResponse.status).toBe(200);
       });
-    }
+    },
   );
 });

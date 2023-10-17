@@ -1,13 +1,13 @@
 import { DidRegistry } from "@ebsiint-sc/did-registry";
-import { PaginatedList, paginate, AsyncReturnType } from "@ebsiint-api/shared";
-import { HashAlgorithmLink } from "./hash-algorithms.interface";
+import { PaginatedList, paginate } from "@ebsiint-api/shared";
+import { HashAlgorithmLink } from "./hash-algorithms.interface.js";
 
 export function formatHashAlgorithms(
-  hashAlgorithms: AsyncReturnType<DidRegistry["getHashAlgorithms"]>,
+  hashAlgorithms: Awaited<ReturnType<DidRegistry["getHashAlgorithms"]>>,
   page: number,
   pageSize: number,
   baseUrl: string,
-  extraQuery?: string
+  extraQuery?: string,
 ): PaginatedList<HashAlgorithmLink> {
   // Reshape items
   const total = hashAlgorithms.total.toNumber();
@@ -22,7 +22,7 @@ export function formatHashAlgorithms(
     total,
     page,
     pageSize,
-    extraQuery
+    extraQuery,
   );
 }
 

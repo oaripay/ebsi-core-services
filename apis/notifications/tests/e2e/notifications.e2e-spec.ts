@@ -1,31 +1,29 @@
-import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
+import { describe, beforeAll, afterAll, it, expect } from "vitest";
 import crypto from "node:crypto";
-import { Test, TestingModule } from "@nestjs/testing";
-import { Logger, HttpServer } from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import request from "supertest";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { exportJWK, generateKeyPair } from "jose";
-import { AppModule } from "../../src/app.module";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
-import { EbsiValidationPipe } from "../../src/pipes/ebsi-validation.pipe";
-import { Notification } from "../../src/modules/notifications/notifications.interface";
-import { createNotification } from "../utils/notifications";
-import { ApiConfig } from "../../src/config/configuration";
-import { requestSiopJwt } from "../utils/auth";
-import { describeWriteOps } from "../utils/describeWriteOps";
-import { getServer } from "../utils/getServer";
-
-jest.setTimeout(90000);
+import { AppModule } from "../../src/app.module.js";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
+import { EbsiValidationPipe } from "../../src/pipes/ebsi-validation.pipe.js";
+import { Notification } from "../../src/modules/notifications/notifications.interface.js";
+import { createNotification } from "../utils/notifications.js";
+import type { ApiConfig } from "../../src/config/configuration.js";
+import { requestSiopJwt } from "../utils/auth.js";
+import { describeWriteOps } from "../utils/describeWriteOps.js";
+import { getServer } from "../utils/getServer.js";
 
 describeWriteOps()("Notifications module (e2e)", () => {
   let app: NestFastifyApplication;
-  let server: HttpServer | string;
+  let server: RawServerDefault | string;
 
   let testUser1: {
     kid: string;
@@ -63,8 +61,8 @@ describeWriteOps()("Notifications module (e2e)", () => {
         if (response.status !== 200) {
           throw new Error(
             `Error when getting all notifications: ${JSON.stringify(
-              response.body
-            )}`
+              response.body,
+            )}`,
           );
         }
         const body = response.body as {
@@ -82,9 +80,9 @@ describeWriteOps()("Notifications module (e2e)", () => {
             const { href } = item._links.self;
             const id = href.substring(href.lastIndexOf("/") + 1);
             return deleteNotification(id, token);
-          })
+          }),
         );
-      })
+      }),
     );
   };
 
@@ -94,7 +92,7 @@ describeWriteOps()("Notifications module (e2e)", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
     const configService =
       moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
@@ -106,7 +104,7 @@ describeWriteOps()("Notifications module (e2e)", () => {
     Logger.overrideLogger(false);
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
     server = getServer(app, configService);
 
@@ -157,10 +155,10 @@ describeWriteOps()("Notifications module (e2e)", () => {
 
     // notifications from testUser2 to testUser1
     expectedNotifications = [...Array(11).keys()].map(() =>
-      createNotification(testUser2.did, testUser1.did)
+      createNotification(testUser2.did, testUser1.did),
     );
     expectedNotifications.sort((a, b) =>
-      a.issuanceDate > b.issuanceDate ? 1 : -1
+      a.issuanceDate > b.issuanceDate ? 1 : -1,
     );
 
     // create multiple notifications
@@ -170,15 +168,11 @@ describeWriteOps()("Notifications module (e2e)", () => {
           .post("/notifications")
           .auth(testUser2.token, { type: "bearer" })
           .send(n);
-      })
+      }),
     );
   });
 
   afterAll(async () => {
-    // Avoid jest open handle error
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
     await app.close();
   });
 
@@ -202,7 +196,7 @@ describeWriteOps()("Notifications module (e2e)", () => {
       expect(response.headers).toStrictEqual(
         expect.objectContaining({
           location: expect.stringContaining(`/notifications/${notificationId}`),
-        })
+        }),
       );
     });
 
@@ -213,7 +207,7 @@ describeWriteOps()("Notifications module (e2e)", () => {
       const publicKeyJwk = await exportJWK(publicKey);
       const naturalPersonDid = EbsiWallet.createDid(
         "NATURAL_PERSON",
-        publicKeyJwk
+        publicKeyJwk,
       );
       const notification = createNotification(testUser2.did, naturalPersonDid);
       const notificationId = crypto
@@ -231,7 +225,7 @@ describeWriteOps()("Notifications module (e2e)", () => {
       expect(response.headers).toStrictEqual(
         expect.objectContaining({
           location: expect.stringContaining(`/notifications/${notificationId}`),
-        })
+        }),
       );
     });
 
@@ -323,7 +317,7 @@ describeWriteOps()("Notifications module (e2e)", () => {
 
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          `/notifications?page[after]=${nextPage}&page[size]=10`
+          `/notifications?page[after]=${nextPage}&page[size]=10`,
         ),
         items: expect.arrayContaining([]),
         total: expect.any(Number),
@@ -434,7 +428,7 @@ describeWriteOps()("Notifications module (e2e)", () => {
       // expiration in 5 seconds
       const ttl = 5000; // ms
       notification.expirationDate = new Date(
-        new Date(notification.issuanceDate).getTime() + ttl
+        new Date(notification.issuanceDate).getTime() + ttl,
       ).toISOString();
       const responseInsert = await request(server)
         .post("/notifications")

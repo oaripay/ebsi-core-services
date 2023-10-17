@@ -1,1 +1,1 @@
-export * from "./IsValidMethod";
+export * from "./IsValidMethod.js";

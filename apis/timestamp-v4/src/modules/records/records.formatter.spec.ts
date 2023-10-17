@@ -1,9 +1,9 @@
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 import crypto from "node:crypto";
 import { ethers } from "ethers";
 import { Timestamp } from "@ebsiint-sc/timestamp-v2";
 import { multibase } from "@ebsiint-api/shared";
-import { formatRecords, formatRecordVersions } from "./records.formatter";
+import { formatRecords, formatRecordVersions } from "./records.formatter.js";
 
 describe("formatRecords", () => {
   const records = {
@@ -25,15 +25,15 @@ describe("formatRecords", () => {
 
     const recordIds = [
       multibase.base64url.encode(
-        Buffer.from(records.items[0].replace(/^0x/, ""), "hex")
+        Buffer.from(records.items[0]!.replace(/^0x/, ""), "hex"),
       ),
       multibase.base64url.encode(
-        Buffer.from(records.items[1].replace(/^0x/, ""), "hex")
+        Buffer.from(records.items[1]!.replace(/^0x/, ""), "hex"),
       ),
     ];
 
     expect(
-      formatRecords(records, page, pageSize, "", "?test=true")
+      formatRecords(records, page, pageSize, "", "?test=true"),
     ).toStrictEqual({
       items: [
         {
@@ -68,7 +68,7 @@ describe("formatRecordVersions", () => {
     const pageSize = 2;
 
     expect(
-      formatRecordVersions(totalVersions, page, pageSize, "", "?test=true")
+      formatRecordVersions(totalVersions, page, pageSize, "", "?test=true"),
     ).toStrictEqual({
       items: [
         {

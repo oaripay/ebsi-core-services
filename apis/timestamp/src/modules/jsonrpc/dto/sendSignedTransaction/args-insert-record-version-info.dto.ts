@@ -1,16 +1,16 @@
 import { IsInt, Min, IsHexadecimal } from "class-validator";
-import { IsHexadecimalJSON } from "../../validators";
+import { IsHexadecimalJSON } from "../../validators/index.js";
 
 export class ArgsInsertRecordVersionInfo {
   @IsHexadecimal()
-  recordId: string;
+  recordId!: string;
 
   @IsInt()
   @Min(0)
-  versionId: number;
+  versionId!: number;
 
   @IsHexadecimalJSON()
-  versionInfo: string;
+  versionInfo!: string;
 }
 
 export default { ArgsInsertRecordVersionInfo };

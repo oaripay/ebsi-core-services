@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
-import { UserInfo } from "../auth.interface";
-import { AuthService } from "../auth.service";
+import { UserInfo } from "../auth.interface.js";
+import { AuthService } from "../auth.service.js";
 
 // Commented methods are private
 // Methods that are not listed here are not available through Ledger API
@@ -68,7 +68,7 @@ export class JwtAuthGuard implements CanActivate {
     const { host } = headers;
     const payload = await this.authService.validateToken(token, host);
     request.user = {
-      sub: payload.sub,
+      sub: payload.sub!,
     };
     return true;
   }

@@ -1,4 +1,8 @@
-import { ValidateBy, ValidationOptions, buildMessage } from "class-validator";
+import {
+  ValidateBy,
+  type ValidationOptions,
+  buildMessage,
+} from "class-validator";
 
 export const IS_BASE64URL = "isBase64url";
 
@@ -20,7 +24,7 @@ export function isBase64url(value: unknown): boolean {
 }
 
 export function IsBase64url(
-  validationOptions?: ValidationOptions
+  validationOptions?: ValidationOptions,
 ): PropertyDecorator {
   return ValidateBy(
     {
@@ -29,10 +33,10 @@ export function IsBase64url(
         validate: (value) => isBase64url(value),
         defaultMessage: buildMessage(
           (eachPrefix) => `${eachPrefix}$property must be base64url encoded`,
-          validationOptions
+          validationOptions,
         ),
       },
     },
-    validationOptions
+    validationOptions,
   );
 }

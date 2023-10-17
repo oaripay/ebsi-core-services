@@ -1,4 +1,5 @@
-import { CACHE_MANAGER, Inject, Injectable, Logger } from "@nestjs/common";
+import { Inject, Injectable, Logger } from "@nestjs/common";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { ConfigService } from "@nestjs/config";
 import { importJWK, decodeJwt, decodeProtectedHeader, jwtVerify } from "jose";
 import type {
@@ -14,11 +15,11 @@ import {
   UnauthorizedError,
 } from "@ebsiint-api/shared";
 import type { Cache } from "cache-manager";
-import type { SubjectInfo } from "./auth.interface";
-import { ApiConfig } from "../../config/configuration";
-import { openidConfigurationSchema } from "./validators/openid-configuration.validator";
-import { jwksSchema } from "./validators/jwks.validator";
-import { DIDR_INVITE_SCOPE, DIDR_WRITE_SCOPE } from "./auth.constants";
+import type { SubjectInfo } from "./auth.interface.js";
+import type { ApiConfig } from "../../config/configuration.js";
+import { openidConfigurationSchema } from "./validators/openid-configuration.validator.js";
+import { jwksSchema } from "./validators/jwks.validator.js";
+import { DIDR_INVITE_SCOPE, DIDR_WRITE_SCOPE } from "./auth.constants.js";
 
 const CACHE_KEY = "jwks";
 const CACHE_TTL = 300_000; // 5 minutes
@@ -33,7 +34,7 @@ export class AuthService {
 
   constructor(
     configService: ConfigService<ApiConfig, true>,
-    @Inject(CACHE_MANAGER) private cacheManager: Cache
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
     this.timeout = configService.get<number>("requestTimeout");
     this.authorisationApiUrl = configService.get<string>("authorisationApiUrl");
@@ -49,7 +50,7 @@ export class AuthService {
           `${this.authorisationApiUrl}/.well-known/openid-configuration`,
           {
             timeout: this.timeout,
-          }
+          },
         );
       } catch (err) {
         if (err instanceof Error) {
@@ -68,7 +69,7 @@ export class AuthService {
       }
 
       const parsedAuthApiOpenIdConfig = openidConfigurationSchema.safeParse(
-        rawAuthApiOpenIdConfig.data
+        rawAuthApiOpenIdConfig.data,
       );
 
       if (!parsedAuthApiOpenIdConfig.success) {
@@ -110,7 +111,7 @@ export class AuthService {
         });
       }
 
-      jwks = parsedAuthApiJwks.data;
+      jwks = parsedAuthApiJwks.data as JSONWebKeySet;
 
       // Store result in cache
       await this.cacheManager.set(CACHE_KEY, jwks, CACHE_TTL);

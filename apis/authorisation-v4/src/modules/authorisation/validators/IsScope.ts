@@ -1,5 +1,9 @@
-import { ValidateBy, ValidationOptions, buildMessage } from "class-validator";
-import { CUSTOM_SCOPES, OPENID_SCOPE } from "../authorisation.constants";
+import {
+  ValidateBy,
+  type ValidationOptions,
+  buildMessage,
+} from "class-validator";
+import { CUSTOM_SCOPES, OPENID_SCOPE } from "../authorisation.constants.js";
 
 export const IS_SCOPE = "isScope";
 
@@ -21,11 +25,11 @@ export function isScope(value: unknown): boolean {
   }
 
   // The second item must be one of the custom scopes
-  return CUSTOM_SCOPES.includes(valueAsArray[1]);
+  return CUSTOM_SCOPES.includes(valueAsArray[1]!);
 }
 
 export function IsScope(
-  validationOptions?: ValidationOptions
+  validationOptions?: ValidationOptions,
 ): PropertyDecorator {
   return ValidateBy(
     {
@@ -35,12 +39,12 @@ export function IsScope(
         defaultMessage: buildMessage(
           (eachPrefix) =>
             `${eachPrefix}$property must be a combination of '${OPENID_SCOPE}' and one of the supported scopes ('${CUSTOM_SCOPES.join(
-              "', '"
+              "', '",
             )}')`,
-          validationOptions
+          validationOptions,
         ),
       },
     },
-    validationOptions
+    validationOptions,
   );
 }

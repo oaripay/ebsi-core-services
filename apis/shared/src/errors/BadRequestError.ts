@@ -1,4 +1,4 @@
-import { ProblemDetailsError } from "./ProblemDetailsError";
+import { ProblemDetailsError } from "./ProblemDetailsError.js";
 
 /**
  * BadRequestError defines the Bad Request (400) error type.
@@ -24,7 +24,7 @@ export class BadRequestError extends ProblemDetailsError {
       detail?: string;
       instance?: string;
       extensions?: { [x: string]: unknown };
-    }
+    },
   ) {
     super(BadRequestError.statusCode, title, options);
     this.name = "BadRequestError";

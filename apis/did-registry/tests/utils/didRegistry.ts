@@ -8,7 +8,7 @@ import { Contract, ethers } from "ethers";
 import canonicalize from "canonicalize";
 import { HashName } from "multihashes";
 import { DidRegistry } from "@ebsiint-sc/did-registry";
-import { createDid, createDidDocument, createMetadata } from "./data";
+import { createDid, createDidDocument, createMetadata } from "./data.js";
 
 interface DidDocument {
   did: string;
@@ -70,7 +70,7 @@ const ianaToNodeHashAlg: Record<string, string> = {
 
 const deployContract = async (
   name: string,
-  opts: FactoryOptions = {}
+  opts: FactoryOptions = {},
 ): Promise<string> => {
   const factory = await hre.ethers.getContractFactory(name, opts);
   const contract = await factory.deploy();
@@ -83,13 +83,12 @@ export async function deployDidRegistryContract(): Promise<{
 }> {
   // mock trusted policies registry
   const testTprAddress = "0xb2a560271ce08135e245F490b8794794A13a1208";
-  const policyRegistryFactory = await hre.ethers.getContractFactory(
-    "PolicyRegistryMock"
-  );
+  const policyRegistryFactory =
+    await hre.ethers.getContractFactory("PolicyRegistryMock");
   const tempPolicyContract = await policyRegistryFactory.deploy();
   await tempPolicyContract.deployed();
   const bytecode = await hre.ethers.provider.getCode(
-    tempPolicyContract.address
+    tempPolicyContract.address,
   );
   await hre.network.provider.send("hardhat_setCode", [
     testTprAddress,
@@ -112,12 +111,11 @@ export async function deployDidRegistryContract(): Promise<{
         DidTimestampLib: await deployContract("DidTimestampLib"),
         DidRecordLib: await deployContract("DidRecordLib", linkLibPagination),
       },
-    }
+    },
   );
 
-  const didRegistryContract = await didRegistryContractFactory.deploy(
-    testTprAddress
-  );
+  const didRegistryContract =
+    await didRegistryContractFactory.deploy(testTprAddress);
   await didRegistryContract.initialize(1);
   await didRegistryContract.setTrustedPoliciesRegistryAddress();
 
@@ -134,17 +132,20 @@ export async function insertDidDocument(
   ethersProvider: ethers.providers.JsonRpcProvider,
   did: string,
   hashAlgorithmIanaName: string,
-  defaultController?: ethers.Wallet
+  defaultController?: ethers.Wallet,
 ): Promise<DidDocument> {
   const didDocument = createDidDocument(did);
   const didDocumentBuffer = Buffer.from(JSON.stringify(didDocument));
 
-  const canonicalizedDidDocument = canonicalize(didDocument);
+  // @ts-expect-error "canonicalize is not callable" <- the exported types are incorrect
+  const canonicalizedDidDocument = (canonicalize(didDocument) as ReturnType<
+    typeof canonicalize.default
+  >)!;
 
   const canonicalizedDidDocumentBuffer = Buffer.from(canonicalizedDidDocument);
 
   const canonicalizedDidDocumentHash = `0x${crypto
-    .createHash(ianaToNodeHashAlg[hashAlgorithmIanaName])
+    .createHash(ianaToNodeHashAlg[hashAlgorithmIanaName]!)
     .update(canonicalizedDidDocument, "utf8")
     .digest()
     .toString("hex")}`;
@@ -152,7 +153,7 @@ export async function insertDidDocument(
   const timestampDataBuffer = Buffer.from(JSON.stringify({ data: "test" }));
   const didVersionMetadata = createMetadata();
   const didVersionMetadataBuffer = Buffer.from(
-    JSON.stringify(didVersionMetadata)
+    JSON.stringify(didVersionMetadata),
   );
 
   const identifier = `0x${Buffer.from(did).toString("hex")}`;
@@ -169,14 +170,14 @@ export async function insertDidDocument(
     canonicalizedDidDocumentHash,
     didVersionInfo,
     timestampData,
-    didVersionMetadataHex
+    didVersionMetadataHex,
   );
 
   await contract.insertDidController(
     identifier,
     controller.address,
     Date.now() - 1,
-    Date.now() + 100000
+    Date.now() + 100000,
   );
 
   return {
@@ -196,20 +197,20 @@ export async function insertDidDocument(
 
 export async function insertHashAlgorithm(
   contract: DidRegistry,
-  id: number
+  id: number,
 ): Promise<HashAlgorithmObject> {
-  const ianaName = validHashAlgorithms[id];
-  const outputLength = outputLengths[ianaName];
+  const ianaName = validHashAlgorithms[id]!;
+  const outputLength = outputLengths[ianaName]!;
   const oid = "oid-test";
   const status = 1;
-  const multihash = ianaToMultihashAlg[ianaName];
+  const multihash = ianaToMultihashAlg[ianaName]!;
 
   await contract.insertHashAlgorithm(
     outputLength,
     ianaName,
     oid,
     status,
-    multihash
+    multihash,
   );
 
   return {
@@ -230,7 +231,7 @@ export async function setupTestEnv(
   opts: SetupOptions = {
     didDocuments: 1,
     hashAlgorithmsTotal: 1,
-  }
+  },
 ): Promise<{
   provider: ethers.providers.JsonRpcProvider;
   didRegistryContract: DidRegistry;
@@ -250,7 +251,7 @@ export async function setupTestEnv(
   const hashAlgorithms = await Promise.all(
     Array(opts.hashAlgorithmsTotal ?? 1)
       .fill(0)
-      .map((i: number) => insertHashAlgorithm(didRegistryContract, i))
+      .map((i: number) => insertHashAlgorithm(didRegistryContract, i)),
   );
 
   const defaultController = ethers.Wallet.createRandom();
@@ -264,11 +265,11 @@ export async function setupTestEnv(
             didRegistryContract,
             ethersProvider,
             createDid(),
-            hashAlgorithms[0].ianaName,
-            defaultController
-          )
-        )
-    ))
+            hashAlgorithms[0]!.ianaName,
+            defaultController,
+          ),
+        ),
+    )),
   );
 
   // Return test env variables

@@ -1,4 +1,4 @@
-import { expect } from "@jest/globals";
+import { expect } from "vitest";
 import { ProblemDetailsError } from "@ebsiint-api/shared";
 
 type ConstructorTypeOf<T> = new (...args: unknown[]) => T;
@@ -6,7 +6,7 @@ type ConstructorTypeOf<T> = new (...args: unknown[]) => T;
 expect.extend({
   toBeHTTPError<T extends ProblemDetailsError>(
     received: T,
-    ErrorClass: ConstructorTypeOf<T>
+    ErrorClass: ConstructorTypeOf<T>,
   ) {
     if (!received.title || !received.status) {
       return {

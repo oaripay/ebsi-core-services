@@ -1,13 +1,13 @@
-import { describe, it, expect } from "@jest/globals";
-import { importJWK } from "jose";
-import { fromHexToJWK } from "./authorisation.utils";
+import { describe, it, expect } from "vitest";
+import { type JWK, importJWK } from "jose";
+import { fromHexToJWK } from "./authorisation.utils.js";
 
 describe("fromHexToJWK", () => {
   it("should return the expected valid JWK for a given private key", async () => {
     expect.assertions(2);
 
     const jwk = await fromHexToJWK(
-      "b00342c2fdf42d07cf220268a6d9dde42c44d9fdedc9845b8396b57596f2b33a"
+      "b00342c2fdf42d07cf220268a6d9dde42c44d9fdedc9845b8396b57596f2b33a",
     );
 
     // The JWK must match the expected output
@@ -21,14 +21,14 @@ describe("fromHexToJWK", () => {
     });
 
     // Verify that we can import the JWK in jose
-    await expect(importJWK(jwk)).resolves.not.toThrow();
+    await expect(importJWK(jwk as JWK)).resolves.not.toThrow();
   });
 
   it("should throw an error when the given private key is empty", async () => {
     expect.assertions(1);
 
     await expect(async () => fromHexToJWK("")).rejects.toThrow(
-      new Error("You must provide a non-empty hexadecimal private key")
+      new Error("You must provide a non-empty hexadecimal private key"),
     );
   });
 
@@ -36,7 +36,7 @@ describe("fromHexToJWK", () => {
     expect.assertions(1);
 
     await expect(async () => fromHexToJWK("0")).rejects.toThrow(
-      new Error("Invalid public key")
+      new Error("Invalid public key"),
     );
   });
 });

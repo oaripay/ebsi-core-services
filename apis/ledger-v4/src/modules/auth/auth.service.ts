@@ -3,9 +3,9 @@ import { ConfigService } from "@nestjs/config";
 import { decodeJWT } from "did-jwt";
 import { verifyJwtTar } from "@cef-ebsi/oauth2-auth";
 import { UnauthorizedError } from "@ebsiint-api/shared";
-import { ApiConfig } from "../../config/configuration";
-import { JwtCacheService } from "./jwt-cache.service";
-import { JWTDecoded, Payload } from "./auth.interface";
+import type { ApiConfig } from "../../config/configuration.js";
+import { JwtCacheService } from "./jwt-cache.service.js";
+import { JWTDecoded, Payload } from "./auth.interface.js";
 
 @Injectable()
 export class AuthService {
@@ -19,13 +19,13 @@ export class AuthService {
 
   constructor(
     private cache: JwtCacheService,
-    configService: ConfigService<ApiConfig, true>
+    configService: ConfigService<ApiConfig, true>,
   ) {
     this.authorisationApiName = configService.get<string>(
-      "authorisationApiName"
+      "authorisationApiName",
     );
     this.trustedAppsRegistry = `${configService.get<string>(
-      "trustedAppsRegistryApiUrl"
+      "trustedAppsRegistryApiUrl",
     )}/apps`;
     this.timeout = configService.get<number>("requestTimeout");
   }
@@ -34,7 +34,7 @@ export class AuthService {
     token: string,
     now: number,
     exp?: number,
-    requestHost?: string
+    requestHost?: string,
   ): void {
     // Cache requests targeting these hosts
     const cacheableRequestHosts = [
@@ -44,7 +44,7 @@ export class AuthService {
       "0.0.0.0",
     ];
     this.logger.debug(
-      `Checking if the API should store the JWT. requestHost: ${requestHost}`
+      `Checking if the API should store the JWT. requestHost: ${requestHost}`,
     );
     if (
       requestHost &&

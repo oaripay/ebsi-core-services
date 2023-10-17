@@ -126,7 +126,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "warn",
       "info",
       "verbose",
-      "debug"
+      "debug",
     ),
     DOMAIN: Joi.string().uri().required(),
     DOCKER_TAG: Joi.string(),

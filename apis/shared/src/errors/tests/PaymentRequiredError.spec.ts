@@ -1,5 +1,5 @@
-import { describe, it, expect } from "@jest/globals";
-import { PaymentRequiredError, ProblemDetailsError } from "../index";
+import { describe, it, expect } from "vitest";
+import { PaymentRequiredError, ProblemDetailsError } from "../index.js";
 
 describe("error PaymentRequiredError", () => {
   it("should extend ProblemDetailsError", () => {
@@ -69,7 +69,7 @@ describe("error PaymentRequiredError", () => {
     });
 
     expect(error.toString()).toBe(
-      `${PaymentRequiredError.statusCode} - Test Error`
+      `${PaymentRequiredError.statusCode} - Test Error`,
     );
   });
 });

@@ -22,10 +22,10 @@ import {
   RequestExpireVerificationMethodDto,
   ArgsRollVerificationMethod,
   RequestRollVerificationMethodDto,
-} from "./dto";
+} from "./dto/index.js";
 
 export function formatEthersUnsignedTransaction(
-  unsignedTransaction: UnsignedTransaction
+  unsignedTransaction: UnsignedTransaction,
 ) {
   return {
     to: unsignedTransaction.to,
@@ -41,7 +41,7 @@ export function formatEthersUnsignedTransaction(
 export function formatEthersSignature(
   r: string,
   s: string,
-  v: string
+  v: string,
 ): ethers.Signature {
   return {
     r,
@@ -74,7 +74,7 @@ type JsonRpcDtos =
   | RequestRollVerificationMethodDto;
 
 const getErrorMessages = (
-  errors: ClassValidator.ValidationError[]
+  errors: ClassValidator.ValidationError[],
 ): string[] => {
   return errors
     .map((err) => {
@@ -94,7 +94,7 @@ const getErrorMessages = (
 
 export const validateClass = async (
   classType: ClassConstructor<JsonRpcDtos>,
-  data: JsonRpcDtos
+  data: JsonRpcDtos,
 ): Promise<void> => {
   const dataClass = new ClassTransformer().plainToInstance<
     JsonRpcDtos,
@@ -110,7 +110,7 @@ export const validateClass = async (
     }
 
     throw new Error(
-      `Validation errors:${errorMessages.map((err) => `\n- ${err}`).join()}`
+      `Validation errors:${errorMessages.map((err) => `\n- ${err}`).join()}`,
     );
   }
 };

@@ -1,2 +1,2 @@
-export * from "./jwt-auth.guard";
-export * from "./jwt-optional-auth.guard";
+export * from "./jwt-auth.guard.js";
+export * from "./jwt-optional-auth.guard.js";

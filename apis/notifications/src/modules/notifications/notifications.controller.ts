@@ -9,7 +9,6 @@ import {
   Param,
   Response,
   HttpCode,
-  Logger,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type { FastifyReply } from "fastify";
@@ -18,27 +17,25 @@ import {
   ForbiddenError,
   PaginatedList2,
 } from "@ebsiint-api/shared";
-import { NotificationsService } from "./notifications.service";
+import { NotificationsService } from "./notifications.service.js";
 import {
   Notification,
   NotificationResponseObject,
-} from "./notifications.interface";
-import { JwtAuthGuard } from "../auth/guards";
-import { User, UserInfo } from "../auth/decorators";
-import { ApiConfig } from "../../config/configuration";
-import { CreateNotificationDto } from "./dto/create-notification.dto";
-import { formatNotifications } from "./notifications.formatter";
-import { GetNotificationsDto } from "./dto/get-attributes.dto";
+} from "./notifications.interface.js";
+import { JwtAuthGuard } from "../auth/guards/index.js";
+import { User, type UserInfo } from "../auth/decorators/index.js";
+import type { ApiConfig } from "../../config/configuration.js";
+import { CreateNotificationDto } from "./dto/create-notification.dto.js";
+import { formatNotifications } from "./notifications.formatter.js";
+import { GetNotificationsDto } from "./dto/get-attributes.dto.js";
 
 @Controller("/notifications")
 export class NotificationsController {
-  private readonly logger = new Logger(NotificationsController.name);
-
   private baseUrl: string;
 
   constructor(
     private notificationsService: NotificationsService,
-    private configService: ConfigService<ApiConfig, true>
+    private configService: ConfigService<ApiConfig, true>,
   ) {
     const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
     const domain = configService.get<string>("domain");
@@ -50,7 +47,7 @@ export class NotificationsController {
   async insertNotification(
     @Body() createNotificationDto: CreateNotificationDto,
     @User() user: UserInfo,
-    @Response() res: FastifyReply
+    @Response() res: FastifyReply,
   ): Promise<FastifyReply> {
     if (user.did !== createNotificationDto.from)
       throw new BadRequestError("DID Mismatch", {
@@ -69,7 +66,7 @@ export class NotificationsController {
   @Get("")
   async getNotifications(
     @Query() query: GetNotificationsDto,
-    @User() user: UserInfo
+    @User() user: UserInfo,
   ): Promise<PaginatedList2<NotificationResponseObject>> {
     const currentPage = query["page[after]"];
     const pageSize = query["page[size]"];
@@ -81,7 +78,7 @@ export class NotificationsController {
     } = await this.notificationsService.getNotifications(
       user.did,
       currentPage,
-      pageSize
+      pageSize,
     );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
@@ -94,7 +91,7 @@ export class NotificationsController {
       nextPage,
       pageSize,
       baseUrl,
-      total
+      total,
     );
   }
 
@@ -102,7 +99,7 @@ export class NotificationsController {
   @Get("/:id")
   async getNotification(
     @Param() params: { id: string },
-    @User() user: UserInfo
+    @User() user: UserInfo,
   ): Promise<Notification> {
     const { id } = params;
     const notification = await this.notificationsService.getNotification(id);
@@ -118,7 +115,7 @@ export class NotificationsController {
   @Delete("/:id")
   async deleteNotification(
     @Param() params: { id: string },
-    @User() user: UserInfo
+    @User() user: UserInfo,
   ): Promise<void> {
     const { id } = params;
 

@@ -1,1 +1,1 @@
-export * from "./IsPolicyConditions";
+export * from "./IsPolicyConditions.js";

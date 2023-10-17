@@ -1,33 +1,28 @@
-import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
+import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  HttpServer,
-  Logger,
-} from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import crypto from "node:crypto";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp-v2";
 import { multibase } from "@ebsiint-api/shared";
-import { RecordsModule } from "./records.module";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { setupTestEnv } from "../../../tests/utils/timestamp";
-import { RecordLink } from "./records.interface";
-import { LedgerService } from "../ledger/ledger.service";
-import { ApiConfig } from "../../config/configuration";
+import { RecordsModule } from "./records.module.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import { setupTestEnv } from "../../../tests/utils/timestamp.js";
+import { RecordLink } from "./records.interface.js";
+import { LedgerService } from "../ledger/ledger.service.js";
+import type { ApiConfig } from "../../config/configuration.js";
 
 const RECORDS_TOTAL = 3;
 
 describe("Records Module", () => {
-  let app: INestApplication;
-  let server: HttpServer;
+  let app: NestFastifyApplication;
+  let server: RawServerDefault;
   let timestampContract: Timestamp;
   let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
   let ledgerService: LedgerService;
@@ -43,16 +38,16 @@ describe("Records Module", () => {
     sender = testEnv.sender;
 
     // Mock Timestamp contract
-    jest
-      .spyOn(Timestamp__factory, "connect")
-      .mockImplementation(() => timestampContract);
+    vi.spyOn(Timestamp__factory, "connect").mockImplementation(
+      () => timestampContract,
+    );
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [RecordsModule],
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     // Turn off logger
@@ -63,21 +58,17 @@ describe("Records Module", () => {
     app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    await app.getHttpAdapter().getInstance().ready();
+    server = app.getHttpServer();
 
     // Mock Contract service
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
-    jest
-      .spyOn(ledgerService, "getContract")
-      .mockImplementation(async () => Promise.resolve(timestampContract));
+    vi.spyOn(ledgerService, "getContract").mockImplementation(async () =>
+      Promise.resolve(timestampContract),
+    );
   });
 
   afterAll(async () => {
-    // Avoid jest open handle error
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
     await app.close();
   });
 
@@ -98,21 +89,21 @@ describe("Records Module", () => {
           pageSize: 10,
           links: {
             first: expect.stringContaining(
-              "/records?page[after]=1&page[size]=10"
+              "/records?page[after]=1&page[size]=10",
             ),
             prev: expect.stringContaining(
-              "/records?page[after]=1&page[size]=10"
+              "/records?page[after]=1&page[size]=10",
             ),
             next: expect.stringContaining(
-              "/records?page[after]=1&page[size]=10"
+              "/records?page[after]=1&page[size]=10",
             ),
             last: expect.stringContaining(
-              "/records?page[after]=1&page[size]=10"
+              "/records?page[after]=1&page[size]=10",
             ),
           },
         });
         expect((response.body as { items: string }).items).toHaveLength(
-          RECORDS_TOTAL
+          RECORDS_TOTAL,
         );
         expect(response.status).toBe(200);
       });
@@ -139,7 +130,7 @@ describe("Records Module", () => {
 
       // next page
       const response2 = await request(server).get(
-        "/records?page[after]=2&page[size]=2"
+        "/records?page[after]=2&page[size]=2",
       );
       expect(response2.body).toStrictEqual({
         self: expect.stringContaining("/records?page[after]=2&page[size]=2"),
@@ -158,7 +149,7 @@ describe("Records Module", () => {
 
       // big page
       const response3 = await request(server).get(
-        "/records?page[after]=100&page[size]=2"
+        "/records?page[after]=100&page[size]=2",
       );
       expect(response3.body).toStrictEqual({
         self: expect.stringContaining("/records?page[after]=100&page[size]=2"),
@@ -184,7 +175,7 @@ describe("Records Module", () => {
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            "/records?page[after]=1&page[size]=10"
+            "/records?page[after]=1&page[size]=10",
           ),
           prev: expect.stringContaining("/records?page[after]=1&page[size]=10"),
           next: expect.stringContaining("/records?page[after]=1&page[size]=10"),
@@ -247,7 +238,7 @@ describe("Records Module", () => {
         respRecords.body as {
           items: RecordLink[];
         }
-      ).items[0];
+      ).items[0]!;
 
       const response = await request(server).get(`/records/${recordId}`);
 
@@ -301,7 +292,7 @@ describe("Records Module", () => {
         respRecords.body as {
           items: RecordLink[];
         }
-      ).items[0];
+      ).items[0]!;
       return recordId;
     };
 
@@ -311,27 +302,27 @@ describe("Records Module", () => {
       const recordId = await getFirstRecordId();
 
       const response = await request(server).get(
-        `/records/${recordId}/versions`
+        `/records/${recordId}/versions`,
       );
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          `/records/${recordId}/versions?page[after]=1&page[size]=10`
+          `/records/${recordId}/versions?page[after]=1&page[size]=10`,
         ),
         items: expect.arrayContaining([]),
         total: 1,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/records/${recordId}/versions?page[after]=1&page[size]=10`
+            `/records/${recordId}/versions?page[after]=1&page[size]=10`,
           ),
           prev: expect.stringContaining(
-            `/records/${recordId}/versions?page[after]=1&page[size]=10`
+            `/records/${recordId}/versions?page[after]=1&page[size]=10`,
           ),
           next: expect.stringContaining(
-            `/records/${recordId}/versions?page[after]=1&page[size]=10`
+            `/records/${recordId}/versions?page[after]=1&page[size]=10`,
           ),
           last: expect.stringContaining(
-            `/records/${recordId}/versions?page[after]=1&page[size]=10`
+            `/records/${recordId}/versions?page[after]=1&page[size]=10`,
           ),
         },
       });
@@ -345,27 +336,27 @@ describe("Records Module", () => {
       const recordId = await getFirstRecordId();
 
       const response1 = await request(server).get(
-        `/records/${recordId}/versions?page[size]=2`
+        `/records/${recordId}/versions?page[size]=2`,
       );
       expect(response1.body).toStrictEqual({
         self: expect.stringContaining(
-          `/records/${recordId}/versions?page[after]=1&page[size]=2`
+          `/records/${recordId}/versions?page[after]=1&page[size]=2`,
         ),
         items: expect.arrayContaining([]),
         total: 1,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
-            `/records/${recordId}/versions?page[after]=1&page[size]=2`
+            `/records/${recordId}/versions?page[after]=1&page[size]=2`,
           ),
           prev: expect.stringContaining(
-            `/records/${recordId}/versions?page[after]=1&page[size]=2`
+            `/records/${recordId}/versions?page[after]=1&page[size]=2`,
           ),
           next: expect.stringContaining(
-            `/records/${recordId}/versions?page[after]=1&page[size]=2`
+            `/records/${recordId}/versions?page[after]=1&page[size]=2`,
           ),
           last: expect.stringContaining(
-            `/records/${recordId}/versions?page[after]=1&page[size]=2`
+            `/records/${recordId}/versions?page[after]=1&page[size]=2`,
           ),
         },
       });
@@ -374,27 +365,27 @@ describe("Records Module", () => {
 
       // next page
       const response2 = await request(server).get(
-        `/records/${recordId}/versions?page[after]=2&page[size]=2`
+        `/records/${recordId}/versions?page[after]=2&page[size]=2`,
       );
       expect(response2.body).toStrictEqual({
         self: expect.stringContaining(
-          `/records/${recordId}/versions?page[after]=2&page[size]=2`
+          `/records/${recordId}/versions?page[after]=2&page[size]=2`,
         ),
         items: expect.arrayContaining([]),
         total: 1,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
-            `/records/${recordId}/versions?page[after]=1&page[size]=2`
+            `/records/${recordId}/versions?page[after]=1&page[size]=2`,
           ),
           prev: expect.stringContaining(
-            `/records/${recordId}/versions?page[after]=1&page[size]=2`
+            `/records/${recordId}/versions?page[after]=1&page[size]=2`,
           ),
           next: expect.stringContaining(
-            `/records/${recordId}/versions?page[after]=1&page[size]=2`
+            `/records/${recordId}/versions?page[after]=1&page[size]=2`,
           ),
           last: expect.stringContaining(
-            `/records/${recordId}/versions?page[after]=1&page[size]=2`
+            `/records/${recordId}/versions?page[after]=1&page[size]=2`,
           ),
         },
       });
@@ -403,27 +394,27 @@ describe("Records Module", () => {
 
       // big page
       const response3 = await request(server).get(
-        `/records/${recordId}/versions?page[after]=100&page[size]=2`
+        `/records/${recordId}/versions?page[after]=100&page[size]=2`,
       );
       expect(response3.body).toStrictEqual({
         self: expect.stringContaining(
-          `/records/${recordId}/versions?page[after]=100&page[size]=2`
+          `/records/${recordId}/versions?page[after]=100&page[size]=2`,
         ),
         items: expect.arrayContaining([]),
         total: 1,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
-            `/records/${recordId}/versions?page[after]=1&page[size]=2`
+            `/records/${recordId}/versions?page[after]=1&page[size]=2`,
           ),
           prev: expect.stringContaining(
-            `/records/${recordId}/versions?page[after]=1&page[size]=2`
+            `/records/${recordId}/versions?page[after]=1&page[size]=2`,
           ),
           next: expect.stringContaining(
-            `/records/${recordId}/versions?page[after]=1&page[size]=2`
+            `/records/${recordId}/versions?page[after]=1&page[size]=2`,
           ),
           last: expect.stringContaining(
-            `/records/${recordId}/versions?page[after]=1&page[size]=2`
+            `/records/${recordId}/versions?page[after]=1&page[size]=2`,
           ),
         },
       });
@@ -432,27 +423,27 @@ describe("Records Module", () => {
 
       // page["after"] defined but page["size"] undefined
       const response4 = await request(server).get(
-        `/records/${recordId}/versions?page[after]=1`
+        `/records/${recordId}/versions?page[after]=1`,
       );
       expect(response4.body).toStrictEqual({
         self: expect.stringContaining(
-          `/records/${recordId}/versions?page[after]=1&page[size]=10`
+          `/records/${recordId}/versions?page[after]=1&page[size]=10`,
         ),
         items: expect.arrayContaining([]),
         total: 1,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/records/${recordId}/versions?page[after]=1&page[size]=10`
+            `/records/${recordId}/versions?page[after]=1&page[size]=10`,
           ),
           prev: expect.stringContaining(
-            `/records/${recordId}/versions?page[after]=1&page[size]=10`
+            `/records/${recordId}/versions?page[after]=1&page[size]=10`,
           ),
           next: expect.stringContaining(
-            `/records/${recordId}/versions?page[after]=1&page[size]=10`
+            `/records/${recordId}/versions?page[after]=1&page[size]=10`,
           ),
           last: expect.stringContaining(
-            `/records/${recordId}/versions?page[after]=1&page[size]=10`
+            `/records/${recordId}/versions?page[after]=1&page[size]=10`,
           ),
         },
       });
@@ -468,7 +459,7 @@ describe("Records Module", () => {
         respRecords.body as {
           items: RecordLink[];
         }
-      ).items[0];
+      ).items[0]!;
       return recordId;
     };
 
@@ -478,7 +469,7 @@ describe("Records Module", () => {
       const recordId = await getFirstRecordId();
 
       const response = await request(server).get(
-        `/records/${recordId}/versions/0`
+        `/records/${recordId}/versions/0`,
       );
 
       expect(response.body).toStrictEqual({
@@ -495,7 +486,7 @@ describe("Records Module", () => {
       const versionId = 800;
 
       const response = await request(server).get(
-        `/records/${randomRecordId}/versions/${versionId}`
+        `/records/${randomRecordId}/versions/${versionId}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -514,7 +505,7 @@ describe("Records Module", () => {
       const versionId = 800;
 
       const response = await request(server).get(
-        `/records/${recordId}/versions/${versionId}`
+        `/records/${recordId}/versions/${versionId}`,
       );
 
       expect(response.body).toStrictEqual({

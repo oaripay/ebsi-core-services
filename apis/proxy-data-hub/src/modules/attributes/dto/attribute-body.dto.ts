@@ -7,38 +7,38 @@ import {
   IsOptional,
 } from "class-validator";
 import { IsBase64url, IsDid } from "@ebsiint-api/shared";
-import { Visibility } from "../attributes.interface";
-import { loadConfig } from "../../../config/configuration";
+import type { Visibility } from "../attributes.interface.js";
+import { loadConfig } from "../../../config/configuration.js";
 
 const { storageApiUrl } = loadConfig();
 export class AttributeBodyDto {
   @Equals(`${storageApiUrl}/stores/distributed`)
-  storageUri: string;
+  storageUri!: string;
 
   @IsDid()
-  did: string;
+  did!: string;
 
   @IsOptional()
   @IsIn(["private", "shared"])
-  visibility: Visibility;
+  visibility?: Visibility;
 
   @IsOptional()
   @IsDid()
-  sharedWith: string;
+  sharedWith?: string;
 
   @IsMimeType()
-  contentType: string;
+  contentType!: string;
 
   @IsBase64url()
-  data: string;
+  data!: string;
 
   @IsOptional()
   @IsString()
-  dataLabel: string;
+  dataLabel?: string;
 
   @IsOptional()
   @IsObject()
-  proof: unknown;
+  proof?: unknown;
 }
 
 export default AttributeBodyDto;

@@ -1,2 +1,2 @@
-export * from "./insert-did-document-param.dto";
-export * from "./request-insert-did-document.dto";
+export * from "./insert-did-document-param.dto.js";
+export * from "./request-insert-did-document.dto.js";

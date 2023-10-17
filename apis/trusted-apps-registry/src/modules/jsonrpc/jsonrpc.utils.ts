@@ -28,7 +28,7 @@ import {
   ArgsUpdatePolicy,
   ArgsInsertAuthorization,
   ArgsUpdateAuthorization,
-} from "./dto";
+} from "./dto/index.js";
 
 type JsonRpcDtos =
   | RequestDeleteAppAdministratorDto
@@ -59,8 +59,8 @@ type JsonRpcDtos =
   | ArgsUpdateAuthorization;
 
 export function formatEthersUnsignedTransaction(
-  unsignedTransaction: UnsignedTransaction
-): ethers.UnsignedTransaction {
+  unsignedTransaction: UnsignedTransaction,
+) {
   return {
     to: unsignedTransaction.to,
     data: unsignedTransaction.data,
@@ -69,26 +69,20 @@ export function formatEthersUnsignedTransaction(
     chainId: Number(unsignedTransaction.chainId),
     gasLimit: unsignedTransaction.gasLimit,
     gasPrice: unsignedTransaction.gasPrice,
-  };
+  } satisfies ethers.UnsignedTransaction;
 }
 
-export function formatEthersSignature(
-  r: string,
-  s: string,
-  v: string
-): ethers.Signature {
+export function formatEthersSignature(r: string, s: string, v: string) {
   return {
     r,
     s,
     v: Number(v),
-    recoveryParam: null,
-    _vs: null,
-  } as ethers.Signature;
+  } satisfies Partial<ethers.Signature>;
 }
 
 export const validateClass = async (
   classType: ClassConstructor<JsonRpcDtos>,
-  data: JsonRpcDtos
+  data: JsonRpcDtos,
 ): Promise<void> => {
   const dataClass = new ClassTransformer().plainToInstance(classType, data);
   const errors = await ClassValidator.validate(dataClass);

@@ -1,9 +1,9 @@
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 import crypto from "node:crypto";
 import { ethers } from "ethers";
 import { Timestamp } from "@ebsiint-sc/timestamp";
-import { multibase, AsyncReturnType } from "@ebsiint-api/shared";
-import { formatRecords, formatRecordVersions } from "./records.formatter";
+import { multibase } from "@ebsiint-api/shared";
+import { formatRecords, formatRecordVersions } from "./records.formatter.js";
 
 describe("formatRecords", () => {
   const records = {
@@ -15,7 +15,7 @@ describe("formatRecords", () => {
     howMany: ethers.BigNumber.from("2"),
     prev: ethers.BigNumber.from("0"),
     next: ethers.BigNumber.from("0"),
-  } as AsyncReturnType<Timestamp["getRecordIds"]>;
+  } as Awaited<ReturnType<Timestamp["getRecordIds"]>>;
 
   it("should use the values returned by the smart contract (except pageSize)", () => {
     expect.assertions(1);
@@ -25,15 +25,15 @@ describe("formatRecords", () => {
 
     const recordIds = [
       multibase.base64url.encode(
-        Buffer.from(records.items[0].replace(/^0x/, ""), "hex")
+        Buffer.from(records.items[0]!.replace(/^0x/, ""), "hex"),
       ),
       multibase.base64url.encode(
-        Buffer.from(records.items[1].replace(/^0x/, ""), "hex")
+        Buffer.from(records.items[1]!.replace(/^0x/, ""), "hex"),
       ),
     ];
 
     expect(
-      formatRecords(records, page, pageSize, "", "?test=true")
+      formatRecords(records, page, pageSize, "", "?test=true"),
     ).toStrictEqual({
       items: [
         {
@@ -68,7 +68,7 @@ describe("formatRecordVersions", () => {
     const pageSize = 2;
 
     expect(
-      formatRecordVersions(totalVersions, page, pageSize, "", "?test=true")
+      formatRecordVersions(totalVersions, page, pageSize, "", "?test=true"),
     ).toStrictEqual({
       items: [
         {

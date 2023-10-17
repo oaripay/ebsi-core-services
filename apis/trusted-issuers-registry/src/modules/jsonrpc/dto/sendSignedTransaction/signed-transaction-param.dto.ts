@@ -1,26 +1,26 @@
 import { Equals, Contains, ValidateNested } from "class-validator";
 import { Type } from "class-transformer";
-import { UnsignedTransaction } from "./unsigned-transaction.dto";
+import { UnsignedTransaction } from "./unsigned-transaction.dto.js";
 
 export class SignedTransactionParam {
   @Equals("eth")
-  protocol: string;
+  protocol!: string;
 
   @ValidateNested()
   @Type(() => UnsignedTransaction)
-  unsignedTransaction: UnsignedTransaction;
+  unsignedTransaction!: UnsignedTransaction;
 
   @Contains("0x")
-  r: string;
+  r!: string;
 
   @Contains("0x")
-  s: string;
+  s!: string;
 
   @Contains("0x")
-  v: string;
+  v!: string;
 
   @Contains("0x")
-  signedRawTransaction: string;
+  signedRawTransaction!: string;
 }
 
 export default SignedTransactionParam;

@@ -8,10 +8,10 @@ import {
   ForbiddenError,
   InternalServerError,
 } from "@ebsiint-api/shared";
-import { BesuResponseObject, BesuServiceResponse } from "./besu.interface";
-import { ApiConfig } from "../../config/configuration";
-import { isDeployingSmartContract } from "./besu.utils";
-import { BesuDto } from "./dto";
+import { BesuResponseObject, BesuServiceResponse } from "./besu.interface.js";
+import type { ApiConfig } from "../../config/configuration.js";
+import { isDeployingSmartContract } from "./besu.utils.js";
+import { BesuDto } from "./dto/index.js";
 
 const EXPECTED_PONG_BACK = 15000;
 const KEEP_ALIVE_CHECK_INTERVAL = 7500;
@@ -56,11 +56,11 @@ const jsonRpcErrorCodeToHttpCode = (code: number): number => {
 export class BesuService implements OnModuleDestroy {
   private readonly logger = new Logger(BesuService.name);
 
-  private ethersProvider: ethers.providers.JsonRpcProvider;
+  private ethersProvider: ethers.providers.JsonRpcProvider | undefined;
 
   private reconnectWebSocket = true;
 
-  private chainId: number;
+  private chainId: number | undefined;
 
   private timeout: number;
 
@@ -117,14 +117,14 @@ export class BesuService implements OnModuleDestroy {
         websocket.ping();
         pingTimeout = setTimeout(
           () => websocket.terminate(),
-          EXPECTED_PONG_BACK
+          EXPECTED_PONG_BACK,
         );
       }, KEEP_ALIVE_CHECK_INTERVAL);
     });
 
     websocket.on("close", (err: unknown) => {
       this.logger.warn(
-        `The ws connection was closed: ${JSON.stringify(err, null, 2)}`
+        `The ws connection was closed: ${JSON.stringify(err, null, 2)}`,
       );
 
       if (keepAliveInterval) clearInterval(keepAliveInterval);
@@ -144,15 +144,22 @@ export class BesuService implements OnModuleDestroy {
   async getChainId(): Promise<number> {
     if (!this.chainId) {
       try {
-        this.chainId = (await this.ethersProvider.getNetwork()).chainId;
+        this.chainId = (await this.getEthersProvider().getNetwork()).chainId;
       } catch (error) {
         throw new Error(
-          `Error getting EBSI chainId: ${(error as Error).message}`
+          `Error getting EBSI chainId: ${(error as Error).message}`,
         );
       }
     }
 
     return this.chainId;
+  }
+
+  getEthersProvider() {
+    if (!this.ethersProvider) {
+      this.initBesuProvider();
+    }
+    return this.ethersProvider!;
   }
 
   // Make it easier to override the config in tests
@@ -161,7 +168,7 @@ export class BesuService implements OnModuleDestroy {
   }
 
   async send(method: string, params: unknown[]): Promise<unknown> {
-    return this.ethersProvider.send(method, params);
+    return this.getEthersProvider().send(method, params);
   }
 
   async sendToBesu(query: BesuDto): Promise<BesuServiceResponse> {
@@ -198,7 +205,7 @@ export class BesuService implements OnModuleDestroy {
         status: 200,
         data: {
           jsonrpc: query.jsonrpc,
-          id: query.id,
+          id: query.id ?? null,
           result: res,
         },
       };
@@ -210,7 +217,7 @@ export class BesuService implements OnModuleDestroy {
             status: jsonRpcErrorCodeToHttpCode(e.code),
             data: {
               ...response,
-              id: query.id,
+              id: query.id ?? null,
             },
           };
         } catch (err) {
@@ -232,10 +239,12 @@ export class BesuService implements OnModuleDestroy {
           return {
             status:
               e.status ??
-              jsonRpcErrorCodeToHttpCode(parseInt(response.error.code, 10)),
+              jsonRpcErrorCodeToHttpCode(
+                parseInt(response.error?.code ?? "-32600", 10),
+              ),
             data: {
               ...response,
-              id: query.id,
+              id: query.id ?? null,
             },
           };
         } catch (err) {

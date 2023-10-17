@@ -1,32 +1,32 @@
 import { Controller, Get, Query, Param } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PaginatedList } from "@ebsiint-api/shared";
-import { HashAlgorithmsService } from "./hash-algorithms.service";
-import { formatHashAlgorithms } from "./hash-algorithms.formatter";
+import { HashAlgorithmsService } from "./hash-algorithms.service.js";
+import { formatHashAlgorithms } from "./hash-algorithms.formatter.js";
 import {
   HashAlgorithmLink,
   HashAlgorithmResponseObject,
-} from "./hash-algorithms.interface";
-import { ApiConfig } from "../../config/configuration";
-import { GetHashAlgorithmDto, GetHashAlgorithmsDto } from "./dto";
+} from "./hash-algorithms.interface.js";
+import type { ApiConfig } from "../../config/configuration.js";
+import { GetHashAlgorithmDto, GetHashAlgorithmsDto } from "./dto/index.js";
 
 @Controller("/hash-algorithms")
 export class HashAlgorithmsController {
   constructor(
     private hashAlgorithmsService: HashAlgorithmsService,
-    private configService: ConfigService<ApiConfig, true>
+    private configService: ConfigService<ApiConfig, true>,
   ) {}
 
   @Get("")
   async getHahsAlgorithms(
-    @Query() query: GetHashAlgorithmsDto
+    @Query() query: GetHashAlgorithmsDto,
   ): Promise<PaginatedList<HashAlgorithmLink>> {
     const pageAfter = query["page[after]"];
     const pageSize = query["page[size]"];
 
     const hashAlgorithms = await this.hashAlgorithmsService.getHashAlgorithms(
       pageAfter,
-      pageSize
+      pageSize,
     );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
@@ -38,7 +38,7 @@ export class HashAlgorithmsController {
 
   @Get("/:hashAlgorithmId")
   async getHashAlgorithm(
-    @Param() params: GetHashAlgorithmDto
+    @Param() params: GetHashAlgorithmDto,
   ): Promise<HashAlgorithmResponseObject> {
     const { hashAlgorithmId } = params;
     return this.hashAlgorithmsService.getHashAlgorithm(hashAlgorithmId);

@@ -1,24 +1,22 @@
-import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
-import { Test, TestingModule } from "@nestjs/testing";
-import { Logger, HttpServer } from "@nestjs/common";
+import { describe, beforeAll, afterAll, it, expect } from "vitest";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import request from "supertest";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { FastifyInstance } from "fastify";
-import { AppModule } from "../../src/app.module";
-import { EbsiValidationPipe } from "../../src/pipes/ebsi-validation.pipe";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
-import { ApiConfig } from "../../src/config/configuration";
-import { getServer } from "../utils/getServer";
-
-jest.setTimeout(10000);
+import type { RawServerDefault } from "fastify";
+import { AppModule } from "../../src/app.module.js";
+import { EbsiValidationPipe } from "../../src/pipes/ebsi-validation.pipe.js";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
+import type { ApiConfig } from "../../src/config/configuration.js";
+import { getServer } from "../utils/getServer.js";
 
 describe("AppController (e2e)", () => {
   let app: NestFastifyApplication;
-  let server: HttpServer | string;
+  let server: RawServerDefault | string;
   let apiUrlPrefix = "";
 
   beforeAll(async () => {
@@ -27,7 +25,7 @@ describe("AppController (e2e)", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     const configService =
@@ -40,7 +38,7 @@ describe("AppController (e2e)", () => {
     Logger.overrideLogger(false);
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
     server = getServer(app, configService);
 
@@ -50,10 +48,6 @@ describe("AppController (e2e)", () => {
   });
 
   afterAll(async () => {
-    // Avoid jest open handle error
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
     await app.close();
   });
 

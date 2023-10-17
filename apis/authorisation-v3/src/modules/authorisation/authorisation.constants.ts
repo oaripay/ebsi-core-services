@@ -1,5 +1,5 @@
 import type { ReadonlyDeep } from "type-fest";
-import { PresentationDefinition } from "../../shared/interfaces/pex";
+import type { PresentationDefinition } from "../../shared/interfaces/pex.js";
 
 export const OPENID_SCOPE = "openid";
 

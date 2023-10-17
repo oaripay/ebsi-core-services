@@ -15,12 +15,12 @@ task(
     const tsr = (await ethers.getContractAt(
       "SchemaSCRegistry",
       taskArgs.proxy,
-      admin
+      admin,
     )) as SchemaSCRegistry;
 
     console.log(
       `deployer:${deployer.address}
-     admin:${admin.address}`
+     admin:${admin.address}`,
     );
     const initialVersion = await tsr.version();
     console.log(initialVersion);
@@ -37,7 +37,7 @@ task(
       if (file === ".git") continue;
       // eslint-disable-next-line no-await-in-loop
       const jsonFile = await readFile(
-        `${__dirname}/../schemas/json-schemas/${file}`
+        `${__dirname}/../schemas/json-schemas/${file}`,
       );
       const json = canonicalize(JSON.parse(jsonFile.toString()));
 
@@ -45,7 +45,7 @@ task(
       const schemaId = ethers.utils.sha256(schema);
       const schemaHex = `0x${Buffer.from(
         JSON.stringify(json),
-        "utf-8"
+        "utf-8",
       ).toString("hex")}`;
 
       // eslint-disable-next-line no-await-in-loop
@@ -53,13 +53,13 @@ task(
         // eslint-disable-next-line no-await-in-loop
         await (await tsr.insertSchema(schemaId, schemaHex, schema)).wait(1);
         console.log(
-          `Schema ${file} registered on networkId ${network.chainId} at id: ${schemaId}`
+          `Schema ${file} registered on networkId ${network.chainId} at id: ${schemaId}`,
         );
       } catch (e) {
         console.log(
-          `Schema ${file} already registered on networkId ${network.chainId} at id: ${schemaId}`
+          `Schema ${file} already registered on networkId ${network.chainId} at id: ${schemaId}`,
         );
       }
     }
-  }
+  },
 ).addParam("proxy", "Proxy Address");

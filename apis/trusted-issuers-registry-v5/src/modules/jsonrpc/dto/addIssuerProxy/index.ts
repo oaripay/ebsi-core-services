@@ -1,2 +1,2 @@
-export * from "./add-issuer-proxy-param.dto";
-export * from "./request-add-issuer-proxy.dto";
+export * from "./add-issuer-proxy-param.dto.js";
+export * from "./request-add-issuer-proxy.dto.js";

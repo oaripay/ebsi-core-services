@@ -10,41 +10,41 @@ import {
 import { ConfigService } from "@nestjs/config";
 import type { FastifyReply } from "fastify";
 import { PaginatedList } from "@ebsiint-api/shared";
-import IdentifiersService from "./identifiers.service";
+import IdentifiersService from "./identifiers.service.js";
 import {
   formatIdentifiers,
   formatVersions,
   formatMetadata,
-} from "./identifiers.formatter";
+} from "./identifiers.formatter.js";
 import {
   DidLink,
   MetadataIdLink,
   VersionIdLink,
-} from "./identifiers.interface";
+} from "./identifiers.interface.js";
 import {
   GetIdentifierParamsDto,
   GetIdentifiersDto,
   GetIdentifiersVersionsDto,
   GetIdentifierVersionMetadataParamsDto,
   GetIdentifierVersionParamsDto,
-} from "./dto";
-import { ApiConfig } from "../../config/configuration";
+} from "./dto/index.js";
+import type { ApiConfig } from "../../config/configuration.js";
 
 @Controller("/identifiers")
 export default class IdentifiersController {
   constructor(
     private identifiersService: IdentifiersService,
-    private configService: ConfigService<ApiConfig, true>
+    private configService: ConfigService<ApiConfig, true>,
   ) {}
 
   @Get("")
   async getIdentifiers(
-    @Query() query: GetIdentifiersDto
+    @Query() query: GetIdentifiersDto,
   ): Promise<PaginatedList<DidLink>> {
     const identifiers = await this.identifiersService.getIdentifiers(
       query["page[after]"],
       query["page[size]"],
-      query.controller
+      query.controller,
     );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
@@ -56,7 +56,7 @@ export default class IdentifiersController {
       query["page[after]"],
       query["page[size]"],
       baseUrl,
-      query.controller
+      query.controller,
     );
   }
 
@@ -64,7 +64,7 @@ export default class IdentifiersController {
   async getIdentifier(
     @Param() params: GetIdentifierParamsDto,
     @Headers("Accept") accept: string,
-    @Res() res: FastifyReply
+    @Res() res: FastifyReply,
   ): Promise<{ [x: string]: unknown }> {
     const { did } = params;
 
@@ -81,7 +81,7 @@ export default class IdentifiersController {
   @Get("/:did/versions")
   async getIdentifiersVersions(
     @Query() query: GetIdentifiersVersionsDto,
-    @Param() params: GetIdentifierParamsDto
+    @Param() params: GetIdentifierParamsDto,
   ): Promise<PaginatedList<VersionIdLink>> {
     const { did } = params;
 
@@ -89,7 +89,7 @@ export default class IdentifiersController {
       did,
       query["page[after]"],
       query["page[size]"],
-      query["valid-at"]
+      query["valid-at"],
     );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
@@ -101,7 +101,7 @@ export default class IdentifiersController {
       query["page[after]"],
       query["page[size]"],
       baseUrl,
-      query["valid-at"]
+      query["valid-at"],
     );
   }
 
@@ -109,7 +109,7 @@ export default class IdentifiersController {
   async getIdentifierVersion(
     @Param() params: GetIdentifierVersionParamsDto,
     @Headers("Accept") accept: string,
-    @Res() res: FastifyReply
+    @Res() res: FastifyReply,
   ): Promise<{ [x: string]: unknown }> {
     const { did, versionId } = params;
 
@@ -127,7 +127,7 @@ export default class IdentifiersController {
   @Get("/:did/versions/:versionId/metadata")
   async getIdentifiersVersionsMetadata(
     @Query() query: GetIdentifiersVersionsDto,
-    @Param() params: GetIdentifierVersionParamsDto
+    @Param() params: GetIdentifierVersionParamsDto,
   ): Promise<PaginatedList<MetadataIdLink>> {
     const { did, versionId } = params;
 
@@ -136,7 +136,7 @@ export default class IdentifiersController {
         did,
         versionId,
         query["page[after]"],
-        query["page[size]"]
+        query["page[size]"],
       );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
@@ -147,20 +147,20 @@ export default class IdentifiersController {
       identifiers,
       query["page[after]"],
       query["page[size]"],
-      baseUrl
+      baseUrl,
     );
   }
 
   @Get("/:did/versions/:versionId/metadata/:metadataId")
   @Header("Content-Type", "application/json")
   async getIdentifierVersionMetadata(
-    @Param() params: GetIdentifierVersionMetadataParamsDto
+    @Param() params: GetIdentifierVersionMetadataParamsDto,
   ): Promise<{ [x: string]: unknown }> {
     const { did, versionId, metadataId } = params;
     return this.identifiersService.getIdentifierVersionMetadata(
       did,
       versionId,
-      metadataId
+      metadataId,
     );
   }
 }

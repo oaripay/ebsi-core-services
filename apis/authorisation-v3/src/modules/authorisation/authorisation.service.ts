@@ -1,5 +1,6 @@
 import { JsonWebKey, randomUUID } from "node:crypto";
-import { Injectable, Inject, Logger, CACHE_MANAGER } from "@nestjs/common";
+import { Injectable, Inject, Logger } from "@nestjs/common";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { ConfigService } from "@nestjs/config";
 import type { ReadonlyDeep } from "type-fest";
 import { logAxiosError } from "@ebsiint-api/shared";
@@ -7,23 +8,24 @@ import type { PresentationSubmission } from "@sphereon/pex-models";
 import { verifyPresentationJwt } from "@cef-ebsi/verifiable-presentation";
 import type {
   EbsiVerifiablePresentation,
+  EbsiVpEnvConfiguration,
   VpJwtPayload,
 } from "@cef-ebsi/verifiable-presentation";
 import { PEXv2 } from "@sphereon/pex";
 import type { Checked } from "@sphereon/pex";
 import type { IPresentation, IVerifiableCredential } from "@sphereon/ssi-types";
 import { decodeJWT, createJWT, ES256Signer, hexToBytes } from "did-jwt";
-import type { JWTDecoded, JWTPayload } from "did-jwt/lib/JWT";
-import { MemoryCache } from "cache-manager";
-import axios, { AxiosResponse } from "axios";
-import type { ApiConfig } from "../../config/configuration";
+import type { JWTPayload } from "did-jwt";
+import type { MemoryCache } from "cache-manager";
+import axios, { type AxiosResponse } from "axios";
+import type { ApiConfig } from "../../config/configuration.js";
 import type {
   JsonWebKeySet,
   OPMetadata,
   TokenResponse,
-} from "./authorisation.interfaces";
-import { CreateAccessTokenDto } from "./dto";
-import { fromHexToJWK, parseDto } from "./authorisation.utils";
+} from "./authorisation.interfaces.js";
+import { CreateAccessTokenDto } from "./dto/index.js";
+import { fromHexToJWK, parseDto } from "./authorisation.utils.js";
 import {
   DIDR_INVITE_PRESENTATION_DEFINITION,
   DIDR_WRITE_PRESENTATION_DEFINITION,
@@ -35,14 +37,14 @@ import {
   TIR_INVITE_SCOPE,
   TIR_WRITE_SCOPE,
   CUSTOM_SCOPES,
-} from "./authorisation.constants";
-import type { PresentationDefinition } from "../../shared/interfaces/pex";
+} from "./authorisation.constants.js";
+import type { PresentationDefinition } from "../../shared/interfaces/pex.js";
 import {
   attributesSchema,
   revisionsSchema,
   presentationSubmissionSchema,
-} from "./validators";
-import { ClassValidatorError, OAuth2TokenError } from "./errors";
+} from "./validators/index.js";
+import { ClassValidatorError, OAuth2TokenError } from "./errors/index.js";
 
 @Injectable()
 export class AuthorisationService {
@@ -54,6 +56,8 @@ export class AuthorisationService {
 
   private readonly ebsiAuthority: string;
 
+  private readonly ebsiEnvConfig: EbsiVpEnvConfiguration;
+
   private readonly apiES256PrivateKey: string;
 
   private readonly didRegistry: string;
@@ -64,15 +68,20 @@ export class AuthorisationService {
 
   constructor(
     configService: ConfigService<ApiConfig, true>,
-    @Inject(CACHE_MANAGER) private cacheManager: MemoryCache
+    @Inject(CACHE_MANAGER) private cacheManager: MemoryCache,
   ) {
     const domain = configService.get<string>("domain");
     this.ebsiAuthority = domain.replace(/^https?:\/\//, ""); // remove http protocol scheme
+    this.ebsiEnvConfig = {
+      didRegistry: `${domain}/did-registry/v4/identifiers`,
+      trustedIssuersRegistry: `${domain}/trusted-issuers-registry/v4/issuers`,
+      trustedPoliciesRegistry: `${domain}/trusted-policies-registry/v2/users`,
+    };
     const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
     this.issuer = `${domain}${apiUrlPrefix}`;
     this.didRegistry = configService.get<string>("didRegistry");
     this.trustedIssuersRegistry = configService.get<string>(
-      "trustedIssuersRegistry"
+      "trustedIssuersRegistry",
     );
     this.apiES256PrivateKey = configService.get<string>("apiES256PrivateKey");
     this.trustedHostnames = configService.get<string[]>("trustedHostnames");
@@ -162,14 +171,14 @@ export class AuthorisationService {
   }
 
   async preventReplayAttack(payload: JWTPayload) {
-    if (!payload.nonce) {
+    if (!payload["nonce"]) {
       throw new OAuth2TokenError("invalid_request", {
         errorDescription:
           "The vp_token must contain a nonce in order to prevent replay attacks.",
       });
     }
 
-    const cacheKey = payload.nonce as string;
+    const cacheKey = payload["nonce"] as string;
     const nonceUsed = await this.cacheManager.get(cacheKey);
     if (nonceUsed) {
       throw new OAuth2TokenError("invalid_request", {
@@ -191,7 +200,7 @@ export class AuthorisationService {
   validatePresentationExchange(
     vp: EbsiVerifiablePresentation,
     presentationDefinition: ReadonlyDeep<PresentationDefinition>,
-    presentationSubmission: PresentationSubmission
+    presentationSubmission: PresentationSubmission,
   ) {
     const errors: Checked[] = [];
 
@@ -210,7 +219,7 @@ export class AuthorisationService {
       const trimmedPresentationDefinition = {
         ...presentationDefinition,
         input_descriptors: presentationDefinition.input_descriptors.filter(
-          (inputDescriptor) => inputDescriptor.id === descriptor.id
+          (inputDescriptor) => inputDescriptor.id === descriptor.id,
         ),
       } as const;
 
@@ -227,7 +236,7 @@ export class AuthorisationService {
         const pex = new PEXv2();
         const result = pex.evaluatePresentation(
           trimmedPresentationDefinition as PresentationDefinition,
-          presentation
+          presentation,
         );
 
         if (result.errors) {
@@ -246,7 +255,7 @@ export class AuthorisationService {
       throw new OAuth2TokenError("invalid_request", {
         errorDescription: `Invalid Presentation Submission:\n${errors
           .map(
-            (error) => `${error.tag} tag: ${error.message ?? "Unknown error"};`
+            (error) => `${error.tag} tag: ${error.message ?? "Unknown error"};`,
           )
           .join()}`,
       });
@@ -271,6 +280,7 @@ export class AuthorisationService {
         skipSignatureValidation: isDidUnresolvable,
         validateAccreditationWithoutTermsOfUse: true, // The VC must contain terms of use (or be self-accredited)
         trustedHostnames: this.trustedHostnames,
+        ebsiEnvConfig: this.ebsiEnvConfig,
       });
     } catch (e) {
       throw new OAuth2TokenError("invalid_request", {
@@ -289,7 +299,7 @@ export class AuthorisationService {
    */
   validatePresentationSubmissionObject(
     presentationSubmission: PresentationSubmission,
-    presentationDefinition: ReadonlyDeep<PresentationDefinition>
+    presentationDefinition: ReadonlyDeep<PresentationDefinition>,
   ) {
     const validationResult = PEXv2.validateSubmission(presentationSubmission);
 
@@ -339,7 +349,7 @@ export class AuthorisationService {
      */
     (presentationSubmission.descriptor_map || []).forEach((descriptor) => {
       const matchingDescriptor = presentationDefinition.input_descriptors.find(
-        (inputDescriptor) => inputDescriptor.id === descriptor.id
+        (inputDescriptor) => inputDescriptor.id === descriptor.id,
       );
 
       if (!matchingDescriptor) {
@@ -385,7 +395,7 @@ export class AuthorisationService {
 
   async validateTrustedIssuer(
     did: string,
-    requireNewUser: boolean
+    requireNewUser: boolean,
   ): Promise<void> {
     // 1. Check if the issuer has exactly 1 attribute
     let attributesRequest: AxiosResponse<unknown>;
@@ -393,7 +403,7 @@ export class AuthorisationService {
     // 1.a Request TI attributes
     try {
       attributesRequest = await axios.get<unknown>(
-        `${this.trustedIssuersRegistry}/${did}/attributes`
+        `${this.trustedIssuersRegistry}/${did}/attributes`,
       );
     } catch (e) {
       logAxiosError(e, this.logger);
@@ -442,13 +452,13 @@ export class AuthorisationService {
     }
 
     // 2. If the TI has exactly 1 attribute, check if the attribute has exactly 1 revision
-    const attribute = parsedAttributes.data.items[0];
+    const attribute = parsedAttributes.data.items[0]!;
     let revisionsRequest: AxiosResponse<unknown>;
 
     // 2.a Request attribute revisions
     try {
       revisionsRequest = await axios.get<unknown>(
-        `${attribute.href}/revisions`
+        `${attribute.href}/revisions`,
       );
     } catch (e) {
       logAxiosError(e, this.logger);
@@ -517,7 +527,7 @@ export class AuthorisationService {
       const errorDescription = Object.values(constraints)[0];
 
       throw new OAuth2TokenError("invalid_request", {
-        errorDescription,
+        ...(errorDescription && { errorDescription }),
       });
     }
 
@@ -528,11 +538,11 @@ export class AuthorisationService {
     } = parsedDto;
 
     const unsafePresentationSubmission = JSON.parse(
-      presentationSubmissionString
+      presentationSubmissionString,
     );
 
     const parsedPresentationSubmission = presentationSubmissionSchema.safeParse(
-      unsafePresentationSubmission
+      unsafePresentationSubmission,
     );
 
     if (!parsedPresentationSubmission.success) {
@@ -544,7 +554,7 @@ export class AuthorisationService {
               ...issue.path,
             ]
               .filter(Boolean)
-              .join(".")}'. Reason: ${issue.message}`
+              .join(".")}'. Reason: ${issue.message}`,
         )
         .join("\n")}`;
 
@@ -555,7 +565,7 @@ export class AuthorisationService {
 
     const presentationSubmission = parsedPresentationSubmission.data;
 
-    let vpTokenDecoded: JWTDecoded;
+    let vpTokenDecoded: ReturnType<typeof decodeJWT>;
     try {
       vpTokenDecoded = decodeJWT(vpToken);
     } catch (error) {
@@ -580,8 +590,8 @@ export class AuthorisationService {
 
     // Verify presentation_submission object
     this.validatePresentationSubmissionObject(
-      presentationSubmission,
-      presentationDefinition
+      presentationSubmission as PresentationSubmission,
+      presentationDefinition,
     );
 
     // Now, we can assert that vpTokenPayload is a VpJwtPayload
@@ -591,7 +601,7 @@ export class AuthorisationService {
     this.validatePresentationExchange(
       vp,
       presentationDefinition,
-      presentationSubmission
+      presentationSubmission as PresentationSubmission,
     );
 
     // Verify VP JWT
@@ -633,7 +643,7 @@ export class AuthorisationService {
     const { kid } = jwk;
     const accessToken = await createJWT(
       {
-        sub: vpTokenPayload.sub, // sub: Legal entity DID
+        sub: vpTokenPayload.sub!, // sub: Legal entity DID
         aud: this.issuer, // aud: Must be equal to 'iss'
         scp: scope, // scp: string of space separated scopes that we granted
         jti: randomUUID(), // jti: A unique random identifier
@@ -647,7 +657,7 @@ export class AuthorisationService {
       {
         alg: "ES256",
         kid,
-      }
+      },
     );
 
     /**
@@ -663,7 +673,7 @@ export class AuthorisationService {
          * It MUST NOT exceed 255 ASCII characters in length.
          * The sub value is a case sensitive string.
          */
-        sub: vpTokenPayload.iss,
+        sub: vpTokenPayload.iss!,
 
         /**
          * `aud`
@@ -674,7 +684,7 @@ export class AuthorisationService {
          * In the general case, the aud value is an array of case sensitive strings.
          * In the common special case when there is one audience, the aud value MAY be a single case sensitive string.
          */
-        aud: vpTokenPayload.iss,
+        aud: vpTokenPayload.iss!,
 
         /**
          * `jti`
@@ -714,7 +724,7 @@ export class AuthorisationService {
          * If present in the ID Token, Clients MUST verify that the nonce Claim Value is equal to the value of the nonce parameter sent in the Authentication Request. If present in the Authentication Request, Authorization Servers MUST include a nonce Claim in the ID Token with the Claim Value being the nonce value sent in the Authentication Request.
          * Authorization Servers SHOULD perform no other processing on nonce values used. The nonce value is a case sensitive string.
          */
-        nonce: vpTokenPayload.nonce as string | undefined,
+        nonce: vpTokenPayload["nonce"] as string | undefined,
       },
       {
         /**
@@ -729,7 +739,7 @@ export class AuthorisationService {
       {
         alg: "ES256",
         kid,
-      }
+      },
     );
 
     return {

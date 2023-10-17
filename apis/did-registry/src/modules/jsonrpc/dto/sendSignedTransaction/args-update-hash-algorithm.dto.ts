@@ -1,10 +1,10 @@
 import { IsInt, Min } from "class-validator";
-import { ArgsInsertHashAlgorithm } from "./args-insert-hash-algorithm.dto";
+import { ArgsInsertHashAlgorithm } from "./args-insert-hash-algorithm.dto.js";
 
 export class ArgsUpdateHashAlgorithm extends ArgsInsertHashAlgorithm {
   @IsInt()
   @Min(0)
-  hashAlgorithmId: number;
+  hashAlgorithmId!: number;
 }
 
 export default { ArgsUpdateHashAlgorithm };

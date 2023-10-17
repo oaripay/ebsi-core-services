@@ -12,7 +12,7 @@ import {
   ATTRIBUTE_OPERATIONS,
   ATTRIBUTE_TYPES,
   OPERATION_TYPES,
-} from "../../src/modules/policies/policies.interface";
+} from "../../src/modules/policies/policies.interface.js";
 
 export interface PolicyObject {
   policyId: number;
@@ -39,7 +39,7 @@ export interface UserObject {
 
 export async function insertPolicy(
   contract: PolicyRegistry,
-  policyId: number
+  policyId: number,
 ): Promise<PolicyObject> {
   const opType = OPERATION_TYPES.indexOf("AND");
   const policyConditions = [
@@ -108,7 +108,7 @@ export async function insertPolicy(
     // Remove "expectedValue" from properties
     policyConditions.map(({ expectedValue, ...otherProps }) => otherProps),
     policyName,
-    description
+    description,
   );
 
   return {
@@ -122,7 +122,7 @@ export async function insertPolicy(
 }
 
 export async function insertUser(
-  contract: PolicyRegistry
+  contract: PolicyRegistry,
 ): Promise<UserObject> {
   const attributeNames = ["test-attr1", "test-attr2", "test-attr3"];
   const attributeValues = [
@@ -135,13 +135,13 @@ export async function insertUser(
     attributes: {},
   };
   attributeNames.forEach((name, i) => {
-    user.attributes[name] = attributeValues[i];
+    user.attributes[name] = attributeValues[i]!;
   });
 
   await contract.insertUserAttributes(
     user.address,
     attributeNames,
-    attributeValues
+    attributeValues,
   );
 
   return user;
@@ -157,7 +157,7 @@ export async function deployPoliciesRegistryContract(): Promise<PolicyRegistry> 
       libraries: {
         Pagination: pagination.address,
       },
-    }
+    },
   );
   const policiesRegistry = await policiesRegistryFactory.deploy();
   await policiesRegistry.initialize(1);
@@ -173,7 +173,7 @@ export interface SetupOptions {
 export async function setupTestEnv(
   opts: SetupOptions = {
     policiesTotal: 1,
-  }
+  },
 ): Promise<{
   provider: ethers.providers.JsonRpcProvider;
   policiesRegistryContract: PolicyRegistry;
@@ -202,17 +202,17 @@ export async function setupTestEnv(
   };
 
   const policies =
-    opts.policiesTotal >= 1
-      ? await range(0, opts.policiesTotal)
+    opts.policiesTotal! >= 1
+      ? (await range(0, opts.policiesTotal)
           .pipe(mergeMap(createPolicy), toArray())
-          .toPromise()
+          .toPromise())!
       : [];
 
   const users =
-    opts.usersTotal >= 1
-      ? await range(0, opts.usersTotal)
+    opts.usersTotal! >= 1
+      ? (await range(0, opts.usersTotal)
           .pipe(mergeMap(createUser), toArray())
-          .toPromise()
+          .toPromise())!
       : [];
 
   // Return test env variables

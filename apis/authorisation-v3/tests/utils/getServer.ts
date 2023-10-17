@@ -1,10 +1,10 @@
-import type { HttpServer, INestApplication } from "@nestjs/common";
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
-import type { ApiConfig } from "../../src/config/configuration";
+import type { ApiConfig } from "../../src/config/configuration.js";
 
 export const getServer = (
-  app: INestApplication,
-  configService: ConfigService<ApiConfig, true>
+  app: NestFastifyApplication,
+  configService: ConfigService<ApiConfig, true>,
 ) => {
   const testEnv = configService.get<string>("testEnv");
 
@@ -14,7 +14,7 @@ export const getServer = (
     return `${domain}${apiUrlPrefix}`;
   }
 
-  return app.getHttpServer() as HttpServer;
+  return app.getHttpServer();
 };
 
 export default getServer;

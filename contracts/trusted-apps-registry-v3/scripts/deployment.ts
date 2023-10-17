@@ -5,7 +5,7 @@ import { Tar } from "../src/types";
 async function main() {
   const deployContract = async (
     name: string,
-    opts: FactoryOptions = {}
+    opts: FactoryOptions = {},
   ): Promise<string> => {
     const factory = await ethers.getContractFactory(name, opts);
     const contract = await factory.deploy();

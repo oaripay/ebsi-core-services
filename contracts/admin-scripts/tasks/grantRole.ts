@@ -10,7 +10,7 @@ task("grantRole", "add new operator on Trusted Policy Registry")
       // get contract
       const trustedPolicyRegistry = await ethers.getContractAt(
         "PolicyRegistry",
-        proxyDeployedAddr
+        proxyDeployedAddr,
       );
       const operatorRole = await trustedPolicyRegistry.OPERATOR_ROLE();
       // grant role
@@ -20,12 +20,12 @@ task("grantRole", "add new operator on Trusted Policy Registry")
       // check role
       const hasRoleOperator = await trustedPolicyRegistry.hasRole(
         operatorRole,
-        taskArgs.operator
+        taskArgs.operator,
       );
       if (hasRoleOperator) {
         console.log(
-          `Operator Role with id ${operatorRole} granted to ${taskArgs.operator}`
+          `Operator Role with id ${operatorRole} granted to ${taskArgs.operator}`,
         );
       }
-    }
+    },
   );

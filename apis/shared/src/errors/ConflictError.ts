@@ -1,4 +1,4 @@
-import { ProblemDetailsError } from "./ProblemDetailsError";
+import { ProblemDetailsError } from "./ProblemDetailsError.js";
 
 /**
  * ConflictError defines the Conflict (409) error type.
@@ -24,7 +24,7 @@ export class ConflictError extends ProblemDetailsError {
       detail?: string;
       instance?: string;
       extensions?: { [x: string]: unknown };
-    }
+    },
   ) {
     super(ConflictError.statusCode, title, options);
     this.name = "ConflictError";

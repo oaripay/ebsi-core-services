@@ -4,10 +4,10 @@ import { calculateJwkThumbprint } from "jose";
 import { bytes } from "multiformats";
 import { base64url } from "multiformats/bases/base64";
 
-export default async function getEbsiIssuer(
+export async function getEbsiIssuer(
   privateKey: string,
   did: string,
-  kid?: string
+  kid?: string,
 ) {
   const hexIssuerPrivateKey = privateKey.replace("0x", "");
   const ec = new EC("secp256k1");
@@ -32,3 +32,5 @@ export default async function getEbsiIssuer(
   };
   return issuer;
 }
+
+export default getEbsiIssuer;

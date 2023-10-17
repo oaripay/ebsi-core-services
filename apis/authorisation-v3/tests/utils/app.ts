@@ -6,8 +6,8 @@ import { ValidationPipe } from "@nestjs/common";
 import { fastifyHelmet } from "@fastify/helmet";
 import { fastifyFormbody } from "@fastify/formbody";
 import qs from "qs";
-import { ApiConfig } from "../../src/config/configuration";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
+import type { ApiConfig } from "../../src/config/configuration.js";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 
 /**
  * Configure Nest Fastify app with all the parsers, filters, and validation pipes.
@@ -15,7 +15,7 @@ import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
  */
 export async function configureApp(
   moduleFixture: TestingModule,
-  configService: ConfigService<ApiConfig, true>
+  configService: ConfigService<ApiConfig, true>,
 ) {
   const fastifyAdapter = new FastifyAdapter();
   fastifyAdapter.enableCors({ methods: "*" });
@@ -35,7 +35,7 @@ export async function configureApp(
 
   const app = moduleFixture.createNestApplication<NestFastifyApplication>(
     fastifyAdapter,
-    { bodyParser: false }
+    { bodyParser: false },
   );
 
   app.enableShutdownHooks();
@@ -44,7 +44,7 @@ export async function configureApp(
 
   app.useGlobalFilters(new AllExceptionsFilter(configService));
   app.useGlobalPipes(
-    new ValidationPipe({ transform: true, stopAtFirstError: true })
+    new ValidationPipe({ transform: true, stopAtFirstError: true }),
   );
 
   return app;

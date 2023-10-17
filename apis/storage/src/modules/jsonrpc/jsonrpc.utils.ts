@@ -1,12 +1,12 @@
 import * as ClassValidator from "class-validator";
 import { ClassTransformer, ClassConstructor } from "class-transformer";
-import { RequestCassandraCallDto } from "./dto";
+import { RequestCassandraCallDto } from "./dto/index.js";
 
 type JsonRpcDtos = RequestCassandraCallDto;
 
 export const validateClass = async (
   classType: ClassConstructor<JsonRpcDtos>,
-  data: JsonRpcDtos
+  data: JsonRpcDtos,
 ): Promise<void> => {
   const dataClass = new ClassTransformer().plainToInstance<
     JsonRpcDtos,

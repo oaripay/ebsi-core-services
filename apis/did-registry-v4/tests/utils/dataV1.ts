@@ -5,8 +5,8 @@ import crypto from "node:crypto";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import type { DIDDocument } from "did-resolver";
 import { JWK } from "jose";
-import { ec as EC } from "elliptic";
-import KeyEncoder from "key-encoder";
+import elliptic from "elliptic";
+import { KeyEncoder } from "@cef-ebsi/key-encoder";
 import { bases, bytes } from "multiformats/basics";
 
 /**
@@ -138,6 +138,7 @@ export const createMetadata = (): { [x: string]: unknown } => ({
 
 const { base64url } = bases;
 
+const EC = elliptic.ec;
 const ec = new EC("secp256k1");
 const keyEncoder = new KeyEncoder("secp256k1");
 

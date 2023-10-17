@@ -2,20 +2,20 @@ import { ExecutionContext, Injectable } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import type { Observable } from "rxjs";
 import { UnauthorizedError } from "@ebsiint-api/shared";
-import { SubjectInfo } from "../auth.interface";
+import { SubjectInfo } from "../auth.interface.js";
 
 @Injectable()
 export class BearerJwtAuthGuard extends AuthGuard("bearer-jwt") {
-  canActivate(
-    context: ExecutionContext
+  override canActivate(
+    context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     return super.canActivate(context);
   }
 
-  handleRequest<TUser = SubjectInfo>(
+  override handleRequest<TUser = SubjectInfo>(
     err: Error,
     subjectInfo: TUser,
-    info: unknown
+    info: unknown,
   ): TUser {
     // You can throw an exception based on either "info" or "err" arguments
     if (err || info || !subjectInfo) {

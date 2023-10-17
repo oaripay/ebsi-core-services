@@ -2,7 +2,7 @@ import { IsMultibase64urlEncoded } from "@ebsiint-api/shared";
 
 export class GetTimestampParamsDto {
   @IsMultibase64urlEncoded()
-  timestampId: string;
+  timestampId!: string;
 }
 
 export default GetTimestampParamsDto;

@@ -33,7 +33,7 @@ export class ProblemDetailsError extends Error {
       detail?: string;
       instance?: string;
       extensions?: { [x: string]: unknown };
-    }
+    },
   ) {
     super(title);
     this.name = "ProblemDetailsError";
@@ -70,7 +70,7 @@ export class ProblemDetailsError extends Error {
     };
   }
 
-  toString(): string {
+  override toString(): string {
     return `${this.status} - ${this.title}`;
   }
 }

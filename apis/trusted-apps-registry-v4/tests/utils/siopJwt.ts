@@ -7,7 +7,7 @@ import type { AkeResponse } from "@cef-ebsi/siop-auth";
 import { exportJWK, generateKeyPair, importJWK } from "jose";
 import { ConfigService } from "@nestjs/config";
 import { encode } from "@ebsiint-api/shared";
-import { ApiConfig } from "../../src/config/configuration";
+import type { ApiConfig } from "../../src/config/configuration.js";
 
 export const requestSiopJwt = async ({
   clientKid,
@@ -20,18 +20,18 @@ export const requestSiopJwt = async ({
 }): Promise<string> => {
   let authorisationApiUrl = configService.get<string>("authorisationApiUrl");
   let trustedAppsRegistryUrl = `${configService.get<string>(
-    "domain"
+    "domain",
   )}${configService.get<string>("apiUrlPrefix")}`;
 
   // Use TEST_LB_DOMAIN if defined
   if (configService.get<string>("testLoadBalancerDomain")) {
     authorisationApiUrl = authorisationApiUrl.replace(
       configService.get<string>("domain"),
-      configService.get<string>("testLoadBalancerDomain")
+      configService.get<string>("testLoadBalancerDomain"),
     );
     trustedAppsRegistryUrl = trustedAppsRegistryUrl.replace(
       configService.get<string>("domain"),
-      configService.get<string>("testLoadBalancerDomain")
+      configService.get<string>("testLoadBalancerDomain"),
     );
   }
 
@@ -43,7 +43,7 @@ export const requestSiopJwt = async ({
   const siopAgent = new SiopAgent({
     privateKey: await importJWK(
       encode.privateKey.fromHexToJWK(clientPrivateKey),
-      alg
+      alg,
     ),
     kid: clientKid,
     alg,
@@ -96,7 +96,7 @@ export const requestSiopJwt = async ({
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-    }
+    },
   );
 
   // 5. Finally, the client verifies the SIOP authentication response and gets an access token
@@ -107,7 +107,7 @@ export const requestSiopJwt = async ({
       privateEncryptionKeyJwk,
       trustedAppsRegistry: `${trustedAppsRegistryUrl}/apps`,
       alg,
-    }
+    },
   );
 
   return accessToken;

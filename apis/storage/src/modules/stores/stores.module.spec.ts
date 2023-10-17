@@ -1,22 +1,22 @@
-import { describe, beforeAll, afterAll, it, expect } from "@jest/globals";
+import { describe, beforeAll, afterAll, it, expect } from "vitest";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import { ValidationPipe, Logger, HttpServer } from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { StoresModule } from "./stores.module";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { STORES } from "./stores.constants";
-import { ApiConfig } from "../../config/configuration";
+import { StoresModule } from "./stores.module.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import { STORES } from "./stores.constants.js";
+import type { ApiConfig } from "../../config/configuration.js";
 
 describe("Stores Module", () => {
   let app: NestFastifyApplication;
-  let server: HttpServer;
+  let server: RawServerDefault;
   let configService: ConfigService<ApiConfig, true>;
 
   beforeAll(async () => {
@@ -26,7 +26,7 @@ describe("Stores Module", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     // Turn off logger
@@ -38,15 +38,11 @@ describe("Stores Module", () => {
     app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    await app.getHttpAdapter().getInstance().ready();
+    server = app.getHttpServer();
   });
 
   afterAll(async () => {
-    // Avoid jest open handle error
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
     await app.close();
   });
 
@@ -64,11 +60,13 @@ describe("Stores Module", () => {
           next: expect.stringContaining(
             `/stores?page[after]=${Math.min(
               2,
-              Math.ceil(STORES.length / 10)
-            )}&page[size]=10`
+              Math.ceil(STORES.length / 10),
+            )}&page[size]=10`,
           ),
           last: expect.stringContaining(
-            `/stores?page[after]=${Math.ceil(STORES.length / 10)}&page[size]=10`
+            `/stores?page[after]=${Math.ceil(
+              STORES.length / 10,
+            )}&page[size]=10`,
           ),
         },
         pageSize: 10,
@@ -93,11 +91,11 @@ describe("Stores Module", () => {
           next: expect.stringContaining(
             `/stores?page[after]=${Math.min(
               2,
-              Math.ceil(STORES.length / 2)
-            )}&page[size]=2`
+              Math.ceil(STORES.length / 2),
+            )}&page[size]=2`,
           ),
           last: expect.stringContaining(
-            `/stores?page[after]=${Math.ceil(STORES.length / 2)}&page[size]=2`
+            `/stores?page[after]=${Math.ceil(STORES.length / 2)}&page[size]=2`,
           ),
         },
       });
@@ -105,7 +103,7 @@ describe("Stores Module", () => {
 
       // next page
       const response2 = await request(server).get(
-        "/stores?page[after]=2&page[size]=2"
+        "/stores?page[after]=2&page[size]=2",
       );
       expect(response2.body).toStrictEqual({
         self: expect.stringContaining("/stores?page[after]=2&page[size]=2"),
@@ -118,11 +116,11 @@ describe("Stores Module", () => {
           next: expect.stringContaining(
             `/stores?page[after]=${Math.min(
               3,
-              Math.ceil(STORES.length / 2)
-            )}&page[size]=2`
+              Math.ceil(STORES.length / 2),
+            )}&page[size]=2`,
           ),
           last: expect.stringContaining(
-            `/stores?page[after]=${Math.ceil(STORES.length / 2)}&page[size]=2`
+            `/stores?page[after]=${Math.ceil(STORES.length / 2)}&page[size]=2`,
           ),
         },
       });
@@ -130,7 +128,7 @@ describe("Stores Module", () => {
 
       // big page
       const response3 = await request(server).get(
-        "/stores?page[after]=100&page[size]=2"
+        "/stores?page[after]=100&page[size]=2",
       );
       expect(response3.body).toStrictEqual({
         self: expect.stringContaining("/stores?page[after]=100&page[size]=2"),
@@ -142,17 +140,17 @@ describe("Stores Module", () => {
           prev: expect.stringContaining(
             `/stores?page[after]=${Math.min(
               99,
-              Math.ceil(STORES.length / 2)
-            )}&page[size]=2`
+              Math.ceil(STORES.length / 2),
+            )}&page[size]=2`,
           ),
           next: expect.stringContaining(
             `/stores?page[after]=${Math.min(
               101,
-              Math.ceil(STORES.length / 2)
-            )}&page[size]=2`
+              Math.ceil(STORES.length / 2),
+            )}&page[size]=2`,
           ),
           last: expect.stringContaining(
-            `/stores?page[after]=${Math.ceil(STORES.length / 2)}&page[size]=2`
+            `/stores?page[after]=${Math.ceil(STORES.length / 2)}&page[size]=2`,
           ),
         },
       });
@@ -171,11 +169,13 @@ describe("Stores Module", () => {
           next: expect.stringContaining(
             `/stores?page[after]=${Math.min(
               2,
-              Math.ceil(STORES.length / 10)
-            )}&page[size]=10`
+              Math.ceil(STORES.length / 10),
+            )}&page[size]=10`,
           ),
           last: expect.stringContaining(
-            `/stores?page[after]=${Math.ceil(STORES.length / 10)}&page[size]=10`
+            `/stores?page[after]=${Math.ceil(
+              STORES.length / 10,
+            )}&page[size]=10`,
           ),
         },
       });

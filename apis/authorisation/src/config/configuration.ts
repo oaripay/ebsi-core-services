@@ -103,7 +103,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "warn",
       "info",
       "verbose",
-      "debug"
+      "debug",
     ),
     DOCKER_TAG: Joi.string(),
     // Authorisation specific variables
@@ -122,6 +122,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_CLIENT_KID_ES256: Joi.string(),
     TEST_CLIENT_KID_RS256: Joi.string(),
     TEST_CLIENT_KID_EDDSA: Joi.string(),
+    TEST_CLIENT_PRIVATE_KEYS_BASE64: Joi.string(),
     TEST_CLIENT_PRIVATE_KEY: Joi.string(),
     TEST_ISSUER_DID: Joi.string(),
     TEST_ISSUER_PRIVATE_KEY: Joi.string(),

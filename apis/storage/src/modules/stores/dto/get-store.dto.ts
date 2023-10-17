@@ -2,7 +2,7 @@ import { IsString } from "class-validator";
 
 export class GetStoreDto {
   @IsString()
-  store: string;
+  store!: string;
 }
 
 export default GetStoreDto;

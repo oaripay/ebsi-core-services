@@ -1,17 +1,17 @@
 import { Module } from "@nestjs/common";
 import { TerminusModule } from "@nestjs/terminus";
 import { APP_INTERCEPTOR } from "@nestjs/core";
-import { ApiConfigModule } from "./config/configuration";
-import { AppController } from "./app.controller";
-import { AppsModule } from "./modules/apps/apps.module";
-import { PoliciesModule } from "./modules/policies/policies.module";
-import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module";
-import { AuthModule } from "./modules/auth/auth.module";
-import { LedgerModule } from "./modules/ledger/ledger.module";
-import { HealthModule } from "./modules/health/health.module";
-import { LoggingInterceptor } from "./interceptors/logging.interceptor";
-import { VersionInterceptor } from "./interceptors/version.interceptor";
-import { OpenApiModule } from "./modules/openapi/openapi.module";
+import { ApiConfigModule } from "./config/configuration.js";
+import { AppController } from "./app.controller.js";
+import { AppsModule } from "./modules/apps/apps.module.js";
+import { PoliciesModule } from "./modules/policies/policies.module.js";
+import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module.js";
+import { AuthModule } from "./modules/auth/auth.module.js";
+import { LedgerModule } from "./modules/ledger/ledger.module.js";
+import { HealthModule } from "./modules/health/health.module.js";
+import { LoggingInterceptor } from "./interceptors/logging.interceptor.js";
+import { VersionInterceptor } from "./interceptors/version.interceptor.js";
+import { OpenApiModule } from "./modules/openapi/openapi.module.js";
 
 @Module({
   imports: [

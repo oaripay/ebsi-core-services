@@ -33,17 +33,17 @@ import {
   ArgsAppendRecordVersionHashes,
   RequestTimestampVersionHashesDto,
   ArgsTimestampVersionHashes,
-} from "./dto";
+} from "./dto/index.js";
 import {
   formatEthersUnsignedTransaction,
   formatEthersSignature,
   validateClass,
-} from "./jsonrpc.utils";
-import { LedgerService } from "../ledger/ledger.service";
-import { ApiConfig } from "../../config/configuration";
-import { UserInfo } from "../auth/auth.interface";
+} from "./jsonrpc.utils.js";
+import { LedgerService } from "../ledger/ledger.service.js";
+import type { ApiConfig } from "../../config/configuration.js";
+import { UserInfo } from "../auth/auth.interface.js";
 
-// Cache algorightms' output lengths for 30 minutes
+// Cache algorithms' output lengths for 30 minutes
 const ALGORITHMS_EXP = 30 * 60 * 1000; // 30 minutes
 
 @Injectable()
@@ -52,7 +52,7 @@ export class JsonRpcService {
 
   private didRegistry: string;
 
-  private chainId!: string;
+  private chainId: string = "";
 
   private contractAddress: string;
 
@@ -65,7 +65,7 @@ export class JsonRpcService {
 
   constructor(
     private configService: ConfigService<ApiConfig, true>,
-    private ledgerService: LedgerService
+    private ledgerService: LedgerService,
   ) {
     this.didRegistry = this.configService.get<string>("didRegistryApiUrl");
     this.contractAddress = ledgerService.getContractAddress();
@@ -90,7 +90,7 @@ export class JsonRpcService {
   }
 
   async estimateGas(
-    transaction: UnsignedTransaction
+    transaction: UnsignedTransaction,
   ): Promise<ethers.BigNumber> {
     const { from, to, data, value } = transaction;
 
@@ -113,7 +113,7 @@ export class JsonRpcService {
 
   async isDidControlledByAddress(
     did: string,
-    controllerAddress: string
+    controllerAddress: string,
   ): Promise<boolean> {
     const { data } = await axios.post<{
       result: boolean;
@@ -124,7 +124,7 @@ export class JsonRpcService {
         method: "checkController",
         params: [controllerAddress],
       },
-      { timeout: this.timeout }
+      { timeout: this.timeout },
     );
 
     return data.result;
@@ -132,11 +132,11 @@ export class JsonRpcService {
 
   async checkHashes(
     hashAlgorithmIds: number[],
-    hashValues: string[]
+    hashValues: string[],
   ): Promise<void> {
     if (hashAlgorithmIds.length !== hashValues.length) {
       throw new Error(
-        "hashAlgorithmIds and hashValues don't have the same length"
+        "hashAlgorithmIds and hashValues don't have the same length",
       );
     }
 
@@ -147,7 +147,7 @@ export class JsonRpcService {
       uniqHashAlgorithmIds.map(async (algId) => {
         if (
           this.algIdsToOutputLength[algId] &&
-          this.algIdsToOutputLength[algId].exp > now
+          this.algIdsToOutputLength[algId]!.exp > now
         ) {
           // Use cached result
           return;
@@ -171,19 +171,19 @@ export class JsonRpcService {
           }
           throw new Error(`Can't find hash algorithm with ID: ${algId}`);
         }
-      })
+      }),
     );
 
     // Compare lengths
     hashValues.forEach((hashValue, index) => {
-      const algId = hashAlgorithmIds[index];
+      const algId = hashAlgorithmIds[index]!;
       const expectedOutputLength =
-        this.algIdsToOutputLength[algId].outputLength;
+        this.algIdsToOutputLength[algId]!.outputLength;
       const hashLength =
         Buffer.from(hashValue.replace("0x", ""), "hex").byteLength * 8;
       if (hashLength !== expectedOutputLength) {
         throw new Error(
-          `Hash ${hashValue}'s length (${hashLength} bits) is different from the expected length (${expectedOutputLength} bits)`
+          `Hash ${hashValue}'s length (${hashLength} bits) is different from the expected length (${expectedOutputLength} bits)`,
         );
       }
     });
@@ -203,12 +203,12 @@ export class JsonRpcService {
     const serializedTransaction = ethers.utils.serializeTransaction(unsignedTx);
     const serializedTransactionSigned = ethers.utils.serializeTransaction(
       unsignedTx,
-      signature
+      signature,
     );
 
     if (serializedTransactionSigned !== signedRawTransaction) {
       throw new Error(
-        `The unsigned transaction + signature (${serializedTransactionSigned}) does not match with the signedRawTransaction (${signedRawTransaction})`
+        `The unsigned transaction + signature (${serializedTransactionSigned}) does not match with the signedRawTransaction (${signedRawTransaction})`,
       );
     }
 
@@ -218,20 +218,20 @@ export class JsonRpcService {
 
     if (signer !== unsignedTransaction.from.toLowerCase()) {
       throw new Error(
-        `The signer of the transaction (${signer}) does not match with unsignedTransaction.from (${unsignedTransaction.from}) `
+        `The signer of the transaction (${signer}) does not match with unsignedTransaction.from (${unsignedTransaction.from}) `,
       );
     }
 
     const chainId = await this.getChainId();
     if (unsignedTransaction.chainId !== chainId) {
       throw new Error(
-        `Invalid unsignedTransaction.chainId. Expected ${chainId}. Received ${unsignedTransaction.chainId}`
+        `Invalid unsignedTransaction.chainId. Expected ${chainId}. Received ${unsignedTransaction.chainId}`,
       );
     }
 
     if (unsignedTransaction.to !== this.contractAddress) {
       throw new Error(
-        `Invalid unsignedTransaction.to. Expected ${this.contractAddress}. Received ${unsignedTransaction.to}`
+        `Invalid unsignedTransaction.to. Expected ${this.contractAddress}. Received ${unsignedTransaction.to}`,
       );
     }
 
@@ -244,14 +244,14 @@ export class JsonRpcService {
       case "insertHashAlgorithm": {
         await validateClass(
           ArgsInsertHashAlgorithm,
-          args as unknown as ArgsInsertHashAlgorithm
+          args as unknown as ArgsInsertHashAlgorithm,
         );
         break;
       }
       case "updateHashAlgorithm": {
         await validateClass(
           ArgsUpdateHashAlgorithm,
-          args as unknown as ArgsUpdateHashAlgorithm
+          args as unknown as ArgsUpdateHashAlgorithm,
         );
         break;
       }
@@ -288,34 +288,34 @@ export class JsonRpcService {
       case "insertRecordOwner": {
         await validateClass(
           ArgsInsertRecordOwner,
-          args as unknown as ArgsInsertRecordOwner
+          args as unknown as ArgsInsertRecordOwner,
         );
         break;
       }
       case "revokeRecordOwner": {
         await validateClass(
           ArgsRevokeRecordOwner,
-          args as unknown as ArgsRevokeRecordOwner
+          args as unknown as ArgsRevokeRecordOwner,
         );
         break;
       }
       case "insertRecordVersionInfo": {
         await validateClass(
           ArgsInsertRecordVersionInfo,
-          args as unknown as ArgsInsertRecordVersionInfo
+          args as unknown as ArgsInsertRecordVersionInfo,
         );
         break;
       }
       case "detachRecordVersionHash": {
         await validateClass(
           ArgsDetachRecordVersionHash,
-          args as unknown as ArgsDetachRecordVersionHash
+          args as unknown as ArgsDetachRecordVersionHash,
         );
         break;
       }
       default:
         throw new Error(
-          `The function name ${functionFragment.name} can not be used in this context`
+          `The function name ${functionFragment.name} can not be used in this context`,
         );
     }
 
@@ -328,7 +328,7 @@ export class JsonRpcService {
 
   async buildTransaction(
     from: string,
-    params: string
+    params: string,
   ): Promise<UnsignedTransaction> {
     const nonceInt = await (
       await this.ledgerService.getContract()
@@ -350,7 +350,7 @@ export class JsonRpcService {
     try {
       gasEstimation = await this.estimateGas(unsignedTransaction);
       unsignedTransaction.gasLimit = ethers.BigNumber.from(
-        Math.ceil(1.4 * Number(gasEstimation))
+        Math.ceil(1.4 * Number(gasEstimation)),
       ).toHexString();
     } catch (error) {
       this.logger.warn(
@@ -358,7 +358,7 @@ export class JsonRpcService {
           gasEstimation === "unset"
             ? ""
             : `Received ${gasEstimation.toString()}.`
-        } Using 0x1000000`
+        } Using 0x1000000`,
       );
       unsignedTransaction.gasLimit = "0x1000000";
     }
@@ -368,13 +368,13 @@ export class JsonRpcService {
 
   async buildTransactionInsertHashAlgorithm(
     body: RequestInsertHashAlgorithmDto,
-    id: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestInsertHashAlgorithmDto, body);
 
       const { from, outputLength, ianaName, oid, status, multihash } =
-        body.params[0];
+        body.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -389,14 +389,16 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionUpdateHashAlgorithm(
     body: RequestUpdateHashAlgorithmDto,
-    id: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestUpdateHashAlgorithmDto, body);
@@ -409,7 +411,7 @@ export class JsonRpcService {
         oid,
         status,
         multihash,
-      } = body.params[0];
+      } = body.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -425,20 +427,22 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionTimestampHashes(
     body: RequestTimestampHashesDto,
-    id: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestTimestampHashesDto, body);
 
       const { from, hashAlgorithmIds, hashValues, timestampData } =
-        body.params[0];
+        body.params[0]!;
 
       await this.checkHashes(hashAlgorithmIds, hashValues);
 
@@ -453,14 +457,16 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionTimestampVersionHashes(
     body: RequestTimestampVersionHashesDto,
-    id: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestTimestampVersionHashesDto, body);
@@ -472,7 +478,7 @@ export class JsonRpcService {
         timestampData,
         versionHash,
         versionInfo,
-      } = body.params[0];
+      } = body.params[0]!;
 
       await this.checkHashes(hashAlgorithmIds, hashValues);
 
@@ -489,19 +495,21 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionInsertRecordOwner(
     body: RequestInsertRecordOwnerDto,
-    id: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestInsertRecordOwnerDto, body);
 
-      const { from, recordId, ownerId, notBefore, notAfter } = body.params[0];
+      const { from, recordId, ownerId, notBefore, notAfter } = body.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -514,19 +522,21 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionRevokeRecordOwner(
     body: RequestRevokeRecordOwnerDto,
-    id: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestRevokeRecordOwnerDto, body);
 
-      const { from, recordId, ownerId } = body.params[0];
+      const { from, recordId, ownerId } = body.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -537,19 +547,21 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionInsertRecordVersionInfo(
     body: RequestInsertRecordVersionInfoDto,
-    id: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestInsertRecordVersionInfoDto, body);
 
-      const { from, recordId, versionId, versionInfo } = body.params[0];
+      const { from, recordId, versionId, versionInfo } = body.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -561,19 +573,21 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionDetachRecordVersionHash(
     body: RequestDetachRecordVersionHashDto,
-    id: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestDetachRecordVersionHashDto, body);
 
-      const { from, recordId, versionId, hashValue } = body.params[0];
+      const { from, recordId, versionId, hashValue } = body.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -585,20 +599,22 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionTimestampRecordHashes(
     body: RequestTimestampRecordHashesDto,
-    id: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestTimestampRecordHashesDto, body);
 
       const { from, hashAlgorithmIds, hashValues, timestampData, versionInfo } =
-        body.params[0];
+        body.params[0]!;
 
       await this.checkHashes(hashAlgorithmIds, hashValues);
 
@@ -614,14 +630,16 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionTimestampRecordVersionHashes(
     body: RequestTimestampRecordVersionHashesDto,
-    id: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestTimestampRecordVersionHashesDto, body);
@@ -633,7 +651,7 @@ export class JsonRpcService {
         hashValues,
         timestampData,
         versionInfo,
-      } = body.params[0];
+      } = body.params[0]!;
 
       await this.checkHashes(hashAlgorithmIds, hashValues);
 
@@ -650,14 +668,16 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionAppendRecordVersionHashes(
     body: RequestAppendRecordVersionHashesDto,
-    id: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestAppendRecordVersionHashesDto, body);
@@ -670,7 +690,7 @@ export class JsonRpcService {
         hashValues,
         timestampData,
         versionInfo,
-      } = body.params[0];
+      } = body.params[0]!;
 
       await this.checkHashes(hashAlgorithmIds, hashValues);
 
@@ -688,7 +708,9 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
@@ -696,7 +718,7 @@ export class JsonRpcService {
   async verifyEthereumAddress(address: string, user: UserInfo): Promise<void> {
     if (!(await this.isDidControlledByAddress(user.sub, address))) {
       throw new Error(
-        `The DID ${user.sub} is not controlled by the address ${address}`
+        `The DID ${user.sub} is not controlled by the address ${address}`,
       );
     }
   }
@@ -704,12 +726,12 @@ export class JsonRpcService {
   async sendTransaction(
     body: RequestSendSignedTransactionDto,
     user: UserInfo,
-    id: number | string
+    id?: number | string,
   ): Promise<string> {
     try {
       await validateClass(RequestSendSignedTransactionDto, body);
 
-      const request = body.params[0];
+      const request = body.params[0]!;
       const { signer } = await this.verifyTransaction(request);
 
       await this.verifyEthereumAddress(signer, user);
@@ -725,7 +747,11 @@ export class JsonRpcService {
       }
       if (err instanceof Error) {
         const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-        error.stack = err.stack;
+
+        if (err.stack) {
+          error.stack = err.stack;
+        }
+
         throw error;
       }
       throw err;

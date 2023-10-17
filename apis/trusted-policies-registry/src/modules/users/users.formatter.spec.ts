@@ -1,8 +1,7 @@
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 import { ethers } from "ethers";
 import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry";
-import { AsyncReturnType } from "@ebsiint-api/shared";
-import { formatUsers } from "./users.formatter";
+import { formatUsers } from "./users.formatter.js";
 
 describe("formatUsers", () => {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -12,7 +11,7 @@ describe("formatUsers", () => {
     items: ["0x123456", "0xab1234", "0xcd1234"],
     total: ethers.BigNumber.from("42"),
     howMany: ethers.BigNumber.from("3"),
-  } as AsyncReturnType<PolicyRegistry["getPolicyNames"]>;
+  } as Awaited<ReturnType<PolicyRegistry["getPolicyNames"]>>;
 
   it("should use the values returned by the smart contract (except pageSize)", () => {
     expect.assertions(1);

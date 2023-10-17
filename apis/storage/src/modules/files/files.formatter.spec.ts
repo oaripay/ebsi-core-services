@@ -1,5 +1,5 @@
-import { describe, it, expect } from "@jest/globals";
-import { formatFiles } from "./files.formatter";
+import { describe, it, expect } from "vitest";
+import { formatFiles } from "./files.formatter.js";
 
 describe("formatFiles", () => {
   it("should paginate the values returned by Cassandra", () => {
@@ -23,8 +23,8 @@ describe("formatFiles", () => {
         nextPageToken,
         pageSize,
         "",
-        "?test=true"
-      )
+        "?test=true",
+      ),
     ).toStrictEqual({
       items: hashes,
       links: {
@@ -43,8 +43,8 @@ describe("formatFiles", () => {
         nextPageToken,
         pageSize,
         "",
-        "?test=true"
-      )
+        "?test=true",
+      ),
     ).toStrictEqual({
       items: hashes,
       links: {
@@ -75,8 +75,8 @@ describe("formatFiles", () => {
         nextPageToken,
         pageSize,
         "",
-        "?test=true"
-      )
+        "?test=true",
+      ),
     ).toStrictEqual({
       items: hashes,
       links: {},

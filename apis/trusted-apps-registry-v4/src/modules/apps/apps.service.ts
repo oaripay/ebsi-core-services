@@ -2,18 +2,17 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ethers } from "ethers";
 import { Tar } from "@ebsiint-sc/trusted-apps-registry-v3";
 import {
-  AsyncReturnType,
   isEthersError,
   NotFoundError,
   remove0xPrefix,
 } from "@ebsiint-api/shared";
-import LedgerService from "../ledger/ledger.service";
+import LedgerService from "../ledger/ledger.service.js";
 import {
   AppResponseObject,
   AuthorizationItemObject,
   AuthorizationResponseObject,
   PublicKeyResponseObject,
-} from "./apps.interface";
+} from "./apps.interface.js";
 
 const domainName = ["undefined", "ebsi", "external"];
 const statusName = ["undefined", "active", "revoked", "suspended"];
@@ -22,7 +21,7 @@ const statusName = ["undefined", "active", "revoked", "suspended"];
 export default class AppsService {
   private readonly logger = new Logger(AppsService.name);
 
-  private tarContract: Tar;
+  private tarContract: Tar | undefined;
 
   constructor(private ledgerService: LedgerService) {}
 
@@ -37,32 +36,32 @@ export default class AppsService {
   async getPage(
     fnName: string,
     params: string[],
-    page: number
+    page: number,
   ): Promise<{ items: unknown[]; total: ethers.BigNumber }> {
     try {
       switch (fnName) {
         case "getAppAdministratorIds": {
           const { items, total } =
             await this.getContract().getAppAdministratorIds(
-              params[0],
+              params[0]!,
               page,
-              50
+              50,
             );
           return { items, total };
         }
         case "getAppPublicKeyIds": {
           const { items, total } = await this.getContract().getAppPublicKeyIds(
-            params[0],
+            params[0]!,
             page,
-            50
+            50,
           );
           return { items, total };
         }
         case "getAppInfoIds": {
           const { items, total } = await this.getContract().getAppInfoIds(
-            params[0],
+            params[0]!,
             page,
-            50
+            50,
           );
           return { items, total };
         }
@@ -85,7 +84,7 @@ export default class AppsService {
     const lastPage = Math.ceil(total.toNumber() / 50);
     const promisesNextPages = Array.from(
       { length: lastPage - 1 },
-      (x, i) => i + 2
+      (_, i) => i + 2,
     ).map(async (i) => {
       const { items: pagItems } = await this.getPage(fnName, params, i);
       return pagItems;
@@ -123,7 +122,7 @@ export default class AppsService {
   }
 
   async getAppByPublicKeyId(
-    publicKeyId: string
+    publicKeyId: string,
   ): ReturnType<Tar["getAppByPublicKeyId"]> {
     try {
       return await this.getContract().getAppByPublicKeyId(publicKeyId);
@@ -153,9 +152,8 @@ export default class AppsService {
   }
 
   async getApp(appName: string): Promise<AppResponseObject> {
-    const app: AsyncReturnType<Tar["getAppByName"]> = await this.getAppByName(
-      appName
-    );
+    const app: Awaited<ReturnType<Tar["getAppByName"]>> =
+      await this.getAppByName(appName);
 
     const [applicationId, domain] = app;
 
@@ -169,13 +167,12 @@ export default class AppsService {
     try {
       const publicKeys = await Promise.all(
         publicKeyIds.map(async (publicKeyId) => {
-          const { publicKey } = await this.getContract().getPublicKey(
-            publicKeyId
-          );
+          const { publicKey } =
+            await this.getContract().getPublicKey(publicKeyId);
           return Buffer.from(remove0xPrefix(publicKey), "hex").toString(
-            "base64"
+            "base64",
           );
-        })
+        }),
       );
       const infoIds = (await this.getAllPages("getAppInfoIds", [
         applicationId,
@@ -183,18 +180,18 @@ export default class AppsService {
       let info = {};
       if (infoIds.length > 0) {
         const infoBytes = await this.getContract().getAppInfoByInfoId(
-          infoIds[infoIds.length - 1]
+          infoIds[infoIds.length - 1]!,
         );
         const infoStr = Buffer.from(remove0xPrefix(infoBytes), "hex").toString(
-          "utf8"
+          "utf8",
         );
         info = JSON.parse(infoStr) as { [x: string]: unknown };
       }
       const authorizationItems = await this.getAllAuthorizations(applicationId);
       const authorizations = await Promise.all(
         authorizationItems.map(async (auth) =>
-          this.getAuthorization(appName, auth.authorizationId)
-        )
+          this.getAuthorization(appName, auth.authorizationId),
+        ),
       );
       const revocationStatus = await this.getAppRevocationStatus(applicationId);
       const revocation = revocationStatus
@@ -207,12 +204,12 @@ export default class AppsService {
       return {
         applicationId,
         name: appName,
-        domain: domainName[domain],
+        domain: domainName[domain]!,
         administrators,
         publicKeys,
         info,
         authorizations,
-        revocation,
+        revocation: revocation!,
       };
     } catch (error) {
       if (isEthersError(error)) {
@@ -225,16 +222,15 @@ export default class AppsService {
   }
 
   async getAppRevocationStatus(
-    applicationId: string
-  ): ReturnType<Tar["getRevocation"]> {
+    applicationId: string,
+  ): Promise<Awaited<ReturnType<Tar["getRevocation"]>> | null> {
     try {
-      const revocationStatus = await this.getContract().getRevocation(
-        applicationId
-      );
+      const revocationStatus =
+        await this.getContract().getRevocation(applicationId);
       return revocationStatus;
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.debug(error);
       }
       return null;
     }
@@ -243,17 +239,16 @@ export default class AppsService {
   async getPublicKeys(
     appName: string,
     page: number,
-    pageSize: number
+    pageSize: number,
   ): ReturnType<Tar["getAppPublicKeyIds"]> {
-    const app: AsyncReturnType<Tar["getAppByName"]> = await this.getAppByName(
-      appName
-    );
+    const app: Awaited<ReturnType<Tar["getAppByName"]>> =
+      await this.getAppByName(appName);
     const [applicationId] = app;
     try {
       return await this.getContract().getAppPublicKeyIds(
         applicationId,
         page,
-        pageSize
+        pageSize,
       );
     } catch (error) {
       if (isEthersError(error)) {
@@ -267,12 +262,11 @@ export default class AppsService {
 
   async getPublicKey(
     appName: string,
-    publicKeyId: string
+    publicKeyId: string,
   ): Promise<PublicKeyResponseObject> {
-    let result: AsyncReturnType<Tar["getPublicKey"]>;
-    const app: AsyncReturnType<Tar["getAppByName"]> = await this.getAppByName(
-      appName
-    );
+    let result: Awaited<ReturnType<Tar["getPublicKey"]>>;
+    const app: Awaited<ReturnType<Tar["getAppByName"]>> =
+      await this.getAppByName(appName);
     const [applicationId] = app;
     try {
       result = await this.getContract().getPublicKey(publicKeyId);
@@ -293,22 +287,24 @@ export default class AppsService {
     return {
       applicationId,
       publicKey: Buffer.from(remove0xPrefix(publicKey), "hex").toString(
-        "base64"
+        "base64",
       ),
-      status: statusName[status],
+      status: statusName[status]!,
     };
   }
 
   async getAllAuthorizations(
-    resourceApplicationId: string
+    resourceApplicationId: string,
   ): Promise<AuthorizationItemObject[]> {
-    let authorizedAppsIds: AsyncReturnType<Tar["getAuthorizedAppsIds"]>;
+    let authorizedAppsIds: Awaited<
+      ReturnType<Tar["getAuthorizedAppsIds"]>
+    > | null = null;
     try {
       // TODO on SC: remove require when there are no authorizations
       authorizedAppsIds = await this.getContract().getAuthorizedAppsIds(
         resourceApplicationId,
         1,
-        50
+        50,
       );
     } catch (error) {
       if (isEthersError(error)) {
@@ -317,31 +313,33 @@ export default class AppsService {
     }
 
     // remove duplications - TODO on SC
-    let itemsApp = [];
+    let itemsApp: string[] = [];
     let lastPageApp = 0;
+
     if (authorizedAppsIds) {
       itemsApp = authorizedAppsIds.items.filter(
-        (app, index, self) => self.indexOf(app) === index
+        (app, index, self) => self.indexOf(app) === index,
       );
       lastPageApp = Math.ceil(authorizedAppsIds.items.length / 50);
     }
 
     const promisesNextPagesApp = Array.from(
       { length: lastPageApp - 1 },
-      (x, i) => i + 2
+      (_, i) => i + 2,
     ).map(async (i) => {
-      let auths: AsyncReturnType<Tar["getAuthorizedAppsIds"]>;
+      let auths: Awaited<ReturnType<Tar["getAuthorizedAppsIds"]>> | null = null;
       try {
         auths = await this.getContract().getAuthorizedAppsIds(
           resourceApplicationId,
           i,
-          50
+          50,
         );
       } catch (error) {
         if (isEthersError(error)) {
           this.logger.error(error);
         }
       }
+
       if (!auths) {
         return {
           items: [],
@@ -350,6 +348,7 @@ export default class AppsService {
       }
       return auths;
     });
+
     const allNextPagesApp = await Promise.all(promisesNextPagesApp);
     allNextPagesApp.forEach((pageResult) => itemsApp.push(...pageResult.items));
 
@@ -363,24 +362,24 @@ export default class AppsService {
         resourceApplicationId,
         authorizedAppId,
         1,
-        50
+        50,
       );
       const authIds = auths.items;
       const lastPageAuth = Math.ceil(auths.total.toNumber() / 50);
       const promisesNextPagesAuth = Array.from(
         { length: lastPageAuth - 1 },
-        (x, i) => i + 2
+        (_, i) => i + 2,
       ).map((i) =>
         this.getContract().getAuthorizations(
           resourceApplicationId,
           authorizedAppId,
           i,
-          50
-        )
+          50,
+        ),
       );
       const allNextPagesAuth = await Promise.all(promisesNextPagesAuth);
       allNextPagesAuth.forEach((pageResult) =>
-        authIds.push(...pageResult.items)
+        authIds.push(...pageResult.items),
       );
       return authIds.map((authorizationId) => ({
         authorizationId,
@@ -392,7 +391,7 @@ export default class AppsService {
       const allAppAuths = await Promise.all(promisesAuths);
       const authorizations: AuthorizationItemObject[] = [];
       allAppAuths.forEach((itemsAuth: AuthorizationItemObject[]) =>
-        authorizations.push(...itemsAuth)
+        authorizations.push(...itemsAuth),
       );
       return authorizations;
     } catch (error) {
@@ -408,15 +407,14 @@ export default class AppsService {
   async getAuthorizations(
     applicationName: string,
     page: number,
-    pageSize: number
+    pageSize: number,
   ): Promise<{ items: AuthorizationItemObject[]; total: number }> {
-    const app: AsyncReturnType<Tar["getAppByName"]> = await this.getAppByName(
-      applicationName
-    );
+    const app: Awaited<ReturnType<Tar["getAppByName"]>> =
+      await this.getAppByName(applicationName);
     const [resourceApplicationId] = app;
 
     const authorizations = await this.getAllAuthorizations(
-      resourceApplicationId
+      resourceApplicationId,
     );
     return {
       items: authorizations.slice(pageSize * (page - 1), pageSize * page),
@@ -428,14 +426,13 @@ export default class AppsService {
     applicationName: string,
     requesterApplicationName: string,
     page: number,
-    pageSize: number
+    pageSize: number,
   ): Promise<{ items: AuthorizationItemObject[]; total: number }> {
-    let auths: AsyncReturnType<Tar["getAuthorizations"]>;
-    const app: AsyncReturnType<Tar["getAppByName"]> = await this.getAppByName(
-      applicationName
-    );
+    let auths: Awaited<ReturnType<Tar["getAuthorizations"]>> | null = null;
+    const app: Awaited<ReturnType<Tar["getAppByName"]>> =
+      await this.getAppByName(applicationName);
     const [resourceApplicationId] = app;
-    const requesterApplication: AsyncReturnType<Tar["getAppByName"]> =
+    const requesterApplication: Awaited<ReturnType<Tar["getAppByName"]>> =
       await this.getAppByName(requesterApplicationName);
 
     try {
@@ -443,13 +440,14 @@ export default class AppsService {
         resourceApplicationId,
         requesterApplication.applicationId,
         page,
-        pageSize
+        pageSize,
       );
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error);
       }
     }
+
     if (!auths) {
       return { items: [], total: 0 };
     }
@@ -464,18 +462,16 @@ export default class AppsService {
 
   async getAuthorization(
     applicationName: string,
-    authorizationId: string
+    authorizationId: string,
   ): Promise<AuthorizationResponseObject> {
-    let authorization: AsyncReturnType<Tar["getAuthorizationById"]>;
-    const app: AsyncReturnType<Tar["getAppByName"]> = await this.getAppByName(
-      applicationName
-    );
+    let authorization: Awaited<ReturnType<Tar["getAuthorizationById"]>>;
+    const app: Awaited<ReturnType<Tar["getAppByName"]>> =
+      await this.getAppByName(applicationName);
     const [resourceApplicationId] = app;
 
     try {
-      authorization = await this.getContract().getAuthorizationById(
-        authorizationId
-      );
+      authorization =
+        await this.getContract().getAuthorizationById(authorizationId);
     } catch (e) {
       if (isEthersError(e)) {
         this.logger.error(e);
@@ -506,7 +502,7 @@ export default class AppsService {
       resourceApplicationName: name,
       requesterApplicationName: authorizedAppName,
       iss,
-      status: statusName[status],
+      status: statusName[status]!,
     };
   }
 }

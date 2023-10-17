@@ -1,18 +1,16 @@
-import { Injectable, Logger, OnApplicationBootstrap } from "@nestjs/common";
+import { Injectable, OnApplicationBootstrap } from "@nestjs/common";
 import { InvalidRequestJsonRpcError } from "@ebsiint-api/shared";
 import { Client, QueryOptions, types } from "cassandra-driver";
-import { RequestCassandraCallDto } from "./dto";
-import { validateClass, isReadOperation } from "./jsonrpc.utils";
-import { CassandraService } from "../cassandra/cassandra.service";
-import { CassandraConsistency } from "../../config/cassandra.config";
+import { RequestCassandraCallDto } from "./dto/index.js";
+import { validateClass, isReadOperation } from "./jsonrpc.utils.js";
+import { CassandraService } from "../cassandra/cassandra.service.js";
+import { CassandraConsistency } from "../../config/cassandra.config.js";
 
 @Injectable()
 export class JsonRpcService implements OnApplicationBootstrap {
-  private readonly logger = new Logger(JsonRpcService.name);
+  private cassandraClient!: Client;
 
-  private cassandraClient: Client;
-
-  private consistency: CassandraConsistency;
+  private consistency!: CassandraConsistency;
 
   constructor(private cassandraService: CassandraService) {}
 
@@ -23,7 +21,7 @@ export class JsonRpcService implements OnApplicationBootstrap {
 
   async cassandraCall(
     body: RequestCassandraCallDto,
-    id?: number | string
+    id?: number | string,
   ): Promise<{
     rows: types.ResultSet["rows"];
     pageState: types.ResultSet["pageState"];
@@ -43,12 +41,14 @@ export class JsonRpcService implements OnApplicationBootstrap {
       const { rows, pageState } = await this.cassandraClient.execute(
         query as string,
         params,
-        options
+        options,
       );
       return { rows, pageState };
     } catch (err) {
       const error = new InvalidRequestJsonRpcError((err as Error).message, id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }

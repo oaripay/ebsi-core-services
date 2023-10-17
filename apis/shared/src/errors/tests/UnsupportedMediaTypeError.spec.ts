@@ -1,5 +1,5 @@
-import { describe, it, expect } from "@jest/globals";
-import { UnsupportedMediaTypeError, ProblemDetailsError } from "../index";
+import { describe, it, expect } from "vitest";
+import { UnsupportedMediaTypeError, ProblemDetailsError } from "../index.js";
 
 describe("error UnsupportedMediaTypeError", () => {
   it("should extend ProblemDetailsError", () => {
@@ -69,7 +69,7 @@ describe("error UnsupportedMediaTypeError", () => {
     });
 
     expect(error.toString()).toBe(
-      `${UnsupportedMediaTypeError.statusCode} - Test Error`
+      `${UnsupportedMediaTypeError.statusCode} - Test Error`,
     );
   });
 });

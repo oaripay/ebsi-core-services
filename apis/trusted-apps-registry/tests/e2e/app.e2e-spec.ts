@@ -1,23 +1,22 @@
-import { describe, beforeAll, afterAll, it, expect } from "@jest/globals";
+import { describe, beforeAll, afterAll, it, expect } from "vitest";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import { ValidationPipe, HttpServer } from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { Logger, ValidationPipe } from "@nestjs/common";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { FastifyInstance } from "fastify";
-import { Logger } from "@nestjs/common/services/logger.service";
+import type { RawServerDefault } from "fastify";
 import { ConfigService } from "@nestjs/config";
-import { AppModule } from "../../src/app.module";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
-import { ApiConfig } from "../../src/config/configuration";
-import { describeWriteOps } from "../utils/describeWriteOps";
-import { getServer } from "../utils/getServer";
+import { AppModule } from "../../src/app.module.js";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
+import type { ApiConfig } from "../../src/config/configuration.js";
+import { describeWriteOps } from "../utils/describeWriteOps.js";
+import { getServer } from "../utils/getServer.js";
 
 describe("TAR API (generic tests)", () => {
   let app: NestFastifyApplication;
-  let server: HttpServer | string;
+  let server: RawServerDefault | string;
   let apiUrlPrefix = "";
   let trustedAppsRegistryUrl: string;
   beforeAll(async () => {
@@ -26,7 +25,7 @@ describe("TAR API (generic tests)", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     const configService =
@@ -38,7 +37,7 @@ describe("TAR API (generic tests)", () => {
     Logger.overrideLogger(false);
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
     server = getServer(app, configService);
 
@@ -47,23 +46,19 @@ describe("TAR API (generic tests)", () => {
     }
 
     trustedAppsRegistryUrl = `${configService.get<string>(
-      "domain"
+      "domain",
     )}${configService.get<string>("apiUrlPrefix")}`;
 
     // Use TEST_LB_DOMAIN if defined
     if (configService.get<string>("testLoadBalancerDomain")) {
       trustedAppsRegistryUrl = trustedAppsRegistryUrl.replace(
         configService.get<string>("domain"),
-        configService.get<string>("testLoadBalancerDomain")
+        configService.get<string>("testLoadBalancerDomain"),
       );
     }
   });
 
   afterAll(async () => {
-    // Avoid jest open handle error
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
     await app.close();
   });
 
@@ -111,7 +106,7 @@ describe("TAR API (generic tests)", () => {
       });
       expect(response.status).toBe(401);
       expect(
-        (response.headers as { "content-type": string })["content-type"]
+        (response.headers as { "content-type": string })["content-type"],
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
 
@@ -122,7 +117,7 @@ describe("TAR API (generic tests)", () => {
         .post("/jsonrpc")
         .auth(
           "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJpc3MiOiJhbnkifQ.eiwf-6rtNV0oWpFidRTlcY6oLBpV0l2tEkCs5FNoIxY",
-          { type: "bearer" }
+          { type: "bearer" },
         )
         .send();
 
@@ -134,7 +129,7 @@ describe("TAR API (generic tests)", () => {
       });
       expect(response.status).toBe(401);
       expect(
-        (response.headers as { "content-type": string })["content-type"]
+        (response.headers as { "content-type": string })["content-type"],
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
   });

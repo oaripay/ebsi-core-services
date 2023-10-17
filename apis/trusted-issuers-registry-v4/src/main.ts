@@ -1,17 +1,17 @@
 import { NestFactory } from "@nestjs/core";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
 import { ValidationPipe } from "@nestjs/common";
 import { useContainer } from "class-validator";
 import { fastifyHelmet } from "@fastify/helmet";
 import { setupInterceptors } from "@ebsiint-api/shared";
-import { AppModule } from "./app.module";
-import { AllExceptionsFilter } from "./filters/http-exception.filter";
-import { createLogger, consoleTransport } from "./logger/logger";
-import { ApiConfig } from "./config/configuration";
+import { AppModule } from "./app.module.js";
+import { AllExceptionsFilter } from "./filters/http-exception.filter.js";
+import { createLogger, consoleTransport } from "./logger/logger.js";
+import type { ApiConfig } from "./config/configuration.js";
 
 async function bootstrap(): Promise<void> {
   const fastifyAdapter = new FastifyAdapter();
@@ -22,7 +22,7 @@ async function bootstrap(): Promise<void> {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     fastifyAdapter,
-    { logger }
+    { logger },
   );
 
   const configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
@@ -49,7 +49,7 @@ async function bootstrap(): Promise<void> {
 - LOG_LEVEL: ${logLevel}
 - Docker container tag: ${dockerContainerTag}
 `,
-      "main"
+      "main",
     );
   }
 

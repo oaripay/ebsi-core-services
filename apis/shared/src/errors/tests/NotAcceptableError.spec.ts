@@ -1,5 +1,5 @@
-import { describe, it, expect } from "@jest/globals";
-import { NotAcceptableError, ProblemDetailsError } from "../index";
+import { describe, it, expect } from "vitest";
+import { NotAcceptableError, ProblemDetailsError } from "../index.js";
 
 describe("error NotAcceptableError", () => {
   it("should extend ProblemDetailsError", () => {
@@ -69,7 +69,7 @@ describe("error NotAcceptableError", () => {
     });
 
     expect(error.toString()).toBe(
-      `${NotAcceptableError.statusCode} - Test Error`
+      `${NotAcceptableError.statusCode} - Test Error`,
     );
   });
 });

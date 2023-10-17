@@ -1,22 +1,17 @@
 import { DidRegistry } from "@ebsiint-sc/did-registry";
-import {
-  PaginatedList,
-  paginate,
-  remove0xPrefix,
-  AsyncReturnType,
-} from "@ebsiint-api/shared";
+import { PaginatedList, paginate, remove0xPrefix } from "@ebsiint-api/shared";
 import {
   DidLink,
   MetadataIdLink,
   VersionIdLink,
-} from "./identifiers.interface";
+} from "./identifiers.interface.js";
 
 export function formatIdentifiers(
-  identifiers: AsyncReturnType<DidRegistry["getDidRecordIdentifiers"]>,
+  identifiers: Awaited<ReturnType<DidRegistry["getDidRecordIdentifiers"]>>,
   page: number,
   pageSize: number,
   baseUrl: string,
-  controllerId?: string
+  controllerId?: string,
 ): PaginatedList<DidLink> {
   const total = identifiers.total.toNumber();
 
@@ -35,11 +30,11 @@ export function formatIdentifiers(
 }
 
 export function formatVersions(
-  versions: AsyncReturnType<DidRegistry["getDidDocumentVersionIds"]>,
+  versions: Awaited<ReturnType<DidRegistry["getDidDocumentVersionIds"]>>,
   page: number,
   pageSize: number,
   baseUrl: string,
-  validAt?: string
+  validAt?: string,
 ): PaginatedList<VersionIdLink> {
   const total = versions.total.toNumber();
 
@@ -59,15 +54,17 @@ export function formatVersions(
     total,
     page,
     pageSize,
-    extraQuery
+    extraQuery,
   );
 }
 
 export function formatMetadata(
-  metadata: AsyncReturnType<DidRegistry["getDidDocumentVersionMetadataIds"]>,
+  metadata: Awaited<
+    ReturnType<DidRegistry["getDidDocumentVersionMetadataIds"]>
+  >,
   page: number,
   pageSize: number,
-  baseUrl: string
+  baseUrl: string,
 ): PaginatedList<MetadataIdLink> {
   const total = metadata.total.toNumber();
 

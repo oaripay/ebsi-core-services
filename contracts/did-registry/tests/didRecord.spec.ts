@@ -12,9 +12,8 @@ describe("Record Hashes", () => {
 
   before(async () => {
     [admin, user, user2] = await ethers.getSigners();
-    const policyRegistryFactory = await ethers.getContractFactory(
-      "PolicyRegistryMock"
-    );
+    const policyRegistryFactory =
+      await ethers.getContractFactory("PolicyRegistryMock");
     const tempPolicyContract = await policyRegistryFactory.deploy();
     await tempPolicyContract.deployed();
     const bytecode = await ethers.provider.getCode(tempPolicyContract.address);
@@ -29,9 +28,8 @@ describe("Record Hashes", () => {
     const hashAlgoFactory = await ethers.getContractFactory("HashAlgoLib", {});
     const hashAlgoLib = await hashAlgoFactory.deploy();
 
-    const didTimestampFactory = await ethers.getContractFactory(
-      "DidTimestampLib"
-    );
+    const didTimestampFactory =
+      await ethers.getContractFactory("DidTimestampLib");
     const didTimestampLib = await didTimestampFactory.deploy();
 
     const didRecordFactory = await ethers.getContractFactory("DidRecordLib", {
@@ -74,8 +72,8 @@ describe("Record Hashes", () => {
         hashValue,
         [],
         ethers.utils.toUtf8Bytes("timestampData"),
-        ethers.utils.toUtf8Bytes("didVersionMetadata")
-      )
+        ethers.utils.toUtf8Bytes("didVersionMetadata"),
+      ),
     ).to.be.revertedWith("didVersionInfo empty");
     await expect(
       ts.insertDidDocument(
@@ -84,8 +82,8 @@ describe("Record Hashes", () => {
         hashValue,
         ethers.utils.toUtf8Bytes("didVersionInfo"),
         ethers.utils.toUtf8Bytes("timestampData"),
-        ethers.utils.toUtf8Bytes("didVersionMetadata")
-      )
+        ethers.utils.toUtf8Bytes("didVersionMetadata"),
+      ),
     ).to.be.revertedWith("identifier empty");
 
     ts.insertDidDocument(
@@ -94,7 +92,7 @@ describe("Record Hashes", () => {
       hashValue,
       ethers.utils.toUtf8Bytes("didVersionInfo"),
       ethers.utils.toUtf8Bytes("timestampData"),
-      ethers.utils.toUtf8Bytes("didVersionMetadata")
+      ethers.utils.toUtf8Bytes("didVersionMetadata"),
     );
     await expect(
       ts.insertDidDocument(
@@ -103,8 +101,8 @@ describe("Record Hashes", () => {
         ethers.utils.sha256(ethers.utils.toUtf8Bytes("e406s05e6")),
         ethers.utils.toUtf8Bytes("didVersionInfo"),
         ethers.utils.toUtf8Bytes("timestampData"),
-        ethers.utils.toUtf8Bytes("didVersionMetadata")
-      )
+        ethers.utils.toUtf8Bytes("didVersionMetadata"),
+      ),
     ).to.be.revertedWith("record exists");
   });
 
@@ -117,8 +115,8 @@ describe("Record Hashes", () => {
         hashValue,
         ethers.utils.toUtf8Bytes("didVersionInfo"),
         ethers.utils.toUtf8Bytes("timestampData"),
-        ethers.utils.toUtf8Bytes("didVersionMetadata")
-      )
+        ethers.utils.toUtf8Bytes("didVersionMetadata"),
+      ),
     ).to.be.revertedWith("hashAlgo unknown");
   });
 
@@ -137,34 +135,34 @@ describe("Record Hashes", () => {
         hashValue,
         didVersionInfo,
         timestampData,
-        didVersionMetadata
-      )
+        didVersionMetadata,
+      ),
     )
       .to.emit(ts, "DidDocumentInserted")
       .withArgs(
         recId,
         tsId,
         ethers.utils.sha256(didVersionInfo),
-        ethers.utils.sha256(didVersionMetadata)
+        ethers.utils.sha256(didVersionMetadata),
       );
     const receipt = await ts.getDidTimestamps(1, 10);
     expect(receipt.items).to.deep.equal([tsId]);
     // should work with empty  versionInfo
     const hash1Prime = ethers.utils.sha256(
-      ethers.utils.toUtf8Bytes("othere40605e6")
+      ethers.utils.toUtf8Bytes("othere40605e6"),
     );
     const didPrime = ethers.utils.toUtf8Bytes("didPrime");
     const tsIdPrime = ethers.utils.sha256(hash1Prime);
     const recIdPrime = ethers.utils.sha256(didPrime);
     await expect(
-      ts.insertDidDocument(didPrime, 0, hash1Prime, didVersionInfo, [], [])
+      ts.insertDidDocument(didPrime, 0, hash1Prime, didVersionInfo, [], []),
     )
       .to.emit(ts, "DidDocumentInserted")
       .withArgs(
         recIdPrime,
         tsIdPrime,
         ethers.utils.sha256(didVersionInfo),
-        ethers.utils.sha256([])
+        ethers.utils.sha256([]),
       );
   });
 
@@ -176,14 +174,14 @@ describe("Record Hashes", () => {
     const recId = ethers.utils.sha256(did);
 
     await expect(
-      ts.insertDidDocument(did, 0, hashValue, didVersionInfo, [], [])
+      ts.insertDidDocument(did, 0, hashValue, didVersionInfo, [], []),
     )
       .to.emit(ts, "DidDocumentInserted")
       .withArgs(
         recId,
         tsId,
         ethers.utils.sha256(didVersionInfo),
-        ethers.utils.sha256([])
+        ethers.utils.sha256([]),
       );
   });
 
@@ -200,7 +198,7 @@ describe("Record Hashes", () => {
       hashValue,
       didVersionInfo,
       timestampData,
-      didVersionMetadata
+      didVersionMetadata,
     );
     await expect(
       ts.updateDidDocument(
@@ -209,8 +207,8 @@ describe("Record Hashes", () => {
         ethers.utils.sha256(ethers.utils.toUtf8Bytes("e406s05ssse6")),
         [],
         ethers.utils.toUtf8Bytes("timestampData"),
-        ethers.utils.toUtf8Bytes("didVersionMetadata")
-      )
+        ethers.utils.toUtf8Bytes("didVersionMetadata"),
+      ),
     ).to.be.revertedWith("didVersionInfo empty");
     await expect(
       ts.updateDidDocument(
@@ -219,8 +217,8 @@ describe("Record Hashes", () => {
         ethers.utils.sha256(ethers.utils.toUtf8Bytes("e4sqqs06s05e6")),
         ethers.utils.toUtf8Bytes("didVersionInfo"),
         ethers.utils.toUtf8Bytes("timestampData"),
-        ethers.utils.toUtf8Bytes("didVersionMetadata")
-      )
+        ethers.utils.toUtf8Bytes("didVersionMetadata"),
+      ),
     ).to.be.revertedWith("identifier empty");
 
     ts.updateDidDocument(
@@ -229,7 +227,7 @@ describe("Record Hashes", () => {
       ethers.utils.sha256(ethers.utils.toUtf8Bytes("aae406s05e6")),
       ethers.utils.toUtf8Bytes("didVersionInfo"),
       ethers.utils.toUtf8Bytes("timestampData"),
-      ethers.utils.toUtf8Bytes("didVersionMetadata")
+      ethers.utils.toUtf8Bytes("didVersionMetadata"),
     );
     await expect(
       ts.insertDidDocument(
@@ -238,8 +236,8 @@ describe("Record Hashes", () => {
         ethers.utils.sha256(ethers.utils.toUtf8Bytes("e406s05e6")),
         ethers.utils.toUtf8Bytes("didVersionInfo"),
         ethers.utils.toUtf8Bytes("timestampData"),
-        ethers.utils.toUtf8Bytes("didVersionMetadata")
-      )
+        ethers.utils.toUtf8Bytes("didVersionMetadata"),
+      ),
     ).to.be.revertedWith("record exists");
   });
 
@@ -256,7 +254,7 @@ describe("Record Hashes", () => {
       hashValue,
       didVersionInfo,
       timestampData,
-      didVersionMetadata
+      didVersionMetadata,
     );
     await expect(
       ts.updateDidDocument(
@@ -265,8 +263,8 @@ describe("Record Hashes", () => {
         hashValue,
         ethers.utils.toUtf8Bytes("didVersionInfo"),
         ethers.utils.toUtf8Bytes("timestampData"),
-        ethers.utils.toUtf8Bytes("didVersionMetadata")
-      )
+        ethers.utils.toUtf8Bytes("didVersionMetadata"),
+      ),
     ).to.be.revertedWith("hashAlgo unknown");
   });
 
@@ -285,33 +283,33 @@ describe("Record Hashes", () => {
         hashValue,
         didVersionInfo,
         timestampData,
-        didVersionMetadata
-      )
+        didVersionMetadata,
+      ),
     )
       .to.emit(ts, "DidDocumentInserted")
       .withArgs(
         recId,
         tsId,
         ethers.utils.sha256(didVersionInfo),
-        ethers.utils.sha256(didVersionMetadata)
+        ethers.utils.sha256(didVersionMetadata),
       );
     const receipt = await ts.getDidTimestamps(1, 10);
     expect(receipt.items).to.deep.equal([tsId]);
     // should work
     const hash1Prime = ethers.utils.sha256(
-      ethers.utils.toUtf8Bytes("othere40605e6")
+      ethers.utils.toUtf8Bytes("othere40605e6"),
     );
     const tsIdPrime = ethers.utils.sha256(hash1Prime);
 
     await expect(
-      ts.updateDidDocument(did, 0, hash1Prime, didVersionInfo, [], [])
+      ts.updateDidDocument(did, 0, hash1Prime, didVersionInfo, [], []),
     )
       .to.emit(ts, "DidDocumentUpdated")
       .withArgs(
         recId,
         tsIdPrime,
         ethers.utils.sha256(didVersionInfo),
-        ethers.utils.sha256([])
+        ethers.utils.sha256([]),
       );
   });
 
@@ -323,29 +321,29 @@ describe("Record Hashes", () => {
     const recId = ethers.utils.sha256(did);
 
     await expect(
-      ts.insertDidDocument(did, 0, hashValue, didVersionInfo, [], [])
+      ts.insertDidDocument(did, 0, hashValue, didVersionInfo, [], []),
     )
       .to.emit(ts, "DidDocumentInserted")
       .withArgs(
         recId,
         tsId,
         ethers.utils.sha256(didVersionInfo),
-        ethers.utils.sha256([])
+        ethers.utils.sha256([]),
       );
 
     const hash1Prime = ethers.utils.sha256(
-      ethers.utils.toUtf8Bytes("othere40605e6")
+      ethers.utils.toUtf8Bytes("othere40605e6"),
     );
     const tsIdPrime = ethers.utils.sha256(hash1Prime);
     await expect(
-      ts.updateDidDocument(did, 0, hash1Prime, didVersionInfo, [], [])
+      ts.updateDidDocument(did, 0, hash1Prime, didVersionInfo, [], []),
     )
       .to.emit(ts, "DidDocumentUpdated")
       .withArgs(
         recId,
         tsIdPrime,
         ethers.utils.sha256(didVersionInfo),
-        ethers.utils.sha256([])
+        ethers.utils.sha256([]),
       );
   });
 
@@ -363,14 +361,14 @@ describe("Record Hashes", () => {
         hashValue,
         didVersionInfo,
         timestampData,
-        didVersionMetadata
-      )
+        didVersionMetadata,
+      ),
     );
 
     const newControllerId = user.address;
 
     await expect(
-      ts.insertDidController([], newControllerId, 1, 2)
+      ts.insertDidController([], newControllerId, 1, 2),
     ).to.be.revertedWith("identifier empty");
 
     await expect(
@@ -378,11 +376,11 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("nodid"),
         newControllerId,
         1,
-        2
-      )
+        2,
+      ),
     ).to.be.revertedWith("record unknown");
     await expect(
-      ts.connect(user2).insertDidController(did, newControllerId, 1, 2)
+      ts.connect(user2).insertDidController(did, newControllerId, 1, 2),
     ).to.be.revertedWith("ctrl unknown");
 
     await ts.insertDidController(did, newControllerId, 1, 2);
@@ -390,7 +388,7 @@ describe("Record Hashes", () => {
     await ts.connect(user).revokeDidController(did, admin.address);
 
     await expect(
-      ts.insertDidController(did, newControllerId, 1, 2)
+      ts.insertDidController(did, newControllerId, 1, 2),
     ).to.be.revertedWith("ctrl unknown");
   });
 
@@ -409,15 +407,15 @@ describe("Record Hashes", () => {
         hashValue,
         didVersionInfo,
         timestampData,
-        didVersionMetadata
-      )
+        didVersionMetadata,
+      ),
     )
       .to.emit(ts, "DidDocumentInserted")
       .withArgs(
         recId,
         tsId,
         ethers.utils.sha256(didVersionInfo),
-        ethers.utils.sha256(didVersionMetadata)
+        ethers.utils.sha256(didVersionMetadata),
       );
 
     const newControllerId = user.address;
@@ -441,14 +439,14 @@ describe("Record Hashes", () => {
         hashValue,
         didVersionInfo,
         timestampData,
-        didVersionMetadata
-      )
+        didVersionMetadata,
+      ),
     );
 
     const newControllerId = user.address;
 
     await expect(
-      ts.updateDidController([], newControllerId, 1, 2)
+      ts.updateDidController([], newControllerId, 1, 2),
     ).to.be.revertedWith("identifier empty");
 
     await expect(
@@ -456,11 +454,11 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("nodid"),
         newControllerId,
         1,
-        2
-      )
+        2,
+      ),
     ).to.be.revertedWith("record unknown");
     await expect(
-      ts.connect(user2).updateDidController(did, newControllerId, 1, 2)
+      ts.connect(user2).updateDidController(did, newControllerId, 1, 2),
     ).to.be.revertedWith("ctrl unknown");
   });
 
@@ -479,15 +477,15 @@ describe("Record Hashes", () => {
         hashValue,
         didVersionInfo,
         timestampData,
-        didVersionMetadata
-      )
+        didVersionMetadata,
+      ),
     )
       .to.emit(ts, "DidDocumentInserted")
       .withArgs(
         recId,
         tsId,
         ethers.utils.sha256(didVersionInfo),
-        ethers.utils.sha256(didVersionMetadata)
+        ethers.utils.sha256(didVersionMetadata),
       );
 
     const newControllerId = user.address;
@@ -511,25 +509,28 @@ describe("Record Hashes", () => {
         hashValue,
         didVersionInfo,
         timestampData,
-        didVersionMetadata
-      )
+        didVersionMetadata,
+      ),
     );
 
     const newControllerId = user.address;
 
     await expect(
-      ts.revokeDidController(did, newControllerId)
+      ts.revokeDidController(did, newControllerId),
     ).to.be.revertedWith("msg.sender is last ctrl");
 
     await expect(
-      ts.revokeDidController([], newControllerId)
+      ts.revokeDidController([], newControllerId),
     ).to.be.revertedWith("identifier empty");
 
     await expect(
-      ts.revokeDidController(ethers.utils.toUtf8Bytes("nodid"), newControllerId)
+      ts.revokeDidController(
+        ethers.utils.toUtf8Bytes("nodid"),
+        newControllerId,
+      ),
     ).to.be.revertedWith("record unknown");
     await expect(
-      ts.connect(user2).revokeDidController(did, newControllerId)
+      ts.connect(user2).revokeDidController(did, newControllerId),
     ).to.be.revertedWith("ctrl unknown");
   });
 
@@ -548,15 +549,15 @@ describe("Record Hashes", () => {
         hashValue,
         didVersionInfo,
         timestampData,
-        didVersionMetadata
-      )
+        didVersionMetadata,
+      ),
     )
       .to.emit(ts, "DidDocumentInserted")
       .withArgs(
         recId,
         tsId,
         ethers.utils.sha256(didVersionInfo),
-        ethers.utils.sha256(didVersionMetadata)
+        ethers.utils.sha256(didVersionMetadata),
       );
     const newControllerId = user.address;
     await ts.insertDidController(did, newControllerId, 1, 2);
@@ -581,21 +582,21 @@ describe("Record Hashes", () => {
         hashValue,
         didVersionInfo,
         timestampData,
-        didVersionMetadata
-      )
+        didVersionMetadata,
+      ),
     )
       .to.emit(ts, "DidDocumentInserted")
       .withArgs(
         recId,
         tsId,
         ethers.utils.sha256(didVersionInfo),
-        ethers.utils.sha256(didVersionMetadata)
+        ethers.utils.sha256(didVersionMetadata),
       );
     const newControllerId = user.address;
     await ts.insertDidController(did, newControllerId, 1, 2);
     // update to the same should work
     await expect(
-      ts.connect(user).updateDidController(did, newControllerId, 1, 2)
+      ts.connect(user).updateDidController(did, newControllerId, 1, 2),
     )
       .to.emit(ts, "DidControllerUpdated")
       .withArgs(recId, newControllerId, user.address, 1, 2);
@@ -620,21 +621,21 @@ describe("Record Hashes", () => {
         hashValue,
         didVersionInfo,
         timestampData,
-        didVersionMetadata
-      )
+        didVersionMetadata,
+      ),
     )
       .to.emit(ts, "DidDocumentInserted")
       .withArgs(
         recId,
         tsId,
         ethers.utils.sha256(didVersionInfo),
-        ethers.utils.sha256(didVersionMetadata)
+        ethers.utils.sha256(didVersionMetadata),
       );
     const receipt = await ts.getDidTimestamps(1, 10);
     expect(receipt.items).to.deep.equal([tsId]);
     // should work with empty  versionInfo
     const hash1Prime = ethers.utils.sha256(
-      ethers.utils.toUtf8Bytes("othere40605e6")
+      ethers.utils.toUtf8Bytes("othere40605e6"),
     );
 
     const didVersionInfoPrime = ethers.utils.toUtf8Bytes("didVersionInfoPrime");
@@ -645,15 +646,15 @@ describe("Record Hashes", () => {
         0,
         hash1Prime,
         [],
-        didVersionInfoPrime
-      )
+        didVersionInfoPrime,
+      ),
     ).to.be.revertedWith("versionInfo unknown");
 
     await expect(
-      ts.appendDidDocumentVersionHash([], 0, hash1Prime, [], didVersionInfo)
+      ts.appendDidDocumentVersionHash([], 0, hash1Prime, [], didVersionInfo),
     ).to.be.revertedWith("identifier empty");
     await expect(
-      ts.appendDidDocumentVersionHash(did, 0, hash1Prime, [], [])
+      ts.appendDidDocumentVersionHash(did, 0, hash1Prime, [], []),
     ).to.be.revertedWith("versionInfo empty");
     await expect(
       ts.appendDidDocumentVersionHash(
@@ -661,14 +662,14 @@ describe("Record Hashes", () => {
         0,
         hash1Prime,
         [],
-        didVersionInfo
-      )
+        didVersionInfo,
+      ),
     ).to.be.revertedWith("record unknown");
 
     await expect(
       ts
         .connect(user2)
-        .appendDidDocumentVersionHash(did, 0, hash1Prime, [], didVersionInfo)
+        .appendDidDocumentVersionHash(did, 0, hash1Prime, [], didVersionInfo),
     ).to.be.revertedWith("ctrl unknown");
   });
 
@@ -687,25 +688,25 @@ describe("Record Hashes", () => {
         hashValue,
         didVersionInfo,
         timestampData,
-        didVersionMetadata
-      )
+        didVersionMetadata,
+      ),
     )
       .to.emit(ts, "DidDocumentInserted")
       .withArgs(
         recId,
         tsId,
         ethers.utils.sha256(didVersionInfo),
-        ethers.utils.sha256(didVersionMetadata)
+        ethers.utils.sha256(didVersionMetadata),
       );
     const receipt = await ts.getDidTimestamps(1, 10);
     expect(receipt.items).to.deep.equal([tsId]);
     // should work with empty  versionInfo
     const hash1Prime = ethers.utils.sha256(
-      ethers.utils.toUtf8Bytes("othere40605e6")
+      ethers.utils.toUtf8Bytes("othere40605e6"),
     );
     const tsIdPrime = ethers.utils.sha256(hash1Prime);
     await expect(
-      ts.appendDidDocumentVersionHash(did, 0, hash1Prime, [], didVersionInfo)
+      ts.appendDidDocumentVersionHash(did, 0, hash1Prime, [], didVersionInfo),
     )
       .to.emit(ts, "DidDocumentVersionHashAppended")
       .withArgs(recId, tsIdPrime, ethers.utils.hexlify(didVersionInfo));
@@ -726,36 +727,36 @@ describe("Record Hashes", () => {
         hashValue,
         didVersionInfo,
         timestampData,
-        didVersionMetadata
-      )
+        didVersionMetadata,
+      ),
     )
       .to.emit(ts, "DidDocumentInserted")
       .withArgs(
         recId,
         tsId,
         ethers.utils.sha256(didVersionInfo),
-        ethers.utils.sha256(didVersionMetadata)
+        ethers.utils.sha256(didVersionMetadata),
       );
     const receipt = await ts.getDidTimestamps(1, 10);
     expect(receipt.items).to.deep.equal([tsId]);
     // should work with empty  versionInfo
     const hash1Prime = ethers.utils.sha256(
-      ethers.utils.toUtf8Bytes("othere40605e6")
+      ethers.utils.toUtf8Bytes("othere40605e6"),
     );
 
     await expect(
-      ts.detachDidDocumentVersionHash([], 0, hash1Prime, didVersionInfo)
+      ts.detachDidDocumentVersionHash([], 0, hash1Prime, didVersionInfo),
     ).to.be.revertedWith("identifier empty");
     await expect(
-      ts.detachDidDocumentVersionHash(did, 0, hash1Prime, [])
+      ts.detachDidDocumentVersionHash(did, 0, hash1Prime, []),
     ).to.be.revertedWith("versionInfo empty");
     await expect(
       ts.detachDidDocumentVersionHash(
         ethers.utils.toUtf8Bytes("unknown"),
         0,
         ethers.utils.toUtf8Bytes("othere40605e6"),
-        didVersionInfo
-      )
+        didVersionInfo,
+      ),
     ).to.be.revertedWith("invalid hash length");
 
     await expect(
@@ -763,8 +764,8 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("unknown"),
         0,
         hash1Prime,
-        didVersionInfo
-      )
+        didVersionInfo,
+      ),
     ).to.be.revertedWith("record unknown");
     await expect(
       ts.detachDidDocumentVersionHash(
@@ -772,17 +773,17 @@ describe("Record Hashes", () => {
         0,
         ethers.utils.sha256(ethers.utils.toUtf8Bytes("unknown")),
 
-        didVersionInfo
-      )
+        didVersionInfo,
+      ),
     ).to.be.revertedWith("hash unknown");
     await expect(
       ts
         .connect(user2)
-        .detachDidDocumentVersionHash(did, 0, hash1Prime, didVersionInfo)
+        .detachDidDocumentVersionHash(did, 0, hash1Prime, didVersionInfo),
     ).to.be.revertedWith("ctrl unknown");
 
     await expect(
-      ts.detachDidDocumentVersionHash(did, 0, hashValue, didVersionInfo)
+      ts.detachDidDocumentVersionHash(did, 0, hashValue, didVersionInfo),
     ).to.be.revertedWith("last tsId");
   });
 
@@ -801,37 +802,37 @@ describe("Record Hashes", () => {
         hashValue,
         didVersionInfo,
         timestampData,
-        didVersionMetadata
-      )
+        didVersionMetadata,
+      ),
     )
       .to.emit(ts, "DidDocumentInserted")
       .withArgs(
         recId,
         tsId,
         ethers.utils.sha256(didVersionInfo),
-        ethers.utils.sha256(didVersionMetadata)
+        ethers.utils.sha256(didVersionMetadata),
       );
     const receipt = await ts.getDidTimestamps(1, 10);
     expect(receipt.items).to.deep.equal([tsId]);
     // should work with empty  versionInfo
     const hash1Prime = ethers.utils.sha256(
-      ethers.utils.toUtf8Bytes("othere40605e6")
+      ethers.utils.toUtf8Bytes("othere40605e6"),
     );
     const tsIdPrime = ethers.utils.sha256(hash1Prime);
     await expect(
-      ts.appendDidDocumentVersionHash(did, 0, hash1Prime, [], didVersionInfo)
+      ts.appendDidDocumentVersionHash(did, 0, hash1Prime, [], didVersionInfo),
     )
       .to.emit(ts, "DidDocumentVersionHashAppended")
       .withArgs(recId, tsIdPrime, ethers.utils.hexlify(didVersionInfo));
 
     await expect(
-      ts.detachDidDocumentVersionHash(did, 0, hashValue, didVersionInfo)
+      ts.detachDidDocumentVersionHash(did, 0, hashValue, didVersionInfo),
     )
       .to.emit(ts, "DidDocumentVersionHashDetached")
       .withArgs(
         recId,
         ethers.utils.hexlify(hashValue),
-        ethers.utils.hexlify(didVersionInfo)
+        ethers.utils.hexlify(didVersionInfo),
       );
   });
 
@@ -850,15 +851,15 @@ describe("Record Hashes", () => {
         hashValue,
         didVersionInfo,
         timestampData,
-        didVersionMetadata
-      )
+        didVersionMetadata,
+      ),
     )
       .to.emit(ts, "DidDocumentInserted")
       .withArgs(
         recId,
         tsId,
         ethers.utils.sha256(didVersionInfo),
-        ethers.utils.sha256(didVersionMetadata)
+        ethers.utils.sha256(didVersionMetadata),
       );
     const receipt = await ts.getDidTimestamps(1, 10);
     expect(receipt.items).to.deep.equal([tsId]);
@@ -871,26 +872,26 @@ describe("Record Hashes", () => {
       ts.appendDidDocumentVersionMetadata(
         did,
         didVersionInfoPrime,
-        didVersionMetadataPrime
-      )
+        didVersionMetadataPrime,
+      ),
     ).to.be.revertedWith("versionInfo unknown");
 
     await expect(
       ts.appendDidDocumentVersionMetadata(
         [],
         didVersionInfo,
-        didVersionMetadata
-      )
+        didVersionMetadata,
+      ),
     ).to.be.revertedWith("identifier empty");
     await expect(
-      ts.appendDidDocumentVersionMetadata(did, [], didVersionMetadata)
+      ts.appendDidDocumentVersionMetadata(did, [], didVersionMetadata),
     ).to.be.revertedWith("versionInfo empty");
     await expect(
       ts.appendDidDocumentVersionMetadata(
         ethers.utils.toUtf8Bytes("unknown"),
         didVersionInfo,
-        didVersionMetadata
-      )
+        didVersionMetadata,
+      ),
     ).to.be.revertedWith("record unknown");
 
     await expect(
@@ -899,8 +900,8 @@ describe("Record Hashes", () => {
         .appendDidDocumentVersionMetadata(
           did,
           didVersionInfo,
-          didVersionMetadataPrime
-        )
+          didVersionMetadataPrime,
+        ),
     ).to.be.revertedWith("ctrl unknown");
   });
 
@@ -919,15 +920,15 @@ describe("Record Hashes", () => {
         hashValue,
         didVersionInfo,
         timestampData,
-        didVersionMetadata
-      )
+        didVersionMetadata,
+      ),
     )
       .to.emit(ts, "DidDocumentInserted")
       .withArgs(
         recId,
         tsId,
         ethers.utils.sha256(didVersionInfo),
-        ethers.utils.sha256(didVersionMetadata)
+        ethers.utils.sha256(didVersionMetadata),
       );
     const receipt = await ts.getDidTimestamps(1, 10);
     expect(receipt.items).to.deep.equal([tsId]);
@@ -939,14 +940,14 @@ describe("Record Hashes", () => {
       ts.appendDidDocumentVersionMetadata(
         did,
         didVersionInfo,
-        didVersionMetadataPrime
-      )
+        didVersionMetadataPrime,
+      ),
     )
       .to.emit(ts, "DidDocumentVersionMetadataAppended")
       .withArgs(
         recId,
         ethers.utils.hexlify(didVersionMetadataPrime),
-        ethers.utils.hexlify(didVersionInfo)
+        ethers.utils.hexlify(didVersionInfo),
       );
   });
 
@@ -965,15 +966,15 @@ describe("Record Hashes", () => {
         hashValue,
         didVersionInfo,
         timestampData,
-        didVersionMetadata
-      )
+        didVersionMetadata,
+      ),
     )
       .to.emit(ts, "DidDocumentInserted")
       .withArgs(
         recId,
         tsId,
         ethers.utils.sha256(didVersionInfo),
-        ethers.utils.sha256(didVersionMetadata)
+        ethers.utils.sha256(didVersionMetadata),
       );
     const receipt = await ts.getDidTimestamps(1, 10);
     expect(receipt.items).to.deep.equal([tsId]);
@@ -982,26 +983,26 @@ describe("Record Hashes", () => {
       ts.detachDidDocumentVersionMetadata(
         [],
         didVersionInfo,
-        didVersionMetadata
-      )
+        didVersionMetadata,
+      ),
     ).to.be.revertedWith("identifier empty");
     await expect(
-      ts.detachDidDocumentVersionMetadata(did, [], didVersionMetadata)
+      ts.detachDidDocumentVersionMetadata(did, [], didVersionMetadata),
     ).to.be.revertedWith("versionInfo empty");
     await expect(
       ts.detachDidDocumentVersionMetadata(
         ethers.utils.toUtf8Bytes("unknown"),
         didVersionInfo,
-        didVersionMetadata
-      )
+        didVersionMetadata,
+      ),
     ).to.be.revertedWith("record unknown");
     await expect(
       ts.detachDidDocumentVersionMetadata(
         did,
         ethers.utils.toUtf8Bytes("unknown"),
 
-        didVersionInfo
-      )
+        didVersionInfo,
+      ),
     ).to.be.revertedWith("versionInfo unknown");
     await expect(
       ts
@@ -1009,8 +1010,8 @@ describe("Record Hashes", () => {
         .detachDidDocumentVersionMetadata(
           did,
           didVersionInfo,
-          didVersionMetadata
-        )
+          didVersionMetadata,
+        ),
     ).to.be.revertedWith("ctrl unknown");
   });
 
@@ -1029,15 +1030,15 @@ describe("Record Hashes", () => {
         hashValue,
         didVersionInfo,
         timestampData,
-        didVersionMetadata
-      )
+        didVersionMetadata,
+      ),
     )
       .to.emit(ts, "DidDocumentInserted")
       .withArgs(
         recId,
         tsId,
         ethers.utils.sha256(didVersionInfo),
-        ethers.utils.sha256(didVersionMetadata)
+        ethers.utils.sha256(didVersionMetadata),
       );
     const receipt = await ts.getDidTimestamps(1, 10);
     expect(receipt.items).to.deep.equal([tsId]);
@@ -1046,14 +1047,14 @@ describe("Record Hashes", () => {
       ts.detachDidDocumentVersionMetadata(
         did,
         didVersionInfo,
-        didVersionMetadata
-      )
+        didVersionMetadata,
+      ),
     )
       .to.emit(ts, "DidDocumentVersionMetadataDetached")
       .withArgs(
         recId,
         ethers.utils.hexlify(didVersionMetadata),
-        ethers.utils.hexlify(didVersionInfo)
+        ethers.utils.hexlify(didVersionInfo),
       );
   });
 
@@ -1069,21 +1070,21 @@ describe("Record Hashes", () => {
       hashValue,
       didVersionInfo,
       timestampData,
-      didVersionMetadata
+      didVersionMetadata,
     );
 
     // pagesize = 0 should revert
     await expect(ts.getDidRecordIdentifiers(1, 0)).to.be.revertedWith(
-      "PSize not >0"
+      "PSize not >0",
     );
     // page  = 0 should revert
     await expect(ts.getDidRecordIdentifiers(0, 10)).to.be.revertedWith(
-      "Page not >0"
+      "Page not >0",
     );
 
     // pagesize > 50 should revert
     await expect(ts.getDidRecordIdentifiers(1, 51)).to.be.revertedWith(
-      "PSize not <= 50"
+      "PSize not <= 50",
     );
   });
 
@@ -1092,12 +1093,12 @@ describe("Record Hashes", () => {
     const tsIds: string[] = [];
     for (let i = 1; i < 12; i += 1) {
       const hashValue = ethers.utils.sha256(
-        ethers.utils.toUtf8Bytes(`hash-${i}`)
+        ethers.utils.toUtf8Bytes(`hash-${i}`),
       );
       const didVersionInfo = ethers.utils.toUtf8Bytes(`didVersionInfo-${i}`);
       const timestampData = ethers.utils.toUtf8Bytes(`timestampData-${i}`);
       const didVersionMetadata = ethers.utils.toUtf8Bytes(
-        `didVersionMetadata-${i}`
+        `didVersionMetadata-${i}`,
       );
       const did = ethers.utils.toUtf8Bytes(`did-${i}`);
       const tsId = ethers.utils.sha256(hashValue);
@@ -1110,7 +1111,7 @@ describe("Record Hashes", () => {
         hashValue,
         didVersionInfo,
         timestampData,
-        didVersionMetadata
+        didVersionMetadata,
       );
       dids.push(ethers.utils.hexlify(did));
       tsIds.push(tsId);
@@ -1153,23 +1154,23 @@ describe("Record Hashes", () => {
       hashValue,
       didVersionInfo,
       timestampData,
-      didVersionMetadata
+      didVersionMetadata,
     );
 
     ts.insertDidController(did, ctrlId, 1, 2);
 
     // pagesize = 0 should revert
     await expect(
-      ts.getDidRecordIdentifiersByControllerId(ctrlId, 1, 0)
+      ts.getDidRecordIdentifiersByControllerId(ctrlId, 1, 0),
     ).to.be.revertedWith("PSize not >0");
     // page  = 0 should revert
     await expect(
-      ts.getDidRecordIdentifiersByControllerId(ctrlId, 0, 10)
+      ts.getDidRecordIdentifiersByControllerId(ctrlId, 0, 10),
     ).to.be.revertedWith("Page not >0");
 
     // pagesize > 50 should revert
     await expect(
-      ts.getDidRecordIdentifiersByControllerId(ctrlId, 1, 51)
+      ts.getDidRecordIdentifiersByControllerId(ctrlId, 1, 51),
     ).to.be.revertedWith("PSize not <= 50");
   });
 
@@ -1178,7 +1179,7 @@ describe("Record Hashes", () => {
     const ctrlId = admin.address;
     for (let i = 1; i < 12; i += 1) {
       const hashValue = ethers.utils.sha256(
-        ethers.utils.toUtf8Bytes(`hash-${i}`)
+        ethers.utils.toUtf8Bytes(`hash-${i}`),
       );
       const didVersionInfo = ethers.utils.toUtf8Bytes(`didVersionInfo-${i}`);
       const timestampData = ethers.utils.toUtf8Bytes(`timestampData-${i}`);
@@ -1191,7 +1192,7 @@ describe("Record Hashes", () => {
         hashValue,
         didVersionInfo,
         timestampData,
-        []
+        [],
       );
 
       dids.push(ethers.utils.hexlify(did));
@@ -1234,23 +1235,23 @@ describe("Record Hashes", () => {
       hashValue,
       didVersionInfo,
       timestampData,
-      didVersionMetadata
+      didVersionMetadata,
     );
 
     ts.insertDidController(did, ctrlId, 1, 2);
 
     // pagesize = 0 should revert
     await expect(
-      ts.getDidRecordIdsByControllerId(ctrlId, 1, 0)
+      ts.getDidRecordIdsByControllerId(ctrlId, 1, 0),
     ).to.be.revertedWith("PSize not >0");
     // page  = 0 should revert
     await expect(
-      ts.getDidRecordIdsByControllerId(ctrlId, 0, 10)
+      ts.getDidRecordIdsByControllerId(ctrlId, 0, 10),
     ).to.be.revertedWith("Page not >0");
 
     // pagesize > 50 should revert
     await expect(
-      ts.getDidRecordIdsByControllerId(ctrlId, 1, 51)
+      ts.getDidRecordIdsByControllerId(ctrlId, 1, 51),
     ).to.be.revertedWith("PSize not <= 50");
   });
 
@@ -1259,7 +1260,7 @@ describe("Record Hashes", () => {
     const ctrlId = admin.address;
     for (let i = 1; i < 12; i += 1) {
       const hashValue = ethers.utils.sha256(
-        ethers.utils.toUtf8Bytes(`hash-${i}`)
+        ethers.utils.toUtf8Bytes(`hash-${i}`),
       );
       const didVersionInfo = ethers.utils.toUtf8Bytes(`didVersionInfo-${i}`);
       const timestampData = ethers.utils.toUtf8Bytes(`timestampData-${i}`);
@@ -1272,7 +1273,7 @@ describe("Record Hashes", () => {
         hashValue,
         didVersionInfo,
         timestampData,
-        []
+        [],
       );
 
       dids.push(ethers.utils.sha256(did));
@@ -1314,13 +1315,13 @@ describe("Record Hashes", () => {
       hashValue,
       didVersionInfo,
       timestampData,
-      didVersionMetadata
+      didVersionMetadata,
     );
     await expect(ts.getLatestDidDocumentVersion([])).to.be.revertedWith(
-      "identifier empty"
+      "identifier empty",
     );
     await expect(
-      ts.getLatestDidDocumentVersion(ethers.utils.toUtf8Bytes("unknown"))
+      ts.getLatestDidDocumentVersion(ethers.utils.toUtf8Bytes("unknown")),
     ).to.be.revertedWith("record unknown");
   });
 
@@ -1336,7 +1337,7 @@ describe("Record Hashes", () => {
       hashValue,
       didVersionInfo1,
       timestampData,
-      didVersionMetadata
+      didVersionMetadata,
     );
     const r0 = await ts.getLatestDidDocumentVersion(did);
     expect(r0).to.equal(ethers.utils.hexlify(didVersionInfo1));
@@ -1346,7 +1347,7 @@ describe("Record Hashes", () => {
     for (let i = 1; i < 11; i += 1) {
       const didVersionInfo = ethers.utils.toUtf8Bytes(`didVersionInfo-${i}`);
       const hash1Prime = ethers.utils.sha256(
-        ethers.utils.toUtf8Bytes(`hashPrime-${i}`)
+        ethers.utils.toUtf8Bytes(`hashPrime-${i}`),
       );
       // INSERT SHOULD BE DONE IN ORDER !!!
       // eslint-disable-next-line no-await-in-loop
@@ -1363,7 +1364,7 @@ describe("Record Hashes", () => {
   it("getDidRecord should fail with wrong input parameters", async () => {
     await expect(ts.getDidRecord([])).to.be.revertedWith("identifier empty");
     await expect(ts.getDidRecord(ethers.constants.HashZero)).to.be.revertedWith(
-      "record unknown"
+      "record unknown",
     );
   });
 
@@ -1380,7 +1381,7 @@ describe("Record Hashes", () => {
       hashValue,
       didVersionInfo,
       timestampData,
-      didVersionMetadata
+      didVersionMetadata,
     );
 
     const r0 = await ts.getDidRecord(did);
@@ -1389,7 +1390,7 @@ describe("Record Hashes", () => {
 
     // add version
     const hash1Prime = ethers.utils.sha256(
-      ethers.utils.toUtf8Bytes(`hash1Prime `)
+      ethers.utils.toUtf8Bytes(`hash1Prime `),
     );
     await ts.updateDidDocument(did, 0, hash1Prime, didVersionInfo, [], []);
     // add controller
@@ -1406,11 +1407,11 @@ describe("Record Hashes", () => {
 
   it("getDidRecordById should fail with wrong input parameters", async () => {
     await expect(
-      ts.getDidRecordById(ethers.constants.HashZero)
+      ts.getDidRecordById(ethers.constants.HashZero),
     ).to.be.revertedWith("recordId empty");
     const hashValue = ethers.utils.sha256(ethers.utils.toUtf8Bytes(`hash `));
     await expect(ts.getDidRecordById(hashValue)).to.be.revertedWith(
-      "record unknown"
+      "record unknown",
     );
   });
 
@@ -1427,7 +1428,7 @@ describe("Record Hashes", () => {
       hashValue,
       didVersionInfo,
       timestampData,
-      didVersionMetadata
+      didVersionMetadata,
     );
 
     const r0 = await ts.getDidRecordById(recordId);
@@ -1436,7 +1437,7 @@ describe("Record Hashes", () => {
 
     // add version
     const hash1Prime = ethers.utils.sha256(
-      ethers.utils.toUtf8Bytes(`hash1Prime `)
+      ethers.utils.toUtf8Bytes(`hash1Prime `),
     );
     await ts.updateDidDocument(did, 0, hash1Prime, didVersionInfo, [], []);
     // add controller
@@ -1463,26 +1464,26 @@ describe("Record Hashes", () => {
       hashValue,
       didVersionInfo,
       timestampData,
-      didVersionMetadata
+      didVersionMetadata,
     );
     await expect(ts.getDidDocumentVersionIds([], 1, 10)).to.be.revertedWith(
-      "identifier empty"
+      "identifier empty",
     );
     await expect(
-      ts.getDidDocumentVersionIds(ethers.utils.toUtf8Bytes("unknown"), 1, 10)
+      ts.getDidDocumentVersionIds(ethers.utils.toUtf8Bytes("unknown"), 1, 10),
     ).to.be.revertedWith("record unknown");
     // pagesize = 0 should revert
     await expect(ts.getDidDocumentVersionIds(did, 1, 0)).to.be.revertedWith(
-      "PSize not >0"
+      "PSize not >0",
     );
     // page  = 0 should revert
     await expect(ts.getDidDocumentVersionIds(did, 0, 10)).to.be.revertedWith(
-      "Page not >0"
+      "Page not >0",
     );
 
     // pagesize > 50 should revert
     await expect(ts.getDidDocumentVersionIds(did, 1, 51)).to.be.revertedWith(
-      "PSize not <= 50"
+      "PSize not <= 50",
     );
   });
 
@@ -1498,7 +1499,7 @@ describe("Record Hashes", () => {
       hashValue,
       didVersionInfo1,
       timestampData,
-      didVersionMetadata
+      didVersionMetadata,
     );
 
     const didVersionInfoIds: string[] = [];
@@ -1506,7 +1507,7 @@ describe("Record Hashes", () => {
     for (let i = 1; i < 11; i += 1) {
       const didVersionInfo = ethers.utils.toUtf8Bytes(`didVersionInfo-${i}`);
       const hash1Prime = ethers.utils.sha256(
-        ethers.utils.toUtf8Bytes(`hashPrime-${i}`)
+        ethers.utils.toUtf8Bytes(`hashPrime-${i}`),
       );
       const didVersionInfoId = ethers.utils.sha256(didVersionInfo);
       // INSERT SHOULD BE DONE IN ORDER !!!
@@ -1552,7 +1553,7 @@ describe("Record Hashes", () => {
       hashValue,
       didVersionInfo1,
       timestampData,
-      didVersionMetadata
+      didVersionMetadata,
     );
     const didVersionInfoIds: string[] = [];
     const didVersionInfos: string[] = [];
@@ -1562,7 +1563,7 @@ describe("Record Hashes", () => {
     for (let i = 1; i < 11; i += 1) {
       const didVersionInfo = ethers.utils.toUtf8Bytes(`didVersionInfo-${i}`);
       const hash1Prime = ethers.utils.sha256(
-        ethers.utils.toUtf8Bytes(`hashPrime-${i}`)
+        ethers.utils.toUtf8Bytes(`hashPrime-${i}`),
       );
       const didVersionInfoId = ethers.utils.sha256(didVersionInfo);
       // INSERT SHOULD BE DONE IN ORDER !!!
@@ -1591,7 +1592,7 @@ describe("Record Hashes", () => {
       hashValue,
       didVersionInfo1,
       timestampData,
-      didVersionMetadata
+      didVersionMetadata,
     );
     const didVersionMetadataIds: string[] = [];
     const didVersionMetadatas: string[] = [];
@@ -1600,7 +1601,7 @@ describe("Record Hashes", () => {
 
     for (let i = 1; i < 11; i += 1) {
       const didVersionMdata = ethers.utils.toUtf8Bytes(
-        `didVersionMetadata-${i}`
+        `didVersionMetadata-${i}`,
       );
 
       const didVersionMetadataId = ethers.utils.sha256(didVersionMdata);
@@ -1609,7 +1610,7 @@ describe("Record Hashes", () => {
       await ts.appendDidDocumentVersionMetadata(
         did,
         didVersionInfo1,
-        didVersionMdata
+        didVersionMdata,
       );
       didVersionMetadatas.push(ethers.utils.hexlify(didVersionMdata));
       didVersionMetadataIds.push(didVersionMetadataId);
@@ -1634,35 +1635,40 @@ describe("Record Hashes", () => {
       hashValue,
       didVersionInfo,
       timestampData,
-      didVersionMetadata
+      didVersionMetadata,
     );
     const didVersionInfoId = ethers.utils.sha256(didVersionInfo);
     await expect(
-      ts.getDidDocumentVersionMetadataIds([], didVersionInfoId, 1, 10)
+      ts.getDidDocumentVersionMetadataIds([], didVersionInfoId, 1, 10),
     ).to.be.revertedWith("identifier empty");
     await expect(
-      ts.getDidDocumentVersionMetadataIds(did, ethers.constants.HashZero, 1, 10)
+      ts.getDidDocumentVersionMetadataIds(
+        did,
+        ethers.constants.HashZero,
+        1,
+        10,
+      ),
     ).to.be.revertedWith("versionInfoId empty");
     await expect(
       ts.getDidDocumentVersionMetadataIds(
         ethers.utils.toUtf8Bytes("unknown"),
         didVersionInfoId,
         1,
-        10
-      )
+        10,
+      ),
     ).to.be.revertedWith("record unknown");
     // pagesize = 0 should revert
     await expect(
-      ts.getDidDocumentVersionMetadataIds(did, didVersionInfoId, 1, 0)
+      ts.getDidDocumentVersionMetadataIds(did, didVersionInfoId, 1, 0),
     ).to.be.revertedWith("PSize not >0");
     // page  = 0 should revert
     await expect(
-      ts.getDidDocumentVersionMetadataIds(did, didVersionInfoId, 0, 10)
+      ts.getDidDocumentVersionMetadataIds(did, didVersionInfoId, 0, 10),
     ).to.be.revertedWith("Page not >0");
 
     // pagesize > 50 should revert
     await expect(
-      ts.getDidDocumentVersionMetadataIds(did, didVersionInfoId, 1, 51)
+      ts.getDidDocumentVersionMetadataIds(did, didVersionInfoId, 1, 51),
     ).to.be.revertedWith("PSize not <= 50");
   });
 
@@ -1672,7 +1678,7 @@ describe("Record Hashes", () => {
     const didVersionInfoId = ethers.utils.sha256(didVersionInfo1);
     const timestampData = ethers.utils.toUtf8Bytes(`timestampData `);
     const didVersionMetadata1 = ethers.utils.toUtf8Bytes(
-      `didVersionMetadatainit `
+      `didVersionMetadatainit `,
     );
     const did = ethers.utils.toUtf8Bytes(`did `);
     await ts.insertDidDocument(
@@ -1681,14 +1687,14 @@ describe("Record Hashes", () => {
       hashValue,
       didVersionInfo1,
       timestampData,
-      didVersionMetadata1
+      didVersionMetadata1,
     );
 
     const didVersionMetadataIds: string[] = [];
     didVersionMetadataIds.push(ethers.utils.sha256(didVersionMetadata1));
     for (let i = 1; i < 11; i += 1) {
       const didVersionMetadata = ethers.utils.toUtf8Bytes(
-        `didVersionMetadata-${i}`
+        `didVersionMetadata-${i}`,
       );
 
       const didVersionMetadataId = ethers.utils.sha256(didVersionMetadata);
@@ -1697,7 +1703,7 @@ describe("Record Hashes", () => {
       await ts.appendDidDocumentVersionMetadata(
         did,
         didVersionInfo1,
-        didVersionMetadata
+        didVersionMetadata,
       );
 
       didVersionMetadataIds.push(didVersionMetadataId);
@@ -1707,7 +1713,7 @@ describe("Record Hashes", () => {
       did,
       didVersionInfoId,
       1,
-      1
+      1,
     );
     expect(r0.items).to.deep.equal(didVersionMetadataIds.slice(0, 1));
 
@@ -1720,7 +1726,7 @@ describe("Record Hashes", () => {
       did,
       didVersionInfoId,
       1,
-      11
+      11,
     );
     expect(r.items).to.deep.equal(didVersionMetadataIds);
 
@@ -1733,7 +1739,7 @@ describe("Record Hashes", () => {
       did,
       didVersionInfoId,
       5,
-      11
+      11,
     );
     expect(r1.items).to.deep.equal([]);
     expect(r1.total).to.equal(11);
@@ -1755,7 +1761,7 @@ describe("Record Hashes", () => {
       hashValue,
       didVersionInfo1,
       timestampData,
-      new Uint8Array() // empty metadata
+      new Uint8Array(), // empty metadata
     );
 
     // It should return an empty list
@@ -1763,7 +1769,7 @@ describe("Record Hashes", () => {
       did,
       didVersionInfoId,
       1,
-      1
+      1,
     );
 
     expect(r0.items).to.deep.equal([]);
@@ -1786,7 +1792,7 @@ describe("Record Hashes", () => {
       hashValue,
       didVersionInfo1,
       timestampData,
-      "0x" // empty metadata
+      "0x", // empty metadata
     );
 
     // It should return an empty list
@@ -1794,7 +1800,7 @@ describe("Record Hashes", () => {
       did,
       didVersionInfoId,
       1,
-      1
+      1,
     );
 
     expect(r0.items).to.deep.equal([]);
@@ -1817,7 +1823,7 @@ describe("Record Hashes", () => {
       hashValue,
       didVersionInfo1,
       timestampData,
-      []
+      [],
     );
 
     // It should return an empty list
@@ -1825,7 +1831,7 @@ describe("Record Hashes", () => {
       did,
       didVersionInfoId,
       1,
-      1
+      1,
     );
 
     expect(r0.items).to.deep.equal([]);
@@ -1841,7 +1847,7 @@ describe("Record Hashes", () => {
     const timestampId = ethers.utils.sha256(hashValue);
     const timestampData = ethers.utils.toUtf8Bytes(`timestampData `);
     const didVersionMetadata1 = ethers.utils.toUtf8Bytes(
-      `didVersionMetadatainit `
+      `didVersionMetadatainit `,
     );
     const did = ethers.utils.toUtf8Bytes(`did `);
     const did1 = ethers.utils.toUtf8Bytes(`did1 `);
@@ -1851,14 +1857,14 @@ describe("Record Hashes", () => {
       hashValue,
       didVersionInfo1,
       timestampData,
-      didVersionMetadata1
+      didVersionMetadata1,
     );
 
     const didVersionMetadataIds: string[] = [];
     didVersionMetadataIds.push(ethers.utils.sha256(didVersionMetadata1));
     for (let i = 1; i < 11; i += 1) {
       const didVersionMetadata = ethers.utils.toUtf8Bytes(
-        `didVersionMetadata-${i}`
+        `didVersionMetadata-${i}`,
       );
 
       const didVersionMetadataId = ethers.utils.sha256(didVersionMetadata);
@@ -1867,7 +1873,7 @@ describe("Record Hashes", () => {
       await ts.appendDidDocumentVersionMetadata(
         did,
         didVersionInfo1,
-        didVersionMetadata
+        didVersionMetadata,
       );
 
       didVersionMetadataIds.push(didVersionMetadataId);
@@ -1875,13 +1881,13 @@ describe("Record Hashes", () => {
     const didVersionIds = await ts.getDidDocumentVersionDidTimestampIds(did, 1);
     expect(didVersionIds).to.deep.equal([timestampId]);
     await expect(
-      ts.getDidDocumentVersionDidTimestampIds([], 1)
+      ts.getDidDocumentVersionDidTimestampIds([], 1),
     ).to.be.revertedWith("identifier empty");
     await expect(
-      ts.getDidDocumentVersionDidTimestampIds(did1, 2)
+      ts.getDidDocumentVersionDidTimestampIds(did1, 2),
     ).to.be.revertedWith("record unknown");
     await expect(
-      ts.getDidDocumentVersionDidTimestampIds(did, 2)
+      ts.getDidDocumentVersionDidTimestampIds(did, 2),
     ).to.be.revertedWith("unknown version");
   });
 
@@ -1897,7 +1903,7 @@ describe("Record Hashes", () => {
       hashValue,
       didVersionInfo,
       timestampData,
-      didVersionMetadata
+      didVersionMetadata,
     );
     expect(await ts.checkController(did, admin.address)).to.equal(true);
     expect(await ts.checkController(did, user.address)).to.equal(false);

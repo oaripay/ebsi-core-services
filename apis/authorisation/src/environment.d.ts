@@ -23,6 +23,7 @@ declare global {
       TEST_CLIENT_KID_ES256?: string;
       TEST_CLIENT_KID_RS256?: string;
       TEST_CLIENT_KID_EDDSA?: string;
+      TEST_CLIENT_PRIVATE_KEYS_BASE64?: string;
       TEST_CLIENT_PRIVATE_KEY?: string;
       TEST_ISSUER_DID?: string;
       TEST_ISSUER_PRIVATE_KEY?: string;

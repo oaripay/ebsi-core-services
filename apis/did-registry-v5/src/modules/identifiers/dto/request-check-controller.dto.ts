@@ -5,17 +5,17 @@ import {
   Equals,
   IsEthereumAddress,
 } from "class-validator";
-import { JsonRpcDto } from "../../jsonrpc/dto";
+import { JsonRpcDto } from "../../jsonrpc/dto/index.js";
 
 export class RequestCheckControllerDto extends JsonRpcDto {
   @Equals("checkController")
-  method!: "checkController";
+  declare method: "checkController";
 
   @IsArray()
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @IsEthereumAddress({ each: true })
-  params!: string[];
+  declare params: string[];
 }
 
 export default RequestCheckControllerDto;

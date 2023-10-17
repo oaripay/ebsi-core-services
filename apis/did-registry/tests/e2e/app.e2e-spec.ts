@@ -1,23 +1,21 @@
-import { jest, describe, beforeAll, it, expect } from "@jest/globals";
+import { describe, beforeAll, it, expect } from "vitest";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import { HttpServer, ValidationPipe, Logger } from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { FastifyInstance } from "fastify";
-import { AppModule } from "../../src/app.module";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
-import { ApiConfig } from "../../src/config/configuration";
-import { getServer } from "../utils/getServer";
-
-jest.setTimeout(60000);
+import type { RawServerDefault } from "fastify";
+import { AppModule } from "../../src/app.module.js";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
+import type { ApiConfig } from "../../src/config/configuration.js";
+import { getServer } from "../utils/getServer.js";
 
 describe("/did-registry/v3 (generic tests)", () => {
   let app: NestFastifyApplication;
-  let server: HttpServer | string;
+  let server: RawServerDefault | string;
   let apiUrlPrefix = "";
   let trustedAppsRegistryApiUrl: string;
 
@@ -27,7 +25,7 @@ describe("/did-registry/v3 (generic tests)", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
     const configService =
       moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
@@ -37,7 +35,7 @@ describe("/did-registry/v3 (generic tests)", () => {
     Logger.overrideLogger(false);
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
     server = getServer(app, configService);
 
@@ -46,14 +44,14 @@ describe("/did-registry/v3 (generic tests)", () => {
     }
 
     trustedAppsRegistryApiUrl = configService.get<string>(
-      "trustedAppsRegistryApiUrl"
+      "trustedAppsRegistryApiUrl",
     );
 
     // Use TEST_LB_DOMAIN if defined
     if (configService.get<string>("testLoadBalancerDomain")) {
       trustedAppsRegistryApiUrl = trustedAppsRegistryApiUrl.replace(
         configService.get<string>("domain"),
-        configService.get<string>("testLoadBalancerDomain")
+        configService.get<string>("testLoadBalancerDomain"),
       );
     }
   });
@@ -102,7 +100,7 @@ describe("/did-registry/v3 (generic tests)", () => {
       });
       expect(response.status).toBe(401);
       expect(
-        (response.headers as { "content-type": string })["content-type"]
+        (response.headers as { "content-type": string })["content-type"],
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
 
@@ -113,7 +111,7 @@ describe("/did-registry/v3 (generic tests)", () => {
         .post("/jsonrpc")
         .auth(
           "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
-          { type: "bearer" }
+          { type: "bearer" },
         )
         .send();
 
@@ -125,7 +123,7 @@ describe("/did-registry/v3 (generic tests)", () => {
       });
       expect(response.status).toBe(401);
       expect(
-        (response.headers as { "content-type": string })["content-type"]
+        (response.headers as { "content-type": string })["content-type"],
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
   });

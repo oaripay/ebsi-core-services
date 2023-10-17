@@ -1,5 +1,5 @@
 import { buildMessage, ValidateBy, ValidationOptions } from "class-validator";
-import { ATTRIBUTE_TYPES } from "../../policies/policies.interface";
+import { ATTRIBUTE_TYPES } from "../../policies/policies.interface.js";
 
 export const IS_POLICY_CONDITIONS = "isPolicyConditions";
 
@@ -21,7 +21,7 @@ export function validatePolicyCondition(val: unknown): void {
     throw new Error("attributeName must be a string");
   if (typeof typeOfValue !== "number" || typeOfValue < 0 || typeOfValue > 5)
     throw new Error(
-      "typeOfValue must be 0 (UINT256), 1 (BYTES), 2 (ADDRESS), 3 (BYTES32), 4 (STRING), or 5 (BOOLEAN)"
+      "typeOfValue must be 0 (UINT256), 1 (BYTES), 2 (ADDRESS), 3 (BYTES32), 4 (STRING), or 5 (BOOLEAN)",
     );
   if (attributeOperation !== 0)
     throw new Error("attributeOperation must be 0 (AND)");
@@ -75,7 +75,7 @@ export function isPolicyConditions(val: unknown): boolean {
 }
 
 export function IsPolicyConditions(
-  validationOptions?: ValidationOptions
+  validationOptions?: ValidationOptions,
 ): PropertyDecorator {
   return ValidateBy(
     {
@@ -83,6 +83,10 @@ export function IsPolicyConditions(
       validator: {
         validate: (value) => isPolicyConditions(value),
         defaultMessage: buildMessage((eachPrefix, args) => {
+          if (!args) {
+            return "Undefined args";
+          }
+
           const errorMessages: string[] = [];
           if (!Array.isArray(args.value))
             return `${eachPrefix}$property must be an array`;
@@ -97,6 +101,6 @@ export function IsPolicyConditions(
         }, validationOptions),
       },
     },
-    validationOptions
+    validationOptions,
   );
 }

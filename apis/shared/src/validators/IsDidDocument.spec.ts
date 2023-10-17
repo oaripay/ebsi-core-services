@@ -1,5 +1,5 @@
-import { describe, it, expect } from "@jest/globals";
-import { contextSchema } from "./IsDidDocument";
+import { describe, it, expect } from "vitest";
+import { contextSchema } from "./IsDidDocument.js";
 
 describe("contextSchema", () => {
   it('should validate "https://www.w3.org/ns/did/v1"', () => {

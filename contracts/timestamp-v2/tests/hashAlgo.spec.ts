@@ -14,9 +14,8 @@ describe("Hash Algorithm", () => {
   let policyContractMock: Contract;
 
   before(async () => {
-    const policyRegistryFactory = await ethers.getContractFactory(
-      "PolicyRegistryMock"
-    );
+    const policyRegistryFactory =
+      await ethers.getContractFactory("PolicyRegistryMock");
     const tempPolicyContract = await policyRegistryFactory.deploy();
     const bytecode = await ethers.provider.getCode(tempPolicyContract.address);
     await network.provider.send("hardhat_setCode", [testTprAddress, bytecode]);
@@ -56,22 +55,22 @@ describe("Hash Algorithm", () => {
   it("should fail when user does not have attribute insertHashAlgorithm", async () => {
     await policyContractMock.setPolicyResult(false);
     await expect(
-      ts.insertHashAlgorithm(256, "SHA2-256", "oid2256", 1, "multi256")
+      ts.insertHashAlgorithm(256, "SHA2-256", "oid2256", 1, "multi256"),
     ).to.be.revertedWith(
-      "Policy error: sender doesn't have the attribute TS:insertHashAlgorithm"
+      "Policy error: sender doesn't have the attribute TS:insertHashAlgorithm",
     );
   });
   it("should fail when user does not have attribute updateHashAlgorithm", async () => {
     await policyContractMock.setPolicyResult(false);
     await expect(
-      ts.updateHashAlgorithm(0, 1, "sha-256", "oid", 1, "sha2-256")
+      ts.updateHashAlgorithm(0, 1, "sha-256", "oid", 1, "sha2-256"),
     ).to.be.revertedWith(
-      "Policy error: sender doesn't have the attribute TS:updateHashAlgorithm"
+      "Policy error: sender doesn't have the attribute TS:updateHashAlgorithm",
     );
   });
   it("getHashAlgorithmById should succeed", async () => {
     await expect(
-      ts.insertHashAlgorithm(256, "SHA256", "oid256", 1, "multi")
+      ts.insertHashAlgorithm(256, "SHA256", "oid256", 1, "multi"),
     ).to.emit(ts, "AddNewHashAlgo");
     const receipt = await ts.getHashAlgorithmById(0);
     expect(receipt.outputLength).to.equal(256);
@@ -98,35 +97,35 @@ describe("Hash Algorithm", () => {
   });
   it("getHashAlgorithmById should revert if hash is unknown", async () => {
     await expect(ts.getHashAlgorithmById(0)).to.be.revertedWith(
-      "hashAlgo unknown"
+      "hashAlgo unknown",
     );
   });
   it("insertHashAlgorithm should revert for incorrect parameters", async () => {
     await expect(
-      ts.connect(admin).insertHashAlgorithm(0, "SHA256", "oid", 1, "")
+      ts.connect(admin).insertHashAlgorithm(0, "SHA256", "oid", 1, ""),
     ).to.be.revertedWith("outputLength==0");
 
     await ts.connect(admin).insertHashAlgorithm(256, "SHA256", "oid", 1, "");
     await expect(
-      ts.connect(admin).insertHashAlgorithm(256, "SHA256", "oid", 1, "")
+      ts.connect(admin).insertHashAlgorithm(256, "SHA256", "oid", 1, ""),
     ).to.be.revertedWith("ianaName defined");
 
     await expect(
-      ts.insertHashAlgorithm(1, "SHA256", "oid", 0, "")
+      ts.insertHashAlgorithm(1, "SHA256", "oid", 0, ""),
     ).to.be.revertedWith("status==0");
 
     await expect(
-      ts.insertHashAlgorithm(256, "", "oid", 1, "")
+      ts.insertHashAlgorithm(256, "", "oid", 1, ""),
     ).to.be.revertedWith("ianaName unknown");
   });
   it("insertHashAlgorithm should work", async () => {
     await expect(
-      ts.connect(admin).insertHashAlgorithm(256, "SHA256", "oid", 1, "")
+      ts.connect(admin).insertHashAlgorithm(256, "SHA256", "oid", 1, ""),
     )
       .to.emit(ts, "AddNewHashAlgo")
       .withArgs(0, "SHA256", 256, "oid", 1, "");
     await expect(
-      ts.connect(admin).insertHashAlgorithm(512, "SHA3-512", "oid2", 1, "tt")
+      ts.connect(admin).insertHashAlgorithm(512, "SHA3-512", "oid2", 1, "tt"),
     )
       .to.emit(ts, "AddNewHashAlgo")
       .withArgs(1, "SHA3-512", 512, "oid2", 1, "tt");
@@ -139,22 +138,22 @@ describe("Hash Algorithm", () => {
   });
   it("updateHashAlgorithm should revert for incorrect parameters", async () => {
     await expect(
-      ts.updateHashAlgorithm(0, 0, "SHA256", "oid", 1, "")
+      ts.updateHashAlgorithm(0, 0, "SHA256", "oid", 1, ""),
     ).to.be.revertedWith("outputLength==0");
     await expect(
-      ts.updateHashAlgorithm(0, 1, "SHA256", "oid", 0, "")
+      ts.updateHashAlgorithm(0, 1, "SHA256", "oid", 0, ""),
     ).to.be.revertedWith("status==0");
     await expect(
-      ts.updateHashAlgorithm(0, 1, "SHA256", "oid", 1, "")
+      ts.updateHashAlgorithm(0, 1, "SHA256", "oid", 1, ""),
     ).to.be.revertedWith("hashAlgorithmId unknown");
   });
   it("updateHashAlgorithm should revert for empty ianaName", async () => {
     await expect(ts.insertHashAlgorithm(256, "SHA256", "oid", 1, "")).to.emit(
       ts,
-      "AddNewHashAlgo"
+      "AddNewHashAlgo",
     );
     await expect(
-      ts.insertHashAlgorithm(512, "SHA3-512", "oid2", 1, "")
+      ts.insertHashAlgorithm(512, "SHA3-512", "oid2", 1, ""),
     ).to.emit(ts, "AddNewHashAlgo");
     const receipt = await ts.getHashAlgorithmById(1);
     expect(receipt.outputLength).to.equal(512);
@@ -164,16 +163,16 @@ describe("Hash Algorithm", () => {
     expect(receipt.multiHash).to.equal("");
 
     await expect(
-      ts.updateHashAlgorithm(1, 1024, "", "oid3", 2, "")
+      ts.updateHashAlgorithm(1, 1024, "", "oid3", 2, ""),
     ).to.be.revertedWith("ianaName unknown");
   });
   it("updateHashAlgorithm should update also ianaName", async () => {
     await expect(ts.insertHashAlgorithm(256, "SHA256", "oid", 1, "")).to.emit(
       ts,
-      "AddNewHashAlgo"
+      "AddNewHashAlgo",
     );
     await expect(
-      ts.insertHashAlgorithm(512, "SHA3-512", "oid2", 1, "")
+      ts.insertHashAlgorithm(512, "SHA3-512", "oid2", 1, ""),
     ).to.emit(ts, "AddNewHashAlgo");
     let receipt = await ts.getHashAlgorithmById(1);
     expect(receipt.outputLength).to.equal(512);
@@ -190,22 +189,22 @@ describe("Hash Algorithm", () => {
     expect(receipt.multiHash).to.equal("");
     await ts.updateHashAlgorithm(1, 1024, "SHA4-512", "oid3", 2, "");
     await expect(
-      ts.insertHashAlgorithm(512, "SHA3-512", "oid2", 1, "")
+      ts.insertHashAlgorithm(512, "SHA3-512", "oid2", 1, ""),
     ).to.emit(ts, "AddNewHashAlgo");
     await expect(
-      ts.insertHashAlgorithm(512, "SHA3-512", "oid2", 1, "")
+      ts.insertHashAlgorithm(512, "SHA3-512", "oid2", 1, ""),
     ).to.be.revertedWith("ianaName defined");
     await expect(
-      ts.insertHashAlgorithm(512, "SHA4-512", "oid2", 1, "")
+      ts.insertHashAlgorithm(512, "SHA4-512", "oid2", 1, ""),
     ).to.be.revertedWith("ianaName defined");
   });
   it("updateHashAlgorithm should work", async () => {
     await expect(ts.insertHashAlgorithm(256, "SHA256", "oid", 1, "")).to.emit(
       ts,
-      "AddNewHashAlgo"
+      "AddNewHashAlgo",
     );
     await expect(
-      ts.insertHashAlgorithm(512, "SHA3-512", "oid2", 1, "")
+      ts.insertHashAlgorithm(512, "SHA3-512", "oid2", 1, ""),
     ).to.emit(ts, "AddNewHashAlgo");
     const receipt = await ts.getHashAlgorithmById(1);
     expect(receipt.outputLength).to.equal(512);
@@ -234,7 +233,7 @@ describe("Hash Algorithm", () => {
       // INSERT SHOULD BE DONE IN ORDER !!!
       // eslint-disable-next-line no-await-in-loop
       await expect(
-        ts.connect(admin).insertHashAlgorithm(i, name, oid, 1, "")
+        ts.connect(admin).insertHashAlgorithm(i, name, oid, 1, ""),
       ).to.emit(ts, "AddNewHashAlgo");
     }
     // pagesize = 0 should revert
@@ -244,7 +243,7 @@ describe("Hash Algorithm", () => {
 
     // pagesize > 50 should revert
     await expect(ts.getHashAlgorithms(1, 51)).to.be.revertedWith(
-      "PSize not <= 50"
+      "PSize not <= 50",
     );
   });
   it("getHashAlgorithms should work with correct page and pageSize", async () => {
@@ -259,7 +258,7 @@ describe("Hash Algorithm", () => {
       // eslint-disable-next-line no-await-in-loop
       await expect(ts.insertHashAlgorithm(i, name, oid, 1, multiHash)).to.emit(
         ts,
-        "AddNewHashAlgo"
+        "AddNewHashAlgo",
       );
     }
 

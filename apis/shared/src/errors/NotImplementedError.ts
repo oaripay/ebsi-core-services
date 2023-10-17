@@ -1,4 +1,4 @@
-import { ProblemDetailsError } from "./ProblemDetailsError";
+import { ProblemDetailsError } from "./ProblemDetailsError.js";
 
 /**
  * NotImplementedError defines the Not Implemented (501) error type.
@@ -24,7 +24,7 @@ export class NotImplementedError extends ProblemDetailsError {
       detail?: string;
       instance?: string;
       extensions?: { [x: string]: unknown };
-    }
+    },
   ) {
     super(NotImplementedError.statusCode, title, options);
     this.name = "NotImplementedError";

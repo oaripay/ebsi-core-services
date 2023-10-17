@@ -12,7 +12,7 @@ import {
   RequestUpdateIssuerProxyDto,
   ArgsAddIssuerProxy,
   ArgsUpdateIssuerProxy,
-} from "./dto";
+} from "./dto/index.js";
 
 type JsonRpcDtos =
   | RequestAddIssuerProxyDto
@@ -26,7 +26,7 @@ type JsonRpcDtos =
   | ArgsUpdateIssuerProxy;
 
 export function formatEthersUnsignedTransaction(
-  unsignedTransaction: UnsignedTransaction
+  unsignedTransaction: UnsignedTransaction,
 ): ethers.UnsignedTransaction & ethers.providers.TransactionRequest {
   return {
     to: unsignedTransaction.to,
@@ -39,23 +39,17 @@ export function formatEthersUnsignedTransaction(
   };
 }
 
-export function formatEthersSignature(
-  r: string,
-  s: string,
-  v: string
-): ethers.Signature {
+export function formatEthersSignature(r: string, s: string, v: string) {
   return {
     r,
     s,
     v: Number(v),
-    recoveryParam: null,
-    _vs: null,
-  } as ethers.Signature;
+  } satisfies Partial<ethers.Signature>;
 }
 
 export const validateClass = async (
   classType: ClassConstructor<JsonRpcDtos>,
-  data: JsonRpcDtos
+  data: JsonRpcDtos,
 ): Promise<void> => {
   const dataClass = new ClassTransformer().plainToInstance<
     JsonRpcDtos,

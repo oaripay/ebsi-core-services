@@ -30,7 +30,7 @@ async function main() {
   console.log(
     `deployer:${deployer.address}
      admin:${admin.address}
-     version:${ts.version()}`
+     version:${ts.version()}`,
   );
   const initialVersion = await ts.version();
   console.log(initialVersion);
@@ -42,7 +42,7 @@ async function main() {
   await ts.insertHashAlgorithm(256, "SHA3-256", "oid3", 1);
   const halgo = await ts.getHashAlgorithmById(1);
   console.log(
-    `halgorithm ${halgo.ianaName} oid:${halgo.oid} length:${halgo.outputLength} status:${halgo.status}`
+    `halgorithm ${halgo.ianaName} oid:${halgo.oid} length:${halgo.outputLength} status:${halgo.status}`,
   );
 }
 

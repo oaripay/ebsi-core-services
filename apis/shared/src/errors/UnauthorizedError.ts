@@ -1,4 +1,4 @@
-import { ProblemDetailsError } from "./ProblemDetailsError";
+import { ProblemDetailsError } from "./ProblemDetailsError.js";
 
 /**
  * UnauthorizedError defines the Unauthorized (401) error type.
@@ -24,7 +24,7 @@ export class UnauthorizedError extends ProblemDetailsError {
       detail?: string;
       instance?: string;
       extensions?: { [x: string]: unknown };
-    }
+    },
   ) {
     super(UnauthorizedError.statusCode, title, options);
     this.name = "UnauthorizedError";

@@ -1,4 +1,4 @@
-import { ProblemDetailsError } from "./ProblemDetailsError";
+import { ProblemDetailsError } from "./ProblemDetailsError.js";
 
 /**
  * UnsupportedMediaTypeError defines the Unsupported Media Type (415) error type.
@@ -24,7 +24,7 @@ export class UnsupportedMediaTypeError extends ProblemDetailsError {
       detail?: string;
       instance?: string;
       extensions?: { [x: string]: unknown };
-    }
+    },
   ) {
     super(UnsupportedMediaTypeError.statusCode, title, options);
     this.name = "UnsupportedMediaTypeError";

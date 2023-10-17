@@ -35,10 +35,10 @@ describe("SchemaPolicies", () => {
   const policyData1 = randomPolicyData();
   const policyData2 = randomPolicyData();
   const policyHash1 = ethers.utils.sha256(
-    Buffer.from(policyData1.slice(2), "hex")
+    Buffer.from(policyData1.slice(2), "hex"),
   );
   const policyHash2 = ethers.utils.sha256(
-    Buffer.from(policyData2.slice(2), "hex")
+    Buffer.from(policyData2.slice(2), "hex"),
   );
 
   beforeEach(async () => {
@@ -60,7 +60,7 @@ describe("SchemaPolicies", () => {
           SchemaLib: schemaLib.address,
           Pagination: pagination.address,
         },
-      }
+      },
     );
     ts = await contractFactory.deploy(testTprAddress);
     await ts.initialize(42);
@@ -77,12 +77,12 @@ describe("SchemaPolicies", () => {
         const tsUser = ts.connect(user);
         await expect(tsUser.insertPolicy(policyName1, policyData1)).to.emit(
           ts,
-          "AddNewPolicy"
+          "AddNewPolicy",
         );
         // add policy 2
         await expect(tsUser.insertPolicy(policyName2, policyData2)).to.emit(
           ts,
-          "AddNewPolicy"
+          "AddNewPolicy",
         );
 
         // the latest Attribute hash should be attr1v1Hash and attr2Hash
@@ -104,12 +104,12 @@ describe("SchemaPolicies", () => {
         });
         const updatedPolicyData1 = randomPolicyData();
         const updatedPolicyHash1 = ethers.utils.sha256(
-          Buffer.from(updatedPolicyData1.slice(2), "hex")
+          Buffer.from(updatedPolicyData1.slice(2), "hex"),
         );
         // update policyId  1
         await expect(ts.updatePolicy(policyName1, updatedPolicyData1)).to.emit(
           ts,
-          "UpdateExistingPolicy"
+          "UpdateExistingPolicy",
         );
         // number of policies shoulg remain the same
         // get all policies
@@ -130,7 +130,7 @@ describe("SchemaPolicies", () => {
     });
     describe("get attributebyHash (getPolicyRevisions)", () => {
       const resAttributeHash = [...Array(11).keys()].map((i) =>
-        ethers.utils.sha256(ethers.utils.toUtf8Bytes(`data-update-${i}`))
+        ethers.utils.sha256(ethers.utils.toUtf8Bytes(`data-update-${i}`)),
       );
       it("should fail with wrong page size", async () => {
         const did = `didi`;
@@ -139,7 +139,7 @@ describe("SchemaPolicies", () => {
         const tsUser = ts.connect(user);
         await expect(tsUser.insertPolicy(did, firstinputdata)).to.emit(
           ts,
-          "AddNewPolicy"
+          "AddNewPolicy",
         );
 
         for (let i = 1; i < 11; i += 1) {
@@ -152,16 +152,16 @@ describe("SchemaPolicies", () => {
 
         // pagesize = 0 should revert
         await expect(
-          tsUser.getPolicyRevisions(didFirstInputHash, 1, 0)
+          tsUser.getPolicyRevisions(didFirstInputHash, 1, 0),
         ).to.be.revertedWith("PageSize must be > 0");
 
         // pagesize = 0 should revert
         await expect(
-          tsUser.getPolicyRevisions(didFirstInputHash, 0, 10)
+          tsUser.getPolicyRevisions(didFirstInputHash, 0, 10),
         ).to.be.revertedWith("Page must be > 0");
         // pagesize > 50 should revert
         await expect(
-          tsUser.getPolicyRevisions(didFirstInputHash, 1, 52)
+          tsUser.getPolicyRevisions(didFirstInputHash, 1, 52),
         ).to.be.revertedWith("PageSize must be <= 50");
       });
       it("should work", async () => {
@@ -170,7 +170,7 @@ describe("SchemaPolicies", () => {
         const tsUser = ts.connect(user);
         await expect(tsUser.insertPolicy(did, firstinputdata)).to.emit(
           ts,
-          "AddNewPolicy"
+          "AddNewPolicy",
         );
 
         for (let i = 1; i < 11; i += 1) {
@@ -218,13 +218,13 @@ describe("SchemaPolicies", () => {
         const policyId = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
 
         const data = ethers.utils.toUtf8Bytes(
-          ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798"
+          ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798",
         );
         const dataHash = ethers.utils.sha256(data);
         const tsUser = ts.connect(user);
         await expect(tsUser.insertPolicy(policyId, data)).to.emit(
           ts,
-          "AddNewPolicy"
+          "AddNewPolicy",
         );
 
         const res = await tsUser.getPolicy(policyId);
@@ -236,7 +236,7 @@ describe("SchemaPolicies", () => {
         const policyId = "did:ebsi:0x1a80116F4C145c47C47022565D79E4df50bE90cb";
 
         const data = ethers.utils.toUtf8Bytes(
-          ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798"
+          ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798",
         );
 
         const dataHash = ethers.utils.sha256(data);
@@ -244,7 +244,7 @@ describe("SchemaPolicies", () => {
         const tsUser = ts.connect(user);
         await expect(tsUser.insertPolicy(policyId, data)).to.emit(
           ts,
-          "AddNewPolicy"
+          "AddNewPolicy",
         );
 
         const res = await tsUser.getPolicy(policyId);
@@ -254,14 +254,14 @@ describe("SchemaPolicies", () => {
         const data2 = ethers.utils.toUtf8Bytes(",NewData798");
 
         await expect(tsUser.insertPolicy(policyId, data2)).to.be.revertedWith(
-          "policy already exist"
+          "policy already exist",
         );
       });
       it("for two policyId", async () => {
         const policyId = "policyId:ebsi:1";
         // insert did and attribute1v0
         const attribute1v0 = ethers.utils.toUtf8Bytes(
-          ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798"
+          ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798",
         );
         const attribute1v0Hash = ethers.utils.sha256(attribute1v0);
 
@@ -271,13 +271,13 @@ describe("SchemaPolicies", () => {
           .withArgs(
             policyId,
             attribute1v0Hash,
-            ethers.utils.hexlify(attribute1v0)
+            ethers.utils.hexlify(attribute1v0),
           );
 
         const policyId2 = "policyId:ebsi:2";
         // add new attribute2
         const attr2Data = ethers.utils.toUtf8Bytes(
-          "attr2:dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798"
+          "attr2:dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798",
         );
         const attr2DataHash = ethers.utils.sha256(attr2Data);
         await expect(tsUser.insertPolicy(policyId2, attr2Data))
@@ -332,21 +332,21 @@ describe("SchemaPolicies", () => {
           // eslint-disable-next-line no-await-in-loop
           await expect(tsUser.insertPolicy(did, inputdata)).to.emit(
             ts,
-            "AddNewPolicy"
+            "AddNewPolicy",
           );
         }
 
         // pagesize = 0 should revert
         await expect(ts.getPolicies(1, 0)).to.be.revertedWith(
-          "PageSize must be > 0"
+          "PageSize must be > 0",
         );
         // page  = 0 should revert
         await expect(ts.getPolicies(0, 2)).to.be.revertedWith(
-          "Page must be > 0"
+          "Page must be > 0",
         );
         // pagesize > 50 should revert
         await expect(ts.getPolicies(1, 52)).to.be.revertedWith(
-          "PageSize must be <= 50"
+          "PageSize must be <= 50",
         );
       });
       it("should work with page==X and pagesize less than total", async () => {
@@ -435,7 +435,7 @@ describe("SchemaPolicies", () => {
           // INSERT SHOULD BE DONE IN ORDER !!!
           // eslint-disable-next-line no-await-in-loop
           const policyData = await tsUser.getPolicyByHash(
-            ethers.utils.sha256(inputdata)
+            ethers.utils.sha256(inputdata),
           );
           expect(policyData).to.equal(ethers.utils.hexlify(inputdata));
         }
@@ -446,7 +446,7 @@ describe("SchemaPolicies", () => {
           // INSERT SHOULD BE DONE IN ORDER !!!
           // eslint-disable-next-line no-await-in-loop
           const policyData = await tsUser.getPolicyByHash(
-            ethers.utils.sha256(inputdata)
+            ethers.utils.sha256(inputdata),
           );
           expect(policyData).to.equal(ethers.utils.hexlify(inputdata));
           const dataV2 = `modifieddata${i}V2`;
@@ -454,7 +454,7 @@ describe("SchemaPolicies", () => {
           // INSERT SHOULD BE DONE IN ORDER !!!
           // eslint-disable-next-line no-await-in-loop
           const policyDataV2 = await tsUser.getPolicyByHash(
-            ethers.utils.sha256(inputdataV2)
+            ethers.utils.sha256(inputdataV2),
           );
           expect(policyDataV2).to.equal(ethers.utils.hexlify(inputdataV2));
         }
@@ -462,8 +462,8 @@ describe("SchemaPolicies", () => {
         // eslint-disable-next-line no-await-in-loop
         await expect(
           tsUser.getPolicyByHash(
-            ethers.utils.sha256(ethers.utils.toUtf8Bytes("modifieddata4"))
-          )
+            ethers.utils.sha256(ethers.utils.toUtf8Bytes("modifieddata4")),
+          ),
         ).to.be.revertedWith("policy data does not exist");
       });
       it("Revisions should work or revert if not found", async () => {
@@ -512,7 +512,7 @@ describe("SchemaPolicies", () => {
           ]);
         }
         await expect(tsUser.getPolicyRevisions(`12`, 1, 10)).to.be.revertedWith(
-          "policyId does not exist"
+          "policyId does not exist",
         );
         for (let i = 4; i < 11; i += 1) {
           const did = `${i}`;
@@ -532,7 +532,7 @@ describe("SchemaPolicies", () => {
         const policyId = "policyId:ebsi:1";
         // insert did and attribute1v0
         const attribute1v0 = ethers.utils.toUtf8Bytes(
-          ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798"
+          ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798",
         );
         const firstHash = ethers.utils.sha256(attribute1v0);
 
@@ -554,7 +554,7 @@ describe("SchemaPolicies", () => {
           .withArgs(
             policyId,
             ethers.utils.sha256(attribute1v1),
-            ethers.utils.hexlify(attribute1v1)
+            ethers.utils.hexlify(attribute1v1),
           );
 
         // get all policies
@@ -579,13 +579,13 @@ describe("SchemaPolicies", () => {
         const policyId = "policyId:ebsi:1";
         const tsUser = ts.connect(user);
         const attribute1v0 = ethers.utils.toUtf8Bytes(
-          ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798"
+          ",dlkjdskljdlshdjkshjkfdshkjfhsdjkfhsdjkhfkjsh89798",
         );
         await expect(
-          tsUser.updatePolicy(policyId, attribute1v0)
+          tsUser.updatePolicy(policyId, attribute1v0),
         ).to.be.revertedWith("policy does not exist");
         await expect(tsUser.getPolicy(policyId)).to.be.revertedWith(
-          "policy does not exist"
+          "policy does not exist",
         );
       });
     });

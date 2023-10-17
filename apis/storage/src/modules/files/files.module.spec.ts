@@ -1,76 +1,72 @@
 import {
-  jest,
+  vi,
   describe,
   beforeAll,
   afterEach,
   afterAll,
   it,
   expect,
-} from "@jest/globals";
+} from "vitest";
 import crypto from "node:crypto";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import { ValidationPipe, Logger, HttpServer } from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import axios from "axios";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import fastifyMultipart from "@fastify/multipart";
 import * as SiopLib from "@cef-ebsi/siop-auth";
 import type { JWTVerifyResult } from "jose";
 import { byteLength } from "@ebsiint-api/shared";
 import { mapping, Client } from "cassandra-driver";
-import { FilesModule } from "./files.module";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { AppUsageModel, FileModel } from "../cassandra/models";
-import { FilesRepository } from "../cassandra/repositories";
-import { CassandraService } from "../cassandra/cassandra.service";
-import { fastifyMultipartConfig } from "../../config/server.config";
-import { ApiConfig } from "../../config/configuration";
+import { FilesModule } from "./files.module.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import { AppUsageModel, FileModel } from "../cassandra/models/index.js";
+import { FilesRepository } from "../cassandra/repositories/index.js";
+import { CassandraService } from "../cassandra/cassandra.service.js";
+import { fastifyMultipartConfig } from "../../config/server.config.js";
+import type { ApiConfig } from "../../config/configuration.js";
 
 const BASE_URL = "/stores/distributed/files";
 
-jest.mock("cassandra-driver");
+vi.mock("cassandra-driver");
 
-jest.mock("@cef-ebsi/siop-auth", () => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const originalModule = jest.requireActual("@cef-ebsi/siop-auth");
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+vi.mock("@cef-ebsi/siop-auth", async () => {
+  const mod = await vi.importActual<typeof import("@cef-ebsi/siop-auth")>(
+    "@cef-ebsi/siop-auth",
+  );
+  // Return a mocked version so we can redefine property `verifyJwtTar` later
   return {
-    __esModule: true,
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    ...originalModule,
-    verifyJwtTar: jest.fn(),
+    ...mod,
+    verifyJwtTar: vi.fn(),
   };
 });
 
 describe("Files Module", () => {
   let app: NestFastifyApplication;
-  let server: HttpServer;
+  let server: RawServerDefault;
   let filesRepository: FilesRepository;
   let cassandraService: CassandraService;
   let configService: ConfigService<ApiConfig, true>;
 
-  const mockedFileFind = jest.fn();
-  const mockedFileInsert = jest.fn();
-  const mockedFileUpdate = jest.fn();
-  const mockedFileRemove = jest.fn();
-  const mockedAppUsageFind = jest.fn();
-  const mockedAppUsageInsert = jest.fn();
-  const mockedAppUsageUpdate = jest.fn();
-  const mockedAppUsageRemove = jest.fn();
-  const mockedCassandraClientExecute = jest.fn();
+  const mockedFileFind = vi.fn();
+  const mockedFileInsert = vi.fn();
+  const mockedFileUpdate = vi.fn();
+  const mockedFileRemove = vi.fn();
+  const mockedAppUsageFind = vi.fn();
+  const mockedAppUsageInsert = vi.fn();
+  const mockedAppUsageUpdate = vi.fn();
+  const mockedAppUsageRemove = vi.fn();
+  const mockedCassandraClientExecute = vi.fn();
 
   const did = `0x${crypto.randomBytes(16).toString("hex")}`;
 
   beforeAll(async () => {
-    jest
-      .spyOn(mapping.Mapper.prototype, "forModel")
+    vi.spyOn(mapping.Mapper.prototype, "forModel")
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore: it's not perfectly mocked, but it's good enough
       .mockImplementation((modelName: string) => {
@@ -91,12 +87,12 @@ describe("Files Module", () => {
         } as Partial<mapping.ModelMapper<FileModel>>;
       });
 
-    jest
-      .spyOn(Client.prototype, "execute")
-      .mockImplementation(mockedCassandraClientExecute);
+    vi.spyOn(Client.prototype, "execute").mockImplementation(
+      mockedCassandraClientExecute,
+    );
 
     // Prevent leaking tests (they should not be able to call axios.get)
-    jest.spyOn(axios, "get").mockImplementation((url: string) => {
+    vi.spyOn(axios, "get").mockImplementation((url: string) => {
       throw new Error(`Leaking unit test: trying to GET ${url}`);
     });
 
@@ -113,7 +109,7 @@ describe("Files Module", () => {
         // By default, bodyLimit=1048576 (1MB)
         // https://www.fastify.io/docs/latest/Server/#bodylimit
         bodyLimit: 10 * 1024 * 1024,
-      })
+      }),
     );
 
     await app.register(fastifyMultipart, fastifyMultipartConfig);
@@ -127,22 +123,18 @@ describe("Files Module", () => {
     app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    await app.getHttpAdapter().getInstance().ready();
+    server = app.getHttpServer();
 
     filesRepository = moduleFixture.get<FilesRepository>(FilesRepository);
     cassandraService = moduleFixture.get<CassandraService>(CassandraService);
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterAll(async () => {
-    // Avoid jest open handle error
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
     await app.close();
   });
 
@@ -160,17 +152,17 @@ describe("Files Module", () => {
       });
       expect(response.status).toBe(401);
       expect(
-        (response.headers as { "content-type": string })["content-type"]
+        (response.headers as { "content-type": string })["content-type"],
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
 
     it("should reject an invalid token", async () => {
       expect.assertions(4);
 
-      const verifyAccessTokenSpy = jest
+      const verifyAccessTokenSpy = vi
         .spyOn(SiopLib, "verifyJwtTar")
         .mockImplementation(async () =>
-          Promise.reject(new Error("error message"))
+          Promise.reject(new Error("error message")),
         );
 
       const response = await request(server)
@@ -186,12 +178,12 @@ describe("Files Module", () => {
       });
       expect(response.status).toBe(401);
       expect(
-        (response.headers as { "content-type": string })["content-type"]
+        (response.headers as { "content-type": string })["content-type"],
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
       expect(verifyAccessTokenSpy).toHaveBeenCalledWith("jwt", {
         audience: "ebsi-core-services",
         trustedAppsRegistry: `${configService.get<string>(
-          "trustedAppsRegistryApiUrl"
+          "trustedAppsRegistryApiUrl",
         )}/apps`,
         timeout: expect.any(Number),
       });
@@ -200,14 +192,14 @@ describe("Files Module", () => {
     it("should reject a token without a DID", async () => {
       expect.assertions(4);
 
-      const verifyAccessTokenSpy = jest
+      const verifyAccessTokenSpy = vi
         .spyOn(SiopLib, "verifyJwtTar")
         .mockImplementation(async () =>
           Promise.resolve({
             payload: {
               // Missing "sub"
             },
-          } as JWTVerifyResult)
+          } as JWTVerifyResult),
         );
 
       const response = await request(server)
@@ -223,12 +215,12 @@ describe("Files Module", () => {
       });
       expect(response.status).toBe(401);
       expect(
-        (response.headers as { "content-type": string })["content-type"]
+        (response.headers as { "content-type": string })["content-type"],
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
       expect(verifyAccessTokenSpy).toHaveBeenCalledWith("jwt", {
         audience: "ebsi-core-services",
         trustedAppsRegistry: `${configService.get<string>(
-          "trustedAppsRegistryApiUrl"
+          "trustedAppsRegistryApiUrl",
         )}/apps`,
         timeout: expect.any(Number),
       });
@@ -264,11 +256,9 @@ describe("Files Module", () => {
       }));
 
       // Mock access token verification (return DID)
-      jest
-        .spyOn(SiopLib, "verifyJwtTar")
-        .mockImplementation(async () =>
-          Promise.resolve({ payload: { sub: did } } as JWTVerifyResult)
-        );
+      vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(async () =>
+        Promise.resolve({ payload: { sub: did } } as JWTVerifyResult),
+      );
 
       const response = await request(server)
         .get(`${BASE_URL}`)
@@ -279,12 +269,12 @@ describe("Files Module", () => {
         items: rows.map((row) => row.hash),
         links: {
           next: expect.stringMatching(
-            /\/stores\/distributed\/files\?page\[after\]=.*&page\[size\]=10/
+            /\/stores\/distributed\/files\?page\[after\]=.*&page\[size\]=10/,
           ),
         },
         pageSize: 10,
         self: expect.stringContaining(
-          "/stores/distributed/files?page[size]=10"
+          "/stores/distributed/files?page[size]=10",
         ),
       });
       expect(response.status).toBe(200);
@@ -295,7 +285,7 @@ describe("Files Module", () => {
           fetchSize: 10,
           prepare: true,
           consistency: cassandraService.getConsistency().read,
-        }
+        },
       );
     });
   });
@@ -307,11 +297,9 @@ describe("Files Module", () => {
       const hash = "test";
 
       // Mock access token verification (return DID)
-      jest
-        .spyOn(SiopLib, "verifyJwtTar")
-        .mockImplementation(async () =>
-          Promise.resolve({ payload: { sub: did } } as JWTVerifyResult)
-        );
+      vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(async () =>
+        Promise.resolve({ payload: { sub: did } } as JWTVerifyResult),
+      );
 
       const response = await request(server)
         .get(`${BASE_URL}/${hash}`)
@@ -342,11 +330,9 @@ describe("Files Module", () => {
       });
 
       // Mock access token verification (return DID)
-      jest
-        .spyOn(SiopLib, "verifyJwtTar")
-        .mockImplementation(async () =>
-          Promise.resolve({ payload: { sub: did } } as JWTVerifyResult)
-        );
+      vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(async () =>
+        Promise.resolve({ payload: { sub: did } } as JWTVerifyResult),
+      );
 
       const response = await request(server)
         .get(`${BASE_URL}/${hash}`)
@@ -387,11 +373,9 @@ describe("Files Module", () => {
       });
 
       // Mock access token verification (return DID)
-      jest
-        .spyOn(SiopLib, "verifyJwtTar")
-        .mockImplementation(async () =>
-          Promise.resolve({ payload: { sub: did } } as JWTVerifyResult)
-        );
+      vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(async () =>
+        Promise.resolve({ payload: { sub: did } } as JWTVerifyResult),
+      );
 
       const response = await request(server)
         .get(`${BASE_URL}/${hash}`)
@@ -399,9 +383,11 @@ describe("Files Module", () => {
         .send();
 
       expect(mockedFileFind).toHaveBeenCalledWith({ did, hash });
-      expect((response as { header: unknown[] }).header["content-type"]).toBe(
-        "application/octet-stream"
-      );
+      expect(
+        (response as { header: { "content-type": string } }).header[
+          "content-type"
+        ],
+      ).toBe("application/octet-stream");
       expect(response.body).toStrictEqual(file);
       expect(response.status).toBe(200);
     });
@@ -414,11 +400,9 @@ describe("Files Module", () => {
       const hash = "test";
 
       // Mock access token verification (return DID)
-      jest
-        .spyOn(SiopLib, "verifyJwtTar")
-        .mockImplementation(async () =>
-          Promise.resolve({ payload: { sub: did } } as JWTVerifyResult)
-        );
+      vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(async () =>
+        Promise.resolve({ payload: { sub: did } } as JWTVerifyResult),
+      );
 
       const response = await request(server)
         .get(`${BASE_URL}/${hash}/metadata`)
@@ -449,11 +433,9 @@ describe("Files Module", () => {
       });
 
       // Mock access token verification (return DID)
-      jest
-        .spyOn(SiopLib, "verifyJwtTar")
-        .mockImplementation(async () =>
-          Promise.resolve({ payload: { sub: did } } as JWTVerifyResult)
-        );
+      vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(async () =>
+        Promise.resolve({ payload: { sub: did } } as JWTVerifyResult),
+      );
 
       const response = await request(server)
         .get(`${BASE_URL}/${hash}/metadata`)
@@ -495,11 +477,9 @@ describe("Files Module", () => {
       });
 
       // Mock access token verification (return DID)
-      jest
-        .spyOn(SiopLib, "verifyJwtTar")
-        .mockImplementation(async () =>
-          Promise.resolve({ payload: { sub: did } } as JWTVerifyResult)
-        );
+      vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(async () =>
+        Promise.resolve({ payload: { sub: did } } as JWTVerifyResult),
+      );
 
       const response = await request(server)
         .get(`${BASE_URL}/${hash}/metadata`)
@@ -533,11 +513,9 @@ describe("Files Module", () => {
       });
 
       // Mock access token verification (return DID)
-      jest
-        .spyOn(SiopLib, "verifyJwtTar")
-        .mockImplementation(async () =>
-          Promise.resolve({ payload: { sub: did } } as JWTVerifyResult)
-        );
+      vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(async () =>
+        Promise.resolve({ payload: { sub: did } } as JWTVerifyResult),
+      );
 
       const response = await request(server)
         .get(`${BASE_URL}/${hash}/metadata`)
@@ -576,11 +554,9 @@ describe("Files Module", () => {
     it("should throw an error if the JWT is invalid", async () => {
       expect.assertions(2);
 
-      jest
-        .spyOn(SiopLib, "verifyJwtTar")
-        .mockImplementation(async () =>
-          Promise.reject(new Error("error message"))
-        );
+      vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(async () =>
+        Promise.reject(new Error("error message")),
+      );
 
       const response = await request(server)
         .post(`${BASE_URL}`)
@@ -599,12 +575,12 @@ describe("Files Module", () => {
     it("should throw an error if the JWT doesn't contain a DID", async () => {
       expect.assertions(2);
 
-      jest.spyOn(SiopLib, "verifyJwtTar").mockImplementation(async () =>
+      vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(async () =>
         Promise.resolve({
           payload: {
             // Missing DID
           },
-        } as JWTVerifyResult)
+        } as JWTVerifyResult),
       );
 
       const response = await request(server)
@@ -625,11 +601,9 @@ describe("Files Module", () => {
       expect.assertions(2);
 
       // Mock access token verification (return DID)
-      jest
-        .spyOn(SiopLib, "verifyJwtTar")
-        .mockImplementation(async () =>
-          Promise.resolve({ payload: { sub: did } } as JWTVerifyResult)
-        );
+      vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(async () =>
+        Promise.resolve({ payload: { sub: did } } as JWTVerifyResult),
+      );
 
       const response = await request(server)
         .post(`${BASE_URL}`)
@@ -649,11 +623,9 @@ describe("Files Module", () => {
       expect.assertions(4);
 
       // Mock access token verification (return DID)
-      jest
-        .spyOn(SiopLib, "verifyJwtTar")
-        .mockImplementation(async () =>
-          Promise.resolve({ payload: { sub: did } } as JWTVerifyResult)
-        );
+      vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(async () =>
+        Promise.resolve({ payload: { sub: did } } as JWTVerifyResult),
+      );
 
       // Scenario #1: provide a file but no metadata
       const response1 = await request(server)
@@ -692,11 +664,9 @@ describe("Files Module", () => {
       };
 
       // Mock access token verification (return DID)
-      jest
-        .spyOn(SiopLib, "verifyJwtTar")
-        .mockImplementation(async () =>
-          Promise.resolve({ payload: { sub: did } } as JWTVerifyResult)
-        );
+      vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(async () =>
+        Promise.resolve({ payload: { sub: did } } as JWTVerifyResult),
+      );
 
       const response = await request(server)
         .post(`${BASE_URL}`)
@@ -713,7 +683,7 @@ describe("Files Module", () => {
 
       expect(response.body).toStrictEqual({
         detail: `Max size for 'metadata' is 5242880 bytes. Received ${byteLength(
-          JSON.stringify(finalMetadata)
+          JSON.stringify(finalMetadata),
         )}`,
         status: 413,
         title: "Payload Too Large",
@@ -726,11 +696,9 @@ describe("Files Module", () => {
       expect.assertions(2);
 
       // Mock access token verification (return DID)
-      jest
-        .spyOn(SiopLib, "verifyJwtTar")
-        .mockImplementation(async () =>
-          Promise.resolve({ payload: { sub: did } } as JWTVerifyResult)
-        );
+      vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(async () =>
+        Promise.resolve({ payload: { sub: did } } as JWTVerifyResult),
+      );
 
       const response = await request(server)
         .post(`${BASE_URL}`)
@@ -739,7 +707,7 @@ describe("Files Module", () => {
           "metadata",
           JSON.stringify({
             test: "test",
-          })
+          }),
         )
         .attach("file", crypto.randomBytes(6 * 1024 * 1024), "file.txt");
 
@@ -756,11 +724,9 @@ describe("Files Module", () => {
       expect.assertions(2);
 
       // Mock access token verification (return DID)
-      jest
-        .spyOn(SiopLib, "verifyJwtTar")
-        .mockImplementation(async () =>
-          Promise.resolve({ payload: { sub: did } } as JWTVerifyResult)
-        );
+      vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(async () =>
+        Promise.resolve({ payload: { sub: did } } as JWTVerifyResult),
+      );
 
       const response = await request(server)
         .post(`${BASE_URL}`)
@@ -802,11 +768,9 @@ describe("Files Module", () => {
       });
 
       // Mock access token verification (return DID)
-      jest
-        .spyOn(SiopLib, "verifyJwtTar")
-        .mockImplementation(async () =>
-          Promise.resolve({ payload: { sub: did } } as JWTVerifyResult)
-        );
+      vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(async () =>
+        Promise.resolve({ payload: { sub: did } } as JWTVerifyResult),
+      );
 
       const response = await request(server)
         .post(`${BASE_URL}`)
@@ -861,11 +825,9 @@ describe("Files Module", () => {
       });
 
       // Mock access token verification (return DID)
-      jest
-        .spyOn(SiopLib, "verifyJwtTar")
-        .mockImplementation(async () =>
-          Promise.resolve({ payload: { sub: did } } as JWTVerifyResult)
-        );
+      vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(async () =>
+        Promise.resolve({ payload: { sub: did } } as JWTVerifyResult),
+      );
 
       const response = await request(server)
         .post(`${BASE_URL}`)
@@ -922,11 +884,9 @@ describe("Files Module", () => {
       });
 
       // Mock access token verification (return DID)
-      jest
-        .spyOn(SiopLib, "verifyJwtTar")
-        .mockImplementation(async () =>
-          Promise.resolve({ payload: { sub: did } } as JWTVerifyResult)
-        );
+      vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(async () =>
+        Promise.resolve({ payload: { sub: did } } as JWTVerifyResult),
+      );
 
       const response = await request(server)
         .post(`${BASE_URL}`)
@@ -967,11 +927,9 @@ describe("Files Module", () => {
       const hash = "test";
 
       // Mock access token verification (return DID)
-      jest
-        .spyOn(SiopLib, "verifyJwtTar")
-        .mockImplementation(async () =>
-          Promise.resolve({ payload: { sub: did } } as JWTVerifyResult)
-        );
+      vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(async () =>
+        Promise.resolve({ payload: { sub: did } } as JWTVerifyResult),
+      );
 
       const response = await request(server)
         .patch(`${BASE_URL}/${hash}`)
@@ -993,11 +951,9 @@ describe("Files Module", () => {
       const hash = `0x${crypto.randomBytes(16).toString("hex")}`;
 
       // Mock access token verification (return DID)
-      jest
-        .spyOn(SiopLib, "verifyJwtTar")
-        .mockImplementation(async () =>
-          Promise.resolve({ payload: { sub: did } } as JWTVerifyResult)
-        );
+      vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(async () =>
+        Promise.resolve({ payload: { sub: did } } as JWTVerifyResult),
+      );
 
       const response = await request(server)
         .patch(`${BASE_URL}/${hash}`)
@@ -1019,11 +975,9 @@ describe("Files Module", () => {
       const hash = `0x${crypto.randomBytes(16).toString("hex")}`;
 
       // Mock access token verification (return DID)
-      jest
-        .spyOn(SiopLib, "verifyJwtTar")
-        .mockImplementation(async () =>
-          Promise.resolve({ payload: { sub: did } } as JWTVerifyResult)
-        );
+      vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(async () =>
+        Promise.resolve({ payload: { sub: did } } as JWTVerifyResult),
+      );
 
       const response = await request(server)
         .patch(`${BASE_URL}/${hash}`)
@@ -1051,11 +1005,9 @@ describe("Files Module", () => {
       const hash = `0x${crypto.randomBytes(16).toString("hex")}`;
 
       // Mock access token verification (return DID)
-      jest
-        .spyOn(SiopLib, "verifyJwtTar")
-        .mockImplementation(async () =>
-          Promise.resolve({ payload: { sub: did } } as JWTVerifyResult)
-        );
+      vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(async () =>
+        Promise.resolve({ payload: { sub: did } } as JWTVerifyResult),
+      );
 
       const response = await request(server)
         .patch(`${BASE_URL}/${hash}`)
@@ -1087,11 +1039,9 @@ describe("Files Module", () => {
       });
 
       // Mock access token verification (return DID)
-      jest
-        .spyOn(SiopLib, "verifyJwtTar")
-        .mockImplementation(async () =>
-          Promise.resolve({ payload: { sub: did } } as JWTVerifyResult)
-        );
+      vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(async () =>
+        Promise.resolve({ payload: { sub: did } } as JWTVerifyResult),
+      );
 
       const response = await request(server)
         .patch(`${BASE_URL}/${hash}`)
@@ -1151,11 +1101,9 @@ describe("Files Module", () => {
       });
 
       // Mock access token verification (return DID)
-      jest
-        .spyOn(SiopLib, "verifyJwtTar")
-        .mockImplementation(async () =>
-          Promise.resolve({ payload: { sub: did } } as JWTVerifyResult)
-        );
+      vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(async () =>
+        Promise.resolve({ payload: { sub: did } } as JWTVerifyResult),
+      );
 
       const response = await request(server)
         .patch(`${BASE_URL}/${hash}`)
@@ -1215,11 +1163,9 @@ describe("Files Module", () => {
       });
 
       // Mock access token verification (return DID)
-      jest
-        .spyOn(SiopLib, "verifyJwtTar")
-        .mockImplementation(async () =>
-          Promise.resolve({ payload: { sub: did } } as JWTVerifyResult)
-        );
+      vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(async () =>
+        Promise.resolve({ payload: { sub: did } } as JWTVerifyResult),
+      );
 
       const response = await request(server)
         .patch(`${BASE_URL}/${hash}`)
@@ -1286,11 +1232,9 @@ describe("Files Module", () => {
       });
 
       // Mock access token verification (return DID)
-      jest
-        .spyOn(SiopLib, "verifyJwtTar")
-        .mockImplementation(async () =>
-          Promise.resolve({ payload: { sub: did } } as JWTVerifyResult)
-        );
+      vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(async () =>
+        Promise.resolve({ payload: { sub: did } } as JWTVerifyResult),
+      );
 
       const response = await request(server)
         .patch(`${BASE_URL}/${hash}`)
@@ -1362,16 +1306,14 @@ describe("Files Module", () => {
       };
       const stringifiedExpectedMetadata = JSON.stringify(expectedMetadata);
 
-      const updateFileMetadataSpy = jest
+      const updateFileMetadataSpy = vi
         .spyOn(filesRepository, "updateFileMetadata")
         .mockImplementationOnce(() => Promise.resolve());
 
       // Mock access token verification (return DID)
-      jest
-        .spyOn(SiopLib, "verifyJwtTar")
-        .mockImplementation(async () =>
-          Promise.resolve({ payload: { sub: did } } as JWTVerifyResult)
-        );
+      vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(async () =>
+        Promise.resolve({ payload: { sub: did } } as JWTVerifyResult),
+      );
 
       const response = await request(server)
         .patch(`${BASE_URL}/${hash}`)
@@ -1413,11 +1355,9 @@ describe("Files Module", () => {
       const hash = "test";
 
       // Mock access token verification (return DID)
-      jest
-        .spyOn(SiopLib, "verifyJwtTar")
-        .mockImplementation(async () =>
-          Promise.resolve({ payload: { sub: did } } as JWTVerifyResult)
-        );
+      vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(async () =>
+        Promise.resolve({ payload: { sub: did } } as JWTVerifyResult),
+      );
 
       const response = await request(server)
         .delete(`${BASE_URL}/${hash}`)
@@ -1448,11 +1388,9 @@ describe("Files Module", () => {
       });
 
       // Mock access token verification (return DID)
-      jest
-        .spyOn(SiopLib, "verifyJwtTar")
-        .mockImplementation(async () =>
-          Promise.resolve({ payload: { sub: did } } as JWTVerifyResult)
-        );
+      vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(async () =>
+        Promise.resolve({ payload: { sub: did } } as JWTVerifyResult),
+      );
 
       const response = await request(server)
         .delete(`${BASE_URL}/${hash}`)
@@ -1506,11 +1444,9 @@ describe("Files Module", () => {
       });
 
       // Mock access token verification (return DID)
-      jest
-        .spyOn(SiopLib, "verifyJwtTar")
-        .mockImplementation(async () =>
-          Promise.resolve({ payload: { sub: did } } as JWTVerifyResult)
-        );
+      vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(async () =>
+        Promise.resolve({ payload: { sub: did } } as JWTVerifyResult),
+      );
 
       const response = await request(server)
         .delete(`${BASE_URL}/${hash}`)

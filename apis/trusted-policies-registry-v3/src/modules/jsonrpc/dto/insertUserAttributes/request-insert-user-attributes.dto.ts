@@ -6,19 +6,19 @@ import {
   Equals,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { JsonRpcDto } from "../jsonrpc.dto";
-import { InsertUserAttributesParam } from "./insert-user-attributes-param.dto";
+import { JsonRpcDto } from "../jsonrpc.dto.js";
+import { InsertUserAttributesParam } from "./insert-user-attributes-param.dto.js";
 
 export class RequestInsertUserAttributesDto extends JsonRpcDto {
   @Equals("insertUserAttributes")
-  method: string;
+  declare method: string;
 
   @IsArray()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @Type(() => InsertUserAttributesParam)
-  params: InsertUserAttributesParam[];
+  declare params: InsertUserAttributesParam[];
 }
 
 export default RequestInsertUserAttributesDto;

@@ -1,13 +1,13 @@
 import { createParamDecorator, ExecutionContext } from "@nestjs/common";
-import { ClientInfo } from "../auth.interface";
+import { ClientInfo } from "../auth.interface.js";
 
-export { ClientInfo } from "../auth.interface";
+export type { ClientInfo } from "../auth.interface.js";
 
 export const Client = createParamDecorator(
-  (data: unknown, ctx: ExecutionContext) => {
+  (_data: unknown, ctx: ExecutionContext) => {
     const request = ctx.switchToHttp().getRequest<{ user: ClientInfo }>();
     return request.user ?? {};
-  }
+  },
 );
 
 export default Client;

@@ -1,18 +1,18 @@
 import { IsHexadecimal, Matches } from "class-validator";
-import { IsHexadecimalJSON } from "../../validators";
+import { IsHexadecimalJSON } from "../../validators/index.js";
 
 export class ArgsUpdateSchema {
   @Matches(/^0x/)
   @IsHexadecimal()
-  schemaId: string;
+  schemaId!: string;
 
   @Matches(/^0x/)
   @IsHexadecimalJSON()
-  schema: string;
+  schema!: string;
 
   @Matches(/^0x/)
   @IsHexadecimalJSON()
-  metadata: string;
+  metadata!: string;
 }
 
 export default { ArgsUpdateSchema };

@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
-import { UserInfo } from "../auth.interface";
-import { AuthService } from "../auth.service";
+import { UserInfo } from "../auth.interface.js";
+import { AuthService } from "../auth.service.js";
 
 @Injectable()
 export class JwtOptionalAuthGuard implements CanActivate {
@@ -14,7 +14,7 @@ export class JwtOptionalAuthGuard implements CanActivate {
       user: UserInfo;
     }>();
     request.user = {
-      did: null,
+      did: "",
     };
 
     const { headers } = request;
@@ -28,7 +28,7 @@ export class JwtOptionalAuthGuard implements CanActivate {
 
     const token = headers.authorization.replace("Bearer ", "");
     const payload = await this.authService.validateToken(token);
-    request.user.did = payload.sub;
+    request.user.did = payload.sub!;
 
     return true;
   }

@@ -1,5 +1,9 @@
-import { ValidateBy, ValidationOptions, buildMessage } from "class-validator";
-import { multibase } from "../utils/multibase.utils";
+import {
+  ValidateBy,
+  type ValidationOptions,
+  buildMessage,
+} from "class-validator";
+import { multibase } from "../utils/multibase.utils.js";
 
 export const IS_MULTIBASE64URL_ENCODED = "isMultibase64urlEncoded";
 
@@ -15,7 +19,7 @@ export function isMultibase64urlEncoded(value: unknown): boolean {
 }
 
 export function IsMultibase64urlEncoded(
-  validationOptions?: ValidationOptions
+  validationOptions?: ValidationOptions,
 ): PropertyDecorator {
   return ValidateBy(
     {
@@ -25,10 +29,10 @@ export function IsMultibase64urlEncoded(
         defaultMessage: buildMessage(
           (eachPrefix) =>
             `${eachPrefix}$property must be multi-base64url encoded`,
-          validationOptions
+          validationOptions,
         ),
       },
     },
-    validationOptions
+    validationOptions,
   );
 }

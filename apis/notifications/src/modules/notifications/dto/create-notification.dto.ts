@@ -15,30 +15,30 @@ class Proof {
   @IsNotEmpty()
   @IsString()
   @Equals("EcdsaSecp256k1Signature2019")
-  type: string;
+  type!: string;
 
   @IsNotEmpty()
   @IsDateString()
-  created: string;
+  created!: string;
 
   @IsNotEmpty()
   @IsString()
   @Equals("assertionMethod")
-  proofPurpose: string;
+  proofPurpose!: string;
 
   @IsNotEmpty()
   @IsString()
-  verificationMethod: string;
+  verificationMethod!: string;
 
   @IsNotEmpty()
   @IsString()
-  jws: string;
+  jws!: string;
 }
 
 export class CreateNotificationDto {
   @IsNotEmpty()
   @IsString()
-  schemaId: string;
+  schemaId!: string;
 
   @IsNotEmpty({
     each: true,
@@ -46,7 +46,7 @@ export class CreateNotificationDto {
   @IsString({
     each: true,
   })
-  type: string[];
+  type!: string[];
 
   @IsNotEmpty({
     each: true,
@@ -58,33 +58,33 @@ export class CreateNotificationDto {
     {},
     {
       each: true,
-    }
+    },
   )
   "@context": string[];
 
   @IsNotEmpty()
   @IsDid()
-  from: string;
+  from!: string;
 
   @IsNotEmpty()
   @IsDid()
-  to: string;
+  to!: string;
 
   @IsNotEmpty()
   @IsDateString()
-  issuanceDate: string;
+  issuanceDate!: string;
 
   @IsOptional()
   @IsDateString()
   expirationDate?: string;
 
   @IsNotEmpty()
-  payload: unknown;
+  payload!: unknown;
 
   @IsNotEmpty()
   @ValidateNested({ message: "nested property proof must be an object" })
   @Type(() => Proof)
-  proof: Proof;
+  proof!: Proof;
 }
 
 export default CreateNotificationDto;

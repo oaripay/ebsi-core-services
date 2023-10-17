@@ -4,7 +4,7 @@
   "private": true,
   "license": "EUPL-1.2",
   "scripts": {
-    "audit": "audit-ci --skip-dev --moderate -a GHSA-j8xg-fqg3-53r7",
+    "audit": "audit-ci --skip-dev --moderate",
     "clean": "nx run-many --target=clean --all",
     "build": "nx affected --target=build --parallel=1",
     "build:all": "nx run-many --target=build --all",
@@ -22,34 +22,32 @@
     "patch-package": "patch-package"
   },
   "devDependencies": {
-    "@changesets/cli": "^2.26.1",
+    "@changesets/cli": "^2.26.2",
     "@changesets/types": "^5.2.1",
-    "@commitlint/cli": "^17.6.6",
-    "@commitlint/config-conventional": "^17.6.6",
-    "@nx/workspace": "16.4.0",
-    "@stoplight/spectral-cli": "^6.8.0",
-    "@typescript-eslint/eslint-plugin": "^5.60.0",
-    "@typescript-eslint/parser": "^5.60.0",
+    "@commitlint/cli": "^17.8.0",
+    "@commitlint/config-conventional": "^17.8.0",
+    "@nx/workspace": "16.10.0",
+    "@stoplight/spectral-cli": "^6.11.0",
+    "@typescript-eslint/eslint-plugin": "^6.7.5",
+    "@typescript-eslint/parser": "^6.7.5",
     "audit-ci": "^6.6.1",
-    "eslint": "^8.43.0",
+    "eslint": "^8.51.0",
     "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-config-airbnb-typescript": "^17.0.0",
-    "eslint-config-prettier": "^8.8.0",
-    "eslint-plugin-import": "^2.27.5",
-    "eslint-plugin-jest": "^27.2.2",
-    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-config-airbnb-typescript": "^17.1.0",
+    "eslint-config-prettier": "^9.0.0",
+    "eslint-plugin-import": "^2.28.1",
+    "eslint-plugin-prettier": "^5.0.1",
     "husky": "^8.0.3",
     "is-ci": "^3.0.1",
-    "lint-staged": "^13.2.2",
-    "nx": "16.4.0",
-    "patch-package": "^7.0.0",
+    "lint-staged": "^15.0.1",
+    "nx": "16.10.0",
+    "patch-package": "^8.0.0",
     "postinstall-postinstall": "^2.1.0",
-    "prettier": "^2.8.8",
+    "prettier": "^3.0.3",
     "prettier-plugin-solidity": "^1.1.3",
-    "rimraf": "^5.0.1",
-    "solhint": "^3.4.1",
-    "solhint-plugin-prettier": "^0.0.5",
-    "typescript": "4.9.5"
+    "rimraf": "^5.0.5",
+    "solhint": "^3.6.2",
+    "typescript": "5.2.2"
   },
   "workspaces": {
     "packages": [
@@ -61,6 +59,10 @@
     ]
   },
   "resolutions": {
-    "**/solidity-coverage/mocha": "^10.0.0"
+    "**/solidity-coverage/mocha": "^10.0.0",
+    "**/ganache/bufferutil": "^4.0.8",
+    "**/ganache/utf-8-validate": "^6.0.3",
+    "**/@ganache/utils/@trufflesuite/bigint-buffer": "1.1.10",
+    "**/@parcel/watcher": "2.3.0"
   }
 }

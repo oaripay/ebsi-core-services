@@ -15,12 +15,12 @@ export interface ApiConfig {
   dockerContainerTag: string;
   trustedHostnames: string[];
   // Test-specific variables
-  testEnv?: string;
-  testIssuerKid?: string;
-  testIssuerPrivateKey?: string;
-  testIssuerAlg?: string;
-  testIssuerAttribute?: string;
-  testOidSchemaPattern: string;
+  testEnv: string | undefined;
+  testIssuerKid: string | undefined;
+  testIssuerPrivateKey: string | undefined;
+  testIssuerAlg: string | undefined;
+  testIssuerAttribute: string | undefined;
+  testOidSchemaPattern: string | undefined;
 }
 
 const HEALTH_CHECK_PATH = "/docs/";
@@ -78,7 +78,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "warn",
       "info",
       "verbose",
-      "debug"
+      "debug",
     ),
     DOCKER_TAG: Joi.string(),
     DOMAIN: Joi.string().uri().required(),

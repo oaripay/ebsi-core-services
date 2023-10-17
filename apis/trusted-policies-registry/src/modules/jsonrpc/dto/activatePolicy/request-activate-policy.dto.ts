@@ -6,19 +6,19 @@ import {
   Equals,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { JsonRpcDto } from "../jsonrpc.dto";
-import { ActivatePolicyParam } from "./activate-policy-param.dto";
+import { JsonRpcDto } from "../jsonrpc.dto.js";
+import { ActivatePolicyParam } from "./activate-policy-param.dto.js";
 
 export class RequestActivatePolicyDto extends JsonRpcDto {
   @Equals("activatePolicy")
-  method: string;
+  declare method: string;
 
   @IsArray()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @Type(() => ActivatePolicyParam)
-  params: ActivatePolicyParam[];
+  declare params: ActivatePolicyParam[];
 }
 
 export default RequestActivatePolicyDto;

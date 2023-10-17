@@ -1,7 +1,6 @@
 import * as ClassValidator from "class-validator";
 import { ClassTransformer, ClassConstructor } from "class-transformer";
 import { ethers } from "ethers";
-import type { SignatureLike } from "@ethersproject/bytes";
 import {
   UnsignedTransaction,
   RequestSetAttributeMetadataDto,
@@ -13,7 +12,7 @@ import {
   RequestUpdateIssuerProxyDto,
   ArgsAddIssuerProxy,
   ArgsUpdateIssuerProxy,
-} from "./dto";
+} from "./dto/index.js";
 
 type JsonRpcDtos =
   | RequestSetAttributeMetadataDto
@@ -27,7 +26,7 @@ type JsonRpcDtos =
   | ArgsUpdateIssuerProxy;
 
 export function formatEthersUnsignedTransaction(
-  unsignedTransaction: UnsignedTransaction
+  unsignedTransaction: UnsignedTransaction,
 ) {
   return {
     to: unsignedTransaction.to,
@@ -45,14 +44,12 @@ export function formatEthersSignature(r: string, s: string, v: string) {
     r,
     s,
     v: Number(v),
-    recoveryParam: undefined,
-    _vs: undefined,
-  } satisfies SignatureLike;
+  } satisfies Partial<ethers.Signature>;
 }
 
 export const validateClass = async (
   classType: ClassConstructor<JsonRpcDtos>,
-  data: JsonRpcDtos
+  data: JsonRpcDtos,
 ): Promise<void> => {
   const dataClass = new ClassTransformer().plainToInstance<
     JsonRpcDtos,

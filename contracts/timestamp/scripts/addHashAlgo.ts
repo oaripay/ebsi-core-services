@@ -30,7 +30,7 @@ async function main() {
   console.log(
     `deployer:${deployer.address}
      admin:${admin.address}
-     version:${ts.version()}`
+     version:${ts.version()}`,
   );
   const initialVersion = await ts.version();
   console.log(initialVersion);
@@ -42,25 +42,25 @@ async function main() {
     "sha-256",
     "2.16.840.1.101.3.4.2.1",
     1,
-    "sha2-256"
+    "sha2-256",
   );
   await ts.insertHashAlgorithm(
     512,
     "sha-512",
     "2.16.840.1.101.3.4.2.3",
     1,
-    "sha2-512"
+    "sha2-512",
   );
   await ts.insertHashAlgorithm(
     256,
     "sha3-256",
     "2.16.840.1.101.3.4.2.8",
     1,
-    "sha3-256"
+    "sha3-256",
   );
   const algo = await ts.getHashAlgorithmById(1);
   console.log(
-    `algorithm ${algo.ianaName} oid:${algo.oid} length:${algo.outputLength} status:${algo.status}`
+    `algorithm ${algo.ianaName} oid:${algo.oid} length:${algo.outputLength} status:${algo.status}`,
   );
 }
 

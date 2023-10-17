@@ -30,7 +30,7 @@ function randomProxy(): string {
       headers: { Authorization: "Bearer ABC" },
       testSuffix: "/credentials/status/1",
     }),
-    "utf-8"
+    "utf-8",
   ).toString("hex");
 }
 
@@ -88,13 +88,12 @@ describe("Issuers", () => {
   const didIssuer = "did:ebsi:issuer";
 
   before(async () => {
-    const policyRegistryFactory = await ethers.getContractFactory(
-      "PolicyRegistryMock"
-    );
+    const policyRegistryFactory =
+      await ethers.getContractFactory("PolicyRegistryMock");
     const tempPolicyContract = await policyRegistryFactory.deploy();
     await tempPolicyContract.deployed();
     const bytecodeTpr = await ethers.provider.getCode(
-      tempPolicyContract.address
+      tempPolicyContract.address,
     );
     await network.provider.send("hardhat_setCode", [
       testTprAddress,
@@ -103,9 +102,8 @@ describe("Issuers", () => {
     policyContractMock = policyRegistryFactory.attach(testTprAddress);
     await policyContractMock.setPolicyResult(true);
 
-    const didRegistryFactory = await ethers.getContractFactory(
-      "DidRegistryMock"
-    );
+    const didRegistryFactory =
+      await ethers.getContractFactory("DidRegistryMock");
     const tempDidContract = await didRegistryFactory.deploy();
     await tempDidContract.deployed();
     const bytecodeDid = await ethers.provider.getCode(tempDidContract.address);
@@ -129,7 +127,7 @@ describe("Issuers", () => {
     });
     tir = (await contractFactory.deploy(
       testTprAddress,
-      testDidrAddress
+      testDidrAddress,
     )) as Tir;
     await tir.deployed();
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
@@ -147,8 +145,8 @@ describe("Issuers", () => {
         rootTAO1.attributeId,
         IssuerType.RootTAO,
         rootTAO1.did,
-        rootTAO1.attributeId
-      )
+        rootTAO1.attributeId,
+      ),
     ).to.emit(tir, "AddAttributeRevision");
 
     // get RootTAO attribute
@@ -166,7 +164,7 @@ describe("Issuers", () => {
     expect(
       (
         await tir.getIssuerAttributeRevisions(issuerHashes[0], 1, 2)
-      ).total.toNumber()
+      ).total.toNumber(),
     ).to.eq(1);
 
     await policyContractMock.setPolicyResult(false); // not admin
@@ -177,8 +175,8 @@ describe("Issuers", () => {
       tir.setAttributeData(
         rootTAO1.did,
         rootTAO1.attributeId,
-        rootTAO1.attribute
-      )
+        rootTAO1.attribute,
+      ),
     ).to.emit(tir, "AddAttributeRevision");
 
     // get RootTAO attribute
@@ -205,13 +203,13 @@ describe("Issuers", () => {
         tao1.attributeId,
         IssuerType.TAO,
         rootTAO1.did,
-        rootTAO1.attributeId
-      )
+        rootTAO1.attributeId,
+      ),
     ).to.emit(tir, "AddAttributeRevision");
 
     // TAO registers the credential
     await expect(
-      tir.setAttributeData(tao1.did, tao1.attributeId, tao1.attribute)
+      tir.setAttributeData(tao1.did, tao1.attributeId, tao1.attribute),
     ).to.emit(tir, "AddAttributeRevision");
 
     // get TAO attribute
@@ -238,13 +236,13 @@ describe("Issuers", () => {
         tao2.attributeId,
         IssuerType.TAO,
         rootTAO1.did,
-        rootTAO1.attributeId
-      )
+        rootTAO1.attributeId,
+      ),
     ).to.emit(tir, "AddAttributeRevision");
 
     // TAO registers the credential
     await expect(
-      tir.setAttributeData(tao2.did, tao2.attributeId, tao2.attribute)
+      tir.setAttributeData(tao2.did, tao2.attributeId, tao2.attribute),
     ).to.emit(tir, "AddAttributeRevision");
 
     // get TAO attribute
@@ -271,13 +269,13 @@ describe("Issuers", () => {
         ti1.attributeId1,
         IssuerType.TI,
         tao1.did,
-        tao1.attributeId
-      )
+        tao1.attributeId,
+      ),
     ).to.emit(tir, "AddAttributeRevision");
 
     // TI registers the credential
     await expect(
-      tir.setAttributeData(ti1.did, ti1.attributeId1, ti1.attribute1)
+      tir.setAttributeData(ti1.did, ti1.attributeId1, ti1.attribute1),
     ).to.emit(tir, "AddAttributeRevision");
 
     // get TI attribute
@@ -303,10 +301,10 @@ describe("Issuers", () => {
           ti1.attributeId1,
           IssuerType.RootTAO,
           tao1.did,
-          tao1.attributeId
-        )
+          tao1.attributeId,
+        ),
       ).to.be.revertedWith(
-        "Policy error: sender doesn't have the attribute TIR:setAttributeMetadata"
+        "Policy error: sender doesn't have the attribute TIR:setAttributeMetadata",
       );
     });
 
@@ -328,8 +326,8 @@ describe("Issuers", () => {
           tao1.attributeId,
           IssuerType.Revoked,
           rootTAO1.did,
-          rootTAO1.attributeId
-        )
+          rootTAO1.attributeId,
+        ),
       ).to.emit(tir, "AddAttributeRevision");
 
       // get TAO attribute
@@ -346,14 +344,14 @@ describe("Issuers", () => {
 
     it("should not initialize if not proxy", async () => {
       await expect(tir.initialize(1)).to.be.revertedWith(
-        "Initializable: contract is already initialized"
+        "Initializable: contract is already initialized",
       );
     });
 
     it("should initialize if proxy", async () => {
       const paginationFactory = await ethers.getContractFactory(
         "Pagination",
-        {}
+        {},
       );
       const paginationLib = await paginationFactory.deploy();
       const contractFactory = await ethers.getContractFactory("Tir", {
@@ -376,7 +374,7 @@ describe("Issuers", () => {
     it("should fail to call init on TirDetailed", async () => {
       const paginationFactory = await ethers.getContractFactory(
         "Pagination",
-        {}
+        {},
       );
       const paginationLib = await paginationFactory.deploy();
       const contractFactory = await ethers.getContractFactory("Tir", {
@@ -394,13 +392,13 @@ describe("Issuers", () => {
       });
       await tsProxy.deployed();
       expect(tsProxy.init(30)).to.be.revertedWith(
-        "Initializable: contract is already initialized"
+        "Initializable: contract is already initialized",
       );
     });
 
     it("should fail to get issuer if it doesn't exist", async () => {
       await expect(tir.getIssuer(randomDid())).to.be.revertedWith(
-        "issuer does not exist"
+        "issuer does not exist",
       );
     });
 
@@ -409,14 +407,14 @@ describe("Issuers", () => {
       const tirDetailedProxy = await upgrades.deployProxy(contractFactory, []);
       await tirDetailedProxy.deployed();
       await expect(tirDetailedProxy.init(42)).to.be.revertedWith(
-        "Initializable: contract is not initializing"
+        "Initializable: contract is not initializing",
       );
     });
 
     it("should fail on 0 address", async () => {
       const paginationFactory = await ethers.getContractFactory(
         "Pagination",
-        {}
+        {},
       );
       const paginationLib = await paginationFactory.deploy();
       const contractFactory = await ethers.getContractFactory("Tir", {
@@ -435,27 +433,27 @@ describe("Issuers", () => {
             ethers.constants.AddressZero,
             ethers.constants.AddressZero,
           ],
-        })
+        }),
       ).to.be.revertedWith("zero address");
     });
 
     it("should fail pagination if params are wrong", async () => {
       await expect(tir.getIssuers(1, 51)).to.be.revertedWith(
-        "PageSize must be <= 50"
+        "PageSize must be <= 50",
       );
       await expect(tir.getIssuers(1, 0)).to.be.revertedWith(
-        "PageSize must be > 0"
+        "PageSize must be > 0",
       );
       await expect(tir.getIssuers(0, 1)).to.be.revertedWith("Page must be > 0");
 
       await expect(
-        tir.getIssuerAttributeRevisions(randomHash(), 1, 51)
+        tir.getIssuerAttributeRevisions(randomHash(), 1, 51),
       ).to.be.revertedWith("PageSize must be <= 50");
       await expect(
-        tir.getIssuerAttributeRevisions(randomHash(), 1, 0)
+        tir.getIssuerAttributeRevisions(randomHash(), 1, 0),
       ).to.be.revertedWith("PageSize must be > 0");
       await expect(
-        tir.getIssuerAttributeRevisions(randomHash(), 0, 1)
+        tir.getIssuerAttributeRevisions(randomHash(), 0, 1),
       ).to.be.revertedWith("Page must be > 0");
     });
 
@@ -474,7 +472,7 @@ describe("Issuers", () => {
           attrId,
           IssuerType.RootTAO,
           issuers[i],
-          attrId
+          attrId,
         );
       }
 
@@ -530,7 +528,7 @@ describe("Issuers", () => {
         rootTAO1.attributeId,
         IssuerType.Revoked,
         rootTAO1.did,
-        rootTAO1.attributeId
+        rootTAO1.attributeId,
       );
 
       // fill the data
@@ -564,7 +562,7 @@ describe("Issuers", () => {
         rootTAO1.attributeId,
         IssuerType.Revoked,
         rootTAO1.did,
-        rootTAO1.attributeId
+        rootTAO1.attributeId,
       );
 
       // expect the attribute to be revoked
@@ -594,8 +592,8 @@ describe("Issuers", () => {
           rootTAO1.attributeId,
           IssuerType.TAO,
           rootTAO1.did,
-          rootTAO1.attributeId
-        )
+          rootTAO1.attributeId,
+        ),
       ).to.be.revertedWith("attribute already stored");
     });
 
@@ -605,7 +603,7 @@ describe("Issuers", () => {
 
       // create rootTAO
       await expect(
-        tir.setAttributeData(rootTAO1.did, tao1.attributeId, tao1.attribute)
+        tir.setAttributeData(rootTAO1.did, tao1.attributeId, tao1.attribute),
       ).to.be.revertedWith("attributeId is not link to DID");
     });
 
@@ -619,17 +617,17 @@ describe("Issuers", () => {
           rootTAO1.attributeId,
           IssuerType.Undefined,
           rootTAO1.did,
-          rootTAO1.attributeId
-        )
+          rootTAO1.attributeId,
+        ),
       ).to.be.revertedWith("invalid issuerType");
     });
 
     it("should reject the get of an unknown attribute", async () => {
       await expect(
-        tir.getIssuerAttributeByHash(randomHash())
+        tir.getIssuerAttributeByHash(randomHash()),
       ).to.be.revertedWith("attribute has not been found");
       await expect(
-        tir.getIssuerAttributeRevisions(randomHash(), 1, 10)
+        tir.getIssuerAttributeRevisions(randomHash(), 1, 10),
       ).to.be.revertedWith("attribute has not been found");
     });
 
@@ -639,8 +637,8 @@ describe("Issuers", () => {
         tir.setAttributeData(
           rootTAO1.did,
           rootTAO1.attributeId,
-          rootTAO1.attribute
-        )
+          rootTAO1.attribute,
+        ),
       ).to.be.revertedWith("revision already stored");
     });
 
@@ -657,8 +655,8 @@ describe("Issuers", () => {
           tao1.attributeId,
           IssuerType.TAO,
           rootTAO1.did,
-          rootTAO1.attributeId
-        )
+          rootTAO1.attributeId,
+        ),
       ).to.emit(tir, "AddAttributeRevision");
 
       await expect(
@@ -667,8 +665,8 @@ describe("Issuers", () => {
           ti1.attributeId1,
           IssuerType.TI,
           tao1.did,
-          tao1.attributeId
-        )
+          tao1.attributeId,
+        ),
       ).to.emit(tir, "AddAttributeRevision");
 
       await expect(
@@ -677,8 +675,8 @@ describe("Issuers", () => {
           ti1.attributeId1,
           IssuerType.TI,
           rootTAO1.did,
-          rootTAO1.attributeId
-        )
+          rootTAO1.attributeId,
+        ),
       ).to.emit(tir, "AddAttributeRevision");
     });
 
@@ -693,8 +691,8 @@ describe("Issuers", () => {
           rootTAO1.attributeId,
           IssuerType.RootTAO,
           rootTAO1.did,
-          rootTAO1.attributeId
-        )
+          rootTAO1.attributeId,
+        ),
       ).to.emit(tir, "AddAttributeRevision");
 
       // The admin cannot update data
@@ -702,8 +700,8 @@ describe("Issuers", () => {
         tir.setAttributeData(
           rootTAO1.did,
           rootTAO1.attributeId,
-          rootTAO1.attribute
-        )
+          rootTAO1.attribute,
+        ),
       ).to.be.revertedWith("Not the issuer itself");
     });
 
@@ -718,8 +716,8 @@ describe("Issuers", () => {
           tao1.attributeId,
           IssuerType.TAO,
           rootTAO1.did,
-          rootTAO1.attributeId
-        )
+          rootTAO1.attributeId,
+        ),
       ).to.be.revertedWith("issuer does not exist");
 
       await registerRootTAO1();
@@ -734,10 +732,10 @@ describe("Issuers", () => {
           `0x${crypto.randomBytes(32).toString("hex")}`,
           IssuerType.TI,
           ti1.did,
-          ti1.attributeId1
-        )
+          ti1.attributeId1,
+        ),
       ).to.be.revertedWith(
-        "Policy error: sender is not TAO/RootTao it doesn't have the attribute TIR:setAttributeMetadata"
+        "Policy error: sender is not TAO/RootTao it doesn't have the attribute TIR:setAttributeMetadata",
       );
 
       // A Root TAO cannot register another Root TAO
@@ -747,10 +745,10 @@ describe("Issuers", () => {
           `0x${crypto.randomBytes(32).toString("hex")}`,
           IssuerType.RootTAO,
           rootTAO1.did,
-          rootTAO1.attributeId
-        )
+          rootTAO1.attributeId,
+        ),
       ).to.be.revertedWith(
-        "Policy error: sender doesn't have the attribute TIR:setAttributeMetadata"
+        "Policy error: sender doesn't have the attribute TIR:setAttributeMetadata",
       );
 
       // A third TAO cannot update attributes
@@ -762,8 +760,8 @@ describe("Issuers", () => {
           ti1.attributeId2,
           IssuerType.TI,
           tao2.did,
-          tao2.attributeId
-        )
+          tao2.attributeId,
+        ),
       ).to.emit(tir, "AddAttributeRevision");
 
       await expect(
@@ -772,10 +770,10 @@ describe("Issuers", () => {
           ti1.attributeId1,
           IssuerType.Revoked,
           tao2.did,
-          tao2.attributeId
-        )
+          tao2.attributeId,
+        ),
       ).to.be.revertedWith(
-        `Policy error: sender is not TAO/RootTao of current did ${ti1.did} and it doesn't have the attribute TIR:setAttributeMetadata`
+        `Policy error: sender is not TAO/RootTao of current did ${ti1.did} and it doesn't have the attribute TIR:setAttributeMetadata`,
       );
     });
   });
@@ -788,7 +786,7 @@ describe("Issuers", () => {
 
       await expect(tir.addIssuerProxy(didIssuer, proxyData1)).to.emit(
         tir,
-        "AddIssuerProxy"
+        "AddIssuerProxy",
       );
       const issuerProxies = await tir.getIssuerProxies(didIssuer);
       expect(issuerProxies).to.be.an("array");
@@ -801,9 +799,9 @@ describe("Issuers", () => {
 
       // Adding a new proxy config
       await expect(
-        tir.addIssuerProxy(didIssuer, proxyData1)
+        tir.addIssuerProxy(didIssuer, proxyData1),
       ).to.be.revertedWith(
-        "Policy error: sender is not controller of the did did:ebsi:issuer and it doesn't have the attribute TIR:updateIssuer"
+        "Policy error: sender is not controller of the did did:ebsi:issuer and it doesn't have the attribute TIR:updateIssuer",
       );
     });
 
@@ -814,10 +812,10 @@ describe("Issuers", () => {
 
       await expect(tir.addIssuerProxy(didIssuer, proxyData1)).to.emit(
         tir,
-        "AddIssuerProxy"
+        "AddIssuerProxy",
       );
       await expect(
-        tir.addIssuerProxy(didIssuer, proxyData1)
+        tir.addIssuerProxy(didIssuer, proxyData1),
       ).to.be.revertedWith("proxy already stored");
     });
 
@@ -828,7 +826,7 @@ describe("Issuers", () => {
 
       const proxyId = `0x${crypto.randomBytes(32).toString("hex")}`;
       await expect(
-        tir.updateIssuerProxy(didIssuer, proxyId, proxyData1)
+        tir.updateIssuerProxy(didIssuer, proxyId, proxyData1),
       ).to.be.revertedWith("proxy not found");
     });
 
@@ -839,13 +837,13 @@ describe("Issuers", () => {
 
       await expect(tir.addIssuerProxy(didIssuer, proxyData1)).to.emit(
         tir,
-        "AddIssuerProxy"
+        "AddIssuerProxy",
       );
 
       const [proxyId] = await tir.getIssuerProxies(didIssuer);
       const proxyDataReturned = await tir.getIssuerProxyById(
         didIssuer,
-        proxyId
+        proxyId,
       );
       expect(proxyDataReturned).to.not.eq(undefined);
     });
@@ -857,7 +855,7 @@ describe("Issuers", () => {
 
       await expect(tir.addIssuerProxy(didIssuer, proxyData1)).to.emit(
         tir,
-        "AddIssuerProxy"
+        "AddIssuerProxy",
       );
 
       const [proxyId] = await tir.getIssuerProxies(didIssuer);
@@ -867,7 +865,7 @@ describe("Issuers", () => {
       proxyData = randomProxy();
 
       await expect(
-        tir.updateIssuerProxy(didIssuer, proxyId, proxyData)
+        tir.updateIssuerProxy(didIssuer, proxyId, proxyData),
       ).to.emit(tir, "UpdateIssuerProxy");
 
       // No new records should be added.
@@ -884,7 +882,7 @@ describe("Issuers", () => {
 
       await expect(tir.addIssuerProxy(randomDidResult, proxyData1)).to.emit(
         tir,
-        "AddIssuerProxy"
+        "AddIssuerProxy",
       );
     });
 
@@ -898,7 +896,7 @@ describe("Issuers", () => {
       const proxyData = randomProxy();
 
       await expect(
-        tir.updateIssuerProxy(didIssuer, proxyId, proxyData)
+        tir.updateIssuerProxy(didIssuer, proxyId, proxyData),
       ).to.emit(tir, "UpdateIssuerProxy");
     });
 
@@ -908,7 +906,7 @@ describe("Issuers", () => {
 
       await expect(tir.addIssuerProxy(didIssuer, proxyData1)).to.emit(
         tir,
-        "AddIssuerProxy"
+        "AddIssuerProxy",
       );
 
       const [proxyId] = await tir.getIssuerProxies(didIssuer);
@@ -918,9 +916,9 @@ describe("Issuers", () => {
       await didContractMock.setDidResult(false);
 
       await expect(
-        tir.updateIssuerProxy(didIssuer, proxyId, proxyData1)
+        tir.updateIssuerProxy(didIssuer, proxyId, proxyData1),
       ).to.be.revertedWith(
-        "Policy error: sender is not controller of the did did:ebsi:issuer and it doesn't have the attribute TIR:updateIssuer"
+        "Policy error: sender is not controller of the did did:ebsi:issuer and it doesn't have the attribute TIR:updateIssuer",
       );
     });
   });

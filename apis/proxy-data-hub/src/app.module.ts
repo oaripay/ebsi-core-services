@@ -2,12 +2,12 @@ import { Module } from "@nestjs/common";
 import { TerminusModule } from "@nestjs/terminus";
 import { APP_INTERCEPTOR } from "@nestjs/core";
 import { ConfigService } from "@nestjs/config";
-import { ApiConfigModule } from "./config/configuration";
-import { AttributesModule } from "./modules/attributes/attributes.module";
-import { HealthModule } from "./modules/health/health.module";
-import { LoggingInterceptor } from "./interceptors/logging.interceptor";
-import { VersionInterceptor } from "./interceptors/version.interceptor";
-import { OpenApiModule } from "./modules/openapi/openapi.module";
+import { ApiConfigModule } from "./config/configuration.js";
+import { AttributesModule } from "./modules/attributes/attributes.module.js";
+import { HealthModule } from "./modules/health/health.module.js";
+import { LoggingInterceptor } from "./interceptors/logging.interceptor.js";
+import { VersionInterceptor } from "./interceptors/version.interceptor.js";
+import { OpenApiModule } from "./modules/openapi/openapi.module.js";
 
 @Module({
   imports: [

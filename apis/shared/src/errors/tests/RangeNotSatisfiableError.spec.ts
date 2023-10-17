@@ -1,5 +1,5 @@
-import { describe, it, expect } from "@jest/globals";
-import { RangeNotSatisfiableError, ProblemDetailsError } from "../index";
+import { describe, it, expect } from "vitest";
+import { RangeNotSatisfiableError, ProblemDetailsError } from "../index.js";
 
 describe("error RangeNotSatisfiableError", () => {
   it("should extend ProblemDetailsError", () => {
@@ -69,7 +69,7 @@ describe("error RangeNotSatisfiableError", () => {
     });
 
     expect(error.toString()).toBe(
-      `${RangeNotSatisfiableError.statusCode} - Test Error`
+      `${RangeNotSatisfiableError.statusCode} - Test Error`,
     );
   });
 });

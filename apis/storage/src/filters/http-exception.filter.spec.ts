@@ -1,28 +1,26 @@
-import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
-import { Test, TestingModule } from "@nestjs/testing";
+import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
+import { Test, type TestingModule } from "@nestjs/testing";
 import {
-  INestApplication,
   ValidationPipe,
   Logger,
   NotFoundException,
   BadRequestException,
-  ArgumentsHost,
+  type ArgumentsHost,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { AxiosError } from "axios";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { FastifyInstance } from "fastify";
 import { ProblemDetailsError } from "@ebsiint-api/shared";
-import { AllExceptionsFilter } from "./http-exception.filter";
-import { ApiConfig } from "../config/configuration";
+import { AllExceptionsFilter } from "./http-exception.filter.js";
+import type { ApiConfig } from "../config/configuration.js";
 
-const mockGetResponse = jest.fn().mockImplementation(() => ({
-  code: jest.fn().mockImplementation((code: number) => ({
-    type: jest.fn().mockImplementation((type: string) => ({
-      send: jest.fn().mockImplementation((send: unknown) => ({
+const mockGetResponse = vi.fn().mockImplementation(() => ({
+  code: vi.fn().mockImplementation((code: number) => ({
+    type: vi.fn().mockImplementation((type: string) => ({
+      send: vi.fn().mockImplementation((send: unknown) => ({
         code,
         type,
         send,
@@ -31,23 +29,23 @@ const mockGetResponse = jest.fn().mockImplementation(() => ({
   })),
 }));
 
-const mockHttpArgumentsHost = jest.fn().mockImplementation(() => ({
+const mockHttpArgumentsHost = vi.fn().mockImplementation(() => ({
   getResponse: mockGetResponse,
-  getRequest: jest.fn(),
-  getNext: jest.fn(),
+  getRequest: vi.fn(),
+  getNext: vi.fn(),
 })) as ArgumentsHost["switchToHttp"];
 
 const mockArgumentsHost: ArgumentsHost = {
   switchToHttp: mockHttpArgumentsHost,
-  getArgByIndex: jest.fn() as ArgumentsHost["getArgByIndex"],
-  getArgs: jest.fn() as ArgumentsHost["getArgs"],
-  getType: jest.fn() as ArgumentsHost["getType"],
-  switchToRpc: jest.fn() as ArgumentsHost["switchToRpc"],
-  switchToWs: jest.fn() as ArgumentsHost["switchToWs"],
+  getArgByIndex: vi.fn() as ArgumentsHost["getArgByIndex"],
+  getArgs: vi.fn() as ArgumentsHost["getArgs"],
+  getType: vi.fn() as ArgumentsHost["getType"],
+  switchToRpc: vi.fn() as ArgumentsHost["switchToRpc"],
+  switchToWs: vi.fn() as ArgumentsHost["switchToWs"],
 };
 
 describe("All exception filter tests", () => {
-  let app: INestApplication;
+  let app: NestFastifyApplication;
   let service: AllExceptionsFilter;
   let configService: ConfigService<ApiConfig, true>;
 
@@ -58,7 +56,7 @@ describe("All exception filter tests", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     // Turn off logger
@@ -68,15 +66,11 @@ describe("All exception filter tests", () => {
     app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
     service = moduleFixture.get<AllExceptionsFilter>(AllExceptionsFilter);
   });
 
   afterAll(async () => {
-    // Avoid jest open handle error
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
     await app.close();
   });
 
@@ -152,7 +146,6 @@ describe("All exception filter tests", () => {
   describe("Axios errors", () => {
     const axiosError: AxiosError = {
       isAxiosError: true,
-      config: null,
       toJSON: () => ({}),
       name: "Error",
       message: "error",

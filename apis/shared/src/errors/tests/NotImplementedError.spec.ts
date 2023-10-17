@@ -1,5 +1,5 @@
-import { describe, it, expect } from "@jest/globals";
-import { NotImplementedError, ProblemDetailsError } from "../index";
+import { describe, it, expect } from "vitest";
+import { NotImplementedError, ProblemDetailsError } from "../index.js";
 
 describe("error NotImplementedError", () => {
   it("should extend ProblemDetailsError", () => {
@@ -69,7 +69,7 @@ describe("error NotImplementedError", () => {
     });
 
     expect(error.toString()).toBe(
-      `${NotImplementedError.statusCode} - Test Error`
+      `${NotImplementedError.statusCode} - Test Error`,
     );
   });
 });

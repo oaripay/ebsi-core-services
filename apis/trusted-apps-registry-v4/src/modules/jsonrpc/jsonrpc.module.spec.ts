@@ -1,37 +1,31 @@
 import {
-  jest,
+  vi,
   describe,
   beforeAll,
   beforeEach,
   afterAll,
   it,
   expect,
-} from "@jest/globals";
+} from "vitest";
 import axios from "axios";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  HttpServer,
-  ValidationPipe,
-  Logger,
-} from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import crypto from "node:crypto";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { createJWT, ES256KSigner } from "did-jwt";
-import { JWTVerifyResult } from "jose";
+import type { JWTVerifyResult } from "jose";
 import { Tar, Tar__factory } from "@ebsiint-sc/trusted-apps-registry-v3";
-import { AsyncReturnType } from "@ebsiint-api/shared";
-import { JsonRpcModule } from "./jsonrpc.module";
-import { JsonRpcService } from "./jsonrpc.service";
-import { JsonRpcResponseObject } from "./jsonrpc.interface";
+import { JsonRpcModule } from "./jsonrpc.module.js";
+import { JsonRpcService } from "./jsonrpc.service.js";
+import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
 import {
   UnsignedTransaction,
   DeleteAppAdministratorParam,
@@ -44,12 +38,12 @@ import {
   UpdateAppParam,
   InsertAppPublicKeyParam,
   UpdateAppPublicKeyParam,
-} from "./dto";
-import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { setupTestEnv } from "../../../tests/utils/tar";
-import LedgerService from "../ledger/ledger.service";
-import { ApiConfig } from "../../config/configuration";
+} from "./dto/index.js";
+import { formatEthersUnsignedTransaction } from "./jsonrpc.utils.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import { setupTestEnv } from "../../../tests/utils/tar.js";
+import LedgerService from "../ledger/ledger.service.js";
+import type { ApiConfig } from "../../config/configuration.js";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -68,15 +62,13 @@ type JsonRpcParams =
   | InsertAppPublicKeyParam
   | UpdateAppPublicKeyParam;
 
-jest.setTimeout(90000);
-
 let tokenVerificationResolve = true;
 let customPayload = {
   sub: "test",
 } as unknown;
 
-jest.mock("@cef-ebsi/siop-auth", () => ({
-  verifyJwtTar: jest.fn().mockImplementation(async () => {
+vi.mock("@cef-ebsi/siop-auth", () => ({
+  verifyJwtTar: vi.fn().mockImplementation(async () => {
     if (!tokenVerificationResolve)
       return Promise.reject(new Error("error message"));
     return Promise.resolve({
@@ -86,12 +78,12 @@ jest.mock("@cef-ebsi/siop-auth", () => ({
 }));
 
 describe("JsonRpc Module", () => {
-  let app: INestApplication;
-  let server: HttpServer;
+  let app: NestFastifyApplication;
+  let server: RawServerDefault;
   let tarContract: Tar;
   let jsonRpcService: JsonRpcService;
   let ledgerService: LedgerService;
-  let testEnv: AsyncReturnType<typeof setupTestEnv>;
+  let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
   let userAccessToken: string;
   let userAccessTokenPayload: { [x: string]: unknown };
   let defaultSignerSiopAccessToken: string;
@@ -110,15 +102,13 @@ describe("JsonRpc Module", () => {
     tarContract = testEnv.tarContract;
 
     // Mock TAR contract
-    jest
-      .spyOn(ethers.providers, "WebSocketProvider")
-      .mockImplementation(
-        () =>
-          new ethers.providers.BaseProvider(
-            "any"
-          ) as ethers.providers.WebSocketProvider
-      );
-    jest.spyOn(Tar__factory, "connect").mockImplementation(() => tarContract);
+    vi.spyOn(ethers.providers, "WebSocketProvider").mockImplementation(
+      () =>
+        new ethers.providers.BaseProvider(
+          "any",
+        ) as ethers.providers.WebSocketProvider,
+    );
+    vi.spyOn(Tar__factory, "connect").mockImplementation(() => tarContract);
 
     // Start server
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -126,7 +116,7 @@ describe("JsonRpc Module", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     // Turn off logger
@@ -139,8 +129,8 @@ describe("JsonRpc Module", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    await app.getHttpAdapter().getInstance().ready();
+    server = app.getHttpServer();
 
     jsonRpcService = moduleFixture.get<JsonRpcService>(JsonRpcService);
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
@@ -160,31 +150,27 @@ describe("JsonRpc Module", () => {
       {
         issuer: "any",
         signer: ES256KSigner(crypto.randomBytes(32)),
-      }
+      },
     );
   });
 
   beforeEach(() => {
     // Make sure we never use axios.post or axios.get in tests ;-)
-    jest.spyOn(axios, "post").mockImplementation(() => {
+    vi.spyOn(axios, "post").mockImplementation(() => {
       throw new Error("Forgot to mock an axios call?");
     });
 
-    jest.spyOn(axios, "get").mockImplementation(() => {
+    vi.spyOn(axios, "get").mockImplementation(() => {
       throw new Error("Forgot to mock an axios call?");
     });
 
     // For the tests, we assume that the DID is controlled by the signer
-    jest
-      .spyOn(jsonRpcService, "isDidControlledByAddress")
-      .mockImplementation(async () => Promise.resolve(true));
+    vi.spyOn(jsonRpcService, "isDidControlledByAddress").mockImplementation(
+      async () => Promise.resolve(true),
+    );
   });
 
   afterAll(async () => {
-    // Avoid jest open handle error
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
     await app.close();
   });
 
@@ -202,7 +188,7 @@ describe("JsonRpc Module", () => {
     });
     expect(response.status).toBe(401);
     expect(
-      (response.headers as { "content-type": string })["content-type"]
+      (response.headers as { "content-type": string })["content-type"],
     ).toStrictEqual(expect.stringContaining("application/problem+json"));
   });
 
@@ -225,7 +211,7 @@ describe("JsonRpc Module", () => {
     });
     expect(response.status).toBe(401);
     expect(
-      (response.headers as { "content-type": string })["content-type"]
+      (response.headers as { "content-type": string })["content-type"],
     ).toStrictEqual(expect.stringContaining("application/problem+json"));
   });
 
@@ -270,7 +256,7 @@ describe("JsonRpc Module", () => {
     };
 
     const uTx = formatEthersUnsignedTransaction(
-      JSON.parse(JSON.stringify(transaction)) as unknown as UnsignedTransaction
+      JSON.parse(JSON.stringify(transaction)) as unknown as UnsignedTransaction,
     );
     uTx.chainId = Number(uTx.chainId);
     const sgnTx = await wallet.signTransaction(uTx);
@@ -331,7 +317,7 @@ describe("JsonRpc Module", () => {
       error: {
         code: -32600,
         message: expect.stringContaining(
-          "The method 'unknown-method' is invalid"
+          "The method 'unknown-method' is invalid",
         ),
       },
     });
@@ -355,9 +341,9 @@ describe("JsonRpc Module", () => {
       defaultSignerSiopAccessTokenPayload as unknown as JWTVerifyResult;
 
     // The DID is not controlled by the signer
-    jest
-      .spyOn(jsonRpcService, "isDidControlledByAddress")
-      .mockImplementation(async () => Promise.resolve(false));
+    vi.spyOn(jsonRpcService, "isDidControlledByAddress").mockImplementation(
+      async () => Promise.resolve(false),
+    );
 
     const responseBuild: SupertestJsonRpcResponse = await request(server)
       .post("/jsonrpc")
@@ -388,8 +374,8 @@ describe("JsonRpc Module", () => {
     const unsignedTransaction = responseBuild.body.result;
     const uTx = formatEthersUnsignedTransaction(
       JSON.parse(
-        JSON.stringify(unsignedTransaction)
-      ) as unknown as UnsignedTransaction
+        JSON.stringify(unsignedTransaction),
+      ) as unknown as UnsignedTransaction,
     );
     uTx.chainId = Number(uTx.chainId);
     const sgnTx = await signer.signTransaction(uTx);
@@ -448,7 +434,7 @@ describe("JsonRpc Module", () => {
       customPayload =
         defaultSignerSiopAccessTokenPayload as unknown as JWTVerifyResult;
 
-      let param: JsonRpcParams = null;
+      let param: JsonRpcParams | null = null;
 
       const signer = testEnv.user.wallet;
 
@@ -464,15 +450,15 @@ describe("JsonRpc Module", () => {
       };
       const appInfoHex = `0x${Buffer.from(
         JSON.stringify(appInfo),
-        "utf8"
+        "utf8",
       ).toString("hex")}`;
 
       // Get pre-existing apps
       const { apps } = testEnv;
 
       const authorization = {
-        name: apps[0].name,
-        authorizedAppName: apps[1].name,
+        name: apps[0]!.name,
+        authorizedAppName: apps[1]!.name,
         iss: appAdmin1,
         status: 1,
       };
@@ -543,10 +529,10 @@ describe("JsonRpc Module", () => {
             await ledgerService
               .getContract()
               .getAuthorizations(
-                ethers.utils.sha256(Buffer.from(apps[0].name, "utf8")),
-                ethers.utils.sha256(Buffer.from(apps[1].name, "utf8")),
+                ethers.utils.sha256(Buffer.from(apps[0]!.name, "utf8")),
+                ethers.utils.sha256(Buffer.from(apps[1]!.name, "utf8")),
                 1,
-                10
+                10,
               )
           ).items[0];
 
@@ -594,7 +580,7 @@ describe("JsonRpc Module", () => {
         result: {
           chainId: expect.any(String),
           data: expect.any(String),
-          from: param.from,
+          from: param!.from,
           gasLimit: expect.any(String),
           gasPrice: expect.any(String),
           nonce: expect.any(String),
@@ -607,8 +593,8 @@ describe("JsonRpc Module", () => {
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
         JSON.parse(
-          JSON.stringify(unsignedTransaction)
-        ) as unknown as UnsignedTransaction
+          JSON.stringify(unsignedTransaction),
+        ) as unknown as UnsignedTransaction,
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx = await signer.signTransaction(uTx);
@@ -655,7 +641,7 @@ describe("JsonRpc Module", () => {
       // Get pre-existing apps
       const { apps } = testEnv;
 
-      let param: JsonRpcParams = null;
+      let param: JsonRpcParams | null = null;
 
       const publicKey = "this is a public key";
       const publicKeyId = ethers.utils.sha256(Buffer.from(publicKey, "utf8"));
@@ -666,7 +652,7 @@ describe("JsonRpc Module", () => {
       };
       const appInfoHex = `0x${Buffer.from(
         JSON.stringify(appInfo),
-        "utf8"
+        "utf8",
       ).toString("hex")}`;
 
       switch (method) {
@@ -715,7 +701,7 @@ describe("JsonRpc Module", () => {
           param = {
             from: signer.address,
             applicationId: ethers.utils.sha256(
-              Buffer.from(appPublicKey, "utf8")
+              Buffer.from(appPublicKey, "utf8"),
             ),
             revokedBy: appAdmin1,
             notBefore: Date.now() + 10000000,
@@ -725,8 +711,8 @@ describe("JsonRpc Module", () => {
         case "insertAuthorization": {
           param = {
             from: signer.address,
-            name: apps[0].name,
-            authorizedAppName: apps[1].name,
+            name: apps[0]!.name,
+            authorizedAppName: apps[1]!.name,
             iss: appAdmin1,
             status: 1,
           } as InsertAuthorizationParam;
@@ -775,7 +761,7 @@ describe("JsonRpc Module", () => {
       expect(responseBuild.body).toStrictEqual({
         jsonrpc: "2.0",
         id: null,
-        result: expect.objectContaining({}) as unknown,
+        result: expect.objectContaining({}),
       });
       expect(responseBuild.status).toBe(200);
     });
@@ -790,9 +776,9 @@ describe("JsonRpc Module", () => {
 
       const signer = testEnv.user.wallet;
 
-      let param1: JsonRpcParams = null;
-      let param2: JsonRpcParams = null;
-      let param3: JsonRpcParams = null;
+      let param1: JsonRpcParams | null = null;
+      let param2: JsonRpcParams | null = null;
+      let param3: JsonRpcParams | null = null;
 
       let expectedErrorMessage1: string;
       let expectedErrorMessage2: string;
@@ -806,7 +792,7 @@ describe("JsonRpc Module", () => {
       };
       const appInfoHex = `0x${Buffer.from(
         JSON.stringify(appInfo),
-        "utf8"
+        "utf8",
       ).toString("hex")}`;
 
       // Get pre-existing apps
@@ -846,7 +832,7 @@ describe("JsonRpc Module", () => {
         case "insertAppAdministrator":
           param1 = {
             applicationId: ethers.utils.sha256(
-              Buffer.from(appPublicKey, "utf8")
+              Buffer.from(appPublicKey, "utf8"),
             ),
             administratorId: appAdmin1,
           } as InsertAppAdministratorParam;
@@ -865,7 +851,7 @@ describe("JsonRpc Module", () => {
           param3 = {
             from: signer.address,
             applicationId: ethers.utils.sha256(
-              Buffer.from(appPublicKey, "utf8")
+              Buffer.from(appPublicKey, "utf8"),
             ),
           } as InsertAppAdministratorParam;
 
@@ -876,7 +862,7 @@ describe("JsonRpc Module", () => {
         case "deleteAppAdministrator":
           param1 = {
             applicationId: ethers.utils.sha256(
-              Buffer.from(appPublicKey, "utf8")
+              Buffer.from(appPublicKey, "utf8"),
             ),
             administratorId: appAdmin1,
           } as DeleteAppAdministratorParam;
@@ -895,7 +881,7 @@ describe("JsonRpc Module", () => {
           param3 = {
             from: signer.address,
             applicationId: ethers.utils.sha256(
-              Buffer.from(appPublicKey, "utf8")
+              Buffer.from(appPublicKey, "utf8"),
             ),
           } as DeleteAppAdministratorParam;
 
@@ -976,7 +962,7 @@ describe("JsonRpc Module", () => {
           param2 = {
             from: signer.address,
             applicationId: ethers.utils.sha256(
-              Buffer.from(appPublicKey, "utf8")
+              Buffer.from(appPublicKey, "utf8"),
             ),
             revokedBy: "mario",
             notBefore: Date.now() + 10000000,
@@ -988,7 +974,7 @@ describe("JsonRpc Module", () => {
           param3 = {
             from: signer.address,
             applicationId: ethers.utils.sha256(
-              Buffer.from(appPublicKey, "utf8")
+              Buffer.from(appPublicKey, "utf8"),
             ),
             revokedBy: appAdmin1,
             notBefore: -10,
@@ -1001,8 +987,8 @@ describe("JsonRpc Module", () => {
         case "insertAuthorization": {
           param1 = {
             from: "invalid address",
-            name: apps[0].name,
-            authorizedAppName: apps[1].name,
+            name: apps[0]!.name,
+            authorizedAppName: apps[1]!.name,
             iss: appAdmin1,
             status: 0,
           } as InsertAuthorizationParam;
@@ -1012,8 +998,8 @@ describe("JsonRpc Module", () => {
 
           param2 = {
             from: signer.address,
-            name: apps[0].name,
-            authorizedAppName: apps[1].name,
+            name: apps[0]!.name,
+            authorizedAppName: apps[1]!.name,
             iss: "invalid iss",
             status: 0,
           } as InsertAuthorizationParam;
@@ -1023,8 +1009,8 @@ describe("JsonRpc Module", () => {
 
           param3 = {
             from: signer.address,
-            name: apps[0].name,
-            authorizedAppName: apps[1].name,
+            name: apps[0]!.name,
+            authorizedAppName: apps[1]!.name,
             iss: appAdmin1,
             status: 45,
           } as unknown as InsertAuthorizationParam;
@@ -1079,7 +1065,7 @@ describe("JsonRpc Module", () => {
           param2 = {
             from: signer.address,
             applicationId: ethers.utils.sha256(
-              Buffer.from(appPublicKey, "utf8")
+              Buffer.from(appPublicKey, "utf8"),
             ),
             publicKey: `0x${crypto.randomBytes(12).toString("hex")}`,
             status: 45,
@@ -1213,7 +1199,7 @@ describe("JsonRpc Module", () => {
       };
       const appInfoHex = `0x${Buffer.from(
         JSON.stringify(appInfo),
-        "utf8"
+        "utf8",
       ).toString("hex")}`;
 
       // Get pre-existing apps
@@ -1239,14 +1225,14 @@ describe("JsonRpc Module", () => {
           param1 = {
             from: signer.address,
             applicationId: ethers.utils.sha256(
-              Buffer.from(appPublicKey, "utf8")
+              Buffer.from(appPublicKey, "utf8"),
             ),
             administratorId: appAdmin1,
           } as InsertAppAdministratorParam;
           param2 = {
             from: signer.address,
             applicationId: ethers.utils.sha256(
-              Buffer.from(appPublicKey, "utf8")
+              Buffer.from(appPublicKey, "utf8"),
             ),
             administratorId: EbsiWallet.createDid(),
           } as InsertAppAdministratorParam;
@@ -1255,14 +1241,14 @@ describe("JsonRpc Module", () => {
           param1 = {
             from: signer.address,
             applicationId: ethers.utils.sha256(
-              Buffer.from(appPublicKey, "utf8")
+              Buffer.from(appPublicKey, "utf8"),
             ),
             administratorId: appAdmin1,
           } as DeleteAppAdministratorParam;
           param2 = {
             from: signer.address,
             applicationId: ethers.utils.sha256(
-              Buffer.from(appPublicKey, "utf8")
+              Buffer.from(appPublicKey, "utf8"),
             ),
             administratorId: EbsiWallet.createDid(),
           } as DeleteAppAdministratorParam;
@@ -1285,7 +1271,7 @@ describe("JsonRpc Module", () => {
           param1 = {
             from: signer.address,
             applicationId: ethers.utils.sha256(
-              Buffer.from(appPublicKey, "utf8")
+              Buffer.from(appPublicKey, "utf8"),
             ),
             revokedBy: appAdmin1,
             notBefore: Date.now() + 10000000,
@@ -1293,7 +1279,7 @@ describe("JsonRpc Module", () => {
           param2 = {
             from: signer.address,
             applicationId: ethers.utils.sha256(
-              Buffer.from(appPublicKey, "utf8")
+              Buffer.from(appPublicKey, "utf8"),
             ),
             revokedBy: EbsiWallet.createDid(),
             notBefore: Date.now() + 10000000,
@@ -1319,15 +1305,15 @@ describe("JsonRpc Module", () => {
         case "insertAuthorization": {
           param1 = {
             from: signer.address,
-            name: apps[0].name,
-            authorizedAppName: apps[1].name,
+            name: apps[0]!.name,
+            authorizedAppName: apps[1]!.name,
             iss: appAdmin1,
             status: 0,
           } as InsertAuthorizationParam;
           param2 = {
             from: signer.address,
-            name: apps[0].name,
-            authorizedAppName: apps[1].name,
+            name: apps[0]!.name,
+            authorizedAppName: apps[1]!.name,
             iss: appAdmin1,
             status: 1,
           } as InsertAuthorizationParam;
@@ -1352,7 +1338,7 @@ describe("JsonRpc Module", () => {
           param1 = {
             from: signer.address,
             applicationId: ethers.utils.sha256(
-              Buffer.from(appPublicKey, "utf8")
+              Buffer.from(appPublicKey, "utf8"),
             ),
             publicKey: `0x${crypto.randomBytes(12).toString("hex")}`,
             status: 0,
@@ -1360,7 +1346,7 @@ describe("JsonRpc Module", () => {
           param2 = {
             from: signer.address,
             applicationId: ethers.utils.sha256(
-              Buffer.from(appPublicKey, "utf8")
+              Buffer.from(appPublicKey, "utf8"),
             ),
             publicKey: `0x${crypto.randomBytes(12).toString("hex")}`,
             status: 1,
@@ -1414,8 +1400,8 @@ describe("JsonRpc Module", () => {
 
       const uTx = formatEthersUnsignedTransaction(
         JSON.parse(
-          JSON.stringify(transaction1)
-        ) as unknown as UnsignedTransaction
+          JSON.stringify(transaction1),
+        ) as unknown as UnsignedTransaction,
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx1 = await randomSigner.signTransaction(uTx);
@@ -1446,7 +1432,7 @@ describe("JsonRpc Module", () => {
         error: {
           code: -32600,
           message: expect.stringContaining(
-            "does not match with the signedRawTransaction"
+            "does not match with the signedRawTransaction",
           ),
         },
       });
@@ -1478,7 +1464,7 @@ describe("JsonRpc Module", () => {
         error: {
           code: -32600,
           message: expect.stringContaining(
-            "does not match with unsignedTransaction.from"
+            "does not match with unsignedTransaction.from",
           ),
         },
       });

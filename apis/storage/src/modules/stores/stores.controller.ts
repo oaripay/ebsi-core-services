@@ -1,16 +1,16 @@
 import { Controller, Get, Query, Param, HttpCode } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { PaginatedList2 } from "@ebsiint-api/shared";
-import { StoresService } from "./stores.service";
-import { GetStoreDto, GetStoresDto } from "./dto";
-import { formatStores } from "./stores.formatter";
-import { ApiConfig } from "../../config/configuration";
+import type { PaginatedList2 } from "@ebsiint-api/shared";
+import { StoresService } from "./stores.service.js";
+import { GetStoreDto, GetStoresDto } from "./dto/index.js";
+import { formatStores } from "./stores.formatter.js";
+import type { ApiConfig } from "../../config/configuration.js";
 
 @Controller("/stores")
 export class StoresController {
   constructor(
     private storesService: StoresService,
-    private configService: ConfigService<ApiConfig, true>
+    private configService: ConfigService<ApiConfig, true>,
   ) {}
 
   @Get()

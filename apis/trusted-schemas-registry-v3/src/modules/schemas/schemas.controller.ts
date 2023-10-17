@@ -1,17 +1,17 @@
 import { Controller, Get, Query, Param, Header } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PaginatedList } from "@ebsiint-api/shared";
-import { SchemasService } from "./schemas.service";
+import { SchemasService } from "./schemas.service.js";
 import {
   formatSchemas,
   formatSchemaRevisions,
   formatSchemaRevisionMetadataList,
-} from "./schemas.formatter";
+} from "./schemas.formatter.js";
 import {
   GetSchemaRevisionMetadataListResponse,
   GetSchemaRevisionsResponse,
   GetSchemasResponse,
-} from "./schemas.interface";
+} from "./schemas.interface.js";
 import {
   GetSchemaParams,
   GetSchemaRevisionParams,
@@ -19,23 +19,23 @@ import {
   GetSchemasQuery,
   GetSchemaRevisionsQuery,
   GetSchemaRevisionMetadataQuery,
-} from "./dto";
-import { ApiConfig } from "../../config/configuration";
+} from "./dto/index.js";
+import type { ApiConfig } from "../../config/configuration.js";
 
 @Controller("/schemas")
 export class SchemasController {
   constructor(
     private schemasService: SchemasService,
-    private configService: ConfigService<ApiConfig, true>
+    private configService: ConfigService<ApiConfig, true>,
   ) {}
 
   @Get("")
   async getSchemas(
-    @Query() query: GetSchemasQuery
+    @Query() query: GetSchemasQuery,
   ): Promise<PaginatedList<GetSchemasResponse>> {
     const schemas = await this.schemasService.getSchemas(
       query["page[after]"],
-      query["page[size]"]
+      query["page[size]"],
     );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
@@ -46,7 +46,7 @@ export class SchemasController {
       schemas,
       query["page[after]"],
       query["page[size]"],
-      baseUrl
+      baseUrl,
     );
   }
 
@@ -59,7 +59,7 @@ export class SchemasController {
   @Get("/:schemaId/revisions")
   async getSchemaRevisions(
     @Param() params: GetSchemaParams,
-    @Query() query: GetSchemaRevisionsQuery
+    @Query() query: GetSchemaRevisionsQuery,
   ): Promise<PaginatedList<GetSchemaRevisionsResponse>> {
     const { schemaId } = params;
 
@@ -67,7 +67,7 @@ export class SchemasController {
       schemaId,
       query["page[after]"],
       query["page[size]"],
-      query["valid-at"]
+      query["valid-at"],
     );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
@@ -79,13 +79,13 @@ export class SchemasController {
       query["page[after]"],
       query["page[size]"],
       baseUrl,
-      query["valid-at"]
+      query["valid-at"],
     );
   }
 
   @Get("/:schemaId/revisions/:schemaRevisionId")
   async getSchemaRevision(
-    @Param() params: GetSchemaRevisionParams
+    @Param() params: GetSchemaRevisionParams,
   ): Promise<unknown> {
     const { schemaId, schemaRevisionId } = params;
     return this.schemasService.getSchemaRevision(schemaId, schemaRevisionId);
@@ -94,7 +94,7 @@ export class SchemasController {
   @Get("/:schemaId/revisions/:schemaRevisionId/metadata")
   async getSchemaRevisionMetadataList(
     @Param() params: GetSchemaRevisionParams,
-    @Query() query: GetSchemaRevisionMetadataQuery
+    @Query() query: GetSchemaRevisionMetadataQuery,
   ): Promise<PaginatedList<GetSchemaRevisionMetadataListResponse>> {
     const { schemaId, schemaRevisionId } = params;
 
@@ -102,7 +102,7 @@ export class SchemasController {
       schemaId,
       schemaRevisionId,
       query["page[after]"],
-      query["page[size]"]
+      query["page[size]"],
     );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
@@ -113,21 +113,21 @@ export class SchemasController {
       metadata,
       query["page[after]"],
       query["page[size]"],
-      baseUrl
+      baseUrl,
     );
   }
 
   @Get("/:schemaId/revisions/:schemaRevisionId/metadata/:metadataId")
   @Header("Content-type", "application/ld+json")
   async getSchemaRevisionMetadata(
-    @Param() params: GetSchemaRevisionMetadataParams
+    @Param() params: GetSchemaRevisionMetadataParams,
   ): Promise<unknown> {
     const { schemaId, schemaRevisionId, metadataId } = params;
 
     return this.schemasService.getSchemaRevisionMetadata(
       schemaId,
       schemaRevisionId,
-      metadataId
+      metadataId,
     );
   }
 }

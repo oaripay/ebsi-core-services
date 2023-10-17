@@ -1,5 +1,5 @@
-import { describe, it, expect } from "@jest/globals";
-import { formatKeys } from "./key-values.formatter";
+import { describe, it, expect } from "vitest";
+import { formatKeys } from "./key-values.formatter.js";
 
 describe("formatKeys", () => {
   it("should paginate the values returned by Cassandra", () => {
@@ -19,8 +19,8 @@ describe("formatKeys", () => {
         nextPageToken,
         pageSize,
         "",
-        "?test=true"
-      )
+        "?test=true",
+      ),
     ).toStrictEqual({
       items: keys,
       links: {
@@ -39,8 +39,8 @@ describe("formatKeys", () => {
         nextPageToken,
         pageSize,
         "",
-        "?test=true"
-      )
+        "?test=true",
+      ),
     ).toStrictEqual({
       items: keys,
       links: {
@@ -68,8 +68,8 @@ describe("formatKeys", () => {
         nextPageToken,
         pageSize,
         "",
-        "?test=true"
-      )
+        "?test=true",
+      ),
     ).toStrictEqual({
       items: keys,
       links: {},

@@ -1,1 +1,1 @@
-export * from "./bearer-jwt.strategy";
+export * from "./bearer-jwt.strategy.js";

@@ -6,19 +6,19 @@ import {
   Equals,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { JsonRpcDto } from "../jsonrpc.dto";
-import { DeleteAppAdministratorParam } from "./delete-app-administrator-param.dto";
+import { JsonRpcDto } from "../jsonrpc.dto.js";
+import { DeleteAppAdministratorParam } from "./delete-app-administrator-param.dto.js";
 
 export class RequestDeleteAppAdministratorDto extends JsonRpcDto {
   @Equals("deleteAppAdministrator")
-  method: string;
+  declare method: string;
 
   @IsArray()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @Type(() => DeleteAppAdministratorParam)
-  params: DeleteAppAdministratorParam[];
+  declare params: DeleteAppAdministratorParam[];
 }
 
 export default RequestDeleteAppAdministratorDto;

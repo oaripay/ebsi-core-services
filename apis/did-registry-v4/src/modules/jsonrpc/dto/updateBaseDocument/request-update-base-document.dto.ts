@@ -6,19 +6,19 @@ import {
   Equals,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { JsonRpcDto } from "../jsonrpc.dto";
-import { UpdateBaseDocumentParam } from "./update-base-document-param.dto";
+import { JsonRpcDto } from "../jsonrpc.dto.js";
+import { UpdateBaseDocumentParam } from "./update-base-document-param.dto.js";
 
 export class RequestUpdateBaseDocumentDto extends JsonRpcDto {
   @Equals("updateBaseDocument")
-  method!: "updateBaseDocument";
+  declare method: "updateBaseDocument";
 
   @IsArray()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @Type(() => UpdateBaseDocumentParam)
-  params!: UpdateBaseDocumentParam[];
+  declare params: UpdateBaseDocumentParam[];
 }
 
 export default RequestUpdateBaseDocumentDto;

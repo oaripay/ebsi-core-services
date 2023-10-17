@@ -1,5 +1,5 @@
-import { describe, it, expect } from "@jest/globals";
-import { UriTooLongError, ProblemDetailsError } from "../index";
+import { describe, it, expect } from "vitest";
+import { UriTooLongError, ProblemDetailsError } from "../index.js";
 
 describe("error UriTooLongError", () => {
   it("should extend ProblemDetailsError", () => {

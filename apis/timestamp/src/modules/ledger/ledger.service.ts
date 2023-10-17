@@ -4,11 +4,11 @@ import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import { Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
 import { decodeJWT } from "did-jwt";
-import axios, { AxiosResponse } from "axios";
+import axios, { type AxiosResponse } from "axios";
 import { Mutex } from "async-mutex";
 import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp";
 import { logAxiosError, InternalServerError } from "@ebsiint-api/shared";
-import { ApiConfig } from "../../config/configuration";
+import type { ApiConfig } from "../../config/configuration.js";
 
 // Refresh the token if it expires in less than 10 seconds
 const REFRESH_LIMIT = 10 * 1000;
@@ -17,17 +17,19 @@ const REFRESH_LIMIT = 10 * 1000;
 export class LedgerService {
   private readonly logger = new Logger(LedgerService.name);
 
-  private ethersProvider: ethers.providers.JsonRpcProvider;
+  private ethersProvider: ethers.providers.JsonRpcProvider | undefined;
 
-  private ethersProviderWithoutToken: ethers.providers.JsonRpcProvider;
+  private ethersProviderWithoutToken:
+    | ethers.providers.JsonRpcProvider
+    | undefined;
 
-  private timestampContract: Timestamp;
+  private timestampContract: Timestamp | undefined;
 
-  private publicMethodsTimestampContract: Timestamp;
+  private publicMethodsTimestampContract: Timestamp | undefined;
 
   private timestampAddress: string;
 
-  private accessTokenExp: number;
+  private accessTokenExp: number | undefined;
 
   private agent: Agent;
 
@@ -48,21 +50,21 @@ export class LedgerService {
   constructor(private configService: ConfigService<ApiConfig, true>) {
     this.timestampAddress = this.configService.get<string>("contractAddr");
     this.authorisationApiUrl = this.configService.get<string>(
-      "authorisationApiUrl"
+      "authorisationApiUrl",
     );
 
     this.agent = new Agent({
       privateKey: this.configService.get<string>("apiPrivateKey"),
       name: this.configService.get<string>("apiName"),
       trustedAppsRegistry: `${this.configService.get<string>(
-        "trustedAppsRegistryApiUrl"
+        "trustedAppsRegistryApiUrl",
       )}/apps`,
     });
 
     this.domain = this.configService.get<string>("domain");
     this.localOrigin = this.configService.get<string>("localOrigin");
     this.remoteLedgerApi = `${this.configService.get<string>(
-      "ledgerApiUrl"
+      "ledgerApiUrl",
     )}/blockchains/besu`;
     this.timeout = configService.get<number>("requestTimeout");
     this.publicProviderMutex = new Mutex();
@@ -83,7 +85,7 @@ export class LedgerService {
 
     const requestComponent = await this.agent.createRequest(
       this.configService.get<string>("ledgerApiName"),
-      { nonce }
+      { nonce },
     );
 
     // Send request payload to Authorisation API
@@ -137,53 +139,58 @@ export class LedgerService {
           // Ignore debug
         }
       });
-    } else {
-      this.ethersProviderWithoutToken = new ethers.providers.JsonRpcProvider({
-        url,
-        timeout: this.timeout,
-      });
 
-      this.ethersProviderWithoutToken.on("debug", (...args) => {
-        try {
-          if (typeof args[0] === "object" && "error" in args[0]) {
-            this.logger.debug(JSON.stringify(args[0]));
-          }
-        } catch {
-          // Ignore debug
-        }
-      });
+      return this.ethersProvider;
     }
+
+    this.ethersProviderWithoutToken = new ethers.providers.JsonRpcProvider({
+      url,
+      timeout: this.timeout,
+    });
+
+    this.ethersProviderWithoutToken.on("debug", (...args) => {
+      try {
+        if (typeof args[0] === "object" && "error" in args[0]) {
+          this.logger.debug(JSON.stringify(args[0]));
+        }
+      } catch {
+        // Ignore debug
+      }
+    });
+
+    return this.ethersProviderWithoutToken;
   }
 
   private async connectProvider(token?: string) {
     if (this.domain && this.localOrigin) {
+      let provider: ethers.providers.JsonRpcProvider;
       try {
         const localUrl = this.remoteLedgerApi.replace(
           this.domain,
-          this.localOrigin
+          this.localOrigin,
         );
         this.logger.debug(
           `Trying to connect to local Ledger API: ${localUrl} (${
             token ? "with" : "without"
-          } access token)`
+          } access token)`,
         );
-        this.setupProvider(localUrl, token);
-        if (token) {
-          await this.ethersProvider.getNetwork();
-        } else {
-          await this.ethersProviderWithoutToken.getNetwork();
-        }
+        provider = this.setupProvider(localUrl, token);
+        await provider.getNetwork();
         this.logger.debug("Connected to local Ledger API");
       } catch (e) {
         this.logger.debug(
-          `Falling back to remote Ledger API: ${this.remoteLedgerApi}`
+          `Falling back to remote Ledger API: ${this.remoteLedgerApi}`,
         );
-        this.setupProvider(this.remoteLedgerApi, token);
+        provider = this.setupProvider(this.remoteLedgerApi, token);
       }
-    } else {
-      this.logger.debug(`Using remote Ledger API: ${this.remoteLedgerApi}`);
-      this.setupProvider(this.remoteLedgerApi, token);
+
+      return provider;
     }
+
+    this.logger.debug(`Using remote Ledger API: ${this.remoteLedgerApi}`);
+    const provider = this.setupProvider(this.remoteLedgerApi, token);
+
+    return provider;
   }
 
   private async refreshConnection() {
@@ -195,11 +202,11 @@ export class LedgerService {
       await this.privateProviderMutex.runExclusive(async () => {
         const token = await this.getAccessToken();
 
-        await this.connectProvider(token);
+        const provider = await this.connectProvider(token);
 
         this.timestampContract = Timestamp__factory.connect(
           this.timestampAddress,
-          this.ethersProvider
+          provider,
         );
       });
     }
@@ -216,22 +223,22 @@ export class LedgerService {
     } else {
       // Create a new connection
       await this.publicProviderMutex.runExclusive(async () => {
-        await this.connectProvider();
+        const provider = await this.connectProvider();
 
         this.publicMethodsTimestampContract = Timestamp__factory.connect(
           this.timestampAddress,
-          this.ethersProviderWithoutToken
+          provider,
         );
       });
     }
 
-    return this.publicMethodsTimestampContract;
+    return this.publicMethodsTimestampContract!;
   }
 
   async getContract({ protectedMethod = false } = {}): Promise<Timestamp> {
     if (protectedMethod) {
       await this.checkSession();
-      return this.timestampContract;
+      return this.timestampContract!;
     }
 
     return this.getPublicMethodsTimestampContract();

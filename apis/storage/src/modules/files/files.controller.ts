@@ -21,12 +21,12 @@ import {
   PaginatedList2,
   byteLength,
 } from "@ebsiint-api/shared";
-import { FilesService } from "./files.service";
-import { FileMetadata, PostFileResponseObject } from "./files.interface";
-import { formatFiles } from "./files.formatter";
-import { ApiConfig } from "../../config/configuration";
-import { SiopJwtAuthGuard } from "../auth/guards";
-import { User, ClientInfo } from "../auth/decorators";
+import { FilesService } from "./files.service.js";
+import { FileMetadata, PostFileResponseObject } from "./files.interface.js";
+import { formatFiles } from "./files.formatter.js";
+import type { ApiConfig } from "../../config/configuration.js";
+import { SiopJwtAuthGuard } from "../auth/guards/index.js";
+import { User, type ClientInfo } from "../auth/decorators/index.js";
 import {
   DeleteFileParams,
   GetFileParams,
@@ -35,13 +35,13 @@ import {
   PatchFileBody,
   PatchFileParams,
   PostFileBody,
-} from "./dto";
+} from "./dto/index.js";
 
 @Controller("/stores/distributed/files")
 export class FilesController {
   constructor(
     private filesService: FilesService,
-    private configService: ConfigService<ApiConfig, true>
+    private configService: ConfigService<ApiConfig, true>,
   ) {}
 
   @HttpCode(200)
@@ -49,7 +49,7 @@ export class FilesController {
   @Get()
   async getKeys(
     @Query() query: GetFilesQuery,
-    @User() user: ClientInfo
+    @User() user: ClientInfo,
   ): Promise<PaginatedList2<string>> {
     const { did } = user;
     const pageAfter = query["page[after]"];
@@ -58,7 +58,7 @@ export class FilesController {
     const { hashes, pageState } = await this.filesService.getFiles(
       did,
       pageAfter,
-      pageSize
+      pageSize,
     );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
@@ -75,7 +75,7 @@ export class FilesController {
   async getFile(
     @Param() params: GetFileParams,
     @User() user: ClientInfo,
-    @Response() res: FastifyReply
+    @Response() res: FastifyReply,
   ): Promise<FastifyReply> {
     const { hash } = params;
     const { did } = user;
@@ -90,7 +90,7 @@ export class FilesController {
       .type(mimetype || "application/octet-stream")
       .header(
         "Content-Disposition",
-        `attachment; filename=${filename || "unknown"}`
+        `attachment; filename=${filename || "unknown"}`,
       )
       .header("Content-Length", byteLength(data))
       .send(data);
@@ -101,7 +101,7 @@ export class FilesController {
   @Get("/:hash/metadata")
   async getFileMetadata(
     @Param() params: GetFileMetadataParams,
-    @User() user: ClientInfo
+    @User() user: ClientInfo,
   ): Promise<FileMetadata> {
     const { hash } = params;
     const { did } = user;
@@ -114,7 +114,7 @@ export class FilesController {
   @HttpCode(201)
   async postFile(
     @Request() req: FastifyRequest,
-    @User() user: ClientInfo
+    @User() user: ClientInfo,
   ): Promise<PostFileResponseObject> {
     if (!req.isMultipart()) {
       throw new BadRequestError(BadRequestError.defaultTitle, {
@@ -135,7 +135,7 @@ export class FilesController {
     @Param() params: PatchFileParams,
     @Headers("content-type") contentType: string,
     @Body(new ParseArrayPipe({ items: PatchFileBody })) patch: PatchFileBody[],
-    @User() user: ClientInfo
+    @User() user: ClientInfo,
   ): Promise<FileMetadata> {
     if (contentType !== "application/json-patch+json") {
       throw new BadRequestError(BadRequestError.defaultTitle, {
@@ -155,7 +155,7 @@ export class FilesController {
   @Delete("/:hash")
   async deleteFile(
     @Param() params: DeleteFileParams,
-    @User() user: ClientInfo
+    @User() user: ClientInfo,
   ): Promise<void> {
     const { hash } = params;
     const { did } = user;

@@ -2,28 +2,28 @@ import { IsString } from "class-validator";
 
 export class UnsignedTransaction {
   @IsString()
-  from: string;
+  from!: string;
 
   @IsString()
-  to: string;
+  to!: string;
 
   @IsString()
-  data: string;
+  data!: string;
 
   @IsString()
-  nonce: string;
+  nonce!: string;
 
   @IsString()
-  chainId: string;
+  chainId!: string;
 
   @IsString()
-  gasLimit: string;
+  gasLimit!: string;
 
   @IsString()
-  gasPrice: string;
+  gasPrice!: string;
 
   @IsString()
-  value: string;
+  value!: string;
 }
 
 export default { UnsignedTransaction };

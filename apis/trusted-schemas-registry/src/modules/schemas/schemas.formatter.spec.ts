@@ -1,10 +1,10 @@
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 import {
   formatSchemas,
   formatSchemaRevisions,
   formatSchemaRevisionMetadataList,
-} from "./schemas.formatter";
-import { ItemsList } from "./schemas.interface";
+} from "./schemas.formatter.js";
+import { ItemsList } from "./schemas.interface.js";
 
 describe("formatSchemas", () => {
   const schemas: ItemsList = {
@@ -55,7 +55,7 @@ describe("formatSchemaRevisions", () => {
     const pageSize = 2;
 
     expect(
-      formatSchemaRevisions(schemaRevisions, page, pageSize, "")
+      formatSchemaRevisions(schemaRevisions, page, pageSize, ""),
     ).toStrictEqual({
       items: [
         {
@@ -82,7 +82,7 @@ describe("formatSchemaRevisions", () => {
     const validAt = new Date().toISOString();
 
     expect(
-      formatSchemaRevisions(schemaRevisions, page, pageSize, "", validAt)
+      formatSchemaRevisions(schemaRevisions, page, pageSize, "", validAt),
     ).toStrictEqual({
       items: [
         {
@@ -125,7 +125,7 @@ describe("formatSchemaRevisionMetadataList", () => {
     const pageSize = 2;
 
     expect(
-      formatSchemaRevisionMetadataList(metadata, page, pageSize, "")
+      formatSchemaRevisionMetadataList(metadata, page, pageSize, ""),
     ).toStrictEqual({
       items: [
         {

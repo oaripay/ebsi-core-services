@@ -1,8 +1,8 @@
 import { Module, Logger } from "@nestjs/common";
-import { ApiConfigModule } from "../../config/configuration";
-import AttributesController from "./attributes.controller";
-import { AttributesService } from "./attributes.service";
-import { AuthModule } from "../auth/auth.module";
+import { ApiConfigModule } from "../../config/configuration.js";
+import AttributesController from "./attributes.controller.js";
+import { AttributesService } from "./attributes.service.js";
+import { AuthModule } from "../auth/auth.module.js";
 
 @Module({
   imports: [ApiConfigModule, AuthModule],

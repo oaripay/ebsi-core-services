@@ -1,41 +1,35 @@
 import {
-  jest,
+  vi,
   describe,
   beforeAll,
   afterEach,
   afterAll,
   it,
   expect,
-} from "@jest/globals";
+} from "vitest";
 import request from "supertest";
 import crypto from "node:crypto";
-import { Test, TestingModule } from "@nestjs/testing";
+import { Test, type TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
-import {
-  INestApplication,
-  ValidationPipe,
-  Logger,
-  HttpServer,
-} from "@nestjs/common";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { ethers } from "ethers";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { createJWT, ES256KSigner } from "did-jwt";
 import * as OAuth2Lib from "@cef-ebsi/oauth2-auth";
 import * as SiopLib from "@cef-ebsi/siop-auth";
 import type { JwtTarVerifyResult } from "@cef-ebsi/oauth2-auth";
-import EbsiWallet from "@cef-ebsi/wallet-lib";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import canonicalize from "canonicalize";
 import { useContainer } from "class-validator";
 import type { JWTVerifyResult } from "jose";
 import type { HashName } from "multihashes";
 import { DidRegistry, DidRegistry__factory } from "@ebsiint-sc/did-registry";
-import { AsyncReturnType } from "@ebsiint-api/shared";
-import { JsonRpcModule } from "./jsonrpc.module";
-import { JsonRpcResponseObject } from "./jsonrpc.interface";
+import { JsonRpcModule } from "./jsonrpc.module.js";
+import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
 import {
   UnsignedTransaction,
   InsertHashAlgorithmParam,
@@ -49,44 +43,38 @@ import {
   DetachDidDocumentVersionParam,
   AppendDidDocumentVersionMetadataParam,
   DetachDidDocumentVersionMetadataParam,
-} from "./dto";
-import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { setupTestEnv } from "../../../tests/utils/didRegistry";
+} from "./dto/index.js";
+import { formatEthersUnsignedTransaction } from "./jsonrpc.utils.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import { setupTestEnv } from "../../../tests/utils/didRegistry.js";
 import {
   createDid,
   createDidDocument,
   createMetadata,
-} from "../../../tests/utils/data";
-import { ApiConfig } from "../../config/configuration";
-import { LedgerService } from "../ledger/ledger.service";
-import { JsonRpcService } from "./jsonrpc.service";
+} from "../../../tests/utils/data.js";
+import type { ApiConfig } from "../../config/configuration.js";
+import { LedgerService } from "../ledger/ledger.service.js";
+import { JsonRpcService } from "./jsonrpc.service.js";
 
-jest.mock("@cef-ebsi/oauth2-auth", () => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const originalModule = jest.requireActual("@cef-ebsi/oauth2-auth");
+vi.mock("@cef-ebsi/oauth2-auth", async () => {
+  const mod = await vi.importActual<typeof import("@cef-ebsi/oauth2-auth")>(
+    "@cef-ebsi/oauth2-auth",
+  );
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return {
-    __esModule: true,
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    ...originalModule,
-    verifyJwtTar: jest.fn(),
+    ...mod,
+    verifyJwtTar: vi.fn(),
   };
 });
 
-jest.mock("@cef-ebsi/siop-auth", () => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const originalModule = jest.requireActual("@cef-ebsi/siop-auth");
+vi.mock("@cef-ebsi/siop-auth", async () => {
+  const mod = await vi.importActual<typeof import("@cef-ebsi/siop-auth")>(
+    "@cef-ebsi/siop-auth",
+  );
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return {
-    __esModule: true,
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    ...originalModule,
-    verifyJwtTar: jest.fn(),
+    ...mod,
+    verifyJwtTar: vi.fn(),
   };
 });
 
@@ -117,15 +105,13 @@ interface DidDocumentDataset {
   didVersionMetadataBuffer: Buffer;
 }
 
-jest.setTimeout(300000);
-
 describe("JsonRpc Module", () => {
-  let app: INestApplication;
-  let server: HttpServer;
+  let app: NestFastifyApplication;
+  let server: RawServerDefault;
   let didRegistryContract: DidRegistry;
   let didRegistryContractAddress: string;
   let configService: ConfigService<ApiConfig, true>;
-  let testEnv: AsyncReturnType<typeof setupTestEnv>;
+  let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
   let ledgerService: LedgerService;
   let jsonRpcService: JsonRpcService;
   let appAccessToken: string;
@@ -148,32 +134,38 @@ describe("JsonRpc Module", () => {
 
   const computeHash = (value: string, multihash: HashName): string =>
     `0x${crypto
-      .createHash(multihashToNodeHashAlg[multihash])
+      .createHash(multihashToNodeHashAlg[multihash]!)
       .update(value, "utf-8")
       .digest()
       .toString("hex")}`;
 
   const prepareDidDocument = (
     did: string,
-    multihash: HashName
+    multihash: HashName,
   ): DidDocumentDataset => {
     const didDocument = createDidDocument(did);
 
     const didDocumentBuffer = Buffer.from(JSON.stringify(didDocument));
 
     // Canonicalize DID document
-    const canonicalizedDidDocument = canonicalize(didDocument);
+    // @ts-expect-error "canonicalize is not callable" <- the exported types are incorrect
+    const canonicalizedDidDocument = (canonicalize(didDocument) as ReturnType<
+      typeof canonicalize.default
+    >)!;
 
     const canonicalizedDidDocumentHash = computeHash(
       canonicalizedDidDocument,
-      multihash
+      multihash,
     );
 
     const timestampDataBuffer = Buffer.from(
-      JSON.stringify({ data: "test", r: crypto.randomBytes(8).toString("hex") })
+      JSON.stringify({
+        data: "test",
+        r: crypto.randomBytes(8).toString("hex"),
+      }),
     );
     const didVersionMetadataBuffer = Buffer.from(
-      JSON.stringify(createMetadata())
+      JSON.stringify(createMetadata()),
     );
 
     return {
@@ -191,8 +183,8 @@ describe("JsonRpc Module", () => {
   let didDocumentInvalidMethod: DidDocumentDataset;
   const controllers: ethers.Wallet[] = [];
 
-  const mockAuthOAuth2 = jest.spyOn(OAuth2Lib, "verifyJwtTar");
-  const mockAuthSiop = jest.spyOn(SiopLib, "verifyJwtTar");
+  const mockAuthOAuth2 = vi.spyOn(OAuth2Lib, "verifyJwtTar");
+  const mockAuthSiop = vi.spyOn(SiopLib, "verifyJwtTar");
 
   beforeAll(async () => {
     // Spin up test blockchain (hardhat)
@@ -203,14 +195,14 @@ describe("JsonRpc Module", () => {
     didRegistryContract = testEnv.didRegistryContract;
     didRegistryContractAddress = didRegistryContract.address;
 
-    jest
-      .spyOn(LedgerService.prototype, "getContractAddress")
-      .mockImplementation(() => didRegistryContract.address);
+    vi.spyOn(LedgerService.prototype, "getContractAddress").mockImplementation(
+      () => didRegistryContract.address,
+    );
 
     // Mock DidRegistry contract
-    jest
-      .spyOn(DidRegistry__factory, "connect")
-      .mockImplementation(() => didRegistryContract);
+    vi.spyOn(DidRegistry__factory, "connect").mockImplementation(
+      () => didRegistryContract,
+    );
 
     // Start server
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -218,7 +210,7 @@ describe("JsonRpc Module", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     useContainer(app.select(JsonRpcModule), { fallbackOnErrors: true });
@@ -233,43 +225,43 @@ describe("JsonRpc Module", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    await app.getHttpAdapter().getInstance().ready();
+    server = app.getHttpServer();
 
     jsonRpcService = moduleFixture.get<JsonRpcService>(JsonRpcService);
 
-    const firstAlgMultihash = testEnv.hashAlgorithms[0].multihash;
+    const firstAlgMultihash = testEnv.hashAlgorithms[0]!.multihash;
 
     adminSigner = testEnv.defaultController;
-    adminDid = testEnv.didDocuments[0].did;
+    adminDid = testEnv.didDocuments[0]!.did;
     newUserDid = createDid();
 
     didDocument = prepareDidDocument(newUserDid, firstAlgMultihash);
     updatedDidDocument = prepareDidDocument(newUserDid, firstAlgMultihash);
     didDocumentInvalidMethod = prepareDidDocument(
       badControllerDid,
-      firstAlgMultihash
+      firstAlgMultihash,
     );
 
     // Mock Contract service
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
-    jest
-      .spyOn(ledgerService, "getContract")
-      .mockImplementation(async () => Promise.resolve(didRegistryContract));
+    vi.spyOn(ledgerService, "getContract").mockImplementation(async () =>
+      Promise.resolve(didRegistryContract),
+    );
 
     // Mock libraries
     mockAuthOAuth2.mockImplementation(
       async (): Promise<JwtTarVerifyResult> =>
         Promise.reject(
-          new Error("Forgot to implement the mock for OAuth2 verifyJwtTar?")
-        )
+          new Error("Forgot to implement the mock for OAuth2 verifyJwtTar?"),
+        ),
     );
 
     mockAuthSiop.mockImplementation(
       async (): Promise<JWTVerifyResult> =>
         Promise.reject(
-          new Error("Forgot to implement the mock for Siop verifyJwtTar?")
-        )
+          new Error("Forgot to implement the mock for Siop verifyJwtTar?"),
+        ),
     );
 
     // Generate JWTs
@@ -278,7 +270,7 @@ describe("JsonRpc Module", () => {
       {
         issuer: "any",
         signer: ES256KSigner(crypto.randomBytes(32)),
-      }
+      },
     );
 
     adminAccessToken = await createJWT(
@@ -286,7 +278,7 @@ describe("JsonRpc Module", () => {
       {
         issuer: "any",
         signer: ES256KSigner(crypto.randomBytes(32)),
-      }
+      },
     );
 
     newUserAccessToken = await createJWT(
@@ -294,19 +286,15 @@ describe("JsonRpc Module", () => {
       {
         issuer: "any",
         signer: ES256KSigner(crypto.randomBytes(32)),
-      }
+      },
     );
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterAll(async () => {
-    // Avoid jest open handle error
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
     await app.close();
   });
 
@@ -324,7 +312,7 @@ describe("JsonRpc Module", () => {
     });
     expect(response.status).toBe(401);
     expect(
-      (response.headers as { "content-type": string })["content-type"]
+      (response.headers as { "content-type": string })["content-type"],
     ).toStrictEqual(expect.stringContaining("application/problem+json"));
   });
 
@@ -345,7 +333,7 @@ describe("JsonRpc Module", () => {
     });
     expect(response.status).toBe(401);
     expect(
-      (response.headers as { "content-type": string })["content-type"]
+      (response.headers as { "content-type": string })["content-type"],
     ).toStrictEqual(expect.stringContaining("application/problem+json"));
   });
 
@@ -355,7 +343,7 @@ describe("JsonRpc Module", () => {
     // Mock reject JWT
     const verifyAccessTokenSpy = mockAuthOAuth2.mockImplementation(
       async (): Promise<JwtTarVerifyResult> =>
-        Promise.reject(new Error("error message"))
+        Promise.reject(new Error("error message")),
     );
 
     const response = await request(server)
@@ -371,12 +359,12 @@ describe("JsonRpc Module", () => {
     });
     expect(response.status).toBe(401);
     expect(
-      (response.headers as { "content-type": string })["content-type"]
+      (response.headers as { "content-type": string })["content-type"],
     ).toStrictEqual(expect.stringContaining("application/problem+json"));
     expect(verifyAccessTokenSpy).toHaveBeenCalledWith(appAccessToken, {
       op: "authorisation-api",
       trustedAppsRegistry: `${configService.get<string>(
-        "trustedAppsRegistryApiUrl"
+        "trustedAppsRegistryApiUrl",
       )}/apps`,
       timeout: expect.any(Number),
     });
@@ -387,7 +375,7 @@ describe("JsonRpc Module", () => {
 
     // Mock reject JWT
     const verifyAccessTokenSpy = mockAuthSiop.mockImplementation(async () =>
-      Promise.reject(new Error("error message"))
+      Promise.reject(new Error("error message")),
     );
 
     const response = await request(server)
@@ -403,12 +391,12 @@ describe("JsonRpc Module", () => {
     });
     expect(response.status).toBe(401);
     expect(
-      (response.headers as { "content-type": string })["content-type"]
+      (response.headers as { "content-type": string })["content-type"],
     ).toStrictEqual(expect.stringContaining("application/problem+json"));
     expect(verifyAccessTokenSpy).toHaveBeenCalledWith(newUserAccessToken, {
       audience: "ebsi-core-services",
       trustedAppsRegistry: `${configService.get<string>(
-        "trustedAppsRegistryApiUrl"
+        "trustedAppsRegistryApiUrl",
       )}/apps`,
       timeout: expect.any(Number),
     });
@@ -420,7 +408,7 @@ describe("JsonRpc Module", () => {
     // Mock access token verification
     mockAuthOAuth2.mockImplementation(
       async (): Promise<JwtTarVerifyResult> =>
-        Promise.resolve({ payload: {} } as JwtTarVerifyResult)
+        Promise.resolve({ payload: {} } as JwtTarVerifyResult),
     );
 
     const response = await request(server)
@@ -447,7 +435,7 @@ describe("JsonRpc Module", () => {
       to: didRegistryContractAddress,
       data: didRegistryContract.interface.encodeFunctionData(
         "insertHashAlgorithm",
-        ["0x0100", "sha-256", "2.16.840.1.101.3.4.2.1", "0x1", "sha2-256"]
+        ["0x0100", "sha-256", "2.16.840.1.101.3.4.2.1", "0x1", "sha2-256"],
       ),
       value: "0x00",
       nonce: "0x00",
@@ -457,7 +445,7 @@ describe("JsonRpc Module", () => {
     };
 
     const uTx = formatEthersUnsignedTransaction(
-      JSON.parse(JSON.stringify(transaction)) as unknown as UnsignedTransaction
+      JSON.parse(JSON.stringify(transaction)) as unknown as UnsignedTransaction,
     );
     uTx.chainId = Number(uTx.chainId);
     const sgnTx = await wallet.signTransaction(uTx);
@@ -466,7 +454,7 @@ describe("JsonRpc Module", () => {
     // Mock access token verification
     mockAuthOAuth2.mockImplementation(
       async (): Promise<JwtTarVerifyResult> =>
-        Promise.resolve({ payload: {} } as JwtTarVerifyResult)
+        Promise.resolve({ payload: {} } as JwtTarVerifyResult),
     );
 
     const responseSend = await request(server)
@@ -508,7 +496,7 @@ describe("JsonRpc Module", () => {
     // Mock access token verification
     mockAuthOAuth2.mockImplementation(
       async (): Promise<JwtTarVerifyResult> =>
-        Promise.resolve({ payload: {} } as JwtTarVerifyResult)
+        Promise.resolve({ payload: {} } as JwtTarVerifyResult),
     );
 
     const response = await request(server)
@@ -527,7 +515,7 @@ describe("JsonRpc Module", () => {
       error: {
         code: -32600,
         message: expect.stringContaining(
-          "The method 'unknown-method' is invalid"
+          "The method 'unknown-method' is invalid",
         ),
       },
     });
@@ -561,7 +549,7 @@ describe("JsonRpc Module", () => {
       const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
       const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
       const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
-        "hex"
+        "hex",
       )}`;
 
       let data = "";
@@ -577,7 +565,7 @@ describe("JsonRpc Module", () => {
               didVersionInfo,
               timestampData ?? "0x",
               didVersionMetadata ?? "0x",
-            ]
+            ],
           );
           break;
         }
@@ -591,7 +579,7 @@ describe("JsonRpc Module", () => {
               didVersionInfo,
               timestampData ?? "0x",
               didVersionMetadata ?? "0x",
-            ]
+            ],
           );
           break;
         }
@@ -604,7 +592,7 @@ describe("JsonRpc Module", () => {
               canonicalizedDidDocumentHash, // hashValue
               timestampData ?? "0x",
               didVersionInfo,
-            ]
+            ],
           );
           break;
         }
@@ -616,21 +604,21 @@ describe("JsonRpc Module", () => {
               0, // hashAlgorithmId
               canonicalizedDidDocumentHash, // hashValue
               didVersionInfo,
-            ]
+            ],
           );
           break;
         }
         case "appendDidDocumentVersionMetadata": {
           data = didRegistryContract.interface.encodeFunctionData(
             "appendDidDocumentVersionMetadata",
-            [identifier, didVersionInfo, didVersionMetadata]
+            [identifier, didVersionInfo, didVersionMetadata],
           );
           break;
         }
         case "detachDidDocumentVersionMetadata": {
           data = didRegistryContract.interface.encodeFunctionData(
             "detachDidDocumentVersionMetadata",
-            [identifier, didVersionInfo, didVersionMetadata]
+            [identifier, didVersionInfo, didVersionMetadata],
           );
           break;
         }
@@ -642,9 +630,8 @@ describe("JsonRpc Module", () => {
       const { chainId } = await didRegistryContract.provider.getNetwork();
       const actualChainId = ethers.BigNumber.from(chainId).toHexString();
 
-      const nonceInt = await didRegistryContract.provider.getTransactionCount(
-        from
-      );
+      const nonceInt =
+        await didRegistryContract.provider.getTransactionCount(from);
 
       const transaction = {
         from,
@@ -659,8 +646,8 @@ describe("JsonRpc Module", () => {
 
       const uTx = formatEthersUnsignedTransaction(
         JSON.parse(
-          JSON.stringify(transaction)
-        ) as unknown as UnsignedTransaction
+          JSON.stringify(transaction),
+        ) as unknown as UnsignedTransaction,
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx = await wallet.signTransaction(uTx);
@@ -668,10 +655,10 @@ describe("JsonRpc Module", () => {
 
       // Mock access token verification
       mockAuthSiop.mockImplementation(async () =>
-        Promise.resolve({ payload: {} } as JWTVerifyResult)
+        Promise.resolve({ payload: {} } as JWTVerifyResult),
       );
 
-      const checkDidSpy = jest.spyOn(jsonRpcService, "checkDid");
+      const checkDidSpy = vi.spyOn(jsonRpcService, "checkDid");
 
       const responseSend = await request(server)
         .post("/jsonrpc")
@@ -696,7 +683,7 @@ describe("JsonRpc Module", () => {
       expect(checkDidSpy).toHaveBeenCalledWith(
         newUserDid,
         identifier,
-        didVersionInfo
+        didVersionInfo,
       );
       expect(responseSend.body).toStrictEqual({
         jsonrpc: "2.0",
@@ -736,10 +723,10 @@ describe("JsonRpc Module", () => {
 
       // Mock access token verification
       mockAuthSiop.mockImplementation(async () =>
-        Promise.resolve({ payload: {} } as JWTVerifyResult)
+        Promise.resolve({ payload: {} } as JWTVerifyResult),
       );
 
-      let param: JsonRpcParams = null;
+      let param: JsonRpcParams | null = null;
       let accessToken = adminAccessToken;
       let signer = adminSigner;
 
@@ -780,7 +767,7 @@ describe("JsonRpc Module", () => {
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
           const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
           const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
-            "hex"
+            "hex",
           )}`;
           controllers.push(signer);
 
@@ -810,7 +797,7 @@ describe("JsonRpc Module", () => {
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
           const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
           const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
-            "hex"
+            "hex",
           )}`;
 
           param = {
@@ -846,7 +833,7 @@ describe("JsonRpc Module", () => {
         }
         case "updateDidController": {
           const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
-          const controller = controllers[controllers.length - 1];
+          const controller = controllers[controllers.length - 1]!;
           // Sign with the new controller
           signer = controller;
 
@@ -864,11 +851,12 @@ describe("JsonRpc Module", () => {
         }
         case "revokeDidController": {
           const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
+          const controller = controllers[controllers.length - 1]!;
 
           param = {
             from: signer.address,
             identifier,
-            oldControllerId: controllers[controllers.length - 1].address,
+            oldControllerId: controller.address,
           } as RevokeDidControllerParam;
 
           accessToken = newUserAccessToken;
@@ -927,7 +915,7 @@ describe("JsonRpc Module", () => {
           const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
           const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
-            "hex"
+            "hex",
           )}`;
 
           param = {
@@ -948,7 +936,7 @@ describe("JsonRpc Module", () => {
           const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
           const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
-            "hex"
+            "hex",
           )}`;
 
           param = {
@@ -996,8 +984,8 @@ describe("JsonRpc Module", () => {
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
         JSON.parse(
-          JSON.stringify(unsignedTransaction)
-        ) as unknown as UnsignedTransaction
+          JSON.stringify(unsignedTransaction),
+        ) as unknown as UnsignedTransaction,
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx = await signer.signTransaction(uTx);
@@ -1035,11 +1023,11 @@ describe("JsonRpc Module", () => {
 
       // Mock access token verification
       mockAuthSiop.mockImplementation(async () =>
-        Promise.resolve({ payload: {} } as JWTVerifyResult)
+        Promise.resolve({ payload: {} } as JWTVerifyResult),
       );
 
       const signer = adminSigner;
-      let param: JsonRpcParams = null;
+      let param: JsonRpcParams | null = null;
       let accessToken = adminAccessToken;
 
       switch (method) {
@@ -1078,7 +1066,7 @@ describe("JsonRpc Module", () => {
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
           const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
           const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
-            "hex"
+            "hex",
           )}`;
 
           param = {
@@ -1107,7 +1095,7 @@ describe("JsonRpc Module", () => {
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
           const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
           const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
-            "hex"
+            "hex",
           )}`;
 
           param = {
@@ -1208,7 +1196,7 @@ describe("JsonRpc Module", () => {
           const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
           const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
-            "hex"
+            "hex",
           )}`;
 
           param = {
@@ -1240,7 +1228,7 @@ describe("JsonRpc Module", () => {
       expect(responseBuild.body).toStrictEqual({
         jsonrpc: "2.0",
         id: null,
-        result: expect.objectContaining({}) as unknown,
+        result: expect.objectContaining({}),
       });
       expect(responseBuild.status).toBe(200);
     });
@@ -1248,7 +1236,7 @@ describe("JsonRpc Module", () => {
     it(`should throw an Invalid Request error for bad use of ${method}`, async () => {
       // Mock access token verification
       mockAuthSiop.mockImplementation(async () =>
-        Promise.resolve({ payload: {} } as JWTVerifyResult)
+        Promise.resolve({ payload: {} } as JWTVerifyResult),
       );
 
       const signer = adminSigner;
@@ -1354,11 +1342,11 @@ describe("JsonRpc Module", () => {
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
           const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
           const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
-            "hex"
+            "hex",
           )}`;
           const randomHash = `0x${crypto.randomBytes(37).toString("hex")}`;
           const badDidVersionInfo = `0x${didDocumentInvalidMethod.didDocumentBuffer.toString(
-            "hex"
+            "hex",
           )}`;
 
           testSetup.push({
@@ -1371,7 +1359,9 @@ describe("JsonRpc Module", () => {
               timestampData,
               didVersionMetadata,
             } as InsertDidDocumentParam,
-            expectedErrorMessage: `Hash ${randomHash}'s length (296 bits) is different from the expected length (${testEnv.hashAlgorithms[0].outputLength} bits)`,
+            expectedErrorMessage: `Hash ${randomHash}'s length (296 bits) is different from the expected length (${
+              testEnv.hashAlgorithms[0]!.outputLength
+            } bits)`,
             accessToken: newUserAccessToken,
           });
 
@@ -1402,7 +1392,7 @@ describe("JsonRpc Module", () => {
                   // Invalid @context
                   "@context": "https://w3id.org/did/v1",
                   id: identifier,
-                })
+                }),
               ).toString("hex")}`,
               timestampData,
               didVersionMetadata,
@@ -1422,7 +1412,7 @@ describe("JsonRpc Module", () => {
               didVersionInfo: `0x${Buffer.from(
                 JSON.stringify({
                   "@context": "https://www.w3.org/ns/did/v1",
-                })
+                }),
               ).toString("hex")}`,
               timestampData,
               didVersionMetadata,
@@ -1689,7 +1679,7 @@ describe("JsonRpc Module", () => {
           const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
           const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
-            "hex"
+            "hex",
           )}`;
 
           testSetup.push({
@@ -1737,31 +1727,32 @@ describe("JsonRpc Module", () => {
 
       expect.assertions(testSetup.length * 2);
 
-      await Promise.all(
-        testSetup.map(async (setup) => {
-          const response = await request(server)
-            .post("/jsonrpc")
-            .auth(setup.accessToken ?? adminAccessToken, {
-              type: "bearer",
-            })
-            .send({
-              jsonrpc: "2.0",
-              method,
-              params: [setup.params],
-              id: 231,
-            });
-
-          expect(response.body).toStrictEqual({
+      // Run requests sequentially
+      // eslint-disable-next-line no-restricted-syntax
+      for (const setup of testSetup) {
+        // eslint-disable-next-line no-await-in-loop
+        const response = await request(server)
+          .post("/jsonrpc")
+          .auth(setup.accessToken ?? adminAccessToken, {
+            type: "bearer",
+          })
+          .send({
             jsonrpc: "2.0",
+            method,
+            params: [setup.params],
             id: 231,
-            error: {
-              code: -32600,
-              message: expect.stringContaining(setup.expectedErrorMessage),
-            },
           });
-          expect(response.status).toBe(400);
-        })
-      );
+
+        expect(response.body).toStrictEqual({
+          jsonrpc: "2.0",
+          id: 231,
+          error: {
+            code: -32600,
+            message: expect.stringContaining(setup.expectedErrorMessage),
+          },
+        });
+        expect(response.status).toBe(400);
+      }
     });
 
     it("should throw an error when the unsignedTransaction has been tampered", async () => {
@@ -1769,7 +1760,7 @@ describe("JsonRpc Module", () => {
 
       // Mock access token verification
       mockAuthSiop.mockImplementation(async () =>
-        Promise.resolve({ payload: {} } as JWTVerifyResult)
+        Promise.resolve({ payload: {} } as JWTVerifyResult),
       );
 
       const signer = adminSigner;
@@ -1838,7 +1829,7 @@ describe("JsonRpc Module", () => {
           const didVersionInfo2 = `0x${didDocumentBuffer2.toString("hex")}`;
           const timestampData = `0x${timestampDataBuffer.toString("hex")}`;
           const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
-            "hex"
+            "hex",
           )}`;
 
           param1 = {
@@ -1980,10 +1971,10 @@ describe("JsonRpc Module", () => {
           const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
           const didVersionInfo = `0x${didDocumentBuffer.toString("hex")}`;
           const didVersionMetadata = `0x${didVersionMetadataBuffer.toString(
-            "hex"
+            "hex",
           )}`;
           const tamperedDidVersionMetadata = `0x${Buffer.from(
-            JSON.stringify(createMetadata())
+            JSON.stringify(createMetadata()),
           ).toString("hex")}`;
 
           param1 = {
@@ -2039,8 +2030,8 @@ describe("JsonRpc Module", () => {
 
       const uTx = formatEthersUnsignedTransaction(
         JSON.parse(
-          JSON.stringify(transaction1)
-        ) as unknown as UnsignedTransaction
+          JSON.stringify(transaction1),
+        ) as unknown as UnsignedTransaction,
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx1 = await randomSigner.signTransaction(uTx);
@@ -2072,7 +2063,7 @@ describe("JsonRpc Module", () => {
         error: {
           code: -32600,
           message: expect.stringContaining(
-            "does not match with the signedRawTransaction"
+            "does not match with the signedRawTransaction",
           ),
         },
       });
@@ -2104,7 +2095,7 @@ describe("JsonRpc Module", () => {
         error: {
           code: -32600,
           message: expect.stringContaining(
-            "does not match with unsignedTransaction.from"
+            "does not match with unsignedTransaction.from",
           ),
         },
       });

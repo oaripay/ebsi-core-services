@@ -1,4 +1,4 @@
-import { ProblemDetailsError } from "./ProblemDetailsError";
+import { ProblemDetailsError } from "./ProblemDetailsError.js";
 
 /**
  * TooManyRequestsError defines the Too Many Requests (429) error type.
@@ -24,7 +24,7 @@ export class TooManyRequestsError extends ProblemDetailsError {
       detail?: string;
       instance?: string;
       extensions?: { [x: string]: unknown };
-    }
+    },
   ) {
     super(TooManyRequestsError.statusCode, title, options);
     this.name = "TooManyRequestsError";

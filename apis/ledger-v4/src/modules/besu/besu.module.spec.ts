@@ -1,5 +1,5 @@
 import {
-  jest,
+  vi,
   describe,
   beforeAll,
   beforeEach,
@@ -7,48 +7,44 @@ import {
   afterAll,
   it,
   expect,
-} from "@jest/globals";
+} from "vitest";
 import hre from "hardhat";
 import "@nomiclabs/hardhat-ethers";
 import type { JsonRpcServer } from "hardhat/types";
-import * as taskNames from "hardhat/builtin-tasks/task-names";
+// eslint-disable-next-line import/extensions
+import * as taskNames from "hardhat/builtin-tasks/task-names.js";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  Logger,
-  HttpServer,
-} from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import * as OAuth2lib from "@cef-ebsi/oauth2-auth";
 import type { JwtTarVerifyResult } from "@cef-ebsi/oauth2-auth";
 import { ethers } from "ethers";
-import { BesuModule } from "./besu.module";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { BesuService } from "./besu.service";
-import { createFakeToken } from "../../../tests/utils/authorisation";
-import { ApiConfig } from "../../config/configuration";
+import { BesuModule } from "./besu.module.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import { BesuService } from "./besu.service.js";
+import { createFakeToken } from "../../../tests/utils/authorisation.js";
+import type { ApiConfig } from "../../config/configuration.js";
 
-jest.mock("@cef-ebsi/oauth2-auth", () => ({
-  verifyJwtTar: jest.fn(),
+vi.mock("@cef-ebsi/oauth2-auth", () => ({
+  verifyJwtTar: vi.fn(),
 }));
 
 describe("Besu Module", () => {
-  let app: INestApplication;
-  let server: HttpServer;
+  let app: NestFastifyApplication;
+  let server: RawServerDefault;
   let hardhatServer: JsonRpcServer;
   let besuService: BesuService;
   let tokenOAuth2: string;
   let configService: ConfigService<ApiConfig, true>;
   const ganachePort = 8547; // 8546 might already be used for ssh port forwarding
 
-  const mockAuthOAuth2 = jest.spyOn(OAuth2lib, "verifyJwtTar");
+  const mockAuthOAuth2 = vi.spyOn(OAuth2lib, "verifyJwtTar");
 
   describe.each([
     `http://127.0.0.1:${ganachePort}`,
@@ -56,7 +52,7 @@ describe("Besu Module", () => {
   ])("connecting to %s", (ganacheUrl: string) => {
     beforeAll(async () => {
       hardhatServer = (await hre.run(taskNames.TASK_NODE_CREATE_SERVER, {
-        hostname: "localhost",
+        hostname: "127.0.0.1",
         port: ganachePort,
         provider: hre.network.provider,
       })) as JsonRpcServer;
@@ -69,7 +65,7 @@ describe("Besu Module", () => {
       }).compile();
 
       app = moduleFixture.createNestApplication<NestFastifyApplication>(
-        new FastifyAdapter()
+        new FastifyAdapter(),
       );
 
       // Turn off logger
@@ -79,8 +75,8 @@ describe("Besu Module", () => {
       app.useGlobalFilters(new AllExceptionsFilter(configService));
       app.useGlobalPipes(new ValidationPipe({ transform: true }));
       await app.init();
-      await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-      server = app.getHttpServer() as HttpServer;
+      await app.getHttpAdapter().getInstance().ready();
+      server = app.getHttpServer();
 
       besuService = moduleFixture.get<BesuService>(BesuService);
 
@@ -94,23 +90,23 @@ describe("Besu Module", () => {
     });
 
     beforeEach(() => {
-      jest
-        .spyOn(besuService, "getBesuRpcNode")
-        .mockImplementation(() => ganacheUrl);
+      vi.spyOn(besuService, "getBesuRpcNode").mockImplementation(
+        () => ganacheUrl,
+      );
 
       // mock libraries
       mockAuthOAuth2.mockImplementation(
         async (): Promise<JwtTarVerifyResult> =>
           Promise.reject(
             new Error(
-              "Forgot to implement the mock for OAuth2 verifyAccessToken?"
-            )
-          )
+              "Forgot to implement the mock for OAuth2 verifyAccessToken?",
+            ),
+          ),
       );
     });
 
     afterEach(() => {
-      jest.clearAllMocks();
+      vi.clearAllMocks();
     });
 
     afterAll(async () => {
@@ -134,7 +130,7 @@ describe("Besu Module", () => {
 
       mockAuthOAuth2.mockImplementation(
         async (): Promise<JwtTarVerifyResult> =>
-          Promise.reject(new Error("Mocked error"))
+          Promise.reject(new Error("Mocked error")),
       );
 
       response = await request(server)
@@ -156,7 +152,7 @@ describe("Besu Module", () => {
 
       mockAuthOAuth2.mockImplementation(
         async (): Promise<JwtTarVerifyResult> =>
-          Promise.resolve({ payload: { sub: "user" } } as JwtTarVerifyResult)
+          Promise.resolve({ payload: { sub: "user" } } as JwtTarVerifyResult),
       );
 
       const response = await request(server)
@@ -179,7 +175,7 @@ describe("Besu Module", () => {
 
       mockAuthOAuth2.mockImplementation(
         async (): Promise<JwtTarVerifyResult> =>
-          Promise.resolve({ payload: { sub: "user" } } as JwtTarVerifyResult)
+          Promise.resolve({ payload: { sub: "user" } } as JwtTarVerifyResult),
       );
 
       const response = await request(server)
@@ -219,7 +215,7 @@ describe("Besu Module", () => {
       expect(response.header).toHaveProperty("content-type");
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       expect(response.headers["content-type"]).toStrictEqual(
-        expect.stringContaining("application/json")
+        expect.stringContaining("application/json"),
       );
     });
 
@@ -247,7 +243,7 @@ describe("Besu Module", () => {
 
       mockAuthOAuth2.mockImplementation(
         async (): Promise<JwtTarVerifyResult> =>
-          Promise.resolve({ payload: { sub: "user" } } as JwtTarVerifyResult)
+          Promise.resolve({ payload: { sub: "user" } } as JwtTarVerifyResult),
       );
 
       const response = await request(server)
@@ -279,7 +275,7 @@ describe("Besu Module", () => {
 
       mockAuthOAuth2.mockImplementation(
         async (): Promise<JwtTarVerifyResult> =>
-          Promise.resolve({ payload: { sub: "user" } } as JwtTarVerifyResult)
+          Promise.resolve({ payload: { sub: "user" } } as JwtTarVerifyResult),
       );
 
       const wallet = ethers.Wallet.createRandom();
@@ -320,7 +316,7 @@ describe("Besu Module", () => {
 
       mockAuthOAuth2.mockImplementation(
         async (): Promise<JwtTarVerifyResult> =>
-          Promise.resolve({ payload: { sub: "user" } } as JwtTarVerifyResult)
+          Promise.resolve({ payload: { sub: "user" } } as JwtTarVerifyResult),
       );
 
       const response = await request(server)
@@ -348,7 +344,7 @@ describe("Besu Module", () => {
 
       mockAuthOAuth2.mockImplementation(
         async (): Promise<JwtTarVerifyResult> =>
-          Promise.resolve({ payload: { sub: "user" } } as JwtTarVerifyResult)
+          Promise.resolve({ payload: { sub: "user" } } as JwtTarVerifyResult),
       );
 
       let provider: ethers.providers.JsonRpcProvider;
@@ -399,11 +395,11 @@ describe("Besu Module", () => {
 
       mockAuthOAuth2.mockImplementation(
         async (): Promise<JwtTarVerifyResult> =>
-          Promise.resolve({ payload: { sub: "user" } } as JwtTarVerifyResult)
+          Promise.resolve({ payload: { sub: "user" } } as JwtTarVerifyResult),
       );
 
       // Fails to retrieve chainId
-      const spy = jest
+      const spy = vi
         .spyOn(besuService, "getChainId")
         .mockImplementationOnce(() => {
           throw new Error("Error getting EBSI chainId");
@@ -434,10 +430,10 @@ describe("Besu Module", () => {
 
       mockAuthOAuth2.mockImplementation(
         async (): Promise<JwtTarVerifyResult> =>
-          Promise.resolve({ payload: { sub: "user" } } as JwtTarVerifyResult)
+          Promise.resolve({ payload: { sub: "user" } } as JwtTarVerifyResult),
       );
 
-      jest.spyOn(besuService, "send").mockImplementation(() => {
+      vi.spyOn(besuService, "send").mockImplementation(() => {
         const err = new Error("unknown error");
         return Promise.reject(err);
       });
@@ -466,15 +462,14 @@ describe("Besu Module", () => {
 
       mockAuthOAuth2.mockImplementation(
         async (): Promise<JwtTarVerifyResult> =>
-          Promise.resolve({ payload: { sub: "user" } } as JwtTarVerifyResult)
+          Promise.resolve({ payload: { sub: "user" } } as JwtTarVerifyResult),
       );
 
       // Let's say Besu answers with an error
-      jest.spyOn(besuService, "send").mockImplementation(() => {
+      vi.spyOn(besuService, "send").mockImplementation(() => {
         const err = new Error();
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error Property 'response' does not exist on type 'Error'.ts(2339)
         err.response = { unparseable: "response" };
         return Promise.reject(err);
       });
@@ -503,15 +498,14 @@ describe("Besu Module", () => {
 
       mockAuthOAuth2.mockImplementation(
         async (): Promise<JwtTarVerifyResult> =>
-          Promise.resolve({ payload: { sub: "user" } } as JwtTarVerifyResult)
+          Promise.resolve({ payload: { sub: "user" } } as JwtTarVerifyResult),
       );
 
       // Let's say Besu answers with an error
-      jest.spyOn(besuService, "send").mockImplementation(() => {
+      vi.spyOn(besuService, "send").mockImplementation(() => {
         const err = new Error();
 
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
+        // @ts-expect-error Property 'response' does not exist on type 'Error'.ts(2339)
         err.response = JSON.stringify({
           jsonrpc: "2.0",
           id: 1,

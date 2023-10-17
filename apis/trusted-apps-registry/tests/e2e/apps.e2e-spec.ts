@@ -1,30 +1,25 @@
-import { describe, beforeAll, afterAll, it, expect } from "@jest/globals";
+import { describe, beforeAll, afterAll, it, expect } from "vitest";
 import { ethers } from "ethers";
 import crypto from "node:crypto";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  HttpServer,
-  ValidationPipe,
-  Logger,
-} from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import EbsiWallet from "@cef-ebsi/wallet-lib";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import {
   prefixWith0x,
   PaginatedList,
   waitToBeMined,
 } from "@ebsiint-api/shared";
 import { ConfigService } from "@nestjs/config";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import type { TransactionRequest } from "@ethersproject/abstract-provider";
-import { AppModule } from "../../src/app.module";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
-import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
+import { AppModule } from "../../src/app.module.js";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
+import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
 import {
   DeleteAppAdministratorParam,
   InsertAppParam,
@@ -37,20 +32,20 @@ import {
   UpdateAppPublicKeyParam,
   UpdateAuthorizationParam,
   UnsignedTransaction,
-} from "../../src/modules/jsonrpc/dto";
-import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
+} from "../../src/modules/jsonrpc/dto/index.js";
+import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
 import {
   AppResponseObject,
   AppLink,
   AuthorizationLink,
   PublicKeyResponseObject,
   PublicKeyLink,
-} from "../../src/modules/apps/apps.interface";
-import { ApiConfig } from "../../src/config/configuration";
-import LedgerService from "../../src/modules/ledger/ledger.service";
-import { requestSiopJwt } from "../utils/siopJwt";
-import { describeWriteOps } from "../utils/describeWriteOps";
-import { getServer } from "../utils/getServer";
+} from "../../src/modules/apps/apps.interface.js";
+import type { ApiConfig } from "../../src/config/configuration.js";
+import LedgerService from "../../src/modules/ledger/ledger.service.js";
+import { requestSiopJwt } from "../utils/siopJwt.js";
+import { describeWriteOps } from "../utils/describeWriteOps.js";
+import { getServer } from "../utils/getServer.js";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -95,8 +90,8 @@ type JsonRpcParams =
   | UpdateAppPublicKeyParam;
 
 describe("Apps (e2e)", () => {
-  let app: INestApplication;
-  let server: HttpServer | string;
+  let app: NestFastifyApplication;
+  let server: RawServerDefault | string;
   let ledgerService: LedgerService;
   let adminTestWallet: ethers.Wallet;
   let adminUserAccessToken: string;
@@ -126,7 +121,7 @@ describe("Apps (e2e)", () => {
     appAdministrator: EbsiWallet.createDid(),
   };
   const applicationId = ethers.utils.sha256(
-    ethers.utils.toUtf8Bytes(newApp.name)
+    ethers.utils.toUtf8Bytes(newApp.name),
   );
 
   beforeAll(async () => {
@@ -135,7 +130,7 @@ describe("Apps (e2e)", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     // Turn off logger
@@ -148,15 +143,15 @@ describe("Apps (e2e)", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
     server = getServer(app, configService);
 
     adminTestWallet = new ethers.Wallet(
-      prefixWith0x(configService.get("testAdminPrivateKey"))
+      prefixWith0x(configService.get("testAdminPrivateKey")),
     );
     userTestWallet = new ethers.Wallet(
-      prefixWith0x(configService.get("testUserPrivateKey"))
+      prefixWith0x(configService.get("testUserPrivateKey")),
     );
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
@@ -194,43 +189,38 @@ describe("Apps (e2e)", () => {
   });
 
   afterAll(async () => {
-    // Avoid jest open handle error
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
     await app.close();
   });
 
   describe("/apps", () => {
     it("should return a collection of apps", async () => {
       expect.assertions(2);
-      const response: SupertestAppsResponse = await request(server).get(
-        "/apps"
-      );
+      const response: SupertestAppsResponse =
+        await request(server).get("/apps");
 
       expect(response.body).toStrictEqual(
         expect.objectContaining({
           self: expect.stringContaining(
-            "/trusted-apps-registry/v3/apps?page[after]=1&page[size]=10"
+            "/trusted-apps-registry/v3/apps?page[after]=1&page[size]=10",
           ),
           items: expect.arrayContaining([]),
           total: expect.any(Number),
           pageSize: expect.any(Number),
           links: expect.objectContaining({
             first: expect.stringContaining(
-              "/trusted-apps-registry/v3/apps?page[after]=1&page[size]=10"
+              "/trusted-apps-registry/v3/apps?page[after]=1&page[size]=10",
             ),
             prev: expect.stringContaining(
-              "/trusted-apps-registry/v3/apps?page[after]=1&page[size]=10"
+              "/trusted-apps-registry/v3/apps?page[after]=1&page[size]=10",
             ),
             next: expect.stringContaining(
-              "/trusted-apps-registry/v3/apps?page[after]="
+              "/trusted-apps-registry/v3/apps?page[after]=",
             ),
             last: expect.stringContaining(
-              "/trusted-apps-registry/v3/apps?page[after]="
+              "/trusted-apps-registry/v3/apps?page[after]=",
             ),
           }),
-        })
+        }),
       );
       expect(response.status).toBe(200);
     });
@@ -238,32 +228,31 @@ describe("Apps (e2e)", () => {
     it("should return an app when query public_key_id is defined", async () => {
       expect.assertions(3);
 
-      const responseApps: SupertestAppsResponse = await request(server).get(
-        "/apps"
-      );
+      const responseApps: SupertestAppsResponse =
+        await request(server).get("/apps");
       const publicKeyId0 = responseApps.body.items[0].id;
       const response: SupertestAppsResponse = await request(server).get(
-        `/apps?public_key_id=${publicKeyId0}`
+        `/apps?public_key_id=${publicKeyId0}`,
       );
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          `/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId0}`
+          `/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId0}`,
         ),
         items: expect.arrayContaining([]),
         total: expect.any(Number),
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/trusted-apps-registry/v3/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId0}`
+            `/trusted-apps-registry/v3/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId0}`,
           ),
           prev: expect.stringContaining(
-            `/trusted-apps-registry/v3/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId0}`
+            `/trusted-apps-registry/v3/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId0}`,
           ),
           next: expect.stringContaining(
-            "/trusted-apps-registry/v3/apps?page[after]="
+            "/trusted-apps-registry/v3/apps?page[after]=",
           ),
           last: expect.stringContaining(
-            "/trusted-apps-registry/v3/apps?page[after]="
+            "/trusted-apps-registry/v3/apps?page[after]=",
           ),
         },
       });
@@ -274,36 +263,35 @@ describe("Apps (e2e)", () => {
     it("should return a paginated collection of authorizations", async () => {
       expect.assertions(2);
 
-      const responseApps: SupertestAppsResponse = await request(server).get(
-        "/apps"
-      );
+      const responseApps: SupertestAppsResponse =
+        await request(server).get("/apps");
 
       const { name }: AppLink =
         responseApps.body.items[responseApps.body.items.length - 1];
       const applicationName0 = name;
 
       const response: SupertestAuthorizationsResponse = await request(
-        server
+        server,
       ).get(`/apps/${applicationName0}/authorizations`);
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          `/trusted-apps-registry/v3/apps/${applicationName0}/authorizations?page[after]=1&page[size]=10`
+          `/trusted-apps-registry/v3/apps/${applicationName0}/authorizations?page[after]=1&page[size]=10`,
         ),
         items: expect.arrayContaining([]),
         total: expect.any(Number),
         pageSize: expect.any(Number),
         links: {
           first: expect.stringContaining(
-            `/trusted-apps-registry/v3/apps/${applicationName0}/authorizations?page[after]=1&page[size]=10`
+            `/trusted-apps-registry/v3/apps/${applicationName0}/authorizations?page[after]=1&page[size]=10`,
           ),
           prev: expect.stringContaining(
-            `/trusted-apps-registry/v3/apps/${applicationName0}/authorizations?page[after]=1&page[size]=10`
+            `/trusted-apps-registry/v3/apps/${applicationName0}/authorizations?page[after]=1&page[size]=10`,
           ),
           next: expect.stringContaining(
-            `/trusted-apps-registry/v3/apps/${applicationName0}/authorizations?page[after]=`
+            `/trusted-apps-registry/v3/apps/${applicationName0}/authorizations?page[after]=`,
           ),
           last: expect.stringContaining(
-            `/trusted-apps-registry/v3/apps/${applicationName0}/authorizations?page[after]=`
+            `/trusted-apps-registry/v3/apps/${applicationName0}/authorizations?page[after]=`,
           ),
         },
       });
@@ -314,9 +302,8 @@ describe("Apps (e2e)", () => {
       expect.assertions(2);
 
       // Get first app
-      const responseApps: SupertestAppsResponse = await request(server).get(
-        "/apps"
-      );
+      const responseApps: SupertestAppsResponse =
+        await request(server).get("/apps");
 
       const { name }: AppLink =
         responseApps.body.items[responseApps.body.items.length - 1];
@@ -326,29 +313,29 @@ describe("Apps (e2e)", () => {
       const applicationName2 = app2.name;
 
       const response: SupertestAuthorizationsResponse = await request(
-        server
+        server,
       ).get(
-        `/apps/${applicationName1}/authorizations?requesterApplicationName=${applicationName2}`
+        `/apps/${applicationName1}/authorizations?requesterApplicationName=${applicationName2}`,
       );
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          `/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${applicationName2}`
+          `/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${applicationName2}`,
         ),
         items: expect.arrayContaining([]),
         total: expect.any(Number),
         pageSize: expect.any(Number),
         links: {
           first: expect.stringContaining(
-            `/trusted-apps-registry/v3/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${applicationName2}`
+            `/trusted-apps-registry/v3/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${applicationName2}`,
           ),
           prev: expect.stringContaining(
-            `/trusted-apps-registry/v3/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${applicationName2}`
+            `/trusted-apps-registry/v3/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${applicationName2}`,
           ),
           next: expect.stringContaining(
-            `/trusted-apps-registry/v3/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${applicationName2}`
+            `/trusted-apps-registry/v3/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${applicationName2}`,
           ),
           last: expect.stringContaining(
-            `/trusted-apps-registry/v3/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${applicationName2}`
+            `/trusted-apps-registry/v3/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${applicationName2}`,
           ),
         },
       });
@@ -360,16 +347,15 @@ describe("Apps (e2e)", () => {
     it("should return a specific app", async () => {
       expect.assertions(3);
 
-      const appsResponse: SupertestAppsResponse = await request(server).get(
-        "/apps"
-      );
+      const appsResponse: SupertestAppsResponse =
+        await request(server).get("/apps");
 
       expect(appsResponse.status).toBe(200);
       const { id, name }: AppLink =
         appsResponse.body.items[appsResponse.body.items.length - 1];
 
       const response: SupertestAppResponse = await request(server).get(
-        `/apps/${name}`
+        `/apps/${name}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -380,7 +366,7 @@ describe("Apps (e2e)", () => {
         authorizations: expect.arrayContaining([]),
         info: expect.any(Object) as { [x: string]: unknown },
         publicKeys: expect.arrayContaining([]),
-        revocation: expect.any(Object) as unknown,
+        revocation: expect.any(Object),
       });
       expect(response.status).toBe(200);
     });
@@ -388,7 +374,7 @@ describe("Apps (e2e)", () => {
     it("should throw an error if the app is not found", async () => {
       expect.assertions(2);
       const response = await request(server).get(
-        "/apps/0x0000000000000000000000000000000000000000000000000000000000000000"
+        "/apps/0x0000000000000000000000000000000000000000000000000000000000000000",
       );
       expect(response.body).toStrictEqual({
         title: "App Not Found",
@@ -404,38 +390,37 @@ describe("Apps (e2e)", () => {
   describe("/apps/{applicationName}/public-keys", () => {
     it("should return a collection of public keys", async () => {
       expect.assertions(2);
-      const appsResponse: SupertestAppsResponse = await request(server).get(
-        "/apps"
-      );
+      const appsResponse: SupertestAppsResponse =
+        await request(server).get("/apps");
       const { name }: AppLink =
         appsResponse.body.items[appsResponse.body.items.length - 1];
       const response: SupertestPublicKeysResponse = await request(server).get(
-        `/apps/${name}/public-keys`
+        `/apps/${name}/public-keys`,
       );
 
       expect(response.body).toStrictEqual(
         expect.objectContaining({
           self: expect.stringContaining(
-            `/trusted-apps-registry/v3/apps/${name}/public-keys?page[after]=1&page[size]=10`
+            `/trusted-apps-registry/v3/apps/${name}/public-keys?page[after]=1&page[size]=10`,
           ),
           items: expect.arrayContaining([]),
           total: expect.any(Number),
           pageSize: expect.any(Number),
           links: expect.objectContaining({
             first: expect.stringContaining(
-              `/trusted-apps-registry/v3/apps/${name}/public-keys?page[after]=1&page[size]=10`
+              `/trusted-apps-registry/v3/apps/${name}/public-keys?page[after]=1&page[size]=10`,
             ),
             prev: expect.stringContaining(
-              `/trusted-apps-registry/v3/apps/${name}/public-keys?page[after]=1&page[size]=10`
+              `/trusted-apps-registry/v3/apps/${name}/public-keys?page[after]=1&page[size]=10`,
             ),
             next: expect.stringContaining(
-              `/trusted-apps-registry/v3/apps/${name}/public-keys?page[after]=`
+              `/trusted-apps-registry/v3/apps/${name}/public-keys?page[after]=`,
             ),
             last: expect.stringContaining(
-              `/trusted-apps-registry/v3/apps/${name}/public-keys?page[after]=`
+              `/trusted-apps-registry/v3/apps/${name}/public-keys?page[after]=`,
             ),
           }),
-        })
+        }),
       );
       expect(response.status).toBe(200);
     });
@@ -444,19 +429,18 @@ describe("Apps (e2e)", () => {
   describe("GET /apps/{name}/public-keys/{publicKeyId}", () => {
     it("should return a specific public key", async () => {
       expect.assertions(2);
-      const appsResponse: SupertestAppsResponse = await request(server).get(
-        "/apps"
-      );
+      const appsResponse: SupertestAppsResponse =
+        await request(server).get("/apps");
       const { name, id }: AppLink =
         appsResponse.body.items[appsResponse.body.items.length - 1];
       const responseKeys: SupertestPublicKeysResponse = await request(
-        server
+        server,
       ).get(`/apps/${name}/public-keys`);
 
       const pubKeyId = responseKeys.body.items[0].id;
 
       const response: SupertestPublicKeyResponse = await request(server).get(
-        `/apps/${name}/public-keys/${pubKeyId}`
+        `/apps/${name}/public-keys/${pubKeyId}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -654,7 +638,7 @@ describe("Apps (e2e)", () => {
         case "updateAuthorization": {
           // Dynamically get the authorizationId that we've just inserted
           const appId = ethers.utils.sha256(
-            ethers.utils.toUtf8Bytes(newApp.name)
+            ethers.utils.toUtf8Bytes(newApp.name),
           );
           const authorizationId = (
             await ledgerService
@@ -714,12 +698,12 @@ describe("Apps (e2e)", () => {
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
         JSON.parse(
-          JSON.stringify(unsignedTransaction)
-        ) as unknown as UnsignedTransaction
+          JSON.stringify(unsignedTransaction),
+        ) as unknown as UnsignedTransaction,
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx = await adminTestWallet.signTransaction(
-        uTx as TransactionRequest
+        uTx as TransactionRequest,
       );
       const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
@@ -752,17 +736,16 @@ describe("Apps (e2e)", () => {
       // wait to be mined
       const receipt = await waitToBeMined(
         besuRpcNode,
-        responseSend.body.result as string
+        responseSend.body.result as string,
       );
       expect(receipt.status).toBe(1);
       sampleTransaction = responseSend.body.result as string;
 
-      /* eslint-disable jest/no-conditional-expect */
       switch (method) {
         case "insertApp": {
           // get app
           const appResponse: SupertestAppsResponse = await request(server).get(
-            `/apps/${newApp.name}`
+            `/apps/${newApp.name}`,
           );
           expect(appResponse.body).toBeDefined();
           expect(appResponse.status).toBe(200);
@@ -775,12 +758,12 @@ describe("Apps (e2e)", () => {
           const appId = (appResponse.body as AppResponseObject).applicationId;
 
           const authsResponse: SupertestAuthorizationsResponse = await request(
-            server
+            server,
           ).get(`/apps/${applicationName}/authorizations`);
           const { authorizationId, requesterApplicationName } =
             authsResponse.body.items[0];
           const response = await request(server).get(
-            `/apps/${applicationName}/authorizations/${authorizationId}`
+            `/apps/${applicationName}/authorizations/${authorizationId}`,
           );
           expect(response.body).toStrictEqual({
             authorizationId,
@@ -804,7 +787,7 @@ describe("Apps (e2e)", () => {
         }
         case "insertRevocation": {
           const response: SupertestAppResponse = await request(server).get(
-            `/apps/${newApp.name}`
+            `/apps/${newApp.name}`,
           );
 
           expect(response.body).toStrictEqual({
@@ -859,12 +842,12 @@ describe("Apps (e2e)", () => {
     const unsignedTransaction = responseBuild.body.result;
     const uTx = formatEthersUnsignedTransaction(
       JSON.parse(
-        JSON.stringify(unsignedTransaction)
-      ) as unknown as UnsignedTransaction
+        JSON.stringify(unsignedTransaction),
+      ) as unknown as UnsignedTransaction,
     );
     uTx.chainId = Number(uTx.chainId);
     const sgnTx = await userTestWallet.signTransaction(
-      uTx as TransactionRequest
+      uTx as TransactionRequest,
     );
     const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
@@ -889,16 +872,16 @@ describe("Apps (e2e)", () => {
     // wait to be mined
     const receipt = await waitToBeMined(
       besuRpcNode,
-      responseSend.body.result as string
+      responseSend.body.result as string,
     );
     expect(receipt.status).toBe(0);
     expect(receipt).toStrictEqual(
       expect.objectContaining({
         status: 0,
         revertReason: expect.stringContaining(
-          `Policy error: sender doesn't have the attribute TAR:insertApp`
+          `Policy error: sender doesn't have the attribute TAR:insertApp`,
         ),
-      })
+      }),
     );
   });
 

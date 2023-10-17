@@ -2,10 +2,10 @@ import { IsEthereumAddress, IsString } from "class-validator";
 
 export class ArgsDeleteUserAttribute {
   @IsEthereumAddress()
-  address: string;
+  address!: string;
 
   @IsString()
-  attributeName: string;
+  attributeName!: string;
 }
 
 export default { ArgsDeleteUserAttribute };

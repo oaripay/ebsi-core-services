@@ -1,5 +1,5 @@
 import { PaginatedList2, paginateForCassandra2 } from "@ebsiint-api/shared";
-import { AttributeResponseObject } from "./attributes.interface";
+import { AttributeResponseObject } from "./attributes.interface.js";
 
 export function formatAttributes(
   attributes: AttributeResponseObject[],
@@ -7,7 +7,7 @@ export function formatAttributes(
   nextPage: string,
   pageSize: number,
   baseUrl: string,
-  extraQuery?: string
+  extraQuery?: string,
 ): PaginatedList2<AttributeResponseObject> {
   return paginateForCassandra2<AttributeResponseObject>(
     attributes,
@@ -15,7 +15,7 @@ export function formatAttributes(
     currentPage,
     nextPage,
     pageSize,
-    extraQuery
+    extraQuery,
   );
 }
 

@@ -1,13 +1,9 @@
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 import crypto from "node:crypto";
 import { ethers } from "ethers";
 import { Timestamp } from "@ebsiint-sc/timestamp";
-import {
-  multibase,
-  multihashEncode,
-  AsyncReturnType,
-} from "@ebsiint-api/shared";
-import { formatTimestamps } from "./timestamps.formatter";
+import { multibase, multihashEncode } from "@ebsiint-api/shared";
+import { formatTimestamps } from "./timestamps.formatter.js";
 
 describe("formatTimestamps", () => {
   const timestamps = {
@@ -19,7 +15,7 @@ describe("formatTimestamps", () => {
     howMany: ethers.BigNumber.from("2"),
     prev: ethers.BigNumber.from("0"),
     next: ethers.BigNumber.from("0"),
-  } as AsyncReturnType<Timestamp["getTimestamps"]>;
+  } as Awaited<ReturnType<Timestamp["getTimestamps"]>>;
 
   it("should use the values returned by the smart contract (except pageSize)", () => {
     expect.assertions(1);
@@ -29,15 +25,23 @@ describe("formatTimestamps", () => {
 
     const timestampIds = [
       multibase.base64url.encode(
-        multihashEncode(timestamps.items[0].replace(/^0x/, ""), "sha2-256", 32)
+        multihashEncode(
+          timestamps.items[0]!.replace(/^0x/, ""),
+          "sha2-256",
+          32,
+        ),
       ),
       multibase.base64url.encode(
-        multihashEncode(timestamps.items[1].replace(/^0x/, ""), "sha2-256", 32)
+        multihashEncode(
+          timestamps.items[1]!.replace(/^0x/, ""),
+          "sha2-256",
+          32,
+        ),
       ),
     ];
 
     expect(
-      formatTimestamps(timestamps, page, pageSize, "", "?test=true")
+      formatTimestamps(timestamps, page, pageSize, "", "?test=true"),
     ).toStrictEqual({
       items: [
         {

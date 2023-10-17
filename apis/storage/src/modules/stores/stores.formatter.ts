@@ -1,12 +1,12 @@
 import { PaginatedList2, paginate2 } from "@ebsiint-api/shared";
-import { STORES } from "./stores.constants";
+import { STORES } from "./stores.constants.js";
 
 export function formatStores(
   filteredStores: string[],
   page: number,
   pageSize: number,
   baseUrl: string,
-  extraQuery?: string
+  extraQuery?: string,
 ): PaginatedList2<string> {
   const total = STORES.length;
 
@@ -16,7 +16,7 @@ export function formatStores(
     total,
     page,
     pageSize,
-    extraQuery
+    extraQuery,
   );
 }
 

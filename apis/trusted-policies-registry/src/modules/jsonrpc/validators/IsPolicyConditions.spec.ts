@@ -1,9 +1,9 @@
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 import {
   ATTRIBUTE_OPERATIONS,
   ATTRIBUTE_TYPES,
-} from "../../policies/policies.interface";
-import { validatePolicyCondition } from "./IsPolicyConditions";
+} from "../../policies/policies.interface.js";
+import { validatePolicyCondition } from "./IsPolicyConditions.js";
 
 describe.each([
   {
@@ -168,8 +168,8 @@ describe.each([
   (test: { policyCondition: unknown; error: string }) => {
     it("should throw error", () => {
       expect(() => validatePolicyCondition(test.policyCondition)).toThrow(
-        test.error
+        test.error,
       );
     });
-  }
+  },
 );

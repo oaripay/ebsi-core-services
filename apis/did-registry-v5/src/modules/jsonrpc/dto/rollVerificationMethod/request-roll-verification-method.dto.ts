@@ -6,19 +6,19 @@ import {
   Equals,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { JsonRpcDto } from "../jsonrpc.dto";
-import { RollVerificationMethodParam } from "./roll-verification-method-param.dto";
+import { JsonRpcDto } from "../jsonrpc.dto.js";
+import { RollVerificationMethodParam } from "./roll-verification-method-param.dto.js";
 
 export class RequestRollVerificationMethodDto extends JsonRpcDto {
   @Equals("rollVerificationMethod")
-  method!: "rollVerificationMethod";
+  declare method: "rollVerificationMethod";
 
   @IsArray()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @Type(() => RollVerificationMethodParam)
-  params!: RollVerificationMethodParam[];
+  declare params: RollVerificationMethodParam[];
 }
 
 export default RequestRollVerificationMethodDto;

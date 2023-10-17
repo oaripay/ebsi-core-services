@@ -1,7 +1,7 @@
 import { Controller, Body, Post, HttpCode, UseGuards } from "@nestjs/common";
 import { InvalidRequestJsonRpcError } from "@ebsiint-api/shared";
-import { JsonRpcService } from "./jsonrpc.service";
-import { JsonRpcResponseObject } from "./jsonrpc.interface";
+import { JsonRpcService } from "./jsonrpc.service.js";
+import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
 import {
   JsonRpcDto,
   RequestInsertPolicyDto,
@@ -9,13 +9,13 @@ import {
   RequestSendSignedTransactionDto,
   RequestAddIssuerProxyDto,
   RequestUpdateIssuerProxyDto,
-} from "./dto";
-import { SiopJwtAuthGuard } from "../auth/guards";
-import { Client, ClientInfo } from "../auth/decorators";
+} from "./dto/index.js";
+import { SiopJwtAuthGuard } from "../auth/guards/index.js";
+import { Client, type ClientInfo } from "../auth/decorators/index.js";
 
-function jsonRpcResponse(
+function formatJsonRpcResponse(
   result: unknown,
-  id: string | number
+  id: string | number | null | undefined,
 ): JsonRpcResponseObject {
   return { jsonrpc: "2.0", id: id ?? null, result };
 }
@@ -29,7 +29,7 @@ export class JsonRpcController {
   @Post()
   async jsonRPC(
     @Body() body: JsonRpcDto,
-    @Client() client: ClientInfo
+    @Client() client: ClientInfo,
   ): Promise<JsonRpcResponseObject> {
     const { method, id } = body;
     switch (method) {
@@ -37,40 +37,40 @@ export class JsonRpcController {
       case "updateIssuer": {
         throw new InvalidRequestJsonRpcError(
           `The method '${method}' is deprecated in TIR API v3. Please use TIR API v4`,
-          id
+          id,
         );
       }
       case "insertPolicy": {
         const transaction =
           await this.jsonRpcService.buildTransactionInsertPolicy(
             body as RequestInsertPolicyDto,
-            id
+            id,
           );
-        return jsonRpcResponse(transaction, id);
+        return formatJsonRpcResponse(transaction, id);
       }
       case "updatePolicy": {
         const transaction =
           await this.jsonRpcService.buildTransactionUpdatePolicy(
             body as RequestUpdatePolicyDto,
-            id
+            id,
           );
-        return jsonRpcResponse(transaction, id);
+        return formatJsonRpcResponse(transaction, id);
       }
       case "addIssuerProxy": {
         const transaction =
           await this.jsonRpcService.buildTransactionAddIssuerProxy(
             body as RequestAddIssuerProxyDto,
-            id
+            id,
           );
-        return jsonRpcResponse(transaction, id);
+        return formatJsonRpcResponse(transaction, id);
       }
       case "updateIssuerProxy": {
         const transaction =
           await this.jsonRpcService.buildTransactionUpdateIssuerProxy(
             body as RequestUpdateIssuerProxyDto,
-            id
+            id,
           );
-        return jsonRpcResponse(transaction, id);
+        return formatJsonRpcResponse(transaction, id);
       }
       case "sendSignedTransaction":
       case "signedTransaction": {
@@ -78,14 +78,14 @@ export class JsonRpcController {
         const result = await this.jsonRpcService.sendTransaction(
           client.did,
           body as RequestSendSignedTransactionDto,
-          id
+          id,
         );
-        return jsonRpcResponse(result, id);
+        return formatJsonRpcResponse(result, id);
       }
       default:
         throw new InvalidRequestJsonRpcError(
           `The method '${method}' is invalid`,
-          id
+          id,
         );
     }
   }

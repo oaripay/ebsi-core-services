@@ -1,9 +1,9 @@
 export class KeyValueModel {
-  did: string;
+  did!: string;
 
-  key: string;
+  key!: string;
 
-  value: string;
+  value!: string;
 }
 
 export default KeyValueModel;

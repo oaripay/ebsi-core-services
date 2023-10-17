@@ -1,9 +1,10 @@
-import { createVerifiablePresentationJwt } from "@cef-ebsi/verifiable-presentation";
 import type {
+  EbsiEnvConfiguration,
   EbsiIssuer,
-  EbsiVerifiablePresentation,
-} from "@cef-ebsi/verifiable-presentation";
-import { calculateJwkThumbprint, JWK } from "jose";
+} from "@cef-ebsi/verifiable-credential";
+import { createVerifiablePresentationJwt } from "@cef-ebsi/verifiable-presentation";
+import type { EbsiVerifiablePresentation } from "@cef-ebsi/verifiable-presentation";
+import { calculateJwkThumbprint, type JWK } from "jose";
 
 export async function createVpJwt(
   holderDid: string,
@@ -12,8 +13,9 @@ export async function createVpJwt(
   vc: string,
   audience: string,
   ebsiAuthority: string,
+  ebsiEnvConfig: EbsiEnvConfiguration,
   alg: "ES256" | "ES256K" | "EdDSA" = "ES256K",
-  trustedHostnames?: string[]
+  trustedHostnames?: string[],
 ): Promise<string> {
   const presentation: EbsiVerifiablePresentation = {
     "@context": ["https://www.w3.org/2018/credentials/v1"],
@@ -38,9 +40,10 @@ export async function createVpJwt(
     audience,
     {
       ebsiAuthority,
+      ebsiEnvConfig,
       skipValidation: true,
       trustedHostnames,
-    }
+    },
   );
 
   return jwt;

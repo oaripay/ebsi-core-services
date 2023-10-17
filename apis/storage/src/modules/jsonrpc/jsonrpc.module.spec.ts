@@ -1,43 +1,47 @@
-import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
-import type { SpyInstance } from "jest-mock";
+import {
+  vi,
+  describe,
+  beforeAll,
+  afterAll,
+  it,
+  expect,
+  type SpyInstance,
+} from "vitest";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import { ValidationPipe, Logger, HttpServer } from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import axios from "axios";
 import * as OAuth2Lib from "@cef-ebsi/oauth2-auth";
 import type { JwtTarVerifyResult } from "@cef-ebsi/oauth2-auth";
 import { Client, types } from "cassandra-driver";
-import { JsonRpcModule } from "./jsonrpc.module";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { CassandraService } from "../cassandra/cassandra.service";
-import { ApiConfig } from "../../config/configuration";
-import { AuthService } from "../auth/auth.service";
+import { JsonRpcModule } from "./jsonrpc.module.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import { CassandraService } from "../cassandra/cassandra.service.js";
+import type { ApiConfig } from "../../config/configuration.js";
+import { AuthService } from "../auth/auth.service.js";
 
-jest.mock("cassandra-driver");
+vi.mock("cassandra-driver");
 
-jest.mock("@cef-ebsi/oauth2-auth", () => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const originalModule = jest.requireActual("@cef-ebsi/oauth2-auth");
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+vi.mock("@cef-ebsi/oauth2-auth", async () => {
+  const mod = await vi.importActual<typeof import("@cef-ebsi/oauth2-auth")>(
+    "@cef-ebsi/oauth2-auth",
+  );
+  // Return a mocked version so we can redefine property `verifyJwtTar` later
   return {
-    __esModule: true,
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    ...originalModule,
-    verifyJwtTar: jest.fn(),
+    ...mod,
+    verifyJwtTar: vi.fn(),
   };
 });
 
 describe("JsonRpc Module", () => {
   let app: NestFastifyApplication;
-  let server: HttpServer;
+  let server: RawServerDefault;
   let mockCassandra: SpyInstance;
   let cassandraService: CassandraService;
   let configService: ConfigService<ApiConfig, true>;
@@ -45,17 +49,17 @@ describe("JsonRpc Module", () => {
 
   beforeAll(async () => {
     // Prevent leaking tests (they should not be able to call axios.get)
-    jest.spyOn(axios, "get").mockImplementation((url: string) => {
+    vi.spyOn(axios, "get").mockImplementation((url: string) => {
       throw new Error(`Leaking unit test: trying to GET ${url}`);
     });
 
     // Mock Cassandra
-    mockCassandra = jest.spyOn(Client.prototype, "execute");
+    mockCassandra = vi.spyOn(Client.prototype, "execute");
     mockCassandra.mockImplementation(() => {
       return {
         rows: [],
-        pageState: null,
-      } as types.ResultSet;
+        pageState: "",
+      } satisfies Partial<types.ResultSet>;
     });
 
     // Start server
@@ -64,7 +68,7 @@ describe("JsonRpc Module", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     // Turn off logger
@@ -76,18 +80,14 @@ describe("JsonRpc Module", () => {
     app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    await app.getHttpAdapter().getInstance().ready();
+    server = app.getHttpServer();
 
     cassandraService = moduleFixture.get<CassandraService>(CassandraService);
     authService = moduleFixture.get<AuthService>(AuthService);
   });
 
   afterAll(async () => {
-    // Avoid jest open handle error
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
     await app.close();
   });
 
@@ -107,17 +107,17 @@ describe("JsonRpc Module", () => {
     });
     expect(response.status).toBe(401);
     expect(
-      (response.headers as { "content-type": string })["content-type"]
+      (response.headers as { "content-type": string })["content-type"],
     ).toStrictEqual(expect.stringContaining("application/problem+json"));
   });
 
   it("should reject a POST with an invalid token", async () => {
     expect.assertions(4);
 
-    const verifyAccessTokenSpy = jest
+    const verifyAccessTokenSpy = vi
       .spyOn(OAuth2Lib, "verifyJwtTar")
       .mockImplementation(async () =>
-        Promise.reject(new Error("error message"))
+        Promise.reject(new Error("error message")),
       );
 
     const response = await request(server)
@@ -133,12 +133,12 @@ describe("JsonRpc Module", () => {
     });
     expect(response.status).toBe(401);
     expect(
-      (response.headers as { "content-type": string })["content-type"]
+      (response.headers as { "content-type": string })["content-type"],
     ).toStrictEqual(expect.stringContaining("application/problem+json"));
     expect(verifyAccessTokenSpy).toHaveBeenCalledWith("jwt", {
       op: configService.get<string>("authorisationApiName"),
       trustedAppsRegistry: `${configService.get<string>(
-        "trustedAppsRegistryApiUrl"
+        "trustedAppsRegistryApiUrl",
       )}/apps`,
       timeout: expect.any(Number),
     });
@@ -148,11 +148,9 @@ describe("JsonRpc Module", () => {
     expect.assertions(2);
 
     // Mock access token verification
-    jest
-      .spyOn(OAuth2Lib, "verifyJwtTar")
-      .mockImplementation(async () =>
-        Promise.resolve({ payload: {} } as JwtTarVerifyResult)
-      );
+    vi.spyOn(OAuth2Lib, "verifyJwtTar").mockImplementation(async () =>
+      Promise.resolve({ payload: {} } as JwtTarVerifyResult),
+    );
 
     const response = await request(server)
       .post("/stores/distributed/jsonrpc")
@@ -173,9 +171,9 @@ describe("JsonRpc Module", () => {
     expect.assertions(4);
 
     // Mock access token verification
-    jest
-      .spyOn(authService, "validateOAuth2Token")
-      .mockImplementation(async () => Promise.resolve({ name: "app" }));
+    vi.spyOn(authService, "validateOAuth2Token").mockImplementation(async () =>
+      Promise.resolve({ name: "app" }),
+    );
 
     let response = await request(server)
       .post("/stores/distributed/jsonrpc")
@@ -193,7 +191,7 @@ describe("JsonRpc Module", () => {
       error: {
         code: -32600,
         message: expect.stringContaining(
-          `property params has failed the following constraints: isValidCassandraCall`
+          `property params has failed the following constraints: isValidCassandraCall`,
         ),
       },
     });
@@ -219,7 +217,7 @@ describe("JsonRpc Module", () => {
       error: {
         code: -32600,
         message: expect.stringContaining(
-          `property params has failed the following constraints: isValidCassandraCall`
+          `property params has failed the following constraints: isValidCassandraCall`,
         ),
       },
     });
@@ -274,9 +272,9 @@ describe("JsonRpc Module", () => {
       expect.assertions(3);
 
       // Mock access token verification
-      jest
-        .spyOn(authService, "validateOAuth2Token")
-        .mockImplementation(async () => Promise.resolve({ name: "app" }));
+      vi.spyOn(authService, "validateOAuth2Token").mockImplementation(
+        async () => Promise.resolve({ name: "app" }),
+      );
 
       const response = await request(server)
         .post("/stores/distributed/jsonrpc")
@@ -293,7 +291,7 @@ describe("JsonRpc Module", () => {
         id: "45",
         result: {
           rows: [],
-          pageState: null,
+          pageState: "",
         },
       });
       expect(response.status).toBe(200);

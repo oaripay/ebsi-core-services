@@ -1,8 +1,8 @@
 import { Module, Logger } from "@nestjs/common";
-import { ApiConfigModule } from "../../config/configuration";
-import AppsController from "./apps.controller";
-import AppsService from "./apps.service";
-import { LedgerModule } from "../ledger/ledger.module";
+import { ApiConfigModule } from "../../config/configuration.js";
+import AppsController from "./apps.controller.js";
+import AppsService from "./apps.service.js";
+import { LedgerModule } from "../ledger/ledger.module.js";
 
 @Module({
   imports: [ApiConfigModule, LedgerModule],

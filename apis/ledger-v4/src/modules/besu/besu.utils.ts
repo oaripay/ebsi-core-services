@@ -1,6 +1,6 @@
 import { Transaction, TxOptions } from "@ethereumjs/tx";
 import { Common } from "@ethereumjs/common";
-import { BesuDto } from "./dto";
+import { BesuDto } from "./dto/index.js";
 
 function deserialize(serializedTransaction: unknown, chainId: number) {
   const optsChain: TxOptions = {
@@ -30,7 +30,7 @@ function deserialize(serializedTransaction: unknown, chainId: number) {
 
     if (err.message.includes(`chain id ${chainId}`)) {
       err.message = `Invalid chain id. Please set chain id to 0x${chainId.toString(
-        16
+        16,
       )}`;
     }
 
@@ -40,7 +40,7 @@ function deserialize(serializedTransaction: unknown, chainId: number) {
 
 export function isDeployingSmartContract(
   query: BesuDto,
-  chainId: number
+  chainId: number,
 ): boolean {
   if (query.method !== "eth_sendRawTransaction" || query.params.length === 0) {
     return false;
@@ -49,7 +49,7 @@ export function isDeployingSmartContract(
   const tx = deserialize(query.params[0], chainId);
 
   /* deploy when "to" is 0 and there is "data" */
-  return (parseInt(tx.to, 16) === 0 || tx.to === "0x") && tx.data !== "0x";
+  return (parseInt(tx.to!, 16) === 0 || tx.to === "0x") && tx.data !== "0x";
 }
 
 export default { isDeployingSmartContract };

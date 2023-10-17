@@ -21,11 +21,11 @@ export interface ApiConfig {
   requestTimeout: number;
   authorisationCredentialSchema: string;
   // Test-specific variables
-  testEnv?: string;
-  testIssuerKid?: string;
-  testIssuerPrivateKey?: string;
-  testIssuerAlg?: string;
-  testIssuerAttribute?: string;
+  testEnv: string | undefined;
+  testIssuerKid: string | undefined;
+  testIssuerPrivateKey: string | undefined;
+  testIssuerAlg: string | undefined;
+  testIssuerAttribute: string | undefined;
   testOidSchemaPattern: string;
 }
 
@@ -96,7 +96,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "warn",
       "info",
       "verbose",
-      "debug"
+      "debug",
     ),
     DOCKER_TAG: Joi.string(),
     DOMAIN: Joi.string().uri().required(),

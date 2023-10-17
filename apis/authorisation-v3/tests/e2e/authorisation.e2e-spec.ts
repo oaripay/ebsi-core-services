@@ -1,12 +1,12 @@
 import { randomBytes, randomUUID } from "node:crypto";
 import { URLSearchParams } from "node:url";
-import { describe, beforeAll, it, expect, beforeEach } from "@jest/globals";
+import { describe, beforeAll, it, expect, beforeEach } from "vitest";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
+import { Test, type TestingModule } from "@nestjs/testing";
 import { Logger } from "@nestjs/common";
-import type { INestApplication, HttpServer } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type {
+  EbsiEnvConfiguration,
   EbsiIssuer,
   EbsiVerifiableAttestation,
 } from "@cef-ebsi/verifiable-credential";
@@ -16,13 +16,14 @@ import type { EbsiVerifiablePresentation } from "@cef-ebsi/verifiable-presentati
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import type { PresentationSubmission } from "@sphereon/pex-models";
 import qs from "qs";
-import type { FastifyInstance } from "fastify";
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
+import type { RawServerDefault } from "fastify";
 import { encode } from "@ebsiint-api/shared";
 import { createJWT, decodeJWT, ES256KSigner } from "did-jwt";
 import { calculateJwkThumbprint, importJWK, jwtVerify, SignJWT } from "jose";
 import type { JWK } from "jose";
-import { AppModule } from "../../src/app.module";
-import type { ApiConfig } from "../../src/config/configuration";
+import { AppModule } from "../../src/app.module.js";
+import type { ApiConfig } from "../../src/config/configuration.js";
 import {
   CUSTOM_SCOPES,
   DIDR_INVITE_PRESENTATION_DEFINITION,
@@ -33,23 +34,28 @@ import {
   TIR_INVITE_SCOPE,
   TIR_WRITE_PRESENTATION_DEFINITION,
   TIR_WRITE_SCOPE,
-} from "../../src/modules/authorisation/authorisation.constants";
+} from "../../src/modules/authorisation/authorisation.constants.js";
 import type {
   JsonWebKeySet,
   Scope,
   TokenResponse,
-} from "../../src/modules/authorisation/authorisation.interfaces";
-import { getServer } from "../utils/getServer";
-import { configureApp } from "../utils/app";
-import { createLegalEntity, createPresentationSubmission } from "../utils/data";
-import { CreateAccessTokenDto } from "../../src/modules/authorisation/dto";
+} from "../../src/modules/authorisation/authorisation.interfaces.js";
+import { getServer } from "../utils/getServer.js";
+import { configureApp } from "../utils/app.js";
+import {
+  createLegalEntity,
+  createPresentationSubmission,
+} from "../utils/data.js";
+import { CreateAccessTokenDto } from "../../src/modules/authorisation/dto/index.js";
 
 describe("Authorisation (e2e)", () => {
-  let app: INestApplication;
-  let server: HttpServer | string;
+  let app: NestFastifyApplication;
+  let server: RawServerDefault | string;
   let configService: ConfigService<ApiConfig, true>;
   let authorisationApiV3Url: string;
   let trustedHostnames: string[];
+  let ebsiAuthority: string;
+  let ebsiEnvConfig: EbsiEnvConfiguration;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -65,11 +71,18 @@ describe("Authorisation (e2e)", () => {
     Logger.overrideLogger(false);
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
     server = getServer(app, configService);
 
     const domain = configService.get<string>("domain");
+    ebsiAuthority = domain.replace(/^https?:\/\//, ""); // remove http protocol scheme
+    ebsiEnvConfig = {
+      didRegistry: `${domain}/did-registry/v4/identifiers`,
+      trustedIssuersRegistry: `${domain}/trusted-issuers-registry/v4/issuers`,
+      trustedPoliciesRegistry: `${domain}/trusted-policies-registry/v2/users`,
+    };
+
     const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
     authorisationApiV3Url = `${domain}${apiUrlPrefix}`;
     trustedHostnames = configService.get<string[]>("trustedHostnames");
@@ -80,7 +93,7 @@ describe("Authorisation (e2e)", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        "/.well-known/openid-configuration"
+        "/.well-known/openid-configuration",
       );
 
       expect(response.body).toStrictEqual({
@@ -138,7 +151,7 @@ describe("Authorisation (e2e)", () => {
         ]),
       });
       expect(
-        (response.headers as Record<string, unknown>)["content-type"]
+        (response.headers as Record<string, unknown>)["content-type"],
       ).toBe("application/jwk-set+json; charset=utf-8");
       expect(response.status).toBe(200);
 
@@ -154,7 +167,7 @@ describe("Authorisation (e2e)", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        "/presentation-definitions?scope=test"
+        "/presentation-definitions?scope=test",
       );
 
       expect(response.body).toStrictEqual({
@@ -172,8 +185,8 @@ describe("Authorisation (e2e)", () => {
       //  With explicit scope "openid didr_invite"
       let response = await request(server).get(
         `/presentation-definitions?scope=${encodeURIComponent(
-          `openid ${DIDR_INVITE_SCOPE}`
-        )}`
+          `openid ${DIDR_INVITE_SCOPE}`,
+        )}`,
       );
 
       expect(response.body).toStrictEqual(DIDR_INVITE_PRESENTATION_DEFINITION);
@@ -182,8 +195,8 @@ describe("Authorisation (e2e)", () => {
       // With explicit scope "openid didr_write"
       response = await request(server).get(
         `/presentation-definitions?scope=${encodeURIComponent(
-          `openid ${DIDR_WRITE_SCOPE}`
-        )}`
+          `openid ${DIDR_WRITE_SCOPE}`,
+        )}`,
       );
 
       expect(response.body).toStrictEqual(DIDR_WRITE_PRESENTATION_DEFINITION);
@@ -192,8 +205,8 @@ describe("Authorisation (e2e)", () => {
       // With explicit scope "openid tir_invite"
       response = await request(server).get(
         `/presentation-definitions?scope=${encodeURIComponent(
-          `openid ${TIR_INVITE_SCOPE}`
-        )}`
+          `openid ${TIR_INVITE_SCOPE}`,
+        )}`,
       );
 
       expect(response.body).toStrictEqual(TIR_INVITE_PRESENTATION_DEFINITION);
@@ -202,8 +215,8 @@ describe("Authorisation (e2e)", () => {
       // With explicit scope "openid tir_write"
       response = await request(server).get(
         `/presentation-definitions?scope=${encodeURIComponent(
-          `openid ${TIR_WRITE_SCOPE}`
-        )}`
+          `openid ${TIR_WRITE_SCOPE}`,
+        )}`,
       );
 
       expect(response.body).toStrictEqual(TIR_WRITE_PRESENTATION_DEFINITION);
@@ -221,7 +234,7 @@ describe("Authorisation (e2e)", () => {
         .send(
           new URLSearchParams({
             grant_type: "test",
-          }).toString()
+          }).toString(),
         );
 
       expect(response.body).toStrictEqual({
@@ -230,7 +243,7 @@ describe("Authorisation (e2e)", () => {
       });
       expect(response.status).toBe(400);
       expect(
-        (response.headers as Record<string, unknown>)["content-type"]
+        (response.headers as Record<string, unknown>)["content-type"],
       ).toBe("application/json; charset=utf-8");
     });
 
@@ -244,7 +257,7 @@ describe("Authorisation (e2e)", () => {
           new URLSearchParams({
             grant_type: "vp_token",
             scope: "test",
-          }).toString()
+          }).toString(),
         );
 
       expect(response.body).toStrictEqual({
@@ -254,7 +267,7 @@ describe("Authorisation (e2e)", () => {
       });
       expect(response.status).toBe(400);
       expect(
-        (response.headers as Record<string, unknown>)["content-type"]
+        (response.headers as Record<string, unknown>)["content-type"],
       ).toBe("application/json; charset=utf-8");
     });
 
@@ -269,7 +282,7 @@ describe("Authorisation (e2e)", () => {
             grant_type: "vp_token",
             scope: "openid didr_invite",
             vp_token: "test",
-          }).toString()
+          }).toString(),
         );
 
       expect(response.body).toStrictEqual({
@@ -278,7 +291,7 @@ describe("Authorisation (e2e)", () => {
       });
       expect(response.status).toBe(400);
       expect(
-        (response.headers as Record<string, unknown>)["content-type"]
+        (response.headers as Record<string, unknown>)["content-type"],
       ).toBe("application/json; charset=utf-8");
     });
 
@@ -296,10 +309,10 @@ describe("Authorisation (e2e)", () => {
         const issuerKid = configService.get<string>("testIssuerKid");
         const issuerAlg = configService.get<string>("testIssuerAlg");
         const issuerPrivateKey = configService.get<string>(
-          "testIssuerPrivateKey"
+          "testIssuerPrivateKey",
         );
         const issuerAttribute = configService.get<string>(
-          "testIssuerAttribute"
+          "testIssuerAttribute",
         );
 
         // Only support ES256K issuer (temporary)
@@ -388,10 +401,11 @@ describe("Authorisation (e2e)", () => {
               vcPayload,
               issuer,
               {
-                ebsiAuthority: "example.net",
+                ebsiAuthority,
+                ebsiEnvConfig,
                 skipValidation: true,
                 trustedHostnames,
-              }
+              },
             );
 
             vpPayload.verifiableCredential.push(vcJwt);
@@ -402,7 +416,8 @@ describe("Authorisation (e2e)", () => {
             client,
             "authentication-service-v3",
             {
-              ebsiAuthority: "example.net",
+              ebsiAuthority,
+              ebsiEnvConfig,
               skipValidation: true,
               nonce: randomUUID(),
               trustedHostnames,
@@ -413,7 +428,7 @@ describe("Authorisation (e2e)", () => {
                     nbf: Math.floor(Date.now() / 1000) - 100,
                   }
                 : {}),
-            }
+            },
           );
 
           const response = await request(server)
@@ -425,7 +440,7 @@ describe("Authorisation (e2e)", () => {
                 scope,
                 vp_token: vpJwt,
                 presentation_submission: JSON.stringify(presentationSubmission),
-              } satisfies CreateAccessTokenDto).toString()
+              } satisfies CreateAccessTokenDto).toString(),
             );
 
           expect(response.body).toStrictEqual({
@@ -434,7 +449,7 @@ describe("Authorisation (e2e)", () => {
           });
           expect(response.status).toBe(400);
           expect(
-            (response.headers as Record<string, unknown>)["content-type"]
+            (response.headers as Record<string, unknown>)["content-type"],
           ).toBe("application/json; charset=utf-8");
         });
 
@@ -444,10 +459,11 @@ describe("Authorisation (e2e)", () => {
               vcPayload,
               issuer,
               {
-                ebsiAuthority: "example.net",
+                ebsiAuthority,
+                ebsiEnvConfig,
                 skipValidation: true,
                 trustedHostnames,
-              }
+              },
             );
 
             vpPayload.verifiableCredential.push(vcJwt);
@@ -458,7 +474,8 @@ describe("Authorisation (e2e)", () => {
             client,
             authorisationApiV3Url,
             {
-              ebsiAuthority: "example.net",
+              ebsiAuthority,
+              ebsiEnvConfig,
               skipValidation: true,
               nonce: randomUUID(),
               trustedHostnames,
@@ -469,7 +486,7 @@ describe("Authorisation (e2e)", () => {
                     nbf: Math.floor(Date.now() / 1000) - 100,
                   }
                 : {}),
-            }
+            },
           );
 
           // Fake a change in original vpJwt
@@ -485,7 +502,7 @@ describe("Authorisation (e2e)", () => {
             },
             {
               kid: client.kid,
-            }
+            },
           );
 
           const response = await request(server)
@@ -497,7 +514,7 @@ describe("Authorisation (e2e)", () => {
                 scope,
                 vp_token: vpTokenTampered,
                 presentation_submission: JSON.stringify(presentationSubmission),
-              } satisfies CreateAccessTokenDto).toString()
+              } satisfies CreateAccessTokenDto).toString(),
             );
 
           expect(response.body).toStrictEqual({
@@ -506,7 +523,7 @@ describe("Authorisation (e2e)", () => {
           });
           expect(response.status).toBe(400);
           expect(
-            (response.headers as Record<string, unknown>)["content-type"]
+            (response.headers as Record<string, unknown>)["content-type"],
           ).toBe("application/json; charset=utf-8");
         });
 
@@ -516,10 +533,11 @@ describe("Authorisation (e2e)", () => {
               vcPayload,
               issuer,
               {
-                ebsiAuthority: "example.net",
+                ebsiAuthority,
+                ebsiEnvConfig,
                 skipValidation: true,
                 trustedHostnames,
-              }
+              },
             );
 
             vpPayload.verifiableCredential.push(vcJwt);
@@ -530,14 +548,15 @@ describe("Authorisation (e2e)", () => {
             client,
             authorisationApiV3Url,
             {
-              ebsiAuthority: "example.net",
+              ebsiAuthority,
+              ebsiEnvConfig,
               skipValidation: true,
               nonce: randomUUID(),
               trustedHostnames,
               // Override "exp" and "nbf"
               exp: Math.floor(Date.now() / 1000) - 100,
               nbf: Math.floor(Date.now() / 1000) - 1000,
-            }
+            },
           );
 
           const response = await request(server)
@@ -549,7 +568,7 @@ describe("Authorisation (e2e)", () => {
                 scope,
                 vp_token: vpJwt,
                 presentation_submission: JSON.stringify(presentationSubmission),
-              } satisfies CreateAccessTokenDto).toString()
+              } satisfies CreateAccessTokenDto).toString(),
             );
 
           expect(response.body).toStrictEqual({
@@ -559,7 +578,7 @@ describe("Authorisation (e2e)", () => {
           });
           expect(response.status).toBe(400);
           expect(
-            (response.headers as Record<string, unknown>)["content-type"]
+            (response.headers as Record<string, unknown>)["content-type"],
           ).toBe("application/json; charset=utf-8");
         });
 
@@ -569,10 +588,11 @@ describe("Authorisation (e2e)", () => {
               vcPayload,
               issuer,
               {
-                ebsiAuthority: "example.net",
+                ebsiAuthority,
+                ebsiEnvConfig,
                 skipValidation: true,
                 trustedHostnames,
-              }
+              },
             );
 
             vpPayload.verifiableCredential.push(vcJwt);
@@ -583,14 +603,15 @@ describe("Authorisation (e2e)", () => {
             client,
             authorisationApiV3Url,
             {
-              ebsiAuthority: "example.net",
+              ebsiAuthority,
+              ebsiEnvConfig,
               skipValidation: true,
               nonce: randomUUID(),
               trustedHostnames,
               // Override "exp" and "nbf"
               exp: Math.floor(Date.now() / 1000) + 1000,
               nbf: Math.floor(Date.now() / 1000) + 100,
-            }
+            },
           );
 
           const response = await request(server)
@@ -602,7 +623,7 @@ describe("Authorisation (e2e)", () => {
                 scope,
                 vp_token: vpJwt,
                 presentation_submission: JSON.stringify(presentationSubmission),
-              } satisfies CreateAccessTokenDto).toString()
+              } satisfies CreateAccessTokenDto).toString(),
             );
 
           expect(response.body).toStrictEqual({
@@ -612,7 +633,7 @@ describe("Authorisation (e2e)", () => {
           });
           expect(response.status).toBe(400);
           expect(
-            (response.headers as Record<string, unknown>)["content-type"]
+            (response.headers as Record<string, unknown>)["content-type"],
           ).toBe("application/json; charset=utf-8");
         });
 
@@ -622,10 +643,11 @@ describe("Authorisation (e2e)", () => {
               vcPayload,
               issuer,
               {
-                ebsiAuthority: "example.net",
+                ebsiAuthority,
+                ebsiEnvConfig,
                 skipValidation: true,
                 trustedHostnames,
-              }
+              },
             );
 
             vpPayload.verifiableCredential.push(vcJwt);
@@ -636,7 +658,8 @@ describe("Authorisation (e2e)", () => {
             client,
             authorisationApiV3Url,
             {
-              ebsiAuthority: "example.net",
+              ebsiAuthority,
+              ebsiEnvConfig,
               skipValidation: true,
               trustedHostnames,
               // We don't add any nonce
@@ -647,7 +670,7 @@ describe("Authorisation (e2e)", () => {
                     nbf: Math.floor(Date.now() / 1000) - 100,
                   }
                 : {}),
-            }
+            },
           );
 
           // Try submitting a vp without neither a nonce.
@@ -660,7 +683,7 @@ describe("Authorisation (e2e)", () => {
                 scope,
                 vp_token: vpJwt,
                 presentation_submission: JSON.stringify(presentationSubmission),
-              } satisfies CreateAccessTokenDto).toString()
+              } satisfies CreateAccessTokenDto).toString(),
             );
 
           expect(response.body).toStrictEqual({
@@ -670,7 +693,7 @@ describe("Authorisation (e2e)", () => {
           });
           expect(response.status).toBe(400);
           expect(
-            (response.headers as Record<string, unknown>)["content-type"]
+            (response.headers as Record<string, unknown>)["content-type"],
           ).toBe("application/json; charset=utf-8");
         });
 
@@ -680,10 +703,11 @@ describe("Authorisation (e2e)", () => {
               vcPayload,
               issuer,
               {
-                ebsiAuthority: "example.net",
+                ebsiAuthority,
+                ebsiEnvConfig,
                 skipValidation: true,
                 trustedHostnames,
-              }
+              },
             );
 
             vpPayload.verifiableCredential.push(vcJwt);
@@ -717,7 +741,7 @@ describe("Authorisation (e2e)", () => {
                 scope,
                 vp_token: vpJwt,
                 presentation_submission: JSON.stringify(presentationSubmission),
-              } satisfies CreateAccessTokenDto).toString()
+              } satisfies CreateAccessTokenDto).toString(),
             );
 
           // Try submitting the same VP again.
@@ -730,7 +754,7 @@ describe("Authorisation (e2e)", () => {
                 scope,
                 vp_token: vpJwt,
                 presentation_submission: JSON.stringify(presentationSubmission),
-              } satisfies CreateAccessTokenDto).toString()
+              } satisfies CreateAccessTokenDto).toString(),
             );
 
           expect(response.body).toStrictEqual({
@@ -762,7 +786,8 @@ describe("Authorisation (e2e)", () => {
 
         if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
           const vcJwt = await createVerifiableCredentialJwt(vcPayload, issuer, {
-            ebsiAuthority: "example.net",
+            ebsiAuthority,
+            ebsiEnvConfig,
             skipValidation: true,
             trustedHostnames,
           });
@@ -775,7 +800,8 @@ describe("Authorisation (e2e)", () => {
           client,
           authorisationApiV3Url,
           {
-            ebsiAuthority: "example.net",
+            ebsiAuthority,
+            ebsiEnvConfig,
             skipValidation: true,
             nonce: randomUUID(),
             trustedHostnames,
@@ -786,7 +812,7 @@ describe("Authorisation (e2e)", () => {
                   nbf: Math.floor(Date.now() / 1000) - 100,
                 }
               : {}),
-          }
+          },
         );
 
         let response = await request(server)
@@ -798,7 +824,7 @@ describe("Authorisation (e2e)", () => {
               scope,
               vp_token: vpJwt,
               presentation_submission: JSON.stringify(presentationSubmission),
-            } satisfies CreateAccessTokenDto).toString()
+            } satisfies CreateAccessTokenDto).toString(),
           );
 
         expect(response.body).toStrictEqual({
@@ -809,7 +835,7 @@ describe("Authorisation (e2e)", () => {
         });
         expect(response.status).toBe(400);
         expect(
-          (response.headers as Record<string, unknown>)["content-type"]
+          (response.headers as Record<string, unknown>)["content-type"],
         ).toBe("application/json; charset=utf-8");
 
         presentationSubmission = {
@@ -834,7 +860,8 @@ describe("Authorisation (e2e)", () => {
           client,
           authorisationApiV3Url,
           {
-            ebsiAuthority: "example.net",
+            ebsiAuthority,
+            ebsiEnvConfig,
             skipValidation: true,
             nonce: randomUUID(),
             trustedHostnames,
@@ -845,7 +872,7 @@ describe("Authorisation (e2e)", () => {
                   nbf: Math.floor(Date.now() / 1000) - 100,
                 }
               : {}),
-          }
+          },
         );
 
         response = await request(server)
@@ -857,7 +884,7 @@ describe("Authorisation (e2e)", () => {
               scope,
               vp_token: vpJwt,
               presentation_submission: JSON.stringify(presentationSubmission),
-            } satisfies CreateAccessTokenDto).toString()
+            } satisfies CreateAccessTokenDto).toString(),
           );
 
         expect(response.body).toStrictEqual({
@@ -867,7 +894,7 @@ describe("Authorisation (e2e)", () => {
         });
         expect(response.status).toBe(400);
         expect(
-          (response.headers as Record<string, unknown>)["content-type"]
+          (response.headers as Record<string, unknown>)["content-type"],
         ).toBe("application/json; charset=utf-8");
 
         presentationSubmission = {
@@ -892,7 +919,8 @@ describe("Authorisation (e2e)", () => {
           client,
           authorisationApiV3Url,
           {
-            ebsiAuthority: "example.net",
+            ebsiAuthority,
+            ebsiEnvConfig,
             skipValidation: true,
             nonce: randomUUID(),
             trustedHostnames,
@@ -903,7 +931,7 @@ describe("Authorisation (e2e)", () => {
                   nbf: Math.floor(Date.now() / 1000) - 100,
                 }
               : {}),
-          }
+          },
         );
 
         response = await request(server)
@@ -915,7 +943,7 @@ describe("Authorisation (e2e)", () => {
               scope,
               vp_token: vpJwt,
               presentation_submission: JSON.stringify(presentationSubmission),
-            } satisfies CreateAccessTokenDto).toString()
+            } satisfies CreateAccessTokenDto).toString(),
           );
 
         expect(response.body).toStrictEqual({
@@ -925,7 +953,7 @@ describe("Authorisation (e2e)", () => {
         });
         expect(response.status).toBe(400);
         expect(
-          (response.headers as Record<string, unknown>)["content-type"]
+          (response.headers as Record<string, unknown>)["content-type"],
         ).toBe("application/json; charset=utf-8");
 
         vpJwt = await createVerifiablePresentationJwt(
@@ -933,7 +961,8 @@ describe("Authorisation (e2e)", () => {
           client,
           authorisationApiV3Url,
           {
-            ebsiAuthority: "example.net",
+            ebsiAuthority,
+            ebsiEnvConfig,
             skipValidation: true,
             nonce: randomUUID(),
             trustedHostnames,
@@ -944,7 +973,7 @@ describe("Authorisation (e2e)", () => {
                   nbf: Math.floor(Date.now() / 1000) - 100,
                 }
               : {}),
-          }
+          },
         );
 
         response = await request(server)
@@ -956,7 +985,7 @@ describe("Authorisation (e2e)", () => {
               scope,
               vp_token: vpJwt,
               presentation_submission: presentationSubmission,
-            })
+            }),
           );
 
         expect(response.body).toStrictEqual({
@@ -965,7 +994,7 @@ describe("Authorisation (e2e)", () => {
         });
         expect(response.status).toBe(400);
         expect(
-          (response.headers as Record<string, unknown>)["content-type"]
+          (response.headers as Record<string, unknown>)["content-type"],
         ).toBe("application/json; charset=utf-8");
 
         vpJwt = await createVerifiablePresentationJwt(
@@ -973,7 +1002,8 @@ describe("Authorisation (e2e)", () => {
           client,
           authorisationApiV3Url,
           {
-            ebsiAuthority: "example.net",
+            ebsiAuthority,
+            ebsiEnvConfig,
             skipValidation: true,
             nonce: randomUUID(),
             trustedHostnames,
@@ -984,7 +1014,7 @@ describe("Authorisation (e2e)", () => {
                   nbf: Math.floor(Date.now() / 1000) - 100,
                 }
               : {}),
-          }
+          },
         );
 
         response = await request(server)
@@ -996,7 +1026,7 @@ describe("Authorisation (e2e)", () => {
               scope,
               vp_token: vpJwt,
               presentation_submission: JSON.stringify({ foo: "bar" }), // invalid json
-            } satisfies CreateAccessTokenDto).toString()
+            } satisfies CreateAccessTokenDto).toString(),
           );
 
         expect(response.body).toStrictEqual({
@@ -1008,14 +1038,15 @@ describe("Authorisation (e2e)", () => {
         });
         expect(response.status).toBe(400);
         expect(
-          (response.headers as Record<string, unknown>)["content-type"]
+          (response.headers as Record<string, unknown>)["content-type"],
         ).toBe("application/json; charset=utf-8");
       });
 
       it("should return an error if the content is not application/x-www-form-urlencoded", async () => {
         if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
           const vcJwt = await createVerifiableCredentialJwt(vcPayload, issuer, {
-            ebsiAuthority: "example.net",
+            ebsiAuthority,
+            ebsiEnvConfig,
             skipValidation: true,
             trustedHostnames,
           });
@@ -1030,7 +1061,8 @@ describe("Authorisation (e2e)", () => {
           client,
           authorisationApiV3Url,
           {
-            ebsiAuthority: "example.net",
+            ebsiAuthority,
+            ebsiEnvConfig,
             skipValidation: true,
             nonce,
             trustedHostnames,
@@ -1041,7 +1073,7 @@ describe("Authorisation (e2e)", () => {
                   nbf: Math.floor(Date.now() / 1000) - 100,
                 }
               : {}),
-          }
+          },
         );
 
         const response = await request(server)
@@ -1061,7 +1093,7 @@ describe("Authorisation (e2e)", () => {
         });
         expect(response.status).toBe(400);
         expect(
-          (response.headers as Record<string, unknown>)["content-type"]
+          (response.headers as Record<string, unknown>)["content-type"],
         ).toBe("application/json; charset=utf-8");
       });
 
@@ -1072,15 +1104,14 @@ describe("Authorisation (e2e)", () => {
           // and a new Trusted Issuer into the TIR. It can only be run in an environment where we
           // can use write operations, and where the DIDR API v4 and TIR API v4 support the new
           // auth mechanism.
-
-          // eslint-disable-next-line jest/no-conditional-expect
           expect.assertions(0);
           return;
         }
 
         if (customScope === DIDR_INVITE_SCOPE) {
           const vcJwt = await createVerifiableCredentialJwt(vcPayload, issuer, {
-            ebsiAuthority: "example.net",
+            ebsiAuthority,
+            ebsiEnvConfig,
             skipValidation: true,
             trustedHostnames,
           });
@@ -1095,7 +1126,8 @@ describe("Authorisation (e2e)", () => {
           client,
           authorisationApiV3Url,
           {
-            ebsiAuthority: "example.net",
+            ebsiAuthority,
+            ebsiEnvConfig,
             skipValidation: true,
             nonce,
             trustedHostnames,
@@ -1106,7 +1138,7 @@ describe("Authorisation (e2e)", () => {
                   nbf: Math.floor(Date.now() / 1000) - 100,
                 }
               : {}),
-          }
+          },
         );
 
         const response = await request(server)
@@ -1118,7 +1150,7 @@ describe("Authorisation (e2e)", () => {
               scope,
               vp_token: vpJwt,
               presentation_submission: JSON.stringify(presentationSubmission),
-            } satisfies CreateAccessTokenDto).toString()
+            } satisfies CreateAccessTokenDto).toString(),
           );
 
         expect(response.status).toBe(200);
@@ -1166,7 +1198,7 @@ describe("Authorisation (e2e)", () => {
 
         // Verify the signature of the access token
         await expect(
-          jwtVerify(accessToken, apiPublicKey)
+          jwtVerify(accessToken, apiPublicKey),
         ).resolves.not.toThrow();
 
         // Decode and verify ID Token

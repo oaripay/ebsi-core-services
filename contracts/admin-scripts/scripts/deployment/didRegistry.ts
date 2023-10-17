@@ -51,19 +51,6 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     },
   });
 
-  // const didControllersLib = await deployments.deploy("ControllersLib", {
-  //   ...opts,
-  //   libraries: {
-  //     Pagination: pagination.address,
-  //   },
-  // });
-  // const didDocumentLib = await deployments.deploy("DidDocumentLib", {
-  //   ...opts,
-  //   libraries: {
-  //     Pagination: pagination.address,
-  //   },
-  // });
-
   const hashAlgoLib = await deployments.deploy("HashAlgoLib", {
     ...optsPagination,
     contract: "contracts/did-registry/did-registry/HashAlgoLib.sol:HashAlgoLib",
@@ -78,8 +65,6 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
       HashAlgoLib: hashAlgoLib.address,
       DidTimestampLib: didTimestampLib.address,
       Pagination: pagination.address,
-      // ControllersLib: didControllersLib.address,
-      // DidDocumentLib: didDocumentLib.address,
     },
     log: true,
   });

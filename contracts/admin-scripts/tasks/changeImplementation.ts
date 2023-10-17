@@ -13,21 +13,21 @@ task("changeImplementation", "change proxy implementation")
         proxy: string;
         implementation: string;
       },
-      { ethers, deployments }
+      { ethers, deployments },
     ) => {
       const proxyDeployedAddr = taskArgs.proxy;
       const storage = getDiamondStorage(taskArgs.implementation);
       const TSC_DIAMOND_STORAGE_SLOT = ethers.utils.keccak256(
-        ethers.utils.toUtf8Bytes(storage)
+        ethers.utils.toUtf8Bytes(storage),
       );
 
       const IMPLEMENTATION_SLOT = ethers.utils.keccak256(
-        ethers.utils.toUtf8Bytes("diamond.standard.diamond.storage.proxy")
+        ethers.utils.toUtf8Bytes("diamond.standard.diamond.storage.proxy"),
       );
 
       const proxyCtr = (await ethers.getContractAt(
         `OwnedUpgradeabilityProxy`,
-        proxyDeployedAddr
+        proxyDeployedAddr,
       )) as OwnedUpgradeabilityProxy;
 
       // these infos are not easily accessible as they are restricted by an onlyAdmin modifier
@@ -35,8 +35,8 @@ task("changeImplementation", "change proxy implementation")
       const adminAddr = BigNumber.from(
         await ethers.provider.getStorageAt(
           proxyCtr.address,
-          IMPLEMENTATION_SLOT
-        )
+          IMPLEMENTATION_SLOT,
+        ),
       ).toHexString();
       console.log(`Proxy admin address: ${adminAddr}`);
       const signers = (await ethers.getSigners())[0];
@@ -49,18 +49,18 @@ task("changeImplementation", "change proxy implementation")
       const implementationAddr = BigNumber.from(
         await ethers.provider.getStorageAt(
           proxyCtr.address,
-          BigNumber.from(IMPLEMENTATION_SLOT).add(1)
-        )
+          BigNumber.from(IMPLEMENTATION_SLOT).add(1),
+        ),
       ).toHexString();
       console.log(
-        `Proxy current implementation address: ${implementationAddr}`
+        `Proxy current implementation address: ${implementationAddr}`,
       );
 
       const version = BigNumber.from(
         await ethers.provider.getStorageAt(
           proxyCtr.address,
-          TSC_DIAMOND_STORAGE_SLOT
-        )
+          TSC_DIAMOND_STORAGE_SLOT,
+        ),
       ).toHexString();
       console.log(`current version : ${version}`);
 
@@ -75,21 +75,21 @@ task("changeImplementation", "change proxy implementation")
       const newImplementationAddr = BigNumber.from(
         await ethers.provider.getStorageAt(
           proxyCtr.address,
-          BigNumber.from(IMPLEMENTATION_SLOT).add(1)
-        )
+          BigNumber.from(IMPLEMENTATION_SLOT).add(1),
+        ),
       ).toHexString();
       console.log(`Proxy new implementation address: ${newImplementationAddr}`);
 
       const newVersion = BigNumber.from(
         await ethers.provider.getStorageAt(
           proxyCtr.address,
-          TSC_DIAMOND_STORAGE_SLOT
-        )
+          TSC_DIAMOND_STORAGE_SLOT,
+        ),
       ).toHexString();
       console.log(`new version : ${newVersion}`);
       console.log(
         "Initialization:",
-        (receipt as { status: number }).status === 1 ? "ok" : "error"
+        (receipt as { status: number }).status === 1 ? "ok" : "error",
       );
-    }
+    },
   );

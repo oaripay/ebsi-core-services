@@ -6,19 +6,19 @@ import {
   Equals,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { JsonRpcDto } from "../jsonrpc.dto";
-import { InsertRevocationParam } from "./insert-revocation-param.dto";
+import { JsonRpcDto } from "../jsonrpc.dto.js";
+import { InsertRevocationParam } from "./insert-revocation-param.dto.js";
 
 export class RequestInsertRevocationDto extends JsonRpcDto {
   @Equals("insertRevocation")
-  method: string;
+  declare method: string;
 
   @IsArray()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @Type(() => InsertRevocationParam)
-  params: InsertRevocationParam[];
+  declare params: InsertRevocationParam[];
 }
 
 export default RequestInsertRevocationDto;

@@ -2,23 +2,23 @@ import { IsHexadecimal, IsInt, Min, Max } from "class-validator";
 
 export class ArgsInsertAppPublicKey {
   @IsHexadecimal()
-  applicationId: string;
+  applicationId!: string;
 
   @IsHexadecimal()
-  publicKey: string;
+  publicKey!: string;
 
   @IsInt()
   @Min(0)
   @Max(3)
-  status: number;
+  status!: number;
 
   @IsInt()
   @Min(0)
-  notBefore: number;
+  notBefore!: number;
 
   @IsInt()
   @Min(0)
-  notAfter: number;
+  notAfter!: number;
 }
 
 export default { ArgsInsertAppPublicKey };

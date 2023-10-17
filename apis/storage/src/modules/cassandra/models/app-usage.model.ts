@@ -1,7 +1,7 @@
 export class AppUsageModel {
-  did: string;
+  did!: string;
 
-  numberBytes: string;
+  numberBytes!: string;
 }
 
 export default AppUsageModel;

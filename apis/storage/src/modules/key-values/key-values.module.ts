@@ -1,9 +1,9 @@
 import { Module, Logger } from "@nestjs/common";
-import { ApiConfigModule } from "../../config/configuration";
-import { KeyValuesController } from "./key-values.controller";
-import { KeyValuesService } from "./key-values.service";
-import { AuthModule } from "../auth/auth.module";
-import { CassandraModule } from "../cassandra/cassandra.module";
+import { ApiConfigModule } from "../../config/configuration.js";
+import { KeyValuesController } from "./key-values.controller.js";
+import { KeyValuesService } from "./key-values.service.js";
+import { AuthModule } from "../auth/auth.module.js";
+import { CassandraModule } from "../cassandra/cassandra.module.js";
 
 @Module({
   imports: [ApiConfigModule, AuthModule, CassandraModule],

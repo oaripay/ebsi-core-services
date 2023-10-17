@@ -6,19 +6,19 @@ import {
   Equals,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { JsonRpcDto } from "../jsonrpc.dto";
-import { InsertAppParam } from "./insert-app-param.dto";
+import { JsonRpcDto } from "../jsonrpc.dto.js";
+import { InsertAppParam } from "./insert-app-param.dto.js";
 
 export class RequestInsertAppDto extends JsonRpcDto {
   @Equals("insertApp")
-  method: string;
+  declare method: string;
 
   @IsArray()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @Type(() => InsertAppParam)
-  params: InsertAppParam[];
+  declare params: InsertAppParam[];
 }
 
 export default RequestInsertAppDto;

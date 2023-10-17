@@ -7,7 +7,7 @@ import { EBSI_DID_METHOD_PREFIX, validate } from "@cef-ebsi/ebsi-did-resolver";
 import { util } from "@cef-ebsi/key-did-resolver";
 
 export function IsDid(validationOptions?: ValidationOptions) {
-  return (object: unknown, propertyName: string): void => {
+  return (object: object, propertyName: string): void => {
     registerDecorator({
       name: "isDid",
       target: object.constructor,
@@ -29,7 +29,7 @@ export function IsDid(validationOptions?: ValidationOptions) {
         },
         defaultMessage: buildMessage(
           (eachPrefix) => `${eachPrefix}$property must be a valid DID string`,
-          validationOptions
+          validationOptions,
         ),
       },
     });

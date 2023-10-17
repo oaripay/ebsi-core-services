@@ -1,17 +1,12 @@
-import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
+import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
 import crypto from "node:crypto";
-import axios, { AxiosError } from "axios";
+import axios, { type AxiosError } from "axios";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  HttpServer,
-  Logger,
-} from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import * as OAuth2Lib from "@cef-ebsi/oauth2-auth";
 import * as SiopLib from "@cef-ebsi/siop-auth";
 import type { JwtTarVerifyResult } from "@cef-ebsi/oauth2-auth";
@@ -19,13 +14,12 @@ import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import type { JWTVerifyResult } from "jose";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { HashName } from "multihashes";
 import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp";
-import { multibase, AsyncReturnType } from "@ebsiint-api/shared";
-import { JsonRpcModule } from "./jsonrpc.module";
-import { JsonRpcResponseObject } from "./jsonrpc.interface";
+import { multibase } from "@ebsiint-api/shared";
+import { JsonRpcModule } from "./jsonrpc.module.js";
+import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
 import {
   DetachRecordVersionHashParam,
   InsertRecordOwnerParam,
@@ -39,38 +33,35 @@ import {
   UnsignedTransaction,
   UpdateHashAlgorithmParam,
   TimestampVersionHashesParam,
-} from "./dto";
-import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { setupTestEnv } from "../../../tests/utils/timestamp";
-import { LedgerService } from "../ledger/ledger.service";
-import { ApiConfig } from "../../config/configuration";
+} from "./dto/index.js";
+import { formatEthersUnsignedTransaction } from "./jsonrpc.utils.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import {
+  multihashToNodeHashAlg,
+  setupTestEnv,
+} from "../../../tests/utils/timestamp.js";
+import { LedgerService } from "../ledger/ledger.service.js";
+import type { ApiConfig } from "../../config/configuration.js";
 
-jest.mock("@cef-ebsi/oauth2-auth", () => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const originalModule = jest.requireActual("@cef-ebsi/oauth2-auth");
+vi.mock("@cef-ebsi/oauth2-auth", async () => {
+  const mod = await vi.importActual<typeof import("@cef-ebsi/oauth2-auth")>(
+    "@cef-ebsi/oauth2-auth",
+  );
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return {
-    __esModule: true,
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    ...originalModule,
-    verifyJwtTar: jest.fn(),
+    ...mod,
+    verifyJwtTar: vi.fn(),
   };
 });
 
-jest.mock("@cef-ebsi/siop-auth", () => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const originalModule = jest.requireActual("@cef-ebsi/siop-auth");
+vi.mock("@cef-ebsi/siop-auth", async () => {
+  const mod = await vi.importActual<typeof import("@cef-ebsi/siop-auth")>(
+    "@cef-ebsi/siop-auth",
+  );
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return {
-    __esModule: true,
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    ...originalModule,
-    verifyJwtTar: jest.fn(),
+    ...mod,
+    verifyJwtTar: vi.fn(),
   };
 });
 
@@ -86,34 +77,29 @@ type JsonRpcParams =
   | DetachRecordVersionHashParam
   | RevokeRecordOwnerParam
   | InsertRecordOwnerParam
-  | TimestampRecordHashesParam
   | InsertRecordVersionInfoParam
   | TimestampRecordVersionHashesParam
   | AppendRecordVersionHashesParam
   | TimestampRecordHashesParam;
 
-const axiosError = (status: number, message: string): AxiosError =>
-  ({
-    response: {
-      status,
-      data: message,
-      statusText: message,
-      headers: {},
-      config: {},
-    },
-    isAxiosError: true,
-    name: "error",
-    message,
-    config: {},
-    toJSON: null,
-  } as AxiosError);
+const axiosError = (status: number, message: string): AxiosError => ({
+  // @ts-expect-error "Type '{ status: number; data: string; statusText: string; }' is missing the following properties from type 'AxiosResponse<unknown, any>': headers, config"
+  response: {
+    status,
+    data: message,
+    statusText: message,
+  },
+  isAxiosError: true,
+  name: "error",
+  message,
+});
 
 describe("JsonRpc Module", () => {
-  let app: INestApplication;
+  let app: NestFastifyApplication;
   let configService: ConfigService<ApiConfig, true>;
-  let server: HttpServer;
+  let server: RawServerDefault;
   let timestampContract: Timestamp;
-  let testEnv: AsyncReturnType<typeof setupTestEnv>;
+  let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
   let ledgerService: LedgerService;
   let firstHashValue: string;
   let secondHashValue: string;
@@ -126,15 +112,15 @@ describe("JsonRpc Module", () => {
         JSON.stringify({
           alg: "ES256K",
           typ: "JWT",
-        })
-      )
+        }),
+      ),
     )}.${multibase.base64url.baseEncode(
       Buffer.from(
         JSON.stringify({
           sub,
           ...(siop && { login_hint: "did_siop" }),
-        })
-      )
+        }),
+      ),
     )}.${multibase.base64url.baseEncode(Buffer.from("signature"))}`;
   const testAdmin = {
     token: genToken("admin"),
@@ -173,35 +159,26 @@ describe("JsonRpc Module", () => {
     timestampContract = testEnv.timestampContract;
     provider = testEnv.provider;
 
-    jest
-      .spyOn(LedgerService.prototype, "getContractAddress")
-      .mockImplementation(() => timestampContract.address);
-
-    const multihashToNodeHashAlg: Partial<Record<HashName, string>> = {
-      "sha2-256": "sha256",
-      "sha2-512": "sha512",
-      "sha3-224": "sha3-224",
-      "sha3-256": "sha3-256",
-      "sha3-384": "sha3-384",
-      "sha3-512": "sha3-512",
-    };
+    vi.spyOn(LedgerService.prototype, "getContractAddress").mockImplementation(
+      () => timestampContract.address,
+    );
 
     firstHashValue = `0x${crypto
-      .createHash(multihashToNodeHashAlg[testEnv.hashAlgorithms[0].multihash])
+      .createHash(multihashToNodeHashAlg[testEnv.hashAlgorithms[0]!.multihash])
       .update(crypto.randomBytes(32).toString("hex"), "hex")
       .digest()
       .toString("hex")}`;
 
     secondHashValue = `0x${crypto
-      .createHash(multihashToNodeHashAlg[testEnv.hashAlgorithms[0].multihash])
+      .createHash(multihashToNodeHashAlg[testEnv.hashAlgorithms[0]!.multihash]!)
       .update(crypto.randomBytes(32).toString("hex"), "hex")
       .digest()
       .toString("hex")}`;
 
     // Mock Timestamp contract
-    jest
-      .spyOn(Timestamp__factory, "connect")
-      .mockImplementation(() => timestampContract);
+    vi.spyOn(Timestamp__factory, "connect").mockImplementation(
+      () => timestampContract,
+    );
 
     // Start server
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -209,7 +186,7 @@ describe("JsonRpc Module", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     // Turn off logger
@@ -220,35 +197,33 @@ describe("JsonRpc Module", () => {
     app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    await app.getHttpAdapter().getInstance().ready();
+    server = app.getHttpServer();
 
     // Make sure we never use axios.post in tests ;-)
-    jest
-      .spyOn(axios, "post")
-      .mockImplementation((url, data: { params: string[] }) => {
-        if (url.includes("/actions")) {
-          const urlParts = url.split("/");
-          const did = urlParts[urlParts.length - 2];
-          const [address] = data.params;
-          const result =
-            (testAdmin.did === did &&
-              testAdmin.wallet.address.toLocaleLowerCase() ===
-                address.toLocaleLowerCase()) ||
-            (testUser.did === did &&
-              testUser.wallet.address.toLocaleLowerCase() ===
-                address.toLocaleLowerCase());
-          return Promise.resolve({
-            data: {
-              jsonrpc: "2.0",
-              result,
-            },
-          });
-        }
-        throw new Error("Forgot to mock an axios post call?");
-      });
+    vi.spyOn(axios, "post").mockImplementation((url, data: unknown) => {
+      if (url.includes("/actions")) {
+        const urlParts = url.split("/");
+        const did = urlParts[urlParts.length - 2];
+        const address = (data as { params: string[] }).params[0]!;
+        const result =
+          (testAdmin.did === did &&
+            testAdmin.wallet.address.toLocaleLowerCase() ===
+              address.toLocaleLowerCase()) ||
+          (testUser.did === did &&
+            testUser.wallet.address.toLocaleLowerCase() ===
+              address.toLocaleLowerCase());
+        return Promise.resolve({
+          data: {
+            jsonrpc: "2.0",
+            result,
+          },
+        });
+      }
+      throw new Error("Forgot to mock an axios post call?");
+    });
 
-    jest.spyOn(axios, "get").mockImplementation((url): Promise<unknown> => {
+    vi.spyOn(axios, "get").mockImplementation((url): Promise<unknown> => {
       // accessing administrators in TAR
       if (url.includes("/administrators")) {
         if (!url.includes(testAdmin.did)) {
@@ -263,7 +238,7 @@ describe("JsonRpc Module", () => {
                 body: Buffer.from(
                   JSON.stringify({
                     validFrom: new Date().toISOString(),
-                  })
+                  }),
                 ).toString("base64"),
               },
             ],
@@ -289,9 +264,8 @@ describe("JsonRpc Module", () => {
       throw new Error("Forgot to mock an axios call?");
     });
 
-    jest
-      .spyOn(SiopLib, "verifyJwtTar")
-      .mockImplementation((token: string): Promise<JWTVerifyResult> => {
+    vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(
+      (token: string): Promise<JWTVerifyResult> => {
         if (token === testAdmin.token) {
           return Promise.resolve({
             payload: {
@@ -308,11 +282,11 @@ describe("JsonRpc Module", () => {
         }
 
         return Promise.reject(new Error("verifyJwtTar failed (siop)"));
-      });
+      },
+    );
 
-    jest
-      .spyOn(OAuth2Lib, "verifyJwtTar")
-      .mockImplementation((token: string): Promise<JwtTarVerifyResult> => {
+    vi.spyOn(OAuth2Lib, "verifyJwtTar").mockImplementation(
+      (token: string): Promise<JwtTarVerifyResult> => {
         if (token === testApp.token) {
           return Promise.resolve({
             payload: { sub: testApp.name },
@@ -320,21 +294,17 @@ describe("JsonRpc Module", () => {
         }
 
         return Promise.reject(new Error("verifyJwtTar failed (siop)"));
-        throw new Error("verifyAccessToken failed (oauth2)");
-      });
+      },
+    );
 
     // Mock Contract service
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
-    jest
-      .spyOn(ledgerService, "getContract")
-      .mockImplementation(async () => Promise.resolve(timestampContract));
+    vi.spyOn(ledgerService, "getContract").mockImplementation(async () =>
+      Promise.resolve(timestampContract),
+    );
   });
 
   afterAll(async () => {
-    // Avoid jest open handle error
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
     await app.close();
   });
 
@@ -374,7 +344,7 @@ describe("JsonRpc Module", () => {
         hashValues: [firstHashValue],
         timestampData: [
           `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-            "hex"
+            "hex",
           )}`,
         ],
       };
@@ -393,8 +363,8 @@ describe("JsonRpc Module", () => {
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
         JSON.parse(
-          JSON.stringify(unsignedTransaction)
-        ) as unknown as UnsignedTransaction
+          JSON.stringify(unsignedTransaction),
+        ) as unknown as UnsignedTransaction,
       );
       uTx.chainId = Number(uTx.chainId);
       // user in the transaction
@@ -427,7 +397,7 @@ describe("JsonRpc Module", () => {
         error: {
           code: -32600,
           message: expect.stringContaining(
-            "The DID did:ebsi:admin is not controlled by the address 0x"
+            "The DID did:ebsi:admin is not controlled by the address 0x",
           ),
         },
       });
@@ -462,7 +432,7 @@ describe("JsonRpc Module", () => {
       to: timestampContract.address,
       data: timestampContract.interface.encodeFunctionData(
         "getHashAlgorithms",
-        [1, 10]
+        [1, 10],
       ),
       value: "0x00",
       nonce: "0x00",
@@ -472,7 +442,7 @@ describe("JsonRpc Module", () => {
     };
 
     const uTx = formatEthersUnsignedTransaction(
-      JSON.parse(JSON.stringify(transaction)) as unknown as UnsignedTransaction
+      JSON.parse(JSON.stringify(transaction)) as unknown as UnsignedTransaction,
     );
     uTx.chainId = Number(uTx.chainId);
     const sgnTx = await testUser.wallet.signTransaction(uTx);
@@ -530,7 +500,7 @@ describe("JsonRpc Module", () => {
       error: {
         code: -32600,
         message: expect.stringContaining(
-          "The method 'unknown-method' is invalid"
+          "The method 'unknown-method' is invalid",
         ),
       },
     });
@@ -554,7 +524,7 @@ describe("JsonRpc Module", () => {
     it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction", async () => {
       expect.assertions(4);
 
-      let param: JsonRpcParams = null;
+      let param: JsonRpcParams | null = null;
 
       switch (method) {
         case "insertHashAlgorithm": {
@@ -587,7 +557,7 @@ describe("JsonRpc Module", () => {
             hashValues: [firstHashValue],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
             ],
           } as TimestampHashesParam;
@@ -600,13 +570,13 @@ describe("JsonRpc Module", () => {
             hashValues: [firstHashValue],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
             ],
             versionHash: firstHashValue,
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ test: 54 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as TimestampVersionHashesParam;
           break;
@@ -618,12 +588,12 @@ describe("JsonRpc Module", () => {
             hashValues: [firstHashValue],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
             ],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ test: 54 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as TimestampRecordHashesParam;
           break;
@@ -632,8 +602,8 @@ describe("JsonRpc Module", () => {
           recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testAdmin.wallet.address, blockNumber, firstHashValue]
-            )
+              [testAdmin.wallet.address, blockNumber, firstHashValue],
+            ),
           );
           param = {
             from: testAdmin.wallet.address,
@@ -647,8 +617,8 @@ describe("JsonRpc Module", () => {
           recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testAdmin.wallet.address, blockNumber, firstHashValue]
-            )
+              [testAdmin.wallet.address, blockNumber, firstHashValue],
+            ),
           );
           param = {
             from: testAdmin.wallet.address,
@@ -663,8 +633,8 @@ describe("JsonRpc Module", () => {
           recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testAdmin.wallet.address, blockNumber, firstHashValue]
-            )
+              [testAdmin.wallet.address, blockNumber, firstHashValue],
+            ),
           );
           param = {
             from: testAdmin.wallet.address,
@@ -677,8 +647,8 @@ describe("JsonRpc Module", () => {
           recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testAdmin.wallet.address, blockNumber, firstHashValue]
-            )
+              [testAdmin.wallet.address, blockNumber, firstHashValue],
+            ),
           );
           param = {
             from: testAdmin.wallet.address,
@@ -686,7 +656,7 @@ describe("JsonRpc Module", () => {
             versionId: 0,
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ test: 42 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as InsertRecordVersionInfoParam;
           break;
@@ -695,8 +665,8 @@ describe("JsonRpc Module", () => {
           recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testAdmin.wallet.address, blockNumber, firstHashValue]
-            )
+              [testAdmin.wallet.address, blockNumber, firstHashValue],
+            ),
           );
           param = {
             from: testAdmin.wallet.address,
@@ -705,12 +675,12 @@ describe("JsonRpc Module", () => {
             hashValues: [firstHashValue],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
             ],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ test: 54 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as TimestampRecordVersionHashesParam;
           break;
@@ -719,8 +689,8 @@ describe("JsonRpc Module", () => {
           recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testAdmin.wallet.address, blockNumber, firstHashValue]
-            )
+              [testAdmin.wallet.address, blockNumber, firstHashValue],
+            ),
           );
           param = {
             from: testAdmin.wallet.address,
@@ -730,12 +700,12 @@ describe("JsonRpc Module", () => {
             hashValues: [firstHashValue],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
             ],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ test: 54 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as AppendRecordVersionHashesParam;
           break;
@@ -773,8 +743,8 @@ describe("JsonRpc Module", () => {
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
         JSON.parse(
-          JSON.stringify(unsignedTransaction)
-        ) as unknown as UnsignedTransaction
+          JSON.stringify(unsignedTransaction),
+        ) as unknown as UnsignedTransaction,
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx = await testAdmin.wallet.signTransaction(uTx);
@@ -813,7 +783,7 @@ describe("JsonRpc Module", () => {
     it("should accept a request without id", async () => {
       expect.assertions(2);
 
-      let param: JsonRpcParams = null;
+      let param: JsonRpcParams | null = null;
 
       switch (method) {
         case "insertHashAlgorithm": {
@@ -846,7 +816,7 @@ describe("JsonRpc Module", () => {
             hashValues: [firstHashValue],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
             ],
           } as TimestampHashesParam;
@@ -859,13 +829,13 @@ describe("JsonRpc Module", () => {
             hashValues: [firstHashValue],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
             ],
             versionHash: firstHashValue,
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ test: 54 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as TimestampVersionHashesParam;
           break;
@@ -877,12 +847,12 @@ describe("JsonRpc Module", () => {
             hashValues: [firstHashValue],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
             ],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ test: 54 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as TimestampRecordHashesParam;
           break;
@@ -906,12 +876,12 @@ describe("JsonRpc Module", () => {
             hashValues: [firstHashValue],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
             ],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ test: 54 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as TimestampRecordVersionHashesParam;
           break;
@@ -926,12 +896,12 @@ describe("JsonRpc Module", () => {
             hashValues: [firstHashValue],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
             ],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ test: 54 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as AppendRecordVersionHashesParam;
           break;
@@ -964,7 +934,7 @@ describe("JsonRpc Module", () => {
             versionId: 0,
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ test: 42 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as InsertRecordVersionInfoParam;
           break;
@@ -986,7 +956,7 @@ describe("JsonRpc Module", () => {
       expect(responseBuild.body).toStrictEqual({
         jsonrpc: "2.0",
         id: null,
-        result: expect.objectContaining({}) as unknown,
+        result: expect.objectContaining({}),
       });
       expect(responseBuild.status).toBe(200);
     });
@@ -994,9 +964,9 @@ describe("JsonRpc Module", () => {
     it(`should throw an Invalid Request error for bad use of ${method}`, async () => {
       expect.assertions(6);
 
-      let param1: JsonRpcParams = null;
-      let param2: JsonRpcParams = null;
-      let param3: JsonRpcParams = null;
+      let param1: JsonRpcParams | null = null;
+      let param2: JsonRpcParams | null = null;
+      let param3: JsonRpcParams | null = null;
 
       let expectedErrorMessage1: string;
       let expectedErrorMessage2: string;
@@ -1088,7 +1058,7 @@ describe("JsonRpc Module", () => {
             hashValues: [firstHashValue],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
             ],
           } as TimestampHashesParam;
@@ -1101,7 +1071,7 @@ describe("JsonRpc Module", () => {
             hashAlgorithmIds: [0],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
             ],
           } as TimestampHashesParam;
@@ -1126,13 +1096,13 @@ describe("JsonRpc Module", () => {
             hashValues: [firstHashValue],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
             ],
             versionHash: firstHashValue,
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ test: 54 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as TimestampVersionHashesParam;
 
@@ -1144,13 +1114,13 @@ describe("JsonRpc Module", () => {
             hashAlgorithmIds: [0],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
             ],
             versionHash: firstHashValue,
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ test: 54 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as TimestampVersionHashesParam;
 
@@ -1165,7 +1135,7 @@ describe("JsonRpc Module", () => {
             versionHash: firstHashValue,
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ test: 54 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as TimestampVersionHashesParam;
 
@@ -1179,12 +1149,12 @@ describe("JsonRpc Module", () => {
             hashValues: [firstHashValue],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
             ],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ test: 52 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as unknown as TimestampRecordHashesParam;
 
@@ -1196,12 +1166,12 @@ describe("JsonRpc Module", () => {
             hashAlgorithmIds: [0],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
             ],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ test: 425 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as unknown as TimestampRecordHashesParam;
 
@@ -1215,7 +1185,7 @@ describe("JsonRpc Module", () => {
             timestampData: [`this is not hex`],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ test: 82 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as unknown as TimestampRecordHashesParam;
 
@@ -1264,12 +1234,12 @@ describe("JsonRpc Module", () => {
             hashValues: [firstHashValue],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
             ],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ test: 482 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as unknown as TimestampRecordVersionHashesParam;
 
@@ -1283,12 +1253,12 @@ describe("JsonRpc Module", () => {
             hashAlgorithmIds: [0],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
             ],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ infotest: 42 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as unknown as TimestampRecordVersionHashesParam;
 
@@ -1304,7 +1274,7 @@ describe("JsonRpc Module", () => {
             timestampData: [`this is not hex`],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ test: 842 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as unknown as TimestampRecordVersionHashesParam;
 
@@ -1321,12 +1291,12 @@ describe("JsonRpc Module", () => {
             hashValues: [firstHashValue],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
             ],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ test: 842 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as unknown as AppendRecordVersionHashesParam;
 
@@ -1341,12 +1311,12 @@ describe("JsonRpc Module", () => {
             hashAlgorithmIds: [0],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
             ],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ test: 492 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as unknown as AppendRecordVersionHashesParam;
 
@@ -1363,7 +1333,7 @@ describe("JsonRpc Module", () => {
             hashValues: [firstHashValue],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ test: 42 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as unknown as AppendRecordVersionHashesParam;
 
@@ -1444,7 +1414,7 @@ describe("JsonRpc Module", () => {
             versionId: 0,
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ test: 42 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as InsertRecordVersionInfoParam;
 
@@ -1458,7 +1428,7 @@ describe("JsonRpc Module", () => {
             versionId: -1,
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ test: 42 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as InsertRecordVersionInfoParam;
 
@@ -1472,7 +1442,7 @@ describe("JsonRpc Module", () => {
             versionId: 0,
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ test: 42 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}f`,
           } as InsertRecordVersionInfoParam;
 
@@ -1603,7 +1573,7 @@ describe("JsonRpc Module", () => {
             hashValues: [firstHashValue],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
             ],
           } as TimestampHashesParam;
@@ -1614,7 +1584,7 @@ describe("JsonRpc Module", () => {
             hashValues: [firstHashValue],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 43 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
             ],
           } as TimestampHashesParam;
@@ -1628,13 +1598,13 @@ describe("JsonRpc Module", () => {
             hashValues: [firstHashValue],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
             ],
             versionHash: firstHashValue,
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ test: 54 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as TimestampVersionHashesParam;
 
@@ -1644,13 +1614,13 @@ describe("JsonRpc Module", () => {
             hashValues: [firstHashValue],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 43 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
             ],
             versionHash: firstHashValue,
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ test: 54 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as TimestampVersionHashesParam;
 
@@ -1663,12 +1633,12 @@ describe("JsonRpc Module", () => {
             hashValues: [firstHashValue],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
             ],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ test: 742 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as TimestampRecordHashesParam;
 
@@ -1678,12 +1648,12 @@ describe("JsonRpc Module", () => {
             hashValues: [firstHashValue],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 43 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
             ],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ test: 742 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as TimestampRecordHashesParam;
 
@@ -1693,8 +1663,8 @@ describe("JsonRpc Module", () => {
           recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testAdmin.wallet.address, blockNumber, firstHashValue]
-            )
+              [testAdmin.wallet.address, blockNumber, firstHashValue],
+            ),
           );
 
           param1 = {
@@ -1704,12 +1674,12 @@ describe("JsonRpc Module", () => {
             hashValues: [firstHashValue],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
             ],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ info: 42 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as TimestampRecordVersionHashesParam;
 
@@ -1720,12 +1690,12 @@ describe("JsonRpc Module", () => {
             hashValues: [firstHashValue],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 24 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
             ],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ info: 42 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as TimestampRecordVersionHashesParam;
 
@@ -1735,8 +1705,8 @@ describe("JsonRpc Module", () => {
           recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testAdmin.wallet.address, blockNumber, firstHashValue]
-            )
+              [testAdmin.wallet.address, blockNumber, firstHashValue],
+            ),
           );
 
           param1 = {
@@ -1747,12 +1717,12 @@ describe("JsonRpc Module", () => {
             hashValues: [firstHashValue],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
             ],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ infos: 42 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as AppendRecordVersionHashesParam;
 
@@ -1764,12 +1734,12 @@ describe("JsonRpc Module", () => {
             hashValues: [firstHashValue],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 24 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
             ],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ info: 42 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as AppendRecordVersionHashesParam;
 
@@ -1779,8 +1749,8 @@ describe("JsonRpc Module", () => {
           recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testAdmin.wallet.address, blockNumber, firstHashValue]
-            )
+              [testAdmin.wallet.address, blockNumber, firstHashValue],
+            ),
           );
 
           param1 = {
@@ -1803,8 +1773,8 @@ describe("JsonRpc Module", () => {
           recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testAdmin.wallet.address, blockNumber, firstHashValue]
-            )
+              [testAdmin.wallet.address, blockNumber, firstHashValue],
+            ),
           );
 
           param1 = {
@@ -1829,8 +1799,8 @@ describe("JsonRpc Module", () => {
           recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testAdmin.wallet.address, blockNumber, firstHashValue]
-            )
+              [testAdmin.wallet.address, blockNumber, firstHashValue],
+            ),
           );
 
           param1 = {
@@ -1851,13 +1821,13 @@ describe("JsonRpc Module", () => {
           recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testAdmin.wallet.address, blockNumber, firstHashValue]
-            )
+              [testAdmin.wallet.address, blockNumber, firstHashValue],
+            ),
           );
 
           const versionInfo = `0x${Buffer.from(
             JSON.stringify({ test: 42 }),
-            "utf8"
+            "utf8",
           ).toString("hex")}`;
 
           param1 = {
@@ -1906,8 +1876,8 @@ describe("JsonRpc Module", () => {
 
       const uTx = formatEthersUnsignedTransaction(
         JSON.parse(
-          JSON.stringify(transaction1)
-        ) as unknown as UnsignedTransaction
+          JSON.stringify(transaction1),
+        ) as unknown as UnsignedTransaction,
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx1 = await testUser.wallet.signTransaction(uTx);
@@ -1938,7 +1908,7 @@ describe("JsonRpc Module", () => {
         error: {
           code: -32600,
           message: expect.stringContaining(
-            "does not match with the signedRawTransaction"
+            "does not match with the signedRawTransaction",
           ),
         },
       });
@@ -1970,7 +1940,7 @@ describe("JsonRpc Module", () => {
         error: {
           code: -32600,
           message: expect.stringContaining(
-            "does not match with unsignedTransaction.from"
+            "does not match with unsignedTransaction.from",
           ),
         },
       });
@@ -1991,7 +1961,7 @@ describe("JsonRpc Module", () => {
       it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction even if timestamp data is empty", async () => {
         expect.assertions(4);
 
-        let param: JsonRpcParams = null;
+        let param: JsonRpcParams | null = null;
 
         switch (method) {
           case "timestampHashes": {
@@ -2009,7 +1979,7 @@ describe("JsonRpc Module", () => {
               hashValues: [secondHashValue],
               versionInfo: `0x${Buffer.from(
                 JSON.stringify({ test: 54 }),
-                "utf8"
+                "utf8",
               ).toString("hex")}`,
             } as TimestampRecordHashesParam;
             break;
@@ -2018,8 +1988,8 @@ describe("JsonRpc Module", () => {
             recordId = ethers.utils.sha256(
               ethers.utils.defaultAbiCoder.encode(
                 ["address", "uint256", "bytes"],
-                [testAdmin.wallet.address, blockNumber, secondHashValue]
-              )
+                [testAdmin.wallet.address, blockNumber, secondHashValue],
+              ),
             );
             param = {
               from: testAdmin.wallet.address,
@@ -2028,7 +1998,7 @@ describe("JsonRpc Module", () => {
               hashValues: [secondHashValue],
               versionInfo: `0x${Buffer.from(
                 JSON.stringify({ test: 54 }),
-                "utf8"
+                "utf8",
               ).toString("hex")}`,
             } as TimestampRecordVersionHashesParam;
             break;
@@ -2040,7 +2010,7 @@ describe("JsonRpc Module", () => {
               hashValues: [secondHashValue],
               versionInfo: `0x${Buffer.from(
                 JSON.stringify({ test: 54 }),
-                "utf8"
+                "utf8",
               ).toString("hex")}`,
               versionHash: secondHashValue,
             } as TimestampVersionHashesParam;
@@ -2050,8 +2020,8 @@ describe("JsonRpc Module", () => {
             recordId = ethers.utils.sha256(
               ethers.utils.defaultAbiCoder.encode(
                 ["address", "uint256", "bytes"],
-                [testAdmin.wallet.address, blockNumber, secondHashValue]
-              )
+                [testAdmin.wallet.address, blockNumber, secondHashValue],
+              ),
             );
             param = {
               from: testAdmin.wallet.address,
@@ -2061,7 +2031,7 @@ describe("JsonRpc Module", () => {
               hashValues: [secondHashValue],
               versionInfo: `0x${Buffer.from(
                 JSON.stringify({ test: 54 }),
-                "utf8"
+                "utf8",
               ).toString("hex")}`,
             } as AppendRecordVersionHashesParam;
             break;
@@ -2099,8 +2069,8 @@ describe("JsonRpc Module", () => {
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
           JSON.parse(
-            JSON.stringify(unsignedTransaction)
-          ) as unknown as UnsignedTransaction
+            JSON.stringify(unsignedTransaction),
+          ) as unknown as UnsignedTransaction,
         );
         uTx.chainId = Number(uTx.chainId);
         const sgnTx = await testAdmin.wallet.signTransaction(uTx);
@@ -2135,7 +2105,7 @@ describe("JsonRpc Module", () => {
         });
         expect(responseSend.status).toBe(200);
       });
-    }
+    },
   );
 
   // Tests using trusted apps
@@ -2150,7 +2120,7 @@ describe("JsonRpc Module", () => {
       it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction", async () => {
         expect.assertions(4);
 
-        let param: JsonRpcParams = null;
+        let param: JsonRpcParams | null = null;
 
         switch (method) {
           case "timestampHashes": {
@@ -2160,7 +2130,7 @@ describe("JsonRpc Module", () => {
               hashValues: [firstHashValue],
               timestampData: [
                 `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                  "hex"
+                  "hex",
                 )}`,
               ],
             } as TimestampHashesParam;
@@ -2173,12 +2143,12 @@ describe("JsonRpc Module", () => {
               hashValues: [firstHashValue],
               timestampData: [
                 `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                  "hex"
+                  "hex",
                 )}`,
               ],
               versionInfo: `0x${Buffer.from(
                 JSON.stringify({ test: 54 }),
-                "utf8"
+                "utf8",
               ).toString("hex")}`,
             } as TimestampRecordHashesParam;
             break;
@@ -2187,8 +2157,8 @@ describe("JsonRpc Module", () => {
             recordId = ethers.utils.sha256(
               ethers.utils.defaultAbiCoder.encode(
                 ["address", "uint256", "bytes"],
-                [testApp.wallet.address, blockNumber, firstHashValue]
-              )
+                [testApp.wallet.address, blockNumber, firstHashValue],
+              ),
             );
             param = {
               from: testApp.wallet.address,
@@ -2197,12 +2167,12 @@ describe("JsonRpc Module", () => {
               hashValues: [firstHashValue],
               timestampData: [
                 `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                  "hex"
+                  "hex",
                 )}`,
               ],
               versionInfo: `0x${Buffer.from(
                 JSON.stringify({ test: 54 }),
-                "utf8"
+                "utf8",
               ).toString("hex")}`,
             } as TimestampRecordVersionHashesParam;
             break;
@@ -2211,8 +2181,8 @@ describe("JsonRpc Module", () => {
             recordId = ethers.utils.sha256(
               ethers.utils.defaultAbiCoder.encode(
                 ["address", "uint256", "bytes"],
-                [testApp.wallet.address, blockNumber, firstHashValue]
-              )
+                [testApp.wallet.address, blockNumber, firstHashValue],
+              ),
             );
             param = {
               from: testApp.wallet.address,
@@ -2222,12 +2192,12 @@ describe("JsonRpc Module", () => {
               hashValues: [firstHashValue],
               timestampData: [
                 `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                  "hex"
+                  "hex",
                 )}`,
               ],
               versionInfo: `0x${Buffer.from(
                 JSON.stringify({ test: 54 }),
-                "utf8"
+                "utf8",
               ).toString("hex")}`,
             } as AppendRecordVersionHashesParam;
             break;
@@ -2265,8 +2235,8 @@ describe("JsonRpc Module", () => {
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
           JSON.parse(
-            JSON.stringify(unsignedTransaction)
-          ) as unknown as UnsignedTransaction
+            JSON.stringify(unsignedTransaction),
+          ) as unknown as UnsignedTransaction,
         );
         uTx.chainId = Number(uTx.chainId);
         const sgnTx = await testApp.wallet.signTransaction(uTx);
@@ -2307,7 +2277,7 @@ describe("JsonRpc Module", () => {
       it("should return an error if the hash length doesn't match with the hash algorithm output length", async () => {
         expect.assertions(2);
 
-        let param: JsonRpcParams = null;
+        let param: JsonRpcParams | null = null;
 
         const hashValue = `0x${crypto.randomBytes(37).toString("hex")}`;
 
@@ -2319,7 +2289,7 @@ describe("JsonRpc Module", () => {
               hashValues: [hashValue],
               timestampData: [
                 `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                  "hex"
+                  "hex",
                 )}`,
               ],
             } as TimestampHashesParam;
@@ -2332,12 +2302,12 @@ describe("JsonRpc Module", () => {
               hashValues: [hashValue],
               timestampData: [
                 `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                  "hex"
+                  "hex",
                 )}`,
               ],
               versionInfo: `0x${Buffer.from(
                 JSON.stringify({ test: 54 }),
-                "utf8"
+                "utf8",
               ).toString("hex")}`,
             } as TimestampRecordHashesParam;
             break;
@@ -2346,8 +2316,8 @@ describe("JsonRpc Module", () => {
             recordId = ethers.utils.sha256(
               ethers.utils.defaultAbiCoder.encode(
                 ["address", "uint256", "bytes"],
-                [testApp.wallet.address, blockNumber, hashValue]
-              )
+                [testApp.wallet.address, blockNumber, hashValue],
+              ),
             );
             param = {
               from: testApp.wallet.address,
@@ -2356,12 +2326,12 @@ describe("JsonRpc Module", () => {
               hashValues: [hashValue],
               timestampData: [
                 `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                  "hex"
+                  "hex",
                 )}`,
               ],
               versionInfo: `0x${Buffer.from(
                 JSON.stringify({ test: 54 }),
-                "utf8"
+                "utf8",
               ).toString("hex")}`,
             } as TimestampRecordVersionHashesParam;
             break;
@@ -2370,8 +2340,8 @@ describe("JsonRpc Module", () => {
             recordId = ethers.utils.sha256(
               ethers.utils.defaultAbiCoder.encode(
                 ["address", "uint256", "bytes"],
-                [testApp.wallet.address, blockNumber, hashValue]
-              )
+                [testApp.wallet.address, blockNumber, hashValue],
+              ),
             );
             param = {
               from: testApp.wallet.address,
@@ -2381,12 +2351,12 @@ describe("JsonRpc Module", () => {
               hashValues: [hashValue],
               timestampData: [
                 `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                  "hex"
+                  "hex",
                 )}`,
               ],
               versionInfo: `0x${Buffer.from(
                 JSON.stringify({ test: 54 }),
-                "utf8"
+                "utf8",
               ).toString("hex")}`,
             } as AppendRecordVersionHashesParam;
             break;
@@ -2410,7 +2380,9 @@ describe("JsonRpc Module", () => {
           id: 231,
           error: {
             code: -32600,
-            message: `Hash ${hashValue}'s length (296 bits) is different from the expected length (${testEnv.hashAlgorithms[0].outputLength} bits)`,
+            message: `Hash ${hashValue}'s length (296 bits) is different from the expected length (${
+              testEnv.hashAlgorithms[0]!.outputLength
+            } bits)`,
           },
         });
         expect(responseBuild.status).toBe(400);
@@ -2419,7 +2391,7 @@ describe("JsonRpc Module", () => {
       it("should return an error if the hash algorithm ID doesn't exist", async () => {
         expect.assertions(2);
 
-        let param: JsonRpcParams = null;
+        let param: JsonRpcParams | null = null;
 
         switch (method) {
           case "timestampHashes": {
@@ -2429,7 +2401,7 @@ describe("JsonRpc Module", () => {
               hashValues: [firstHashValue],
               timestampData: [
                 `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                  "hex"
+                  "hex",
                 )}`,
               ],
             } as TimestampHashesParam;
@@ -2442,12 +2414,12 @@ describe("JsonRpc Module", () => {
               hashValues: [firstHashValue],
               timestampData: [
                 `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                  "hex"
+                  "hex",
                 )}`,
               ],
               versionInfo: `0x${Buffer.from(
                 JSON.stringify({ test: 54 }),
-                "utf8"
+                "utf8",
               ).toString("hex")}`,
             } as TimestampRecordHashesParam;
             break;
@@ -2456,8 +2428,8 @@ describe("JsonRpc Module", () => {
             recordId = ethers.utils.sha256(
               ethers.utils.defaultAbiCoder.encode(
                 ["address", "uint256", "bytes"],
-                [testApp.wallet.address, blockNumber, firstHashValue]
-              )
+                [testApp.wallet.address, blockNumber, firstHashValue],
+              ),
             );
             param = {
               from: testApp.wallet.address,
@@ -2466,12 +2438,12 @@ describe("JsonRpc Module", () => {
               hashValues: [firstHashValue],
               timestampData: [
                 `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                  "hex"
+                  "hex",
                 )}`,
               ],
               versionInfo: `0x${Buffer.from(
                 JSON.stringify({ test: 54 }),
-                "utf8"
+                "utf8",
               ).toString("hex")}`,
             } as TimestampRecordVersionHashesParam;
             break;
@@ -2480,8 +2452,8 @@ describe("JsonRpc Module", () => {
             recordId = ethers.utils.sha256(
               ethers.utils.defaultAbiCoder.encode(
                 ["address", "uint256", "bytes"],
-                [testApp.wallet.address, blockNumber, firstHashValue]
-              )
+                [testApp.wallet.address, blockNumber, firstHashValue],
+              ),
             );
             param = {
               from: testApp.wallet.address,
@@ -2491,12 +2463,12 @@ describe("JsonRpc Module", () => {
               hashValues: [firstHashValue],
               timestampData: [
                 `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                  "hex"
+                  "hex",
                 )}`,
               ],
               versionInfo: `0x${Buffer.from(
                 JSON.stringify({ test: 54 }),
-                "utf8"
+                "utf8",
               ).toString("hex")}`,
             } as AppendRecordVersionHashesParam;
             break;
@@ -2529,7 +2501,7 @@ describe("JsonRpc Module", () => {
       it("should return an error if there are more hashValues than hashAlgorithmIds", async () => {
         expect.assertions(2);
 
-        let param: JsonRpcParams = null;
+        let param: JsonRpcParams | null = null;
 
         switch (method) {
           case "timestampHashes": {
@@ -2539,7 +2511,7 @@ describe("JsonRpc Module", () => {
               hashValues: [firstHashValue, firstHashValue],
               timestampData: [
                 `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                  "hex"
+                  "hex",
                 )}`,
               ],
             } as TimestampHashesParam;
@@ -2552,12 +2524,12 @@ describe("JsonRpc Module", () => {
               hashValues: [firstHashValue, firstHashValue],
               timestampData: [
                 `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                  "hex"
+                  "hex",
                 )}`,
               ],
               versionInfo: `0x${Buffer.from(
                 JSON.stringify({ test: 54 }),
-                "utf8"
+                "utf8",
               ).toString("hex")}`,
             } as TimestampRecordHashesParam;
             break;
@@ -2566,8 +2538,8 @@ describe("JsonRpc Module", () => {
             recordId = ethers.utils.sha256(
               ethers.utils.defaultAbiCoder.encode(
                 ["address", "uint256", "bytes"],
-                [testApp.wallet.address, blockNumber, firstHashValue]
-              )
+                [testApp.wallet.address, blockNumber, firstHashValue],
+              ),
             );
             param = {
               from: testApp.wallet.address,
@@ -2576,12 +2548,12 @@ describe("JsonRpc Module", () => {
               hashValues: [firstHashValue, firstHashValue],
               timestampData: [
                 `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                  "hex"
+                  "hex",
                 )}`,
               ],
               versionInfo: `0x${Buffer.from(
                 JSON.stringify({ test: 54 }),
-                "utf8"
+                "utf8",
               ).toString("hex")}`,
             } as TimestampRecordVersionHashesParam;
             break;
@@ -2590,8 +2562,8 @@ describe("JsonRpc Module", () => {
             recordId = ethers.utils.sha256(
               ethers.utils.defaultAbiCoder.encode(
                 ["address", "uint256", "bytes"],
-                [testApp.wallet.address, blockNumber, firstHashValue]
-              )
+                [testApp.wallet.address, blockNumber, firstHashValue],
+              ),
             );
             param = {
               from: testApp.wallet.address,
@@ -2601,12 +2573,12 @@ describe("JsonRpc Module", () => {
               hashValues: [firstHashValue, firstHashValue],
               timestampData: [
                 `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                  "hex"
+                  "hex",
                 )}`,
               ],
               versionInfo: `0x${Buffer.from(
                 JSON.stringify({ test: 54 }),
-                "utf8"
+                "utf8",
               ).toString("hex")}`,
             } as AppendRecordVersionHashesParam;
             break;
@@ -2636,6 +2608,6 @@ describe("JsonRpc Module", () => {
         });
         expect(responseBuild.status).toBe(400);
       });
-    }
+    },
   );
 });

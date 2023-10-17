@@ -1,2 +1,2 @@
-export * from "./IsHexadecimalJSON";
-export * from "./IsMultihash";
+export * from "./IsHexadecimalJSON.js";
+export * from "./IsMultihash.js";

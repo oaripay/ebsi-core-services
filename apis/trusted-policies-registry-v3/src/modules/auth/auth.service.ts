@@ -1,10 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { JWTPayload } from "did-jwt";
+import type { JWTPayload } from "did-jwt";
 import { verifyJwtTar as verifySiopToken } from "@cef-ebsi/siop-auth";
 import { UnauthorizedError } from "@ebsiint-api/shared";
-import { ClientInfo } from "./auth.interface";
-import { ApiConfig } from "../../config/configuration";
+import { ClientInfo } from "./auth.interface.js";
+import type { ApiConfig } from "../../config/configuration.js";
 
 @Injectable()
 export class AuthService {
@@ -14,7 +14,7 @@ export class AuthService {
 
   constructor(configService: ConfigService<ApiConfig, true>) {
     this.trustedAppsRegistry = `${configService.get<string>(
-      "trustedAppsRegistryApiUrl"
+      "trustedAppsRegistryApiUrl",
     )}/apps`;
     this.timeout = configService.get<number>("requestTimeout");
   }
@@ -44,7 +44,7 @@ export class AuthService {
     }
 
     // Populate "clientInfo" object
-    return { did: payload.sub };
+    return { did: payload.sub! };
   }
 }
 

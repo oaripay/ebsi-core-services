@@ -1,35 +1,28 @@
-import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
+import { describe, beforeAll, afterAll, it, expect } from "vitest";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  Logger,
-  HttpServer,
-} from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { ApiConfig } from "../../src/config/configuration";
-import { AppModule } from "../../src/app.module";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
+import type { ApiConfig } from "../../src/config/configuration.js";
+import { AppModule } from "../../src/app.module.js";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 import {
   createFakeToken,
   requestOAuth2Jwt,
   requestSiopJwt,
-} from "../utils/authorisation";
-import { getServer } from "../utils/getServer";
-
-jest.setTimeout(60000);
+} from "../utils/authorisation.js";
+import { getServer } from "../utils/getServer.js";
 
 describe("POST /ledger/v4/blockchains/besu", () => {
-  let app: INestApplication;
-  let server: HttpServer | string;
+  let app: NestFastifyApplication;
+  let server: RawServerDefault | string;
   let tokenOAuth2: string;
   let tokenSiop: string;
   let testUserDid: string;
@@ -41,7 +34,7 @@ describe("POST /ledger/v4/blockchains/besu", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     const configService =
@@ -53,7 +46,7 @@ describe("POST /ledger/v4/blockchains/besu", () => {
     Logger.overrideLogger(false);
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
     server = getServer(app, configService);
 
@@ -64,6 +57,11 @@ describe("POST /ledger/v4/blockchains/besu", () => {
     }>("testApp");
 
     const testUser = configService.get<ApiConfig["testUser"]>("testUser");
+
+    if (!testUser.kid || !testUser.privateKey) {
+      throw new Error("Missing testUser");
+    }
+
     [testUserDid] = testUser.kid.split("#");
 
     try {
@@ -132,7 +130,7 @@ describe("POST /ledger/v4/blockchains/besu", () => {
       title: "Unauthorized",
       status: 401,
       detail: expect.stringContaining(
-        "JWT could not be validated with the public keys of 'authorisation-api'"
+        "JWT could not be validated with the public keys of 'authorisation-api'",
       ),
       type: "about:blank",
     });

@@ -1,7 +1,7 @@
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 import { ethers } from "ethers";
 import { DidRegistry } from "@ebsiint-sc/did-registry-v2";
-import { formatIdentifiers } from "./identifiers.formatter";
+import { formatIdentifiers } from "./identifiers.formatter.js";
 
 describe("formatIdentifiers", () => {
   const identifiers = {

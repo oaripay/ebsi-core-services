@@ -1,2 +1,2 @@
-export * from "./insert-authorization-param.dto";
-export * from "./request-insert-authorization.dto";
+export * from "./insert-authorization-param.dto.js";
+export * from "./request-insert-authorization.dto.js";

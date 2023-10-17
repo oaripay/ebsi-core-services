@@ -13,23 +13,23 @@ import {
 import { ConfigService } from "@nestjs/config";
 import type { FastifyReply } from "fastify";
 import { PaginatedList2 } from "@ebsiint-api/shared";
-import { KeyValuesService } from "./key-values.service";
+import { KeyValuesService } from "./key-values.service.js";
 import {
   DeleteKeyValueParams,
   GetKeyValuesQuery,
   GetKeyValueParams,
   PutKeyValueParams,
-} from "./dto";
-import { formatKeys } from "./key-values.formatter";
-import { ApiConfig } from "../../config/configuration";
-import { SiopJwtAuthGuard } from "../auth/guards";
-import { User, ClientInfo } from "../auth/decorators";
+} from "./dto/index.js";
+import { formatKeys } from "./key-values.formatter.js";
+import type { ApiConfig } from "../../config/configuration.js";
+import { SiopJwtAuthGuard } from "../auth/guards/index.js";
+import { User, type ClientInfo } from "../auth/decorators/index.js";
 
 @Controller("/stores/distributed/key-values")
 export class KeyValuesController {
   constructor(
     private keyValuesService: KeyValuesService,
-    private configService: ConfigService<ApiConfig, true>
+    private configService: ConfigService<ApiConfig, true>,
   ) {}
 
   @HttpCode(200)
@@ -37,7 +37,7 @@ export class KeyValuesController {
   @Get()
   async getKeys(
     @Query() query: GetKeyValuesQuery,
-    @User() user: ClientInfo
+    @User() user: ClientInfo,
   ): Promise<PaginatedList2<string>> {
     const { did } = user;
     const pageAfter = query["page[after]"];
@@ -46,7 +46,7 @@ export class KeyValuesController {
     const { keys, pageState } = await this.keyValuesService.getKeys(
       did,
       pageAfter,
-      pageSize
+      pageSize,
     );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
@@ -63,7 +63,7 @@ export class KeyValuesController {
   @Get("/:key")
   async getKeyValue(
     @Param() params: GetKeyValueParams,
-    @User() user: ClientInfo
+    @User() user: ClientInfo,
   ): Promise<string> {
     const { key } = params;
     const { did } = user;
@@ -77,7 +77,7 @@ export class KeyValuesController {
     @Param() params: PutKeyValueParams,
     @Body() value: string,
     @User() user: ClientInfo,
-    @Response() res: FastifyReply
+    @Response() res: FastifyReply,
   ): Promise<FastifyReply> {
     const { key } = params;
     const { did } = user;
@@ -85,7 +85,7 @@ export class KeyValuesController {
     const { keyValue, isNew } = await this.keyValuesService.putKeyValue(
       did,
       key,
-      value
+      value,
     );
 
     return res
@@ -99,7 +99,7 @@ export class KeyValuesController {
   @Delete("/:key")
   async deleteKeyValue(
     @Param() params: DeleteKeyValueParams,
-    @User() user: ClientInfo
+    @User() user: ClientInfo,
   ): Promise<void> {
     const { key } = params;
     const { did } = user;

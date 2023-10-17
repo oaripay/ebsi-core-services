@@ -1,9 +1,9 @@
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 import crypto from "node:crypto";
 import { ethers } from "ethers";
 import { Timestamp } from "@ebsiint-sc/timestamp-v2";
 import { multibase, multihashEncode } from "@ebsiint-api/shared";
-import { formatTimestamps } from "./timestamps.formatter";
+import { formatTimestamps } from "./timestamps.formatter.js";
 
 describe("formatTimestamps", () => {
   const timestamps = {
@@ -25,15 +25,23 @@ describe("formatTimestamps", () => {
 
     const timestampIds = [
       multibase.base64url.encode(
-        multihashEncode(timestamps.items[0].replace(/^0x/, ""), "sha2-256", 32)
+        multihashEncode(
+          timestamps.items[0]!.replace(/^0x/, ""),
+          "sha2-256",
+          32,
+        ),
       ),
       multibase.base64url.encode(
-        multihashEncode(timestamps.items[1].replace(/^0x/, ""), "sha2-256", 32)
+        multihashEncode(
+          timestamps.items[1]!.replace(/^0x/, ""),
+          "sha2-256",
+          32,
+        ),
       ),
     ];
 
     expect(
-      formatTimestamps(timestamps, page, pageSize, "", "?test=true")
+      formatTimestamps(timestamps, page, pageSize, "", "?test=true"),
     ).toStrictEqual({
       items: [
         {

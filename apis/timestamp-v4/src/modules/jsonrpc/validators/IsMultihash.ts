@@ -13,7 +13,7 @@ export function isMultihash(value: string): boolean {
 }
 
 export function IsMultihash(
-  validationOptions?: ValidationOptions
+  validationOptions?: ValidationOptions,
 ): PropertyDecorator {
   return ValidateBy(
     {
@@ -22,10 +22,10 @@ export function IsMultihash(
         validate: (value) => typeof value === "string" && isMultihash(value),
         defaultMessage: buildMessage(
           (eachPrefix) => `${eachPrefix}$property must be a valid multihash`,
-          validationOptions
+          validationOptions,
         ),
       },
     },
-    validationOptions
+    validationOptions,
   );
 }

@@ -1,4 +1,4 @@
-import { ProblemDetailsError } from "./ProblemDetailsError";
+import { ProblemDetailsError } from "./ProblemDetailsError.js";
 
 /**
  * UriTooLongError defines the URI Too Long (414) error type.
@@ -24,7 +24,7 @@ export class UriTooLongError extends ProblemDetailsError {
       detail?: string;
       instance?: string;
       extensions?: { [x: string]: unknown };
-    }
+    },
   ) {
     super(UriTooLongError.statusCode, title, options);
     this.name = "UriTooLongError";

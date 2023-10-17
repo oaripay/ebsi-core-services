@@ -1,4 +1,4 @@
-import { ProblemDetailsError } from "./ProblemDetailsError";
+import { ProblemDetailsError } from "./ProblemDetailsError.js";
 
 /**
  * LockedError defines the Locked (423) error type.
@@ -24,7 +24,7 @@ export class LockedError extends ProblemDetailsError {
       detail?: string;
       instance?: string;
       extensions?: { [x: string]: unknown };
-    }
+    },
   ) {
     super(LockedError.statusCode, title, options);
     this.name = "LockedError";

@@ -1,7 +1,8 @@
-import { CacheModule, Module } from "@nestjs/common";
-import { ApiConfigModule } from "../../config/configuration";
-import { AuthService } from "./auth.service";
-import { BearerJwtStrategy } from "./strategies";
+import { Module } from "@nestjs/common";
+import { CacheModule } from "@nestjs/cache-manager";
+import { ApiConfigModule } from "../../config/configuration.js";
+import { AuthService } from "./auth.service.js";
+import { BearerJwtStrategy } from "./strategies/index.js";
 
 @Module({
   imports: [ApiConfigModule, CacheModule.register()],

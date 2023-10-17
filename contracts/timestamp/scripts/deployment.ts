@@ -21,7 +21,7 @@ async function main() {
       libraries: {
         Pagination: pagination.address,
       },
-    }
+    },
   );
   const policyContract = await policyRegistryFactory.deploy();
   await policyContract.deployed();
@@ -60,7 +60,7 @@ async function main() {
    HashAlgoLib deployed to: ${haLib.address}
    TimestampLib deployed to: ${tsLib.address}
    RecordLib deployed to: ${rsLib.address}
-   stringManipLib deployed to: ${stringManipLib.address}`
+   stringManipLib deployed to: ${stringManipLib.address}`,
   );
 }
 

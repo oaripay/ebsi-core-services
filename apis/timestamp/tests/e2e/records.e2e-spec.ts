@@ -1,21 +1,15 @@
-import { describe, beforeAll, it, expect } from "@jest/globals";
+import { describe, beforeAll, it, expect } from "vitest";
 import crypto from "node:crypto";
 import { ethers } from "ethers";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  HttpServer,
-  Logger,
-  HttpStatus,
-} from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger, HttpStatus } from "@nestjs/common";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import {
   prefixWith0x,
   multibase,
@@ -23,9 +17,9 @@ import {
   waitToBeMined,
 } from "@ebsiint-api/shared";
 import type { TransactionRequest } from "@ethersproject/abstract-provider";
-import { AppModule } from "../../src/app.module";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
-import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
+import { AppModule } from "../../src/app.module.js";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
+import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
 import {
   TimestampRecordHashesParam,
   TimestampRecordVersionHashesParam,
@@ -36,16 +30,16 @@ import {
   RevokeRecordOwnerParam,
   TimestampVersionHashesParam,
   UnsignedTransaction,
-} from "../../src/modules/jsonrpc/dto";
-import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
+} from "../../src/modules/jsonrpc/dto/index.js";
+import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
 import {
   RecordLink,
   VersionLink,
-} from "../../src/modules/records/records.interface";
-import { ApiConfig } from "../../src/config/configuration";
-import { requestSiopJwt } from "../utils/auth";
-import { describeWriteOps } from "../utils/describeWriteOps";
-import { getServer } from "../utils/getServer";
+} from "../../src/modules/records/records.interface.js";
+import type { ApiConfig } from "../../src/config/configuration.js";
+import { requestSiopJwt } from "../utils/auth.js";
+import { describeWriteOps } from "../utils/describeWriteOps.js";
+import { getServer } from "../utils/getServer.js";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -71,8 +65,8 @@ const multihashToNodeHashAlg = {
 } as const;
 
 describe("Records (e2e)", () => {
-  let app: INestApplication;
-  let server: HttpServer | string;
+  let app: NestFastifyApplication;
+  let server: RawServerDefault | string;
   let hashAlgorithmId: number;
   let hashAlgorithmMultihash: keyof typeof multihashToNodeHashAlg;
   let hashValue1: string;
@@ -102,7 +96,7 @@ describe("Records (e2e)", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     // Turn off logger
@@ -113,7 +107,7 @@ describe("Records (e2e)", () => {
     app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
     server = getServer(app, configService);
 
@@ -160,15 +154,14 @@ describe("Records (e2e)", () => {
     }
 
     // During the tests, we'll use the last hash algorithm
-    const getHashAlgorithmsResponse = await request(server).get(
-      "/hash-algorithms"
-    );
+    const getHashAlgorithmsResponse =
+      await request(server).get("/hash-algorithms");
     hashAlgorithmId =
       (getHashAlgorithmsResponse.body as { total: number }).total - 1;
 
     // Get info about the hash algorithm
     const getHashAlgorithmResponse = await request(server).get(
-      `/hash-algorithms/${hashAlgorithmId}`
+      `/hash-algorithms/${hashAlgorithmId}`,
     );
     hashAlgorithmMultihash = (
       getHashAlgorithmResponse.body as {
@@ -210,7 +203,7 @@ describe("Records (e2e)", () => {
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            "/records?page[after]=1&page[size]=10"
+            "/records?page[after]=1&page[size]=10",
           ),
           prev: expect.stringContaining("/records?page[after]=1&page[size]=10"),
           next: expect.stringContaining("/records?page[after]="),
@@ -267,7 +260,7 @@ describe("Records (e2e)", () => {
         respRecords.body as {
           items: RecordLink[];
         }
-      ).items[0];
+      ).items[0]!;
       return recordId;
     };
 
@@ -277,27 +270,27 @@ describe("Records (e2e)", () => {
       const recordId = await getFirstRecordId();
 
       const response = await request(server).get(
-        `/records/${recordId}/versions`
+        `/records/${recordId}/versions`,
       );
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          `/records/${recordId}/versions?page[after]=1&page[size]=10`
+          `/records/${recordId}/versions?page[after]=1&page[size]=10`,
         ),
         items: expect.arrayContaining([]),
         total: expect.any(Number),
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/records/${recordId}/versions?page[after]=1&page[size]=10`
+            `/records/${recordId}/versions?page[after]=1&page[size]=10`,
           ),
           prev: expect.stringContaining(
-            `/records/${recordId}/versions?page[after]=1&page[size]=10`
+            `/records/${recordId}/versions?page[after]=1&page[size]=10`,
           ),
           next: expect.stringContaining(
-            `/records/${recordId}/versions?page[after]=`
+            `/records/${recordId}/versions?page[after]=`,
           ),
           last: expect.stringContaining(
-            `/records/${recordId}/versions?page[after]=`
+            `/records/${recordId}/versions?page[after]=`,
           ),
         },
       });
@@ -312,13 +305,13 @@ describe("Records (e2e)", () => {
         respRecords.body as {
           items: RecordLink[];
         }
-      ).items[0];
+      ).items[0]!;
       return recordId;
     };
 
     const getRecordVersions = async (recordId: string) => {
       const respRecords = await request(server).get(
-        `/records/${recordId}/versions`
+        `/records/${recordId}/versions`,
       );
       const { items, total } = respRecords.body as {
         items: VersionLink[];
@@ -333,7 +326,7 @@ describe("Records (e2e)", () => {
       const recordId = await getFirstRecordId();
 
       const response = await request(server).get(
-        `/records/${recordId}/versions/0`
+        `/records/${recordId}/versions/0`,
       );
 
       expect(response.body).toStrictEqual({
@@ -349,7 +342,7 @@ describe("Records (e2e)", () => {
       const randomRecordId = multibase.base64url.encode(crypto.randomBytes(32));
 
       const response = await request(server).get(
-        `/records/${randomRecordId}/versions/0`
+        `/records/${randomRecordId}/versions/0`,
       );
 
       expect(response.body).toStrictEqual({
@@ -369,7 +362,7 @@ describe("Records (e2e)", () => {
       const versionId = versions.total;
 
       const response = await request(server).get(
-        `/records/${recordId}/versions/${versionId}`
+        `/records/${recordId}/versions/${versionId}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -404,15 +397,15 @@ describe("Records (e2e)", () => {
             hashValues: [hashValue1, hashValue2],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
               `0x${Buffer.from(JSON.stringify({ test: 82 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
             ],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ info: 42 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as TimestampRecordHashesParam;
           break;
@@ -424,16 +417,16 @@ describe("Records (e2e)", () => {
             hashValues: [hashValue1, hashValue2],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
               `0x${Buffer.from(JSON.stringify({ test: 82 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
             ],
             versionHash: hashValue1,
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ info: 42 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as TimestampVersionHashesParam;
           break;
@@ -442,8 +435,8 @@ describe("Records (e2e)", () => {
           const recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testUser.wallet.address, blockNumber1, hashValue1]
-            )
+              [testUser.wallet.address, blockNumber1, hashValue1],
+            ),
           );
 
           param = {
@@ -453,15 +446,15 @@ describe("Records (e2e)", () => {
             hashValues: [hashValue1, hashValue2],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
               `0x${Buffer.from(JSON.stringify({ test: 82 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
             ],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ info: 42 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as TimestampRecordVersionHashesParam;
           break;
@@ -470,8 +463,8 @@ describe("Records (e2e)", () => {
           const recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testUser.wallet.address, blockNumber1, hashValue1]
-            )
+              [testUser.wallet.address, blockNumber1, hashValue1],
+            ),
           );
           const notBefore = new Date().getTime();
           param = {
@@ -487,8 +480,8 @@ describe("Records (e2e)", () => {
           const recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testUser.wallet.address, blockNumber1, hashValue1]
-            )
+              [testUser.wallet.address, blockNumber1, hashValue1],
+            ),
           );
           param = {
             from: testUser.wallet.address,
@@ -501,8 +494,8 @@ describe("Records (e2e)", () => {
           const recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testUser.wallet.address, blockNumber1, hashValue1]
-            )
+              [testUser.wallet.address, blockNumber1, hashValue1],
+            ),
           );
 
           param = {
@@ -511,7 +504,7 @@ describe("Records (e2e)", () => {
             versionId: 0,
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ test: 42 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as InsertRecordVersionInfoParam;
           break;
@@ -520,8 +513,8 @@ describe("Records (e2e)", () => {
           const recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testUser.wallet.address, blockNumber1, hashValue1]
-            )
+              [testUser.wallet.address, blockNumber1, hashValue1],
+            ),
           );
           param = {
             from: testUser.wallet.address,
@@ -535,8 +528,8 @@ describe("Records (e2e)", () => {
           const recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testUser.wallet.address, blockNumber1, hashValue1]
-            )
+              [testUser.wallet.address, blockNumber1, hashValue1],
+            ),
           );
           param = {
             from: testUser.wallet.address,
@@ -546,17 +539,17 @@ describe("Records (e2e)", () => {
             hashValues: [hashValue1, hashValue2],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
               `0x${Buffer.from(JSON.stringify({ test: 82 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
               // `0x${crypto.randomBytes(32).toString("hex")}`,
               // `0x${crypto.randomBytes(32).toString("hex")}`,
             ],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ info: 42 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as AppendRecordVersionHashesParam;
           break;
@@ -594,12 +587,12 @@ describe("Records (e2e)", () => {
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
         JSON.parse(
-          JSON.stringify(unsignedTransaction)
-        ) as unknown as UnsignedTransaction
+          JSON.stringify(unsignedTransaction),
+        ) as unknown as UnsignedTransaction,
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx = await testUser.wallet.signTransaction(
-        uTx as TransactionRequest
+        uTx as TransactionRequest,
       );
       const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
@@ -632,7 +625,7 @@ describe("Records (e2e)", () => {
       // wait to be mined
       const receipt = await waitToBeMined(
         ledgerApi,
-        responseSend.body.result as string
+        responseSend.body.result as string,
       );
 
       if (method === "timestampRecordHashes") {
@@ -648,7 +641,6 @@ describe("Records (e2e)", () => {
 
       let param: JsonRpcParams | null = null;
 
-      /* eslint-disable jest/no-conditional-expect */
       switch (method) {
         case "timestampRecordHashes": {
           param = {
@@ -657,7 +649,7 @@ describe("Records (e2e)", () => {
             hashValues: [hashValue3],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ info: 42 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as TimestampRecordHashesParam;
           break;
@@ -670,7 +662,7 @@ describe("Records (e2e)", () => {
             versionHash: hashValue3,
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ info: 42 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as TimestampVersionHashesParam;
           break;
@@ -679,8 +671,8 @@ describe("Records (e2e)", () => {
           const recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testUser.wallet.address, blockNumber2, hashValue3]
-            )
+              [testUser.wallet.address, blockNumber2, hashValue3],
+            ),
           );
 
           param = {
@@ -690,7 +682,7 @@ describe("Records (e2e)", () => {
             hashValues: [hashValue3],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ info: 42 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as TimestampRecordVersionHashesParam;
           break;
@@ -715,8 +707,8 @@ describe("Records (e2e)", () => {
           const recordId = ethers.utils.sha256(
             ethers.utils.defaultAbiCoder.encode(
               ["address", "uint256", "bytes"],
-              [testUser.wallet.address, blockNumber2, hashValue3]
-            )
+              [testUser.wallet.address, blockNumber2, hashValue3],
+            ),
           );
           param = {
             from: testUser.wallet.address,
@@ -726,7 +718,7 @@ describe("Records (e2e)", () => {
             hashValues: [hashValue3],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ info: 42 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as AppendRecordVersionHashesParam;
           break;
@@ -764,12 +756,12 @@ describe("Records (e2e)", () => {
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
         JSON.parse(
-          JSON.stringify(unsignedTransaction)
-        ) as unknown as UnsignedTransaction
+          JSON.stringify(unsignedTransaction),
+        ) as unknown as UnsignedTransaction,
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx = await testUser.wallet.signTransaction(
-        uTx as TransactionRequest
+        uTx as TransactionRequest,
       );
       const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
@@ -802,7 +794,7 @@ describe("Records (e2e)", () => {
       // wait to be mined
       const receipt = await waitToBeMined(
         ledgerApi,
-        responseSend.body.result as string
+        responseSend.body.result as string,
       );
       if (method === "timestampRecordHashes") {
         // we need the blocknumber to be able to compute the recordId
@@ -822,15 +814,15 @@ describe("Records (e2e)", () => {
       hashValues: [hashValue1, hashValue2],
       timestampData: [
         `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-          "hex"
+          "hex",
         )}`,
         `0x${Buffer.from(JSON.stringify({ test: 82 }), "utf8").toString(
-          "hex"
+          "hex",
         )}`,
       ],
       versionInfo: `0x${Buffer.from(
         JSON.stringify({ info: 42 }),
-        "utf8"
+        "utf8",
       ).toString("hex")}`,
     } as TimestampRecordHashesParam;
 
@@ -847,12 +839,12 @@ describe("Records (e2e)", () => {
     const unsignedTransaction = responseBuild.body.result;
     const uTx = formatEthersUnsignedTransaction(
       JSON.parse(
-        JSON.stringify(unsignedTransaction)
-      ) as unknown as UnsignedTransaction
+        JSON.stringify(unsignedTransaction),
+      ) as unknown as UnsignedTransaction,
     );
     uTx.chainId = Number(uTx.chainId);
     const sgnTx = await testAdmin.wallet.signTransaction(
-      uTx as TransactionRequest
+      uTx as TransactionRequest,
     );
     const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
@@ -905,20 +897,20 @@ describe("Records (e2e)", () => {
         hashValues: [hashValue1, hashValue2],
         timestampData: [
           `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-            "hex"
+            "hex",
           )}`,
           `0x${Buffer.from(JSON.stringify({ test: 82 }), "utf8").toString(
-            "hex"
+            "hex",
           )}`,
         ],
         versionInfo: `0x${Buffer.from(
           JSON.stringify({ info: 42 }),
-          "utf8"
+          "utf8",
         ).toString("hex")}`,
       } as TimestampRecordHashesParam;
 
       const insertResponseBuild: SupertestJsonRpcResponse = await request(
-        server
+        server,
       )
         .post("/jsonrpc")
         .auth(testAdmin.token, { type: "bearer" })
@@ -932,12 +924,12 @@ describe("Records (e2e)", () => {
       const insertUnsignedTransaction = insertResponseBuild.body.result;
       const insertUTx = formatEthersUnsignedTransaction(
         JSON.parse(
-          JSON.stringify(insertUnsignedTransaction)
-        ) as unknown as UnsignedTransaction
+          JSON.stringify(insertUnsignedTransaction),
+        ) as unknown as UnsignedTransaction,
       );
       insertUTx.chainId = Number(insertUTx.chainId);
       const insertSgnTx = await testAdmin.wallet.signTransaction(
-        insertUTx as TransactionRequest
+        insertUTx as TransactionRequest,
       );
       const parseTransactionResponse =
         ethers.utils.parseTransaction(insertSgnTx);
@@ -971,7 +963,7 @@ describe("Records (e2e)", () => {
       expect(response.status).toBe(200);
       const responseLast = await request(server).get(
         (response.body as PaginatedList<unknown>).links?.last.split("v3")[1] ||
-          ""
+          "",
       );
 
       const { recordId } = (responseLast.body as { items: string }).items[
@@ -979,7 +971,7 @@ describe("Records (e2e)", () => {
       ] as unknown as RecordLink;
 
       const decodedRecordId = `0x${Buffer.from(
-        multibase.base64url.decode(recordId)
+        multibase.base64url.decode(recordId),
       ).toString("hex")}`;
 
       switch (method) {
@@ -991,15 +983,15 @@ describe("Records (e2e)", () => {
             hashValues: [hashValue1, hashValue2],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
               `0x${Buffer.from(JSON.stringify({ test: 82 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
             ],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ info: 42 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as TimestampRecordVersionHashesParam;
           break;
@@ -1030,7 +1022,7 @@ describe("Records (e2e)", () => {
             versionId: 0,
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ test: 42 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as InsertRecordVersionInfoParam;
           break;
@@ -1053,17 +1045,17 @@ describe("Records (e2e)", () => {
             hashValues: [hashValue1, hashValue2],
             timestampData: [
               `0x${Buffer.from(JSON.stringify({ test: 42 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
               `0x${Buffer.from(JSON.stringify({ test: 82 }), "utf8").toString(
-                "hex"
+                "hex",
               )}`,
               // `0x${crypto.randomBytes(32).toString("hex")}`,
               // `0x${crypto.randomBytes(32).toString("hex")}`,
             ],
             versionInfo: `0x${Buffer.from(
               JSON.stringify({ info: 42 }),
-              "utf8"
+              "utf8",
             ).toString("hex")}`,
           } as AppendRecordVersionHashesParam;
           break;
@@ -1101,12 +1093,12 @@ describe("Records (e2e)", () => {
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
         JSON.parse(
-          JSON.stringify(unsignedTransaction)
-        ) as unknown as UnsignedTransaction
+          JSON.stringify(unsignedTransaction),
+        ) as unknown as UnsignedTransaction,
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx = await testUser.wallet.signTransaction(
-        uTx as TransactionRequest
+        uTx as TransactionRequest,
       );
       const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
@@ -1132,15 +1124,15 @@ describe("Records (e2e)", () => {
       // wait to be mined
       const receipt = await waitToBeMined(
         ledgerApi,
-        responseSend.body.result as string
+        responseSend.body.result as string,
       );
       expect(receipt).toStrictEqual(
         expect.objectContaining({
           status: 0,
           revertReason: expect.stringContaining(
-            `sender is not listed as owner`
+            `sender is not listed as owner`,
           ),
-        })
+        }),
       );
     });
   });

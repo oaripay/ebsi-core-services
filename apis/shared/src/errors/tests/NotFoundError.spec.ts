@@ -1,5 +1,5 @@
-import { describe, it, expect } from "@jest/globals";
-import { NotFoundError, ProblemDetailsError } from "../index";
+import { describe, it, expect } from "vitest";
+import { NotFoundError, ProblemDetailsError } from "../index.js";
 
 describe("error NotFoundError", () => {
   it("should extend ProblemDetailsError", () => {

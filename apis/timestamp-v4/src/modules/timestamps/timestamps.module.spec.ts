@@ -1,34 +1,29 @@
-import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
+import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  HttpServer,
-  Logger,
-} from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import crypto from "node:crypto";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import { ethers } from "ethers";
 import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp-v2";
 import { multibase, multihashEncode } from "@ebsiint-api/shared";
-import { TimestampsModule } from "./timestamps.module";
-import { TimestampLink } from "./timestamps.interface";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { setupTestEnv, insertHash } from "../../../tests/utils/timestamp";
-import { LedgerService } from "../ledger/ledger.service";
-import { ApiConfig } from "../../config/configuration";
+import { TimestampsModule } from "./timestamps.module.js";
+import { TimestampLink } from "./timestamps.interface.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import { setupTestEnv, insertHash } from "../../../tests/utils/timestamp.js";
+import { LedgerService } from "../ledger/ledger.service.js";
+import type { ApiConfig } from "../../config/configuration.js";
 
 const HASHES_TOTAL = 3;
 
 describe("Timestamps Module", () => {
-  let app: INestApplication;
-  let server: HttpServer;
+  let app: NestFastifyApplication;
+  let server: RawServerDefault;
   let timestampContract: Timestamp;
   let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
   let ledgerService: LedgerService;
@@ -43,16 +38,16 @@ describe("Timestamps Module", () => {
     timestampContract = testEnv.timestampContract;
 
     // Mock Timestamp contract
-    jest
-      .spyOn(Timestamp__factory, "connect")
-      .mockImplementation(() => timestampContract);
+    vi.spyOn(Timestamp__factory, "connect").mockImplementation(
+      () => timestampContract,
+    );
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [TimestampsModule],
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     // Turn off logger
@@ -63,21 +58,17 @@ describe("Timestamps Module", () => {
     app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    await app.getHttpAdapter().getInstance().ready();
+    server = app.getHttpServer();
 
     // Mock Contract service
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
-    jest
-      .spyOn(ledgerService, "getContract")
-      .mockImplementation(async () => Promise.resolve(timestampContract));
+    vi.spyOn(ledgerService, "getContract").mockImplementation(async () =>
+      Promise.resolve(timestampContract),
+    );
   });
 
   afterAll(async () => {
-    // Avoid jest open handle error
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
     await app.close();
   });
 
@@ -88,23 +79,23 @@ describe("Timestamps Module", () => {
       const response = await request(server).get("/timestamps");
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          "/timestamps?page[after]=1&page[size]=10"
+          "/timestamps?page[after]=1&page[size]=10",
         ),
         items: expect.arrayContaining([]),
         total: HASHES_TOTAL,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            "/timestamps?page[after]=1&page[size]=10"
+            "/timestamps?page[after]=1&page[size]=10",
           ),
           prev: expect.stringContaining(
-            "/timestamps?page[after]=1&page[size]=10"
+            "/timestamps?page[after]=1&page[size]=10",
           ),
           next: expect.stringContaining(
-            "/timestamps?page[after]=1&page[size]=10"
+            "/timestamps?page[after]=1&page[size]=10",
           ),
           last: expect.stringContaining(
-            "/timestamps?page[after]=1&page[size]=10"
+            "/timestamps?page[after]=1&page[size]=10",
           ),
         },
       });
@@ -123,16 +114,16 @@ describe("Timestamps Module", () => {
         pageSize: 2,
         links: {
           first: expect.stringContaining(
-            "/timestamps?page[after]=1&page[size]=2"
+            "/timestamps?page[after]=1&page[size]=2",
           ),
           prev: expect.stringContaining(
-            "/timestamps?page[after]=1&page[size]=2"
+            "/timestamps?page[after]=1&page[size]=2",
           ),
           next: expect.stringContaining(
-            "/timestamps?page[after]=2&page[size]=2"
+            "/timestamps?page[after]=2&page[size]=2",
           ),
           last: expect.stringContaining(
-            "/timestamps?page[after]=2&page[size]=2"
+            "/timestamps?page[after]=2&page[size]=2",
           ),
         },
       });
@@ -141,7 +132,7 @@ describe("Timestamps Module", () => {
 
       // next page
       const response2 = await request(server).get(
-        "/timestamps?page[after]=2&page[size]=2"
+        "/timestamps?page[after]=2&page[size]=2",
       );
       expect(response2.body).toStrictEqual({
         self: expect.stringContaining("/timestamps?page[after]=2&page[size]=2"),
@@ -150,16 +141,16 @@ describe("Timestamps Module", () => {
         pageSize: 2,
         links: {
           first: expect.stringContaining(
-            "/timestamps?page[after]=1&page[size]=2"
+            "/timestamps?page[after]=1&page[size]=2",
           ),
           prev: expect.stringContaining(
-            "/timestamps?page[after]=1&page[size]=2"
+            "/timestamps?page[after]=1&page[size]=2",
           ),
           next: expect.stringContaining(
-            "/timestamps?page[after]=2&page[size]=2"
+            "/timestamps?page[after]=2&page[size]=2",
           ),
           last: expect.stringContaining(
-            "/timestamps?page[after]=2&page[size]=2"
+            "/timestamps?page[after]=2&page[size]=2",
           ),
         },
       });
@@ -168,27 +159,27 @@ describe("Timestamps Module", () => {
 
       // big page
       const response3 = await request(server).get(
-        "/timestamps?page[after]=100&page[size]=2"
+        "/timestamps?page[after]=100&page[size]=2",
       );
       expect(response3.body).toStrictEqual({
         self: expect.stringContaining(
-          "/timestamps?page[after]=100&page[size]=2"
+          "/timestamps?page[after]=100&page[size]=2",
         ),
         items: expect.arrayContaining([]),
         total: HASHES_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
-            "/timestamps?page[after]=1&page[size]=2"
+            "/timestamps?page[after]=1&page[size]=2",
           ),
           prev: expect.stringContaining(
-            "/timestamps?page[after]=2&page[size]=2"
+            "/timestamps?page[after]=2&page[size]=2",
           ),
           next: expect.stringContaining(
-            "/timestamps?page[after]=2&page[size]=2"
+            "/timestamps?page[after]=2&page[size]=2",
           ),
           last: expect.stringContaining(
-            "/timestamps?page[after]=2&page[size]=2"
+            "/timestamps?page[after]=2&page[size]=2",
           ),
         },
       });
@@ -199,23 +190,23 @@ describe("Timestamps Module", () => {
       const response4 = await request(server).get("/timestamps?page[after]=1");
       expect(response4.body).toStrictEqual({
         self: expect.stringContaining(
-          "/timestamps?page[after]=1&page[size]=10"
+          "/timestamps?page[after]=1&page[size]=10",
         ),
         items: expect.arrayContaining([]),
         total: HASHES_TOTAL,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            "/timestamps?page[after]=1&page[size]=10"
+            "/timestamps?page[after]=1&page[size]=10",
           ),
           prev: expect.stringContaining(
-            "/timestamps?page[after]=1&page[size]=10"
+            "/timestamps?page[after]=1&page[size]=10",
           ),
           next: expect.stringContaining(
-            "/timestamps?page[after]=1&page[size]=10"
+            "/timestamps?page[after]=1&page[size]=10",
           ),
           last: expect.stringContaining(
-            "/timestamps?page[after]=1&page[size]=10"
+            "/timestamps?page[after]=1&page[size]=10",
           ),
         },
       });
@@ -254,7 +245,7 @@ describe("Timestamps Module", () => {
       expect(response3.status).toBe(400);
 
       const response4 = await request(server).get(
-        "/timestamps?page[after]=abc"
+        "/timestamps?page[after]=abc",
       );
       expect(response4.body).toStrictEqual({
         title: "Bad Request",
@@ -273,14 +264,14 @@ describe("Timestamps Module", () => {
       expect.assertions(2);
 
       const { hashes, hashAlgorithms } = testEnv;
-      const hash = hashes[0];
-      const hashValue = hash.hashValues[0];
+      const hash = hashes[0]!;
+      const hashValue = hash.hashValues[0]!;
       const timestampId = multibase.base64url.encode(
         multihashEncode(
-          ethers.utils.sha256(hash.hashValues[0]).replace(/^0x/, ""),
+          ethers.utils.sha256(hashValue).replace(/^0x/, ""),
           "sha2-256",
-          32
-        )
+          32,
+        ),
       );
 
       const response = await request(server).get(`/timestamps/${timestampId}`);
@@ -289,9 +280,9 @@ describe("Timestamps Module", () => {
       const multihashEncodedHash = multibase.base64.encode(
         multihashEncode(
           hashValue,
-          hashAlgorithms[0].multihash,
-          hashAlgorithms[0].outputLength / 8
-        )
+          hashAlgorithms[0]!.multihash,
+          hashAlgorithms[0]!.outputLength / 8,
+        ),
       );
 
       expect(response.body).toStrictEqual({
@@ -315,7 +306,7 @@ describe("Timestamps Module", () => {
         respTimestamps.body as {
           items: TimestampLink[];
         }
-      ).items[0];
+      ).items[0]!;
 
       const response = await request(server).get(`/timestamps/${timestampId}`);
 
@@ -339,15 +330,15 @@ describe("Timestamps Module", () => {
       // Send multiple tx
       const hash1 = await insertHash(
         testEnv.timestampContract,
-        testEnv.hashAlgorithms[0]
+        testEnv.hashAlgorithms[0]!,
       );
       const hash2 = await insertHash(
         testEnv.timestampContract,
-        testEnv.hashAlgorithms[0]
+        testEnv.hashAlgorithms[0]!,
       );
       const hash3 = await insertHash(
         testEnv.timestampContract,
-        testEnv.hashAlgorithms[0]
+        testEnv.hashAlgorithms[0]!,
       );
 
       // Mine block
@@ -370,10 +361,10 @@ describe("Timestamps Module", () => {
       // Get second hash data
       const timestampId = multibase.base64url.encode(
         multihashEncode(
-          ethers.utils.sha256(hash2.hashValues[0]).replace(/^0x/, ""),
+          ethers.utils.sha256(hash2.hashValues[0]!).replace(/^0x/, ""),
           "sha2-256",
-          32
-        )
+          32,
+        ),
       );
 
       const response = await request(server).get(`/timestamps/${timestampId}`);
@@ -385,9 +376,9 @@ describe("Timestamps Module", () => {
         data: hash2.timestampData[0],
         hash: multibase.base64.encode(
           multihashEncode(
-            hash2.hashValues[0],
-            testEnv.hashAlgorithms[0].multihash
-          )
+            hash2.hashValues[0]!,
+            testEnv.hashAlgorithms[0]!.multihash,
+          ),
         ),
         timestampedBy: await testEnv.timestampContract.signer.getAddress(),
         transactionHash: hash2.tx.hash,
@@ -415,7 +406,7 @@ describe("Timestamps Module", () => {
       expect.assertions(2);
 
       const timestampId = multibase.base64url.encode(
-        multihashEncode(crypto.randomBytes(32).toString("hex"), "sha2-256", 32)
+        multihashEncode(crypto.randomBytes(32).toString("hex"), "sha2-256", 32),
       );
 
       const response = await request(server).get(`/timestamps/${timestampId}`);

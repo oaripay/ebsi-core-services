@@ -1,1 +1,1 @@
-export * from "./IsValidCassandraCall";
+export * from "./IsValidCassandraCall.js";

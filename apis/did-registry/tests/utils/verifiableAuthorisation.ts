@@ -12,11 +12,11 @@ export async function createVerifiableAuthorisation(
   privateKey: string,
   applicationDid: string,
   ebsiAuthority: string,
-  trustedHostnames?: string[]
+  trustedHostnames?: string[],
 ): Promise<string> {
   const issuanceDate = new Date();
   const expirationDate = new Date(
-    issuanceDate.getTime() + 1000 * 60 * 60 * 24 * 182 // 365/2 = 6 months
+    issuanceDate.getTime() + 1000 * 60 * 60 * 24 * 182, // 365/2 = 6 months
   );
 
   const credential: EbsiVerifiableAttestation = {

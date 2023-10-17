@@ -6,7 +6,7 @@ export function formatFiles(
   nextPage: string,
   pageSize: number,
   baseUrl: string,
-  extraQuery?: string
+  extraQuery?: string,
 ): PaginatedList2<string> {
   return paginateForCassandra2<string>(
     hashes,
@@ -14,7 +14,7 @@ export function formatFiles(
     currentPage,
     nextPage,
     pageSize,
-    extraQuery
+    extraQuery,
   );
 }
 

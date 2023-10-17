@@ -1,10 +1,10 @@
 import { IsString, IsInt, Min, Max, IsOptional } from "class-validator";
-import { IsMultihash } from "../../validators";
+import { IsMultihash } from "../../validators/index.js";
 
 export class ArgsInsertHashAlgorithm {
   @IsInt()
   @Min(0)
-  outputLength: number;
+  outputLength!: number;
 
   @IsString()
   @IsOptional()
@@ -20,10 +20,10 @@ export class ArgsInsertHashAlgorithm {
   @IsInt()
   @Min(1)
   @Max(2)
-  status: number;
+  status!: number;
 
   @IsMultihash()
-  multihash: string;
+  multihash!: string;
 }
 
 export default { ArgsInsertHashAlgorithm };

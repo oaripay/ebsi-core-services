@@ -36,14 +36,14 @@ import {
   ArgsInsertAuthorization,
   ArgsUpdateAuthorization,
   SignedTransactionParam,
-} from "./dto";
+} from "./dto/index.js";
 import {
   formatEthersUnsignedTransaction,
   formatEthersSignature,
   validateClass,
-} from "./jsonrpc.utils";
-import LedgerService from "../ledger/ledger.service";
-import { ApiConfig } from "../../config/configuration";
+} from "./jsonrpc.utils.js";
+import LedgerService from "../ledger/ledger.service.js";
+import type { ApiConfig } from "../../config/configuration.js";
 
 @Injectable()
 export class JsonRpcService {
@@ -51,7 +51,7 @@ export class JsonRpcService {
 
   private tarContract: Tar;
 
-  private chainId: string = null;
+  private chainId: string = "";
 
   private didRegistry: string;
 
@@ -59,7 +59,7 @@ export class JsonRpcService {
 
   constructor(
     configService: ConfigService<ApiConfig, true>,
-    private ledgerService: LedgerService
+    private ledgerService: LedgerService,
   ) {
     this.tarContract = this.ledgerService.getContract();
     this.didRegistry = configService.get<string>("didRegistryApiUrl");
@@ -82,7 +82,7 @@ export class JsonRpcService {
   }
 
   async estimateGas(
-    transaction: UnsignedTransaction
+    transaction: UnsignedTransaction,
   ): Promise<ethers.BigNumber> {
     const { from, to, data, value } = transaction;
 
@@ -103,7 +103,7 @@ export class JsonRpcService {
 
   async isDidControlledByAddress(
     did: string,
-    controllerAddress: string
+    controllerAddress: string,
   ): Promise<boolean> {
     const { data } = await axios.post<{
       result: boolean;
@@ -114,7 +114,7 @@ export class JsonRpcService {
         method: "checkController",
         params: [controllerAddress],
       },
-      { timeout: this.timeout }
+      { timeout: this.timeout },
     );
 
     return data.result;
@@ -124,7 +124,7 @@ export class JsonRpcService {
     // Check DID Registry
     if (!(await this.isDidControlledByAddress(clientId, address))) {
       throw new Error(
-        `The DID ${clientId} is not controlled by the address ${address}`
+        `The DID ${clientId} is not controlled by the address ${address}`,
       );
     }
   }
@@ -139,12 +139,12 @@ export class JsonRpcService {
     const serializedTransaction = ethers.utils.serializeTransaction(unsignedTx);
     const serializedTransactionSigned = ethers.utils.serializeTransaction(
       unsignedTx,
-      signature
+      signature,
     );
 
     if (serializedTransactionSigned !== signedRawTransaction)
       throw new Error(
-        `The unsigned transaction + signature (${serializedTransactionSigned}) does not match with the signedRawTransaction (${signedRawTransaction})`
+        `The unsigned transaction + signature (${serializedTransactionSigned}) does not match with the signedRawTransaction (${signedRawTransaction})`,
       );
 
     // recover address used to sign
@@ -153,18 +153,18 @@ export class JsonRpcService {
 
     if (signer.toLowerCase() !== unsignedTransaction.from.toLowerCase())
       throw new Error(
-        `The signer of the transaction (${signer}) does not match with unsignedTransaction.from (${unsignedTransaction.from}) `
+        `The signer of the transaction (${signer}) does not match with unsignedTransaction.from (${unsignedTransaction.from}) `,
       );
 
     const chainId = await this.getChainId();
     if (unsignedTransaction.chainId !== chainId)
       throw new Error(
-        `Invalid unsignedTransaction.chainId. Expected ${chainId}. Received ${unsignedTransaction.chainId}`
+        `Invalid unsignedTransaction.chainId. Expected ${chainId}. Received ${unsignedTransaction.chainId}`,
       );
 
     if (unsignedTransaction.to !== this.tarContract.address)
       throw new Error(
-        `Invalid unsignedTransaction.to. Expected ${this.tarContract.address}. Received ${unsignedTransaction.to}`
+        `Invalid unsignedTransaction.to. Expected ${this.tarContract.address}. Received ${unsignedTransaction.to}`,
       );
 
     // verify function and parameters encoded in unsignedTransaction.data
@@ -175,7 +175,7 @@ export class JsonRpcService {
       case "deleteAppAdministrator": {
         await validateClass(
           ArgsDeleteAppAdministrator,
-          args as unknown as ArgsDeleteAppAdministrator
+          args as unknown as ArgsDeleteAppAdministrator,
         );
         break;
       }
@@ -186,14 +186,14 @@ export class JsonRpcService {
       case "insertAppAdministrator": {
         await validateClass(
           ArgsInsertAppAdministrator,
-          args as unknown as ArgsInsertAppAdministrator
+          args as unknown as ArgsInsertAppAdministrator,
         );
         break;
       }
       case "insertAppInfo": {
         await validateClass(
           ArgsInsertAppInfo,
-          args as unknown as ArgsInsertAppInfo
+          args as unknown as ArgsInsertAppInfo,
         );
         break;
       }
@@ -204,55 +204,55 @@ export class JsonRpcService {
       case "insertRevocation": {
         await validateClass(
           ArgsInsertRevocation,
-          args as unknown as ArgsInsertRevocation
+          args as unknown as ArgsInsertRevocation,
         );
         break;
       }
       case "insertPolicy": {
         await validateClass(
           ArgsInsertPolicy,
-          args as unknown as ArgsInsertPolicy
+          args as unknown as ArgsInsertPolicy,
         );
         break;
       }
       case "insertAppPublicKey": {
         await validateClass(
           ArgsInsertAppPublicKey,
-          args as unknown as ArgsInsertAppPublicKey
+          args as unknown as ArgsInsertAppPublicKey,
         );
         break;
       }
       case "updateAppPublicKey": {
         await validateClass(
           ArgsUpdateAppPublicKey,
-          args as unknown as ArgsUpdateAppPublicKey
+          args as unknown as ArgsUpdateAppPublicKey,
         );
         break;
       }
       case "updatePolicy": {
         await validateClass(
           ArgsUpdatePolicy,
-          args as unknown as ArgsUpdatePolicy
+          args as unknown as ArgsUpdatePolicy,
         );
         break;
       }
       case "insertAuthorization": {
         await validateClass(
           ArgsInsertAuthorization,
-          args as unknown as ArgsInsertAuthorization
+          args as unknown as ArgsInsertAuthorization,
         );
         break;
       }
       case "updateAuthorization": {
         await validateClass(
           ArgsUpdateAuthorization,
-          args as unknown as ArgsUpdateAuthorization
+          args as unknown as ArgsUpdateAuthorization,
         );
         break;
       }
       default:
         throw new Error(
-          `The function name ${functionFragment.name} can not be used in this context`
+          `The function name ${functionFragment.name} can not be used in this context`,
         );
     }
 
@@ -261,7 +261,7 @@ export class JsonRpcService {
 
   async buildTransaction(
     from: string,
-    params: string
+    params: string,
   ): Promise<UnsignedTransaction> {
     const nonceInt = await this.tarContract.provider.getTransactionCount(from);
 
@@ -291,7 +291,7 @@ export class JsonRpcService {
           gasEstimation === "unset"
             ? ""
             : `Received ${gasEstimation.toString()}.`
-        } Using 0x1000000`
+        } Using 0x1000000`,
       );
       unsignedTransaction.gasLimit = "0x1000000";
     }
@@ -301,34 +301,36 @@ export class JsonRpcService {
 
   async buildTransactionDeleteAppAdministrator(
     body: RequestDeleteAppAdministratorDto,
-    id?: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestDeleteAppAdministratorDto, body);
 
-      const { from, applicationId, administratorId } = body.params[0];
+      const { from, applicationId, administratorId } = body.params[0]!;
 
       const data = this.tarContract.interface.encodeFunctionData(
         "deleteAppAdministrator",
-        [applicationId, administratorId]
+        [applicationId, administratorId],
       );
 
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionInsertApp(
     body: RequestInsertAppDto,
-    id?: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestInsertAppDto, body);
 
-      const { from, name, domain, appAdministrator } = body.params[0];
+      const { from, name, domain, appAdministrator } = body.params[0]!;
 
       const data = this.tarContract.interface.encodeFunctionData("insertApp", [
         name,
@@ -339,85 +341,93 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionInsertAppAdministrator(
     body: RequestInsertAppAdministratorDto,
-    id?: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestInsertAppAdministratorDto, body);
 
-      const { from, applicationId, administratorId } = body.params[0];
+      const { from, applicationId, administratorId } = body.params[0]!;
 
       const data = this.tarContract.interface.encodeFunctionData(
         "insertAppAdministrator",
-        [applicationId, administratorId]
+        [applicationId, administratorId],
       );
 
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionInsertAppInfo(
     body: RequestInsertAppInfoDto,
-    id?: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestInsertAppInfoDto, body);
 
-      const { from, applicationId, info } = body.params[0];
+      const { from, applicationId, info } = body.params[0]!;
 
       const data = this.tarContract.interface.encodeFunctionData(
         "insertAppInfo",
-        [applicationId, info]
+        [applicationId, info],
       );
 
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionInsertRevocation(
     body: RequestInsertRevocationDto,
-    id?: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestInsertRevocationDto, body);
 
-      const { from, applicationId, revokedBy, notBefore } = body.params[0];
+      const { from, applicationId, revokedBy, notBefore } = body.params[0]!;
 
       const data = this.tarContract.interface.encodeFunctionData(
         "insertRevocation",
-        [applicationId, revokedBy, notBefore]
+        [applicationId, revokedBy, notBefore],
       );
 
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionUpdateApp(
     body: RequestUpdateAppDto,
-    id?: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestUpdateAppDto, body);
 
-      const { from, applicationId, domain } = body.params[0];
+      const { from, applicationId, domain } = body.params[0]!;
 
       const data = this.tarContract.interface.encodeFunctionData("updateApp", [
         applicationId,
@@ -427,97 +437,107 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionInsertAppPublicKey(
     body: RequestInsertAppPublicKeyDto,
-    id?: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestInsertAppPublicKeyDto, body);
 
       const { from, applicationId, publicKey, status, notBefore, notAfter } =
-        body.params[0];
+        body.params[0]!;
 
       const data = this.tarContract.interface.encodeFunctionData(
         "insertAppPublicKey",
-        [applicationId, publicKey, status, notBefore, notAfter]
+        [applicationId, publicKey, status, notBefore, notAfter],
       );
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionUpdateAppPublicKey(
     body: RequestUpdateAppPublicKeyDto,
-    id?: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestUpdateAppPublicKeyDto, body);
 
-      const { from, publicKeyId, status, notAfter } = body.params[0];
+      const { from, publicKeyId, status, notAfter } = body.params[0]!;
 
       const data = this.tarContract.interface.encodeFunctionData(
         "updateAppPublicKey",
-        [publicKeyId, status, notAfter]
+        [publicKeyId, status, notAfter],
       );
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionInsertPolicy(
     body: RequestInsertPolicyDto,
-    id?: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestInsertPolicyDto, body);
-      const { from, policyId, policyData } = body.params[0];
+      const { from, policyId, policyData } = body.params[0]!;
 
       const data = this.tarContract.interface.encodeFunctionData(
         "insertPolicy",
-        [policyId, policyData]
+        [policyId, policyData],
       );
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionUpdatePolicy(
     body: RequestUpdatePolicyDto,
-    id?: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestUpdatePolicyDto, body);
-      const { from, policyId, policyData } = body.params[0];
+      const { from, policyId, policyData } = body.params[0]!;
 
       const data = this.tarContract.interface.encodeFunctionData(
         "updatePolicy",
-        [policyId, policyData]
+        [policyId, policyData],
       );
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionInsertAuthorization(
     body: RequestInsertAuthorizationDto,
-    id?: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestInsertAuthorizationDto, body);
@@ -531,40 +551,52 @@ export class JsonRpcService {
         permissions,
         notBefore,
         notAfter,
-      } = body.params[0];
+      } = body.params[0]!;
 
       const data = this.tarContract.interface.encodeFunctionData(
         "insertAuthorization",
-        [name, authorizedAppName, iss, status, permissions, notBefore, notAfter]
+        [
+          name,
+          authorizedAppName,
+          iss,
+          status,
+          permissions,
+          notBefore,
+          notAfter,
+        ],
       );
 
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionUpdateAuthorization(
     body: RequestUpdateAuthorizationDto,
-    id?: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestUpdateAuthorizationDto, body);
 
       const { from, authorizationId, status, permissions, notAfter } =
-        body.params[0];
+        body.params[0]!;
 
       const data = this.tarContract.interface.encodeFunctionData(
         "updateAuthorization",
-        [authorizationId, status, permissions, notAfter]
+        [authorizationId, status, permissions, notAfter],
       );
 
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
@@ -572,18 +604,18 @@ export class JsonRpcService {
   async sendTransaction(
     clientId: string,
     body: RequestSendSignedTransactionDto,
-    id?: number | string
+    id?: number | string,
   ): Promise<string> {
     try {
       await validateClass(RequestSendSignedTransactionDto, body);
 
-      const request = body.params[0];
+      const request = body.params[0]!;
       const signer = await this.verifyTransaction(request);
 
       await this.checkWritePermission(signer, clientId);
 
       const tx = await this.tarContract.provider.sendTransaction(
-        request.signedRawTransaction
+        request.signedRawTransaction,
       );
 
       return tx.hash;
@@ -594,7 +626,9 @@ export class JsonRpcService {
       }
       if (err instanceof Error) {
         const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-        error.stack = err.stack;
+        if (err.stack) {
+          error.stack = err.stack;
+        }
         throw error;
       }
       throw err;

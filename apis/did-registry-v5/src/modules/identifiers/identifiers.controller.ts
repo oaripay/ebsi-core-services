@@ -12,36 +12,36 @@ import {
 import { ConfigService } from "@nestjs/config";
 import type { FastifyReply } from "fastify";
 import { PaginatedList, InvalidRequestJsonRpcError } from "@ebsiint-api/shared";
-import IdentifiersService from "./identifiers.service";
-import { formatIdentifiers } from "./identifiers.formatter";
-import { DidLink } from "./identifiers.interface";
+import IdentifiersService from "./identifiers.service.js";
+import { formatIdentifiers } from "./identifiers.formatter.js";
+import { DidLink } from "./identifiers.interface.js";
 import {
   GetIdentifierParamsDto,
   GetIdentifierQueryDto,
   GetIdentifiersDto,
-} from "./dto";
-import { ApiConfig } from "../../config/configuration";
-import { JsonRpcResponseObject } from "../jsonrpc/jsonrpc.interface";
-import { JsonRpcDto } from "../jsonrpc/dto";
-import { RequestCheckControllerDto } from "./dto/request-check-controller.dto";
+} from "./dto/index.js";
+import type { ApiConfig } from "../../config/configuration.js";
+import { JsonRpcResponseObject } from "../jsonrpc/jsonrpc.interface.js";
+import { JsonRpcDto } from "../jsonrpc/dto/index.js";
+import { RequestCheckControllerDto } from "./dto/request-check-controller.dto.js";
 
 @Controller("/identifiers")
 export default class IdentifiersController {
   constructor(
     private identifiersService: IdentifiersService,
-    private configService: ConfigService<ApiConfig, true>
+    private configService: ConfigService<ApiConfig, true>,
   ) {}
 
   @Get("")
   async getIdentifiers(
-    @Query() query: GetIdentifiersDto
+    @Query() query: GetIdentifiersDto,
   ): Promise<PaginatedList<DidLink>> {
     const identifiers = await this.identifiersService.getIdentifiers(
       query["page[after]"],
       query["page[size]"],
       query.controller,
       query["verification-method-id"],
-      query["verification-relationship"]
+      query["verification-relationship"],
     );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
@@ -55,7 +55,7 @@ export default class IdentifiersController {
       baseUrl,
       query.controller,
       query["verification-method-id"],
-      query["verification-relationship"]
+      query["verification-relationship"],
     );
   }
 
@@ -64,13 +64,13 @@ export default class IdentifiersController {
     @Param() params: GetIdentifierParamsDto,
     @Query() query: GetIdentifierQueryDto,
     @Headers("Accept") accept: string,
-    @Res() res: FastifyReply
+    @Res() res: FastifyReply,
   ): Promise<{ [x: string]: unknown }> {
     const { did } = params;
 
     const didDocument = await this.identifiersService.getDidDocument(
       did,
-      query["valid-at"]
+      query["valid-at"],
     );
 
     if (accept === "application/did+json") {
@@ -85,7 +85,7 @@ export default class IdentifiersController {
   @Post("/:did/actions")
   async processAction(
     @Param() params: GetIdentifierParamsDto,
-    @Body() body: JsonRpcDto
+    @Body() body: JsonRpcDto,
   ): Promise<JsonRpcResponseObject> {
     const { did } = params;
     const { method, id: requestId } = body;
@@ -96,7 +96,7 @@ export default class IdentifiersController {
         const result = await this.identifiersService.checkController(
           did,
           body as RequestCheckControllerDto,
-          id
+          id,
         );
         return { jsonrpc: "2.0", id, result };
       }
@@ -104,7 +104,7 @@ export default class IdentifiersController {
       default:
         throw new InvalidRequestJsonRpcError(
           `The method '${method}' is invalid`,
-          id
+          id,
         );
     }
   }

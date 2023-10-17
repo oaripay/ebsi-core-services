@@ -1,5 +1,6 @@
-import { join } from "node:path";
+import { join, dirname } from "node:path";
 import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { parse } from "yaml";
 import { Controller, Get, Header } from "@nestjs/common";
 
@@ -8,9 +9,10 @@ export class OpenApiController {
   private spec: string;
 
   constructor() {
+    const currentDir = dirname(fileURLToPath(import.meta.url));
     this.spec = readFileSync(
-      join(__dirname, "../../../api/openapi.yaml"),
-      "utf8"
+      join(currentDir, "../../../api/openapi.yaml"),
+      "utf8",
     );
   }
 

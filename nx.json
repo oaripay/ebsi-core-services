@@ -1,7 +1,6 @@
 {
   "extends": "nx/presets/npm.json",
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
-  "npmScope": "@ebsi/core-services",
   "affected": {
     "defaultBase": "origin/main"
   },
@@ -24,10 +23,9 @@
   "namedInputs": {
     "default": ["{projectRoot}/**/*"],
     "test": [
-      "{workspaceRoot}/jest-resolver.js",
       "{projectRoot}/src/**/*",
       "{projectRoot}/tests/**/*",
-      "{projectRoot}/jest.config.js",
+      "{projectRoot}/vitest.config.ts",
       "{projectRoot}/tsconfig.json",
       "{projectRoot}/.env*"
     ],

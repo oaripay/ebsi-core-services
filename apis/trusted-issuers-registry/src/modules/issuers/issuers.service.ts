@@ -1,24 +1,24 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { Tir } from "@ebsiint-sc/trusted-issuers-registry";
 import { ConfigService } from "@nestjs/config";
-import axios, { AxiosResponse } from "axios";
+import axios, { type AxiosResponse } from "axios";
 import {
   isStatusList2021Credential,
   prefixWith0x,
-  AsyncReturnType,
   BadRequestError,
   InternalServerError,
   NotFoundError,
   isEthersError,
   remove0xPrefix,
 } from "@ebsiint-api/shared";
-import { LedgerService } from "../ledger/ledger.service";
+import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+import { LedgerService } from "../ledger/ledger.service.js";
 import {
   AttributeObject,
   IssuerProxyResponseObject,
   IssuerResponseObject,
-} from "./issuers.interface";
-import { ApiConfig } from "../../config/configuration";
+} from "./issuers.interface.js";
+import type { ApiConfig } from "../../config/configuration.js";
 
 @Injectable()
 export class IssuersService {
@@ -28,17 +28,30 @@ export class IssuersService {
 
   private trustedHostnames: string[];
 
+  private ebsiEnvConfig: EbsiEnvConfiguration;
+
   constructor(
     private ledgerService: LedgerService,
-    private configService: ConfigService<ApiConfig, true>
+    private configService: ConfigService<ApiConfig, true>,
   ) {
     this.timeout = configService.get<number>("requestTimeout");
     this.trustedHostnames = configService.get<string[]>("trustedHostnames");
+    this.ebsiEnvConfig = {
+      didRegistry: `${configService.get<string>(
+        "didRegistryApiUrl",
+      )}/identifiers`,
+      trustedIssuersRegistry: `${configService.get<string>(
+        "domain",
+      )}${configService.get<string>("apiUrlPrefix")}/issuers`,
+      trustedPoliciesRegistry: `${configService.get<string>(
+        "trustedPoliciesRegistryApiUrl",
+      )}/users`,
+    };
   }
 
   async getIssuers(
     page: number,
-    pageSize: number
+    pageSize: number,
   ): ReturnType<Tir["getIssuers"]> {
     try {
       return await (
@@ -58,7 +71,7 @@ export class IssuersService {
     // This function assumes that the attributeId exists
     const hash = prefixWith0x(attributeId);
 
-    let attributeByHash: AsyncReturnType<Tir["getIssuerAttributeByHash"]>;
+    let attributeByHash: Awaited<ReturnType<Tir["getIssuerAttributeByHash"]>>;
 
     try {
       attributeByHash = await (
@@ -103,7 +116,7 @@ export class IssuersService {
     return Promise.all(
       attributesLastHash.map(async (hash) => {
         return this.getAttribute(hash);
-      })
+      }),
     );
   }
 
@@ -136,7 +149,7 @@ export class IssuersService {
 
   async didIncludesAttribute(
     did: string,
-    attributeId: string
+    attributeId: string,
   ): Promise<boolean> {
     const attribId = prefixWith0x(attributeId);
     let attributesLastHash: string[];
@@ -166,7 +179,7 @@ export class IssuersService {
           return (
             await this.ledgerService.getContract()
           ).getIssuerAttributeRevisions(hash, 1, 50);
-        })
+        }),
       );
 
       return !!revisionHashesList.find((revisionHashes) => {
@@ -185,7 +198,7 @@ export class IssuersService {
   async getIssuerAttributeIdRevisions(
     attributeId: string,
     page: number,
-    pageSize: number
+    pageSize: number,
   ): Promise<{ revisions: AttributeObject[]; total: number }> {
     // This function assumes that the attributeId exists
     const hash = prefixWith0x(attributeId);
@@ -198,7 +211,7 @@ export class IssuersService {
       const revisions = await Promise.all(
         revisionHashes.items.map(async (revisionHash) => {
           return this.getAttribute(revisionHash);
-        })
+        }),
       );
 
       return { revisions, total: revisionHashes.total.toNumber() };
@@ -216,7 +229,7 @@ export class IssuersService {
     // Make sure the issuer exists
     await this.assertIssuerExists(did);
 
-    let proxies: AsyncReturnType<Tir["getIssuerProxies"]>;
+    let proxies: Awaited<ReturnType<Tir["getIssuerProxies"]>>;
 
     try {
       proxies = await (
@@ -289,7 +302,7 @@ export class IssuersService {
     } catch (e) {
       if (e instanceof Error) {
         this.logger.error(
-          `Status List Credential ${credRequestUrl} unreachable - ${e.message}`
+          `Status List Credential ${credRequestUrl} unreachable - ${e.message}`,
         );
       }
 
@@ -314,6 +327,7 @@ export class IssuersService {
       !(await isStatusList2021Credential(res.data, authority, {
         skipAccreditationsValidation: true,
         trustedHostnames: this.trustedHostnames,
+        ebsiEnvConfig: this.ebsiEnvConfig,
       }))
     ) {
       throw new InternalServerError("Invalid Status List Credential", {

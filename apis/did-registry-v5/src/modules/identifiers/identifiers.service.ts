@@ -9,9 +9,10 @@ import {
   getErrorMessage,
 } from "@ebsiint-api/shared";
 import { DidRegistry } from "@ebsiint-sc/did-registry-v3";
-import { LedgerService } from "../ledger/ledger.service";
-import { RequestCheckControllerDto } from "./dto/request-check-controller.dto";
-import { validateClass } from "./identifiers.utils";
+import type { JWK } from "jose";
+import { LedgerService } from "../ledger/ledger.service.js";
+import { RequestCheckControllerDto } from "./dto/request-check-controller.dto.js";
+import { validateClass } from "./identifiers.utils.js";
 
 @Injectable()
 export default class IdentifiersService {
@@ -24,7 +25,7 @@ export default class IdentifiersService {
     pageSize: number,
     controller?: string,
     vMethodId?: string,
-    vRelationship?: string
+    vRelationship?: string,
   ): ReturnType<DidRegistry["getDids"]> {
     if (controller) {
       if (vMethodId || vRelationship) {
@@ -68,7 +69,7 @@ export default class IdentifiersService {
           vMethodId,
           vRelationship,
           page,
-          pageSize
+          pageSize,
         );
         const dids: string[] = [];
         const now = Math.floor(Date.now() / 1000);
@@ -111,7 +112,7 @@ export default class IdentifiersService {
 
   async getDidDocument(
     did: string,
-    validAt?: string
+    validAt?: string,
   ): Promise<{ [x: string]: unknown }> {
     const contract = await this.ledgerService.getContract();
     let document: Awaited<ReturnType<typeof contract.getDidDocument>>;
@@ -151,9 +152,12 @@ export default class IdentifiersService {
           controller: did,
           publicKeyJwk: vMethod.isSecp256k1
             ? encode.publicKey.fromHexToJWK(vMethod.publicKey)
-            : JSON.parse(
-                Buffer.from(remove0xPrefix(vMethod.publicKey), "hex").toString()
-              ),
+            : (JSON.parse(
+                Buffer.from(
+                  remove0xPrefix(vMethod.publicKey),
+                  "hex",
+                ).toString(),
+              ) as JWK),
         }));
       } catch (error) {
         throw new BadRequestError(BadRequestError.defaultTitle, {
@@ -168,8 +172,8 @@ export default class IdentifiersService {
         if (!verificationRelationships[vRelationship.name]) {
           verificationRelationships[vRelationship.name] = [];
         }
-        verificationRelationships[vRelationship.name].push(
-          `${did}#${vRelationship.vMethodId}`
+        verificationRelationships[vRelationship.name]!.push(
+          `${did}#${vRelationship.vMethodId}`,
         );
       });
 
@@ -196,12 +200,12 @@ export default class IdentifiersService {
   async checkController(
     did: string,
     body: RequestCheckControllerDto,
-    id: number | string | null
+    id: number | string | null | undefined,
   ): Promise<boolean> {
     try {
       await validateClass(RequestCheckControllerDto, body);
       const contract = await this.ledgerService.getContract();
-      const address = body.params[0];
+      const address = body.params[0]!;
       return await contract["checkController(string,address)"](did, address);
     } catch (err) {
       if (isEthersError(err)) {
@@ -210,7 +214,11 @@ export default class IdentifiersService {
       }
       if (err instanceof Error) {
         const error = new InvalidRequestJsonRpcError(err.message, id);
-        error.stack = err.stack;
+
+        if (err instanceof Error && err.stack) {
+          error.stack = err.stack;
+        }
+
         throw error;
       }
       throw err;

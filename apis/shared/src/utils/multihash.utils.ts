@@ -1,23 +1,23 @@
 import multihash from "multihashes";
-import { remove0xPrefix } from "./strings.utils";
+import { remove0xPrefix } from "./strings.utils.js";
 
 export const multihashEncode = (
   hexHash: string,
   alg: multihash.HashName = "sha2-256",
-  length?: number
+  length?: number,
 ): Uint8Array =>
   multihash.encode(
     multihash.fromHexString(remove0xPrefix(hexHash)),
     alg,
-    length
+    length,
   );
 
 export const multihashEncode2 = (
   str: string,
-  alg: multihash.HashName
+  alg: multihash.HashName,
 ): string =>
   multihash.toHexString(
-    multihash.encode(multihash.fromHexString(remove0xPrefix(str)), alg)
+    multihash.encode(multihash.fromHexString(remove0xPrefix(str)), alg),
   );
 
 export const multihashDecode = (bytes: Uint8Array): Uint8Array =>

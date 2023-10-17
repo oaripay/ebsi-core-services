@@ -1,4 +1,4 @@
-import { PaginatedList, PaginatedList2 } from "../interfaces";
+import { PaginatedList, PaginatedList2 } from "../interfaces/index.js";
 
 type PaginationLinks = {
   firstPage: number;
@@ -10,7 +10,7 @@ type PaginationLinks = {
 export function compute1BasedPaginationLinks(
   total: number,
   currentPage: number,
-  pageSize: number
+  pageSize: number,
 ): PaginationLinks {
   const firstPage = 1;
   const lastPage = Math.max(Math.ceil(total / pageSize), 1);
@@ -26,7 +26,7 @@ export function paginate<T>(
   total: number,
   page: number,
   pageSize: number,
-  extraQuery = ""
+  extraQuery = "",
 ): PaginatedList<T> {
   const { firstPage, prevPage, nextPage, lastPage } =
     compute1BasedPaginationLinks(total, page, pageSize);
@@ -51,7 +51,7 @@ export function paginate2<T>(
   total: number,
   page: number,
   pageSize: number,
-  extraQuery = ""
+  extraQuery = "",
 ): PaginatedList2<T> {
   const { firstPage, prevPage, nextPage, lastPage } =
     compute1BasedPaginationLinks(total, page, pageSize);
@@ -77,7 +77,7 @@ export function paginateForCassandra<T>(
   currentPage: string,
   nextPage: string,
   pageSize: number,
-  extraQuery = ""
+  extraQuery = "",
 ): PaginatedList2<T> {
   return {
     self: `${baseUrl}?${
@@ -100,7 +100,7 @@ export function paginateForCassandra2<T>(
   currentPage: string,
   nextPage: string,
   pageSize: number,
-  extraQuery = ""
+  extraQuery = "",
 ): PaginatedList2<T> {
   return {
     self: `${baseUrl}?${

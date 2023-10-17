@@ -1,8 +1,8 @@
 import { Injectable, OnApplicationBootstrap, Logger } from "@nestjs/common";
 import { mapping, types, QueryOptions } from "cassandra-driver";
-import { CassandraService } from "../cassandra.service";
-import { KeyValueModel } from "../models/key-value.model";
-import { CASSANDRA_EXCEPTIONS } from "../cassandra.constants";
+import { CassandraService } from "../cassandra.service.js";
+import { KeyValueModel } from "../models/key-value.model.js";
+import { CASSANDRA_EXCEPTIONS } from "../cassandra.constants.js";
 
 const TABLE_KEY_VALUE_STORAGE = "key_value_storage";
 
@@ -10,7 +10,7 @@ const TABLE_KEY_VALUE_STORAGE = "key_value_storage";
 export class KeyValuesRepository implements OnApplicationBootstrap {
   private readonly logger = new Logger(KeyValuesRepository.name);
 
-  keyValueMapper: mapping.ModelMapper<KeyValueModel>;
+  keyValueMapper!: mapping.ModelMapper<KeyValueModel>;
 
   constructor(private cassandraService: CassandraService) {}
 
@@ -35,7 +35,7 @@ export class KeyValuesRepository implements OnApplicationBootstrap {
   }: {
     did: string;
     key: string;
-  }): Promise<KeyValueModel> {
+  }): Promise<KeyValueModel | null> {
     const result = await this.keyValueMapper.find({ did, key });
     return result.first();
   }
@@ -43,7 +43,7 @@ export class KeyValuesRepository implements OnApplicationBootstrap {
   async getKeyValues(
     did: string,
     requestedPageState: string,
-    pageSize: number
+    pageSize: number,
   ): Promise<types.ResultSet> {
     const query = `select key from ${TABLE_KEY_VALUE_STORAGE} where did = ?`;
     const params = [did];
@@ -70,7 +70,7 @@ export class KeyValuesRepository implements OnApplicationBootstrap {
 
   async setKeyValue(
     keyValue: KeyValueModel,
-    isNewKeyValue: boolean
+    isNewKeyValue: boolean,
   ): Promise<mapping.Result<KeyValueModel>> {
     return isNewKeyValue
       ? this.keyValueMapper.insert(keyValue)

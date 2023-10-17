@@ -31,8 +31,8 @@ export interface ApiConfig {
   testLoadBalancerDomain: string;
   dockerContainerTag: string;
   blockscout: {
-    url: string;
-    bearerToken: string;
+    url: string | undefined;
+    bearerToken: string | undefined;
   };
   trustedHostnames: string[];
 }
@@ -111,7 +111,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "warn",
       "info",
       "verbose",
-      "debug"
+      "debug",
     ),
     DOCKER_TAG: Joi.string(),
     // Timestamp specific variables

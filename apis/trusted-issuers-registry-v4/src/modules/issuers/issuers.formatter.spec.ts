@@ -1,12 +1,12 @@
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 import { ethers } from "ethers";
 import { Tir } from "@ebsiint-sc/trusted-issuers-registry";
 import {
   formatIssuers,
   formatAttributes,
   formatProxies,
-} from "./issuers.formatter";
-import { AttributeObject } from "./issuers.interface";
+} from "./issuers.formatter.js";
+import { AttributeObject } from "./issuers.interface.js";
 
 describe("formatIssuers", () => {
   const issuers = {
@@ -169,12 +169,12 @@ describe("formatAttributes", () => {
     expect(formatAttributes(attributes, page, 2, "")).toStrictEqual({
       items: [
         {
-          href: `/${attributes[0].hash}`,
-          id: attributes[0].hash,
+          href: `/${attributes[0]!.hash}`,
+          id: attributes[0]!.hash,
         },
         {
-          href: `/${attributes[1].hash}`,
-          id: attributes[1].hash,
+          href: `/${attributes[1]!.hash}`,
+          id: attributes[1]!.hash,
         },
       ],
       links: {
@@ -198,8 +198,8 @@ describe("formatAttributes", () => {
     expect(formatAttributes(attributes, page, pageSize, "")).toStrictEqual({
       items: [
         {
-          href: `/${attributes[14].hash}`,
-          id: attributes[14].hash,
+          href: `/${attributes[14]!.hash}`,
+          id: attributes[14]!.hash,
         },
       ],
       links: {
@@ -223,12 +223,12 @@ describe("formatAttributes", () => {
     expect(formatAttributes(attributes, page, pageSize, "")).toStrictEqual({
       items: [
         {
-          href: `/${attributes[4].hash}`,
-          id: attributes[4].hash,
+          href: `/${attributes[4]!.hash}`,
+          id: attributes[4]!.hash,
         },
         {
-          href: `/${attributes[5].hash}`,
-          id: attributes[5].hash,
+          href: `/${attributes[5]!.hash}`,
+          id: attributes[5]!.hash,
         },
       ],
       links: {

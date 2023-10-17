@@ -5,23 +5,24 @@ import {
   it,
   expect,
   afterEach,
-  jest,
-} from "@jest/globals";
+  vi,
+} from "vitest";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import { ValidationPipe, Logger, HttpServer } from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import type { FastifyInstance } from "fastify";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
+import type { RawServerDefault } from "fastify";
 import { HttpService } from "@nestjs/axios";
-import nock from "nock";
+import { rest } from "msw";
+import { setupServer } from "msw/node";
 import { of } from "rxjs";
-import { AppModule } from "./app.module";
-import { AllExceptionsFilter } from "./filters/http-exception.filter";
-import { ApiConfig } from "./config/configuration";
+import { AppModule } from "./app.module.js";
+import { AllExceptionsFilter } from "./filters/http-exception.filter.js";
+import type { ApiConfig } from "./config/configuration.js";
 
 interface ResponseHeaders {
   "ebsi-image-tag": string;
@@ -29,25 +30,32 @@ interface ResponseHeaders {
 }
 
 describe("App Module", () => {
+  const mockServer = setupServer();
+
   beforeAll(() => {
     process.env.AXIOS_RETRY_DELAY = "1"; // 1ms
 
-    // Disable external requests
-    nock.disableNetConnect();
-    // Allow localhost connections so we can test local routes and mock servers.
-    nock.enableNetConnect("127.0.0.1");
+    // Intercept network requests
+    mockServer.listen({
+      onUnhandledRequest: ({ method, url }) => {
+        // Bypass local requests
+        if (url.hostname === "127.0.0.1") return;
+
+        throw new Error(`Unhandled ${method} request to ${url.href}`);
+      },
+    });
   });
 
   afterAll(() => {
-    nock.restore();
+    mockServer.close();
   });
 
   describe("onApplicationBootstrap hook", () => {
     afterEach(() => {
-      nock.cleanAll();
+      mockServer.resetHandlers();
     });
 
-    it("should prevent the app from starting if the url of a dependency is not mocked with nock", async () => {
+    it("should prevent the app from starting if the url of a dependency is not mocked with MSW", async () => {
       expect.assertions(1);
 
       const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -55,7 +63,7 @@ describe("App Module", () => {
       }).compile();
 
       const app = moduleFixture.createNestApplication<NestFastifyApplication>(
-        new FastifyAdapter()
+        new FastifyAdapter(),
       );
 
       // Turn off logger
@@ -68,11 +76,11 @@ describe("App Module", () => {
       app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
       const url = new URL(
-        `${configService.get<string>("ledgerApiUrl")}/health`
+        `${configService.get<string>("ledgerApiUrl")}/health`,
       );
 
       await expect(() => app.init()).rejects.toThrow(
-        `Unable to get ${url.href}, shutting down...`
+        `Unable to get ${url.href}, shutting down...`,
       );
     });
 
@@ -84,13 +92,13 @@ describe("App Module", () => {
       }).compile();
 
       const app = moduleFixture.createNestApplication<NestFastifyApplication>(
-        new FastifyAdapter()
+        new FastifyAdapter(),
       );
 
       const mockedLogger = {
-        log: jest.fn(),
-        warn: jest.fn(),
-        error: jest.fn(),
+        log: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
       };
       Logger.overrideLogger(mockedLogger);
 
@@ -100,14 +108,16 @@ describe("App Module", () => {
       app.useGlobalFilters(new AllExceptionsFilter(configService));
       app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
-      const url = new URL(
-        `${configService.get<string>("ledgerApiUrl")}/health`
+      const url = `${configService.get<string>("ledgerApiUrl")}/health`;
+
+      mockServer.use(
+        rest.get(url, (_req, res, ctx) =>
+          res(ctx.status(404), ctx.text("Not Found")),
+        ),
       );
 
-      nock(url.origin).get(url.pathname).reply(404, "Not Found").persist();
-
       await expect(() => app.init()).rejects.toThrow(
-        `Unable to get ${url.href}, shutting down...`
+        `Unable to get ${url}, shutting down...`,
       );
 
       // Retry 30 times -> log 30 errors
@@ -122,13 +132,13 @@ describe("App Module", () => {
       }).compile();
 
       const app = moduleFixture.createNestApplication<NestFastifyApplication>(
-        new FastifyAdapter()
+        new FastifyAdapter(),
       );
 
       const mockedLogger = {
-        log: jest.fn(),
-        warn: jest.fn(),
-        error: jest.fn(),
+        log: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
       };
       Logger.overrideLogger(mockedLogger);
 
@@ -138,24 +148,28 @@ describe("App Module", () => {
       app.useGlobalFilters(new AllExceptionsFilter(configService));
       app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
-      const ledgerApiUrl = new URL(
-        `${configService.get<string>("ledgerApiUrl")}/health`
-      );
-      const authorisationApiV2Url = new URL(
-        `${configService.get<string>("authorisationApiV2Url")}/health`
-      );
+      const ledgerApiUrl = `${configService.get<string>(
+        "ledgerApiUrl",
+      )}/health`;
+      const authorisationApiV2Url = `${configService.get<string>(
+        "authorisationApiV2Url",
+      )}/health`;
 
-      // Ledger API first responds 15 times with a 404 (because it's starting)
-      nock(ledgerApiUrl.origin)
-        .get(ledgerApiUrl.pathname)
-        .times(15)
-        .reply(404, "Not Found");
-      // Then, it responds with a 200
-      nock(ledgerApiUrl.origin).get(ledgerApiUrl.pathname).reply(200).persist();
-      nock(authorisationApiV2Url.origin)
-        .get(authorisationApiV2Url.pathname)
-        .reply(200)
-        .persist();
+      let reqCounter = 0;
+      mockServer.use(
+        rest.get(ledgerApiUrl, (_req, res, ctx) => {
+          reqCounter += 1;
+
+          // Ledger API first responds 15 times with a 404 (because it's starting)
+          if (reqCounter <= 15) {
+            return res(ctx.status(404), ctx.text("Not Found"));
+          }
+
+          // Then, it responds with a 200
+          return res(ctx.status(200), ctx.json({}));
+        }),
+        rest.get(authorisationApiV2Url, (_req, res, ctx) => res(ctx.json({}))),
+      );
 
       await expect(app.init()).resolves.not.toThrow();
 
@@ -163,16 +177,13 @@ describe("App Module", () => {
       expect(mockedLogger.error).toHaveBeenCalledTimes(15);
 
       // Close the app
-      await new Promise<void>((resolve) => {
-        setTimeout(() => resolve(), 500);
-      });
       await app.close();
     });
   });
 
   describe("Generic tests", () => {
     let app: NestFastifyApplication;
-    let server: HttpServer;
+    let server: RawServerDefault;
     let httpService: HttpService;
     let configService: ConfigService<ApiConfig, true>;
     const dockerTag = "version";
@@ -186,7 +197,7 @@ describe("App Module", () => {
       }).compile();
 
       app = moduleFixture.createNestApplication<NestFastifyApplication>(
-        new FastifyAdapter()
+        new FastifyAdapter(),
       );
 
       // Turn off logger
@@ -197,22 +208,21 @@ describe("App Module", () => {
       app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
       // Mock dependencies
-      const ledgerApiUrl = new URL(
-        `${configService.get<string>("ledgerApiUrl")}/health`
-      );
-      const authorisationApiV2Url = new URL(
-        `${configService.get<string>("authorisationApiV2Url")}/health`
-      );
+      const ledgerApiUrl = `${configService.get<string>(
+        "ledgerApiUrl",
+      )}/health`;
+      const authorisationApiV2Url = `${configService.get<string>(
+        "authorisationApiV2Url",
+      )}/health`;
 
-      nock(ledgerApiUrl.origin).get(ledgerApiUrl.pathname).reply(200).persist();
-      nock(authorisationApiV2Url.origin)
-        .get(authorisationApiV2Url.pathname)
-        .reply(200)
-        .persist();
+      mockServer.use(
+        rest.get(ledgerApiUrl, (_req, res, ctx) => res(ctx.json({}))),
+        rest.get(authorisationApiV2Url, (_req, res, ctx) => res(ctx.json({}))),
+      );
 
       await app.init();
-      await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-      server = app.getHttpServer() as HttpServer;
+      await app.getHttpAdapter().getInstance().ready();
+      server = app.getHttpServer();
       httpService = await moduleFixture.resolve<HttpService>(HttpService);
     });
 
@@ -244,8 +254,7 @@ describe("App Module", () => {
       it("should provide EBSI image version/tag in headers", async () => {
         expect.assertions(2);
 
-        jest
-          .spyOn(httpService, "request")
+        vi.spyOn(httpService, "request")
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore
           .mockImplementation(() => of({}));

@@ -8,12 +8,13 @@ import {
 import axios from "axios";
 import { ConfigService } from "@nestjs/config";
 import { isStatusList2021Credential } from "@ebsiint-api/shared";
-import { ApiConfig } from "../../config/configuration";
+import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+import type { ApiConfig } from "../../config/configuration.js";
 
 export const IS_ISSUER_PROXY = "isIssuerProxy";
 
 function isRequestHeaders(
-  headers: unknown
+  headers: unknown,
 ): headers is Record<string, string | number | boolean> {
   if (!headers || typeof headers !== "object") return false;
 
@@ -21,7 +22,7 @@ function isRequestHeaders(
     (val) =>
       typeof val !== "string" &&
       typeof val !== "number" &&
-      typeof val !== "boolean"
+      typeof val !== "boolean",
   );
 }
 
@@ -29,7 +30,8 @@ export async function isIssuerProxy(
   value: unknown,
   authority: string,
   timeout: number,
-  trustedHostnames?: string[]
+  trustedHostnames?: string[],
+  ebsiEnvConfig?: EbsiEnvConfiguration,
 ): Promise<boolean> {
   if (typeof value !== "string") return false;
 
@@ -59,7 +61,8 @@ export async function isIssuerProxy(
     if (
       !(await isStatusList2021Credential(testResponse.data, authority, {
         skipAccreditationsValidation: true,
-        trustedHostnames,
+        ...(trustedHostnames && { trustedHostnames }),
+        ...(ebsiEnvConfig && { ebsiEnvConfig }),
       }))
     ) {
       return false;
@@ -80,12 +83,25 @@ export class IsIssuerProxy implements ValidatorConstraintInterface {
 
   private trustedHostnames: string[];
 
+  private ebsiEnvConfig: EbsiEnvConfiguration;
+
   constructor(configService: ConfigService<ApiConfig, true>) {
     this.authority = configService
       .get<string>("domain")
       .replace(/^https?:\/\//, "");
     this.timeout = configService.get<number>("requestTimeout");
     this.trustedHostnames = configService.get<string[]>("trustedHostnames");
+    this.ebsiEnvConfig = {
+      didRegistry: `${configService.get<string>(
+        "didRegistryApiUrl",
+      )}/identifiers`,
+      trustedIssuersRegistry: `${configService.get<string>(
+        "domain",
+      )}${configService.get<string>("apiUrlPrefix")}/issuers`,
+      trustedPoliciesRegistry: `${configService.get<string>(
+        "trustedPoliciesRegistryApiUrl",
+      )}/users`,
+    };
   }
 
   async validate(value: unknown) {
@@ -93,14 +109,15 @@ export class IsIssuerProxy implements ValidatorConstraintInterface {
       value,
       this.authority,
       this.timeout,
-      this.trustedHostnames
+      this.trustedHostnames,
+      this.ebsiEnvConfig,
     );
   }
 
   defaultMessage(validationArguments?: ValidationArguments) {
     return buildMessage(
       (eachPrefix) =>
-        `${eachPrefix}$property must be a valid issuer proxy (stringified JSON document)`
+        `${eachPrefix}$property must be a valid issuer proxy (stringified JSON document)`,
     )(validationArguments);
   }
 }

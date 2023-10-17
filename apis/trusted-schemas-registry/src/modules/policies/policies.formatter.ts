@@ -1,16 +1,16 @@
 import { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry";
-import { PaginatedList, paginate, AsyncReturnType } from "@ebsiint-api/shared";
+import { PaginatedList, paginate } from "@ebsiint-api/shared";
 import {
   PolicyLink,
   PolicyRevisions,
   PolicyResponseObject,
-} from "./policies.interface";
+} from "./policies.interface.js";
 
 export function formatPolicies(
-  policies: AsyncReturnType<SchemaSCRegistry["getPolicies"]>,
+  policies: Awaited<ReturnType<SchemaSCRegistry["getPolicies"]>>,
   page: number,
   pageSize: number,
-  baseUrl: string
+  baseUrl: string,
 ): PaginatedList<PolicyLink> {
   const total = policies.total.toNumber();
 
@@ -27,7 +27,7 @@ export function formatRevisions(
   revisions: PolicyRevisions,
   page: number,
   pageSize: number,
-  baseUrl: string
+  baseUrl: string,
 ): PaginatedList<PolicyResponseObject> {
   const { total, items } = revisions;
 

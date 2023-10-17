@@ -1,5 +1,5 @@
-import { Scope } from "../authorisation.interfaces";
-import { IsScope } from "../validators";
+import type { Scope } from "../authorisation.interfaces.js";
+import { IsScope } from "../validators/index.js";
 
 export class GetPresentationDefinitionsDto {
   @IsScope()

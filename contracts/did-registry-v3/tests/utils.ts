@@ -34,7 +34,7 @@ export function rollArgs(
   notBefore,
   notAfter,
   oldVMethodId,
-  duration
+  duration,
 ) {
   return {
     did,

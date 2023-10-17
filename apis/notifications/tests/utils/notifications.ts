@@ -1,7 +1,7 @@
 import { randomInt } from "node:crypto";
 import jsonwebtoken from "jsonwebtoken";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { Notification } from "../../src/modules/notifications/notifications.interface";
+import { Notification } from "../../src/modules/notifications/notifications.interface.js";
 
 function createToken(did: string): string {
   return jsonwebtoken.sign(
@@ -12,14 +12,14 @@ function createToken(did: string): string {
     {
       audience: "notifications-api",
       issuer: "authorisation-api",
-    }
+    },
   );
 }
 
 function createNotification(
   from = EbsiWallet.createDid(),
   to = EbsiWallet.createDid(),
-  ttl = 3600
+  ttl = 3600,
 ): Notification {
   const now = Date.now() + randomInt(1000);
   return {

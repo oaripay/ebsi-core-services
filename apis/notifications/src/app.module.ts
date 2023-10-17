@@ -1,12 +1,12 @@
 import { Module } from "@nestjs/common";
 import { APP_INTERCEPTOR } from "@nestjs/core";
-import { AppController } from "./app.controller";
-import { NotificationsModule } from "./modules/notifications/notifications.module";
-import { HealthModule } from "./modules/health/health.module";
-import { ApiConfigModule } from "./config/configuration";
-import { LoggingInterceptor } from "./interceptors/logging.interceptor";
-import { VersionInterceptor } from "./interceptors/version.interceptor";
-import { OpenApiModule } from "./modules/openapi/openapi.module";
+import { AppController } from "./app.controller.js";
+import { NotificationsModule } from "./modules/notifications/notifications.module.js";
+import { HealthModule } from "./modules/health/health.module.js";
+import { ApiConfigModule } from "./config/configuration.js";
+import { LoggingInterceptor } from "./interceptors/logging.interceptor.js";
+import { VersionInterceptor } from "./interceptors/version.interceptor.js";
+import { OpenApiModule } from "./modules/openapi/openapi.module.js";
 
 @Module({
   imports: [ApiConfigModule, NotificationsModule, HealthModule, OpenApiModule],

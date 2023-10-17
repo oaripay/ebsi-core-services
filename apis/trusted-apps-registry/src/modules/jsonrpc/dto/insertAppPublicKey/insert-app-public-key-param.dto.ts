@@ -1,9 +1,9 @@
 import { IsEthereumAddress } from "class-validator";
-import { ArgsInsertAppPublicKey } from "../sendSignedTransaction";
+import { ArgsInsertAppPublicKey } from "../sendSignedTransaction/index.js";
 
 export class InsertAppPublicKeyParam extends ArgsInsertAppPublicKey {
   @IsEthereumAddress()
-  from: string;
+  from!: string;
 }
 
 export default { InsertAppPublicKeyParam };

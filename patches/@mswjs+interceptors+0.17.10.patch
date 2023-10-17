@@ -1,0 +1,17 @@
+diff --git a/node_modules/@mswjs/interceptors/lib/interceptors/fetch/index.js b/node_modules/@mswjs/interceptors/lib/interceptors/fetch/index.js
+index 0fac194..bbc3a98 100644
+--- a/node_modules/@mswjs/interceptors/lib/interceptors/fetch/index.js
++++ b/node_modules/@mswjs/interceptors/lib/interceptors/fetch/index.js
+@@ -107,7 +107,7 @@ var FetchInterceptor = /** @class */ (function (_super) {
+                 switch (_b.label) {
+                     case 0:
+                         request = new Request(input, init);
+-                        url = typeof input === 'string' ? input : input.url;
++                        url = typeof input === 'string' ? input : ('url' in input ? input.url : input.toString());
+                         method = request.method;
+                         this.log('[%s] %s', method, url);
+                         return [4 /*yield*/, request.clone().arrayBuffer()];
+diff --git a/node_modules/@mswjs/interceptors/src/interceptors/.DS_Store b/node_modules/@mswjs/interceptors/src/interceptors/.DS_Store
+new file mode 100644
+index 0000000..72319ad
+Binary files /dev/null and b/node_modules/@mswjs/interceptors/src/interceptors/.DS_Store differ

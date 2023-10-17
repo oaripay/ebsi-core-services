@@ -12,18 +12,18 @@ task(
   "Update tar statuses for apps ",
   async (
     taskArgs: { proxy: string; app: string; auth: string },
-    { ethers }
+    { ethers },
   ) => {
     const [deployer, admin] = await ethers.getSigners();
     const ts = (await ethers.getContractAt(
       "Tar",
       taskArgs.proxy,
-      admin
+      admin,
     )) as Tar;
 
     console.log(
       `deployer:${deployer.address}
-     admin:${admin.address}`
+     admin:${admin.address}`,
     );
     const initialVersion = await ts.version();
     console.log(initialVersion);
@@ -56,7 +56,7 @@ task(
           appId.applicationId,
           authAppId,
           1,
-          50
+          50,
         );
         console.log("Authorizations: ", authorizations);
 
@@ -73,11 +73,11 @@ task(
         console.log("error on getting auth");
       }
     }
-  }
+  },
 )
   .addParam("proxy", "Proxy Address")
   .addParam("app", "The application which status needs to be updated")
   .addOptionalParam(
     "auth",
-    "List of authorizations comma delimited, default all apps from the current one"
+    "List of authorizations comma delimited, default all apps from the current one",
   );

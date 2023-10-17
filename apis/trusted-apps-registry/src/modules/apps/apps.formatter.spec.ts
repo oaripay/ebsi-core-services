@@ -1,9 +1,9 @@
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 import {
   formatApps,
   formatAuthorizations,
   formatPublicKeys,
-} from "./apps.formatter";
+} from "./apps.formatter.js";
 
 describe("formatApps", () => {
   const apps = [
@@ -77,7 +77,7 @@ describe("formatPublicKeys", () => {
     const total = 42;
 
     expect(
-      formatPublicKeys(publicKeys, total, page, pageSize, "")
+      formatPublicKeys(publicKeys, total, page, pageSize, ""),
     ).toStrictEqual({
       items: [
         {
@@ -133,7 +133,7 @@ describe("formatAuthorizations", () => {
     const total = 42;
 
     expect(
-      formatAuthorizations(authorizations, total, page, pageSize, "")
+      formatAuthorizations(authorizations, total, page, pageSize, ""),
     ).toStrictEqual({
       items: [
         {

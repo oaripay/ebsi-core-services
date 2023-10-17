@@ -1,5 +1,5 @@
 import {
-  jest,
+  vi,
   describe,
   beforeAll,
   beforeEach,
@@ -7,48 +7,44 @@ import {
   afterAll,
   it,
   expect,
-} from "@jest/globals";
+} from "vitest";
 import axios from "axios";
 import request from "supertest";
 import crypto from "node:crypto";
-import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  Logger,
-  HttpServer,
-} from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { createJWT, ES256KSigner } from "did-jwt";
-import nock from "nock";
-import { JWTVerifyResult } from "jose";
+import { rest } from "msw";
+import { setupServer } from "msw/node";
+import type { JWTVerifyResult } from "jose";
 import { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry-v2";
-import { AsyncReturnType, computeId } from "@ebsiint-api/shared";
-import { JsonRpcModule } from "./jsonrpc.module";
-import { JsonRpcService } from "./jsonrpc.service";
-import { JsonRpcResponseObject } from "./jsonrpc.interface";
+import { computeId } from "@ebsiint-api/shared";
+import { JsonRpcModule } from "./jsonrpc.module.js";
+import { JsonRpcService } from "./jsonrpc.service.js";
+import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
 import {
   UnsignedTransaction,
   InsertSchemaParam,
   UpdateMetadataParam,
   UpdateSchemaParam,
-} from "./dto";
-import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { setupTestEnv } from "../../../tests/utils/schemaRegistry";
+} from "./dto/index.js";
+import { formatEthersUnsignedTransaction } from "./jsonrpc.utils.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import { setupTestEnv } from "../../../tests/utils/schemaRegistry.js";
 import {
   createDid,
   createSchema,
   createVerifiableAuthorisationSchema,
-} from "../../../tests/utils/data";
-import { LedgerService } from "../ledger/ledger.service";
-import { ApiConfig } from "../../config/configuration";
+} from "../../../tests/utils/data.js";
+import { LedgerService } from "../ledger/ledger.service.js";
+import type { ApiConfig } from "../../config/configuration.js";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -60,23 +56,19 @@ type JsonRpcParams =
   | UpdateSchemaParam
   | UpdateMetadataParam;
 
-jest.setTimeout(180000);
-
 let tokenVerificationResolve = true;
 let customPayload = {
   sub: "test",
 } as unknown;
 
-jest.mock("@cef-ebsi/siop-auth", () => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const originalModule = jest.requireActual("@cef-ebsi/siop-auth");
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+vi.mock("@cef-ebsi/siop-auth", async () => {
+  const mod = await vi.importActual<typeof import("@cef-ebsi/siop-auth")>(
+    "@cef-ebsi/siop-auth",
+  );
+
   return {
-    __esModule: true, // Use it when dealing with esModules
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    ...originalModule,
-    verifyJwtTar: jest.fn().mockImplementation(async () => {
+    ...mod,
+    verifyJwtTar: vi.fn().mockImplementation(async () => {
       if (!tokenVerificationResolve)
         return Promise.reject(new Error("error message"));
       return Promise.resolve({
@@ -87,12 +79,12 @@ jest.mock("@cef-ebsi/siop-auth", () => {
 });
 
 describe("JsonRpc Module", () => {
-  let app: INestApplication;
-  let server: HttpServer;
+  let app: NestFastifyApplication;
+  let server: RawServerDefault;
   let schemasRegistryContract: SchemaSCRegistry;
   let jsonRpcService: JsonRpcService;
   let ledgerService: LedgerService;
-  let testEnv: AsyncReturnType<typeof setupTestEnv>;
+  let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
   let userAccessToken: string;
   let userAccessTokenPayload: { [x: string]: unknown };
   let defaultSignerSiopAccessToken: string;
@@ -137,29 +129,41 @@ describe("JsonRpc Module", () => {
   };
   const serializedUpdatedMetadata = JSON.stringify(rawUpdatedMetadata);
   const serializedUpdatedMetadataBuffer = Buffer.from(
-    serializedUpdatedMetadata
+    serializedUpdatedMetadata,
   );
 
+  const mockServer = setupServer();
+
   beforeAll(async () => {
-    // Disable external requests
-    nock.disableNetConnect();
-    // Allow localhost connections so we can test local routes and mock servers.
-    nock.enableNetConnect("127.0.0.1");
+    // Intercept network requests
+    mockServer.listen({
+      onUnhandledRequest: ({ method, url }) => {
+        // Bypass local requests
+        if (url.hostname === "127.0.0.1") return;
+
+        throw new Error(`Unhandled ${method} request to ${url.href}`);
+      },
+    });
 
     // Compute IDs. We need to mock the request GET $referencedSchemaUrl because rawSchema2 depends on it
-    const refSchemaUrl = new URL(referencedSchemaUrl);
-    nock(refSchemaUrl.origin).get(refSchemaUrl.pathname).reply(200, rawSchema);
+    mockServer.use(
+      rest.get(referencedSchemaUrl, (_req, res, ctx) =>
+        res(ctx.json(rawSchema)),
+      ),
+    );
+
     schemaId = `0x${(await computeId(rawSchema)).toString("hex")}`;
     schema2Id = `0x${(await computeId(rawSchema2)).toString("hex")}`;
-    nock.cleanAll();
+
+    mockServer.resetHandlers();
 
     // Spin up test blockchain (ganache)
     testEnv = await setupTestEnv();
     schemasRegistryContract = testEnv.schemasRegistryContract;
 
-    jest
-      .spyOn(LedgerService.prototype, "getContractAddress")
-      .mockImplementation(() => schemasRegistryContract.address);
+    vi.spyOn(LedgerService.prototype, "getContractAddress").mockImplementation(
+      () => schemasRegistryContract.address,
+    );
 
     // Start server
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -167,7 +171,7 @@ describe("JsonRpc Module", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     // Turn off logger
@@ -180,9 +184,9 @@ describe("JsonRpc Module", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
-    server = app.getHttpServer() as HttpServer;
+    server = app.getHttpServer();
 
     jsonRpcService = moduleFixture.get<JsonRpcService>(JsonRpcService);
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
@@ -202,50 +206,44 @@ describe("JsonRpc Module", () => {
       {
         issuer: "any",
         signer: ES256KSigner(crypto.randomBytes(32)),
-      }
+      },
     );
   });
 
   beforeEach(() => {
     // Mock TSR contract
-    jest
-      .spyOn(ledgerService, "getContract")
-      .mockImplementation(async () =>
-        Promise.resolve(testEnv.schemasRegistryContract)
-      );
+    vi.spyOn(ledgerService, "getContract").mockImplementation(async () =>
+      Promise.resolve(testEnv.schemasRegistryContract),
+    );
 
     // Make sure we never use axios.post or axios.get in tests ;-)
-    jest.spyOn(axios, "post").mockImplementation((url: string) => {
+    vi.spyOn(axios, "post").mockImplementation((url: string) => {
       throw new Error(`Forgot to mock an axios call? POST ${url}`);
     });
 
-    jest.spyOn(axios, "get").mockImplementation((url: string) => {
+    vi.spyOn(axios, "get").mockImplementation((url: string) => {
       throw new Error(`Forgot to mock an axios call? GET ${url}`);
     });
 
     // For the tests, we assume that the DID is controlled by the signer
-    jest
-      .spyOn(jsonRpcService, "isDidControlledByAddress")
-      .mockImplementation(async () => Promise.resolve(true));
+    vi.spyOn(jsonRpcService, "isDidControlledByAddress").mockImplementation(
+      async () => Promise.resolve(true),
+    );
 
     // Mock $ref response
-    const refSchemaUrl = new URL(referencedSchemaUrl);
-    nock(refSchemaUrl.origin)
-      .persist()
-      .get(refSchemaUrl.pathname)
-      .reply(200, rawSchema);
+    mockServer.use(
+      rest.get(referencedSchemaUrl, (_req, res, ctx) =>
+        res(ctx.json(rawSchema)),
+      ),
+    );
   });
 
   afterEach(() => {
-    nock.cleanAll();
+    mockServer.resetHandlers();
   });
 
   afterAll(async () => {
-    nock.enableNetConnect();
-    // Avoid jest open handle error
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
+    mockServer.close();
     await app.close();
   });
 
@@ -263,7 +261,7 @@ describe("JsonRpc Module", () => {
     });
     expect(response.status).toBe(401);
     expect(
-      (response.headers as { "content-type": string })["content-type"]
+      (response.headers as { "content-type": string })["content-type"],
     ).toStrictEqual(expect.stringContaining("application/problem+json"));
   });
 
@@ -286,7 +284,7 @@ describe("JsonRpc Module", () => {
     });
     expect(response.status).toBe(401);
     expect(
-      (response.headers as { "content-type": string })["content-type"]
+      (response.headers as { "content-type": string })["content-type"],
     ).toStrictEqual(expect.stringContaining("application/problem+json"));
   });
 
@@ -325,7 +323,7 @@ describe("JsonRpc Module", () => {
       to: schemasRegistryContract.address,
       data: schemasRegistryContract.interface.encodeFunctionData(
         "insertSchema",
-        [schemaId, serializedSchemaBuffer, serializedMetadataBuffer]
+        [schemaId, serializedSchemaBuffer, serializedMetadataBuffer],
       ),
       value: "0x00",
       nonce: "0x00",
@@ -335,7 +333,7 @@ describe("JsonRpc Module", () => {
     };
 
     const uTx = formatEthersUnsignedTransaction(
-      JSON.parse(JSON.stringify(transaction)) as unknown as UnsignedTransaction
+      JSON.parse(JSON.stringify(transaction)) as unknown as UnsignedTransaction,
     );
     uTx.chainId = Number(uTx.chainId);
     const sgnTx = await wallet.signTransaction(uTx);
@@ -397,7 +395,7 @@ describe("JsonRpc Module", () => {
       error: {
         code: -32600,
         message: expect.stringContaining(
-          "The method 'unknown-method' is invalid"
+          "The method 'unknown-method' is invalid",
         ),
       },
     });
@@ -421,9 +419,9 @@ describe("JsonRpc Module", () => {
     customPayload = defaultSignerSiopAccessTokenPayload;
 
     // The DID is not controlled by the signer
-    jest
-      .spyOn(jsonRpcService, "isDidControlledByAddress")
-      .mockImplementation(async () => Promise.resolve(false));
+    vi.spyOn(jsonRpcService, "isDidControlledByAddress").mockImplementation(
+      async () => Promise.resolve(false),
+    );
 
     const responseBuild: SupertestJsonRpcResponse = await request(server)
       .post("/jsonrpc")
@@ -454,8 +452,8 @@ describe("JsonRpc Module", () => {
     const unsignedTransaction = responseBuild.body.result;
     const uTx = formatEthersUnsignedTransaction(
       JSON.parse(
-        JSON.stringify(unsignedTransaction)
-      ) as unknown as UnsignedTransaction
+        JSON.stringify(unsignedTransaction),
+      ) as unknown as UnsignedTransaction,
     );
     uTx.chainId = Number(uTx.chainId);
     const sgnTx = await signer.signTransaction(uTx);
@@ -495,11 +493,12 @@ describe("JsonRpc Module", () => {
     expect.assertions(2);
 
     // Mock $ref response - 404
-    nock.cleanAll();
-    const refSchemaUrl = new URL(referencedSchemaUrl);
-    nock(refSchemaUrl.origin)
-      .get(refSchemaUrl.pathname)
-      .reply(404, "Not Found");
+    mockServer.resetHandlers();
+    mockServer.use(
+      rest.get(referencedSchemaUrl, (_req, res, ctx) =>
+        res(ctx.status(404), ctx.text("Not Found")),
+      ),
+    );
 
     // Mock access token verification
     tokenVerificationResolve = true;
@@ -530,7 +529,7 @@ describe("JsonRpc Module", () => {
       error: {
         code: -32600,
         message: expect.stringContaining(
-          `Error downloading ${referencedSchemaUrl}`
+          `Error downloading ${referencedSchemaUrl}`,
         ),
       },
     });
@@ -550,7 +549,7 @@ describe("JsonRpc Module", () => {
         tokenVerificationResolve = true;
         customPayload = defaultSignerSiopAccessTokenPayload;
 
-        let param: JsonRpcParams = null;
+        let param: JsonRpcParams | null = null;
 
         const signer = ethers.Wallet.createRandom();
 
@@ -615,8 +614,8 @@ describe("JsonRpc Module", () => {
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
           JSON.parse(
-            JSON.stringify(unsignedTransaction)
-          ) as unknown as UnsignedTransaction
+            JSON.stringify(unsignedTransaction),
+          ) as unknown as UnsignedTransaction,
         );
         uTx.chainId = Number(uTx.chainId);
         const sgnTx = await signer.signTransaction(uTx);
@@ -658,7 +657,7 @@ describe("JsonRpc Module", () => {
 
         const signer = ethers.Wallet.createRandom();
 
-        let param: JsonRpcParams = null;
+        let param: JsonRpcParams | null = null;
 
         switch (method) {
           case "insertSchema": {
@@ -705,7 +704,7 @@ describe("JsonRpc Module", () => {
         expect(responseBuild.body).toStrictEqual({
           jsonrpc: "2.0",
           id: null,
-          result: expect.objectContaining({}) as unknown,
+          result: expect.objectContaining({}),
         });
         expect(responseBuild.status).toBe(200);
       });
@@ -868,31 +867,31 @@ describe("JsonRpc Module", () => {
 
         expect.assertions(testSetup.length * 2);
 
-        await Promise.all(
-          testSetup.map(async (setup) => {
-            const response = await request(server)
-              .post("/jsonrpc")
-              .auth(defaultSignerSiopAccessToken, {
-                type: "bearer",
-              })
-              .send({
-                jsonrpc: "2.0",
-                method,
-                params: [setup.params],
-                id: 231,
-              });
-
-            expect(response.body).toStrictEqual({
+        // eslint-disable-next-line no-restricted-syntax
+        for (const setup of testSetup) {
+          // eslint-disable-next-line no-await-in-loop
+          const response = await request(server)
+            .post("/jsonrpc")
+            .auth(defaultSignerSiopAccessToken, {
+              type: "bearer",
+            })
+            .send({
               jsonrpc: "2.0",
+              method,
+              params: [setup.params],
               id: 231,
-              error: {
-                code: -32600,
-                message: expect.stringContaining(setup.expectedErrorMessage),
-              },
             });
-            expect(response.status).toBe(400);
-          })
-        );
+
+          expect(response.body).toStrictEqual({
+            jsonrpc: "2.0",
+            id: 231,
+            error: {
+              code: -32600,
+              message: expect.stringContaining(setup.expectedErrorMessage),
+            },
+          });
+          expect(response.status).toBe(400);
+        }
       });
 
       it("should throw an error when the unsignedTransaction has been tampered", async () => {
@@ -925,7 +924,7 @@ describe("JsonRpc Module", () => {
               schemaId,
               schema: `0x${serializedSchemaBuffer.toString("hex")}`,
               metadata: `0x${Buffer.from(JSON.stringify(metadata2)).toString(
-                "hex"
+                "hex",
               )}`,
             } as InsertSchemaParam;
 
@@ -944,7 +943,7 @@ describe("JsonRpc Module", () => {
               schemaId,
               schema: `0x${serializedUpdatedSchemaBuffer.toString("hex")}`,
               metadata: `0x${Buffer.from(JSON.stringify(metadata2)).toString(
-                "hex"
+                "hex",
               )}`,
             } as UpdateSchemaParam;
 
@@ -1000,8 +999,8 @@ describe("JsonRpc Module", () => {
 
         const uTx = formatEthersUnsignedTransaction(
           JSON.parse(
-            JSON.stringify(transaction1)
-          ) as unknown as UnsignedTransaction
+            JSON.stringify(transaction1),
+          ) as unknown as UnsignedTransaction,
         );
         uTx.chainId = Number(uTx.chainId);
         const sgnTx1 = await randomSigner.signTransaction(uTx);
@@ -1033,7 +1032,7 @@ describe("JsonRpc Module", () => {
           error: {
             code: -32600,
             message: expect.stringContaining(
-              "does not match with the signedRawTransaction"
+              "does not match with the signedRawTransaction",
             ),
           },
         });
@@ -1066,12 +1065,12 @@ describe("JsonRpc Module", () => {
           error: {
             code: -32600,
             message: expect.stringContaining(
-              "does not match with unsignedTransaction.from"
+              "does not match with unsignedTransaction.from",
             ),
           },
         });
         expect(responseSend1.status).toBe(400);
       });
-    }
+    },
   );
 });

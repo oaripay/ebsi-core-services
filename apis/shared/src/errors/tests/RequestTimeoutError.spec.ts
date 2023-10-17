@@ -1,5 +1,5 @@
-import { describe, it, expect } from "@jest/globals";
-import { RequestTimeoutError, ProblemDetailsError } from "../index";
+import { describe, it, expect } from "vitest";
+import { RequestTimeoutError, ProblemDetailsError } from "../index.js";
 
 describe("error RequestTimeoutError", () => {
   it("should extend ProblemDetailsError", () => {
@@ -69,7 +69,7 @@ describe("error RequestTimeoutError", () => {
     });
 
     expect(error.toString()).toBe(
-      `${RequestTimeoutError.statusCode} - Test Error`
+      `${RequestTimeoutError.statusCode} - Test Error`,
     );
   });
 });

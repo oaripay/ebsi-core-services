@@ -1,4 +1,4 @@
-import { IssuerTypeNames } from "./issuers.constants";
+import { IssuerTypeNames } from "./issuers.constants.js";
 
 export type IssuerTypeName = (typeof IssuerTypeNames)[number];
 

@@ -1,11 +1,11 @@
 export class FileModel {
-  did: string;
+  did!: string;
 
-  hash: string;
+  hash!: string;
 
-  data: Buffer; // Blob
+  data!: Buffer; // Blob
 
-  metadata: string; // stringified JSON
+  metadata!: string; // stringified JSON
 }
 
 export default FileModel;

@@ -35,14 +35,13 @@ export async function deployTirContract(): Promise<{
   // mock trusted policies registry
   const testTprAddress = "0xb2a560271ce08135e245F490b8794794A13a1208";
   const testDidrAddress = "0xf6080028519B49D94C846bd34e30f72586E3F5d5";
-  const policyRegistryFactory = await hre.ethers.getContractFactory(
-    "PolicyRegistryMock"
-  );
+  const policyRegistryFactory =
+    await hre.ethers.getContractFactory("PolicyRegistryMock");
 
   const tempPolicyContract = await policyRegistryFactory.deploy();
   await tempPolicyContract.deployed();
   const bytecode = await hre.ethers.provider.getCode(
-    tempPolicyContract.address
+    tempPolicyContract.address,
   );
   await hre.network.provider.send("hardhat_setCode", [
     testTprAddress,
@@ -51,13 +50,12 @@ export async function deployTirContract(): Promise<{
   const policyContractMock = policyRegistryFactory.attach(testTprAddress);
   await policyContractMock.setPolicyResult(true);
 
-  const didRegistryFactory = await hre.ethers.getContractFactory(
-    "DidRegistryMock"
-  );
+  const didRegistryFactory =
+    await hre.ethers.getContractFactory("DidRegistryMock");
   const tempDidContract = await didRegistryFactory.deploy();
   await tempDidContract.deployed();
   const bytecodeDid = await hre.ethers.provider.getCode(
-    tempDidContract.address
+    tempDidContract.address,
   );
   await hre.network.provider.send("hardhat_setCode", [
     testDidrAddress,
@@ -91,7 +89,7 @@ export async function insertIssuer(contract: Tir): Promise<IssuerObject> {
         description: "http://tir-api-test.org/description",
       },
       name: `test-${issuerDid}`,
-    })
+    }),
   );
 
   await contract.insertIssuer(
@@ -99,7 +97,7 @@ export async function insertIssuer(contract: Tir): Promise<IssuerObject> {
     attributeData,
     1,
     issuerDid,
-    `0x${"0".repeat(64)}`
+    `0x${"0".repeat(64)}`,
   );
 
   // Add proxy
@@ -139,7 +137,7 @@ export async function insertPolicy(contract: Tir): Promise<PolicyObject> {
 
 export async function updatePolicy(
   contract: Tir,
-  policyId: string
+  policyId: string,
 ): Promise<PolicyObject> {
   const policyData = {
     // any object here
@@ -166,7 +164,7 @@ export async function setupTestEnv(
   opts: SetupOptions = {
     policiesTotal: 0,
     issuersTotal: 0,
-  }
+  },
 ): Promise<{
   provider: ethers.providers.JsonRpcProvider;
   tirContract: Tir;
@@ -184,7 +182,7 @@ export async function setupTestEnv(
 
   // Insert fake data
 
-  const policyRevisions = {};
+  const policyRevisions: Record<string, PolicyObject[]> = {};
 
   // Create as many policies as requested
   const createPolicy = async () => {
@@ -198,27 +196,27 @@ export async function setupTestEnv(
       // The first revision is the policy itself
       policy,
       // Then, we add new revisions
-      ...(await range(0, opts.policiesRevisionsTotal - 1)
+      ...(await range(0, opts.policiesRevisionsTotal! - 1)
         .pipe(mergeMap(createRevision), toArray())
-        .toPromise()),
+        .toPromise())!,
     ];
 
     return policy;
   };
 
   const policies =
-    opts.policiesRevisionsTotal >= 1
-      ? await range(0, opts.policiesTotal)
+    opts.policiesRevisionsTotal! >= 1
+      ? (await range(0, opts.policiesTotal)
           .pipe(mergeMap(createPolicy), toArray())
-          .toPromise()
+          .toPromise())!
       : [];
 
   // Create as many issuers as requested
   const createIssuer = async () => insertIssuer(tirContract);
 
-  const issuers = await range(0, opts.issuersTotal)
+  const issuers = (await range(0, opts.issuersTotal)
     .pipe(mergeMap(createIssuer), toArray())
-    .toPromise();
+    .toPromise())!;
 
   // Return test env variables
   return {

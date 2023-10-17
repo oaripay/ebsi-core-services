@@ -11,9 +11,8 @@ describe("Record Hashes", () => {
   let policyContractMock: PolicyRegistryMock;
 
   before(async () => {
-    const policyRegistryFactory = await ethers.getContractFactory(
-      "PolicyRegistryMock"
-    );
+    const policyRegistryFactory =
+      await ethers.getContractFactory("PolicyRegistryMock");
     const tempPolicyContract = await policyRegistryFactory.deploy();
     const bytecode = await ethers.provider.getCode(tempPolicyContract.address);
     await network.provider.send("hardhat_setCode", [testTprAddress, bytecode]);
@@ -66,13 +65,13 @@ describe("Record Hashes", () => {
         [0, 1, 2, 3],
         [
           ethers.utils.toUtf8Bytes(
-            "e40605e6a26268a5eb83c155ea5dd12aeb3314f6ba5d67d4b607de95156e4e12"
+            "e40605e6a26268a5eb83c155ea5dd12aeb3314f6ba5d67d4b607de95156e4e12",
           ),
           ethers.utils.toUtf8Bytes(
-            "aa54def9e0bb11c1ebbfc97a9ee63af9e95c4f54db29815daa1c0fe991d9d20c"
+            "aa54def9e0bb11c1ebbfc97a9ee63af9e95c4f54db29815daa1c0fe991d9d20c",
           ),
           ethers.utils.toUtf8Bytes(
-            "38862f7ef560797680273f23ab1974285c3c07bba979a3e92e931bfbe362bcc6"
+            "38862f7ef560797680273f23ab1974285c3c07bba979a3e92e931bfbe362bcc6",
           ),
         ],
         [
@@ -80,8 +79,8 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("new"),
           ethers.utils.toUtf8Bytes("ath"),
         ],
-        ethers.utils.toUtf8Bytes("info: btc to the moon")
-      )
+        ethers.utils.toUtf8Bytes("info: btc to the moon"),
+      ),
     ).to.be.revertedWith("hashAlgorithmIds>3");
     await expect(
       ts.timestampVersionHashes(
@@ -89,16 +88,16 @@ describe("Record Hashes", () => {
         [0, 1, 2],
         [
           ethers.utils.toUtf8Bytes(
-            "e40605e6a26268a5eb83c155ea5dd12aeb3314f6ba5d67d4b607de95156e4e12"
+            "e40605e6a26268a5eb83c155ea5dd12aeb3314f6ba5d67d4b607de95156e4e12",
           ),
           ethers.utils.toUtf8Bytes(
-            "aa54def9e0bb11c1ebbfc97a9ee63af9e95c4fdf1d032b1da1c09d20c"
+            "aa54def9e0bb11c1ebbfc97a9ee63af9e95c4fdf1d032b1da1c09d20c",
           ),
           ethers.utils.toUtf8Bytes(
-            "38862f7ef560797680273f23ab1974285c3c07bba979a3e92e931bfbe362bcc6"
+            "38862f7ef560797680273f23ab1974285c3c07bba979a3e92e931bfbe362bcc6",
           ),
           ethers.utils.toUtf8Bytes(
-            "38862f7ef560797680273f23ab1974285c3c07bba979a3e92e931bfbe362bcc6"
+            "38862f7ef560797680273f23ab1974285c3c07bba979a3e92e931bfbe362bcc6",
           ),
         ],
         [
@@ -106,8 +105,8 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("new"),
           ethers.utils.toUtf8Bytes("ath"),
         ],
-        ethers.utils.toUtf8Bytes("info: btc to the moon")
-      )
+        ethers.utils.toUtf8Bytes("info: btc to the moon"),
+      ),
     ).to.be.revertedWith("hashValues>3");
     await expect(
       ts.timestampVersionHashes(
@@ -115,13 +114,13 @@ describe("Record Hashes", () => {
         [0, 1, 2],
         [
           ethers.utils.toUtf8Bytes(
-            "e40605e6a26268a5eb83c155ea5dd12aeb3314f6ba5d67d4b607de95156e4e12"
+            "e40605e6a26268a5eb83c155ea5dd12aeb3314f6ba5d67d4b607de95156e4e12",
           ),
           ethers.utils.toUtf8Bytes(
-            "aa54def9e0bb11c1ebbfc97a9ee63af9e95c1ddae54eff0c4c28cd9d20c"
+            "aa54def9e0bb11c1ebbfc97a9ee63af9e95c1ddae54eff0c4c28cd9d20c",
           ),
           ethers.utils.toUtf8Bytes(
-            "38862f7ef560797680273f23ab1974285c3c07bba979a3e92e931bfbe362bcc6"
+            "38862f7ef560797680273f23ab1974285c3c07bba979a3e92e931bfbe362bcc6",
           ),
         ],
         [
@@ -130,8 +129,8 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("ath"),
           ethers.utils.toUtf8Bytes("ath"),
         ],
-        ethers.utils.toUtf8Bytes("info: btc to the moon")
-      )
+        ethers.utils.toUtf8Bytes("info: btc to the moon"),
+      ),
     ).to.be.revertedWith("timestampData>3");
   });
 
@@ -150,8 +149,8 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("new"),
           ethers.utils.toUtf8Bytes("ath"),
         ],
-        ethers.utils.toUtf8Bytes("info: btc to the moon")
-      )
+        ethers.utils.toUtf8Bytes("info: btc to the moon"),
+      ),
     ).to.be.revertedWith("hashAlgo unknown");
   });
 
@@ -166,8 +165,8 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("38862f7ef56079768"),
         ],
         [ethers.utils.toUtf8Bytes("btc"), ethers.utils.toUtf8Bytes("new"), []],
-        ethers.utils.toUtf8Bytes("info: btc to the moon")
-      )
+        ethers.utils.toUtf8Bytes("info: btc to the moon"),
+      ),
     ).to.be.revertedWith("wrong record count");
   });
 
@@ -186,8 +185,8 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("new"),
           ethers.utils.toUtf8Bytes("ath"),
         ],
-        ethers.utils.toUtf8Bytes("info: btc to the moon")
-      )
+        ethers.utils.toUtf8Bytes("info: btc to the moon"),
+      ),
     ).to.be.revertedWith("hashValue empty");
 
     await expect(
@@ -200,8 +199,8 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("38862f7ef56079768"),
         ],
         [ethers.utils.toUtf8Bytes("btc"), ethers.utils.toUtf8Bytes("new"), []],
-        ethers.utils.toUtf8Bytes("info: btc to the moon")
-      )
+        ethers.utils.toUtf8Bytes("info: btc to the moon"),
+      ),
     ).to.be.revertedWith("versionHash empty");
     //  should not revert is optional params are empty
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
@@ -215,7 +214,7 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("new"),
         ethers.utils.toUtf8Bytes("ath"),
       ],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
     const tsIds = [
       ethers.utils.sha256(ethers.utils.toUtf8Bytes("e40605e6a26268a5eb8")),
@@ -233,8 +232,8 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("38862f7ef56079768"),
         ],
         [],
-        []
-      )
+        [],
+      ),
     )
       .to.emit(ts, "TimestampedHashes")
       .withArgs(
@@ -245,7 +244,7 @@ describe("Record Hashes", () => {
           ethers.utils.hexlify([8]),
           ethers.utils.hexlify(ethers.utils.toUtf8Bytes("38862f7ef56079768")),
         ],
-        []
+        [],
       );
   });
 
@@ -265,8 +264,8 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("new"),
           ethers.utils.toUtf8Bytes("ath"),
         ],
-        ethers.utils.toUtf8Bytes("info: btc to the moon")
-      )
+        ethers.utils.toUtf8Bytes("info: btc to the moon"),
+      ),
     ).to.be.revertedWith("wrong record count");
   });
 
@@ -283,7 +282,7 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("new"),
         ethers.utils.toUtf8Bytes("ath"),
       ],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
 
     const tsIds = [
@@ -302,8 +301,8 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("new"),
           ethers.utils.toUtf8Bytes("ath"),
         ],
-        ethers.utils.toUtf8Bytes("info: btc to the moon")
-      )
+        ethers.utils.toUtf8Bytes("info: btc to the moon"),
+      ),
     )
       .to.emit(ts, "TimestampedHashes")
       .withNamedArgs({
@@ -336,8 +335,8 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("new"),
           ethers.utils.toUtf8Bytes("ath"),
         ],
-        []
-      )
+        [],
+      ),
     ).to.be.revertedWith("wrong record count");
   });
 
@@ -353,7 +352,7 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("new"),
         ethers.utils.toUtf8Bytes("ath"),
       ],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
     const tsUser = ts.connect(user);
     await expect(
@@ -366,8 +365,8 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("new"),
           ethers.utils.toUtf8Bytes("ath"),
         ],
-        ethers.utils.toUtf8Bytes("info: btc to the moon")
-      )
+        ethers.utils.toUtf8Bytes("info: btc to the moon"),
+      ),
     ).to.be.revertedWith("sender is not listed as owner");
   });
 
@@ -384,7 +383,7 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("new"),
         ethers.utils.toUtf8Bytes("ath"),
       ],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
 
     const tsIds = [
@@ -403,8 +402,8 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("new"),
           ethers.utils.toUtf8Bytes("ath"),
         ],
-        ethers.utils.toUtf8Bytes("info: btc to the moon")
-      )
+        ethers.utils.toUtf8Bytes("info: btc to the moon"),
+      ),
     )
       .to.emit(ts, "TimestampedHashes")
       .withNamedArgs({
@@ -436,7 +435,7 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("new"),
         ethers.utils.toUtf8Bytes("ath"),
       ],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
     await ts.timestampVersionHashes(
       hash1prime,
@@ -447,7 +446,7 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("new"),
         ethers.utils.toUtf8Bytes("ath"),
       ],
-      []
+      [],
     );
   });
 
@@ -459,7 +458,7 @@ describe("Record Hashes", () => {
       [0, 1, 2],
       [hash1, hash2, hash3],
       [],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
     const tsIds = [
       ethers.utils.sha256(hash1),
@@ -472,8 +471,8 @@ describe("Record Hashes", () => {
         [0, 1, 2],
         [hash1, hash2, hash3],
         [],
-        ethers.utils.toUtf8Bytes("info: btc to the moon")
-      )
+        ethers.utils.toUtf8Bytes("info: btc to the moon"),
+      ),
     )
       .to.emit(ts, "TimestampedHashes")
       .withArgs(
@@ -484,7 +483,7 @@ describe("Record Hashes", () => {
           ethers.utils.hexlify(hash2),
           ethers.utils.hexlify(hash3),
         ],
-        []
+        [],
       );
     const receipt = await ts.getTimestamps(1, 10);
     expect(receipt.items).to.deep.equal([
@@ -499,14 +498,14 @@ describe("Record Hashes", () => {
       [0, 1, 2],
       [hash1prime, hash2, hash3],
       [],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
     await ts.timestampVersionHashes(
       hash1prime,
       [0, 1, 2],
       [hash1prime, hash2, hash3],
       [],
-      []
+      [],
     );
   });
 
@@ -516,13 +515,13 @@ describe("Record Hashes", () => {
         [0, 1],
         [
           ethers.utils.toUtf8Bytes(
-            "e40605e6a26268a5eb83c155ea5dd12aeb3314f6ba5d67d4b607de95156e4e12"
+            "e40605e6a26268a5eb83c155ea5dd12aeb3314f6ba5d67d4b607de95156e4e12",
           ),
           ethers.utils.toUtf8Bytes(
-            "aa54def9e0bb11c1ebbfc97a9ee63af9e95c4f54db29815daa1c0fe991d9d20c"
+            "aa54def9e0bb11c1ebbfc97a9ee63af9e95c4f54db29815daa1c0fe991d9d20c",
           ),
           ethers.utils.toUtf8Bytes(
-            "38862f7ef560797680273f23ab1974285c3c07bba979a3e92e931bfbe362bcc6"
+            "38862f7ef560797680273f23ab1974285c3c07bba979a3e92e931bfbe362bcc6",
           ),
         ],
         [
@@ -530,8 +529,8 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("new"),
           ethers.utils.toUtf8Bytes("ath"),
         ],
-        ethers.utils.toUtf8Bytes("info: btc to the moon")
-      )
+        ethers.utils.toUtf8Bytes("info: btc to the moon"),
+      ),
     ).to.be.revertedWith("hashvalue/algo count mismatch");
   });
 
@@ -541,13 +540,13 @@ describe("Record Hashes", () => {
         [0, 1, 2, 3],
         [
           ethers.utils.toUtf8Bytes(
-            "e40605e6a26268a5eb83c155ea5dd12aeb3314f6ba5d67d4b607de95156e4e12"
+            "e40605e6a26268a5eb83c155ea5dd12aeb3314f6ba5d67d4b607de95156e4e12",
           ),
           ethers.utils.toUtf8Bytes(
-            "aa54def9e0bb11c1ebbfc97a9ee63af9e95c4f54db29815daa1c0fe991d9d20c"
+            "aa54def9e0bb11c1ebbfc97a9ee63af9e95c4f54db29815daa1c0fe991d9d20c",
           ),
           ethers.utils.toUtf8Bytes(
-            "38862f7ef560797680273f23ab1974285c3c07bba979a3e92e931bfbe362bcc6"
+            "38862f7ef560797680273f23ab1974285c3c07bba979a3e92e931bfbe362bcc6",
           ),
         ],
         [
@@ -555,24 +554,24 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("new"),
           ethers.utils.toUtf8Bytes("ath"),
         ],
-        ethers.utils.toUtf8Bytes("info: btc to the moon")
-      )
+        ethers.utils.toUtf8Bytes("info: btc to the moon"),
+      ),
     ).to.be.revertedWith("hashAlgorithmIds>3");
     await expect(
       ts.timestampRecordHashes(
         [0, 1, 2],
         [
           ethers.utils.toUtf8Bytes(
-            "e40605e6a26268a5eb83c155ea5dd12aeb3314f6ba5d67d4b607de95156e4e12"
+            "e40605e6a26268a5eb83c155ea5dd12aeb3314f6ba5d67d4b607de95156e4e12",
           ),
           ethers.utils.toUtf8Bytes(
-            "aa54def9e0bb11c1ebbfc97a9ee63af9e95c4fdf1d032b1da1c09d20c"
+            "aa54def9e0bb11c1ebbfc97a9ee63af9e95c4fdf1d032b1da1c09d20c",
           ),
           ethers.utils.toUtf8Bytes(
-            "38862f7ef560797680273f23ab1974285c3c07bba979a3e92e931bfbe362bcc6"
+            "38862f7ef560797680273f23ab1974285c3c07bba979a3e92e931bfbe362bcc6",
           ),
           ethers.utils.toUtf8Bytes(
-            "38862f7ef560797680273f23ab1974285c3c07bba979a3e92e931bfbe362bcc6"
+            "38862f7ef560797680273f23ab1974285c3c07bba979a3e92e931bfbe362bcc6",
           ),
         ],
         [
@@ -580,21 +579,21 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("new"),
           ethers.utils.toUtf8Bytes("ath"),
         ],
-        ethers.utils.toUtf8Bytes("info: btc to the moon")
-      )
+        ethers.utils.toUtf8Bytes("info: btc to the moon"),
+      ),
     ).to.be.revertedWith("hashValues>3");
     await expect(
       ts.timestampRecordHashes(
         [0, 1, 2],
         [
           ethers.utils.toUtf8Bytes(
-            "e40605e6a26268a5eb83c155ea5dd12aeb3314f6ba5d67d4b607de95156e4e12"
+            "e40605e6a26268a5eb83c155ea5dd12aeb3314f6ba5d67d4b607de95156e4e12",
           ),
           ethers.utils.toUtf8Bytes(
-            "aa54def9e0bb11c1ebbfc97a9ee63af9e95c1ddae54eff0c4c28cd9d20c"
+            "aa54def9e0bb11c1ebbfc97a9ee63af9e95c1ddae54eff0c4c28cd9d20c",
           ),
           ethers.utils.toUtf8Bytes(
-            "38862f7ef560797680273f23ab1974285c3c07bba979a3e92e931bfbe362bcc6"
+            "38862f7ef560797680273f23ab1974285c3c07bba979a3e92e931bfbe362bcc6",
           ),
         ],
         [
@@ -603,8 +602,8 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("ath"),
           ethers.utils.toUtf8Bytes("ath"),
         ],
-        ethers.utils.toUtf8Bytes("info: btc to the moon")
-      )
+        ethers.utils.toUtf8Bytes("info: btc to the moon"),
+      ),
     ).to.be.revertedWith("timestampData>3");
   });
 
@@ -622,8 +621,8 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("new"),
           ethers.utils.toUtf8Bytes("ath"),
         ],
-        ethers.utils.toUtf8Bytes("info: btc to the moon")
-      )
+        ethers.utils.toUtf8Bytes("info: btc to the moon"),
+      ),
     ).to.be.revertedWith("hashAlgo unknown");
   });
 
@@ -641,8 +640,8 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("new"),
           ethers.utils.toUtf8Bytes("ath"),
         ],
-        ethers.utils.toUtf8Bytes("info: btc to the moon")
-      )
+        ethers.utils.toUtf8Bytes("info: btc to the moon"),
+      ),
     ).to.be.revertedWith("hashValue empty");
 
     // should not revert is optional params are empty
@@ -654,7 +653,7 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("38862f7ef56079768"),
       ],
       [],
-      []
+      [],
     );
     const ids = await ts.getRecordIds(1, 10);
     expect(ids.items).to.have.length(1);
@@ -673,7 +672,7 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("new"),
         ethers.utils.toUtf8Bytes("ath"),
       ],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
   });
 
@@ -692,8 +691,8 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [admin.address, blockNumber, hash1]
-      )
+        [admin.address, blockNumber, hash1],
+      ),
     );
     await expect(
       ts.timestampRecordHashes(
@@ -704,14 +703,14 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("new"),
           ethers.utils.toUtf8Bytes("ath"),
         ],
-        ethers.utils.toUtf8Bytes("info: btc to the moon")
-      )
+        ethers.utils.toUtf8Bytes("info: btc to the moon"),
+      ),
     )
       .to.emit(ts, "RecordedHashes")
       .withArgs(
         recordId,
         tsIds,
-        ethers.utils.sha256(ethers.utils.toUtf8Bytes("info: btc to the moon"))
+        ethers.utils.sha256(ethers.utils.toUtf8Bytes("info: btc to the moon")),
       );
     const receipt = await ts.getTimestamps(1, 10);
     expect(receipt.items).to.deep.equal([
@@ -740,22 +739,22 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [admin.address, blockNumber, hash1]
-      )
+        [admin.address, blockNumber, hash1],
+      ),
     );
     await expect(
       ts.timestampRecordHashes(
         [0, 1, 2],
         [hash1, hash2, hash3],
         [],
-        ethers.utils.toUtf8Bytes("info: btc to the moon")
-      )
+        ethers.utils.toUtf8Bytes("info: btc to the moon"),
+      ),
     )
       .to.emit(ts, "RecordedHashes")
       .withArgs(
         recordId,
         tsIds,
-        ethers.utils.sha256(ethers.utils.toUtf8Bytes("info: btc to the moon"))
+        ethers.utils.sha256(ethers.utils.toUtf8Bytes("info: btc to the moon")),
       );
     const receipt = await ts.getTimestamps(1, 10);
     expect(receipt.items).to.deep.equal([
@@ -776,13 +775,13 @@ describe("Record Hashes", () => {
         [0, 1, 2, 3],
         [
           ethers.utils.toUtf8Bytes(
-            "e40605e6a26268a5eb83c155ea5dd12aeb3314f6ba5d67d4b607de95156e4e12"
+            "e40605e6a26268a5eb83c155ea5dd12aeb3314f6ba5d67d4b607de95156e4e12",
           ),
           ethers.utils.toUtf8Bytes(
-            "aa54def9e0bb11c1ebbfc97a9ee63af9e95c4f54db29815daa1c0fe991d9d20c"
+            "aa54def9e0bb11c1ebbfc97a9ee63af9e95c4f54db29815daa1c0fe991d9d20c",
           ),
           ethers.utils.toUtf8Bytes(
-            "38862f7ef560797680273f23ab1974285c3c07bba979a3e92e931bfbe362bcc6"
+            "38862f7ef560797680273f23ab1974285c3c07bba979a3e92e931bfbe362bcc6",
           ),
         ],
         [
@@ -790,8 +789,8 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("new"),
           ethers.utils.toUtf8Bytes("ath"),
         ],
-        ethers.utils.toUtf8Bytes("info: btc to the moon")
-      )
+        ethers.utils.toUtf8Bytes("info: btc to the moon"),
+      ),
     ).to.be.revertedWith("hashAlgorithmIds>3");
     await expect(
       ts.timestampRecordVersionHashes(
@@ -799,16 +798,16 @@ describe("Record Hashes", () => {
         [0, 1, 2],
         [
           ethers.utils.toUtf8Bytes(
-            "e40605e6a26268a5eb83c155ea5dd12aeb3314f6ba5d67d4b607de95156e4e12"
+            "e40605e6a26268a5eb83c155ea5dd12aeb3314f6ba5d67d4b607de95156e4e12",
           ),
           ethers.utils.toUtf8Bytes(
-            "aa54def9e0bb11c1ebbfc97a9ee63af9e95c4fdf1d032b1da1c09d20c"
+            "aa54def9e0bb11c1ebbfc97a9ee63af9e95c4fdf1d032b1da1c09d20c",
           ),
           ethers.utils.toUtf8Bytes(
-            "38862f7ef560797680273f23ab1974285c3c07bba979a3e92e931bfbe362bcc6"
+            "38862f7ef560797680273f23ab1974285c3c07bba979a3e92e931bfbe362bcc6",
           ),
           ethers.utils.toUtf8Bytes(
-            "38862f7ef560797680273f23ab1974285c3c07bba979a3e92e931bfbe362bcc6"
+            "38862f7ef560797680273f23ab1974285c3c07bba979a3e92e931bfbe362bcc6",
           ),
         ],
         [
@@ -816,8 +815,8 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("new"),
           ethers.utils.toUtf8Bytes("ath"),
         ],
-        ethers.utils.toUtf8Bytes("info: btc to the moon")
-      )
+        ethers.utils.toUtf8Bytes("info: btc to the moon"),
+      ),
     ).to.be.revertedWith("hashValues>3");
     await expect(
       ts.timestampRecordVersionHashes(
@@ -825,13 +824,13 @@ describe("Record Hashes", () => {
         [0, 1, 2],
         [
           ethers.utils.toUtf8Bytes(
-            "e40605e6a26268a5eb83c155ea5dd12aeb3314f6ba5d67d4b607de95156e4e12"
+            "e40605e6a26268a5eb83c155ea5dd12aeb3314f6ba5d67d4b607de95156e4e12",
           ),
           ethers.utils.toUtf8Bytes(
-            "aa54def9e0bb11c1ebbfc97a9ee63af9e95c1ddae54eff0c4c28cd9d20c"
+            "aa54def9e0bb11c1ebbfc97a9ee63af9e95c1ddae54eff0c4c28cd9d20c",
           ),
           ethers.utils.toUtf8Bytes(
-            "38862f7ef560797680273f23ab1974285c3c07bba979a3e92e931bfbe362bcc6"
+            "38862f7ef560797680273f23ab1974285c3c07bba979a3e92e931bfbe362bcc6",
           ),
         ],
         [
@@ -840,8 +839,8 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("ath"),
           ethers.utils.toUtf8Bytes("ath"),
         ],
-        ethers.utils.toUtf8Bytes("info: btc to the moon")
-      )
+        ethers.utils.toUtf8Bytes("info: btc to the moon"),
+      ),
     ).to.be.revertedWith("timestampData>3");
   });
 
@@ -860,8 +859,8 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("new"),
           ethers.utils.toUtf8Bytes("ath"),
         ],
-        ethers.utils.toUtf8Bytes("info: btc to the moon")
-      )
+        ethers.utils.toUtf8Bytes("info: btc to the moon"),
+      ),
     ).to.be.revertedWith("hashAlgo unknown");
   });
 
@@ -876,8 +875,8 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("38862f7ef56079768"),
         ],
         [ethers.utils.toUtf8Bytes("btc"), ethers.utils.toUtf8Bytes("new"), []],
-        ethers.utils.toUtf8Bytes("info: btc to the moon")
-      )
+        ethers.utils.toUtf8Bytes("info: btc to the moon"),
+      ),
     ).to.be.revertedWith("record unknown");
   });
 
@@ -896,8 +895,8 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("new"),
           ethers.utils.toUtf8Bytes("ath"),
         ],
-        ethers.utils.toUtf8Bytes("info: btc to the moon")
-      )
+        ethers.utils.toUtf8Bytes("info: btc to the moon"),
+      ),
     ).to.be.revertedWith("hashValue empty");
 
     await expect(
@@ -910,8 +909,8 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("38862f7ef56079768"),
         ],
         [ethers.utils.toUtf8Bytes("btc"), ethers.utils.toUtf8Bytes("new"), []],
-        ethers.utils.toUtf8Bytes("info: btc to the moon")
-      )
+        ethers.utils.toUtf8Bytes("info: btc to the moon"),
+      ),
     ).to.be.revertedWith("recordId empty");
     //  should not revert is optional params are empty
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
@@ -923,8 +922,8 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [admin.address, blockNumber, hash1]
-      )
+        [admin.address, blockNumber, hash1],
+      ),
     );
     await ts.timestampRecordHashes(
       [0, 1, 2],
@@ -934,7 +933,7 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("new"),
         ethers.utils.toUtf8Bytes("ath"),
       ],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
     const tsIds = [
       ethers.utils.sha256(ethers.utils.toUtf8Bytes("e40605e6a26268a5eb8")),
@@ -952,8 +951,8 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("38862f7ef56079768"),
         ],
         [],
-        []
-      )
+        [],
+      ),
     )
       .to.emit(ts, "RecordedHashes")
       .withArgs(recordId, tsIds, ethers.constants.HashZero);
@@ -969,8 +968,8 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [admin.address, blockNumber, hash1]
-      )
+        [admin.address, blockNumber, hash1],
+      ),
     );
     await ts.timestampRecordHashes(
       [0, 1, 2],
@@ -980,7 +979,7 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("new"),
         ethers.utils.toUtf8Bytes("ath"),
       ],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
     const hash1prime = ethers.utils.toUtf8Bytes("othere40605e6");
     const hash2prime = ethers.utils.toUtf8Bytes("again40605e6");
@@ -997,8 +996,8 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("twoprime"),
           ethers.utils.toUtf8Bytes("threeprime"),
         ],
-        versionInfoPrime
-      )
+        versionInfoPrime,
+      ),
     ).to.be.revertedWith("sender is not listed as owner");
   });
 
@@ -1013,8 +1012,8 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [admin.address, blockNumber, hash1]
-      )
+        [admin.address, blockNumber, hash1],
+      ),
     );
     await ts.timestampRecordHashes(
       [0, 1, 2],
@@ -1024,7 +1023,7 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("new"),
         ethers.utils.toUtf8Bytes("ath"),
       ],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
 
     const hash1prime = ethers.utils.toUtf8Bytes("othere40605e6");
@@ -1047,8 +1046,8 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("twoprime"),
           ethers.utils.toUtf8Bytes("threeprime"),
         ],
-        versionInfoPrime
-      )
+        versionInfoPrime,
+      ),
     )
       .to.emit(ts, "RecordedHashes")
       .withArgs(recordId, tsIds, ethers.utils.sha256(versionInfoPrime));
@@ -1075,7 +1074,7 @@ describe("Record Hashes", () => {
     // expect(vd0.hashValues).to.equal([hash1, hash2, hash3]);
     expect(vd0.infoIds).to.have.length(1);
     expect(vd0.infoIds[0]).to.equal(
-      ethers.utils.sha256(ethers.utils.toUtf8Bytes("info: btc to the moon"))
+      ethers.utils.sha256(ethers.utils.toUtf8Bytes("info: btc to the moon")),
     );
     expect(vd0.total).to.equal(3);
     expect(vd0.howMany).to.equal(3);
@@ -1111,14 +1110,14 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [admin.address, blockNumber, hash1]
-      )
+        [admin.address, blockNumber, hash1],
+      ),
     );
     await ts.timestampRecordHashes(
       [0, 1, 2],
       [hash1, hash2, hash3],
       [],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
 
     const hash1prime = ethers.utils.toUtf8Bytes("othere40605e6");
@@ -1137,8 +1136,8 @@ describe("Record Hashes", () => {
         [2, 0, 1],
         [hash1prime, hash2prime, hash3prime],
         [],
-        versionInfoPrime
-      )
+        versionInfoPrime,
+      ),
     )
       .to.emit(ts, "RecordedHashes")
       .withArgs(recordId, tsIds, ethers.utils.sha256(versionInfoPrime));
@@ -1165,7 +1164,7 @@ describe("Record Hashes", () => {
     // expect(vd0.hashValues).to.equal([hash1, hash2, hash3]);
     expect(vd0.infoIds).to.have.length(1);
     expect(vd0.infoIds[0]).to.equal(
-      ethers.utils.sha256(ethers.utils.toUtf8Bytes("info: btc to the moon"))
+      ethers.utils.sha256(ethers.utils.toUtf8Bytes("info: btc to the moon")),
     );
     expect(vd0.total).to.equal(3);
     expect(vd0.howMany).to.equal(3);
@@ -1195,11 +1194,11 @@ describe("Record Hashes", () => {
 
     // pagesize = 0 should revert
     await expect(ts.getRecord(ethers.constants.HashZero)).to.be.revertedWith(
-      "recordId empty"
+      "recordId empty",
     );
     // page  = 0 should revert
     await expect(ts.getRecord(ethers.utils.sha256(hash1))).to.be.revertedWith(
-      "record unknown"
+      "record unknown",
     );
   });
 
@@ -1213,8 +1212,8 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [admin.address, blockNumber, hash1Value]
-      )
+        [admin.address, blockNumber, hash1Value],
+      ),
     );
     // INSERT SHOULD BE DONE IN ORDER !!!
     // eslint-disable-next-line no-await-in-loop
@@ -1226,7 +1225,7 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("new"),
         ethers.utils.toUtf8Bytes("ath"),
       ],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
 
     const r0 = await ts.getRecord(recordId);
@@ -1254,8 +1253,8 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("twoprime"),
           ethers.utils.toUtf8Bytes("threeprime"),
         ],
-        versionInfoPrime
-      )
+        versionInfoPrime,
+      ),
     )
       .to.emit(ts, "RecordedHashes")
       .withArgs(recordId, tsIds, ethers.utils.sha256(versionInfoPrime));
@@ -1293,7 +1292,7 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("new"),
         ethers.utils.toUtf8Bytes("ath"),
       ],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
     // pagesize = 0 should revert
     await expect(ts.getRecordIds(1, 0)).to.be.revertedWith("PSize not >0");
@@ -1317,8 +1316,8 @@ describe("Record Hashes", () => {
       const recordId = ethers.utils.sha256(
         ethers.utils.defaultAbiCoder.encode(
           ["address", "uint256", "bytes"],
-          [admin.address, blockNumber, hash1Value]
-        )
+          [admin.address, blockNumber, hash1Value],
+        ),
       );
       // INSERT SHOULD BE DONE IN ORDER !!!
       // eslint-disable-next-line no-await-in-loop
@@ -1330,7 +1329,7 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("new"),
           ethers.utils.toUtf8Bytes("ath"),
         ],
-        ethers.utils.toUtf8Bytes("info: btc to the moon")
+        ethers.utils.toUtf8Bytes("info: btc to the moon"),
       );
       recIds.push(recordId);
     }
@@ -1376,24 +1375,24 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("new"),
         ethers.utils.toUtf8Bytes("ath"),
       ],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
     // pagesize = 0 should revert
     await expect(
-      ts.getRecordIdsByFirstVersionHash(hash1, 1, 0)
+      ts.getRecordIdsByFirstVersionHash(hash1, 1, 0),
     ).to.be.revertedWith("PSize not >0");
     // page  = 0 should revert
     await expect(
-      ts.getRecordIdsByFirstVersionHash(hash1, 0, 10)
+      ts.getRecordIdsByFirstVersionHash(hash1, 0, 10),
     ).to.be.revertedWith("Page not >0");
 
     // pagesize > 50 should revert
     await expect(
-      ts.getRecordIdsByFirstVersionHash(hash1, 1, 51)
+      ts.getRecordIdsByFirstVersionHash(hash1, 1, 51),
     ).to.be.revertedWith("PSize not <= 50");
     // hash empty
     await expect(
-      ts.getRecordIdsByFirstVersionHash([], 1, 51)
+      ts.getRecordIdsByFirstVersionHash([], 1, 51),
     ).to.be.revertedWith("hashValue empty");
   });
 
@@ -1407,8 +1406,8 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [admin.address, blockNumber, hash1]
-      )
+        [admin.address, blockNumber, hash1],
+      ),
     );
 
     ts.timestampRecordHashes(
@@ -1419,7 +1418,7 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("new"),
         ethers.utils.toUtf8Bytes("ath"),
       ],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
 
     const firstTsIds = await ts.getRecordIdsByFirstVersionHash(hash2, 1, 10);
@@ -1434,14 +1433,14 @@ describe("Record Hashes", () => {
     const recordId2 = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [admin.address, blockNumber, hash2]
-      )
+        [admin.address, blockNumber, hash2],
+      ),
     );
     ts.timestampRecordHashes(
       [0, 1],
       [hash2, hash3],
       [ethers.utils.toUtf8Bytes("yolo")],
-      []
+      [],
     );
     const firstTsIds2 = await ts.getRecordIdsByFirstVersionHash(hash2, 1, 10);
     expect(firstTsIds2.items).to.deep.equal([recordId, recordId2]);
@@ -1463,8 +1462,8 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [admin.address, blockNumber, hash1]
-      )
+        [admin.address, blockNumber, hash1],
+      ),
     );
 
     await ts.timestampRecordHashes(
@@ -1475,7 +1474,7 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("new"),
         ethers.utils.toUtf8Bytes("ath"),
       ],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
 
     const hash1prime = ethers.utils.toUtf8Bytes("e40605e6prime");
@@ -1495,8 +1494,8 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("btcprime"),
           ethers.utils.toUtf8Bytes("new prime"),
         ],
-        []
-      )
+        [],
+      ),
     )
       .to.emit(ts, "TimestampedHashes")
       .withNamedArgs({
@@ -1534,7 +1533,7 @@ describe("Record Hashes", () => {
     // expect(vd0.hashValues).to.equal([hash1, hash2, hash3]);
     expect(vd0.infoIds).to.have.length(1);
     expect(vd0.infoIds[0]).to.equal(
-      ethers.utils.sha256(ethers.utils.toUtf8Bytes("info: btc to the moon"))
+      ethers.utils.sha256(ethers.utils.toUtf8Bytes("info: btc to the moon")),
     );
     expect(vd0.total).to.equal(3);
     expect(vd0.howMany).to.equal(3);
@@ -1566,8 +1565,8 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [admin.address, blockNumber, hash1]
-      )
+        [admin.address, blockNumber, hash1],
+      ),
     );
     await ts.timestampRecordHashes(
       [0, 1, 2],
@@ -1577,31 +1576,31 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("new"),
         ethers.utils.toUtf8Bytes("ath"),
       ],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
     // pagesize = 0 should revert
     await expect(
-      ts.getRecordVersion(ethers.constants.HashZero, 0, 1, 0)
+      ts.getRecordVersion(ethers.constants.HashZero, 0, 1, 0),
     ).to.be.revertedWith("recordId empty");
     // pagesize = 0 should revert
     await expect(ts.getRecordVersion(recordId, 0, 1, 0)).to.be.revertedWith(
-      "PSize not >0"
+      "PSize not >0",
     );
     // page  = 0 should revert
     await expect(ts.getRecordVersion(recordId, 0, 0, 10)).to.be.revertedWith(
-      "Page not >0"
+      "Page not >0",
     );
 
     // pagesize > 50 should revert
     await expect(ts.getRecordVersion(recordId, 0, 1, 51)).to.be.revertedWith(
-      "PSize not <= 50"
+      "PSize not <= 50",
     );
   });
 
   it("getRecordVersionInfo should fail with empty versionInfoId", async () => {
     //  should revert
     await expect(
-      ts.getRecordVersionInfo(ethers.constants.HashZero)
+      ts.getRecordVersionInfo(ethers.constants.HashZero),
     ).to.be.revertedWith("versionInfoId empty");
   });
 
@@ -1620,11 +1619,11 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("new"),
         ethers.utils.toUtf8Bytes("ath"),
       ],
-      versionInfo
+      versionInfo,
     );
 
     const info = await ts.getRecordVersionInfo(
-      ethers.utils.sha256(versionInfo)
+      ethers.utils.sha256(versionInfo),
     );
     expect(info).to.equal(ethers.utils.hexlify(versionInfo));
 
@@ -1633,7 +1632,7 @@ describe("Record Hashes", () => {
     const hashValuesPrime = [hash1prime, hash2prime];
 
     const versionInfoPrime = ethers.utils.toUtf8Bytes(
-      "PRIME info: btc to the moon"
+      "PRIME info: btc to the moon",
     );
     await expect(
       ts.timestampVersionHashes(
@@ -1644,11 +1643,11 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("btcprime"),
           ethers.utils.toUtf8Bytes("new prime"),
         ],
-        versionInfoPrime
-      )
+        versionInfoPrime,
+      ),
     );
     const infoPrime = await ts.getRecordVersionInfo(
-      ethers.utils.sha256(versionInfoPrime)
+      ethers.utils.sha256(versionInfoPrime),
     );
     expect(infoPrime).to.equal(ethers.utils.hexlify(versionInfoPrime));
   });
@@ -1667,8 +1666,8 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("btcprime"),
           ethers.utils.toUtf8Bytes("new prime"),
         ],
-        []
-      )
+        [],
+      ),
     ).to.be.revertedWith("recordId empty");
   });
 
@@ -1685,8 +1684,8 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("btcprime"),
           ethers.utils.toUtf8Bytes("new prime"),
         ],
-        []
-      )
+        [],
+      ),
     ).to.be.revertedWith("record/version unknown");
 
     let blockNumber = await ethers.provider.getBlockNumber();
@@ -1695,15 +1694,15 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [admin.address, blockNumber, hash1]
-      )
+        [admin.address, blockNumber, hash1],
+      ),
     );
 
     await ts.timestampRecordHashes(
       [0],
       [hash1],
       [ethers.utils.toUtf8Bytes("btc")],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
     // version  does not exist should revert
     await expect(
@@ -1713,8 +1712,8 @@ describe("Record Hashes", () => {
         [2],
         [hash1],
         [ethers.utils.toUtf8Bytes("second one")],
-        []
-      )
+        [],
+      ),
     ).to.be.revertedWith("record/version unknown");
   });
 
@@ -1729,8 +1728,8 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [admin.address, blockNumber, hash1]
-      )
+        [admin.address, blockNumber, hash1],
+      ),
     );
 
     await ts.timestampRecordHashes(
@@ -1741,7 +1740,7 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("new"),
         ethers.utils.toUtf8Bytes("ath"),
       ],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
 
     const hash1prime = ethers.utils.toUtf8Bytes("e40605e6prime");
@@ -1759,8 +1758,8 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("btcprime"),
           ethers.utils.toUtf8Bytes("new prime"),
         ],
-        versionInfoPrime
-      )
+        versionInfoPrime,
+      ),
     ).to.be.revertedWith("sender is not listed as owner");
   });
 
@@ -1775,8 +1774,8 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [admin.address, blockNumber, hash1]
-      )
+        [admin.address, blockNumber, hash1],
+      ),
     );
 
     await ts.timestampRecordHashes(
@@ -1787,7 +1786,7 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("new"),
         ethers.utils.toUtf8Bytes("ath"),
       ],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
 
     const hash1prime = ethers.utils.toUtf8Bytes("e40605e6prime");
@@ -1808,8 +1807,8 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("btcprime"),
           ethers.utils.toUtf8Bytes("new prime"),
         ],
-        versionInfoPrime
-      )
+        versionInfoPrime,
+      ),
     )
       .to.emit(ts, "RecordedHashes")
       .withArgs(recordId, tsIds, ethers.utils.sha256(versionInfoPrime));
@@ -1841,7 +1840,7 @@ describe("Record Hashes", () => {
 
     expect(vd0.infoIds).to.have.length(2);
     expect(vd0.infoIds[0]).to.equal(
-      ethers.utils.sha256(ethers.utils.toUtf8Bytes("info: btc to the moon"))
+      ethers.utils.sha256(ethers.utils.toUtf8Bytes("info: btc to the moon")),
     );
     expect(vd0.infoIds[1]).to.equal(ethers.utils.sha256(versionInfoPrime));
     expect(vd0.total).to.equal(5);
@@ -1868,15 +1867,15 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [admin.address, blockNumber, hash1]
-      )
+        [admin.address, blockNumber, hash1],
+      ),
     );
 
     await ts.timestampRecordHashes(
       [0, 1, 2],
       hashValues,
       [],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
 
     const hash1prime = ethers.utils.toUtf8Bytes("e40605e6prime");
@@ -1894,8 +1893,8 @@ describe("Record Hashes", () => {
         [2, 0],
         hashValuesPrime,
         [],
-        versionInfoPrime
-      )
+        versionInfoPrime,
+      ),
     )
       .to.emit(ts, "RecordedHashes")
       .withArgs(recordId, tsIds, ethers.utils.sha256(versionInfoPrime));
@@ -1927,7 +1926,7 @@ describe("Record Hashes", () => {
 
     expect(vd0.infoIds).to.have.length(2);
     expect(vd0.infoIds[0]).to.equal(
-      ethers.utils.sha256(ethers.utils.toUtf8Bytes("info: btc to the moon"))
+      ethers.utils.sha256(ethers.utils.toUtf8Bytes("info: btc to the moon")),
     );
     expect(vd0.infoIds[1]).to.equal(ethers.utils.sha256(versionInfoPrime));
     expect(vd0.total).to.equal(5);
@@ -1948,10 +1947,10 @@ describe("Record Hashes", () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
 
     await expect(
-      ts.insertRecordVersionInfo(ethers.constants.HashZero, 0, [])
+      ts.insertRecordVersionInfo(ethers.constants.HashZero, 0, []),
     ).to.be.revertedWith("recordId empty");
     await expect(
-      ts.insertRecordVersionInfo(ethers.utils.sha256(hash1), 0, [])
+      ts.insertRecordVersionInfo(ethers.utils.sha256(hash1), 0, []),
     ).to.be.revertedWith("versionInfo empty");
   });
 
@@ -1960,7 +1959,7 @@ describe("Record Hashes", () => {
     const hash1 = ethers.utils.toUtf8Bytes("e40605e6");
     const versionInfo = ethers.utils.toUtf8Bytes("second one");
     await expect(
-      ts.insertRecordVersionInfo(ethers.utils.sha256(hash1), 0, versionInfo)
+      ts.insertRecordVersionInfo(ethers.utils.sha256(hash1), 0, versionInfo),
     ).to.be.revertedWith("record/version unknown");
 
     let blockNumber = await ethers.provider.getBlockNumber();
@@ -1969,19 +1968,19 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [admin.address, blockNumber, hash1]
-      )
+        [admin.address, blockNumber, hash1],
+      ),
     );
 
     await ts.timestampRecordHashes(
       [0],
       [hash1],
       [ethers.utils.toUtf8Bytes("btc")],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
     // version  does not exist should revert
     await expect(
-      ts.insertRecordVersionInfo(recordId, 1, versionInfo)
+      ts.insertRecordVersionInfo(recordId, 1, versionInfo),
     ).to.be.revertedWith("record/version unknown");
   });
 
@@ -1996,8 +1995,8 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [admin.address, blockNumber, hash1]
-      )
+        [admin.address, blockNumber, hash1],
+      ),
     );
 
     await ts.timestampRecordHashes(
@@ -2008,13 +2007,13 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("new"),
         ethers.utils.toUtf8Bytes("ath"),
       ],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
 
     const versionInfoPrime = ethers.utils.toUtf8Bytes("new info");
     const tsUser = ts.connect(user);
     await expect(
-      tsUser.insertRecordVersionInfo(recordId, 0, versionInfoPrime)
+      tsUser.insertRecordVersionInfo(recordId, 0, versionInfoPrime),
     ).to.be.revertedWith("sender is not listed as owner");
   });
 
@@ -2029,8 +2028,8 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [admin.address, blockNumber, hash1]
-      )
+        [admin.address, blockNumber, hash1],
+      ),
     );
 
     await ts.timestampRecordHashes(
@@ -2041,7 +2040,7 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("new"),
         ethers.utils.toUtf8Bytes("ath"),
       ],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
 
     const versionInfoPrime = ethers.utils.toUtf8Bytes("new info");
@@ -2071,7 +2070,7 @@ describe("Record Hashes", () => {
 
     expect(vd0.infoIds).to.have.length(2);
     expect(vd0.infoIds[0]).to.equal(
-      ethers.utils.sha256(ethers.utils.toUtf8Bytes("info: btc to the moon"))
+      ethers.utils.sha256(ethers.utils.toUtf8Bytes("info: btc to the moon")),
     );
     expect(vd0.infoIds[1]).to.equal(ethers.utils.sha256(versionInfoPrime));
     expect(vd0.total).to.equal(3);
@@ -2095,15 +2094,15 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [admin.address, blockNumber, hash1]
-      )
+        [admin.address, blockNumber, hash1],
+      ),
     );
     // will create a version 0 with one timestamp Id (sha256(hash1)) under recordId
     await ts.timestampRecordHashes(
       [1],
       [hash1],
       [ethers.utils.toUtf8Bytes("btc")],
-      []
+      [],
     );
     const receiptBefore = await ts.getTimestamps(1, 10);
 
@@ -2120,7 +2119,7 @@ describe("Record Hashes", () => {
     expect(vd0.next).to.equal(1);
     const tsUser = ts.connect(user);
     await expect(
-      tsUser.detachRecordVersionHash(recordId, 0, hash1)
+      tsUser.detachRecordVersionHash(recordId, 0, hash1),
     ).to.be.revertedWith("sender is not listed as owner");
   });
 
@@ -2132,15 +2131,15 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [admin.address, blockNumber, hash1]
-      )
+        [admin.address, blockNumber, hash1],
+      ),
     );
     // will create a version 0 with one timestamp Id (sha256(hash1)) under recordId
     await ts.timestampRecordHashes(
       [1],
       [hash1],
       [ethers.utils.toUtf8Bytes("btc")],
-      []
+      [],
     );
     const receiptBefore = await ts.getTimestamps(1, 10);
 
@@ -2185,24 +2184,24 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("new"),
         ethers.utils.toUtf8Bytes("ath"),
       ],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
     // pagesize = 0 should revert
     await expect(ts.getRecordIdsByOwnerId("", 1, 10)).to.be.revertedWith(
-      "ownerId empty"
+      "ownerId empty",
     );
     // pagesize = 0 should revert
     await expect(ts.getRecordIdsByOwnerId("ownerId", 1, 0)).to.be.revertedWith(
-      "PSize not >0"
+      "PSize not >0",
     );
     // page  = 0 should revert
     await expect(ts.getRecordIdsByOwnerId("ownerId", 0, 10)).to.be.revertedWith(
-      "Page not >0"
+      "Page not >0",
     );
 
     // pagesize > 50 should revert
     await expect(ts.getRecordIdsByOwnerId("ownerId", 1, 51)).to.be.revertedWith(
-      "PSize not <= 50"
+      "PSize not <= 50",
     );
   });
 
@@ -2216,8 +2215,8 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [admin.address, blockNumber, hash1Value]
-      )
+        [admin.address, blockNumber, hash1Value],
+      ),
     );
     // INSERT SHOULD BE DONE IN ORDER !!!
     // eslint-disable-next-line no-await-in-loop
@@ -2229,7 +2228,7 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("new"),
         ethers.utils.toUtf8Bytes("ath"),
       ],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
 
     const r0 = await ts.getRecord(recordId);
@@ -2257,8 +2256,8 @@ describe("Record Hashes", () => {
           ethers.utils.toUtf8Bytes("twoprime"),
           ethers.utils.toUtf8Bytes("threeprime"),
         ],
-        versionInfoPrime
-      )
+        versionInfoPrime,
+      ),
     )
       .to.emit(ts, "RecordedHashes")
       .withArgs(recordId, tsIds, ethers.utils.sha256(versionInfoPrime));
@@ -2294,8 +2293,8 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [admin.address, blockNumber, hash1]
-      )
+        [admin.address, blockNumber, hash1],
+      ),
     );
     await ts.timestampRecordHashes(
       [0, 1, 2],
@@ -2305,23 +2304,23 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("new"),
         ethers.utils.toUtf8Bytes("ath"),
       ],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
 
     await expect(ts.revokeRecordOwner(recordId, "")).to.be.revertedWith(
-      "ownerId empty"
+      "ownerId empty",
     );
 
     await expect(
-      ts.revokeRecordOwner(ethers.constants.HashZero, "ownerId")
+      ts.revokeRecordOwner(ethers.constants.HashZero, "ownerId"),
     ).to.be.revertedWith("recordId empty");
 
     await expect(
-      ts.revokeRecordOwner(ethers.utils.sha256(hash1), admin.address)
+      ts.revokeRecordOwner(ethers.utils.sha256(hash1), admin.address),
     ).to.be.revertedWith("record unknown");
 
     await expect(
-      ts.revokeRecordOwner(recordId, user.address)
+      ts.revokeRecordOwner(recordId, user.address),
     ).to.be.revertedWith("ownerId unknown");
   });
 
@@ -2335,8 +2334,8 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [admin.address, blockNumber, hash1]
-      )
+        [admin.address, blockNumber, hash1],
+      ),
     );
     await ts.timestampRecordHashes(
       [0, 1, 2],
@@ -2346,7 +2345,7 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("new"),
         ethers.utils.toUtf8Bytes("ath"),
       ],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
     // add ownerdIds and revoke some
     const notBefore = new Date().getTime();
@@ -2363,7 +2362,7 @@ describe("Record Hashes", () => {
     // revoke the second owner
     const tsUser = ts.connect(user);
     await expect(
-      tsUser.revokeRecordOwner(recordId, "anotherownerId")
+      tsUser.revokeRecordOwner(recordId, "anotherownerId"),
     ).to.be.revertedWith("sender is not listed as owner");
   });
 
@@ -2377,8 +2376,8 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [admin.address, blockNumber, hash1]
-      )
+        [admin.address, blockNumber, hash1],
+      ),
     );
     await ts.timestampRecordHashes(
       [0, 1, 2],
@@ -2388,7 +2387,7 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("new"),
         ethers.utils.toUtf8Bytes("ath"),
       ],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
     // add ownerdIds and revoke some
     const notBefore = new Date().getTime();
@@ -2431,8 +2430,8 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [admin.address, blockNumber, hash1]
-      )
+        [admin.address, blockNumber, hash1],
+      ),
     );
     await ts.timestampRecordHashes(
       [0, 1, 2],
@@ -2442,32 +2441,32 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("new"),
         ethers.utils.toUtf8Bytes("ath"),
       ],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
 
     await expect(ts.insertRecordOwner(recordId, "", 1, 2)).to.be.revertedWith(
-      "ownerId empty"
+      "ownerId empty",
     );
     await expect(
-      ts.insertRecordOwner(ethers.constants.HashZero, "ownerId", 1, 2)
+      ts.insertRecordOwner(ethers.constants.HashZero, "ownerId", 1, 2),
     ).to.be.revertedWith("recordId empty");
     await expect(
-      ts.insertRecordOwner(ethers.utils.sha256(hash1), "ownerId", 1, 2)
+      ts.insertRecordOwner(ethers.utils.sha256(hash1), "ownerId", 1, 2),
     ).to.be.revertedWith("record unknown");
     await expect(
-      ts.insertRecordOwner(recordId, admin.address.toLowerCase(), 1, 2)
+      ts.insertRecordOwner(recordId, admin.address.toLowerCase(), 1, 2),
     ).to.be.revertedWith("ownerId exist");
     // notBefore== 0 &&  notAfter ==0
     await expect(
-      ts.insertRecordOwner(recordId, "ownerId", 0, 0)
+      ts.insertRecordOwner(recordId, "ownerId", 0, 0),
     ).to.be.revertedWith("date incorrect");
     // notBefore== 0 &&  notAfter>0
     await expect(
-      ts.insertRecordOwner(recordId, "ownerId", 0, 2)
+      ts.insertRecordOwner(recordId, "ownerId", 0, 2),
     ).to.be.revertedWith("date incorrect");
     // notBefore== 2 &&  notAfter ==1
     await expect(
-      ts.insertRecordOwner(recordId, "ownerId", 2, 1)
+      ts.insertRecordOwner(recordId, "ownerId", 2, 1),
     ).to.be.revertedWith("date incorrect");
   });
 
@@ -2482,8 +2481,8 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [admin.address, blockNumber, hash1]
-      )
+        [admin.address, blockNumber, hash1],
+      ),
     );
     await ts.timestampRecordHashes(
       [0, 1, 2],
@@ -2493,7 +2492,7 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("new"),
         ethers.utils.toUtf8Bytes("ath"),
       ],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
     const r0 = await ts.getRecord(recordId);
     expect(r0.ownerIds).to.deep.equal([admin.address.toLowerCase()]);
@@ -2501,7 +2500,7 @@ describe("Record Hashes", () => {
     expect(r0.totalVersions).to.equal(1);
     const tsUser = ts.connect(user);
     await expect(
-      tsUser.insertRecordOwner(recordId, "ownerId", 1, 2)
+      tsUser.insertRecordOwner(recordId, "ownerId", 1, 2),
     ).to.be.revertedWith("sender is not listed as owner");
   });
 
@@ -2516,8 +2515,8 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [admin.address, blockNumber, hash1]
-      )
+        [admin.address, blockNumber, hash1],
+      ),
     );
     await ts.timestampRecordHashes(
       [0, 1, 2],
@@ -2527,7 +2526,7 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("new"),
         ethers.utils.toUtf8Bytes("ath"),
       ],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
     const r0 = await ts.getRecord(recordId);
     expect(r0.ownerIds).to.deep.equal([admin.address.toLowerCase()]);
@@ -2561,8 +2560,8 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [admin.address, blockNumber, hash1]
-      )
+        [admin.address, blockNumber, hash1],
+      ),
     );
     await ts.timestampRecordHashes(
       [0, 1, 2],
@@ -2572,19 +2571,19 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("new"),
         ethers.utils.toUtf8Bytes("ath"),
       ],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
 
     await expect(ts.getRecordOwnerInfo(recordId, "")).to.be.revertedWith(
-      "ownerId empty"
+      "ownerId empty",
     );
 
     await expect(
-      ts.getRecordOwnerInfo(ethers.constants.HashZero, "ownerId")
+      ts.getRecordOwnerInfo(ethers.constants.HashZero, "ownerId"),
     ).to.be.revertedWith("recordId empty");
 
     await expect(
-      ts.getRecordOwnerInfo(ethers.utils.sha256(hash1), admin.address)
+      ts.getRecordOwnerInfo(ethers.utils.sha256(hash1), admin.address),
     ).to.be.revertedWith("record unknown");
   });
 
@@ -2598,8 +2597,8 @@ describe("Record Hashes", () => {
     const recordId = ethers.utils.sha256(
       ethers.utils.defaultAbiCoder.encode(
         ["address", "uint256", "bytes"],
-        [admin.address, blockNumber, hash1]
-      )
+        [admin.address, blockNumber, hash1],
+      ),
     );
     await ts.timestampRecordHashes(
       [0, 1, 2],
@@ -2609,13 +2608,13 @@ describe("Record Hashes", () => {
         ethers.utils.toUtf8Bytes("new"),
         ethers.utils.toUtf8Bytes("ath"),
       ],
-      ethers.utils.toUtf8Bytes("info: btc to the moon")
+      ethers.utils.toUtf8Bytes("info: btc to the moon"),
     );
     const blockTs = await ethers.provider.getBlock(blockNumber);
 
     const inf1 = await ts.getRecordOwnerInfo(
       recordId,
-      admin.address.toLowerCase()
+      admin.address.toLowerCase(),
     );
     expect(inf1.notBefore).to.equal(blockTs.timestamp);
     expect(inf1.notAfter).to.equal(0);
@@ -2644,7 +2643,7 @@ describe("Record Hashes", () => {
     await ts.revokeRecordOwner(recordId, admin.address.toLowerCase());
     const inf4 = await ts.getRecordOwnerInfo(
       recordId,
-      admin.address.toLowerCase()
+      admin.address.toLowerCase(),
     );
     expect(inf4.notBefore).to.equal(blockTs.timestamp);
     expect(inf4.notAfter).to.equal(0);

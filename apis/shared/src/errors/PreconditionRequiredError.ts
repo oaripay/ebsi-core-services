@@ -1,4 +1,4 @@
-import { ProblemDetailsError } from "./ProblemDetailsError";
+import { ProblemDetailsError } from "./ProblemDetailsError.js";
 
 /**
  * PreconditionRequiredError defines the Precondition Required (428) error type.
@@ -24,7 +24,7 @@ export class PreconditionRequiredError extends ProblemDetailsError {
       detail?: string;
       instance?: string;
       extensions?: { [x: string]: unknown };
-    }
+    },
   ) {
     super(PreconditionRequiredError.statusCode, title, options);
     this.name = "PreconditionRequiredError";

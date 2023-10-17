@@ -1,23 +1,19 @@
-import { describe, beforeAll, afterEach, it, expect } from "@jest/globals";
+import { describe, beforeAll, afterEach, it, expect, afterAll } from "vitest";
 import request from "supertest";
 import crypto from "node:crypto";
-import nock from "nock";
-import { Test, TestingModule } from "@nestjs/testing";
+import { rest } from "msw";
+import { setupServer } from "msw/node";
+import { Test, type TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
-import {
-  INestApplication,
-  ValidationPipe,
-  Logger,
-  HttpServer,
-} from "@nestjs/common";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import { useContainer } from "class-validator";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { ec as EC } from "elliptic";
+import elliptic from "elliptic";
 import { bytes } from "multiformats";
 import { base64url } from "multiformats/bases/base64";
 import { createVerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential";
@@ -26,9 +22,9 @@ import type {
   StatusList2021Credential,
   PaginatedList,
 } from "@ebsiint-api/shared";
-import { ApiConfig } from "../../src/config/configuration";
-import { AppModule } from "../../src/app.module";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
+import type { ApiConfig } from "../../src/config/configuration.js";
+import { AppModule } from "../../src/app.module.js";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 import type {
   AttributeObject,
   IdLink,
@@ -36,9 +32,9 @@ import type {
   IssuerResponseObject,
   ProxyLink,
   IssuerProxyResponseObject,
-} from "../../src/modules/issuers/issuers.interface";
-import { getServer } from "../utils/getServer";
-import { describeLocalTestEnvOnly } from "../utils/describeLocalTestEnvOnly";
+} from "../../src/modules/issuers/issuers.interface.js";
+import { getServer } from "../utils/getServer.js";
+import { describeLocalTestEnvOnly } from "../utils/describeLocalTestEnvOnly.js";
 
 interface SupertestIssuersResponse {
   status: number;
@@ -79,6 +75,7 @@ interface SupertestStringResponse {
 
 function getEbsiIssuer(privateKey: string, did: string, kid: string) {
   const hexIssuerPrivateKey = privateKey.replace("0x", "");
+  const EC = elliptic.ec;
   const ec = new EC("secp256k1");
   const pubPoint = ec.keyFromPrivate(hexIssuerPrivateKey, "hex").getPublic();
   const issuerPublicKeyJwk = {
@@ -102,8 +99,8 @@ function getEbsiIssuer(privateKey: string, did: string, kid: string) {
 }
 
 describe("Issuers (e2e)", () => {
-  let app: INestApplication;
-  let server: HttpServer | string;
+  let app: NestFastifyApplication;
+  let server: RawServerDefault | string;
   let configService: ConfigService<ApiConfig, true>;
   let testIssuerWithProxy: EbsiIssuer;
   let testIssuerWithProxyKid: string;
@@ -119,7 +116,7 @@ describe("Issuers (e2e)", () => {
   async function createStatusList2021CredentialJwt(
     issuer: EbsiIssuer,
     issuerProxy: IssuerProxyResponseObject,
-    ebsiAuthority: string
+    ebsiAuthority: string,
   ) {
     const newIssuer1StatusList2021Credential: StatusList2021Credential = {
       "@context": [
@@ -164,7 +161,7 @@ describe("Issuers (e2e)", () => {
           ebsiAuthority,
           skipValidation: true,
           trustedHostnames,
-        }
+        },
       );
 
     return newIssuer1StatusList2021CredentialJwt;
@@ -179,7 +176,7 @@ describe("Issuers (e2e)", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     // Turn off logger
@@ -193,21 +190,20 @@ describe("Issuers (e2e)", () => {
     useContainer(app.select(AppModule), { fallbackOnErrors: true });
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
     server = getServer(app, configService);
 
     trustedHostnames = configService.get<string[]>("trustedHostnames");
 
     // Get last 2 issuers DID
-    let issuersResponse: SupertestIssuersResponse = await request(server).get(
-      "/issuers"
-    );
+    let issuersResponse: SupertestIssuersResponse =
+      await request(server).get("/issuers");
 
     // Go to last page (where there is at least 2 admins)
     const { total } = issuersResponse.body;
     issuersResponse = await request(server).get(
-      `/issuers?page[after]=${Math.floor(total / 2)}&page[size]=2`
+      `/issuers?page[after]=${Math.floor(total / 2)}&page[size]=2`,
     );
 
     beforeLastExistingIssuerDid = issuersResponse.body.items[0].did;
@@ -215,65 +211,64 @@ describe("Issuers (e2e)", () => {
 
     // Get testIssuerWithProxy's first proxyId
     testIssuerWithProxyKid = configService.get<string>(
-      "testIssuerWithProxyKid"
+      "testIssuerWithProxyKid",
     );
     [testIssuerWithProxyDid] = testIssuerWithProxyKid.split("#");
     const issuerProxiesResponse: SupertestIssuerProxiesResponse = await request(
-      server
+      server,
     ).get(`/issuers/${testIssuerWithProxyDid}/proxies`);
     testIssuerWithProxyFirstProxyId =
       issuerProxiesResponse.body.items[0].proxyId;
     testIssuerWithProxyPrivateKey = configService.get<string>(
-      "testIssuerWithProxyPrivateKey"
+      "testIssuerWithProxyPrivateKey",
     );
 
     testIssuerWithProxy = getEbsiIssuer(
       testIssuerWithProxyPrivateKey,
       testIssuerWithProxyDid,
-      testIssuerWithProxyKid
+      testIssuerWithProxyKid,
     );
 
     trustedSchemasRegistryApiUrl = configService.get<string>(
-      "trustedSchemasRegistryApiUrl"
+      "trustedSchemasRegistryApiUrl",
     );
     testVerifiableAttestationSchemaId = configService.get<string>(
-      "testVerifiableAttestationSchemaId"
+      "testVerifiableAttestationSchemaId",
     );
     testStatusListSchemaId = configService.get<string>(
-      "testStatusListSchemaId"
+      "testStatusListSchemaId",
     );
   });
 
   describe("/issuers", () => {
     it("should return a collection of issuers", async () => {
       expect.assertions(2);
-      const response: SupertestIssuersResponse = await request(server).get(
-        "/issuers"
-      );
+      const response: SupertestIssuersResponse =
+        await request(server).get("/issuers");
 
       expect(response.body).toStrictEqual(
         expect.objectContaining({
           self: expect.stringContaining(
-            "/trusted-issuers-registry/v4/issuers?page[after]=1&page[size]=10"
+            "/trusted-issuers-registry/v4/issuers?page[after]=1&page[size]=10",
           ),
           items: expect.arrayContaining([]),
           total: expect.any(Number),
           pageSize: expect.any(Number),
           links: expect.objectContaining({
             first: expect.stringContaining(
-              "/trusted-issuers-registry/v4/issuers?page[after]=1&page[size]=10"
+              "/trusted-issuers-registry/v4/issuers?page[after]=1&page[size]=10",
             ),
             prev: expect.stringContaining(
-              "/trusted-issuers-registry/v4/issuers?page[after]=1&page[size]=10"
+              "/trusted-issuers-registry/v4/issuers?page[after]=1&page[size]=10",
             ),
             next: expect.stringContaining(
-              "/trusted-issuers-registry/v4/issuers?page[after]="
+              "/trusted-issuers-registry/v4/issuers?page[after]=",
             ),
             last: expect.stringContaining(
-              "/trusted-issuers-registry/v4/issuers?page[after]="
+              "/trusted-issuers-registry/v4/issuers?page[after]=",
             ),
           }),
-        })
+        }),
       );
       expect(response.status).toBe(200);
     });
@@ -284,7 +279,7 @@ describe("Issuers (e2e)", () => {
       expect.assertions(2);
 
       const response: SupertestIssuerResponse = await request(server).get(
-        `/issuers/${lastExistingIssuerDid}`
+        `/issuers/${lastExistingIssuerDid}`,
       );
       expect(response.body).toStrictEqual({
         did: lastExistingIssuerDid,
@@ -341,32 +336,32 @@ describe("Issuers (e2e)", () => {
       expect.assertions(2);
 
       const response: SupertestAttributesResponse = await request(server).get(
-        `/issuers/${lastExistingIssuerDid}/attributes`
+        `/issuers/${lastExistingIssuerDid}/attributes`,
       );
 
       expect(response.body).toStrictEqual(
         expect.objectContaining({
           self: expect.stringContaining(
-            `/trusted-issuers-registry/v4/issuers/${lastExistingIssuerDid}/attributes?page[after]=1&page[size]=10`
+            `/trusted-issuers-registry/v4/issuers/${lastExistingIssuerDid}/attributes?page[after]=1&page[size]=10`,
           ),
           items: expect.arrayContaining([]),
           total: expect.any(Number),
           pageSize: expect.any(Number),
           links: expect.objectContaining({
             first: expect.stringContaining(
-              `/trusted-issuers-registry/v4/issuers/${lastExistingIssuerDid}/attributes?page[after]=1&page[size]=10`
+              `/trusted-issuers-registry/v4/issuers/${lastExistingIssuerDid}/attributes?page[after]=1&page[size]=10`,
             ),
             prev: expect.stringContaining(
-              `/trusted-issuers-registry/v4/issuers/${lastExistingIssuerDid}/attributes?page[after]=1&page[size]=10`
+              `/trusted-issuers-registry/v4/issuers/${lastExistingIssuerDid}/attributes?page[after]=1&page[size]=10`,
             ),
             next: expect.stringContaining(
-              `/trusted-issuers-registry/v4/issuers/${lastExistingIssuerDid}/attributes?page[after]=`
+              `/trusted-issuers-registry/v4/issuers/${lastExistingIssuerDid}/attributes?page[after]=`,
             ),
             last: expect.stringContaining(
-              `/trusted-issuers-registry/v4/issuers/${lastExistingIssuerDid}/attributes?page[after]=`
+              `/trusted-issuers-registry/v4/issuers/${lastExistingIssuerDid}/attributes?page[after]=`,
             ),
           }),
-        })
+        }),
       );
       expect(response.status).toBe(200);
     });
@@ -375,7 +370,7 @@ describe("Issuers (e2e)", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        "/issuers/not-a-did/attributes"
+        "/issuers/not-a-did/attributes",
       );
 
       expect(response.body).toStrictEqual({
@@ -391,7 +386,7 @@ describe("Issuers (e2e)", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        "/issuers/did:ebsi:z1234/attributes"
+        "/issuers/did:ebsi:z1234/attributes",
       );
 
       expect(response.body).toStrictEqual({
@@ -407,7 +402,7 @@ describe("Issuers (e2e)", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        `/issuers/${randomDid}/attributes`
+        `/issuers/${randomDid}/attributes`,
       );
 
       expect(response.body).toStrictEqual({
@@ -425,7 +420,7 @@ describe("Issuers (e2e)", () => {
 
     beforeAll(async () => {
       const responseAttributes: SupertestAttributesResponse = await request(
-        server
+        server,
       ).get(`/issuers/${lastExistingIssuerDid}/attributes`);
 
       attributeId = responseAttributes.body.items[0].id;
@@ -435,7 +430,7 @@ describe("Issuers (e2e)", () => {
       expect.assertions(2);
 
       const response: SupertestAttributeResponse = await request(server).get(
-        `/issuers/${lastExistingIssuerDid}/attributes/${attributeId}`
+        `/issuers/${lastExistingIssuerDid}/attributes/${attributeId}`,
       );
       expect(response.body).toStrictEqual({
         did: lastExistingIssuerDid,
@@ -454,7 +449,7 @@ describe("Issuers (e2e)", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        `/issuers/not-a-did/attributes/${attributeId}`
+        `/issuers/not-a-did/attributes/${attributeId}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -470,7 +465,7 @@ describe("Issuers (e2e)", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        `/issuers/did:ebsi:z1234/attributes/${attributeId}`
+        `/issuers/did:ebsi:z1234/attributes/${attributeId}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -486,7 +481,7 @@ describe("Issuers (e2e)", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        `/issuers/${randomDid}/attributes/${attributeId}`
+        `/issuers/${randomDid}/attributes/${attributeId}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -505,11 +500,11 @@ describe("Issuers (e2e)", () => {
       const wrongAttributeId =
         "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d2";
       const response: SupertestAttributeResponse = await request(server).get(
-        `/issuers/${lastExistingIssuerDid}/attributes/${wrongAttributeId}`
+        `/issuers/${lastExistingIssuerDid}/attributes/${wrongAttributeId}`,
       );
       expect(response.body).toStrictEqual({
         detail: expect.stringContaining(
-          `Attribute ${wrongAttributeId} not found`
+          `Attribute ${wrongAttributeId} not found`,
         ),
         status: 404,
         title: "Attribute Not Found",
@@ -519,14 +514,14 @@ describe("Issuers (e2e)", () => {
 
       // consult an attribute from a different did
       const responseAttributes: SupertestAttributesResponse = await request(
-        server
+        server,
       ).get(`/issuers/${beforeLastExistingIssuerDid}/attributes`);
       expect(responseAttributes.status).toBe(200);
 
       const attributeId2 = responseAttributes.body.items[0].id;
 
       const response2: SupertestAttributeResponse = await request(server).get(
-        `/issuers/${lastExistingIssuerDid}/attributes/${attributeId2}`
+        `/issuers/${lastExistingIssuerDid}/attributes/${attributeId2}`,
       );
       expect(response2.body).toStrictEqual({
         detail: expect.stringContaining(`Attribute ${attributeId2} not found`),
@@ -543,7 +538,7 @@ describe("Issuers (e2e)", () => {
 
     beforeAll(async () => {
       const responseAttributes: SupertestAttributesResponse = await request(
-        server
+        server,
       ).get(`/issuers/${lastExistingIssuerDid}/attributes`);
 
       attributeId = responseAttributes.body.items[0].id;
@@ -555,7 +550,7 @@ describe("Issuers (e2e)", () => {
       const urlPath = `/trusted-issuers-registry/v4/issuers/${lastExistingIssuerDid}/attributes/${attributeId}/revisions`;
 
       const response = await request(server).get(
-        `/issuers/${lastExistingIssuerDid}/attributes/${attributeId}/revisions`
+        `/issuers/${lastExistingIssuerDid}/attributes/${attributeId}/revisions`,
       );
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(urlPath),
@@ -576,7 +571,7 @@ describe("Issuers (e2e)", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        `/issuers/not-a-did/attributes/${attributeId}`
+        `/issuers/not-a-did/attributes/${attributeId}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -592,7 +587,7 @@ describe("Issuers (e2e)", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        `/issuers/did:ebsi:z1234/attributes/${attributeId}`
+        `/issuers/did:ebsi:z1234/attributes/${attributeId}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -608,7 +603,7 @@ describe("Issuers (e2e)", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        `/issuers/${randomDid}/attributes/${attributeId}`
+        `/issuers/${randomDid}/attributes/${attributeId}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -627,11 +622,11 @@ describe("Issuers (e2e)", () => {
       const wrongAttributeId =
         "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d2";
       const response: SupertestAttributeResponse = await request(server).get(
-        `/issuers/${lastExistingIssuerDid}/attributes/${wrongAttributeId}`
+        `/issuers/${lastExistingIssuerDid}/attributes/${wrongAttributeId}`,
       );
       expect(response.body).toStrictEqual({
         detail: expect.stringContaining(
-          `Attribute ${wrongAttributeId} not found`
+          `Attribute ${wrongAttributeId} not found`,
         ),
         status: 404,
         title: "Attribute Not Found",
@@ -641,14 +636,14 @@ describe("Issuers (e2e)", () => {
 
       // consult an attribute from a different did
       const responseAttributes: SupertestAttributesResponse = await request(
-        server
+        server,
       ).get(`/issuers/${beforeLastExistingIssuerDid}/attributes`);
       expect(responseAttributes.status).toBe(200);
 
       const attributeId2 = responseAttributes.body.items[0].id;
 
       const response2: SupertestAttributeResponse = await request(server).get(
-        `/issuers/${lastExistingIssuerDid}/attributes/${attributeId2}`
+        `/issuers/${lastExistingIssuerDid}/attributes/${attributeId2}`,
       );
       expect(response2.body).toStrictEqual({
         detail: expect.stringContaining(`Attribute ${attributeId2} not found`),
@@ -665,7 +660,7 @@ describe("Issuers (e2e)", () => {
       expect.assertions(2);
 
       const response: SupertestIssuerProxiesResponse = await request(
-        server
+        server,
       ).get(`/issuers/${testIssuerWithProxyDid}/proxies`);
 
       expect(response.body).toStrictEqual(
@@ -673,13 +668,13 @@ describe("Issuers (e2e)", () => {
           items: expect.arrayContaining([
             expect.objectContaining({
               href: expect.stringContaining(
-                `/trusted-issuers-registry/v4/issuers/${testIssuerWithProxyDid}/proxies/0x`
+                `/trusted-issuers-registry/v4/issuers/${testIssuerWithProxyDid}/proxies/0x`,
               ),
               proxyId: expect.stringContaining("0x"),
             }),
           ]),
           total: expect.any(Number),
-        })
+        }),
       );
       expect(response.status).toBe(200);
     });
@@ -702,7 +697,7 @@ describe("Issuers (e2e)", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        "/issuers/did:ebsi:z1234/proxies"
+        "/issuers/did:ebsi:z1234/proxies",
       );
 
       expect(response.body).toStrictEqual({
@@ -718,7 +713,7 @@ describe("Issuers (e2e)", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        `/issuers/${randomDid}/proxies`
+        `/issuers/${randomDid}/proxies`,
       );
 
       expect(response.body).toStrictEqual({
@@ -736,7 +731,7 @@ describe("Issuers (e2e)", () => {
       expect.assertions(2);
 
       const response: SupertestIssuerProxyResponse = await request(server).get(
-        `/issuers/${testIssuerWithProxyDid}/proxies/${testIssuerWithProxyFirstProxyId}`
+        `/issuers/${testIssuerWithProxyDid}/proxies/${testIssuerWithProxyFirstProxyId}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -751,7 +746,7 @@ describe("Issuers (e2e)", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        `/issuers/not-a-did/proxies/${testIssuerWithProxyFirstProxyId}`
+        `/issuers/not-a-did/proxies/${testIssuerWithProxyFirstProxyId}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -767,7 +762,7 @@ describe("Issuers (e2e)", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        `/issuers/did:ebsi:z1234/proxies/${testIssuerWithProxyFirstProxyId}`
+        `/issuers/did:ebsi:z1234/proxies/${testIssuerWithProxyFirstProxyId}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -783,7 +778,7 @@ describe("Issuers (e2e)", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        `/issuers/${randomDid}/proxies/${testIssuerWithProxyFirstProxyId}`
+        `/issuers/${randomDid}/proxies/${testIssuerWithProxyFirstProxyId}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -801,7 +796,7 @@ describe("Issuers (e2e)", () => {
       const invalidProxyId = crypto.randomBytes(16).toString("hex");
 
       const response = await request(server).get(
-        `/issuers/${testIssuerWithProxyDid}/proxies/${invalidProxyId}`
+        `/issuers/${testIssuerWithProxyDid}/proxies/${invalidProxyId}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -820,19 +815,29 @@ describe("Issuers (e2e)", () => {
     // All the tests that require a mock server are run only locally
     describeLocalTestEnvOnly()("with mocked issuer's endpoint", () => {
       let proxy: IssuerProxyResponseObject;
+      const mockServer = setupServer();
 
       beforeAll(async () => {
+        // Intercept network requests
+        mockServer.listen({
+          onUnhandledRequest: "bypass",
+        });
+
         // Get first proxy information
         const response: SupertestIssuerProxyResponse = await request(
-          server
+          server,
         ).get(
-          `/issuers/${testIssuerWithProxyDid}/proxies/${testIssuerWithProxyFirstProxyId}`
+          `/issuers/${testIssuerWithProxyDid}/proxies/${testIssuerWithProxyFirstProxyId}`,
         );
         proxy = response.body;
       });
 
       afterEach(() => {
-        nock.cleanAll();
+        mockServer.resetHandlers();
+      });
+
+      afterAll(() => {
+        mockServer.close();
       });
 
       it("should return a StatusList2021Credential JWT", async () => {
@@ -847,20 +852,20 @@ describe("Issuers (e2e)", () => {
           await createStatusList2021CredentialJwt(
             testIssuerWithProxy,
             proxy,
-            authority
+            authority,
           );
 
-        nock(proxy.prefix)
-          .get(path)
-          .reply(200, statusList2021CredentialJwt)
-          .persist();
+        mockServer.use(
+          rest.get(`${proxy.prefix}${path}`, (_req, res, ctx) =>
+            res(ctx.json(statusList2021CredentialJwt)),
+          ),
+        );
 
         const response: SupertestStringResponse = await request(server).get(
-          `/issuers/${testIssuerWithProxyDid}/proxies/${testIssuerWithProxyFirstProxyId}${path}`
+          `/issuers/${testIssuerWithProxyDid}/proxies/${testIssuerWithProxyFirstProxyId}${path}`,
         );
 
         expect(response.text).toStrictEqual(statusList2021CredentialJwt);
-        // eslint-disable-next-line jest/no-standalone-expect
         expect(response.status).toBe(200);
       });
 
@@ -868,10 +873,14 @@ describe("Issuers (e2e)", () => {
         expect.assertions(2);
 
         // Mock issuer's endpoint response
-        nock(proxy.prefix).get(path).reply(500).persist();
+        mockServer.use(
+          rest.get(`${proxy.prefix}${path}`, (_req, res, ctx) =>
+            res(ctx.status(500)),
+          ),
+        );
 
         const response = await request(server).get(
-          `/issuers/${testIssuerWithProxyDid}/proxies/${testIssuerWithProxyFirstProxyId}${path}`
+          `/issuers/${testIssuerWithProxyDid}/proxies/${testIssuerWithProxyFirstProxyId}${path}`,
         );
 
         expect(response.body).toStrictEqual({
@@ -887,10 +896,14 @@ describe("Issuers (e2e)", () => {
         expect.assertions(2);
 
         // Mock issuer's endpoint response
-        nock(proxy.prefix).get(path).reply(200, "invalid jwt").persist();
+        mockServer.use(
+          rest.get(`${proxy.prefix}${path}`, (_req, res, ctx) =>
+            res(ctx.text("invalid jwt")),
+          ),
+        );
 
         const response = await request(server).get(
-          `/issuers/${testIssuerWithProxyDid}/proxies/${testIssuerWithProxyFirstProxyId}${path}`
+          `/issuers/${testIssuerWithProxyDid}/proxies/${testIssuerWithProxyFirstProxyId}${path}`,
         );
 
         expect(response.body).toStrictEqual({
@@ -908,7 +921,7 @@ describe("Issuers (e2e)", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        `/issuers/not-a-did/proxies/${testIssuerWithProxyFirstProxyId}${path}`
+        `/issuers/not-a-did/proxies/${testIssuerWithProxyFirstProxyId}${path}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -924,7 +937,7 @@ describe("Issuers (e2e)", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        `/issuers/did:ebsi:z1234/proxies/${testIssuerWithProxyFirstProxyId}${path}`
+        `/issuers/did:ebsi:z1234/proxies/${testIssuerWithProxyFirstProxyId}${path}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -940,7 +953,7 @@ describe("Issuers (e2e)", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        `/issuers/${randomDid}/proxies/${testIssuerWithProxyFirstProxyId}${path}`
+        `/issuers/${randomDid}/proxies/${testIssuerWithProxyFirstProxyId}${path}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -958,7 +971,7 @@ describe("Issuers (e2e)", () => {
       const invalidProxyId = crypto.randomBytes(16).toString("hex");
 
       const response = await request(server).get(
-        `/issuers/${testIssuerWithProxyDid}/proxies/${invalidProxyId}${path}`
+        `/issuers/${testIssuerWithProxyDid}/proxies/${invalidProxyId}${path}`,
       );
 
       expect(response.body).toStrictEqual({

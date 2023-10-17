@@ -1,8 +1,8 @@
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 import {
   ProxyAuthenticationRequiredError,
   ProblemDetailsError,
-} from "../index";
+} from "../index.js";
 
 describe("error ProxyAuthenticationRequiredError", () => {
   it("should extend ProblemDetailsError", () => {
@@ -33,7 +33,7 @@ describe("error ProxyAuthenticationRequiredError", () => {
 
     expect(error.name).toBe("ProxyAuthenticationRequiredError");
     expect(error.status).toStrictEqual(
-      ProxyAuthenticationRequiredError.statusCode
+      ProxyAuthenticationRequiredError.statusCode,
     );
     expect(error.title).toBe("Test Error");
     expect(error.type).toBe("test");
@@ -74,7 +74,7 @@ describe("error ProxyAuthenticationRequiredError", () => {
     });
 
     expect(error.toString()).toBe(
-      `${ProxyAuthenticationRequiredError.statusCode} - Test Error`
+      `${ProxyAuthenticationRequiredError.statusCode} - Test Error`,
     );
   });
 });

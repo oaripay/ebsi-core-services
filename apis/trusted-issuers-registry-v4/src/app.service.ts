@@ -2,7 +2,7 @@ import { Injectable, Logger, OnApplicationBootstrap } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import axios, { AxiosInstance } from "axios";
 import axiosRetry from "axios-retry";
-import { ApiConfig } from "./config/configuration";
+import type { ApiConfig } from "./config/configuration.js";
 
 @Injectable()
 export class AppService implements OnApplicationBootstrap {
@@ -21,7 +21,7 @@ export class AppService implements OnApplicationBootstrap {
   constructor(configService: ConfigService<ApiConfig, true>) {
     this.ledgerApiUrl = configService.get<string>("ledgerApiUrl");
     this.authorisationApiV2Url = configService.get<string>(
-      "authorisationApiV2Url"
+      "authorisationApiV2Url",
     );
     this.domain = configService.get<string>("domain");
     this.localOrigin = configService.get<string>("localOrigin");

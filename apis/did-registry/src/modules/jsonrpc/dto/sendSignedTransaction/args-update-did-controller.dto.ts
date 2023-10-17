@@ -1,24 +1,24 @@
 import { IsEthereumAddress, IsNumber, Min } from "class-validator";
-import { IsHexadecimalDidRule } from "../../validators";
+import { IsHexadecimalDidRule } from "../../validators/index.js";
 
 export class ArgsUpdateDidController {
   // Consumer calling function must convert Base58 DID identifier into bytes in hex format
   @IsHexadecimalDidRule()
-  identifier: string;
+  identifier!: string;
 
   // ETH address of the new DID Controller on the SC
   @IsEthereumAddress()
-  newControllerId: string;
+  newControllerId!: string;
 
   // Unix timestamp
   @IsNumber()
   @Min(0)
-  notBefore: number;
+  notBefore!: number;
 
   // Unix timestamp
   @IsNumber()
   @Min(0)
-  notAfter: number;
+  notAfter!: number;
 }
 
 export default { ArgsUpdateDidController };

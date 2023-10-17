@@ -1,9 +1,9 @@
 import { IsEthereumAddress } from "class-validator";
-import { ArgsInsertSchema } from "../sendSignedTransaction";
+import { ArgsInsertSchema } from "../sendSignedTransaction/index.js";
 
 export class InsertSchemaParam extends ArgsInsertSchema {
   @IsEthereumAddress()
-  from: string;
+  from!: string;
 }
 
 export default { InsertSchemaParam };

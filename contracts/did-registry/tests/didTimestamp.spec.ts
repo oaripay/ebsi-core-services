@@ -10,9 +10,8 @@ describe("Timestamp Hashes", () => {
 
   before(async () => {
     [, user] = await ethers.getSigners();
-    const policyRegistryFactory = await ethers.getContractFactory(
-      "PolicyRegistryMock"
-    );
+    const policyRegistryFactory =
+      await ethers.getContractFactory("PolicyRegistryMock");
     const tempPolicyContract = await policyRegistryFactory.deploy();
     await tempPolicyContract.deployed();
     const bytecode = await ethers.provider.getCode(tempPolicyContract.address);
@@ -27,9 +26,8 @@ describe("Timestamp Hashes", () => {
     const hashAlgoFactory = await ethers.getContractFactory("HashAlgoLib", {});
     const hashAlgoLib = await hashAlgoFactory.deploy();
 
-    const didTimestampFactory = await ethers.getContractFactory(
-      "DidTimestampLib"
-    );
+    const didTimestampFactory =
+      await ethers.getContractFactory("DidTimestampLib");
     const didTimestampLib = await didTimestampFactory.deploy();
 
     const didRecordFactory = await ethers.getContractFactory("DidRecordLib", {
@@ -74,7 +72,7 @@ describe("Timestamp Hashes", () => {
     expect(r1.hash.algorithm).to.equal(0);
     expect(r1.timestampedBy).to.equal(user.address);
     expect(r1.data).to.equal(
-      ethers.utils.hexlify(ethers.utils.toUtf8Bytes("btc"))
+      ethers.utils.hexlify(ethers.utils.toUtf8Bytes("btc")),
     );
     expect(r1.blockNumber).to.equal(blockNumber + 1);
   });
@@ -93,7 +91,7 @@ describe("Timestamp Hashes", () => {
 
   it("getDidTimestamp should revert if hash is unknown", async () => {
     await expect(
-      ts.getDidTimestamp(ethers.utils.toUtf8Bytes("unknow?"))
+      ts.getDidTimestamp(ethers.utils.toUtf8Bytes("unknow?")),
     ).to.be.revertedWith("timestamp unknown");
   });
 
@@ -123,7 +121,7 @@ describe("Timestamp Hashes", () => {
     expect(r1.hash.algorithm).to.equal(1);
     expect(r1.timestampedBy).to.equal(user.address);
     expect(r1.data).to.equal(
-      ethers.utils.hexlify(ethers.utils.toUtf8Bytes("btc"))
+      ethers.utils.hexlify(ethers.utils.toUtf8Bytes("btc")),
     );
     expect(r1.blockNumber).to.equal(blockNumber + 1);
   });
@@ -131,48 +129,48 @@ describe("Timestamp Hashes", () => {
   it("getDidTimestampById should revert if timestampID is unknown", async () => {
     await expect(
       ts.getDidTimestampById(
-        ethers.utils.sha256(ethers.utils.toUtf8Bytes("unknow?"))
-      )
+        ethers.utils.sha256(ethers.utils.toUtf8Bytes("unknow?")),
+      ),
     ).to.be.revertedWith("timestamp unknown");
   });
 
   it("getDidTimestampById should revert if timestampId is empty", async () => {
     await expect(
-      ts.getDidTimestampById(ethers.constants.HashZero)
+      ts.getDidTimestampById(ethers.constants.HashZero),
     ).to.be.revertedWith("tsId empty");
   });
 
   it("didTimestampHash should fail for hash length mismatch", async () => {
     const hash1 = ethers.utils.sha256(ethers.utils.toUtf8Bytes("e40605e6"));
     await expect(
-      ts.didTimestampHash(1, hash1, ethers.utils.toUtf8Bytes("ath"))
+      ts.didTimestampHash(1, hash1, ethers.utils.toUtf8Bytes("ath")),
     ).to.be.revertedWith("invalid hash length");
   });
 
   it("didTimestampHash should fail if > 3", async () => {
     const hash1 = ethers.utils.sha256(ethers.utils.toUtf8Bytes("e40605e6"));
     await expect(
-      ts.didTimestampHash(78, hash1, ethers.utils.toUtf8Bytes("ath"))
+      ts.didTimestampHash(78, hash1, ethers.utils.toUtf8Bytes("ath")),
     ).to.be.revertedWith("hashAlgo unknown");
     await expect(
-      ts.didTimestampHash(1, [], ethers.utils.toUtf8Bytes("ath"))
+      ts.didTimestampHash(1, [], ethers.utils.toUtf8Bytes("ath")),
     ).to.be.revertedWith("hashValue empty");
   });
 
   it("didTimestampHash should fail for empty value and hash", async () => {
     await expect(
-      ts.insertHashAlgorithm(256, "sha-256", "oid", 1, "sha2-256")
+      ts.insertHashAlgorithm(256, "sha-256", "oid", 1, "sha2-256"),
     ).to.emit(ts, "AddNewHashAlgo");
     await expect(
-      ts.insertHashAlgorithm(512, "sha-512", "oid2", 1, "sha2-512")
+      ts.insertHashAlgorithm(512, "sha-512", "oid2", 1, "sha2-512"),
     ).to.emit(ts, "AddNewHashAlgo");
     await expect(
-      ts.insertHashAlgorithm(256, "sha3-256", "oid3", 1, "sha3-256")
+      ts.insertHashAlgorithm(256, "sha3-256", "oid3", 1, "sha3-256"),
     ).to.emit(ts, "AddNewHashAlgo");
 
     const hash1 = ethers.utils.sha256(ethers.utils.toUtf8Bytes("e40605e6"));
     await expect(
-      ts.didTimestampHash(5, [], ethers.utils.toUtf8Bytes("ath"))
+      ts.didTimestampHash(5, [], ethers.utils.toUtf8Bytes("ath")),
     ).to.be.revertedWith("hashValue empty");
     // should not revert
     await ts.didTimestampHash(5, hash1, []);
@@ -182,7 +180,7 @@ describe("Timestamp Hashes", () => {
     const hash1 = ethers.utils.sha256(ethers.utils.toUtf8Bytes("e40605e6"));
 
     await expect(
-      ts.didTimestampHash(0, hash1, ethers.utils.toUtf8Bytes("btc"))
+      ts.didTimestampHash(0, hash1, ethers.utils.toUtf8Bytes("btc")),
     ).to.emit(ts, "DidTimestampedHash");
 
     const receipt = await ts.getDidTimestamps(1, 10);
@@ -208,7 +206,7 @@ describe("Timestamp Hashes", () => {
       // INSERT SHOULD BE DONE IN ORDER !!!
       // eslint-disable-next-line no-await-in-loop
       await expect(
-        ts.didTimestampHash(0, hash, ethers.utils.toUtf8Bytes(data))
+        ts.didTimestampHash(0, hash, ethers.utils.toUtf8Bytes(data)),
       );
     }
     // pagesize = 0 should revert
@@ -218,7 +216,7 @@ describe("Timestamp Hashes", () => {
 
     // pagesize > 50 should revert
     await expect(ts.getDidTimestamps(1, 51)).to.be.revertedWith(
-      "PSize not <= 50"
+      "PSize not <= 50",
     );
   });
 
@@ -233,7 +231,7 @@ describe("Timestamp Hashes", () => {
       // INSERT SHOULD BE DONE IN ORDER !!!
       // eslint-disable-next-line no-await-in-loop
       await expect(
-        ts.didTimestampHash(0, hash, ethers.utils.toUtf8Bytes(data))
+        ts.didTimestampHash(0, hash, ethers.utils.toUtf8Bytes(data)),
       );
     }
 

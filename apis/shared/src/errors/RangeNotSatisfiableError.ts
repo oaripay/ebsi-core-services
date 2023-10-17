@@ -1,4 +1,4 @@
-import { ProblemDetailsError } from "./ProblemDetailsError";
+import { ProblemDetailsError } from "./ProblemDetailsError.js";
 
 /**
  * RangeNotSatisfiableError defines the Range Not Satisfiable (416) error type.
@@ -24,7 +24,7 @@ export class RangeNotSatisfiableError extends ProblemDetailsError {
       detail?: string;
       instance?: string;
       extensions?: { [x: string]: unknown };
-    }
+    },
   ) {
     super(RangeNotSatisfiableError.statusCode, title, options);
     this.name = "RangeNotSatisfiableError";

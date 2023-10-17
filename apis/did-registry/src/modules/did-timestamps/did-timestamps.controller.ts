@@ -1,31 +1,31 @@
 import { Controller, Get, Query, Param } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PaginatedList } from "@ebsiint-api/shared";
-import { DidTimestampsService } from "./did-timestamps.service";
-import { formatDidTimestamps } from "./did-timestamps.formatter";
+import { DidTimestampsService } from "./did-timestamps.service.js";
+import { formatDidTimestamps } from "./did-timestamps.formatter.js";
 import {
   TimestampLink,
   DidTimestampResponseObject,
-} from "./did-timestamps.interface";
-import { GetTimestampParamsDto, GetTimestampsQueryDto } from "./dto";
-import { ApiConfig } from "../../config/configuration";
+} from "./did-timestamps.interface.js";
+import { GetTimestampParamsDto, GetTimestampsQueryDto } from "./dto/index.js";
+import type { ApiConfig } from "../../config/configuration.js";
 
 @Controller("/did-timestamps")
 export class DidTimestampsController {
   constructor(
     private didTimestampsService: DidTimestampsService,
-    private configService: ConfigService<ApiConfig, true>
+    private configService: ConfigService<ApiConfig, true>,
   ) {}
 
   @Get("")
   async getDidTimestamps(
-    @Query() query: GetTimestampsQueryDto
+    @Query() query: GetTimestampsQueryDto,
   ): Promise<PaginatedList<TimestampLink>> {
     const didTimestamps = await this.didTimestampsService.getDidTimestamps(
       query["page[after]"],
       query["page[size]"],
       query.identifier,
-      query["version-id"]
+      query["version-id"],
     );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
@@ -38,13 +38,13 @@ export class DidTimestampsController {
       query["page[size]"],
       baseUrl,
       query.identifier,
-      query["version-id"]
+      query["version-id"],
     );
   }
 
   @Get("/:timestampId")
   async getDidTimestamp(
-    @Param() params: GetTimestampParamsDto
+    @Param() params: GetTimestampParamsDto,
   ): Promise<DidTimestampResponseObject> {
     const { timestampId } = params;
     return this.didTimestampsService.getDidTimestamp(timestampId);

@@ -1,38 +1,29 @@
-import {
-  jest,
-  describe,
-  beforeAll,
-  beforeEach,
-  it,
-  expect,
-} from "@jest/globals";
+import { describe, beforeAll, beforeEach, it, expect } from "vitest";
 import crypto from "node:crypto";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import { ValidationPipe, HttpServer, Logger } from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import { base64url } from "multiformats/bases/base64";
 import { exportJWK, generateKeyPair } from "jose";
-import EbsiWallet from "@cef-ebsi/wallet-lib";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { PaginatedList2 } from "@ebsiint-api/shared";
-import { AppModule } from "../../src/app.module";
-import { ApiConfig } from "../../src/config/configuration";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
-import { AttributeResponseObject } from "../../src/modules/attributes/attributes.interface";
-import { requestSiopJwt } from "../utils/auth";
-import { describeWriteOps } from "../utils/describeWriteOps";
-import { getServer } from "../utils/getServer";
-
-jest.setTimeout(120000);
+import { AppModule } from "../../src/app.module.js";
+import type { ApiConfig } from "../../src/config/configuration.js";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
+import { AttributeResponseObject } from "../../src/modules/attributes/attributes.interface.js";
+import { requestSiopJwt } from "../utils/auth.js";
+import { describeWriteOps } from "../utils/describeWriteOps.js";
+import { getServer } from "../utils/getServer.js";
 
 describeWriteOps()("Attributes", () => {
   let app: NestFastifyApplication;
-  let server: HttpServer | string;
+  let server: RawServerDefault | string;
   let configService: ConfigService<ApiConfig, true>;
   let storageApiUrl: string;
   let apiUrl: string;
@@ -97,7 +88,7 @@ describeWriteOps()("Attributes", () => {
     return Promise.all(
       response.body.items.map(async (item) => {
         return deleteAttribute(item.hash, token);
-      })
+      }),
     );
   };
 
@@ -107,7 +98,7 @@ describeWriteOps()("Attributes", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     Logger.overrideLogger(false);
@@ -118,13 +109,13 @@ describeWriteOps()("Attributes", () => {
     app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
     server = getServer(app, configService);
 
     const domain = configService.get<"string">("domain");
     const testLoadBalancerDomain = configService.get<"string">(
-      "testLoadBalancerDomain"
+      "testLoadBalancerDomain",
     );
     const apiUrlPrefix = configService.get<"string">("apiUrlPrefix");
 
@@ -185,14 +176,14 @@ describeWriteOps()("Attributes", () => {
         } else {
           const testUser1Keys = await generateKeyPair("ES256K");
           const testUser1PrivateKeyJwk = await exportJWK(
-            testUser1Keys.privateKey
+            testUser1Keys.privateKey,
           );
           const testUser1PublicKeyJwk = await exportJWK(
-            testUser1Keys.publicKey
+            testUser1Keys.publicKey,
           );
           const testUser1Did = EbsiWallet.createDid(
             "NATURAL_PERSON",
-            testUser1PublicKeyJwk
+            testUser1PublicKeyJwk,
           );
           const fragmentIdentifier = testUser1Did.replace("did:key:", "");
           const testUser1Kid = `${testUser1Did}#${fragmentIdentifier}`;
@@ -271,15 +262,15 @@ describeWriteOps()("Attributes", () => {
             links: {
               next: expect.stringMatching(
                 new RegExp(
-                  `^${apiUrl}/attributes\\?page\\[after\\]=.*&page\\[size\\]=2`
-                )
+                  `^${apiUrl}/attributes\\?page\\[after\\]=.*&page\\[size\\]=2`,
+                ),
               ),
             },
             pageSize: 2,
           });
           expect(response.status).toBe(200);
           expect(
-            (response.body as { items: AttributeResponseObject[] }).items
+            (response.body as { items: AttributeResponseObject[] }).items,
           ).toHaveLength(2);
 
           path =
@@ -304,15 +295,15 @@ describeWriteOps()("Attributes", () => {
             links: {
               next: expect.stringMatching(
                 new RegExp(
-                  `^${apiUrl}/attributes\\?page\\[after\\]=.*&page\\[size\\]=2`
-                )
+                  `^${apiUrl}/attributes\\?page\\[after\\]=.*&page\\[size\\]=2`,
+                ),
               ),
             },
             pageSize: 2,
           });
           expect(response.status).toBe(200);
           expect(
-            (response.body as { items: AttributeResponseObject[] }).items
+            (response.body as { items: AttributeResponseObject[] }).items,
           ).toHaveLength(1);
 
           path =
@@ -757,6 +748,6 @@ describeWriteOps()("Attributes", () => {
           expect(response.status).toBe(200);
         });
       });
-    }
+    },
   );
 });

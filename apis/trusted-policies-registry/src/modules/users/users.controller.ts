@@ -1,26 +1,26 @@
 import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PaginationQuery, PaginatedList } from "@ebsiint-api/shared";
-import { UsersService } from "./users.service";
-import { formatUsers } from "./users.formatter";
-import { UserLink, UserResponseObject } from "./users.interface";
-import { ApiConfig } from "../../config/configuration";
-import { GetUserParams } from "./dto";
+import { UsersService } from "./users.service.js";
+import { formatUsers } from "./users.formatter.js";
+import { UserLink, UserResponseObject } from "./users.interface.js";
+import type { ApiConfig } from "../../config/configuration.js";
+import { GetUserParams } from "./dto/index.js";
 
 @Controller("/users")
 export class UsersController {
   constructor(
     private usersService: UsersService,
-    private configService: ConfigService<ApiConfig, true>
+    private configService: ConfigService<ApiConfig, true>,
   ) {}
 
   @Get("")
   async getUsers(
-    @Query() query: PaginationQuery
+    @Query() query: PaginationQuery,
   ): Promise<PaginatedList<UserLink>> {
     const users = await this.usersService.getUsers(
       query["page[after]"],
-      query["page[size]"]
+      query["page[size]"],
     );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
@@ -31,7 +31,7 @@ export class UsersController {
       users,
       query["page[after]"],
       query["page[size]"],
-      baseUrl
+      baseUrl,
     );
   }
 

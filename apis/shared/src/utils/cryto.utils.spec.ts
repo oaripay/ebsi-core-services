@@ -1,5 +1,5 @@
-import { describe, it, expect } from "@jest/globals";
-import { encrypt, decrypt } from "./crypto.utils";
+import { describe, it, expect } from "vitest";
+import { encrypt, decrypt } from "./crypto.utils.js";
 
 describe("crypto utils", () => {
   const secret = "secret passphrase";

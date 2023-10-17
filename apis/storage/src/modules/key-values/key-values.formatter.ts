@@ -6,7 +6,7 @@ export function formatKeys(
   nextPage: string,
   pageSize: number,
   baseUrl: string,
-  extraQuery?: string
+  extraQuery?: string,
 ): PaginatedList2<string> {
   return paginateForCassandra2<string>(
     keys,
@@ -14,7 +14,7 @@ export function formatKeys(
     currentPage,
     nextPage,
     pageSize,
-    extraQuery
+    extraQuery,
   );
 }
 

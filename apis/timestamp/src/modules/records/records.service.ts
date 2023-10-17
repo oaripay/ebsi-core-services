@@ -2,7 +2,6 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ethers } from "ethers";
 import { Timestamp } from "@ebsiint-sc/timestamp";
 import {
-  AsyncReturnType,
   multibase,
   BadRequestError,
   NotFoundError,
@@ -10,12 +9,12 @@ import {
   remove0xPrefix,
   getErrorMessage,
 } from "@ebsiint-api/shared";
-import { LedgerService } from "../ledger/ledger.service";
+import { LedgerService } from "../ledger/ledger.service.js";
 import {
   InfoObject,
   RecordResponseObject,
   RecordVersionResponseObject,
-} from "./records.interface";
+} from "./records.interface.js";
 
 @Injectable()
 export default class RecordsService {
@@ -26,7 +25,7 @@ export default class RecordsService {
   async getPage(
     fnName: string,
     params: (string | number)[],
-    page: number
+    page: number,
   ): Promise<{
     hashValues: string[];
     infoIds: string[];
@@ -41,7 +40,7 @@ export default class RecordsService {
             params[0] as string,
             params[1] as number,
             page,
-            50
+            50,
           );
           return { hashValues, infoIds, total };
         } catch (error) {
@@ -60,7 +59,7 @@ export default class RecordsService {
 
   async getAllPages(
     fnName: string,
-    params: (string | number)[]
+    params: (string | number)[],
   ): Promise<{
     hashValues: string[];
     infoIds: string[];
@@ -69,12 +68,12 @@ export default class RecordsService {
     const { hashValues, infoIds, total } = await this.getPage(
       fnName,
       params,
-      1
+      1,
     );
     const lastPage = Math.ceil(total.toNumber() / 50);
     const promisesNextPages = Array.from(
       { length: lastPage - 1 },
-      (x, i) => i + 2
+      (_, i) => i + 2,
     ).map(async (i) => {
       const { hashValues: pagItems } = await this.getPage(fnName, params, i);
       return pagItems;
@@ -88,7 +87,7 @@ export default class RecordsService {
 
   async getRecordIds(
     page: number,
-    pageSize: number
+    pageSize: number,
   ): ReturnType<Timestamp["getRecordIds"]> {
     try {
       return await (
@@ -107,7 +106,7 @@ export default class RecordsService {
   async getRecordIdsByFirstVersionHash(
     firstVersion: string,
     page: number,
-    pageSize: number
+    pageSize: number,
   ): ReturnType<Timestamp["getRecordIdsByFirstVersionHash"]> {
     try {
       return await (
@@ -126,7 +125,7 @@ export default class RecordsService {
   async getRecordIdsByOwnerId(
     owner: string,
     page: number,
-    pageSize: number
+    pageSize: number,
   ): ReturnType<Timestamp["getRecordIdsByOwnerId"]> {
     try {
       return await (
@@ -143,9 +142,9 @@ export default class RecordsService {
   }
 
   async getRecord(recordIdEncoded: string): Promise<RecordResponseObject> {
-    let record: AsyncReturnType<Timestamp["getRecord"]>;
+    let record: Awaited<ReturnType<Timestamp["getRecord"]>>;
     const recordId = `0x${Buffer.from(
-      multibase.base64url.decode(recordIdEncoded)
+      multibase.base64url.decode(recordIdEncoded),
     ).toString("hex")}`;
 
     try {
@@ -165,12 +164,12 @@ export default class RecordsService {
 
     const { hashValues: firstVersionTimestamps } = await this.getAllPages(
       "getRecordVersion",
-      [recordId, 0]
+      [recordId, 0],
     );
 
     const { hashValues: lastVersionTimestamps } = await this.getAllPages(
       "getRecordVersion",
-      [recordId, totalVersions.toNumber() - 1]
+      [recordId, totalVersions.toNumber() - 1],
     );
 
     return {
@@ -183,9 +182,9 @@ export default class RecordsService {
   }
 
   async getRecordVersions(recordIdEncoded: string): Promise<number> {
-    let record: AsyncReturnType<Timestamp["getRecord"]>;
+    let record: Awaited<ReturnType<Timestamp["getRecord"]>>;
     const recordId = `0x${Buffer.from(
-      multibase.base64url.decode(recordIdEncoded)
+      multibase.base64url.decode(recordIdEncoded),
     ).toString("hex")}`;
 
     try {
@@ -206,10 +205,10 @@ export default class RecordsService {
 
   async getRecordVersion(
     recordIdEncoded: string,
-    versionId: string
+    versionId: string,
   ): Promise<RecordVersionResponseObject> {
     const recordId = `0x${Buffer.from(
-      multibase.base64url.decode(recordIdEncoded)
+      multibase.base64url.decode(recordIdEncoded),
     ).toString("hex")}`;
 
     const totalVersions = await this.getRecordVersions(recordIdEncoded);
@@ -228,13 +227,13 @@ export default class RecordsService {
     try {
       const contract = await this.ledgerService.getContract();
       const infosBytes = await Promise.all(
-        infoIds.map((infoId) => contract.getRecordVersionInfo(infoId))
+        infoIds.map((infoId) => contract.getRecordVersionInfo(infoId)),
       );
 
       const info: InfoObject[] = infosBytes.map((infoBytes) => {
         const infoString = Buffer.from(
           remove0xPrefix(infoBytes),
-          "hex"
+          "hex",
         ).toString("utf8");
         try {
           return JSON.parse(infoString) as InfoObject;

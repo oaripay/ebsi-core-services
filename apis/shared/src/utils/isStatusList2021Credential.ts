@@ -11,7 +11,7 @@ export interface StatusList2021Credential extends EbsiVerifiableAttestation {
   "@context": [
     "https://www.w3.org/2018/credentials/v1",
     "https://w3id.org/vc/status-list/2021/v1",
-    ...string[]
+    ...string[],
   ];
   type: ["VerifiableCredential", ...string[]];
   credentialSubject: {
@@ -26,19 +26,19 @@ export const statusList2021CredentialSchema = Joi.object({
   "@context": Joi.array()
     .ordered(
       Joi.string().valid("https://www.w3.org/2018/credentials/v1").required(),
-      Joi.string().valid("https://w3id.org/vc/status-list/2021/v1").required()
+      Joi.string().valid("https://w3id.org/vc/status-list/2021/v1").required(),
     )
     .items(Joi.string().uri())
     .required(),
   type: Joi.array()
     .ordered(
       // First item must be "VerifiableCredential"
-      Joi.string().valid("VerifiableCredential").required()
+      Joi.string().valid("VerifiableCredential").required(),
     )
     .items(
       // "StatusList2021Credential" must be present
       Joi.string().valid("StatusList2021Credential").required(),
-      Joi.string()
+      Joi.string(),
     )
     .required(),
   credentialSubject: Joi.object({
@@ -56,7 +56,7 @@ export const statusList2021CredentialSchema = Joi.object({
 export async function checkStatusList2021Credential(
   credentialJwt: unknown,
   authority: string,
-  options?: Omit<VerifyCredentialOptions, "ebsiAuthority">
+  options?: Omit<VerifyCredentialOptions, "ebsiAuthority">,
 ): Promise<{ success: boolean; error?: string }> {
   // Note: we only support VC JWT for now -> the StatusList2021Credential must be a JWT
   if (!credentialJwt || typeof credentialJwt !== "string")
@@ -87,7 +87,7 @@ export async function checkStatusList2021Credential(
 export async function isStatusList2021Credential(
   credentialJwt: unknown,
   authority: string,
-  options?: Omit<VerifyCredentialOptions, "ebsiAuthority">
+  options?: Omit<VerifyCredentialOptions, "ebsiAuthority">,
 ): Promise<boolean> {
   return (
     await checkStatusList2021Credential(credentialJwt, authority, options)

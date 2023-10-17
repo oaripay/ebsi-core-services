@@ -4,14 +4,14 @@ import {
   GetSchemasResponse,
   GetSchemaRevisionMetadataListResponse,
   ItemsList,
-} from "./schemas.interface";
-import { hexToMultibaseBase58Btc } from "./schemas.utils";
+} from "./schemas.interface.js";
+import { hexToMultibaseBase58Btc } from "./schemas.utils.js";
 
 export function formatSchemas(
   schemas: ItemsList,
   page: number,
   pageSize: number,
-  baseUrl: string
+  baseUrl: string,
 ): PaginatedList<GetSchemasResponse> {
   // Reshape items
   const { total } = schemas;
@@ -32,7 +32,7 @@ export function formatSchemaRevisions(
   page: number,
   pageSize: number,
   baseUrl: string,
-  validAt?: string
+  validAt?: string,
 ): PaginatedList<GetSchemaRevisionsResponse> {
   // Reshape items
   const { total } = schemas;
@@ -49,7 +49,7 @@ export function formatSchemaRevisions(
     total,
     page,
     pageSize,
-    extraQuery
+    extraQuery,
   );
 }
 
@@ -57,7 +57,7 @@ export function formatSchemaRevisionMetadataList(
   metadata: ItemsList,
   page: number,
   pageSize: number,
-  baseUrl: string
+  baseUrl: string,
 ): PaginatedList<GetSchemaRevisionMetadataListResponse> {
   // Reshape items
   const { total } = metadata;
@@ -71,6 +71,6 @@ export function formatSchemaRevisionMetadataList(
     baseUrl,
     total,
     page,
-    pageSize
+    pageSize,
   );
 }

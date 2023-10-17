@@ -10,7 +10,7 @@ import {
   encrypt,
   decrypt,
 } from "@ebsiint-api/shared";
-import axios, { AxiosResponse } from "axios";
+import axios, { type AxiosResponse } from "axios";
 import { decodeJWT } from "did-jwt";
 import {
   EBSI_DID_METHOD_PREFIX,
@@ -18,8 +18,8 @@ import {
 } from "@cef-ebsi/ebsi-did-resolver";
 import { util } from "@cef-ebsi/key-did-resolver";
 import { Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
-import { CreateNotificationDto } from "./dto/create-notification.dto";
-import { ApiConfig } from "../../config/configuration";
+import { CreateNotificationDto } from "./dto/create-notification.dto.js";
+import type { ApiConfig } from "../../config/configuration.js";
 import {
   Notification,
   NotificationResponseObject,
@@ -27,7 +27,7 @@ import {
   CassandraResponse,
   PageOpts,
   AxiosResponseJsonRpc,
-} from "./notifications.interface";
+} from "./notifications.interface.js";
 
 const FIVE_DAYS = 5 * 24 * 60 * 60 * 1000;
 
@@ -48,9 +48,9 @@ export class NotificationsService {
 
   private didRegistryApiUrl: string;
 
-  private accessTokenExp: number;
+  private accessTokenExp: number | undefined;
 
-  private accessToken: string;
+  private accessToken: string | undefined;
 
   private agent: Agent;
 
@@ -78,7 +78,7 @@ export class NotificationsService {
       privateKey: configService.get<string>("apiPrivateKey"),
       name: configService.get<string>("apiName"),
       trustedAppsRegistry: `${configService.get<string>(
-        "trustedAppsRegistryApiUrl"
+        "trustedAppsRegistryApiUrl",
       )}/apps`,
     });
   }
@@ -97,7 +97,7 @@ export class NotificationsService {
 
     const requestComponent = await this.agent.createRequest(
       this.storageApiName,
-      { nonce }
+      { nonce },
     );
 
     // Send request payload to Authorisation API
@@ -133,7 +133,7 @@ export class NotificationsService {
   }
 
   async storageJsonrpc(
-    params: (string | number | PageOpts)[]
+    params: (string | number | PageOpts)[],
   ): Promise<CassandraResponse> {
     await this.checkSession();
 
@@ -154,13 +154,13 @@ export class NotificationsService {
     const response: AxiosResponseJsonRpc = await axios.post(
       this.urlJsonrpcStorage,
       data,
-      opts
+      opts,
     );
     return response.data.result as CassandraResponse;
   }
 
   async insertNotification(
-    createNotificationDto: CreateNotificationDto
+    createNotificationDto: CreateNotificationDto,
   ): Promise<{ notification: Notification; id: string | number }> {
     // Transform DTO to plain object to be stored
     const notification = instanceToPlain(createNotificationDto) as Notification;
@@ -180,7 +180,7 @@ export class NotificationsService {
 
     if (!expirationDate) {
       expirationDate = new Date(
-        new Date(issuanceDate).getTime() + FIVE_DAYS
+        new Date(issuanceDate).getTime() + FIVE_DAYS,
       ).toISOString();
     }
 
@@ -194,7 +194,7 @@ export class NotificationsService {
           });
         } catch (error) {
           throw new BadRequestError(
-            `${to} is not registered in the DID Registry`
+            `${to} is not registered in the DID Registry`,
           );
         }
       }
@@ -208,7 +208,7 @@ export class NotificationsService {
     // calculate ttl
     const ttl = Math.trunc(
       (new Date(expirationDate).getTime() - new Date(issuanceDate).getTime()) /
-        1000
+        1000,
     );
 
     await this.storageJsonrpc([
@@ -226,7 +226,7 @@ export class NotificationsService {
   async getNotifications(
     did: string,
     pageAfter: string,
-    fetchSize: number
+    fetchSize: number,
   ): Promise<{
     notifications: NotificationResponseObject[];
     pageAfter: string;
@@ -269,21 +269,21 @@ export class NotificationsService {
     const total = Number((rowsCount[0] as { count: string }).count);
 
     // Add _links to the notifications
-    const notifications = cassandraNotifications.map(
-      (cassandraNotification: NotificationCassandraModel) => {
-        const notification = JSON.parse(
-          cassandraNotification.message
-        ) as Notification;
-        return {
-          ...notification,
-          _links: {
-            self: {
-              href: `${this.notificationsUrl}/${cassandraNotification.id}`,
-            },
+    const notifications = (
+      cassandraNotifications as NotificationCassandraModel[]
+    ).map((cassandraNotification) => {
+      const notification = JSON.parse(
+        cassandraNotification.message,
+      ) as Notification;
+      return {
+        ...notification,
+        _links: {
+          self: {
+            href: `${this.notificationsUrl}/${cassandraNotification.id}`,
           },
-        };
-      }
-    );
+        },
+      };
+    });
 
     notifications.sort((a, b) => (a.issuanceDate > b.issuanceDate ? 1 : -1));
 

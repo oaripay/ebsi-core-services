@@ -1,8 +1,8 @@
 import { Injectable, OnApplicationBootstrap, Logger } from "@nestjs/common";
 import { mapping, types, QueryOptions } from "cassandra-driver";
-import { CassandraService } from "../cassandra.service";
-import { FileModel } from "../models/file.model";
-import { CASSANDRA_EXCEPTIONS } from "../cassandra.constants";
+import { CassandraService } from "../cassandra.service.js";
+import { FileModel } from "../models/file.model.js";
+import { CASSANDRA_EXCEPTIONS } from "../cassandra.constants.js";
 
 const TABLE_FILE_STORAGE = "file_storage";
 
@@ -10,7 +10,7 @@ const TABLE_FILE_STORAGE = "file_storage";
 export class FilesRepository implements OnApplicationBootstrap {
   private readonly logger = new Logger(FilesRepository.name);
 
-  fileMapper: mapping.ModelMapper<FileModel>;
+  fileMapper!: mapping.ModelMapper<FileModel>;
 
   constructor(private cassandraService: CassandraService) {}
 
@@ -35,7 +35,7 @@ export class FilesRepository implements OnApplicationBootstrap {
   }: {
     did: string;
     hash: string;
-  }): Promise<FileModel> {
+  }): Promise<FileModel | null> {
     const result = await this.fileMapper.find({ did, hash });
     return result.first();
   }
@@ -43,7 +43,7 @@ export class FilesRepository implements OnApplicationBootstrap {
   async getFiles(
     did: string,
     requestedPageState: string,
-    pageSize: number
+    pageSize: number,
   ): Promise<types.ResultSet> {
     const query = `select hash from ${TABLE_FILE_STORAGE} where did = ?`;
     const params = [did];

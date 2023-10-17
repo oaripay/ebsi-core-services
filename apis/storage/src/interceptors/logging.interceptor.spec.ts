@@ -1,54 +1,41 @@
-import {
-  jest,
-  describe,
-  beforeAll,
-  afterEach,
-  it,
-  expect,
-} from "@jest/globals";
+import { vi, describe, beforeAll, afterEach, it, expect } from "vitest";
 import crypto from "node:crypto";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import { INestApplication, ValidationPipe, Logger } from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { of } from "rxjs";
 import { HttpService } from "@nestjs/axios";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { FastifyInstance } from "fastify";
 import type { JWTVerifyResult } from "jose";
-import { AppModule } from "../app.module";
-import { AllExceptionsFilter } from "../filters/http-exception.filter";
-import { ApiConfig } from "../config/configuration";
+import { AppModule } from "../app.module.js";
+import { AllExceptionsFilter } from "../filters/http-exception.filter.js";
+import type { ApiConfig } from "../config/configuration.js";
 
-jest.setTimeout(120000);
-
-jest.mock("@cef-ebsi/siop-auth", () => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const originalModule = jest.requireActual("@cef-ebsi/siop-auth");
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+vi.mock("@cef-ebsi/siop-auth", async () => {
+  const mod = await vi.importActual<typeof import("@cef-ebsi/siop-auth")>(
+    "@cef-ebsi/siop-auth",
+  );
+  // Return a mocked version so we can redefine property `verifyJwtTar` later
   return {
-    __esModule: true,
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    ...originalModule,
+    ...mod,
     verifyJwtTar: async () =>
       Promise.resolve({ payload: { sub: "did:ebsi:any" } } as JWTVerifyResult),
   };
 });
 
 describe("Logging interceptor", () => {
-  let app: INestApplication;
+  let app: NestFastifyApplication;
   let httpService: HttpService;
   let configService: ConfigService<ApiConfig, true>;
 
   const mockedLogger = {
-    log: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
+    log: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
   };
 
   beforeAll(async () => {
@@ -64,7 +51,7 @@ describe("Logging interceptor", () => {
         // By default, bodyLimit=1048576 (1MB)
         // https://www.fastify.io/docs/latest/Server/#bodylimit
         bodyLimit: 10 * 1024 * 1024,
-      })
+      }),
     );
     configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
     app.useGlobalFilters(new AllExceptionsFilter(configService));
@@ -73,21 +60,20 @@ describe("Logging interceptor", () => {
     Logger.overrideLogger(mockedLogger);
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
     httpService = await moduleFixture.resolve<HttpService>(HttpService);
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe("GET /health", () => {
     it("should log the request and response", async () => {
       expect.assertions(2);
 
-      jest
-        .spyOn(httpService, "request")
+      vi.spyOn(httpService, "request")
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         .mockImplementation(() => of({}));
@@ -109,7 +95,7 @@ describe("Logging interceptor", () => {
           method: "GET",
         },
         "LoggingInterceptor - GET - /health",
-        "LoggingInterceptor"
+        "LoggingInterceptor",
       );
 
       // It should have logged the response
@@ -133,7 +119,7 @@ describe("Logging interceptor", () => {
           message: "Outgoing response - 200 - GET - /health",
         },
         "LoggingInterceptor - 200 - GET - /health",
-        "LoggingInterceptor"
+        "LoggingInterceptor",
       );
     });
   });
@@ -171,7 +157,7 @@ describe("Logging interceptor", () => {
           method: "PUT",
         },
         `LoggingInterceptor - PUT - /stores/distributed/key-values/${key}`,
-        "LoggingInterceptor"
+        "LoggingInterceptor",
       );
 
       // It should have logged the response
@@ -182,7 +168,7 @@ describe("Logging interceptor", () => {
         },
         expect.stringContaining("BadRequestError: Bad Request"),
         `LoggingInterceptor - PUT - /stores/distributed/key-values/${key}`,
-        "LoggingInterceptor"
+        "LoggingInterceptor",
       );
     });
   });
@@ -220,7 +206,7 @@ describe("Logging interceptor", () => {
           method: "PUT",
         },
         `LoggingInterceptor - PUT - /stores/distributed/key-values/${key}`,
-        "LoggingInterceptor"
+        "LoggingInterceptor",
       );
 
       // It should have logged the response
@@ -234,7 +220,7 @@ describe("Logging interceptor", () => {
           url: `/stores/distributed/key-values/${key}`,
         },
         `LoggingInterceptor - 400 - PUT - /stores/distributed/key-values/${key}`,
-        "LoggingInterceptor"
+        "LoggingInterceptor",
       );
     });
   });

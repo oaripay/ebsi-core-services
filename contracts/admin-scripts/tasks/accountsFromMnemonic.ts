@@ -7,7 +7,7 @@ import "@nomiclabs/hardhat-waffle";
 task("accountsFromMnemonic", "prints the first few accounts of a mnemonic")
   .addParam(
     "mnemonic",
-    "The mnemonic used for BIP39 key derivation: See https://iancoleman.io/bip39"
+    "The mnemonic used for BIP39 key derivation: See https://iancoleman.io/bip39",
   )
   .setAction(async (taskArgs: { mnemonic: string }, { ethers }) => {
     const { mnemonic } = taskArgs;
@@ -16,7 +16,7 @@ task("accountsFromMnemonic", "prints the first few accounts of a mnemonic")
       throw new Error(`Missing task argument --mnemonic `);
     }
     const masterKey = await Promise.resolve(
-      ethers.utils.HDNode.fromMnemonic(mnemonic)
+      ethers.utils.HDNode.fromMnemonic(mnemonic),
     );
 
     // "m/44'/60'/0'/0/0" first account
@@ -27,7 +27,7 @@ task("accountsFromMnemonic", "prints the first few accounts of a mnemonic")
       console.log(
         `Key ${getPathForIndex(index)}: ${key.address} (PK: ${
           key.publicKey
-        }) (sk: ${key.privateKey})`
+        }) (sk: ${key.privateKey})`,
       );
     });
   });

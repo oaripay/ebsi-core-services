@@ -4,24 +4,22 @@ import {
   OnModuleInit,
   OnApplicationShutdown,
 } from "@nestjs/common";
-import { ConfigType } from "@nestjs/config";
+import type { ConfigType } from "@nestjs/config";
 import { Client, mapping } from "cassandra-driver";
 import {
   cassandraConfig,
   CassandraConsistency,
-} from "../../config/cassandra.config";
+} from "../../config/cassandra.config.js";
 
 @Injectable()
 export class CassandraService implements OnModuleInit, OnApplicationShutdown {
-  client: Client;
+  client!: Client;
 
-  mapper: mapping.Mapper;
-
-  consistency: CassandraConsistency;
+  consistency!: CassandraConsistency;
 
   constructor(
     @Inject(cassandraConfig.KEY)
-    private dbConfig: ConfigType<typeof cassandraConfig>
+    private dbConfig: ConfigType<typeof cassandraConfig>,
   ) {}
 
   onModuleInit(): void {

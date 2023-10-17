@@ -1,4 +1,4 @@
-import { ProblemDetailsError } from "./ProblemDetailsError";
+import { ProblemDetailsError } from "./ProblemDetailsError.js";
 
 /**
  * ServiceUnavailableError defines the Service Unavailable (503) error type.
@@ -24,7 +24,7 @@ export class ServiceUnavailableError extends ProblemDetailsError {
       detail?: string;
       instance?: string;
       extensions?: { [x: string]: unknown };
-    }
+    },
   ) {
     super(ServiceUnavailableError.statusCode, title, options);
     this.name = "ServiceUnavailableError";

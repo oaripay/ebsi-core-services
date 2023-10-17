@@ -35,17 +35,17 @@ describe("Policies", () => {
   const policyData1 = randomPolicyData();
   const policyData2 = randomPolicyData();
   const policyHash1 = ethers.utils.sha256(
-    Buffer.from(policyData1.slice(2), "hex")
+    Buffer.from(policyData1.slice(2), "hex"),
   );
   const policyHash2 = ethers.utils.sha256(
-    Buffer.from(policyData2.slice(2), "hex")
+    Buffer.from(policyData2.slice(2), "hex"),
   );
 
   beforeEach(async () => {
     [, user] = await ethers.getSigners();
     const deployContract = async (
       name: string,
-      opts: FactoryOptions = {}
+      opts: FactoryOptions = {},
     ): Promise<string> => {
       const factory = await ethers.getContractFactory(name, opts);
       const contract = await factory.deploy();
@@ -76,11 +76,11 @@ describe("Policies", () => {
     const tsUser = ts.connect(user);
     await expect(tsUser.insertPolicy(policyName, policyData1)).to.emit(
       ts,
-      "AddNewPolicy"
+      "AddNewPolicy",
     );
 
     await expect(ts.updatePolicy(policyName, "0x")).to.be.revertedWith(
-      "policy data not defined"
+      "policy data not defined",
     );
   });
 
@@ -89,7 +89,7 @@ describe("Policies", () => {
     const tsUser = ts.connect(user);
     await expect(tsUser.insertPolicy(policyName, policyData1)).to.emit(
       ts,
-      "AddNewPolicy"
+      "AddNewPolicy",
     );
 
     // get policy
@@ -103,7 +103,7 @@ describe("Policies", () => {
     // update policy
     await expect(ts.updatePolicy(policyName, policyData2)).to.emit(
       ts,
-      "UpdateExistingPolicy"
+      "UpdateExistingPolicy",
     );
     policy = await tsUser.getPolicy(policyName);
     expect(policy).to.eql([policyData2, policyHash2]);
@@ -172,20 +172,20 @@ describe("Policies", () => {
   it("should reject 2 policies with the same policy", async () => {
     await ts.insertPolicy(policyName, policyData1);
     await expect(ts.insertPolicy(policyName, policyData2)).to.be.revertedWith(
-      "pol exist"
+      "pol exist",
     );
   });
 
   it("should reject a get or update of an unknown policy", async () => {
     await expect(ts.getPolicy(policyName)).to.be.revertedWith("pol unknown");
     await expect(ts.updatePolicy(policyName, policyData1)).to.be.revertedWith(
-      "pol unknown"
+      "pol unknown",
     );
   });
 
   it("should reject the get of an unknown hash", async () => {
     await expect(ts.getPolicyByHash(policyHash1)).to.be.revertedWith(
-      "pol data unknown"
+      "pol data unknown",
     );
   });
 });

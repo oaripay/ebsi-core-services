@@ -9,7 +9,7 @@ import {
   InvalidRequestJsonRpcError,
   isEthersError,
 } from "@ebsiint-api/shared";
-import { LedgerService } from "../ledger/ledger.service";
+import { LedgerService } from "../ledger/ledger.service.js";
 import {
   RequestInsertIssuerDto,
   RequestUpdateIssuerDto,
@@ -25,19 +25,19 @@ import {
   ArgsUpdateIssuerProxy,
   ArgsSetAttributeMetadata,
   ArgsSetAttributeData,
-} from "./dto";
+} from "./dto/index.js";
 import {
   formatEthersUnsignedTransaction,
   formatEthersSignature,
   validateClass,
-} from "./jsonrpc.utils";
-import { ApiConfig } from "../../config/configuration";
-import { RequestUpdateIssuerProxyDto } from "./dto/updateIssuerProxy";
+} from "./jsonrpc.utils.js";
+import type { ApiConfig } from "../../config/configuration.js";
+import { RequestUpdateIssuerProxyDto } from "./dto/updateIssuerProxy/index.js";
 
 function assertScopeContains(
   scope: string,
   validScopes: string | string[],
-  methodName: string
+  methodName: string,
 ) {
   const scopeWithoutOpenid = scope.replace("openid ", "");
   const expectedScopes = Array.isArray(validScopes)
@@ -47,8 +47,8 @@ function assertScopeContains(
   if (!expectedScopes.includes(scopeWithoutOpenid)) {
     throw new Error(
       `'${methodName}' requires an access token with the scope '${expectedScopes.join(
-        "' or '"
-      )}'`
+        "' or '",
+      )}'`,
     );
   }
 }
@@ -73,7 +73,7 @@ export class JsonRpcService {
 
   constructor(
     configService: ConfigService<ApiConfig, true>,
-    private ledgerService: LedgerService
+    private ledgerService: LedgerService,
   ) {
     this.didRegistryApiUrl = configService.get<string>("didRegistryApiUrl");
     this.contractAddress = ledgerService.getContractAddress();
@@ -98,7 +98,7 @@ export class JsonRpcService {
   }
 
   async estimateGas(
-    transaction: UnsignedTransaction
+    transaction: UnsignedTransaction,
   ): Promise<ethers.BigNumber> {
     const { from, to, data, value } = transaction;
 
@@ -121,7 +121,7 @@ export class JsonRpcService {
 
   async isDidControlledByAddress(
     did: string,
-    controllerAddress: string
+    controllerAddress: string,
   ): Promise<boolean> {
     try {
       const { data } = await axios.post<{
@@ -133,7 +133,7 @@ export class JsonRpcService {
           method: "checkController",
           params: [controllerAddress],
         },
-        { timeout: this.timeout }
+        { timeout: this.timeout },
       );
       return data.result;
     } catch (err) {
@@ -147,7 +147,7 @@ export class JsonRpcService {
   async verifyTransaction(
     param: SignedTransactionParam,
     sub: string,
-    scope: string
+    scope: string,
   ): Promise<{ signer: string; functionName: string; args: unknown }> {
     const { unsignedTransaction, r, s, v, signedRawTransaction } = param;
 
@@ -158,12 +158,12 @@ export class JsonRpcService {
     const serializedTransaction = ethers.utils.serializeTransaction(unsignedTx);
     const serializedTransactionSigned = ethers.utils.serializeTransaction(
       unsignedTx,
-      signature
+      signature,
     );
 
     if (serializedTransactionSigned !== signedRawTransaction)
       throw new Error(
-        `The unsigned transaction + signature (${serializedTransactionSigned}) does not match with the signedRawTransaction (${signedRawTransaction})`
+        `The unsigned transaction + signature (${serializedTransactionSigned}) does not match with the signedRawTransaction (${signedRawTransaction})`,
       );
 
     // recover address used to sign
@@ -172,19 +172,19 @@ export class JsonRpcService {
 
     if (signer.toLowerCase() !== unsignedTransaction.from.toLowerCase())
       throw new Error(
-        `The signer of the transaction (${signer}) does not match with unsignedTransaction.from (${unsignedTransaction.from}) `
+        `The signer of the transaction (${signer}) does not match with unsignedTransaction.from (${unsignedTransaction.from}) `,
       );
 
     const chainId = await this.getChainId();
     if (unsignedTransaction.chainId !== chainId) {
       throw new Error(
-        `Invalid unsignedTransaction.chainId. Expected ${chainId}. Received ${unsignedTransaction.chainId}`
+        `Invalid unsignedTransaction.chainId. Expected ${chainId}. Received ${unsignedTransaction.chainId}`,
       );
     }
 
     if (unsignedTransaction.to !== this.contractAddress) {
       throw new Error(
-        `Invalid unsignedTransaction.to. Expected ${this.contractAddress}. Received ${unsignedTransaction.to}`
+        `Invalid unsignedTransaction.to. Expected ${this.contractAddress}. Received ${unsignedTransaction.to}`,
       );
     }
 
@@ -216,7 +216,7 @@ export class JsonRpcService {
         assertScopeContains(
           scope,
           ["tir_invite", "tir_write"], // One of "tir_invite" or "tir_write"
-          functionFragment.name
+          functionFragment.name,
         );
         const castArgs = args as unknown as ArgsSetAttributeData;
         await validateClass(ArgsSetAttributeData, castArgs);
@@ -239,7 +239,7 @@ export class JsonRpcService {
       }
       default:
         throw new Error(
-          `The function name ${functionFragment.name} can not be used in this context`
+          `The function name ${functionFragment.name} can not be used in this context`,
         );
     }
 
@@ -252,7 +252,7 @@ export class JsonRpcService {
 
   async buildTransaction(
     from: string,
-    params: string
+    params: string,
   ): Promise<UnsignedTransaction> {
     const nonceInt = await (
       await this.ledgerService.getContract()
@@ -285,7 +285,7 @@ export class JsonRpcService {
           gasEstimation === "unset"
             ? ""
             : `Received ${gasEstimation.toString()}.`
-        } Using 0x1000000`
+        } Using 0x1000000`,
       );
       unsignedTransaction.gasLimit = "0x1000000";
     }
@@ -295,8 +295,8 @@ export class JsonRpcService {
 
   async buildTransactionInsertIssuer(
     body: RequestInsertIssuerDto,
-    id: number | string | null,
-    scope: string
+    id: number | string | null | undefined,
+    scope: string,
   ): Promise<UnsignedTransaction> {
     const method = "insertIssuer";
 
@@ -306,7 +306,7 @@ export class JsonRpcService {
       await validateClass(RequestInsertIssuerDto, body);
 
       const { from, did, attributeData, issuerType, taoDid, taoAttributeId } =
-        body.params[0];
+        body.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -321,15 +321,17 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionUpdateIssuer(
     body: RequestUpdateIssuerDto,
-    id: number | string | null,
-    scope: string
+    id: number | string | null | undefined,
+    scope: string,
   ): Promise<UnsignedTransaction> {
     const method = "updateIssuer";
 
@@ -346,7 +348,7 @@ export class JsonRpcService {
         issuerType,
         taoDid,
         taoAttributeId,
-      } = body.params[0];
+      } = body.params[0]!;
 
       const data: (string | number)[] = [did, attributeData];
 
@@ -374,21 +376,23 @@ export class JsonRpcService {
         functionSig,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
-        data
+        data,
       );
 
       return await this.buildTransaction(from, encodedData);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionSetAttributeMetadata(
     body: RequestSetAttributeMetadataDto,
-    id: number | string | null,
-    scope: string
+    id: number | string | null | undefined,
+    scope: string,
   ): Promise<UnsignedTransaction> {
     const method = "setAttributeMetadata";
 
@@ -398,7 +402,7 @@ export class JsonRpcService {
       await validateClass(RequestSetAttributeMetadataDto, body);
 
       const { from, did, attributeId, issuerType, taoDid, taoAttributeId } =
-        body.params[0];
+        body.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -413,16 +417,18 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionSetAttributeData(
     body: RequestSetAttributeDataDto,
-    id: number | string | null,
+    id: number | string | null | undefined,
     sub: string,
-    scope: string
+    scope: string,
   ): Promise<UnsignedTransaction> {
     const method = "setAttributeData";
 
@@ -431,7 +437,7 @@ export class JsonRpcService {
 
       await validateClass(RequestSetAttributeDataDto, body);
 
-      const { from, did, attributeId, attributeData } = body.params[0];
+      const { from, did, attributeId, attributeData } = body.params[0]!;
 
       if (scope.includes("tir_invite")) {
         // Verify that the Access Token sub and the payload DID match
@@ -445,15 +451,17 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionAddIssuerProxy(
     body: RequestAddIssuerProxyDto,
-    id: number | string | null,
-    scope: string
+    id: number | string | null | undefined,
+    scope: string,
   ): Promise<UnsignedTransaction> {
     const method = "addIssuerProxy";
 
@@ -462,7 +470,7 @@ export class JsonRpcService {
 
       await validateClass(RequestAddIssuerProxyDto, body);
 
-      const { from, did, proxyData } = body.params[0];
+      const { from, did, proxyData } = body.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -471,15 +479,17 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionUpdateIssuerProxy(
     body: RequestUpdateIssuerProxyDto,
-    id: number | string | null,
-    scope: string
+    id: number | string | null | undefined,
+    scope: string,
   ): Promise<UnsignedTransaction> {
     const method = "updateIssuerProxy";
 
@@ -488,7 +498,7 @@ export class JsonRpcService {
 
       await validateClass(RequestUpdateIssuerProxyDto, body);
 
-      const { from, did, proxyId, proxyData } = body.params[0];
+      const { from, did, proxyId, proxyData } = body.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -497,7 +507,9 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
@@ -505,19 +517,19 @@ export class JsonRpcService {
   async sendTransaction(
     sub: string,
     body: RequestSendSignedTransactionDto,
-    id: number | string | null,
-    scope: string
+    id: number | string | null | undefined,
+    scope: string,
   ): Promise<string> {
     try {
       await validateClass(RequestSendSignedTransactionDto, body);
 
-      const request = body.params[0];
+      const request = body.params[0]!;
 
       const { signer } = await this.verifyTransaction(request, sub, scope);
 
       if (!(await this.isDidControlledByAddress(sub, signer))) {
         throw new Error(
-          `The DID ${sub} is not controlled by the address ${signer}`
+          `The DID ${sub} is not controlled by the address ${signer}`,
         );
       }
 
@@ -532,7 +544,11 @@ export class JsonRpcService {
       }
       if (err instanceof Error) {
         const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-        error.stack = err.stack;
+
+        if (err.stack) {
+          error.stack = err.stack;
+        }
+
         throw error;
       }
       throw err;

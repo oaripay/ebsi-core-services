@@ -10,21 +10,21 @@ import {
 } from "@nestjs/common";
 import type { ReadonlyDeep } from "type-fest";
 import type { AkeResponse } from "@cef-ebsi/oauth2-auth";
-import { AuthorisationService } from "./authorisation.service";
+import { AuthorisationService } from "./authorisation.service.js";
 import type {
   JsonWebKeySet,
   OPMetadata,
   TokenResponse,
-} from "./authorisation.interfaces";
+} from "./authorisation.interfaces.js";
 import {
   GetPresentationDefinitionsDto,
   OAuth2SessionDto,
   AuthenticationRequestDto,
   SiopSessionDto,
-} from "./dto";
-import { PresentationDefinition } from "../../shared/interfaces/pex";
-import { OAuth2TokenError } from "./errors";
-import { CUSTOM_SCOPES } from "./authorisation.constants";
+} from "./dto/index.js";
+import type { PresentationDefinition } from "../../shared/interfaces/pex.js";
+import { OAuth2TokenError } from "./errors/index.js";
+import { CUSTOM_SCOPES } from "./authorisation.constants.js";
 
 @Controller("/")
 export class AuthorisationController {
@@ -34,7 +34,7 @@ export class AuthorisationController {
   @Post("/authentication-requests")
   async authenticationRequests(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    @Body() _body: AuthenticationRequestDto
+    @Body() _body: AuthenticationRequestDto,
   ): Promise<string> {
     return this.authorisationService.authenticationRequest();
   }
@@ -67,7 +67,7 @@ export class AuthorisationController {
   @HttpCode(200)
   @Get("/presentation-definitions")
   getPresentationDefinitions(
-    @Query() { scope }: GetPresentationDefinitionsDto
+    @Query() { scope }: GetPresentationDefinitionsDto,
   ): ReadonlyDeep<PresentationDefinition> {
     const customScope = scope.split(" ")[1] as (typeof CUSTOM_SCOPES)[number];
     return this.authorisationService.getPresentationDefinitions(customScope);
@@ -79,7 +79,7 @@ export class AuthorisationController {
   @Header("Pragma", "no-cache")
   createAccessToken(
     @Headers("content-type") contentType: string,
-    @Body() body: unknown // Validate DTO within the service method so we can properly handle the error response
+    @Body() body: unknown, // Validate DTO within the service method so we can properly handle the error response
   ): Promise<TokenResponse> {
     // Only accept application/x-www-form-urlencoded
     // https://openid.net/specs/openid-connect-core-1_0.html#TokenRequest

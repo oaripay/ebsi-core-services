@@ -5,7 +5,7 @@ import { createVerifiablePresentationJwt } from "@cef-ebsi/verifiable-presentati
 import type { EbsiIssuer } from "@cef-ebsi/verifiable-presentation";
 import axios from "axios";
 import { importJWK, SignJWT, base64url, calculateJwkThumbprint } from "jose";
-import { ec as EC } from "elliptic";
+import elliptic from "elliptic";
 
 /**
  * Transform an ES256 private key into a JWK private key.
@@ -18,6 +18,7 @@ function fromHexToJWK(hexPrivateKey: string): JsonWebKey {
     throw new Error("You must provide a non-empty hexadecimal private key");
   }
 
+  const EC = elliptic.ec;
   const ec = new EC("p256");
 
   // Get key pair from hex private key
@@ -49,7 +50,7 @@ function fromHexToJWK(hexPrivateKey: string): JsonWebKey {
  */
 export async function getDidrInviteAccessToken(
   did: string,
-  authApiV3ES256PrivateKey: string
+  authApiV3ES256PrivateKey: string,
 ) {
   const authApiPrivateKeyJwk = fromHexToJWK(authApiV3ES256PrivateKey);
   const authApiPrivateKey = await importJWK(authApiPrivateKeyJwk, "ES256");
@@ -74,7 +75,7 @@ export async function getDidrInviteAccessToken(
 export async function getDidrWriteAccessToken(
   authorisationApiUrl: string,
   issuer: EbsiIssuer,
-  trustedHostnames: string[]
+  trustedHostnames: string[],
 ) {
   const nonce = randomUUID();
   const vpPayload = {
@@ -96,7 +97,7 @@ export async function getDidrWriteAccessToken(
       // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
       exp: Math.floor(Date.now() / 1000) + 100,
       nbf: Math.floor(Date.now() / 1000) - 100,
-    }
+    },
   );
 
   const presentationSubmission = {
@@ -117,7 +118,7 @@ export async function getDidrWriteAccessToken(
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-    }
+    },
   );
 
   // Decode access token

@@ -1,5 +1,5 @@
 import {
-  jest,
+  vi,
   describe,
   beforeAll,
   beforeEach,
@@ -7,47 +7,61 @@ import {
   afterAll,
   it,
   expect,
-} from "@jest/globals";
+} from "vitest";
 import crypto, { randomUUID } from "node:crypto";
 import { URLSearchParams } from "node:url";
 import request from "supertest";
 import { SignJWT, importJWK, exportJWK, jwtVerify } from "jose";
 import { Agent } from "@cef-ebsi/oauth2-auth";
-import { Test, TestingModule } from "@nestjs/testing";
+import { Test, type TestingModule } from "@nestjs/testing";
 import axios from "axios";
 import type { AxiosResponse } from "axios";
-import {
-  INestApplication,
-  ValidationPipe,
-  Logger,
-  HttpServer,
-} from "@nestjs/common";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { FastifyInstance } from "fastify";
-import didJwt, { createJWT, ES256KSigner } from "did-jwt";
+import type { RawServerDefault } from "fastify";
+import * as didJwt from "did-jwt";
+import { createJWT, ES256KSigner } from "did-jwt";
 import type { DIDDocument } from "did-resolver";
-import EbsiWallet from "@cef-ebsi/wallet-lib";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import * as vcLib from "@cef-ebsi/verifiable-credential";
 import type { EbsiVerifiableAttestation } from "@cef-ebsi/verifiable-credential";
-import { AuthorisationModule } from "./authorisation.module";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter";
+import { AuthorisationModule } from "./authorisation.module.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import {
   getPublicKey,
   generateKeys,
   getPrivateKeyHex,
   randomPrivateKeySecp256k1,
-} from "../../../tests/utils/keys";
-import { createTestClient } from "../../../tests/utils/createTestClient";
+} from "../../../tests/utils/keys.js";
+import { createTestClient } from "../../../tests/utils/createTestClient.js";
 import {
   createAuthenticationResponseJose,
   getKeyByAlg,
-} from "../../../tests/utils/didAuth";
-import type { ApiConfig } from "../../config/configuration";
-import type { ClaimRequest } from "./dto";
+} from "../../../tests/utils/didAuth.js";
+import type { ApiConfig } from "../../config/configuration.js";
+import type { ClaimRequest } from "./dto/index.js";
+
+vi.mock("did-jwt", async () => {
+  const mod = await vi.importActual<typeof import("did-jwt")>("did-jwt");
+  // Return a mocked version so we can redefine property `verifyJWT` later
+  return {
+    ...mod,
+  };
+});
+
+vi.mock("@cef-ebsi/verifiable-credential", async () => {
+  const mod = await vi.importActual<
+    typeof import("@cef-ebsi/verifiable-credential")
+  >("@cef-ebsi/verifiable-credential");
+  // Return a mocked version so we can redefine property `verifyCredentialJwt` later
+  return {
+    ...mod,
+  };
+});
 
 async function generateApp(apiPrivateKey: string) {
   const { privateKey, publicKey } = await generateKeys("ES256K");
@@ -89,8 +103,8 @@ async function createClient(alg: string) {
 }
 
 describe("Authorisation Module", () => {
-  let app: INestApplication;
-  let server: HttpServer;
+  let app: NestFastifyApplication;
+  let server: RawServerDefault;
   let configService: ConfigService<ApiConfig, true>;
   let apiPrivateKey: string;
 
@@ -100,7 +114,7 @@ describe("Authorisation Module", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     // Turn off logger
@@ -114,33 +128,29 @@ describe("Authorisation Module", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
-    server = app.getHttpServer() as HttpServer;
+    server = app.getHttpServer();
   });
 
   beforeEach(() => {
     // Mock axios
-    jest
-      .spyOn(axios, "get")
-      .mockImplementation(async (url: string): Promise<unknown> => {
+    vi.spyOn(axios, "get").mockImplementation(
+      async (url: string): Promise<unknown> => {
         return Promise.reject(
           new Error(
-            `Forgot to implement mock for axios get? Received: GET ${url}`
-          )
+            `Forgot to implement mock for axios get? Received: GET ${url}`,
+          ),
         );
-      });
+      },
+    );
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   afterAll(async () => {
-    // Avoid jest open handle error
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
     await app.close();
   });
 
@@ -183,7 +193,7 @@ describe("Authorisation Module", () => {
       expect(response.status).toBe(200);
 
       const query = new URLSearchParams(
-        response.text.replace("openid://?", "")
+        response.text.replace("openid://?", ""),
       );
 
       expect(query.get("scope")).toBe("openid did_authn");
@@ -195,8 +205,8 @@ describe("Authorisation Module", () => {
       const { publicKeyObject } = await getPublicKey(apiPrivateKey);
 
       const verification = await jwtVerify(
-        query.get("request") as string,
-        publicKeyObject
+        query.get("request")!,
+        publicKeyObject,
       );
       expect(verification.payload).toStrictEqual({
         iat: expect.any(Number),
@@ -205,15 +215,15 @@ describe("Authorisation Module", () => {
         client_id: expect.any(String),
         nonce: expect.any(String),
         redirect_uri: expect.stringContaining(
-          "/authorisation/v2/siop-sessions"
+          "/authorisation/v2/siop-sessions",
         ),
         response_mode: "post",
         iss: configService.get<string>("apiName"),
         exp: expect.any(Number),
-        claims: expect.any(Object) as unknown,
+        claims: expect.any(Object),
       });
-      expect(verification.payload.claims).toBeDefined();
-      expect(verification.payload.claims).toStrictEqual({
+      expect(verification.payload["claims"]).toBeDefined();
+      expect(verification.payload["claims"]).toStrictEqual({
         id_token: {
           verified_claims: {
             verification: {
@@ -231,7 +241,7 @@ describe("Authorisation Module", () => {
                     id: {
                       essential: true,
                       value: configService.get<string>(
-                        "authorisationCredentialSchema"
+                        "authorisationCredentialSchema",
                       ),
                     },
                   },
@@ -274,9 +284,8 @@ describe("Authorisation Module", () => {
         nonce,
       });
 
-      jest
-        .spyOn(axios, "get")
-        .mockImplementation(async (url: string): Promise<unknown> => {
+      vi.spyOn(axios, "get").mockImplementation(
+        async (url: string): Promise<unknown> => {
           // Mock TAR response - App not found
           if (
             url.endsWith(`/trusted-apps-registry/v3/apps/${trustedApp.name}`)
@@ -301,10 +310,11 @@ describe("Authorisation Module", () => {
 
           return Promise.reject(
             new Error(
-              `Forgot to implement mock for axios get? Received: GET ${url}`
-            )
+              `Forgot to implement mock for axios get? Received: GET ${url}`,
+            ),
           );
-        });
+        },
+      );
 
       response = await request(server)
         .post("/oauth2-sessions")
@@ -336,9 +346,8 @@ describe("Authorisation Module", () => {
         nonce,
       });
 
-      jest
-        .spyOn(axios, "get")
-        .mockImplementation(async (url: string): Promise<unknown> => {
+      vi.spyOn(axios, "get").mockImplementation(
+        async (url: string): Promise<unknown> => {
           // Mock TAR responses
           if (
             url.endsWith(`/trusted-apps-registry/v3/apps/${trustedApp.name}`)
@@ -364,7 +373,7 @@ describe("Authorisation Module", () => {
             url.endsWith(
               `/trusted-apps-registry/v3/apps/storage-api/authorizations?requesterApplicationName=${
                 trustedApp.name
-              }&${encodeURIComponent("page[after]")}=1`
+              }&${encodeURIComponent("page[after]")}=1`,
             )
           ) {
             return Promise.resolve({
@@ -390,7 +399,7 @@ describe("Authorisation Module", () => {
 
           if (
             url.endsWith(
-              "/trusted-apps-registry/v3/apps/storage-api/authorizations/0x51dd74adb8b781ade4ed115b7015b28979c66d4a0d4020b6c30b8f4a15dbd6f5"
+              "/trusted-apps-registry/v3/apps/storage-api/authorizations/0x51dd74adb8b781ade4ed115b7015b28979c66d4a0d4020b6c30b8f4a15dbd6f5",
             )
           ) {
             return Promise.resolve({
@@ -418,10 +427,11 @@ describe("Authorisation Module", () => {
 
           return Promise.reject(
             new Error(
-              `Forgot to implement mock for axios get? Received: GET ${url}`
-            )
+              `Forgot to implement mock for axios get? Received: GET ${url}`,
+            ),
           );
-        });
+        },
+      );
 
       const sessionRequest = await request(server)
         .post("/oauth2-sessions")
@@ -437,13 +447,13 @@ describe("Authorisation Module", () => {
           iat: expect.any(Number),
           iss: configService.get<string>("apiName"),
           kid: expect.stringContaining(
-            `/trusted-apps-registry/v3/apps/${trustedApp.name}`
+            `/trusted-apps-registry/v3/apps/${trustedApp.name}`,
           ),
         },
         kid: expect.stringContaining(
           `/trusted-apps-registry/v3/apps/${configService.get<string>(
-            "apiName"
-          )}`
+            "apiName",
+          )}`,
         ),
       });
     });
@@ -523,7 +533,7 @@ describe("Authorisation Module", () => {
           .sign(clientPrivateKey);
 
         // Fake verifyJWT result
-        jest.spyOn(didJwt, "verifyJWT").mockImplementation(async () =>
+        vi.spyOn(didJwt, "verifyJWT").mockImplementation(async () =>
           Promise.resolve({
             payload,
             verified: true,
@@ -542,14 +552,14 @@ describe("Authorisation Module", () => {
               controller: "",
             },
             jwt: "",
-          })
+          } as Awaited<ReturnType<typeof didJwt.verifyJWT>>),
         );
 
-        jest.spyOn(axios, "get").mockImplementation(
+        vi.spyOn(axios, "get").mockImplementation(
           async (): Promise<AxiosResponse<DIDDocument>> =>
             Promise.resolve({
               data: client.didDocument,
-            } as AxiosResponse<DIDDocument>)
+            } as AxiosResponse<DIDDocument>),
         );
 
         response = await request(server)
@@ -594,12 +604,12 @@ describe("Authorisation Module", () => {
           nonce,
           redirectUri: "redirect_uri",
           privateKeyJwk: keyObject.privateKeyJwk,
-          publicKeyEncryptionJwk: keyObject.publicKeyEncryptionJwk,
+          publicKeyEncryptionJwk: keyObject.publicKeyEncryptionJwk!,
           payload,
         });
 
         // Error from DID Registry API
-        jest.spyOn(axios, "get").mockImplementation(() => {
+        vi.spyOn(axios, "get").mockImplementation(() => {
           const error = new Error("axios error") as unknown as {
             response: AxiosResponse;
             isAxiosError: boolean;
@@ -627,7 +637,7 @@ describe("Authorisation Module", () => {
           status: 400,
           title: "Invalid ID Token",
           detail: `Unable to resolve ${clientDid}. Error: notFound. Message: not found | Registry used: ${configService.get<string>(
-            "didRegistry"
+            "didRegistry",
           )}`,
           type: "about:blank",
         });
@@ -660,12 +670,12 @@ describe("Authorisation Module", () => {
           nonce,
           redirectUri: "redirect_uri",
           privateKeyJwk: keyObject.privateKeyJwk,
-          publicKeyEncryptionJwk: keyObject.publicKeyEncryptionJwk,
+          publicKeyEncryptionJwk: keyObject.publicKeyEncryptionJwk!,
           payload,
         });
 
         // Error from DID Registry API
-        jest.spyOn(axios, "get").mockImplementation(() => {
+        vi.spyOn(axios, "get").mockImplementation(() => {
           const error = new Error("axios error") as unknown as {
             response: AxiosResponse;
             isAxiosError: boolean;
@@ -722,12 +732,12 @@ describe("Authorisation Module", () => {
           nonce,
           redirectUri: "redirect_uri",
           privateKeyJwk: keyObject.privateKeyJwk,
-          publicKeyEncryptionJwk: keyObject.publicKeyEncryptionJwk,
+          publicKeyEncryptionJwk: keyObject.publicKeyEncryptionJwk!,
           payload,
         });
 
         // Fake verifyJWT result
-        jest.spyOn(didJwt, "verifyJWT").mockImplementation(async () =>
+        vi.spyOn(didJwt, "verifyJWT").mockImplementation(async () =>
           Promise.resolve({
             payload,
             verified: true,
@@ -744,16 +754,16 @@ describe("Authorisation Module", () => {
               controller: "",
             },
             jwt: "",
-          })
+          } as Awaited<ReturnType<typeof didJwt.verifyJWT>>),
         );
 
-        jest
-          .spyOn(axios, "get")
-          .mockImplementation(async (): Promise<AxiosResponse<DIDDocument>> => {
+        vi.spyOn(axios, "get").mockImplementation(
+          async (): Promise<AxiosResponse<DIDDocument>> => {
             return Promise.resolve({
               data: client.didDocument,
             } as AxiosResponse<DIDDocument>);
-          });
+          },
+        );
 
         const response = await request(server)
           .post("/siop-sessions")
@@ -773,8 +783,8 @@ describe("Authorisation Module", () => {
           }),
           kid: expect.stringContaining(
             `/trusted-apps-registry/v3/apps/${configService.get<string>(
-              "apiName"
-            )}`
+              "apiName",
+            )}`,
           ),
         });
         expect(response.status).toBe(200);
@@ -789,9 +799,9 @@ describe("Authorisation Module", () => {
         const keyObject = await getKeyByAlg(clientPrivateKeys, alg);
 
         const onboardingAllowlist = configService.get<string[]>(
-          "onboardingAllowlist"
+          "onboardingAllowlist",
         );
-        const allowedIssuer = onboardingAllowlist[0];
+        const allowedIssuer = onboardingAllowlist[0]!;
 
         const mockedCredential = {
           "@context": ["https://www.w3.org/2018/credentials/v1"],
@@ -823,10 +833,10 @@ describe("Authorisation Module", () => {
             signer: ES256KSigner(
               Buffer.from(
                 EbsiWallet.generateKeyPair({ format: "hex" }).privateKey,
-                "hex"
-              )
+                "hex",
+              ),
             ),
-          }
+          },
         );
 
         const mockedPresentation = {
@@ -844,9 +854,9 @@ describe("Authorisation Module", () => {
           {
             issuer: client.did,
             signer: ES256KSigner(
-              Buffer.from(client.privateKeyHexES256K.replace(/^0x/, ""), "hex")
+              Buffer.from(client.privateKeyHexES256K.replace(/^0x/, ""), "hex"),
             ),
-          }
+          },
         );
 
         const payload = {
@@ -897,12 +907,12 @@ describe("Authorisation Module", () => {
           nonce,
           redirectUri: "redirect_uri",
           privateKeyJwk: keyObject.privateKeyJwk,
-          publicKeyEncryptionJwk: keyObject.publicKeyEncryptionJwk,
+          publicKeyEncryptionJwk: keyObject.publicKeyEncryptionJwk!,
           payload,
         });
 
         // Fake verifyJWT result
-        jest.spyOn(didJwt, "verifyJWT").mockImplementation(async () =>
+        vi.spyOn(didJwt, "verifyJWT").mockImplementation(async () =>
           Promise.resolve({
             payload,
             verified: true,
@@ -921,21 +931,19 @@ describe("Authorisation Module", () => {
               controller: "",
             },
             jwt: "",
-          })
+          } as Awaited<ReturnType<typeof didJwt.verifyJWT>>),
         );
 
-        jest.spyOn(axios, "get").mockImplementation(
+        vi.spyOn(axios, "get").mockImplementation(
           async (): Promise<AxiosResponse<DIDDocument>> =>
             Promise.resolve({
               data: client.didDocument,
-            } as AxiosResponse<DIDDocument>)
+            } as AxiosResponse<DIDDocument>),
         );
 
-        jest
-          .spyOn(vcLib, "verifyCredentialJwt")
-          .mockImplementation(async () =>
-            Promise.resolve(mockedCredential as EbsiVerifiableAttestation)
-          );
+        vi.spyOn(vcLib, "verifyCredentialJwt").mockImplementation(async () =>
+          Promise.resolve(mockedCredential as EbsiVerifiableAttestation),
+        );
 
         const response = await request(server)
           .post("/siop-sessions")
@@ -955,8 +963,8 @@ describe("Authorisation Module", () => {
           }),
           kid: expect.stringContaining(
             `/trusted-apps-registry/v3/apps/${configService.get<string>(
-              "apiName"
-            )}`
+              "apiName",
+            )}`,
           ),
         });
         expect(response.status).toBe(200);
@@ -1005,6 +1013,6 @@ describe("Authorisation Module", () => {
         });
         expect(response.status).toBe(400);
       });
-    }
+    },
   );
 });

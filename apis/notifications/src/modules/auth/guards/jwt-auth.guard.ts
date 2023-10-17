@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import { UnauthorizedError } from "@ebsiint-api/shared";
-import { UserInfo } from "../auth.interface";
-import { AuthService } from "../auth.service";
+import { UserInfo } from "../auth.interface.js";
+import { AuthService } from "../auth.service.js";
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
@@ -22,7 +22,7 @@ export class JwtAuthGuard implements CanActivate {
     const token = headers.authorization.replace("Bearer ", "");
     const payload = await this.authService.validateToken(token);
     request.user = {
-      did: payload.sub,
+      did: payload.sub!,
     };
     return true;
   }

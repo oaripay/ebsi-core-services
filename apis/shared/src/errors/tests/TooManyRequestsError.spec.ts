@@ -1,5 +1,5 @@
-import { describe, it, expect } from "@jest/globals";
-import { TooManyRequestsError, ProblemDetailsError } from "../index";
+import { describe, it, expect } from "vitest";
+import { TooManyRequestsError, ProblemDetailsError } from "../index.js";
 
 describe("error TooManyRequestsError", () => {
   it("should extend ProblemDetailsError", () => {
@@ -69,7 +69,7 @@ describe("error TooManyRequestsError", () => {
     });
 
     expect(error.toString()).toBe(
-      `${TooManyRequestsError.statusCode} - Test Error`
+      `${TooManyRequestsError.statusCode} - Test Error`,
     );
   });
 });

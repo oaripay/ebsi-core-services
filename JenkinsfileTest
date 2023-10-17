@@ -5,6 +5,9 @@ pipeline {
   // environment {
   //   NX_CACHE_DIRECTORY = "/tmp/nx-cache"
   // }
+  environment {
+    NVM_DIR = '/var/lib/jenkins/.nvm'
+  }
   stages {
     stage('Fetch main branch') {
       steps {
@@ -13,9 +16,12 @@ pipeline {
     }
     stage('Setup') {
       steps {
-        nodejs(nodeJSInstallationName: '16.17.1') {
-          sh 'yarn install --frozen-lockfile'
-        }
+        sh '''
+          source $NVM_DIR/nvm.sh > /dev/null 2>&1
+          nvm install > /dev/null 2>&1
+          node -v
+          yarn install --frozen-lockfile
+        '''
       }
     }
     stage("Build and test the feature branch") {
@@ -30,9 +36,12 @@ pipeline {
           parallel {
             stage('Check changesets status') {
               steps {
-                nodejs(nodeJSInstallationName: '16.17.1') {
-                  sh 'yarn changeset status --since=main'
-                }
+                sh '''
+                  source $NVM_DIR/nvm.sh > /dev/null 2>&1
+                  nvm use > /dev/null 2>&1
+                  node -v
+                  yarn changeset status --since=main
+                '''
               }
             }
 
@@ -50,17 +59,23 @@ pipeline {
 
             stage('Lint affected packages') {
               steps {
-                nodejs(nodeJSInstallationName: '16.17.1') {
-                  sh "yarn lint"
-                }
+                sh '''
+                  source $NVM_DIR/nvm.sh > /dev/null 2>&1
+                  nvm use > /dev/null 2>&1
+                  node -v
+                  yarn lint
+                '''
               }
             }
 
             stage('Audit dependencies') {
               steps {
-                nodejs(nodeJSInstallationName: '16.17.1') {
-                  sh 'yarn run audit'
-                }
+                sh '''
+                  source $NVM_DIR/nvm.sh > /dev/null 2>&1
+                  nvm use > /dev/null 2>&1
+                  node -v
+                  yarn run audit
+                '''
               }
             }
           }
@@ -70,9 +85,12 @@ pipeline {
             API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
           }
           steps {
-            nodejs(nodeJSInstallationName: '16.17.1') {
-              sh 'yarn test --parallel=1'
-            }
+            sh '''
+              source $NVM_DIR/nvm.sh > /dev/null 2>&1
+              nvm use > /dev/null 2>&1
+              node -v
+              yarn test --parallel=1
+            '''
           }
         }
       }
@@ -84,14 +102,17 @@ pipeline {
       stages {
         stage('Print affected') {
           steps {
-            nodejs(nodeJSInstallationName: '16.17.1') {
-              script {
-                try {
-                  sh 'yarn print-affected'
-                  script { deployment_needed = true }
-                } catch (Exception e) {
-                  echo 'Exception occurred: ' + e.toString()
-                }
+            script {
+              try {
+                sh '''
+                  source $NVM_DIR/nvm.sh > /dev/null 2>&1
+                  nvm use > /dev/null 2>&1
+                  node -v
+                  yarn print-affected'
+                '''
+                script { deployment_needed = true }
+              } catch (Exception e) {
+                echo 'Exception occurred: ' + e.toString()
               }
             }
           }
@@ -102,9 +123,12 @@ pipeline {
             DOCKER_BUILDKIT=1
           }
           steps {
-            nodejs(nodeJSInstallationName: '16.17.1') {
-              sh "yarn docker-build:affected --base=main~1 --head=main"
-            }
+            sh '''
+              source $NVM_DIR/nvm.sh > /dev/null 2>&1
+              nvm use > /dev/null 2>&1
+              node -v
+              yarn docker-build:affected --base=main~1 --head=main
+            '''
           }
         }
         stage('Run trivy scan') {
@@ -168,7 +192,7 @@ pipeline {
   post {
     always {
 
-      // Stop and remove any lingering Mythril containers	
+      // Stop and remove any lingering Mythril containers
       sh 'docker stop $(docker ps -a -q --filter label=mythril) || true'
       sh 'docker rm $(docker ps -a -q --filter label=mythril) || true'
 

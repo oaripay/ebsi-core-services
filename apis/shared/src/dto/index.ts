@@ -1,2 +1,2 @@
-export * from "./pagination-query";
-export * from "./string-pagination-query";
+export * from "./pagination-query.js";
+export * from "./string-pagination-query.js";

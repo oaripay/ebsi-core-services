@@ -1,4 +1,4 @@
-import { describe, it } from "@jest/globals";
+import { describe, it } from "vitest";
 
 export const describeWriteOps = () => {
   if (process.env.TEST_ENABLE_WRITE_OPS === "true") {

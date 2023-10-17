@@ -1,6 +1,6 @@
 import { Module } from "@nestjs/common";
-import { ApiConfigModule } from "../../config/configuration";
-import { AuthService } from "./auth.service";
+import { ApiConfigModule } from "../../config/configuration.js";
+import { AuthService } from "./auth.service.js";
 
 @Module({
   imports: [ApiConfigModule],

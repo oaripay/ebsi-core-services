@@ -4,14 +4,14 @@ export class PatchFileBody {
   @IsNotEmpty()
   @IsString()
   @Matches(/add|remove|replace/) // only allow "add", "remove" and "replace" operations
-  op: string;
+  op!: string;
 
   @IsNotEmpty()
   @IsString()
   @Matches(/^\/metadata/) // all the operations must have /metadata as root path
-  path: string;
+  path!: string;
 
-  value: string | unknown;
+  value: unknown;
 }
 
 export default PatchFileBody;

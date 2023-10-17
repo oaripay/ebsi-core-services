@@ -1,46 +1,40 @@
-import { jest, describe, beforeAll, it, expect } from "@jest/globals";
+import { describe, beforeAll, it, expect } from "vitest";
 import crypto from "node:crypto";
 import { ethers } from "ethers";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  Logger,
-  HttpServer,
-} from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import {
   PaginatedList,
   prefixWith0x,
   waitToBeMined,
 } from "@ebsiint-api/shared";
-import { ApiConfig } from "../../src/config/configuration";
-import { AppModule } from "../../src/app.module";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
+import type { ApiConfig } from "../../src/config/configuration.js";
+import { AppModule } from "../../src/app.module.js";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 import {
   PolicyLink,
   PolicyResponseObject,
-} from "../../src/modules/policies/policies.interface";
-import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
-import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
+} from "../../src/modules/policies/policies.interface.js";
+import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
+import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
 import {
   ActivatePolicyParam,
   DeactivatePolicyParam,
   InsertPolicyParam,
   UnsignedTransaction,
   UpdatePolicyParam,
-} from "../../src/modules/jsonrpc/dto";
-import { createPolicy } from "../utils/data";
-import { requestSiopJwt } from "../utils/siopJwt";
-import { LedgerService } from "../../src/modules/ledger/ledger.service";
-import { describeWriteOps, writeOps } from "../utils/writeOps";
-import { getServer } from "../utils/getServer";
+} from "../../src/modules/jsonrpc/dto/index.js";
+import { createPolicy } from "../utils/data.js";
+import { requestSiopJwt } from "../utils/siopJwt.js";
+import { describeWriteOps, writeOps } from "../utils/writeOps.js";
+import { getServer } from "../utils/getServer.js";
 
 interface SupertestPoliciesResponse {
   status: number;
@@ -63,11 +57,9 @@ type JsonRpcParams =
   | ActivatePolicyParam
   | DeactivatePolicyParam;
 
-jest.setTimeout(180000);
-
 describe("Policies (e2e)", () => {
-  let app: INestApplication;
-  let server: HttpServer | string;
+  let app: NestFastifyApplication;
+  let server: RawServerDefault | string;
   let configService: ConfigService<ApiConfig, true>;
   let ledgerApi: string;
   let adminTestWallet: ethers.Wallet;
@@ -90,7 +82,7 @@ describe("Policies (e2e)", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     // Turn off logger
@@ -103,7 +95,7 @@ describe("Policies (e2e)", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
     ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
 
@@ -111,7 +103,7 @@ describe("Policies (e2e)", () => {
 
     if (writeOps()) {
       adminTestWallet = new ethers.Wallet(
-        prefixWith0x(configService.get("testAdminPrivateKey"))
+        prefixWith0x(configService.get("testAdminPrivateKey")),
       );
 
       // Generate a valid Client JWT (SIOP) for the tests
@@ -144,25 +136,24 @@ describe("Policies (e2e)", () => {
     // policy id to test "activate" and "deactivate"
     let policyA: PolicyResponseObject;
     beforeAll(async () => {
-      let getPoliciesResponse: SupertestPoliciesResponse = await request(
-        server
-      ).get("/policies");
-      const { last } = getPoliciesResponse.body.links;
+      let getPoliciesResponse: SupertestPoliciesResponse =
+        await request(server).get("/policies");
+      const { last } = getPoliciesResponse.body.links!;
       getPoliciesResponse = await request(server).get(
-        `/policies${last.slice(last.indexOf("?"))}`
+        `/policies${last.slice(last.indexOf("?"))}`,
       );
       if (getPoliciesResponse.body.items.length === 1) {
-        const { prev } = getPoliciesResponse.body.links;
+        const { prev } = getPoliciesResponse.body.links!;
         getPoliciesResponse = await request(server).get(
-          `/policies${prev.slice(last.indexOf("?"))}`
+          `/policies${prev.slice(last.indexOf("?"))}`,
         );
       }
       const name =
         getPoliciesResponse.body.items[
           getPoliciesResponse.body.items.length - 2
-        ].policyName;
+        ]!.policyName;
       const policyResponse: SupertestPolicyResponse = await request(server).get(
-        `/policies/${name}`
+        `/policies/${name}`,
       );
       policyA = policyResponse.body;
     });
@@ -180,7 +171,7 @@ describe("Policies (e2e)", () => {
       });
       expect(response.status).toBe(401);
       expect(
-        (response.headers as { "content-type": string })["content-type"]
+        (response.headers as { "content-type": string })["content-type"],
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
 
@@ -196,14 +187,14 @@ describe("Policies (e2e)", () => {
         .send();
 
       let trustedAppsRegistryApiUrl = configService.get<string>(
-        "trustedAppsRegistryApiUrl"
+        "trustedAppsRegistryApiUrl",
       );
 
       // Use TEST_LB_DOMAIN if defined
       if (configService.get<string>("testLoadBalancerDomain")) {
         trustedAppsRegistryApiUrl = trustedAppsRegistryApiUrl.replace(
           configService.get<string>("domain"),
-          configService.get<string>("testLoadBalancerDomain")
+          configService.get<string>("testLoadBalancerDomain"),
         );
       }
 
@@ -215,7 +206,7 @@ describe("Policies (e2e)", () => {
       });
       expect(response.status).toBe(401);
       expect(
-        (response.headers as { "content-type": string })["content-type"]
+        (response.headers as { "content-type": string })["content-type"],
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
 
@@ -256,7 +247,7 @@ describe("Policies (e2e)", () => {
         error: {
           code: -32600,
           message: expect.stringContaining(
-            "The method 'unknown-method' is invalid"
+            "The method 'unknown-method' is invalid",
           ),
         },
       });
@@ -304,8 +295,8 @@ describe("Policies (e2e)", () => {
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
         JSON.parse(
-          JSON.stringify(unsignedTransaction)
-        ) as unknown as UnsignedTransaction
+          JSON.stringify(unsignedTransaction),
+        ) as unknown as UnsignedTransaction,
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx = await signer.signTransaction(uTx);
@@ -346,7 +337,7 @@ describe("Policies (e2e)", () => {
     it("should throw an error if the wallet doesn't have the role OPERATOR_ROLE 0x97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929", async () => {
       expect.assertions(3);
 
-      let param: JsonRpcParams = null;
+      let param: JsonRpcParams | null = null;
 
       const signer = new ethers.Wallet(configService.get("testUserPrivateKey"));
 
@@ -386,8 +377,8 @@ describe("Policies (e2e)", () => {
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
         JSON.parse(
-          JSON.stringify(unsignedTransaction)
-        ) as unknown as UnsignedTransaction
+          JSON.stringify(unsignedTransaction),
+        ) as unknown as UnsignedTransaction,
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx = await signer.signTransaction(uTx);
@@ -415,7 +406,7 @@ describe("Policies (e2e)", () => {
       // Wait to be mined
       const receipt = await waitToBeMined(
         ledgerApi,
-        responseSend.body.result as string
+        responseSend.body.result as string,
       );
 
       // The transaction should have failed
@@ -433,12 +424,11 @@ describe("Policies (e2e)", () => {
         it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction", async () => {
           expect.assertions(7);
 
-          let param: JsonRpcParams = null;
+          let param: JsonRpcParams | null = null;
 
           // Get number of existing policies
-          const response: SupertestPoliciesResponse = await request(server).get(
-            "/policies"
-          );
+          const response: SupertestPoliciesResponse =
+            await request(server).get("/policies");
           // Update last policy
           const lastPolicyId = `${response.body.total}`;
 
@@ -512,8 +502,8 @@ describe("Policies (e2e)", () => {
           const unsignedTransaction = responseBuild.body.result;
           const uTx = formatEthersUnsignedTransaction(
             JSON.parse(
-              JSON.stringify(unsignedTransaction)
-            ) as unknown as UnsignedTransaction
+              JSON.stringify(unsignedTransaction),
+            ) as unknown as UnsignedTransaction,
           );
           uTx.chainId = Number(uTx.chainId);
           const sgnTx = await signer.signTransaction(uTx);
@@ -548,7 +538,7 @@ describe("Policies (e2e)", () => {
           // Wait to be mined
           const receipt = await waitToBeMined(
             ledgerApi,
-            responseSend.body.result as string
+            responseSend.body.result as string,
           );
           expect(receipt.status).toBe(1);
           sampleTransaction = responseSend.body.result as string;
@@ -577,7 +567,7 @@ describe("Policies (e2e)", () => {
 
               // Actual response
               actualResponse = await request(server).get(
-                `/policies/${policyName}`
+                `/policies/${policyName}`,
               );
 
               break;
@@ -595,7 +585,7 @@ describe("Policies (e2e)", () => {
 
               // Actual response
               actualResponse = await request(server).get(
-                `/policies/${policyName}`
+                `/policies/${policyName}`,
               );
 
               break;
@@ -609,7 +599,7 @@ describe("Policies (e2e)", () => {
 
               // Actual response
               actualResponse = await request(server).get(
-                `/policies/${policyA.policyName}`
+                `/policies/${policyA.policyName}`,
               );
 
               break;
@@ -620,7 +610,7 @@ describe("Policies (e2e)", () => {
 
               // Actual response
               actualResponse = await request(server).get(
-                `/policies/${policyA.policyName}`
+                `/policies/${policyA.policyName}`,
               );
 
               break;
@@ -630,8 +620,8 @@ describe("Policies (e2e)", () => {
             }
           }
 
-          expect(actualResponse.body).toStrictEqual(expectedResponseBody);
-          expect(actualResponse.status).toBe(200);
+          expect(actualResponse!.body).toStrictEqual(expectedResponseBody);
+          expect(actualResponse!.status).toBe(200);
         });
 
         it("should return transaction data from blockscout", async () => {
@@ -657,7 +647,7 @@ describe("Policies (e2e)", () => {
 
         const signer = adminTestWallet;
 
-        let param: JsonRpcParams = null;
+        let param: JsonRpcParams | null = null;
 
         switch (method) {
           case "insertPolicy": {
@@ -712,7 +702,7 @@ describe("Policies (e2e)", () => {
         expect(responseBuild.body).toStrictEqual({
           jsonrpc: "2.0",
           id: null,
-          result: expect.objectContaining({}) as unknown,
+          result: expect.objectContaining({}),
         });
         expect(responseBuild.status).toBe(200);
       });
@@ -732,7 +722,7 @@ describe("Policies (e2e)", () => {
             } as InsertPolicyParam);
 
             expectedErrorMessages.push(
-              "- Invalid params.0.policyName provided: policyName must be a string"
+              "- Invalid params.0.policyName provided: policyName must be a string",
             );
 
             params.push({
@@ -742,7 +732,7 @@ describe("Policies (e2e)", () => {
             } as InsertPolicyParam);
 
             expectedErrorMessages.push(
-              "Invalid params.0.from provided: from must be an Ethereum address"
+              "Invalid params.0.from provided: from must be an Ethereum address",
             );
 
             break;
@@ -755,7 +745,7 @@ describe("Policies (e2e)", () => {
             } as unknown as UpdatePolicyParam);
 
             expectedErrorMessages.push(
-              "- Invalid params.0.policyName provided: policyName must be a string"
+              "- Invalid params.0.policyName provided: policyName must be a string",
             );
 
             params.push({
@@ -765,7 +755,7 @@ describe("Policies (e2e)", () => {
             } as unknown as UpdatePolicyParam);
 
             expectedErrorMessages.push(
-              "Invalid params.0.description provided: description must be a string"
+              "Invalid params.0.description provided: description must be a string",
             );
 
             params.push({
@@ -775,7 +765,7 @@ describe("Policies (e2e)", () => {
             } as UpdatePolicyParam);
 
             expectedErrorMessages.push(
-              "Invalid params.0.policyId provided: policyId must be a number string"
+              "Invalid params.0.policyId provided: policyId must be a number string",
             );
 
             params.push({
@@ -785,7 +775,7 @@ describe("Policies (e2e)", () => {
             } as UpdatePolicyParam);
 
             expectedErrorMessages.push(
-              "Invalid params.0.from provided: from must be an Ethereum address"
+              "Invalid params.0.from provided: from must be an Ethereum address",
             );
 
             break;
@@ -797,7 +787,7 @@ describe("Policies (e2e)", () => {
             } as DeactivatePolicyParam);
 
             expectedErrorMessages.push(
-              "- Invalid params.0.policyId provided: policyId must be a number string"
+              "- Invalid params.0.policyId provided: policyId must be a number string",
             );
 
             break;
@@ -809,7 +799,7 @@ describe("Policies (e2e)", () => {
             } as ActivatePolicyParam);
 
             expectedErrorMessages.push(
-              "- Invalid params.0.policyId provided: policyId must be a number string"
+              "- Invalid params.0.policyId provided: policyId must be a number string",
             );
 
             break;
@@ -840,11 +830,11 @@ describe("Policies (e2e)", () => {
               id: 231,
               error: {
                 code: -32600,
-                message: expect.stringContaining(expectedErrorMessages[index]),
+                message: expect.stringContaining(expectedErrorMessages[index]!),
               },
             });
             expect(response1.status).toBe(400);
-          })
+          }),
         );
       });
 
@@ -950,8 +940,8 @@ describe("Policies (e2e)", () => {
 
         const uTx = formatEthersUnsignedTransaction(
           JSON.parse(
-            JSON.stringify(transaction1)
-          ) as unknown as UnsignedTransaction
+            JSON.stringify(transaction1),
+          ) as unknown as UnsignedTransaction,
         );
         uTx.chainId = Number(uTx.chainId);
         const sgnTx1 = await randomSigner.signTransaction(uTx);
@@ -983,7 +973,7 @@ describe("Policies (e2e)", () => {
           error: {
             code: -32600,
             message: expect.stringContaining(
-              "does not match with the signedRawTransaction"
+              "does not match with the signedRawTransaction",
             ),
           },
         });
@@ -1016,7 +1006,7 @@ describe("Policies (e2e)", () => {
           error: {
             code: -32600,
             message: expect.stringContaining(
-              "does not match with unsignedTransaction.from"
+              "does not match with unsignedTransaction.from",
             ),
           },
         });
@@ -1028,33 +1018,32 @@ describe("Policies (e2e)", () => {
   describe("/policies", () => {
     it("should return a collection of policies", async () => {
       expect.assertions(2);
-      const response: SupertestPoliciesResponse = await request(server).get(
-        "/policies"
-      );
+      const response: SupertestPoliciesResponse =
+        await request(server).get("/policies");
 
       expect(response.body).toStrictEqual(
         expect.objectContaining({
           self: expect.stringContaining(
-            "/trusted-policies-registry/v3/policies?page[after]=1&page[size]=10"
+            "/trusted-policies-registry/v3/policies?page[after]=1&page[size]=10",
           ),
           items: expect.arrayContaining([]),
           total: expect.any(Number),
           pageSize: expect.any(Number),
           links: expect.objectContaining({
             first: expect.stringContaining(
-              "/trusted-policies-registry/v3/policies?page[after]=1&page[size]=10"
+              "/trusted-policies-registry/v3/policies?page[after]=1&page[size]=10",
             ),
             prev: expect.stringContaining(
-              "/trusted-policies-registry/v3/policies?page[after]=1&page[size]=10"
+              "/trusted-policies-registry/v3/policies?page[after]=1&page[size]=10",
             ),
             next: expect.stringContaining(
-              "/trusted-policies-registry/v3/policies?page[after]="
+              "/trusted-policies-registry/v3/policies?page[after]=",
             ),
             last: expect.stringContaining(
-              "/trusted-policies-registry/v3/policies?page[after]="
+              "/trusted-policies-registry/v3/policies?page[after]=",
             ),
           }),
-        })
+        }),
       );
       expect(response.status).toBe(200);
     });
@@ -1065,20 +1054,19 @@ describe("Policies (e2e)", () => {
       expect.assertions(2);
 
       // Get last policy
-      const getPoliciesResponse: SupertestPoliciesResponse = await request(
-        server
-      ).get("/policies");
+      const getPoliciesResponse: SupertestPoliciesResponse =
+        await request(server).get("/policies");
 
       const policyId = `${getPoliciesResponse.body.total}`;
-      const lastPageUrl = getPoliciesResponse.body.links.last;
+      const lastPageUrl = getPoliciesResponse.body.links!.last;
       const lastPage: SupertestPoliciesResponse = await request(server).get(
-        lastPageUrl.slice(lastPageUrl.lastIndexOf("/policies"))
+        lastPageUrl.slice(lastPageUrl.lastIndexOf("/policies")),
       );
 
       const response = await request(server).get(
         `/policies/${
-          lastPage.body.items[lastPage.body.items.length - 1].policyName
-        }`
+          lastPage.body.items[lastPage.body.items.length - 1]!.policyName
+        }`,
       );
 
       expect(response.body).toStrictEqual({

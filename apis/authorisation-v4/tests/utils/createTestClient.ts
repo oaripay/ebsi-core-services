@@ -1,16 +1,11 @@
 import { generateKeyPairSync, type KeyObject } from "node:crypto";
 import { exportJWK, generateKeyPair } from "jose";
 import type { JWK } from "jose";
-import EbsiWallet from "@cef-ebsi/wallet-lib";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { encode } from "@ebsiint-api/shared";
 import type { DIDDocument, JsonWebKey } from "did-resolver";
 
-export async function generateKeys(alg: string): Promise<{
-  publicKey: KeyObject;
-  privateKey: KeyObject;
-  publicKeyEncryption?: KeyObject;
-  privateKeyEncryption?: KeyObject;
-}> {
+export async function generateKeys(alg: string) {
   const { publicKey, privateKey } = (await generateKeyPair(alg)) as {
     publicKey: KeyObject;
     privateKey: KeyObject;
@@ -18,6 +13,7 @@ export async function generateKeys(alg: string): Promise<{
 
   let publicKeyEncryption: KeyObject | undefined;
   let privateKeyEncryption: KeyObject | undefined;
+
   if (alg === "EdDSA") {
     // For Edward we have to use the keys for encryption
     const keysEncryption = generateKeyPairSync("x25519");
@@ -33,21 +29,7 @@ export async function generateKeys(alg: string): Promise<{
   };
 }
 
-export async function createTestClient(): Promise<{
-  keys: {
-    type: string;
-    id: string;
-    alg: string;
-    privateKeyJwk: JWK;
-    publicKeyJwk: JWK;
-    privateKeyEncryptionJwk: JWK;
-    publicKeyEncryptionJwk: JWK;
-  }[];
-  keysBase64: string;
-  did: string;
-  privateKeyHexES256K: string;
-  didDocument: DIDDocument;
-}> {
+export async function createTestClient() {
   const did = EbsiWallet.createDid();
 
   const didDocument = {
@@ -76,7 +58,7 @@ export async function createTestClient(): Promise<{
   /* eslint-disable no-await-in-loop */
   for (let i = 0; i < algs.length; i += 1) {
     const id = `${did}#keys-${i + 1}`;
-    const ks = await generateKeys(algs[i]);
+    const ks = await generateKeys(algs[i]!);
     const jwk = await exportJWK(ks.publicKey);
     const jwkPriv = await exportJWK(ks.privateKey);
     const type = "JsonWebKey2020";
@@ -99,7 +81,7 @@ export async function createTestClient(): Promise<{
       keys.push({
         type,
         id,
-        alg: algs[i],
+        alg: algs[i]!,
         publicKeyJwk: { ...jwk, use: "sig" },
         privateKeyJwk: { ...jwkPriv, use: "sig" },
         publicKeyEncryptionJwk: { ...enc.jwk, use: "enc" },
@@ -115,7 +97,7 @@ export async function createTestClient(): Promise<{
       keys.push({
         type,
         id,
-        alg: algs[i],
+        alg: algs[i]!,
         publicKeyJwk: jwk,
         privateKeyJwk: jwkPriv,
         publicKeyEncryptionJwk: jwk,
@@ -124,6 +106,7 @@ export async function createTestClient(): Promise<{
     }
     didDocument.assertionMethod.push(id);
   }
+  /* eslint-enable no-await-in-loop */
 
   return {
     keys,

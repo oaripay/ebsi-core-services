@@ -7,7 +7,7 @@ const basePexDescriptorSchema = z.object({
 });
 
 type Descriptor = z.infer<typeof basePexDescriptorSchema> & {
-  path_nested?: Descriptor;
+  path_nested?: Descriptor | undefined;
 };
 
 const pexDescriptorSchema: z.ZodType<Descriptor> =

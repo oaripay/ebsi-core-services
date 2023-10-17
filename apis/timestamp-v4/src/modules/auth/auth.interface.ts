@@ -1,4 +1,4 @@
-import { JWTPayload } from "did-jwt";
+import type { JWTPayload } from "did-jwt";
 
 export interface UserInfo {
   did?: string;

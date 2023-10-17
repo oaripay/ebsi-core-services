@@ -6,19 +6,19 @@ import {
   Equals,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { JsonRpcDto } from "../jsonrpc.dto";
-import { InsertSchemaParam } from "./insert-schema-param.dto";
+import { JsonRpcDto } from "../jsonrpc.dto.js";
+import { InsertSchemaParam } from "./insert-schema-param.dto.js";
 
 export class RequestInsertSchemaDto extends JsonRpcDto {
   @Equals("insertSchema")
-  method: string;
+  declare method: string;
 
   @IsArray()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @Type(() => InsertSchemaParam)
-  params: InsertSchemaParam[];
+  declare params: InsertSchemaParam[];
 }
 
 export default RequestInsertSchemaDto;

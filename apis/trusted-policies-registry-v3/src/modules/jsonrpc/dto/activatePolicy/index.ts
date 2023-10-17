@@ -1,2 +1,2 @@
-export * from "./activate-policy-param.dto";
-export * from "./request-activate-policy.dto";
+export * from "./activate-policy-param.dto.js";
+export * from "./request-activate-policy.dto.js";

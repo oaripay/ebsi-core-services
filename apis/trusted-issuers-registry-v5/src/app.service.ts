@@ -2,7 +2,7 @@ import { Injectable, Logger, OnApplicationBootstrap } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import axios, { AxiosInstance } from "axios";
 import axiosRetry from "axios-retry";
-import { ApiConfig } from "./config/configuration";
+import type { ApiConfig } from "./config/configuration.js";
 
 @Injectable()
 export class AppService implements OnApplicationBootstrap {

@@ -3,14 +3,14 @@ import { IsDidV1 } from "@ebsiint-api/shared";
 
 export class ArgsInsertRevocation {
   @IsHexadecimal()
-  applicationId: string;
+  applicationId!: string;
 
   @IsDidV1()
-  revokedBy: string;
+  revokedBy!: string;
 
   @IsInt()
   @Min(0)
-  notBefore: number;
+  notBefore!: number;
 }
 
 export default { ArgsInsertRevocation };

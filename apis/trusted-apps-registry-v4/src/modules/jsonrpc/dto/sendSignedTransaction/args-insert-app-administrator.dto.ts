@@ -3,10 +3,10 @@ import { IsDidV1 } from "@ebsiint-api/shared";
 
 export class ArgsInsertAppAdministrator {
   @IsHexadecimal()
-  applicationId: string;
+  applicationId!: string;
 
   @IsDidV1()
-  administratorId: string;
+  administratorId!: string;
 }
 
 export default { ArgsInsertAppAdministrator };

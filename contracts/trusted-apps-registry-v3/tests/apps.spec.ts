@@ -26,13 +26,13 @@ function calcAuthorizationId(
   publicKeyId: string,
   authPublicKeyId: string,
   iss: string,
-  status: number
+  status: number,
 ) {
   return ethers.utils.sha256(
     ethers.utils.defaultAbiCoder.encode(
       ["bytes32", "bytes32", "string", "uint8"],
-      [publicKeyId, authPublicKeyId, iss, status]
-    )
+      [publicKeyId, authPublicKeyId, iss, status],
+    ),
   );
 }
 
@@ -72,13 +72,12 @@ describe("Trusted Apps", () => {
   let firstAuthId: string;
 
   before(async () => {
-    const policyRegistryFactory = await ethers.getContractFactory(
-      "PolicyRegistryMock"
-    );
+    const policyRegistryFactory =
+      await ethers.getContractFactory("PolicyRegistryMock");
     const tempPolicyContract = await policyRegistryFactory.deploy();
     await tempPolicyContract.deployed();
     const bytecodeTpr = await ethers.provider.getCode(
-      tempPolicyContract.address
+      tempPolicyContract.address,
     );
     await network.provider.send("hardhat_setCode", [
       testTprAddress,
@@ -87,9 +86,8 @@ describe("Trusted Apps", () => {
     policyContractMock = policyRegistryFactory.attach(testTprAddress);
     await policyContractMock.setPolicyResult(true);
 
-    const didRegistryFactory = await ethers.getContractFactory(
-      "DidRegistryMock"
-    );
+    const didRegistryFactory =
+      await ethers.getContractFactory("DidRegistryMock");
     const tempDidContract = await didRegistryFactory.deploy();
     await tempDidContract.deployed();
     const bytecodeDid = await ethers.provider.getCode(tempDidContract.address);
@@ -104,7 +102,7 @@ describe("Trusted Apps", () => {
   beforeEach(async () => {
     const deployContract = async (
       name: string,
-      opts: FactoryOptions = {}
+      opts: FactoryOptions = {},
     ): Promise<string> => {
       const factory = await ethers.getContractFactory(name, opts);
       const contract = await factory.deploy();
@@ -123,7 +121,7 @@ describe("Trusted Apps", () => {
 
     tar = (await contractFactory.deploy(
       testTprAddress,
-      testDidrAddress
+      testDidrAddress,
     )) as Tar;
     // @typescript-eslint/no-unused-expressions
     await expect(tar.address).to.properAddress;
@@ -147,7 +145,7 @@ describe("Trusted Apps", () => {
       getAppId(app.name),
       getAppId(authApp.name),
       app.admin,
-      1
+      1,
     );
   });
   it("should get an app by name", async () => {
@@ -167,26 +165,26 @@ describe("Trusted Apps", () => {
 
     // reject new apps
     await expect(tar.insertApp("new-app", 1, "did:me")).to.be.revertedWith(
-      "Policy error: sender doesn't have the attribute TAR:insertApp"
+      "Policy error: sender doesn't have the attribute TAR:insertApp",
     );
 
     // reject revocations
     await expect(
-      tar.insertRevocation(app.id, "did:ebsi:me", 0)
+      tar.insertRevocation(app.id, "did:ebsi:me", 0),
     ).to.be.revertedWith(
-      "Policy error: sender doesn't have the attribute TAR:insertRevocation"
+      "Policy error: sender doesn't have the attribute TAR:insertRevocation",
     );
     await policyContractMock.setPolicyResult(true);
     await expect(
-      tar.insertRevocation(app.id, "did:ebsi:me", 0)
+      tar.insertRevocation(app.id, "did:ebsi:me", 0),
     ).to.be.revertedWith(
-      "Policy error: sender is not controller of the did did:ebsi:me"
+      "Policy error: sender is not controller of the did did:ebsi:me",
     );
     await policyContractMock.setPolicyResult(false);
 
     // reject changes in existing apps
     await expect(tar.updateApp(app.id, 1)).to.be.revertedWith(
-      "Policy error: sender doesn't have the attribute TAR:updateApp"
+      "Policy error: sender doesn't have the attribute TAR:updateApp",
     );
 
     await expect(tar.insertAppInfo(app.id, randomData)).to.be.revertedWith(
@@ -194,24 +192,24 @@ describe("Trusted Apps", () => {
         "Policy error: sender is not controller of any of the ",
         "adminitrators of app 'my-app' and it doesn't have ",
         "the attribute TAR:insertAppInfo",
-      ].join("")
+      ].join(""),
     );
 
     await expect(
-      tar.insertAuthorization(app.name, app2.name, app.admin, 1)
+      tar.insertAuthorization(app.name, app2.name, app.admin, 1),
     ).to.be.revertedWith(
       [
         "Policy error: sender is not controller of any of the ",
         "adminitrators of app 'my-app' and it doesn't have ",
         "the attribute TAR:insertAuthorization",
-      ].join("")
+      ].join(""),
     );
 
     await policyContractMock.setPolicyResult(true);
     await expect(
-      tar.insertAuthorization(app.name, app2.name, "randomdid", 1)
+      tar.insertAuthorization(app.name, app2.name, "randomdid", 1),
     ).to.be.revertedWith(
-      "Policy error: sender is not controller of the did randomdid"
+      "Policy error: sender is not controller of the did randomdid",
     );
     await policyContractMock.setPolicyResult(false);
 
@@ -220,21 +218,21 @@ describe("Trusted Apps", () => {
         "Policy error: sender is not controller of any of the ",
         "adminitrators of app 'my-app' and it doesn't have ",
         "the attribute TAR:updateAuthorization",
-      ].join("")
+      ].join(""),
     );
 
     await expect(
-      tar.insertAppPublicKey(app.id, crypto.randomBytes(32), 1)
+      tar.insertAppPublicKey(app.id, crypto.randomBytes(32), 1),
     ).to.be.revertedWith(
       [
         "Policy error: sender is not controller of any of the ",
         "adminitrators of app 'my-app' and it doesn't have ",
         "the attribute TAR:insertAppPublicKey",
-      ].join("")
+      ].join(""),
     );
 
     await expect(
-      tar.insertAppPublicKey(app.id, crypto.randomBytes(32), 0)
+      tar.insertAppPublicKey(app.id, crypto.randomBytes(32), 0),
     ).to.be.revertedWith("invalid status");
 
     await expect(tar.updateAppPublicKey(app.publicKeyId, 1)).to.be.revertedWith(
@@ -242,31 +240,31 @@ describe("Trusted Apps", () => {
         "Policy error: sender is not controller of any of the ",
         "adminitrators of app 'my-app' and it doesn't have ",
         "the attribute TAR:updateAppPublicKey",
-      ].join("")
+      ].join(""),
     );
 
     await expect(tar.updateAppPublicKey(app.publicKeyId, 0)).to.be.revertedWith(
-      "invalid status"
+      "invalid status",
     );
 
     await expect(
-      tar.insertAppAdministrator(app.id, "did:newadmin")
+      tar.insertAppAdministrator(app.id, "did:newadmin"),
     ).to.be.revertedWith(
       [
         "Policy error: sender is not controller of any of the ",
         "adminitrators of app 'my-app' and it doesn't have ",
         "the attribute TAR:insertAppAdministrator",
-      ].join("")
+      ].join(""),
     );
 
     await expect(
-      tar.deleteAppAdministrator(app.id, app.admin)
+      tar.deleteAppAdministrator(app.id, app.admin),
     ).to.be.revertedWith(
       [
         "Policy error: sender is not controller of any of the ",
         "adminitrators of app 'my-app' and it doesn't have ",
         "the attribute TAR:deleteAppAdministrator",
-      ].join("")
+      ].join(""),
     );
   });
 
@@ -282,12 +280,12 @@ describe("Trusted Apps", () => {
 
     await expect(tar.insertApp(newApp.name, 1, newApp.admin)).to.emit(
       tar,
-      "ApplicationRegistered"
+      "ApplicationRegistered",
     );
 
     await expect(tar.insertRevocation(newApp.id, "did:me", 0)).to.emit(
       tar,
-      "AddNewRevocation"
+      "AddNewRevocation",
     );
 
     const revocation = await tar.getRevocation(newApp.id);
@@ -303,18 +301,18 @@ describe("Trusted Apps", () => {
     const info = crypto.randomBytes(32);
     await expect(tar.insertAppInfo(app.id, info)).to.emit(
       tar,
-      "ApplicationInfoUpdated"
+      "ApplicationInfoUpdated",
     );
 
     const extraPubKey = crypto.randomBytes(40);
     const extraPubKeyId = ethers.utils.sha256(extraPubKey);
     await expect(tar.insertAppPublicKey(app.id, extraPubKey, 1)).to.emit(
       tar,
-      "PublicKeyAdded"
+      "PublicKeyAdded",
     );
 
     await expect(tar.updateAppPublicKey(extraPubKeyId, 1)).to.revertedWith(
-      "No new data for update"
+      "No new data for update",
     );
   });
 
@@ -325,19 +323,19 @@ describe("Trusted Apps", () => {
     const infoId = ethers.utils.sha256(info);
     await expect(tar.insertAppInfo(app.id, info)).to.emit(
       tar,
-      "ApplicationInfoUpdated"
+      "ApplicationInfoUpdated",
     );
 
     const extraPubKey = crypto.randomBytes(40);
     const extraPubKeyId = ethers.utils.sha256(extraPubKey);
     await expect(tar.insertAppPublicKey(app.id, extraPubKey, 1)).to.emit(
       tar,
-      "PublicKeyAdded"
+      "PublicKeyAdded",
     );
 
     await expect(tar.updateAppPublicKey(extraPubKeyId, 2)).to.emit(
       tar,
-      "PublicKeyUpdated"
+      "PublicKeyUpdated",
     );
 
     const infoResult = await tar.getAppInfoByInfoId(infoId);
@@ -398,7 +396,7 @@ describe("Trusted Apps", () => {
     await policyContractMock.setPolicyResult(false);
     await expect(tar.insertAppAdministrator(app.id, "did:newadmin")).to.emit(
       tar,
-      "ApplicationAdministratorAdded"
+      "ApplicationAdministratorAdded",
     );
 
     let resultAppAdmins = await tar.getAppAdministratorIds(app.id, 1, 50);
@@ -412,7 +410,7 @@ describe("Trusted Apps", () => {
 
     await expect(tar.deleteAppAdministrator(app.id, app.admin)).to.emit(
       tar,
-      "ApplicationAdministratorDeleted"
+      "ApplicationAdministratorDeleted",
     );
 
     resultAppAdmins = await tar.getAppAdministratorIds(app.id, 1, 50);
@@ -426,7 +424,7 @@ describe("Trusted Apps", () => {
 
     await expect(tar.deleteAppAdministrator(app.id, "did:newadmin")).to.emit(
       tar,
-      "ApplicationAdministratorDeleted"
+      "ApplicationAdministratorDeleted",
     );
 
     resultAppAdmins = await tar.getAppAdministratorIds(app.id, 1, 50);
@@ -443,44 +441,44 @@ describe("Trusted Apps", () => {
     await policyContractMock.setPolicyResult(false);
     await expect(tar.insertAppAdministrator(app.id, "did:newadmin")).to.emit(
       tar,
-      "ApplicationAdministratorAdded"
+      "ApplicationAdministratorAdded",
     );
 
     await expect(
-      tar.insertAppAdministrator(app.id, "did:newadmin")
+      tar.insertAppAdministrator(app.id, "did:newadmin"),
     ).to.revertedWith("admin already exist");
   });
 
   it("should revert if update has no new data", async () => {
     await policyContractMock.setPolicyResult(false);
     await expect(
-      tar.insertAuthorization(app.name, app2.name, "did:me", 1)
+      tar.insertAuthorization(app.name, app2.name, "did:me", 1),
     ).to.emit(tar, "AddNewAuthorization");
     const authId = calcAuthorizationId(
       getAppId(app.name),
       getAppId(app2.name),
       "did:me",
-      1
+      1,
     );
     await expect(tar.updateAuthorization(authId, 1)).to.revertedWith(
-      "No new data for update"
+      "No new data for update",
     );
   });
 
   it("should insert/update authorizations by app admin", async () => {
     await policyContractMock.setPolicyResult(false);
     await expect(
-      tar.insertAuthorization(app.name, app2.name, "did:me", 1)
+      tar.insertAuthorization(app.name, app2.name, "did:me", 1),
     ).to.emit(tar, "AddNewAuthorization");
     const authId = calcAuthorizationId(
       getAppId(app.name),
       getAppId(app2.name),
       "did:me",
-      1
+      1,
     );
     await expect(tar.updateAuthorization(authId, 2)).to.emit(
       tar,
-      "UpdateAuthorization"
+      "UpdateAuthorization",
     );
 
     let auths = await tar.getAuthorizations(app.id, app2.id, 1, 50);
@@ -521,12 +519,12 @@ describe("Trusted Apps", () => {
       if (i < MAX_ADMINS - 1) {
         // eslint-disable-next-line no-await-in-loop
         await expect(
-          tar.insertAppAdministrator(app.id, `did:admin:${i}`)
+          tar.insertAppAdministrator(app.id, `did:admin:${i}`),
         ).to.emit(tar, "ApplicationAdministratorAdded");
       } else {
         // eslint-disable-next-line no-await-in-loop
         await expect(
-          tar.insertAppAdministrator(app.id, `did:admin:${i}`)
+          tar.insertAppAdministrator(app.id, `did:admin:${i}`),
         ).to.be.revertedWith("Maximum number of admins reached");
       }
     }

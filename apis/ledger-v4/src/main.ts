@@ -1,16 +1,16 @@
 import { NestFactory } from "@nestjs/core";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
 import { ValidationPipe } from "@nestjs/common";
 import fastifyHelmet from "@fastify/helmet";
 import { setupInterceptors } from "@ebsiint-api/shared";
-import { AppModule } from "./app.module";
-import { AllExceptionsFilter } from "./filters/http-exception.filter";
-import { createLogger, consoleTransport } from "./logger/logger";
-import { ApiConfig } from "./config/configuration";
+import { AppModule } from "./app.module.js";
+import { AllExceptionsFilter } from "./filters/http-exception.filter.js";
+import { createLogger, consoleTransport } from "./logger/logger.js";
+import type { ApiConfig } from "./config/configuration.js";
 
 async function bootstrap(): Promise<void> {
   const fastifyAdapter = new FastifyAdapter();
@@ -21,7 +21,7 @@ async function bootstrap(): Promise<void> {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     fastifyAdapter,
-    { logger }
+    { logger },
   );
 
   const configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
@@ -39,16 +39,18 @@ async function bootstrap(): Promise<void> {
     consoleTransport.level = logLevel;
   }
 
-  logger.debug(
-    `Starting API with:
+  if (logger.debug) {
+    logger.debug(
+      `Starting API with:
 - NODE_ENV: ${process.env.NODE_ENV}
 - API_URL_PREFIX:${apiUrlPrefix}
 - API_PORT:${port}
 - LOG_LEVEL: ${logLevel}
 - Docker container tag: ${dockerContainerTag}
 `,
-    "main"
-  );
+      "main",
+    );
+  }
 
   // Starts listening for shutdown hooks
   app.enableShutdownHooks();

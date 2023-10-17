@@ -1,11 +1,11 @@
 import { format, transports } from "winston";
 import { utilities as winstonUtilities, WinstonModule } from "nest-winston";
-import { LoggerService } from "@nestjs/common";
+import type { LoggerService } from "@nestjs/common";
 
 export const consoleTransport = new transports.Console({
   format: format.combine(
     format.timestamp(),
-    winstonUtilities.format.nestLike("Authorisation API v4")
+    winstonUtilities.format.nestLike("Authorisation API v4"),
   ),
   handleExceptions: true,
 });

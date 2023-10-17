@@ -1,4 +1,4 @@
-import { ProblemDetailsError } from "./ProblemDetailsError";
+import { ProblemDetailsError } from "./ProblemDetailsError.js";
 
 /**
  * PaymentRequiredError defines the Payment Required (402) error type.
@@ -24,7 +24,7 @@ export class PaymentRequiredError extends ProblemDetailsError {
       detail?: string;
       instance?: string;
       extensions?: { [x: string]: unknown };
-    }
+    },
   ) {
     super(PaymentRequiredError.statusCode, title, options);
     this.name = "PaymentRequiredError";

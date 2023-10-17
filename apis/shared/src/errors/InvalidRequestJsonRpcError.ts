@@ -1,4 +1,4 @@
-import { JsonRpcError } from "./JsonRpcError";
+import { JsonRpcError } from "./JsonRpcError.js";
 
 /**
  * InvalidRequestJsonRpcError defines the Invalid Request (-32600) error type.
@@ -14,7 +14,11 @@ export class InvalidRequestJsonRpcError extends JsonRpcError {
    * @param id It MUST be the same as the value of the id member in the Request Object.
    * @param data A Primitive or Structured value that contains additional information about the error. This may be omitted.
    */
-  constructor(message: string, id: string | number | null, data?: unknown) {
+  constructor(
+    message: string,
+    id: string | number | null | undefined,
+    data?: unknown,
+  ) {
     super(-32600, 400, message, id, data);
     this.name = "InvalidRequestJsonRpcError";
   }

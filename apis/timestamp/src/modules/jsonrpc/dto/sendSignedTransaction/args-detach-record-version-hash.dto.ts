@@ -2,14 +2,14 @@ import { IsInt, IsHexadecimal, Min } from "class-validator";
 
 export class ArgsDetachRecordVersionHash {
   @IsHexadecimal()
-  recordId: string;
+  recordId!: string;
 
   @IsInt()
   @Min(0)
-  versionId: number;
+  versionId!: number;
 
   @IsHexadecimal()
-  hashValue: string;
+  hashValue!: string;
 }
 
 export default { ArgsDetachRecordVersionHash };

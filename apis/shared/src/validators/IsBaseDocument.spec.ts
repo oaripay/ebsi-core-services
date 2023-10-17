@@ -1,5 +1,5 @@
-import { describe, it, expect } from "@jest/globals";
-import { isBaseDocument } from "./IsBaseDocument";
+import { describe, it, expect } from "vitest";
+import { isBaseDocument } from "./IsBaseDocument.js";
 
 describe("IsBaseDocument", () => {
   it("should validate if it is a valid base document", () => {
@@ -14,22 +14,22 @@ describe("IsBaseDocument", () => {
 
     // good context
     expect(
-      isBaseDocument('{"@context":"https://www.w3.org/ns/did/v1"}')
+      isBaseDocument('{"@context":"https://www.w3.org/ns/did/v1"}'),
     ).toBeTruthy();
     expect(
-      isBaseDocument('{"@context":["https://www.w3.org/ns/did/v1"]}')
+      isBaseDocument('{"@context":["https://www.w3.org/ns/did/v1"]}'),
     ).toBeTruthy();
     expect(
       isBaseDocument(
-        '{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/jws-2020/v1"]}'
-      )
+        '{"@context":["https://www.w3.org/ns/did/v1","https://w3id.org/security/suites/jws-2020/v1"]}',
+      ),
     ).toBeTruthy();
 
     // no restricted fields
     expect(
       isBaseDocument(
-        '{"@context":["https://www.w3.org/ns/did/v1"],"controller":"did:ebsi:z25jWQYxVzeL2z2fiYesZj9M"}'
-      )
+        '{"@context":["https://www.w3.org/ns/did/v1"],"controller":"did:ebsi:z25jWQYxVzeL2z2fiYesZj9M"}',
+      ),
     ).toBeFalsy();
   });
 });

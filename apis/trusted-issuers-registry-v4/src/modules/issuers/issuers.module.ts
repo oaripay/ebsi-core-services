@@ -1,8 +1,8 @@
 import { Module, Logger } from "@nestjs/common";
-import { ApiConfigModule } from "../../config/configuration";
-import { IssuersController } from "./issuers.controller";
-import { IssuersService } from "./issuers.service";
-import { LedgerService } from "../ledger/ledger.service";
+import { ApiConfigModule } from "../../config/configuration.js";
+import { IssuersController } from "./issuers.controller.js";
+import { IssuersService } from "./issuers.service.js";
+import { LedgerService } from "../ledger/ledger.service.js";
 
 @Module({
   imports: [ApiConfigModule],

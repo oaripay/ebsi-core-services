@@ -1,5 +1,5 @@
-import { describe, it, expect } from "@jest/globals";
-import { ExpectationFailedError, ProblemDetailsError } from "../index";
+import { describe, it, expect } from "vitest";
+import { ExpectationFailedError, ProblemDetailsError } from "../index.js";
 
 describe("error ExpectationFailedError", () => {
   it("should extend ProblemDetailsError", () => {
@@ -69,7 +69,7 @@ describe("error ExpectationFailedError", () => {
     });
 
     expect(error.toString()).toBe(
-      `${ExpectationFailedError.statusCode} - Test Error`
+      `${ExpectationFailedError.statusCode} - Test Error`,
     );
   });
 });

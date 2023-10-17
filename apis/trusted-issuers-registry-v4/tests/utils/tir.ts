@@ -9,7 +9,7 @@ import { mergeMap, toArray } from "rxjs/operators";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { Tir } from "@ebsiint-sc/trusted-issuers-registry";
 import { StatusList2021Credential } from "@ebsiint-api/shared";
-import { IssuerType } from "../../src/modules/issuers/issuers.constants";
+import { IssuerType } from "../../src/modules/issuers/issuers.constants.js";
 
 export interface IssuerProxyObject {
   prefix: string;
@@ -45,14 +45,13 @@ export async function deployTirContract(): Promise<{
   // mock trusted policies registry
   const testTprAddress = "0xb2a560271ce08135e245F490b8794794A13a1208";
   const testDidrAddress = "0xDBf25173FC2b2e52a9B6fa54F6180136034800a8";
-  const policyRegistryFactory = await hre.ethers.getContractFactory(
-    "PolicyRegistryMock"
-  );
+  const policyRegistryFactory =
+    await hre.ethers.getContractFactory("PolicyRegistryMock");
 
   const tempPolicyContract = await policyRegistryFactory.deploy();
   await tempPolicyContract.deployed();
   const bytecode = await hre.ethers.provider.getCode(
-    tempPolicyContract.address
+    tempPolicyContract.address,
   );
   await hre.network.provider.send("hardhat_setCode", [
     testTprAddress,
@@ -61,13 +60,12 @@ export async function deployTirContract(): Promise<{
   const policyContractMock = policyRegistryFactory.attach(testTprAddress);
   await policyContractMock.setPolicyResult(true);
 
-  const didRegistryFactory = await hre.ethers.getContractFactory(
-    "DidRegistryMock"
-  );
+  const didRegistryFactory =
+    await hre.ethers.getContractFactory("DidRegistryMock");
   const tempDidContract = await didRegistryFactory.deploy();
   await tempDidContract.deployed();
   const bytecodeDid = await hre.ethers.provider.getCode(
-    tempDidContract.address
+    tempDidContract.address,
   );
   await hre.network.provider.send("hardhat_setCode", [
     testDidrAddress,
@@ -100,7 +98,7 @@ export function createIssuer(
   issuerType: IssuerType,
   inputTaoDid?: string,
   inputTaoAttributeId?: string,
-  inputRootTaoDid?: string
+  inputRootTaoDid?: string,
 ): IssuerObject {
   const issuerDid = EbsiWallet.createDid();
   const attributeUtf8 = JSON.stringify({
@@ -195,13 +193,13 @@ export async function insertIssuer(
   issuerType: IssuerType,
   inputTaoDid?: string,
   inputTaoAttributeId?: string,
-  inputRootTaoDid?: string
+  inputRootTaoDid?: string,
 ): Promise<IssuerObject> {
   const issuer = createIssuer(
     issuerType,
     inputTaoDid,
     inputTaoAttributeId,
-    inputRootTaoDid
+    inputRootTaoDid,
   );
 
   const firstAttributeId = crypto.randomBytes(32);
@@ -211,13 +209,13 @@ export async function insertIssuer(
     firstAttributeId,
     issuer.issuerType,
     issuer.tao,
-    issuer.taoAttributeId
+    issuer.taoAttributeId,
   );
 
   await contract.setAttributeData(
     issuer.did,
     firstAttributeId,
-    issuer.attribute.buffer
+    issuer.attribute.buffer,
   );
 
   await contract.addIssuerProxy(issuer.did, issuer.proxy.utf8);
@@ -254,14 +252,14 @@ export async function setupTestEnv({
     IssuerType.TAO,
     rootTao.did,
     rootTao.attribute.id,
-    rootTao.did
+    rootTao.did,
   );
   const tao2 = await insertIssuer(
     tirContract,
     IssuerType.TAO,
     rootTao.did,
     rootTao.attribute.id,
-    rootTao.did
+    rootTao.did,
   );
   issuers.push(tao1, tao2);
 
@@ -272,14 +270,14 @@ export async function setupTestEnv({
       IssuerType.TI,
       tao1.did,
       tao1.attribute.id,
-      rootTao.did
+      rootTao.did,
     );
 
   // Create as many issuers as requested
   issuers.push(
     ...((await range(0, issuersTotal - 3)
       .pipe(mergeMap(insertIssuerAsTI), toArray())
-      .toPromise()) ?? [])
+      .toPromise()) ?? []),
   );
 
   // Return test env variables

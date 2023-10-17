@@ -1,14 +1,7 @@
-import {
-  jest,
-  describe,
-  beforeAll,
-  afterEach,
-  it,
-  expect,
-} from "@jest/globals";
-import { Test, TestingModule } from "@nestjs/testing";
-import { LedgerService } from "./ledger.service";
-import { LedgerModule } from "./ledger.module";
+import { vi, describe, beforeAll, afterEach, it, expect } from "vitest";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { LedgerService } from "./ledger.service.js";
+import { LedgerModule } from "./ledger.module.js";
 
 describe("Ledger service", () => {
   let ledgerService: LedgerService;
@@ -22,7 +15,7 @@ describe("Ledger service", () => {
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   it("getContractAddress should return an address", () => {
@@ -34,10 +27,10 @@ describe("Ledger service", () => {
   it("getContract should not request access token when called without arguments", async () => {
     expect.assertions(1);
 
-    const sessionMock = jest
+    const sessionMock = vi
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .spyOn(LedgerService.prototype as any, "refreshConnection")
-      .mockImplementation(() => jest.fn());
+      .mockImplementation(() => vi.fn());
 
     await ledgerService.getContract();
     expect(sessionMock).not.toHaveBeenCalled();
@@ -46,16 +39,16 @@ describe("Ledger service", () => {
   it("getContract should request access token when called with arguments", async () => {
     expect.assertions(2);
 
-    const sessionSpy = jest.spyOn(
+    const sessionSpy = vi.spyOn(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       LedgerService.prototype as any,
-      "refreshConnection"
+      "refreshConnection",
     );
 
-    const getTokenMock = jest
+    const getTokenMock = vi
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .spyOn(LedgerService.prototype as any, "getAccessToken")
-      .mockImplementation(() => jest.fn());
+      .mockImplementation(() => vi.fn());
 
     await ledgerService.getContract({ protectedMethod: true });
     expect(sessionSpy).toHaveBeenCalled();

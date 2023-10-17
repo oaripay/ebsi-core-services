@@ -1,9 +1,9 @@
 import type { KeyObject } from "node:crypto";
 import { exportJWK } from "jose";
 import type { JWK } from "jose";
-import EbsiWallet from "@cef-ebsi/wallet-lib";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import type { DIDDocument, JsonWebKey } from "did-resolver";
-import { generateKeys, getPrivateKeyHex } from "./keys";
+import { generateKeys, getPrivateKeyHex } from "./keys.js";
 
 export async function createTestClient(): Promise<{
   keys: {
@@ -41,10 +41,10 @@ export async function createTestClient(): Promise<{
   /* eslint-disable no-await-in-loop */
   for (let i = 0; i < algs.length; i += 1) {
     const id = `${did}#keys-${i + 1}`;
-    const ks = await generateKeys(algs[i]);
+    const ks = await generateKeys(algs[i]!);
     const jwk = await exportJWK(ks.publicKey);
     const jwkPriv = await exportJWK(ks.privateKey);
-    const type = types[i];
+    const type = types[i]!;
     if (algs[i] === "ES256K") {
       privateKeyHexES256K = await getPrivateKeyHex(ks.privateKey);
     }

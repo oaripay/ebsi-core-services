@@ -2,13 +2,13 @@ import { IsEthereumAddress, IsArray } from "class-validator";
 
 export class ArgsInsertUserAttributes {
   @IsEthereumAddress()
-  address: string;
+  address!: string;
 
   @IsArray()
-  attributeNames: string[];
+  attributeNames!: string[];
 
   @IsArray()
-  attributeValues: string[];
+  attributeValues!: string[];
 }
 
 export default { ArgsInsertUserAttributes };

@@ -1,39 +1,34 @@
 import { randomInt } from "node:crypto";
-import { describe, beforeAll, it, expect } from "@jest/globals";
+import { describe, beforeAll, it, expect } from "vitest";
 import { ethers } from "ethers";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  HttpServer,
-  Logger,
-} from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
-import type { FastifyInstance } from "fastify";
-import { HashName } from "multihashes";
+import type { RawServerDefault } from "fastify";
+import type { HashName } from "multihashes";
 import { prefixWith0x, waitToBeMined } from "@ebsiint-api/shared";
 import type { TransactionRequest } from "@ethersproject/abstract-provider";
-import { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
-import { AppModule } from "../../src/app.module";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
-import { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
+import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
+import { AppModule } from "../../src/app.module.js";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
+import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
 import {
   InsertHashAlgorithmParam,
   UnsignedTransaction,
   UpdateHashAlgorithmParam,
-} from "../../src/modules/jsonrpc/dto";
-import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
-import { HashAlgorithmLink } from "../../src/modules/hash-algorithms/hash-algorithms.interface";
-import { ApiConfig } from "../../src/config/configuration";
-import { describeWriteOps, itWriteOps, writeOps } from "../utils/writeOps";
-import { getServer } from "../utils/getServer";
-import getTimestampWriteAccessToken from "../utils/getAccessToken";
-import getEbsiIssuer from "../utils/getEbsiIssuer";
+} from "../../src/modules/jsonrpc/dto/index.js";
+import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
+import type { HashAlgorithmLink } from "../../src/modules/hash-algorithms/hash-algorithms.interface.js";
+import type { ApiConfig } from "../../src/config/configuration.js";
+import { describeWriteOps, itWriteOps, writeOps } from "../utils/writeOps.js";
+import { getServer } from "../utils/getServer.js";
+import { getTimestampWriteAccessToken } from "../utils/getAccessToken.js";
+import { getEbsiIssuer } from "../utils/getEbsiIssuer.js";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -61,8 +56,8 @@ const newHashAlgorithm: {
 } as const;
 
 describe("HashAlgorithms (e2e)", () => {
-  let app: INestApplication;
-  let server: HttpServer | string;
+  let app: NestFastifyApplication;
+  let server: RawServerDefault | string;
   let authorisationApiUrl: string;
   let trustedHostnames: string[];
   let adminUser: TestUser;
@@ -76,7 +71,7 @@ describe("HashAlgorithms (e2e)", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     // Turn off logger
@@ -87,7 +82,7 @@ describe("HashAlgorithms (e2e)", () => {
     app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
     server = getServer(app, configService);
 
@@ -106,7 +101,7 @@ describe("HashAlgorithms (e2e)", () => {
       const adminIssuerInfo = await getEbsiIssuer(
         adminPrivateKeyHex,
         adminDid,
-        adminKid
+        adminKid,
       );
 
       try {
@@ -115,7 +110,7 @@ describe("HashAlgorithms (e2e)", () => {
           token: await getTimestampWriteAccessToken(
             authorisationApiUrl,
             adminIssuerInfo,
-            trustedHostnames
+            trustedHostnames,
           ),
           wallet: adminWallet,
         };
@@ -141,7 +136,7 @@ describe("HashAlgorithms (e2e)", () => {
           token: await getTimestampWriteAccessToken(
             authorisationApiUrl,
             userInfo,
-            trustedHostnames
+            trustedHostnames,
           ),
           wallet: userWallet,
         };
@@ -162,17 +157,17 @@ describe("HashAlgorithms (e2e)", () => {
       const response = await request(server).get("/hash-algorithms");
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          "/hash-algorithms?page[after]=1&page[size]=10"
+          "/hash-algorithms?page[after]=1&page[size]=10",
         ),
         items: expect.arrayContaining([]),
         total: expect.any(Number),
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            "/hash-algorithms?page[after]=1&page[size]=10"
+            "/hash-algorithms?page[after]=1&page[size]=10",
           ),
           prev: expect.stringContaining(
-            "/hash-algorithms?page[after]=1&page[size]=10"
+            "/hash-algorithms?page[after]=1&page[size]=10",
           ),
           next: expect.stringContaining("/hash-algorithms?page[after]="),
           last: expect.stringContaining("/hash-algorithms?page[after]="),
@@ -191,10 +186,10 @@ describe("HashAlgorithms (e2e)", () => {
         respHashAlgorithms.body as {
           items: HashAlgorithmLink[];
         }
-      ).items[0];
+      ).items[0]!;
 
       const response = await request(server).get(
-        `/hash-algorithms/${hashAlgorithmId}`
+        `/hash-algorithms/${hashAlgorithmId}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -213,7 +208,7 @@ describe("HashAlgorithms (e2e)", () => {
       const hashAlgorithmId = randomInt(10000) + 10000; // some random number between 10,000 and 20,000
 
       const response = await request(server).get(
-        `/hash-algorithms/${hashAlgorithmId}`
+        `/hash-algorithms/${hashAlgorithmId}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -300,12 +295,12 @@ describe("HashAlgorithms (e2e)", () => {
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
           JSON.parse(
-            JSON.stringify(unsignedTransaction)
-          ) as unknown as UnsignedTransaction
+            JSON.stringify(unsignedTransaction),
+          ) as unknown as UnsignedTransaction,
         );
         uTx.chainId = Number(uTx.chainId);
         const sgnTx = await adminUser.wallet.signTransaction(
-          uTx as TransactionRequest
+          uTx as TransactionRequest,
         );
         const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
@@ -338,11 +333,11 @@ describe("HashAlgorithms (e2e)", () => {
         // wait to be mined
         const receipt = await waitToBeMined(
           ledgerApi,
-          responseSend.body.result as string
+          responseSend.body.result as string,
         );
         expect(receipt.status).toBe(1);
       });
-    }
+    },
   );
 
   describeWriteOps().each([
@@ -419,12 +414,12 @@ describe("HashAlgorithms (e2e)", () => {
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
           JSON.parse(
-            JSON.stringify(unsignedTransaction)
-          ) as unknown as UnsignedTransaction
+            JSON.stringify(unsignedTransaction),
+          ) as unknown as UnsignedTransaction,
         );
         uTx.chainId = Number(uTx.chainId);
         const sgnTx = await testUser.wallet.signTransaction(
-          uTx as TransactionRequest
+          uTx as TransactionRequest,
         );
         const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
@@ -457,21 +452,20 @@ describe("HashAlgorithms (e2e)", () => {
         // wait to be mined
         const receipt = await waitToBeMined(
           ledgerApi,
-          responseSend.body.result as string
+          responseSend.body.result as string,
         );
 
         expect(receipt.revertReason).toBe(
-          `Policy error: sender doesn't have the attribute TS:${method}`
+          `Policy error: sender doesn't have the attribute TS:${method}`,
         );
         expect(receipt.status).toBe(0);
       });
-    }
+    },
   );
 
   itWriteOps()(
     "should reject impersonating transactions: admin wallet using jwt from user",
     async () => {
-      // eslint-disable-next-line jest/no-standalone-expect
       expect.assertions(2);
 
       const { outputLength, ianaName, oid, multihash } = newHashAlgorithm;
@@ -498,12 +492,12 @@ describe("HashAlgorithms (e2e)", () => {
       const unsignedTransaction = responseBuild.body.result;
       const uTx = formatEthersUnsignedTransaction(
         JSON.parse(
-          JSON.stringify(unsignedTransaction)
-        ) as unknown as UnsignedTransaction
+          JSON.stringify(unsignedTransaction),
+        ) as unknown as UnsignedTransaction,
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx = await adminUser.wallet.signTransaction(
-        uTx as TransactionRequest
+        uTx as TransactionRequest,
       );
       const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
@@ -526,7 +520,6 @@ describe("HashAlgorithms (e2e)", () => {
           id: "45",
         });
 
-      // eslint-disable-next-line jest/no-standalone-expect
       expect(responseSend.body).toStrictEqual({
         jsonrpc: "2.0",
         id: "45",
@@ -538,8 +531,7 @@ describe("HashAlgorithms (e2e)", () => {
         },
       });
 
-      // eslint-disable-next-line jest/no-standalone-expect
       expect(responseSend.status).toBe(400);
-    }
+    },
   );
 });

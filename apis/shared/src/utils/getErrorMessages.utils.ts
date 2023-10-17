@@ -1,9 +1,9 @@
 import * as ClassValidator from "class-validator";
-import { ProblemDetailsError } from "../errors/ProblemDetailsError";
-import { isEthersError } from "./isEthersError";
+import { ProblemDetailsError } from "../errors/ProblemDetailsError.js";
+import { isEthersError } from "./isEthersError.js";
 
 export function getErrorMessages(
-  errors: ClassValidator.ValidationError[]
+  errors: ClassValidator.ValidationError[],
 ): string[] {
   return errors
     .map((err) => {

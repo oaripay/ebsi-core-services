@@ -66,6 +66,6 @@ export interface CassandraResponse {
 }
 
 export interface PageOpts {
-  fetchSize: number;
-  pageState: string;
+  fetchSize?: number;
+  pageState?: string;
 }

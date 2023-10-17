@@ -1,2 +1,2 @@
-export * from "./update-policy-param.dto";
-export * from "./request-update-policy.dto";
+export * from "./update-policy-param.dto.js";
+export * from "./request-update-policy.dto.js";

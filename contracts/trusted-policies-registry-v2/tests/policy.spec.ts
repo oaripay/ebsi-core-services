@@ -77,12 +77,12 @@ describe("Policy", () => {
   describe("Get functions", () => {
     it("should fail to initialize", async () => {
       await expect(policyContract.initialize(1)).to.be.revertedWith(
-        "Initializable: contract is already initialized"
+        "Initializable: contract is already initialized",
       );
     });
     it("Should fail for invalid policy", async () => {
       await expect(policyContract["getPolicy(uint256)"](5)).to.be.revertedWith(
-        "Policy: invalid policy"
+        "Policy: invalid policy",
       );
     });
 
@@ -120,7 +120,7 @@ describe("Policy", () => {
       await emptyPolicyContract.initialize(12);
 
       expect((await emptyPolicyContract.getPolicies(3, 1)).total).to.equal(
-        BigNumber.from(0)
+        BigNumber.from(0),
       );
     });
 
@@ -129,30 +129,30 @@ describe("Policy", () => {
       expect(
         policyContract["checkPolicy(string,address)"](
           "policy-0",
-          await addr1.getAddress()
-        )
+          await addr1.getAddress(),
+        ),
       ).to.be.revertedWith("Policy: inactive or not defined");
     });
 
     it("should check pagination conditions are working", async () => {
       expect(policyContract.getPolicyNames(1, 51)).to.be.revertedWith(
-        "PSize not <=50"
+        "PSize not <=50",
       );
       expect(policyContract.getPolicyNames(1, 0)).to.be.revertedWith(
-        "PSize not >0"
+        "PSize not >0",
       );
       expect(policyContract.getPolicyNames(0, 10)).to.be.revertedWith(
-        "Page not >0"
+        "Page not >0",
       );
 
       expect(policyContract.getPolicies(1, 51)).to.be.revertedWith(
-        "PSize not <=50"
+        "PSize not <=50",
       );
       expect(policyContract.getPolicies(1, 0)).to.be.revertedWith(
-        "PSize not >0"
+        "PSize not >0",
       );
       expect(policyContract.getPolicies(0, 10)).to.be.revertedWith(
-        "Page not >0"
+        "Page not >0",
       );
     });
 
@@ -228,7 +228,7 @@ describe("Policy", () => {
 
       it(`Should fail for missing policy (${type})`, async () => {
         await expect(deactivatePolicy(invalidValue)).to.be.revertedWith(
-          "Policy: invalid policy"
+          "Policy: invalid policy",
         );
       });
 
@@ -236,14 +236,14 @@ describe("Policy", () => {
         await expect(deactivatePolicyBadUser(value)).to.be.revertedWith(
           `AccessControl: account ${(
             await addr1.getAddress()
-          ).toLowerCase()} is missing role ${OPERATOR_ROLE}`
+          ).toLowerCase()} is missing role ${OPERATOR_ROLE}`,
         );
       });
 
       it(`Should deactivate policy (${type})`, async () => {
         await expect(deactivatePolicy(value)).to.emit(
           policyContract,
-          "PolicyDeactivated"
+          "PolicyDeactivated",
         );
         const policy = await getPolicy(value);
         // eslint-disable-next-line @typescript-eslint/no-unused-expressions
@@ -253,7 +253,7 @@ describe("Policy", () => {
       it(`Should fail for inactive policy (${type})`, async () => {
         await deactivatePolicy(value);
         await expect(deactivatePolicy(value)).to.be.revertedWith(
-          "Policy: invalid policy"
+          "Policy: invalid policy",
         );
       });
     });
@@ -291,13 +291,13 @@ describe("Policy", () => {
 
       it(`Should fail for missing policy (${type})`, async () => {
         await expect(activatePolicy(invalidValue)).to.be.revertedWith(
-          "Policy: invalid policy"
+          "Policy: invalid policy",
         );
       });
 
       it(`Should fail for active policy (${type})`, async () => {
         await expect(activatePolicy(value)).to.be.revertedWith(
-          "Policy: policy already active"
+          "Policy: policy already active",
         );
       });
 
@@ -305,7 +305,7 @@ describe("Policy", () => {
         await expect(activatePolicyBadUser(value)).to.be.revertedWith(
           `AccessControl: account ${(
             await addr1.getAddress()
-          ).toLowerCase()} is missing role ${OPERATOR_ROLE}`
+          ).toLowerCase()} is missing role ${OPERATOR_ROLE}`,
         );
       });
 
@@ -316,7 +316,7 @@ describe("Policy", () => {
         expect(policy.status).to.be.false;
         await expect(activatePolicy(value)).to.emit(
           policyContract,
-          "PolicyActivated"
+          "PolicyActivated",
         );
         policy = await getPolicy(value);
         // eslint-disable-next-line @typescript-eslint/no-unused-expressions
@@ -328,29 +328,29 @@ describe("Policy", () => {
   describe("insertPolicy", () => {
     it("Should fail for empty name", async () => {
       await expect(
-        policyContract.insertPolicy("", "description")
+        policyContract.insertPolicy("", "description"),
       ).to.be.revertedWith("Policy: name required");
     });
 
     it("Should fail for empty description", async () => {
       await expect(policyContract.insertPolicy("name", "")).to.be.revertedWith(
-        "Policy: description required"
+        "Policy: description required",
       );
     });
 
     it("Should fail for same policyName", async () => {
       await expect(
-        policyContract.insertPolicy("policy-1", "description")
+        policyContract.insertPolicy("policy-1", "description"),
       ).to.be.revertedWith("Policy: policy exists");
     });
 
     it("Should be reverted if it doesn't have operator role", async () => {
       await expect(
-        policyContract.connect(addr1).insertPolicy("name", "description")
+        policyContract.connect(addr1).insertPolicy("name", "description"),
       ).to.be.revertedWith(
         `AccessControl: account ${(
           await addr1.getAddress()
-        ).toLowerCase()} is missing role ${OPERATOR_ROLE}`
+        ).toLowerCase()} is missing role ${OPERATOR_ROLE}`,
       );
     });
 
@@ -386,14 +386,17 @@ describe("Policy", () => {
     it("should fail to update a policy description with empty string", async () => {
       await policyContract.insertPolicy("name", "description-test"); // policy Id 5
       await expect(
-        policyContract["updatePolicy(string,string)"]("name", "")
+        policyContract["updatePolicy(string,string)"]("name", ""),
       ).to.be.revertedWith("Policy: invalidDescription");
     });
 
     it("should fail to update a policy that is inactive", async () => {
       await policyContract["deactivatePolicy(uint256)"](1);
       await expect(
-        policyContract["updatePolicy(string,string)"]("policy-0", "description")
+        policyContract["updatePolicy(string,string)"](
+          "policy-0",
+          "description",
+        ),
       ).to.be.revertedWith("Policy: policy inactive");
     });
 
@@ -402,20 +405,20 @@ describe("Policy", () => {
       await expect(
         policyContract
           .connect(addr1)
-          ["updatePolicy(string,string)"]("test", "description")
+          ["updatePolicy(string,string)"]("test", "description"),
       ).to.be.revertedWith(
         `AccessControl: account ${(
           await addr1.getAddress()
-        ).toLowerCase()} is missing role 0x97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929`
+        ).toLowerCase()} is missing role 0x97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929`,
       );
       await expect(
         policyContract
           .connect(addr1)
-          ["updatePolicy(uint256,string)"](1, "description")
+          ["updatePolicy(uint256,string)"](1, "description"),
       ).to.be.revertedWith(
         `AccessControl: account ${(
           await addr1.getAddress()
-        ).toLowerCase()} is missing role 0x97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929`
+        ).toLowerCase()} is missing role 0x97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929`,
       );
     });
     it("should update a policy description", async () => {
@@ -423,13 +426,13 @@ describe("Policy", () => {
       await policyContract.insertPolicy("name2", "description-test"); // policy Id 6
       await policyContract["updatePolicy(string,string)"](
         "name",
-        "test-some-other-description"
+        "test-some-other-description",
       );
       let policy = await policyContract["getPolicy(string)"]("name");
       expect(policy.description).to.be.equal("test-some-other-description");
       await policyContract["updatePolicy(uint256,string)"](
         5,
-        "test-some-other-description3"
+        "test-some-other-description3",
       );
       policy = await policyContract["getPolicy(string)"]("name");
       expect(policy.description).to.be.equal("test-some-other-description3");

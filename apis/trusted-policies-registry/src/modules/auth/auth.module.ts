@@ -1,8 +1,8 @@
 import { Module } from "@nestjs/common";
 import { PassportModule } from "@nestjs/passport";
-import { ApiConfigModule } from "../../config/configuration";
-import { AuthService } from "./auth.service";
-import { SiopJwtStrategy } from "./strategies";
+import { ApiConfigModule } from "../../config/configuration.js";
+import { AuthService } from "./auth.service.js";
+import { SiopJwtStrategy } from "./strategies/index.js";
 
 @Module({
   imports: [ApiConfigModule, PassportModule],

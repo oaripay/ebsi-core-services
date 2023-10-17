@@ -12,12 +12,12 @@ task(
     const ts = await ethers.getContractAt(
       taskArgs.contract,
       taskArgs.proxy,
-      admin
+      admin,
     );
 
     console.log(
       `deployer:${deployer.address}
-     admin:${admin.address}`
+     admin:${admin.address}`,
     );
     const initialVersion = await ts.version();
     console.log(initialVersion);
@@ -61,7 +61,7 @@ task(
           "sha-256",
           "2.16.840.1.101.3.4.2.1",
           1,
-          "sha2-256"
+          "sha2-256",
         )
       ).wait(1);
     } catch (e) {
@@ -72,7 +72,7 @@ task(
           "sha-256",
           "2.16.840.1.101.3.4.2.1",
           1,
-          "sha2-256"
+          "sha2-256",
         )
       ).wait(1);
     }
@@ -87,7 +87,7 @@ task(
           "sha-384",
           "2.16.840.1.101.3.4.2.2",
           1,
-          ""
+          "",
         )
       ).wait(1);
     } catch (e) {
@@ -98,7 +98,7 @@ task(
           "sha-384",
           "2.16.840.1.101.3.4.2.2",
           1,
-          ""
+          "",
         )
       ).wait(1);
     }
@@ -113,7 +113,7 @@ task(
           "sha-512",
           "2.16.840.1.101.3.4.2.3",
           1,
-          "sha2-512"
+          "sha2-512",
         )
       ).wait(1);
     } catch (e) {
@@ -124,7 +124,7 @@ task(
           "sha-512",
           "2.16.840.1.101.3.4.2.3",
           1,
-          "sha2-512"
+          "sha2-512",
         )
       ).wait(1);
     }
@@ -139,7 +139,7 @@ task(
           "sha3-224",
           "2.16.840.1.101.3.4.2.7",
           1,
-          "sha3-224"
+          "sha3-224",
         )
       ).wait(1);
     } catch (e) {
@@ -150,7 +150,7 @@ task(
           "sha3-224",
           "2.16.840.1.101.3.4.2.7",
           1,
-          "sha3-224"
+          "sha3-224",
         )
       ).wait(1);
     }
@@ -165,7 +165,7 @@ task(
           "sha3-256",
           "2.16.840.1.101.3.4.2.8",
           1,
-          "sha3-256"
+          "sha3-256",
         )
       ).wait(1);
     } catch (e) {
@@ -176,7 +176,7 @@ task(
           "sha3-256",
           "2.16.840.1.101.3.4.2.8",
           1,
-          "sha3-256"
+          "sha3-256",
         )
       ).wait(1);
     }
@@ -191,7 +191,7 @@ task(
           "sha3-384",
           "2.16.840.1.101.3.4.2.9",
           1,
-          "sha3-384"
+          "sha3-384",
         )
       ).wait(1);
     } catch (e) {
@@ -202,7 +202,7 @@ task(
           "sha3-384",
           "2.16.840.1.101.3.4.2.9",
           1,
-          "sha3-384"
+          "sha3-384",
         )
       ).wait(1);
     }
@@ -217,7 +217,7 @@ task(
           "sha3-512",
           "2.16.840.1.101.3.4.2.10",
           1,
-          "sha3-512"
+          "sha3-512",
         )
       ).wait(1);
     } catch (e) {
@@ -228,7 +228,7 @@ task(
           "sha3-512",
           "2.16.840.1.101.3.4.2.10",
           1,
-          "sha3-512"
+          "sha3-512",
         )
       ).wait(1);
     }
@@ -239,10 +239,10 @@ task(
       console.log(
         `halgorithm ${halgo.ianaName} oid:${
           halgo.oid
-        } length:${halgo.outputLength.toString()} status:${halgo.status}`
+        } length:${halgo.outputLength.toString()} status:${halgo.status}`,
       );
     }
-  }
+  },
 )
   .addParam("proxy", "Proxy Address")
   .addParam("contract", "Contract Tag to which alg should be added");

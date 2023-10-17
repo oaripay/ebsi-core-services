@@ -1,5 +1,5 @@
-import { describe, it, expect } from "@jest/globals";
-import { PreconditionFailedError, ProblemDetailsError } from "../index";
+import { describe, it, expect } from "vitest";
+import { PreconditionFailedError, ProblemDetailsError } from "../index.js";
 
 describe("error PreconditionFailedError", () => {
   it("should extend ProblemDetailsError", () => {
@@ -69,7 +69,7 @@ describe("error PreconditionFailedError", () => {
     });
 
     expect(error.toString()).toBe(
-      `${PreconditionFailedError.statusCode} - Test Error`
+      `${PreconditionFailedError.statusCode} - Test Error`,
     );
   });
 });

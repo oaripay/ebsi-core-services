@@ -10,7 +10,7 @@ export class ArgsDeletePolicyCondition {
   policyName?: string;
 
   @IsNumberString()
-  policyConditionId: string;
+  policyConditionId!: string;
 }
 
 export default { ArgsDeletePolicyCondition };

@@ -1,2 +1,2 @@
-export * from "./insert-hash-algorithm-param.dto";
-export * from "./request-insert-hash-algorithm.dto";
+export * from "./insert-hash-algorithm-param.dto.js";
+export * from "./request-insert-hash-algorithm.dto.js";

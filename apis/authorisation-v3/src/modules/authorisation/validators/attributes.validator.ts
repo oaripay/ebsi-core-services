@@ -6,7 +6,7 @@ export const attributesSchema = z.object({
     z.object({
       id: z.string(),
       href: z.string(),
-    })
+    }),
   ),
   total: z.number(),
   pageSize: z.number(),
@@ -27,7 +27,7 @@ export const revisionsSchema = z.object({
       issuerType: z.string(),
       tao: z.string(),
       rootTao: z.string(),
-    })
+    }),
   ),
   total: z.number(),
   pageSize: z.number(),

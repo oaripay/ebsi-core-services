@@ -1,5 +1,5 @@
-import { describe, it, expect } from "@jest/globals";
-import { range } from "./schemas.utils";
+import { describe, it, expect } from "vitest";
+import { range } from "./schemas.utils.js";
 
 describe("range", () => {
   it("should return the expected ranges", () => {

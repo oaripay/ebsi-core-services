@@ -6,7 +6,7 @@ import {
   AuthorizationLink,
   AuthorizationItemObject,
   PublicKeyLink,
-} from "./apps.interface";
+} from "./apps.interface.js";
 
 export function formatApps(
   apps: AppObject[],
@@ -14,7 +14,7 @@ export function formatApps(
   page: number,
   pageSize: number,
   baseUrl: string,
-  extraQuery?: string
+  extraQuery?: string,
 ): PaginatedList<AppLink> {
   // Reshape items
   const items = apps.map((app) => ({
@@ -32,7 +32,7 @@ export function formatPublicKeys(
   page: number,
   pageSize: number,
   baseUrl: string,
-  extraQuery?: string
+  extraQuery?: string,
 ): PaginatedList<PublicKeyLink> {
   // Reshape items
   const items = publicKeys.map((publicKey) => ({
@@ -46,7 +46,7 @@ export function formatPublicKeys(
     total,
     page,
     pageSize,
-    extraQuery
+    extraQuery,
   );
 }
 
@@ -56,7 +56,7 @@ export function formatAuthorizations(
   page: number,
   pageSize: number,
   baseUrl: string,
-  extraQuery?: string
+  extraQuery?: string,
 ): PaginatedList<AuthorizationLink> {
   // Reshape items
   const items = authorizations.map((auth) => ({
@@ -71,6 +71,6 @@ export function formatAuthorizations(
     total,
     page,
     pageSize,
-    extraQuery
+    extraQuery,
   );
 }

@@ -27,7 +27,7 @@ export function isServiceDocument(value: unknown): boolean {
   }
   let documentService = null;
   try {
-    documentService = JSON.parse(value);
+    documentService = JSON.parse(value) as unknown;
   } catch (ex) {
     return false;
   }
@@ -38,17 +38,10 @@ export function isServiceDocument(value: unknown): boolean {
     return false;
   }
 
-  if (Array.isArray(parsedServiceSchema.data.id)) {
-    const uniqueIds = new Set(parsedServiceSchema.data.id.map((item) => item));
-    if (uniqueIds.size !== parsedServiceSchema.data.id.length) {
-      throw new Error("Ids should be unique");
-    }
-  }
-
   if (parsedServiceSchema.data.type === "CredentialRegistry") {
     const parsedServiceRegistrySchema =
       CredentialRegistryServiceEndpoint.safeParse(
-        parsedServiceSchema.data.serviceEndpoint
+        parsedServiceSchema.data.serviceEndpoint,
       );
 
     if (!parsedServiceRegistrySchema.success) {
@@ -60,7 +53,7 @@ export function isServiceDocument(value: unknown): boolean {
 }
 
 export function IsServiceDocument(
-  validationOptions?: ValidationOptions
+  validationOptions?: ValidationOptions,
 ): PropertyDecorator {
   return ValidateBy(
     {
@@ -70,10 +63,10 @@ export function IsServiceDocument(
         defaultMessage: buildMessage(
           (eachPrefix) =>
             `${eachPrefix}$property must be a valid JSON string with the fields id, type, serviceEndpoint`,
-          validationOptions
+          validationOptions,
         ),
       },
     },
-    validationOptions
+    validationOptions,
   );
 }

@@ -23,8 +23,8 @@ export function removeAnnotations(obj: JSONSchema): JSONSchema {
 
   return JSON.parse(
     JSON.stringify(obj, (key, val: unknown) =>
-      keysToRemove.includes(key) ? undefined : val
-    )
+      keysToRemove.includes(key) ? undefined : val,
+    ),
   ) as JSONSchema;
 }
 
@@ -37,7 +37,10 @@ export async function computeId(schema: JSONSchema): Promise<Buffer> {
   const sanitizedDocument = removeAnnotations(bundledSchema);
 
   // 3. Canonicalise
-  const canonicalizedDocument = canonicalize(sanitizedDocument);
+  // @ts-expect-error "canonicalize is not callable" <- the exported types are incorrect
+  const canonicalizedDocument = (canonicalize(sanitizedDocument) as ReturnType<
+    typeof canonicalize.default
+  >)!;
 
   // 4. Compute sha256 of the stringified JSON document
   const hash = crypto

@@ -1,6 +1,6 @@
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 import { multibase } from "@ebsiint-api/shared";
-import { formatDidTimestamps } from "./did-timestamps.formatter";
+import { formatDidTimestamps } from "./did-timestamps.formatter.js";
 
 describe("formatDidTimestamps", () => {
   it("should use the values returned by the smart contract (except pageSize)", () => {
@@ -19,49 +19,49 @@ describe("formatDidTimestamps", () => {
     const pageSize = 2;
 
     expect(
-      formatDidTimestamps(didTimestamps, page, pageSize, "")
+      formatDidTimestamps(didTimestamps, page, pageSize, ""),
     ).toStrictEqual({
       items: [
         {
           timestampId: multibase.base64url.encode(
             Buffer.from(
               "535e508bfc78dc7f3ea88e5360db61883a9df528aa5c9f8a33d71cd0e40a5c00",
-              "hex"
-            )
+              "hex",
+            ),
           ),
           href: `/${multibase.base64url.encode(
             Buffer.from(
               "535e508bfc78dc7f3ea88e5360db61883a9df528aa5c9f8a33d71cd0e40a5c00",
-              "hex"
-            )
+              "hex",
+            ),
           )}`,
         },
         {
           timestampId: multibase.base64url.encode(
             Buffer.from(
               "72866048a2ae1b63c0068b720e390c829671e3d34536c956ebb1500b82dadbfb",
-              "hex"
-            )
+              "hex",
+            ),
           ),
           href: `/${multibase.base64url.encode(
             Buffer.from(
               "72866048a2ae1b63c0068b720e390c829671e3d34536c956ebb1500b82dadbfb",
-              "hex"
-            )
+              "hex",
+            ),
           )}`,
         },
         {
           timestampId: multibase.base64url.encode(
             Buffer.from(
               "c260b7e206dee85b3e820570e6baceba29f7421b45a4a8b7b16ce01f71767269",
-              "hex"
-            )
+              "hex",
+            ),
           ),
           href: `/${multibase.base64url.encode(
             Buffer.from(
               "c260b7e206dee85b3e820570e6baceba29f7421b45a4a8b7b16ce01f71767269",
-              "hex"
-            )
+              "hex",
+            ),
           )}`,
         },
       ],
@@ -102,22 +102,22 @@ describe("formatDidTimestamps", () => {
         pageSize,
         "",
         identifier,
-        versionId
-      )
+        versionId,
+      ),
     ).toStrictEqual({
       items: [
         {
           timestampId: multibase.base64url.encode(
             Buffer.from(
               "c260b7e206dee85b3e820570e6baceba29f7421b45a4a8b7b16ce01f71767269",
-              "hex"
-            )
+              "hex",
+            ),
           ),
           href: `/${multibase.base64url.encode(
             Buffer.from(
               "c260b7e206dee85b3e820570e6baceba29f7421b45a4a8b7b16ce01f71767269",
-              "hex"
-            )
+              "hex",
+            ),
           )}`,
         },
       ],

@@ -1,2 +1,2 @@
-export * from "./client.decorator";
-export * from "./subject.decorator";
+export * from "./client.decorator.js";
+export * from "./subject.decorator.js";

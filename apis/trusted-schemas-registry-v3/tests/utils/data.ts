@@ -218,7 +218,7 @@ export const createSchema = (): JSONSchema => ({
 });
 
 export const createVerifiableAuthorisationSchema = (
-  ref: string
+  ref: string,
 ): JSONSchema => ({
   $schema: "http://json-schema.org/draft-07/schema#",
   title: "EBSI Verifiable Authorisation",
@@ -268,7 +268,7 @@ export const createVerifiableAuthorisationSchema = (
             },
             placeOfBirth: {
               description:
-                "Defines the place where the credential subjectis born",
+                "Defines the place where the credential subject is born",
               type: "string",
             },
             currentAddress: {

@@ -6,19 +6,19 @@ import {
   Equals,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { JsonRpcDto } from "../jsonrpc.dto";
-import { RevokeServiceParam } from "./revoke-service-param.dto";
+import { JsonRpcDto } from "../jsonrpc.dto.js";
+import { RevokeServiceParam } from "./revoke-service-param.dto.js";
 
 export class RequestRevokeServiceDto extends JsonRpcDto {
   @Equals("revokeService")
-  method!: string;
+  declare method: string;
 
   @IsArray()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @Type(() => RevokeServiceParam)
-  params!: RevokeServiceParam[];
+  declare params: RevokeServiceParam[];
 }
 
 export default { RequestRevokeServiceDto };

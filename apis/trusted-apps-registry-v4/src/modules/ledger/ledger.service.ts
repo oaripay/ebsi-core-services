@@ -5,7 +5,7 @@ import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import type WebSocket from "ws";
 import { Tar, Tar__factory } from "@ebsiint-sc/trusted-apps-registry-v3";
-import { ApiConfig } from "../../config/configuration";
+import type { ApiConfig } from "../../config/configuration.js";
 
 const EXPECTED_PONG_BACK = 15000;
 const KEEP_ALIVE_CHECK_INTERVAL = 7500;
@@ -14,9 +14,9 @@ const KEEP_ALIVE_CHECK_INTERVAL = 7500;
 export default class LedgerService implements OnModuleDestroy {
   private readonly logger = new Logger(LedgerService.name);
 
-  private ethersProvider: ethers.providers.JsonRpcProvider;
+  private ethersProvider: ethers.providers.JsonRpcProvider | undefined;
 
-  private tarContract: Tar;
+  private tarContract: Tar | undefined;
 
   private reconnectWebSocket = true;
 
@@ -75,14 +75,14 @@ export default class LedgerService implements OnModuleDestroy {
             websocket.ping();
             pingTimeout = setTimeout(
               () => websocket.terminate(),
-              EXPECTED_PONG_BACK
+              EXPECTED_PONG_BACK,
             );
           }, KEEP_ALIVE_CHECK_INTERVAL);
         });
 
         websocket.on("close", (err: unknown) => {
           this.logger.error(
-            `The ws connection was closed: ${JSON.stringify(err, null, 2)}`
+            `The ws connection was closed: ${JSON.stringify(err, null, 2)}`,
           );
 
           if (this.tarContract) this.tarContract.removeAllListeners();
@@ -127,6 +127,6 @@ export default class LedgerService implements OnModuleDestroy {
       this.initProvider();
     }
 
-    return this.tarContract;
+    return this.tarContract!;
   }
 }

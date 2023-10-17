@@ -37,7 +37,7 @@ interface AuthorizationObject {
 
 const deployContract = async (
   name: string,
-  opts: FactoryOptions = {}
+  opts: FactoryOptions = {},
 ): Promise<string> => {
   const factory = await hre.ethers.getContractFactory(name, opts);
   const contract = await factory.deploy();
@@ -49,13 +49,12 @@ export async function deployTarContract(): Promise<Tar> {
   const testTprAddress = "0xb2a560271ce08135e245F490b8794794A13a1208";
   const testDidrAddress = "0xf6080028519B49D94C846bd34e30f72586E3F5d5";
 
-  const policyRegistryFactory = await hre.ethers.getContractFactory(
-    "PolicyRegistryMock"
-  );
+  const policyRegistryFactory =
+    await hre.ethers.getContractFactory("PolicyRegistryMock");
   const tempPolicyContract = await policyRegistryFactory.deploy();
   await tempPolicyContract.deployed();
   const bytecode = await hre.ethers.provider.getCode(
-    tempPolicyContract.address
+    tempPolicyContract.address,
   );
   await hre.network.provider.send("hardhat_setCode", [
     testTprAddress,
@@ -64,13 +63,12 @@ export async function deployTarContract(): Promise<Tar> {
   const policyContractMock = policyRegistryFactory.attach(testTprAddress);
   await policyContractMock.setPolicyResult(true);
 
-  const didRegistryFactory = await hre.ethers.getContractFactory(
-    "DidRegistryMock"
-  );
+  const didRegistryFactory =
+    await hre.ethers.getContractFactory("DidRegistryMock");
   const tempDidContract = await didRegistryFactory.deploy();
   await tempDidContract.deployed();
   const bytecodeDid = await hre.ethers.provider.getCode(
-    tempDidContract.address
+    tempDidContract.address,
   );
   await hre.network.provider.send("hardhat_setCode", [
     testDidrAddress,
@@ -134,7 +132,7 @@ export async function insertApp(contract: Tar): Promise<AppObject> {
 export async function insertAuthorization(
   contract: Tar,
   name: string,
-  authorizedAppName: string
+  authorizedAppName: string,
 ): Promise<AuthorizationObject> {
   const iss = EbsiWallet.createDid();
   const status = 1; // "active"
@@ -157,7 +155,7 @@ export interface SetupOptions {
 export async function setupTestEnv(
   opts: SetupOptions = {
     appsTotal: 0,
-  }
+  },
 ): Promise<{
   provider: ethers.providers.JsonRpcProvider;
   tarContract: Tar;
@@ -182,24 +180,25 @@ export async function setupTestEnv(
   // Create as many apps as requested
   const createApp = async () => insertApp(tarContract);
 
-  const apps = await range(0, opts.appsTotal)
+  const apps = (await range(0, opts.appsTotal)
     .pipe(mergeMap(createApp), toArray())
-    .toPromise();
+    .toPromise())!;
 
-  const authorizations = [];
+  const authorizations: [AuthorizationObject, AuthorizationObject][][] = [];
+
   /* eslint-disable no-await-in-loop */
   for (let i = 0; i < apps.length; i += 1) {
-    const authsApp = [];
+    const authsApp: [AuthorizationObject, AuthorizationObject][] = [];
     for (let j = 0; j < apps.length; j += 1) {
       const auth1 = await insertAuthorization(
         tarContract,
-        apps[i].name,
-        apps[j].name
+        apps[i]!.name,
+        apps[j]!.name,
       );
       const auth2 = await insertAuthorization(
         tarContract,
-        apps[i].name,
-        apps[j].name
+        apps[i]!.name,
+        apps[j]!.name,
       );
       authsApp.push([auth1, auth2]);
     }

@@ -91,7 +91,7 @@ export class JwtCacheService {
   clear(now: number): void {
     this.logger.debug("Clearing JWT cache");
     Object.keys(this.cache).forEach((jwt) => {
-      if (this.cache[jwt] < now) {
+      if (this.cache[jwt]! < now) {
         this.remove(jwt);
       }
     });

@@ -9,12 +9,12 @@ import axios from "axios";
 import { ConfigService } from "@nestjs/config";
 import { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
 import { checkStatusList2021Credential } from "@ebsiint-api/shared";
-import { ApiConfig } from "../../config/configuration";
+import type { ApiConfig } from "../../config/configuration.js";
 
 export const IS_ISSUER_PROXY = "isIssuerProxy";
 
 function isRequestHeaders(
-  headers: unknown
+  headers: unknown,
 ): headers is Record<string, string | number | boolean> {
   if (!headers || typeof headers !== "object") return false;
 
@@ -22,7 +22,7 @@ function isRequestHeaders(
     (val) =>
       typeof val !== "string" &&
       typeof val !== "number" &&
-      typeof val !== "boolean"
+      typeof val !== "boolean",
   );
 }
 
@@ -31,12 +31,12 @@ export async function isIssuerProxy(
   authority: string,
   timeout: number,
   trustedHostnames?: string[],
-  ebsiEnvConfig?: EbsiEnvConfiguration
+  ebsiEnvConfig?: EbsiEnvConfiguration,
 ): Promise<boolean> {
   if (typeof value !== "string") return false;
 
   try {
-    const proxyAsObject = JSON.parse(value);
+    const proxyAsObject = JSON.parse(value) as unknown;
 
     if (typeof proxyAsObject !== "object") return false;
 
@@ -61,9 +61,9 @@ export async function isIssuerProxy(
       testResponse.data,
       authority,
       {
-        trustedHostnames,
-        ebsiEnvConfig,
-      }
+        ...(trustedHostnames && { trustedHostnames }),
+        ...(ebsiEnvConfig && { ebsiEnvConfig }),
+      },
     );
     if (!resultStatusList2021.success) return false;
   } catch {
@@ -92,13 +92,13 @@ export class IsIssuerProxy implements ValidatorConstraintInterface {
     this.trustedHostnames = configService.get<string[]>("trustedHostnames");
     this.ebsiEnvConfig = {
       didRegistry: `${configService.get<string>(
-        "didRegistryApiUrl"
+        "didRegistryApiUrl",
       )}/identifiers`,
       trustedIssuersRegistry: `${configService.get<string>(
-        "domain"
+        "domain",
       )}${configService.get<string>("apiUrlPrefix")}/issuers`,
       trustedPoliciesRegistry: `${configService.get<string>(
-        "trustedPoliciesRegistryApiUrl"
+        "trustedPoliciesRegistryApiUrl",
       )}/users`,
     };
   }
@@ -109,14 +109,14 @@ export class IsIssuerProxy implements ValidatorConstraintInterface {
       this.authority,
       this.timeout,
       this.trustedHostnames,
-      this.ebsiEnvConfig
+      this.ebsiEnvConfig,
     );
   }
 
   defaultMessage(validationArguments?: ValidationArguments) {
     return buildMessage(
       (eachPrefix) =>
-        `${eachPrefix}$property must be a valid issuer proxy (stringified JSON document)`
+        `${eachPrefix}$property must be a valid issuer proxy (stringified JSON document)`,
     )(validationArguments);
   }
 }

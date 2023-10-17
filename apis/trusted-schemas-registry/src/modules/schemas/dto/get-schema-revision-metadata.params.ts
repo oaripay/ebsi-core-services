@@ -1,10 +1,10 @@
 import { Matches, IsHexadecimal } from "class-validator";
-import { GetSchemaRevisionParams } from "./get-schema-revisions.params";
+import { GetSchemaRevisionParams } from "./get-schema-revisions.params.js";
 
 export class GetSchemaRevisionMetadataParams extends GetSchemaRevisionParams {
   @Matches(/^0x/)
   @IsHexadecimal()
-  metadataId: string;
+  metadataId!: string;
 }
 
 export default GetSchemaRevisionMetadataParams;

@@ -2,16 +2,16 @@ import { IsHexadecimal, IsInt, Min, Max } from "class-validator";
 
 export class ArgsUpdateAppPublicKey {
   @IsHexadecimal()
-  publicKeyId: string;
+  publicKeyId!: string;
 
   @IsInt()
   @Min(0)
   @Max(3)
-  status: number;
+  status!: number;
 
   @IsInt()
   @Min(0)
-  notAfter: number;
+  notAfter!: number;
 }
 
 export default { ArgsUpdateAppPublicKey };

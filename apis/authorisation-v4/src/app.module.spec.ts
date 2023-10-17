@@ -1,13 +1,13 @@
-import { describe, beforeAll, afterAll, it, expect } from "@jest/globals";
+import { describe, beforeAll, afterAll, it, expect } from "vitest";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import { Logger, HttpServer } from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import type { FastifyInstance } from "fastify";
-import { NestFastifyApplication } from "@nestjs/platform-fastify";
-import { AppModule } from "./app.module";
-import { ApiConfig } from "./config/configuration";
-import { configureApp } from "../tests/utils/app";
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
+import type { RawServerDefault } from "fastify";
+import { AppModule } from "./app.module.js";
+import type { ApiConfig } from "./config/configuration.js";
+import { configureApp } from "../tests/utils/app.js";
 
 interface ResponseHeaders {
   "ebsi-image-tag": string;
@@ -16,7 +16,7 @@ interface ResponseHeaders {
 
 describe("App Module", () => {
   let app: NestFastifyApplication;
-  let server: HttpServer;
+  let server: RawServerDefault;
   let configService: ConfigService<ApiConfig, true>;
   const dockerTag = "version";
 
@@ -37,15 +37,11 @@ describe("App Module", () => {
     Logger.overrideLogger(false);
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    await app.getHttpAdapter().getInstance().ready();
+    server = app.getHttpServer();
   });
 
   afterAll(async () => {
-    // Avoid jest open handle error
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
     await app.close();
   });
 

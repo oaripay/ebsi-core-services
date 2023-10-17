@@ -1,7 +1,7 @@
 // Copied from https://github.com/algoan/nestjs-components/blob/master/packages/logging-interceptor/src/logging.interceptor.ts
 import {
-  CallHandler,
-  ExecutionContext,
+  type CallHandler,
+  type ExecutionContext,
   HttpException,
   HttpStatus,
   Injectable,
@@ -28,7 +28,7 @@ export class LoggingInterceptor implements NestInterceptor {
    */
   public intercept(
     context: ExecutionContext,
-    call$: CallHandler
+    call$: CallHandler,
   ): Observable<unknown> {
     const req: FastifyRequest = context
       .switchToHttp()
@@ -47,7 +47,7 @@ export class LoggingInterceptor implements NestInterceptor {
           headers,
           conformance,
         },
-        ctx
+        ctx,
       );
     }
 
@@ -59,7 +59,7 @@ export class LoggingInterceptor implements NestInterceptor {
         error: (err: Error): void => {
           this.logError(err, context);
         },
-      })
+      }),
     );
   }
 
@@ -88,7 +88,7 @@ export class LoggingInterceptor implements NestInterceptor {
           body,
           conformance,
         },
-        ctx
+        ctx,
       );
     }
   }
@@ -118,6 +118,7 @@ export class LoggingInterceptor implements NestInterceptor {
         conformance,
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
       if (statusCode >= HttpStatus.INTERNAL_SERVER_ERROR) {
         this.logger.error(jsonLog, error.stack, ctx);
       } else if (conformance) {
@@ -129,7 +130,7 @@ export class LoggingInterceptor implements NestInterceptor {
           message: `Outgoing response - ${method} - ${url}`,
         },
         error.stack,
-        `${this.ctxPrefix} - ${method} - ${url}`
+        `${this.ctxPrefix} - ${method} - ${url}`,
       );
     }
   }

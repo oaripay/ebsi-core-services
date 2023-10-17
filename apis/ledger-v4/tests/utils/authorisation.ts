@@ -1,7 +1,7 @@
 import { URLSearchParams } from "node:url";
 import crypto, { randomUUID } from "node:crypto";
 import request from "supertest";
-import axios, { AxiosResponse } from "axios";
+import axios, { type AxiosResponse } from "axios";
 import { Agent as OAuth2Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
 import { Agent as SiopAgent, verifyJwtTar } from "@cef-ebsi/siop-auth";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
@@ -9,7 +9,7 @@ import { exportJWK, generateKeyPair, importJWK } from "jose";
 import { createJWT, ES256KSigner } from "did-jwt";
 import { ConfigService } from "@nestjs/config";
 import { encode } from "@ebsiint-api/shared";
-import { ApiConfig } from "../../src/config/configuration";
+import type { ApiConfig } from "../../src/config/configuration.js";
 
 const AUTH_API_PATH = "/authorisation/v4";
 
@@ -29,14 +29,14 @@ export async function createFakeToken({
   configService: ConfigService<ApiConfig, true>;
 }): Promise<string> {
   let trustedAppsRegistryApiUrl = configService.get<string>(
-    "trustedAppsRegistryApiUrl"
+    "trustedAppsRegistryApiUrl",
   );
 
   // Use TEST_LB_DOMAIN if defined
   if (configService.get<string>("testLoadBalancerDomain")) {
     trustedAppsRegistryApiUrl = trustedAppsRegistryApiUrl.replace(
       configService.get<string>("domain"),
-      configService.get<string>("testLoadBalancerDomain")
+      configService.get<string>("testLoadBalancerDomain"),
     );
   }
 
@@ -49,7 +49,7 @@ export async function createFakeToken({
   if (loginHint === "did_siop") {
     return createJWT(
       {
-        sub: testUserDid,
+        sub: testUserDid!,
         aud: "ebsi-core-services",
         iat: Math.floor(Date.now() / 1000),
         exp: Math.floor(Date.now() / 1000) + 15,
@@ -63,13 +63,13 @@ export async function createFakeToken({
       },
       {
         kid,
-      }
+      },
     );
   }
 
   const payload = {
     iss: authorisationApiName,
-    sub: testAppName,
+    sub: testAppName!,
     aud: "ledger-api",
     atHash: `0x${crypto.randomBytes(32).toString("hex")}`,
     exp: Math.trunc(Date.now() / 1000) + 15,
@@ -85,7 +85,7 @@ export async function createFakeToken({
     },
     {
       kid,
-    }
+    },
   );
 }
 
@@ -99,21 +99,21 @@ export async function requestOAuth2Jwt({
   configService: ConfigService<ApiConfig, true>;
 }): Promise<string> {
   let authorisationApiUrl = `${configService.get<string>(
-    "domain"
+    "domain",
   )}${AUTH_API_PATH}`;
   let trustedAppsRegistryApiUrl = configService.get<string>(
-    "trustedAppsRegistryApiUrl"
+    "trustedAppsRegistryApiUrl",
   );
 
   // Use TEST_LB_DOMAIN if defined
   if (configService.get<string>("testLoadBalancerDomain")) {
     authorisationApiUrl = authorisationApiUrl.replace(
       configService.get<string>("domain"),
-      configService.get<string>("testLoadBalancerDomain")
+      configService.get<string>("testLoadBalancerDomain"),
     );
     trustedAppsRegistryApiUrl = trustedAppsRegistryApiUrl.replace(
       configService.get<string>("domain"),
-      configService.get<string>("testLoadBalancerDomain")
+      configService.get<string>("testLoadBalancerDomain"),
     );
   }
 
@@ -150,28 +150,28 @@ export const requestSiopJwt = async ({
   const privateEncryptionKeyJwk = await exportJWK(encryptionKeyPair.privateKey);
 
   let authorisationApiUrl = `${configService.get<string>(
-    "domain"
+    "domain",
   )}${AUTH_API_PATH}`;
   let trustedAppsRegistryApiUrl = configService.get<string>(
-    "trustedAppsRegistryApiUrl"
+    "trustedAppsRegistryApiUrl",
   );
 
   // Use TEST_LB_DOMAIN if defined
   if (configService.get<string>("testLoadBalancerDomain")) {
     authorisationApiUrl = authorisationApiUrl.replace(
       configService.get<string>("domain"),
-      configService.get<string>("testLoadBalancerDomain")
+      configService.get<string>("testLoadBalancerDomain"),
     );
     trustedAppsRegistryApiUrl = trustedAppsRegistryApiUrl.replace(
       configService.get<string>("domain"),
-      configService.get<string>("testLoadBalancerDomain")
+      configService.get<string>("testLoadBalancerDomain"),
     );
   }
 
   const siopAgent = new SiopAgent({
     privateKey: await importJWK(
       encode.privateKey.fromHexToJWK(clientPrivateKey),
-      alg
+      alg,
     ),
     kid: clientKid,
     alg,
@@ -192,10 +192,10 @@ export const requestSiopJwt = async ({
   const urlParams = new URLSearchParams(uri.replace("openid://?", ""));
   const params = Object.fromEntries(urlParams);
   Object.keys(params).forEach((k) => {
-    params[k] = decodeURIComponent(params[k]);
+    params[k] = decodeURIComponent(params[k]!);
   });
 
-  const { payload } = await verifyJwtTar(params.request, {
+  const { payload } = await verifyJwtTar(params["request"]!, {
     trustedAppsRegistry: `${trustedAppsRegistryApiUrl}/apps`,
   });
 
@@ -205,7 +205,7 @@ export const requestSiopJwt = async ({
   const authenticationResponse = await siopAgent.createResponse({
     did: clientKid.split("#")[0],
     nonce,
-    redirectUri: payload.client_id as string,
+    redirectUri: payload["client_id"] as string,
     responseMode: "form_post",
     claims: {
       encryption_key: publicEncryptionKeyJwk,
@@ -220,12 +220,12 @@ export const requestSiopJwt = async ({
     AxiosResponse<AkeResponse>
   >(
     `${authorisationApiUrl}/siop-sessions`,
-    new URLSearchParams({ id_token: idToken }).toString(),
+    new URLSearchParams({ id_token: idToken! }).toString(),
     {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-    }
+    },
   );
 
   // 5. Finally, the client verifies the SIOP authentication response and gets an access token
@@ -236,7 +236,7 @@ export const requestSiopJwt = async ({
       privateEncryptionKeyJwk,
       trustedAppsRegistry: `${trustedAppsRegistryApiUrl}/apps`,
       alg,
-    }
+    },
   );
 
   return accessToken;

@@ -4,9 +4,9 @@ import { decodeJWT, JWTPayload } from "did-jwt";
 import { verifyJwtTar as verifyOAuth2Token } from "@cef-ebsi/oauth2-auth";
 import { verifyJwtTar as verifySiopToken } from "@cef-ebsi/siop-auth";
 import { UnauthorizedError } from "@ebsiint-api/shared";
-import { AppInfo, ClientInfo } from "./auth.interface";
-import { ApiConfig } from "../../config/configuration";
-import { JwtCacheService } from "./jwt-cache.service";
+import { AppInfo, ClientInfo } from "./auth.interface.js";
+import type { ApiConfig } from "../../config/configuration.js";
+import { JwtCacheService } from "./jwt-cache.service.js";
 
 @Injectable()
 export class AuthService {
@@ -20,14 +20,14 @@ export class AuthService {
 
   constructor(
     private cache: JwtCacheService,
-    configService: ConfigService<ApiConfig, true>
+    configService: ConfigService<ApiConfig, true>,
   ) {
     this.authorisationApiName = configService.get<string>(
-      "authorisationApiName"
+      "authorisationApiName",
     );
 
     this.trustedAppsRegistry = `${configService.get<string>(
-      "trustedAppsRegistryApiUrl"
+      "trustedAppsRegistryApiUrl",
     )}/apps`;
 
     this.timeout = configService.get<number>("requestTimeout");
@@ -37,12 +37,12 @@ export class AuthService {
     token: string,
     now: number,
     exp?: number,
-    requestHost?: string
+    requestHost?: string,
   ): void {
     // Cache requests targeting these hosts
     const cacheableRequestHosts = ["localhost", "127.0.0.1", "api.local"];
     this.logger.debug(
-      `Checking if the API should store the JWT. requestHost: ${requestHost}`
+      `Checking if the API should store the JWT. requestHost: ${requestHost}`,
     );
     if (
       requestHost &&
@@ -55,7 +55,7 @@ export class AuthService {
   // Verify access token with @cef-ebsi/oauth2-auth
   async validateOAuth2Token(
     bearerToken: string,
-    requestHost?: string
+    requestHost?: string,
   ): Promise<AppInfo> {
     const now = Math.floor(Date.now() / 1000);
 
@@ -65,7 +65,7 @@ export class AuthService {
     if (this.cache.isValid(bearerToken, now)) {
       this.logger.debug(`Reusing cached token: ${bearerToken}`);
       const { payload } = decodeJWT(bearerToken);
-      return { name: payload.sub };
+      return { name: payload.sub! };
     }
 
     try {
@@ -79,7 +79,7 @@ export class AuthService {
       // Try to store valid JWT in cache
       this.storeJwt(bearerToken, now, payload.exp, requestHost);
 
-      return { name: payload.sub };
+      return { name: payload.sub! };
     } catch (e) {
       let message = "unknown error";
 

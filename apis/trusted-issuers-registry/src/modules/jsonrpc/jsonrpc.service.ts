@@ -7,7 +7,7 @@ import {
   InvalidRequestJsonRpcError,
   isEthersError,
 } from "@ebsiint-api/shared";
-import { LedgerService } from "../ledger/ledger.service";
+import { LedgerService } from "../ledger/ledger.service.js";
 import {
   RequestInsertPolicyDto,
   RequestUpdatePolicyDto,
@@ -19,20 +19,20 @@ import {
   RequestAddIssuerProxyDto,
   ArgsAddIssuerProxy,
   ArgsUpdateIssuerProxy,
-} from "./dto";
+} from "./dto/index.js";
 import {
   formatEthersUnsignedTransaction,
   formatEthersSignature,
   validateClass,
-} from "./jsonrpc.utils";
-import { ApiConfig } from "../../config/configuration";
-import { RequestUpdateIssuerProxyDto } from "./dto/updateIssuerProxy";
+} from "./jsonrpc.utils.js";
+import type { ApiConfig } from "../../config/configuration.js";
+import { RequestUpdateIssuerProxyDto } from "./dto/updateIssuerProxy/index.js";
 
 @Injectable()
 export class JsonRpcService {
   private readonly logger = new Logger(JsonRpcService.name);
 
-  private chainId: string = null;
+  private chainId: string = "";
 
   private didRegistry: string;
 
@@ -42,7 +42,7 @@ export class JsonRpcService {
 
   constructor(
     configService: ConfigService<ApiConfig, true>,
-    private ledgerService: LedgerService
+    private ledgerService: LedgerService,
   ) {
     this.didRegistry = configService.get<string>("didRegistryApiUrl");
     this.contractAddress = ledgerService.getContractAddress();
@@ -67,7 +67,7 @@ export class JsonRpcService {
   }
 
   async estimateGas(
-    transaction: UnsignedTransaction
+    transaction: UnsignedTransaction,
   ): Promise<ethers.BigNumber> {
     const { from, to, data, value } = transaction;
 
@@ -90,7 +90,7 @@ export class JsonRpcService {
 
   async isDidControlledByAddress(
     did: string,
-    controllerAddress: string
+    controllerAddress: string,
   ): Promise<boolean> {
     const { data } = await axios.post<{
       result: boolean;
@@ -101,14 +101,14 @@ export class JsonRpcService {
         method: "checkController",
         params: [controllerAddress],
       },
-      { timeout: this.timeout }
+      { timeout: this.timeout },
     );
 
     return data.result;
   }
 
   async verifyTransaction(
-    param: SignedTransactionParam
+    param: SignedTransactionParam,
   ): Promise<{ signer: string; functionName: string; args: unknown }> {
     const { unsignedTransaction, r, s, v, signedRawTransaction } = param;
 
@@ -119,12 +119,12 @@ export class JsonRpcService {
     const serializedTransaction = ethers.utils.serializeTransaction(unsignedTx);
     const serializedTransactionSigned = ethers.utils.serializeTransaction(
       unsignedTx,
-      signature
+      signature,
     );
 
     if (serializedTransactionSigned !== signedRawTransaction)
       throw new Error(
-        `The unsigned transaction + signature (${serializedTransactionSigned}) does not match with the signedRawTransaction (${signedRawTransaction})`
+        `The unsigned transaction + signature (${serializedTransactionSigned}) does not match with the signedRawTransaction (${signedRawTransaction})`,
       );
 
     // recover address used to sign
@@ -133,19 +133,19 @@ export class JsonRpcService {
 
     if (signer.toLowerCase() !== unsignedTransaction.from.toLowerCase())
       throw new Error(
-        `The signer of the transaction (${signer}) does not match with unsignedTransaction.from (${unsignedTransaction.from}) `
+        `The signer of the transaction (${signer}) does not match with unsignedTransaction.from (${unsignedTransaction.from}) `,
       );
 
     const chainId = await this.getChainId();
     if (unsignedTransaction.chainId !== chainId) {
       throw new Error(
-        `Invalid unsignedTransaction.chainId. Expected ${chainId}. Received ${unsignedTransaction.chainId}`
+        `Invalid unsignedTransaction.chainId. Expected ${chainId}. Received ${unsignedTransaction.chainId}`,
       );
     }
 
     if (unsignedTransaction.to !== this.contractAddress) {
       throw new Error(
-        `Invalid unsignedTransaction.to. Expected ${this.contractAddress}. Received ${unsignedTransaction.to}`
+        `Invalid unsignedTransaction.to. Expected ${this.contractAddress}. Received ${unsignedTransaction.to}`,
       );
     }
 
@@ -158,34 +158,34 @@ export class JsonRpcService {
       case "insertPolicy": {
         await validateClass(
           ArgsInsertPolicy,
-          args as unknown as ArgsInsertPolicy
+          args as unknown as ArgsInsertPolicy,
         );
         break;
       }
       case "updatePolicy": {
         await validateClass(
           ArgsUpdatePolicy,
-          args as unknown as ArgsUpdatePolicy
+          args as unknown as ArgsUpdatePolicy,
         );
         break;
       }
       case "addIssuerProxy": {
         await validateClass(
           ArgsAddIssuerProxy,
-          args as unknown as ArgsAddIssuerProxy
+          args as unknown as ArgsAddIssuerProxy,
         );
         break;
       }
       case "updateIssuerProxy": {
         await validateClass(
           ArgsUpdateIssuerProxy,
-          args as unknown as ArgsUpdateIssuerProxy
+          args as unknown as ArgsUpdateIssuerProxy,
         );
         break;
       }
       default:
         throw new Error(
-          `The function name ${functionFragment.name} can not be used in this context`
+          `The function name ${functionFragment.name} can not be used in this context`,
         );
     }
 
@@ -198,7 +198,7 @@ export class JsonRpcService {
 
   async buildTransaction(
     from: string,
-    params: string
+    params: string,
   ): Promise<UnsignedTransaction> {
     const nonceInt = await (
       await this.ledgerService.getContract()
@@ -231,7 +231,7 @@ export class JsonRpcService {
           gasEstimation === "unset"
             ? ""
             : `Received ${gasEstimation.toString()}.`
-        } Using 0x1000000`
+        } Using 0x1000000`,
       );
       unsignedTransaction.gasLimit = "0x1000000";
     }
@@ -241,12 +241,12 @@ export class JsonRpcService {
 
   async buildTransactionInsertPolicy(
     body: RequestInsertPolicyDto,
-    id?: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestInsertPolicyDto, body);
 
-      const { from, policyData, policyId } = body.params[0];
+      const { from, policyData, policyId } = body.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -255,19 +255,21 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionUpdatePolicy(
     body: RequestUpdatePolicyDto,
-    id?: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestUpdatePolicyDto, body);
 
-      const { from, policyData, policyId } = body.params[0];
+      const { from, policyData, policyId } = body.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -276,19 +278,21 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionAddIssuerProxy(
     body: RequestAddIssuerProxyDto,
-    id?: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestAddIssuerProxyDto, body);
 
-      const { from, did, proxyData } = body.params[0];
+      const { from, did, proxyData } = body.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -297,19 +301,21 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionUpdateIssuerProxy(
     body: RequestUpdateIssuerProxyDto,
-    id?: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestUpdateIssuerProxyDto, body);
 
-      const { from, did, proxyId, proxyData } = body.params[0];
+      const { from, did, proxyId, proxyData } = body.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -322,7 +328,9 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
@@ -330,18 +338,18 @@ export class JsonRpcService {
   async sendTransaction(
     clientId: string,
     body: RequestSendSignedTransactionDto,
-    id?: number | string
+    id?: number | string,
   ): Promise<string> {
     try {
       await validateClass(RequestSendSignedTransactionDto, body);
 
-      const request = body.params[0];
+      const request = body.params[0]!;
 
       const { signer } = await this.verifyTransaction(request);
 
       if (!(await this.isDidControlledByAddress(clientId, signer))) {
         throw new Error(
-          `The DID ${clientId} is not controlled by the address ${signer}`
+          `The DID ${clientId} is not controlled by the address ${signer}`,
         );
       }
 
@@ -356,7 +364,11 @@ export class JsonRpcService {
       }
       if (err instanceof Error) {
         const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-        error.stack = err.stack;
+
+        if (err.stack) {
+          error.stack = err.stack;
+        }
+
         throw error;
       }
       throw err;

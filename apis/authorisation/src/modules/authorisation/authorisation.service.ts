@@ -19,15 +19,19 @@ import type {
   AkeResponse as SiopAkeResponse,
 } from "@cef-ebsi/siop-auth";
 import {
-  EbsiVerifiableAttestation,
   verifyCredentialJwt,
+  type EbsiVerifiableAttestation,
+  type EbsiEnvConfiguration,
 } from "@cef-ebsi/verifiable-credential";
 import type { EbsiVerifiablePresentation } from "@cef-ebsi/verifiable-presentation";
 import { importJWK, JWK } from "jose";
 import { decodeJWT } from "did-jwt";
-import type { JWTDecoded } from "did-jwt/lib/JWT";
-import type { ApiConfig } from "../../config/configuration";
-import type { ClaimRequest, OAuth2SessionDto, SiopSessionDto } from "./dto";
+import type { ApiConfig } from "../../config/configuration.js";
+import type {
+  ClaimRequest,
+  OAuth2SessionDto,
+  SiopSessionDto,
+} from "./dto/index.js";
 
 function prefix0x(value: string): string {
   return value.startsWith("0x") ? value : `0x${value}`;
@@ -59,22 +63,32 @@ export class AuthorisationService {
 
   private trustedHostnames: string[];
 
+  private readonly ebsiAuthority: string;
+
+  private readonly ebsiEnvConfig: EbsiEnvConfiguration;
+
   constructor(private configService: ConfigService<ApiConfig, true>) {
     const domain = this.configService.get<string>("domain");
+    this.ebsiAuthority = domain.replace(/^https?:\/\//, ""); // remove http protocol scheme
+    this.ebsiEnvConfig = {
+      didRegistry: `${domain}/did-registry/v4/identifiers`,
+      trustedIssuersRegistry: `${domain}/trusted-issuers-registry/v3/issuers`,
+      trustedPoliciesRegistry: `${domain}/trusted-policies-registry/v2/users`,
+    };
     const urlPrefix = this.configService.get<string>("apiUrlPrefix");
     this.siopSessionsUrl = `${domain}${urlPrefix}/siop-sessions`;
     this.privateKey = prefix0x(this.configService.get<string>("apiPrivateKey"));
     this.onboardingAllowlist = this.configService.get<string[]>(
-      "onboardingAllowlist"
+      "onboardingAllowlist",
     );
     this.didRegistry = this.configService.get<string>("didRegistry");
     this.trustedAppsRegistry = this.configService.get<string>(
-      "trustedAppsRegistry"
+      "trustedAppsRegistry",
     );
     const apiName = this.configService.get<string>("apiName");
     this.kid = `${this.trustedAppsRegistry}/${apiName}`;
     this.authorisationCredentialSchema = this.configService.get<string>(
-      "authorisationCredentialSchema"
+      "authorisationCredentialSchema",
     );
     this.timeout = configService.get<number>("requestTimeout");
     this.trustedHostnames = configService.get<string[]>("trustedHostnames");
@@ -94,7 +108,7 @@ export class AuthorisationService {
     this.relyingParty = new RP({
       privateKey: await importJWK(
         encode.privateKey.fromHexToJWK(this.privateKey),
-        "ES256K"
+        "ES256K",
       ),
       alg: "ES256K",
       name: this.configService.get<string>("apiName"),
@@ -144,7 +158,7 @@ export class AuthorisationService {
   }
 
   async createOAuth2Session(
-    body: OAuth2SessionDto
+    body: OAuth2SessionDto,
   ): Promise<OAuth2AkeResponse> {
     let resVerification: JwtTarVerifyResult;
 
@@ -184,11 +198,10 @@ export class AuthorisationService {
           }
 
           try {
-            const domain = this.configService.get<string>("domain");
-
             // Verify VC
             await verifyCredentialJwt(verifiableCredential, {
-              ebsiAuthority: domain.replace(/^https?:\/\//, ""), // remove http protocol scheme
+              ebsiAuthority: this.ebsiAuthority,
+              ebsiEnvConfig: this.ebsiEnvConfig,
               timeout: this.timeout,
               skipAccreditationsValidation: true,
               trustedHostnames: this.trustedHostnames,
@@ -225,7 +238,7 @@ export class AuthorisationService {
           const { issuer } = vc;
 
           return this.onboardingAllowlist.includes(issuer);
-        })
+        }),
       )
     ).every((valid) => valid);
   }
@@ -240,7 +253,7 @@ export class AuthorisationService {
     }
 
     if (body.vp_token) {
-      let decodedVp: JWTDecoded;
+      let decodedVp: ReturnType<typeof decodeJWT>;
       try {
         decodedVp = decodeJWT(body.vp_token);
       } catch (error) {
@@ -263,7 +276,7 @@ export class AuthorisationService {
       if (!(await this.validateVcList(vp.verifiableCredential, vp.holder))) {
         throw new BadRequestError("Invalid Verifiable Presentation", {
           detail: `All verifiable credentials must be signed by issuers in the allowlist: ${this.onboardingAllowlist.join(
-            ", "
+            ", ",
           )}`,
         });
       }
@@ -316,7 +329,7 @@ export class AuthorisationService {
           const did = didDocument?.id ?? "";
 
           return { ...idTokenClaims, did };
-        }
+        },
       );
     } catch (error) {
       if (error instanceof Error) {
@@ -344,9 +357,9 @@ export class AuthorisationService {
 
           if (response && response.status && response.title) {
             throw new ProblemDetailsError(response.status, response.title, {
-              type: response.type,
-              detail: response.detail,
-              instance: response.instance,
+              ...(response.type && { type: response.type }),
+              ...(response.detail && { detail: response.detail }),
+              ...(response.instance && { instance: response.instance }),
             });
           }
           throw new BadRequestError("Invalid ID Token", {

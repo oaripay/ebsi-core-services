@@ -1,2 +1,2 @@
-export * from "./insert-record-owner-param.dto";
-export * from "./request-insert-record-owner.dto";
+export * from "./insert-record-owner-param.dto.js";
+export * from "./request-insert-record-owner.dto.js";

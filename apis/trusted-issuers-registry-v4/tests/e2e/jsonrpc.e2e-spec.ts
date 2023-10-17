@@ -1,37 +1,27 @@
 import { randomBytes, randomUUID } from "node:crypto";
-import {
-  describe,
-  beforeAll,
-  afterAll,
-  it,
-  expect,
-  beforeEach,
-} from "@jest/globals";
+import { describe, beforeAll, afterAll, it, expect, beforeEach } from "vitest";
 import request from "supertest";
 import { ethers } from "ethers";
-import nock from "nock";
-import { Test, TestingModule } from "@nestjs/testing";
+import { rest } from "msw";
+import { setupServer } from "msw/node";
+import { Test, type TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
-import {
-  INestApplication,
-  ValidationPipe,
-  Logger,
-  HttpServer,
-} from "@nestjs/common";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import { useContainer } from "class-validator";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { ec as EC } from "elliptic";
+import elliptic from "elliptic";
 import { bytes } from "multiformats";
 import { base64url } from "multiformats/bases/base64";
 import { calculateJwkThumbprint } from "jose";
 import {
   createVerifiableCredentialJwt,
   EbsiIssuer,
+  type EbsiVerifiableAttestation,
 } from "@cef-ebsi/verifiable-credential";
 import {
   prefixWith0x,
@@ -42,22 +32,22 @@ import type {
   StatusList2021Credential,
   PaginatedList,
 } from "@ebsiint-api/shared";
-import { ApiConfig } from "../../src/config/configuration";
-import { AppModule } from "../../src/app.module";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
+import type { ApiConfig } from "../../src/config/configuration.js";
+import { AppModule } from "../../src/app.module.js";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 import type {
   IdLink,
   DidLink,
   IssuerProxyResponseObject,
-} from "../../src/modules/issuers/issuers.interface";
+} from "../../src/modules/issuers/issuers.interface.js";
 import {
   IssuerType,
   IssuerTypeNames,
-} from "../../src/modules/issuers/issuers.constants";
-import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface";
-import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils";
-import { createIssuer } from "../utils/tir";
-import type { IssuerObject } from "../utils/tir";
+} from "../../src/modules/issuers/issuers.constants.js";
+import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
+import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
+import { createIssuer } from "../utils/tir.js";
+import type { IssuerObject } from "../utils/tir.js";
 import type {
   AddIssuerProxyParam,
   InsertIssuerParam,
@@ -66,15 +56,15 @@ import type {
   UnsignedTransaction,
   UpdateIssuerParam,
   UpdateIssuerProxyParam,
-} from "../../src/modules/jsonrpc/dto";
-import { describeWriteOps } from "../utils/describeWriteOps";
-import { getServer } from "../utils/getServer";
-import { describeLocalTestEnvOnly } from "../utils/describeLocalTestEnvOnly";
+} from "../../src/modules/jsonrpc/dto/index.js";
+import { describeWriteOps } from "../utils/describeWriteOps.js";
+import { getServer } from "../utils/getServer.js";
+import { describeLocalTestEnvOnly } from "../utils/describeLocalTestEnvOnly.js";
 import {
   getDidrWriteAccessToken,
   getTirInviteAccessToken,
   getTirWriteAccessToken,
-} from "../utils/getAccessToken";
+} from "../utils/getAccessToken.js";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -101,6 +91,7 @@ interface TestIssuer {
 
 async function getEbsiIssuer(privateKey: string, did: string, kid?: string) {
   const hexIssuerPrivateKey = privateKey.replace("0x", "");
+  const EC = elliptic.ec;
   const ec = new EC("secp256k1");
   const pubPoint = ec.keyFromPrivate(hexIssuerPrivateKey, "hex").getPublic();
   const issuerPublicKeyJwk = {
@@ -125,8 +116,8 @@ async function getEbsiIssuer(privateKey: string, did: string, kid?: string) {
 }
 
 describeWriteOps()("JSON-RPC (e2e)", () => {
-  let app: INestApplication;
-  let server: HttpServer | string;
+  let app: NestFastifyApplication;
+  let server: RawServerDefault | string;
   let configService: ConfigService<ApiConfig, true>;
   let testVerifiableAttestationSchemaId: string;
   let testStatusListSchemaId: string;
@@ -145,7 +136,7 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
   async function createStatusList2021CredentialJwt(
     issuer: EbsiIssuer,
     issuerProxy: IssuerProxyResponseObject,
-    ebsiAuthority: string
+    ebsiAuthority: string,
   ) {
     const newIssuer1StatusList2021Credential: StatusList2021Credential = {
       "@context": [
@@ -190,7 +181,7 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
           ebsiAuthority,
           skipValidation: true,
           trustedHostnames,
-        }
+        },
       );
 
     return newIssuer1StatusList2021CredentialJwt;
@@ -212,7 +203,7 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     // Turn off logger
@@ -226,7 +217,7 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
     useContainer(app.select(AppModule), { fallbackOnErrors: true });
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
     server = getServer(app, configService);
 
@@ -237,45 +228,44 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
     trustedHostnames = configService.get<string[]>("trustedHostnames");
     ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
     trustedSchemasRegistryApiUrl = configService.get<string>(
-      "trustedSchemasRegistryApiUrl"
+      "trustedSchemasRegistryApiUrl",
     );
     authorisationApiV3Url = configService.get<string>("authorisationApiV3Url");
     testVerifiableAttestationSchemaId = configService.get<string>(
-      "testVerifiableAttestationSchemaId"
+      "testVerifiableAttestationSchemaId",
     );
     testStatusListSchemaId = configService.get<string>(
-      "testStatusListSchemaId"
+      "testStatusListSchemaId",
     );
 
     // Get last 2 issuers DID
-    let issuersResponse: SupertestIssuersResponse = await request(server).get(
-      "/issuers"
-    );
+    let issuersResponse: SupertestIssuersResponse =
+      await request(server).get("/issuers");
 
     // Go to last page (where there is at least 2 admins)
     const { total } = issuersResponse.body;
     issuersResponse = await request(server).get(
-      `/issuers?page[after]=${Math.floor(total / 2)}&page[size]=2`
+      `/issuers?page[after]=${Math.floor(total / 2)}&page[size]=2`,
     );
 
     // Get testIssuerWithProxy's first proxyId
     const testIssuerWithProxyKid = configService.get<string>(
-      "testIssuerWithProxyKid"
+      "testIssuerWithProxyKid",
     );
     const [testIssuerWithProxyDid] = testIssuerWithProxyKid.split("#");
 
     const testIssuerWithProxyPrivateKey = configService.get<string>(
-      "testIssuerWithProxyPrivateKey"
+      "testIssuerWithProxyPrivateKey",
     );
 
     const testIssuerWithProxyWallet = new ethers.Wallet(
-      prefixWith0x(testIssuerWithProxyPrivateKey)
+      prefixWith0x(testIssuerWithProxyPrivateKey),
     );
 
     const testIssuerWithProxyInfo = await getEbsiIssuer(
       testIssuerWithProxyPrivateKey,
       testIssuerWithProxyDid,
-      testIssuerWithProxyKid
+      testIssuerWithProxyKid,
     );
 
     try {
@@ -284,7 +274,7 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
         token: await getTirWriteAccessToken(
           authorisationApiV3Url,
           testIssuerWithProxyInfo,
-          trustedHostnames
+          trustedHostnames,
         ),
         wallet: testIssuerWithProxyWallet,
       };
@@ -302,7 +292,7 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
     const adminIssuerInfo = await getEbsiIssuer(
       adminPrivateKeyHex,
       adminDid,
-      adminKid
+      adminKid,
     );
 
     try {
@@ -311,7 +301,7 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
         token: await getTirWriteAccessToken(
           authorisationApiV3Url,
           adminIssuerInfo,
-          trustedHostnames
+          trustedHostnames,
         ),
         wallet: adminWallet,
       };
@@ -343,21 +333,22 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
           const newIssuerDid = EbsiWallet.createDid();
           const newIssuerInfo = await getEbsiIssuer(
             newIssuerPrivateKey,
-            newIssuerDid
+            newIssuerDid,
           );
 
           // Admin issuer inserts the new TI's DID document
           const didWriteAccessToken = await getDidrWriteAccessToken(
             authorisationApiV3Url,
             adminIssuer.info,
-            trustedHostnames
+            trustedHostnames,
           );
+
           const didRegistryApiUrl =
             configService.get<string>("didRegistryApiUrl");
           const now = Math.floor(Date.now() / 1000);
           const in6months = now + 6 * 30 * 24 * 3600;
           let responseBuild: SupertestJsonRpcResponse = await request(
-            didRegistryApiUrl
+            didRegistryApiUrl,
           )
             .post("/jsonrpc")
             .auth(didWriteAccessToken, { type: "bearer" })
@@ -387,14 +378,14 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
           let unsignedTransaction = responseBuild.body.result;
           let uTx = formatEthersUnsignedTransaction(
             JSON.parse(
-              JSON.stringify(unsignedTransaction)
-            ) as UnsignedTransaction
+              JSON.stringify(unsignedTransaction),
+            ) as UnsignedTransaction,
           );
           uTx.chainId = Number(uTx.chainId);
           let sgnTx = await adminIssuer.wallet.signTransaction(uTx);
           let parsedTx = ethers.utils.parseTransaction(sgnTx);
           let responseSend: SupertestJsonRpcResponse = await request(
-            didRegistryApiUrl
+            didRegistryApiUrl,
           )
             .post("/jsonrpc")
             .auth(didWriteAccessToken, { type: "bearer" })
@@ -440,8 +431,8 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
           unsignedTransaction = responseBuild.body.result;
           uTx = formatEthersUnsignedTransaction(
             JSON.parse(
-              JSON.stringify(unsignedTransaction)
-            ) as UnsignedTransaction
+              JSON.stringify(unsignedTransaction),
+            ) as UnsignedTransaction,
           );
           uTx.chainId = Number(uTx.chainId);
           sgnTx = await adminIssuer.wallet.signTransaction(uTx);
@@ -471,9 +462,9 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
           // Admin Issuer issues a "VerifiableAccreditationToAccredit" to the new issuer
           const issuanceDate = new Date();
           const expirationDate = new Date(
-            issuanceDate.getTime() + 2 * 60 * 60 * 1000
+            issuanceDate.getTime() + 2 * 60 * 60 * 1000,
           );
-          const vcPayload = {
+          const vcPayload: EbsiVerifiableAttestation = {
             "@context": ["https://www.w3.org/2018/credentials/v1"],
             id: `urn:uuid:${randomUUID()}`,
             type: [
@@ -505,7 +496,7 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
                 .replace(/^https?:\/\//, ""), // remove http protocol scheme
               skipValidation: true,
               trustedHostnames,
-            }
+            },
           );
 
           // Get access token for new issuer
@@ -516,7 +507,7 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
                 authorisationApiV3Url,
                 newIssuerInfo,
                 vcJwt,
-                trustedHostnames
+                trustedHostnames,
               ),
               wallet: newIssuerWallet,
             };
@@ -536,7 +527,7 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
         ) {
           // Get sender's first attribute ID
           const attributesResponse: SupertestAttributesResponse = await request(
-            server
+            server,
           ).get(`/issuers/${sender.info.did}/attributes`);
           senderFirstAttributeId = attributesResponse.body.items[0].id;
         }
@@ -744,7 +735,6 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
 
             extraTestUrl = `/issuers/${sender.info.did}`;
 
-            /* eslint-disable jest/no-conditional-expect */
             extraTestExpectedResponse = {
               did: sender.info.did,
               attributes: expect.arrayContaining([
@@ -757,7 +747,6 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
                 },
               ]),
             };
-            /* eslint-enable jest/no-conditional-expect */
 
             break;
           }
@@ -775,7 +764,6 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
 
             extraTestUrl = `/issuers/${sender.info.did}`;
 
-            /* eslint-disable jest/no-conditional-expect */
             extraTestExpectedResponse = {
               did: sender.info.did,
               attributes: expect.arrayContaining([
@@ -788,7 +776,6 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
                 },
               ]),
             };
-            /* eslint-enable jest/no-conditional-expect */
 
             break;
           }
@@ -824,7 +811,9 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
 
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
-          JSON.parse(JSON.stringify(unsignedTransaction)) as UnsignedTransaction
+          JSON.parse(
+            JSON.stringify(unsignedTransaction),
+          ) as UnsignedTransaction,
         );
         uTx.chainId = Number(uTx.chainId);
         const sgnTx = await sender.wallet.signTransaction(uTx);
@@ -859,7 +848,7 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
         // wait to be mined
         const receipt = await waitToBeMined(
           ledgerApi,
-          responseSend.body.result as string
+          responseSend.body.result as string,
         );
         expect(receipt.revertReason).toBeUndefined();
         expect(receipt.status).toBe(1);
@@ -969,7 +958,9 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
 
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
-          JSON.parse(JSON.stringify(unsignedTransaction)) as UnsignedTransaction
+          JSON.parse(
+            JSON.stringify(unsignedTransaction),
+          ) as UnsignedTransaction,
         );
         uTx.chainId = Number(uTx.chainId);
         const sgnTx = await sender.wallet.signTransaction(uTx);
@@ -1009,14 +1000,14 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
         // wait to be mined
         const receipt = await waitToBeMined(
           ledgerApi,
-          responseSend.body.result as string
+          responseSend.body.result as string,
         );
 
         expect(receipt).toStrictEqual(
           expect.objectContaining({
             status: 0,
             revertReason: expect.stringContaining(expectedRevertReason),
-          })
+          }),
         );
       });
 
@@ -1036,22 +1027,28 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
 
         expect(blockscoutCheck.status).toBe(200);
       });
-    }
+    },
   );
 
   describeLocalTestEnvOnly()("with mocked issuer's endpoint", () => {
     describe.each(["addIssuerProxy", "updateIssuerProxy"] as const)(
       "/jsonrpc - method: %s",
       (method) => {
+        const mockServer = setupServer();
         let testIssuerWithProxyWallet: ethers.Wallet;
 
         beforeAll(async () => {
+          // Intercept network requests
+          mockServer.listen({
+            onUnhandledRequest: "bypass",
+          });
+
           const authority = configService
             .get<string>("domain")
             .replace(/^https?:\/\//, "");
 
           testIssuerWithProxyWallet = new ethers.Wallet(
-            prefixWith0x(configService.get("testIssuerWithProxyPrivateKey"))
+            prefixWith0x(configService.get("testIssuerWithProxyPrivateKey")),
           );
 
           // Mock Trusted Issuers' endpoint
@@ -1059,22 +1056,19 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
             await createStatusList2021CredentialJwt(
               testIssuerWithProxy.info,
               newIssuer1.proxy.obj,
-              authority
+              authority,
             );
 
-          nock(newIssuer1.proxy.obj.prefix)
-            .get(newIssuer1.proxy.obj.testSuffix)
-            .reply(200, statusList2021CredentialJwt)
-            .persist();
-
-          nock(newIssuer2.proxy.obj.prefix)
-            .get(newIssuer2.proxy.obj.testSuffix)
-            .reply(200, statusList2021CredentialJwt)
-            .persist();
+          mockServer.use(
+            rest.get(
+              `${newIssuer1.proxy.obj.prefix}${newIssuer1.proxy.obj.testSuffix}`,
+              (_req, res, ctx) => res(ctx.json(statusList2021CredentialJwt)),
+            ),
+          );
         });
 
         afterAll(() => {
-          nock.cleanAll();
+          mockServer.close();
         });
 
         it("should add / update the proxy", async () => {
@@ -1096,17 +1090,16 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
               extraTestUrl = `/issuers/${did}/proxies`;
 
               extraTestExpectedResponse = {
-                // eslint-disable-next-line jest/no-conditional-expect
                 items: expect.arrayContaining([
                   {
                     proxyId: newIssuer1.proxy.id,
-                    // eslint-disable-next-line jest/no-conditional-expect
+
                     href: expect.stringContaining(
-                      `/proxies/${newIssuer1.proxy.id}`
+                      `/proxies/${newIssuer1.proxy.id}`,
                     ),
                   },
                 ]),
-                // eslint-disable-next-line jest/no-conditional-expect
+
                 total: expect.any(Number),
               };
 
@@ -1140,10 +1133,11 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
             });
 
           const unsignedTransaction = responseBuild.body.result;
+
           const uTx = formatEthersUnsignedTransaction(
             JSON.parse(
-              JSON.stringify(unsignedTransaction)
-            ) as UnsignedTransaction
+              JSON.stringify(unsignedTransaction),
+            ) as UnsignedTransaction,
           );
           uTx.chainId = Number(uTx.chainId);
           const sgnTx = await testIssuerWithProxyWallet.signTransaction(uTx);
@@ -1178,20 +1172,20 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
           // wait to be mined
           const receipt = await waitToBeMined(
             ledgerApi,
-            responseSend.body.result as string
+            responseSend.body.result as string,
           );
+
           expect(receipt.status).toBe(1);
-          sampleTransaction = responseSend.body.result as string;
 
           // Extra test
           const extraTestResponse = await request(server).get(extraTestUrl);
 
           expect(extraTestResponse.body).toStrictEqual(
-            extraTestExpectedResponse
+            extraTestExpectedResponse,
           );
           expect(extraTestResponse.status).toBe(200);
         });
-      }
+      },
     );
   });
 });

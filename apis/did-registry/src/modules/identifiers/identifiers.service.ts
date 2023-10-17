@@ -5,7 +5,7 @@ import {
   NotFoundError,
   isEthersError,
 } from "@ebsiint-api/shared";
-import { LedgerService } from "../ledger/ledger.service";
+import { LedgerService } from "../ledger/ledger.service.js";
 
 @Injectable()
 export default class IdentifiersService {
@@ -16,7 +16,7 @@ export default class IdentifiersService {
   async getIdentifiers(
     page: number,
     pageSize: number,
-    controllerId?: string
+    controllerId?: string,
   ): ReturnType<DidRegistry["getDidRecordIdentifiers"]> {
     if (controllerId) {
       try {
@@ -25,7 +25,7 @@ export default class IdentifiersService {
         ).getDidRecordIdentifiersByControllerId(
           controllerId.toLowerCase(),
           page,
-          pageSize
+          pageSize,
         );
       } catch (error) {
         if (isEthersError(error)) {
@@ -52,14 +52,14 @@ export default class IdentifiersService {
   }
 
   private async retrieveIdentifier(
-    hexIdentifier: string
+    hexIdentifier: string,
   ): Promise<{ [x: string]: unknown }> {
     try {
       const latesteDidDoc = await (
         await this.ledgerService.getContract()
       ).getLatestDidDocumentVersion(hexIdentifier);
       return JSON.parse(
-        Buffer.from(remove0xPrefix(latesteDidDoc), "hex").toString()
+        Buffer.from(remove0xPrefix(latesteDidDoc), "hex").toString(),
       ) as { [x: string]: unknown };
     } catch (error) {
       if (isEthersError(error)) {
@@ -88,7 +88,7 @@ export default class IdentifiersService {
   private async retrieveIdentifiersVersions(
     hexDid: string,
     page: number,
-    pageSize: number
+    pageSize: number,
   ) {
     try {
       return await (
@@ -108,7 +108,7 @@ export default class IdentifiersService {
     did: string,
     page: number,
     pageSize: number,
-    validAt?: string
+    validAt?: string,
   ): ReturnType<DidRegistry["getDidDocumentVersionIds"]> {
     if (validAt) {
       // TODO: filter for a specific date-time and find the did document version ID valide at that time.
@@ -130,7 +130,7 @@ export default class IdentifiersService {
 
   async getIdentifierVersion(
     did: string,
-    versionId: string
+    versionId: string,
   ): Promise<{ [x: string]: unknown }> {
     // Make sure the DID exists
     await this.getIdentifier(did);
@@ -140,7 +140,7 @@ export default class IdentifiersService {
         await this.ledgerService.getContract()
       ).getDidDocumentVersionInfo(versionId);
       return JSON.parse(
-        Buffer.from(remove0xPrefix(versionInfo), "hex").toString()
+        Buffer.from(remove0xPrefix(versionInfo), "hex").toString(),
       ) as { [x: string]: unknown };
     } catch (e) {
       if (isEthersError(e)) {
@@ -156,7 +156,7 @@ export default class IdentifiersService {
     did: string,
     versionId: string,
     page: number,
-    pageSize: number
+    pageSize: number,
   ): ReturnType<DidRegistry["getDidDocumentVersionMetadataIds"]> {
     // Make sure the DID and the Version ID exist
     await this.getIdentifierVersion(did, versionId);
@@ -179,7 +179,7 @@ export default class IdentifiersService {
   async getIdentifierVersionMetadata(
     did: string,
     versionId: string,
-    metadataId: string
+    metadataId: string,
   ): Promise<{ [x: string]: unknown }> {
     // Make sure the DID and the Version ID exist
     await this.getIdentifierVersion(did, versionId);
@@ -190,7 +190,7 @@ export default class IdentifiersService {
       ).getDidDocumentVersionMetadata(metadataId);
 
       return JSON.parse(
-        Buffer.from(remove0xPrefix(metadata), "hex").toString()
+        Buffer.from(remove0xPrefix(metadata), "hex").toString(),
       ) as { [x: string]: unknown };
     } catch (e) {
       if (isEthersError(e)) {

@@ -1,3 +1,3 @@
-export * from "./get-identifier.params.dto";
-export * from "./get-identifiers.dto";
-export * from "./get-identifier.query.dto";
+export * from "./get-identifier.params.dto.js";
+export * from "./get-identifiers.dto.js";
+export * from "./get-identifier.query.dto.js";

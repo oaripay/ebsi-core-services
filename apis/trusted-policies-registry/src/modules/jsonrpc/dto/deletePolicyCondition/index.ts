@@ -1,2 +1,2 @@
-export * from "./delete-policy-condition-param.dto";
-export * from "./request-delete-policy-condition.dto";
+export * from "./delete-policy-condition-param.dto.js";
+export * from "./request-delete-policy-condition.dto.js";

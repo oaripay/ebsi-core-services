@@ -2,14 +2,14 @@ import { IsHexadecimal, IsNumber, IsString, Max, Min } from "class-validator";
 import {
   ATTRIBUTE_TYPES,
   ATTRIBUTE_OPERATIONS,
-} from "../../../policies/policies.interface";
+} from "../../../policies/policies.interface.js";
 
 export class PolicyConditionDto {
   @IsString()
-  name: string;
+  name!: string;
 
   @IsString()
-  attributeName: string;
+  attributeName!: string;
 
   @IsNumber()
   @Min(0)
@@ -18,15 +18,15 @@ export class PolicyConditionDto {
       ATTRIBUTE_TYPES.length - 1
     }`,
   })
-  typeOfValue: number;
+  typeOfValue!: number;
 
   @IsHexadecimal()
-  value: string;
+  value!: string;
 
   @IsNumber()
   @Min(0)
   @Max(ATTRIBUTE_OPERATIONS.length - 1)
-  attributeOperation: number;
+  attributeOperation!: number;
 }
 
 export default PolicyConditionDto;

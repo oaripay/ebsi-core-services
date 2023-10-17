@@ -1,15 +1,15 @@
 import { Module } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { APP_INTERCEPTOR } from "@nestjs/core";
-import { ApiConfigModule } from "./config/configuration";
-import { HealthModule } from "./modules/health/health.module";
-import { KeyValuesModule } from "./modules/key-values/key-values.module";
-import { StoresModule } from "./modules/stores/stores.module";
-import { FilesModule } from "./modules/files/files.module";
-import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module";
-import { LoggingInterceptor } from "./interceptors/logging.interceptor";
-import { VersionInterceptor } from "./interceptors/version.interceptor";
-import { OpenApiModule } from "./modules/openapi/openapi.module";
+import { ApiConfigModule } from "./config/configuration.js";
+import { HealthModule } from "./modules/health/health.module.js";
+import { KeyValuesModule } from "./modules/key-values/key-values.module.js";
+import { StoresModule } from "./modules/stores/stores.module.js";
+import { FilesModule } from "./modules/files/files.module.js";
+import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module.js";
+import { LoggingInterceptor } from "./interceptors/logging.interceptor.js";
+import { VersionInterceptor } from "./interceptors/version.interceptor.js";
+import { OpenApiModule } from "./modules/openapi/openapi.module.js";
 
 @Module({
   imports: [

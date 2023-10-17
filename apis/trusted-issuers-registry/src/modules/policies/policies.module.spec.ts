@@ -1,34 +1,27 @@
-import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
+import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  Logger,
-  HttpServer,
-} from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { FastifyInstance } from "fastify";
-import { generateMultihash, AsyncReturnType } from "@ebsiint-api/shared";
-import { PoliciesModule } from "./policies.module";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { setupTestEnv } from "../../../tests/utils/tir";
-import { LedgerService } from "../ledger/ledger.service";
-import { ApiConfig } from "../../config/configuration";
-
-jest.setTimeout(90000);
+import type { RawServerDefault } from "fastify";
+import { generateMultihash } from "@ebsiint-api/shared";
+import { PoliciesModule } from "./policies.module.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import { setupTestEnv } from "../../../tests/utils/tir.js";
+import { LedgerService } from "../ledger/ledger.service.js";
+import type { ApiConfig } from "../../config/configuration.js";
 
 const POLICIES_TOTAL = 12;
 const POLICIES_REVISIONS_TOTAL = 5;
 
 describe("Policies Module", () => {
-  let app: INestApplication;
-  let server: HttpServer;
-  let testEnv: AsyncReturnType<typeof setupTestEnv>;
+  let app: NestFastifyApplication;
+  let server: RawServerDefault;
+  let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
   let configService: ConfigService<ApiConfig, true>;
 
   beforeAll(async () => {
@@ -44,7 +37,7 @@ describe("Policies Module", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     // Turn off logger
@@ -57,21 +50,17 @@ describe("Policies Module", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    await app.getHttpAdapter().getInstance().ready();
+    server = app.getHttpServer();
 
     // Mock TIR contract
     const ledgerService = moduleFixture.get<LedgerService>(LedgerService);
-    jest
-      .spyOn(ledgerService, "getContract")
-      .mockImplementation(async () => Promise.resolve(tirContract));
+    vi.spyOn(ledgerService, "getContract").mockImplementation(async () =>
+      Promise.resolve(tirContract),
+    );
   });
 
   afterAll(async () => {
-    // Avoid jest open handle error
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
     await app.close();
   });
 
@@ -87,26 +76,26 @@ describe("Policies Module", () => {
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            "/policies?page[after]=1&page[size]=10"
+            "/policies?page[after]=1&page[size]=10",
           ),
           prev: expect.stringContaining(
-            "/policies?page[after]=1&page[size]=10"
+            "/policies?page[after]=1&page[size]=10",
           ),
           next: expect.stringContaining(
             `/policies?page[after]=${Math.min(
               Math.ceil(POLICIES_TOTAL / 10),
-              2
-            )}&page[size]=10`
+              2,
+            )}&page[size]=10`,
           ),
           last: expect.stringContaining(
             `/policies?page[after]=${Math.ceil(
-              POLICIES_TOTAL / 10
-            )}&page[size]=10`
+              POLICIES_TOTAL / 10,
+            )}&page[size]=10`,
           ),
         },
       });
       expect((response.body as { items: string }).items).toHaveLength(
-        Math.min(10, POLICIES_TOTAL)
+        Math.min(10, POLICIES_TOTAL),
       );
       expect(response.status).toBe(200);
     });
@@ -122,7 +111,7 @@ describe("Policies Module", () => {
         pageSize: 3,
         links: {
           first: expect.stringContaining(
-            "/policies?page[after]=1&page[size]=3"
+            "/policies?page[after]=1&page[size]=3",
           ),
           prev: expect.stringContaining("/policies?page[after]=1&page[size]=3"),
           next: expect.stringContaining("/policies?page[after]=2&page[size]=3"),
@@ -134,7 +123,7 @@ describe("Policies Module", () => {
 
       // next page
       const response2 = await request(server).get(
-        "/policies?page[after]=2&page[size]=3"
+        "/policies?page[after]=2&page[size]=3",
       );
       expect(response2.body).toStrictEqual({
         self: expect.stringContaining("/policies"),
@@ -143,7 +132,7 @@ describe("Policies Module", () => {
         pageSize: 3,
         links: {
           first: expect.stringContaining(
-            "/policies?page[after]=1&page[size]=3"
+            "/policies?page[after]=1&page[size]=3",
           ),
           prev: expect.stringContaining("/policies?page[after]=1&page[size]=3"),
           next: expect.stringContaining("/policies?page[after]=3&page[size]=3"),
@@ -155,7 +144,7 @@ describe("Policies Module", () => {
 
       // big page
       const response3 = await request(server).get(
-        "/policies?page[after]=100&page[size]=3"
+        "/policies?page[after]=100&page[size]=3",
       );
       expect(response3.body).toStrictEqual({
         self: expect.stringContaining("/policies?page[after]=100&page[size]=3"),
@@ -164,7 +153,7 @@ describe("Policies Module", () => {
         pageSize: 3,
         links: {
           first: expect.stringContaining(
-            "/policies?page[after]=1&page[size]=3"
+            "/policies?page[after]=1&page[size]=3",
           ),
           prev: expect.stringContaining("/policies?page[after]=4&page[size]=3"),
           next: expect.stringContaining("/policies?page[after]=4&page[size]=3"),
@@ -183,16 +172,16 @@ describe("Policies Module", () => {
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            "/policies?page[after]=1&page[size]=10"
+            "/policies?page[after]=1&page[size]=10",
           ),
           prev: expect.stringContaining(
-            "/policies?page[after]=1&page[size]=10"
+            "/policies?page[after]=1&page[size]=10",
           ),
           next: expect.stringContaining(
-            "/policies?page[after]=2&page[size]=10"
+            "/policies?page[after]=2&page[size]=10",
           ),
           last: expect.stringContaining(
-            "/policies?page[after]=2&page[size]=10"
+            "/policies?page[after]=2&page[size]=10",
           ),
         },
       });
@@ -248,16 +237,16 @@ describe("Policies Module", () => {
 
       // Get first policy
       const { policies, policyRevisions } = testEnv;
-      const { policyId } = policies[0];
+      const { policyId } = policies[0]!;
       // Get last revision of this policy
       const { policyData, policyHash } =
-        policyRevisions[policyId][policyRevisions[policyId].length - 1];
+        policyRevisions[policyId]![policyRevisions[policyId]!.length - 1]!;
 
       const expectedPolicy = policyData;
       const expectedHash = generateMultihash(policyHash);
 
       const response = await request(server).get(
-        `/policies/${encodeURIComponent(policyId)}`
+        `/policies/${encodeURIComponent(policyId)}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -289,7 +278,7 @@ describe("Policies Module", () => {
 
       // Get first policy
       const { policies } = testEnv;
-      const { policyId } = policies[0];
+      const { policyId } = policies[0]!;
 
       const url = `/policies/${encodeURIComponent(policyId)}/revisions`;
       const response = await request(server).get(url);
@@ -307,7 +296,7 @@ describe("Policies Module", () => {
         },
       });
       expect((response.body as { items: string }).items).toHaveLength(
-        POLICIES_REVISIONS_TOTAL
+        POLICIES_REVISIONS_TOTAL,
       );
       expect(response.status).toBe(200);
     });
@@ -317,7 +306,7 @@ describe("Policies Module", () => {
 
       // Get first policy
       const { policies } = testEnv;
-      const { policyId } = policies[0];
+      const { policyId } = policies[0]!;
 
       const url = `/policies/${encodeURIComponent(policyId)}/revisions`;
 
@@ -339,7 +328,7 @@ describe("Policies Module", () => {
 
       // next page
       const response2 = await request(server).get(
-        `${url}?page[after]=2&page[size]=3`
+        `${url}?page[after]=2&page[size]=3`,
       );
       expect(response2.body).toStrictEqual({
         self: expect.stringContaining("/policies"),
@@ -358,7 +347,7 @@ describe("Policies Module", () => {
 
       // big page
       const response3 = await request(server).get(
-        `${url}?page[after]=100&page[size]=3`
+        `${url}?page[after]=100&page[size]=3`,
       );
       expect(response3.body).toStrictEqual({
         self: expect.stringContaining(`${url}?page[after]=100&page[size]=3`),
@@ -390,7 +379,7 @@ describe("Policies Module", () => {
         },
       });
       expect((response4.body as { items: string }).items).toHaveLength(
-        POLICIES_REVISIONS_TOTAL
+        POLICIES_REVISIONS_TOTAL,
       );
       expect(response4.status).toBe(200);
     });

@@ -11,7 +11,7 @@ async function main() {
       libraries: {
         Pagination: pagination.address,
       },
-    }
+    },
   );
   const policyContract =
     (await policyRegistryFactory.deploy()) as PolicyRegistry;

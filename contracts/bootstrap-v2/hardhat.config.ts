@@ -27,7 +27,7 @@ task(
     await ethers.provider.getBlockNumber().then((blockNumber) => {
       console.log(`Current block number: ${blockNumber}`);
     });
-  }
+  },
 );
 task("chainId", "Prints the current chain ID", async (_, { ethers }) => {
   await ethers.provider.getNetwork().then((net) => {

@@ -1,5 +1,5 @@
 import {
-  jest,
+  vi,
   describe,
   beforeAll,
   beforeEach,
@@ -7,37 +7,32 @@ import {
   afterAll,
   it,
   expect,
-} from "@jest/globals";
-import type { SpyInstance } from "jest-mock";
+  type SpyInstance,
+} from "vitest";
 import request from "supertest";
 import { ethers } from "ethers";
-import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  HttpServer,
-  ValidationPipe,
-  Logger,
-} from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import crypto from "node:crypto";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import { Tar__factory } from "@ebsiint-sc/trusted-apps-registry-v3";
-import { AsyncReturnType, PaginatedList } from "@ebsiint-api/shared";
-import { AppsModule } from "./apps.module";
+import { PaginatedList } from "@ebsiint-api/shared";
+import { AppsModule } from "./apps.module.js";
 import {
   AppLink,
   AuthorizationLink,
   PublicKeyLink,
   PublicKeyResponseObject,
-} from "./apps.interface";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { setupTestEnv } from "../../../tests/utils/tar";
-import LedgerService from "../ledger/ledger.service";
-import { ApiConfig } from "../../config/configuration";
+} from "./apps.interface.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import { setupTestEnv } from "../../../tests/utils/tar.js";
+import LedgerService from "../ledger/ledger.service.js";
+import type { ApiConfig } from "../../config/configuration.js";
 
 interface SupertestAppsResponse {
   status: number;
@@ -62,9 +57,9 @@ interface SupertestPublicKeyResponse {
 const APPS_TOTAL = 12;
 
 describe("Apps Module", () => {
-  let app: INestApplication;
-  let server: HttpServer;
-  let testEnv: AsyncReturnType<typeof setupTestEnv>;
+  let app: NestFastifyApplication;
+  let server: RawServerDefault;
+  let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
   let configService: ConfigService<ApiConfig, true>;
 
   describe.each(["http://127.0.0.1", "ws://127.0.0.1"])(
@@ -81,32 +76,30 @@ describe("Apps Module", () => {
         const { tarContract } = testEnv;
 
         // Mock TAR contract
-        webSocketProviderSpy = jest
+        webSocketProviderSpy = vi
           .spyOn(ethers.providers, "WebSocketProvider")
           .mockImplementation(
             () =>
               new ethers.providers.BaseProvider(
-                "any"
-              ) as ethers.providers.WebSocketProvider
+                "any",
+              ) as ethers.providers.WebSocketProvider,
           );
-        jsonRpcProviderSpy = jest
+        jsonRpcProviderSpy = vi
           .spyOn(ethers.providers, "JsonRpcProvider")
           .mockImplementation(
             () =>
               new ethers.providers.BaseProvider(
-                "any"
-              ) as ethers.providers.JsonRpcProvider
+                "any",
+              ) as ethers.providers.JsonRpcProvider,
           );
-        jest
-          .spyOn(Tar__factory, "connect")
-          .mockImplementation(() => tarContract);
+        vi.spyOn(Tar__factory, "connect").mockImplementation(() => tarContract);
 
         const moduleFixture: TestingModule = await Test.createTestingModule({
           imports: [AppsModule],
         }).compile();
 
         app = moduleFixture.createNestApplication<NestFastifyApplication>(
-          new FastifyAdapter()
+          new FastifyAdapter(),
         );
 
         // Turn off logger
@@ -119,21 +112,21 @@ describe("Apps Module", () => {
         app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
         await app.init();
-        await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-        server = app.getHttpServer() as HttpServer;
+        await app.getHttpAdapter().getInstance().ready();
+        server = app.getHttpServer();
 
         const ledgerService = moduleFixture.get<LedgerService>(LedgerService);
-        jest
-          .spyOn(ledgerService, "getBesuRpcNode")
-          .mockImplementation(() => besuRpcNode);
+        vi.spyOn(ledgerService, "getBesuRpcNode").mockImplementation(
+          () => besuRpcNode,
+        );
       });
 
       afterEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
       });
 
       afterAll(async () => {
-        // Avoid jest open handle error
+        // Avoid vi open handle error
         await new Promise<void>((resolve) => {
           setTimeout(() => resolve(), 500);
         });
@@ -143,9 +136,8 @@ describe("Apps Module", () => {
       it("should have connected with the right provider", async () => {
         expect.assertions(5);
 
-        const response: SupertestAppsResponse = await request(server).get(
-          "/apps"
-        );
+        const response: SupertestAppsResponse =
+          await request(server).get("/apps");
 
         expect(response.body).toStrictEqual({
           self: expect.stringContaining("/apps?page[after]=1&page[size]=10"),
@@ -158,11 +150,11 @@ describe("Apps Module", () => {
             next: expect.stringContaining(
               `/apps?page[after]=${Math.min(
                 Math.ceil(APPS_TOTAL / 10),
-                2
-              )}&page[size]=10`
+                2,
+              )}&page[size]=10`,
             ),
             last: expect.stringContaining(
-              `/apps?page[after]=${Math.ceil(APPS_TOTAL / 10)}&page[size]=10`
+              `/apps?page[after]=${Math.ceil(APPS_TOTAL / 10)}&page[size]=10`,
             ),
           },
         });
@@ -183,7 +175,7 @@ describe("Apps Module", () => {
         expect(calledProvider).toHaveBeenCalled();
         expect(notCalledProvider).not.toHaveBeenCalled();
       });
-    }
+    },
   );
 
   describe("regular tests", () => {
@@ -195,30 +187,26 @@ describe("Apps Module", () => {
       const { tarContract } = testEnv;
 
       // Mock TAR contract
-      jest
-        .spyOn(ethers.providers, "WebSocketProvider")
-        .mockImplementation(
-          () =>
-            new ethers.providers.BaseProvider(
-              "any"
-            ) as ethers.providers.WebSocketProvider
-        );
-      jest
-        .spyOn(ethers.providers, "JsonRpcProvider")
-        .mockImplementation(
-          () =>
-            new ethers.providers.BaseProvider(
-              "any"
-            ) as ethers.providers.JsonRpcProvider
-        );
-      jest.spyOn(Tar__factory, "connect").mockImplementation(() => tarContract);
+      vi.spyOn(ethers.providers, "WebSocketProvider").mockImplementation(
+        () =>
+          new ethers.providers.BaseProvider(
+            "any",
+          ) as ethers.providers.WebSocketProvider,
+      );
+      vi.spyOn(ethers.providers, "JsonRpcProvider").mockImplementation(
+        () =>
+          new ethers.providers.BaseProvider(
+            "any",
+          ) as ethers.providers.JsonRpcProvider,
+      );
+      vi.spyOn(Tar__factory, "connect").mockImplementation(() => tarContract);
 
       const moduleFixture: TestingModule = await Test.createTestingModule({
         imports: [AppsModule],
       }).compile();
 
       app = moduleFixture.createNestApplication<NestFastifyApplication>(
-        new FastifyAdapter()
+        new FastifyAdapter(),
       );
 
       // Turn off logger
@@ -231,12 +219,12 @@ describe("Apps Module", () => {
       app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
       await app.init();
-      await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-      server = app.getHttpServer() as HttpServer;
+      await app.getHttpAdapter().getInstance().ready();
+      server = app.getHttpServer();
     });
 
     afterAll(async () => {
-      // Avoid jest open handle error
+      // Avoid vi open handle error
       await new Promise<void>((resolve) => {
         setTimeout(() => resolve(), 500);
       });
@@ -247,9 +235,8 @@ describe("Apps Module", () => {
       it("should return a paginated collection of apps", async () => {
         expect.assertions(3);
 
-        const response: SupertestAppsResponse = await request(server).get(
-          "/apps"
-        );
+        const response: SupertestAppsResponse =
+          await request(server).get("/apps");
         expect(response.body).toStrictEqual({
           self: expect.stringContaining("/apps?page[after]=1&page[size]=10"),
           items: expect.arrayContaining([]),
@@ -261,11 +248,11 @@ describe("Apps Module", () => {
             next: expect.stringContaining(
               `/apps?page[after]=${Math.min(
                 Math.ceil(APPS_TOTAL / 10),
-                2
-              )}&page[size]=10`
+                2,
+              )}&page[size]=10`,
             ),
             last: expect.stringContaining(
-              `/apps?page[after]=${Math.ceil(APPS_TOTAL / 10)}&page[size]=10`
+              `/apps?page[after]=${Math.ceil(APPS_TOTAL / 10)}&page[size]=10`,
             ),
           },
         });
@@ -276,37 +263,36 @@ describe("Apps Module", () => {
       it("should return an app when query public_key_id is defined", async () => {
         expect.assertions(3);
 
-        const responseApps: SupertestAppsResponse = await request(server).get(
-          "/apps"
-        );
-        const applicationName = responseApps.body.items[0].name;
+        const responseApps: SupertestAppsResponse =
+          await request(server).get("/apps");
+        const applicationName = responseApps.body.items[0]!.name;
 
         const pubKeysResponse: SupertestAppsResponse = await request(
-          server
+          server,
         ).get(`/apps/${applicationName}/public-keys`);
-        const publicKeyId = pubKeysResponse.body.items[0].id;
+        const publicKeyId = pubKeysResponse.body.items[0]!.id;
         const response: SupertestAppsResponse = await request(server).get(
-          `/apps?public_key_id=${publicKeyId}`
+          `/apps?public_key_id=${publicKeyId}`,
         );
         expect(response.body).toStrictEqual({
           self: expect.stringContaining(
-            `/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId}`
+            `/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId}`,
           ),
           items: expect.arrayContaining([]),
           total: APPS_TOTAL,
           pageSize: 10,
           links: {
             first: expect.stringContaining(
-              `/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId}`
+              `/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId}`,
             ),
             prev: expect.stringContaining(
-              `/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId}`
+              `/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId}`,
             ),
             next: expect.stringContaining(
-              `/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId}`
+              `/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId}`,
             ),
             last: expect.stringContaining(
-              `/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId}`
+              `/apps?page[after]=1&page[size]=10&public_key_id=${publicKeyId}`,
             ),
           },
         });
@@ -318,27 +304,27 @@ describe("Apps Module", () => {
         expect.assertions(3);
 
         const response: SupertestAppsResponse = await request(server).get(
-          `/apps?public_key_id=0x1234567890123456789012345678901234567890123456789012345678901234`
+          `/apps?public_key_id=0x1234567890123456789012345678901234567890123456789012345678901234`,
         );
         expect(response.body).toStrictEqual({
           self: expect.stringContaining(
-            `/apps?page[after]=1&page[size]=10&public_key_id=0x1234567890123456789012345678901234567890123456789012345678901234`
+            `/apps?page[after]=1&page[size]=10&public_key_id=0x1234567890123456789012345678901234567890123456789012345678901234`,
           ),
           items: expect.arrayContaining([]),
           total: APPS_TOTAL,
           pageSize: 10,
           links: {
             first: expect.stringContaining(
-              `/apps?page[after]=1&page[size]=10&public_key_id=0x1234567890123456789012345678901234567890123456789012345678901234`
+              `/apps?page[after]=1&page[size]=10&public_key_id=0x1234567890123456789012345678901234567890123456789012345678901234`,
             ),
             prev: expect.stringContaining(
-              `/apps?page[after]=1&page[size]=10&public_key_id=0x1234567890123456789012345678901234567890123456789012345678901234`
+              `/apps?page[after]=1&page[size]=10&public_key_id=0x1234567890123456789012345678901234567890123456789012345678901234`,
             ),
             next: expect.stringContaining(
-              `/apps?page[after]=1&page[size]=10&public_key_id=0x1234567890123456789012345678901234567890123456789012345678901234`
+              `/apps?page[after]=1&page[size]=10&public_key_id=0x1234567890123456789012345678901234567890123456789012345678901234`,
             ),
             last: expect.stringContaining(
-              `/apps?page[after]=1&page[size]=10&public_key_id=0x1234567890123456789012345678901234567890123456789012345678901234`
+              `/apps?page[after]=1&page[size]=10&public_key_id=0x1234567890123456789012345678901234567890123456789012345678901234`,
             ),
           },
         });
@@ -349,9 +335,8 @@ describe("Apps Module", () => {
       it("should handle the pagination properly", async () => {
         expect.assertions(12);
 
-        const response1: SupertestAppsResponse = await request(server).get(
-          "/apps?page[size]=3"
-        );
+        const response1: SupertestAppsResponse =
+          await request(server).get("/apps?page[size]=3");
         expect(response1.body).toStrictEqual({
           self: expect.stringContaining("/apps?page[after]=1&page[size]=3"),
           items: expect.arrayContaining([]),
@@ -369,7 +354,7 @@ describe("Apps Module", () => {
 
         // next page
         const response2: SupertestAppsResponse = await request(server).get(
-          "/apps?page[after]=2&page[size]=3"
+          "/apps?page[after]=2&page[size]=3",
         );
         expect(response2.body).toStrictEqual({
           self: expect.stringContaining("/apps"),
@@ -388,7 +373,7 @@ describe("Apps Module", () => {
 
         // big page
         const response3: SupertestAppsResponse = await request(server).get(
-          "/apps?page[after]=100&page[size]=3"
+          "/apps?page[after]=100&page[size]=3",
         );
         expect(response3.body).toStrictEqual({
           self: expect.stringContaining("/apps?page[after]=100&page[size]=3"),
@@ -407,7 +392,7 @@ describe("Apps Module", () => {
 
         // page after defined but page size undefined
         const response4: SupertestAppsResponse = await request(server).get(
-          "/apps?page[after]=1"
+          "/apps?page[after]=1",
         );
         expect(response4.body).toStrictEqual({
           self: expect.stringContaining("/apps"),
@@ -480,7 +465,7 @@ describe("Apps Module", () => {
           appAdministrator,
           applicationId,
           info,
-        } = apps[0];
+        } = apps[0]!;
 
         const domainName = ["undefined", "ebsi", "external"][domain];
 
@@ -503,7 +488,7 @@ describe("Apps Module", () => {
         expect.assertions(2);
 
         const response = await request(server).get(
-          "/apps/0x0000000000000000000000000000000000000000000000000000000000000000"
+          "/apps/0x0000000000000000000000000000000000000000000000000000000000000000",
         );
 
         expect(response.body).toStrictEqual({
@@ -520,29 +505,29 @@ describe("Apps Module", () => {
     describe("GET /apps/{applicationName}/public-keys", () => {
       it("should return a paginated collection of public-keys", async () => {
         expect.assertions(3);
-        const { name } = testEnv.apps[0];
+        const { name } = testEnv.apps[0]!;
         const response: SupertestPublicKeysResponse = await request(server).get(
-          `/apps/${name}/public-keys`
+          `/apps/${name}/public-keys`,
         );
         expect(response.body).toStrictEqual({
           self: expect.stringContaining(
-            `/apps/${name}/public-keys?page[after]=1&page[size]=10`
+            `/apps/${name}/public-keys?page[after]=1&page[size]=10`,
           ),
           items: expect.arrayContaining([]),
           total: 1,
           pageSize: 10,
           links: {
             first: expect.stringContaining(
-              `/apps/${name}/public-keys?page[after]=1&page[size]=10`
+              `/apps/${name}/public-keys?page[after]=1&page[size]=10`,
             ),
             prev: expect.stringContaining(
-              `/apps/${name}/public-keys?page[after]=1&page[size]=10`
+              `/apps/${name}/public-keys?page[after]=1&page[size]=10`,
             ),
             next: expect.stringContaining(
-              `/apps/${name}/public-keys?page[after]=1&page[size]=10`
+              `/apps/${name}/public-keys?page[after]=1&page[size]=10`,
             ),
             last: expect.stringContaining(
-              `/apps/${name}/public-keys?page[after]=1&page[size]=10`
+              `/apps/${name}/public-keys?page[after]=1&page[size]=10`,
             ),
           },
         });
@@ -552,29 +537,29 @@ describe("Apps Module", () => {
 
       it("should handle the pagination properly", async () => {
         expect.assertions(12);
-        const { name } = testEnv.apps[0];
+        const { name } = testEnv.apps[0]!;
         const response1: SupertestPublicKeysResponse = await request(
-          server
+          server,
         ).get(`/apps/${name}/public-keys?page[size]=3`);
         expect(response1.body).toStrictEqual({
           self: expect.stringContaining(
-            `/apps/${name}/public-keys?page[after]=1&page[size]=3`
+            `/apps/${name}/public-keys?page[after]=1&page[size]=3`,
           ),
           items: expect.arrayContaining([]),
           total: 1,
           pageSize: 3,
           links: {
             first: expect.stringContaining(
-              `/apps/${name}/public-keys?page[after]=1&page[size]=3`
+              `/apps/${name}/public-keys?page[after]=1&page[size]=3`,
             ),
             prev: expect.stringContaining(
-              `/apps/${name}/public-keys?page[after]=1&page[size]=3`
+              `/apps/${name}/public-keys?page[after]=1&page[size]=3`,
             ),
             next: expect.stringContaining(
-              `/apps/${name}/public-keys?page[after]=1&page[size]=3`
+              `/apps/${name}/public-keys?page[after]=1&page[size]=3`,
             ),
             last: expect.stringContaining(
-              `/apps/${name}/public-keys?page[after]=1&page[size]=3`
+              `/apps/${name}/public-keys?page[after]=1&page[size]=3`,
             ),
           },
         });
@@ -583,7 +568,7 @@ describe("Apps Module", () => {
 
         // next page
         const response2: SupertestPublicKeysResponse = await request(
-          server
+          server,
         ).get(`/apps/${name}/public-keys?page[after]=2&page[size]=3`);
         expect(response2.body).toStrictEqual({
           self: expect.stringContaining("/apps"),
@@ -592,16 +577,16 @@ describe("Apps Module", () => {
           pageSize: 3,
           links: {
             first: expect.stringContaining(
-              `/apps/${name}/public-keys?page[after]=1&page[size]=3`
+              `/apps/${name}/public-keys?page[after]=1&page[size]=3`,
             ),
             prev: expect.stringContaining(
-              `/apps/${name}/public-keys?page[after]=1&page[size]=3`
+              `/apps/${name}/public-keys?page[after]=1&page[size]=3`,
             ),
             next: expect.stringContaining(
-              `/apps/${name}/public-keys?page[after]=1&page[size]=3`
+              `/apps/${name}/public-keys?page[after]=1&page[size]=3`,
             ),
             last: expect.stringContaining(
-              `/apps/${name}/public-keys?page[after]=1&page[size]=3`
+              `/apps/${name}/public-keys?page[after]=1&page[size]=3`,
             ),
           },
         });
@@ -610,27 +595,27 @@ describe("Apps Module", () => {
 
         // big page
         const response3: SupertestPublicKeysResponse = await request(
-          server
+          server,
         ).get(`/apps/${name}/public-keys?page[after]=100&page[size]=3`);
         expect(response3.body).toStrictEqual({
           self: expect.stringContaining(
-            `/apps/${name}/public-keys?page[after]=100&page[size]=3`
+            `/apps/${name}/public-keys?page[after]=100&page[size]=3`,
           ),
           items: expect.arrayContaining([]),
           total: 1,
           pageSize: 3,
           links: {
             first: expect.stringContaining(
-              `/apps/${name}/public-keys?page[after]=1&page[size]=3`
+              `/apps/${name}/public-keys?page[after]=1&page[size]=3`,
             ),
             prev: expect.stringContaining(
-              `/apps/${name}/public-keys?page[after]=1&page[size]=3`
+              `/apps/${name}/public-keys?page[after]=1&page[size]=3`,
             ),
             next: expect.stringContaining(
-              `/apps/${name}/public-keys?page[after]=1&page[size]=3`
+              `/apps/${name}/public-keys?page[after]=1&page[size]=3`,
             ),
             last: expect.stringContaining(
-              `/apps/${name}/public-keys?page[after]=1&page[size]=3`
+              `/apps/${name}/public-keys?page[after]=1&page[size]=3`,
             ),
           },
         });
@@ -639,7 +624,7 @@ describe("Apps Module", () => {
 
         // page after defined but page size undefined
         const response4: SupertestPublicKeysResponse = await request(
-          server
+          server,
         ).get(`/apps/${name}/public-keys?page[after]=1`);
         expect(response4.body).toStrictEqual({
           self: expect.stringContaining(`/apps/${name}/public-keys`),
@@ -648,16 +633,16 @@ describe("Apps Module", () => {
           pageSize: 10,
           links: {
             first: expect.stringContaining(
-              `/apps/${name}/public-keys?page[after]=1&page[size]=10`
+              `/apps/${name}/public-keys?page[after]=1&page[size]=10`,
             ),
             prev: expect.stringContaining(
-              `/apps/${name}/public-keys?page[after]=1&page[size]=10`
+              `/apps/${name}/public-keys?page[after]=1&page[size]=10`,
             ),
             next: expect.stringContaining(
-              `/apps/${name}/public-keys?page[after]=1&page[size]=10`
+              `/apps/${name}/public-keys?page[after]=1&page[size]=10`,
             ),
             last: expect.stringContaining(
-              `/apps/${name}/public-keys?page[after]=1&page[size]=10`
+              `/apps/${name}/public-keys?page[after]=1&page[size]=10`,
             ),
           },
         });
@@ -667,9 +652,9 @@ describe("Apps Module", () => {
 
       it("should throw a Bad Request for bad pagination", async () => {
         expect.assertions(8);
-        const { name } = testEnv.apps[0];
+        const { name } = testEnv.apps[0]!;
         const response1 = await request(server).get(
-          `/apps/${name}/public-keys?page[size]=100`
+          `/apps/${name}/public-keys?page[size]=100`,
         );
         expect(response1.body).toStrictEqual({
           title: "Bad Request",
@@ -680,7 +665,7 @@ describe("Apps Module", () => {
         expect(response1.status).toBe(400);
 
         const response2 = await request(server).get(
-          `/apps/${name}/public-keys?page[size]=0`
+          `/apps/${name}/public-keys?page[size]=0`,
         );
         expect(response2.body).toStrictEqual({
           title: "Bad Request",
@@ -691,7 +676,7 @@ describe("Apps Module", () => {
         expect(response2.status).toBe(400);
 
         const response3 = await request(server).get(
-          `/apps/${name}/public-keys?page[after]=0`
+          `/apps/${name}/public-keys?page[after]=0`,
         );
         expect(response3.body).toStrictEqual({
           title: "Bad Request",
@@ -702,7 +687,7 @@ describe("Apps Module", () => {
         expect(response3.status).toBe(400);
 
         const response4 = await request(server).get(
-          `/apps/${name}/public-keys?page[after]=abc`
+          `/apps/${name}/public-keys?page[after]=abc`,
         );
         expect(response4.body).toStrictEqual({
           title: "Bad Request",
@@ -718,14 +703,14 @@ describe("Apps Module", () => {
     describe("GET /apps/{name}/public-keys/{publicKeyId}", () => {
       it("should return a specific public key", async () => {
         expect.assertions(2);
-        const { name, applicationId } = testEnv.apps[0];
+        const { name, applicationId } = testEnv.apps[0]!;
         const responseKeys: SupertestPublicKeysResponse = await request(
-          server
+          server,
         ).get(`/apps/${name}/public-keys`);
-        const publicKeyId = responseKeys.body.items[0].id;
+        const publicKeyId = responseKeys.body.items[0]!.id;
 
         const response: SupertestPublicKeyResponse = await request(server).get(
-          `/apps/${name}/public-keys/${publicKeyId}`
+          `/apps/${name}/public-keys/${publicKeyId}`,
         );
 
         expect(response.body).toStrictEqual({
@@ -738,12 +723,12 @@ describe("Apps Module", () => {
 
       it("should throw not found error for an unknown public key", async () => {
         expect.assertions(2);
-        const { name } = testEnv.apps[0];
+        const { name } = testEnv.apps[0]!;
         // random key
         const publicKeyId = `0x${crypto.randomBytes(32).toString("hex")}`;
 
         const response: SupertestPublicKeyResponse = await request(server).get(
-          `/apps/${name}/public-keys/${publicKeyId}`
+          `/apps/${name}/public-keys/${publicKeyId}`,
         );
 
         expect(response.body).toStrictEqual({
@@ -757,16 +742,16 @@ describe("Apps Module", () => {
 
       it("should throw not found error for a public key owner by a different applicationId", async () => {
         expect.assertions(2);
-        const { name } = testEnv.apps[0];
+        const { name } = testEnv.apps[0]!;
         const responseKeys: SupertestPublicKeysResponse = await request(
-          server
+          server,
         ).get(`/apps/${name}/public-keys`);
         // random key
-        const publicKeyId = responseKeys.body.items[0].id;
-        const otherAppName = testEnv.apps[1].name;
+        const publicKeyId = responseKeys.body.items[0]!.id;
+        const otherAppName = testEnv.apps[1]!.name;
 
         const response: SupertestPublicKeyResponse = await request(server).get(
-          `/apps/${otherAppName}/public-keys/${publicKeyId}`
+          `/apps/${otherAppName}/public-keys/${publicKeyId}`,
         );
 
         expect(response.body).toStrictEqual({
@@ -785,35 +770,35 @@ describe("Apps Module", () => {
 
         // Get first app
         const { apps } = testEnv;
-        const { name } = apps[0];
+        const { name } = apps[0]!;
 
         const response: SupertestAuthorizationsResponse = await request(
-          server
+          server,
         ).get(`/apps/${name}/authorizations`);
         expect(response.body).toStrictEqual({
           self: expect.stringContaining(
-            `/apps/${name}/authorizations?page[after]=1&page[size]=10`
+            `/apps/${name}/authorizations?page[after]=1&page[size]=10`,
           ),
           items: expect.arrayContaining([]),
           total: 2 * APPS_TOTAL,
           pageSize: 10,
           links: {
             first: expect.stringContaining(
-              `/apps/${name}/authorizations?page[after]=1&page[size]=10`
+              `/apps/${name}/authorizations?page[after]=1&page[size]=10`,
             ),
             prev: expect.stringContaining(
-              `/apps/${name}/authorizations?page[after]=1&page[size]=10`
+              `/apps/${name}/authorizations?page[after]=1&page[size]=10`,
             ),
             next: expect.stringContaining(
               `/apps/${name}/authorizations?page[after]=${Math.min(
                 Math.ceil((2 * APPS_TOTAL) / 10),
-                2
-              )}&page[size]=10`
+                2,
+              )}&page[size]=10`,
             ),
             last: expect.stringContaining(
               `/apps/${name}/authorizations?page[after]=${Math.ceil(
-                (2 * APPS_TOTAL) / 10
-              )}&page[size]=10`
+                (2 * APPS_TOTAL) / 10,
+              )}&page[size]=10`,
             ),
           },
         });
@@ -826,33 +811,33 @@ describe("Apps Module", () => {
 
         // Get first app
         const { apps } = testEnv;
-        const applicationName1 = apps[0].name;
-        const requesterApplicationName2 = apps[1].name;
+        const applicationName1 = apps[0]!.name;
+        const requesterApplicationName2 = apps[1]!.name;
 
         const response: SupertestAuthorizationsResponse = await request(
-          server
+          server,
         ).get(
-          `/apps/${applicationName1}/authorizations?requesterApplicationName=${requesterApplicationName2}`
+          `/apps/${applicationName1}/authorizations?requesterApplicationName=${requesterApplicationName2}`,
         );
         expect(response.body).toStrictEqual({
           self: expect.stringContaining(
-            `/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${requesterApplicationName2}`
+            `/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${requesterApplicationName2}`,
           ),
           items: expect.arrayContaining([]),
           total: 2,
           pageSize: 10,
           links: {
             first: expect.stringContaining(
-              `/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${requesterApplicationName2}`
+              `/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${requesterApplicationName2}`,
             ),
             prev: expect.stringContaining(
-              `/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${requesterApplicationName2}`
+              `/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${requesterApplicationName2}`,
             ),
             next: expect.stringContaining(
-              `/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${requesterApplicationName2}`
+              `/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${requesterApplicationName2}`,
             ),
             last: expect.stringContaining(
-              `/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${requesterApplicationName2}`
+              `/apps/${applicationName1}/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${requesterApplicationName2}`,
             ),
           },
         });
@@ -864,15 +849,15 @@ describe("Apps Module", () => {
         expect.assertions(2);
 
         const { apps, authorizations } = testEnv;
-        const { name } = apps[0];
+        const { name } = apps[0]!;
         const applicationId = ethers.utils.sha256(Buffer.from(name, "utf8"));
 
         const responseAuths: SupertestAuthorizationsResponse = await request(
-          server
+          server,
         ).get(`/apps/${name}/authorizations`);
-        const { authorizationId } = responseAuths.body.items[0];
+        const { authorizationId } = responseAuths.body.items[0]!;
         const response = await request(server).get(
-          `/apps/${name}/authorizations/${authorizationId}`
+          `/apps/${name}/authorizations/${authorizationId}`,
         );
         expect(response.body).toStrictEqual({
           authorizationId: expect.any(String),
@@ -880,7 +865,7 @@ describe("Apps Module", () => {
           requesterApplicationId: applicationId,
           resourceApplicationName: name,
           requesterApplicationName: name,
-          iss: authorizations[0][0][0].iss,
+          iss: authorizations[0]![0]![0].iss,
           status: "active",
         });
         expect(response.status).toBe(200);

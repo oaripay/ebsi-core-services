@@ -1,25 +1,25 @@
-import { beforeAll, afterAll, it, expect } from "@jest/globals";
+import { beforeAll, afterAll, it, expect } from "vitest";
 import request from "supertest";
 import crypto from "node:crypto";
-import { Test, TestingModule } from "@nestjs/testing";
-import { ValidationPipe, Logger, HttpServer } from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
-import { AppModule } from "../../src/app.module";
-import { fastifyAdapterConfig } from "../../src/config/server.config";
-import { ApiConfig } from "../../src/config/configuration";
-import { requestOAuth2Jwt } from "../utils";
-import { describeWriteOps } from "../utils/describeWriteOps";
-import { getServer } from "../utils/getServer";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
+import { AppModule } from "../../src/app.module.js";
+import { fastifyAdapterConfig } from "../../src/config/server.config.js";
+import type { ApiConfig } from "../../src/config/configuration.js";
+import { requestOAuth2Jwt } from "../utils/index.js";
+import { describeWriteOps } from "../utils/describeWriteOps.js";
+import { getServer } from "../utils/getServer.js";
 
 describeWriteOps()("JsonRpc Module", () => {
   let app: NestFastifyApplication;
-  let server: HttpServer | string;
+  let server: RawServerDefault | string;
   let configService: ConfigService<ApiConfig, true>;
 
   let accessToken: string;
@@ -30,7 +30,7 @@ describeWriteOps()("JsonRpc Module", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter(fastifyAdapterConfig)
+      new FastifyAdapter(fastifyAdapterConfig),
     );
 
     // Turn off logger
@@ -43,7 +43,7 @@ describeWriteOps()("JsonRpc Module", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
     server = getServer(app, configService);
 
@@ -56,10 +56,6 @@ describeWriteOps()("JsonRpc Module", () => {
   });
 
   afterAll(async () => {
-    // Avoid jest open handle error
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
     await app.close();
   });
 
@@ -79,7 +75,7 @@ describeWriteOps()("JsonRpc Module", () => {
     });
     expect(response.status).toBe(401);
     expect(
-      (response.headers as { "content-type": string })["content-type"]
+      (response.headers as { "content-type": string })["content-type"],
     ).toStrictEqual(expect.stringContaining("application/problem+json"));
   });
 
@@ -90,19 +86,19 @@ describeWriteOps()("JsonRpc Module", () => {
       .post("/stores/distributed/jsonrpc")
       .auth(
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
-        { type: "bearer" }
+        { type: "bearer" },
       )
       .send();
 
     let trustedAppsRegistryApiUrl = configService.get<string>(
-      "trustedAppsRegistryApiUrl"
+      "trustedAppsRegistryApiUrl",
     );
 
     // Use TEST_LB_DOMAIN if defined
     if (configService.get<string>("testLoadBalancerDomain")) {
       trustedAppsRegistryApiUrl = trustedAppsRegistryApiUrl.replace(
         configService.get<string>("domain"),
-        configService.get<string>("testLoadBalancerDomain")
+        configService.get<string>("testLoadBalancerDomain"),
       );
     }
 
@@ -114,7 +110,7 @@ describeWriteOps()("JsonRpc Module", () => {
     });
     expect(response.status).toBe(401);
     expect(
-      (response.headers as { "content-type": string })["content-type"]
+      (response.headers as { "content-type": string })["content-type"],
     ).toStrictEqual(expect.stringContaining("application/problem+json"));
   });
 
@@ -155,7 +151,7 @@ describeWriteOps()("JsonRpc Module", () => {
       error: {
         code: -32600,
         message: expect.stringContaining(
-          `property params has failed the following constraints: isValidCassandraCall`
+          `property params has failed the following constraints: isValidCassandraCall`,
         ),
       },
     });
@@ -226,7 +222,7 @@ describeWriteOps()("JsonRpc Module", () => {
       expect(response.body).toStrictEqual({
         jsonrpc: "2.0",
         id: "45",
-        result: expect.objectContaining({}) as unknown,
+        result: expect.objectContaining({}),
       });
       expect(response.status).toBe(200);
     });

@@ -16,11 +16,11 @@ import {
   RequestInsertUserAttributesDto,
   ArgsDeleteUserAttribute,
   RequestDeleteUserAttributeDto,
-} from "./dto";
+} from "./dto/index.js";
 
 export function formatEthersUnsignedTransaction(
-  unsignedTransaction: UnsignedTransaction
-): ethers.UnsignedTransaction {
+  unsignedTransaction: UnsignedTransaction,
+) {
   return {
     to: unsignedTransaction.to,
     data: unsignedTransaction.data,
@@ -29,21 +29,15 @@ export function formatEthersUnsignedTransaction(
     chainId: Number(unsignedTransaction.chainId),
     gasLimit: unsignedTransaction.gasLimit,
     gasPrice: unsignedTransaction.gasPrice,
-  };
+  } satisfies ethers.UnsignedTransaction;
 }
 
-export function formatEthersSignature(
-  r: string,
-  s: string,
-  v: string
-): ethers.Signature {
+export function formatEthersSignature(r: string, s: string, v: string) {
   return {
     r,
     s,
     v: Number(v),
-    recoveryParam: null,
-    _vs: null,
-  } as ethers.Signature;
+  } satisfies Partial<ethers.Signature>;
 }
 
 type JsonRpcDtos =
@@ -63,7 +57,7 @@ type JsonRpcDtos =
 
 const flattenValidationErrors = (
   errors: ClassValidator.ValidationError[],
-  path: string[] = []
+  path: string[] = [],
 ): string => {
   return errors
     .map((validationError) => {
@@ -77,10 +71,16 @@ const flattenValidationErrors = (
         return flattenValidationErrors(validationError.children, currentPath);
       }
 
+      const { constraints } = validationError;
+
+      if (!constraints) {
+        return "";
+      }
+
       // Extract each error
-      return Object.keys(validationError.constraints).map((constraint) => {
+      return Object.keys(constraints).map((constraint) => {
         return `- Invalid ${currentPath.join(".")} provided: ${
-          validationError.constraints[constraint]
+          constraints[constraint]
         }`;
       });
     })
@@ -89,7 +89,7 @@ const flattenValidationErrors = (
 
 export const validateClass = async (
   classType: ClassConstructor<JsonRpcDtos>,
-  data: JsonRpcDtos
+  data: JsonRpcDtos,
 ): Promise<void> => {
   const dataClass = new ClassTransformer().plainToInstance<
     JsonRpcDtos,

@@ -1,6 +1,6 @@
 import {
-  CallHandler,
-  ExecutionContext,
+  type CallHandler,
+  type ExecutionContext,
   Injectable,
   NestInterceptor,
 } from "@nestjs/common";
@@ -8,7 +8,7 @@ import { ConfigService } from "@nestjs/config";
 import { Observable } from "rxjs";
 import type { FastifyReply } from "fastify";
 import { tap } from "rxjs/operators";
-import { ApiConfig } from "../config/configuration";
+import type { ApiConfig } from "../config/configuration.js";
 
 @Injectable()
 export class VersionInterceptor implements NestInterceptor {
@@ -20,7 +20,7 @@ export class VersionInterceptor implements NestInterceptor {
 
   public intercept(
     context: ExecutionContext,
-    next: CallHandler
+    next: CallHandler,
   ): Observable<unknown> {
     return next.handle().pipe(
       tap(() => {
@@ -30,7 +30,7 @@ export class VersionInterceptor implements NestInterceptor {
           // eslint-disable-next-line @typescript-eslint/no-floating-promises
           res.header("EBSI-Image-Tag", this.tag);
         }
-      })
+      }),
     );
   }
 }

@@ -3,7 +3,6 @@ import { HashName } from "multihashes";
 import type { ethers } from "ethers";
 import { Timestamp } from "@ebsiint-sc/timestamp";
 import {
-  AsyncReturnType,
   multibase,
   multihashEncode,
   multihashDecode,
@@ -11,8 +10,8 @@ import {
   NotFoundError,
   isEthersError,
 } from "@ebsiint-api/shared";
-import { LedgerService } from "../ledger/ledger.service";
-import { TimestampResponseObject } from "./timestamps.interface";
+import { LedgerService } from "../ledger/ledger.service.js";
+import { TimestampResponseObject } from "./timestamps.interface.js";
 
 @Injectable()
 export default class TimestampsService {
@@ -22,7 +21,7 @@ export default class TimestampsService {
 
   async getTimestamps(
     page: number,
-    pageSize: number
+    pageSize: number,
   ): ReturnType<Timestamp["getTimestamps"]> {
     try {
       return await (
@@ -39,10 +38,10 @@ export default class TimestampsService {
   }
 
   async getTimestamp(timestampId: string): Promise<TimestampResponseObject> {
-    let timestamp: AsyncReturnType<Timestamp["getTimestamp"]>;
+    let timestamp: Awaited<ReturnType<Timestamp["getTimestamp"]>>;
     try {
       const timestampIdDecoded = `0x${Buffer.from(
-        multihashDecode(multibase.base64url.decode(timestampId))
+        multihashDecode(multibase.base64url.decode(timestampId)),
       ).toString("hex")}`;
 
       timestamp = await (
@@ -60,9 +59,9 @@ export default class TimestampsService {
     try {
       // Parallelize SC calls
       const [hashAlgorithm, block] = await Promise.all([
-        (
-          await this.ledgerService.getContract()
-        ).getHashAlgorithmById(hash.algorithm.toNumber()),
+        (await this.ledgerService.getContract()).getHashAlgorithmById(
+          hash.algorithm.toNumber(),
+        ),
         (
           await this.ledgerService.getContract()
         ).provider.getBlockWithTransactions(blockNumber.toNumber()),
@@ -74,8 +73,8 @@ export default class TimestampsService {
         multihashEncode(
           timestamp.hash.value,
           multiHash as HashName,
-          outputLength.toNumber() / 8
-        )
+          outputLength.toNumber() / 8,
+        ),
       );
 
       // Find correct tx hash
@@ -83,7 +82,7 @@ export default class TimestampsService {
 
       if (block.transactions.length === 0) {
         this.logger.error(
-          `Timestamp ${timestampId} refers to an empty block: ${blockNumber.toNumber()}`
+          `Timestamp ${timestampId} refers to an empty block: ${blockNumber.toNumber()}`,
         );
         throw new InternalServerError(InternalServerError.defaultTitle, {
           detail: "Invalid record",
@@ -108,21 +107,21 @@ export default class TimestampsService {
         }
 
         if (
-          !Array.isArray(parsedTx.args.hashAlgorithmIds) ||
-          !Array.isArray(parsedTx.args.hashValues) ||
-          parsedTx.args.hashAlgorithmIds.length === 0 ||
-          parsedTx.args.hashValues.length === 0
+          !Array.isArray(parsedTx.args["hashAlgorithmIds"]) ||
+          !Array.isArray(parsedTx.args["hashValues"]) ||
+          parsedTx.args["hashAlgorithmIds"].length === 0 ||
+          parsedTx.args["hashValues"].length === 0
         ) {
           return false;
         }
 
-        return parsedTx.args.hashAlgorithmIds.some(
+        return parsedTx.args["hashAlgorithmIds"].some(
           (hashAlgId, index) =>
             // Compare hash algorithm ID
             hash.algorithm.eq(hashAlgId as ethers.BigNumberish) &&
             // Compare hash value
-            index in parsedTx.args.hashValues &&
-            (parsedTx.args.hashValues as string[])[index] === hash.value
+            index in parsedTx.args["hashValues"] &&
+            (parsedTx.args["hashValues"] as string[])[index] === hash.value,
         );
       });
 

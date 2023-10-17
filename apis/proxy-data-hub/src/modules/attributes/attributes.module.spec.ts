@@ -1,5 +1,5 @@
 import {
-  jest,
+  vi,
   describe,
   beforeAll,
   beforeEach,
@@ -7,63 +7,52 @@ import {
   afterAll,
   it,
   expect,
-} from "@jest/globals";
+} from "vitest";
 import crypto from "node:crypto";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  Logger,
-  HttpServer,
-} from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import EbsiWallet from "@cef-ebsi/wallet-lib";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { base64url } from "multiformats/bases/base64";
 import type { JWTVerifyResult } from "jose";
 import * as SiopLib from "@cef-ebsi/siop-auth";
 import * as OAuth2Lib from "@cef-ebsi/oauth2-auth";
 import jsonwebtoken from "jsonwebtoken";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import { encrypt, multihashEncode2 } from "@ebsiint-api/shared";
 import axios from "axios";
-import { AttributesModule } from "./attributes.module";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { ApiConfig } from "../../config/configuration";
+import { AttributesModule } from "./attributes.module.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import type { ApiConfig } from "../../config/configuration.js";
 import {
   AttributeCassandraModel,
   AttributeResponseObject,
-} from "./attributes.interface";
+} from "./attributes.interface.js";
 
-jest.mock("@cef-ebsi/siop-auth", () => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const originalModule = jest.requireActual("@cef-ebsi/siop-auth");
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+vi.mock("@cef-ebsi/siop-auth", async () => {
+  const mod = await vi.importActual<typeof import("@cef-ebsi/siop-auth")>(
+    "@cef-ebsi/siop-auth",
+  );
+  // Return a mocked version so we can redefine property `verifyJwtTar` later
   return {
-    __esModule: true,
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    ...originalModule,
-    verifyJwtTar: jest.fn(),
+    ...mod,
+    verifyJwtTar: vi.fn(),
   };
 });
 
-jest.mock("@cef-ebsi/oauth2-auth", () => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const originalModule = jest.requireActual("@cef-ebsi/oauth2-auth");
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+vi.mock("@cef-ebsi/oauth2-auth", async () => {
+  const mod = await vi.importActual<typeof import("@cef-ebsi/oauth2-auth")>(
+    "@cef-ebsi/oauth2-auth",
+  );
+  // Return a mocked version so we can redefine property `verifyJwtTar` later
   return {
-    __esModule: true,
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    ...originalModule,
-    verifyJwtTar: jest.fn(),
+    ...mod,
+    verifyJwtTar: vi.fn(),
   };
 });
 
@@ -75,10 +64,10 @@ interface JsonrpcCall {
 }
 
 describe("Attributes Module", () => {
-  let app: INestApplication;
-  let server: HttpServer;
+  let app: NestFastifyApplication;
+  let server: RawServerDefault;
   let configService: ConfigService<ApiConfig, true>;
-  const mockAxios = jest.spyOn(axios, "post");
+  const mockAxios = vi.spyOn(axios, "post");
 
   const accessTokenApi = jsonwebtoken.sign({}, "secret", {
     audience: "proxy-data-hub-api",
@@ -122,7 +111,7 @@ describe("Attributes Module", () => {
         .createHash("sha3-256")
         .update(`${attributeData}${testUser.did}`)
         .digest("hex"),
-      "sha3-256"
+      "sha3-256",
     ),
   });
 
@@ -132,7 +121,7 @@ describe("Attributes Module", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     // Turn off logger
@@ -144,8 +133,8 @@ describe("Attributes Module", () => {
     app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    await app.getHttpAdapter().getInstance().ready();
+    server = app.getHttpServer();
 
     domain = configService.get("domain");
     apiUrlPrefix = configService.get("apiUrlPrefix");
@@ -156,16 +145,15 @@ describe("Attributes Module", () => {
 
   beforeEach(() => {
     // Mock Storage
-    jest.spyOn(axios, "get").mockImplementation(() => {
+    vi.spyOn(axios, "get").mockImplementation(() => {
       throw new Error("Please implement the mock for GET");
     });
     mockAxios.mockImplementation(() => {
       throw new Error("Please implement the mock for POST");
     });
 
-    jest
-      .spyOn(SiopLib, "verifyJwtTar")
-      .mockImplementation(async (token: string): Promise<JWTVerifyResult> => {
+    vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(
+      async (token: string): Promise<JWTVerifyResult> => {
         if (token === testUser.token) {
           return Promise.resolve({
             payload: { sub: testUser.did },
@@ -173,22 +161,19 @@ describe("Attributes Module", () => {
         }
 
         return Promise.reject(new Error("verifyAccessToken failed"));
-      });
+      },
+    );
 
-    jest
-      .spyOn(OAuth2Lib.Agent.prototype, "verifyAkeResponse")
-      .mockImplementation(async () => Promise.resolve(accessTokenApi));
+    vi.spyOn(OAuth2Lib.Agent.prototype, "verifyAkeResponse").mockImplementation(
+      async () => Promise.resolve(accessTokenApi),
+    );
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   afterAll(async () => {
-    // Avoid jest open handle error
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
     await app.close();
   });
 
@@ -223,7 +208,7 @@ describe("Attributes Module", () => {
         expect.objectContaining({}),
         {
           timeout: expect.any(Number),
-        }
+        },
       );
 
       numberCall += 1;
@@ -240,7 +225,7 @@ describe("Attributes Module", () => {
             { fetchSize: 2 },
           ],
         }),
-        headerJwt
+        headerJwt,
       );
 
       expect(response.body).toStrictEqual({
@@ -249,15 +234,15 @@ describe("Attributes Module", () => {
         links: {
           next: expect.stringMatching(
             new RegExp(
-              `^${apiUrl}/attributes\\?page\\[after\\]=.*&page\\[size\\]=2`
-            )
+              `^${apiUrl}/attributes\\?page\\[after\\]=.*&page\\[size\\]=2`,
+            ),
           ),
         },
         pageSize: 2,
       });
       expect(response.status).toBe(200);
       expect(
-        (response.body as { items: AttributeResponseObject[] }).items
+        (response.body as { items: AttributeResponseObject[] }).items,
       ).toHaveLength(2);
     });
 
@@ -273,7 +258,7 @@ describe("Attributes Module", () => {
               rows: Array(2).fill(createAttributeCassandra()),
             },
           },
-        })
+        }),
       );
 
       let pageAfter = encrypt("123abc", encryptionSecret);
@@ -296,28 +281,28 @@ describe("Attributes Module", () => {
             { fetchSize: 10, pageState: "123abc" },
           ],
         }),
-        headerJwt
+        headerJwt,
       );
 
       expect(response.body).toStrictEqual({
         self: expect.stringMatching(
           new RegExp(
-            `^${apiUrl}/attributes\\?page\\[after\\]=.*&page\\[size\\]=10`
-          )
+            `^${apiUrl}/attributes\\?page\\[after\\]=.*&page\\[size\\]=10`,
+          ),
         ),
         items: expect.arrayContaining([]),
         links: {
           next: expect.stringMatching(
             new RegExp(
-              `^${apiUrl}/attributes\\?page\\[after\\]=.*&page\\[size\\]=10`
-            )
+              `^${apiUrl}/attributes\\?page\\[after\\]=.*&page\\[size\\]=10`,
+            ),
           ),
         },
         pageSize: 10,
       });
       expect(response.status).toBe(200);
       expect(
-        (response.body as { items: AttributeResponseObject[] }).items
+        (response.body as { items: AttributeResponseObject[] }).items,
       ).toHaveLength(2);
 
       // page for shared attributes
@@ -341,28 +326,28 @@ describe("Attributes Module", () => {
             { fetchSize: 10, pageState: "123abc" },
           ],
         }),
-        headerJwt
+        headerJwt,
       );
 
       expect(response.body).toStrictEqual({
         self: expect.stringMatching(
           new RegExp(
-            `^${apiUrl}/attributes\\?page\\[after\\]=.*&page\\[size\\]=10`
-          )
+            `^${apiUrl}/attributes\\?page\\[after\\]=.*&page\\[size\\]=10`,
+          ),
         ),
         items: expect.arrayContaining([]),
         links: {
           next: expect.stringMatching(
             new RegExp(
-              `^${apiUrl}/attributes\\?page\\[after\\]=.*&page\\[size\\]=10`
-            )
+              `^${apiUrl}/attributes\\?page\\[after\\]=.*&page\\[size\\]=10`,
+            ),
           ),
         },
         pageSize: 10,
       });
       expect(response.status).toBe(200);
       expect(
-        (response.body as { items: AttributeResponseObject[] }).items
+        (response.body as { items: AttributeResponseObject[] }).items,
       ).toHaveLength(2);
     });
   });
@@ -379,7 +364,7 @@ describe("Attributes Module", () => {
               rows: [],
             },
           },
-        })
+        }),
       );
 
       const hash = `0x${crypto.randomBytes(32).toString("hex")}`;
@@ -398,7 +383,7 @@ describe("Attributes Module", () => {
           method: "cassandra_call",
           params: ["select * from attribute_storage where hash = ?", hash],
         }),
-        headerJwt
+        headerJwt,
       );
 
       expect(response.body).toStrictEqual({
@@ -426,7 +411,7 @@ describe("Attributes Module", () => {
               rows: [attributeCassandra],
             },
           },
-        })
+        }),
       );
 
       let response = await request(server)
@@ -447,7 +432,7 @@ describe("Attributes Module", () => {
             attributeCassandra.hash,
           ],
         }),
-        headerJwt
+        headerJwt,
       );
 
       expect(response.body).toStrictEqual({
@@ -477,7 +462,7 @@ describe("Attributes Module", () => {
             attributeCassandra.hash,
           ],
         }),
-        headerJwt
+        headerJwt,
       );
 
       expect(response.body).toStrictEqual({
@@ -500,7 +485,7 @@ describe("Attributes Module", () => {
               rows: [attributeCassandra],
             },
           },
-        })
+        }),
       );
 
       const response = await request(server)
@@ -521,7 +506,7 @@ describe("Attributes Module", () => {
             attributeCassandra.hash,
           ],
         }),
-        headerJwt
+        headerJwt,
       );
 
       expect(response.body).toStrictEqual({
@@ -552,7 +537,7 @@ describe("Attributes Module", () => {
               rows: [attributeCassandra],
             },
           },
-        })
+        }),
       );
 
       let response = await request(server)
@@ -573,7 +558,7 @@ describe("Attributes Module", () => {
             attributeCassandra.hash,
           ],
         }),
-        headerJwt
+        headerJwt,
       );
 
       expect(response.body).toStrictEqual({
@@ -608,7 +593,7 @@ describe("Attributes Module", () => {
             attributeCassandra.hash,
           ],
         }),
-        headerJwt
+        headerJwt,
       );
 
       expect(response.body).toStrictEqual({
@@ -774,7 +759,7 @@ describe("Attributes Module", () => {
             expect.any(String),
           ],
         }),
-        headerJwt
+        headerJwt,
       );
 
       expect(response.body).toStrictEqual({
@@ -824,7 +809,7 @@ describe("Attributes Module", () => {
             expect.any(String),
           ],
         }),
-        headerJwt
+        headerJwt,
       );
 
       numberCall += 1;
@@ -846,7 +831,7 @@ describe("Attributes Module", () => {
             attribute.dataLabel,
           ],
         }),
-        headerJwt
+        headerJwt,
       );
 
       expect(response.body).toStrictEqual({
@@ -885,7 +870,7 @@ describe("Attributes Module", () => {
           method: "cassandra_call",
           params: ["select did from attribute_storage where hash = ?", hash],
         }),
-        headerJwt
+        headerJwt,
       );
 
       expect(response.body).toStrictEqual({
@@ -924,7 +909,7 @@ describe("Attributes Module", () => {
           method: "cassandra_call",
           params: ["select did from attribute_storage where hash = ?", hash],
         }),
-        headerJwt
+        headerJwt,
       );
 
       expect(response.body).toStrictEqual({
@@ -942,8 +927,8 @@ describe("Attributes Module", () => {
 
       const hash = `0x${crypto.randomBytes(32).toString("hex")}`;
 
-      mockAxios.mockImplementation(async (url: string, data: JsonrpcCall) => {
-        if (data.params[0].startsWith("select")) {
+      mockAxios.mockImplementation(async (_url: string, data: unknown) => {
+        if ((data as JsonrpcCall).params[0]!.startsWith("select")) {
           return Promise.resolve({
             data: { result: { rows: [{ did: testUser.did }] } },
           });
@@ -969,7 +954,7 @@ describe("Attributes Module", () => {
           method: "cassandra_call",
           params: ["select did from attribute_storage where hash = ?", hash],
         }),
-        headerJwt
+        headerJwt,
       );
 
       numberCall += 1;
@@ -982,7 +967,7 @@ describe("Attributes Module", () => {
           method: "cassandra_call",
           params: ["delete from attribute_storage where hash = ?", hash],
         }),
-        headerJwt
+        headerJwt,
       );
 
       expect(response.body).toStrictEqual({});
@@ -1093,7 +1078,7 @@ describe("Attributes Module", () => {
             expect.any(String),
           ],
         }),
-        headerJwt
+        headerJwt,
       );
 
       expect(response.body).toStrictEqual({
@@ -1112,8 +1097,8 @@ describe("Attributes Module", () => {
       const attributeCassandra = createAttributeCassandra();
       attributeCassandra.did = "did:ebsi:zub5ZZUfHLLptCduwEy8xRj";
 
-      mockAxios.mockImplementation(async (url: string, data: JsonrpcCall) => {
-        if (data.params[0].startsWith("select")) {
+      mockAxios.mockImplementation(async (_url: string, data: unknown) => {
+        if ((data as JsonrpcCall).params[0]!.startsWith("select")) {
           return Promise.resolve({
             data: { result: { rows: [attributeCassandra] } },
           });
@@ -1142,7 +1127,7 @@ describe("Attributes Module", () => {
             expect.any(String),
           ],
         }),
-        headerJwt
+        headerJwt,
       );
 
       expect(response.body).toStrictEqual({
@@ -1156,8 +1141,8 @@ describe("Attributes Module", () => {
 
     it("should return 400 when the patch path is not is not valid", async () => {
       const attributeCassandra = createAttributeCassandra();
-      mockAxios.mockImplementation(async (url: string, data: JsonrpcCall) => {
-        if (data.params[0].startsWith("select")) {
+      mockAxios.mockImplementation(async (_url: string, data: unknown) => {
+        if ((data as JsonrpcCall).params[0]!.startsWith("select")) {
           return Promise.resolve({
             data: { result: { rows: [attributeCassandra] } },
           });
@@ -1193,8 +1178,8 @@ describe("Attributes Module", () => {
       let numberCall = 0;
 
       const attributeCassandra = createAttributeCassandra();
-      mockAxios.mockImplementation(async (url: string, data: JsonrpcCall) => {
-        if (data.params[0].startsWith("select")) {
+      mockAxios.mockImplementation(async (_url: string, data: unknown) => {
+        if ((data as JsonrpcCall).params[0]!.startsWith("select")) {
           return Promise.resolve({
             data: { result: { rows: [attributeCassandra] } },
           });
@@ -1232,7 +1217,7 @@ describe("Attributes Module", () => {
             attributeCassandra.hash,
           ],
         }),
-        headerJwt
+        headerJwt,
       );
 
       numberCall += 1;
@@ -1252,7 +1237,7 @@ describe("Attributes Module", () => {
             attributeCassandra.hash,
           ],
         }),
-        headerJwt
+        headerJwt,
       );
 
       expect(response.body).toStrictEqual({

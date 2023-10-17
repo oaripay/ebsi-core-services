@@ -1,23 +1,23 @@
-import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
+import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import { ValidationPipe, HttpServer, Logger } from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { HealthIndicatorResult } from "@nestjs/terminus";
 import { HttpService } from "@nestjs/axios";
 import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import { of } from "rxjs";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { ApiConfig } from "../../config/configuration";
-import { HealthModule } from "./health.module";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import type { ApiConfig } from "../../config/configuration.js";
+import { HealthModule } from "./health.module.js";
 
 describe("Health Module", () => {
   let app: NestFastifyApplication;
-  let server: HttpServer;
+  let server: RawServerDefault;
   let httpService: HttpService;
   let configService: ConfigService<ApiConfig, true>;
 
@@ -28,7 +28,7 @@ describe("Health Module", () => {
     Logger.overrideLogger(false);
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     configService =
@@ -38,18 +38,14 @@ describe("Health Module", () => {
     app.useGlobalPipes(new ValidationPipe());
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
-    server = app.getHttpServer() as HttpServer;
+    server = app.getHttpServer();
 
     httpService = await moduleFixture.resolve<HttpService>(HttpService);
   });
 
   afterAll(async () => {
-    // Avoid jest open handle error
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
     await app.close();
   });
 
@@ -59,7 +55,7 @@ describe("Health Module", () => {
 
       const status = { "ebsi-apis": { status: "up" } } as HealthIndicatorResult;
 
-      const spy = jest
+      const spy = vi
         .spyOn(httpService, "request")
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore

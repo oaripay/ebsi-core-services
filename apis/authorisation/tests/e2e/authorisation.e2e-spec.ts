@@ -1,11 +1,10 @@
-import { describe, beforeAll, it, expect } from "@jest/globals";
+import { describe, beforeAll, it, expect } from "vitest";
 import crypto, { randomUUID } from "node:crypto";
 import type { JsonWebKey } from "node:crypto";
 import { URLSearchParams } from "node:url";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
+import { Test, type TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger } from "@nestjs/common";
-import type { INestApplication, HttpServer } from "@nestjs/common";
 import { FastifyAdapter } from "@nestjs/platform-fastify";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import {
@@ -17,34 +16,35 @@ import {
   SignJWT,
 } from "jose";
 import type { JWK } from "jose";
-import KeyEncoder from "key-encoder";
+import { KeyEncoder } from "@cef-ebsi/key-encoder";
 import { createJWT, decodeJWT, ES256KSigner } from "did-jwt";
 import { ConfigService } from "@nestjs/config";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { Agent as OAuth2Agent } from "@cef-ebsi/oauth2-auth";
 import type { AkeResponse } from "@cef-ebsi/oauth2-auth";
 import { RP, Agent as SiopAgent, verifyJwtTar } from "@cef-ebsi/siop-auth";
+import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
 import { encode } from "@ebsiint-api/shared";
-import { AppModule } from "../../src/app.module";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
-import type { ApiConfig } from "../../src/config/configuration";
-import { getPublicKey, randomPrivateKeySecp256k1 } from "../utils/keys";
-import { createVerifiableAuthorisationJwt } from "../utils/verifiableAuthorisation";
-import { createVpJwt } from "../utils/verifiablePresentation";
+import { AppModule } from "../../src/app.module.js";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
+import type { ApiConfig } from "../../src/config/configuration.js";
+import { getPublicKey, randomPrivateKeySecp256k1 } from "../utils/keys.js";
+import { createVerifiableAuthorisationJwt } from "../utils/verifiableAuthorisation.js";
+import { createVpJwt } from "../utils/verifiablePresentation.js";
 import {
   createAuthenticationResponseJose,
   getKeyByAlg,
-} from "../utils/didAuth";
-import { getServer } from "../utils/getServer";
+} from "../utils/didAuth.js";
+import { getServer } from "../utils/getServer.js";
 
 function prefix0x(value: string): string {
   return value.startsWith("0x") ? value : `0x${value}`;
 }
 
 describe("Authorisation (e2e)", () => {
-  let app: INestApplication;
-  let server: HttpServer | string;
+  let app: NestFastifyApplication;
+  let server: RawServerDefault | string;
   let trustedAppsRegistry: string;
   let didRegistry: string;
   let authorisationCredentialSchema: string;
@@ -64,6 +64,7 @@ describe("Authorisation (e2e)", () => {
   let configService: ConfigService<ApiConfig, true>;
   let domain: string;
   let ebsiAuthority: string;
+  let ebsiEnvConfig: EbsiEnvConfiguration;
   let testLoadBalancerDomain: string;
   let trustedHostnames: string[];
 
@@ -76,7 +77,7 @@ describe("Authorisation (e2e)", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     // Turn off logger
@@ -88,22 +89,23 @@ describe("Authorisation (e2e)", () => {
     app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
     server = getServer(app, configService);
+
     const testAppName = configService.get<string>("testAppName");
     const testAppPrivateKey = configService.get<string>("testAppPrivateKey");
     const testIssuerDid = configService.get<string>("testIssuerDid");
     const testIssuerPrivateKey = configService.get<string>(
-      "testIssuerPrivateKey"
+      "testIssuerPrivateKey",
     );
     trustedAppsRegistry = configService.get<string>("trustedAppsRegistry");
     didRegistry = configService.get<string>("didRegistry");
     authorisationCredentialSchema = configService.get<string>(
-      "authorisationCredentialSchema"
+      "authorisationCredentialSchema",
     );
     onboardingApiPrivateKey = prefix0x(
-      configService.get<string>("onboardingApiPrivateKey")
+      configService.get<string>("onboardingApiPrivateKey"),
     );
     onboardingAllowlist = configService.get<string[]>("onboardingAllowlist");
 
@@ -115,18 +117,23 @@ describe("Authorisation (e2e)", () => {
       did: testIssuerDid,
     };
     domain = configService.get<string>("domain");
-    ebsiAuthority = domain.replace(/^https?:\/\//, "");
+    ebsiAuthority = domain.replace(/^https?:\/\//, ""); // remove http protocol scheme
+    ebsiEnvConfig = {
+      didRegistry: `${domain}/did-registry/v4/identifiers`,
+      trustedIssuersRegistry: `${domain}/trusted-issuers-registry/v3/issuers`,
+      trustedPoliciesRegistry: `${domain}/trusted-policies-registry/v2/users`,
+    };
     trustedHostnames = configService.get<string[]>("trustedHostnames");
 
     testLoadBalancerDomain = configService.get<string>(
-      "testLoadBalancerDomain"
+      "testLoadBalancerDomain",
     );
 
     // Replace URLs to TAR API and DIDR API with the LB domain if defined
     if (testLoadBalancerDomain) {
       trustedAppsRegistry = trustedAppsRegistry.replace(
         domain,
-        testLoadBalancerDomain
+        testLoadBalancerDomain,
       );
       didRegistry = didRegistry.replace(domain, testLoadBalancerDomain);
       ebsiAuthority = testLoadBalancerDomain.replace(/^https?:\/\//, "");
@@ -178,7 +185,7 @@ describe("Authorisation (e2e)", () => {
       expect(response.status).toBe(200);
 
       const query = new URLSearchParams(
-        response.text.replace("openid://?", "")
+        response.text.replace("openid://?", ""),
       );
 
       expect(query.get("scope")).toBe("openid did_authn");
@@ -193,7 +200,7 @@ describe("Authorisation (e2e)", () => {
 
       if (process.env.TEST_ENV !== "remote") {
         const { publicKeyObject } = await getPublicKey(
-          configService.get("apiPrivateKey")
+          configService.get("apiPrivateKey"),
         );
 
         verification = await jwtVerify(queryRequest, publicKeyObject);
@@ -220,12 +227,12 @@ describe("Authorisation (e2e)", () => {
               const publicKeyHex = keyEncoder.encodePublic(
                 Buffer.from(publicKeyBase64, "base64").toString("utf-8"),
                 "pem",
-                "raw"
+                "raw",
               );
 
               const publicKeyObject = (await importJWK(
                 encode.publicKey.fromHexToJWK(publicKeyHex),
-                "ES256K"
+                "ES256K",
               )) as crypto.KeyObject;
 
               const res = await jwtVerify(queryRequest, publicKeyObject);
@@ -233,7 +240,7 @@ describe("Authorisation (e2e)", () => {
             } catch (e) {
               return null;
             }
-          })
+          }),
         );
 
         [verification] = verificationResults.filter(Boolean);
@@ -251,7 +258,7 @@ describe("Authorisation (e2e)", () => {
         client_id: expect.any(String),
         nonce: expect.any(String),
         redirect_uri: expect.stringContaining(
-          "/authorisation/v2/siop-sessions"
+          "/authorisation/v2/siop-sessions",
         ),
         response_mode: "post",
         iss: expect.stringMatching(/^authorisation-api_/),
@@ -281,7 +288,7 @@ describe("Authorisation (e2e)", () => {
         alg: "ES256K",
         issuer: trustedApp.name,
         signer: ES256KSigner(
-          Buffer.from(randomPrivateKeySecp256k1().replace(/^0x/, ""), "hex")
+          Buffer.from(randomPrivateKeySecp256k1().replace(/^0x/, ""), "hex"),
         ),
       });
 
@@ -382,7 +389,9 @@ describe("Authorisation (e2e)", () => {
       expect(response.status).toBe(200);
 
       const check = async () => {
-        await agent.verifyAkeResponse(response.body as AkeResponse, { nonce });
+        await agent.verifyAkeResponse(response.body as AkeResponse, {
+          nonce,
+        });
       };
 
       await expect(check()).resolves.not.toThrow();
@@ -399,8 +408,8 @@ describe("Authorisation (e2e)", () => {
         const clientPrivateKeys = JSON.parse(
           Buffer.from(
             configService.get<string>("testClientPrivateKeysBase64"),
-            "base64"
-          ).toString()
+            "base64",
+          ).toString(),
         ) as {
           type: string;
           id: string;
@@ -502,7 +511,7 @@ describe("Authorisation (e2e)", () => {
             : await generateKeyPair(alg);
 
         const publicEncryptionKeyJwk = await exportJWK(
-          encryptionKeyPair.publicKey
+          encryptionKeyPair.publicKey,
         );
 
         payload = {
@@ -578,9 +587,7 @@ describe("Authorisation (e2e)", () => {
         expect(response.status).toBe(400);
 
         const wrongJwk = await exportJWK(
-          (
-            await generateKeyPair(alg)
-          ).privateKey
+          (await generateKeyPair(alg)).privateKey,
         );
 
         idToken = await createAuthenticationResponseJose({
@@ -639,7 +646,7 @@ describe("Authorisation (e2e)", () => {
         const rp = new RP({
           privateKey: await importJWK(
             encode.privateKey.fromHexToJWK(privateKey),
-            "ES256K"
+            "ES256K",
           ),
           alg: "ES256K",
           name: apiName,
@@ -657,8 +664,8 @@ describe("Authorisation (e2e)", () => {
         const clientPrivateKeys = JSON.parse(
           Buffer.from(
             configService.get<string>("testClientPrivateKeysBase64"),
-            "base64"
-          ).toString()
+            "base64",
+          ).toString(),
         ) as {
           type: string;
           id: string;
@@ -672,11 +679,11 @@ describe("Authorisation (e2e)", () => {
             : await generateKeyPair(alg);
 
         const publicEncryptionKeyJwk = await exportJWK(
-          encryptionKeyPair.publicKey
+          encryptionKeyPair.publicKey,
         );
 
         const privateEncryptionKeyJwk = await exportJWK(
-          encryptionKeyPair.privateKey
+          encryptionKeyPair.privateKey,
         );
 
         const keyObject = await getKeyByAlg(clientPrivateKeys, alg);
@@ -739,15 +746,15 @@ describe("Authorisation (e2e)", () => {
             iss: expect.stringMatching(/^authorisation-api_/),
           }),
           kid: expect.stringMatching(
-            `${trustedAppsRegistry}/authorisation-api_`
+            `${trustedAppsRegistry}/authorisation-api_`,
           ),
         });
         expect(
           (
             response.body as { ake1_sig_payload: { did: string } }
-          ).ake1_sig_payload.did.toLowerCase()
+          ).ake1_sig_payload.did.toLowerCase(),
         ).toStrictEqual(
-          configService.get<string>("testClientDid").toLowerCase()
+          configService.get<string>("testClientDid").toLowerCase(),
         );
         expect(response.status).toBe(200);
 
@@ -759,12 +766,12 @@ describe("Authorisation (e2e)", () => {
             privateEncryptionKeyJwk,
             trustedAppsRegistry,
             alg,
-          }
+          },
         );
 
         expect(accessToken).toBeDefined();
       });
-    }
+    },
   );
 
   describe("SIOP flow", () => {
@@ -781,8 +788,8 @@ describe("Authorisation (e2e)", () => {
       const clientPrivateKeys = JSON.parse(
         Buffer.from(
           configService.get<string>("testClientPrivateKeysBase64"),
-          "base64"
-        ).toString()
+          "base64",
+        ).toString(),
       ) as {
         type: string;
         id: string;
@@ -794,8 +801,8 @@ describe("Authorisation (e2e)", () => {
 
       const siopAgent = new SiopAgent({
         privateKey: await importJWK(
-          encode.privateKey.fromHexToJWK(keyObject.privateKeyHexES256K),
-          "ES256K"
+          encode.privateKey.fromHexToJWK(keyObject.privateKeyHexES256K!),
+          "ES256K",
         ),
         alg: "ES256K",
         kid: configService.get<string>("testClientKidES256K"),
@@ -818,11 +825,11 @@ describe("Authorisation (e2e)", () => {
       const encryptionKeyPair = await generateKeyPair("ES256K");
 
       const publicEncryptionKeyJwk = await exportJWK(
-        encryptionKeyPair.publicKey
+        encryptionKeyPair.publicKey,
       );
 
       const privateEncryptionKeyJwk = await exportJWK(
-        encryptionKeyPair.privateKey
+        encryptionKeyPair.privateKey,
       );
 
       const nonce = randomUUID();
@@ -851,7 +858,7 @@ describe("Authorisation (e2e)", () => {
           privateEncryptionKeyJwk,
           trustedAppsRegistry,
           alg: "ES256K",
-        }
+        },
       );
 
       expect(accessToken).toBeDefined();
@@ -861,7 +868,7 @@ describe("Authorisation (e2e)", () => {
         verifyJwtTar(accessToken, {
           trustedAppsRegistry,
           audience: "ebsi-core-services",
-        })
+        }),
       ).resolves.not.toThrow();
     });
 
@@ -881,10 +888,10 @@ describe("Authorisation (e2e)", () => {
           const privateKeyJwk = await exportJWK(keyPair.privateKey);
           const privateKeyHexEncryption = randomPrivateKeySecp256k1();
           const privateEncryptionKeyJwk = encode.privateKey.fromHexToJWK(
-            privateKeyHexEncryption
+            privateKeyHexEncryption,
           );
           const publicKeyEncryption = new EbsiWallet(
-            privateKeyHexEncryption
+            privateKeyHexEncryption,
           ).getPublicKey({ format: "jwk" }) as JsonWebKey;
 
           const verifiableCredentialJwt =
@@ -893,14 +900,14 @@ describe("Authorisation (e2e)", () => {
               authorisationCredentialSchema,
               onboardingApiPrivateKey,
               onboardingAllowlist[0], // must be did of onboarding api
-              domain
+              domain,
             );
 
           // 2. The client creates a verifiable presentation using the verifiable credential
           const siopAgent = new SiopAgent({
             privateKey: await importJWK(
               encode.privateKey.fromHexToJWK(privateKeyHexEncryption),
-              "ES256K"
+              "ES256K",
             ),
             kid: `${did}#keys-1`,
             alg: "ES256K",
@@ -914,8 +921,9 @@ describe("Authorisation (e2e)", () => {
             verifiableCredentialJwt,
             audience,
             ebsiAuthority,
+            ebsiEnvConfig,
             alg,
-            trustedHostnames
+            trustedHostnames,
           );
 
           const nonce = randomUUID();
@@ -979,7 +987,7 @@ describe("Authorisation (e2e)", () => {
               privateEncryptionKeyJwk,
               trustedAppsRegistry,
               alg: "ES256K",
-            }
+            },
           );
 
           expect(accessToken).toBeDefined();
@@ -989,9 +997,9 @@ describe("Authorisation (e2e)", () => {
             verifyJwtTar(accessToken, {
               trustedAppsRegistry,
               audience: "ebsi-core-services",
-            })
+            }),
           ).resolves.not.toThrow();
-        }
+        },
       );
     });
 
@@ -1007,7 +1015,7 @@ describe("Authorisation (e2e)", () => {
       const privateKeyHexEncryption = randomPrivateKeySecp256k1();
 
       const publicKeyEncryption = new EbsiWallet(
-        privateKeyHexEncryption
+        privateKeyHexEncryption,
       ).getPublicKey({ format: "jwk" }) as JsonWebKey;
 
       const verifiableCredentialJwt = await createVerifiableAuthorisationJwt(
@@ -1015,14 +1023,14 @@ describe("Authorisation (e2e)", () => {
         authorisationCredentialSchema,
         trustedIssuer.privateKey, // not signed by onboarding api, but by a different Trusted Issuer
         trustedIssuer.did,
-        domain
+        domain,
       );
 
       // 2. The client creates a verifiable presentation using the verifiable credential
       const siopAgent = new SiopAgent({
         privateKey: await importJWK(
           encode.privateKey.fromHexToJWK(privateKeyHexEncryption),
-          "ES256K"
+          "ES256K",
         ),
         alg: "ES256K",
         kid: `${did}#keys-1`,
@@ -1036,8 +1044,9 @@ describe("Authorisation (e2e)", () => {
         verifiableCredentialJwt,
         audience,
         ebsiAuthority,
+        ebsiEnvConfig,
         "ES256K",
-        trustedHostnames
+        trustedHostnames,
       );
 
       const nonce = randomUUID();
@@ -1093,7 +1102,7 @@ describe("Authorisation (e2e)", () => {
 
       expect(siopSessionsResponse.body).toStrictEqual({
         detail: `All verifiable credentials must be signed by issuers in the allowlist: ${onboardingAllowlist.join(
-          ", "
+          ", ",
         )}`,
         status: 400,
         title: "Invalid Verifiable Presentation",

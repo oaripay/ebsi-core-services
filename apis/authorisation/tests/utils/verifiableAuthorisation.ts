@@ -4,7 +4,7 @@ import {
   EbsiIssuer,
   EbsiVerifiableAttestation,
 } from "@cef-ebsi/verifiable-credential";
-import { ec as EC } from "elliptic";
+import elliptic from "elliptic";
 import { base64url } from "multiformats/bases/base64";
 import { bytes } from "multiformats";
 
@@ -14,13 +14,14 @@ export async function createVerifiableAuthorisationJwt(
   privateKey: string,
   applicationDid: string,
   ebsiAuthority: string,
-  trustedHostnames?: string[]
+  trustedHostnames?: string[],
 ): Promise<string> {
   const issuanceDate = new Date();
   const expirationDate = new Date(
-    issuanceDate.getTime() + 1000 * 60 * 60 * 24 * 182 // 365/2 = 6 months
+    issuanceDate.getTime() + 1000 * 60 * 60 * 24 * 182, // 365/2 = 6 months
   );
 
+  const EC = elliptic.ec;
   const ec = new EC("secp256k1");
   const hex = privateKey.replace(/^0x/, "");
   const pubPoint = ec.keyFromPrivate(hex, "hex").getPublic();

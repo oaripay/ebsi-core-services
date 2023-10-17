@@ -1,17 +1,17 @@
 import { Module } from "@nestjs/common";
 import { APP_INTERCEPTOR } from "@nestjs/core";
-import { ApiConfigModule } from "./config/configuration";
-import { HealthModule } from "./modules/health/health.module";
-import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module";
-import { DidTimestampsModule } from "./modules/did-timestamps/did-timestamps.module";
-import { HashAlgorithmsModule } from "./modules/hash-algorithms/hash-algorithms.module";
-import { IdentifiersModule } from "./modules/identifiers/identifiers.module";
-import { AuthModule } from "./modules/auth/auth.module";
-import { LedgerModule } from "./modules/ledger/ledger.module";
-import { LoggingInterceptor } from "./interceptors/logging.interceptor";
-import { VersionInterceptor } from "./interceptors/version.interceptor";
-import { OpenApiModule } from "./modules/openapi/openapi.module";
-import { AppService } from "./app.service";
+import { ApiConfigModule } from "./config/configuration.js";
+import { HealthModule } from "./modules/health/health.module.js";
+import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module.js";
+import { DidTimestampsModule } from "./modules/did-timestamps/did-timestamps.module.js";
+import { HashAlgorithmsModule } from "./modules/hash-algorithms/hash-algorithms.module.js";
+import { IdentifiersModule } from "./modules/identifiers/identifiers.module.js";
+import { AuthModule } from "./modules/auth/auth.module.js";
+import { LedgerModule } from "./modules/ledger/ledger.module.js";
+import { LoggingInterceptor } from "./interceptors/logging.interceptor.js";
+import { VersionInterceptor } from "./interceptors/version.interceptor.js";
+import { OpenApiModule } from "./modules/openapi/openapi.module.js";
+import { AppService } from "./app.service.js";
 
 @Module({
   imports: [

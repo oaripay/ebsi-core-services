@@ -1,5 +1,5 @@
-import { describe, it, expect } from "@jest/globals";
-import { encode } from "./encode.utils";
+import { describe, it, expect } from "vitest";
+import { encode } from "./encode.utils.js";
 
 describe("encode", () => {
   it("should convert a public key from hex to jwk", () => {
@@ -13,10 +13,10 @@ describe("encode", () => {
       y: "ZmmNH67eV-46pMN_pI1wWIqMKNUcqWkKmrLkZqeEow4",
     };
     expect(encode.publicKey.fromHexToJWK(publicKeyHex)).toStrictEqual(
-      publicKeyJwk
+      publicKeyJwk,
     );
     expect(encode.publicKey.fromHexToJWK(`0x${publicKeyHex}`)).toStrictEqual(
-      publicKeyJwk
+      publicKeyJwk,
     );
   });
 });

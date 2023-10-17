@@ -1,5 +1,5 @@
 import { IsEthereumAddress } from "class-validator";
-import { ArgsRollVerificationMethod } from "./args-roll-verification-method.dto";
+import { ArgsRollVerificationMethod } from "./args-roll-verification-method.dto.js";
 
 export class RollVerificationMethodParam extends ArgsRollVerificationMethod {
   @IsEthereumAddress()

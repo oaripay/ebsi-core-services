@@ -1,28 +1,23 @@
-import { describe, beforeAll, it, expect } from "@jest/globals";
+import { describe, beforeAll, it, expect } from "vitest";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  Logger,
-  HttpServer,
-} from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import { useContainer } from "class-validator";
-import { AppModule } from "../../src/app.module";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
-import { ApiConfig } from "../../src/config/configuration";
-import { getServer } from "../utils/getServer";
-import { describeWriteOps } from "../utils/describeWriteOps";
+import { AppModule } from "../../src/app.module.js";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
+import type { ApiConfig } from "../../src/config/configuration.js";
+import { getServer } from "../utils/getServer.js";
+import { describeWriteOps } from "../utils/describeWriteOps.js";
 
 describe("App Module (e2e)", () => {
-  let app: INestApplication;
-  let server: HttpServer | string;
+  let app: NestFastifyApplication;
+  let server: RawServerDefault | string;
   let apiUrlPrefix = "";
   let trustedAppsRegistryUrl: string;
 
@@ -32,7 +27,7 @@ describe("App Module (e2e)", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     const configService =
@@ -46,7 +41,7 @@ describe("App Module (e2e)", () => {
     useContainer(app.select(AppModule), { fallbackOnErrors: true });
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
     server = getServer(app, configService);
 
@@ -55,14 +50,14 @@ describe("App Module (e2e)", () => {
     }
 
     trustedAppsRegistryUrl = `${configService.get<string>(
-      "trustedAppsRegistryApiUrl"
+      "trustedAppsRegistryApiUrl",
     )}`;
 
     // Use TEST_LB_DOMAIN if defined
     if (configService.get<string>("testLoadBalancerDomain")) {
       trustedAppsRegistryUrl = trustedAppsRegistryUrl.replace(
         configService.get<string>("domain"),
-        configService.get<string>("testLoadBalancerDomain")
+        configService.get<string>("testLoadBalancerDomain"),
       );
     }
   });
@@ -93,7 +88,7 @@ describe("App Module (e2e)", () => {
       });
       expect(response.status).toBe(401);
       expect(
-        (response.headers as { "content-type": string })["content-type"]
+        (response.headers as { "content-type": string })["content-type"],
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
 
@@ -104,7 +99,7 @@ describe("App Module (e2e)", () => {
         .post("/jsonrpc")
         .auth(
           "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJpc3MiOiJhbnkifQ.eiwf-6rtNV0oWpFidRTlcY6oLBpV0l2tEkCs5FNoIxY",
-          { type: "bearer" }
+          { type: "bearer" },
         )
         .send();
 
@@ -116,7 +111,7 @@ describe("App Module (e2e)", () => {
       });
       expect(response.status).toBe(401);
       expect(
-        (response.headers as { "content-type": string })["content-type"]
+        (response.headers as { "content-type": string })["content-type"],
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
   });

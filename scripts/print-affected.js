@@ -21,7 +21,8 @@ try {
     // microservices and apps
     .filter(
       (project) =>
-        project.startsWith("@ebsiint-api") || project.startsWith("@ebsiint-app")
+        project.startsWith("@ebsiint-api") ||
+        project.startsWith("@ebsiint-app"),
     )
     // NOT service utilities
     .filter((project) => project !== "@ebsiint-api/shared")
@@ -32,7 +33,7 @@ try {
 
   if (affected.length === 0) {
     console.log(
-      "No affected packages. No need for new docker images or deployments"
+      "No affected packages. No need for new docker images or deployments",
     );
     // Theory says exit with non-zero code to communicate an error.
     // The idea is that this scripts communicates an error to prevent jenkins deployment steps from executing in vain.

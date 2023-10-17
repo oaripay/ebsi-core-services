@@ -1,5 +1,5 @@
-import { describe, it, expect } from "@jest/globals";
-import { ProblemDetailsError } from "../index";
+import { describe, it, expect } from "vitest";
+import { ProblemDetailsError } from "../index.js";
 
 describe("error ProblemDetailsError", () => {
   it("should have about:blank has default type", () => {

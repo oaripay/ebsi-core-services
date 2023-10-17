@@ -7,12 +7,53 @@ import { ContractTransaction, Contract, ethers } from "ethers";
 import { HashName } from "multihashes";
 import { Timestamp } from "@ebsiint-sc/timestamp";
 
+export const validHashAlgorithms = [
+  "sha-256",
+  "sha-512",
+  "sha3-224",
+  "sha3-256",
+  "sha3-384",
+  "sha3-512",
+] as const;
+
+export type ValidIanaHashAlgorithms = (typeof validHashAlgorithms)[number];
+
+export const ianaToMultihashAlg = {
+  "sha-256": "sha2-256",
+  "sha-512": "sha2-512",
+  "sha3-224": "sha3-224",
+  "sha3-256": "sha3-256",
+  "sha3-384": "sha3-384",
+  "sha3-512": "sha3-512",
+} as const satisfies Record<ValidIanaHashAlgorithms, HashName>;
+
+export type ValidMultihashAlgorithms =
+  (typeof ianaToMultihashAlg)[ValidIanaHashAlgorithms];
+
+export const multihashToNodeHashAlg = {
+  "sha2-256": "sha256",
+  "sha2-512": "sha512",
+  "sha3-224": "sha3-224",
+  "sha3-256": "sha3-256",
+  "sha3-384": "sha3-384",
+  "sha3-512": "sha3-512",
+} as const satisfies Record<ValidMultihashAlgorithms, string>;
+
+export const outputLengths = {
+  "sha-256": 256,
+  "sha-512": 512,
+  "sha3-224": 224,
+  "sha3-256": 256,
+  "sha3-384": 384,
+  "sha3-512": 512,
+} as const satisfies Record<ValidIanaHashAlgorithms, number>;
+
 interface HashAlgorithmObject {
   outputLength: number;
-  ianaName: string;
+  ianaName: ValidIanaHashAlgorithms;
   oid: string;
   status: number;
-  multihash: HashName;
+  multihash: ValidMultihashAlgorithms;
 }
 
 interface RecordObject {
@@ -23,7 +64,7 @@ interface RecordObject {
   versionInfo: string;
 }
 
-interface HashObect {
+interface HashObject {
   hashAlgorithmIds: number[];
   hashValues: string[];
   timestampData: string[];
@@ -35,13 +76,12 @@ export async function deployTimestampContract(): Promise<{
   policyContractMock: Contract;
 }> {
   const testTprAddress = "0xb2a560271ce08135e245F490b8794794A13a1208";
-  const policyRegistryFactory = await hre.ethers.getContractFactory(
-    "PolicyRegistryMock"
-  );
+  const policyRegistryFactory =
+    await hre.ethers.getContractFactory("PolicyRegistryMock");
   const tempPolicyContract = await policyRegistryFactory.deploy();
   await tempPolicyContract.deployed();
   const bytecode = await hre.ethers.provider.getCode(
-    tempPolicyContract.address
+    tempPolicyContract.address,
   );
   await hre.network.provider.send("hardhat_setCode", [
     testTprAddress,
@@ -74,12 +114,11 @@ export async function deployTimestampContract(): Promise<{
         TimestampLib: tsLib.address,
         RecordLib: rsLib.address,
       },
-    }
+    },
   );
 
-  const timestampContract = await timestampContractFactory.deploy(
-    testTprAddress
-  );
+  const timestampContract =
+    await timestampContractFactory.deploy(testTprAddress);
 
   await timestampContract.initialize(1);
   await timestampContract.setTrustedPoliciesRegistryAddress();
@@ -88,57 +127,21 @@ export async function deployTimestampContract(): Promise<{
   return { timestampContract, policyContractMock };
 }
 
-const validHashAlgorithms = [
-  "sha-256",
-  "sha-512",
-  "sha3-224",
-  "sha3-256",
-  "sha3-384",
-  "sha3-512",
-] as const;
-
-const ianaToMultihashAlg: Record<string, HashName> = {
-  "sha-256": "sha2-256",
-  "sha-512": "sha2-512",
-  "sha3-224": "sha3-224",
-  "sha3-256": "sha3-256",
-  "sha3-384": "sha3-384",
-  "sha3-512": "sha3-512",
-};
-
-const multihashToNodeHashAlg: Partial<Record<HashName, string>> = {
-  "sha2-256": "sha256",
-  "sha2-512": "sha512",
-  "sha3-224": "sha3-224",
-  "sha3-256": "sha3-256",
-  "sha3-384": "sha3-384",
-  "sha3-512": "sha3-512",
-};
-
-const outputLengths = {
-  "sha-256": 256,
-  "sha-512": 512,
-  "sha3-224": 224,
-  "sha3-256": 256,
-  "sha3-384": 384,
-  "sha3-512": 512,
-};
-
 export async function insertHashAlgorithm(
-  contract: Timestamp
+  contract: Timestamp,
 ): Promise<HashAlgorithmObject> {
-  const ianaName = validHashAlgorithms[randomInt(validHashAlgorithms.length)];
+  const ianaName = validHashAlgorithms[randomInt(validHashAlgorithms.length)]!;
   const outputLength = outputLengths[ianaName];
   const oid = "oid-test";
   const status = 1;
-  const multihash = ianaToMultihashAlg[ianaName];
+  const multihash = ianaToMultihashAlg[ianaName]!;
 
   await contract.insertHashAlgorithm(
     outputLength,
     ianaName,
     oid,
     status,
-    multihash
+    multihash,
   );
 
   return {
@@ -153,7 +156,7 @@ export async function insertHashAlgorithm(
 export async function insertRecord(
   contract: Timestamp,
   sender: string,
-  hashAlgorithm: HashAlgorithmObject
+  hashAlgorithm: HashAlgorithmObject,
 ): Promise<RecordObject> {
   const hashAlgorithmIds = Array(3).fill(0) as number[];
   const hashValues = Array(3)
@@ -163,21 +166,21 @@ export async function insertRecord(
         `0x${createHash(multihashToNodeHashAlg[hashAlgorithm.multihash])
           .update(randomBytes(32).toString("hex"), "hex")
           .digest()
-          .toString("hex")}`
+          .toString("hex")}`,
     );
   const timestampData = Array(3)
     .fill(0)
     .map(() => `0x${randomBytes(4).toString("hex")}`);
   const versionInfo = `0x${Buffer.from(
     JSON.stringify({ test: "my test" }),
-    "utf8"
+    "utf8",
   ).toString("hex")}`;
 
   const { blockNumber } = await contract.timestampRecordHashes(
     hashAlgorithmIds,
     hashValues,
     timestampData,
-    versionInfo
+    versionInfo,
   );
 
   const types = ["address", "uint256", "bytes"];
@@ -196,11 +199,11 @@ export async function insertRecord(
 
 export async function insertHash(
   contract: Timestamp,
-  hashAlgorithm: HashAlgorithmObject
-): Promise<HashObect> {
+  hashAlgorithm: HashAlgorithmObject,
+): Promise<HashObject> {
   const hashAlgorithmIds = [0];
   const hashValues = [
-    `0x${createHash(multihashToNodeHashAlg[hashAlgorithm.multihash])
+    `0x${createHash(multihashToNodeHashAlg[hashAlgorithm.multihash]!)
       .update(randomBytes(32).toString("hex"), "hex")
       .digest()
       .toString("hex")}`,
@@ -210,7 +213,7 @@ export async function insertHash(
   const tx = await contract.timestampHashes(
     hashAlgorithmIds,
     hashValues,
-    timestampData
+    timestampData,
   );
 
   return {
@@ -232,14 +235,14 @@ export async function setupTestEnv(
     hashAlgorithmsTotal: 1,
     recordsTotal: 1,
     hashesTotal: 0,
-  }
+  },
 ): Promise<{
   provider: ethers.providers.JsonRpcProvider;
   timestampContract: Timestamp;
   policyContractMock: Contract;
   hashAlgorithms: HashAlgorithmObject[];
   records: RecordObject[];
-  hashes: HashObect[];
+  hashes: HashObject[];
   sender: string;
 }> {
   const ethersProvider = hre.ethers.provider;
@@ -254,19 +257,19 @@ export async function setupTestEnv(
   const hashAlgorithms = await Promise.all(
     Array(opts.hashAlgorithmsTotal)
       .fill(0)
-      .map(() => insertHashAlgorithm(timestampContract))
+      .map(() => insertHashAlgorithm(timestampContract)),
   );
 
   const records = await Promise.all(
     Array(opts.recordsTotal)
       .fill(0)
-      .map(() => insertRecord(timestampContract, sender, hashAlgorithms[0]))
+      .map(() => insertRecord(timestampContract, sender, hashAlgorithms[0]!)),
   );
 
   const hashes = await Promise.all(
     Array(opts.hashesTotal)
       .fill(0)
-      .map(() => insertHash(timestampContract, hashAlgorithms[0]))
+      .map(() => insertHash(timestampContract, hashAlgorithms[0]!)),
   );
 
   // Return test env variables

@@ -10,9 +10,9 @@ export default class GetRecordsDto extends PaginationQuery {
   @IsOptional()
   @IsHexadecimal()
   @Length(66, 66)
-  "first-version": string;
+  "first-version"?: string;
 
   @IsOptional()
   @IsEthereumAddress()
-  owner!: string;
+  owner?: string;
 }

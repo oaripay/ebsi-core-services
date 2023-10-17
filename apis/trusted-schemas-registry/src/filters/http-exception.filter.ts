@@ -1,7 +1,7 @@
 import {
   ExceptionFilter,
   Catch,
-  ArgumentsHost,
+  type ArgumentsHost,
   Logger,
   NotFoundException,
   BadRequestException,
@@ -16,12 +16,12 @@ import {
   InvalidRequestJsonRpcError,
 } from "@ebsiint-api/shared";
 import type { FastifyReply } from "fastify";
-import axios, { AxiosError } from "axios";
-import { ApiConfig } from "../config/configuration";
+import axios, { type AxiosError } from "axios";
+import type { ApiConfig } from "../config/configuration.js";
 
 function getProblemDetailsError(
   error: unknown,
-  logger: Logger
+  logger: Logger,
 ): ProblemDetailsError {
   if (error instanceof ProblemDetailsError) {
     return error;
@@ -93,7 +93,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const problemError = getProblemDetailsError(err, this.logger);
 
     this.logger.debug(
-      `${problemError.toString()}: ${problemError.detail || "No detail"}`
+      `${problemError.toString()}: ${problemError.detail || "No detail"}`,
     );
 
     return response

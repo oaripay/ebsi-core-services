@@ -22,7 +22,7 @@ export interface UserObject {
 
 export async function insertPolicy(
   contract: PolicyRegistry,
-  policyId: number
+  policyId: number,
 ): Promise<PolicyObject> {
   const policyName = `policy-test-${crypto.randomBytes(16).toString("hex")}`;
   const description = crypto.randomBytes(16).toString("hex");
@@ -38,7 +38,7 @@ export async function insertPolicy(
 }
 
 export async function insertUser(
-  contract: PolicyRegistry
+  contract: PolicyRegistry,
 ): Promise<UserObject> {
   const user: UserObject = {
     address: ethers.Wallet.createRandom().address,
@@ -60,7 +60,7 @@ export async function deployPoliciesRegistryContract(): Promise<PolicyRegistry> 
       libraries: {
         Pagination: pagination.address,
       },
-    }
+    },
   );
 
   const policyRegistry = await policiesRegistryFactory.deploy();
@@ -76,7 +76,7 @@ export interface SetupOptions {
 export async function setupTestEnv(
   opts: SetupOptions = {
     policiesTotal: 1,
-  }
+  },
 ): Promise<{
   provider: ethers.providers.JsonRpcProvider;
   policiesRegistryContract: PolicyRegistry;
@@ -105,17 +105,17 @@ export async function setupTestEnv(
   };
 
   const policies =
-    opts.policiesTotal >= 1
-      ? await range(0, opts.policiesTotal)
+    opts.policiesTotal! >= 1
+      ? (await range(0, opts.policiesTotal)
           .pipe(mergeMap(createPolicy), toArray())
-          .toPromise()
+          .toPromise())!
       : [];
 
   const users =
-    opts.usersTotal >= 1
-      ? await range(0, opts.usersTotal)
+    opts.usersTotal! >= 1
+      ? (await range(0, opts.usersTotal)
           .pipe(mergeMap(createUser), toArray())
-          .toPromise()
+          .toPromise())!
       : [];
 
   // Return test env variables

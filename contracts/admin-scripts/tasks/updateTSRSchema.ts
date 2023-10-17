@@ -12,18 +12,18 @@ task(
   "Update existing schema in TSR Contract ",
   async (
     taskArgs: { proxy: string; schema: string; file: string },
-    { ethers }
+    { ethers },
   ) => {
     const [deployer, admin] = await ethers.getSigners();
     const tsr = (await ethers.getContractAt(
       "SchemaSCRegistry",
       taskArgs.proxy,
-      admin
+      admin,
     )) as SchemaSCRegistry;
 
     console.log(
       `deployer:${deployer.address}
-     admin:${admin.address}`
+     admin:${admin.address}`,
     );
     const initialVersion = await tsr.version();
     console.log(initialVersion);
@@ -33,12 +33,12 @@ task(
 
     // TODO: fix JSON schemas import logic (can't use git submodules anymore)
     const jsonFile = await readFile(
-      `${__dirname}/../schemas/json-schemas/${taskArgs.file}`
+      `${__dirname}/../schemas/json-schemas/${taskArgs.file}`,
     );
     const json = canonicalize(JSON.parse(jsonFile.toString()));
     const schema = ethers.utils.toUtf8Bytes(json);
     const schemaHex = `0x${Buffer.from(JSON.stringify(json), "utf-8").toString(
-      "hex"
+      "hex",
     )}`;
 
     try {
@@ -46,14 +46,14 @@ task(
         await tsr.updateSchema(taskArgs.schema, schemaHex, schema)
       ).wait(1);
       console.log(
-        `Schema ${taskArgs.file} updated on networkId ${network.chainId} at id: ${taskArgs.schema}`
+        `Schema ${taskArgs.file} updated on networkId ${network.chainId} at id: ${taskArgs.schema}`,
       );
     } catch (e) {
       console.log(
-        `There is no schema ${taskArgs.file} registered on networkId ${network.chainId} at id: ${taskArgs.schema}`
+        `There is no schema ${taskArgs.file} registered on networkId ${network.chainId} at id: ${taskArgs.schema}`,
       );
     }
-  }
+  },
 )
   .addParam("proxy", "Proxy Address")
   .addParam("schema", "Schema Address Hash")

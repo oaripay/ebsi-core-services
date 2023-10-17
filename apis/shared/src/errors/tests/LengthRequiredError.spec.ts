@@ -1,5 +1,5 @@
-import { describe, it, expect } from "@jest/globals";
-import { LengthRequiredError, ProblemDetailsError } from "../index";
+import { describe, it, expect } from "vitest";
+import { LengthRequiredError, ProblemDetailsError } from "../index.js";
 
 describe("error LengthRequiredError", () => {
   it("should extend ProblemDetailsError", () => {
@@ -69,7 +69,7 @@ describe("error LengthRequiredError", () => {
     });
 
     expect(error.toString()).toBe(
-      `${LengthRequiredError.statusCode} - Test Error`
+      `${LengthRequiredError.statusCode} - Test Error`,
     );
   });
 });

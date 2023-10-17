@@ -6,19 +6,19 @@ import {
   Equals,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { JsonRpcDto } from "../jsonrpc.dto";
-import { DetachDidDocumentVersionParam } from "./detach-did-document-version-hash-param.dto";
+import { JsonRpcDto } from "../jsonrpc.dto.js";
+import { DetachDidDocumentVersionParam } from "./detach-did-document-version-hash-param.dto.js";
 
 export class RequestDetachDidDocumentVersionHashDto extends JsonRpcDto {
   @Equals("detachDidDocumentVersionHash")
-  method: string;
+  declare method: string;
 
   @IsArray()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @Type(() => DetachDidDocumentVersionParam)
-  params: DetachDidDocumentVersionParam[];
+  declare params: DetachDidDocumentVersionParam[];
 }
 
 export default RequestDetachDidDocumentVersionHashDto;

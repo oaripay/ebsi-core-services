@@ -1,2 +1,2 @@
-export * from "./oauth2-jwt.strategy";
-export * from "./siop-jwt.strategy";
+export * from "./oauth2-jwt.strategy.js";
+export * from "./siop-jwt.strategy.js";

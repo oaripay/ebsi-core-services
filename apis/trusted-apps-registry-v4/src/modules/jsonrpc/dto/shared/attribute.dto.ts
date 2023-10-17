@@ -2,10 +2,10 @@ import { IsBase64, IsHexadecimal } from "class-validator";
 
 export class Attribute {
   @IsHexadecimal()
-  hash: string;
+  hash!: string;
 
   @IsBase64()
-  body: string;
+  body!: string;
 }
 
 export default { Attribute };

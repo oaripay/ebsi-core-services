@@ -1,34 +1,24 @@
-import {
-  jest,
-  describe,
-  beforeAll,
-  afterEach,
-  it,
-  expect,
-} from "@jest/globals";
+import { vi, describe, beforeAll, afterEach, it, expect } from "vitest";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
+import { Test, type TestingModule } from "@nestjs/testing";
 import { Logger } from "@nestjs/common";
-import type { INestApplication } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { HttpService } from "@nestjs/axios";
-import type { FastifyInstance } from "fastify";
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import { of } from "rxjs";
-import { AppModule } from "../app.module";
-import type { ApiConfig } from "../config/configuration";
-import { configureApp } from "../../tests/utils/app";
-
-jest.setTimeout(60000);
+import { AppModule } from "../app.module.js";
+import type { ApiConfig } from "../config/configuration.js";
+import { configureApp } from "../../tests/utils/app.js";
 
 describe("Logging interceptor", () => {
-  let app: INestApplication;
+  let app: NestFastifyApplication;
   let httpService: HttpService;
   let configService: ConfigService<ApiConfig, true>;
 
   const mockedLogger = {
-    log: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
+    log: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
   };
 
   beforeAll(async () => {
@@ -44,13 +34,13 @@ describe("Logging interceptor", () => {
     Logger.overrideLogger(mockedLogger);
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
     httpService = await moduleFixture.resolve<HttpService>(HttpService);
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe("GET /health", () => {
@@ -63,15 +53,14 @@ describe("Logging interceptor", () => {
       expect(mockedLogger.log).toHaveBeenNthCalledWith(
         calls,
         "Nest application successfully started",
-        "NestApplication"
+        "NestApplication",
       );
     });
 
     it("should log the request and response", async () => {
       expect.assertions(2);
 
-      jest
-        .spyOn(httpService, "request")
+      vi.spyOn(httpService, "request")
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         .mockImplementation(() => of({}));
@@ -97,7 +86,7 @@ describe("Logging interceptor", () => {
           conformance: "test-id-conformance",
         },
         "LoggingInterceptor - GET - /health",
-        "LoggingInterceptor"
+        "LoggingInterceptor",
       );
 
       // It should have logged the response
@@ -122,7 +111,7 @@ describe("Logging interceptor", () => {
           conformance: "test-id-conformance",
         },
         "LoggingInterceptor - 200 - GET - /health",
-        "LoggingInterceptor"
+        "LoggingInterceptor",
       );
     });
   });

@@ -21,10 +21,10 @@ export async function createUser(wallet?: ethers.Wallet): Promise<UserDetails> {
   const did = EbsiWallet.createDid();
   const w = wallet || ethers.Wallet.createRandom();
   const privateKeyJwk = encode.privateKey.fromHexToJWK(
-    w.privateKey
+    w.privateKey,
   ) as unknown as JsonWebKey;
   const publicKeyJwk = encode.publicKey.fromHexToJWK(
-    w.publicKey
+    w.publicKey,
   ) as unknown as JsonWebKey;
   const thumbprint = await calculateJwkThumbprint(publicKeyJwk, "sha256");
 

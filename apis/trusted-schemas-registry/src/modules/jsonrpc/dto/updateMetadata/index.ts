@@ -1,2 +1,2 @@
-export * from "./request-update-metadata.dto";
-export * from "./update-metadata-param.dto";
+export * from "./request-update-metadata.dto.js";
+export * from "./update-metadata-param.dto.js";

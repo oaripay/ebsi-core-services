@@ -4,8 +4,8 @@ import { JWTPayload, decodeJWT } from "did-jwt";
 import { verifyJwtTar as verifyOAuth2Token } from "@cef-ebsi/oauth2-auth";
 import { verifyJwtTar as verifySiopToken } from "@cef-ebsi/siop-auth";
 import { UnauthorizedError } from "@ebsiint-api/shared";
-import { AppInfo, ClientInfo, SubjectInfo } from "./auth.interface";
-import { ApiConfig } from "../../config/configuration";
+import { AppInfo, ClientInfo, SubjectInfo } from "./auth.interface.js";
+import type { ApiConfig } from "../../config/configuration.js";
 
 @Injectable()
 export class AuthService {
@@ -17,11 +17,11 @@ export class AuthService {
 
   constructor(configService: ConfigService<ApiConfig, true>) {
     this.authorisationApiName = configService.get<string>(
-      "authorisationApiName"
+      "authorisationApiName",
     );
 
     this.trustedAppsRegistry = `${configService.get<string>(
-      "trustedAppsRegistryApiUrl"
+      "trustedAppsRegistryApiUrl",
     )}/apps`;
 
     this.timeout = configService.get<number>("requestTimeout");
@@ -45,7 +45,7 @@ export class AuthService {
       });
     }
 
-    if (payload.login_hint && payload.login_hint === "did_siop") {
+    if (payload["login_hint"] && payload["login_hint"] === "did_siop") {
       await this.validateSiopToken(bearerToken);
     } else {
       await this.validateOAuth2Token(bearerToken);
@@ -79,7 +79,7 @@ export class AuthService {
     }
 
     // Populate "appInfo" object
-    return { name: payload.sub };
+    return { name: payload.sub! };
   }
 
   async validateSiopToken(bearerToken: string): Promise<ClientInfo> {
@@ -107,7 +107,7 @@ export class AuthService {
     }
 
     // Populate "clientInfo" object
-    return { did: payload.sub };
+    return { did: payload.sub! };
   }
 }
 

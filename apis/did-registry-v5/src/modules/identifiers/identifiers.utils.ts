@@ -1,13 +1,13 @@
 import * as ClassValidator from "class-validator";
-import { ClassConstructor, ClassTransformer } from "class-transformer";
+import { type ClassConstructor, ClassTransformer } from "class-transformer";
 import { getErrorMessages } from "@ebsiint-api/shared";
-import { RequestCheckControllerDto } from "./dto/request-check-controller.dto";
+import { RequestCheckControllerDto } from "./dto/request-check-controller.dto.js";
 
 type JsonRpcDtos = RequestCheckControllerDto;
 
 export const validateClass = async (
   classType: ClassConstructor<JsonRpcDtos>,
-  data: JsonRpcDtos
+  data: JsonRpcDtos,
 ): Promise<void> => {
   const dataClass = new ClassTransformer().plainToInstance<
     JsonRpcDtos,
@@ -23,7 +23,7 @@ export const validateClass = async (
     }
 
     throw new Error(
-      `Validation errors:${errorMessages.map((err) => `\n- ${err}`).join()}`
+      `Validation errors:${errorMessages.map((err) => `\n- ${err}`).join()}`,
     );
   }
 };

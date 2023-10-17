@@ -5,8 +5,8 @@ export const IS_BASE_DOCUMENT = "isBaseDocument";
 export function isBaseDocument(value: unknown): boolean {
   try {
     if (typeof value !== "string") return false;
-    const baseDocument = JSON.parse(value) as unknown;
-    const context = baseDocument["@context"] as unknown;
+    const baseDocument = JSON.parse(value) as Record<string, unknown>;
+    const context = baseDocument["@context"];
     if (!context) return false;
     if (
       (typeof context !== "string" ||
@@ -37,7 +37,7 @@ export function isBaseDocument(value: unknown): boolean {
 }
 
 export function IsBaseDocument(
-  validationOptions?: ValidationOptions
+  validationOptions?: ValidationOptions,
 ): PropertyDecorator {
   return ValidateBy(
     {
@@ -47,10 +47,10 @@ export function IsBaseDocument(
         defaultMessage: buildMessage(
           (eachPrefix) =>
             `${eachPrefix}$property must be a valid JSON string with at least the field @context and without verification methods, verification relationships, controllers or id`,
-          validationOptions
+          validationOptions,
         ),
       },
     },
-    validationOptions
+    validationOptions,
   );
 }

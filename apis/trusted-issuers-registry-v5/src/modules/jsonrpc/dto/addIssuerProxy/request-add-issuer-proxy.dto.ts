@@ -6,19 +6,19 @@ import {
   ArrayMaxSize,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { JsonRpcDto } from "../jsonrpc.dto";
-import { AddIssuerProxyParam } from "./add-issuer-proxy-param.dto";
+import { JsonRpcDto } from "../jsonrpc.dto.js";
+import { AddIssuerProxyParam } from "./add-issuer-proxy-param.dto.js";
 
 export class RequestAddIssuerProxyDto extends JsonRpcDto {
   @Equals("addIssuerProxy")
-  method!: "addIssuerProxy";
+  declare method: "addIssuerProxy";
 
   @IsArray()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @Type(() => AddIssuerProxyParam)
-  params!: AddIssuerProxyParam[];
+  declare params: AddIssuerProxyParam[];
 }
 
 export default RequestAddIssuerProxyDto;

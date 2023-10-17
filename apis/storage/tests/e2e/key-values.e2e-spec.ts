@@ -1,30 +1,28 @@
-import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
+import { describe, beforeAll, afterAll, it, expect } from "vitest";
 import crypto from "node:crypto";
 import { URL } from "node:url";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
+import { Test, type TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
-import { ValidationPipe, Logger, HttpServer } from "@nestjs/common";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { FastifyInstance } from "fastify";
-import { AppModule } from "../../src/app.module";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
-import { fastifyAdapterConfig } from "../../src/config/server.config";
-import { ApiConfig } from "../../src/config/configuration";
-import { requestSiopJwt } from "../utils/siopJwt";
-import { describeWriteOps } from "../utils/describeWriteOps";
-import { getServer } from "../utils/getServer";
-
-jest.setTimeout(60000);
+import type { RawServerDefault } from "fastify";
+import { AppModule } from "../../src/app.module.js";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
+import { fastifyAdapterConfig } from "../../src/config/server.config.js";
+import type { ApiConfig } from "../../src/config/configuration.js";
+import { requestSiopJwt } from "../utils/siopJwt.js";
+import { describeWriteOps } from "../utils/describeWriteOps.js";
+import { getServer } from "../utils/getServer.js";
 
 const BASE_URL = "/stores/distributed/key-values";
 
 describe("Key-Values (e2e)", () => {
   let app: NestFastifyApplication;
-  let server: HttpServer | string;
+  let server: RawServerDefault | string;
   let configService: ConfigService<ApiConfig, true>;
   let testUserAccessToken: string;
 
@@ -40,7 +38,7 @@ describe("Key-Values (e2e)", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter(fastifyAdapterConfig)
+      new FastifyAdapter(fastifyAdapterConfig),
     );
 
     configService =
@@ -52,7 +50,7 @@ describe("Key-Values (e2e)", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
     server = getServer(app, configService);
 
     try {
@@ -70,10 +68,6 @@ describe("Key-Values (e2e)", () => {
   });
 
   afterAll(async () => {
-    // Avoid jest open handle error
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
     await app.close();
   });
 
@@ -197,12 +191,12 @@ describe("Key-Values (e2e)", () => {
         items: expect.arrayContaining([expect.stringContaining("key-")]),
         links: {
           next: expect.stringMatching(
-            /\/stores\/distributed\/key-values\?page\[after\]=.*&page\[size\]=2/
+            /\/stores\/distributed\/key-values\?page\[after\]=.*&page\[size\]=2/,
           ),
         },
         pageSize: 2,
         self: expect.stringContaining(
-          "/stores/distributed/key-values?page[size]=2"
+          "/stores/distributed/key-values?page[size]=2",
         ),
       });
       expect((response.body as { items: string[] }).items).toHaveLength(2);
@@ -218,7 +212,7 @@ describe("Key-Values (e2e)", () => {
         .send();
 
       const nextLink = new URL(
-        (response.body as { links: { next: string } }).links.next
+        (response.body as { links: { next: string } }).links.next,
       );
 
       // Go to next page
@@ -230,7 +224,7 @@ describe("Key-Values (e2e)", () => {
 
       expect(nextPageResponse.body).toStrictEqual({
         items: expect.arrayContaining([expect.stringContaining("key-")]),
-        links: expect.anything() as unknown,
+        links: expect.anything(),
         pageSize: 2,
         self: expect.stringContaining(nextPageUrl),
       });

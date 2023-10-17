@@ -11,7 +11,7 @@ export class JsonRpcDto {
   params!: Array<unknown>;
 
   @IsOptional()
-  id!: number | string;
+  id?: number | string;
 }
 
 export default { JsonRpcDto };

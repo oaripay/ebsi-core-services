@@ -9,7 +9,7 @@ async function main() {
       libraries: {
         Pagination: pagination.address,
       },
-    }
+    },
   );
   const policyContract = await policyRegistryFactory.deploy();
   await policyContract.deployed();
@@ -21,9 +21,8 @@ async function main() {
   const hashAlgoFactory = await ethers.getContractFactory("HashAlgoLib", {});
   const hashAlgoLib = await hashAlgoFactory.deploy();
 
-  const didTimestampFactory = await ethers.getContractFactory(
-    "DidTimestampLib"
-  );
+  const didTimestampFactory =
+    await ethers.getContractFactory("DidTimestampLib");
   const didTimestampLib = await didTimestampFactory.deploy();
 
   const didRecordFactory = await ethers.getContractFactory("DidRecordLib", {

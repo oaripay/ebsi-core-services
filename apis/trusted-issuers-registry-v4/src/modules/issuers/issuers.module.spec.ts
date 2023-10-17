@@ -1,36 +1,39 @@
-import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
+import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  Logger,
-  HttpServer,
-} from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import axios, { AxiosError, AxiosResponse } from "axios";
 import * as vcLib from "@cef-ebsi/verifiable-credential";
 import { remove0xPrefix } from "@ebsiint-api/shared";
-import { IssuersModule } from "./issuers.module";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { IssuerObject, setupTestEnv } from "../../../tests/utils/tir";
-import { LedgerService } from "../ledger/ledger.service";
-import { ApiConfig } from "../../config/configuration";
-import { IssuerTypeNames } from "./issuers.constants";
-
-jest.setTimeout(90000);
+import { IssuersModule } from "./issuers.module.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import { IssuerObject, setupTestEnv } from "../../../tests/utils/tir.js";
+import { LedgerService } from "../ledger/ledger.service.js";
+import type { ApiConfig } from "../../config/configuration.js";
+import { IssuerTypeNames } from "./issuers.constants.js";
 
 const ISSUERS_TOTAL = 12;
 
+vi.mock("@cef-ebsi/verifiable-credential", async () => {
+  const mod = await vi.importActual<
+    typeof import("@cef-ebsi/verifiable-credential")
+  >("@cef-ebsi/verifiable-credential");
+
+  return {
+    ...mod,
+  };
+});
+
 describe("Issuers Module", () => {
-  let app: INestApplication;
-  let server: HttpServer;
+  let app: NestFastifyApplication;
+  let server: RawServerDefault;
   let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
   let rootTao: IssuerObject;
   let issuer: IssuerObject;
@@ -44,16 +47,16 @@ describe("Issuers Module", () => {
       issuersTotal: ISSUERS_TOTAL,
     });
     const { tirContract } = testEnv;
-    [rootTao] = testEnv.issuers;
-    issuer = testEnv.issuers[testEnv.issuers.length - 1];
-    issuer2 = testEnv.issuers[testEnv.issuers.length - 2];
+    rootTao = testEnv.issuers[0]!;
+    issuer = testEnv.issuers[testEnv.issuers.length - 1]!;
+    issuer2 = testEnv.issuers[testEnv.issuers.length - 2]!;
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [IssuersModule],
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     // Turn off logger
@@ -66,22 +69,18 @@ describe("Issuers Module", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
-    server = app.getHttpServer() as HttpServer;
+    server = app.getHttpServer();
 
     // Mock TIR contract
     const ledgerService = moduleFixture.get<LedgerService>(LedgerService);
-    jest
-      .spyOn(ledgerService, "getContract")
-      .mockImplementation(async () => Promise.resolve(tirContract));
+    vi.spyOn(ledgerService, "getContract").mockImplementation(async () =>
+      Promise.resolve(tirContract),
+    );
   });
 
   afterAll(async () => {
-    // Avoid jest open handle error
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
     await app.close();
   });
 
@@ -97,7 +96,7 @@ describe("Issuers Module", () => {
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/issuers?page[after]=1&page[size]=10`
+            `/issuers?page[after]=1&page[size]=10`,
           ),
           prev: expect.stringContaining(`/issuers?page[after]=1&page[size]=10`),
           next: expect.stringContaining(`/issuers?page[after]=2&page[size]=10`),
@@ -129,7 +128,7 @@ describe("Issuers Module", () => {
 
       // next page
       const response2 = await request(server).get(
-        "/issuers?page[after]=2&page[size]=3"
+        "/issuers?page[after]=2&page[size]=3",
       );
       expect(response2.body).toStrictEqual({
         self: expect.stringContaining(`/issuers?page[after]=2&page[size]=3`),
@@ -148,7 +147,7 @@ describe("Issuers Module", () => {
 
       // big page
       const response3 = await request(server).get(
-        "/issuers?page[after]=100&page[size]=3"
+        "/issuers?page[after]=100&page[size]=3",
       );
       expect(response3.body).toStrictEqual({
         self: expect.stringContaining(`/issuers?page[after]=100&page[size]=3`),
@@ -174,7 +173,7 @@ describe("Issuers Module", () => {
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/issuers?page[after]=1&page[size]=10`
+            `/issuers?page[after]=1&page[size]=10`,
           ),
           prev: expect.stringContaining(`/issuers?page[after]=1&page[size]=10`),
           next: expect.stringContaining(`/issuers?page[after]=2&page[size]=10`),
@@ -324,7 +323,7 @@ describe("Issuers Module", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        "/issuers/not-a-did/attributes"
+        "/issuers/not-a-did/attributes",
       );
 
       expect(response.body).toStrictEqual({
@@ -340,7 +339,7 @@ describe("Issuers Module", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        "/issuers/did:ebsi:z1234/attributes"
+        "/issuers/did:ebsi:z1234/attributes",
       );
 
       expect(response.body).toStrictEqual({
@@ -356,7 +355,7 @@ describe("Issuers Module", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        `/issuers/${randomDid}/attributes`
+        `/issuers/${randomDid}/attributes`,
       );
 
       expect(response.body).toStrictEqual({
@@ -395,7 +394,7 @@ describe("Issuers Module", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        `/issuers/not-a-did/attributes/${issuer.attribute.id}`
+        `/issuers/not-a-did/attributes/${issuer.attribute.id}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -411,7 +410,7 @@ describe("Issuers Module", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        `/issuers/did:ebsi:z1234/attributes/${issuer.attribute.id}`
+        `/issuers/did:ebsi:z1234/attributes/${issuer.attribute.id}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -427,7 +426,7 @@ describe("Issuers Module", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        `/issuers/${randomDid}/attributes/${issuer.attribute.id}`
+        `/issuers/${randomDid}/attributes/${issuer.attribute.id}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -452,7 +451,7 @@ describe("Issuers Module", () => {
 
       expect(response1.body).toStrictEqual({
         detail: expect.stringContaining(
-          `Attribute ${wrongAttributeId} not found`
+          `Attribute ${wrongAttributeId} not found`,
         ),
         status: 404,
         title: "Attribute Not Found",
@@ -461,10 +460,10 @@ describe("Issuers Module", () => {
       expect(response1.status).toBe(404);
 
       // Consult an attribute from a different did
-      const dataHash2 = testEnv.issuers[1].attribute.id;
+      const dataHash2 = testEnv.issuers[1]!.attribute.id;
 
       const response2 = await request(server).get(
-        `/issuers/${issuer.did}/attributes/${dataHash2}`
+        `/issuers/${issuer.did}/attributes/${dataHash2}`,
       );
 
       expect(response2.body).toStrictEqual({
@@ -529,7 +528,7 @@ describe("Issuers Module", () => {
 
       // next page
       const response2 = await request(server).get(
-        `${url}?page[after]=2&page[size]=3`
+        `${url}?page[after]=2&page[size]=3`,
       );
       expect(response2.body).toStrictEqual({
         self: expect.stringContaining(`${url}?page[after]=2&page[size]=3`),
@@ -569,7 +568,7 @@ describe("Issuers Module", () => {
 
       const attributeId = issuer.attribute.id;
       const response = await request(server).get(
-        `/issuers/not-a-did/attributes/${attributeId}`
+        `/issuers/not-a-did/attributes/${attributeId}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -586,7 +585,7 @@ describe("Issuers Module", () => {
 
       const attributeId = issuer.attribute.id;
       const response = await request(server).get(
-        `/issuers/did:ebsi:z1234/attributes/${attributeId}`
+        `/issuers/did:ebsi:z1234/attributes/${attributeId}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -603,7 +602,7 @@ describe("Issuers Module", () => {
 
       const attributeId = issuer.attribute.id;
       const response = await request(server).get(
-        `/issuers/${randomDid}/attributes/${attributeId}`
+        `/issuers/${randomDid}/attributes/${attributeId}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -697,7 +696,7 @@ describe("Issuers Module", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        "/issuers/did:ebsi:z1234/proxies"
+        "/issuers/did:ebsi:z1234/proxies",
       );
 
       expect(response.body).toStrictEqual({
@@ -713,7 +712,7 @@ describe("Issuers Module", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        `/issuers/${randomDid}/proxies`
+        `/issuers/${randomDid}/proxies`,
       );
 
       expect(response.body).toStrictEqual({
@@ -742,7 +741,7 @@ describe("Issuers Module", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        `/issuers/not-a-did/proxies/${issuer.proxy.id}`
+        `/issuers/not-a-did/proxies/${issuer.proxy.id}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -758,7 +757,7 @@ describe("Issuers Module", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        `/issuers/did:ebsi:z1234/proxies/${issuer.proxy.id}`
+        `/issuers/did:ebsi:z1234/proxies/${issuer.proxy.id}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -774,7 +773,7 @@ describe("Issuers Module", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        `/issuers/${randomDid}/proxies/${issuer.proxy.id}`
+        `/issuers/${randomDid}/proxies/${issuer.proxy.id}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -790,7 +789,7 @@ describe("Issuers Module", () => {
       expect.assertions(4);
 
       const { issuers } = testEnv;
-      const issuer1Did = issuers[0].did;
+      const issuer1Did = issuers[0]!.did;
 
       // Consult a random proxy
       const wrongProxyId =
@@ -802,7 +801,7 @@ describe("Issuers Module", () => {
 
       expect(response1.body).toStrictEqual({
         detail: expect.stringContaining(
-          `Proxy ${wrongProxyId} of issuer ${issuer1Did} can't be found`
+          `Proxy ${wrongProxyId} of issuer ${issuer1Did} can't be found`,
         ),
         status: 404,
         title: "Proxy Not Found",
@@ -811,12 +810,12 @@ describe("Issuers Module", () => {
       expect(response1.status).toBe(404);
 
       const response2 = await request(server).get(
-        `/issuers/${issuer.did}/proxies/${issuer2.proxy.id}`
+        `/issuers/${issuer.did}/proxies/${issuer2.proxy.id}`,
       );
 
       expect(response2.body).toStrictEqual({
         detail: expect.stringContaining(
-          `Proxy ${issuer2.proxy.id} of issuer ${issuer.did} can't be found`
+          `Proxy ${issuer2.proxy.id} of issuer ${issuer.did} can't be found`,
         ),
         status: 404,
         title: "Proxy Not Found",
@@ -829,13 +828,13 @@ describe("Issuers Module", () => {
   describe("GET /issuers/{did}/proxies/{proxyId}/{path}", () => {
     const subpath = "/credentials/status/3";
 
-    it("should return a specifc StatusList2021Credential (JWT)", async () => {
+    it("should return a specific StatusList2021Credential (JWT)", async () => {
       expect.assertions(2);
 
       const url = `/issuers/${issuer.did}/proxies/${issuer.proxy.id}${subpath}`;
 
       // Mock issuer's endpoint response
-      jest.spyOn(axios, "get").mockImplementation((requestUrl: string) => {
+      vi.spyOn(axios, "get").mockImplementation((requestUrl: string) => {
         if (requestUrl === `${issuer.proxy.obj.prefix}${subpath}`) {
           return Promise.resolve({
             status: 200,
@@ -847,9 +846,8 @@ describe("Issuers Module", () => {
       });
 
       // Mock VC Lib validation
-      jest
-        .spyOn(vcLib, "verifyCredentialJwt")
-        .mockImplementation(async (jwt: string) => {
+      vi.spyOn(vcLib, "verifyCredentialJwt").mockImplementation(
+        async (jwt: string) => {
           if (jwt === "jwt")
             return Promise.resolve({
               "@context": [
@@ -880,7 +878,8 @@ describe("Issuers Module", () => {
             });
 
           return Promise.reject(new Error("Invalid JWT"));
-        });
+        },
+      );
 
       const response = await request(server).get(url);
 
@@ -894,7 +893,7 @@ describe("Issuers Module", () => {
       const url = `/issuers/${issuer.did}/proxies/${issuer.proxy.id}${subpath}`;
 
       // Mock issuer's endpoint response
-      jest.spyOn(axios, "get").mockImplementation((requestUrl: string) => {
+      vi.spyOn(axios, "get").mockImplementation((requestUrl: string) => {
         if (requestUrl === `${issuer.proxy.obj.prefix}${subpath}`) {
           const error = new Error() as AxiosError<string>;
           error.status = 500;
@@ -925,7 +924,7 @@ describe("Issuers Module", () => {
 
       const url = `/issuers/${issuer.did}/proxies/${issuer.proxy.id}${subpath}`;
 
-      jest.spyOn(axios, "get").mockImplementation((requestUrl: string) => {
+      vi.spyOn(axios, "get").mockImplementation((requestUrl: string) => {
         if (requestUrl === `${issuer.proxy.obj.prefix}${subpath}`) {
           return Promise.resolve({
             status: 200,
@@ -936,7 +935,7 @@ describe("Issuers Module", () => {
         return Promise.reject(new Error("Invalid url"));
       });
 
-      jest.spyOn(vcLib, "verifyCredentialJwt").mockImplementation(async () => {
+      vi.spyOn(vcLib, "verifyCredentialJwt").mockImplementation(async () => {
         return Promise.reject(new Error("Invalid JWT"));
       });
 
@@ -1013,7 +1012,7 @@ describe("Issuers Module", () => {
 
       expect(response1.body).toStrictEqual({
         detail: expect.stringContaining(
-          `Proxy ${wrongProxyId} of issuer ${issuer.did} can't be found`
+          `Proxy ${wrongProxyId} of issuer ${issuer.did} can't be found`,
         ),
         status: 404,
         title: "Proxy Not Found",
@@ -1022,12 +1021,12 @@ describe("Issuers Module", () => {
       expect(response1.status).toBe(404);
 
       const response2 = await request(server).get(
-        `/issuers/${issuer.did}/proxies/${issuer2.proxy.id}${subpath}`
+        `/issuers/${issuer.did}/proxies/${issuer2.proxy.id}${subpath}`,
       );
 
       expect(response2.body).toStrictEqual({
         detail: expect.stringContaining(
-          `Proxy ${issuer2.proxy.id} of issuer ${issuer.did} can't be found`
+          `Proxy ${issuer2.proxy.id} of issuer ${issuer.did} can't be found`,
         ),
         status: 404,
         title: "Proxy Not Found",

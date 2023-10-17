@@ -9,7 +9,7 @@ import type { AxiosResponse } from "axios";
 import { Mutex } from "async-mutex";
 import { DidRegistry, DidRegistry__factory } from "@ebsiint-sc/did-registry-v3";
 import { logAxiosError, InternalServerError } from "@ebsiint-api/shared";
-import { ApiConfig } from "../../config/configuration";
+import type { ApiConfig } from "../../config/configuration.js";
 
 // Refresh the token if it expires in less than 10 seconds
 const REFRESH_LIMIT = 10 * 1000;
@@ -49,21 +49,21 @@ export class LedgerService {
   constructor(private configService: ConfigService<ApiConfig, true>) {
     this.didRegistryAddress = this.configService.get<string>("contractAddr");
     this.authorisationApiUrl = this.configService.get<string>(
-      "authorisationApiUrl"
+      "authorisationApiUrl",
     );
 
     this.agent = new Agent({
       privateKey: this.configService.get<string>("apiPrivateKey"),
       name: this.configService.get<string>("apiName"),
       trustedAppsRegistry: `${this.configService.get<string>(
-        "trustedAppsRegistryApiUrl"
+        "trustedAppsRegistryApiUrl",
       )}/apps`,
     });
 
     this.domain = this.configService.get<string>("domain");
     this.localOrigin = this.configService.get<string>("localOrigin");
     this.remoteLedgerApi = `${this.configService.get<string>(
-      "ledgerApiUrl"
+      "ledgerApiUrl",
     )}/blockchains/besu`;
     this.timeout = configService.get<number>("requestTimeout");
     this.publicProviderMutex = new Mutex();
@@ -84,7 +84,7 @@ export class LedgerService {
 
     const requestComponent = await this.agent.createRequest(
       this.configService.get<string>("ledgerApiName"),
-      { nonce }
+      { nonce },
     );
 
     // Send request payload to Authorisation API
@@ -102,7 +102,7 @@ export class LedgerService {
       });
 
       const payload = decodeJwt(accessToken);
-      this.accessTokenExp = payload.exp;
+      this.accessTokenExp = payload.exp!;
 
       return accessToken;
     } catch (err) {
@@ -164,12 +164,12 @@ export class LedgerService {
       try {
         const localUrl = this.remoteLedgerApi.replace(
           this.domain,
-          this.localOrigin
+          this.localOrigin,
         );
         this.logger.debug(
           `Trying to connect to local Ledger API: ${localUrl} (${
             token ? "with" : "without"
-          } access token)`
+          } access token)`,
         );
         const provider = this.setupProvider(localUrl, token);
         await provider.getNetwork();
@@ -177,7 +177,7 @@ export class LedgerService {
         return provider;
       } catch (e) {
         this.logger.debug(
-          `Falling back to remote Ledger API: ${this.remoteLedgerApi}`
+          `Falling back to remote Ledger API: ${this.remoteLedgerApi}`,
         );
         return this.setupProvider(this.remoteLedgerApi, token);
       }
@@ -200,7 +200,7 @@ export class LedgerService {
 
         this.didRegistryContract = DidRegistry__factory.connect(
           this.didRegistryAddress,
-          provider
+          provider,
         );
       });
     }
@@ -221,7 +221,7 @@ export class LedgerService {
 
         this.publicMethodsDidRegistryContract = DidRegistry__factory.connect(
           this.didRegistryAddress,
-          provider
+          provider,
         );
       });
     }

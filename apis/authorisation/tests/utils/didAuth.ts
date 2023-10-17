@@ -1,7 +1,7 @@
 import { KeyObject } from "node:crypto";
 import { SignJWT, importJWK } from "jose";
-import type { JWK, KeyLike } from "jose";
-import { getPrivateKeyHex } from "./keys";
+import type { JWK } from "jose";
+import { getPrivateKeyHex } from "./keys.js";
 
 export async function getKeyByAlg(
   keys: {
@@ -13,18 +13,8 @@ export async function getKeyByAlg(
     privateKeyEncryptionJwk?: JWK;
     publicKeyEncryptionJwk?: JWK;
   }[],
-  alg: "ES256K" | "ES256" | "RS256" | "EdDSA"
-): Promise<{
-  type: string;
-  id: string;
-  privateKeyJwk: JWK;
-  publicKeyJwk?: JWK;
-  privateKeyEncryptionJwk?: JWK;
-  publicKeyEncryptionJwk?: JWK;
-  privateKeyEncryption: KeyLike | Uint8Array;
-  publicKeyEncryption?: KeyLike | Uint8Array;
-  privateKeyHexES256K?: string;
-}> {
+  alg: "ES256K" | "ES256" | "RS256" | "EdDSA",
+) {
   const types = {
     ES256K: "Secp256k1VerificationKey2018",
     ES256: "Secp256r1VerificationKey2018",
@@ -39,13 +29,13 @@ export async function getKeyByAlg(
 
   const privateKeyEncryption = await importJWK(
     keyObject.privateKeyEncryptionJwk ?? keyObject.privateKeyJwk,
-    alg
+    alg,
   );
   const publicKeyEncryption =
     keyObject.publicKeyEncryptionJwk || keyObject.publicKeyJwk
       ? await importJWK(
           (keyObject.publicKeyEncryptionJwk ?? keyObject.publicKeyJwk) as JWK,
-          alg
+          alg,
         )
       : undefined;
   const privateKeyHexES256K =

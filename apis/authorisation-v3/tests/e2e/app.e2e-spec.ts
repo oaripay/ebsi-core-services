@@ -1,72 +1,74 @@
-import { jest, describe, beforeAll, it, expect } from "@jest/globals";
+import { describe, beforeAll, it, expect } from "vitest";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import { HttpServer, INestApplication } from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import type { FastifyInstance } from "fastify";
-import { Logger } from "@nestjs/common/services/logger.service";
-import { AppModule } from "../../src/app.module";
-import { ApiConfig } from "../../src/config/configuration";
-import { getServer } from "../utils/getServer";
-import { configureApp } from "../utils/app";
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
+import type { RawServerDefault } from "fastify";
+import { AppModule } from "../../src/app.module.js";
+import type { ApiConfig } from "../../src/config/configuration.js";
+import { getServer } from "../utils/getServer.js";
+import { configureApp } from "../utils/app.js";
 
-jest.setTimeout(60000);
+describe(
+  "/authorisation/v3 (generic tests)",
+  () => {
+    let app: NestFastifyApplication;
+    let server: RawServerDefault | string;
+    let apiUrlPrefix = "";
 
-describe("/authorisation/v3 (generic tests)", () => {
-  let app: INestApplication;
-  let server: HttpServer | string;
-  let apiUrlPrefix = "";
+    beforeAll(async () => {
+      const moduleFixture: TestingModule = await Test.createTestingModule({
+        imports: [AppModule],
+      }).compile();
 
-  beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
+      const configService =
+        moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
 
-    const configService =
-      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+      app = await configureApp(moduleFixture, configService);
 
-    app = await configureApp(moduleFixture, configService);
+      Logger.overrideLogger(false);
 
-    Logger.overrideLogger(false);
+      await app.init();
+      await app.getHttpAdapter().getInstance().ready();
 
-    await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+      server = getServer(app, configService);
 
-    server = getServer(app, configService);
-
-    const testEnv = configService.get<string>("testEnv");
-    if (testEnv === "remote") {
-      apiUrlPrefix = configService.get<string>("apiUrlPrefix");
-    }
-  });
-
-  describe("GET /health", () => {
-    it("should return ok", async () => {
-      expect.assertions(2);
-      const response = await request(server).get(`/health`);
-
-      expect(response.body).toStrictEqual({
-        details: { "ebsi-apis": { status: "up" } },
-        error: {},
-        info: { "ebsi-apis": { status: "up" } },
-        status: "ok",
-      });
-      expect(response.status).toBe(200);
+      const testEnv = configService.get<string>("testEnv");
+      if (testEnv === "remote") {
+        apiUrlPrefix = configService.get<string>("apiUrlPrefix");
+      }
     });
-  });
 
-  describe("GET /bad-method", () => {
-    it("should return error 404", async () => {
-      expect.assertions(2);
-      const response = await request(server).get("/bad-method");
+    describe("GET /health", () => {
+      it("should return ok", async () => {
+        expect.assertions(2);
+        const response = await request(server).get(`/health`);
 
-      expect(response.body).toStrictEqual({
-        title: "Not Found",
-        status: 404,
-        detail: `Cannot GET ${apiUrlPrefix}/bad-method`,
-        type: "about:blank",
+        expect(response.body).toStrictEqual({
+          details: { "ebsi-apis": { status: "up" } },
+          error: {},
+          info: { "ebsi-apis": { status: "up" } },
+          status: "ok",
+        });
+        expect(response.status).toBe(200);
       });
-      expect(response.status).toBe(404);
     });
-  });
-});
+
+    describe("GET /bad-method", () => {
+      it("should return error 404", async () => {
+        expect.assertions(2);
+        const response = await request(server).get("/bad-method");
+
+        expect(response.body).toStrictEqual({
+          title: "Not Found",
+          status: 404,
+          detail: `Cannot GET ${apiUrlPrefix}/bad-method`,
+          type: "about:blank",
+        });
+        expect(response.status).toBe(404);
+      });
+    });
+  },
+  { timeout: 60_000 },
+);

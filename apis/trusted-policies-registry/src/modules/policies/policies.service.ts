@@ -2,18 +2,17 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ethers } from "ethers";
 import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry";
 import {
-  AsyncReturnType,
   InternalServerError,
   isEthersError,
   NotFoundError,
 } from "@ebsiint-api/shared";
-import { LedgerService } from "../ledger/ledger.service";
+import { LedgerService } from "../ledger/ledger.service.js";
 import {
   ATTRIBUTE_OPERATIONS,
   ATTRIBUTE_TYPES,
   OPERATION_TYPES,
   PolicyResponseObject,
-} from "./policies.interface";
+} from "./policies.interface.js";
 
 @Injectable()
 export class PoliciesService {
@@ -60,7 +59,7 @@ export class PoliciesService {
 
   async getPolicyNames(
     page: number,
-    pageSize: number
+    pageSize: number,
   ): ReturnType<PolicyRegistry["getPolicyNames"]> {
     try {
       return await (
@@ -77,7 +76,7 @@ export class PoliciesService {
   }
 
   async getPolicy(policyName: string): Promise<PolicyResponseObject> {
-    let policy: AsyncReturnType<PolicyRegistry["getPolicy(string)"]>;
+    let policy: Awaited<ReturnType<PolicyRegistry["getPolicy(string)"]>>;
 
     try {
       policy = await (
@@ -96,14 +95,14 @@ export class PoliciesService {
       policyId: ethers.BigNumber.from(policy.policyId).toString(),
       description: policy.description,
       policyName: policy.policyName,
-      operationType: OPERATION_TYPES[policy.opType],
+      operationType: OPERATION_TYPES[policy.opType]!,
       status: policy.status,
       policyConditions: policy.policyConditions.map((condition) => ({
         name: condition.name,
         attributeName: condition.attributeName,
-        typeOfValue: ATTRIBUTE_TYPES[condition.typeOfValue],
+        typeOfValue: ATTRIBUTE_TYPES[condition.typeOfValue]!,
         value: this.formatValue(condition.value, condition.typeOfValue),
-        attributeOperation: ATTRIBUTE_OPERATIONS[condition.attributeOperation],
+        attributeOperation: ATTRIBUTE_OPERATIONS[condition.attributeOperation]!,
       })),
     };
   }

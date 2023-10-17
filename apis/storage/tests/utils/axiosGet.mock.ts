@@ -1,12 +1,12 @@
-import { jest } from "@jest/globals";
-import axios, { AxiosResponse } from "axios";
-import KeyEncoder from "key-encoder";
+import { vi } from "vitest";
+import axios, { type AxiosResponse } from "axios";
+import { KeyEncoder } from "@cef-ebsi/key-encoder";
 
 const keyEncoder = new KeyEncoder("secp256k1");
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const mockAxiosGet = (authorisationApiPublicKey: string) =>
-  jest
+  vi
     .spyOn(axios, "get")
     .mockImplementation((url: string): Promise<Partial<AxiosResponse>> => {
       if (
@@ -23,7 +23,11 @@ export const mockAxiosGet = (authorisationApiPublicKey: string) =>
             administrators: [],
             publicKeys: [
               Buffer.from(
-                keyEncoder.encodePublic(authorisationApiPublicKey, "raw", "pem")
+                keyEncoder.encodePublic(
+                  authorisationApiPublicKey,
+                  "raw",
+                  "pem",
+                ),
               ).toString("base64"),
             ],
             info: {},

@@ -31,7 +31,7 @@ export const isSchemaId = (value: unknown) => {
 };
 
 export function IsSchemaId(
-  validationOptions?: ValidationOptions
+  validationOptions?: ValidationOptions,
 ): PropertyDecorator {
   return ValidateBy(
     {
@@ -40,10 +40,10 @@ export function IsSchemaId(
         validate: isSchemaId,
         defaultMessage: buildMessage(
           (eachPrefix) => `${eachPrefix}$property must be a valid schema ID`,
-          validationOptions
+          validationOptions,
         ),
       },
     },
-    validationOptions
+    validationOptions,
   );
 }

@@ -1,9 +1,9 @@
 import { IsEthereumAddress } from "class-validator";
-import { ArgsUpdateMetadata } from "../sendSignedTransaction";
+import { ArgsUpdateMetadata } from "../sendSignedTransaction/index.js";
 
 export class UpdateMetadataParam extends ArgsUpdateMetadata {
   @IsEthereumAddress()
-  from: string;
+  from!: string;
 }
 
 export default { UpdateMetadataParam };

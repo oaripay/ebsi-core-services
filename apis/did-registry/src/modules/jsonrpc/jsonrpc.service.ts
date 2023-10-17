@@ -32,13 +32,13 @@ import {
   RequestAppendDidDocumentVersionMetadataDto,
   RequestDetachDidDocumentVersionMetadataDto,
   ArgsDetachDidDocumentVersionMetadata,
-} from "./dto";
+} from "./dto/index.js";
 import {
   formatEthersUnsignedTransaction,
   formatEthersSignature,
   validateClass,
-} from "./jsonrpc.utils";
-import { LedgerService } from "../ledger/ledger.service";
+} from "./jsonrpc.utils.js";
+import { LedgerService } from "../ledger/ledger.service.js";
 
 // Cache algorithms' output lengths for 30 minutes
 const ALGORITHMS_EXP = 30 * 60 * 1000; // 30 minutes
@@ -47,7 +47,7 @@ const ALGORITHMS_EXP = 30 * 60 * 1000; // 30 minutes
 export class JsonRpcService {
   private readonly logger = new Logger(JsonRpcService.name);
 
-  private chainId: string = null;
+  private chainId: string = "";
 
   private contractAddress: string;
 
@@ -78,7 +78,7 @@ export class JsonRpcService {
   }
 
   async estimateGas(
-    transaction: UnsignedTransaction
+    transaction: UnsignedTransaction,
   ): Promise<ethers.BigNumber> {
     const { from, to, data, value } = transaction;
 
@@ -102,7 +102,7 @@ export class JsonRpcService {
   async verifyDidRegistry(
     controllerAddress: string,
     did: string,
-    currentPage = 1
+    currentPage = 1,
   ): Promise<boolean> {
     const pageSize = 50;
 
@@ -112,14 +112,14 @@ export class JsonRpcService {
       ).getDidRecordIdentifiersByControllerId(
         controllerAddress,
         currentPage,
-        pageSize
+        pageSize,
       );
 
       // Check if DID is in the list
       if (
         data.items
           .map((hexDid) =>
-            Buffer.from(remove0xPrefix(hexDid), "hex").toString("utf8")
+            Buffer.from(remove0xPrefix(hexDid), "hex").toString("utf8"),
           )
           .includes(did)
       ) {
@@ -131,7 +131,7 @@ export class JsonRpcService {
         return await this.verifyDidRegistry(
           controllerAddress,
           did,
-          currentPage + 1
+          currentPage + 1,
         );
       }
     } catch (error) {
@@ -149,7 +149,7 @@ export class JsonRpcService {
 
     if (
       !this.algIdsToOutputLength[hashAlgorithmId] ||
-      this.algIdsToOutputLength[hashAlgorithmId].exp < now
+      this.algIdsToOutputLength[hashAlgorithmId]!.exp < now
     ) {
       // Get hash algorithm corresponding to hashAlgorithmId
       try {
@@ -169,19 +169,19 @@ export class JsonRpcService {
           this.logger.error(error);
         }
         throw new Error(
-          `Can't find hash algorithm with ID: ${hashAlgorithmId}`
+          `Can't find hash algorithm with ID: ${hashAlgorithmId}`,
         );
       }
     }
 
     // Compare lengths
     const expectedOutputLength =
-      this.algIdsToOutputLength[hashAlgorithmId].outputLength;
+      this.algIdsToOutputLength[hashAlgorithmId]!.outputLength;
     const hashLength =
       Buffer.from(remove0xPrefix(hashValue), "hex").byteLength * 8;
     if (hashLength !== expectedOutputLength) {
       throw new Error(
-        `Hash ${hashValue}'s length (${hashLength} bits) is different from the expected length (${expectedOutputLength} bits)`
+        `Hash ${hashValue}'s length (${hashLength} bits) is different from the expected length (${expectedOutputLength} bits)`,
       );
     }
   }
@@ -189,13 +189,13 @@ export class JsonRpcService {
   checkDid(clientId: string, identifier: string, didDocument?: string): void {
     const identifierUtf8 = Buffer.from(
       remove0xPrefix(identifier),
-      "hex"
+      "hex",
     ).toString("utf-8");
 
     // Compare JWT's DID with "identifier" param
     if (clientId !== identifierUtf8) {
       throw new Error(
-        `Identifier ${identifierUtf8} doesn't match JWT's DID ${clientId}`
+        `Identifier ${identifierUtf8} doesn't match JWT's DID ${clientId}`,
       );
     }
 
@@ -203,19 +203,19 @@ export class JsonRpcService {
 
     // Check if DID document's "id" matches with the JWT's DID
     const parsedDidDocument = JSON.parse(
-      Buffer.from(remove0xPrefix(didDocument), "hex").toString("utf-8")
+      Buffer.from(remove0xPrefix(didDocument), "hex").toString("utf-8"),
     ) as { id?: string };
 
     if (clientId !== parsedDidDocument.id) {
       throw new Error(
-        `DID document's "id" ${parsedDidDocument.id} doesn't match JWT's DID ${clientId}`
+        `DID document's "id" ${parsedDidDocument.id} doesn't match JWT's DID ${clientId}`,
       );
     }
   }
 
   async verifyTransaction(
     clientId: string,
-    param: SignedTransactionParam
+    param: SignedTransactionParam,
   ): Promise<{ signer: string; functionName: string }> {
     const { unsignedTransaction, r, s, v, signedRawTransaction } = param;
 
@@ -226,12 +226,12 @@ export class JsonRpcService {
     const serializedTransaction = ethers.utils.serializeTransaction(unsignedTx);
     const serializedTransactionSigned = ethers.utils.serializeTransaction(
       unsignedTx,
-      signature
+      signature,
     );
 
     if (serializedTransactionSigned !== signedRawTransaction) {
       throw new Error(
-        `The unsigned transaction + signature (${serializedTransactionSigned}) does not match with the signedRawTransaction (${signedRawTransaction})`
+        `The unsigned transaction + signature (${serializedTransactionSigned}) does not match with the signedRawTransaction (${signedRawTransaction})`,
       );
     }
 
@@ -241,20 +241,20 @@ export class JsonRpcService {
 
     if (signer.toLowerCase() !== unsignedTransaction.from.toLowerCase()) {
       throw new Error(
-        `The signer of the transaction (${signer}) does not match with unsignedTransaction.from (${unsignedTransaction.from}) `
+        `The signer of the transaction (${signer}) does not match with unsignedTransaction.from (${unsignedTransaction.from}) `,
       );
     }
 
     const chainId = await this.getChainId();
     if (unsignedTransaction.chainId !== chainId) {
       throw new Error(
-        `Invalid unsignedTransaction.chainId. Expected ${chainId}. Received ${unsignedTransaction.chainId}`
+        `Invalid unsignedTransaction.chainId. Expected ${chainId}. Received ${unsignedTransaction.chainId}`,
       );
     }
 
     if (unsignedTransaction.to !== this.contractAddress) {
       throw new Error(
-        `Invalid unsignedTransaction.to. Expected ${this.contractAddress}. Received ${unsignedTransaction.to}`
+        `Invalid unsignedTransaction.to. Expected ${this.contractAddress}. Received ${unsignedTransaction.to}`,
       );
     }
 
@@ -267,14 +267,14 @@ export class JsonRpcService {
       case "insertHashAlgorithm": {
         await validateClass(
           ArgsInsertHashAlgorithm,
-          args as unknown as ArgsInsertHashAlgorithm
+          args as unknown as ArgsInsertHashAlgorithm,
         );
         break;
       }
       case "updateHashAlgorithm": {
         await validateClass(
           ArgsUpdateHashAlgorithm,
-          args as unknown as ArgsUpdateHashAlgorithm
+          args as unknown as ArgsUpdateHashAlgorithm,
         );
         break;
       }
@@ -340,7 +340,7 @@ export class JsonRpcService {
       }
       default:
         throw new Error(
-          `The function name ${functionFragment.name} can not be used in this context`
+          `The function name ${functionFragment.name} can not be used in this context`,
         );
     }
 
@@ -352,7 +352,7 @@ export class JsonRpcService {
 
   async buildTransaction(
     from: string,
-    params: string
+    params: string,
   ): Promise<UnsignedTransaction> {
     try {
       const nonceInt = await (
@@ -385,7 +385,7 @@ export class JsonRpcService {
             gasEstimation === "unset"
               ? ""
               : `Received ${gasEstimation.toString()}.`
-          } Using 0x1000000`
+          } Using 0x1000000`,
         );
         unsignedTransaction.gasLimit = "0x1000000";
       }
@@ -401,13 +401,13 @@ export class JsonRpcService {
 
   async buildTransactionInsertHashAlgorithm(
     body: RequestInsertHashAlgorithmDto,
-    id?: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestInsertHashAlgorithmDto, body);
 
       const { from, outputLength, ianaName, oid, status, multihash } =
-        body.params[0];
+        body.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -421,14 +421,16 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionUpdateHashAlgorithm(
     body: RequestUpdateHashAlgorithmDto,
-    id?: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestUpdateHashAlgorithmDto, body);
@@ -441,7 +443,7 @@ export class JsonRpcService {
         oid,
         status,
         multihash,
-      } = body.params[0];
+      } = body.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -457,7 +459,9 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
@@ -465,7 +469,7 @@ export class JsonRpcService {
   async buildTransactionInsertDidDocument(
     clientId: string,
     body: RequestInsertDidDocumentDto,
-    id?: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestInsertDidDocumentDto, body);
@@ -478,7 +482,7 @@ export class JsonRpcService {
         didVersionInfo,
         timestampData,
         didVersionMetadata,
-      } = body.params[0];
+      } = body.params[0]!;
 
       this.checkDid(clientId, identifier, didVersionInfo);
       await this.checkHash(hashAlgorithmId, hashValue);
@@ -497,7 +501,9 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
@@ -505,7 +511,7 @@ export class JsonRpcService {
   async buildTransactionUpdateDidDocument(
     clientId: string,
     body: RequestUpdateDidDocumentDto,
-    id?: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestUpdateDidDocumentDto, body);
@@ -518,7 +524,7 @@ export class JsonRpcService {
         didVersionInfo,
         timestampData,
         didVersionMetadata,
-      } = body.params[0];
+      } = body.params[0]!;
 
       this.checkDid(clientId, identifier, didVersionInfo);
       await this.checkHash(hashAlgorithmId, hashValue);
@@ -537,7 +543,9 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
@@ -545,13 +553,13 @@ export class JsonRpcService {
   async buildTransactionInsertDidController(
     clientId: string,
     body: RequestInsertDidControllerDto,
-    id?: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestInsertDidControllerDto, body);
 
       const { from, identifier, newControllerId, notBefore, notAfter } =
-        body.params[0];
+        body.params[0]!;
 
       this.checkDid(clientId, identifier);
 
@@ -566,7 +574,9 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
@@ -574,13 +584,13 @@ export class JsonRpcService {
   async buildTransactionUpdateDidController(
     clientId: string,
     body: RequestUpdateDidControllerDto,
-    id?: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestUpdateDidControllerDto, body);
 
       const { from, identifier, newControllerId, notBefore, notAfter } =
-        body.params[0];
+        body.params[0]!;
 
       this.checkDid(clientId, identifier);
 
@@ -595,7 +605,9 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
@@ -603,12 +615,12 @@ export class JsonRpcService {
   async buildTransactionRevokeDidController(
     clientId: string,
     body: RequestRevokeDidControllerDto,
-    id?: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestRevokeDidControllerDto, body);
 
-      const { from, identifier, oldControllerId } = body.params[0];
+      const { from, identifier, oldControllerId } = body.params[0]!;
 
       this.checkDid(clientId, identifier);
 
@@ -621,7 +633,9 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
@@ -629,7 +643,7 @@ export class JsonRpcService {
   async buildTransactionAppendDidDocumentVersionHash(
     clientId: string,
     body: RequestAppendDidDocumentVersionHashDto,
-    id?: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestAppendDidDocumentVersionHashDto, body);
@@ -641,7 +655,7 @@ export class JsonRpcService {
         hashValue,
         timestampData,
         didVersionInfo,
-      } = body.params[0];
+      } = body.params[0]!;
 
       this.checkDid(clientId, identifier, didVersionInfo);
       await this.checkHash(hashAlgorithmId, hashValue);
@@ -658,7 +672,9 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
@@ -666,13 +682,13 @@ export class JsonRpcService {
   async buildTransactionDetachDidDocumentVersionHash(
     clientId: string,
     body: RequestDetachDidDocumentVersionHashDto,
-    id?: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestDetachDidDocumentVersionHashDto, body);
 
       const { from, identifier, hashAlgorithmId, hashValue, didVersionInfo } =
-        body.params[0];
+        body.params[0]!;
 
       this.checkDid(clientId, identifier, didVersionInfo);
       await this.checkHash(hashAlgorithmId, hashValue);
@@ -688,7 +704,9 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
@@ -696,13 +714,13 @@ export class JsonRpcService {
   async buildTransactionAppendDidDocumentVersionMetadata(
     clientId: string,
     body: RequestAppendDidDocumentVersionMetadataDto,
-    id?: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestAppendDidDocumentVersionMetadataDto, body);
 
       const { from, identifier, didVersionInfo, didVersionMetadata } =
-        body.params[0];
+        body.params[0]!;
 
       this.checkDid(clientId, identifier, didVersionInfo);
 
@@ -716,7 +734,9 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
@@ -724,13 +744,13 @@ export class JsonRpcService {
   async buildTransactionDetachDidDocumentVersionMetadata(
     clientId: string,
     body: RequestDetachDidDocumentVersionMetadataDto,
-    id?: number | string
+    id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
       await validateClass(RequestDetachDidDocumentVersionMetadataDto, body);
 
       const { from, identifier, didVersionInfo, didVersionMetadata } =
-        body.params[0];
+        body.params[0]!;
 
       this.checkDid(clientId, identifier, didVersionInfo);
 
@@ -744,7 +764,9 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
@@ -752,28 +774,30 @@ export class JsonRpcService {
   async sendTransaction(
     clientId: string,
     body: RequestSendSignedTransactionDto,
-    id?: number | string
+    id?: number | string,
   ): Promise<string> {
     try {
       await validateClass(RequestSendSignedTransactionDto, body);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
 
     try {
-      const request = body.params[0];
+      const request = body.params[0]!;
       const { signer, functionName } = await this.verifyTransaction(
         clientId,
-        request
+        request,
       );
       if (
         functionName !== "insertDidDocument" &&
         !(await this.verifyDidRegistry(signer, clientId))
       ) {
         throw new Error(
-          `The DID ${clientId} is not controlled by the address ${signer}`
+          `The DID ${clientId} is not controlled by the address ${signer}`,
         );
       }
 
@@ -788,7 +812,9 @@ export class JsonRpcService {
       }
 
       const err = new InvalidRequestJsonRpcError(getErrorMessage(error), id);
-      err.stack = (err as Error).stack;
+      if (error instanceof Error && error.stack) {
+        err.stack = error.stack;
+      }
       throw err;
     }
   }

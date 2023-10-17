@@ -6,11 +6,11 @@ async function main() {
 
   const TSC_DIAMOND_STORAGE_SLOT = ethers.utils.keccak256(
     ethers.utils.toUtf8Bytes(
-      "diamond.standard.trusted.ledger.smart.contracts.storage"
-    )
+      "diamond.standard.trusted.ledger.smart.contracts.storage",
+    ),
   );
   const IMPLEMENTATION_SLOT = ethers.utils.keccak256(
-    ethers.utils.toUtf8Bytes("diamond.standard.diamond.storage.proxy")
+    ethers.utils.toUtf8Bytes("diamond.standard.diamond.storage.proxy"),
   );
 
   const [deployer, user] = await ethers.getSigners();
@@ -18,45 +18,45 @@ async function main() {
 
   const proxyCtr = await ethers.getContractAt(
     `OwnedUpgradeabilityProxy`,
-    proxyDeployedAddr
+    proxyDeployedAddr,
   );
 
   // these infos are not easily accessible as they are restricted by an onlyAdmin modifier
   // to retrieve them we use the low level getStorage call
   const adminAddr = BigNumber.from(
-    await ethers.provider.getStorageAt(proxyCtr.address, IMPLEMENTATION_SLOT)
+    await ethers.provider.getStorageAt(proxyCtr.address, IMPLEMENTATION_SLOT),
   ).toHexString();
   console.log(`Proxy admin address: ${adminAddr}`);
   // the implementation is in the next storage slot as it is part of the same struct
   const implementationAddr = BigNumber.from(
     await ethers.provider.getStorageAt(
       proxyCtr.address,
-      BigNumber.from(IMPLEMENTATION_SLOT).add(1)
-    )
+      BigNumber.from(IMPLEMENTATION_SLOT).add(1),
+    ),
   ).toHexString();
   console.log(`Proxy implementation address: ${implementationAddr}`);
 
   const version = BigNumber.from(
     await ethers.provider.getStorageAt(
       proxyCtr.address,
-      TSC_DIAMOND_STORAGE_SLOT
-    )
+      TSC_DIAMOND_STORAGE_SLOT,
+    ),
   ).toHexString();
   console.log(`version : ${version}`);
 
   const newImplementationAddr = BigNumber.from(
     await ethers.provider.getStorageAt(
       proxyCtr.address,
-      BigNumber.from(IMPLEMENTATION_SLOT).add(1)
-    )
+      BigNumber.from(IMPLEMENTATION_SLOT).add(1),
+    ),
   ).toHexString();
   console.log(`Proxy new implementation address: ${newImplementationAddr}`);
 
   const newVersion = BigNumber.from(
     await ethers.provider.getStorageAt(
       proxyCtr.address,
-      TSC_DIAMOND_STORAGE_SLOT
-    )
+      TSC_DIAMOND_STORAGE_SLOT,
+    ),
   ).toHexString();
   console.log(`new version : ${newVersion}`);
 }

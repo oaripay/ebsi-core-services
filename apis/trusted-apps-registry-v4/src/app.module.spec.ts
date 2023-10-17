@@ -1,22 +1,17 @@
-import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
+import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  HttpServer,
-  ValidationPipe,
-  Logger,
-} from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import { ethers } from "ethers";
-import { AppModule } from "./app.module";
-import { AllExceptionsFilter } from "./filters/http-exception.filter";
-import { ApiConfig } from "./config/configuration";
+import { AppModule } from "./app.module.js";
+import { AllExceptionsFilter } from "./filters/http-exception.filter.js";
+import type { ApiConfig } from "./config/configuration.js";
 
 interface ResponseHeaders {
   "ebsi-image-tag"?: string;
@@ -24,8 +19,8 @@ interface ResponseHeaders {
 }
 
 describe("App Module", () => {
-  let app: INestApplication;
-  let server: HttpServer;
+  let app: NestFastifyApplication;
+  let server: RawServerDefault;
   let configService: ConfigService<ApiConfig, true>;
   const dockerTag = "version";
 
@@ -33,21 +28,19 @@ describe("App Module", () => {
     process.env.DOCKER_TAG = dockerTag;
 
     // Mock WebSocketProvider
-    jest
-      .spyOn(ethers.providers, "WebSocketProvider")
-      .mockImplementation(
-        () =>
-          new ethers.providers.BaseProvider(
-            "any"
-          ) as ethers.providers.WebSocketProvider
-      );
+    vi.spyOn(ethers.providers, "WebSocketProvider").mockImplementation(
+      () =>
+        new ethers.providers.BaseProvider(
+          "any",
+        ) as ethers.providers.WebSocketProvider,
+    );
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
@@ -57,16 +50,12 @@ describe("App Module", () => {
     Logger.overrideLogger(false);
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
-    server = app.getHttpServer() as HttpServer;
+    server = app.getHttpServer();
   });
 
   afterAll(async () => {
-    // Avoid jest open handle error
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
     await app.close();
   });
 

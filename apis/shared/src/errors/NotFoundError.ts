@@ -1,4 +1,4 @@
-import { ProblemDetailsError } from "./ProblemDetailsError";
+import { ProblemDetailsError } from "./ProblemDetailsError.js";
 
 /**
  * NotFoundError defines the Not Found (404) error type.
@@ -24,7 +24,7 @@ export class NotFoundError extends ProblemDetailsError {
       detail?: string;
       instance?: string;
       extensions?: { [x: string]: unknown };
-    }
+    },
   ) {
     super(NotFoundError.statusCode, title, options);
     this.name = "NotFoundError";

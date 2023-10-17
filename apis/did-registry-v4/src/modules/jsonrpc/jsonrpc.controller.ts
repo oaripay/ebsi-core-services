@@ -1,8 +1,8 @@
 import { Controller, Body, Post, HttpCode, UseGuards } from "@nestjs/common";
 import { InvalidRequestJsonRpcError } from "@ebsiint-api/shared";
-import { JsonRpcService } from "./jsonrpc.service";
-import { JsonRpcResponseObject } from "./jsonrpc.interface";
-import { BearerJwtAuthGuard } from "../auth/guards";
+import { JsonRpcService } from "./jsonrpc.service.js";
+import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
+import { BearerJwtAuthGuard } from "../auth/guards/index.js";
 import {
   JsonRpcDto,
   RequestSendSignedTransactionDto,
@@ -15,12 +15,12 @@ import {
   RequestRevokeVerificationMethodDto,
   RequestExpireVerificationMethodDto,
   RequestRollVerificationMethodDto,
-} from "./dto";
-import { Subject, SubjectInfo } from "../auth/decorators";
+} from "./dto/index.js";
+import { Subject, type SubjectInfo } from "../auth/decorators/index.js";
 
 function formatJsonRpcResponse(
   result: unknown,
-  id: string | number | null
+  id: string | number | null | undefined,
 ): JsonRpcResponseObject {
   return { jsonrpc: "2.0", id: id ?? null, result };
 }
@@ -34,10 +34,10 @@ export default class AppController {
   @Post()
   async jsonRPC(
     @Body() body: JsonRpcDto,
-    @Subject() subject: SubjectInfo
+    @Subject() subject: SubjectInfo,
   ): Promise<JsonRpcResponseObject> {
     const { method, id: requestId } = body;
-    const id = requestId ?? null;
+    const id = requestId ?? undefined;
     const { scp: scope, sub } = subject;
 
     switch (method) {
@@ -47,7 +47,7 @@ export default class AppController {
             body as RequestInsertDidDocumentDto,
             id,
             sub,
-            scope
+            scope,
           );
         return formatJsonRpcResponse(transaction, id);
       }
@@ -56,7 +56,7 @@ export default class AppController {
           await this.jsonRpcService.buildTransactionUpdateBaseDocument(
             body as RequestUpdateBaseDocumentDto,
             id,
-            scope
+            scope,
           );
         return formatJsonRpcResponse(transaction, id);
       }
@@ -65,7 +65,7 @@ export default class AppController {
           await this.jsonRpcService.buildTransactionAddController(
             body as RequestAddControllerDto,
             id,
-            scope
+            scope,
           );
         return formatJsonRpcResponse(transaction, id);
       }
@@ -74,7 +74,7 @@ export default class AppController {
           await this.jsonRpcService.buildTransactionRevokeController(
             body as RequestRevokeControllerDto,
             id,
-            scope
+            scope,
           );
         return formatJsonRpcResponse(transaction, id);
       }
@@ -83,7 +83,7 @@ export default class AppController {
           await this.jsonRpcService.buildTransactionAddVerificationMethod(
             body as RequestAddVerificationMethodDto,
             id,
-            scope
+            scope,
           );
         return formatJsonRpcResponse(transaction, id);
       }
@@ -92,7 +92,7 @@ export default class AppController {
           await this.jsonRpcService.buildTransactionAddVerificationRelationship(
             body as RequestAddVerificationRelationshipDto,
             id,
-            scope
+            scope,
           );
         return formatJsonRpcResponse(transaction, id);
       }
@@ -101,7 +101,7 @@ export default class AppController {
           await this.jsonRpcService.buildTransactionRevokeVerificationMethod(
             body as RequestRevokeVerificationMethodDto,
             id,
-            scope
+            scope,
           );
         return formatJsonRpcResponse(transaction, id);
       }
@@ -110,7 +110,7 @@ export default class AppController {
           await this.jsonRpcService.buildTransactionExpireVerificationMethod(
             body as RequestExpireVerificationMethodDto,
             id,
-            scope
+            scope,
           );
         return formatJsonRpcResponse(transaction, id);
       }
@@ -119,7 +119,7 @@ export default class AppController {
           await this.jsonRpcService.buildTransactionRollVerificationMethod(
             body as RequestRollVerificationMethodDto,
             id,
-            scope
+            scope,
           );
         return formatJsonRpcResponse(transaction, id);
       }
@@ -128,14 +128,14 @@ export default class AppController {
           body as RequestSendSignedTransactionDto,
           id,
           sub,
-          scope
+          scope,
         );
         return formatJsonRpcResponse(result, id);
       }
       default:
         throw new InvalidRequestJsonRpcError(
           `The method '${method}' is invalid`,
-          id
+          id,
         );
     }
   }

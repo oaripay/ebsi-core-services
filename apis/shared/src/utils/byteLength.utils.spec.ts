@@ -1,6 +1,6 @@
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 import crypto from "node:crypto";
-import { byteLength } from "./byteLength.utils";
+import { byteLength } from "./byteLength.utils.js";
 
 describe("byteLength", () => {
   it("should return the expected byte length of a UTF8 string", () => {

@@ -10,7 +10,7 @@ export class ArgsUpdatePolicy {
   policyName?: string;
 
   @IsString()
-  description: string;
+  description!: string;
 }
 
 export default { ArgsUpdatePolicy };

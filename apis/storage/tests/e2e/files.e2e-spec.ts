@@ -1,35 +1,33 @@
-import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
+import { describe, beforeAll, afterAll, it, expect } from "vitest";
 import crypto from "node:crypto";
 import { URL } from "node:url";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import { ValidationPipe, Logger, HttpServer } from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import fastifyMultipart from "@fastify/multipart";
 import { byteLength } from "@ebsiint-api/shared";
-import { AppModule } from "../../src/app.module";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
+import { AppModule } from "../../src/app.module.js";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 import {
   fastifyAdapterConfig,
   fastifyMultipartConfig,
-} from "../../src/config/server.config";
-import { ApiConfig } from "../../src/config/configuration";
-import { requestSiopJwt } from "../utils";
-import { describeWriteOps } from "../utils/describeWriteOps";
-import { getServer } from "../utils/getServer";
-
-jest.setTimeout(60000);
+} from "../../src/config/server.config.js";
+import type { ApiConfig } from "../../src/config/configuration.js";
+import { requestSiopJwt } from "../utils/index.js";
+import { describeWriteOps } from "../utils/describeWriteOps.js";
+import { getServer } from "../utils/getServer.js";
 
 const BASE_URL = "/stores/distributed/files";
 
 describe("Files (e2e)", () => {
   let app: NestFastifyApplication;
-  let server: HttpServer | string;
+  let server: RawServerDefault | string;
   let configService: ConfigService<ApiConfig, true>;
   let testUserAccessToken: string;
 
@@ -59,7 +57,7 @@ describe("Files (e2e)", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter(fastifyAdapterConfig)
+      new FastifyAdapter(fastifyAdapterConfig),
     );
 
     await app.register(fastifyMultipart, fastifyMultipartConfig);
@@ -72,7 +70,7 @@ describe("Files (e2e)", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
     server = getServer(app, configService);
 
@@ -91,10 +89,6 @@ describe("Files (e2e)", () => {
   });
 
   afterAll(async () => {
-    // Avoid jest open handle error
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
     await app.close();
   });
 
@@ -203,7 +197,7 @@ describe("Files (e2e)", () => {
 
       expect(response.body).toStrictEqual({
         detail: `Max size for 'metadata' is 5242880 bytes. Received ${byteLength(
-          JSON.stringify(finalMetadata)
+          JSON.stringify(finalMetadata),
         )}`,
         status: 413,
         title: "Payload Too Large",
@@ -222,7 +216,7 @@ describe("Files (e2e)", () => {
           "metadata",
           JSON.stringify({
             test: "test",
-          })
+          }),
         )
         .attach("file", crypto.randomBytes(6 * 1024 * 1024), "file.txt");
 
@@ -319,10 +313,10 @@ describe("Files (e2e)", () => {
 
       expect(response.body).toStrictEqual({
         items: expect.arrayContaining([]),
-        links: expect.objectContaining({}) as unknown,
+        links: expect.objectContaining({}),
         pageSize: 12,
         self: expect.stringContaining(
-          "/stores/distributed/files?page[size]=12"
+          "/stores/distributed/files?page[size]=12",
         ),
       });
       expect(response.status).toBe(200);
@@ -340,7 +334,7 @@ describe("Files (e2e)", () => {
         items: expect.arrayContaining([expect.stringContaining("0x")]),
         links: {
           next: expect.stringMatching(
-            /\/stores\/distributed\/files\?page\[after\]=.*&page\[size\]=2/
+            /\/stores\/distributed\/files\?page\[after\]=.*&page\[size\]=2/,
           ),
         },
         pageSize: 2,
@@ -350,7 +344,7 @@ describe("Files (e2e)", () => {
       expect(response.status).toBe(200);
 
       const nextLink = new URL(
-        (response.body as { links: { next: string } }).links.next
+        (response.body as { links: { next: string } }).links.next,
       );
 
       // Go to next page
@@ -362,7 +356,7 @@ describe("Files (e2e)", () => {
 
       expect(nextPageResponse.body).toStrictEqual({
         items: expect.arrayContaining([expect.stringContaining("0x")]),
-        links: expect.objectContaining({}) as unknown,
+        links: expect.objectContaining({}),
         pageSize: 2,
         self: expect.stringContaining(nextPageUrl),
       });
@@ -421,7 +415,7 @@ describe("Files (e2e)", () => {
             "content-type": "text/plain",
             "content-disposition": "attachment; filename=file.txt",
             "content-length": `${byteLength(file1)}`,
-          })
+          }),
         );
         expect(response.status).toBe(200);
       });
@@ -652,7 +646,8 @@ describe("Files (e2e)", () => {
       });
       expect(response.status).toBe(400);
     });
-    /* eslint-disable-next-line jest/no-identical-title */
+
+    // eslint-disable-next-line vitest/no-identical-title
     it("should throw a 404 when the hash doesn't exist", async () => {
       expect.assertions(2);
 

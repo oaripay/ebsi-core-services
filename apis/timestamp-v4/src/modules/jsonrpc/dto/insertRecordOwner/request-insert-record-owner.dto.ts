@@ -6,19 +6,19 @@ import {
   ValidateNested,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { JsonRpcDto } from "../jsonrpc.dto";
-import { InsertRecordOwnerParam } from "./insert-record-owner-param.dto";
+import { JsonRpcDto } from "../jsonrpc.dto.js";
+import { InsertRecordOwnerParam } from "./insert-record-owner-param.dto.js";
 
 export class RequestInsertRecordOwnerDto extends JsonRpcDto {
   @Equals("insertRecordOwner")
-  method!: string;
+  declare method: string;
 
   @IsArray()
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @ValidateNested({ each: true })
   @Type(() => InsertRecordOwnerParam)
-  params!: InsertRecordOwnerParam[];
+  declare params: InsertRecordOwnerParam[];
 }
 
 export default RequestInsertRecordOwnerDto;

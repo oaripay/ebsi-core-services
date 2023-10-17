@@ -30,7 +30,7 @@ export default function loadTesting() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-      }
+      },
     );
     check(request, {
       200: (r) => r.status === 200,

@@ -30,19 +30,19 @@ import {
   ArgsRollVerificationMethod,
   RequestAddServiceDto,
   RequestRevokeServiceDto,
-} from "./dto";
+} from "./dto/index.js";
 import {
   formatEthersUnsignedTransaction,
   formatEthersSignature,
   validateClass,
-} from "./jsonrpc.utils";
-import { LedgerService } from "../ledger/ledger.service";
-import { DIDR_INVITE_SCOPE, DIDR_WRITE_SCOPE } from "../auth/auth.constants";
+} from "./jsonrpc.utils.js";
+import { LedgerService } from "../ledger/ledger.service.js";
+import { DIDR_INVITE_SCOPE, DIDR_WRITE_SCOPE } from "../auth/auth.constants.js";
 
 function assertScopeContains(
   scope: string,
   validScopes: string | string[],
-  methodName: string
+  methodName: string,
 ) {
   const expectedScopes = Array.isArray(validScopes)
     ? validScopes
@@ -51,8 +51,8 @@ function assertScopeContains(
   if (!expectedScopes.some((scp) => scope.includes(scp))) {
     throw new Error(
       `'${methodName}' requires an access token with the scope '${expectedScopes.join(
-        "' or '"
-      )}'`
+        "' or '",
+      )}'`,
     );
   }
 }
@@ -93,7 +93,7 @@ export class JsonRpcService {
   }
 
   async estimateGas(
-    transaction: UnsignedTransaction
+    transaction: UnsignedTransaction,
   ): Promise<ethers.BigNumber> {
     const { from, to, data, value } = transaction;
 
@@ -117,7 +117,7 @@ export class JsonRpcService {
   async verifyTransaction(
     clientId: string,
     param: SignedTransactionParam,
-    scope: string
+    scope: string,
   ): Promise<{ signer: string; functionName: string }> {
     const { unsignedTransaction, r, s, v, signedRawTransaction } = param;
 
@@ -128,12 +128,12 @@ export class JsonRpcService {
     const serializedTransaction = ethers.utils.serializeTransaction(unsignedTx);
     const serializedTransactionSigned = ethers.utils.serializeTransaction(
       unsignedTx,
-      signature
+      signature,
     );
 
     if (serializedTransactionSigned !== signedRawTransaction) {
       throw new Error(
-        `The unsigned transaction + signature (${serializedTransactionSigned}) does not match with the signedRawTransaction (${signedRawTransaction})`
+        `The unsigned transaction + signature (${serializedTransactionSigned}) does not match with the signedRawTransaction (${signedRawTransaction})`,
       );
     }
 
@@ -143,20 +143,20 @@ export class JsonRpcService {
 
     if (signer.toLowerCase() !== unsignedTransaction.from.toLowerCase()) {
       throw new Error(
-        `The signer of the transaction (${signer}) does not match with unsignedTransaction.from (${unsignedTransaction.from}) `
+        `The signer of the transaction (${signer}) does not match with unsignedTransaction.from (${unsignedTransaction.from}) `,
       );
     }
 
     const chainId = await this.getChainId();
     if (unsignedTransaction.chainId !== chainId) {
       throw new Error(
-        `Invalid unsignedTransaction.chainId. Expected ${chainId}. Received ${unsignedTransaction.chainId}`
+        `Invalid unsignedTransaction.chainId. Expected ${chainId}. Received ${unsignedTransaction.chainId}`,
       );
     }
 
     if (unsignedTransaction.to !== this.contractAddress) {
       throw new Error(
-        `Invalid unsignedTransaction.to. Expected ${this.contractAddress}. Received ${unsignedTransaction.to}`
+        `Invalid unsignedTransaction.to. Expected ${this.contractAddress}. Received ${unsignedTransaction.to}`,
       );
     }
 
@@ -170,7 +170,7 @@ export class JsonRpcService {
         assertScopeContains(
           scope,
           [DIDR_INVITE_SCOPE, DIDR_WRITE_SCOPE],
-          functionFragment.name
+          functionFragment.name,
         );
         const castArgs = args as unknown as ArgsInsertDidDocument;
         await validateClass(ArgsInsertDidDocument, castArgs);
@@ -229,7 +229,7 @@ export class JsonRpcService {
       }
       default:
         throw new Error(
-          `The function name ${functionFragment.name} can not be used in this context`
+          `The function name ${functionFragment.name} can not be used in this context`,
         );
     }
 
@@ -241,7 +241,7 @@ export class JsonRpcService {
 
   async buildTransaction(
     from: string,
-    params: string
+    params: string,
   ): Promise<UnsignedTransaction> {
     try {
       const nonceInt = await (
@@ -274,7 +274,7 @@ export class JsonRpcService {
             gasEstimation === "unset"
               ? ""
               : `Received ${gasEstimation.toString()}.`
-          } Using 0x1000000`
+          } Using 0x1000000`,
         );
         unsignedTransaction.gasLimit = "0x1000000";
       }
@@ -290,16 +290,16 @@ export class JsonRpcService {
 
   async buildTransactionInsertDidDocument(
     body: RequestInsertDidDocumentDto,
-    id: number | string | null,
+    id: number | string | null | undefined,
     sub: string,
-    scope: string
+    scope: string,
   ): Promise<UnsignedTransaction> {
     try {
       // Access Token must contain DIDR_INVITE_SCOPE or DIDR_WRITE_SCOPE scope
       assertScopeContains(
         scope,
         [DIDR_INVITE_SCOPE, DIDR_WRITE_SCOPE],
-        "insertDidDocument"
+        "insertDidDocument",
       );
 
       await validateClass(RequestInsertDidDocumentDto, body);
@@ -313,7 +313,7 @@ export class JsonRpcService {
         isSecp256k1,
         notBefore,
         notAfter,
-      } = body.params[0];
+      } = body.params[0]!;
 
       if (scope.includes(DIDR_INVITE_SCOPE)) {
         // Verify that the Access Token sub and the payload DID match
@@ -335,7 +335,9 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
@@ -350,7 +352,7 @@ export class JsonRpcService {
         // Throw a generic error to avoid leaking information.
         throw new InvalidRequestJsonRpcError(
           `Identifier ${did} Not Found`,
-          did
+          did,
         );
       }
 
@@ -360,8 +362,8 @@ export class JsonRpcService {
 
   async buildTransactionAddService(
     body: RequestAddServiceDto,
-    id: number | string | null,
-    scope: string
+    id: number | string | null | undefined,
+    scope: string,
   ) {
     try {
       // Access Token must contain DIDR_WRITE_SCOPE scope
@@ -369,7 +371,7 @@ export class JsonRpcService {
 
       await validateClass(RequestAddServiceDto, body);
 
-      const { from, did, service } = body.params[0];
+      const { from, did, service } = body.params[0]!;
       const didDocument = await this.getDidDocument(did);
 
       let baseDocument: { [x: string]: unknown; service?: unknown[] };
@@ -382,7 +384,7 @@ export class JsonRpcService {
           `Identifier ${did} contains an invalid base document. ${
             (error as Error).message
           }`,
-          id
+          id,
         );
       }
 
@@ -402,15 +404,17 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionRevokeService(
     body: RequestRevokeServiceDto,
-    id: number | string | null,
-    scope: string
+    id: number | string | null | undefined,
+    scope: string,
   ) {
     try {
       // Access Token must contain DIDR_WRITE_SCOPE scope
@@ -418,7 +422,7 @@ export class JsonRpcService {
 
       await validateClass(RequestRevokeServiceDto, body);
 
-      const { from, did, serviceId } = body.params[0];
+      const { from, did, serviceId } = body.params[0]!;
 
       const didDocument = await this.getDidDocument(did);
 
@@ -432,7 +436,7 @@ export class JsonRpcService {
           `Identifier ${did} contains an invalid base document. ${
             (error as Error).message
           }`,
-          id
+          id,
         );
       }
 
@@ -453,15 +457,17 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionUpdateBaseDocument(
     body: RequestUpdateBaseDocumentDto,
-    id: number | string | null,
-    scope: string
+    id: number | string | null | undefined,
+    scope: string,
   ): Promise<UnsignedTransaction> {
     try {
       // Access Token must contain DIDR_WRITE_SCOPE scope
@@ -469,7 +475,7 @@ export class JsonRpcService {
 
       await validateClass(RequestUpdateBaseDocumentDto, body);
 
-      const { from, did, baseDocument } = body.params[0];
+      const { from, did, baseDocument } = body.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -478,15 +484,17 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionAddController(
     body: RequestAddControllerDto,
-    id: number | string | null,
-    scope: string
+    id: number | string | null | undefined,
+    scope: string,
   ): Promise<UnsignedTransaction> {
     try {
       // Access Token must contain DIDR_WRITE_SCOPE scope
@@ -494,7 +502,7 @@ export class JsonRpcService {
 
       await validateClass(RequestAddControllerDto, body);
 
-      const { from, did, controller } = body.params[0];
+      const { from, did, controller } = body.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -503,15 +511,17 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionRevokeController(
     body: RequestRevokeControllerDto,
-    id: number | string | null,
-    scope: string
+    id: number | string | null | undefined,
+    scope: string,
   ): Promise<UnsignedTransaction> {
     try {
       // Access Token must contain DIDR_WRITE_SCOPE scope
@@ -519,7 +529,7 @@ export class JsonRpcService {
 
       await validateClass(RequestRevokeControllerDto, body);
 
-      const { from, did, controller } = body.params[0];
+      const { from, did, controller } = body.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -528,15 +538,17 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionAddVerificationMethod(
     body: RequestAddVerificationMethodDto,
-    id: number | string | null,
-    scope: string
+    id: number | string | null | undefined,
+    scope: string,
   ): Promise<UnsignedTransaction> {
     try {
       // Access Token must contain DIDR_WRITE_SCOPE scope
@@ -544,7 +556,7 @@ export class JsonRpcService {
 
       await validateClass(RequestAddVerificationMethodDto, body);
 
-      const { from, did, vMethodId, publicKey, isSecp256k1 } = body.params[0];
+      const { from, did, vMethodId, publicKey, isSecp256k1 } = body.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -558,28 +570,30 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionAddVerificationRelationship(
     body: RequestAddVerificationRelationshipDto,
-    id: number | string | null,
-    scope: string
+    id: number | string | null | undefined,
+    scope: string,
   ): Promise<UnsignedTransaction> {
     try {
       // Access Token must contain DIDR_WRITE_SCOPE scope
       assertScopeContains(
         scope,
         DIDR_WRITE_SCOPE,
-        "addVerificationRelationship"
+        "addVerificationRelationship",
       );
 
       await validateClass(RequestAddVerificationRelationshipDto, body);
 
       const { from, did, name, vMethodId, notBefore, notAfter } =
-        body.params[0];
+        body.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -594,15 +608,17 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionRevokeVerificationMethod(
     body: RequestRevokeVerificationMethodDto,
-    id: number | string | null,
-    scope: string
+    id: number | string | null | undefined,
+    scope: string,
   ): Promise<UnsignedTransaction> {
     try {
       // Access Token must contain DIDR_WRITE_SCOPE scope
@@ -610,7 +626,7 @@ export class JsonRpcService {
 
       await validateClass(RequestRevokeVerificationMethodDto, body);
 
-      const { from, did, vMethodId, notAfter } = body.params[0];
+      const { from, did, vMethodId, notAfter } = body.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -623,15 +639,17 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionExpireVerificationMethod(
     body: RequestExpireVerificationMethodDto,
-    id: number | string | null,
-    scope: string
+    id: number | string | null | undefined,
+    scope: string,
   ): Promise<UnsignedTransaction> {
     try {
       // Access Token must contain DIDR_WRITE_SCOPE scope
@@ -639,7 +657,7 @@ export class JsonRpcService {
 
       await validateClass(RequestExpireVerificationMethodDto, body);
 
-      const { from, did, vMethodId, notAfter } = body.params[0];
+      const { from, did, vMethodId, notAfter } = body.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -652,15 +670,17 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async buildTransactionRollVerificationMethod(
     body: RequestRollVerificationMethodDto,
-    id: number | string | null,
-    scope: string
+    id: number | string | null | undefined,
+    scope: string,
   ): Promise<UnsignedTransaction> {
     try {
       // Access Token must contain DIDR_WRITE_SCOPE scope
@@ -668,7 +688,7 @@ export class JsonRpcService {
 
       await validateClass(RequestRollVerificationMethodDto, body);
 
-      const { from, rollArgs } = body.params[0];
+      const { from, rollArgs } = body.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -677,21 +697,23 @@ export class JsonRpcService {
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-      error.stack = (err as Error).stack;
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
       throw error;
     }
   }
 
   async sendTransaction(
     body: RequestSendSignedTransactionDto,
-    id: number | string | null,
+    id: number | string | null | undefined,
     sub: string,
-    scope: string
+    scope: string,
   ): Promise<string> {
     try {
       await validateClass(RequestSendSignedTransactionDto, body);
 
-      const request = body.params[0];
+      const request = body.params[0]!;
 
       await this.verifyTransaction(sub, request, scope);
 
@@ -707,7 +729,11 @@ export class JsonRpcService {
       }
       if (err instanceof Error) {
         const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
-        error.stack = err.stack;
+
+        if (err instanceof Error && err.stack) {
+          error.stack = err.stack;
+        }
+
         throw error;
       }
       throw err;

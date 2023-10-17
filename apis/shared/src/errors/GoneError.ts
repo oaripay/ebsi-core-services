@@ -1,4 +1,4 @@
-import { ProblemDetailsError } from "./ProblemDetailsError";
+import { ProblemDetailsError } from "./ProblemDetailsError.js";
 
 /**
  * GoneError defines the Gone (410) error type.
@@ -24,7 +24,7 @@ export class GoneError extends ProblemDetailsError {
       detail?: string;
       instance?: string;
       extensions?: { [x: string]: unknown };
-    }
+    },
   ) {
     super(GoneError.statusCode, title, options);
     this.name = "GoneError";

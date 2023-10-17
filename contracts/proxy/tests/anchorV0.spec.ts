@@ -11,7 +11,7 @@ describe("anchorV0", () => {
       const implV0 = await anchorFactory.deploy();
       await implV0.deployed();
       const proxyFactory = await ethers.getContractFactory(
-        "OwnedUpgradeabilityProxy"
+        "OwnedUpgradeabilityProxy",
       );
       const proxy = await proxyFactory.connect(proxyOwner).deploy();
       await proxy.deployed();
@@ -23,14 +23,14 @@ describe("anchorV0", () => {
 
       const initializeData = implV0.interface.encodeFunctionData(
         "initialize(bytes32[],string,string,uint8,address[])",
-        [fs, "chameauCoin", "DTC", 10, [anchorOwner.address]]
+        [fs, "chameauCoin", "DTC", 10, [anchorOwner.address]],
       );
 
       // Initialize proxy with token address and call initialize function 'inittoken' that replace the constructor
       await proxy["initialize(address,address,bytes)"](
         implV0.address,
         proxyOwner.address,
-        initializeData
+        initializeData,
       );
 
       const anchor = anchorFactory.attach(proxy.address).connect(anchorOwner);
@@ -45,8 +45,8 @@ describe("anchorV0", () => {
           "chameauCoin",
           "DTC",
           10,
-          [anchorOwner.address]
-        )
+          [anchorOwner.address],
+        ),
       ).to.be.revertedWith("Initializable: contract is already initialized");
     });
   });
@@ -58,7 +58,7 @@ describe("anchorV0", () => {
       const implV0 = await anchorFactory.deploy();
       await implV0.deployed();
       const proxyFactory = await ethers.getContractFactory(
-        "OwnedUpgradeabilityProxy"
+        "OwnedUpgradeabilityProxy",
       );
       const proxy = await proxyFactory.connect(proxyOwner).deploy();
       await proxy.deployed();
@@ -70,7 +70,7 @@ describe("anchorV0", () => {
 
       const initializeData = implV0.interface.encodeFunctionData(
         "initialize(bytes32[],string,string,uint8,address[])",
-        [fs, "chameauCoin", "DTC", 10, [anchorOwner.address]]
+        [fs, "chameauCoin", "DTC", 10, [anchorOwner.address]],
       );
 
       // Initialize proxy with token address and call initialize function 'inittoken' that replace the constructor
@@ -80,7 +80,7 @@ describe("anchorV0", () => {
         initializeData,
         {
           from: proxyOwner.address,
-        }
+        },
       );
 
       const anchor = anchorFactory.attach(proxy.address).connect(anchorOwner);
@@ -93,7 +93,7 @@ describe("anchorV0", () => {
       const res = await Promise.all(results);
 
       res.map((owner, i) =>
-        assert.equal(parseBytes32String(owner), `20160528${i}`)
+        assert.equal(parseBytes32String(owner), `20160528${i}`),
       );
     });
   });

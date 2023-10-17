@@ -1,9 +1,10 @@
-import { ec as EC } from "elliptic";
-import KeyEncoder from "key-encoder";
+import elliptic from "elliptic";
+import { KeyEncoder } from "@cef-ebsi/key-encoder";
 import { bases, bytes } from "multiformats/basics";
 import { JWK } from "jose";
 
 const { base64url } = bases;
+const EC = elliptic.ec;
 const ec = new EC("secp256k1");
 
 const keyEncoder = new KeyEncoder("secp256k1");

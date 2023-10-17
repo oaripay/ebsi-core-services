@@ -2,13 +2,12 @@ import { Injectable, Logger } from "@nestjs/common";
 import { Tir } from "@ebsiint-sc/trusted-issuers-registry";
 import {
   generateMultihash,
-  AsyncReturnType,
   NotFoundError,
   isEthersError,
   remove0xPrefix,
 } from "@ebsiint-api/shared";
-import { PolicyRevisions } from "./policies.interface";
-import { LedgerService } from "../ledger/ledger.service";
+import { PolicyRevisions } from "./policies.interface.js";
+import { LedgerService } from "../ledger/ledger.service.js";
 
 @Injectable()
 export class PoliciesService {
@@ -18,7 +17,7 @@ export class PoliciesService {
 
   async getPolicies(
     page: number,
-    pageSize: number
+    pageSize: number,
   ): ReturnType<Tir["getPolicies"]> {
     try {
       return await (
@@ -35,7 +34,7 @@ export class PoliciesService {
   }
 
   async getPolicy(policyId: string): Promise<[string, string]> {
-    let policy: AsyncReturnType<Tir["getPolicy"]>;
+    let policy: Awaited<ReturnType<Tir["getPolicy"]>>;
 
     try {
       // Preserve case! Don't lowercase the policyId
@@ -54,7 +53,7 @@ export class PoliciesService {
     const [rawPolicy, rawPolicyHash] = policy;
 
     const base64Policy = Buffer.from(remove0xPrefix(rawPolicy), "hex").toString(
-      "base64"
+      "base64",
     );
 
     // Compute multihash from hash
@@ -65,9 +64,9 @@ export class PoliciesService {
   async getPolicyRevisions(
     policyId: string,
     page: number,
-    pageSize: number
+    pageSize: number,
   ): Promise<PolicyRevisions> {
-    let revisions: AsyncReturnType<Tir["getPolicyRevisions"]>;
+    let revisions: Awaited<ReturnType<Tir["getPolicyRevisions"]>>;
 
     try {
       revisions = await (
@@ -84,7 +83,7 @@ export class PoliciesService {
 
     const contract = await this.ledgerService.getContract();
     const getPoliciesByRevisions = revisions.items.map((hash) =>
-      contract.getPolicyByHash(hash)
+      contract.getPolicyByHash(hash),
     );
 
     try {
@@ -93,7 +92,7 @@ export class PoliciesService {
       return {
         items: revisions.items.map((hash, index) => ({
           policyId,
-          policy: policies[index],
+          policy: policies[index]!,
           hash,
         })),
         total: revisions.total.toNumber(),

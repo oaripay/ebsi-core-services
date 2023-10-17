@@ -27,7 +27,7 @@ const allowedMethods = [
 ];
 
 export function IsValidMethod() {
-  return (object: unknown, propertyName: string): void => {
+  return (object: object, propertyName: string): void => {
     registerDecorator({
       name: "isValidMethod",
       target: object.constructor,
@@ -37,7 +37,7 @@ export function IsValidMethod() {
           return typeof value === "string" && allowedMethods.includes(value);
         },
         defaultMessage: buildMessage(
-          (eachPrefix) => `${eachPrefix}$property must be a valid method`
+          (eachPrefix) => `${eachPrefix}$property must be a valid method`,
         ),
       },
     });

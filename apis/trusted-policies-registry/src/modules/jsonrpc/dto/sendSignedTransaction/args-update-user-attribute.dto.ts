@@ -2,13 +2,13 @@ import { IsEthereumAddress, IsString } from "class-validator";
 
 export class ArgsUpdateUserAttribute {
   @IsEthereumAddress()
-  address: string;
+  address!: string;
 
   @IsString()
-  attributeName: string;
+  attributeName!: string;
 
   @IsString()
-  attributeValue: string;
+  attributeValue!: string;
 }
 
 export default { ArgsUpdateUserAttribute };

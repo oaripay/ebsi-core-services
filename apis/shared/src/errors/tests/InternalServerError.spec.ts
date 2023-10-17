@@ -1,5 +1,5 @@
-import { describe, it, expect } from "@jest/globals";
-import { InternalServerError, ProblemDetailsError } from "../index";
+import { describe, it, expect } from "vitest";
+import { InternalServerError, ProblemDetailsError } from "../index.js";
 
 describe("error InternalServerError", () => {
   it("should extend ProblemDetailsError", () => {
@@ -69,7 +69,7 @@ describe("error InternalServerError", () => {
     });
 
     expect(error.toString()).toBe(
-      `${InternalServerError.statusCode} - Test Error`
+      `${InternalServerError.statusCode} - Test Error`,
     );
   });
 });

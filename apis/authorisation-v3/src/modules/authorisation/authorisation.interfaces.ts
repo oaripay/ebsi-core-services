@@ -3,7 +3,7 @@ import {
   CUSTOM_SCOPES,
   OPENID_SCOPE,
   SUPPORTED_SCOPES,
-} from "./authorisation.constants";
+} from "./authorisation.constants.js";
 
 export type Scope = `${typeof OPENID_SCOPE} ${(typeof CUSTOM_SCOPES)[number]}`;
 

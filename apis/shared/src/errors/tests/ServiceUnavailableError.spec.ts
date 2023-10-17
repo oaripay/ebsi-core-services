@@ -1,5 +1,5 @@
-import { describe, it, expect } from "@jest/globals";
-import { ServiceUnavailableError, ProblemDetailsError } from "../index";
+import { describe, it, expect } from "vitest";
+import { ServiceUnavailableError, ProblemDetailsError } from "../index.js";
 
 describe("error ServiceUnavailableError", () => {
   it("should extend ProblemDetailsError", () => {
@@ -69,7 +69,7 @@ describe("error ServiceUnavailableError", () => {
     });
 
     expect(error.toString()).toBe(
-      `${ServiceUnavailableError.statusCode} - Test Error`
+      `${ServiceUnavailableError.statusCode} - Test Error`,
     );
   });
 });

@@ -13,7 +13,7 @@ type InsertDidDocumentArgs = [
   string,
   boolean,
   number,
-  number
+  number,
 ];
 type AddVerificationMethodArgs = [string, string, string, boolean];
 type AddVerificationRelationshipArgs = [string, string, string, number, number];
@@ -43,13 +43,12 @@ describe("Did Documents", () => {
     user2 = user2.connect(admin.provider);
     user3 = user3.connect(admin.provider);
 
-    const policyRegistryFactory = await ethers.getContractFactory(
-      "PolicyRegistryMock"
-    );
+    const policyRegistryFactory =
+      await ethers.getContractFactory("PolicyRegistryMock");
     const tempPolicyContract = await policyRegistryFactory.deploy();
     await tempPolicyContract.deployed();
     const bytecodeTpr = await ethers.provider.getCode(
-      tempPolicyContract.address
+      tempPolicyContract.address,
     );
     await network.provider.send("hardhat_setCode", [
       testTprAddress,
@@ -57,7 +56,7 @@ describe("Did Documents", () => {
     ]);
 
     policyContractMock = policyRegistryFactory.attach(
-      testTprAddress
+      testTprAddress,
     ) as PolicyRegistryMock;
   });
 
@@ -65,9 +64,8 @@ describe("Did Documents", () => {
     const paginationFactory = await ethers.getContractFactory("Pagination", {});
     const paginationLib = await paginationFactory.deploy();
 
-    const vRelationshipsFactory = await ethers.getContractFactory(
-      "VRelationshipsLib"
-    );
+    const vRelationshipsFactory =
+      await ethers.getContractFactory("VRelationshipsLib");
     const vRelationshipsLib = await vRelationshipsFactory.deploy();
 
     const didDocumentFactory = await ethers.getContractFactory(
@@ -77,7 +75,7 @@ describe("Did Documents", () => {
           Pagination: paginationLib.address,
           VRelationshipsLib: vRelationshipsLib.address,
         },
-      }
+      },
     );
     const didDocumentLib = await didDocumentFactory.deploy();
 
@@ -87,7 +85,7 @@ describe("Did Documents", () => {
         libraries: {
           Pagination: paginationLib.address,
         },
-      }
+      },
     );
     const controllersLib = await controllersFactory.deploy();
 
@@ -100,7 +98,7 @@ describe("Did Documents", () => {
     });
 
     reg = (await contractFactory.deploy(testTprAddress)).connect(
-      user
+      user,
     ) as DidRegistry;
 
     await policyContractMock.setPolicyResult(false);
@@ -117,8 +115,8 @@ describe("Did Documents", () => {
         user.publicKey,
         true,
         notBefore,
-        notAfter
-      )
+        notAfter,
+      ),
     ).to.emit(reg, "DidDocumentInserted");
   });
 
@@ -135,37 +133,37 @@ describe("Did Documents", () => {
 
     args[0] = "";
     await expect(reg.insertDidDocument(...args)).to.be.revertedWith(
-      "invalid did"
+      "invalid did",
     );
     args[0] = did;
 
     args[1] = "";
     await expect(reg.insertDidDocument(...args)).to.be.revertedWith(
-      "invalid baseDocument"
+      "invalid baseDocument",
     );
     args[1] = baseDocument;
 
     args[2] = "";
     await expect(reg.insertDidDocument(...args)).to.be.revertedWith(
-      "invalid vMethodId"
+      "invalid vMethodId",
     );
     args[2] = vMethodId;
 
     args[3] = "0x";
     await expect(reg.insertDidDocument(...args)).to.be.revertedWith(
-      "invalid publicKey"
+      "invalid publicKey",
     );
     args[3] = user.publicKey;
 
     args[4] = false;
     await expect(reg.insertDidDocument(...args)).to.be.revertedWith(
-      "first publicKey must be for secp256k1"
+      "first publicKey must be for secp256k1",
     );
     args[4] = true;
 
     args[5] = notAfter + 10;
     await expect(reg.insertDidDocument(...args)).to.be.revertedWith(
-      "invalid dates"
+      "invalid dates",
     );
   });
 
@@ -181,11 +179,11 @@ describe("Did Documents", () => {
     ];
     await expect(reg.insertDidDocument(...args)).to.emit(
       reg,
-      "DidDocumentInserted"
+      "DidDocumentInserted",
     );
 
     await expect(reg.insertDidDocument(...args)).to.be.revertedWith(
-      "did already exists"
+      "did already exists",
     );
   });
 
@@ -197,11 +195,11 @@ describe("Did Documents", () => {
       user.publicKey,
       true,
       notBefore,
-      notAfter
+      notAfter,
     );
     await expect(reg.updateBaseDocument(did, "{}")).to.emit(
       reg,
-      "BaseDocumentUpdated"
+      "BaseDocumentUpdated",
     );
   });
 
@@ -213,27 +211,27 @@ describe("Did Documents", () => {
       user.publicKey,
       true,
       notBefore,
-      notAfter
+      notAfter,
     );
 
     // restriction to user2
     await expect(
-      reg.connect(user2).updateBaseDocument(did, "{}")
+      reg.connect(user2).updateBaseDocument(did, "{}"),
     ).to.be.revertedWith(
-      "not controller and not authorized for policy DID:updateBaseDocument"
+      "not controller and not authorized for policy DID:updateBaseDocument",
     );
 
     // user2 can update if it's in the TPR
     await policyContractMock.setPolicyResult(true);
     await expect(reg.connect(user2).updateBaseDocument(did, "{}")).to.emit(
       reg,
-      "BaseDocumentUpdated"
+      "BaseDocumentUpdated",
     );
   });
 
   it("should reject bad params of updateBaseDocument", async () => {
     await expect(
-      reg.connect(user2).updateBaseDocument("did:ebsi:unknown", "{}")
+      reg.connect(user2).updateBaseDocument("did:ebsi:unknown", "{}"),
     ).to.be.revertedWith("did doesn't exist");
   });
 
@@ -245,7 +243,7 @@ describe("Did Documents", () => {
       user.publicKey,
       true,
       notBefore,
-      notAfter
+      notAfter,
     );
 
     // eslint-disable-next-line no-plusplus
@@ -258,17 +256,17 @@ describe("Did Documents", () => {
         ethers.Wallet.createRandom().publicKey,
         true,
         notBefore,
-        notAfter
+        notAfter,
       );
       if (i < MAX_CONTROLLERS - 1) {
         // eslint-disable-next-line no-await-in-loop
         await expect(
-          reg.addController(did, `did:ebsi:new_controller${i}`)
+          reg.addController(did, `did:ebsi:new_controller${i}`),
         ).to.emit(reg, "ControllerAdded");
       } else {
         // eslint-disable-next-line no-await-in-loop
         await expect(
-          reg.addController(did, `did:ebsi:new_controller${i}`)
+          reg.addController(did, `did:ebsi:new_controller${i}`),
         ).to.be.revertedWith("max number of controllers");
       }
     }
@@ -282,7 +280,7 @@ describe("Did Documents", () => {
       user.publicKey,
       true,
       notBefore,
-      notAfter
+      notAfter,
     );
     await reg.insertDidDocument(
       "did:ebsi:new_controller",
@@ -291,20 +289,20 @@ describe("Did Documents", () => {
       ethers.Wallet.createRandom().publicKey,
       true,
       notBefore,
-      notAfter
+      notAfter,
     );
 
     // restriction to user2
     await expect(
-      reg.connect(user2).addController(did, "did:ebsi:new_controller")
+      reg.connect(user2).addController(did, "did:ebsi:new_controller"),
     ).to.be.revertedWith(
-      "not controller and not authorized for policy DID:addController"
+      "not controller and not authorized for policy DID:addController",
     );
 
     // user2 can update if it's in the TPR
     await policyContractMock.setPolicyResult(true);
     await expect(
-      reg.connect(user2).addController(did, "did:ebsi:new_controller")
+      reg.connect(user2).addController(did, "did:ebsi:new_controller"),
     ).to.emit(reg, "ControllerAdded");
   });
 
@@ -316,19 +314,19 @@ describe("Did Documents", () => {
       user.publicKey,
       true,
       notBefore,
-      notAfter
+      notAfter,
     );
 
     await expect(
-      reg.addController("did:ebsi:unknown", "did:ebsi:new_controller")
+      reg.addController("did:ebsi:unknown", "did:ebsi:new_controller"),
     ).to.be.revertedWith("did doesn't exist");
 
     await expect(reg.addController(did, "did:ebsi:unknown")).to.be.revertedWith(
-      "controller doesn't exist"
+      "controller doesn't exist",
     );
 
     await expect(reg.addController(did, did)).to.be.revertedWith(
-      "it is already a controller"
+      "it is already a controller",
     );
   });
 
@@ -340,7 +338,7 @@ describe("Did Documents", () => {
       user.publicKey,
       true,
       notBefore,
-      notAfter
+      notAfter,
     );
     await reg.insertDidDocument(
       "did:ebsi:c2",
@@ -349,15 +347,15 @@ describe("Did Documents", () => {
       user.publicKey,
       true,
       notBefore,
-      notAfter
+      notAfter,
     );
     await reg.addController(did, "did:ebsi:c2");
     await expect(reg.revokeController(did, did)).to.emit(
       reg,
-      "ControllerRevoked"
+      "ControllerRevoked",
     );
     await expect(reg.revokeController(did, did)).to.be.revertedWith(
-      "controller not found"
+      "controller not found",
     );
 
     const didDocument = await reg.getDidDocument(did);
@@ -399,21 +397,21 @@ describe("Did Documents", () => {
       user.publicKey,
       true,
       notBefore,
-      notAfter
+      notAfter,
     );
 
     // restriction to user2
     await expect(
-      reg.connect(user2).revokeController(did, did)
+      reg.connect(user2).revokeController(did, did),
     ).to.be.revertedWith(
-      "not controller and not authorized for policy DID:revokeController"
+      "not controller and not authorized for policy DID:revokeController",
     );
 
     // user2 can update if it's in the TPR
     await policyContractMock.setPolicyResult(true);
     await expect(reg.connect(user2).revokeController(did, did)).to.emit(
       reg,
-      "ControllerRevoked"
+      "ControllerRevoked",
     );
   });
 
@@ -425,15 +423,15 @@ describe("Did Documents", () => {
       user.publicKey,
       true,
       notBefore,
-      notAfter
+      notAfter,
     );
 
     await expect(
-      reg.revokeController("did:ebsi:unknown", "did:ebsi:unknown")
+      reg.revokeController("did:ebsi:unknown", "did:ebsi:unknown"),
     ).to.be.revertedWith("did doesn't exist");
 
     await expect(
-      reg.revokeController(did, "did:ebsi:unknown")
+      reg.revokeController(did, "did:ebsi:unknown"),
     ).to.be.revertedWith("controller not found");
   });
 
@@ -445,15 +443,15 @@ describe("Did Documents", () => {
       user.publicKey,
       true,
       notBefore,
-      notAfter
+      notAfter,
     );
     await expect(
       reg.addVerificationMethod(
         did,
         "O_EWDo1JUm3glFxTw3a9f2YfeKwbLuvG9kdGrb6gzHE",
         user2.publicKey,
-        true
-      )
+        true,
+      ),
     ).to.emit(reg, "VerificationMethodAdded");
   });
 
@@ -465,7 +463,7 @@ describe("Did Documents", () => {
       user.publicKey,
       true,
       notBefore,
-      notAfter
+      notAfter,
     );
 
     // restriction to user2
@@ -476,10 +474,10 @@ describe("Did Documents", () => {
           did,
           "O_EWDo1JUm3glFxTw3a9f2YfeKwbLuvG9kdGrb6gzHE",
           user2.publicKey,
-          true
-        )
+          true,
+        ),
     ).to.be.revertedWith(
-      "not controller and not authorized for policy DID:addVerificationMethod"
+      "not controller and not authorized for policy DID:addVerificationMethod",
     );
 
     // user2 can update if it's in the TPR
@@ -491,8 +489,8 @@ describe("Did Documents", () => {
           did,
           "O_EWDo1JUm3glFxTw3a9f2YfeKwbLuvG9kdGrb6gzHE",
           user2.publicKey,
-          true
-        )
+          true,
+        ),
     ).to.emit(reg, "VerificationMethodAdded");
   });
 
@@ -504,7 +502,7 @@ describe("Did Documents", () => {
       user.publicKey,
       true,
       notBefore,
-      notAfter
+      notAfter,
     );
 
     const newVMethodId = "O_EWDo1JUm3glFxTw3a9f2YfeKwbLuvG9kdGrb6gzHE";
@@ -518,23 +516,23 @@ describe("Did Documents", () => {
 
     args[0] = "did:ebsi:unknown";
     await expect(reg.addVerificationMethod(...args)).to.be.revertedWith(
-      "did doesn't exist"
+      "did doesn't exist",
     );
     args[0] = did;
 
     args[1] = "";
     await expect(reg.addVerificationMethod(...args)).to.be.revertedWith(
-      "invalid vMethodId"
+      "invalid vMethodId",
     );
     args[1] = vMethodId;
     await expect(reg.addVerificationMethod(...args)).to.be.revertedWith(
-      "vMethodId already exists"
+      "vMethodId already exists",
     );
     args[1] = newVMethodId;
 
     args[2] = "0x";
     await expect(reg.addVerificationMethod(...args)).to.be.revertedWith(
-      "invalid publicKey"
+      "invalid publicKey",
     );
   });
 
@@ -546,7 +544,7 @@ describe("Did Documents", () => {
       user.publicKey,
       true,
       notBefore,
-      notAfter
+      notAfter,
     );
     await expect(
       reg.addVerificationRelationship(
@@ -554,8 +552,8 @@ describe("Did Documents", () => {
         "assertionMethod",
         vMethodId,
         notBefore,
-        notAfter
-      )
+        notAfter,
+      ),
     ).to.emit(reg, "VerificationRelationshipAdded");
     await expect(
       reg.addVerificationRelationship(
@@ -563,8 +561,8 @@ describe("Did Documents", () => {
         "badRelationMethodName",
         vMethodId,
         notBefore,
-        notAfter
-      )
+        notAfter,
+      ),
     ).to.be.revertedWith("invalid verification method");
   });
 
@@ -576,7 +574,7 @@ describe("Did Documents", () => {
       user.publicKey,
       true,
       notBefore,
-      notAfter
+      notAfter,
     );
 
     // restriction to user2
@@ -588,10 +586,10 @@ describe("Did Documents", () => {
           "assertionMethod",
           vMethodId,
           notBefore,
-          notAfter
-        )
+          notAfter,
+        ),
     ).to.be.revertedWith(
-      "not controller and not authorized for policy DID:addVerificationRelationship"
+      "not controller and not authorized for policy DID:addVerificationRelationship",
     );
 
     // user2 can update if it's in the TPR
@@ -604,8 +602,8 @@ describe("Did Documents", () => {
           "assertionMethod",
           vMethodId,
           notBefore,
-          notAfter
-        )
+          notAfter,
+        ),
     ).to.emit(reg, "VerificationRelationshipAdded");
   });
 
@@ -626,7 +624,7 @@ describe("Did Documents", () => {
       user.publicKey,
       true,
       notBefore,
-      notAfter
+      notAfter,
     );
 
     await reg.addVerificationRelationship(
@@ -634,46 +632,46 @@ describe("Did Documents", () => {
       "assertionMethod",
       vMethodId,
       notBefore,
-      notAfter
+      notAfter,
     );
 
     args[0] = "";
     await expect(reg.addVerificationRelationship(...args)).to.be.revertedWith(
-      "did doesn't exist"
+      "did doesn't exist",
     );
     args[0] = "did:ebsi:unknown";
     await expect(reg.addVerificationRelationship(...args)).to.be.revertedWith(
-      "did doesn't exist"
+      "did doesn't exist",
     );
     args[0] = did;
 
     args[1] = "";
     await expect(reg.addVerificationRelationship(...args)).to.be.revertedWith(
-      "invalid name"
+      "invalid name",
     );
     args[1] = "capabilityInvocation";
     await expect(reg.addVerificationRelationship(...args)).to.be.revertedWith(
-      "capabilityInvocation already exists"
+      "capabilityInvocation already exists",
     );
     args[1] = "assertionMethod";
     await expect(reg.addVerificationRelationship(...args)).to.be.revertedWith(
-      "relationship already exists"
+      "relationship already exists",
     );
     args[1] = name;
 
     args[2] = "";
     await expect(reg.addVerificationRelationship(...args)).to.be.revertedWith(
-      "vMethodId doesn't exist"
+      "vMethodId doesn't exist",
     );
     args[2] = "unknown method";
     await expect(reg.addVerificationRelationship(...args)).to.be.revertedWith(
-      "vMethodId doesn't exist"
+      "vMethodId doesn't exist",
     );
     args[2] = vMethodId;
 
     args[3] = notAfter + 10;
     await expect(reg.addVerificationRelationship(...args)).to.be.revertedWith(
-      "invalid dates"
+      "invalid dates",
     );
   });
 
@@ -685,12 +683,12 @@ describe("Did Documents", () => {
       user.publicKey,
       true,
       notBefore,
-      notAfter
+      notAfter,
     );
 
     await expect(reg.revokeVerificationMethod(did, vMethodId, 3000)).to.emit(
       reg,
-      "VerificationMethodRevoked"
+      "VerificationMethodRevoked",
     );
 
     const didDocument = await reg.getDidDocument(did);
@@ -711,20 +709,20 @@ describe("Did Documents", () => {
       user.publicKey,
       true,
       notBefore,
-      notAfter
+      notAfter,
     );
 
     // restriction to user2
     await expect(
-      reg.connect(user2).revokeVerificationMethod(did, vMethodId, 3000)
+      reg.connect(user2).revokeVerificationMethod(did, vMethodId, 3000),
     ).to.be.revertedWith(
-      "not controller and not authorized for policy DID:revokeVerificationMethod"
+      "not controller and not authorized for policy DID:revokeVerificationMethod",
     );
 
     // user2 can update if it's in the TPR
     await policyContractMock.setPolicyResult(true);
     await expect(
-      reg.connect(user2).revokeVerificationMethod(did, vMethodId, 3000)
+      reg.connect(user2).revokeVerificationMethod(did, vMethodId, 3000),
     ).to.emit(reg, "VerificationMethodRevoked");
   });
 
@@ -736,30 +734,30 @@ describe("Did Documents", () => {
       user.publicKey,
       true,
       notBefore,
-      notAfter
+      notAfter,
     );
 
     await expect(
-      reg.revokeVerificationMethod("did:ebsi:unknown", vMethodId, 3000)
+      reg.revokeVerificationMethod("did:ebsi:unknown", vMethodId, 3000),
     ).to.be.revertedWith("did doesn't exist");
 
     await expect(
-      reg.revokeVerificationMethod(did, "unknown", 3000)
+      reg.revokeVerificationMethod(did, "unknown", 3000),
     ).to.be.revertedWith("vMethodId doesn't exist");
 
     await expect(
-      reg.revokeVerificationMethod(did, vMethodId, notAfter + 3600)
+      reg.revokeVerificationMethod(did, vMethodId, notAfter + 3600),
     ).to.be.revertedWith("invalid notAfter");
 
     // try to revoke 2 times
     const publicKey2 = Buffer.from(
-      '{"kty":"OKP","crv":"Ed25519","x":"dEb1y-9idZ2zR3AUTIJ_z-no_dVMHRf9qiD5GQg1zbI"}'
+      '{"kty":"OKP","crv":"Ed25519","x":"dEb1y-9idZ2zR3AUTIJ_z-no_dVMHRf9qiD5GQg1zbI"}',
     );
     const vMethodId2 = "O_EWDo1JUm3glFxTw3a9f2YfeKwbLuvG9kdGrb6gzHE";
     await reg.addVerificationMethod(did, vMethodId2, publicKey2, false);
     await reg.revokeVerificationMethod(did, vMethodId2, notBefore + 1);
     await expect(
-      reg.revokeVerificationMethod(did, vMethodId2, notBefore - 1)
+      reg.revokeVerificationMethod(did, vMethodId2, notBefore - 1),
     ).to.be.revertedWith("vMethodId already revoked");
   });
 
@@ -771,11 +769,11 @@ describe("Did Documents", () => {
       user.publicKey,
       true,
       notBefore,
-      notAfter
+      notAfter,
     );
 
     await expect(
-      reg.expireVerificationMethod(did, vMethodId, notAfter + 3000)
+      reg.expireVerificationMethod(did, vMethodId, notAfter + 3000),
     ).to.emit(reg, "VerificationMethodExpired");
 
     const didDocument = await reg.getDidDocument(did);
@@ -817,16 +815,16 @@ describe("Did Documents", () => {
       user.publicKey,
       true,
       notBefore,
-      notAfter
+      notAfter,
     );
 
     // restriction to user2
     await expect(
       reg
         .connect(user2)
-        .expireVerificationMethod(did, vMethodId, notAfter + 3000)
+        .expireVerificationMethod(did, vMethodId, notAfter + 3000),
     ).to.be.revertedWith(
-      "not controller and not authorized for policy DID:expireVerificationMethod"
+      "not controller and not authorized for policy DID:expireVerificationMethod",
     );
 
     // user2 can update if it's in the TPR
@@ -834,7 +832,7 @@ describe("Did Documents", () => {
     await expect(
       reg
         .connect(user2)
-        .expireVerificationMethod(did, vMethodId, notAfter + 3000)
+        .expireVerificationMethod(did, vMethodId, notAfter + 3000),
     ).to.emit(reg, "VerificationMethodExpired");
   });
 
@@ -846,23 +844,23 @@ describe("Did Documents", () => {
       user.publicKey,
       true,
       notBefore,
-      notAfter
+      notAfter,
     );
 
     await expect(
       reg.expireVerificationMethod(
         "did:ebsi:unknown",
         vMethodId,
-        notBefore + 3000
-      )
+        notBefore + 3000,
+      ),
     ).to.be.revertedWith("did doesn't exist");
 
     await expect(
-      reg.expireVerificationMethod(did, "unknown", notBefore + 3000)
+      reg.expireVerificationMethod(did, "unknown", notBefore + 3000),
     ).to.be.revertedWith("vMethodId doesn't exist");
 
     await expect(
-      reg.expireVerificationMethod(did, vMethodId, notBefore - 3600)
+      reg.expireVerificationMethod(did, vMethodId, notBefore - 3600),
     ).to.be.revertedWith("invalid notAfter");
   });
 
@@ -874,11 +872,11 @@ describe("Did Documents", () => {
       user.publicKey,
       true,
       notBefore,
-      notAfter
+      notAfter,
     );
 
     const publicKey2 = Buffer.from(
-      '{"kty":"OKP","crv":"Ed25519","x":"dEb1y-9idZ2zR3AUTIJ_z-no_dVMHRf9qiD5GQg1zbI"}'
+      '{"kty":"OKP","crv":"Ed25519","x":"dEb1y-9idZ2zR3AUTIJ_z-no_dVMHRf9qiD5GQg1zbI"}',
     );
     const vMethodId2 = "O_EWDo1JUm3glFxTw3a9f2YfeKwbLuvG9kdGrb6gzHE";
     const newNotBefore = notBefore + 2;
@@ -894,9 +892,9 @@ describe("Did Documents", () => {
           newNotBefore,
           newNotAfter,
           vMethodId,
-          0
-        )
-      )
+          0,
+        ),
+      ),
     ).to.emit(reg, "VerificationMethodRolled");
 
     const didDocument = await reg.getDidDocument(did);
@@ -938,11 +936,11 @@ describe("Did Documents", () => {
       user.publicKey,
       true,
       notBefore,
-      notAfter
+      notAfter,
     );
 
     const publicKey2 = Buffer.from(
-      '{"kty":"OKP","crv":"Ed25519","x":"dEb1y-9idZ2zR3AUTIJ_z-no_dVMHRf9qiD5GQg1zbI"}'
+      '{"kty":"OKP","crv":"Ed25519","x":"dEb1y-9idZ2zR3AUTIJ_z-no_dVMHRf9qiD5GQg1zbI"}',
     );
     const vMethodId2 = "O_EWDo1JUm3glFxTw3a9f2YfeKwbLuvG9kdGrb6gzHE";
     const newNotBefore = notBefore + 2;
@@ -958,9 +956,9 @@ describe("Did Documents", () => {
           newNotBefore,
           newNotAfter,
           vMethodId,
-          1234
-        )
-      )
+          1234,
+        ),
+      ),
     ).to.emit(reg, "VerificationMethodRolled");
 
     const didDocument = await reg.getDidDocument(did);
@@ -1021,11 +1019,11 @@ describe("Did Documents", () => {
       user.publicKey,
       true,
       notBefore,
-      notAfter
+      notAfter,
     );
 
     const publicKey2 = Buffer.from(
-      '{"kty":"OKP","crv":"Ed25519","x":"dEb1y-9idZ2zR3AUTIJ_z-no_dVMHRf9qiD5GQg1zbI"}'
+      '{"kty":"OKP","crv":"Ed25519","x":"dEb1y-9idZ2zR3AUTIJ_z-no_dVMHRf9qiD5GQg1zbI"}',
     );
     const vMethodId2 = "O_EWDo1JUm3glFxTw3a9f2YfeKwbLuvG9kdGrb6gzHE";
 
@@ -1042,11 +1040,11 @@ describe("Did Documents", () => {
             notBefore,
             notAfter + 3600,
             vMethodId,
-            0
-          )
-        )
+            0,
+          ),
+        ),
     ).to.be.revertedWith(
-      "not controller and not authorized for policy DID:rollVerificationMethod"
+      "not controller and not authorized for policy DID:rollVerificationMethod",
     );
 
     // user2 can update if it's in the TPR
@@ -1063,9 +1061,9 @@ describe("Did Documents", () => {
             notBefore,
             notAfter + 3600,
             vMethodId,
-            0
-          )
-        )
+            0,
+          ),
+        ),
     ).to.emit(reg, "VerificationMethodRolled");
   });
 
@@ -1077,11 +1075,11 @@ describe("Did Documents", () => {
       user.publicKey,
       true,
       notBefore,
-      notAfter
+      notAfter,
     );
 
     const publicKey2 = Buffer.from(
-      '{"kty":"OKP","crv":"Ed25519","x":"dEb1y-9idZ2zR3AUTIJ_z-no_dVMHRf9qiD5GQg1zbI"}'
+      '{"kty":"OKP","crv":"Ed25519","x":"dEb1y-9idZ2zR3AUTIJ_z-no_dVMHRf9qiD5GQg1zbI"}',
     );
     const vMethodId2 = "O_EWDo1JUm3glFxTw3a9f2YfeKwbLuvG9kdGrb6gzHE";
 
@@ -1095,9 +1093,9 @@ describe("Did Documents", () => {
           notBefore,
           notAfter + 3600,
           vMethodId,
-          0
-        )
-      )
+          0,
+        ),
+      ),
     ).to.be.revertedWith("did doesn't exist");
 
     await expect(
@@ -1110,9 +1108,9 @@ describe("Did Documents", () => {
           notBefore,
           notAfter + 3600,
           vMethodId,
-          0
-        )
-      )
+          0,
+        ),
+      ),
     ).to.be.revertedWith("vMethodId already exists");
 
     await expect(
@@ -1125,9 +1123,9 @@ describe("Did Documents", () => {
           notBefore,
           notAfter + 3600,
           vMethodId,
-          0
-        )
-      )
+          0,
+        ),
+      ),
     ).to.be.revertedWith("invalid publicKey");
 
     await expect(
@@ -1140,9 +1138,9 @@ describe("Did Documents", () => {
           notBefore,
           notBefore - 1,
           vMethodId,
-          0
-        )
-      )
+          0,
+        ),
+      ),
     ).to.be.revertedWith("invalid dates");
 
     await expect(
@@ -1155,9 +1153,9 @@ describe("Did Documents", () => {
           notBefore,
           notAfter + 3600,
           "",
-          0
-        )
-      )
+          0,
+        ),
+      ),
     ).to.be.revertedWith("oldVMethodId doesn't exist");
   });
 
@@ -1197,7 +1195,7 @@ describe("Did Documents", () => {
     });
 
     await expect(reg.getDids(1, 51)).to.be.revertedWith(
-      "pageSize must be <= 50"
+      "pageSize must be <= 50",
     );
   });
 
@@ -1272,11 +1270,11 @@ describe("Did Documents", () => {
     });
 
     await expect(
-      reg.getDidsByController("did:ebsi:5", 1, 51)
+      reg.getDidsByController("did:ebsi:5", 1, 51),
     ).to.be.revertedWith("pageSize must be <= 50");
 
     await expect(
-      reg.getDidsByController("did:ebsi:unknown", 1, 10)
+      reg.getDidsByController("did:ebsi:unknown", 1, 10),
     ).to.be.revertedWith("controller doesn't exist");
   });
 
@@ -1292,7 +1290,7 @@ describe("Did Documents", () => {
     ];
 
     const publicKey2 = `0x${Buffer.from(
-      '{"kty":"OKP","crv":"Ed25519","x":"dEb1y-9idZ2zR3AUTIJ_z-no_dVMHRf9qiD5GQg1zbI"}'
+      '{"kty":"OKP","crv":"Ed25519","x":"dEb1y-9idZ2zR3AUTIJ_z-no_dVMHRf9qiD5GQg1zbI"}',
     ).toString("hex")}`;
     const vMethodId2 = "O_EWDo1JUm3glFxTw3a9f2YfeKwbLuvG9kdGrb6gzHE";
     const args2: InsertDidDocumentArgs = [
@@ -1328,7 +1326,7 @@ describe("Did Documents", () => {
       vMethodId,
       "capabilityInvocation",
       3,
-      2
+      2,
     );
     expect(getEthObject(didsWithPeriod)).to.eql({
       items: [
@@ -1364,9 +1362,9 @@ describe("Did Documents", () => {
     const publicKey2 = ethers.Wallet.createRandom().publicKey;
     await reg.insertDidDocument(...args);
     await expect(
-      reg.addVerificationMethod(did, vMethodId2, publicKey2, true)
+      reg.addVerificationMethod(did, vMethodId2, publicKey2, true),
     ).to.be.revertedWith(
-      "not controller and not authorized for policy DID:addVerificationMethod"
+      "not controller and not authorized for policy DID:addVerificationMethod",
     );
   });
   it("should get a did document by timestamp", async () => {
@@ -1389,7 +1387,7 @@ describe("Did Documents", () => {
       "capabilityInvocation",
       vMethodId2,
       notBefore + 1000,
-      notAfter + 1000
+      notAfter + 1000,
     );
 
     let didDocument = await reg.getDidDocumentByTimestamp(did, now + 500);
@@ -1456,7 +1454,7 @@ describe("Did Documents", () => {
       user.publicKey,
       true,
       notBefore,
-      notAfter
+      notAfter,
     );
     await reg.insertDidDocument(
       "did:ebsi:c2",
@@ -1465,7 +1463,7 @@ describe("Did Documents", () => {
       user2.publicKey,
       true,
       notBefore,
-      notAfter
+      notAfter,
     );
     await reg.insertDidDocument(
       "did:ebsi:c3",
@@ -1474,7 +1472,7 @@ describe("Did Documents", () => {
       user3.publicKey,
       true,
       notBefore,
-      notAfter
+      notAfter,
     );
     await reg.addController(did, "did:ebsi:c2");
     /* eslint-disable @typescript-eslint/no-unused-expressions */
@@ -1487,8 +1485,8 @@ describe("Did Documents", () => {
     expect(
       await reg["checkController(string,address)"](
         did,
-        ethers.Wallet.createRandom().address
-      )
+        ethers.Wallet.createRandom().address,
+      ),
     ).to.be.false;
 
     const didHex = `0x${Buffer.from(did).toString("hex")}`;
@@ -1501,8 +1499,8 @@ describe("Did Documents", () => {
     expect(
       await reg["checkController(bytes,address)"](
         didHex,
-        ethers.Wallet.createRandom().address
-      )
+        ethers.Wallet.createRandom().address,
+      ),
     ).to.be.false;
     /* eslint-enable @typescript-eslint/no-unused-expressions */
   });
@@ -1515,23 +1513,23 @@ describe("Did Documents", () => {
       user.publicKey,
       true,
       notBefore,
-      notAfter
+      notAfter,
     );
     await reg.addVerificationRelationship(
       did,
       "assertionMethod",
       vMethodId,
       notBefore,
-      notAfter
+      notAfter,
     );
 
     const publicKey2 = Buffer.from(
-      '{"kty":"OKP","crv":"Ed25519","x":"dEb1y-9idZ2zR3AUTIJ_z-no_dVMHRf9qiD5GQg1zbI"}'
+      '{"kty":"OKP","crv":"Ed25519","x":"dEb1y-9idZ2zR3AUTIJ_z-no_dVMHRf9qiD5GQg1zbI"}',
     );
     const vMethodId2 = "O_EWDo1JUm3glFxTw3a9f2YfeKwbLuvG9kdGrb6gzHE";
 
     const publicKey3 = Buffer.from(
-      '{"kty":"EC","crv":"P-256","x":"rG8XLCoehck238fGvts8Zn5_G9P5JeXTyVysKibu6qI","y":"90y-6hJf_ZKnh1nhCsc5d204xji2hhfgyPSTc6WZs6s"}'
+      '{"kty":"EC","crv":"P-256","x":"rG8XLCoehck238fGvts8Zn5_G9P5JeXTyVysKibu6qI","y":"90y-6hJf_ZKnh1nhCsc5d204xji2hhfgyPSTc6WZs6s"}',
     );
     const vMethodId3 = "HbSpfp_l-njw22UGE_DeWvNpx3BrCmyRLwZ7hMVVkSw";
 
@@ -1541,7 +1539,7 @@ describe("Did Documents", () => {
       "assertionMethod",
       vMethodId2,
       notBefore,
-      notAfter
+      notAfter,
     );
 
     let didDocument = await reg.getDidDocument(did);
@@ -1602,7 +1600,7 @@ describe("Did Documents", () => {
       "authentication",
       vMethodId3,
       notBefore3,
-      notAfter3
+      notAfter3,
     );
 
     didDocument = await reg.getDidDocument(did);
@@ -1731,8 +1729,8 @@ describe("Did Documents", () => {
         notBefore4,
         notAfter4,
         vMethodId,
-        0
-      )
+        0,
+      ),
     );
     didDocument = await reg.getDidDocument(did);
     expect(getEthObject(didDocument)).to.eql({

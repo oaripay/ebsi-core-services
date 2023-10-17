@@ -15,5 +15,5 @@ task("get-code", "gets the code of an address")
       console.log(`address`, address);
       console.log(`contract size`, bytes.byteLength, bytes.slice(0, 256));
       fs.writeFileSync(path, bytes);
-    }
+    },
   );

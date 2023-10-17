@@ -1,7 +1,7 @@
 import { Controller, Body, Post, HttpCode, UseGuards } from "@nestjs/common";
 import { InvalidRequestJsonRpcError } from "@ebsiint-api/shared";
-import { JsonRpcService } from "./jsonrpc.service";
-import { JsonRpcResponseObject } from "./jsonrpc.interface";
+import { JsonRpcService } from "./jsonrpc.service.js";
+import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
 import {
   JsonRpcDto,
   RequestSendSignedTransactionDto,
@@ -16,13 +16,13 @@ import {
   RequestRevokeRecordOwnerDto,
   RequestInsertRecordVersionInfoDto,
   RequestTimestampVersionHashesDto,
-} from "./dto";
-import { JwtAuthGuard } from "../auth/guards";
-import { User, UserInfo } from "../auth/decorators";
+} from "./dto/index.js";
+import { JwtAuthGuard } from "../auth/guards/index.js";
+import { User, type UserInfo } from "../auth/decorators/index.js";
 
-function jsonRpcResponse(
+function formatJsonRpcResponse(
   result: unknown,
-  id: string | number
+  id: string | number | null | undefined,
 ): JsonRpcResponseObject {
   return { jsonrpc: "2.0", id: id ?? null, result };
 }
@@ -36,7 +36,7 @@ export default class AppController {
   @Post()
   async jsonRPC(
     @Body() body: JsonRpcDto,
-    @User() user: UserInfo
+    @User() user: UserInfo,
   ): Promise<JsonRpcResponseObject> {
     const { method, id } = body;
     switch (method) {
@@ -44,89 +44,89 @@ export default class AppController {
         const result =
           await this.jsonRpcService.buildTransactionInsertHashAlgorithm(
             body as RequestInsertHashAlgorithmDto,
-            id
+            id,
           );
-        return jsonRpcResponse(result, id);
+        return formatJsonRpcResponse(result, id);
       }
       case "updateHashAlgorithm": {
         const result =
           await this.jsonRpcService.buildTransactionUpdateHashAlgorithm(
             body as RequestUpdateHashAlgorithmDto,
-            id
+            id,
           );
-        return jsonRpcResponse(result, id);
+        return formatJsonRpcResponse(result, id);
       }
       case "timestampHashes": {
         const result =
           await this.jsonRpcService.buildTransactionTimestampHashes(
             body as RequestTimestampHashesDto,
-            id
+            id,
           );
-        return jsonRpcResponse(result, id);
+        return formatJsonRpcResponse(result, id);
       }
       case "timestampRecordHashes": {
         const result =
           await this.jsonRpcService.buildTransactionTimestampRecordHashes(
             body as RequestTimestampRecordHashesDto,
-            id
+            id,
           );
-        return jsonRpcResponse(result, id);
+        return formatJsonRpcResponse(result, id);
       }
       case "timestampRecordVersionHashes": {
         const result =
           await this.jsonRpcService.buildTransactionTimestampRecordVersionHashes(
             body as RequestTimestampRecordVersionHashesDto,
-            id
+            id,
           );
-        return jsonRpcResponse(result, id);
+        return formatJsonRpcResponse(result, id);
       }
       case "timestampVersionHashes": {
         const result =
           await this.jsonRpcService.buildTransactionTimestampVersionHashes(
             body as RequestTimestampVersionHashesDto,
-            id
+            id,
           );
-        return jsonRpcResponse(result, id);
+        return formatJsonRpcResponse(result, id);
       }
       case "appendRecordVersionHashes": {
         const result =
           await this.jsonRpcService.buildTransactionAppendRecordVersionHashes(
             body as RequestAppendRecordVersionHashesDto,
-            id
+            id,
           );
-        return jsonRpcResponse(result, id);
+        return formatJsonRpcResponse(result, id);
       }
       case "revokeRecordOwner": {
         const result =
           await this.jsonRpcService.buildTransactionRevokeRecordOwner(
             body as RequestRevokeRecordOwnerDto,
-            id
+            id,
           );
-        return jsonRpcResponse(result, id);
+        return formatJsonRpcResponse(result, id);
       }
       case "insertRecordOwner": {
         const result =
           await this.jsonRpcService.buildTransactionInsertRecordOwner(
             body as RequestInsertRecordOwnerDto,
-            id
+            id,
           );
-        return jsonRpcResponse(result, id);
+        return formatJsonRpcResponse(result, id);
       }
       case "insertRecordVersionInfo": {
         const result =
           await this.jsonRpcService.buildTransactionInsertRecordVersionInfo(
             body as RequestInsertRecordVersionInfoDto,
-            id
+            id,
           );
-        return jsonRpcResponse(result, id);
+        return formatJsonRpcResponse(result, id);
       }
       case "detachRecordVersionHash": {
         const result =
           await this.jsonRpcService.buildTransactionDetachRecordVersionHash(
             body as RequestDetachRecordVersionHashDto,
-            id
+            id,
           );
-        return jsonRpcResponse(result, id);
+        return formatJsonRpcResponse(result, id);
       }
       case "sendSignedTransaction":
       case "signedTransaction": {
@@ -134,14 +134,14 @@ export default class AppController {
         const result = await this.jsonRpcService.sendTransaction(
           body as RequestSendSignedTransactionDto,
           user,
-          id
+          id,
         );
-        return jsonRpcResponse(result, id);
+        return formatJsonRpcResponse(result, id);
       }
       default:
         throw new InvalidRequestJsonRpcError(
           `The method '${method}' is invalid`,
-          id
+          id,
         );
     }
   }

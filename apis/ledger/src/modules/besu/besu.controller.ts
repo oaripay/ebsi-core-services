@@ -1,8 +1,8 @@
 import { Controller, Body, Post, Response, UseGuards } from "@nestjs/common";
 import type { FastifyReply } from "fastify";
-import { BesuService } from "./besu.service";
-import { BesuDto } from "./dto";
-import { JwtAuthGuard } from "../auth/guards";
+import { BesuService } from "./besu.service.js";
+import { BesuDto } from "./dto/index.js";
+import { JwtAuthGuard } from "../auth/guards/index.js";
 
 @Controller("/blockchains/besu")
 export class BesuController {
@@ -12,7 +12,7 @@ export class BesuController {
   @Post()
   async besu(
     @Body() body: BesuDto,
-    @Response() res: FastifyReply
+    @Response() res: FastifyReply,
   ): Promise<FastifyReply> {
     const ledgerResponse = await this.besuService.sendToBesu(body);
 

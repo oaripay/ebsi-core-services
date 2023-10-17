@@ -1,20 +1,18 @@
-import { jest, describe, beforeAll, it, expect } from "@jest/globals";
+import { describe, beforeAll, it, expect } from "vitest";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import { HttpServer, INestApplication } from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import type { FastifyInstance } from "fastify";
-import { Logger } from "@nestjs/common/services/logger.service";
-import { AppModule } from "../../src/app.module";
-import { ApiConfig } from "../../src/config/configuration";
-import { getServer } from "../utils/getServer";
-import { configureApp } from "../utils/app";
-
-jest.setTimeout(60000);
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
+import type { RawServerDefault } from "fastify";
+import { AppModule } from "../../src/app.module.js";
+import type { ApiConfig } from "../../src/config/configuration.js";
+import { getServer } from "../utils/getServer.js";
+import { configureApp } from "../utils/app.js";
 
 describe("/authorisation/v4 (generic tests)", () => {
-  let app: INestApplication;
-  let server: HttpServer | string;
+  let app: NestFastifyApplication;
+  let server: RawServerDefault | string;
   let apiUrlPrefix = "";
 
   beforeAll(async () => {
@@ -30,7 +28,7 @@ describe("/authorisation/v4 (generic tests)", () => {
     Logger.overrideLogger(false);
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
     server = getServer(app, configService);
 

@@ -14,7 +14,7 @@ type InvalidParams = {
 };
 
 function getConstraints(errors: ValidationPipeError[]): InvalidParams {
-  return errors.reduce((invalidParams, error) => {
+  return errors.reduce((invalidParams: InvalidParams, error) => {
     if (error.constraints) {
       Object.assign(invalidParams, {
         [error.property]: Object.values(error.constraints),
@@ -29,7 +29,7 @@ function getConstraints(errors: ValidationPipeError[]): InvalidParams {
       }
 
       (invalidParams[error.property] as InvalidParams[]).push(
-        getConstraints(error.children)
+        getConstraints(error.children),
       );
     }
 

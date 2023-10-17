@@ -352,7 +352,7 @@ paths:
                     grant_types_supported:
                       - vp_token
                     jwks_uri: /jwks
-                    presentation_definitions_endpoint: https://api-test.ebsi.eu/authorisation/v3/presentation_definitions
+                    presentation_definition_endpoint: https://api-test.ebsi.eu/authorisation/v3/presentation_definitions
                     response_types_supported:
                       - vp_token
                     request_parameter_supported: true

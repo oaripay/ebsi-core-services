@@ -13,7 +13,7 @@ export function isDidV1(value: unknown): boolean {
 }
 
 export function IsDidV1(
-  validationOptions?: ValidationOptions
+  validationOptions?: ValidationOptions,
 ): PropertyDecorator {
   return ValidateBy(
     {
@@ -22,10 +22,10 @@ export function IsDidV1(
         validate: (value) => isDidV1(value),
         defaultMessage: buildMessage(
           (eachPrefix) => `${eachPrefix}$property must be a valid DID v1`,
-          validationOptions
+          validationOptions,
         ),
       },
     },
-    validationOptions
+    validationOptions,
   );
 }

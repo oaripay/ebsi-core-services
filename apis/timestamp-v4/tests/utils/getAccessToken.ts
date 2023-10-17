@@ -8,10 +8,10 @@ import axios from "axios";
 /**
  * Get an actual "timestamp_write" access token from Authorisation API v4.
  */
-export default async function getTimestampWriteAccessToken(
+export async function getTimestampWriteAccessToken(
   authorisationApiUrl: string,
   subject: EbsiIssuer,
-  trustedHostnames: string[]
+  trustedHostnames: string[],
 ) {
   const nonce = randomUUID();
   const vpPayload = {
@@ -33,7 +33,7 @@ export default async function getTimestampWriteAccessToken(
       // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
       exp: Math.floor(Date.now() / 1000) + 100,
       nbf: Math.floor(Date.now() / 1000) - 100,
-    }
+    },
   );
 
   const presentationSubmission = {
@@ -54,7 +54,7 @@ export default async function getTimestampWriteAccessToken(
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-    }
+    },
   );
 
   // Decode access token
@@ -64,3 +64,5 @@ export default async function getTimestampWriteAccessToken(
 
   return accessToken;
 }
+
+export default getTimestampWriteAccessToken;

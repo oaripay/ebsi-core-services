@@ -1,6 +1,6 @@
 import { Equals, Contains, ValidateNested } from "class-validator";
 import { Type } from "class-transformer";
-import { UnsignedTransaction } from "./unsigned-transaction.dto";
+import { UnsignedTransaction } from "./unsigned-transaction.dto.js";
 
 export class SignedTransactionParam {
   @Equals("eth")

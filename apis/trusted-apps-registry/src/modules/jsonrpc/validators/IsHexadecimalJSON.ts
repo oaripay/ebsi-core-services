@@ -21,8 +21,8 @@ export function isHexadecimalJSON(value: unknown): boolean {
   return isJSON(
     Buffer.from(
       value.startsWith("0x") ? value.substr(2) : value,
-      "hex"
-    ).toString("utf8")
+      "hex",
+    ).toString("utf8"),
   );
 }
 
@@ -31,7 +31,7 @@ export function isHexadecimalJSON(value: unknown): boolean {
  * If given value is not a string, then it returns false.
  */
 export function IsHexadecimalJSON(
-  validationOptions?: ValidationOptions
+  validationOptions?: ValidationOptions,
 ): PropertyDecorator {
   return ValidateBy(
     {
@@ -40,10 +40,10 @@ export function IsHexadecimalJSON(
         validate: (value) => isHexadecimalJSON(value),
         defaultMessage: buildMessage(
           (eachPrefix) => `${eachPrefix}$property must be a hexadecimal JSON`,
-          validationOptions
+          validationOptions,
         ),
       },
     },
-    validationOptions
+    validationOptions,
   );
 }

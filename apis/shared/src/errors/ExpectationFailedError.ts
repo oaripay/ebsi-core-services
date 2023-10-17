@@ -1,4 +1,4 @@
-import { ProblemDetailsError } from "./ProblemDetailsError";
+import { ProblemDetailsError } from "./ProblemDetailsError.js";
 
 /**
  * ExpectationFailedError defines the Expectation Failed (417) error type.
@@ -24,7 +24,7 @@ export class ExpectationFailedError extends ProblemDetailsError {
       detail?: string;
       instance?: string;
       extensions?: { [x: string]: unknown };
-    }
+    },
   ) {
     super(ExpectationFailedError.statusCode, title, options);
     this.name = "ExpectationFailedError";

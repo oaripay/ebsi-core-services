@@ -1,40 +1,29 @@
-import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
+import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  Logger,
-  HttpServer,
-} from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import { ethers } from "ethers";
 import { DidRegistry__factory } from "@ebsiint-sc/did-registry";
-import {
-  multihashEncode,
-  multibase,
-  AsyncReturnType,
-} from "@ebsiint-api/shared";
-import { DidTimestampsModule } from "./did-timestamps.module";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { setupTestEnv } from "../../../tests/utils/didRegistry";
-import { createDid } from "../../../tests/utils/data";
-import { LedgerService } from "../ledger/ledger.service";
-import { ApiConfig } from "../../config/configuration";
-
-jest.setTimeout(120000);
+import { multihashEncode, multibase } from "@ebsiint-api/shared";
+import { DidTimestampsModule } from "./did-timestamps.module.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import { setupTestEnv } from "../../../tests/utils/didRegistry.js";
+import { createDid } from "../../../tests/utils/data.js";
+import { LedgerService } from "../ledger/ledger.service.js";
+import type { ApiConfig } from "../../config/configuration.js";
 
 const DID_METHODS_TOTAL = 3;
 
 describe("DidTimestamps Module", () => {
-  let app: INestApplication;
-  let server: HttpServer;
-  let testEnv: AsyncReturnType<typeof setupTestEnv>;
+  let app: NestFastifyApplication;
+  let server: RawServerDefault;
+  let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
   let ledgerService: LedgerService;
   let configService: ConfigService<ApiConfig, true>;
 
@@ -46,16 +35,16 @@ describe("DidTimestamps Module", () => {
     const { didRegistryContract } = testEnv;
 
     // Mock TSR contract
-    jest
-      .spyOn(DidRegistry__factory, "connect")
-      .mockImplementation(() => didRegistryContract);
+    vi.spyOn(DidRegistry__factory, "connect").mockImplementation(
+      () => didRegistryContract,
+    );
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [DidTimestampsModule],
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     // Turn off logger
@@ -66,21 +55,17 @@ describe("DidTimestamps Module", () => {
     app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    await app.getHttpAdapter().getInstance().ready();
+    server = app.getHttpServer();
 
     // Mock Contract service
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
-    jest
-      .spyOn(ledgerService, "getContract")
-      .mockImplementation(async () => Promise.resolve(didRegistryContract));
+    vi.spyOn(ledgerService, "getContract").mockImplementation(async () =>
+      Promise.resolve(didRegistryContract),
+    );
   });
 
   afterAll(async () => {
-    // Avoid jest open handle error
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
     await app.close();
   });
 
@@ -94,45 +79,45 @@ describe("DidTimestamps Module", () => {
 
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          "/did-timestamps?page[after]=1&page[size]=10"
+          "/did-timestamps?page[after]=1&page[size]=10",
         ),
         items: expect.arrayContaining(
           didDocuments.map((method) => {
             // Timestamp ID = sha256(canonicalizedDidDocumentHash)
             const hash = ethers.utils.sha256(
-              method.canonicalizedDidDocumentHash
+              method.canonicalizedDidDocumentHash,
             );
             return {
               timestampId: multibase.base64url.encode(
-                Buffer.from(hash.replace(/^0x/, ""), "hex")
+                Buffer.from(hash.replace(/^0x/, ""), "hex"),
               ),
               href: expect.stringContaining(
                 `/did-timestamps/${multibase.base64url.encode(
-                  Buffer.from(hash.replace(/^0x/, ""), "hex")
-                )}`
+                  Buffer.from(hash.replace(/^0x/, ""), "hex"),
+                )}`,
               ),
             };
-          })
+          }),
         ),
         total: DID_METHODS_TOTAL,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            "/did-timestamps?page[after]=1&page[size]=10"
+            "/did-timestamps?page[after]=1&page[size]=10",
           ),
           prev: expect.stringContaining(
-            "/did-timestamps?page[after]=1&page[size]=10"
+            "/did-timestamps?page[after]=1&page[size]=10",
           ),
           next: expect.stringContaining(
-            "/did-timestamps?page[after]=1&page[size]=10"
+            "/did-timestamps?page[after]=1&page[size]=10",
           ),
           last: expect.stringContaining(
-            "/did-timestamps?page[after]=1&page[size]=10"
+            "/did-timestamps?page[after]=1&page[size]=10",
           ),
         },
       });
       expect((response.body as { items: string }).items).toHaveLength(
-        DID_METHODS_TOTAL
+        DID_METHODS_TOTAL,
       );
       expect(response.status).toBe(200);
     });
@@ -141,27 +126,27 @@ describe("DidTimestamps Module", () => {
       expect.assertions(12);
 
       const response1 = await request(server).get(
-        "/did-timestamps?page[size]=2"
+        "/did-timestamps?page[size]=2",
       );
       expect(response1.body).toStrictEqual({
         self: expect.stringContaining(
-          "/did-timestamps?page[after]=1&page[size]=2"
+          "/did-timestamps?page[after]=1&page[size]=2",
         ),
         items: expect.arrayContaining([]),
         total: DID_METHODS_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
-            "/did-timestamps?page[after]=1&page[size]=2"
+            "/did-timestamps?page[after]=1&page[size]=2",
           ),
           prev: expect.stringContaining(
-            "/did-timestamps?page[after]=1&page[size]=2"
+            "/did-timestamps?page[after]=1&page[size]=2",
           ),
           next: expect.stringContaining(
-            "/did-timestamps?page[after]=2&page[size]=2"
+            "/did-timestamps?page[after]=2&page[size]=2",
           ),
           last: expect.stringContaining(
-            "/did-timestamps?page[after]=2&page[size]=2"
+            "/did-timestamps?page[after]=2&page[size]=2",
           ),
         },
       });
@@ -170,27 +155,27 @@ describe("DidTimestamps Module", () => {
 
       // next page
       const response2 = await request(server).get(
-        "/did-timestamps?page[after]=2&page[size]=2"
+        "/did-timestamps?page[after]=2&page[size]=2",
       );
       expect(response2.body).toStrictEqual({
         self: expect.stringContaining(
-          "/did-timestamps?page[after]=2&page[size]=2"
+          "/did-timestamps?page[after]=2&page[size]=2",
         ),
         items: expect.arrayContaining([]),
         total: DID_METHODS_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
-            "/did-timestamps?page[after]=1&page[size]=2"
+            "/did-timestamps?page[after]=1&page[size]=2",
           ),
           prev: expect.stringContaining(
-            "/did-timestamps?page[after]=1&page[size]=2"
+            "/did-timestamps?page[after]=1&page[size]=2",
           ),
           next: expect.stringContaining(
-            "/did-timestamps?page[after]=2&page[size]=2"
+            "/did-timestamps?page[after]=2&page[size]=2",
           ),
           last: expect.stringContaining(
-            "/did-timestamps?page[after]=2&page[size]=2"
+            "/did-timestamps?page[after]=2&page[size]=2",
           ),
         },
       });
@@ -199,27 +184,27 @@ describe("DidTimestamps Module", () => {
 
       // big page
       const response3 = await request(server).get(
-        "/did-timestamps?page[after]=100&page[size]=2"
+        "/did-timestamps?page[after]=100&page[size]=2",
       );
       expect(response3.body).toStrictEqual({
         self: expect.stringContaining(
-          "/did-timestamps?page[after]=100&page[size]=2"
+          "/did-timestamps?page[after]=100&page[size]=2",
         ),
         items: expect.arrayContaining([]),
         total: DID_METHODS_TOTAL,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
-            "/did-timestamps?page[after]=1&page[size]=2"
+            "/did-timestamps?page[after]=1&page[size]=2",
           ),
           prev: expect.stringContaining(
-            "/did-timestamps?page[after]=2&page[size]=2"
+            "/did-timestamps?page[after]=2&page[size]=2",
           ),
           next: expect.stringContaining(
-            "/did-timestamps?page[after]=2&page[size]=2"
+            "/did-timestamps?page[after]=2&page[size]=2",
           ),
           last: expect.stringContaining(
-            "/did-timestamps?page[after]=2&page[size]=2"
+            "/did-timestamps?page[after]=2&page[size]=2",
           ),
         },
       });
@@ -228,27 +213,27 @@ describe("DidTimestamps Module", () => {
 
       // page["after"] defined but page["size"] undefined
       const response4 = await request(server).get(
-        "/did-timestamps?page[after]=1"
+        "/did-timestamps?page[after]=1",
       );
       expect(response4.body).toStrictEqual({
         self: expect.stringContaining(
-          "/did-timestamps?page[after]=1&page[size]=10"
+          "/did-timestamps?page[after]=1&page[size]=10",
         ),
         items: expect.arrayContaining([]),
         total: DID_METHODS_TOTAL,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            "/did-timestamps?page[after]=1&page[size]=10"
+            "/did-timestamps?page[after]=1&page[size]=10",
           ),
           prev: expect.stringContaining(
-            "/did-timestamps?page[after]=1&page[size]=10"
+            "/did-timestamps?page[after]=1&page[size]=10",
           ),
           next: expect.stringContaining(
-            "/did-timestamps?page[after]=1&page[size]=10"
+            "/did-timestamps?page[after]=1&page[size]=10",
           ),
           last: expect.stringContaining(
-            "/did-timestamps?page[after]=1&page[size]=10"
+            "/did-timestamps?page[after]=1&page[size]=10",
           ),
         },
       });
@@ -260,7 +245,7 @@ describe("DidTimestamps Module", () => {
       expect.assertions(8);
 
       const response1 = await request(server).get(
-        "/did-timestamps?page[size]=100"
+        "/did-timestamps?page[size]=100",
       );
       expect(response1.body).toStrictEqual({
         title: "Bad Request",
@@ -271,7 +256,7 @@ describe("DidTimestamps Module", () => {
       expect(response1.status).toBe(400);
 
       const response2 = await request(server).get(
-        "/did-timestamps?page[size]=0"
+        "/did-timestamps?page[size]=0",
       );
       expect(response2.body).toStrictEqual({
         title: "Bad Request",
@@ -282,7 +267,7 @@ describe("DidTimestamps Module", () => {
       expect(response2.status).toBe(400);
 
       const response3 = await request(server).get(
-        "/did-timestamps?page[after]=0"
+        "/did-timestamps?page[after]=0",
       );
       expect(response3.body).toStrictEqual({
         title: "Bad Request",
@@ -293,7 +278,7 @@ describe("DidTimestamps Module", () => {
       expect(response3.status).toBe(400);
 
       const response4 = await request(server).get(
-        "/did-timestamps?page[after]=abc"
+        "/did-timestamps?page[after]=abc",
       );
       expect(response4.body).toStrictEqual({
         title: "Bad Request",
@@ -309,7 +294,7 @@ describe("DidTimestamps Module", () => {
       expect.assertions(8);
 
       const response1 = await request(server).get(
-        "/did-timestamps?identifier=abc"
+        "/did-timestamps?identifier=abc",
       );
       expect(response1.body).toStrictEqual({
         title: "Bad Request",
@@ -320,7 +305,7 @@ describe("DidTimestamps Module", () => {
       expect(response1.status).toBe(400);
 
       const response2 = await request(server).get(
-        "/did-timestamps?version-id=string"
+        "/did-timestamps?version-id=string",
       );
       expect(response2.body).toStrictEqual({
         title: "Bad Request",
@@ -333,7 +318,7 @@ describe("DidTimestamps Module", () => {
 
       const randomDid = createDid();
       const response3 = await request(server).get(
-        `/did-timestamps?identifier=${randomDid}`
+        `/did-timestamps?identifier=${randomDid}`,
       );
       expect(response3.body).toStrictEqual({
         title: "Bad Request",
@@ -345,7 +330,7 @@ describe("DidTimestamps Module", () => {
       expect(response3.status).toBe(400);
 
       const response4 = await request(server).get(
-        "/did-timestamps?version-id=1"
+        "/did-timestamps?version-id=1",
       );
       expect(response4.body).toStrictEqual({
         title: "Bad Request",
@@ -364,28 +349,28 @@ describe("DidTimestamps Module", () => {
       const versionId = 1;
 
       const response = await request(server).get(
-        `/did-timestamps?identifier=${did}&version-id=${versionId}`
+        `/did-timestamps?identifier=${did}&version-id=${versionId}`,
       );
 
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
+          `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`,
         ),
         items: [],
         total: 0,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`,
           ),
           prev: expect.stringContaining(
-            `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`,
           ),
           next: expect.stringContaining(
-            `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`,
           ),
           last: expect.stringContaining(
-            `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`,
           ),
         },
       });
@@ -397,49 +382,49 @@ describe("DidTimestamps Module", () => {
 
       const { didDocuments } = testEnv;
 
-      const { did } = didDocuments[0];
+      const { did } = didDocuments[0]!;
       const versionId = 1;
 
       const response = await request(server).get(
-        `/did-timestamps?identifier=${did}&version-id=${versionId}`
+        `/did-timestamps?identifier=${did}&version-id=${versionId}`,
       );
 
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
+          `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`,
         ),
         items: expect.arrayContaining(
           [didDocuments[0]].map((method) => {
             // Timestamp ID = sha256(canonicalizedDidDocumentHash)
             const hash = ethers.utils.sha256(
-              method.canonicalizedDidDocumentHash
+              method!.canonicalizedDidDocumentHash,
             );
             return {
               timestampId: multibase.base64url.encode(
-                Buffer.from(hash.replace(/^0x/, ""), "hex")
+                Buffer.from(hash.replace(/^0x/, ""), "hex"),
               ),
               href: expect.stringContaining(
                 `/did-timestamps/${multibase.base64url.encode(
-                  Buffer.from(hash.replace(/^0x/, ""), "hex")
-                )}`
+                  Buffer.from(hash.replace(/^0x/, ""), "hex"),
+                )}`,
               ),
             };
-          })
+          }),
         ),
         total: 1,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`,
           ),
           prev: expect.stringContaining(
-            `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`,
           ),
           next: expect.stringContaining(
-            `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`,
           ),
           last: expect.stringContaining(
-            `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`
+            `/did-timestamps?page[after]=1&page[size]=10&identifier=${did}&version-id=${versionId}`,
           ),
         },
       });
@@ -454,17 +439,17 @@ describe("DidTimestamps Module", () => {
 
       const { didDocuments, didRegistryContract } = testEnv;
       const { canonicalizedDidDocumentHash, timestampDataBuffer } =
-        didDocuments[0];
+        didDocuments[0]!;
 
       const timestampId = multibase.base64url.encode(
         Buffer.from(
           ethers.utils.sha256(canonicalizedDidDocumentHash).replace(/^0x/, ""),
-          "hex"
-        )
+          "hex",
+        ),
       );
 
       const response = await request(server).get(
-        `/did-timestamps/${timestampId}`
+        `/did-timestamps/${timestampId}`,
       );
 
       const signer = await didRegistryContract.signer.getAddress();
@@ -475,9 +460,9 @@ describe("DidTimestamps Module", () => {
         hash: multibase.base64.encode(
           multihashEncode(
             canonicalizedDidDocumentHash,
-            testEnv.hashAlgorithms[0].multihash,
-            testEnv.hashAlgorithms[0].outputLength / 8
-          )
+            testEnv.hashAlgorithms[0]!.multihash,
+            testEnv.hashAlgorithms[0]!.outputLength / 8,
+          ),
         ),
         timestampedBy: signer,
       });
@@ -489,7 +474,7 @@ describe("DidTimestamps Module", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        "/did-timestamps/no-timestamp"
+        "/did-timestamps/no-timestamp",
       );
 
       expect(response.body).toStrictEqual({
@@ -505,7 +490,7 @@ describe("DidTimestamps Module", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        "/did-timestamps/uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4"
+        "/did-timestamps/uMHg3ZWNlZGNiNGRjMTMyYzUzM2IxMmViNjM1MTlhZmQ4N2JlYmNhYmZjNDk0NWQwNjA1ODFjNjZjYWNiYjBjN2Q4",
       );
 
       expect(response.body).toStrictEqual({

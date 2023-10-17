@@ -1,12 +1,12 @@
 import { Controller, Get, Query, Param } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PaginatedList, PaginationQuery } from "@ebsiint-api/shared";
-import AppsService from "./apps.service";
+import AppsService from "./apps.service.js";
 import {
   formatApps,
   formatAuthorizations,
   formatPublicKeys,
-} from "./apps.formatter";
+} from "./apps.formatter.js";
 import {
   AppResponseObject,
   AppLink,
@@ -16,21 +16,21 @@ import {
   AuthorizationLink,
   PublicKeyLink,
   PublicKeyResponseObject,
-} from "./apps.interface";
-import GetAppsDto from "./dto/get-apps.dto";
-import GetAppDto from "./dto/get-app.dto";
-import GetAuthorizationDto from "./dto/get-authorization.dto";
-import GetAuthorizationsParamDto from "./dto/get-authorizations-param.dto";
-import GetAuthorizationsDto from "./dto/get-authorizations.dto";
-import GetPublicKeysParamDto from "./dto/get-public-keys-param.dto";
-import { ApiConfig } from "../../config/configuration";
-import GetPublicKeyDto from "./dto/get-public-key.dto";
+} from "./apps.interface.js";
+import GetAppsDto from "./dto/get-apps.dto.js";
+import GetAppDto from "./dto/get-app.dto.js";
+import GetAuthorizationDto from "./dto/get-authorization.dto.js";
+import GetAuthorizationsParamDto from "./dto/get-authorizations-param.dto.js";
+import GetAuthorizationsDto from "./dto/get-authorizations.dto.js";
+import GetPublicKeysParamDto from "./dto/get-public-keys-param.dto.js";
+import type { ApiConfig } from "../../config/configuration.js";
+import GetPublicKeyDto from "./dto/get-public-key.dto.js";
 
 @Controller("/apps")
 export default class AppsController {
   constructor(
     private appsService: AppsService,
-    private configService: ConfigService<ApiConfig, true>
+    private configService: ConfigService<ApiConfig, true>,
   ) {}
 
   @Get("")
@@ -48,7 +48,7 @@ export default class AppsController {
       if (pageAfter === 1) {
         try {
           const appByPublicKeyId = await this.appsService.getAppByPublicKeyId(
-            query.public_key_id
+            query.public_key_id,
           );
           apps.push({
             applicationId: appByPublicKeyId.applicationId,
@@ -67,7 +67,7 @@ export default class AppsController {
             applicationId: appId,
             name: app.name,
           };
-        })
+        }),
       );
       tempTotal = total;
     }
@@ -82,7 +82,7 @@ export default class AppsController {
       pageAfter,
       pageSize,
       baseUrl,
-      extraQuery
+      extraQuery,
     );
     responseApps.total = total;
     return responseApps;
@@ -100,7 +100,7 @@ export default class AppsController {
   @Get("/:applicationName/public-keys")
   async getPublicKeys(
     @Param() params: GetPublicKeysParamDto,
-    @Query() query: PaginationQuery
+    @Query() query: PaginationQuery,
   ): Promise<PaginatedList<PublicKeyLink>> {
     const { applicationName } = params;
     const pageAfter = query["page[after]"];
@@ -109,7 +109,7 @@ export default class AppsController {
     const publicKeys = await this.appsService.getPublicKeys(
       applicationName,
       pageAfter,
-      pageSize
+      pageSize,
     );
     const { total, items } = publicKeys;
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
@@ -121,13 +121,13 @@ export default class AppsController {
       total.toNumber(),
       pageAfter,
       pageSize,
-      baseUrl
+      baseUrl,
     );
   }
 
   @Get("/:applicationName/public-keys/:publicKeyId")
   async getPublicKey(
-    @Param() params: GetPublicKeyDto
+    @Param() params: GetPublicKeyDto,
   ): Promise<PublicKeyResponseObject> {
     const { applicationName, publicKeyId } = params;
 
@@ -137,7 +137,7 @@ export default class AppsController {
   @Get("/:applicationName/authorizations")
   async getAuthorizations(
     @Param() params: GetAuthorizationsParamDto,
-    @Query() query: GetAuthorizationsDto
+    @Query() query: GetAuthorizationsDto,
   ): Promise<PaginatedList<AuthorizationLink>> {
     const { applicationName } = params;
     const pageAfter = query["page[after]"];
@@ -151,14 +151,14 @@ export default class AppsController {
           applicationName,
           query.requesterApplicationName,
           pageAfter,
-          pageSize
+          pageSize,
         );
       extraQuery = `&requesterApplicationName=${query.requesterApplicationName}`;
     } else {
       authorizations = await this.appsService.getAuthorizations(
         applicationName,
         pageAfter,
-        pageSize
+        pageSize,
       );
     }
     const { total, items } = authorizations;
@@ -172,19 +172,19 @@ export default class AppsController {
       pageAfter,
       pageSize,
       baseUrl,
-      extraQuery
+      extraQuery,
     );
   }
 
   @Get("/:applicationName/authorizations/:authorizationId")
   async getAuthorization(
-    @Param() params: GetAuthorizationDto
+    @Param() params: GetAuthorizationDto,
   ): Promise<AuthorizationResponseObject> {
     const { applicationName, authorizationId } = params;
 
     const authorization = await this.appsService.getAuthorization(
       applicationName,
-      authorizationId
+      authorizationId,
     );
 
     return authorization;

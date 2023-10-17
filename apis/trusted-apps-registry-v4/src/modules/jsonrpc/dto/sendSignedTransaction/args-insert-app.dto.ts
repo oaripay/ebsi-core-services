@@ -2,15 +2,15 @@ import { IsString, IsInt, Min, Max } from "class-validator";
 
 export class ArgsInsertApp {
   @IsString()
-  name: string;
+  name!: string;
 
   @IsInt()
   @Min(0)
   @Max(2)
-  domain: number;
+  domain!: number;
 
   @IsString()
-  appAdministrator: string;
+  appAdministrator!: string;
 }
 
 export default { ArgsInsertApp };

@@ -6,36 +6,37 @@ import {
   expect,
   beforeEach,
   afterEach,
-} from "@jest/globals";
+} from "vitest";
 import { randomUUID, randomBytes } from "node:crypto";
-import type { JsonWebKey } from "node:crypto";
 import { URLSearchParams } from "node:url";
 import request from "supertest";
-import nock from "nock";
-import { Test, TestingModule } from "@nestjs/testing";
+import { rest } from "msw";
+import { setupServer } from "msw/node";
+import { Test, type TestingModule } from "@nestjs/testing";
 import { Logger } from "@nestjs/common";
-import type { INestApplication, HttpServer } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import type { FastifyInstance } from "fastify";
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
+import type { RawServerDefault } from "fastify";
 import type { PresentationSubmission } from "@sphereon/pex-models";
 import { decodeJWT, createJWT, ES256KSigner } from "did-jwt";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import {
-  EbsiVerifiableAttestation,
   createVerifiableCredentialJwt,
+  type EbsiEnvConfiguration,
+  type EbsiVerifiableAttestation,
 } from "@cef-ebsi/verifiable-credential";
 import { createVerifiablePresentationJwt } from "@cef-ebsi/verifiable-presentation";
 import type { EbsiVerifiablePresentation } from "@cef-ebsi/verifiable-presentation";
 import { calculateJwkThumbprint, importJWK, SignJWT, jwtVerify } from "jose";
 import type { JWK } from "jose";
 import qs from "qs";
-import { AuthorisationModule } from "./authorisation.module";
+import { AuthorisationModule } from "./authorisation.module.js";
 import type {
   JsonWebKeySet,
   Scope,
   TokenResponse,
-} from "./authorisation.interfaces";
-import type { ApiConfig } from "../../config/configuration";
+} from "./authorisation.interfaces.js";
+import type { ApiConfig } from "../../config/configuration.js";
 import {
   CUSTOM_SCOPES,
   DIDR_INVITE_PRESENTATION_DEFINITION,
@@ -46,34 +47,46 @@ import {
   TIR_INVITE_SCOPE,
   TIR_WRITE_PRESENTATION_DEFINITION,
   TIR_WRITE_SCOPE,
-} from "./authorisation.constants";
+} from "./authorisation.constants.js";
 import {
   createLegalEntity,
   createPresentationSubmission,
   LegalEntity,
-} from "../../../tests/utils/data";
-import {
-  DID_DOCUMENT_CONTEXT,
-  JWS_2020_CONTEXT,
-} from "../../../tests/utils/contexts";
-import { configureApp } from "../../../tests/utils/app";
-import { CreateAccessTokenDto } from "./dto";
+} from "../../../tests/utils/data.js";
+import { configureApp } from "../../../tests/utils/app.js";
+import { CreateAccessTokenDto } from "./dto/index.js";
+
+/**
+ * Encode DID in URLs mocked by MSW
+ * @see https://github.com/mswjs/msw/discussions/739#discussioncomment-2524732
+ */
+function encodeDid(did: string) {
+  return did.replaceAll(":", "\\:");
+}
 
 describe("Authorisation Module", () => {
-  let app: INestApplication;
-  let server: HttpServer;
+  let app: NestFastifyApplication;
+  let server: RawServerDefault;
   let configService: ConfigService<ApiConfig, true>;
   let domain: string;
   let serviceEndpoint: string;
   let credentialIssuer: LegalEntity;
   let credentialIssuerAccreditationUrl: string;
   let credentialSubject: LegalEntity;
+  let ebsiAuthority: string;
+  let ebsiEnvConfig: EbsiEnvConfiguration;
+  const mockServer = setupServer();
 
   beforeAll(async () => {
-    // Disable external requests
-    nock.disableNetConnect();
-    // Allow localhost connections so we can test local routes and mock servers.
-    nock.enableNetConnect("127.0.0.1");
+    // Intercept network requests
+    mockServer.listen({
+      onUnhandledRequest: ({ method, url }) => {
+        // Bypass local requests
+        if (url.hostname === "127.0.0.1") return;
+
+        throw new Error(`Unhandled ${method} request to ${url.href}`);
+      },
+    });
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AuthorisationModule],
@@ -88,11 +101,18 @@ describe("Authorisation Module", () => {
     app = await configureApp(moduleFixture, configService);
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
-    server = app.getHttpServer() as HttpServer;
+    server = app.getHttpServer();
 
     domain = configService.get<string>("domain");
+    ebsiAuthority = domain.replace(/^https?:\/\//, ""); // remove http protocol scheme
+    ebsiEnvConfig = {
+      didRegistry: `${domain}/did-registry/v4/identifiers`,
+      trustedIssuersRegistry: `${domain}/trusted-issuers-registry/v4/issuers`,
+      trustedPoliciesRegistry: `${domain}/trusted-policies-registry/v2/users`,
+    };
+
     const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
     serviceEndpoint = `${domain}${apiUrlPrefix}`;
 
@@ -104,29 +124,24 @@ describe("Authorisation Module", () => {
   });
 
   beforeEach(async () => {
-    nock(domain)
-      .get(`/did-registry/v4/identifiers/${credentialIssuer.did}`)
-      .reply(200, credentialIssuer.didDocument)
-      .persist();
-
-    nock(domain)
-      .get(`/trusted-issuers-registry/v4/issuers/${credentialIssuer.did}`)
-      .reply(200, {})
-      .persist();
-
-    nock("https://www.w3.org")
-      .get("/ns/did/v1")
-      .reply(200, DID_DOCUMENT_CONTEXT)
-      .persist();
-
-    nock("https://w3id.org")
-      .get("/security/suites/jws-2020/v1")
-      .reply(200, JWS_2020_CONTEXT)
-      .persist();
+    mockServer.use(
+      rest.get(
+        `${domain}/did-registry/v4/identifiers/${encodeDid(
+          credentialIssuer.did,
+        )}`,
+        (_req, res, ctx) => res(ctx.json(credentialIssuer.didDocument)),
+      ),
+      rest.get(
+        `${domain}/trusted-issuers-registry/v4/issuers/${encodeDid(
+          credentialIssuer.did,
+        )}`,
+        (_req, res, ctx) => res(ctx.json({})),
+      ),
+    );
 
     // Issuer Self-Accreditation
     const authorisationCredentialSchema = configService.get<string>(
-      "testOidSchemaPattern"
+      "testOidSchemaPattern",
     );
     const iat = Math.round(Date.now() / 1000);
     const exp = iat + 365 * 24 * 3600;
@@ -188,30 +203,23 @@ describe("Authorisation Module", () => {
         kid: credentialIssuer.kid,
       })
       .sign(
-        await importJWK(credentialIssuer.privateKeyJwk, credentialIssuer.alg)
+        await importJWK(credentialIssuer.privateKeyJwk, credentialIssuer.alg),
       );
 
-    nock(domain)
-      .get(new URL(credentialIssuerAccreditationUrl).pathname)
-      .reply(200, {
-        attribute: {
-          body: accreditationVcJwt,
-        },
-      })
-      .persist();
+    mockServer.use(
+      rest.get(credentialIssuerAccreditationUrl, (_req, res, ctx) =>
+        res(ctx.json({ attribute: { body: accreditationVcJwt } })),
+      ),
+    );
   });
 
   afterEach(() => {
-    nock.cleanAll();
+    mockServer.resetHandlers();
   });
 
   afterAll(async () => {
-    nock.enableNetConnect();
+    mockServer.close();
 
-    // Avoid jest open handle error
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
     await app.close();
   });
 
@@ -220,7 +228,7 @@ describe("Authorisation Module", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        "/.well-known/openid-configuration"
+        "/.well-known/openid-configuration",
       );
 
       expect(response.body).toStrictEqual({
@@ -280,10 +288,10 @@ describe("Authorisation Module", () => {
 
       expect(response.status).toBe(200);
       expect(
-        (response.headers as Record<string, unknown>)["content-type"]
+        (response.headers as Record<string, unknown>)["content-type"],
       ).toBe("application/jwk-set+json; charset=utf-8");
 
-      const jwk = (response.body as { keys: JWK[] }).keys[0];
+      const jwk = (response.body as { keys: JWK[] }).keys[0]!;
       const thumbprint = await calculateJwkThumbprint(jwk);
 
       expect(jwk.kid).toBe(thumbprint);
@@ -305,12 +313,12 @@ describe("Authorisation Module", () => {
       });
       expect(response.status).toBe(400);
       expect(
-        (response.headers as Record<string, unknown>)["content-type"]
+        (response.headers as Record<string, unknown>)["content-type"],
       ).toBe("application/problem+json; charset=utf-8");
 
       // With an invalid scope
       response = await request(server).get(
-        "/presentation-definitions?scope=test"
+        "/presentation-definitions?scope=test",
       );
 
       expect(response.body).toStrictEqual({
@@ -321,14 +329,14 @@ describe("Authorisation Module", () => {
       });
       expect(response.status).toBe(400);
       expect(
-        (response.headers as Record<string, unknown>)["content-type"]
+        (response.headers as Record<string, unknown>)["content-type"],
       ).toBe("application/problem+json; charset=utf-8");
 
       // Doesn't contain "openid"
       response = await request(server).get(
         `/presentation-definitions?${new URLSearchParams({
           scope: "didr_write tir_write",
-        }).toString()}`
+        }).toString()}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -339,12 +347,12 @@ describe("Authorisation Module", () => {
       });
       expect(response.status).toBe(400);
       expect(
-        (response.headers as Record<string, unknown>)["content-type"]
+        (response.headers as Record<string, unknown>)["content-type"],
       ).toBe("application/problem+json; charset=utf-8");
 
       // Includes only "openid"
       response = await request(server).get(
-        "/presentation-definitions?scope=openid"
+        "/presentation-definitions?scope=openid",
       );
 
       expect(response.body).toStrictEqual({
@@ -355,7 +363,7 @@ describe("Authorisation Module", () => {
       });
       expect(response.status).toBe(400);
       expect(
-        (response.headers as Record<string, unknown>)["content-type"]
+        (response.headers as Record<string, unknown>)["content-type"],
       ).toBe("application/problem+json; charset=utf-8");
     });
 
@@ -364,9 +372,9 @@ describe("Authorisation Module", () => {
 
       //  With explicit scope "openid didr_invite"
       let response = await request(server).get(
-        `/presentation-definitions?scope=${encodeURIComponent(
-          `openid ${DIDR_INVITE_SCOPE}`
-        )}`
+        `/presentation-definitions?scope=${encodeDid(
+          `openid ${DIDR_INVITE_SCOPE}`,
+        )}`,
       );
 
       expect(response.body).toStrictEqual(DIDR_INVITE_PRESENTATION_DEFINITION);
@@ -374,9 +382,9 @@ describe("Authorisation Module", () => {
 
       // With explicit scope "openid didr_write"
       response = await request(server).get(
-        `/presentation-definitions?scope=${encodeURIComponent(
-          `openid ${DIDR_WRITE_SCOPE}`
-        )}`
+        `/presentation-definitions?scope=${encodeDid(
+          `openid ${DIDR_WRITE_SCOPE}`,
+        )}`,
       );
 
       expect(response.body).toStrictEqual(DIDR_WRITE_PRESENTATION_DEFINITION);
@@ -384,9 +392,9 @@ describe("Authorisation Module", () => {
 
       // With explicit scope "openid tir_invite"
       response = await request(server).get(
-        `/presentation-definitions?scope=${encodeURIComponent(
-          `openid ${TIR_INVITE_SCOPE}`
-        )}`
+        `/presentation-definitions?scope=${encodeDid(
+          `openid ${TIR_INVITE_SCOPE}`,
+        )}`,
       );
 
       expect(response.body).toStrictEqual(TIR_INVITE_PRESENTATION_DEFINITION);
@@ -394,9 +402,9 @@ describe("Authorisation Module", () => {
 
       // With explicit scope "openid tir_write"
       response = await request(server).get(
-        `/presentation-definitions?scope=${encodeURIComponent(
-          `openid ${TIR_WRITE_SCOPE}`
-        )}`
+        `/presentation-definitions?scope=${encodeDid(
+          `openid ${TIR_WRITE_SCOPE}`,
+        )}`,
       );
 
       expect(response.body).toStrictEqual(TIR_WRITE_PRESENTATION_DEFINITION);
@@ -414,7 +422,7 @@ describe("Authorisation Module", () => {
         .send(
           new URLSearchParams({
             grant_type: "test",
-          }).toString()
+          }).toString(),
         );
 
       expect(response.body).toStrictEqual({
@@ -423,7 +431,7 @@ describe("Authorisation Module", () => {
       });
       expect(response.status).toBe(400);
       expect(
-        (response.headers as Record<string, unknown>)["content-type"]
+        (response.headers as Record<string, unknown>)["content-type"],
       ).toBe("application/json; charset=utf-8");
     });
 
@@ -437,7 +445,7 @@ describe("Authorisation Module", () => {
           new URLSearchParams({
             grant_type: "vp_token",
             scope: "test",
-          }).toString()
+          }).toString(),
         );
 
       expect(response.body).toStrictEqual({
@@ -447,7 +455,7 @@ describe("Authorisation Module", () => {
       });
       expect(response.status).toBe(400);
       expect(
-        (response.headers as Record<string, unknown>)["content-type"]
+        (response.headers as Record<string, unknown>)["content-type"],
       ).toBe("application/json; charset=utf-8");
     });
 
@@ -462,7 +470,7 @@ describe("Authorisation Module", () => {
             grant_type: "vp_token",
             scope: "openid didr_invite",
             vp_token: "test",
-          }).toString()
+          }).toString(),
         );
 
       expect(response.body).toStrictEqual({
@@ -471,7 +479,7 @@ describe("Authorisation Module", () => {
       });
       expect(response.status).toBe(400);
       expect(
-        (response.headers as Record<string, unknown>)["content-type"]
+        (response.headers as Record<string, unknown>)["content-type"],
       ).toBe("application/json; charset=utf-8");
     });
 
@@ -530,128 +538,152 @@ describe("Authorisation Module", () => {
 
         // If scope=didr_invite, the DID is not yet registered in the DIDR and TIR
         if (customScope === DIDR_INVITE_SCOPE) {
-          nock(domain)
-            .get(`/did-registry/v4/identifiers/${credentialSubject.did}`)
-            .reply(404, "Not found")
-            .persist();
+          mockServer.use(
+            rest.get(
+              `${domain}/did-registry/v4/identifiers/${encodeDid(
+                credentialSubject.did,
+              )}`,
+              (_req, res, ctx) => res(ctx.status(404), ctx.text("Not found")),
+            ),
+          );
         } else {
-          nock(domain)
-            .get(`/did-registry/v4/identifiers/${credentialSubject.did}`)
-            .reply(200, credentialSubject.didDocument)
-            .persist();
+          mockServer.use(
+            rest.get(
+              `${domain}/did-registry/v4/identifiers/${encodeDid(
+                credentialSubject.did,
+              )}`,
+              (_req, res, ctx) => res(ctx.json(credentialSubject.didDocument)),
+            ),
+          );
         }
 
         if (
           customScope === TIR_INVITE_SCOPE ||
           customScope === TIR_WRITE_SCOPE
         ) {
-          nock(domain)
-            .get(
-              `/trusted-issuers-registry/v4/issuers/${credentialSubject.did}`
-            )
-            .reply(200, {})
-            .persist();
-
           const attributeId =
             "352f18152fdc52f1797c98bfea8e0737d620e5503df2463dd8129719fcf6bf5c";
 
-          nock(domain)
-            .get(
-              `/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes`
-            )
-            .reply(200, {
-              self: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes?page[after]=1&page[size]=10`,
-              items: [
-                {
-                  id: attributeId,
-                  href: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}`,
-                },
-              ],
-              total: 1,
-              pageSize: 10,
-              links: {
-                first: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes?page[after]=1&page[size]=10`,
-                prev: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes?page[after]=1&page[size]=10`,
-                next: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes?page[after]=1&page[size]=10`,
-                last: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes?page[after]=1&page[size]=10`,
-              },
-            })
-            .persist();
+          mockServer.use(
+            rest.get(
+              `${domain}/trusted-issuers-registry/v4/issuers/${encodeDid(
+                credentialSubject.did,
+              )}`,
+              (_req, res, ctx) => res(ctx.json({})),
+            ),
+            rest.get(
+              `${domain}/trusted-issuers-registry/v4/issuers/${encodeDid(
+                credentialSubject.did,
+              )}/attributes`,
+              (_req, res, ctx) =>
+                res(
+                  ctx.json({
+                    self: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes?page[after]=1&page[size]=10`,
+                    items: [
+                      {
+                        id: attributeId,
+                        href: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}`,
+                      },
+                    ],
+                    total: 1,
+                    pageSize: 10,
+                    links: {
+                      first: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes?page[after]=1&page[size]=10`,
+                      prev: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes?page[after]=1&page[size]=10`,
+                      next: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes?page[after]=1&page[size]=10`,
+                      last: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes?page[after]=1&page[size]=10`,
+                    },
+                  }),
+                ),
+            ),
+          );
 
           if (customScope === TIR_INVITE_SCOPE) {
             // For tir_invite, create only 1 revision
-            nock(domain)
-              .get(
-                `/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions`
-              )
-              .reply(200, {
-                self: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
-                items: [
-                  {
-                    hash: "c1a9c6159f72591b612e1381f5d79cede36a2b097aef6b3691f61248a406d9d2",
-                    body: "",
-                    issuerType: "RootTAO",
-                    tao: EbsiWallet.createDid(),
-                    rootTao: EbsiWallet.createDid(),
-                  },
-                ],
-                total: 1,
-                pageSize: 10,
-                links: {
-                  first: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
-                  prev: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
-                  next: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
-                  last: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
-                },
-              })
-              .persist();
+            mockServer.use(
+              rest.get(
+                `${domain}/trusted-issuers-registry/v4/issuers/${encodeDid(
+                  credentialSubject.did,
+                )}/attributes/${attributeId}/revisions`,
+                (_req, res, ctx) =>
+                  res(
+                    ctx.json({
+                      self: `${domain}/trusted-issuers-registry/v4/issuers/${encodeDid(
+                        credentialSubject.did,
+                      )}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
+                      items: [
+                        {
+                          hash: "c1a9c6159f72591b612e1381f5d79cede36a2b097aef6b3691f61248a406d9d2",
+                          body: "",
+                          issuerType: "RootTAO",
+                          tao: EbsiWallet.createDid(),
+                          rootTao: EbsiWallet.createDid(),
+                        },
+                      ],
+                      total: 1,
+                      pageSize: 10,
+                      links: {
+                        first: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
+                        prev: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
+                        next: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
+                        last: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
+                      },
+                    }),
+                  ),
+              ),
+            );
           } else {
             // For tir_write, create 2 revisions
-            nock(domain)
-              .get(
-                `/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions`
-              )
-              .reply(200, {
-                self: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
-                items: [
-                  {
-                    hash: "c1a9c6159f72591b612e1381f5d79cede36a2b097aef6b3691f61248a406d9d2",
-                    body: "",
-                    issuerType: "RootTAO",
-                    tao: EbsiWallet.createDid(),
-                    rootTao: EbsiWallet.createDid(),
-                  },
-                  {
-                    hash: "352f18152fdc52f1797c98bfea8e0737d620e5503df2463dd8129719fcf6bf5c",
-                    body: "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImRpZDplYnNpOnp5d24zZlBoM0s0aDZLaWJlOUF1VE1wIzVfWXJCNTFHckxZSFc2cU9lY05RZFFiMU8xNWUzWGNtWE5zVzA5d1IyNncifQ.eyJpYXQiOjE2NzcyNDk0NzYsImp0aSI6InVybjp1dWlkOmI2NDhkZGQ2LTVjMzgtNGI3YS1iMDM3LTVmNzc4OWJhNTVlOSIsIm5iZiI6MTY3NzI0OTQ3NiwiZXhwIjoxNzA4Nzg1NDc2LCJzdWIiOiJkaWQ6ZWJzaTp6ejdYc0M5aXhBWHVaZWNvRDlzWkVNMSIsInZjIjp7IkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIl0sInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJWZXJpZmlhYmxlQXR0ZXN0YXRpb24iLCJWZXJpZmlhYmxlQXV0aG9yaXNhdGlvbkZvclRydXN0Q2hhaW4iXSwiaXNzdWVyIjoiZGlkOmVic2k6enl3bjNmUGgzSzRoNktpYmU5QXVUTXAiLCJjcmVkZW50aWFsU3ViamVjdCI6eyJpZCI6ImRpZDplYnNpOnp6N1hzQzlpeEFYdVplY29EOXNaRU0xIn0sInRlcm1zT2ZVc2UiOnsiaWQiOiJodHRwczovL2FwaS10ZXN0LmVic2kuZXUvdHJ1c3RlZC1pc3N1ZXJzLXJlZ2lzdHJ5L3Y0L2lzc3VlcnMvZGlkOmVic2k6enl3bjNmUGgzSzRoNktpYmU5QXVUTXAvYXR0cmlidXRlcy9iYTc1MWZhNjAyNTBjYmRiMzlmZWVjMDdkMzZjMzNiNTBiNjM4ODY0MjBmYzkxNDY5MjUwOWQ1N2Y4MTgxYzFjIiwidHlwZSI6Iklzc3VhbmNlQ2VydGlmaWNhdGUifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHBzOi8vYXBpLXRlc3QuZWJzaS5ldS90cnVzdGVkLXNjaGVtYXMtcmVnaXN0cnkvdjIvc2NoZW1hcy96M01nVUZVa2I3MjJ1cTR4M2R2NXlBSm1uTm16REZlSzVVQzh4ODNRb2VMSk0iLCJ0eXBlIjoiRnVsbEpzb25TY2hlbWFWYWxpZGF0b3IyMDIxIn0sImlkIjoidXJuOnV1aWQ6YjY0OGRkZDYtNWMzOC00YjdhLWIwMzctNWY3Nzg5YmE1NWU5IiwiaXNzdWFuY2VEYXRlIjoiMjAyMy0wMi0yNFQxNDozNzo1Ni4wMDBaIiwiaXNzdWVkIjoiMjAyMy0wMi0yNFQxNDozNzo1Ni4wMDBaIiwidmFsaWRGcm9tIjoiMjAyMy0wMi0yNFQxNDozNzo1Ni4wMDBaIiwiZXhwaXJhdGlvbkRhdGUiOiIyMDI0LTAyLTI0VDE0OjM3OjU2LjAwMFoiLCJ2YWxpZFVudGlsIjoiMjAyNC0wMi0yNFQxNDozNzo1Ni4wMDBaIn0sImlzcyI6ImRpZDplYnNpOnp5d24zZlBoM0s0aDZLaWJlOUF1VE1wIn0.td0zhAcRNN6UQ4Yul6-Vy9qQNi_ZxlXmUIlbkfMcD3rAY6s8EpnA1h8UYagcePmGk8Xzx_6KpzN78QuFPF4lsg",
-                    issuerType: "RootTAO",
-                    tao: EbsiWallet.createDid(),
-                    rootTao: EbsiWallet.createDid(),
-                  },
-                ],
-                total: 2,
-                pageSize: 10,
-                links: {
-                  first: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
-                  prev: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
-                  next: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
-                  last: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
-                },
-              })
-              .persist();
+            mockServer.use(
+              rest.get(
+                `${domain}/trusted-issuers-registry/v4/issuers/${encodeDid(
+                  credentialSubject.did,
+                )}/attributes/${attributeId}/revisions`,
+                (_req, res, ctx) =>
+                  res(
+                    ctx.json({
+                      self: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
+                      items: [
+                        {
+                          hash: "c1a9c6159f72591b612e1381f5d79cede36a2b097aef6b3691f61248a406d9d2",
+                          body: "",
+                          issuerType: "RootTAO",
+                          tao: EbsiWallet.createDid(),
+                          rootTao: EbsiWallet.createDid(),
+                        },
+                        {
+                          hash: "352f18152fdc52f1797c98bfea8e0737d620e5503df2463dd8129719fcf6bf5c",
+                          body: "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImRpZDplYnNpOnp5d24zZlBoM0s0aDZLaWJlOUF1VE1wIzVfWXJCNTFHckxZSFc2cU9lY05RZFFiMU8xNWUzWGNtWE5zVzA5d1IyNncifQ.eyJpYXQiOjE2NzcyNDk0NzYsImp0aSI6InVybjp1dWlkOmI2NDhkZGQ2LTVjMzgtNGI3YS1iMDM3LTVmNzc4OWJhNTVlOSIsIm5iZiI6MTY3NzI0OTQ3NiwiZXhwIjoxNzA4Nzg1NDc2LCJzdWIiOiJkaWQ6ZWJzaTp6ejdYc0M5aXhBWHVaZWNvRDlzWkVNMSIsInZjIjp7IkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIl0sInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJWZXJpZmlhYmxlQXR0ZXN0YXRpb24iLCJWZXJpZmlhYmxlQXV0aG9yaXNhdGlvbkZvclRydXN0Q2hhaW4iXSwiaXNzdWVyIjoiZGlkOmVic2k6enl3bjNmUGgzSzRoNktpYmU5QXVUTXAiLCJjcmVkZW50aWFsU3ViamVjdCI6eyJpZCI6ImRpZDplYnNpOnp6N1hzQzlpeEFYdVplY29EOXNaRU0xIn0sInRlcm1zT2ZVc2UiOnsiaWQiOiJodHRwczovL2FwaS10ZXN0LmVic2kuZXUvdHJ1c3RlZC1pc3N1ZXJzLXJlZ2lzdHJ5L3Y0L2lzc3VlcnMvZGlkOmVic2k6enl3bjNmUGgzSzRoNktpYmU5QXVUTXAvYXR0cmlidXRlcy9iYTc1MWZhNjAyNTBjYmRiMzlmZWVjMDdkMzZjMzNiNTBiNjM4ODY0MjBmYzkxNDY5MjUwOWQ1N2Y4MTgxYzFjIiwidHlwZSI6Iklzc3VhbmNlQ2VydGlmaWNhdGUifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHBzOi8vYXBpLXRlc3QuZWJzaS5ldS90cnVzdGVkLXNjaGVtYXMtcmVnaXN0cnkvdjIvc2NoZW1hcy96M01nVUZVa2I3MjJ1cTR4M2R2NXlBSm1uTm16REZlSzVVQzh4ODNRb2VMSk0iLCJ0eXBlIjoiRnVsbEpzb25TY2hlbWFWYWxpZGF0b3IyMDIxIn0sImlkIjoidXJuOnV1aWQ6YjY0OGRkZDYtNWMzOC00YjdhLWIwMzctNWY3Nzg5YmE1NWU5IiwiaXNzdWFuY2VEYXRlIjoiMjAyMy0wMi0yNFQxNDozNzo1Ni4wMDBaIiwiaXNzdWVkIjoiMjAyMy0wMi0yNFQxNDozNzo1Ni4wMDBaIiwidmFsaWRGcm9tIjoiMjAyMy0wMi0yNFQxNDozNzo1Ni4wMDBaIiwiZXhwaXJhdGlvbkRhdGUiOiIyMDI0LTAyLTI0VDE0OjM3OjU2LjAwMFoiLCJ2YWxpZFVudGlsIjoiMjAyNC0wMi0yNFQxNDozNzo1Ni4wMDBaIn0sImlzcyI6ImRpZDplYnNpOnp5d24zZlBoM0s0aDZLaWJlOUF1VE1wIn0.td0zhAcRNN6UQ4Yul6-Vy9qQNi_ZxlXmUIlbkfMcD3rAY6s8EpnA1h8UYagcePmGk8Xzx_6KpzN78QuFPF4lsg",
+                          issuerType: "RootTAO",
+                          tao: EbsiWallet.createDid(),
+                          rootTao: EbsiWallet.createDid(),
+                        },
+                      ],
+                      total: 2,
+                      pageSize: 10,
+                      links: {
+                        first: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
+                        prev: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
+                        next: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
+                        last: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
+                      },
+                    }),
+                  ),
+              ),
+            );
           }
         }
       });
 
       afterEach(() => {
-        nock.cleanAll();
+        mockServer.resetHandlers();
       });
 
       describe("vp_token validation", () => {
         beforeEach(() => {
           // Reset to empty verifiable credential array before each test to allow each test to add its own verifiable credential
           vpPayload.verifiableCredential = [];
-          vpPayload.id = randomUUID(); // VP ID is used as JWT JTI.
+          vpPayload["id"] = randomUUID(); // VP ID is used as JWT JTI.
         });
 
         it("should return an error the audience is not the service", async () => {
@@ -660,9 +692,10 @@ describe("Authorisation Module", () => {
               vcPayload,
               credentialIssuer,
               {
-                ebsiAuthority: "example.net",
+                ebsiAuthority,
+                ebsiEnvConfig,
                 skipValidation: true,
-              }
+              },
             );
 
             vpPayload.verifiableCredential.push(vcJwt);
@@ -673,7 +706,8 @@ describe("Authorisation Module", () => {
             credentialSubject,
             "authentication-service-v3",
             {
-              ebsiAuthority: "example.net",
+              ebsiAuthority,
+              ebsiEnvConfig,
               skipValidation: true,
               nonce: randomUUID(),
               ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
@@ -683,7 +717,7 @@ describe("Authorisation Module", () => {
                     nbf: Math.floor(Date.now() / 1000) - 100,
                   }
                 : {}),
-            }
+            },
           );
 
           const response = await request(server)
@@ -695,7 +729,7 @@ describe("Authorisation Module", () => {
                 scope,
                 vp_token: vpJwt,
                 presentation_submission: JSON.stringify(presentationSubmission),
-              } satisfies CreateAccessTokenDto).toString()
+              } satisfies CreateAccessTokenDto).toString(),
             );
 
           expect(response.body).toStrictEqual({
@@ -704,7 +738,7 @@ describe("Authorisation Module", () => {
           });
           expect(response.status).toBe(400);
           expect(
-            (response.headers as Record<string, unknown>)["content-type"]
+            (response.headers as Record<string, unknown>)["content-type"],
           ).toBe("application/json; charset=utf-8");
         });
 
@@ -714,9 +748,10 @@ describe("Authorisation Module", () => {
               vcPayload,
               credentialIssuer,
               {
-                ebsiAuthority: "example.net",
+                ebsiAuthority,
+                ebsiEnvConfig,
                 skipValidation: true,
-              }
+              },
             );
 
             vpPayload.verifiableCredential.push(vcJwt);
@@ -727,7 +762,8 @@ describe("Authorisation Module", () => {
             credentialSubject,
             serviceEndpoint,
             {
-              ebsiAuthority: "example.net",
+              ebsiAuthority,
+              ebsiEnvConfig,
               skipValidation: true,
               nonce: randomUUID(),
               ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
@@ -737,7 +773,7 @@ describe("Authorisation Module", () => {
                     nbf: Math.floor(Date.now() / 1000) - 100,
                   }
                 : {}),
-            }
+            },
           );
 
           // Fake a change in original vpJwt
@@ -752,7 +788,7 @@ describe("Authorisation Module", () => {
             },
             {
               kid: credentialIssuer.kid,
-            }
+            },
           );
 
           const response = await request(server)
@@ -764,7 +800,7 @@ describe("Authorisation Module", () => {
                 scope,
                 vp_token: vpTokenTampered,
                 presentation_submission: JSON.stringify(presentationSubmission),
-              } satisfies CreateAccessTokenDto).toString()
+              } satisfies CreateAccessTokenDto).toString(),
             );
 
           expect(response.body).toStrictEqual({
@@ -773,7 +809,7 @@ describe("Authorisation Module", () => {
           });
           expect(response.status).toBe(400);
           expect(
-            (response.headers as Record<string, unknown>)["content-type"]
+            (response.headers as Record<string, unknown>)["content-type"],
           ).toBe("application/json; charset=utf-8");
         });
 
@@ -783,9 +819,10 @@ describe("Authorisation Module", () => {
               vcPayload,
               credentialIssuer,
               {
-                ebsiAuthority: "example.net",
+                ebsiAuthority,
+                ebsiEnvConfig,
                 skipValidation: true,
-              }
+              },
             );
 
             vpPayload.verifiableCredential.push(vcJwt);
@@ -796,13 +833,14 @@ describe("Authorisation Module", () => {
             credentialSubject,
             serviceEndpoint,
             {
-              ebsiAuthority: "example.net",
+              ebsiAuthority,
+              ebsiEnvConfig,
               skipValidation: true,
               nonce: randomUUID(),
               // Override "exp" and "nbf"
               exp: Math.floor(Date.now() / 1000) - 100,
               nbf: Math.floor(Date.now() / 1000) - 1000,
-            }
+            },
           );
 
           const response = await request(server)
@@ -814,7 +852,7 @@ describe("Authorisation Module", () => {
                 scope,
                 vp_token: vpJwt,
                 presentation_submission: JSON.stringify(presentationSubmission),
-              } satisfies CreateAccessTokenDto).toString()
+              } satisfies CreateAccessTokenDto).toString(),
             );
 
           expect(response.body).toStrictEqual({
@@ -824,7 +862,7 @@ describe("Authorisation Module", () => {
           });
           expect(response.status).toBe(400);
           expect(
-            (response.headers as Record<string, unknown>)["content-type"]
+            (response.headers as Record<string, unknown>)["content-type"],
           ).toBe("application/json; charset=utf-8");
         });
 
@@ -834,9 +872,10 @@ describe("Authorisation Module", () => {
               vcPayload,
               credentialIssuer,
               {
-                ebsiAuthority: "example.net",
+                ebsiAuthority,
+                ebsiEnvConfig,
                 skipValidation: true,
-              }
+              },
             );
 
             vpPayload.verifiableCredential.push(vcJwt);
@@ -847,13 +886,14 @@ describe("Authorisation Module", () => {
             credentialSubject,
             serviceEndpoint,
             {
-              ebsiAuthority: "example.net",
+              ebsiAuthority,
+              ebsiEnvConfig,
               skipValidation: true,
               nonce: randomUUID(),
               // Override "exp" and "nbf"
               exp: Math.floor(Date.now() / 1000) + 1000,
               nbf: Math.floor(Date.now() / 1000) + 100,
-            }
+            },
           );
 
           const response = await request(server)
@@ -865,7 +905,7 @@ describe("Authorisation Module", () => {
                 scope,
                 vp_token: vpJwt,
                 presentation_submission: JSON.stringify(presentationSubmission),
-              } satisfies CreateAccessTokenDto).toString()
+              } satisfies CreateAccessTokenDto).toString(),
             );
 
           expect(response.body).toStrictEqual({
@@ -875,7 +915,7 @@ describe("Authorisation Module", () => {
           });
           expect(response.status).toBe(400);
           expect(
-            (response.headers as Record<string, unknown>)["content-type"]
+            (response.headers as Record<string, unknown>)["content-type"],
           ).toBe("application/json; charset=utf-8");
         });
 
@@ -885,9 +925,10 @@ describe("Authorisation Module", () => {
               vcPayload,
               credentialIssuer,
               {
-                ebsiAuthority: "example.net",
+                ebsiAuthority,
+                ebsiEnvConfig,
                 skipValidation: true,
-              }
+              },
             );
 
             vpPayload.verifiableCredential.push(vcJwt);
@@ -898,7 +939,8 @@ describe("Authorisation Module", () => {
             credentialSubject,
             serviceEndpoint,
             {
-              ebsiAuthority: "example.net",
+              ebsiAuthority,
+              ebsiEnvConfig,
               skipValidation: true,
               // We don't add any nonce
               ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
@@ -908,7 +950,7 @@ describe("Authorisation Module", () => {
                     nbf: Math.floor(Date.now() / 1000) - 100,
                   }
                 : {}),
-            }
+            },
           );
 
           // Try submitting a vp without neither a nonce.
@@ -921,7 +963,7 @@ describe("Authorisation Module", () => {
                 scope,
                 vp_token: vpJwt,
                 presentation_submission: JSON.stringify(presentationSubmission),
-              } satisfies CreateAccessTokenDto).toString()
+              } satisfies CreateAccessTokenDto).toString(),
             );
 
           expect(response.body).toStrictEqual({
@@ -931,7 +973,7 @@ describe("Authorisation Module", () => {
           });
           expect(response.status).toBe(400);
           expect(
-            (response.headers as Record<string, unknown>)["content-type"]
+            (response.headers as Record<string, unknown>)["content-type"],
           ).toBe("application/json; charset=utf-8");
         });
 
@@ -941,9 +983,10 @@ describe("Authorisation Module", () => {
               vcPayload,
               credentialIssuer,
               {
-                ebsiAuthority: "example.net",
+                ebsiAuthority,
+                ebsiEnvConfig,
                 skipValidation: true,
-              }
+              },
             );
 
             vpPayload.verifiableCredential.push(vcJwt);
@@ -952,7 +995,7 @@ describe("Authorisation Module", () => {
           // Create VP JWT manually
           const privateKey = await importJWK(
             credentialIssuer.privateKeyJwk,
-            credentialIssuer.alg
+            credentialIssuer.alg,
           );
           const vpJwt = await new SignJWT({
             aud: serviceEndpoint,
@@ -980,7 +1023,7 @@ describe("Authorisation Module", () => {
                 scope,
                 vp_token: vpJwt,
                 presentation_submission: JSON.stringify(presentationSubmission),
-              } satisfies CreateAccessTokenDto).toString()
+              } satisfies CreateAccessTokenDto).toString(),
             );
 
           // Try submitting the same VP again.
@@ -993,7 +1036,7 @@ describe("Authorisation Module", () => {
                 scope,
                 vp_token: vpJwt,
                 presentation_submission: JSON.stringify(presentationSubmission),
-              } satisfies CreateAccessTokenDto).toString()
+              } satisfies CreateAccessTokenDto).toString(),
             );
 
           expect(response.body).toStrictEqual({
@@ -1003,7 +1046,7 @@ describe("Authorisation Module", () => {
           });
           expect(response.status).toBe(400);
           expect(
-            (response.headers as Record<string, unknown>)["content-type"]
+            (response.headers as Record<string, unknown>)["content-type"],
           ).toBe("application/json; charset=utf-8");
         });
 
@@ -1020,12 +1063,13 @@ describe("Authorisation Module", () => {
             credentialSubject,
             serviceEndpoint,
             {
-              ebsiAuthority: "example.net",
+              ebsiAuthority,
+              ebsiEnvConfig,
               skipValidation: true,
               nonce: randomUUID(),
               exp: Math.floor(Date.now() / 1000) + 100,
               nbf: Math.floor(Date.now() / 1000) - 100,
-            }
+            },
           );
 
           const response = await request(server)
@@ -1037,7 +1081,7 @@ describe("Authorisation Module", () => {
                 scope,
                 vp_token: vpJwt,
                 presentation_submission: JSON.stringify(presentationSubmission),
-              } satisfies CreateAccessTokenDto).toString()
+              } satisfies CreateAccessTokenDto).toString(),
             );
 
           expect(response.body).toStrictEqual({
@@ -1047,7 +1091,7 @@ describe("Authorisation Module", () => {
           });
           expect(response.status).toBe(400);
           expect(
-            (response.headers as Record<string, unknown>)["content-type"]
+            (response.headers as Record<string, unknown>)["content-type"],
           ).toBe("application/json; charset=utf-8");
         });
       });
@@ -1058,9 +1102,10 @@ describe("Authorisation Module", () => {
             vcPayload,
             credentialIssuer,
             {
-              ebsiAuthority: "example.net",
+              ebsiAuthority,
+              ebsiEnvConfig,
               skipValidation: true,
-            }
+            },
           );
 
           vpPayload.verifiableCredential.push(vcJwt);
@@ -1073,7 +1118,8 @@ describe("Authorisation Module", () => {
           credentialSubject,
           serviceEndpoint,
           {
-            ebsiAuthority: "example.net",
+            ebsiAuthority,
+            ebsiEnvConfig,
             skipValidation: true,
             nonce,
             ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
@@ -1083,7 +1129,7 @@ describe("Authorisation Module", () => {
                   nbf: Math.floor(Date.now() / 1000) - 100,
                 }
               : {}),
-          }
+          },
         );
 
         const response = await request(server)
@@ -1103,7 +1149,7 @@ describe("Authorisation Module", () => {
         });
         expect(response.status).toBe(400);
         expect(
-          (response.headers as Record<string, unknown>)["content-type"]
+          (response.headers as Record<string, unknown>)["content-type"],
         ).toBe("application/json; charset=utf-8");
       });
 
@@ -1130,9 +1176,10 @@ describe("Authorisation Module", () => {
             vcPayload,
             credentialIssuer,
             {
-              ebsiAuthority: "example.net",
+              ebsiAuthority,
+              ebsiEnvConfig,
               skipValidation: true,
-            }
+            },
           );
 
           vpPayload.verifiableCredential.push(vcJwt);
@@ -1143,7 +1190,8 @@ describe("Authorisation Module", () => {
           credentialSubject,
           serviceEndpoint,
           {
-            ebsiAuthority: "example.net",
+            ebsiAuthority,
+            ebsiEnvConfig,
             skipValidation: true,
             nonce: randomUUID(),
             ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
@@ -1153,7 +1201,7 @@ describe("Authorisation Module", () => {
                   nbf: Math.floor(Date.now() / 1000) - 100,
                 }
               : {}),
-          }
+          },
         );
 
         const response = await request(server)
@@ -1165,7 +1213,7 @@ describe("Authorisation Module", () => {
               scope,
               vp_token: vpJwt,
               presentation_submission: presentationSubmission,
-            })
+            }),
           );
 
         expect(response.body).toStrictEqual({
@@ -1198,9 +1246,10 @@ describe("Authorisation Module", () => {
             vcPayload,
             credentialIssuer,
             {
-              ebsiAuthority: "example.net",
+              ebsiAuthority,
+              ebsiEnvConfig,
               skipValidation: true,
-            }
+            },
           );
 
           vpPayload.verifiableCredential.push(vcJwt);
@@ -1211,7 +1260,8 @@ describe("Authorisation Module", () => {
           credentialSubject,
           serviceEndpoint,
           {
-            ebsiAuthority: "example.net",
+            ebsiAuthority,
+            ebsiEnvConfig,
             skipValidation: true,
             nonce: randomUUID(),
             ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
@@ -1221,7 +1271,7 @@ describe("Authorisation Module", () => {
                   nbf: Math.floor(Date.now() / 1000) - 100,
                 }
               : {}),
-          }
+          },
         );
 
         let response = await request(server)
@@ -1233,7 +1283,7 @@ describe("Authorisation Module", () => {
               scope,
               vp_token: vpJwt,
               presentation_submission: JSON.stringify(presentationSubmission),
-            } satisfies CreateAccessTokenDto).toString()
+            } satisfies CreateAccessTokenDto).toString(),
           );
 
         expect(response.body).toStrictEqual({
@@ -1244,7 +1294,7 @@ describe("Authorisation Module", () => {
         });
         expect(response.status).toBe(400);
         expect(
-          (response.headers as Record<string, unknown>)["content-type"]
+          (response.headers as Record<string, unknown>)["content-type"],
         ).toBe("application/json; charset=utf-8");
 
         presentationSubmission = {
@@ -1269,7 +1319,8 @@ describe("Authorisation Module", () => {
           credentialSubject,
           serviceEndpoint,
           {
-            ebsiAuthority: "example.net",
+            ebsiAuthority,
+            ebsiEnvConfig,
             skipValidation: true,
             nonce: randomUUID(),
             ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
@@ -1279,7 +1330,7 @@ describe("Authorisation Module", () => {
                   nbf: Math.floor(Date.now() / 1000) - 100,
                 }
               : {}),
-          }
+          },
         );
 
         response = await request(server)
@@ -1291,7 +1342,7 @@ describe("Authorisation Module", () => {
               scope,
               vp_token: vpJwt,
               presentation_submission: JSON.stringify(presentationSubmission),
-            } satisfies CreateAccessTokenDto).toString()
+            } satisfies CreateAccessTokenDto).toString(),
           );
 
         expect(response.body).toStrictEqual({
@@ -1301,7 +1352,7 @@ describe("Authorisation Module", () => {
         });
         expect(response.status).toBe(400);
         expect(
-          (response.headers as Record<string, unknown>)["content-type"]
+          (response.headers as Record<string, unknown>)["content-type"],
         ).toBe("application/json; charset=utf-8");
 
         presentationSubmission = {
@@ -1326,7 +1377,8 @@ describe("Authorisation Module", () => {
           credentialSubject,
           serviceEndpoint,
           {
-            ebsiAuthority: "example.net",
+            ebsiAuthority,
+            ebsiEnvConfig,
             skipValidation: true,
             nonce: randomUUID(),
             ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
@@ -1336,7 +1388,7 @@ describe("Authorisation Module", () => {
                   nbf: Math.floor(Date.now() / 1000) - 100,
                 }
               : {}),
-          }
+          },
         );
 
         response = await request(server)
@@ -1348,7 +1400,7 @@ describe("Authorisation Module", () => {
               scope,
               vp_token: vpJwt,
               presentation_submission: JSON.stringify(presentationSubmission),
-            } satisfies CreateAccessTokenDto).toString()
+            } satisfies CreateAccessTokenDto).toString(),
           );
 
         expect(response.body).toStrictEqual({
@@ -1358,7 +1410,7 @@ describe("Authorisation Module", () => {
         });
         expect(response.status).toBe(400);
         expect(
-          (response.headers as Record<string, unknown>)["content-type"]
+          (response.headers as Record<string, unknown>)["content-type"],
         ).toBe("application/json; charset=utf-8");
 
         vpJwt = await createVerifiablePresentationJwt(
@@ -1366,7 +1418,8 @@ describe("Authorisation Module", () => {
           credentialSubject,
           serviceEndpoint,
           {
-            ebsiAuthority: "example.net",
+            ebsiAuthority,
+            ebsiEnvConfig,
             skipValidation: true,
             nonce: randomUUID(),
             ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
@@ -1376,7 +1429,7 @@ describe("Authorisation Module", () => {
                   nbf: Math.floor(Date.now() / 1000) - 100,
                 }
               : {}),
-          }
+          },
         );
 
         response = await request(server)
@@ -1388,7 +1441,7 @@ describe("Authorisation Module", () => {
               scope,
               vp_token: vpJwt,
               presentation_submission: JSON.stringify({ foo: "bar" }), // invalid json
-            } satisfies CreateAccessTokenDto).toString()
+            } satisfies CreateAccessTokenDto).toString(),
           );
 
         expect(response.body).toStrictEqual({
@@ -1400,7 +1453,7 @@ describe("Authorisation Module", () => {
         });
         expect(response.status).toBe(400);
         expect(
-          (response.headers as Record<string, unknown>)["content-type"]
+          (response.headers as Record<string, unknown>)["content-type"],
         ).toBe("application/json; charset=utf-8");
 
         vpJwt = await createVerifiablePresentationJwt(
@@ -1408,7 +1461,8 @@ describe("Authorisation Module", () => {
           credentialSubject,
           serviceEndpoint,
           {
-            ebsiAuthority: "example.net",
+            ebsiAuthority,
+            ebsiEnvConfig,
             skipValidation: true,
             nonce: randomUUID(),
             ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
@@ -1418,7 +1472,7 @@ describe("Authorisation Module", () => {
                   nbf: Math.floor(Date.now() / 1000) - 100,
                 }
               : {}),
-          }
+          },
         );
 
         const invalidPresentationSubmission =
@@ -1433,9 +1487,9 @@ describe("Authorisation Module", () => {
               scope,
               vp_token: vpJwt,
               presentation_submission: JSON.stringify(
-                invalidPresentationSubmission
+                invalidPresentationSubmission,
               ),
-            } satisfies CreateAccessTokenDto).toString()
+            } satisfies CreateAccessTokenDto).toString(),
           );
 
         expect(response.body).toStrictEqual({
@@ -1445,7 +1499,7 @@ describe("Authorisation Module", () => {
         });
         expect(response.status).toBe(400);
         expect(
-          (response.headers as Record<string, unknown>)["content-type"]
+          (response.headers as Record<string, unknown>)["content-type"],
         ).toBe("application/json; charset=utf-8");
       });
 
@@ -1466,10 +1520,14 @@ describe("Authorisation Module", () => {
             vpSigner = await createLegalEntity("ES256K");
             vpPayload.holder = vpSigner.did;
 
-            nock(domain)
-              .get(`/did-registry/v4/identifiers/${vpSigner.did}`)
-              .reply(404, "Not found")
-              .persist();
+            mockServer.use(
+              rest.get(
+                `${domain}/did-registry/v4/identifiers/${encodeDid(
+                  vpSigner.did,
+                )}`,
+                (_req, res, ctx) => res(ctx.status(404), ctx.text("Not found")),
+              ),
+            );
 
             expectedErrorMessage = `Invalid Verifiable Presentation: VP JWT validation failed: Unable to resolve ${vpSigner.kid}. Error: notFound. Not Found | Registry used: ${domain}/did-registry/v4/identifiers`;
             break;
@@ -1486,17 +1544,20 @@ describe("Authorisation Module", () => {
             vpSigner = await createLegalEntity("ES256K");
             vpPayload.holder = vpSigner.did;
 
-            nock(domain)
-              .get(`/did-registry/v4/identifiers/${vpSigner.did}`)
-              .reply(200, vpSigner.didDocument)
-              .persist();
-
-            nock(domain)
-              .get(
-                `/trusted-issuers-registry/v4/issuers/${vpSigner.did}/attributes`
-              )
-              .reply(404, "Not found")
-              .persist();
+            mockServer.use(
+              rest.get(
+                `${domain}/did-registry/v4/identifiers/${encodeDid(
+                  vpSigner.did,
+                )}`,
+                (_req, res, ctx) => res(ctx.json(vpSigner.didDocument)),
+              ),
+              rest.get(
+                `${domain}/trusted-issuers-registry/v4/issuers/${encodeDid(
+                  vpSigner.did,
+                )}/attributes`,
+                (_req, res, ctx) => res(ctx.status(404), ctx.text("Not found")),
+              ),
+            );
 
             expectedErrorMessage = `Invalid Verifiable Presentation: DID ${vpSigner.did} is not registered in the Trusted Issuers Registry`;
             break;
@@ -1511,9 +1572,10 @@ describe("Authorisation Module", () => {
             vcPayload,
             credentialIssuer,
             {
-              ebsiAuthority: "example.net",
+              ebsiAuthority,
+              ebsiEnvConfig,
               skipValidation: true,
-            }
+            },
           );
 
           vpPayload.verifiableCredential.push(vcJwt);
@@ -1526,11 +1588,12 @@ describe("Authorisation Module", () => {
           vpSigner,
           serviceEndpoint,
           {
-            ebsiAuthority: "example.net",
+            ebsiAuthority,
+            ebsiEnvConfig,
             skipValidation: true,
             nonce,
             ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE, TIR_INVITE_SCOPE].includes(
-              customScope
+              customScope,
             )
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
@@ -1538,7 +1601,7 @@ describe("Authorisation Module", () => {
                   nbf: Math.floor(Date.now() / 1000) - 100,
                 }
               : {}),
-          }
+          },
         );
 
         const response = await request(server)
@@ -1550,7 +1613,7 @@ describe("Authorisation Module", () => {
               scope,
               vp_token: vpJwt,
               presentation_submission: JSON.stringify(presentationSubmission),
-            } satisfies CreateAccessTokenDto).toString()
+            } satisfies CreateAccessTokenDto).toString(),
           );
 
         expect(response.body).toStrictEqual({
@@ -1559,7 +1622,7 @@ describe("Authorisation Module", () => {
         });
         expect(response.status).toBe(400);
         expect(
-          (response.headers as Record<string, unknown>)["content-type"]
+          (response.headers as Record<string, unknown>)["content-type"],
         ).toBe("application/json; charset=utf-8");
       });
 
@@ -1569,9 +1632,10 @@ describe("Authorisation Module", () => {
             vcPayload,
             credentialIssuer,
             {
-              ebsiAuthority: "example.net",
+              ebsiAuthority,
+              ebsiEnvConfig,
               skipValidation: true,
-            }
+            },
           );
 
           vpPayload.verifiableCredential.push(vcJwt);
@@ -1584,7 +1648,8 @@ describe("Authorisation Module", () => {
           credentialSubject,
           serviceEndpoint,
           {
-            ebsiAuthority: "example.net",
+            ebsiAuthority,
+            ebsiEnvConfig,
             skipValidation: true,
             nonce,
             ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
@@ -1594,7 +1659,7 @@ describe("Authorisation Module", () => {
                   nbf: Math.floor(Date.now() / 1000) - 100,
                 }
               : {}),
-          }
+          },
         );
 
         const response = await request(server)
@@ -1606,10 +1671,8 @@ describe("Authorisation Module", () => {
               scope,
               vp_token: vpJwt,
               presentation_submission: JSON.stringify(presentationSubmission),
-            } satisfies CreateAccessTokenDto).toString()
+            } satisfies CreateAccessTokenDto).toString(),
           );
-
-        expect(response.status).toBe(200);
 
         expect(response.body).toStrictEqual({
           access_token: expect.any(String),
@@ -1618,6 +1681,8 @@ describe("Authorisation Module", () => {
           scope,
           token_type: "Bearer",
         });
+
+        expect(response.status).toBe(200);
 
         // Decode access token
         const { access_token: accessToken } = response.body as TokenResponse;
@@ -1646,15 +1711,17 @@ describe("Authorisation Module", () => {
         expect(jwksResponse.status).toBe(200);
 
         const { keys } = jwksResponse.body as JsonWebKeySet;
-        const apiPublicKeyJwk = keys.find((key) => key.kid === accessTokenKid);
+        const apiPublicKeyJwk = keys.find(
+          (key) => key["kid"] === accessTokenKid,
+        );
 
         expect(apiPublicKeyJwk).toBeDefined();
 
-        const apiPublicKey = await importJWK(apiPublicKeyJwk as JsonWebKey);
+        const apiPublicKey = await importJWK(apiPublicKeyJwk as JWK);
 
         // Verify the signature of the access token
         await expect(
-          jwtVerify(accessToken, apiPublicKey)
+          jwtVerify(accessToken, apiPublicKey),
         ).resolves.not.toThrow();
 
         // Decode and verify ID Token
@@ -1692,10 +1759,10 @@ describe("Authorisation Module", () => {
     const issuanceDate = new Date();
     // JWT access token must have 2 hours expiration time and there are no Refresh Tokens.
     const expirationDate = new Date(
-      issuanceDate.getTime() + 2 * 60 * 60 * 1000
+      issuanceDate.getTime() + 2 * 60 * 60 * 1000,
     );
 
-    const vcPayload = {
+    const vcPayload: EbsiVerifiableAttestation = {
       "@context": ["https://www.w3.org/2018/credentials/v1"],
       id: `urn:uuid:${randomUUID()}`,
       type: ["VerifiableCredential", "VerifiableAttestation"],
@@ -1745,23 +1812,27 @@ describe("Authorisation Module", () => {
         vcPayload,
         credentialIssuer,
         {
-          ebsiAuthority: "example.net",
+          ebsiAuthority,
+          ebsiEnvConfig,
           skipValidation: true,
-        }
+        },
       );
 
       vpPayload.verifiableCredential.push(vcJwt);
     }
 
-    nock(domain)
-      .get(`/did-registry/v4/identifiers/${vpSigner.did}`)
-      .reply(200, vpSigner.didDocument)
-      .persist();
-
-    nock(domain)
-      .get(`/trusted-issuers-registry/v4/issuers/${vpSigner.did}/attributes`)
-      .reply(404, "Not found")
-      .persist();
+    mockServer.use(
+      rest.get(
+        `${domain}/did-registry/v4/identifiers/${encodeDid(vpSigner.did)}`,
+        (_req, res, ctx) => res(ctx.json(vpSigner.didDocument)),
+      ),
+      rest.get(
+        `${domain}/trusted-issuers-registry/v4/issuers/${encodeDid(
+          vpSigner.did,
+        )}/attributes`,
+        (_req, res, ctx) => res(ctx.status(404), ctx.text("Not found")),
+      ),
+    );
 
     const expectedErrorMessage = `Invalid Verifiable Presentation: DID ${vpSigner.did} is not registered in the Trusted Issuers Registry`;
 
@@ -1772,11 +1843,12 @@ describe("Authorisation Module", () => {
       vpSigner,
       serviceEndpoint,
       {
-        ebsiAuthority: "example.net",
+        ebsiAuthority,
+        ebsiEnvConfig,
         skipValidation: true,
         nonce,
         ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE, TIR_INVITE_SCOPE].includes(
-          customScope
+          customScope,
         )
           ? {
               // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
@@ -1784,7 +1856,7 @@ describe("Authorisation Module", () => {
               nbf: Math.floor(Date.now() / 1000) - 100,
             }
           : {}),
-      }
+      },
     );
 
     const response = await request(server)
@@ -1796,7 +1868,7 @@ describe("Authorisation Module", () => {
           scope,
           vp_token: vpJwt,
           presentation_submission: JSON.stringify(presentationSubmission),
-        } satisfies CreateAccessTokenDto).toString()
+        } satisfies CreateAccessTokenDto).toString(),
       );
 
     expect(response.body).toStrictEqual({
@@ -1805,7 +1877,7 @@ describe("Authorisation Module", () => {
     });
     expect(response.status).toBe(400);
     expect((response.headers as Record<string, unknown>)["content-type"]).toBe(
-      "application/json; charset=utf-8"
+      "application/json; charset=utf-8",
     );
   });
 });

@@ -15,10 +15,10 @@ async function main() {
         "../../",
         "trusted-policies-registry/artifacts",
         "contracts/trusted-policies-registry/PolicyRegistry.sol",
-        "PolicyRegistry.json"
+        "PolicyRegistry.json",
       ),
-      { encoding: "utf8" }
-    )
+      { encoding: "utf8" },
+    ),
   );
   const policyRegistryFactory = await ethers.getContractFactoryFromArtifact(
     artifact,
@@ -26,7 +26,7 @@ async function main() {
       libraries: {
         Pagination: pagination.address,
       },
-    }
+    },
   );
   const policyContract = await policyRegistryFactory.deploy();
   await policyContract.deployed();
@@ -35,9 +35,8 @@ async function main() {
 
   await policyContract.initialize(ethers.BigNumber.from(1));
 
-  const vRelationshipsFactory = await ethers.getContractFactory(
-    "VRelationshipsLib"
-  );
+  const vRelationshipsFactory =
+    await ethers.getContractFactory("VRelationshipsLib");
   const vRelationshipsLib = await vRelationshipsFactory.deploy();
 
   const didDocumentFactory = await ethers.getContractFactory("DidDocumentLib", {
@@ -64,7 +63,7 @@ async function main() {
   });
   const ts = await contractFactory.deploy(
     policyContract.address,
-    didRegistryV1Address
+    didRegistryV1Address,
   );
   await ts.initialize(16);
   await ts.setRegistryAddresses();

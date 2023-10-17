@@ -1,2 +1,2 @@
-export * from "./request-update-issuer.dto";
-export * from "./update-issuer-param.dto";
+export * from "./request-update-issuer.dto.js";
+export * from "./update-issuer-param.dto.js";

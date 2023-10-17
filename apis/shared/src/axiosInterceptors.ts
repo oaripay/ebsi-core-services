@@ -1,4 +1,4 @@
-import { LoggerService } from "@nestjs/common";
+import type { LoggerService } from "@nestjs/common";
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 
 interface AxiosResponseError {
@@ -31,7 +31,7 @@ const errorNeedsInterception = (error: AxiosResponseError): boolean => {
 export function setupInterceptors(
   domain: string,
   localOrigin: string,
-  logger?: LoggerService
+  logger?: LoggerService,
 ): void {
   if (!domain || !localOrigin) {
     // Don't define interceptors if the domain or local origin is not set
@@ -40,13 +40,17 @@ export function setupInterceptors(
 
   // Request interceptor
   axios.interceptors.request.use((config) => {
-    if (validateRequestConfigHeaders(config) && config.url.startsWith(domain)) {
+    if (
+      validateRequestConfigHeaders(config) &&
+      config.url &&
+      config.url.startsWith(domain)
+    ) {
       const localUrl = config.url.replace(domain, localOrigin);
 
       if (logger) {
-        logger.verbose(
+        logger.verbose!(
           `Replacing ${config.url} with ${localUrl}`,
-          "Axios Request Interceptor"
+          "Axios Request Interceptor",
         );
       }
 
@@ -68,13 +72,13 @@ export function setupInterceptors(
       ) {
         const { config } = error;
 
-        const remoteUrl = config.url.replace(localOrigin, domain);
+        const remoteUrl = config.url!.replace(localOrigin, domain);
 
         if (logger) {
-          logger.debug(error, "Axios Response Interceptor");
-          logger.verbose(
+          logger.debug!(error, "Axios Response Interceptor");
+          logger.verbose!(
             `Replacing ${config.url} with ${remoteUrl}`,
-            "Axios Response Interceptor"
+            "Axios Response Interceptor",
           );
         }
 
@@ -90,7 +94,7 @@ export function setupInterceptors(
       }
 
       return Promise.reject(error);
-    }
+    },
   );
 }
 

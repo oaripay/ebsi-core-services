@@ -1,2 +1,2 @@
-export * from "./cassandraCall";
-export * from "./jsonrpc.dto";
+export * from "./cassandraCall/index.js";
+export * from "./jsonrpc.dto.js";

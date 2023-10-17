@@ -1,67 +1,70 @@
 import {
-  jest,
+  vi,
   describe,
   beforeAll,
   afterEach,
   it,
   expect,
   afterAll,
-} from "@jest/globals";
+} from "vitest";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import { INestApplication, ValidationPipe, Logger } from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { HttpService } from "@nestjs/axios";
-import type { FastifyInstance } from "fastify";
 import type { JWTVerifyResult } from "jose";
 import { of } from "rxjs";
-import nock from "nock";
-import { AppModule } from "../app.module";
-import { AllExceptionsFilter } from "../filters/http-exception.filter";
-import { ApiConfig } from "../config/configuration";
+import { rest } from "msw";
+import { setupServer } from "msw/node";
+import { AppModule } from "../app.module.js";
+import { AllExceptionsFilter } from "../filters/http-exception.filter.js";
+import type { ApiConfig } from "../config/configuration.js";
 
-jest.mock("@cef-ebsi/siop-auth", () => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const originalModule = jest.requireActual("@cef-ebsi/siop-auth");
+vi.mock("@cef-ebsi/siop-auth", async () => {
+  const mod = await vi.importActual<typeof import("@cef-ebsi/siop-auth")>(
+    "@cef-ebsi/siop-auth",
+  );
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return {
-    __esModule: true,
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
-    ...originalModule,
+    ...mod,
     verifyJwtTar: async () =>
       Promise.resolve({ payload: {} } as JWTVerifyResult),
   };
 });
 
 describe("Logging interceptor", () => {
-  let app: INestApplication;
+  let app: NestFastifyApplication;
   let httpService: HttpService;
   let configService: ConfigService<ApiConfig, true>;
+  const mockServer = setupServer();
 
   const mockedLogger = {
-    log: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
+    log: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
   };
 
   beforeAll(async () => {
-    // Disable external requests
-    nock.disableNetConnect();
-    // Allow localhost connections so we can test local routes and mock servers.
-    nock.enableNetConnect("127.0.0.1");
+    // Intercept network requests
+    mockServer.listen({
+      onUnhandledRequest: ({ method, url }) => {
+        // Bypass local requests
+        if (url.hostname === "127.0.0.1") return;
+
+        throw new Error(`Unhandled ${method} request to ${url.href}`);
+      },
+    });
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     configService =
@@ -73,39 +76,36 @@ describe("Logging interceptor", () => {
     Logger.overrideLogger(mockedLogger);
 
     // Mock dependencies
-    const ledgerApiUrl = new URL(
-      `${configService.get<string>("ledgerApiUrl")}/health`
+    mockServer.use(
+      rest.get(
+        `${configService.get<string>("ledgerApiUrl")}/health`,
+        (_req, res, ctx) => res(ctx.json({})),
+      ),
+      rest.get(
+        `${configService.get<string>("authorisationApiUrl")}/health`,
+        (_req, res, ctx) => res(ctx.json({})),
+      ),
     );
-    const authorisationApiUrl = new URL(
-      `${configService.get<string>("authorisationApiUrl")}/health`
-    );
-
-    nock(ledgerApiUrl.origin).get(ledgerApiUrl.pathname).reply(200).persist();
-    nock(authorisationApiUrl.origin)
-      .get(authorisationApiUrl.pathname)
-      .reply(200)
-      .persist();
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
     httpService = await moduleFixture.resolve<HttpService>(HttpService);
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterAll(() => {
-    nock.restore();
+    mockServer.close();
   });
 
   describe("GET /health", () => {
     it("should log the request and response", async () => {
       expect.assertions(2);
 
-      jest
-        .spyOn(httpService, "request")
+      vi.spyOn(httpService, "request")
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         .mockImplementation(() => of({}));
@@ -127,7 +127,7 @@ describe("Logging interceptor", () => {
           method: "GET",
         },
         "LoggingInterceptor - GET - /health",
-        "LoggingInterceptor"
+        "LoggingInterceptor",
       );
 
       // It should have logged the response
@@ -151,7 +151,7 @@ describe("Logging interceptor", () => {
           message: "Outgoing response - 200 - GET - /health",
         },
         "LoggingInterceptor - 200 - GET - /health",
-        "LoggingInterceptor"
+        "LoggingInterceptor",
       );
     });
   });
@@ -188,7 +188,7 @@ describe("Logging interceptor", () => {
           method: "POST",
         },
         "LoggingInterceptor - POST - /jsonrpc",
-        "LoggingInterceptor"
+        "LoggingInterceptor",
       );
 
       // It should have logged the response
@@ -204,7 +204,7 @@ describe("Logging interceptor", () => {
           url: "/jsonrpc",
         },
         "LoggingInterceptor - 400 - POST - /jsonrpc",
-        "LoggingInterceptor"
+        "LoggingInterceptor",
       );
     });
   });

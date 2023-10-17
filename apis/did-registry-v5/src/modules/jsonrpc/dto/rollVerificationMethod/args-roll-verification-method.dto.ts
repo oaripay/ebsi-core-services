@@ -1,6 +1,6 @@
 import { ValidateNested } from "class-validator";
 import { Type } from "class-transformer";
-import { ArgsRollVerificationMethodDetails } from "./args-roll-verification-method-details.dto";
+import { ArgsRollVerificationMethodDetails } from "./args-roll-verification-method-details.dto.js";
 
 export class ArgsRollVerificationMethod {
   @ValidateNested()

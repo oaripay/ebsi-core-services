@@ -1,35 +1,34 @@
-import { describe, beforeAll, it, expect } from "@jest/globals";
+import { describe, beforeAll, it, expect } from "vitest";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import { HttpServer } from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { FastifyInstance } from "fastify";
-import { OpenApiModule } from "./openapi.module";
+import type { RawServerDefault } from "fastify";
+import { OpenApiModule } from "./openapi.module.js";
 
 describe("OpenApiController", () => {
   let app: NestFastifyApplication;
-  let server: HttpServer;
+  let server: RawServerDefault;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [OpenApiModule],
     }).compile();
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    await app.getHttpAdapter().getInstance().ready();
+    server = app.getHttpServer();
   });
 
   it("should serve yaml", async () => {
     const response = await request(server).get("/openapi.yaml");
     expect(response.status).toBe(200);
     expect((response.headers as Record<string, unknown>)["content-type"]).toBe(
-      "application/openapi+yaml"
+      "application/openapi+yaml",
     );
     expect(response.body).toBeDefined();
   });
@@ -38,7 +37,7 @@ describe("OpenApiController", () => {
     const response = await request(server).get("/openapi.json");
     expect(response.status).toBe(200);
     expect((response.headers as Record<string, unknown>)["content-type"]).toBe(
-      "application/openapi+json; charset=utf-8"
+      "application/openapi+json; charset=utf-8",
     );
     expect(response.body).toBeDefined();
   });

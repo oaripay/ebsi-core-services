@@ -13,7 +13,7 @@ async function main() {
   const dProxy = await deployments.get("OwnedUpgradeabilityProxy");
   console.log(`dProxy ${dProxy.address} `);
   const proxyfactory = await ethers.getContractFactory(
-    "OwnedUpgradeabilityProxy"
+    "OwnedUpgradeabilityProxy",
   );
 
   const proxy = proxyfactory.attach(dProxy.address) as OwnedUpgradeabilityProxy;
@@ -25,7 +25,7 @@ async function main() {
     New admin:${multiSig.address}
     TransactionHash:${res.transactionHash}
     Status:${res.status === 1 ? "ok" : "error"}
-    `
+    `,
   );
 }
 

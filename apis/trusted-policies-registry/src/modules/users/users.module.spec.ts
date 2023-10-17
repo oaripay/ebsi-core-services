@@ -1,34 +1,26 @@
-import { jest, describe, beforeAll, afterAll, it, expect } from "@jest/globals";
+import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
 import request from "supertest";
 import { ethers } from "ethers";
-import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  Logger,
-  HttpServer,
-} from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { FastifyInstance } from "fastify";
-import { AsyncReturnType } from "@ebsiint-api/shared";
-import { UsersModule } from "./users.module";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { setupTestEnv } from "../../../tests/utils/trustedPoliciesRegistry";
-import { LedgerService } from "../ledger/ledger.service";
-import { ApiConfig } from "../../config/configuration";
-
-jest.setTimeout(90000);
+import type { RawServerDefault } from "fastify";
+import { UsersModule } from "./users.module.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import { setupTestEnv } from "../../../tests/utils/trustedPoliciesRegistry.js";
+import { LedgerService } from "../ledger/ledger.service.js";
+import type { ApiConfig } from "../../config/configuration.js";
 
 const USERS_TOTAL = 12;
 
 describe("Policies Module", () => {
-  let app: INestApplication;
-  let server: HttpServer;
-  let testEnv: AsyncReturnType<typeof setupTestEnv>;
+  let app: NestFastifyApplication;
+  let server: RawServerDefault;
+  let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
   let configService: ConfigService<ApiConfig, true>;
 
   beforeAll(async () => {
@@ -43,7 +35,7 @@ describe("Policies Module", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     // Turn off logger
@@ -56,25 +48,19 @@ describe("Policies Module", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
-    server = app.getHttpServer() as HttpServer;
+    server = app.getHttpServer();
 
     // Mock contract
     const ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
-    jest
-      .spyOn(ledgerService, "getContract")
-      .mockImplementation(async () =>
-        Promise.resolve(policiesRegistryContract)
-      );
+    vi.spyOn(ledgerService, "getContract").mockImplementation(async () =>
+      Promise.resolve(policiesRegistryContract),
+    );
   });
 
   afterAll(async () => {
-    // Avoid jest open handle error
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
     await app.close();
   });
 
@@ -94,16 +80,16 @@ describe("Policies Module", () => {
           next: expect.stringContaining(
             `/users?page[after]=${Math.min(
               Math.ceil(USERS_TOTAL / 10),
-              2
-            )}&page[size]=10`
+              2,
+            )}&page[size]=10`,
           ),
           last: expect.stringContaining(
-            `/users?page[after]=${Math.ceil(USERS_TOTAL / 10)}&page[size]=10`
+            `/users?page[after]=${Math.ceil(USERS_TOTAL / 10)}&page[size]=10`,
           ),
         },
       });
       expect((response.body as { items: string }).items).toHaveLength(
-        Math.min(10, USERS_TOTAL)
+        Math.min(10, USERS_TOTAL),
       );
       expect(response.status).toBe(200);
     });
@@ -129,7 +115,7 @@ describe("Policies Module", () => {
 
       // next page
       const response2 = await request(server).get(
-        "/users?page[after]=2&page[size]=3"
+        "/users?page[after]=2&page[size]=3",
       );
       expect(response2.body).toStrictEqual({
         self: expect.stringContaining("/users"),
@@ -148,7 +134,7 @@ describe("Policies Module", () => {
 
       // big page
       const response3 = await request(server).get(
-        "/users?page[after]=100&page[size]=3"
+        "/users?page[after]=100&page[size]=3",
       );
       expect(response3.body).toStrictEqual({
         self: expect.stringContaining("/users?page[after]=100&page[size]=3"),
@@ -230,7 +216,7 @@ describe("Policies Module", () => {
       expect.assertions(2);
 
       // Get first user
-      const user = testEnv.users[0];
+      const user = testEnv.users[0]!;
 
       const response = await request(server).get(`/users/${user.address}`);
 

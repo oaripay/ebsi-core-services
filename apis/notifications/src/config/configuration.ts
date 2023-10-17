@@ -18,12 +18,12 @@ export interface ApiConfig {
   externalEbsiApiHealthCheck: string;
   requestTimeout: number;
   testUser1: {
-    kid: string;
-    privateKey: string;
+    kid: string | undefined;
+    privateKey: string | undefined;
   };
   testUser2: {
-    kid: string;
-    privateKey: string;
+    kid: string | undefined;
+    privateKey: string | undefined;
   };
   testLoadBalancerDomain: string;
   dockerContainerTag: string;
@@ -91,7 +91,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       "warn",
       "info",
       "verbose",
-      "debug"
+      "debug",
     ),
     DOCKER_TAG: Joi.string(),
     ENCRYPTION_SECRET: Joi.string().required(),

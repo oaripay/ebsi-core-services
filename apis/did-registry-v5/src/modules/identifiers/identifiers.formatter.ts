@@ -1,6 +1,6 @@
 import { DidRegistry } from "@ebsiint-sc/did-registry-v3";
 import { PaginatedList, paginate } from "@ebsiint-api/shared";
-import { DidLink } from "./identifiers.interface";
+import { DidLink } from "./identifiers.interface.js";
 
 export function formatIdentifiers(
   identifiers: Awaited<ReturnType<DidRegistry["getDids"]>>,
@@ -9,7 +9,7 @@ export function formatIdentifiers(
   baseUrl: string,
   controller?: string,
   vMethodId?: string,
-  vRelationship?: string
+  vRelationship?: string,
 ): PaginatedList<DidLink> {
   const total = identifiers.total.toNumber();
 

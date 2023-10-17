@@ -13,12 +13,15 @@ import {
   decrypt,
   encrypt,
 } from "@ebsiint-api/shared";
-import { PostFileResponseObject, FileMetadata } from "./files.interface";
-import { AppUsageRepository, FilesRepository } from "../cassandra/repositories";
-import { CASSANDRA_EXCEPTIONS } from "../cassandra/cassandra.constants";
-import { FileModel } from "../cassandra/models";
-import { ApiConfig } from "../../config/configuration";
-import { PatchFileBody, PostFileBody } from "./dto";
+import { PostFileResponseObject, FileMetadata } from "./files.interface.js";
+import {
+  AppUsageRepository,
+  FilesRepository,
+} from "../cassandra/repositories/index.js";
+import { CASSANDRA_EXCEPTIONS } from "../cassandra/cassandra.constants.js";
+import { FileModel } from "../cassandra/models/index.js";
+import type { ApiConfig } from "../../config/configuration.js";
+import { PatchFileBody, PostFileBody } from "./dto/index.js";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 const MAX_METADATA_SIZE = 5 * 1024 * 1024; // 5 MB
@@ -31,13 +34,13 @@ export class FilesService {
   constructor(
     private configService: ConfigService<ApiConfig, true>,
     private filesRepository: FilesRepository,
-    private appUsageRepository: AppUsageRepository
+    private appUsageRepository: AppUsageRepository,
   ) {}
 
   async getFiles(
     did: string,
     requestedPageState: string,
-    pageSize: number
+    pageSize: number,
   ): Promise<{ hashes: string[]; pageState: string }> {
     // Note: The page state token can be manipulated to retrieve other results within the same
     // column family, so it is not safe to expose it to the users in plain text.
@@ -48,7 +51,7 @@ export class FilesService {
         // Decrypt pageState
         decryptedPageState = decrypt(
           requestedPageState,
-          this.configService.get("encryptionSecret")
+          this.configService.get("encryptionSecret"),
         );
       } catch (e) {
         this.logger.error((e as Error).message, (e as Error).stack);
@@ -64,7 +67,7 @@ export class FilesService {
       result = await this.filesRepository.getFiles(
         did,
         decryptedPageState,
-        pageSize
+        pageSize,
       );
     } catch (e) {
       if (
@@ -87,7 +90,7 @@ export class FilesService {
       // Encrypt page state
       encryptedPageState = encrypt(
         rawPageState,
-        this.configService.get("encryptionSecret")
+        this.configService.get("encryptionSecret"),
       );
     }
 
@@ -100,7 +103,7 @@ export class FilesService {
   }: {
     did: string;
     hash: string;
-  }): Promise<{ filename: string; mimetype: string; data: Buffer }> {
+  }): Promise<{ filename?: string; mimetype?: string; data: Buffer }> {
     const file = await this.filesRepository.getFile({ did, hash });
 
     if (!file) {
@@ -112,8 +115,8 @@ export class FilesService {
     const parsedMetadata = JSON.parse(file.metadata) as FileMetadata;
 
     return {
-      filename: parsedMetadata.filename,
-      mimetype: parsedMetadata.mimetype,
+      ...(parsedMetadata.filename && { filename: parsedMetadata.filename }),
+      ...(parsedMetadata.mimetype && { mimetype: parsedMetadata.mimetype }),
       data: file.data,
     };
   }
@@ -140,7 +143,7 @@ export class FilesService {
         `Unable to parse metadata of file [${did}, ${hash}].\nMetadata: ${
           file.metadata
         }\n${(e as Error).message}.`,
-        (e as Error).stack
+        (e as Error).stack,
       );
       throw new InternalServerError(InternalServerError.defaultTitle, {
         detail:
@@ -151,7 +154,7 @@ export class FilesService {
 
   async postFile(
     did: string,
-    body: PostFileBody
+    body: PostFileBody,
   ): Promise<PostFileResponseObject> {
     if (!body.file) {
       throw new BadRequestError(BadRequestError.defaultTitle, {
@@ -171,7 +174,7 @@ export class FilesService {
 
     if (fileByteLength > MAX_FILE_SIZE) {
       throw new ValueTooLargeError(
-        `Max size for 'file' is ${MAX_FILE_SIZE} bytes. Received ${fileByteLength}`
+        `Max size for 'file' is ${MAX_FILE_SIZE} bytes. Received ${fileByteLength}`,
       );
     }
 
@@ -201,7 +204,7 @@ export class FilesService {
 
     if (metadataByteLength > MAX_METADATA_SIZE) {
       throw new ValueTooLargeError(
-        `Max size for 'metadata' is ${MAX_METADATA_SIZE} bytes. Received ${metadataByteLength}`
+        `Max size for 'metadata' is ${MAX_METADATA_SIZE} bytes. Received ${metadataByteLength}`,
       );
     }
 
@@ -244,7 +247,7 @@ export class FilesService {
       }),
       this.appUsageRepository.setAppUsage(
         { did, numberBytes: `${didAppUsageInBytes}` },
-        isNewAppUsage
+        isNewAppUsage,
       ),
     ]);
 
@@ -259,7 +262,7 @@ export class FilesService {
       did: string;
       hash: string;
     },
-    patch: PatchFileBody[]
+    patch: PatchFileBody[],
   ): Promise<FileMetadata> {
     const file = await this.filesRepository.getFile({ did, hash });
 
@@ -277,7 +280,7 @@ export class FilesService {
 
     const patchErrors = jsonpatch.validate(
       patch as Operation[],
-      existingMetadata
+      existingMetadata,
     );
 
     if (patchErrors) {
@@ -291,7 +294,7 @@ export class FilesService {
       existingMetadata,
       patch as Operation[],
       false,
-      false
+      false,
     ).newDocument.metadata;
 
     const stringifiedNewMetadata = JSON.stringify(newMetadata);
@@ -299,7 +302,7 @@ export class FilesService {
     const currentAppUsage = await this.appUsageRepository.getAppUsage(did);
     if (currentAppUsage === null) {
       this.logger.error(
-        "Tried to patch a file's metadata, but couldn't find existing app usage"
+        "Tried to patch a file's metadata, but couldn't find existing app usage",
       );
       throw new InternalServerError(InternalServerError.defaultTitle, {
         detail: "File not found",
@@ -323,7 +326,7 @@ export class FilesService {
       }),
       this.appUsageRepository.setAppUsage(
         { did, numberBytes: `${didAppUsageInBytes}` },
-        false
+        false,
       ),
     ]);
 
@@ -353,14 +356,14 @@ export class FilesService {
           0,
           parseInt(currentAppUsage.numberBytes, 10) -
             byteLength(file.data) -
-            byteLength(file.metadata)
+            byteLength(file.metadata),
         );
 
     await Promise.all([
       this.filesRepository.deleteFile({ did, hash }),
       this.appUsageRepository.setAppUsage(
         { did, numberBytes: `${didAppUsageInBytes}` },
-        isNewAppUsage
+        isNewAppUsage,
       ),
     ]);
   }

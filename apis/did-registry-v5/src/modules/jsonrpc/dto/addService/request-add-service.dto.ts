@@ -6,19 +6,19 @@ import {
   Equals,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { JsonRpcDto } from "../jsonrpc.dto";
-import { AddServiceParam } from "./add-service-param.dto";
+import { JsonRpcDto } from "../jsonrpc.dto.js";
+import { AddServiceParam } from "./add-service-param.dto.js";
 
 export class RequestAddServiceDto extends JsonRpcDto {
   @Equals("addService")
-  method!: string;
+  declare method: string;
 
   @IsArray()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @Type(() => AddServiceParam)
-  params!: AddServiceParam[];
+  declare params: AddServiceParam[];
 }
 
 export default { RequestAddServiceDto };

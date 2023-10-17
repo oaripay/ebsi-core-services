@@ -1,1 +1,1 @@
-export * from "./besu.dto";
+export * from "./besu.dto.js";

@@ -1,23 +1,23 @@
-import { describe, beforeAll, it, expect } from "@jest/globals";
+import { describe, beforeAll, it, expect } from "vitest";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import { ValidationPipe, Logger, HttpServer } from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import { ConfigService } from "@nestjs/config";
-import { AppModule } from "../../src/app.module";
-import { AllExceptionsFilter } from "../../src/filters/http-exception.filter";
-import { STORES } from "../../src/modules/stores/stores.constants";
-import { fastifyAdapterConfig } from "../../src/config/server.config";
-import { getServer } from "../utils/getServer";
-import { ApiConfig } from "../../src/config/configuration";
+import { AppModule } from "../../src/app.module.js";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
+import { STORES } from "../../src/modules/stores/stores.constants.js";
+import { fastifyAdapterConfig } from "../../src/config/server.config.js";
+import { getServer } from "../utils/getServer.js";
+import type { ApiConfig } from "../../src/config/configuration.js";
 
 describe("Stores (e2e)", () => {
   let app: NestFastifyApplication;
-  let server: HttpServer | string;
+  let server: RawServerDefault | string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -25,7 +25,7 @@ describe("Stores (e2e)", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter(fastifyAdapterConfig)
+      new FastifyAdapter(fastifyAdapterConfig),
     );
 
     // Turn off logger
@@ -38,7 +38,7 @@ describe("Stores (e2e)", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
+    await app.getHttpAdapter().getInstance().ready();
 
     server = getServer(app, configService);
   });

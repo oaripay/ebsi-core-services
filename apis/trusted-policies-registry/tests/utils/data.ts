@@ -3,7 +3,7 @@ import {
   ATTRIBUTE_OPERATIONS,
   ATTRIBUTE_TYPES,
   OPERATION_TYPES,
-} from "../../src/modules/policies/policies.interface";
+} from "../../src/modules/policies/policies.interface.js";
 
 export function createPolicy(policyId: number, policyName: string) {
   const opType = OPERATION_TYPES.indexOf("AND");

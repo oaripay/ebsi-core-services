@@ -4,14 +4,14 @@ export class PatchAttributeBody {
   @IsNotEmpty()
   @IsString()
   @Matches(/add|remove|replace/) // only allow "add", "remove" and "replace" operations
-  op: string;
+  op!: string;
 
   @IsNotEmpty()
   @IsString()
   @Matches(/^\/(?:visibility|sharedWith|contentType|dataLabel)/)
-  path: string;
+  path!: string;
 
-  value: string;
+  value!: string;
 }
 
 export default PatchAttributeBody;

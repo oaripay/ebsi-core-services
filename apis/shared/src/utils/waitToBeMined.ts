@@ -1,6 +1,6 @@
 import axios from "axios";
 import { TransactionReceipt } from "@ethersproject/abstract-provider";
-import { parseRevertReason } from "./parseRevertReason";
+import { parseRevertReason } from "./parseRevertReason.js";
 
 export interface TransactionReceiptBesu extends TransactionReceipt {
   revertReason: string;
@@ -8,7 +8,7 @@ export interface TransactionReceiptBesu extends TransactionReceipt {
 
 async function getTransactionReceipt(
   url: string,
-  txId: string
+  txId: string,
 ): Promise<TransactionReceiptBesu> {
   const { data } = await axios.post<{
     result: TransactionReceiptBesu;
@@ -23,7 +23,7 @@ async function getTransactionReceipt(
 
 export const waitToBeMined = async (
   url: string,
-  txId: string
+  txId: string,
 ): Promise<TransactionReceiptBesu> => {
   let mined = false;
   let receipt: TransactionReceiptBesu;

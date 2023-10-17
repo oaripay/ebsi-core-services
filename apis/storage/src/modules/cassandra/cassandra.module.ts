@@ -1,13 +1,13 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
-import { CassandraService } from "./cassandra.service";
+import { CassandraService } from "./cassandra.service.js";
 import {
   AppUsageRepository,
   FilesRepository,
   KeyValuesRepository,
-} from "./repositories";
-import { ApiConfigModule } from "../../config/configuration";
-import { cassandraConfig } from "../../config/cassandra.config";
+} from "./repositories/index.js";
+import { ApiConfigModule } from "../../config/configuration.js";
+import { cassandraConfig } from "../../config/cassandra.config.js";
 
 @Module({
   imports: [ApiConfigModule, ConfigModule.forFeature(cassandraConfig)],

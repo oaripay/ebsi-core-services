@@ -48,7 +48,7 @@ interface AuthorizationObject {
 
 const deployContract = async (
   name: string,
-  opts: FactoryOptions = {}
+  opts: FactoryOptions = {},
 ): Promise<string> => {
   const factory = await hre.ethers.getContractFactory(name, opts);
   const contract = await factory.deploy();
@@ -60,13 +60,12 @@ export async function deployTarContract(): Promise<Tar> {
   const testTprAddress = "0xb2a560271ce08135e245F490b8794794A13a1208";
   const testDidrAddress = "0xf6080028519B49D94C846bd34e30f72586E3F5d5";
 
-  const policyRegistryFactory = await hre.ethers.getContractFactory(
-    "PolicyRegistryMock"
-  );
+  const policyRegistryFactory =
+    await hre.ethers.getContractFactory("PolicyRegistryMock");
   const tempPolicyContract = await policyRegistryFactory.deploy();
   await tempPolicyContract.deployed();
   const bytecode = await hre.ethers.provider.getCode(
-    tempPolicyContract.address
+    tempPolicyContract.address,
   );
   await hre.network.provider.send("hardhat_setCode", [
     testTprAddress,
@@ -75,13 +74,12 @@ export async function deployTarContract(): Promise<Tar> {
   const policyContractMock = policyRegistryFactory.attach(testTprAddress);
   await policyContractMock.setPolicyResult(true);
 
-  const didRegistryFactory = await hre.ethers.getContractFactory(
-    "DidRegistryMock"
-  );
+  const didRegistryFactory =
+    await hre.ethers.getContractFactory("DidRegistryMock");
   const tempDidContract = await didRegistryFactory.deploy();
   await tempDidContract.deployed();
   const bytecodeDid = await hre.ethers.provider.getCode(
-    tempDidContract.address
+    tempDidContract.address,
   );
   await hre.network.provider.send("hardhat_setCode", [
     testDidrAddress,
@@ -134,7 +132,7 @@ export async function insertPolicy(contract: Tar): Promise<PolicyObject> {
 
 export async function updatePolicy(
   contract: Tar,
-  policyId: string
+  policyId: string,
 ): Promise<PolicyObject> {
   const policyData = {
     // any object here
@@ -179,7 +177,7 @@ export async function insertApp(contract: Tar): Promise<AppObject> {
     bufferPublicKey,
     status,
     notBefore,
-    notAfter
+    notAfter,
   );
 
   await contract.insertAppInfo(applicationId, bufferInfo);
@@ -200,7 +198,7 @@ export async function insertApp(contract: Tar): Promise<AppObject> {
 export async function insertAuthorization(
   contract: Tar,
   name: string,
-  authorizedAppName: string
+  authorizedAppName: string,
 ): Promise<AuthorizationObject> {
   const iss = EbsiWallet.createDid();
   const status = 1; // "active"
@@ -214,7 +212,7 @@ export async function insertAuthorization(
     status,
     permissions,
     notBefore,
-    notAfter
+    notAfter,
   );
 
   return {
@@ -239,7 +237,7 @@ export async function setupTestEnv(
     policiesTotal: 0,
     policiesRevisionsTotal: 1,
     appsTotal: 0,
-  }
+  },
 ): Promise<{
   provider: ethers.providers.JsonRpcProvider;
   tarContract: Tar;
@@ -264,7 +262,7 @@ export async function setupTestEnv(
 
   const user = createWallet();
 
-  const policyRevisions = {};
+  const policyRevisions: Record<string, PolicyObject[]> = {};
 
   // Create as many policies as requested
   const createPolicy = async () => {
@@ -278,43 +276,44 @@ export async function setupTestEnv(
       // The first revision is the policy itself
       policy,
       // Then, we add new revisions
-      ...(await range(0, opts.policiesRevisionsTotal - 1)
+      ...(await range(0, opts.policiesRevisionsTotal! - 1)
         .pipe(mergeMap(createRevision), toArray())
-        .toPromise()),
+        .toPromise())!,
     ];
 
     return policy;
   };
 
   const policies =
-    opts.policiesRevisionsTotal >= 1
-      ? await range(0, opts.policiesTotal)
+    opts.policiesRevisionsTotal! >= 1
+      ? (await range(0, opts.policiesTotal)
           .pipe(mergeMap(createPolicy), toArray())
-          .toPromise()
+          .toPromise())!
       : [];
 
   // Create as many apps as requested
   const createApp = async () => insertApp(tarContract);
 
-  const apps = await range(0, opts.appsTotal)
+  const apps = (await range(0, opts.appsTotal)
     .pipe(mergeMap(createApp), toArray())
-    .toPromise();
+    .toPromise())!;
 
-  const authorizations = [];
+  const authorizations: [AuthorizationObject, AuthorizationObject][][] = [];
   /* eslint-disable no-await-in-loop */
   for (let i = 0; i < apps.length; i += 1) {
-    const authsApp = [];
+    const authsApp: [AuthorizationObject, AuthorizationObject][] = [];
     for (let j = 0; j < apps.length; j += 1) {
       const auth1 = await insertAuthorization(
         tarContract,
-        apps[i].name,
-        apps[j].name
+        apps[i]!.name,
+        apps[j]!.name,
       );
       const auth2 = await insertAuthorization(
         tarContract,
-        apps[i].name,
-        apps[j].name
+        apps[i]!.name,
+        apps[j]!.name,
       );
+
       authsApp.push([auth1, auth2]);
     }
     authorizations.push(authsApp);

@@ -1,5 +1,5 @@
-import { describe, it, expect } from "@jest/globals";
-import { UnauthorizedError, ProblemDetailsError } from "../index";
+import { describe, it, expect } from "vitest";
+import { UnauthorizedError, ProblemDetailsError } from "../index.js";
 
 describe("error UnauthorizedError", () => {
   it("should extend ProblemDetailsError", () => {
@@ -69,7 +69,7 @@ describe("error UnauthorizedError", () => {
     });
 
     expect(error.toString()).toBe(
-      `${UnauthorizedError.statusCode} - Test Error`
+      `${UnauthorizedError.statusCode} - Test Error`,
     );
   });
 });

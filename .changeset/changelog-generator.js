@@ -7,7 +7,7 @@ const getReleaseLine = async (
   /** @type {import('@changesets/types').NewChangesetWithCommit} */
   changeset,
   /** @type {import('@changesets/types').VersionType} */
-  _type
+  _type,
 ) => {
   const [firstLine, ...futureLines] = changeset.summary
     .split("\n")
@@ -30,7 +30,7 @@ const getDependencyReleaseLine = async (
   /** @type {import('@changesets/types').NewChangesetWithCommit[]} */
   changesets,
   /** @type {import('@changesets/types').ModCompWithPackage[]} */
-  dependenciesUpdated
+  dependenciesUpdated,
 ) => {
   if (dependenciesUpdated.length === 0) return "";
 
@@ -40,11 +40,11 @@ const getDependencyReleaseLine = async (
         changeset.commit
           ? ` [${changeset.commit}](${projectUrl}/commits/${changeset.commit})`
           : ""
-      }`
+      }`,
   );
 
   const updatedDepenenciesList = dependenciesUpdated.map(
-    (dependency) => `  - ${dependency.name}@${dependency.newVersion}`
+    (dependency) => `  - ${dependency.name}@${dependency.newVersion}`,
   );
 
   return [...changesetLinks, ...updatedDepenenciesList].join("\n");

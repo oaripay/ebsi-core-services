@@ -1,6 +1,6 @@
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 import { TextDecoder } from "node:util";
-import { multibase } from "./multibase.utils";
+import { multibase } from "./multibase.utils.js";
 
 const bases: Record<
   keyof typeof multibase,
@@ -73,30 +73,32 @@ const bases: Record<
 };
 
 describe("multibase", () => {
-  describe.each(Object.keys(bases))("%s", (base: keyof typeof bases) => {
+  describe.each(Object.keys(bases) as (keyof typeof bases)[])("%s", (base) => {
     describe("decode", () => {
       it("should throw an error if we provide an invalid input", () => {
         expect.assertions(1);
 
         expect(() => multibase[base].decode("test")).toThrow(
           new Error(
-            `Unable to decode multibase string "test", ${base} decoder only supports inputs prefixed with ${multibase[base].prefix}`
-          )
+            `Unable to decode multibase string "test", ${base} decoder only supports inputs prefixed with ${multibase[base].prefix}`,
+          ),
         );
       });
     });
 
     const dataset = bases[base];
 
-    describe.each(Object.keys(dataset))("Test case #%i", (i: string) => {
-      const data = dataset[parseInt(i, 10)];
+    describe.each(Object.keys(dataset))("Test case #%i", (i) => {
+      const data = dataset[parseInt(i, 10)]!;
 
       describe("encode", () => {
         it("should produce the expected result", () => {
           expect.assertions(1);
 
           expect(
-            multibase[base].encode(Buffer.from(data.inputString, data.encoding))
+            multibase[base].encode(
+              Buffer.from(data.inputString, data.encoding),
+            ),
           ).toStrictEqual(data.multibaseString);
         });
       });
@@ -107,8 +109,8 @@ describe("multibase", () => {
 
           expect(
             Buffer.from(multibase[base].decode(data.multibaseString)).toString(
-              data.encoding
-            )
+              data.encoding,
+            ),
           ).toStrictEqual(data.inputString);
         });
       });

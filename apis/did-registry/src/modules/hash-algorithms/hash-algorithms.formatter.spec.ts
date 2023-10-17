@@ -1,8 +1,7 @@
-import { describe, it, expect } from "@jest/globals";
+import { describe, it, expect } from "vitest";
 import { ethers } from "ethers";
 import { DidRegistry } from "@ebsiint-sc/did-registry";
-import { AsyncReturnType } from "@ebsiint-api/shared";
-import { formatHashAlgorithms } from "./hash-algorithms.formatter";
+import { formatHashAlgorithms } from "./hash-algorithms.formatter.js";
 
 describe("formatHashAlgorithms", () => {
   const hashAlgorithms = {
@@ -11,7 +10,7 @@ describe("formatHashAlgorithms", () => {
     howMany: ethers.BigNumber.from("2"),
     prev: ethers.BigNumber.from("0"),
     next: ethers.BigNumber.from("0"),
-  } as AsyncReturnType<DidRegistry["getHashAlgorithms"]>;
+  } as Awaited<ReturnType<DidRegistry["getHashAlgorithms"]>>;
 
   it("should use the values returned by the smart contract (except pageSize)", () => {
     expect.assertions(1);
@@ -20,7 +19,7 @@ describe("formatHashAlgorithms", () => {
     const pageSize = 2;
 
     expect(
-      formatHashAlgorithms(hashAlgorithms, page, pageSize, "", "?test=true")
+      formatHashAlgorithms(hashAlgorithms, page, pageSize, "", "?test=true"),
     ).toStrictEqual({
       items: [
         {

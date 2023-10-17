@@ -2,13 +2,12 @@ import { Injectable, Logger } from "@nestjs/common";
 import { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry";
 import {
   generateMultihash,
-  AsyncReturnType,
   NotFoundError,
   isEthersError,
   remove0xPrefix,
 } from "@ebsiint-api/shared";
-import { LedgerService } from "../ledger/ledger.service";
-import { PolicyRevisions } from "./policies.interface";
+import { LedgerService } from "../ledger/ledger.service.js";
+import { PolicyRevisions } from "./policies.interface.js";
 
 @Injectable()
 export class PoliciesService {
@@ -18,7 +17,7 @@ export class PoliciesService {
 
   async getPolicies(
     page: number,
-    pageSize: number
+    pageSize: number,
   ): ReturnType<SchemaSCRegistry["getPolicies"]> {
     try {
       return await (
@@ -35,7 +34,7 @@ export class PoliciesService {
   }
 
   async getPolicy(policyId: string): Promise<[string, string]> {
-    let policy: AsyncReturnType<SchemaSCRegistry["getPolicy"]>;
+    let policy: Awaited<ReturnType<SchemaSCRegistry["getPolicy"]>>;
 
     try {
       // Preserve case! Don't lowercase the policyId
@@ -54,7 +53,7 @@ export class PoliciesService {
     const [rawPolicy, rawPolicyHash] = policy;
 
     const base64Policy = Buffer.from(remove0xPrefix(rawPolicy), "hex").toString(
-      "base64"
+      "base64",
     );
 
     // Compute multihash from hash
@@ -65,9 +64,9 @@ export class PoliciesService {
   async getPolicyRevisions(
     policyId: string,
     page: number,
-    pageSize: number
+    pageSize: number,
   ): Promise<PolicyRevisions> {
-    let revisions: AsyncReturnType<SchemaSCRegistry["getPolicyRevisions"]>;
+    let revisions: Awaited<ReturnType<SchemaSCRegistry["getPolicyRevisions"]>>;
 
     try {
       revisions = await (
@@ -84,10 +83,10 @@ export class PoliciesService {
 
     const contract = await this.ledgerService.getContract();
     const getPoliciesByRevisions = revisions.items.map((hash) =>
-      contract.getPolicyByHash(hash)
+      contract.getPolicyByHash(hash),
     );
 
-    let policies: AsyncReturnType<SchemaSCRegistry["getPolicyByHash"]>[];
+    let policies: Awaited<ReturnType<SchemaSCRegistry["getPolicyByHash"]>>[];
 
     try {
       policies = await Promise.all(getPoliciesByRevisions);
@@ -103,7 +102,7 @@ export class PoliciesService {
     return {
       items: revisions.items.map((hash, index) => ({
         policyId,
-        policy: policies[index],
+        policy: policies[index]!,
         hash,
       })),
       total: revisions.total.toNumber(),

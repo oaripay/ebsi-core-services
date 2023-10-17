@@ -2,21 +2,21 @@ import { IsInt, IsHexadecimal, Min, Max } from "class-validator";
 
 export class ArgsUpdateAuthorization {
   @IsHexadecimal()
-  authorizationId: string;
+  authorizationId!: string;
 
   @IsInt()
   @Min(0)
   @Max(3)
-  status: number;
+  status!: number;
 
   @IsInt()
   @Min(0)
   @Max(15)
-  permissions: number;
+  permissions!: number;
 
   @IsInt()
   @Min(0)
-  notAfter: number;
+  notAfter!: number;
 }
 
 export default { ArgsUpdateAuthorization };

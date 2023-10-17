@@ -2,10 +2,10 @@ import { IsString } from "class-validator";
 
 export class ArgsInsertPolicy {
   @IsString()
-  policyName: string;
+  policyName!: string;
 
   @IsString()
-  description: string;
+  description!: string;
 }
 
 export default { ArgsInsertPolicy };

@@ -1,5 +1,5 @@
 import {
-  jest,
+  vi,
   describe,
   beforeAll,
   beforeEach,
@@ -7,22 +7,17 @@ import {
   it,
   expect,
   afterEach,
-} from "@jest/globals";
+} from "vitest";
 import request from "supertest";
-import { Test, TestingModule } from "@nestjs/testing";
-import {
-  INestApplication,
-  ValidationPipe,
-  Logger,
-  HttpServer,
-} from "@nestjs/common";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import crypto from "node:crypto";
-import type { FastifyInstance } from "fastify";
+import type { RawServerDefault } from "fastify";
 import {
   FastifyAdapter,
-  NestFastifyApplication,
+  type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { Tir } from "@ebsiint-sc/trusted-issuers-registry";
 import { createVerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential";
@@ -35,11 +30,13 @@ import {
 } from "jose";
 import type { GenerateKeyPairResult } from "jose";
 import { useContainer } from "class-validator";
-import nock from "nock";
-import * as StatusList2021CredentialHelpers from "@ebsiint-api/shared/dist/utils/isStatusList2021Credential";
-import { JsonRpcModule } from "./jsonrpc.module";
-import type { JsonRpcResponseObject } from "./jsonrpc.interface";
-import { JsonRpcService } from "./jsonrpc.service";
+import { rest } from "msw";
+import { setupServer } from "msw/node";
+// eslint-disable-next-line import/extensions
+import * as StatusList2021CredentialHelpers from "@ebsiint-api/shared/dist/utils/isStatusList2021Credential.js";
+import { JsonRpcModule } from "./jsonrpc.module.js";
+import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
+import { JsonRpcService } from "./jsonrpc.service.js";
 import type {
   UnsignedTransaction,
   InsertIssuerParam,
@@ -48,19 +45,15 @@ import type {
   SetAttributeDataParam,
   AddIssuerProxyParam,
   UpdateIssuerProxyParam,
-} from "./dto";
-import { AllExceptionsFilter } from "../../filters/http-exception.filter";
-import { formatEthersUnsignedTransaction } from "./jsonrpc.utils";
-import { createIssuer, setupTestEnv } from "../../../tests/utils/tir";
-import type { IssuerObject } from "../../../tests/utils/tir";
-import { LedgerService } from "../ledger/ledger.service";
-import { ApiConfig } from "../../config/configuration";
-import {
-  createDidDocument,
-  DID_DOCUMENT_CONTEXT,
-  JWS_2020_CONTEXT,
-} from "../../../tests/utils/data";
-import { IssuerType } from "../issuers/issuers.constants";
+} from "./dto/index.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import { formatEthersUnsignedTransaction } from "./jsonrpc.utils.js";
+import { createIssuer, setupTestEnv } from "../../../tests/utils/tir.js";
+import type { IssuerObject } from "../../../tests/utils/tir.js";
+import { LedgerService } from "../ledger/ledger.service.js";
+import type { ApiConfig } from "../../config/configuration.js";
+import { createDidDocument } from "../../../tests/utils/data.js";
+import { IssuerType } from "../issuers/issuers.constants.js";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -75,11 +68,9 @@ type JsonRpcParams =
   | AddIssuerProxyParam
   | UpdateIssuerProxyParam;
 
-jest.setTimeout(90000);
-
 describe("JsonRpc Module", () => {
-  let app: INestApplication;
-  let server: HttpServer;
+  let app: NestFastifyApplication;
+  let server: RawServerDefault;
   let tirContract: Tir;
   let tirContractAddress: string;
   let jsonRpcService: JsonRpcService;
@@ -94,14 +85,18 @@ describe("JsonRpc Module", () => {
   let authApiKeyPair: GenerateKeyPairResult;
   let authApiKid: string;
 
+  const mockServer = setupServer();
+
   function createParam(
     method: string,
     signer: ethers.Wallet,
     updateAttribute: boolean,
-    tamper = false
+    tamper = false,
   ) {
     let param: JsonRpcParams;
-    const [issuer1, issuer2, issuer3] = issuers;
+    const issuer1 = issuers[0]!;
+    const issuer2 = issuers[1]!;
+    const issuer3 = issuers[2]!;
 
     switch (method) {
       case "insertIssuer": {
@@ -191,36 +186,42 @@ describe("JsonRpc Module", () => {
   }
 
   beforeAll(async () => {
-    // Disable external requests
-    nock.disableNetConnect();
-    // Allow localhost connections so we can test local routes and mock servers.
-    nock.enableNetConnect("127.0.0.1");
+    // Intercept network requests
+    mockServer.listen({
+      onUnhandledRequest: ({ method, url }) => {
+        // Bypass local requests
+        if (url.hostname === "127.0.0.1") return;
+
+        throw new Error(`Unhandled ${method} request to ${url.href}`);
+      },
+    });
 
     // Spin up test blockchain (ganache)
     testEnv = await setupTestEnv({
       issuersTotal: 5,
     });
 
-    [rootTao, tao1] = testEnv.issuers;
+    rootTao = testEnv.issuers[0]!;
+    tao1 = testEnv.issuers[1]!;
 
     // generate data for 3 issuers
     issuers = [];
     issuers.push(
-      createIssuer(IssuerType.TI, tao1.did, tao1.attribute.id, rootTao.did)
+      createIssuer(IssuerType.TI, tao1.did, tao1.attribute.id, rootTao.did),
     );
     issuers.push(
-      createIssuer(IssuerType.TI, tao1.did, tao1.attribute.id, rootTao.did)
+      createIssuer(IssuerType.TI, tao1.did, tao1.attribute.id, rootTao.did),
     );
     issuers.push(
-      createIssuer(IssuerType.TI, tao1.did, tao1.attribute.id, rootTao.did)
+      createIssuer(IssuerType.TI, tao1.did, tao1.attribute.id, rootTao.did),
     );
 
     tirContract = testEnv.tirContract;
     tirContractAddress = tirContract.address;
 
-    jest
-      .spyOn(LedgerService.prototype, "getContractAddress")
-      .mockImplementation(() => tirContract.address);
+    vi.spyOn(LedgerService.prototype, "getContractAddress").mockImplementation(
+      () => tirContract.address,
+    );
 
     // Start server
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -228,7 +229,7 @@ describe("JsonRpc Module", () => {
     }).compile();
 
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter()
+      new FastifyAdapter(),
     );
 
     // Turn off logger
@@ -241,8 +242,8 @@ describe("JsonRpc Module", () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     useContainer(app.select(JsonRpcModule), { fallbackOnErrors: true });
     await app.init();
-    await (app.getHttpAdapter().getInstance() as FastifyInstance).ready();
-    server = app.getHttpServer() as HttpServer;
+    await app.getHttpAdapter().getInstance().ready();
+    server = app.getHttpServer();
 
     jsonRpcService = moduleFixture.get<JsonRpcService>(JsonRpcService);
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
@@ -253,34 +254,30 @@ describe("JsonRpc Module", () => {
     authApiKid = await calculateJwkThumbprint(authApiPublicKeyJwk);
 
     // Mock Auth API v3
-    const authorisationApiUrl = new URL(
-      configService.get<string>("authorisationApiV3Url")
+    const authorisationApiUrl = configService.get<string>(
+      "authorisationApiV3Url",
     );
 
-    // Mock Auth API v3 /.well-known/openid-configuration endpoint
-    nock(authorisationApiUrl.origin)
-      .get(`${authorisationApiUrl.pathname}/.well-known/openid-configuration`)
-      .reply(200, {
-        jwks_uri: `${authorisationApiUrl.origin}${authorisationApiUrl.pathname}/jwks`,
-      })
-      .persist();
-
-    // Mock Auth API v3 /jwks endpoint
-    nock(authorisationApiUrl.origin)
-      .get(`${authorisationApiUrl.pathname}/jwks`)
-      .reply(200, {
-        keys: [
-          {
-            ...authApiPublicKeyJwk,
-            kid: authApiKid,
-          },
-        ],
-      })
-      .persist();
+    mockServer.use(
+      // Mock Auth API v3 /.well-known/openid-configuration endpoint
+      rest.get(
+        `${authorisationApiUrl}/.well-known/openid-configuration`,
+        (_req, res, ctx) =>
+          res(ctx.json({ jwks_uri: `${authorisationApiUrl}/jwks` })),
+      ),
+      // Mock Auth API v3 /jwks endpoint
+      rest.get(`${authorisationApiUrl}/jwks`, (_req, res, ctx) =>
+        res(
+          ctx.json({
+            keys: [{ ...authApiPublicKeyJwk, kid: authApiKid }],
+          }),
+        ),
+      ),
+    );
 
     // Generate access tokens
     issuer1TirInviteAccessToken = await new SignJWT({
-      sub: issuers[0].did,
+      sub: issuers[0]!.did,
       scp: "openid tir_invite",
     })
       .setProtectedHeader({
@@ -307,8 +304,8 @@ describe("JsonRpc Module", () => {
     const publicKeyJwk = await exportJWK(keyPair.publicKey);
 
     const issuer: EbsiIssuer = {
-      did: issuers[0].did,
-      kid: `${issuers[0].did}#keys-1`,
+      did: issuers[0]!.did,
+      kid: `${issuers[0]!.did}#keys-1`,
       publicKeyJwk,
       privateKeyJwk,
       alg: "ES256K",
@@ -316,75 +313,60 @@ describe("JsonRpc Module", () => {
 
     const issuerV1StatusList2021CredentialJwt =
       await createVerifiableCredentialJwt(
-        issuers[0].proxy.statusList2021Credential,
+        issuers[0]!.proxy.statusList2021Credential,
         issuer,
         {
           ebsiAuthority: "example.net",
           skipValidation: true,
-        }
+        },
       );
 
-    const didRegistryApiUrl = new URL(
-      configService.get<string>("didRegistryApiUrl")
-    );
+    const didRegistryApiUrl = configService.get<string>("didRegistryApiUrl");
     const issuer1DidDocument = createDidDocument(
       issuer.did,
       issuer.kid,
-      publicKeyJwk
+      publicKeyJwk,
     );
 
-    // Mock DIDR API v4 /identifiers/${issuer.did}
-    nock(didRegistryApiUrl.origin)
-      .get(`${didRegistryApiUrl.pathname}/identifiers/${issuer.did}`)
-      .reply(200, issuer1DidDocument)
-      .persist();
-
-    // Make test status list JWT available
-    nock(issuers[0].proxy.obj.prefix)
-      .get(issuers[0].proxy.obj.testSuffix)
-      .reply(200, issuerV1StatusList2021CredentialJwt)
-      .persist();
-
-    // Make the contexts available
-    nock("https://www.w3.org")
-      .get("/ns/did/v1")
-      .reply(200, DID_DOCUMENT_CONTEXT)
-      .persist();
-
-    nock("https://w3id.org")
-      .get("/security/suites/jws-2020/v1")
-      .reply(200, JWS_2020_CONTEXT)
-      .persist();
+    mockServer.use(
+      // Mock DIDR API v4 /identifiers/${issuer.did}
+      rest.get(
+        `${didRegistryApiUrl}/identifiers/${issuer.did}`,
+        (_req, res, ctx) => res(ctx.json(issuer1DidDocument)),
+      ),
+      // Make test status list JWT available
+      rest.get(
+        `${issuers[0]!.proxy.obj.prefix}${issuers[0]!.proxy.obj.testSuffix}`,
+        (_req, res, ctx) => res(ctx.json(issuerV1StatusList2021CredentialJwt)),
+      ),
+    );
   });
 
   beforeEach(() => {
     // Mock TIR contract
-    jest
-      .spyOn(ledgerService, "getContract")
-      .mockImplementation(async () => Promise.resolve(tirContract));
+    vi.spyOn(ledgerService, "getContract").mockImplementation(async () =>
+      Promise.resolve(tirContract),
+    );
 
     // For the tests, we assume that the DID is controlled by the signer
-    jest
-      .spyOn(jsonRpcService, "isDidControlledByAddress")
-      .mockImplementation(async () => Promise.resolve(true));
+    vi.spyOn(jsonRpcService, "isDidControlledByAddress").mockImplementation(
+      async () => Promise.resolve(true),
+    );
 
     // Mock isStatusList2021Credential
-    jest
-      .spyOn(StatusList2021CredentialHelpers, "isStatusList2021Credential")
-      .mockImplementation(() => Promise.resolve(true));
+    vi.spyOn(
+      StatusList2021CredentialHelpers,
+      "isStatusList2021Credential",
+    ).mockImplementation(() => Promise.resolve(true));
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   afterAll(async () => {
-    nock.restore();
+    mockServer.close();
 
-    // Avoid jest open handle error
-    await new Promise<void>((resolve) => {
-      setTimeout(() => resolve(), 500);
-    });
     await app.close();
   });
 
@@ -402,7 +384,7 @@ describe("JsonRpc Module", () => {
     });
     expect(response.status).toBe(401);
     expect(
-      (response.headers as { "content-type": string })["content-type"]
+      (response.headers as { "content-type": string })["content-type"],
     ).toStrictEqual(expect.stringContaining("application/problem+json"));
   });
 
@@ -423,7 +405,7 @@ describe("JsonRpc Module", () => {
     });
     expect(response.status).toBe(401);
     expect(
-      (response.headers as { "content-type": string })["content-type"]
+      (response.headers as { "content-type": string })["content-type"],
     ).toStrictEqual(expect.stringContaining("application/problem+json"));
   });
 
@@ -433,7 +415,7 @@ describe("JsonRpc Module", () => {
     const signer = await generateKeyPair("ES256");
     const kid = await calculateJwkThumbprint(await exportJWK(signer.publicKey));
     const accessTokenWithInvalidKid = await new SignJWT({
-      sub: issuers[0].did,
+      sub: issuers[0]!.did,
       scp: "openid tir_invite",
     })
       .setProtectedHeader({
@@ -457,11 +439,11 @@ describe("JsonRpc Module", () => {
     });
     expect(response.status).toBe(401);
     expect(
-      (response.headers as { "content-type": string })["content-type"]
+      (response.headers as { "content-type": string })["content-type"],
     ).toStrictEqual(expect.stringContaining("application/problem+json"));
 
     const accessTokenWithInvalidSignature = await new SignJWT({
-      sub: issuers[0].did,
+      sub: issuers[0]!.did,
       scp: "openid did_write",
     })
       .setProtectedHeader({
@@ -484,7 +466,7 @@ describe("JsonRpc Module", () => {
     });
     expect(response.status).toBe(401);
     expect(
-      (response.headers as { "content-type": string })["content-type"]
+      (response.headers as { "content-type": string })["content-type"],
     ).toStrictEqual(expect.stringContaining("application/problem+json"));
   });
 
@@ -523,7 +505,7 @@ describe("JsonRpc Module", () => {
     };
 
     const uTx = formatEthersUnsignedTransaction(
-      JSON.parse(JSON.stringify(transaction)) as UnsignedTransaction
+      JSON.parse(JSON.stringify(transaction)) as UnsignedTransaction,
     );
     uTx.chainId = Number(uTx.chainId);
     const sgnTx = await wallet.signTransaction(uTx);
@@ -581,7 +563,7 @@ describe("JsonRpc Module", () => {
       error: {
         code: -32600,
         message: expect.stringContaining(
-          "The method 'unknown-method' is invalid"
+          "The method 'unknown-method' is invalid",
         ),
       },
     });
@@ -594,18 +576,18 @@ describe("JsonRpc Module", () => {
     const signer = ethers.Wallet.createRandom();
 
     const param: InsertIssuerParam = {
-      attributeData: issuers[0].attribute.hex,
-      did: issuers[0].did,
-      issuerType: issuers[0].issuerType,
-      taoDid: issuers[0].tao,
-      taoAttributeId: issuers[0].taoAttributeId,
+      attributeData: issuers[0]!.attribute.hex,
+      did: issuers[0]!.did,
+      issuerType: issuers[0]!.issuerType,
+      taoDid: issuers[0]!.tao,
+      taoAttributeId: issuers[0]!.taoAttributeId,
       from: signer.address,
     };
 
     // The DID is not controlled by the signer
-    jest
-      .spyOn(jsonRpcService, "isDidControlledByAddress")
-      .mockImplementation(async () => Promise.resolve(false));
+    vi.spyOn(jsonRpcService, "isDidControlledByAddress").mockImplementation(
+      async () => Promise.resolve(false),
+    );
 
     const responseBuild: SupertestJsonRpcResponse = await request(server)
       .post("/jsonrpc")
@@ -635,7 +617,7 @@ describe("JsonRpc Module", () => {
 
     const unsignedTransaction = responseBuild.body.result;
     const uTx = formatEthersUnsignedTransaction(
-      JSON.parse(JSON.stringify(unsignedTransaction)) as UnsignedTransaction
+      JSON.parse(JSON.stringify(unsignedTransaction)) as UnsignedTransaction,
     );
     uTx.chainId = Number(uTx.chainId);
     const sgnTx = await signer.signTransaction(uTx);
@@ -696,7 +678,7 @@ describe("JsonRpc Module", () => {
         const param: JsonRpcParams = createParam(
           method,
           signer,
-          updateAttribute
+          updateAttribute,
         );
 
         const responseBuild: SupertestJsonRpcResponse = await request(server)
@@ -727,7 +709,9 @@ describe("JsonRpc Module", () => {
 
         const unsignedTransaction = responseBuild.body.result;
         const uTx = formatEthersUnsignedTransaction(
-          JSON.parse(JSON.stringify(unsignedTransaction)) as UnsignedTransaction
+          JSON.parse(
+            JSON.stringify(unsignedTransaction),
+          ) as UnsignedTransaction,
         );
         uTx.chainId = Number(uTx.chainId);
         const sgnTx = await signer.signTransaction(uTx);
@@ -780,7 +764,7 @@ describe("JsonRpc Module", () => {
         expect(responseBuild.body).toStrictEqual({
           jsonrpc: "2.0",
           id: null,
-          result: expect.objectContaining({}) as unknown,
+          result: expect.objectContaining({}),
         });
         expect(responseBuild.status).toBe(200);
       });
@@ -950,7 +934,7 @@ describe("JsonRpc Module", () => {
         const transaction2 = responseBuild2.body.result as UnsignedTransaction;
 
         const uTx = formatEthersUnsignedTransaction(
-          JSON.parse(JSON.stringify(transaction1)) as UnsignedTransaction
+          JSON.parse(JSON.stringify(transaction1)) as UnsignedTransaction,
         );
         uTx.chainId = Number(uTx.chainId);
         const sgnTx1 = await wallet1.signTransaction(uTx);
@@ -982,7 +966,7 @@ describe("JsonRpc Module", () => {
           error: {
             code: -32600,
             message: expect.stringContaining(
-              "does not match with the signedRawTransaction"
+              "does not match with the signedRawTransaction",
             ),
           },
         });
@@ -1019,6 +1003,6 @@ describe("JsonRpc Module", () => {
         });
         expect(responseSend1.status).toBe(400);
       });
-    }
+    },
   );
 });

@@ -6,19 +6,19 @@ import {
   Equals,
 } from "class-validator";
 import { Type } from "class-transformer";
-import { JsonRpcDto } from "../jsonrpc.dto";
-import { AppendDidDocumentVersionHashParam } from "./append-did-document-version-hash-param.dto";
+import { JsonRpcDto } from "../jsonrpc.dto.js";
+import { AppendDidDocumentVersionHashParam } from "./append-did-document-version-hash-param.dto.js";
 
 export class RequestAppendDidDocumentVersionHashDto extends JsonRpcDto {
   @Equals("appendDidDocumentVersionHash")
-  method: string;
+  declare method: string;
 
   @IsArray()
   @ValidateNested({ each: true })
   @ArrayMinSize(1)
   @ArrayMaxSize(1)
   @Type(() => AppendDidDocumentVersionHashParam)
-  params: AppendDidDocumentVersionHashParam[];
+  declare params: AppendDidDocumentVersionHashParam[];
 }
 
 export default RequestAppendDidDocumentVersionHashDto;

@@ -9,18 +9,18 @@ task("changeOwnership", "change proxy implementation")
     "from",
     "from signer account to will execute the transaction it should be the Proxy current admin",
     0,
-    types.int
+    types.int,
   )
   .addOptionalParam(
     "admin",
     "new admin address if not provided will default to ebsi admin multisig",
     "",
-    types.string
+    types.string,
   )
   .setAction(
     async (
       taskArgs: { proxy: string; from?: number; admin?: string },
-      { ethers }
+      { ethers },
     ) => {
       const proxyDeployedAddr = taskArgs.proxy;
       const accounts = await ethers.getSigners();
@@ -29,12 +29,12 @@ task("changeOwnership", "change proxy implementation")
       const newAdmin = taskArgs.admin.length > 0 ? taskArgs.admin : multiSig;
 
       const IMPLEMENTATION_SLOT = ethers.utils.keccak256(
-        ethers.utils.toUtf8Bytes("diamond.standard.diamond.storage.proxy")
+        ethers.utils.toUtf8Bytes("diamond.standard.diamond.storage.proxy"),
       );
 
       const proxyCtr = (await ethers.getContractAt(
         `OwnedUpgradeabilityProxy`,
-        proxyDeployedAddr
+        proxyDeployedAddr,
       )) as OwnedUpgradeabilityProxy;
 
       // these infos are not easily accessible as they are restricted by an onlyAdmin modifier
@@ -42,22 +42,22 @@ task("changeOwnership", "change proxy implementation")
       const adminAddr = BigNumber.from(
         await ethers.provider.getStorageAt(
           proxyCtr.address,
-          IMPLEMENTATION_SLOT
-        )
+          IMPLEMENTATION_SLOT,
+        ),
       ).toHexString();
 
       console.log(
-        `Current proxy admin address from SC: ${adminAddr} from script: ${curAdmin.address}`
+        `Current proxy admin address from SC: ${adminAddr} from script: ${curAdmin.address}`,
       );
       // the implementation is in the next storage slot as it is part of the same struct
       const implementationAddr = BigNumber.from(
         await ethers.provider.getStorageAt(
           proxyCtr.address,
-          BigNumber.from(IMPLEMENTATION_SLOT).add(1)
-        )
+          BigNumber.from(IMPLEMENTATION_SLOT).add(1),
+        ),
       ).toHexString();
       console.log(
-        `Proxy current implementation address: ${implementationAddr}`
+        `Proxy current implementation address: ${implementationAddr}`,
       );
 
       console.log(`will change Admin to: ${newAdmin}`);
@@ -68,14 +68,14 @@ task("changeOwnership", "change proxy implementation")
       const newAdminAddr = BigNumber.from(
         await ethers.provider.getStorageAt(
           proxyCtr.address,
-          IMPLEMENTATION_SLOT
-        )
+          IMPLEMENTATION_SLOT,
+        ),
       ).toHexString();
       console.log(`NEW proxy admin address: ${newAdminAddr}`);
 
       console.log(
         "Change Ownership:",
-        (receipt as { status: number }).status === 1 ? "ok" : "error"
+        (receipt as { status: number }).status === 1 ? "ok" : "error",
       );
-    }
+    },
   );

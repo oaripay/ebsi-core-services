@@ -1,13 +1,9 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ethers } from "ethers";
 import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
-import {
-  AsyncReturnType,
-  isEthersError,
-  NotFoundError,
-} from "@ebsiint-api/shared";
-import { LedgerService } from "../ledger/ledger.service";
-import { PolicyResponseObject } from "./policies.interface";
+import { isEthersError, NotFoundError } from "@ebsiint-api/shared";
+import { LedgerService } from "../ledger/ledger.service.js";
+import { PolicyResponseObject } from "./policies.interface.js";
 
 @Injectable()
 export class PoliciesService {
@@ -17,7 +13,7 @@ export class PoliciesService {
 
   async getPolicyNames(
     page: number,
-    pageSize: number
+    pageSize: number,
   ): ReturnType<PolicyRegistry["getPolicyNames"]> {
     try {
       return await (
@@ -34,7 +30,7 @@ export class PoliciesService {
   }
 
   async getPolicy(policyName: string): Promise<PolicyResponseObject> {
-    let policy: AsyncReturnType<PolicyRegistry["getPolicy(string)"]>;
+    let policy: Awaited<ReturnType<PolicyRegistry["getPolicy(string)"]>>;
 
     try {
       policy = await (

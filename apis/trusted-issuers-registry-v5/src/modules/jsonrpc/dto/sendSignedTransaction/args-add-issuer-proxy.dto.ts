@@ -1,6 +1,6 @@
 import { Validate } from "class-validator";
 import { IsDidV1 } from "@ebsiint-api/shared";
-import { IsIssuerProxy } from "../../../../shared/validators/IsIssuerProxy";
+import { IsIssuerProxy } from "../../../../shared/validators/IsIssuerProxy.js";
 
 export class ArgsAddIssuerProxy {
   @IsDidV1()

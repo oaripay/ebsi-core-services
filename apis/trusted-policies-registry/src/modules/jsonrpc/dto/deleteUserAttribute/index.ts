@@ -1,2 +1,2 @@
-export * from "./update-user-attribute-param.dto";
-export * from "./request-update-user-attribute.dto";
+export * from "./delete-user-attribute-param.dto.js";
+export * from "./request-update-user-attribute.dto.js";
