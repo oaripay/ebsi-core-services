@@ -108,7 +108,7 @@ pipeline {
                   source $NVM_DIR/nvm.sh > /dev/null 2>&1
                   nvm use > /dev/null 2>&1
                   node -v
-                  yarn print-affected'
+                  yarn print-affected
                 '''
                 script { deployment_needed = true }
               } catch (Exception e) {
