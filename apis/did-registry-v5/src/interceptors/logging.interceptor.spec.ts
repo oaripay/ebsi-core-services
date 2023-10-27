@@ -16,7 +16,7 @@ import {
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { HttpService } from "@nestjs/axios";
-import { rest } from "msw";
+import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import {
@@ -47,9 +47,9 @@ describe("Logging interceptor", () => {
     mockServer.listen({
       onUnhandledRequest: ({ method, url }) => {
         // Bypass local requests
-        if (url.hostname === "127.0.0.1") return;
+        if (new URL(url).hostname === "127.0.0.1") return;
 
-        throw new Error(`Unhandled ${method} request to ${url.href}`);
+        throw new Error(`Unhandled ${method} request to ${url}`);
       },
     });
 
@@ -68,13 +68,12 @@ describe("Logging interceptor", () => {
 
     // Mock dependencies
     mockServer.use(
-      rest.get(
-        `${configService.get<string>("ledgerApiUrl")}/health`,
-        (_req, res, ctx) => res(ctx.json({})),
+      http.get(`${configService.get<string>("ledgerApiUrl")}/health`, () =>
+        HttpResponse.json({}),
       ),
-      rest.get(
+      http.get(
         `${configService.get<string>("authorisationApiUrl")}/health`,
-        (_req, res, ctx) => res(ctx.json({})),
+        () => HttpResponse.json({}),
       ),
     );
 
@@ -184,14 +183,13 @@ describe("Logging interceptor", () => {
 
       mockServer.use(
         // Mock Auth API /.well-known/openid-configuration endpoint
-        rest.get(
+        http.get(
           `${authorisationApiUrl}/.well-known/openid-configuration`,
-          (_req, res, ctx) =>
-            res(ctx.json({ jwks_uri: `${authorisationApiUrl}/jwks` })),
+          () => HttpResponse.json({ jwks_uri: `${authorisationApiUrl}/jwks` }),
         ),
         // Mock Auth API /jwks endpoint
-        rest.get(`${authorisationApiUrl}/jwks`, (_req, res, ctx) =>
-          res(ctx.json({ keys: [{ ...publicKeyJwk, kid }] })),
+        http.get(`${authorisationApiUrl}/jwks`, () =>
+          HttpResponse.json({ keys: [{ ...publicKeyJwk, kid }] }),
         ),
       );
 

@@ -1,11 +1,14 @@
-FROM node:18.17.1-alpine3.18@sha256:3482a20c97e401b56ac50ba8920cc7b5b2022bfc6aa7d4e4c231755770cf892f
+FROM node:20.9.0-alpine3.18@sha256:8e015de364a2eb2ed7c52a558e9f716dcb615560ffd132234087c10ccc1f2c63
 
 WORKDIR /app
 
 # Install build dependencies
 RUN apk update && \
   apk upgrade && \
-  apk add --no-cache build-base git py3-pip
+  apk add --no-cache build-base git py3-pip && \
+  # Fix "node-gyp fails to spawn" error
+  # See: https://github.com/npm/cli/issues/6842
+  npm i -g node-gyp@9.4.0
 
 # Copy root package.json + yarn.lock
 COPY yarn.lock package.json ./

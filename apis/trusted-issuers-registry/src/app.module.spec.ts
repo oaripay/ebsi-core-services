@@ -17,7 +17,7 @@ import {
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { HttpService } from "@nestjs/axios";
-import { rest } from "msw";
+import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { of } from "rxjs";
 import { AppModule } from "./app.module.js";
@@ -39,9 +39,9 @@ describe("App Module", () => {
     mockServer.listen({
       onUnhandledRequest: ({ method, url }) => {
         // Bypass local requests
-        if (url.hostname === "127.0.0.1") return;
+        if (new URL(url).hostname === "127.0.0.1") return;
 
-        throw new Error(`Unhandled ${method} request to ${url.href}`);
+        throw new Error(`Unhandled ${method} request to ${url}`);
       },
     });
   });
@@ -111,9 +111,7 @@ describe("App Module", () => {
       const url = `${configService.get<string>("ledgerApiUrl")}/health`;
 
       mockServer.use(
-        rest.get(url, (_req, res, ctx) =>
-          res(ctx.status(404), ctx.text("Not Found")),
-        ),
+        http.get(url, () => HttpResponse.text("Not Found", { status: 404 })),
       );
 
       await expect(() => app.init()).rejects.toThrow(
@@ -158,18 +156,18 @@ describe("App Module", () => {
       // Ledger API first responds 15 times with a 404 (because it's starting)
       let reqCounter = 0;
       mockServer.use(
-        rest.get(ledgerApiUrl, (_req, res, ctx) => {
+        http.get(ledgerApiUrl, () => {
           reqCounter += 1;
 
           // Ledger API first responds 15 times with a 404 (because it's starting)
           if (reqCounter <= 15) {
-            return res(ctx.status(404), ctx.text("Not Found"));
+            return HttpResponse.text("Not Found", { status: 404 });
           }
 
           // Then, it responds with a 200
-          return res(ctx.status(200), ctx.json({}));
+          return HttpResponse.json({});
         }),
-        rest.get(authorisationApiUrl, (_req, res, ctx) => res(ctx.json({}))),
+        http.get(authorisationApiUrl, () => HttpResponse.json({})),
       );
 
       await expect(app.init()).resolves.not.toThrow();
@@ -220,8 +218,8 @@ describe("App Module", () => {
       )}/health`;
 
       mockServer.use(
-        rest.get(ledgerApiUrl, (_req, res, ctx) => res(ctx.json({}))),
-        rest.get(authorisationApiUrl, (_req, res, ctx) => res(ctx.json({}))),
+        http.get(ledgerApiUrl, () => HttpResponse.json({})),
+        http.get(authorisationApiUrl, () => HttpResponse.json({})),
       );
 
       await app.init();

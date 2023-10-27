@@ -12,7 +12,7 @@ import { randomUUID, randomBytes } from "node:crypto";
 import type { KeyObject } from "node:crypto";
 import { URLSearchParams } from "node:url";
 import request from "supertest";
-import { rest } from "msw";
+import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { encode } from "@ebsiint-api/shared";
 import { Agent } from "@cef-ebsi/oauth2-auth";
@@ -136,9 +136,9 @@ describe("Authorisation Module", () => {
     mockServer.listen({
       onUnhandledRequest: ({ method, url }) => {
         // Bypass local requests
-        if (url.hostname === "127.0.0.1") return;
+        if (new URL(url).hostname === "127.0.0.1") return;
 
-        throw new Error(`Unhandled ${method} request to ${url.href}`);
+        throw new Error(`Unhandled ${method} request to ${url}`);
       },
     });
 
@@ -174,17 +174,17 @@ describe("Authorisation Module", () => {
 
   beforeEach(async () => {
     mockServer.use(
-      rest.get(
+      http.get(
         `${domain}/did-registry/v5/identifiers/${encodeDid(
           credentialIssuer.did,
         )}`,
-        (_req, res, ctx) => res(ctx.json(credentialIssuer.didDocument)),
+        () => HttpResponse.json(credentialIssuer.didDocument),
       ),
-      rest.get(
+      http.get(
         `${domain}/trusted-issuers-registry/v5/issuers/${encodeDid(
           credentialIssuer.did,
         )}`,
-        (_req, res, ctx) => res(ctx.json({})),
+        () => HttpResponse.json({}),
       ),
     );
 
@@ -256,8 +256,8 @@ describe("Authorisation Module", () => {
       );
 
     mockServer.use(
-      rest.get(credentialIssuerAccreditationUrl, (_req, res, ctx) =>
-        res(ctx.json({ attribute: { body: accreditationVcJwt } })),
+      http.get(credentialIssuerAccreditationUrl, () =>
+        HttpResponse.json({ attribute: { body: accreditationVcJwt } }),
       ),
     );
   });
@@ -600,20 +600,20 @@ describe("Authorisation Module", () => {
         // If scope=didr_invite, the DID is not yet registered in the DIDR and TIR
         if (customScope === DIDR_INVITE_SCOPE) {
           mockServer.use(
-            rest.get(
+            http.get(
               `${domain}/did-registry/v5/identifiers/${encodeDid(
                 credentialSubject.did,
               )}`,
-              (_req, res, ctx) => res(ctx.status(404), ctx.text("Not found")),
+              () => HttpResponse.text("Not found", { status: 404 }),
             ),
           );
         } else {
           mockServer.use(
-            rest.get(
+            http.get(
               `${domain}/did-registry/v5/identifiers/${encodeDid(
                 credentialSubject.did,
               )}`,
-              (_req, res, ctx) => res(ctx.json(credentialSubject.didDocument)),
+              () => HttpResponse.json(credentialSubject.didDocument),
             ),
           );
         }
@@ -626,108 +626,102 @@ describe("Authorisation Module", () => {
             "352f18152fdc52f1797c98bfea8e0737d620e5503df2463dd8129719fcf6bf5c";
 
           mockServer.use(
-            rest.get(
+            http.get(
               `${domain}/trusted-issuers-registry/v5/issuers/${encodeDid(
                 credentialSubject.did,
               )}`,
-              (_req, res, ctx) => res(ctx.json({})),
+              () => HttpResponse.json({}),
             ),
-            rest.get(
+            http.get(
               `${domain}/trusted-issuers-registry/v5/issuers/${encodeDid(
                 credentialSubject.did,
               )}/attributes`,
-              (_req, res, ctx) =>
-                res(
-                  ctx.json({
-                    self: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes?page[after]=1&page[size]=10`,
-                    items: [
-                      {
-                        id: attributeId,
-                        href: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes/${attributeId}`,
-                      },
-                    ],
-                    total: 1,
-                    pageSize: 10,
-                    links: {
-                      first: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes?page[after]=1&page[size]=10`,
-                      prev: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes?page[after]=1&page[size]=10`,
-                      next: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes?page[after]=1&page[size]=10`,
-                      last: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes?page[after]=1&page[size]=10`,
+              () =>
+                HttpResponse.json({
+                  self: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes?page[after]=1&page[size]=10`,
+                  items: [
+                    {
+                      id: attributeId,
+                      href: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes/${attributeId}`,
                     },
-                  }),
-                ),
+                  ],
+                  total: 1,
+                  pageSize: 10,
+                  links: {
+                    first: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes?page[after]=1&page[size]=10`,
+                    prev: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes?page[after]=1&page[size]=10`,
+                    next: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes?page[after]=1&page[size]=10`,
+                    last: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes?page[after]=1&page[size]=10`,
+                  },
+                }),
             ),
           );
 
           if (customScope === TIR_INVITE_SCOPE) {
             // For tir_invite, create only 1 revision
             mockServer.use(
-              rest.get(
+              http.get(
                 `${domain}/trusted-issuers-registry/v5/issuers/${encodeDid(
                   credentialSubject.did,
                 )}/attributes/${attributeId}/revisions`,
-                (_req, res, ctx) =>
-                  res(
-                    ctx.json({
-                      self: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
-                      items: [
-                        {
-                          hash: "c1a9c6159f72591b612e1381f5d79cede36a2b097aef6b3691f61248a406d9d2",
-                          body: "",
-                          issuerType: "RootTAO",
-                          tao: EbsiWallet.createDid(),
-                          rootTao: EbsiWallet.createDid(),
-                        },
-                      ],
-                      total: 1,
-                      pageSize: 10,
-                      links: {
-                        first: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
-                        prev: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
-                        next: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
-                        last: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
+                () =>
+                  HttpResponse.json({
+                    self: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
+                    items: [
+                      {
+                        hash: "c1a9c6159f72591b612e1381f5d79cede36a2b097aef6b3691f61248a406d9d2",
+                        body: "",
+                        issuerType: "RootTAO",
+                        tao: EbsiWallet.createDid(),
+                        rootTao: EbsiWallet.createDid(),
                       },
-                    }),
-                  ),
+                    ],
+                    total: 1,
+                    pageSize: 10,
+                    links: {
+                      first: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
+                      prev: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
+                      next: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
+                      last: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
+                    },
+                  }),
               ),
             );
           } else {
             // For tir_write, create 2 revisions
             mockServer.use(
-              rest.get(
+              http.get(
                 `${domain}/trusted-issuers-registry/v5/issuers/${encodeDid(
                   credentialSubject.did,
                 )}/attributes/${attributeId}/revisions`,
-                (_req, res, ctx) =>
-                  res(
-                    ctx.json({
-                      self: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
-                      items: [
-                        {
-                          hash: "c1a9c6159f72591b612e1381f5d79cede36a2b097aef6b3691f61248a406d9d2",
-                          body: "",
-                          issuerType: "RootTAO",
-                          tao: EbsiWallet.createDid(),
-                          rootTao: EbsiWallet.createDid(),
-                        },
-                        {
-                          hash: "352f18152fdc52f1797c98bfea8e0737d620e5503df2463dd8129719fcf6bf5c",
-                          body: "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImRpZDplYnNpOnp5d24zZlBoM0s0aDZLaWJlOUF1VE1wIzVfWXJCNTFHckxZSFc2cU9lY05RZFFiMU8xNWUzWGNtWE5zVzA5d1IyNncifQ.eyJpYXQiOjE2NzcyNDk0NzYsImp0aSI6InVybjp1dWlkOmI2NDhkZGQ2LTVjMzgtNGI3YS1iMDM3LTVmNzc4OWJhNTVlOSIsIm5iZiI6MTY3NzI0OTQ3NiwiZXhwIjoxNzA4Nzg1NDc2LCJzdWIiOiJkaWQ6ZWJzaTp6ejdYc0M5aXhBWHVaZWNvRDlzWkVNMSIsInZjIjp7IkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIl0sInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJWZXJpZmlhYmxlQXR0ZXN0YXRpb24iLCJWZXJpZmlhYmxlQXV0aG9yaXNhdGlvbkZvclRydXN0Q2hhaW4iXSwiaXNzdWVyIjoiZGlkOmVic2k6enl3bjNmUGgzSzRoNktpYmU5QXVUTXAiLCJjcmVkZW50aWFsU3ViamVjdCI6eyJpZCI6ImRpZDplYnNpOnp6N1hzQzlpeEFYdVplY29EOXNaRU0xIn0sInRlcm1zT2ZVc2UiOnsiaWQiOiJodHRwczovL2FwaS10ZXN0LmVic2kuZXUvdHJ1c3RlZC1pc3N1ZXJzLXJlZ2lzdHJ5L3Y0L2lzc3VlcnMvZGlkOmVic2k6enl3bjNmUGgzSzRoNktpYmU5QXVUTXAvYXR0cmlidXRlcy9iYTc1MWZhNjAyNTBjYmRiMzlmZWVjMDdkMzZjMzNiNTBiNjM4ODY0MjBmYzkxNDY5MjUwOWQ1N2Y4MTgxYzFjIiwidHlwZSI6Iklzc3VhbmNlQ2VydGlmaWNhdGUifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHBzOi8vYXBpLXRlc3QuZWJzaS5ldS90cnVzdGVkLXNjaGVtYXMtcmVnaXN0cnkvdjIvc2NoZW1hcy96M01nVUZVa2I3MjJ1cTR4M2R2NXlBSm1uTm16REZlSzVVQzh4ODNRb2VMSk0iLCJ0eXBlIjoiRnVsbEpzb25TY2hlbWFWYWxpZGF0b3IyMDIxIn0sImlkIjoidXJuOnV1aWQ6YjY0OGRkZDYtNWMzOC00YjdhLWIwMzctNWY3Nzg5YmE1NWU5IiwiaXNzdWFuY2VEYXRlIjoiMjAyMy0wMi0yNFQxNDozNzo1Ni4wMDBaIiwiaXNzdWVkIjoiMjAyMy0wMi0yNFQxNDozNzo1Ni4wMDBaIiwidmFsaWRGcm9tIjoiMjAyMy0wMi0yNFQxNDozNzo1Ni4wMDBaIiwiZXhwaXJhdGlvbkRhdGUiOiIyMDI0LTAyLTI0VDE0OjM3OjU2LjAwMFoiLCJ2YWxpZFVudGlsIjoiMjAyNC0wMi0yNFQxNDozNzo1Ni4wMDBaIn0sImlzcyI6ImRpZDplYnNpOnp5d24zZlBoM0s0aDZLaWJlOUF1VE1wIn0.td0zhAcRNN6UQ4Yul6-Vy9qQNi_ZxlXmUIlbkfMcD3rAY6s8EpnA1h8UYagcePmGk8Xzx_6KpzN78QuFPF4lsg",
-                          issuerType: "RootTAO",
-                          tao: EbsiWallet.createDid(),
-                          rootTao: EbsiWallet.createDid(),
-                        },
-                      ],
-                      total: 2,
-                      pageSize: 10,
-                      links: {
-                        first: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
-                        prev: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
-                        next: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
-                        last: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
+                () =>
+                  HttpResponse.json({
+                    self: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
+                    items: [
+                      {
+                        hash: "c1a9c6159f72591b612e1381f5d79cede36a2b097aef6b3691f61248a406d9d2",
+                        body: "",
+                        issuerType: "RootTAO",
+                        tao: EbsiWallet.createDid(),
+                        rootTao: EbsiWallet.createDid(),
                       },
-                    }),
-                  ),
+                      {
+                        hash: "352f18152fdc52f1797c98bfea8e0737d620e5503df2463dd8129719fcf6bf5c",
+                        body: "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImRpZDplYnNpOnp5d24zZlBoM0s0aDZLaWJlOUF1VE1wIzVfWXJCNTFHckxZSFc2cU9lY05RZFFiMU8xNWUzWGNtWE5zVzA5d1IyNncifQ.eyJpYXQiOjE2NzcyNDk0NzYsImp0aSI6InVybjp1dWlkOmI2NDhkZGQ2LTVjMzgtNGI3YS1iMDM3LTVmNzc4OWJhNTVlOSIsIm5iZiI6MTY3NzI0OTQ3NiwiZXhwIjoxNzA4Nzg1NDc2LCJzdWIiOiJkaWQ6ZWJzaTp6ejdYc0M5aXhBWHVaZWNvRDlzWkVNMSIsInZjIjp7IkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIl0sInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJWZXJpZmlhYmxlQXR0ZXN0YXRpb24iLCJWZXJpZmlhYmxlQXV0aG9yaXNhdGlvbkZvclRydXN0Q2hhaW4iXSwiaXNzdWVyIjoiZGlkOmVic2k6enl3bjNmUGgzSzRoNktpYmU5QXVUTXAiLCJjcmVkZW50aWFsU3ViamVjdCI6eyJpZCI6ImRpZDplYnNpOnp6N1hzQzlpeEFYdVplY29EOXNaRU0xIn0sInRlcm1zT2ZVc2UiOnsiaWQiOiJodHRwczovL2FwaS10ZXN0LmVic2kuZXUvdHJ1c3RlZC1pc3N1ZXJzLXJlZ2lzdHJ5L3Y0L2lzc3VlcnMvZGlkOmVic2k6enl3bjNmUGgzSzRoNktpYmU5QXVUTXAvYXR0cmlidXRlcy9iYTc1MWZhNjAyNTBjYmRiMzlmZWVjMDdkMzZjMzNiNTBiNjM4ODY0MjBmYzkxNDY5MjUwOWQ1N2Y4MTgxYzFjIiwidHlwZSI6Iklzc3VhbmNlQ2VydGlmaWNhdGUifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHBzOi8vYXBpLXRlc3QuZWJzaS5ldS90cnVzdGVkLXNjaGVtYXMtcmVnaXN0cnkvdjIvc2NoZW1hcy96M01nVUZVa2I3MjJ1cTR4M2R2NXlBSm1uTm16REZlSzVVQzh4ODNRb2VMSk0iLCJ0eXBlIjoiRnVsbEpzb25TY2hlbWFWYWxpZGF0b3IyMDIxIn0sImlkIjoidXJuOnV1aWQ6YjY0OGRkZDYtNWMzOC00YjdhLWIwMzctNWY3Nzg5YmE1NWU5IiwiaXNzdWFuY2VEYXRlIjoiMjAyMy0wMi0yNFQxNDozNzo1Ni4wMDBaIiwiaXNzdWVkIjoiMjAyMy0wMi0yNFQxNDozNzo1Ni4wMDBaIiwidmFsaWRGcm9tIjoiMjAyMy0wMi0yNFQxNDozNzo1Ni4wMDBaIiwiZXhwaXJhdGlvbkRhdGUiOiIyMDI0LTAyLTI0VDE0OjM3OjU2LjAwMFoiLCJ2YWxpZFVudGlsIjoiMjAyNC0wMi0yNFQxNDozNzo1Ni4wMDBaIn0sImlzcyI6ImRpZDplYnNpOnp5d24zZlBoM0s0aDZLaWJlOUF1VE1wIn0.td0zhAcRNN6UQ4Yul6-Vy9qQNi_ZxlXmUIlbkfMcD3rAY6s8EpnA1h8UYagcePmGk8Xzx_6KpzN78QuFPF4lsg",
+                        issuerType: "RootTAO",
+                        tao: EbsiWallet.createDid(),
+                        rootTao: EbsiWallet.createDid(),
+                      },
+                    ],
+                    total: 2,
+                    pageSize: 10,
+                    links: {
+                      first: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
+                      prev: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
+                      next: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
+                      last: `${domain}/trusted-issuers-registry/v5/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
+                    },
+                  }),
               ),
             );
           }
@@ -1602,11 +1596,11 @@ describe("Authorisation Module", () => {
             vpPayload.holder = vpSigner.did;
 
             mockServer.use(
-              rest.get(
+              http.get(
                 `${domain}/did-registry/v5/identifiers/${encodeDid(
                   vpSigner.did,
                 )}`,
-                (_req, res, ctx) => res(ctx.status(404), ctx.text("Not found")),
+                () => HttpResponse.text("Not found", { status: 404 }),
               ),
             );
 
@@ -1626,17 +1620,17 @@ describe("Authorisation Module", () => {
             vpPayload.holder = vpSigner.did;
 
             mockServer.use(
-              rest.get(
+              http.get(
                 `${domain}/did-registry/v5/identifiers/${encodeDid(
                   vpSigner.did,
                 )}`,
-                (_req, res, ctx) => res(ctx.json(vpSigner.didDocument)),
+                () => HttpResponse.json(vpSigner.didDocument),
               ),
-              rest.get(
+              http.get(
                 `${domain}/trusted-issuers-registry/v5/issuers/${encodeDid(
                   vpSigner.did,
                 )}/attributes`,
-                (_req, res, ctx) => res(ctx.status(404), ctx.text("Not found")),
+                () => HttpResponse.text("Not found", { status: 404 }),
               ),
             );
 
@@ -1649,11 +1643,11 @@ describe("Authorisation Module", () => {
             vpPayload.holder = vpSigner.did;
 
             mockServer.use(
-              rest.get(
+              http.get(
                 `${domain}/did-registry/v5/identifiers/${encodeDid(
                   vpSigner.did,
                 )}`,
-                (_req, res, ctx) => res(ctx.status(404), ctx.text("Not found")),
+                () => HttpResponse.text("Not found", { status: 404 }),
               ),
             );
 
@@ -1881,18 +1875,16 @@ describe("Authorisation Module", () => {
       });
 
       mockServer.use(
-        rest.get(
-          `${domain}/trusted-apps-registry/v4/apps/${apiName}`,
-          (_req, res, ctx) =>
-            res(
-              ctx.status(404),
-              ctx.json({
-                title: "Not Found",
-                status: 404,
-                detail: "App not found",
-                type: "about:blank",
-              }),
-            ),
+        http.get(`${domain}/trusted-apps-registry/v4/apps/${apiName}`, () =>
+          HttpResponse.json(
+            {
+              title: "Not Found",
+              status: 404,
+              detail: "App not found",
+              type: "about:blank",
+            },
+            { status: 404 },
+          ),
         ),
       );
 
@@ -1927,25 +1919,20 @@ describe("Authorisation Module", () => {
       });
 
       mockServer.use(
-        rest.get(
-          `${domain}/trusted-apps-registry/v4/apps/${apiName}`,
-          (_req, res, ctx) =>
-            res(
-              ctx.json({
-                name: trustedApp.name,
-                publicKeys: [trustedApp.publicKeyPemBase64],
-                revocation: null,
-              }),
-            ),
+        http.get(`${domain}/trusted-apps-registry/v4/apps/${apiName}`, () =>
+          HttpResponse.json({
+            name: trustedApp.name,
+            publicKeys: [trustedApp.publicKeyPemBase64],
+            revocation: null,
+          }),
         ),
-        rest.get(
-          `${domain}/trusted-apps-registry/v4/apps/storage-api`,
-          (_req, res, ctx) => res(ctx.json({})),
+        http.get(`${domain}/trusted-apps-registry/v4/apps/storage-api`, () =>
+          HttpResponse.json({}),
         ),
-        rest.get(
+        http.get(
           `${domain}/trusted-apps-registry/v4/apps/storage-api/authorizations`,
-          (req, res, ctx) => {
-            const { searchParams } = req.url;
+          (info) => {
+            const { searchParams } = new URL(info.request.url);
 
             const requesterApplicationName = searchParams.get(
               "requesterApplicationName",
@@ -1953,59 +1940,53 @@ describe("Authorisation Module", () => {
             const pageAfter = searchParams.get("page[after]");
 
             if (requesterApplicationName !== apiName || pageAfter !== "1") {
-              return res(
-                ctx.json({
-                  self: "",
-                  items: [],
-                  total: 0,
-                  pageSize: 10,
-                }),
-              );
+              return HttpResponse.json({
+                self: "",
+                items: [] as unknown[],
+                total: 0,
+                pageSize: 10,
+              });
             }
 
-            return res(
-              ctx.json({
-                self: "",
-                items: [
-                  {
-                    authorizationId:
-                      "0x51dd74adb8b781ade4ed115b7015b28979c66d4a0d4020b6c30b8f4a15dbd6f5",
-                    requesterApplicationName: apiName,
-                    href: `${domain}/trusted-apps-registry/v4/apps/storage-api/authorizations/0x51dd74adb8b781ade4ed115b7015b28979c66d4a0d4020b6c30b8f4a15dbd6f5`,
-                  },
-                ],
-                total: 1,
-                pageSize: 10,
-                links: {
-                  last: `${domain}/trusted-apps-registry/v4/apps/storage-api/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${trustedApp.name}`,
+            return HttpResponse.json({
+              self: "",
+              items: [
+                {
+                  authorizationId:
+                    "0x51dd74adb8b781ade4ed115b7015b28979c66d4a0d4020b6c30b8f4a15dbd6f5",
+                  requesterApplicationName: apiName,
+                  href: `${domain}/trusted-apps-registry/v4/apps/storage-api/authorizations/0x51dd74adb8b781ade4ed115b7015b28979c66d4a0d4020b6c30b8f4a15dbd6f5`,
                 },
-              }),
-            );
+              ],
+              total: 1,
+              pageSize: 10,
+              links: {
+                last: `${domain}/trusted-apps-registry/v4/apps/storage-api/authorizations?page[after]=1&page[size]=10&requesterApplicationName=${trustedApp.name}`,
+              },
+            });
           },
         ),
-        rest.get(
+        http.get(
           `${domain}/trusted-apps-registry/v4/apps/storage-api/authorizations/0x51dd74adb8b781ade4ed115b7015b28979c66d4a0d4020b6c30b8f4a15dbd6f5`,
-          (_req, res, ctx) =>
-            res(
-              ctx.json({
-                authorizationId:
-                  "0x51dd74adb8b781ade4ed115b7015b28979c66d4a0d4020b6c30b8f4a15dbd6f5",
-                resourceApplicationId: "0x",
-                requesterApplicationId: "0x",
-                resourceApplicationName: "storage-api",
-                requesterApplicationName: trustedApp.name,
-                iss: "did:ebsi:iss",
-                permissions: {
-                  create: "true",
-                  read: "true",
-                  update: "true",
-                  delete: "true",
-                },
-                status: "active",
-                notBefore: Math.floor(Date.now()) - 100000,
-                notAfter: Math.floor(Date.now()) + 100000,
-              }),
-            ),
+          () =>
+            HttpResponse.json({
+              authorizationId:
+                "0x51dd74adb8b781ade4ed115b7015b28979c66d4a0d4020b6c30b8f4a15dbd6f5",
+              resourceApplicationId: "0x",
+              requesterApplicationId: "0x",
+              resourceApplicationName: "storage-api",
+              requesterApplicationName: trustedApp.name,
+              iss: "did:ebsi:iss",
+              permissions: {
+                create: "true",
+                read: "true",
+                update: "true",
+                delete: "true",
+              },
+              status: "active",
+              notBefore: Math.floor(Date.now()) - 100000,
+              notAfter: Math.floor(Date.now()) + 100000,
+            }),
         ),
       );
 
@@ -2233,9 +2214,9 @@ describe("Authorisation Module", () => {
         );
 
         mockServer.use(
-          rest.get(
+          http.get(
             `${domain}/did-registry/v5/identifiers/${encodeDid(client.did)}`,
-            (_req, res, ctx) => res(ctx.json(client.didDocument)),
+            () => HttpResponse.json(client.didDocument),
           ),
         );
 
@@ -2287,17 +2268,17 @@ describe("Authorisation Module", () => {
 
         // Error from DID Registry API
         mockServer.use(
-          rest.get(
+          http.get(
             `${domain}/did-registry/v5/identifiers/${encodeDid(client.did)}`,
-            (_req, res, ctx) =>
-              res(
-                ctx.status(404),
-                ctx.json({
+            () =>
+              HttpResponse.json(
+                {
                   title: "Not Found",
                   status: 404,
                   detail: "not found",
                   type: "about:blank",
-                }),
+                },
+                { status: 404 },
               ),
           ),
         );
@@ -2350,16 +2331,16 @@ describe("Authorisation Module", () => {
 
         // Error from DID Registry API
         mockServer.use(
-          rest.get(
+          http.get(
             `${domain}/did-registry/v5/identifiers/${encodeDid(client.did)}`,
-            (_req, res, ctx) =>
-              res(
-                ctx.status(500),
-                ctx.json({
+            () =>
+              HttpResponse.json(
+                {
                   title: "Internal Server Error",
                   status: 500,
                   type: "about:blank",
-                }),
+                },
+                { status: 500 },
               ),
           ),
         );
@@ -2429,9 +2410,9 @@ describe("Authorisation Module", () => {
         );
 
         mockServer.use(
-          rest.get(
+          http.get(
             `${domain}/did-registry/v5/identifiers/${encodeDid(client.did)}`,
-            (_req, res, ctx) => res(ctx.json(client.didDocument)),
+            () => HttpResponse.json(client.didDocument),
           ),
         );
 
@@ -2566,15 +2547,15 @@ describe("Authorisation Module", () => {
     }
 
     mockServer.use(
-      rest.get(
+      http.get(
         `${domain}/did-registry/v5/identifiers/${encodeDid(vpSigner.did)}`,
-        (_req, res, ctx) => res(ctx.json(vpSigner.didDocument)),
+        () => HttpResponse.json(vpSigner.didDocument),
       ),
-      rest.get(
+      http.get(
         `${domain}/trusted-issuers-registry/v5/issuers/${encodeDid(
           vpSigner.did,
         )}/attributes`,
-        (_req, res, ctx) => res(ctx.status(404), ctx.text("Not found")),
+        () => HttpResponse.text("Not found", { status: 404 }),
       ),
     );
 

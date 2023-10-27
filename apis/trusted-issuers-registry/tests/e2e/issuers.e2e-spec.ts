@@ -2,7 +2,7 @@ import { describe, beforeAll, afterEach, afterAll, it, expect } from "vitest";
 import request from "supertest";
 import crypto from "node:crypto";
 import { ethers } from "ethers";
-import { rest } from "msw";
+import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { Test, type TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
@@ -976,8 +976,8 @@ describe("Issuers (e2e)", () => {
           await createStatusList2021CredentialJwt(issuer, proxy, domain);
 
         mockServer.use(
-          rest.get(`${proxy.prefix}${path}`, (_req, res, ctx) =>
-            res(ctx.json(statusList2021CredentialJwt)),
+          http.get(`${proxy.prefix}${path}`, () =>
+            HttpResponse.json(statusList2021CredentialJwt),
           ),
         );
 
@@ -994,8 +994,9 @@ describe("Issuers (e2e)", () => {
 
         // Mock issuer's endpoint response
         mockServer.use(
-          rest.get(`${proxy.prefix}${path}`, (_req, res, ctx) =>
-            res(ctx.status(500)),
+          http.get(
+            `${proxy.prefix}${path}`,
+            () => new HttpResponse(null, { status: 500 }),
           ),
         );
 
@@ -1017,8 +1018,8 @@ describe("Issuers (e2e)", () => {
 
         // Mock issuer's endpoint response
         mockServer.use(
-          rest.get(`${proxy.prefix}${path}`, (_req, res, ctx) =>
-            res(ctx.text("invalid jwt")),
+          http.get(`${proxy.prefix}${path}`, () =>
+            HttpResponse.text("invalid jwt"),
           ),
         );
 
@@ -1145,13 +1146,13 @@ describe("Issuers (e2e)", () => {
             );
 
           mockServer.use(
-            rest.get(
+            http.get(
               `${newIssuer1.proxy.rawProxyData.prefix}${newIssuer1.proxy.rawProxyData.testSuffix}`,
-              (_req, res, ctx) => res(ctx.json(statusList2021CredentialJwt)),
+              () => HttpResponse.json(statusList2021CredentialJwt),
             ),
-            rest.get(
+            http.get(
               `${newIssuer2.proxy.rawProxyData.prefix}${newIssuer2.proxy.rawProxyData.testSuffix}`,
-              (_req, res, ctx) => res(ctx.json(statusList2021CredentialJwt)),
+              () => HttpResponse.json(statusList2021CredentialJwt),
             ),
           );
         });

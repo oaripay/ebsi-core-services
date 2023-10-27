@@ -17,7 +17,7 @@ import {
 } from "@nestjs/platform-fastify";
 import { HttpService } from "@nestjs/axios";
 import { of } from "rxjs";
-import { rest } from "msw";
+import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import type { JWTVerifyResult } from "jose";
 import { AppModule } from "../app.module.js";
@@ -52,9 +52,9 @@ describe("Logging interceptor", () => {
     mockServer.listen({
       onUnhandledRequest: ({ method, url }) => {
         // Bypass local requests
-        if (url.hostname === "127.0.0.1") return;
+        if (new URL(url).hostname === "127.0.0.1") return;
 
-        throw new Error(`Unhandled ${method} request to ${url.href}`);
+        throw new Error(`Unhandled ${method} request to ${url}`);
       },
     });
 
@@ -75,13 +75,12 @@ describe("Logging interceptor", () => {
 
     // Mock dependencies
     mockServer.use(
-      rest.get(
-        `${configService.get<string>("ledgerApiUrl")}/health`,
-        (_req, res, ctx) => res(ctx.json({})),
+      http.get(`${configService.get<string>("ledgerApiUrl")}/health`, () =>
+        HttpResponse.json({}),
       ),
-      rest.get(
+      http.get(
         `${configService.get<string>("authorisationApiUrl")}/health`,
-        (_req, res, ctx) => res(ctx.json({})),
+        () => HttpResponse.json({}),
       ),
     );
 

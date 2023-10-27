@@ -2,7 +2,7 @@ import { randomBytes, randomUUID } from "node:crypto";
 import { describe, beforeAll, afterAll, it, expect, beforeEach } from "vitest";
 import request from "supertest";
 import { ethers } from "ethers";
-import { rest } from "msw";
+import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { Test, type TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
@@ -882,9 +882,9 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
             );
 
           mockServer.use(
-            rest.get(
+            http.get(
               `${newIssuer1.proxy.obj.prefix}${newIssuer1.proxy.obj.testSuffix}`,
-              (_req, res, ctx) => res(ctx.json(statusList2021CredentialJwt)),
+              () => HttpResponse.json(statusList2021CredentialJwt),
             ),
           );
         });

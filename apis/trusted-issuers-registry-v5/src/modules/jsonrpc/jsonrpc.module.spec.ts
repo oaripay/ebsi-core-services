@@ -30,7 +30,7 @@ import {
 } from "jose";
 import type { GenerateKeyPairResult } from "jose";
 import { useContainer } from "class-validator";
-import { rest } from "msw";
+import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 // eslint-disable-next-line import/extensions
 import * as StatusList2021CredentialHelpers from "@ebsiint-api/shared/dist/utils/isStatusList2021Credential.js";
@@ -140,9 +140,9 @@ describe("JsonRpc Module", () => {
     mockServer.listen({
       onUnhandledRequest: ({ method, url }) => {
         // Bypass local requests
-        if (url.hostname === "127.0.0.1") return;
+        if (new URL(url).hostname === "127.0.0.1") return;
 
-        throw new Error(`Unhandled ${method} request to ${url.href}`);
+        throw new Error(`Unhandled ${method} request to ${url}`);
       },
     });
 
@@ -210,18 +210,14 @@ describe("JsonRpc Module", () => {
 
     mockServer.use(
       // Mock Auth API /.well-known/openid-configuration endpoint
-      rest.get(
-        `${authorisationApiUrl}/.well-known/openid-configuration`,
-        (_req, res, ctx) =>
-          res(ctx.json({ jwks_uri: `${authorisationApiUrl}/jwks` })),
+      http.get(`${authorisationApiUrl}/.well-known/openid-configuration`, () =>
+        HttpResponse.json({ jwks_uri: `${authorisationApiUrl}/jwks` }),
       ),
       // Mock Auth API /jwks endpoint
-      rest.get(`${authorisationApiUrl}/jwks`, (_req, res, ctx) =>
-        res(
-          ctx.json({
-            keys: [{ ...authApiPublicKeyJwk, kid: authApiKid }],
-          }),
-        ),
+      http.get(`${authorisationApiUrl}/jwks`, () =>
+        HttpResponse.json({
+          keys: [{ ...authApiPublicKeyJwk, kid: authApiKid }],
+        }),
       ),
     );
 
@@ -280,14 +276,13 @@ describe("JsonRpc Module", () => {
 
     mockServer.use(
       // Mock DIDR API /identifiers/${issuer.did}
-      rest.get(
-        `${didRegistryApiUrl}/identifiers/${issuer.did}`,
-        (_req, res, ctx) => res(ctx.json(issuer1DidDocument)),
+      http.get(`${didRegistryApiUrl}/identifiers/${issuer.did}`, () =>
+        HttpResponse.json(issuer1DidDocument),
       ),
       // Make test status list JWT available
-      rest.get(
+      http.get(
         `${issuers[0]!.proxy.obj.prefix}${issuers[0]!.proxy.obj.testSuffix}`,
-        (_req, res, ctx) => res(ctx.json(issuerV1StatusList2021CredentialJwt)),
+        () => HttpResponse.json(issuerV1StatusList2021CredentialJwt),
       ),
     );
   });

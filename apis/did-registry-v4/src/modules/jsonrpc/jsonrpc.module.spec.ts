@@ -26,7 +26,7 @@ import {
   exportJWK,
 } from "jose";
 import type { GenerateKeyPairResult, JWK } from "jose";
-import { rest } from "msw";
+import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { DidRegistry, DidRegistry__factory } from "@ebsiint-sc/did-registry-v2";
 import { JsonRpcModule } from "./jsonrpc.module.js";
@@ -100,9 +100,9 @@ describe(
       mockServer.listen({
         onUnhandledRequest: ({ method, url }) => {
           // Bypass local requests
-          if (url.hostname === "127.0.0.1") return;
+          if (new URL(url).hostname === "127.0.0.1") return;
 
-          throw new Error(`Unhandled ${method} request to ${url.href}`);
+          throw new Error(`Unhandled ${method} request to ${url}`);
         },
       });
 
@@ -232,14 +232,13 @@ describe(
 
       mockServer.use(
         // Mock Auth API v3 /.well-known/openid-configuration endpoint
-        rest.get(
+        http.get(
           `${authorisationApiUrl}/.well-known/openid-configuration`,
-          (_req, res, ctx) =>
-            res(ctx.json({ jwks_uri: `${authorisationApiUrl}/jwks` })),
+          () => HttpResponse.json({ jwks_uri: `${authorisationApiUrl}/jwks` }),
         ),
         // Mock Auth API v3 /jwks endpoint
-        rest.get(`${authorisationApiUrl}/jwks`, (_req, res, ctx) =>
-          res(ctx.json({ keys: [{ ...publicKeyJwk, kid: authApiKid }] })),
+        http.get(`${authorisationApiUrl}/jwks`, () =>
+          HttpResponse.json({ keys: [{ ...publicKeyJwk, kid: authApiKid }] }),
         ),
       );
     });
@@ -1239,7 +1238,7 @@ describe(
                 isSecp256k1: false,
               } as AddVerificationMethodParam,
               expectedErrorMessage:
-                "Validation error: Invalid public key. Unexpected token ) in JSON at position 3",
+                "Validation error: Invalid public key. Unexpected non-whitespace character after JSON at position 3",
               accessToken: newUserDidrWriteAccessToken,
             });
 

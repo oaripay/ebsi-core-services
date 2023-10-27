@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnApplicationBootstrap } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import axios, { AxiosInstance } from "axios";
+import axios, { type AxiosInstance } from "axios";
 import axiosRetry from "axios-retry";
 import type { ApiConfig } from "./config/configuration.js";
 
@@ -29,6 +29,9 @@ export class AppService implements OnApplicationBootstrap {
     const axiosRetryDelay = configService.get<number>("axiosRetryDelay");
 
     this.axiosClient = axios.create();
+
+    // Ignore axios-retry error due to poorly exported types
+    // @ts-expect-error "Argument of type 'AxiosInstance' is not assignable to parameter of type 'AxiosStatic | AxiosInstance'."
     axiosRetry(this.axiosClient, {
       retries: 30, // Retry 30 times (with a delay of 10s -> ~5 minutes)
       retryDelay: () => axiosRetryDelay, // Default: every 10 seconds

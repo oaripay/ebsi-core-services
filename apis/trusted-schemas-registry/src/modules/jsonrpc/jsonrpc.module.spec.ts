@@ -21,7 +21,7 @@ import {
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { createJWT, ES256KSigner } from "did-jwt";
-import { rest } from "msw";
+import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import type { JWTVerifyResult } from "jose";
 import { SchemaSCRegistry } from "@ebsiint-sc/trusted-schemas-registry";
@@ -166,17 +166,15 @@ describe("JsonRpc Module", () => {
     mockServer.listen({
       onUnhandledRequest: ({ method, url }) => {
         // Bypass local requests
-        if (url.hostname === "127.0.0.1") return;
+        if (new URL(url).hostname === "127.0.0.1") return;
 
-        throw new Error(`Unhandled ${method} request to ${url.href}`);
+        throw new Error(`Unhandled ${method} request to ${url}`);
       },
     });
 
     // Compute IDs. We need to mock the request GET $referencedSchemaUrl because rawSchema2 depends on it
     mockServer.use(
-      rest.get(referencedSchemaUrl, (_req, res, ctx) =>
-        res(ctx.json(rawSchema)),
-      ),
+      http.get(referencedSchemaUrl, () => HttpResponse.json(rawSchema)),
     );
 
     schemaId = `0x${(await computeId(rawSchema)).toString("hex")}`;
@@ -260,9 +258,7 @@ describe("JsonRpc Module", () => {
 
     // Mock $ref response
     mockServer.use(
-      rest.get(referencedSchemaUrl, (_req, res, ctx) =>
-        res(ctx.json(rawSchema)),
-      ),
+      http.get(referencedSchemaUrl, () => HttpResponse.json(rawSchema)),
     );
   });
 
@@ -523,8 +519,8 @@ describe("JsonRpc Module", () => {
     // Mock $ref response - 404
     mockServer.resetHandlers();
     mockServer.use(
-      rest.get(referencedSchemaUrl, (_req, res, ctx) =>
-        res(ctx.status(404), ctx.text("Not Found")),
+      http.get(referencedSchemaUrl, () =>
+        HttpResponse.text("Not Found", { status: 404 }),
       ),
     );
 

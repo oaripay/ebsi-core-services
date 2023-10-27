@@ -9,7 +9,7 @@ import {
 } from "vitest";
 import type { LoggerService } from "@nestjs/common";
 import axios from "axios";
-import { rest } from "msw";
+import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { setupInterceptors } from "./axiosInterceptors.js";
 
@@ -22,7 +22,7 @@ describe("setupInterceptors", () => {
     // Intercept network requests
     mockServer.listen({
       onUnhandledRequest: ({ method, url }) => {
-        throw new Error(`Unhandled ${method} request to ${url.href}`);
+        throw new Error(`Unhandled ${method} request to ${url}`);
       },
     });
   });
@@ -56,13 +56,11 @@ describe("setupInterceptors", () => {
 
     // Set up 2 mocked servers (local, remote)
     mockServer.use(
-      rest.get(
-        "http://api.local/trusted-apps-registry/v3/apps",
-        (_req, res, ctx) => res(ctx.text("local")),
+      http.get("http://api.local/trusted-apps-registry/v3/apps", () =>
+        HttpResponse.text("local"),
       ),
-      rest.get(
-        "https://api-test.ebsi.eu/trusted-apps-registry/v3/apps",
-        (_req, res, ctx) => res(ctx.text("remote")),
+      http.get("https://api-test.ebsi.eu/trusted-apps-registry/v3/apps", () =>
+        HttpResponse.text("remote"),
       ),
     );
 
@@ -82,13 +80,12 @@ describe("setupInterceptors", () => {
 
     // Set up 2 mocked servers (local, remote)
     mockServer.use(
-      rest.get(
+      http.get(
         "http://api.local/trusted-apps-registry/v3/apps",
-        (_req, res, ctx) => res(ctx.status(401)),
+        () => new HttpResponse(null, { status: 401 }),
       ),
-      rest.get(
-        "https://api-test.ebsi.eu/trusted-apps-registry/v3/apps",
-        (_req, res, ctx) => res(ctx.text("remote")),
+      http.get("https://api-test.ebsi.eu/trusted-apps-registry/v3/apps", () =>
+        HttpResponse.text("remote"),
       ),
     );
 
@@ -114,13 +111,12 @@ describe("setupInterceptors", () => {
 
     // Set up 2 mocked servers (local, remote)
     mockServer.use(
-      rest.get(
+      http.get(
         "http://api.local/trusted-apps-registry/v3/apps",
-        (_req, res, ctx) => res(ctx.status(500)),
+        () => new HttpResponse(null, { status: 500 }),
       ),
-      rest.get(
-        "https://api-test.ebsi.eu/trusted-apps-registry/v3/apps",
-        (_req, res, ctx) => res(ctx.text("remote")),
+      http.get("https://api-test.ebsi.eu/trusted-apps-registry/v3/apps", () =>
+        HttpResponse.text("remote"),
       ),
     );
 
@@ -166,13 +162,11 @@ describe("setupInterceptors", () => {
 
     // Set up 2 mocked servers (local, remote)
     mockServer.use(
-      rest.get(
-        "http://api.local/trusted-apps-registry/v3/apps",
-        (_req, res, ctx) => res(ctx.status(404), ctx.text("local")),
+      http.get("http://api.local/trusted-apps-registry/v3/apps", () =>
+        HttpResponse.text("local", { status: 404 }),
       ),
-      rest.get(
-        "https://api-test.ebsi.eu/trusted-apps-registry/v3/apps",
-        (_req, res, ctx) => res(ctx.text("remote")),
+      http.get("https://api-test.ebsi.eu/trusted-apps-registry/v3/apps", () =>
+        HttpResponse.text("remote"),
       ),
     );
 
@@ -209,20 +203,17 @@ describe("setupInterceptors", () => {
 
     // Set up 2 mocked servers (local, remote)
     mockServer.use(
-      rest.get(
-        "http://api.local/trusted-apps-registry/v3/apps",
-        (_req, res, ctx) =>
-          res(
-            ctx.status(404),
-            ctx.json({
-              title: "Not Found",
-              status: 404,
-            }),
-          ),
+      http.get("http://api.local/trusted-apps-registry/v3/apps", () =>
+        HttpResponse.json(
+          {
+            title: "Not Found",
+            status: 404,
+          },
+          { status: 404 },
+        ),
       ),
-      rest.get(
-        "https://api-test.ebsi.eu/trusted-apps-registry/v3/apps",
-        (_req, res, ctx) => res(ctx.text("remote")),
+      http.get("https://api-test.ebsi.eu/trusted-apps-registry/v3/apps", () =>
+        HttpResponse.text("remote"),
       ),
     );
 

@@ -703,7 +703,7 @@ describe(
         expect(response.body).toStrictEqual({
           title: "Bad Request",
           status: 400,
-          detail: `Identifier ${user.did} contains an invalid base document. Unexpected token b in JSON at position 0`,
+          detail: `Identifier ${user.did} contains an invalid base document. Unexpected token 'b', "bad base document" is not valid JSON`,
           type: "about:blank",
         });
         expect(response.status).toBe(400);

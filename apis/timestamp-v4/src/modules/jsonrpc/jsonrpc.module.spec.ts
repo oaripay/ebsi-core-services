@@ -17,7 +17,7 @@ import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { rest } from "msw";
+import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp-v2";
 import type { TransactionRequest } from "@ethersproject/abstract-provider";
@@ -106,9 +106,9 @@ describe("JsonRpc Module", () => {
     mockServer.listen({
       onUnhandledRequest: ({ method, url }) => {
         // Bypass local requests
-        if (url.hostname === "127.0.0.1") return;
+        if (new URL(url).hostname === "127.0.0.1") return;
 
-        throw new Error(`Unhandled ${method} request to ${url.href}`);
+        throw new Error(`Unhandled ${method} request to ${url}`);
       },
     });
 
@@ -217,14 +217,12 @@ describe("JsonRpc Module", () => {
 
     mockServer.use(
       // Mock Auth API /.well-known/openid-configuration endpoint
-      rest.get(
-        `${authorisationApiUrl}/.well-known/openid-configuration`,
-        (_req, res, ctx) =>
-          res(ctx.json({ jwks_uri: `${authorisationApiUrl}/jwks` })),
+      http.get(`${authorisationApiUrl}/.well-known/openid-configuration`, () =>
+        HttpResponse.json({ jwks_uri: `${authorisationApiUrl}/jwks` }),
       ),
       // Mock Auth API /jwks endpoint
-      rest.get(`${authorisationApiUrl}/jwks`, (_req, res, ctx) =>
-        res(ctx.json({ keys: [{ ...publicKeyJwk, kid: authApiKid }] })),
+      http.get(`${authorisationApiUrl}/jwks`, () =>
+        HttpResponse.json({ keys: [{ ...publicKeyJwk, kid: authApiKid }] }),
       ),
     );
 
@@ -232,11 +230,13 @@ describe("JsonRpc Module", () => {
     const didRegistryApiUrl = configService.get<string>("didRegistryApiUrl");
     mockServer.use(
       // Mock DIDR API /identifiers/:did/actions endpoint
-      rest.post(
+      http.post(
         `${didRegistryApiUrl}/identifiers/:did/actions`,
-        async (req, res, ctx) => {
-          const { did } = req.params;
-          const requestBody: { params: string[] } = await req.json();
+        async (info) => {
+          const { did } = info.params;
+          const requestBody = (await info.request.json()) as {
+            params: string[];
+          };
           const address = requestBody.params[0]!;
 
           const result =
@@ -247,7 +247,7 @@ describe("JsonRpc Module", () => {
               testUser.wallet.address.toLocaleLowerCase() ===
                 address.toLocaleLowerCase());
 
-          return res(ctx.json({ jsonrpc: "2.0", result }));
+          return HttpResponse.json({ jsonrpc: "2.0", result });
         },
       ),
     );
