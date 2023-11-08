@@ -79,10 +79,9 @@ describe("App Module", () => {
 
       const domain = configService.get<string>("domain");
       const localOrigin = configService.get<string>("localOrigin") || domain;
-      const url = `${configService.get<string>("ledgerApiUrl")}/health`.replace(
-        domain,
-        localOrigin,
-      );
+      const url = configService
+        .get<string>("ledgerApiUrl")
+        .replace(domain, localOrigin);
 
       await expect(() => app.init()).rejects.toThrow(
         `Unable to get ${url}, shutting down...`,
@@ -117,10 +116,9 @@ describe("App Module", () => {
 
       const domain = configService.get<string>("domain");
       const localOrigin = configService.get<string>("localOrigin") || domain;
-      const url = `${configService.get<string>("ledgerApiUrl")}/health`.replace(
-        domain,
-        localOrigin,
-      );
+      const url = configService
+        .get<string>("ledgerApiUrl")
+        .replace(domain, localOrigin);
 
       mockServer.use(
         http.get(url, () => HttpResponse.text("Not Found", { status: 404 })),
@@ -163,12 +161,12 @@ describe("App Module", () => {
       const domain = configService.get<string>("domain");
       const localOrigin = configService.get<string>("localOrigin") || domain;
 
-      const ledgerApiUrl = `${configService.get<string>(
-        "ledgerApiUrl",
-      )}/health`.replace(domain, localOrigin);
+      const ledgerApiUrl = configService
+        .get<string>("ledgerApiUrl")
+        .replace(domain, localOrigin);
       const authorisationApiUrl = `${configService.get<string>(
         "authorisationApiUrl",
-      )}/health`.replace(domain, localOrigin);
+      )}`.replace(domain, localOrigin);
 
       let reqCounter = 0;
       mockServer.use(
@@ -224,12 +222,12 @@ describe("App Module", () => {
       const localOrigin = configService.get<string>("localOrigin") || domain;
 
       // Mock dependencies
-      const ledgerApiUrl = `${configService.get<string>(
-        "ledgerApiUrl",
-      )}/health`.replace(domain, localOrigin);
+      const ledgerApiUrl = configService
+        .get<string>("ledgerApiUrl")
+        .replace(domain, localOrigin);
       const authorisationApiUrl = `${configService.get<string>(
         "authorisationApiUrl",
-      )}/health`.replace(domain, localOrigin);
+      )}`.replace(domain, localOrigin);
 
       mockServer.use(
         http.get(ledgerApiUrl, () => HttpResponse.json({})),

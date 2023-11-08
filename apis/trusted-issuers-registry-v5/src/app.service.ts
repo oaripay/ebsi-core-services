@@ -56,10 +56,10 @@ export class AppService implements OnApplicationBootstrap {
       : serviceUrl;
 
     try {
-      await this.axiosClient.get(`${url}/health`);
+      await this.axiosClient.get(url);
     } catch {
       // If after all the attempts the URL is still not reachable, throw an error
-      throw new Error(`Unable to get ${url}/health, shutting down...`);
+      throw new Error(`Unable to get ${url}, shutting down...`);
     }
   }
 
