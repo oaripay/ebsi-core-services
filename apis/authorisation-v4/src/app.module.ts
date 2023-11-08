@@ -1,5 +1,4 @@
 import { Module } from "@nestjs/common";
-import { TerminusModule } from "@nestjs/terminus";
 import { ConfigService } from "@nestjs/config";
 import { APP_INTERCEPTOR } from "@nestjs/core";
 import { ApiConfigModule } from "./config/configuration.js";
@@ -8,16 +7,11 @@ import { HealthModule } from "./modules/health/health.module.js";
 import { LoggingInterceptor } from "./interceptors/logging.interceptor.js";
 import { VersionInterceptor } from "./interceptors/version.interceptor.js";
 import { OpenApiModule } from "./modules/openapi/openapi.module.js";
+import { AppController } from "./app.controller.js";
 
 @Module({
-  imports: [
-    ApiConfigModule,
-    TerminusModule,
-    AuthorisationModule,
-    HealthModule,
-    OpenApiModule,
-  ],
-  controllers: [],
+  imports: [ApiConfigModule, AuthorisationModule, HealthModule, OpenApiModule],
+  controllers: [AppController],
   providers: [
     ConfigService,
     {

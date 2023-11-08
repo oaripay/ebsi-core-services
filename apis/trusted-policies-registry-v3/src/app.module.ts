@@ -9,6 +9,7 @@ import { PoliciesModule } from "./modules/policies/policies.module.js";
 import { UsersModule } from "./modules/users/users.module.js";
 import { OpenApiModule } from "./modules/openapi/openapi.module.js";
 import { AppService } from "./app.service.js";
+import { AppController } from "./app.controller.js";
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { AppService } from "./app.service.js";
     UsersModule,
     OpenApiModule,
   ],
+  controllers: [AppController],
   providers: [
     {
       provide: APP_INTERCEPTOR,

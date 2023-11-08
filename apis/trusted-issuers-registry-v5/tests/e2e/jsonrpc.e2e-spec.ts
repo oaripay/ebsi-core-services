@@ -110,7 +110,7 @@ async function getEbsiIssuer(privateKey: string, did: string, kid?: string) {
   return issuer;
 }
 
-describeWriteOps()("JSON-RPC (e2e)", () => {
+describeWriteOps()("TIR API v5 - JSON-RPC (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let configService: ConfigService<ApiConfig, true>;
@@ -245,7 +245,7 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
     const testIssuerWithProxyKid = configService.get<string>(
       "testIssuerWithProxyKid",
     );
-    const [testIssuerWithProxyDid] = testIssuerWithProxyKid.split("#");
+    const testIssuerWithProxyDid = testIssuerWithProxyKid.split("#")[0]!;
 
     const testIssuerWithProxyPrivateKey = configService.get<string>(
       "testIssuerWithProxyPrivateKey",
@@ -279,7 +279,7 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
 
     // Import "admin" issuer (TI with policies to call the SC methods)
     const adminKid = configService.get<string>("testAdminKid");
-    const adminDid = adminKid.split("#")[0];
+    const adminDid = adminKid.split("#")[0]!;
     const adminPrivateKeyHex = configService.get<string>("testAdminPrivateKey");
     const adminWallet = new ethers.Wallet(prefixWith0x(adminPrivateKeyHex));
     const adminIssuerInfo = await getEbsiIssuer(
@@ -303,6 +303,10 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
       console.error(e);
       throw e;
     }
+  });
+
+  afterAll(async () => {
+    await app.close();
   });
 
   describe.each([
@@ -513,7 +517,7 @@ describeWriteOps()("JSON-RPC (e2e)", () => {
         const attributesResponse: SupertestAttributesResponse = await request(
           server,
         ).get(`/issuers/${sender.info.did}/attributes`);
-        senderFirstAttributeId = attributesResponse.body.items[0].id;
+        senderFirstAttributeId = attributesResponse.body.items[0]!.id;
       }
     });
 

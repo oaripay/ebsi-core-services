@@ -1,4 +1,4 @@
-import { describe, beforeAll, it, expect } from "vitest";
+import { describe, beforeAll, it, expect, afterAll } from "vitest";
 import crypto from "node:crypto";
 import { ethers } from "ethers";
 import request from "supertest";
@@ -73,7 +73,7 @@ const multihashToNodeHashAlg = {
   "sha3-512": "sha3-512",
 } as const;
 
-describe("DID Registry (e2e)", () => {
+describe("DID Registry API v3 (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let configService: ConfigService<ApiConfig, true>;
@@ -253,7 +253,7 @@ describe("DID Registry (e2e)", () => {
         href: string;
       }[];
     };
-    [lastIdentifier] = identifiers.slice(-1);
+    lastIdentifier = identifiers.slice(-1)[0]!;
 
     // Get last identifier's last version
     const getAllVersions = await request(server).get(
@@ -265,7 +265,7 @@ describe("DID Registry (e2e)", () => {
         href: string;
       }[];
     };
-    [lastVersion] = versions.slice(-1);
+    lastVersion = versions.slice(-1)[0]!;
 
     // Get last identifier's last version's last metadata
     const getAllMetadata = await request(server).get(
@@ -277,7 +277,11 @@ describe("DID Registry (e2e)", () => {
         href: string;
       }[];
     };
-    [lastMetadata] = metadata.slice(-1);
+    lastMetadata = metadata.slice(-1)[0]!;
+  });
+
+  afterAll(async () => {
+    await app.close();
   });
 
   describeWriteOps().each([
@@ -369,7 +373,7 @@ describe("DID Registry (e2e)", () => {
         }
         case "updateDidController": {
           const identifier = `0x${Buffer.from(newUserDid).toString("hex")}`;
-          const controller = controllers[controllers.length - 1];
+          const controller = controllers[controllers.length - 1]!;
           // Sign with the new controller
           signer = controller;
 
@@ -388,7 +392,7 @@ describe("DID Registry (e2e)", () => {
           params = {
             from: signer.address,
             identifier,
-            oldControllerId: controllers[controllers.length - 1].address,
+            oldControllerId: controllers[controllers.length - 1]!.address,
           } as RevokeDidControllerParam;
           break;
         }
@@ -547,7 +551,7 @@ describe("DID Registry (e2e)", () => {
       const response = await request(server).get("/identifiers");
 
       const total =
-        ((response.body as { [x: string]: unknown })?.total as number) ?? 0;
+        ((response.body as { [x: string]: unknown })?.["total"] as number) ?? 0;
 
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(

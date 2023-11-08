@@ -15,14 +15,14 @@ import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { HttpService } from "@nestjs/axios";
 import { ethers } from "ethers";
 import * as didJwt from "did-jwt";
-import { of } from "rxjs";
+import { http, HttpResponse } from "msw";
+import { setupServer } from "msw/node";
 import type { JWTVerifyResult } from "jose";
 import { AppModule } from "../app.module.js";
 import { AllExceptionsFilter } from "../filters/http-exception.filter.js";
-import type { ApiConfig } from "../config/configuration.js";
+import { DEPENDENCIES, type ApiConfig } from "../config/configuration.js";
 
 // Mock access token verification
 vi.mock("@cef-ebsi/siop-auth", async () => {
@@ -47,7 +47,6 @@ vi.mock("did-jwt", async () => {
 
 describe("Logging interceptor", () => {
   let app: NestFastifyApplication;
-  let httpService: HttpService;
   let configService: ConfigService<ApiConfig, true>;
 
   const mockedLogger = {
@@ -56,7 +55,19 @@ describe("Logging interceptor", () => {
     error: vi.fn(),
   };
 
+  const mockServer = setupServer();
+
   beforeAll(async () => {
+    // Intercept network requests
+    mockServer.listen({
+      onUnhandledRequest: ({ method, url }) => {
+        // Bypass local requests
+        if (new URL(url).hostname === "127.0.0.1") return;
+
+        throw new Error(`Unhandled ${method} request to ${url}`);
+      },
+    });
+
     // Mock WebSocketProvider
     vi.spyOn(ethers.providers, "WebSocketProvider").mockImplementation(
       () =>
@@ -81,8 +92,6 @@ describe("Logging interceptor", () => {
 
     await app.init();
     await app.getHttpAdapter().getInstance().ready();
-
-    httpService = await moduleFixture.resolve<HttpService>(HttpService);
   });
 
   afterEach(() => {
@@ -90,6 +99,8 @@ describe("Logging interceptor", () => {
   });
 
   afterAll(async () => {
+    mockServer.close();
+
     await app.close();
   });
 
@@ -97,12 +108,24 @@ describe("Logging interceptor", () => {
     it("should log the request and response", async () => {
       expect.assertions(2);
 
-      vi.spyOn(httpService, "request")
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        .mockImplementation(() => of({}));
+      const dependencies = Object.keys(
+        DEPENDENCIES,
+      ) as (keyof typeof DEPENDENCIES)[];
 
-      await request(app.getHttpServer()).get(`/health`);
+      const localOrigin =
+        configService.get<string>("localOrigin") ||
+        configService.get<string>("domain");
+
+      // All the dependencies return a 200
+      mockServer.use(
+        ...dependencies.map((dependency) =>
+          http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
+            HttpResponse.json({}),
+          ),
+        ),
+      );
+
+      await request(app.getHttpServer()).get("/health");
 
       const calls = mockedLogger.log.mock.calls.length;
 
@@ -122,22 +145,21 @@ describe("Logging interceptor", () => {
         "LoggingInterceptor",
       );
 
+      // Expect all the dependencies to be up
+      const expectedStatuses = dependencies
+        .map((dependency) => ({
+          [`${dependency}`]: { status: "up" },
+        }))
+        .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
+
       // It should have logged the response
       expect(mockedLogger.log).toHaveBeenNthCalledWith(
         calls,
         {
           body: {
-            details: {
-              "ebsi-apis": {
-                status: "up",
-              },
-            },
+            details: expectedStatuses,
             error: {},
-            info: {
-              "ebsi-apis": {
-                status: "up",
-              },
-            },
+            info: expectedStatuses,
             status: "ok",
           },
           message: "Outgoing response - 200 - GET - /health",

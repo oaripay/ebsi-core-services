@@ -171,26 +171,24 @@ export class LedgerService {
 
   private async connectProvider(token?: string) {
     if (this.domain && this.localOrigin) {
-      try {
-        const localUrl = this.remoteLedgerApi.replace(
-          this.domain,
-          this.localOrigin,
-        );
-        this.logger.debug(
-          `Trying to connect to local Ledger API: ${localUrl} (${
-            token ? "with" : "without"
-          } access token)`,
-        );
-        const provider = this.setupProvider(localUrl, token);
-        await provider.getNetwork();
-        this.logger.debug("Connected to local Ledger API");
-        return provider;
-      } catch (e) {
-        this.logger.debug(
-          `Falling back to remote Ledger API: ${this.remoteLedgerApi}`,
-        );
-        return this.setupProvider(this.remoteLedgerApi, token);
-      }
+      const localUrl = this.remoteLedgerApi.replace(
+        this.domain,
+        this.localOrigin,
+      );
+
+      this.logger.debug(
+        `Trying to connect to local Ledger API: ${localUrl} (${
+          token ? "with" : "without"
+        } access token)`,
+      );
+
+      const provider = this.setupProvider(localUrl, token);
+
+      await provider.getNetwork();
+
+      this.logger.debug("Connected to local Ledger API");
+
+      return provider;
     }
 
     this.logger.debug(`Using remote Ledger API: ${this.remoteLedgerApi}`);

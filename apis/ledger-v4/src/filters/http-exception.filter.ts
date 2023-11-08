@@ -6,6 +6,7 @@ import {
   NotFoundException,
   BadRequestException,
   ForbiddenException,
+  ServiceUnavailableException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
@@ -86,6 +87,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
     if (this.tag) {
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
       response.header("EBSI-Image-Tag", this.tag);
+    }
+
+    // Return ServiceUnavailableException (thrown by HealthCheck module) as it is
+    if (err instanceof ServiceUnavailableException) {
+      return response
+        .code(err.getStatus())
+        .type("application/json")
+        .send(err.getResponse());
     }
 
     const problemError = getProblemDetailsError(err, this.logger);

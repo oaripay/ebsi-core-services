@@ -1,4 +1,4 @@
-import { describe, beforeAll, it, expect } from "vitest";
+import { describe, beforeAll, it, expect, afterAll } from "vitest";
 import crypto from "node:crypto";
 import { ethers } from "ethers";
 import request from "supertest";
@@ -57,7 +57,7 @@ type JsonRpcParams =
   | ActivatePolicyParam
   | DeactivatePolicyParam;
 
-describe("Policies (e2e)", () => {
+describe("TPR API v3 - Policies (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let configService: ConfigService<ApiConfig, true>;
@@ -130,6 +130,10 @@ describe("Policies (e2e)", () => {
       url: string;
       bearerToken: string;
     }>("blockscout");
+  });
+
+  afterAll(async () => {
+    await app.close();
   });
 
   describeWriteOps()("/jsonrpc", () => {

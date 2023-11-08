@@ -6,7 +6,11 @@ import { ApiConfigModule } from "../../config/configuration.js";
 import { HealthController } from "./health.controller.js";
 
 @Module({
-  imports: [ApiConfigModule, TerminusModule, HttpModule],
+  imports: [
+    ApiConfigModule,
+    TerminusModule.forRoot({ logger: false }),
+    HttpModule,
+  ],
   controllers: [HealthController],
   providers: [ConfigService],
 })

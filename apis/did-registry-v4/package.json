@@ -82,7 +82,7 @@
     "@vitest/coverage-v8": "^0.34.6",
     "did-resolver": "^4.1.0",
     "hardhat": "^2.18.3",
-    "msw": "^2.0.1",
+    "msw": "^2.0.2",
     "supertest": "^6.3.3",
     "ts-node": "^10.9.1",
     "typescript": "5.2.2",

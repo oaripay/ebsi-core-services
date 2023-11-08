@@ -1,4 +1,4 @@
-import { describe, beforeAll, it, expect } from "vitest";
+import { describe, beforeAll, it, expect, afterAll } from "vitest";
 import crypto from "node:crypto";
 import { ethers } from "ethers";
 import request from "supertest";
@@ -72,7 +72,7 @@ type TestUser = {
   wallet: ethers.Wallet;
 };
 
-describe("Records (e2e)", () => {
+describe("Timestamp API v4 - Records (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let configService: ConfigService<ApiConfig, true>;
@@ -123,7 +123,7 @@ describe("Records (e2e)", () => {
       }>("testAdmin");
       const adminKid = configTestAdmin.kid;
       const adminPrivateKeyHex = configTestAdmin.privateKey;
-      const adminDid = adminKid.split("#")[0];
+      const adminDid = adminKid.split("#")[0]!;
       const adminWallet = new ethers.Wallet(prefixWith0x(adminPrivateKeyHex));
       const adminIssuerInfo = await getEbsiIssuer(
         adminPrivateKeyHex,
@@ -152,7 +152,7 @@ describe("Records (e2e)", () => {
         privateKey: string;
       }>("testUser");
       const userKid = configTestUser.kid;
-      const userDid = userKid.split("#")[0];
+      const userDid = userKid.split("#")[0]!;
       const userPrivateKeyHex = configTestUser.privateKey;
       const userWallet = new ethers.Wallet(prefixWith0x(userPrivateKeyHex));
       const userInfo = await getEbsiIssuer(userPrivateKeyHex, userDid, userKid);
@@ -210,6 +210,10 @@ describe("Records (e2e)", () => {
       .toString("hex")}`;
 
     ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
+  });
+
+  afterAll(async () => {
+    await app.close();
   });
 
   describe("GET /records", () => {

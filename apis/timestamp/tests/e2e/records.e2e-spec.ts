@@ -1,4 +1,4 @@
-import { describe, beforeAll, it, expect } from "vitest";
+import { describe, beforeAll, it, expect, afterAll } from "vitest";
 import crypto from "node:crypto";
 import { ethers } from "ethers";
 import request from "supertest";
@@ -64,7 +64,7 @@ const multihashToNodeHashAlg = {
   "sha3-512": "sha3-512",
 } as const;
 
-describe("Records (e2e)", () => {
+describe("Timestamp API v3 - Records (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let hashAlgorithmId: number;
@@ -191,6 +191,10 @@ describe("Records (e2e)", () => {
     ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
   });
 
+  afterAll(async () => {
+    await app.close();
+  });
+
   describe("GET /records", () => {
     it("should return a paginated collection of records", async () => {
       expect.assertions(2);
@@ -223,7 +227,7 @@ describe("Records (e2e)", () => {
         respRecords.body as {
           items: RecordLink[];
         }
-      ).items[0];
+      ).items[0]!;
       const response = await request(server).get(`/records/${recordId}`);
 
       expect(response.body).toStrictEqual({

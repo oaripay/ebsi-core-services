@@ -14,7 +14,6 @@ export interface ApiConfig {
   logLevel: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
   ledgerApiUrl: string;
   ledgerApiName: string;
-  externalEbsiApiHealthCheck: string;
   requestTimeout: number;
   axiosRetryDelay: number;
   trustedAppsRegistryApiUrl: string;
@@ -28,10 +27,15 @@ export interface ApiConfig {
   };
 }
 
+const AUTH_API_PATH = "/authorisation/v4";
 const LEDGER_API_PATH = "/ledger/v4";
 const TAR_API_PATH = "/trusted-apps-registry/v4";
-const AUTH_API_PATH = "/authorisation/v4";
-const HEALTH_CHECK_PATH = "/docs/";
+
+export const DEPENDENCIES = {
+  "Authorisation API v4": AUTH_API_PATH,
+  "Ledger API v4": LEDGER_API_PATH,
+  "TAR API v4": TAR_API_PATH,
+} as const;
 
 // Config factory
 // Note that process.env — for which provide typings in src/environment.d.ts —
@@ -51,7 +55,6 @@ export const loadConfig = (): ApiConfig => {
     logLevel: process.env.LOG_LEVEL || "warn",
     ledgerApiUrl: DOMAIN + LEDGER_API_PATH,
     ledgerApiName: process.env.LEDGER_API_NAME || "ledger-api",
-    externalEbsiApiHealthCheck: DOMAIN + HEALTH_CHECK_PATH,
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     axiosRetryDelay: parseInt(process.env.AXIOS_RETRY_DELAY || "10000", 10),
     trustedAppsRegistryApiUrl: DOMAIN + TAR_API_PATH,

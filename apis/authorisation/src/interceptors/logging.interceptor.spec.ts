@@ -1,21 +1,28 @@
-import { vi, describe, beforeAll, afterEach, it, expect } from "vitest";
+import {
+  vi,
+  describe,
+  beforeAll,
+  afterEach,
+  it,
+  expect,
+  afterAll,
+} from "vitest";
 import request from "supertest";
 import { Test, type TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { HttpService } from "@nestjs/axios";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { of } from "rxjs";
+import { http, HttpResponse } from "msw";
+import { setupServer } from "msw/node";
 import { AppModule } from "../app.module.js";
 import { AllExceptionsFilter } from "../filters/http-exception.filter.js";
-import type { ApiConfig } from "../config/configuration.js";
+import { DEPENDENCIES, type ApiConfig } from "../config/configuration.js";
 
 describe("Logging interceptor", () => {
   let app: NestFastifyApplication;
-  let httpService: HttpService;
   let configService: ConfigService<ApiConfig, true>;
 
   const mockedLogger = {
@@ -24,7 +31,19 @@ describe("Logging interceptor", () => {
     error: vi.fn(),
   };
 
+  const mockServer = setupServer();
+
   beforeAll(async () => {
+    // Intercept network requests
+    mockServer.listen({
+      onUnhandledRequest: ({ method, url }) => {
+        // Bypass local requests
+        if (new URL(url).hostname === "127.0.0.1") return;
+
+        throw new Error(`Unhandled ${method} request to ${url}`);
+      },
+    });
+
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
@@ -40,19 +59,24 @@ describe("Logging interceptor", () => {
 
     await app.init();
     await app.getHttpAdapter().getInstance().ready();
-
-    httpService = await moduleFixture.resolve<HttpService>(HttpService);
   });
 
   afterEach(() => {
     vi.clearAllMocks();
+    mockServer.resetHandlers();
+  });
+
+  afterAll(async () => {
+    mockServer.close();
+
+    await app.close();
   });
 
   describe("GET /health", () => {
     it("should NOT log the request and response", async () => {
       expect.assertions(1);
 
-      await request(app.getHttpServer()).get(`/health`);
+      await request(app.getHttpServer()).get("/health");
 
       const calls = mockedLogger.log.mock.calls.length;
       expect(mockedLogger.log).toHaveBeenNthCalledWith(
@@ -65,10 +89,22 @@ describe("Logging interceptor", () => {
     it("should log the request and response", async () => {
       expect.assertions(2);
 
-      vi.spyOn(httpService, "request")
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        .mockImplementation(() => of({}));
+      const dependencies = Object.keys(
+        DEPENDENCIES,
+      ) as (keyof typeof DEPENDENCIES)[];
+
+      const localOrigin =
+        configService.get<string>("localOrigin") ||
+        configService.get<string>("domain");
+
+      // All the dependencies return a 200
+      mockServer.use(
+        ...dependencies.map((dependency) =>
+          http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
+            HttpResponse.json({}),
+          ),
+        ),
+      );
 
       await request(app.getHttpServer())
         .get("/health")
@@ -94,22 +130,21 @@ describe("Logging interceptor", () => {
         "LoggingInterceptor",
       );
 
+      // Expect all the dependencies to be up
+      const expectedStatuses = dependencies
+        .map((dependency) => ({
+          [`${dependency}`]: { status: "up" },
+        }))
+        .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
+
       // It should have logged the response
       expect(mockedLogger.log).toHaveBeenNthCalledWith(
         calls,
         {
           body: {
-            details: {
-              "ebsi-apis": {
-                status: "up",
-              },
-            },
+            details: expectedStatuses,
             error: {},
-            info: {
-              "ebsi-apis": {
-                status: "up",
-              },
-            },
+            info: expectedStatuses,
             status: "ok",
           },
           message: "Outgoing response - 200 - GET - /health",

@@ -6,7 +6,6 @@ export interface ApiConfig {
   apiPort: number;
   apiUrlPrefix: string;
   logLevel: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
-  externalEbsiApiHealthCheck: string;
   besuRpcNode: string;
   domain: string;
   localOrigin: string;
@@ -30,7 +29,12 @@ export interface ApiConfig {
 const AUTH_API_URL = "/authorisation/v2";
 const TAR_API_V3_PATH = "/trusted-apps-registry/v3";
 const TAR_API_V4_PATH = "/trusted-apps-registry/v4";
-const HEALTH_CHECK_PATH = "/docs/";
+
+export const DEPENDENCIES = {
+  "Authorisation API v2": AUTH_API_URL,
+  "TAR API v3": TAR_API_V3_PATH,
+  "TAR API v4": TAR_API_V4_PATH,
+} as const;
 
 // Config factory
 // Note that process.env — for which provide typings in src/environment.d.ts —
@@ -50,7 +54,6 @@ export const loadConfig = (): ApiConfig => {
     authorisationApiName:
       process.env.AUTHORISATION_API_NAME || "authorisation-api",
     authorisationApiUrl: DOMAIN + AUTH_API_URL,
-    externalEbsiApiHealthCheck: DOMAIN + HEALTH_CHECK_PATH,
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     testUser: {
       kid: process.env.TEST_USER_KID,

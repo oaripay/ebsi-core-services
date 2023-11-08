@@ -1,4 +1,4 @@
-import { describe, beforeAll, it, expect } from "vitest";
+import { describe, beforeAll, it, expect, afterAll } from "vitest";
 import request from "supertest";
 import { Test, type TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger } from "@nestjs/common";
@@ -17,7 +17,7 @@ import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js"
 import type { ApiConfig } from "../../src/config/configuration.js";
 import { getServer } from "../utils/getServer.js";
 
-describe("DID Registry (e2e)", () => {
+describe("DID Registry API v4 (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let configService: ConfigService<ApiConfig, true>;
@@ -70,6 +70,10 @@ describe("DID Registry (e2e)", () => {
     lastIdentifiers = identifiers;
   });
 
+  afterAll(async () => {
+    await app.close();
+  });
+
   describe("GET /identifiers", () => {
     it("should return a paginated collection of identifiers", async () => {
       expect.assertions(2);
@@ -77,7 +81,7 @@ describe("DID Registry (e2e)", () => {
       const response = await request(server).get("/identifiers");
 
       const total =
-        ((response.body as { [x: string]: unknown })?.total as number) ?? 0;
+        ((response.body as { [x: string]: unknown })?.["total"] as number) ?? 0;
 
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
@@ -127,22 +131,25 @@ describe("DID Registry (e2e)", () => {
       /* eslint-disable no-await-in-loop */
       for (let i = 0; i < lastIdentifiers.length; i += 1) {
         const resp = await request(server).get(
-          `/identifiers/${lastIdentifiers[i].did}`,
+          `/identifiers/${lastIdentifiers[i]!.did}`,
         );
         const didDocument = resp.body as DIDDocument;
-        const vr = [
-          "authentication",
-          "assertionMethod",
-          "keyAgreement",
-          "capabilityInvocation",
-          "capabilityDelegation",
-        ].find((r) => {
+        const vr = (
+          [
+            "authentication",
+            "assertionMethod",
+            "keyAgreement",
+            "capabilityInvocation",
+            "capabilityDelegation",
+          ] as const
+        ).find((r) => {
           return Object.keys(didDocument).includes(r);
         });
+
         if (vr) {
-          did = lastIdentifiers[i].did;
+          did = lastIdentifiers[i]!.did;
           vRelationship = vr;
-          [, vMethodId] = (didDocument[vr] as string[])[0].split("#");
+          vMethodId = (didDocument[vr] as string[])[0]!.split("#")[1]!;
           break;
         }
       }
@@ -156,7 +163,7 @@ describe("DID Registry (e2e)", () => {
       const response = await request(server).get(`/identifiers?${extraQuery}`);
 
       const total =
-        ((response.body as { [x: string]: unknown })?.total as number) ?? 0;
+        ((response.body as { [x: string]: unknown })?.["total"] as number) ?? 0;
 
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
@@ -244,7 +251,7 @@ describe("DID Registry (e2e)", () => {
       expect.assertions(4);
 
       const response = await request(server).get(
-        `/identifiers/${lastIdentifiers[0].did}`,
+        `/identifiers/${lastIdentifiers[0]!.did}`,
       );
 
       expect(response.body).toStrictEqual(
@@ -267,7 +274,7 @@ describe("DID Registry (e2e)", () => {
       expect.assertions(3);
 
       const response = await request(server).get(
-        `/identifiers/${lastIdentifiers[0].did}?valid-at=1970-01-01`,
+        `/identifiers/${lastIdentifiers[0]!.did}?valid-at=1970-01-01`,
       );
 
       expect(response.body).toStrictEqual(
@@ -287,7 +294,7 @@ describe("DID Registry (e2e)", () => {
       expect.assertions(3);
 
       const response = await request(server)
-        .get(`/identifiers/${lastIdentifiers[0].did}`)
+        .get(`/identifiers/${lastIdentifiers[0]!.did}`)
         .set("Accept", "application/did+json");
 
       expect(response.body).toStrictEqual(
@@ -339,7 +346,7 @@ describe("DID Registry (e2e)", () => {
 
       const randomAddress = ethers.Wallet.createRandom().address;
       const response = await request(server)
-        .post(`/identifiers/${lastIdentifiers[0].did}/actions`)
+        .post(`/identifiers/${lastIdentifiers[0]!.did}/actions`)
         .send({
           jsonrpc: "2.0",
           method: "checkController",

@@ -16,13 +16,11 @@ import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { HttpService } from "@nestjs/axios";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
-import { of } from "rxjs";
 import { AppModule } from "./app.module.js";
 import { AllExceptionsFilter } from "./filters/http-exception.filter.js";
-import type { ApiConfig } from "./config/configuration.js";
+import { DEPENDENCIES, type ApiConfig } from "./config/configuration.js";
 
 interface ResponseHeaders {
   "ebsi-image-tag": string;
@@ -44,6 +42,10 @@ describe("App Module", () => {
         throw new Error(`Unhandled ${method} request to ${url}`);
       },
     });
+  });
+
+  afterEach(() => {
+    mockServer.resetHandlers();
   });
 
   afterAll(() => {
@@ -75,13 +77,18 @@ describe("App Module", () => {
       app.useGlobalFilters(new AllExceptionsFilter(configService));
       app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
-      const url = new URL(
-        `${configService.get<string>("ledgerApiUrl")}/health`,
+      const domain = configService.get<string>("domain");
+      const localOrigin = configService.get<string>("localOrigin") || domain;
+      const url = `${configService.get<string>("ledgerApiUrl")}/health`.replace(
+        domain,
+        localOrigin,
       );
 
       await expect(() => app.init()).rejects.toThrow(
-        `Unable to get ${url.href}, shutting down...`,
+        `Unable to get ${url}, shutting down...`,
       );
+
+      await app.close();
     });
 
     it("should prevent the app from starting if one of the dependencies still responds with a 404 after all the attempts", async () => {
@@ -108,17 +115,25 @@ describe("App Module", () => {
       app.useGlobalFilters(new AllExceptionsFilter(configService));
       app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
-      const url = `${configService.get<string>("ledgerApiUrl")}/health`;
+      const domain = configService.get<string>("domain");
+      const localOrigin = configService.get<string>("localOrigin") || domain;
+      const url = `${configService.get<string>("ledgerApiUrl")}/health`.replace(
+        domain,
+        localOrigin,
+      );
 
       mockServer.use(
         http.get(url, () => HttpResponse.text("Not Found", { status: 404 })),
       );
+
       await expect(() => app.init()).rejects.toThrow(
         `Unable to get ${url}, shutting down...`,
       );
 
       // Retry 30 times -> log 30 errors
       expect(mockedLogger.error).toHaveBeenCalledTimes(30);
+
+      await app.close();
     });
 
     it("should start if all the dependencies are up and running", async () => {
@@ -145,14 +160,16 @@ describe("App Module", () => {
       app.useGlobalFilters(new AllExceptionsFilter(configService));
       app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
+      const domain = configService.get<string>("domain");
+      const localOrigin = configService.get<string>("localOrigin") || domain;
+
       const ledgerApiUrl = `${configService.get<string>(
         "ledgerApiUrl",
-      )}/health`;
+      )}/health`.replace(domain, localOrigin);
       const authorisationApiUrl = `${configService.get<string>(
         "authorisationApiUrl",
-      )}/health`;
+      )}/health`.replace(domain, localOrigin);
 
-      // Ledger API first responds 15 times with a 404 (because it's starting)
       let reqCounter = 0;
       mockServer.use(
         http.get(ledgerApiUrl, () => {
@@ -174,10 +191,6 @@ describe("App Module", () => {
       // Retry 15 times -> log 15 errors
       expect(mockedLogger.error).toHaveBeenCalledTimes(15);
 
-      // Close the app
-      await new Promise<void>((resolve) => {
-        setTimeout(() => resolve(), 500);
-      });
       await app.close();
     });
   });
@@ -185,7 +198,6 @@ describe("App Module", () => {
   describe("Generic tests", () => {
     let app: NestFastifyApplication;
     let server: RawServerDefault;
-    let httpService: HttpService;
     let configService: ConfigService<ApiConfig, true>;
     const dockerTag = "version";
 
@@ -208,13 +220,16 @@ describe("App Module", () => {
       app.useGlobalFilters(new AllExceptionsFilter(configService));
       app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
+      const domain = configService.get<string>("domain");
+      const localOrigin = configService.get<string>("localOrigin") || domain;
+
       // Mock dependencies
       const ledgerApiUrl = `${configService.get<string>(
         "ledgerApiUrl",
-      )}/health`;
+      )}/health`.replace(domain, localOrigin);
       const authorisationApiUrl = `${configService.get<string>(
         "authorisationApiUrl",
-      )}/health`;
+      )}/health`.replace(domain, localOrigin);
 
       mockServer.use(
         http.get(ledgerApiUrl, () => HttpResponse.json({})),
@@ -224,7 +239,21 @@ describe("App Module", () => {
       await app.init();
       await app.getHttpAdapter().getInstance().ready();
       server = app.getHttpServer();
-      httpService = await moduleFixture.resolve<HttpService>(HttpService);
+    });
+
+    afterAll(async () => {
+      await app.close();
+    });
+
+    describe("GET /", () => {
+      it("should return 'ok'", async () => {
+        expect.assertions(2);
+
+        const response = await request(server).get("/");
+
+        expect(response.text).toBe("ok");
+        expect(response.status).toBe(200);
+      });
     });
 
     describe("GET /unknown-route", () => {
@@ -255,10 +284,22 @@ describe("App Module", () => {
       it("should provide EBSI image version/tag in headers", async () => {
         expect.assertions(2);
 
-        vi.spyOn(httpService, "request")
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          .mockImplementation(() => of({}));
+        const localOrigin =
+          configService.get<string>("localOrigin") ||
+          configService.get<string>("domain");
+
+        // All the dependencies return a 200
+        const dependencies = Object.keys(
+          DEPENDENCIES,
+        ) as (keyof typeof DEPENDENCIES)[];
+
+        mockServer.use(
+          ...dependencies.map((dependency) =>
+            http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
+              HttpResponse.json({}),
+            ),
+          ),
+        );
 
         const response = await request(server).get("/health").send();
         const headers = response.header as ResponseHeaders;

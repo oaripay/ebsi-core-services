@@ -20,7 +20,7 @@ import {
 } from "../utils/authorisation.js";
 import { getServer } from "../utils/getServer.js";
 
-describe("POST /ledger/v3/blockchains/besu", () => {
+describe("Ledger API v3 - POST /ledger/v3/blockchains/besu", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let tokenOAuth2: string;

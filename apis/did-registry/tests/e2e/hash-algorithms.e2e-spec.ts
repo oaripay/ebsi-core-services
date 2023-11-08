@@ -1,4 +1,4 @@
-import { describe, beforeAll, it, expect } from "vitest";
+import { describe, beforeAll, it, expect, afterAll } from "vitest";
 import { randomInt } from "node:crypto";
 import { ethers } from "ethers";
 import request from "supertest";
@@ -35,10 +35,7 @@ interface SupertestJsonRpcResponse {
 
 type JsonRpcParams = InsertHashAlgorithmParam;
 
-const validHashAlgorithms: Record<
-  string,
-  { outputLength: number; multihash: HashName; oid: string }
-> = {
+const validHashAlgorithms = {
   "sha-256": {
     outputLength: 256,
     multihash: "sha2-256",
@@ -69,9 +66,12 @@ const validHashAlgorithms: Record<
     multihash: "sha3-512",
     oid: "2.16.840.1.101.3.4.2.10",
   },
-} as const;
+} as const satisfies Record<
+  string,
+  { outputLength: number; multihash: HashName; oid: string }
+>;
 
-describe("HashAlgorithms (e2e)", () => {
+describe("DID Registry API v3 - HashAlgorithms (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let testClientWallet: ethers.Wallet;
@@ -117,6 +117,10 @@ describe("HashAlgorithms (e2e)", () => {
     ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
   });
 
+  afterAll(async () => {
+    await app.close();
+  });
+
   describeWriteOps().each(["insertHashAlgorithm", "updateHashAlgorithm"])(
     "/jsonrpc - send transaction for %s",
     (method: string) => {
@@ -128,7 +132,9 @@ describe("HashAlgorithms (e2e)", () => {
         switch (method) {
           case "insertHashAlgorithm": {
             const hashes = Object.keys(validHashAlgorithms);
-            const randomHash = hashes[randomInt(0, hashes.length)]!;
+            const randomHash = hashes[
+              randomInt(0, hashes.length)
+            ] as keyof typeof validHashAlgorithms;
 
             params = {
               from: testClientWallet.address,
@@ -146,7 +152,9 @@ describe("HashAlgorithms (e2e)", () => {
               (response.body as { total: number }).total - 1;
 
             const hashes = Object.keys(validHashAlgorithms);
-            const randomHash = hashes[randomInt(0, hashes.length)]!;
+            const randomHash = hashes[
+              randomInt(0, hashes.length)
+            ] as keyof typeof validHashAlgorithms;
 
             params = {
               from: testClientWallet.address,
@@ -273,7 +281,7 @@ describe("HashAlgorithms (e2e)", () => {
         respHashAlgorithms.body as {
           items: HashAlgorithmLink[];
         }
-      ).items[0];
+      ).items[0]!;
 
       const response = await request(server).get(
         `/hash-algorithms/${hashAlgorithmId}`,

@@ -20,7 +20,7 @@ import {
 } from "../utils/authorisation.js";
 import { getServer } from "../utils/getServer.js";
 
-describe("POST /ledger/v4/blockchains/besu", () => {
+describe("Ledger API v4 - POST /ledger/v4/blockchains/besu", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let tokenOAuth2: string;
@@ -62,7 +62,7 @@ describe("POST /ledger/v4/blockchains/besu", () => {
       throw new Error("Missing testUser");
     }
 
-    [testUserDid] = testUser.kid.split("#");
+    testUserDid = testUser.kid.split("#")[0]!;
 
     try {
       tokenOAuth2 = await requestOAuth2Jwt({

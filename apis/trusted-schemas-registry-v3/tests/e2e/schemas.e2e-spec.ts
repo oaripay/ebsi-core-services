@@ -1,4 +1,4 @@
-import { describe, beforeAll, it, expect } from "vitest";
+import { describe, beforeAll, it, expect, afterAll } from "vitest";
 import crypto from "node:crypto";
 import { ethers } from "ethers";
 import request from "supertest";
@@ -40,7 +40,7 @@ type JsonRpcParams =
   | UpdateSchemaParam
   | UpdateMetadataParam;
 
-describe("Schemas (e2e)", () => {
+describe("TSR API v3 - Schemas (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let adminTestWallet: ethers.Wallet;
@@ -166,6 +166,10 @@ describe("Schemas (e2e)", () => {
     };
     serializedUpdatedMetadata = JSON.stringify(rawUpdatedMetadata);
     serializedUpdatedMetadataBuffer = Buffer.from(serializedUpdatedMetadata);
+  });
+
+  afterAll(async () => {
+    await app.close();
   });
 
   describeWriteOps().each(["insertSchema", "updateSchema", "updateMetadata"])(

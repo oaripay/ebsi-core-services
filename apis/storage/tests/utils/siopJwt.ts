@@ -66,10 +66,10 @@ export const requestSiopJwt = async ({
   const urlParams = new URLSearchParams(uri.replace("openid://?", ""));
   const params = Object.fromEntries(urlParams);
   Object.keys(params).forEach((k) => {
-    params[k] = decodeURIComponent(params[k]);
+    params[k] = decodeURIComponent(params[k]!);
   });
 
-  const { payload } = await verifyJwtTar(params.request, {
+  const { payload } = await verifyJwtTar(params["request"]!, {
     trustedAppsRegistry: `${trustedAppsRegistryApiUrl}/apps`,
   });
 
@@ -78,7 +78,7 @@ export const requestSiopJwt = async ({
 
   const authenticationResponse = await siopAgent.createResponse({
     nonce,
-    redirectUri: payload.client_id as string,
+    redirectUri: payload["client_id"] as string,
     claims: {
       encryption_key: publicEncryptionKeyJwk,
     },
@@ -93,7 +93,7 @@ export const requestSiopJwt = async ({
     AxiosResponse<SiopAkeResponse>
   >(
     `${authorisationApiUrl}/siop-sessions`,
-    new URLSearchParams({ id_token: idToken }).toString(),
+    new URLSearchParams({ id_token: idToken! }).toString(),
     {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",

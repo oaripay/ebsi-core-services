@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { describe, beforeAll, it, expect } from "vitest";
+import { describe, beforeAll, it, expect, afterAll } from "vitest";
 import request from "supertest";
 import { Test, type TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger } from "@nestjs/common";
@@ -68,7 +68,7 @@ type TestUser = {
   thumbprint: string;
 };
 
-describeWriteOps()("DID Registry - JSON RPC - e2e", () => {
+describeWriteOps()("DID Registry API v5 - JSON-RPC (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let configService: ConfigService<ApiConfig, true>;
@@ -118,7 +118,11 @@ describeWriteOps()("DID Registry - JSON RPC - e2e", () => {
         href: string;
       }[];
     };
-    lastDid = identifiers[identifiers.length - 1].did;
+    lastDid = identifiers[identifiers.length - 1]!.did;
+  });
+
+  afterAll(async () => {
+    await app.close();
   });
 
   describe("registering a new DID document", () => {

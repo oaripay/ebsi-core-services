@@ -20,7 +20,7 @@ import { getServer } from "../utils/getServer.js";
 
 const BASE_URL = "/stores/distributed/key-values";
 
-describe("Key-Values (e2e)", () => {
+describe("Storage API v3 - Key-Values (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let configService: ConfigService<ApiConfig, true>;

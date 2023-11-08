@@ -98,7 +98,7 @@ function getEbsiIssuer(privateKey: string, did: string, kid: string) {
   return issuer;
 }
 
-describe("Issuers (e2e)", () => {
+describe("TIR API v4 - Issuers (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let configService: ConfigService<ApiConfig, true>;
@@ -206,19 +206,19 @@ describe("Issuers (e2e)", () => {
       `/issuers?page[after]=${Math.floor(total / 2)}&page[size]=2`,
     );
 
-    beforeLastExistingIssuerDid = issuersResponse.body.items[0].did;
-    lastExistingIssuerDid = issuersResponse.body.items[1].did;
+    beforeLastExistingIssuerDid = issuersResponse.body.items[0]!.did;
+    lastExistingIssuerDid = issuersResponse.body.items[1]!.did;
 
     // Get testIssuerWithProxy's first proxyId
     testIssuerWithProxyKid = configService.get<string>(
       "testIssuerWithProxyKid",
     );
-    [testIssuerWithProxyDid] = testIssuerWithProxyKid.split("#");
+    testIssuerWithProxyDid = testIssuerWithProxyKid.split("#")[0]!;
     const issuerProxiesResponse: SupertestIssuerProxiesResponse = await request(
       server,
     ).get(`/issuers/${testIssuerWithProxyDid}/proxies`);
     testIssuerWithProxyFirstProxyId =
-      issuerProxiesResponse.body.items[0].proxyId;
+      issuerProxiesResponse.body.items[0]!.proxyId;
     testIssuerWithProxyPrivateKey = configService.get<string>(
       "testIssuerWithProxyPrivateKey",
     );
@@ -238,6 +238,10 @@ describe("Issuers (e2e)", () => {
     testStatusListSchemaId = configService.get<string>(
       "testStatusListSchemaId",
     );
+  });
+
+  afterAll(async () => {
+    await app.close();
   });
 
   describe("/issuers", () => {
@@ -423,7 +427,7 @@ describe("Issuers (e2e)", () => {
         server,
       ).get(`/issuers/${lastExistingIssuerDid}/attributes`);
 
-      attributeId = responseAttributes.body.items[0].id;
+      attributeId = responseAttributes.body.items[0]!.id;
     });
 
     it("should return a specific attribute", async () => {
@@ -518,7 +522,7 @@ describe("Issuers (e2e)", () => {
       ).get(`/issuers/${beforeLastExistingIssuerDid}/attributes`);
       expect(responseAttributes.status).toBe(200);
 
-      const attributeId2 = responseAttributes.body.items[0].id;
+      const attributeId2 = responseAttributes.body.items[0]!.id;
 
       const response2: SupertestAttributeResponse = await request(server).get(
         `/issuers/${lastExistingIssuerDid}/attributes/${attributeId2}`,
@@ -541,7 +545,7 @@ describe("Issuers (e2e)", () => {
         server,
       ).get(`/issuers/${lastExistingIssuerDid}/attributes`);
 
-      attributeId = responseAttributes.body.items[0].id;
+      attributeId = responseAttributes.body.items[0]!.id;
     });
 
     it("should return revisions", async () => {
@@ -640,7 +644,7 @@ describe("Issuers (e2e)", () => {
       ).get(`/issuers/${beforeLastExistingIssuerDid}/attributes`);
       expect(responseAttributes.status).toBe(200);
 
-      const attributeId2 = responseAttributes.body.items[0].id;
+      const attributeId2 = responseAttributes.body.items[0]!.id;
 
       const response2: SupertestAttributeResponse = await request(server).get(
         `/issuers/${lastExistingIssuerDid}/attributes/${attributeId2}`,

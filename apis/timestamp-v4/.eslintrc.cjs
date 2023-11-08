@@ -17,7 +17,7 @@ module.exports = {
         "plugin:prettier/recommended",
       ],
       parserOptions: {
-        project: "./tsconfig.eslint.json",
+        project: "./tsconfig.json",
         tsconfigRootDir: __dirname,
       },
       rules: {
@@ -37,7 +37,7 @@ module.exports = {
         "plugin:prettier/recommended",
       ],
       parserOptions: {
-        project: "./tsconfig.eslint.json",
+        project: "./tsconfig.json",
         tsconfigRootDir: __dirname,
       },
       rules: {

@@ -15,7 +15,6 @@ export interface ApiConfig {
   trustedIssuersRegistry: string;
   trustedAppsRegistry: string;
   trustedPoliciesRegistry: string;
-  externalEbsiApiHealthCheck: string;
   dockerContainerTag: string;
   trustedHostnames: string[];
   requestTimeout: number;
@@ -29,12 +28,19 @@ export interface ApiConfig {
   testOidSchemaPattern: string;
 }
 
-const HEALTH_CHECK_PATH = "/docs/";
-const DIDR_PATH = "/did-registry/v5/identifiers";
-const TIR_PATH = "/trusted-issuers-registry/v5/issuers";
-const TAR_PATH = "/trusted-apps-registry/v4/apps";
-const TPR_PATH = "/trusted-policies-registry/v3/users";
-const TSR_PATH = "/trusted-schemas-registry/v3/schemas";
+const DIDR_PATH = "/did-registry/v5";
+const TAR_PATH = "/trusted-apps-registry/v4";
+const TIR_PATH = "/trusted-issuers-registry/v5";
+const TPR_PATH = "/trusted-policies-registry/v3";
+const TSR_PATH = "/trusted-schemas-registry/v3";
+
+export const DEPENDENCIES = {
+  "DIDR API v5": DIDR_PATH,
+  "TAR API v4": TAR_PATH,
+  "TIR API v5": TIR_PATH,
+  "TPR API v3": TPR_PATH,
+  "TSR API v3": TSR_PATH,
+} as const;
 
 // Config factory
 // Note that process.env — for which provide typings in src/environment.d.ts —
@@ -51,16 +57,15 @@ export const loadConfig = (): ApiConfig => {
     logLevel: process.env.LOG_LEVEL || "warn",
     domain: DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
-    didRegistry: DOMAIN + DIDR_PATH,
-    trustedIssuersRegistry: DOMAIN + TIR_PATH,
-    trustedAppsRegistry: DOMAIN + TAR_PATH,
-    trustedPoliciesRegistry: DOMAIN + TPR_PATH,
-    externalEbsiApiHealthCheck: DOMAIN + HEALTH_CHECK_PATH,
+    didRegistry: `${DOMAIN}${DIDR_PATH}/identifiers`,
+    trustedIssuersRegistry: `${DOMAIN}${TIR_PATH}/issuers`,
+    trustedAppsRegistry: `${DOMAIN}${TAR_PATH}/apps`,
+    trustedPoliciesRegistry: `${DOMAIN}${TPR_PATH}/users`,
     dockerContainerTag: process.env.DOCKER_TAG || "",
     trustedHostnames: (process.env.TRUSTED_HOSTNAMES || "")
       .split(",")
       .filter(Boolean),
-    authorisationCredentialSchema: `${DOMAIN}${TSR_PATH}/${process.env.AUTHORISATION_CREDENTIAL_SCHEMA}`,
+    authorisationCredentialSchema: `${DOMAIN}${TSR_PATH}/schemas/${process.env.AUTHORISATION_CREDENTIAL_SCHEMA}`,
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     // Test-specific variables
     testEnv: process.env.TEST_ENV,

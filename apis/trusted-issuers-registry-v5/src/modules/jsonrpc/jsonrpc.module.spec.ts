@@ -32,8 +32,7 @@ import type { GenerateKeyPairResult } from "jose";
 import { useContainer } from "class-validator";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
-// eslint-disable-next-line import/extensions
-import * as StatusList2021CredentialHelpers from "@ebsiint-api/shared/dist/utils/isStatusList2021Credential.js";
+import * as StatusList2021CredentialHelpers from "@ebsiint-api/shared";
 import { JsonRpcModule } from "./jsonrpc.module.js";
 import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
 import { JsonRpcService } from "./jsonrpc.service.js";

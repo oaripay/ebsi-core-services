@@ -14,6 +14,7 @@ export default defineConfig({
       reportsDirectory: "./coverage",
       reporter: ["text", "lcov"],
     },
+    globalSetup: "./tests/globalSetup.unit.ts",
   },
   plugins: [
     swc.vite(), // This is required to build the test files with SWC

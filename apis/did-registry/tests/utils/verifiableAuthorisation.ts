@@ -49,7 +49,7 @@ export async function createVerifiableAuthorisation(
   return createVerifiableCredentialJwt(credential, issuer, {
     ebsiAuthority,
     skipValidation: true,
-    trustedHostnames,
+    ...(trustedHostnames && { trustedHostnames }),
   });
 }
 

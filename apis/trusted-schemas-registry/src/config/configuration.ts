@@ -10,7 +10,6 @@ export interface ApiConfig {
   domain: string;
   localOrigin: string;
   logLevel: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
-  externalEbsiApiHealthCheck: string;
   requestTimeout: number;
   axiosRetryDelay: number;
   // Ledger & SC
@@ -35,12 +34,19 @@ export interface ApiConfig {
   };
 }
 
-const HEALTH_CHECK_PATH = "/docs/";
-const LEDGER_API_PATH = "/ledger/v3";
 const AUTH_API_PATH = "/authorisation/v2";
 const DIDR_API_PATH = "/did-registry/v4";
+const LEDGER_API_PATH = "/ledger/v3";
 const TAR_API_PATH = "/trusted-apps-registry/v3";
-const TSR_API_PATH = "/trusted-schemas-registry/v2/schemas/";
+const TSR_API_PATH = "/trusted-schemas-registry/v2";
+
+export const DEPENDENCIES = {
+  "Authorisation API v2": AUTH_API_PATH,
+  "DIDR API v4": DIDR_API_PATH,
+  "Ledger API v3": LEDGER_API_PATH,
+  "TAR API v3": TAR_API_PATH,
+  "TSR API v2": TSR_API_PATH,
+} as const;
 
 // Config factory
 // Note that process.env — for which provide typings in src/environment.d.ts —
@@ -56,7 +62,6 @@ export const loadConfig = (): ApiConfig => {
     domain: DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
     logLevel: process.env.LOG_LEVEL || "warn",
-    externalEbsiApiHealthCheck: DOMAIN + HEALTH_CHECK_PATH,
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     axiosRetryDelay: parseInt(process.env.AXIOS_RETRY_DELAY || "10000", 10),
     // Ledger & SC
@@ -72,7 +77,7 @@ export const loadConfig = (): ApiConfig => {
     // Test vars
     testAdminKid: process.env.TEST_ADMIN_KID,
     testAdminPrivateKey: process.env.TEST_ADMIN_PRIVATE_KEY,
-    testVaSchemaUrl: DOMAIN + TSR_API_PATH + process.env.TEST_VA_SCHEMA,
+    testVaSchemaUrl: `${DOMAIN}${TSR_API_PATH}/schemas/${process.env.TEST_VA_SCHEMA}`,
     testLoadBalancerDomain: process.env.TEST_LB_DOMAIN || "",
     dockerContainerTag: process.env.DOCKER_TAG || "",
     blockscout: {

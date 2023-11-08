@@ -10,10 +10,13 @@ import {
 } from "@nestjs/platform-fastify";
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
-import type { ApiConfig } from "../../src/config/configuration.js";
+import {
+  DEPENDENCIES,
+  type ApiConfig,
+} from "../../src/config/configuration.js";
 import { getServer } from "../utils/getServer.js";
 
-describe("App Module", () => {
+describe("TPR API v3 - Generic tests (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let apiUrlPrefix = "";
@@ -50,6 +53,38 @@ describe("App Module", () => {
 
   afterAll(async () => {
     await app.close();
+  });
+
+  describe("GET /", () => {
+    it("should return 'ok'", async () => {
+      expect.assertions(2);
+      const response = await request(server).get("");
+      expect(response.text).toBe("ok");
+      expect(response.status).toBe(200);
+    });
+  });
+
+  it("GET /health", async () => {
+    expect.assertions(2);
+    const response = await request(server).get("/health");
+
+    // Expect all the dependencies to be up
+    const dependencies = Object.keys(
+      DEPENDENCIES,
+    ) as (keyof typeof DEPENDENCIES)[];
+    const expectedStatuses = dependencies
+      .map((dependency) => ({
+        [`${dependency}`]: { status: "up" },
+      }))
+      .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
+
+    expect(response.body).toStrictEqual({
+      details: expectedStatuses,
+      error: {},
+      info: expectedStatuses,
+      status: "ok",
+    });
+    expect(response.status).toBe(200);
   });
 
   describe("GET /unknown-route", () => {

@@ -1,4 +1,4 @@
-import { describe, beforeAll, it, expect } from "vitest";
+import { describe, beforeAll, it, expect, afterAll } from "vitest";
 import crypto from "node:crypto";
 import { ethers } from "ethers";
 import request from "supertest";
@@ -59,7 +59,7 @@ const multihashToNodeHashAlg = {
   "sha3-512": "sha3-512",
 } as const;
 
-describe("Timestamp (e2e)", () => {
+describe("Timestamp API v4 - Timestamp (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let hashAlgorithmId: number;
@@ -114,7 +114,7 @@ describe("Timestamp (e2e)", () => {
       }>("testAdmin");
       const adminKid = configTestAdmin.kid;
       const adminPrivateKeyHex = configTestAdmin.privateKey;
-      const adminDid = adminKid.split("#")[0];
+      const adminDid = adminKid.split("#")[0]!;
       const adminWallet = new ethers.Wallet(prefixWith0x(adminPrivateKeyHex));
       const adminIssuerInfo = await getEbsiIssuer(
         adminPrivateKeyHex,
@@ -143,7 +143,7 @@ describe("Timestamp (e2e)", () => {
         privateKey: string;
       }>("testUser");
       const userKid = configTestUser.kid;
-      const userDid = userKid.split("#")[0];
+      const userDid = userKid.split("#")[0]!;
       const userPrivateKeyHex = configTestUser.privateKey;
       const userWallet = new ethers.Wallet(prefixWith0x(userPrivateKeyHex));
       const userInfo = await getEbsiIssuer(userPrivateKeyHex, userDid, userKid);
@@ -197,6 +197,10 @@ describe("Timestamp (e2e)", () => {
       .toString("hex")}`;
 
     ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
+  });
+
+  afterAll(async () => {
+    await app.close();
   });
 
   describeWriteOps().each(["timestampHashes"])(

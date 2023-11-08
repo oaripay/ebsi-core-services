@@ -1,5 +1,5 @@
 import { randomInt } from "node:crypto";
-import { describe, beforeAll, it, expect } from "vitest";
+import { describe, beforeAll, it, expect, afterAll } from "vitest";
 import { ethers } from "ethers";
 import request from "supertest";
 import { Test, type TestingModule } from "@nestjs/testing";
@@ -35,10 +35,7 @@ interface SupertestJsonRpcResponse {
 
 type JsonRpcParams = InsertHashAlgorithmParam | UpdateHashAlgorithmParam;
 
-const validHashAlgorithms: Record<
-  string,
-  { outputLength: number; multihash: HashName; oid: string }
-> = {
+const validHashAlgorithms = {
   "sha-256": {
     outputLength: 256,
     multihash: "sha2-256",
@@ -69,9 +66,12 @@ const validHashAlgorithms: Record<
     multihash: "sha3-512",
     oid: "2.16.840.1.101.3.4.2.10",
   },
-} as const;
+} as const satisfies Record<
+  string,
+  { outputLength: number; multihash: HashName; oid: string }
+>;
 
-describe("HashAlgorithms (e2e)", () => {
+describe("Timestamp API v3 - HashAlgorithms (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let testAdmin: {
@@ -152,6 +152,10 @@ describe("HashAlgorithms (e2e)", () => {
     ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
   });
 
+  afterAll(async () => {
+    await app.close();
+  });
+
   describe("GET /hash-algorithms", () => {
     it("should return a paginated collection of hash algorithms", async () => {
       expect.assertions(2);
@@ -188,7 +192,7 @@ describe("HashAlgorithms (e2e)", () => {
         respHashAlgorithms.body as {
           items: HashAlgorithmLink[];
         }
-      ).items[0];
+      ).items[0]!;
 
       const response = await request(server).get(
         `/hash-algorithms/${hashAlgorithmId}`,

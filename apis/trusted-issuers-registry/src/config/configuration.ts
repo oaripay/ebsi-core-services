@@ -10,7 +10,6 @@ export interface ApiConfig {
   logLevel: "error" | "warn" | "log" | "verbose" | "debug" | "silent";
   domain: string;
   localOrigin: string;
-  externalEbsiApiHealthCheck: string;
   requestTimeout: number;
   axiosRetryDelay: number;
   trustedHostnames: string[];
@@ -44,13 +43,21 @@ export interface ApiConfig {
   };
 }
 
-const HEALTH_CHECK_PATH = "/docs/";
-const LEDGER_API_PATH = "/ledger/v3";
 const AUTH_API_PATH = "/authorisation/v2";
 const DIDR_API_PATH = "/did-registry/v4";
+const LEDGER_API_PATH = "/ledger/v3";
 const TAR_API_PATH = "/trusted-apps-registry/v3";
-const TSR_API_PATH = "/trusted-schemas-registry/v2";
 const TPR_API_PATH = "/trusted-policies-registry/v2";
+const TSR_API_PATH = "/trusted-schemas-registry/v2";
+
+export const DEPENDENCIES = {
+  "Authorisation API v2": AUTH_API_PATH,
+  "DIDR API v4": DIDR_API_PATH,
+  "Ledger API v3": LEDGER_API_PATH,
+  "TAR API v3": TAR_API_PATH,
+  "TPR API v2": TPR_API_PATH,
+  "TSR API v2": TSR_API_PATH,
+} as const;
 
 export const loadConfig = (): ApiConfig => {
   const { DOMAIN } = process.env;
@@ -63,7 +70,6 @@ export const loadConfig = (): ApiConfig => {
     logLevel: process.env.LOG_LEVEL || "warn",
     domain: DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
-    externalEbsiApiHealthCheck: DOMAIN + HEALTH_CHECK_PATH,
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     axiosRetryDelay: parseInt(process.env.AXIOS_RETRY_DELAY || "10000", 10),
     trustedHostnames: (process.env.TRUSTED_HOSTNAMES || "")

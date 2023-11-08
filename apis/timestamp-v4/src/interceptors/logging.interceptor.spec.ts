@@ -3,9 +3,9 @@ import {
   describe,
   beforeAll,
   afterEach,
+  afterAll,
   it,
   expect,
-  afterAll,
 } from "vitest";
 import request from "supertest";
 import { Test, type TestingModule } from "@nestjs/testing";
@@ -15,8 +15,6 @@ import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { HttpService } from "@nestjs/axios";
-import { of } from "rxjs";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
@@ -28,19 +26,19 @@ import {
 } from "jose";
 import { AppModule } from "../app.module.js";
 import { AllExceptionsFilter } from "../filters/http-exception.filter.js";
-import type { ApiConfig } from "../config/configuration.js";
+import { DEPENDENCIES, type ApiConfig } from "../config/configuration.js";
 
 describe("Logging interceptor", () => {
   let app: NestFastifyApplication;
-  let httpService: HttpService;
   let configService: ConfigService<ApiConfig, true>;
-  const mockServer = setupServer();
 
   const mockedLogger = {
     log: vi.fn(),
     warn: vi.fn(),
     error: vi.fn(),
   };
+
+  const mockServer = setupServer();
 
   beforeAll(async () => {
     // Intercept network requests
@@ -60,47 +58,62 @@ describe("Logging interceptor", () => {
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter(),
     );
-
     configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
-
     app.useGlobalFilters(new AllExceptionsFilter(configService));
     app.useGlobalPipes(new ValidationPipe());
 
     Logger.overrideLogger(mockedLogger);
 
     // Mock dependencies
+    const domain = configService.get<string>("domain");
+    const localOrigin = configService.get<string>("localOrigin") || domain;
+
+    const ledgerApiUrl = `${configService.get<string>(
+      "ledgerApiUrl",
+    )}/health`.replace(domain, localOrigin);
+    const authorisationApiUrl = `${configService.get<string>(
+      "authorisationApiUrl",
+    )}/health`.replace(domain, localOrigin);
+
     mockServer.use(
-      http.get(`${configService.get<string>("ledgerApiUrl")}/health`, () =>
-        HttpResponse.json({}),
-      ),
-      http.get(
-        `${configService.get<string>("authorisationApiUrl")}/health`,
-        () => HttpResponse.json({}),
-      ),
+      http.get(ledgerApiUrl, () => HttpResponse.json({})),
+      http.get(authorisationApiUrl, () => HttpResponse.json({})),
     );
 
     await app.init();
     await app.getHttpAdapter().getInstance().ready();
-
-    httpService = await moduleFixture.resolve<HttpService>(HttpService);
   });
 
   afterEach(() => {
     vi.clearAllMocks();
   });
 
-  afterAll(() => {
+  afterAll(async () => {
     mockServer.close();
+
+    await app.close();
   });
 
   describe("GET /health", () => {
     it("should log the request and response", async () => {
       expect.assertions(2);
 
-      vi.spyOn(httpService, "request")
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        .mockImplementation(() => of({}));
+      const dependencies = Object.keys(
+        DEPENDENCIES,
+      ) as (keyof typeof DEPENDENCIES)[];
+
+      const localOrigin =
+        configService.get<string>("localOrigin") ||
+        configService.get<string>("domain");
+
+      // All the dependencies return a 200
+      mockServer.use(
+        ...dependencies.map((dependency) =>
+          http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
+            HttpResponse.json({}),
+          ),
+        ),
+      );
 
       await request(app.getHttpServer()).get(`/health`);
 
@@ -122,22 +135,21 @@ describe("Logging interceptor", () => {
         "LoggingInterceptor",
       );
 
+      // Expect all the dependencies to be up
+      const expectedStatuses = dependencies
+        .map((dependency) => ({
+          [`${dependency}`]: { status: "up" },
+        }))
+        .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
+
       // It should have logged the response
       expect(mockedLogger.log).toHaveBeenNthCalledWith(
         calls,
         {
           body: {
-            details: {
-              "ebsi-apis": {
-                status: "up",
-              },
-            },
+            details: expectedStatuses,
             error: {},
-            info: {
-              "ebsi-apis": {
-                status: "up",
-              },
-            },
+            info: expectedStatuses,
             status: "ok",
           },
           message: "Outgoing response - 200 - GET - /health",

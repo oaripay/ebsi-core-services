@@ -15,7 +15,6 @@ export interface ApiConfig {
   domain: string;
   localOrigin: string;
   logLevel: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
-  externalEbsiApiHealthCheck: string;
   requestTimeout: number;
   testUser1: {
     kid: string | undefined;
@@ -30,10 +29,16 @@ export interface ApiConfig {
 }
 
 const AUTH_API_PATH = "/authorisation/v2";
-const STORAGE_API_PATH = "/storage/v3";
 const DIDR_API_PATH = "/did-registry/v4";
+const STORAGE_API_PATH = "/storage/v3";
 const TAR_API_PATH = "/trusted-apps-registry/v3";
-const HEALTH_CHECK_PATH = "/docs/";
+
+export const DEPENDENCIES = {
+  "Authorisation API v2": AUTH_API_PATH,
+  "DIDR API v4": DIDR_API_PATH,
+  "Storage API v3": STORAGE_API_PATH,
+  "TAR API v3": TAR_API_PATH,
+} as const;
 
 // Config factory
 export const loadConfig = (): ApiConfig => {
@@ -53,7 +58,6 @@ export const loadConfig = (): ApiConfig => {
     domain: DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
     logLevel: process.env.LOG_LEVEL || "warn",
-    externalEbsiApiHealthCheck: DOMAIN + HEALTH_CHECK_PATH,
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     testUser1: {
       kid: process.env.TEST_USER_KID_1,

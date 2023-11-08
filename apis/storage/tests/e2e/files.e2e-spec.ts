@@ -25,7 +25,7 @@ import { getServer } from "../utils/getServer.js";
 
 const BASE_URL = "/stores/distributed/files";
 
-describe("Files (e2e)", () => {
+describe("Storage API v3 - Files (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let configService: ConfigService<ApiConfig, true>;

@@ -63,7 +63,7 @@ export async function createVerifiableAuthorisationJwt(
   const jwt = await createVerifiableCredentialJwt(vcPayload, issuer, {
     ebsiAuthority,
     skipValidation: true,
-    trustedHostnames,
+    ...(trustedHostnames && { trustedHostnames }),
   });
 
   return jwt;

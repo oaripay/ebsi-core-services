@@ -4,7 +4,13 @@ import { URLSearchParams } from "node:url";
 import { createVerifiablePresentationJwt } from "@cef-ebsi/verifiable-presentation";
 import type { EbsiIssuer } from "@cef-ebsi/verifiable-presentation";
 import axios from "axios";
-import { importJWK, SignJWT, base64url, calculateJwkThumbprint } from "jose";
+import {
+  importJWK,
+  SignJWT,
+  base64url,
+  calculateJwkThumbprint,
+  type JWK,
+} from "jose";
 import elliptic from "elliptic";
 
 /**
@@ -53,8 +59,11 @@ export async function getDidrInviteAccessToken(
   authApiV3ES256PrivateKey: string,
 ) {
   const authApiPrivateKeyJwk = fromHexToJWK(authApiV3ES256PrivateKey);
-  const authApiPrivateKey = await importJWK(authApiPrivateKeyJwk, "ES256");
-  const authApiKid = await calculateJwkThumbprint(authApiPrivateKeyJwk);
+  const authApiPrivateKey = await importJWK(
+    authApiPrivateKeyJwk as JWK,
+    "ES256",
+  );
+  const authApiKid = await calculateJwkThumbprint(authApiPrivateKeyJwk as JWK);
   const newUserAccessToken = await new SignJWT({
     scp: "openid didr_invite",
     sub: did,
@@ -75,7 +84,7 @@ export async function getDidrInviteAccessToken(
 export async function getDidrWriteAccessToken(
   authorisationApiUrl: string,
   issuer: EbsiIssuer,
-  trustedHostnames: string[],
+  trustedHostnames?: string[],
 ) {
   const nonce = randomUUID();
   const vpPayload = {
@@ -93,7 +102,7 @@ export async function getDidrWriteAccessToken(
       ebsiAuthority: "example.net",
       skipValidation: true,
       nonce,
-      trustedHostnames,
+      ...(trustedHostnames && { trustedHostnames }),
       // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
       exp: Math.floor(Date.now() / 1000) + 100,
       nbf: Math.floor(Date.now() / 1000) - 100,

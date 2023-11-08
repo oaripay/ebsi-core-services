@@ -88,7 +88,7 @@ type JsonRpcParams =
   | UpdateAppParam
   | UpdateAppPublicKeyParam;
 
-describe("Apps (e2e)", () => {
+describe("TAR API v4 - Apps (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let adminTestWallet: ethers.Wallet;
@@ -180,7 +180,7 @@ describe("Apps (e2e)", () => {
         throw e;
       }
 
-      [didAppAdmin] = configService.get<string>("testAdminKid").split("#");
+      didAppAdmin = configService.get<string>("testAdminKid").split("#")[0]!;
     }
     besuRpcNode = configService.get("besuRpcNode");
 
@@ -234,7 +234,7 @@ describe("Apps (e2e)", () => {
         `/apps/${testAppName}`,
       );
       const publicKeyId0 = ethers.utils.sha256(
-        Buffer.from(responseApps.body.publicKeys[0], "base64"),
+        Buffer.from(responseApps.body.publicKeys[0]!, "base64"),
       );
       const response: SupertestAppsResponse = await request(server).get(
         `/apps?public_key_id=${publicKeyId0}`,
@@ -272,7 +272,7 @@ describe("Apps (e2e)", () => {
         await request(server).get("/apps");
 
       const { name }: AppLink =
-        responseApps.body.items[responseApps.body.items.length - 1];
+        responseApps.body.items[responseApps.body.items.length - 1]!;
       const applicationName0 = name;
 
       const response: SupertestAuthorizationsResponse = await request(
@@ -311,9 +311,9 @@ describe("Apps (e2e)", () => {
         await request(server).get("/apps");
 
       const { name }: AppLink =
-        responseApps.body.items[responseApps.body.items.length - 1];
+        responseApps.body.items[responseApps.body.items.length - 1]!;
       const app2: AppLink =
-        responseApps.body.items[responseApps.body.items.length - 2];
+        responseApps.body.items[responseApps.body.items.length - 2]!;
       const applicationName1 = name;
       const applicationName2 = app2.name;
 
@@ -357,7 +357,7 @@ describe("Apps (e2e)", () => {
 
       expect(appsResponse.status).toBe(200);
       const { id, name }: AppLink =
-        appsResponse.body.items[appsResponse.body.items.length - 1];
+        appsResponse.body.items[appsResponse.body.items.length - 1]!;
 
       const response: SupertestAppResponse = await request(server).get(
         `/apps/${name}`,
@@ -398,7 +398,7 @@ describe("Apps (e2e)", () => {
       const appsResponse: SupertestAppsResponse =
         await request(server).get("/apps");
       const { name }: AppLink =
-        appsResponse.body.items[appsResponse.body.items.length - 1];
+        appsResponse.body.items[appsResponse.body.items.length - 1]!;
       const response: SupertestPublicKeysResponse = await request(server).get(
         `/apps/${name}/public-keys`,
       );
@@ -438,7 +438,7 @@ describe("Apps (e2e)", () => {
         server,
       ).get(`/apps/${testAppName}/public-keys`);
 
-      const pubKeyId = responseKeys.body.items[0].id;
+      const pubKeyId = responseKeys.body.items[0]!.id;
 
       const response: SupertestPublicKeyResponse = await request(server).get(
         `/apps/${testAppName}/public-keys/${pubKeyId}`,
@@ -640,7 +640,7 @@ describe("Apps (e2e)", () => {
               `no authorizations found in the app ${newApp.name}`,
             );
           }
-          const { authorizationId } = responseApp.body.authorizations[0];
+          const { authorizationId } = responseApp.body.authorizations[0]!;
 
           param = {
             from: adminTestWallet.address,
@@ -752,7 +752,7 @@ describe("Apps (e2e)", () => {
             server,
           ).get(`/apps/${applicationName}/authorizations`);
           const { authorizationId, requesterApplicationName } =
-            authsResponse.body.items[0];
+            authsResponse.body.items[0]!;
           const response = await request(server).get(
             `/apps/${applicationName}/authorizations/${authorizationId}`,
           );

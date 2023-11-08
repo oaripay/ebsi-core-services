@@ -1,5 +1,4 @@
 import { Module } from "@nestjs/common";
-import { TerminusModule } from "@nestjs/terminus";
 import { APP_INTERCEPTOR } from "@nestjs/core";
 import { ApiConfigModule } from "./config/configuration.js";
 import { AppController } from "./app.controller.js";
@@ -17,7 +16,6 @@ import { OpenApiModule } from "./modules/openapi/openapi.module.js";
   imports: [
     ApiConfigModule,
     AuthModule,
-    TerminusModule,
     AppsModule,
     PoliciesModule,
     JsonRpcModule,

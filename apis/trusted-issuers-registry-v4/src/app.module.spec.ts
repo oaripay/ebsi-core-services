@@ -10,17 +10,17 @@ import {
 import request from "supertest";
 import { Test, type TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import type { RawServerDefault } from "fastify";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { ConfigService } from "@nestjs/config";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { AppModule } from "./app.module.js";
 import { AllExceptionsFilter } from "./filters/http-exception.filter.js";
-import type { ApiConfig } from "./config/configuration.js";
+import { DEPENDENCIES, type ApiConfig } from "./config/configuration.js";
 
 interface ResponseHeaders {
   "ebsi-image-tag": string;
@@ -28,10 +28,6 @@ interface ResponseHeaders {
 }
 
 describe("App Module", () => {
-  let app: NestFastifyApplication;
-  let server: RawServerDefault;
-  let configService: ConfigService<ApiConfig, true>;
-  const dockerTag = "version";
   const mockServer = setupServer();
 
   beforeAll(() => {
@@ -46,6 +42,10 @@ describe("App Module", () => {
         throw new Error(`Unhandled ${method} request to ${url}`);
       },
     });
+  });
+
+  afterEach(() => {
+    mockServer.resetHandlers();
   });
 
   afterAll(() => {
@@ -64,25 +64,31 @@ describe("App Module", () => {
         imports: [AppModule],
       }).compile();
 
-      app = moduleFixture.createNestApplication<NestFastifyApplication>(
+      const app = moduleFixture.createNestApplication<NestFastifyApplication>(
         new FastifyAdapter(),
       );
 
       // Turn off logger
       Logger.overrideLogger(false);
 
-      configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
+      const configService =
+        app.get<ConfigService<ApiConfig, true>>(ConfigService);
 
       app.useGlobalFilters(new AllExceptionsFilter(configService));
       app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
-      const url = new URL(
-        `${configService.get<string>("ledgerApiUrl")}/health`,
+      const domain = configService.get<string>("domain");
+      const localOrigin = configService.get<string>("localOrigin") || domain;
+      const url = `${configService.get<string>("ledgerApiUrl")}/health`.replace(
+        domain,
+        localOrigin,
       );
 
       await expect(() => app.init()).rejects.toThrow(
-        `Unable to get ${url.href}, shutting down...`,
+        `Unable to get ${url}, shutting down...`,
       );
+
+      await app.close();
     });
 
     it("should prevent the app from starting if one of the dependencies still responds with a 404 after all the attempts", async () => {
@@ -92,7 +98,7 @@ describe("App Module", () => {
         imports: [AppModule],
       }).compile();
 
-      app = moduleFixture.createNestApplication<NestFastifyApplication>(
+      const app = moduleFixture.createNestApplication<NestFastifyApplication>(
         new FastifyAdapter(),
       );
 
@@ -103,12 +109,18 @@ describe("App Module", () => {
       };
       Logger.overrideLogger(mockedLogger);
 
-      configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
+      const configService =
+        app.get<ConfigService<ApiConfig, true>>(ConfigService);
 
       app.useGlobalFilters(new AllExceptionsFilter(configService));
       app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
-      const url = `${configService.get<string>("ledgerApiUrl")}/health`;
+      const domain = configService.get<string>("domain");
+      const localOrigin = configService.get<string>("localOrigin") || domain;
+      const url = `${configService.get<string>("ledgerApiUrl")}/health`.replace(
+        domain,
+        localOrigin,
+      );
 
       mockServer.use(
         http.get(url, () => HttpResponse.text("Not Found", { status: 404 })),
@@ -120,6 +132,8 @@ describe("App Module", () => {
 
       // Retry 30 times -> log 30 errors
       expect(mockedLogger.error).toHaveBeenCalledTimes(30);
+
+      await app.close();
     });
 
     it("should start if all the dependencies are up and running", async () => {
@@ -129,7 +143,7 @@ describe("App Module", () => {
         imports: [AppModule],
       }).compile();
 
-      app = moduleFixture.createNestApplication<NestFastifyApplication>(
+      const app = moduleFixture.createNestApplication<NestFastifyApplication>(
         new FastifyAdapter(),
       );
 
@@ -140,17 +154,21 @@ describe("App Module", () => {
       };
       Logger.overrideLogger(mockedLogger);
 
-      configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
+      const configService =
+        app.get<ConfigService<ApiConfig, true>>(ConfigService);
 
       app.useGlobalFilters(new AllExceptionsFilter(configService));
       app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
+      const domain = configService.get<string>("domain");
+      const localOrigin = configService.get<string>("localOrigin") || domain;
+
       const ledgerApiUrl = `${configService.get<string>(
         "ledgerApiUrl",
-      )}/health`;
+      )}/health`.replace(domain, localOrigin);
       const authorisationApiV2Url = `${configService.get<string>(
         "authorisationApiV2Url",
-      )}/health`;
+      )}/health`.replace(domain, localOrigin);
 
       // Ledger API first responds 15 times with a 404 (because it's starting)
       let reqCounter = 0;
@@ -174,15 +192,16 @@ describe("App Module", () => {
       // Retry 15 times -> log 15 errors
       expect(mockedLogger.error).toHaveBeenCalledTimes(15);
 
-      // Close the app
-      await new Promise<void>((resolve) => {
-        setTimeout(() => resolve(), 500);
-      });
       await app.close();
     });
   });
 
   describe("Generic tests", () => {
+    let app: NestFastifyApplication;
+    let server: RawServerDefault;
+    let configService: ConfigService<ApiConfig, true>;
+    const dockerTag = "version";
+
     beforeAll(async () => {
       process.env.DOCKER_TAG = dockerTag;
 
@@ -202,13 +221,16 @@ describe("App Module", () => {
       app.useGlobalFilters(new AllExceptionsFilter(configService));
       app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
+      const domain = configService.get<string>("domain");
+      const localOrigin = configService.get<string>("localOrigin") || domain;
+
       // Mock dependencies
       const ledgerApiUrl = `${configService.get<string>(
         "ledgerApiUrl",
-      )}/health`;
+      )}/health`.replace(domain, localOrigin);
       const authorisationApiV2Url = `${configService.get<string>(
         "authorisationApiV2Url",
-      )}/health`;
+      )}/health`.replace(domain, localOrigin);
 
       mockServer.use(
         http.get(ledgerApiUrl, () => HttpResponse.json({})),
@@ -221,11 +243,18 @@ describe("App Module", () => {
     });
 
     afterAll(async () => {
-      // Avoid vi open handle error
-      await new Promise<void>((resolve) => {
-        setTimeout(() => resolve(), 500);
-      });
       await app.close();
+    });
+
+    describe("GET /", () => {
+      it("should return 'ok'", async () => {
+        expect.assertions(2);
+
+        const response = await request(server).get("/");
+
+        expect(response.text).toBe("ok");
+        expect(response.status).toBe(200);
+      });
     });
 
     describe("GET /unknown-route", () => {
@@ -255,6 +284,24 @@ describe("App Module", () => {
     describe("GET /health", () => {
       it("should provide EBSI image version/tag in headers", async () => {
         expect.assertions(2);
+
+        const localOrigin =
+          configService.get<string>("localOrigin") ||
+          configService.get<string>("domain");
+
+        // All the dependencies return a 200
+        const dependencies = Object.keys(
+          DEPENDENCIES,
+        ) as (keyof typeof DEPENDENCIES)[];
+
+        mockServer.use(
+          ...dependencies.map((dependency) =>
+            http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
+              HttpResponse.json({}),
+            ),
+          ),
+        );
+
         const response = await request(server).get("/health").send();
         const headers = response.header as ResponseHeaders;
         expect(headers).toHaveProperty("ebsi-image-tag");

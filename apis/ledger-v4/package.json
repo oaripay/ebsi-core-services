@@ -65,6 +65,7 @@
     "@vitest/coverage-v8": "^0.34.6",
     "hardhat": "^2.18.3",
     "jose": "^4.15.4",
+    "msw": "^2.0.2",
     "supertest": "^6.3.3",
     "ts-node": "^10.9.1",
     "typescript": "5.2.2",

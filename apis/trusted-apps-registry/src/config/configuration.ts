@@ -14,7 +14,6 @@ export interface ApiConfig {
   localOrigin: string;
   logLevel: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
   besuRpcNode: string;
-  externalEbsiApiHealthCheck: string;
   requestTimeout: number;
   testAdminDid: string | undefined;
   testAdminPrivateKey: string | undefined;
@@ -30,7 +29,11 @@ export interface ApiConfig {
 
 const AUTH_API_PATH = "/authorisation/v2";
 const DIDR_API_PATH = "/did-registry/v4";
-const HEALTH_CHECK_PATH = "/docs/";
+
+export const DEPENDENCIES = {
+  "Authorisation API v2": AUTH_API_PATH,
+  "DIDR API v4": DIDR_API_PATH,
+} as const;
 
 // Config factory
 // Note that process.env — for which provide typings in src/environment.d.ts —
@@ -46,7 +49,6 @@ export const loadConfig = (): ApiConfig => {
     domain: DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
     logLevel: process.env.LOG_LEVEL || "warn",
-    externalEbsiApiHealthCheck: DOMAIN + HEALTH_CHECK_PATH,
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     // Ledger & SC
     besuRpcNode: process.env.BESU_RPC_NODE,

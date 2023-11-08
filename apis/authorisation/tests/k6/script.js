@@ -1,3 +1,4 @@
+// @ts-nocheck
 import http from "k6/http";
 import { group, check } from "k6";
 

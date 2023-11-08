@@ -1,5 +1,5 @@
 import { randomInt } from "node:crypto";
-import { describe, beforeAll, it, expect } from "vitest";
+import { describe, beforeAll, it, expect, afterAll } from "vitest";
 import { ethers } from "ethers";
 import request from "supertest";
 import { Test, type TestingModule } from "@nestjs/testing";
@@ -43,19 +43,19 @@ type TestUser = {
   wallet: ethers.Wallet;
 };
 
-const newHashAlgorithm: {
-  ianaName: string;
-  outputLength: number;
-  multihash: HashName;
-  oid: string;
-} = {
+const newHashAlgorithm = {
   ianaName: `test-${Date.now()}`,
   outputLength: 256,
   multihash: "sha2-256",
   oid: "2.16.840.1.101.3.4.2.1",
-} as const;
+} as const satisfies {
+  ianaName: string;
+  outputLength: number;
+  multihash: HashName;
+  oid: string;
+};
 
-describe("HashAlgorithms (e2e)", () => {
+describe("Timestamp API v4 - HashAlgorithms (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let authorisationApiUrl: string;
@@ -96,7 +96,7 @@ describe("HashAlgorithms (e2e)", () => {
       }>("testAdmin");
       const adminKid = configTestAdmin.kid;
       const adminPrivateKeyHex = configTestAdmin.privateKey;
-      const adminDid = adminKid.split("#")[0];
+      const adminDid = adminKid.split("#")[0]!;
       const adminWallet = new ethers.Wallet(prefixWith0x(adminPrivateKeyHex));
       const adminIssuerInfo = await getEbsiIssuer(
         adminPrivateKeyHex,
@@ -125,7 +125,7 @@ describe("HashAlgorithms (e2e)", () => {
         privateKey: string;
       }>("testUser");
       const userKid = configTestUser.kid;
-      const userDid = userKid.split("#")[0];
+      const userDid = userKid.split("#")[0]!;
       const userPrivateKeyHex = configTestUser.privateKey;
       const userWallet = new ethers.Wallet(prefixWith0x(userPrivateKeyHex));
       const userInfo = await getEbsiIssuer(userPrivateKeyHex, userDid, userKid);
@@ -148,6 +148,10 @@ describe("HashAlgorithms (e2e)", () => {
     }
 
     ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
+  });
+
+  afterAll(async () => {
+    await app.close();
   });
 
   describe("GET /hash-algorithms", () => {

@@ -240,6 +240,7 @@ describe("JsonRpc Module", () => {
 
   afterAll(async () => {
     mockServer.close();
+
     await app.close();
   });
 

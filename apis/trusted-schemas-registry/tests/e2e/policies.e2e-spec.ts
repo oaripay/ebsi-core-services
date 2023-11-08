@@ -1,4 +1,4 @@
-import { describe, beforeAll, it, expect } from "vitest";
+import { describe, beforeAll, it, expect, afterAll } from "vitest";
 import crypto from "node:crypto";
 import { ethers } from "ethers";
 import request from "supertest";
@@ -51,7 +51,7 @@ interface SupertestRevisionsResponse {
   body: PaginatedList<PolicyResponseObject>;
 }
 
-describe("Policies (e2e)", () => {
+describe("TSR API v2 - Policies (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let adminTestWallet: ethers.Wallet;
@@ -117,6 +117,10 @@ describe("Policies (e2e)", () => {
     ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
   });
 
+  afterAll(async () => {
+    await app.close();
+  });
+
   describe("/policies", () => {
     it("should return a collection of policies", async () => {
       expect.assertions(2);
@@ -161,7 +165,7 @@ describe("Policies (e2e)", () => {
 
         expect(policiesResponse.status).toBe(200);
         const { policyId }: PolicyLink =
-          policiesResponse.body.items[policiesResponse.body.items.length - 1];
+          policiesResponse.body.items[policiesResponse.body.items.length - 1]!;
 
         const response: SupertestPolicyResponse = await request(server).get(
           `/policies/${encodeURIComponent(policyId)}`,
@@ -198,7 +202,7 @@ describe("Policies (e2e)", () => {
 
         expect(policiesResponse.status).toBe(200);
         const { policyId }: PolicyLink =
-          policiesResponse.body.items[policiesResponse.body.items.length - 1];
+          policiesResponse.body.items[policiesResponse.body.items.length - 1]!;
 
         const response: SupertestRevisionsResponse = await request(server).get(
           `/policies/${encodeURIComponent(policyId)}/revisions`,

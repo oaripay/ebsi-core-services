@@ -63,7 +63,7 @@ type TestUser = {
   thumbprint: string;
 };
 
-describeWriteOps()("DID Registry - JSON RPC - e2e", () => {
+describeWriteOps()("DID Registry API v4 - JSON RPC - e2e", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let configService: ConfigService<ApiConfig, true>;
@@ -113,7 +113,7 @@ describeWriteOps()("DID Registry - JSON RPC - e2e", () => {
         href: string;
       }[];
     };
-    lastDid = identifiers[identifiers.length - 1].did;
+    lastDid = identifiers[identifiers.length - 1]!.did;
   });
 
   describe("registering a new DID document", () => {

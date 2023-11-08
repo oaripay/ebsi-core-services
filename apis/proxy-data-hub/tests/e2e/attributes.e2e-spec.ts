@@ -1,4 +1,4 @@
-import { describe, beforeAll, beforeEach, it, expect } from "vitest";
+import { describe, beforeAll, beforeEach, it, expect, afterAll } from "vitest";
 import crypto from "node:crypto";
 import request from "supertest";
 import { Test, type TestingModule } from "@nestjs/testing";
@@ -21,7 +21,7 @@ import { requestSiopJwt } from "../utils/auth.js";
 import { describeWriteOps } from "../utils/describeWriteOps.js";
 import { getServer } from "../utils/getServer.js";
 
-describeWriteOps()("Attributes", () => {
+describeWriteOps()("Proxy Data Hub API v3 - Attributes (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let configService: ConfigService<ApiConfig, true>;
@@ -128,6 +128,10 @@ describeWriteOps()("Attributes", () => {
     }
   });
 
+  afterAll(async () => {
+    await app.close();
+  });
+
   describe.each(["legal entity", "natural person"] as const)(
     "with the user being a %s",
     (userType) => {
@@ -140,7 +144,7 @@ describeWriteOps()("Attributes", () => {
           try {
             testUser1 = {
               ...configTestUser1,
-              did: configTestUser1.kid.split("#")[0],
+              did: configTestUser1.kid.split("#")[0]!,
               token: await requestSiopJwt({
                 clientKid: configTestUser1.kid,
                 clientPrivateKey: configTestUser1.privateKey,
@@ -161,7 +165,7 @@ describeWriteOps()("Attributes", () => {
           try {
             testUser2 = {
               ...configTestUser2,
-              did: configTestUser2.kid.split("#")[0],
+              did: configTestUser2.kid.split("#")[0]!,
               token: await requestSiopJwt({
                 clientKid: configTestUser2.kid,
                 clientPrivateKey: configTestUser2.privateKey,
@@ -213,7 +217,7 @@ describeWriteOps()("Attributes", () => {
           try {
             testUser2 = {
               ...configTestUser2,
-              did: configTestUser2.kid.split("#")[0],
+              did: configTestUser2.kid.split("#")[0]!,
               token: await requestSiopJwt({
                 clientKid: configTestUser2.kid,
                 clientPrivateKey: configTestUser2.privateKey,
@@ -514,7 +518,9 @@ describeWriteOps()("Attributes", () => {
             .auth(testUser1.token, { type: "bearer" })
             .send(attribute);
 
+          // @ts-expect-error "The operand of a delete operator must be optional."
           delete attribute.visibility;
+
           expect(response.body).toStrictEqual({
             ...attribute,
             hash: expect.any(String),

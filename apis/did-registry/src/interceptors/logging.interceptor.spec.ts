@@ -16,15 +16,13 @@ import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { HttpService } from "@nestjs/axios";
 import { createJWT, ES256KSigner } from "did-jwt";
 import type { JWTVerifyResult } from "jose";
-import { of } from "rxjs";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { AppModule } from "../app.module.js";
 import { AllExceptionsFilter } from "../filters/http-exception.filter.js";
-import type { ApiConfig } from "../config/configuration.js";
+import { DEPENDENCIES, type ApiConfig } from "../config/configuration.js";
 import { createDid } from "../../tests/utils/data.js";
 
 vi.mock("@cef-ebsi/siop-auth", async () => {
@@ -41,7 +39,6 @@ vi.mock("@cef-ebsi/siop-auth", async () => {
 
 describe("Logging interceptor", () => {
   let app: NestFastifyApplication;
-  let httpService: HttpService;
   let configService: ConfigService<ApiConfig, true>;
   const mockServer = setupServer();
 
@@ -76,40 +73,41 @@ describe("Logging interceptor", () => {
     Logger.overrideLogger(mockedLogger);
 
     // Mock dependencies
+    const domain = configService.get<string>("domain");
+    const localOrigin = configService.get<string>("localOrigin") || domain;
+
+    const ledgerApiUrl = `${configService.get<string>(
+      "ledgerApiUrl",
+    )}/health`.replace(domain, localOrigin);
+    const authorisationApiUrl = `${configService.get<string>(
+      "authorisationApiUrl",
+    )}/health`.replace(domain, localOrigin);
+
     mockServer.use(
-      http.get(`${configService.get<string>("ledgerApiUrl")}/health`, () =>
-        HttpResponse.json({}),
-      ),
-      http.get(
-        `${configService.get<string>("authorisationApiUrl")}/health`,
-        () => HttpResponse.json({}),
-      ),
+      http.get(ledgerApiUrl, () => HttpResponse.json({})),
+      http.get(authorisationApiUrl, () => HttpResponse.json({})),
     );
 
     await app.init();
     await app.getHttpAdapter().getInstance().ready();
-
-    httpService = await moduleFixture.resolve<HttpService>(HttpService);
   });
 
   afterEach(() => {
     vi.clearAllMocks();
+    mockServer.resetHandlers();
   });
 
-  afterAll(() => {
+  afterAll(async () => {
     mockServer.close();
+
+    await app.close();
   });
 
   describe("GET /health", () => {
     it("should NOT log the request and response", async () => {
       expect.assertions(1);
 
-      vi.spyOn(httpService, "request")
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        .mockImplementation(() => of({}));
-
-      await request(app.getHttpServer()).get(`/health`);
+      await request(app.getHttpServer()).get("/health");
 
       const calls = mockedLogger.log.mock.calls.length;
       expect(mockedLogger.log).toHaveBeenNthCalledWith(
@@ -122,13 +120,25 @@ describe("Logging interceptor", () => {
     it("should log the request and response", async () => {
       expect.assertions(2);
 
-      vi.spyOn(httpService, "request")
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        .mockImplementation(() => of({}));
+      const dependencies = Object.keys(
+        DEPENDENCIES,
+      ) as (keyof typeof DEPENDENCIES)[];
+
+      const localOrigin =
+        configService.get<string>("localOrigin") ||
+        configService.get<string>("domain");
+
+      // All the dependencies return a 200
+      mockServer.use(
+        ...dependencies.map((dependency) =>
+          http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
+            HttpResponse.json({}),
+          ),
+        ),
+      );
 
       await request(app.getHttpServer())
-        .get(`/health`)
+        .get("/health")
         .set("conformance", "test-id-conformance");
 
       const calls = mockedLogger.log.mock.calls.length;
@@ -151,22 +161,21 @@ describe("Logging interceptor", () => {
         "LoggingInterceptor",
       );
 
+      // Expect all the dependencies to be up
+      const expectedStatuses = dependencies
+        .map((dependency) => ({
+          [`${dependency}`]: { status: "up" },
+        }))
+        .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
+
       // It should have logged the response
       expect(mockedLogger.log).toHaveBeenNthCalledWith(
         calls,
         {
           body: {
-            details: {
-              "ebsi-apis": {
-                status: "up",
-              },
-            },
+            details: expectedStatuses,
             error: {},
-            info: {
-              "ebsi-apis": {
-                status: "up",
-              },
-            },
+            info: expectedStatuses,
             status: "ok",
           },
           message: "Outgoing response - 200 - GET - /health",

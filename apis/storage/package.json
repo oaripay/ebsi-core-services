@@ -73,6 +73,7 @@
     "dotenv-cli": "^7.3.0",
     "elliptic": "^6.5.4",
     "jose": "^4.15.4",
+    "msw": "^2.0.2",
     "supertest": "^6.3.3",
     "ts-node": "^10.9.1",
     "typescript": "5.2.2",

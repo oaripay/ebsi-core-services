@@ -8,6 +8,7 @@ import { LoggingInterceptor } from "./interceptors/logging.interceptor.js";
 import { VersionInterceptor } from "./interceptors/version.interceptor.js";
 import { OpenApiModule } from "./modules/openapi/openapi.module.js";
 import { AppService } from "./app.service.js";
+import { AppController } from "./app.controller.js";
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { AppService } from "./app.service.js";
     SchemasModule,
     OpenApiModule,
   ],
+  controllers: [AppController],
   providers: [
     {
       provide: APP_INTERCEPTOR,

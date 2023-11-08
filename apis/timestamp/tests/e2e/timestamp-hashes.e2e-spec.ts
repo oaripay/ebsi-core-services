@@ -1,4 +1,4 @@
-import { describe, beforeAll, it, expect } from "vitest";
+import { describe, beforeAll, it, expect, afterAll } from "vitest";
 import crypto from "node:crypto";
 import { ethers } from "ethers";
 import request from "supertest";
@@ -51,7 +51,7 @@ const multihashToNodeHashAlg = {
   "sha3-512": "sha3-512",
 } as const;
 
-describe("Timestamp (e2e)", () => {
+describe("Timestamp API v3 - Timestamp (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let hashAlgorithmId: number;
@@ -205,6 +205,10 @@ describe("Timestamp (e2e)", () => {
       .toString("hex")}`;
 
     ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
+  });
+
+  afterAll(async () => {
+    await app.close();
   });
 
   describeWriteOps().each(["timestampHashes"])(

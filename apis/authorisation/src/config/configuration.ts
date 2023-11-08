@@ -16,7 +16,6 @@ export interface ApiConfig {
   domain: string;
   localOrigin: string;
   logLevel: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
-  externalEbsiApiHealthCheck: string;
   requestTimeout: number;
   trustedHostnames: string[];
   testAppName: string;
@@ -33,11 +32,17 @@ export interface ApiConfig {
   dockerContainerTag: string;
 }
 
-const TAR_PATH = "/trusted-apps-registry/v3/apps";
-const TIR_PATH = "/trusted-issuers-registry/v3/issuers";
-const TSR_PATH = "/trusted-schemas-registry/v2/schemas";
-const DIDR_PATH = "/did-registry/v4/identifiers";
-const HEALTH_CHECK_PATH = "/docs/";
+const DIDR_PATH = "/did-registry/v4";
+const TAR_PATH = "/trusted-apps-registry/v3";
+const TIR_PATH = "/trusted-issuers-registry/v3";
+const TSR_PATH = "/trusted-schemas-registry/v2";
+
+export const DEPENDENCIES = {
+  "DIDR API v4": DIDR_PATH,
+  "TAR API v3": TAR_PATH,
+  "TIR API v3": TIR_PATH,
+  "TSR API v2": TSR_PATH,
+} as const;
 
 // Config factory
 // Note that process.env — for which provide typings in src/environment.d.ts —
@@ -52,14 +57,13 @@ export const loadConfig = (): ApiConfig => {
     apiUrlPrefix: process.env.API_URL_PREFIX || "/authorisation/v2",
     onboardingAllowlist: process.env.ONBOARDING_ALLOWLIST.split(","),
     onboardingApiPrivateKey: process.env.ONBOARDING_API_PRIVATE_KEY || "",
-    trustedAppsRegistry: DOMAIN + TAR_PATH,
-    trustedIssuersRegistry: DOMAIN + TIR_PATH,
-    didRegistry: DOMAIN + DIDR_PATH,
-    authorisationCredentialSchema: `${DOMAIN}${TSR_PATH}/${process.env.AUTHORISATION_CREDENTIAL_SCHEMA}`,
+    trustedAppsRegistry: `${DOMAIN}${TAR_PATH}/apps`,
+    trustedIssuersRegistry: `${DOMAIN}${TIR_PATH}/issuers`,
+    didRegistry: `${DOMAIN}${DIDR_PATH}/identifiers`,
+    authorisationCredentialSchema: `${DOMAIN}${TSR_PATH}/schemas${process.env.AUTHORISATION_CREDENTIAL_SCHEMA}`,
     logLevel: process.env.LOG_LEVEL || "warn",
     domain: DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
-    externalEbsiApiHealthCheck: DOMAIN + HEALTH_CHECK_PATH,
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     trustedHostnames: (process.env.TRUSTED_HOSTNAMES || "")
       .split(",")

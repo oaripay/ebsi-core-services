@@ -1,63 +1,37 @@
 // For more info, read https://docs.nestjs.com/recipes/terminus
-import { Controller, Get, Logger } from "@nestjs/common";
+import { Controller, Get } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   HealthCheck,
   HealthCheckService,
   HealthCheckResult,
-  HealthIndicatorResult,
+  HttpHealthIndicator,
 } from "@nestjs/terminus";
-import axios from "axios";
-import type { ApiConfig } from "../../config/configuration.js";
+import { DEPENDENCIES, type ApiConfig } from "../../config/configuration.js";
 
 @Controller("/health")
 export class HealthController {
-  private readonly logger = new Logger(HealthController.name);
-
-  private timeout: number;
-
   constructor(
     private health: HealthCheckService,
     private configService: ConfigService<ApiConfig, true>,
-  ) {
-    this.timeout = configService.get<number>("requestTimeout");
-  }
-
-  private async pingUrl(
-    key: string,
-    url: string,
-  ): Promise<HealthIndicatorResult> {
-    try {
-      await axios.get(url, {
-        timeout: this.timeout,
-      });
-      return {
-        [key]: {
-          status: "up",
-        },
-      };
-    } catch (e) {
-      this.logger.error(`${url} is not available`);
-      return {
-        [key]: {
-          status: "down",
-        },
-      };
-    }
-  }
+    private http: HttpHealthIndicator,
+  ) {}
 
   @Get()
   @HealthCheck()
   check(): Promise<HealthCheckResult> {
-    return this.health.check([
-      // Let's say we need to communicate with other APIs
-      // Make sure the DNS are correctly configured
-      () =>
-        this.pingUrl(
-          "ebsi-apis",
-          this.configService.get("externalEbsiApiHealthCheck"),
-        ),
-    ]);
+    return this.health.check(
+      (Object.keys(DEPENDENCIES) as (keyof typeof DEPENDENCIES)[]).map(
+        (dependency) => async () =>
+          this.http.pingCheck(
+            dependency,
+            `${
+              this.configService.get<string>("localOrigin") ||
+              this.configService.get<string>("domain")
+            }${DEPENDENCIES[dependency]}`,
+          ),
+      ),
+    );
   }
 }
 

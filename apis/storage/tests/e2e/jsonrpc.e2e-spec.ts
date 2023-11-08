@@ -17,7 +17,7 @@ import { requestOAuth2Jwt } from "../utils/index.js";
 import { describeWriteOps } from "../utils/describeWriteOps.js";
 import { getServer } from "../utils/getServer.js";
 
-describeWriteOps()("JsonRpc Module", () => {
+describeWriteOps()("Storage API v3 - JSON-RPC (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let configService: ConfigService<ApiConfig, true>;

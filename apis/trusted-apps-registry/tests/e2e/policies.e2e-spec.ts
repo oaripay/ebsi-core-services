@@ -51,7 +51,7 @@ interface SupertestRevisionsResponse {
   body: PaginatedList<PolicyResponseObject>;
 }
 
-describe("Policies (e2e)", () => {
+describe("TAR API v3 - Policies (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let adminTestWallet: ethers.Wallet;
@@ -168,7 +168,7 @@ describe("Policies (e2e)", () => {
 
       expect(policiesResponse.status).toBe(200);
       const { policyId }: PolicyLink =
-        policiesResponse.body.items[policiesResponse.body.items.length - 1];
+        policiesResponse.body.items[policiesResponse.body.items.length - 1]!;
 
       const response: SupertestPolicyResponse = await request(server).get(
         `/policies/${encodeURIComponent(policyId)}`,
@@ -203,7 +203,7 @@ describe("Policies (e2e)", () => {
 
       expect(policiesResponse.status).toBe(200);
       const { policyId }: PolicyLink =
-        policiesResponse.body.items[policiesResponse.body.items.length - 1];
+        policiesResponse.body.items[policiesResponse.body.items.length - 1]!;
 
       const response: SupertestRevisionsResponse = await request(server).get(
         `/policies/${encodeURIComponent(policyId)}/revisions`,

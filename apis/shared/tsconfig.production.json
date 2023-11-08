@@ -3,7 +3,10 @@
   "compilerOptions": {
     "incremental": false,
     "removeComments": true,
-    "declaration": true
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true
   },
-  "exclude": ["node_modules", "dist", "tests", "src/**/*.spec.ts"]
+  "include": ["src/**/*"],
+  "exclude": ["src/**/*.spec.ts"]
 }

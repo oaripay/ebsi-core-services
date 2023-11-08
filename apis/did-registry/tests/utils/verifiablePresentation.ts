@@ -18,7 +18,7 @@ export async function createVP({
   ebsiAuthority: string;
   trustedHostnames?: string[];
 }): Promise<string> {
-  const clientDid = clientKid.split("#")[0];
+  const clientDid = clientKid.split("#")[0]!;
   const presentation: EbsiVerifiablePresentation = {
     "@context": ["https://www.w3.org/2018/credentials/v1"],
     type: ["VerifiablePresentation"],
@@ -40,7 +40,7 @@ export async function createVP({
   return createVerifiablePresentationJwt(presentation, issuer, audience, {
     ebsiAuthority,
     skipValidation: true,
-    trustedHostnames,
+    ...(trustedHostnames && { trustedHostnames }),
   });
 }
 

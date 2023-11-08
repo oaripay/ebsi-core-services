@@ -1,4 +1,4 @@
-import { describe, beforeAll, it, expect } from "vitest";
+import { describe, beforeAll, afterAll, it, expect } from "vitest";
 import request from "supertest";
 import { Test, type TestingModule } from "@nestjs/testing";
 import { Logger } from "@nestjs/common";
@@ -6,11 +6,14 @@ import { ConfigService } from "@nestjs/config";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 import { AppModule } from "../../src/app.module.js";
-import type { ApiConfig } from "../../src/config/configuration.js";
+import {
+  DEPENDENCIES,
+  type ApiConfig,
+} from "../../src/config/configuration.js";
 import { getServer } from "../utils/getServer.js";
 import { configureApp } from "../utils/app.js";
 
-describe("/authorisation/v4 (generic tests)", () => {
+describe("Authorisation API v4 - Generic tests (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let apiUrlPrefix = "";
@@ -25,6 +28,7 @@ describe("/authorisation/v4 (generic tests)", () => {
 
     app = await configureApp(moduleFixture, configService);
 
+    // Turn off logger
     Logger.overrideLogger(false);
 
     await app.init();
@@ -33,35 +37,60 @@ describe("/authorisation/v4 (generic tests)", () => {
     server = getServer(app, configService);
 
     const testEnv = configService.get<string>("testEnv");
+
     if (testEnv === "remote") {
       apiUrlPrefix = configService.get<string>("apiUrlPrefix");
     }
   });
 
-  describe("GET /health", () => {
-    it("should return ok", async () => {
+  afterAll(async () => {
+    await app.close();
+  });
+
+  describe("GET /", () => {
+    it("should return 'ok'", async () => {
       expect.assertions(2);
-      const response = await request(server).get(`/health`);
+      const response = await request(server).get("");
+      expect(response.text).toBe("ok");
+      expect(response.status).toBe(200);
+    });
+  });
+
+  describe("GET /health", () => {
+    it("should return 200 with status up", async () => {
+      expect.assertions(2);
+      const response = await request(server).get("/health");
+
+      // Expect all the dependencies to be up
+      const dependencies = Object.keys(
+        DEPENDENCIES,
+      ) as (keyof typeof DEPENDENCIES)[];
+      const expectedStatuses = dependencies
+        .map((dependency) => ({
+          [`${dependency}`]: { status: "up" },
+        }))
+        .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
 
       expect(response.body).toStrictEqual({
-        details: { "ebsi-apis": { status: "up" } },
+        details: expectedStatuses,
         error: {},
-        info: { "ebsi-apis": { status: "up" } },
+        info: expectedStatuses,
         status: "ok",
       });
       expect(response.status).toBe(200);
     });
   });
 
-  describe("GET /bad-method", () => {
-    it("should return error 404", async () => {
+  describe("GET /unknown-route", () => {
+    it("should return an error", async () => {
       expect.assertions(2);
-      const response = await request(server).get("/bad-method");
+
+      const response = await request(server).get("/unknown-route").send();
 
       expect(response.body).toStrictEqual({
-        title: "Not Found",
+        detail: `Cannot GET ${apiUrlPrefix}/unknown-route`,
         status: 404,
-        detail: `Cannot GET ${apiUrlPrefix}/bad-method`,
+        title: "Not Found",
         type: "about:blank",
       });
       expect(response.status).toBe(404);

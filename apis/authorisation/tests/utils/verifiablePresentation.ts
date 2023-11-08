@@ -42,7 +42,7 @@ export async function createVpJwt(
       ebsiAuthority,
       ebsiEnvConfig,
       skipValidation: true,
-      trustedHostnames,
+      ...(trustedHostnames && { trustedHostnames }),
     },
   );
 

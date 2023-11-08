@@ -12,6 +12,7 @@ import { VersionInterceptor } from "./interceptors/version.interceptor.js";
 import { OpenApiModule } from "./modules/openapi/openapi.module.js";
 import { AppService } from "./app.service.js";
 import { AuthModule } from "./modules/auth/auth.module.js";
+import { AppController } from "./app.controller.js";
 
 @Module({
   imports: [
@@ -24,7 +25,7 @@ import { AuthModule } from "./modules/auth/auth.module.js";
     HealthModule,
     OpenApiModule,
   ],
-  controllers: [],
+  controllers: [AppController],
   providers: [
     ConfigService,
     {

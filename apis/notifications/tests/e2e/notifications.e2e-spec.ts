@@ -21,7 +21,7 @@ import { requestSiopJwt } from "../utils/auth.js";
 import { describeWriteOps } from "../utils/describeWriteOps.js";
 import { getServer } from "../utils/getServer.js";
 
-describeWriteOps()("Notifications module (e2e)", () => {
+describeWriteOps()("Notifications API v2 - Notifications (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
 
@@ -116,7 +116,7 @@ describeWriteOps()("Notifications module (e2e)", () => {
     try {
       testUser1 = {
         ...configTestUser1,
-        did: configTestUser1.kid.split("#")[0],
+        did: configTestUser1.kid.split("#")[0]!,
         token: await requestSiopJwt({
           clientKid: configTestUser1.kid,
           clientPrivateKey: configTestUser1.privateKey,
@@ -137,7 +137,7 @@ describeWriteOps()("Notifications module (e2e)", () => {
     try {
       testUser2 = {
         ...configTestUser2,
-        did: configTestUser2.kid.split("#")[0],
+        did: configTestUser2.kid.split("#")[0]!,
         token: await requestSiopJwt({
           clientKid: configTestUser2.kid,
           clientPrivateKey: configTestUser2.privateKey,
@@ -301,7 +301,7 @@ describeWriteOps()("Notifications module (e2e)", () => {
       });
 
       const { next } = (response.body as { links: { next: string } }).links;
-      [nextPage] = next.split("page[after]=")[1].split("&");
+      nextPage = next.split("page[after]=")[1]!.split("&")[0]!;
 
       expect(response.status).toBe(200);
     });

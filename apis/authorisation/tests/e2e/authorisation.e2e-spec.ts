@@ -1,4 +1,4 @@
-import { describe, beforeAll, it, expect } from "vitest";
+import { describe, beforeAll, it, expect, afterAll } from "vitest";
 import crypto, { randomUUID } from "node:crypto";
 import type { JsonWebKey } from "node:crypto";
 import { URLSearchParams } from "node:url";
@@ -12,10 +12,10 @@ import {
   generateKeyPair,
   importJWK,
   jwtVerify,
-  JWTVerifyResult,
   SignJWT,
+  type JWTVerifyResult,
+  type JWK,
 } from "jose";
-import type { JWK } from "jose";
 import { KeyEncoder } from "@cef-ebsi/key-encoder";
 import { createJWT, decodeJWT, ES256KSigner } from "did-jwt";
 import { ConfigService } from "@nestjs/config";
@@ -42,7 +42,7 @@ function prefix0x(value: string): string {
   return value.startsWith("0x") ? value : `0x${value}`;
 }
 
-describe("Authorisation (e2e)", () => {
+describe("Authorisation API v2 (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let trustedAppsRegistry: string;
@@ -146,6 +146,10 @@ describe("Authorisation (e2e)", () => {
     };
   });
 
+  afterAll(async () => {
+    await app.close();
+  });
+
   describe("POST /authentication-requests", () => {
     it("should reject bad requests", async () => {
       expect.assertions(4);
@@ -196,7 +200,7 @@ describe("Authorisation (e2e)", () => {
 
       const queryRequest = query.get("request") || "";
 
-      let verification: JWTVerifyResult | null;
+      let verification: JWTVerifyResult | undefined;
 
       if (process.env.TEST_ENV !== "remote") {
         const { publicKeyObject } = await getPublicKey(
@@ -814,10 +818,10 @@ describe("Authorisation (e2e)", () => {
       const params = Object.fromEntries(urlParams);
 
       Object.keys(params).forEach((k) => {
-        params[k] = decodeURIComponent(params[k]);
+        params[k] = decodeURIComponent(params[k]!);
       });
 
-      const { payload } = await verifyJwtTar(params.request, {
+      const { payload } = await verifyJwtTar(params["request"]!, {
         trustedAppsRegistry,
       });
 
@@ -835,7 +839,7 @@ describe("Authorisation (e2e)", () => {
       const nonce = randomUUID();
       const authenticationResponse = await siopAgent.createResponse({
         nonce,
-        redirectUri: payload.client_id as string,
+        redirectUri: payload["client_id"] as string,
         claims: {
           encryption_key: publicEncryptionKeyJwk,
         },
@@ -899,7 +903,7 @@ describe("Authorisation (e2e)", () => {
               did,
               authorisationCredentialSchema,
               onboardingApiPrivateKey,
-              onboardingAllowlist[0], // must be did of onboarding api
+              onboardingAllowlist[0]!, // must be did of onboarding api
               domain,
             );
 
@@ -933,7 +937,7 @@ describe("Authorisation (e2e)", () => {
             redirectUri: "/siop-sessions",
             responseMode: "form_post",
             claims: {
-              encryption_key: { ...publicKeyEncryption },
+              encryption_key: { ...publicKeyEncryption } as JWK,
             },
             _vp_token: {
               presentation_submission: {
@@ -1056,7 +1060,7 @@ describe("Authorisation (e2e)", () => {
         redirectUri: "/siop-sessions",
         responseMode: "form_post",
         claims: {
-          encryption_key: { ...publicKeyEncryption },
+          encryption_key: { ...publicKeyEncryption } as JWK,
         },
         _vp_token: {
           presentation_submission: {

@@ -1,6 +1,6 @@
 import { randomBytes, randomUUID } from "node:crypto";
 import { URLSearchParams } from "node:url";
-import { describe, beforeAll, it, expect, beforeEach } from "vitest";
+import { describe, beforeAll, it, expect, beforeEach, afterAll } from "vitest";
 import request from "supertest";
 import { Test, type TestingModule } from "@nestjs/testing";
 import { Logger } from "@nestjs/common";
@@ -48,7 +48,7 @@ import {
 } from "../utils/data.js";
 import { CreateAccessTokenDto } from "../../src/modules/authorisation/dto/index.js";
 
-describe("Authorisation (e2e)", () => {
+describe("Authorisation API v3 (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let configService: ConfigService<ApiConfig, true>;
@@ -86,6 +86,10 @@ describe("Authorisation (e2e)", () => {
     const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
     authorisationApiV3Url = `${domain}${apiUrlPrefix}`;
     trustedHostnames = configService.get<string[]>("trustedHostnames");
+  });
+
+  afterAll(async () => {
+    await app.close();
   });
 
   describe("GET /.well-known/openid-configuration", () => {
@@ -155,7 +159,7 @@ describe("Authorisation (e2e)", () => {
       ).toBe("application/jwk-set+json; charset=utf-8");
       expect(response.status).toBe(200);
 
-      const jwk = (response.body as { keys: JWK[] }).keys[0];
+      const jwk = (response.body as { keys: JWK[] }).keys[0]!;
       const thumbprint = await calculateJwkThumbprint(jwk);
 
       expect(jwk.kid).toBe(thumbprint);
@@ -325,7 +329,7 @@ describe("Authorisation (e2e)", () => {
 
         issuer = {
           kid: issuerKid,
-          did: issuerKid.split("#")[0],
+          did: issuerKid.split("#")[0]!,
           publicKeyJwk,
           privateKeyJwk,
           alg: issuerAlg,
@@ -385,14 +389,14 @@ describe("Authorisation (e2e)", () => {
         presentationSubmission = createPresentationSubmission(customScope);
         // Reset to empty verifiable credential array before each test to allow each test to add its own verifiable credential
         vpPayload.verifiableCredential = [];
-        vpPayload.id = randomUUID(); // VP ID is used as JWT JTI.
+        vpPayload["id"] = randomUUID(); // VP ID is used as JWT JTI.
       });
 
       describe("vp_token validation", () => {
         beforeEach(() => {
           // Reset to empty verifiable credential array before each test to allow each test to add its own verifiable credential
           vpPayload.verifiableCredential = [];
-          vpPayload.id = randomUUID(); // VP ID is used as JWT JTI.
+          vpPayload["id"] = randomUUID(); // VP ID is used as JWT JTI.
         });
 
         it("should return an error the audience is not the service", async () => {
@@ -1190,7 +1194,9 @@ describe("Authorisation (e2e)", () => {
         expect(jwksResponse.status).toBe(200);
 
         const { keys } = jwksResponse.body as JsonWebKeySet;
-        const apiPublicKeyJwk = keys.find((key) => key.kid === accessTokenKid);
+        const apiPublicKeyJwk = keys.find(
+          (key) => key["kid"] === accessTokenKid,
+        );
 
         expect(apiPublicKeyJwk).toBeDefined();
 

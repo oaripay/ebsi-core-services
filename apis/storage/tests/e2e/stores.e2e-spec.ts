@@ -1,4 +1,4 @@
-import { describe, beforeAll, it, expect } from "vitest";
+import { describe, beforeAll, it, expect, afterAll } from "vitest";
 import request from "supertest";
 import { Test, type TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger } from "@nestjs/common";
@@ -15,7 +15,7 @@ import { fastifyAdapterConfig } from "../../src/config/server.config.js";
 import { getServer } from "../utils/getServer.js";
 import type { ApiConfig } from "../../src/config/configuration.js";
 
-describe("Stores (e2e)", () => {
+describe("Storage API v3 - Stores (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
 
@@ -41,6 +41,10 @@ describe("Stores (e2e)", () => {
     await app.getHttpAdapter().getInstance().ready();
 
     server = getServer(app, configService);
+  });
+
+  afterAll(async () => {
+    await app.close();
   });
 
   describe("GET /stores", () => {
