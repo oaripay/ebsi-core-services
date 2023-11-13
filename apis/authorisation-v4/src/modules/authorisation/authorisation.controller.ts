@@ -78,12 +78,13 @@ export class AuthorisationController {
   @Header("Cache-Control", "no-store")
   @Header("Pragma", "no-cache")
   createAccessToken(
-    @Headers("content-type") contentType: string,
+    @Headers("content-type") contentType: string | undefined,
     @Body() body: unknown, // Validate DTO within the service method so we can properly handle the error response
   ): Promise<TokenResponse> {
     // Only accept application/x-www-form-urlencoded
     // https://openid.net/specs/openid-connect-core-1_0.html#TokenRequest
     if (
+      !contentType ||
       !contentType.toLowerCase().includes("application/x-www-form-urlencoded")
     ) {
       throw new OAuth2TokenError("invalid_request", {

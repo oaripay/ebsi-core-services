@@ -1126,7 +1126,7 @@ describe("Authorisation Module", () => {
           },
         );
 
-        const response = await request(server)
+        let response = await request(server)
           .post("/token")
           .set("Content-Type", "application/json")
           .send({
@@ -1135,6 +1135,21 @@ describe("Authorisation Module", () => {
             vp_token: vpJwt,
             presentation_submission: presentationSubmission,
           });
+
+        expect(response.body).toStrictEqual({
+          error: "invalid_request",
+          error_description:
+            "Content-type must be application/x-www-form-urlencoded",
+        });
+        expect(response.status).toBe(400);
+        expect(
+          (response.headers as Record<string, unknown>)["content-type"],
+        ).toBe("application/json; charset=utf-8");
+
+        response = await request(server)
+          .post("/token")
+          .unset("Content-Type")
+          .send();
 
         expect(response.body).toStrictEqual({
           error: "invalid_request",

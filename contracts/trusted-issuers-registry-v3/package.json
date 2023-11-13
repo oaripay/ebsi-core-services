@@ -23,8 +23,7 @@
   "dependencies": {
     "@ebsiint-sc/bootstrap-v2": "^2.0.0-rc.0",
     "@ebsiint-sc/did-registry-v3": "^3.0.0-rc.0",
-    "@ebsiint-sc/trusted-policies-registry-v2": "^2.0.0-rc.0",
-    "@openzeppelin/hardhat-upgrades": "^1.28.0"
+    "@ebsiint-sc/trusted-policies-registry-v2": "^2.0.0-rc.0"
   },
   "devDependencies": {
     "@ethersproject/abi": "^5.7.0",
@@ -32,6 +31,7 @@
     "@nomiclabs/hardhat-ethers": "^2.2.3",
     "@nomiclabs/hardhat-solhint": "^3.0.1",
     "@nomiclabs/hardhat-waffle": "^2.0.6",
+    "@openzeppelin/hardhat-upgrades": "^1.28.0",
     "@typechain/ethers-v5": "^11.1.2",
     "@typechain/hardhat": "^9.1.0",
     "@types/chai": "^4.3.9",

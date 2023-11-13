@@ -133,11 +133,14 @@ export class FilesController {
   @Patch("/:hash")
   async patchFile(
     @Param() params: PatchFileParams,
-    @Headers("content-type") contentType: string,
+    @Headers("content-type") contentType: string | undefined,
     @Body(new ParseArrayPipe({ items: PatchFileBody })) patch: PatchFileBody[],
     @User() user: ClientInfo,
   ): Promise<FileMetadata> {
-    if (contentType !== "application/json-patch+json") {
+    if (
+      !contentType ||
+      !contentType.toLowerCase().includes("application/json-patch+json")
+    ) {
       throw new BadRequestError(BadRequestError.defaultTitle, {
         detail:
           "The request's Content-Type must be 'application/json-patch+json'",
