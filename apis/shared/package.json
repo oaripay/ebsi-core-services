@@ -50,7 +50,6 @@
     "@types/lodash.clonedeep": "^4.5.8",
     "@types/node": "^20.8.9",
     "@vitest/coverage-v8": "^0.34.6",
-    "eslint-plugin-vitest": "^0.3.8",
     "msw": "^2.0.2",
     "ts-node": "^10.9.1",
     "typescript": "5.2.2",

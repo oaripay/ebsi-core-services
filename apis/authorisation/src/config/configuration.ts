@@ -60,7 +60,7 @@ export const loadConfig = (): ApiConfig => {
     trustedAppsRegistry: `${DOMAIN}${TAR_PATH}/apps`,
     trustedIssuersRegistry: `${DOMAIN}${TIR_PATH}/issuers`,
     didRegistry: `${DOMAIN}${DIDR_PATH}/identifiers`,
-    authorisationCredentialSchema: `${DOMAIN}${TSR_PATH}/schemas${process.env.AUTHORISATION_CREDENTIAL_SCHEMA}`,
+    authorisationCredentialSchema: `${DOMAIN}${TSR_PATH}/schemas/${process.env.AUTHORISATION_CREDENTIAL_SCHEMA}`,
     logLevel: process.env.LOG_LEVEL || "warn",
     domain: DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
