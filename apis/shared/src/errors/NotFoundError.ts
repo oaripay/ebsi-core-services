@@ -23,7 +23,7 @@ export class NotFoundError extends ProblemDetailsError {
       type?: string;
       detail?: string;
       instance?: string;
-      extensions?: { [x: string]: unknown };
+      extensions?: Record<string, unknown>;
     },
   ) {
     super(NotFoundError.statusCode, title, options);

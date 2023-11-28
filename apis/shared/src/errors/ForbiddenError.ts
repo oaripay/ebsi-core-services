@@ -23,7 +23,7 @@ export class ForbiddenError extends ProblemDetailsError {
       type?: string;
       detail?: string;
       instance?: string;
-      extensions?: { [x: string]: unknown };
+      extensions?: Record<string, unknown>;
     },
   ) {
     super(ForbiddenError.statusCode, title, options);

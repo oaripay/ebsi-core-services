@@ -23,7 +23,7 @@ export class UnauthorizedError extends ProblemDetailsError {
       type?: string;
       detail?: string;
       instance?: string;
-      extensions?: { [x: string]: unknown };
+      extensions?: Record<string, unknown>;
     },
   ) {
     super(UnauthorizedError.statusCode, title, options);

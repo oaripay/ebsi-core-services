@@ -60,7 +60,7 @@ interface DidDocumentDataset {
   canonicalizedDidDocumentHash: string;
   controllerDid: string;
   timestampDataBuffer: Buffer;
-  didVersionMetadata: { [x: string]: unknown };
+  didVersionMetadata: Record<string, unknown>;
   didVersionMetadataBuffer: Buffer;
 }
 
@@ -551,7 +551,7 @@ describe("DID Registry API v3 (e2e)", () => {
       const response = await request(server).get("/identifiers");
 
       const total =
-        ((response.body as { [x: string]: unknown })?.["total"] as number) ?? 0;
+        ((response.body as Record<string, unknown>)?.["total"] as number) ?? 0;
 
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
@@ -909,7 +909,7 @@ describe("DID Registry API v3 (e2e)", () => {
         }),
       );
       expect(
-        (response.body as { [x: string]: unknown })["@context"],
+        (response.body as Record<string, unknown>)["@context"],
       ).toBeUndefined();
       expect(response.status).toBe(200);
       expect(

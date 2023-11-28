@@ -37,11 +37,11 @@ interface SupertestJsonRpcResponse {
 
 type JsonRpcParams = InsertHashAlgorithmParam | UpdateHashAlgorithmParam;
 
-type TestUser = {
+interface TestUser {
   info: EbsiIssuer;
   token: string;
   wallet: ethers.Wallet;
-};
+}
 
 const newHashAlgorithm = {
   ianaName: `test-${Date.now()}`,

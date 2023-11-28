@@ -47,7 +47,7 @@ export class JsonRpcService {
 
   private tarContract: Tar;
 
-  private chainId: string = "";
+  private chainId = "";
 
   private didRegistry: string;
 

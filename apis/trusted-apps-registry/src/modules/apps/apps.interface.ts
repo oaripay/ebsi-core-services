@@ -66,9 +66,7 @@ export interface AppResponseObject {
   domain: string;
   administrators: string[];
   publicKeys: string[];
-  info: {
-    [x: string]: unknown;
-  };
+  info: Record<string, unknown>;
   authorizations: AuthorizationResponseObject[];
   revocation: AppRevocationInfo;
 }

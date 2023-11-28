@@ -47,7 +47,7 @@ const ALGORITHMS_EXP = 30 * 60 * 1000; // 30 minutes
 export class JsonRpcService {
   private readonly logger = new Logger(JsonRpcService.name);
 
-  private chainId: string = "";
+  private chainId = "";
 
   private contractAddress: string;
 

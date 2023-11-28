@@ -19,7 +19,7 @@ export interface Field extends FieldV2 {
 }
 
 export interface Constraints extends ConstraintsV2 {
-  fields?: Array<Field>;
+  fields?: Field[];
 }
 
 export interface InputDescriptor extends InputDescriptorV2 {
@@ -27,5 +27,5 @@ export interface InputDescriptor extends InputDescriptorV2 {
 }
 
 export interface PresentationDefinition extends PresentationDefinitionV2 {
-  input_descriptors: Array<InputDescriptor>;
+  input_descriptors: InputDescriptor[];
 }

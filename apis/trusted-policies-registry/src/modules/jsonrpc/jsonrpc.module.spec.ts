@@ -80,9 +80,9 @@ describe("JsonRpc Module", () => {
   let ledgerService: LedgerService;
   let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
   let userAccessToken: string;
-  let userAccessTokenPayload: { [x: string]: unknown };
+  let userAccessTokenPayload: Record<string, unknown>;
   let defaultSignerSiopAccessToken: string;
-  let defaultSignerSiopAccessTokenPayload: { [x: string]: unknown };
+  let defaultSignerSiopAccessTokenPayload: Record<string, unknown>;
 
   const policy1 = createPolicy(1, "my-policy1");
   const policy2 = createPolicy(1, "my-policy1");

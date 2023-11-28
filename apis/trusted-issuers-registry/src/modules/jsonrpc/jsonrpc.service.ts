@@ -32,7 +32,7 @@ import { RequestUpdateIssuerProxyDto } from "./dto/updateIssuerProxy/index.js";
 export class JsonRpcService {
   private readonly logger = new Logger(JsonRpcService.name);
 
-  private chainId: string = "";
+  private chainId = "";
 
   private didRegistry: string;
 

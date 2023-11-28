@@ -185,7 +185,7 @@ export default class AppsService {
         const infoStr = Buffer.from(remove0xPrefix(infoBytes), "hex").toString(
           "utf8",
         );
-        info = JSON.parse(infoStr) as { [x: string]: unknown };
+        info = JSON.parse(infoStr) as Record<string, unknown>;
       }
       const authorizationItems = await this.getAllAuthorizations(applicationId);
       const authorizations = await Promise.all(

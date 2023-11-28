@@ -86,8 +86,7 @@ export function setupInterceptors(
         config.url = remoteUrl;
 
         // Add custom header to avoid replacing the URL again
-        (config.headers as { [x: string]: unknown })["EBSI-REMOTE-API"] =
-          "true";
+        (config.headers as Record<string, unknown>)["EBSI-REMOTE-API"] = "true";
 
         // Retry request
         return axios.request(config);

@@ -393,7 +393,7 @@ describe(
 
         expect(response.body).toStrictEqual(didDocWithoutContext);
         expect(
-          (response.body as { [x: string]: unknown })["@context"],
+          (response.body as Record<string, unknown>)["@context"],
         ).toBeUndefined();
         expect(response.status).toBe(200);
         expect(
@@ -693,7 +693,7 @@ describe(
 
         expect(response.body).toStrictEqual(didDocWithoutContext);
         expect(
-          (response.body as { [x: string]: unknown })["@context"],
+          (response.body as Record<string, unknown>)["@context"],
         ).toBeUndefined();
         expect(response.status).toBe(200);
         expect(

@@ -369,7 +369,7 @@ describe("TAR API v4 - Apps (e2e)", () => {
         domain: expect.any(String),
         administrators: expect.arrayContaining([]),
         authorizations: expect.arrayContaining([]),
-        info: expect.any(Object) as { [x: string]: unknown },
+        info: expect.any(Object) as Record<string, unknown>,
         publicKeys: expect.arrayContaining([]),
         revocation: expect.any(Object),
       });
@@ -779,7 +779,7 @@ describe("TAR API v4 - Apps (e2e)", () => {
             domain: expect.any(String),
             administrators: expect.arrayContaining([]),
             authorizations: expect.arrayContaining([]),
-            info: expect.any(Object) as { [x: string]: unknown },
+            info: expect.any(Object) as Record<string, unknown>,
             publicKeys: expect.arrayContaining([]),
             revocation: {
               revokedBy: didAppAdmin,

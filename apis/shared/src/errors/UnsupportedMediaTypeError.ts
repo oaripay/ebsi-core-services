@@ -23,7 +23,7 @@ export class UnsupportedMediaTypeError extends ProblemDetailsError {
       type?: string;
       detail?: string;
       instance?: string;
-      extensions?: { [x: string]: unknown };
+      extensions?: Record<string, unknown>;
     },
   ) {
     super(UnsupportedMediaTypeError.statusCode, title, options);

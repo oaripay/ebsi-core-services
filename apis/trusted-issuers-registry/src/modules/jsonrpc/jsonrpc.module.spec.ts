@@ -99,9 +99,9 @@ describe("JsonRpc Module", () => {
   let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
   let ledgerService: LedgerService;
   let userAccessToken: string;
-  let userAccessTokenPayload: { [x: string]: unknown };
+  let userAccessTokenPayload: Record<string, unknown>;
   let defaultSignerSiopAccessToken: string;
-  let defaultSignerSiopAccessTokenPayload: { [x: string]: unknown };
+  let defaultSignerSiopAccessTokenPayload: Record<string, unknown>;
 
   const createIssuer = () => {
     const did = EbsiWallet.createDid();

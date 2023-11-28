@@ -61,12 +61,12 @@ interface SupertestJsonRpcResponse {
   body: JsonRpcResponseObject;
 }
 
-type TestUser = {
+interface TestUser {
   info: EbsiIssuer;
   token: string;
   wallet: ethers.Wallet;
   thumbprint: string;
-};
+}
 
 describeWriteOps()("DID Registry API v5 - JSON-RPC (e2e)", () => {
   let app: NestFastifyApplication;

@@ -32,9 +32,7 @@ export interface PolicyObject {
 
 export interface UserObject {
   address: string;
-  attributes: {
-    [x: string]: string;
-  };
+  attributes: Record<string, string>;
 }
 
 export async function insertPolicy(

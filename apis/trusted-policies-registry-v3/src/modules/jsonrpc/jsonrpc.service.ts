@@ -38,7 +38,7 @@ import type { ApiConfig } from "../../config/configuration.js";
 export class JsonRpcService {
   private readonly logger = new Logger(JsonRpcService.name);
 
-  private chainId: string = "";
+  private chainId = "";
 
   private didRegistry: string;
 

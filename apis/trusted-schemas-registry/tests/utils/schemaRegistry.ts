@@ -216,7 +216,7 @@ export async function setupTestEnv(
   schemaRevisions: SchemaObject[];
   schemaMetadata: SchemaMetadataObject[];
   policies: PolicyObject[];
-  policyRevisions: { [x: string]: PolicyObject[] };
+  policyRevisions: Record<string, PolicyObject[]>;
 }> {
   const ethersProvider = hre.ethers.provider;
 

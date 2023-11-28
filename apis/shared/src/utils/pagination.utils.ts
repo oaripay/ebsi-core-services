@@ -1,11 +1,11 @@
 import { PaginatedList, PaginatedList2 } from "../interfaces/index.js";
 
-type PaginationLinks = {
+interface PaginationLinks {
   firstPage: number;
   prevPage: number;
   nextPage: number;
   lastPage: number;
-};
+}
 
 export function compute1BasedPaginationLinks(
   total: number,

@@ -23,9 +23,7 @@ interface AppObject {
   publicKey: string;
   status: number;
   applicationId: string;
-  info: {
-    [x: string]: unknown;
-  };
+  info: Record<string, unknown>;
 }
 
 interface AuthorizationObject {
@@ -186,25 +184,28 @@ export async function setupTestEnv(
 
   const authorizations: [AuthorizationObject, AuthorizationObject][][] = [];
 
-  /* eslint-disable no-await-in-loop */
-  for (let i = 0; i < apps.length; i += 1) {
+  // eslint-disable-next-line no-restricted-syntax
+  for (const appA of apps) {
     const authsApp: [AuthorizationObject, AuthorizationObject][] = [];
-    for (let j = 0; j < apps.length; j += 1) {
+
+    // eslint-disable-next-line no-restricted-syntax
+    for (const appB of apps) {
+      // eslint-disable-next-line no-await-in-loop
       const auth1 = await insertAuthorization(
         tarContract,
-        apps[i]!.name,
-        apps[j]!.name,
+        appA.name,
+        appB.name,
       );
+      // eslint-disable-next-line no-await-in-loop
       const auth2 = await insertAuthorization(
         tarContract,
-        apps[i]!.name,
-        apps[j]!.name,
+        appA.name,
+        appB.name,
       );
       authsApp.push([auth1, auth2]);
     }
     authorizations.push(authsApp);
   }
-  /* eslint-enable no-await-in-loop */
 
   // Return test env variables
   return {

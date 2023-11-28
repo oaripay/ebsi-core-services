@@ -27,8 +27,6 @@ export class AppService implements OnApplicationBootstrap {
     const axiosRetryDelay = configService.get<number>("axiosRetryDelay");
     this.axiosClient = axios.create();
 
-    // Ignore axios-retry error due to poorly exported types
-    // @ts-expect-error "Argument of type 'AxiosInstance' is not assignable to parameter of type 'AxiosStatic | AxiosInstance'."
     axiosRetry(this.axiosClient, {
       retries: 30, // Retry 30 times (with a delay of 10s -> ~5 minutes)
       retryDelay: () => axiosRetryDelay, // Default: every 10 seconds

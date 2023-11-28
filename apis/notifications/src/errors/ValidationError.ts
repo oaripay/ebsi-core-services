@@ -9,9 +9,9 @@ import { ValidationError as ValidationPipeError } from "@nestjs/common";
  * of the incoming requests.
  */
 
-type InvalidParams = {
+interface InvalidParams {
   [x: string]: string[] | InvalidParams[];
-};
+}
 
 function getConstraints(errors: ValidationPipeError[]): InvalidParams {
   return errors.reduce((invalidParams: InvalidParams, error) => {

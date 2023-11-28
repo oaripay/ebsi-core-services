@@ -17,7 +17,7 @@ export function isHexadecimalJsonLdDidDocument(value: unknown): boolean {
         value.startsWith("0x") ? value.substr(2) : value,
         "hex",
       ).toString("utf8"),
-    ) as { [x: string]: unknown };
+    ) as Record<string, unknown>;
 
     // JSON-LD DID document MUST be a valid DID document
     if (!didDocument || !isDidDocument(didDocument)) return false;

@@ -132,7 +132,7 @@ export const createDidDocument = (did: string): DIDDocument => {
  *
  * @returns A random metadata object
  */
-export const createMetadata = (): { [x: string]: unknown } => ({
+export const createMetadata = (): Record<string, unknown> => ({
   meta: crypto.randomBytes(32).toString("hex"),
 });
 

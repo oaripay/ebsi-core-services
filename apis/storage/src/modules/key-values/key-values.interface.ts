@@ -1,3 +1,1 @@
-export interface PutKeyValuesResponseObject {
-  [x: string]: string;
-}
+export type PutKeyValuesResponseObject = Record<string, string>;

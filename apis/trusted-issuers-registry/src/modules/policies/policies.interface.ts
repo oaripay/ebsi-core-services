@@ -9,11 +9,11 @@ export interface PolicyLink {
   href: string;
 }
 
-export type PolicyRevisions = {
+export interface PolicyRevisions {
   items: {
     policyId: string;
     policy: string;
     hash: string;
   }[];
   total: number;
-};
+}

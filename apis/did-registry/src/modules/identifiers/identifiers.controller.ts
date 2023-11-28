@@ -65,7 +65,7 @@ export default class IdentifiersController {
     @Param() params: GetIdentifierParamsDto,
     @Headers("Accept") accept: string,
     @Res() res: FastifyReply,
-  ): Promise<{ [x: string]: unknown }> {
+  ): Promise<Record<string, unknown>> {
     const { did } = params;
 
     const identifier = await this.identifiersService.getIdentifier(did);
@@ -110,7 +110,7 @@ export default class IdentifiersController {
     @Param() params: GetIdentifierVersionParamsDto,
     @Headers("Accept") accept: string,
     @Res() res: FastifyReply,
-  ): Promise<{ [x: string]: unknown }> {
+  ): Promise<Record<string, unknown>> {
     const { did, versionId } = params;
 
     const identifierVersion =
@@ -155,7 +155,7 @@ export default class IdentifiersController {
   @Header("Content-Type", "application/json")
   async getIdentifierVersionMetadata(
     @Param() params: GetIdentifierVersionMetadataParamsDto,
-  ): Promise<{ [x: string]: unknown }> {
+  ): Promise<Record<string, unknown>> {
     const { did, versionId, metadataId } = params;
     return this.identifiersService.getIdentifierVersionMetadata(
       did,

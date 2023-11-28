@@ -23,7 +23,7 @@ export class RangeNotSatisfiableError extends ProblemDetailsError {
       type?: string;
       detail?: string;
       instance?: string;
-      extensions?: { [x: string]: unknown };
+      extensions?: Record<string, unknown>;
     },
   ) {
     super(RangeNotSatisfiableError.statusCode, title, options);

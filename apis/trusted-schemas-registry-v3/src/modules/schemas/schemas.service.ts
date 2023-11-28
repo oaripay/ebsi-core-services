@@ -139,7 +139,7 @@ export class SchemasService {
           try {
             const decodedMetadata = JSON.parse(
               Buffer.from(remove0xPrefix(metadata), "hex").toString("utf-8"),
-            ) as { [x: string]: unknown };
+            ) as Record<string, unknown>;
 
             const validAtDate = new Date(validAt);
 

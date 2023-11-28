@@ -22,14 +22,14 @@ export default class IdentifiersService {
 
   // compatibility - legacy API v3
 
-  async getDidDocumentV3(did: string): Promise<{ [x: string]: unknown }> {
+  async getDidDocumentV3(did: string): Promise<Record<string, unknown>> {
     const hexDid = `0x${Buffer.from(did).toString("hex")}`;
     const latestDidDoc = await (
       await this.ledgerService.getContractV1()
     ).getLatestDidDocumentVersion(hexDid);
     return JSON.parse(
       Buffer.from(remove0xPrefix(latestDidDoc), "hex").toString(),
-    ) as { [x: string]: unknown };
+    ) as Record<string, unknown>;
   }
 
   // API v4
@@ -127,7 +127,7 @@ export default class IdentifiersService {
   async getDidDocument(
     did: string,
     validAt?: string,
-  ): Promise<{ [x: string]: unknown }> {
+  ): Promise<Record<string, unknown>> {
     const contract = await this.ledgerService.getContract();
     let document: Awaited<ReturnType<typeof contract.getDidDocument>>;
 
@@ -149,11 +149,12 @@ export default class IdentifiersService {
         }
       }
 
-      let baseDocument: { [x: string]: unknown };
+      let baseDocument: Record<string, unknown>;
       try {
-        baseDocument = JSON.parse(document.baseDocument) as {
-          [x: string]: unknown;
-        };
+        baseDocument = JSON.parse(document.baseDocument) as Record<
+          string,
+          unknown
+        >;
       } catch (error) {
         throw new BadRequestError(BadRequestError.defaultTitle, {
           detail: `Identifier ${did} contains an invalid base document. ${
@@ -162,7 +163,7 @@ export default class IdentifiersService {
         });
       }
 
-      let verificationMethod: { [x: string]: unknown }[];
+      let verificationMethod: Record<string, unknown>[];
       try {
         verificationMethod = document.vMethods.map((vMethod, i) => ({
           id: `${did}#${document.vMethodIds[i]}`,
@@ -185,7 +186,7 @@ export default class IdentifiersService {
         });
       }
 
-      const verificationRelationships: { [x: string]: string[] } = {};
+      const verificationRelationships: Record<string, string[]> = {};
       document.vRelationships.forEach((vRelationship) => {
         if (!verificationRelationships[vRelationship.name]) {
           verificationRelationships[vRelationship.name] = [];
@@ -201,7 +202,7 @@ export default class IdentifiersService {
         controller: document.controllers,
         verificationMethod,
         ...verificationRelationships,
-      } as { [x: string]: unknown };
+      } as Record<string, unknown>;
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error);

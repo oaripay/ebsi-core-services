@@ -55,7 +55,7 @@ describe("Notifications module", () => {
   let modifyResponse: CassandraResponse;
   let configService: ConfigService<ApiConfig, true>;
 
-  function cassandraResponse(rows: unknown[], pageState: string = "") {
+  function cassandraResponse(rows: unknown[], pageState = "") {
     return {
       info: { isSchemaInAgreement: true },
       first: () => rows[0],

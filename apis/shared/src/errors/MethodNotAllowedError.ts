@@ -23,7 +23,7 @@ export class MethodNotAllowedError extends ProblemDetailsError {
       type?: string;
       detail?: string;
       instance?: string;
-      extensions?: { [x: string]: unknown };
+      extensions?: Record<string, unknown>;
     },
   ) {
     super(MethodNotAllowedError.statusCode, title, options);

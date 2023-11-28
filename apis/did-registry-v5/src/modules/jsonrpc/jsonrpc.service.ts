@@ -376,9 +376,10 @@ export class JsonRpcService {
 
       let baseDocument: { [x: string]: unknown; service?: unknown[] };
       try {
-        baseDocument = JSON.parse(didDocument.baseDocument) as {
-          [x: string]: unknown;
-        };
+        baseDocument = JSON.parse(didDocument.baseDocument) as Record<
+          string,
+          unknown
+        >;
       } catch (error) {
         throw new InvalidRequestJsonRpcError(
           `Identifier ${did} contains an invalid base document. ${
@@ -428,9 +429,10 @@ export class JsonRpcService {
 
       let baseDocument: { [x: string]: unknown; service?: { id: string }[] };
       try {
-        baseDocument = JSON.parse(didDocument.baseDocument) as {
-          [x: string]: unknown;
-        };
+        baseDocument = JSON.parse(didDocument.baseDocument) as Record<
+          string,
+          unknown
+        >;
       } catch (error) {
         throw new InvalidRequestJsonRpcError(
           `Identifier ${did} contains an invalid base document. ${

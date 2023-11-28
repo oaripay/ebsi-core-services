@@ -1,6 +1,6 @@
 export interface UserResponseObject {
   address: string;
-  attributes: { [x: string]: string };
+  attributes: Record<string, string>;
 }
 
 export interface UserLink {

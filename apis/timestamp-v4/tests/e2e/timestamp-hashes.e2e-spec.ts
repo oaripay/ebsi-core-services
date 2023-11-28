@@ -44,11 +44,11 @@ type JsonRpcParams =
   | UpdateHashAlgorithmParam
   | TimestampHashesParam;
 
-type TestUser = {
+interface TestUser {
   info: EbsiIssuer;
   token: string;
   wallet: ethers.Wallet;
-};
+}
 
 const multihashToNodeHashAlg = {
   "sha2-256": "sha256",

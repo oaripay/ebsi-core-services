@@ -23,7 +23,7 @@ export class PayloadTooLargeError extends ProblemDetailsError {
       type?: string;
       detail?: string;
       instance?: string;
-      extensions?: { [x: string]: unknown };
+      extensions?: Record<string, unknown>;
     },
   ) {
     super(PayloadTooLargeError.statusCode, title, options);

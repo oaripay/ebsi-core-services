@@ -56,7 +56,7 @@ export class JsonRpcService {
 
   private didRegistry: string;
 
-  private chainId: string = "";
+  private chainId = "";
 
   private contractAddress: string;
 

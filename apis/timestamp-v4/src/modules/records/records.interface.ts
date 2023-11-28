@@ -16,9 +16,7 @@ export interface VersionLink {
   href: string;
 }
 
-export interface InfoObject {
-  [x: string]: unknown;
-}
+export type InfoObject = Record<string, unknown>;
 
 export interface RecordVersionResponseObject {
   hashes: string[];

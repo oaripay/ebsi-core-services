@@ -29,9 +29,7 @@ declare global {
   // node_modules/hardhat/src/types/config.ts:273:11 - error TS2503: Cannot find namespace 'Mocha'.
   // https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/mocha/index.d.ts#L2276
   namespace Mocha {
-    interface MochaOptions {
-      [x: string]: unknown;
-    }
+    type MochaOptions = Record<string, unknown>;
   }
 }
 

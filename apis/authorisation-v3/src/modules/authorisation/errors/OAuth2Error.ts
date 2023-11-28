@@ -15,11 +15,11 @@ export type OAuth2ErrorCode =
    */
   | "server_error";
 
-export type OAuth2ErrorOptions = {
+export interface OAuth2ErrorOptions {
   errorDescription?: string;
   errorUri?: string;
   statusCode?: number;
-};
+}
 
 export class OAuth2Error<T extends string = OAuth2ErrorCode> extends Error {
   // HTTP status code (default: 400)

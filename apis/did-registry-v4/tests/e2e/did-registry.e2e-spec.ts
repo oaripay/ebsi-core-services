@@ -81,7 +81,7 @@ describe("DID Registry API v4 (e2e)", () => {
       const response = await request(server).get("/identifiers");
 
       const total =
-        ((response.body as { [x: string]: unknown })?.["total"] as number) ?? 0;
+        ((response.body as Record<string, unknown>)?.["total"] as number) ?? 0;
 
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
@@ -128,10 +128,12 @@ describe("DID Registry API v4 (e2e)", () => {
       let did = "";
       let vMethodId = "";
       let vRelationship = "";
-      /* eslint-disable no-await-in-loop */
-      for (let i = 0; i < lastIdentifiers.length; i += 1) {
+
+      // eslint-disable-next-line no-restricted-syntax
+      for (const identifier of lastIdentifiers) {
+        // eslint-disable-next-line no-await-in-loop
         const resp = await request(server).get(
-          `/identifiers/${lastIdentifiers[i]!.did}`,
+          `/identifiers/${identifier.did}`,
         );
         const didDocument = resp.body as DIDDocument;
         const vr = (
@@ -147,13 +149,12 @@ describe("DID Registry API v4 (e2e)", () => {
         });
 
         if (vr) {
-          did = lastIdentifiers[i]!.did;
+          did = identifier.did;
           vRelationship = vr;
           vMethodId = (didDocument[vr] as string[])[0]!.split("#")[1]!;
           break;
         }
       }
-      /* eslint-enable no-await-in-loop */
 
       /**
        * Call /identifiers and specify the verification relationship
@@ -163,7 +164,7 @@ describe("DID Registry API v4 (e2e)", () => {
       const response = await request(server).get(`/identifiers?${extraQuery}`);
 
       const total =
-        ((response.body as { [x: string]: unknown })?.["total"] as number) ?? 0;
+        ((response.body as Record<string, unknown>)?.["total"] as number) ?? 0;
 
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(

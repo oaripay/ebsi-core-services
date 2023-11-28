@@ -66,11 +66,11 @@ const multihashToNodeHashAlg = {
   "sha3-512": "sha3-512",
 } as const;
 
-type TestUser = {
+interface TestUser {
   info: EbsiIssuer;
   token: string;
   wallet: ethers.Wallet;
-};
+}
 
 describe("Timestamp API v4 - Records (e2e)", () => {
   let app: NestFastifyApplication;

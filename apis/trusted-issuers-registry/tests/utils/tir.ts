@@ -171,7 +171,7 @@ export async function setupTestEnv(
   policyContractMock: Contract;
   didContractMock: Contract;
   policies: PolicyObject[];
-  policyRevisions: { [x: string]: PolicyObject[] };
+  policyRevisions: Record<string, PolicyObject[]>;
   issuers: IssuerObject[];
 }> {
   const ethersProvider = hre.ethers.provider;

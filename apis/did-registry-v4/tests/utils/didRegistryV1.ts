@@ -16,14 +16,14 @@ import { createDid, createDidDocument, createMetadata } from "./dataV1.js";
 interface DidDocument {
   did: string;
   identifier: string;
-  didDocument: { [x: string]: unknown };
+  didDocument: Record<string, unknown>;
   didDocumentBuffer: Buffer;
   canonicalizedDidDocument: string;
   canonicalizedDidDocumentBuffer: Buffer;
   canonicalizedDidDocumentHash: string;
   controller: ethers.Wallet;
   timestampDataBuffer: Buffer;
-  didVersionMetadata: { [x: string]: unknown };
+  didVersionMetadata: Record<string, unknown>;
   didVersionMetadataBuffer: Buffer;
 }
 

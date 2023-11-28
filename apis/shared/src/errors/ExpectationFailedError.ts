@@ -23,7 +23,7 @@ export class ExpectationFailedError extends ProblemDetailsError {
       type?: string;
       detail?: string;
       instance?: string;
-      extensions?: { [x: string]: unknown };
+      extensions?: Record<string, unknown>;
     },
   ) {
     super(ExpectationFailedError.statusCode, title, options);

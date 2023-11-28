@@ -65,7 +65,7 @@ export default class IdentifiersController {
     @Query() query: GetIdentifierQueryDto,
     @Headers("Accept") accept: string,
     @Res() res: FastifyReply,
-  ): Promise<{ [x: string]: unknown }> {
+  ): Promise<Record<string, unknown>> {
     const { did } = params;
 
     const didDocument = await this.identifiersService.getDidDocument(

@@ -8,7 +8,7 @@ export class JsonRpcDto {
   method!: string;
 
   @IsArray()
-  params!: Array<unknown>;
+  params!: unknown[];
 
   @IsOptional()
   id?: number | string;

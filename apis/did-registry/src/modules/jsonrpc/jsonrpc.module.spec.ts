@@ -97,7 +97,7 @@ type JsonRpcParams =
   | DetachDidDocumentVersionMetadataParam;
 
 interface DidDocumentDataset {
-  didDocument: { [x: string]: unknown };
+  didDocument: Record<string, unknown>;
   didDocumentBuffer: Buffer;
   canonicalizedDidDocument: string;
   canonicalizedDidDocumentHash: string;

@@ -1,9 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 
 // Map JWT with its "exp" field
-interface JwtCache {
-  [x: string]: number;
-}
+type JwtCache = Record<string, number>;
 
 // Clean up cache every 5 minutes
 const JWT_CACHE_CLEANUP_INTERVAL = 5 * 60;

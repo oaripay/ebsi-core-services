@@ -23,7 +23,7 @@ export class PreconditionRequiredError extends ProblemDetailsError {
       type?: string;
       detail?: string;
       instance?: string;
-      extensions?: { [x: string]: unknown };
+      extensions?: Record<string, unknown>;
     },
   ) {
     super(PreconditionRequiredError.statusCode, title, options);

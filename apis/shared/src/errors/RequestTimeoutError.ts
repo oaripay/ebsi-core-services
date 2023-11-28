@@ -23,7 +23,7 @@ export class RequestTimeoutError extends ProblemDetailsError {
       type?: string;
       detail?: string;
       instance?: string;
-      extensions?: { [x: string]: unknown };
+      extensions?: Record<string, unknown>;
     },
   ) {
     super(RequestTimeoutError.statusCode, title, options);

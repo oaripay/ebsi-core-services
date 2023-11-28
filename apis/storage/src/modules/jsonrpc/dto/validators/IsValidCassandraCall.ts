@@ -19,7 +19,7 @@ const allowedQueries = [
 
 export function isValidCassandraCall(value: unknown): boolean {
   if (!Array.isArray(value)) return false;
-  const array = value as Array<string | number | QueryOptions>;
+  const array = value as (string | number | QueryOptions)[];
   if (array.length === 0) return false;
   if (typeof array[0] !== "string") return false;
   const query = array[0].trim().toLowerCase();

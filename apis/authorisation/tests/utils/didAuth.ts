@@ -58,7 +58,7 @@ export async function createAuthenticationResponseJose(input: {
   privateKeyJwk: JWK;
   publicKeyJwk?: JWK;
   publicKeyEncryptionJwk?: JWK;
-  payload?: { [x: string]: unknown };
+  payload?: Record<string, unknown>;
 }): Promise<string> {
   const { alg, keyId, nonce, redirectUri, privateKeyJwk, publicKeyJwk } = input;
   const [did] = keyId.split("#");

@@ -53,14 +53,14 @@ export default class IdentifiersService {
 
   private async retrieveIdentifier(
     hexIdentifier: string,
-  ): Promise<{ [x: string]: unknown }> {
+  ): Promise<Record<string, unknown>> {
     try {
       const latesteDidDoc = await (
         await this.ledgerService.getContract()
       ).getLatestDidDocumentVersion(hexIdentifier);
       return JSON.parse(
         Buffer.from(remove0xPrefix(latesteDidDoc), "hex").toString(),
-      ) as { [x: string]: unknown };
+      ) as Record<string, unknown>;
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error);
@@ -71,7 +71,7 @@ export default class IdentifiersService {
     }
   }
 
-  async getIdentifier(did: string): Promise<{ [x: string]: unknown }> {
+  async getIdentifier(did: string): Promise<Record<string, unknown>> {
     try {
       const hexDid = `0x${Buffer.from(did).toString("hex")}`;
       return await this.retrieveIdentifier(hexDid);
@@ -131,7 +131,7 @@ export default class IdentifiersService {
   async getIdentifierVersion(
     did: string,
     versionId: string,
-  ): Promise<{ [x: string]: unknown }> {
+  ): Promise<Record<string, unknown>> {
     // Make sure the DID exists
     await this.getIdentifier(did);
 
@@ -141,7 +141,7 @@ export default class IdentifiersService {
       ).getDidDocumentVersionInfo(versionId);
       return JSON.parse(
         Buffer.from(remove0xPrefix(versionInfo), "hex").toString(),
-      ) as { [x: string]: unknown };
+      ) as Record<string, unknown>;
     } catch (e) {
       if (isEthersError(e)) {
         this.logger.error(e);
@@ -180,7 +180,7 @@ export default class IdentifiersService {
     did: string,
     versionId: string,
     metadataId: string,
-  ): Promise<{ [x: string]: unknown }> {
+  ): Promise<Record<string, unknown>> {
     // Make sure the DID and the Version ID exist
     await this.getIdentifierVersion(did, versionId);
 
@@ -191,7 +191,7 @@ export default class IdentifiersService {
 
       return JSON.parse(
         Buffer.from(remove0xPrefix(metadata), "hex").toString(),
-      ) as { [x: string]: unknown };
+      ) as Record<string, unknown>;
     } catch (e) {
       if (isEthersError(e)) {
         this.logger.error(e);
