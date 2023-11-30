@@ -40,8 +40,7 @@ import {
 } from "./authorisation.constants.js";
 import type { PresentationDefinition } from "../../shared/interfaces/pex.js";
 import {
-  attributesSchema,
-  revisionsSchema,
+  issuerSchema,
   presentationSubmissionSchema,
 } from "./validators/index.js";
 import { ClassValidatorError, OAuth2TokenError } from "./errors/index.js";
@@ -397,13 +396,13 @@ export class AuthorisationService {
     did: string,
     requireNewUser: boolean,
   ): Promise<void> {
-    // 1. Check if the issuer has exactly 1 attribute
-    let attributesRequest: AxiosResponse<unknown>;
+    // Check if the issuer has accreditations
+    let issuerRequest: AxiosResponse<unknown>;
 
-    // 1.a Request TI attributes
+    // Request TI attributes
     try {
-      attributesRequest = await axios.get<unknown>(
-        `${this.trustedIssuersRegistry}/${did}/attributes`,
+      issuerRequest = await axios.get<unknown>(
+        `${this.trustedIssuersRegistry}/${did}`,
       );
     } catch (e) {
       logAxiosError(e, this.logger);
@@ -429,75 +428,28 @@ export class AuthorisationService {
       });
     }
 
-    // 1.b Parse response
-    const parsedAttributes = attributesSchema.safeParse(attributesRequest.data);
-    if (!parsedAttributes.success) {
+    // Parse response
+    const parsedIssuer = issuerSchema.safeParse(issuerRequest.data);
+    if (!parsedIssuer.success) {
       throw new OAuth2TokenError("server_error", {
         errorDescription: "Trusted Issuers Registry sent an invalid response",
       });
     }
 
-    // 1.c If the issuer has more than 1 attribute:
-    // - return an error if requireNewUser=true
-    // - consider the Trusted Issuer as accredited (return early)
-    if (parsedAttributes.data.items.length !== 1) {
-      if (requireNewUser) {
-        throw new OAuth2TokenError("invalid_request", {
-          errorDescription: `Invalid Verifiable Presentation: Trusted Issuer ${did} already has multiple attributes`,
-        });
-      }
-
-      // The Trusted Issuer has multiple attributes. Exit early.
-      return;
-    }
-
-    // 2. If the TI has exactly 1 attribute, check if the attribute has exactly 1 revision
-    const attribute = parsedAttributes.data.items[0]!;
-    let revisionsRequest: AxiosResponse<unknown>;
-
-    // 2.a Request attribute revisions
-    try {
-      revisionsRequest = await axios.get<unknown>(
-        `${attribute.href}/revisions`,
-      );
-    } catch (e) {
-      logAxiosError(e, this.logger);
-
-      if (axios.isAxiosError(e)) {
-        if (e.response?.status === 404) {
-          throw new OAuth2TokenError("invalid_request", {
-            errorDescription: `Invalid Verifiable Presentation: Attribute ${attribute.id} from Trusted Issuer ${did} can't be found`,
-          });
-        }
-
-        if (e.response?.status === 500) {
-          throw new OAuth2TokenError("server_error", {
-            errorDescription:
-              "Trusted Issuers Registry responded with an internal error",
-          });
-        }
-      }
-
-      // Fallback (should not be triggered)
-      throw new OAuth2TokenError("server_error", {
-        errorDescription: "Unexpected error",
-      });
-    }
-
-    // 2.b Parse response
-    const parsedRevisions = revisionsSchema.safeParse(revisionsRequest.data);
-    if (!parsedRevisions.success) {
-      throw new OAuth2TokenError("server_error", {
-        errorDescription: "Trusted Issuers Registry sent an invalid response",
-      });
-    }
-
-    // 2.c If the attribute has more than 1 revision:
-    // - return an error if requireNewUser=true
-    // - consider the Trusted Issuer as accredited
-    if (parsedRevisions.data.items.length !== 1 && requireNewUser) {
+    // new users (tir_invite scope) should not have accreditations
+    const hasAccreditations = parsedIssuer.data.attributes.some(
+      (attribute) => !!attribute.body,
+    );
+    if (requireNewUser && hasAccreditations) {
       throw new OAuth2TokenError("invalid_request", {
-        errorDescription: `Invalid Verifiable Presentation: Trusted Issuer ${did} already has accreditations`,
+        errorDescription: `Invalid Verifiable Presentation: Trusted Issuer ${did} already has accreditations. Request an access token with scope "tir_write"`,
+      });
+    }
+
+    // existing users (tir_write scope) should have accreditations
+    if (!requireNewUser && !hasAccreditations) {
+      throw new OAuth2TokenError("invalid_request", {
+        errorDescription: `Invalid Verifiable Presentation: Trusted Issuer ${did} doesn't have accreditations. Request an access token with scope "tir_invite"`,
       });
     }
   }

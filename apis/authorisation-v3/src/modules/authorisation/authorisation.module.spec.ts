@@ -557,115 +557,65 @@ describe("Authorisation Module", () => {
           );
         }
 
-        if (
-          customScope === TIR_INVITE_SCOPE ||
-          customScope === TIR_WRITE_SCOPE
-        ) {
-          const attributeId =
-            "352f18152fdc52f1797c98bfea8e0737d620e5503df2463dd8129719fcf6bf5c";
-
+        if (customScope === TIR_INVITE_SCOPE) {
           mockServer.use(
             http.get(
               `${domain}/trusted-issuers-registry/v4/issuers/${encodeDid(
                 credentialSubject.did,
               )}`,
-              () => HttpResponse.json({}),
-            ),
-            http.get(
-              `${domain}/trusted-issuers-registry/v4/issuers/${encodeDid(
-                credentialSubject.did,
-              )}/attributes`,
               () =>
                 HttpResponse.json({
-                  self: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes?page[after]=1&page[size]=10`,
-                  items: [
+                  did: credentialSubject.did,
+                  attributes: [
                     {
-                      id: attributeId,
-                      href: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}`,
+                      hash: "c5f705998e64792887cca48553f57b67b2a511fc271c2a49e677a4c995320aa4",
+                      body: "",
+                      issuerType: "RootTAO",
+                      tao: credentialIssuer.did,
+                      rootTao: credentialIssuer.did,
+                    },
+                    {
+                      hash: "04647216cf99e4ea91c5ee230129bededf92c349663d4d99945ac510c4897a12",
+                      body: "",
+                      issuerType: "RootTAO",
+                      tao: credentialIssuer.did,
+                      rootTao: credentialIssuer.did,
                     },
                   ],
-                  total: 1,
-                  pageSize: 10,
-                  links: {
-                    first: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes?page[after]=1&page[size]=10`,
-                    prev: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes?page[after]=1&page[size]=10`,
-                    next: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes?page[after]=1&page[size]=10`,
-                    last: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes?page[after]=1&page[size]=10`,
-                  },
                 }),
             ),
           );
+        }
 
-          if (customScope === TIR_INVITE_SCOPE) {
-            // For tir_invite, create only 1 revision
-            mockServer.use(
-              http.get(
-                `${domain}/trusted-issuers-registry/v4/issuers/${encodeDid(
-                  credentialSubject.did,
-                )}/attributes/${attributeId}/revisions`,
-                () =>
-                  HttpResponse.json({
-                    self: `${domain}/trusted-issuers-registry/v4/issuers/${encodeDid(
-                      credentialSubject.did,
-                    )}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
-                    items: [
-                      {
-                        hash: "c1a9c6159f72591b612e1381f5d79cede36a2b097aef6b3691f61248a406d9d2",
-                        body: "",
-                        issuerType: "RootTAO",
-                        tao: EbsiWallet.createDid(),
-                        rootTao: EbsiWallet.createDid(),
-                      },
-                    ],
-                    total: 1,
-                    pageSize: 10,
-                    links: {
-                      first: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
-                      prev: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
-                      next: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
-                      last: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
+        if (customScope === TIR_WRITE_SCOPE) {
+          // For tir_invite, create empty revisions
+          mockServer.use(
+            http.get(
+              `${domain}/trusted-issuers-registry/v4/issuers/${encodeDid(
+                credentialSubject.did,
+              )}`,
+              () =>
+                HttpResponse.json({
+                  did: credentialSubject.did,
+                  attributes: [
+                    {
+                      hash: "c5f705998e64792887cca48553f57b67b2a511fc271c2a49e677a4c995320aa4",
+                      body: "eyJhbGciOiJFUzI1NiI...",
+                      issuerType: "RootTAO",
+                      tao: credentialIssuer.did,
+                      rootTao: credentialIssuer.did,
                     },
-                  }),
-              ),
-            );
-          } else {
-            // For tir_write, create 2 revisions
-            mockServer.use(
-              http.get(
-                `${domain}/trusted-issuers-registry/v4/issuers/${encodeDid(
-                  credentialSubject.did,
-                )}/attributes/${attributeId}/revisions`,
-                () =>
-                  HttpResponse.json({
-                    self: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
-                    items: [
-                      {
-                        hash: "c1a9c6159f72591b612e1381f5d79cede36a2b097aef6b3691f61248a406d9d2",
-                        body: "",
-                        issuerType: "RootTAO",
-                        tao: EbsiWallet.createDid(),
-                        rootTao: EbsiWallet.createDid(),
-                      },
-                      {
-                        hash: "352f18152fdc52f1797c98bfea8e0737d620e5503df2463dd8129719fcf6bf5c",
-                        body: "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6ImRpZDplYnNpOnp5d24zZlBoM0s0aDZLaWJlOUF1VE1wIzVfWXJCNTFHckxZSFc2cU9lY05RZFFiMU8xNWUzWGNtWE5zVzA5d1IyNncifQ.eyJpYXQiOjE2NzcyNDk0NzYsImp0aSI6InVybjp1dWlkOmI2NDhkZGQ2LTVjMzgtNGI3YS1iMDM3LTVmNzc4OWJhNTVlOSIsIm5iZiI6MTY3NzI0OTQ3NiwiZXhwIjoxNzA4Nzg1NDc2LCJzdWIiOiJkaWQ6ZWJzaTp6ejdYc0M5aXhBWHVaZWNvRDlzWkVNMSIsInZjIjp7IkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIl0sInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJWZXJpZmlhYmxlQXR0ZXN0YXRpb24iLCJWZXJpZmlhYmxlQXV0aG9yaXNhdGlvbkZvclRydXN0Q2hhaW4iXSwiaXNzdWVyIjoiZGlkOmVic2k6enl3bjNmUGgzSzRoNktpYmU5QXVUTXAiLCJjcmVkZW50aWFsU3ViamVjdCI6eyJpZCI6ImRpZDplYnNpOnp6N1hzQzlpeEFYdVplY29EOXNaRU0xIn0sInRlcm1zT2ZVc2UiOnsiaWQiOiJodHRwczovL2FwaS10ZXN0LmVic2kuZXUvdHJ1c3RlZC1pc3N1ZXJzLXJlZ2lzdHJ5L3Y0L2lzc3VlcnMvZGlkOmVic2k6enl3bjNmUGgzSzRoNktpYmU5QXVUTXAvYXR0cmlidXRlcy9iYTc1MWZhNjAyNTBjYmRiMzlmZWVjMDdkMzZjMzNiNTBiNjM4ODY0MjBmYzkxNDY5MjUwOWQ1N2Y4MTgxYzFjIiwidHlwZSI6Iklzc3VhbmNlQ2VydGlmaWNhdGUifSwiY3JlZGVudGlhbFNjaGVtYSI6eyJpZCI6Imh0dHBzOi8vYXBpLXRlc3QuZWJzaS5ldS90cnVzdGVkLXNjaGVtYXMtcmVnaXN0cnkvdjIvc2NoZW1hcy96M01nVUZVa2I3MjJ1cTR4M2R2NXlBSm1uTm16REZlSzVVQzh4ODNRb2VMSk0iLCJ0eXBlIjoiRnVsbEpzb25TY2hlbWFWYWxpZGF0b3IyMDIxIn0sImlkIjoidXJuOnV1aWQ6YjY0OGRkZDYtNWMzOC00YjdhLWIwMzctNWY3Nzg5YmE1NWU5IiwiaXNzdWFuY2VEYXRlIjoiMjAyMy0wMi0yNFQxNDozNzo1Ni4wMDBaIiwiaXNzdWVkIjoiMjAyMy0wMi0yNFQxNDozNzo1Ni4wMDBaIiwidmFsaWRGcm9tIjoiMjAyMy0wMi0yNFQxNDozNzo1Ni4wMDBaIiwiZXhwaXJhdGlvbkRhdGUiOiIyMDI0LTAyLTI0VDE0OjM3OjU2LjAwMFoiLCJ2YWxpZFVudGlsIjoiMjAyNC0wMi0yNFQxNDozNzo1Ni4wMDBaIn0sImlzcyI6ImRpZDplYnNpOnp5d24zZlBoM0s0aDZLaWJlOUF1VE1wIn0.td0zhAcRNN6UQ4Yul6-Vy9qQNi_ZxlXmUIlbkfMcD3rAY6s8EpnA1h8UYagcePmGk8Xzx_6KpzN78QuFPF4lsg",
-                        issuerType: "RootTAO",
-                        tao: EbsiWallet.createDid(),
-                        rootTao: EbsiWallet.createDid(),
-                      },
-                    ],
-                    total: 2,
-                    pageSize: 10,
-                    links: {
-                      first: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
-                      prev: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
-                      next: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
-                      last: `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}/attributes/${attributeId}/revisions?page[after]=1&page[size]=10`,
+                    {
+                      hash: "04647216cf99e4ea91c5ee230129bededf92c349663d4d99945ac510c4897a12",
+                      body: "eyJhbGciOiJFUzI1NiI...",
+                      issuerType: "RootTAO",
+                      tao: credentialIssuer.did,
+                      rootTao: credentialIssuer.did,
                     },
-                  }),
-              ),
-            );
-          }
+                  ],
+                }),
+            ),
+          );
         }
       });
 
@@ -1563,7 +1513,7 @@ describe("Authorisation Module", () => {
               http.get(
                 `${domain}/trusted-issuers-registry/v4/issuers/${encodeDid(
                   vpSigner.did,
-                )}/attributes`,
+                )}`,
                 () => HttpResponse.text("Not found", { status: 404 }),
               ),
             );
@@ -1838,7 +1788,7 @@ describe("Authorisation Module", () => {
       http.get(
         `${domain}/trusted-issuers-registry/v4/issuers/${encodeDid(
           vpSigner.did,
-        )}/attributes`,
+        )}`,
         () => HttpResponse.text("Not found", { status: 404 }),
       ),
     );
