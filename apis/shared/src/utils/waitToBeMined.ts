@@ -16,6 +16,7 @@ async function getTransactionReceipt(
     jsonrpc: "2.0",
     method: "eth_getTransactionReceipt",
     params: [txId],
+    id: null,
   });
   if (data.result) data.result.status = Number(data.result.status);
   return data.result;
