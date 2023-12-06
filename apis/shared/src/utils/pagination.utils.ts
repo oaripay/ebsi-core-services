@@ -1,4 +1,4 @@
-import { PaginatedList, PaginatedList2 } from "../interfaces/index.js";
+import type { PaginatedList } from "../interfaces/index.js";
 
 interface PaginationLinks {
   firstPage: number;
@@ -41,77 +41,6 @@ export function paginate<T>(
       prev: `${baseUrl}?page[after]=${prevPage}&page[size]=${pageSize}${extraQuery}`,
       next: `${baseUrl}?page[after]=${nextPage}&page[size]=${pageSize}${extraQuery}`,
       last: `${baseUrl}?page[after]=${lastPage}&page[size]=${pageSize}${extraQuery}`,
-    },
-  };
-}
-
-export function paginate2<T>(
-  items: T[],
-  baseUrl: string,
-  total: number,
-  page: number,
-  pageSize: number,
-  extraQuery = "",
-): PaginatedList2<T> {
-  const { firstPage, prevPage, nextPage, lastPage } =
-    compute1BasedPaginationLinks(total, page, pageSize);
-
-  return {
-    self: `${baseUrl}?page[after]=${page}&page[size]=${pageSize}${extraQuery}`,
-    items,
-    total,
-    pageSize,
-    links: {
-      first: `${baseUrl}?page[after]=${firstPage}&page[size]=${pageSize}${extraQuery}`,
-      prev: `${baseUrl}?page[after]=${prevPage}&page[size]=${pageSize}${extraQuery}`,
-      next: `${baseUrl}?page[after]=${nextPage}&page[size]=${pageSize}${extraQuery}`,
-      last: `${baseUrl}?page[after]=${lastPage}&page[size]=${pageSize}${extraQuery}`,
-    },
-  };
-}
-
-export function paginateForCassandra<T>(
-  items: T[],
-  baseUrl: string,
-  total: number,
-  currentPage: string,
-  nextPage: string,
-  pageSize: number,
-  extraQuery = "",
-): PaginatedList2<T> {
-  return {
-    self: `${baseUrl}?${
-      currentPage && `page[after]=${currentPage}&`
-    }page[size]=${pageSize}${extraQuery}`,
-    items,
-    total,
-    pageSize,
-    links: {
-      ...(nextPage && {
-        next: `${baseUrl}?page[after]=${nextPage}&page[size]=${pageSize}${extraQuery}`,
-      }),
-    },
-  };
-}
-
-export function paginateForCassandra2<T>(
-  items: T[],
-  baseUrl: string,
-  currentPage: string,
-  nextPage: string,
-  pageSize: number,
-  extraQuery = "",
-): PaginatedList2<T> {
-  return {
-    self: `${baseUrl}?${
-      currentPage && `page[after]=${currentPage}&`
-    }page[size]=${pageSize}${extraQuery}`,
-    items,
-    pageSize,
-    links: {
-      ...(nextPage && {
-        next: `${baseUrl}?page[after]=${nextPage}&page[size]=${pageSize}${extraQuery}`,
-      }),
     },
   };
 }

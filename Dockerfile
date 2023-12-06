@@ -19,10 +19,7 @@ COPY ./apis/did-registry-v4/package.json ./apis/did-registry-v4/
 COPY ./apis/did-registry-v5/package.json ./apis/did-registry-v5/
 COPY ./apis/ledger/package.json ./apis/ledger/
 COPY ./apis/ledger-v4/package.json ./apis/ledger-v4/
-COPY ./apis/notifications/package.json ./apis/notifications/
-COPY ./apis/proxy-data-hub/package.json ./apis/proxy-data-hub/
 COPY ./apis/shared/package.json ./apis/shared/
-COPY ./apis/storage/package.json ./apis/storage/
 COPY ./apis/timestamp/package.json ./apis/timestamp/
 COPY ./apis/timestamp-v4/package.json ./apis/timestamp-v4/
 COPY ./apis/trusted-apps-registry/package.json ./apis/trusted-apps-registry/

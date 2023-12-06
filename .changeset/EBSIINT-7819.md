@@ -12,14 +12,11 @@
 "@ebsiint-api/authorisation-api-v4": patch
 "@ebsiint-api/did-registry-api-v4": patch
 "@ebsiint-api/did-registry-api-v5": patch
-"@ebsiint-api/proxy-data-hub-api-v3": patch
 "@ebsiint-api/authorisation-api-v2": patch
-"@ebsiint-api/notifications-api-v2": patch
 "@ebsiint-api/did-registry-api-v3": patch
 "@ebsiint-api/timestamp-api-v4": patch
 "@ebsiint-api/ledger-api-v4": patch
 "@ebsiint-api/timestamp-api-v3": patch
-"@ebsiint-api/storage-api-v3": patch
 "@ebsiint-api/ledger-api-v3": patch
 "@ebsiint-api/shared": patch
 ---

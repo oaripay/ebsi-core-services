@@ -12,14 +12,6 @@ export const multihashEncode = (
     length,
   );
 
-export const multihashEncode2 = (
-  str: string,
-  alg: multihash.HashName,
-): string =>
-  multihash.toHexString(
-    multihash.encode(multihash.fromHexString(remove0xPrefix(str)), alg),
-  );
-
 export const multihashDecode = (bytes: Uint8Array): Uint8Array =>
   multihash.decode(bytes).digest;
 

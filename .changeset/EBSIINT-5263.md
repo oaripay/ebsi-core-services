@@ -1,5 +1,4 @@
 ---
-"@ebsiint-api/notifications-api-v2": minor
 "@ebsiint-api/shared": minor
 ---
 

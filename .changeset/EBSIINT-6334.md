@@ -13,15 +13,12 @@
 "@ebsiint-sc/did-registry": patch
 "@ebsiint-api/authorisation-api-v3": patch
 "@ebsiint-api/did-registry-api-v4": patch
-"@ebsiint-api/proxy-data-hub-api-v3": patch
 "@ebsiint-sc/bootstrap": patch
 "@ebsiint-sc/timestamp": patch
 "@ebsiint-api/authorisation-api-v2": patch
-"@ebsiint-api/notifications-api-v2": patch
 "@ebsiint-api/did-registry-api-v3": patch
 "@ebsiint-sc/proxy": patch
 "@ebsiint-api/timestamp-api-v3": patch
-"@ebsiint-api/storage-api-v3": patch
 "@ebsiint-api/ledger-api-v3": patch
 "@ebsiint-api/shared": patch
 ---
