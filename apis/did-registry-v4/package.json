@@ -1,7 +1,7 @@
 {
   "name": "@ebsiint-api/did-registry-api-v4",
   "private": true,
-  "version": "4.0.0-rc.4",
+  "version": "4.0.0-rc.5",
   "type": "module",
   "license": "EUPL-1.2",
   "scripts": {
@@ -25,9 +25,9 @@
   },
   "dependencies": {
     "@cef-ebsi/oauth2-auth": "^3.0.0",
-    "@ebsiint-api/shared": "^1.1.0-rc.4",
-    "@ebsiint-sc/did-registry": "^1.1.0-rc.4",
-    "@ebsiint-sc/did-registry-v2": "^2.0.0-rc.3",
+    "@ebsiint-api/shared": "^1.1.0-rc.5",
+    "@ebsiint-sc/did-registry": "^1.1.0-rc.5",
+    "@ebsiint-sc/did-registry-v2": "^2.0.0-rc.4",
     "@fastify/helmet": "^11.1.1",
     "@nestjs/axios": "^3.0.1",
     "@nestjs/cache-manager": "^2.1.1",

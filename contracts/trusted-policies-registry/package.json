@@ -1,7 +1,7 @@
 {
   "name": "@ebsiint-sc/trusted-policies-registry",
   "private": true,
-  "version": "1.0.1-rc.4",
+  "version": "1.0.1-rc.5",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "EUPL-1.2",
@@ -22,7 +22,7 @@
     "test:ci": "hardhat compile && hardhat test && yarn coverage"
   },
   "dependencies": {
-    "@ebsiint-sc/bootstrap": "^1.0.1-rc.4",
+    "@ebsiint-sc/bootstrap": "^1.0.1-rc.5",
     "@openzeppelin/contracts": "^4.9.3"
   },
   "devDependencies": {
