@@ -1,0 +1,11 @@
+version: "3.7"
+
+services:
+  track-and-trace-api-v1:
+    image: track-and-trace-api-v1
+    build: .
+    env_file:
+      - .env.default
+      - .env.default.local
+    ports:
+      - "${API_PORT:-3000}:${API_PORT:-3000}"

@@ -248,6 +248,29 @@ pipeline {
                 }
             }
         }
+        stage('Track-and-trace-Api-v1') {
+            when {
+                expression { params.api == 'all' || params.api.contains('track-and-trace-api-v1') }
+            }
+            steps {
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    sh '''
+                        source $NVM_DIR/nvm.sh > /dev/null 2>&1
+                        nvm use > /dev/null 2>&1
+                        yarn nx test:ci @ebsiint-api/track-and-trace-api-v1
+                    '''
+                }
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    withSonarQubeEnv('LocalSonar'){
+                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=track-and-trace-api-v1-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=track-and-trace-api-v1-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/track-and-trace-api-v1"
+                    }
+                    waitForQualityGate abortPipeline: true
+                }
+                script {
+                    sh 'rm ${WORKSPACE}/apis/track-and-trace-api-v1/.scannerwork/report-task.txt'
+                }
+            }
+        }
         stage('Trusted-apps-registry-Api') {
             when {
                 expression { params.api == 'all' || params.api.contains('trusted-apps-registry-api') }

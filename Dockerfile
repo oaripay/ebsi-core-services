@@ -22,6 +22,7 @@ COPY ./apis/ledger-v4/package.json ./apis/ledger-v4/
 COPY ./apis/shared/package.json ./apis/shared/
 COPY ./apis/timestamp/package.json ./apis/timestamp/
 COPY ./apis/timestamp-v4/package.json ./apis/timestamp-v4/
+COPY ./apis/track-and-trace-v1/package.json ./apis/track-and-trace-v1/
 COPY ./apis/trusted-apps-registry/package.json ./apis/trusted-apps-registry/
 COPY ./apis/trusted-apps-registry-v4/package.json ./apis/trusted-apps-registry-v4/
 COPY ./apis/trusted-issuers-registry/package.json ./apis/trusted-issuers-registry/
