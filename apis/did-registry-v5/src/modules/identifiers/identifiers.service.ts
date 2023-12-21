@@ -11,8 +11,8 @@ import {
 import { DidRegistry } from "@ebsiint-sc/did-registry-v3";
 import type { JWK } from "jose";
 import { LedgerService } from "../ledger/ledger.service.js";
-import { RequestCheckControllerDto } from "./dto/request-check-controller.dto.js";
-import { validateClass } from "./identifiers.utils.js";
+import type { JsonRpcSchema } from "./validators/JsonRpcSchema.js";
+import { requestCheckControllerDtoSchema } from "./validators/RequestCheckControllerSchema.js";
 
 @Injectable()
 export default class IdentifiersService {
@@ -200,13 +200,13 @@ export default class IdentifiersService {
 
   async checkController(
     did: string,
-    body: RequestCheckControllerDto,
+    body: JsonRpcSchema,
     id: number | string | null | undefined,
   ): Promise<boolean> {
     try {
-      await validateClass(RequestCheckControllerDto, body);
+      const parsedBody = requestCheckControllerDtoSchema.parse(body);
+      const address = parsedBody.params[0]!;
       const contract = await this.ledgerService.getContract();
-      const address = body.params[0]!;
       return await contract["checkController(string,address)"](did, address);
     } catch (err) {
       if (isEthersError(err)) {
@@ -214,7 +214,7 @@ export default class IdentifiersService {
         throw new InvalidRequestJsonRpcError(err.reason, id); // throw simplified ethers error to the user
       }
       if (err instanceof Error) {
-        const error = new InvalidRequestJsonRpcError(err.message, id);
+        const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
 
         if (err instanceof Error && err.stack) {
           error.stack = err.stack;

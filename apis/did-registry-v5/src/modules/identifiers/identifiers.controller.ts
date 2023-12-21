@@ -11,7 +11,11 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type { FastifyReply } from "fastify";
-import { PaginatedList, InvalidRequestJsonRpcError } from "@ebsiint-api/shared";
+import {
+  PaginatedList,
+  InvalidRequestJsonRpcError,
+  getErrorMessage,
+} from "@ebsiint-api/shared";
 import IdentifiersService from "./identifiers.service.js";
 import { formatIdentifiers } from "./identifiers.formatter.js";
 import { DidLink } from "./identifiers.interface.js";
@@ -22,8 +26,7 @@ import {
 } from "./dto/index.js";
 import type { ApiConfig } from "../../config/configuration.js";
 import { JsonRpcResponseObject } from "../jsonrpc/jsonrpc.interface.js";
-import { JsonRpcDto } from "../jsonrpc/dto/index.js";
-import { RequestCheckControllerDto } from "./dto/request-check-controller.dto.js";
+import jsonRpcSchema from "./validators/JsonRpcSchema.js";
 
 @Controller("/identifiers")
 export default class IdentifiersController {
@@ -85,8 +88,26 @@ export default class IdentifiersController {
   @Post("/:did/actions")
   async processAction(
     @Param() params: GetIdentifierParamsDto,
-    @Body() body: JsonRpcDto,
+    @Body() unsafeBody: unknown,
   ): Promise<JsonRpcResponseObject> {
+    if (!unsafeBody || typeof unsafeBody !== "object") {
+      throw new InvalidRequestJsonRpcError(
+        "JSON-RPC payload must be an object",
+        null,
+      );
+    }
+
+    const parsedBody = jsonRpcSchema.safeParse(unsafeBody);
+
+    if (!parsedBody.success) {
+      throw new InvalidRequestJsonRpcError(
+        getErrorMessage(parsedBody.error),
+        null,
+      );
+    }
+
+    const body = parsedBody.data;
+
     const { did } = params;
     const { method, id: requestId } = body;
     const id = requestId ?? null;
@@ -95,7 +116,7 @@ export default class IdentifiersController {
       case "checkController": {
         const result = await this.identifiersService.checkController(
           did,
-          body as RequestCheckControllerDto,
+          body,
           id,
         );
         return { jsonrpc: "2.0", id, result };

@@ -758,6 +758,21 @@ describe("Identifiers Module", () => {
       });
       expect(response.status).toBe(400);
 
+      // Request without payload
+      response = await request(server)
+        .post(`/identifiers/${did}/actions`)
+        .send();
+
+      expect(response.body).toStrictEqual({
+        error: {
+          code: -32600,
+          message: "JSON-RPC payload must be an object",
+        },
+        id: null,
+        jsonrpc: "2.0",
+      });
+      expect(response.status).toBe(400);
+
       response = await request(server)
         .post(`/identifiers/${did}/actions`)
         .send({
@@ -788,8 +803,7 @@ describe("Identifiers Module", () => {
         jsonrpc: "2.0",
         error: {
           code: -32600,
-          message:
-            "Validation error: each value in params must be an Ethereum address",
+          message: "Invalid 'params.0': Invalid Ethereum address",
         },
         id: null,
       });

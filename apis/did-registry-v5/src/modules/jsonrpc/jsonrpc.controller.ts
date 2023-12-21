@@ -1,24 +1,13 @@
 import { Controller, Body, Post, HttpCode, UseGuards } from "@nestjs/common";
-import { InvalidRequestJsonRpcError } from "@ebsiint-api/shared";
+import {
+  InvalidRequestJsonRpcError,
+  getErrorMessage,
+} from "@ebsiint-api/shared";
 import { JsonRpcService } from "./jsonrpc.service.js";
 import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
 import { BearerJwtAuthGuard } from "../auth/guards/index.js";
-import {
-  JsonRpcDto,
-  RequestSendSignedTransactionDto,
-  RequestInsertDidDocumentDto,
-  RequestUpdateBaseDocumentDto,
-  RequestAddControllerDto,
-  RequestRevokeControllerDto,
-  RequestAddVerificationMethodDto,
-  RequestAddVerificationRelationshipDto,
-  RequestRevokeVerificationMethodDto,
-  RequestExpireVerificationMethodDto,
-  RequestRollVerificationMethodDto,
-  RequestAddServiceDto,
-  RequestRevokeServiceDto,
-} from "./dto/index.js";
 import { Subject, type SubjectInfo } from "../auth/decorators/index.js";
+import { jsonRpcSchema } from "./validators/JsonRpcSchema.js";
 
 function formatJsonRpcResponse(
   result: unknown,
@@ -35,18 +24,38 @@ export default class AppController {
   @UseGuards(BearerJwtAuthGuard)
   @Post()
   async jsonRPC(
-    @Body() body: JsonRpcDto,
+    @Body() unsafeBody: unknown,
     @Subject() subject: SubjectInfo,
   ): Promise<JsonRpcResponseObject> {
+    if (!unsafeBody || typeof unsafeBody !== "object") {
+      throw new InvalidRequestJsonRpcError(
+        "JSON-RPC payload must be an object",
+        null,
+      );
+    }
+
+    const parsedBody = jsonRpcSchema.safeParse(unsafeBody);
+
+    if (!parsedBody.success) {
+      throw new InvalidRequestJsonRpcError(
+        getErrorMessage(parsedBody.error),
+        null,
+      );
+    }
+
+    const body = parsedBody.data;
     const { method, id: requestId } = body;
     const id = requestId ?? null;
     const { scp: scope, sub } = subject;
+
+    // TODO: if requestId is undefined, the request should be treated as a notification and return a 200 with an empty body
+    // See: https://www.jsonrpc.org/specification#notification
 
     switch (method) {
       case "insertDidDocument": {
         const transaction =
           await this.jsonRpcService.buildTransactionInsertDidDocument(
-            body as RequestInsertDidDocumentDto,
+            body,
             id,
             sub,
             scope,
@@ -56,7 +65,7 @@ export default class AppController {
       case "updateBaseDocument": {
         const transaction =
           await this.jsonRpcService.buildTransactionUpdateBaseDocument(
-            body as RequestUpdateBaseDocumentDto,
+            body,
             id,
             scope,
           );
@@ -64,17 +73,13 @@ export default class AppController {
       }
       case "addService": {
         const transaction =
-          await this.jsonRpcService.buildTransactionAddService(
-            body as RequestAddServiceDto,
-            id,
-            scope,
-          );
+          await this.jsonRpcService.buildTransactionAddService(body, id, scope);
         return formatJsonRpcResponse(transaction, id);
       }
       case "revokeService": {
         const transaction =
           await this.jsonRpcService.buildTransactionRevokeService(
-            body as RequestRevokeServiceDto,
+            body,
             id,
             scope,
           );
@@ -83,7 +88,7 @@ export default class AppController {
       case "addController": {
         const transaction =
           await this.jsonRpcService.buildTransactionAddController(
-            body as RequestAddControllerDto,
+            body,
             id,
             scope,
           );
@@ -92,7 +97,7 @@ export default class AppController {
       case "revokeController": {
         const transaction =
           await this.jsonRpcService.buildTransactionRevokeController(
-            body as RequestRevokeControllerDto,
+            body,
             id,
             scope,
           );
@@ -101,7 +106,7 @@ export default class AppController {
       case "addVerificationMethod": {
         const transaction =
           await this.jsonRpcService.buildTransactionAddVerificationMethod(
-            body as RequestAddVerificationMethodDto,
+            body,
             id,
             scope,
           );
@@ -110,7 +115,7 @@ export default class AppController {
       case "addVerificationRelationship": {
         const transaction =
           await this.jsonRpcService.buildTransactionAddVerificationRelationship(
-            body as RequestAddVerificationRelationshipDto,
+            body,
             id,
             scope,
           );
@@ -119,7 +124,7 @@ export default class AppController {
       case "revokeVerificationMethod": {
         const transaction =
           await this.jsonRpcService.buildTransactionRevokeVerificationMethod(
-            body as RequestRevokeVerificationMethodDto,
+            body,
             id,
             scope,
           );
@@ -128,7 +133,7 @@ export default class AppController {
       case "expireVerificationMethod": {
         const transaction =
           await this.jsonRpcService.buildTransactionExpireVerificationMethod(
-            body as RequestExpireVerificationMethodDto,
+            body,
             id,
             scope,
           );
@@ -137,7 +142,7 @@ export default class AppController {
       case "rollVerificationMethod": {
         const transaction =
           await this.jsonRpcService.buildTransactionRollVerificationMethod(
-            body as RequestRollVerificationMethodDto,
+            body,
             id,
             scope,
           );
@@ -145,7 +150,7 @@ export default class AppController {
       }
       case "sendSignedTransaction": {
         const result = await this.jsonRpcService.sendTransaction(
-          body as RequestSendSignedTransactionDto,
+          body,
           id,
           sub,
           scope,

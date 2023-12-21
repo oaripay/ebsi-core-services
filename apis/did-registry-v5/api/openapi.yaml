@@ -582,7 +582,7 @@ paths:
 
           Parameters:
           - **from**: Ethereum address of the signer
-          - **rollArgs**: Roll arguments. JSON with the following fields:
+          - **args**: Roll arguments. JSON with the following fields:
             - **did**: Existing DID
             - **vMethodId**: New verification method id (thumbprint of the new public key)
             - **isSecp256k1**: Boolean defining if the public key is for

@@ -20,20 +20,6 @@ import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 import type { ApiConfig } from "../../src/config/configuration.js";
 import { getServer } from "../utils/getServer.js";
-import {
-  UnsignedTransaction,
-  InsertDidDocumentParam,
-  UpdateBaseDocumentParam,
-  AddControllerParam,
-  RevokeControllerParam,
-  AddVerificationMethodParam,
-  AddVerificationRelationshipParam,
-  RevokeVerificationMethodParam,
-  ExpireVerificationMethodParam,
-  RollVerificationMethodParam,
-  AddServiceParam,
-  RevokeServiceParam,
-} from "../../src/modules/jsonrpc/dto/index.js";
 import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
 import { describeWriteOps } from "../utils/describeWriteOps.js";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
@@ -42,19 +28,31 @@ import {
   getDidrWriteAccessToken,
 } from "../utils/getAccessToken.js";
 import { createUser } from "../utils/data.js";
+import type { InsertDidDocumentSchema } from "../../src/modules/jsonrpc/validators/RequestInsertDidDocumentSchema.js";
+import type { UpdateBaseDocumentSchema } from "../../src/modules/jsonrpc/validators/RequestUpdateBaseDocumentSchema.js";
+import type { AddServiceSchema } from "../../src/modules/jsonrpc/validators/RequestAddServiceSchema.js";
+import type { AddControllerSchema } from "../../src/modules/jsonrpc/validators/RequestAddControllerSchema.js";
+import type { RevokeServiceSchema } from "../../src/modules/jsonrpc/validators/RequestRevokeServiceSchema.js";
+import type { RevokeControllerSchema } from "../../src/modules/jsonrpc/validators/RequestRevokeControllerSchema.js";
+import type { AddVerificationMethodSchema } from "../../src/modules/jsonrpc/validators/RequestAddVerificationMethodSchema.js";
+import type { AddVerificationRelationshipSchema } from "../../src/modules/jsonrpc/validators/RequestAddVerificationRelationshipSchema.js";
+import type { RevokeVerificationMethodSchema } from "../../src/modules/jsonrpc/validators/RequestRevokeVerificationMethodSchema.js";
+import type { ExpireVerificationMethodSchema } from "../../src/modules/jsonrpc/validators/RequestExpireVerificationMethodSchema.js";
+import type { RollVerificationMethodSchema } from "../../src/modules/jsonrpc/validators/RequestRollVerificationMethodSchema.js";
+import type { UnsignedTransaction } from "../../src/modules/jsonrpc/validators/RequestSendSignedTransactionSchema.js";
 
 type JsonRpcParams =
-  | InsertDidDocumentParam
-  | UpdateBaseDocumentParam
-  | AddControllerParam
-  | RevokeControllerParam
-  | AddVerificationMethodParam
-  | AddVerificationRelationshipParam
-  | RevokeVerificationMethodParam
-  | ExpireVerificationMethodParam
-  | RollVerificationMethodParam
-  | AddServiceParam
-  | RevokeServiceParam;
+  | InsertDidDocumentSchema
+  | UpdateBaseDocumentSchema
+  | AddServiceSchema
+  | AddControllerSchema
+  | RevokeServiceSchema
+  | RevokeControllerSchema
+  | AddVerificationMethodSchema
+  | AddVerificationRelationshipSchema
+  | RevokeVerificationMethodSchema
+  | ExpireVerificationMethodSchema
+  | RollVerificationMethodSchema;
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -168,7 +166,7 @@ describeWriteOps()("DID Registry API v5 - JSON-RPC (e2e)", () => {
           isSecp256k1: true,
           notBefore: now,
           notAfter: in6months,
-        } as InsertDidDocumentParam;
+        } satisfies InsertDidDocumentSchema;
 
         const responseBuild: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
@@ -301,7 +299,7 @@ describeWriteOps()("DID Registry API v5 - JSON-RPC (e2e)", () => {
                 ],
                 testKey: randomUUID(),
               }),
-            } as UpdateBaseDocumentParam;
+            } satisfies UpdateBaseDocumentSchema;
             break;
           }
           case "addController": {
@@ -310,7 +308,7 @@ describeWriteOps()("DID Registry API v5 - JSON-RPC (e2e)", () => {
               from: user.wallet.address,
               did: user.info.did,
               controller: lastDid,
-            } as AddControllerParam;
+            } satisfies AddControllerSchema;
             break;
           }
           case "revokeController": {
@@ -318,7 +316,7 @@ describeWriteOps()("DID Registry API v5 - JSON-RPC (e2e)", () => {
               from: user.wallet.address,
               did: user.info.did,
               controller: lastDid,
-            } as RevokeControllerParam;
+            } satisfies RevokeControllerSchema;
             break;
           }
           case "addVerificationMethod": {
@@ -330,7 +328,7 @@ describeWriteOps()("DID Registry API v5 - JSON-RPC (e2e)", () => {
                 JSON.stringify(publicKeyJwk2),
               ).toString("hex")}`,
               isSecp256k1: false,
-            } as AddVerificationMethodParam;
+            } satisfies AddVerificationMethodSchema;
             break;
           }
           case "addVerificationRelationship": {
@@ -341,7 +339,7 @@ describeWriteOps()("DID Registry API v5 - JSON-RPC (e2e)", () => {
               vMethodId: thumbprint2,
               notBefore: now,
               notAfter: in6months,
-            } as AddVerificationRelationshipParam;
+            } satisfies AddVerificationRelationshipSchema;
             break;
           }
           case "expireVerificationMethod": {
@@ -350,7 +348,7 @@ describeWriteOps()("DID Registry API v5 - JSON-RPC (e2e)", () => {
               did: user.info.did,
               vMethodId: thumbprint2,
               notAfter: now + 600,
-            } as ExpireVerificationMethodParam;
+            } satisfies ExpireVerificationMethodSchema;
             break;
           }
           case "revokeVerificationMethod": {
@@ -359,13 +357,13 @@ describeWriteOps()("DID Registry API v5 - JSON-RPC (e2e)", () => {
               did: user.info.did,
               vMethodId: thumbprint2,
               notAfter: now - 60,
-            } as RevokeVerificationMethodParam;
+            } satisfies RevokeVerificationMethodSchema;
             break;
           }
           case "rollVerificationMethod": {
             params = {
               from: user.wallet.address,
-              rollArgs: {
+              args: {
                 did: user.info.did,
                 vMethodId: thumbprint3,
                 publicKey: `0x${Buffer.from(
@@ -377,7 +375,7 @@ describeWriteOps()("DID Registry API v5 - JSON-RPC (e2e)", () => {
                 oldVMethodId: thumbprint2,
                 duration: 3600,
               },
-            } as RollVerificationMethodParam;
+            } satisfies RollVerificationMethodSchema;
             break;
           }
           case "addService": {
@@ -396,7 +394,7 @@ describeWriteOps()("DID Registry API v5 - JSON-RPC (e2e)", () => {
                   byType: "/type/{type}",
                 },
               }),
-            } as AddServiceParam;
+            } satisfies AddServiceSchema;
             break;
           }
           case "revokeService": {
@@ -404,7 +402,7 @@ describeWriteOps()("DID Registry API v5 - JSON-RPC (e2e)", () => {
               from: user.wallet.address,
               did: user.info.did,
               serviceId: "1",
-            } as RevokeServiceParam;
+            } satisfies RevokeServiceSchema;
             break;
           }
           default: {

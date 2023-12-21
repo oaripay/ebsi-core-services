@@ -7,37 +7,61 @@ import {
 } from "@ebsiint-api/shared";
 import { DidRegistry } from "@ebsiint-sc/did-registry-v3";
 import {
-  RequestSendSignedTransactionDto,
-  UnsignedTransaction,
-  SignedTransactionParam,
-  RequestInsertDidDocumentDto,
-  ArgsInsertDidDocument,
-  RequestUpdateBaseDocumentDto,
-  ArgsUpdateBaseDocument,
-  RequestAddControllerDto,
-  ArgsAddController,
-  RequestRevokeControllerDto,
-  ArgsRevokeController,
-  RequestAddVerificationMethodDto,
-  ArgsAddVerificationMethod,
-  RequestAddVerificationRelationshipDto,
-  ArgsAddVerificationRelationship,
-  RequestRevokeVerificationMethodDto,
-  ArgsRevokeVerificationMethod,
-  RequestExpireVerificationMethodDto,
-  ArgsExpireVerificationMethod,
-  RequestRollVerificationMethodDto,
-  ArgsRollVerificationMethod,
-  RequestAddServiceDto,
-  RequestRevokeServiceDto,
-} from "./dto/index.js";
-import {
   formatEthersUnsignedTransaction,
   formatEthersSignature,
-  validateClass,
 } from "./jsonrpc.utils.js";
 import { LedgerService } from "../ledger/ledger.service.js";
 import { DIDR_INVITE_SCOPE, DIDR_WRITE_SCOPE } from "../auth/auth.constants.js";
+import {
+  insertDidDocumentSchema,
+  requestInsertDidDocumentDtoSchema,
+} from "./validators/RequestInsertDidDocumentSchema.js";
+import {
+  updateBaseDocumentSchema,
+  requestUpdateBaseDocumentDtoSchema,
+} from "./validators/RequestUpdateBaseDocumentSchema.js";
+import {
+  addServiceSchema,
+  requestAddServiceDtoSchema,
+} from "./validators/RequestAddServiceSchema.js";
+import {
+  revokeServiceSchema,
+  requestRevokeServiceDtoSchema,
+} from "./validators/RequestRevokeServiceSchema.js";
+import {
+  addControllerSchema,
+  requestAddControllerDtoSchema,
+} from "./validators/RequestAddControllerSchema.js";
+import {
+  revokeControllerSchema,
+  requestRevokeControllerDtoSchema,
+} from "./validators/RequestRevokeControllerSchema.js";
+import {
+  addVerificationMethodSchema,
+  requestAddVerificationMethodDtoSchema,
+} from "./validators/RequestAddVerificationMethodSchema.js";
+import {
+  addVerificationRelationshipSchema,
+  requestAddVerificationRelationshipDtoSchema,
+} from "./validators/RequestAddVerificationRelationshipSchema.js";
+import {
+  revokeVerificationMethodSchema,
+  requestRevokeVerificationMethodDtoSchema,
+} from "./validators/RequestRevokeVerificationMethodSchema.js";
+import {
+  expireVerificationMethodSchema,
+  requestExpireVerificationMethodDtoSchema,
+} from "./validators/RequestExpireVerificationMethodSchema.js";
+import {
+  rollVerificationMethodSchema,
+  requestRollVerificationMethodDtoSchema,
+} from "./validators/RequestRollVerificationMethodSchema.js";
+import {
+  requestSendSignedTransactionDtoSchema,
+  type SendSignedTransactionParamsSchema,
+  type UnsignedTransaction,
+} from "./validators/RequestSendSignedTransactionSchema.js";
+import type { JsonRpcSchema } from "./validators/JsonRpcSchema.js";
 
 function assertScopeContains(
   scope: string,
@@ -61,6 +85,29 @@ function assertDidMatchesSub(did: string, sub: string) {
   if (did !== sub) {
     throw new Error("Access token sub doesn't match the DID from the payload");
   }
+}
+
+/**
+ * Extract named attributes from a mixed array (array with named keys and number keys) as returned by ethers.js parseTransaction
+ */
+function extractNamedAttributes(mixedArray: unknown): Record<string, unknown> {
+  if (
+    !mixedArray ||
+    typeof mixedArray !== "object" ||
+    !Array.isArray(mixedArray)
+  ) {
+    throw new Error("Not a mixed array");
+  }
+
+  const keys = Object.keys(mixedArray).filter((key) =>
+    Number.isNaN(parseInt(key, 10)),
+  );
+
+  return keys.reduce((obj, key) => {
+    // @ts-expect-error Element implicitly has an 'any' type because index expression is not of type 'number'.ts(7015)
+    const value: unknown = mixedArray[key];
+    return { ...obj, [key]: value };
+  }, {});
 }
 
 @Injectable()
@@ -116,7 +163,7 @@ export class JsonRpcService {
 
   async verifyTransaction(
     clientId: string,
-    param: SignedTransactionParam,
+    param: SendSignedTransactionParamsSchema,
     scope: string,
   ): Promise<{ signer: string; functionName: string }> {
     const { unsignedTransaction, r, s, v, signedRawTransaction } = param;
@@ -165,6 +212,12 @@ export class JsonRpcService {
       await this.ledgerService.getContract()
     ).interface.parseTransaction(unsignedTransaction);
 
+    // Extract named args from args (args is a mixed array with named and unnamed values)
+    const argsObject = {
+      ...extractNamedAttributes(args),
+      from: unsignedTransaction.from,
+    };
+
     switch (functionFragment.name) {
       case "insertDidDocument": {
         assertScopeContains(
@@ -172,8 +225,9 @@ export class JsonRpcService {
           [DIDR_INVITE_SCOPE, DIDR_WRITE_SCOPE],
           functionFragment.name,
         );
-        const castArgs = args as unknown as ArgsInsertDidDocument;
-        await validateClass(ArgsInsertDidDocument, castArgs);
+
+        const castArgs = await insertDidDocumentSchema.parseAsync(argsObject);
+
         if (scope.includes(DIDR_INVITE_SCOPE)) {
           assertDidMatchesSub(castArgs.did, clientId);
         }
@@ -181,50 +235,57 @@ export class JsonRpcService {
       }
       case "updateBaseDocument": {
         assertScopeContains(scope, DIDR_WRITE_SCOPE, functionFragment.name);
-        const castArgs = args as unknown as ArgsUpdateBaseDocument;
-        await validateClass(ArgsUpdateBaseDocument, castArgs);
+        await updateBaseDocumentSchema.parseAsync(argsObject);
+        break;
+      }
+      case "addService": {
+        assertScopeContains(scope, DIDR_WRITE_SCOPE, functionFragment.name);
+        await addServiceSchema.parseAsync(argsObject);
+        break;
+      }
+      case "revokeService": {
+        assertScopeContains(scope, DIDR_WRITE_SCOPE, functionFragment.name);
+        await revokeServiceSchema.parseAsync(argsObject);
         break;
       }
       case "addController": {
         assertScopeContains(scope, DIDR_WRITE_SCOPE, functionFragment.name);
-        const castArgs = args as unknown as ArgsAddController;
-        await validateClass(ArgsAddController, castArgs);
+        await addControllerSchema.parseAsync(argsObject);
         break;
       }
       case "revokeController": {
         assertScopeContains(scope, DIDR_WRITE_SCOPE, functionFragment.name);
-        const castArgs = args as unknown as ArgsRevokeController;
-        await validateClass(ArgsRevokeController, castArgs);
+        await revokeControllerSchema.parseAsync(argsObject);
         break;
       }
       case "addVerificationMethod": {
         assertScopeContains(scope, DIDR_WRITE_SCOPE, functionFragment.name);
-        const castArgs = args as unknown as ArgsAddVerificationMethod;
-        await validateClass(ArgsAddVerificationMethod, castArgs);
+        await addVerificationMethodSchema.parseAsync(argsObject);
         break;
       }
       case "addVerificationRelationship": {
         assertScopeContains(scope, DIDR_WRITE_SCOPE, functionFragment.name);
-        const castArgs = args as unknown as ArgsAddVerificationRelationship;
-        await validateClass(ArgsAddVerificationRelationship, castArgs);
+        await addVerificationRelationshipSchema.parseAsync(argsObject);
         break;
       }
       case "revokeVerificationMethod": {
         assertScopeContains(scope, DIDR_WRITE_SCOPE, functionFragment.name);
-        const castArgs = args as unknown as ArgsRevokeVerificationMethod;
-        await validateClass(ArgsRevokeVerificationMethod, castArgs);
+        await revokeVerificationMethodSchema.parseAsync(argsObject);
         break;
       }
       case "expireVerificationMethod": {
         assertScopeContains(scope, DIDR_WRITE_SCOPE, functionFragment.name);
-        const castArgs = args as unknown as ArgsExpireVerificationMethod;
-        await validateClass(ArgsExpireVerificationMethod, castArgs);
+        await expireVerificationMethodSchema.parseAsync(argsObject);
         break;
       }
       case "rollVerificationMethod": {
         assertScopeContains(scope, DIDR_WRITE_SCOPE, functionFragment.name);
-        const castArgs = args as unknown as ArgsRollVerificationMethod;
-        await validateClass(ArgsRollVerificationMethod, castArgs);
+
+        await rollVerificationMethodSchema.parseAsync({
+          ...argsObject,
+          args: extractNamedAttributes(args["args"]),
+        });
+
         break;
       }
       default:
@@ -289,7 +350,7 @@ export class JsonRpcService {
   }
 
   async buildTransactionInsertDidDocument(
-    body: RequestInsertDidDocumentDto,
+    body: JsonRpcSchema,
     id: number | string | null | undefined,
     sub: string,
     scope: string,
@@ -302,7 +363,8 @@ export class JsonRpcService {
         "insertDidDocument",
       );
 
-      await validateClass(RequestInsertDidDocumentDto, body);
+      const parsedBody =
+        await requestInsertDidDocumentDtoSchema.parseAsync(body);
 
       const {
         from,
@@ -313,7 +375,7 @@ export class JsonRpcService {
         isSecp256k1,
         notBefore,
         notAfter,
-      } = body.params[0]!;
+      } = parsedBody.params[0]!;
 
       if (scope.includes(DIDR_INVITE_SCOPE)) {
         // Verify that the Access Token sub and the payload DID match
@@ -361,7 +423,7 @@ export class JsonRpcService {
   }
 
   async buildTransactionAddService(
-    body: RequestAddServiceDto,
+    body: JsonRpcSchema,
     id: number | string | null | undefined,
     scope: string,
   ) {
@@ -369,9 +431,10 @@ export class JsonRpcService {
       // Access Token must contain DIDR_WRITE_SCOPE scope
       assertScopeContains(scope, DIDR_WRITE_SCOPE, "updateBaseDocument");
 
-      await validateClass(RequestAddServiceDto, body);
+      const parsedBody = await requestAddServiceDtoSchema.parseAsync(body);
 
-      const { from, did, service } = body.params[0]!;
+      const { from, did, service } = parsedBody.params[0]!;
+
       const didDocument = await this.getDidDocument(did);
 
       let baseDocument: { [x: string]: unknown; service?: unknown[] };
@@ -413,7 +476,7 @@ export class JsonRpcService {
   }
 
   async buildTransactionRevokeService(
-    body: RequestRevokeServiceDto,
+    body: JsonRpcSchema,
     id: number | string | null | undefined,
     scope: string,
   ) {
@@ -421,9 +484,9 @@ export class JsonRpcService {
       // Access Token must contain DIDR_WRITE_SCOPE scope
       assertScopeContains(scope, DIDR_WRITE_SCOPE, "updateBaseDocument");
 
-      await validateClass(RequestRevokeServiceDto, body);
+      const parsedBody = await requestRevokeServiceDtoSchema.parseAsync(body);
 
-      const { from, did, serviceId } = body.params[0]!;
+      const { from, did, serviceId } = parsedBody.params[0]!;
 
       const didDocument = await this.getDidDocument(did);
 
@@ -467,7 +530,7 @@ export class JsonRpcService {
   }
 
   async buildTransactionUpdateBaseDocument(
-    body: RequestUpdateBaseDocumentDto,
+    body: JsonRpcSchema,
     id: number | string | null | undefined,
     scope: string,
   ): Promise<UnsignedTransaction> {
@@ -475,9 +538,10 @@ export class JsonRpcService {
       // Access Token must contain DIDR_WRITE_SCOPE scope
       assertScopeContains(scope, DIDR_WRITE_SCOPE, "updateBaseDocument");
 
-      await validateClass(RequestUpdateBaseDocumentDto, body);
+      const parsedBody =
+        await requestUpdateBaseDocumentDtoSchema.parseAsync(body);
 
-      const { from, did, baseDocument } = body.params[0]!;
+      const { from, did, baseDocument } = parsedBody.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -494,7 +558,7 @@ export class JsonRpcService {
   }
 
   async buildTransactionAddController(
-    body: RequestAddControllerDto,
+    body: JsonRpcSchema,
     id: number | string | null | undefined,
     scope: string,
   ): Promise<UnsignedTransaction> {
@@ -502,9 +566,9 @@ export class JsonRpcService {
       // Access Token must contain DIDR_WRITE_SCOPE scope
       assertScopeContains(scope, DIDR_WRITE_SCOPE, "addController");
 
-      await validateClass(RequestAddControllerDto, body);
+      const parsedBody = await requestAddControllerDtoSchema.parseAsync(body);
 
-      const { from, did, controller } = body.params[0]!;
+      const { from, did, controller } = parsedBody.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -521,7 +585,7 @@ export class JsonRpcService {
   }
 
   async buildTransactionRevokeController(
-    body: RequestRevokeControllerDto,
+    body: JsonRpcSchema,
     id: number | string | null | undefined,
     scope: string,
   ): Promise<UnsignedTransaction> {
@@ -529,9 +593,10 @@ export class JsonRpcService {
       // Access Token must contain DIDR_WRITE_SCOPE scope
       assertScopeContains(scope, DIDR_WRITE_SCOPE, "revokeController");
 
-      await validateClass(RequestRevokeControllerDto, body);
+      const parsedBody =
+        await requestRevokeControllerDtoSchema.parseAsync(body);
 
-      const { from, did, controller } = body.params[0]!;
+      const { from, did, controller } = parsedBody.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -548,7 +613,7 @@ export class JsonRpcService {
   }
 
   async buildTransactionAddVerificationMethod(
-    body: RequestAddVerificationMethodDto,
+    body: JsonRpcSchema,
     id: number | string | null | undefined,
     scope: string,
   ): Promise<UnsignedTransaction> {
@@ -556,9 +621,11 @@ export class JsonRpcService {
       // Access Token must contain DIDR_WRITE_SCOPE scope
       assertScopeContains(scope, DIDR_WRITE_SCOPE, "addVerificationMethod");
 
-      await validateClass(RequestAddVerificationMethodDto, body);
+      const parsedBody =
+        await requestAddVerificationMethodDtoSchema.parseAsync(body);
 
-      const { from, did, vMethodId, publicKey, isSecp256k1 } = body.params[0]!;
+      const { from, did, vMethodId, publicKey, isSecp256k1 } =
+        parsedBody.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -580,7 +647,7 @@ export class JsonRpcService {
   }
 
   async buildTransactionAddVerificationRelationship(
-    body: RequestAddVerificationRelationshipDto,
+    body: JsonRpcSchema,
     id: number | string | null | undefined,
     scope: string,
   ): Promise<UnsignedTransaction> {
@@ -592,10 +659,11 @@ export class JsonRpcService {
         "addVerificationRelationship",
       );
 
-      await validateClass(RequestAddVerificationRelationshipDto, body);
+      const parsedBody =
+        await requestAddVerificationRelationshipDtoSchema.parseAsync(body);
 
       const { from, did, name, vMethodId, notBefore, notAfter } =
-        body.params[0]!;
+        parsedBody.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -618,7 +686,7 @@ export class JsonRpcService {
   }
 
   async buildTransactionRevokeVerificationMethod(
-    body: RequestRevokeVerificationMethodDto,
+    body: JsonRpcSchema,
     id: number | string | null | undefined,
     scope: string,
   ): Promise<UnsignedTransaction> {
@@ -626,9 +694,10 @@ export class JsonRpcService {
       // Access Token must contain DIDR_WRITE_SCOPE scope
       assertScopeContains(scope, DIDR_WRITE_SCOPE, "revokeVerificationMethod");
 
-      await validateClass(RequestRevokeVerificationMethodDto, body);
+      const parsedBody =
+        await requestRevokeVerificationMethodDtoSchema.parseAsync(body);
 
-      const { from, did, vMethodId, notAfter } = body.params[0]!;
+      const { from, did, vMethodId, notAfter } = parsedBody.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -649,7 +718,7 @@ export class JsonRpcService {
   }
 
   async buildTransactionExpireVerificationMethod(
-    body: RequestExpireVerificationMethodDto,
+    body: JsonRpcSchema,
     id: number | string | null | undefined,
     scope: string,
   ): Promise<UnsignedTransaction> {
@@ -657,9 +726,10 @@ export class JsonRpcService {
       // Access Token must contain DIDR_WRITE_SCOPE scope
       assertScopeContains(scope, DIDR_WRITE_SCOPE, "expireVerificationMethod");
 
-      await validateClass(RequestExpireVerificationMethodDto, body);
+      const parsedBody =
+        await requestExpireVerificationMethodDtoSchema.parseAsync(body);
 
-      const { from, did, vMethodId, notAfter } = body.params[0]!;
+      const { from, did, vMethodId, notAfter } = parsedBody.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -680,7 +750,7 @@ export class JsonRpcService {
   }
 
   async buildTransactionRollVerificationMethod(
-    body: RequestRollVerificationMethodDto,
+    body: JsonRpcSchema,
     id: number | string | null | undefined,
     scope: string,
   ): Promise<UnsignedTransaction> {
@@ -688,13 +758,14 @@ export class JsonRpcService {
       // Access Token must contain DIDR_WRITE_SCOPE scope
       assertScopeContains(scope, DIDR_WRITE_SCOPE, "rollVerificationMethod");
 
-      await validateClass(RequestRollVerificationMethodDto, body);
+      const parsedBody =
+        await requestRollVerificationMethodDtoSchema.parseAsync(body);
 
-      const { from, rollArgs } = body.params[0]!;
+      const { from, args } = parsedBody.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("rollVerificationMethod", [rollArgs]);
+      ).interface.encodeFunctionData("rollVerificationMethod", [args]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -707,15 +778,16 @@ export class JsonRpcService {
   }
 
   async sendTransaction(
-    body: RequestSendSignedTransactionDto,
+    body: JsonRpcSchema,
     id: number | string | null | undefined,
     sub: string,
     scope: string,
   ): Promise<string> {
     try {
-      await validateClass(RequestSendSignedTransactionDto, body);
+      const parsedBody =
+        await requestSendSignedTransactionDtoSchema.parseAsync(body);
 
-      const request = body.params[0]!;
+      const request = parsedBody.params[0]!;
 
       await this.verifyTransaction(sub, request, scope);
 

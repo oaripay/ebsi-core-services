@@ -993,7 +993,7 @@ describe(
                 notAfter: now + 3600,
               } as InsertDidDocumentParam,
               expectedErrorMessage:
-                "Validation error: The public key must be of 33 bytes (secp256k1 compressed) or 65 bytes (secp256k1 uncompressed)",
+                "Invalid public key. The public key must be of 33 bytes (secp256k1 compressed) or 65 bytes (secp256k1 uncompressed)",
               accessToken: newUserDidrInviteAccessToken,
             });
 
@@ -1010,8 +1010,7 @@ describe(
                 notBefore: now,
                 notAfter: now + 3600,
               } as InsertDidDocumentParam,
-              expectedErrorMessage:
-                "Validation error: Invalid public key. Unknown point format",
+              expectedErrorMessage: "Invalid public key. Unknown point format",
               accessToken: newUserDidrInviteAccessToken,
             });
 
@@ -1238,7 +1237,7 @@ describe(
                 isSecp256k1: false,
               } as AddVerificationMethodParam,
               expectedErrorMessage:
-                "Validation error: Invalid public key. Unexpected non-whitespace character after JSON at position 3",
+                "Invalid public key. Unexpected non-whitespace character after JSON at position 3",
               accessToken: newUserDidrWriteAccessToken,
             });
 

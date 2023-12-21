@@ -31,26 +31,24 @@ import { setupServer } from "msw/node";
 import { DidRegistry, DidRegistry__factory } from "@ebsiint-sc/did-registry-v3";
 import { JsonRpcModule } from "./jsonrpc.module.js";
 import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
-import {
-  UnsignedTransaction,
-  InsertDidDocumentParam,
-  UpdateBaseDocumentParam,
-  AddControllerParam,
-  RevokeControllerParam,
-  AddVerificationMethodParam,
-  AddVerificationRelationshipParam,
-  RevokeVerificationMethodParam,
-  ExpireVerificationMethodParam,
-  RollVerificationMethodParam,
-  AddServiceParam,
-  RevokeServiceParam,
-} from "./dto/index.js";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils.js";
 import { createUser, UserDetails } from "../../../tests/utils/data.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { setupTestEnv } from "../../../tests/utils/didRegistry.js";
 import type { ApiConfig } from "../../config/configuration.js";
 import { LedgerService } from "../ledger/ledger.service.js";
+import type { InsertDidDocumentSchema } from "./validators/RequestInsertDidDocumentSchema.js";
+import type { UpdateBaseDocumentSchema } from "./validators/RequestUpdateBaseDocumentSchema.js";
+import type { AddServiceSchema } from "./validators/RequestAddServiceSchema.js";
+import type { RevokeServiceSchema } from "./validators/RequestRevokeServiceSchema.js";
+import type { AddControllerSchema } from "./validators/RequestAddControllerSchema.js";
+import type { RevokeControllerSchema } from "./validators/RequestRevokeControllerSchema.js";
+import type { AddVerificationMethodSchema } from "./validators/RequestAddVerificationMethodSchema.js";
+import type { AddVerificationRelationshipSchema } from "./validators/RequestAddVerificationRelationshipSchema.js";
+import type { RevokeVerificationMethodSchema } from "./validators/RequestRevokeVerificationMethodSchema.js";
+import type { ExpireVerificationMethodSchema } from "./validators/RequestExpireVerificationMethodSchema.js";
+import type { RollVerificationMethodSchema } from "./validators/RequestRollVerificationMethodSchema.js";
+import type { UnsignedTransaction } from "./validators/RequestSendSignedTransactionSchema.js";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -58,17 +56,17 @@ interface SupertestJsonRpcResponse {
 }
 
 type JsonRpcParams =
-  | InsertDidDocumentParam
-  | UpdateBaseDocumentParam
-  | AddControllerParam
-  | RevokeControllerParam
-  | AddVerificationMethodParam
-  | AddVerificationRelationshipParam
-  | RevokeVerificationMethodParam
-  | ExpireVerificationMethodParam
-  | RollVerificationMethodParam
-  | AddServiceParam
-  | RevokeServiceParam;
+  | InsertDidDocumentSchema
+  | UpdateBaseDocumentSchema
+  | AddServiceSchema
+  | RevokeServiceSchema
+  | AddControllerSchema
+  | RevokeControllerSchema
+  | AddVerificationMethodSchema
+  | AddVerificationRelationshipSchema
+  | RevokeVerificationMethodSchema
+  | ExpireVerificationMethodSchema
+  | RollVerificationMethodSchema;
 
 describe("JsonRpc Module", () => {
   let app: NestFastifyApplication;
@@ -355,19 +353,39 @@ describe("JsonRpc Module", () => {
     });
 
     it("should throw Bad Request for a bad JSON-RPC call", async () => {
-      expect.assertions(2);
+      expect.assertions(4);
 
-      const response = await request(server)
+      let response = await request(server)
         .post("/jsonrpc")
         .auth(newUserDidrInviteAccessToken, { type: "bearer" })
         .send();
 
       expect(response.body).toStrictEqual({
-        title: "Bad Request",
-        status: 400,
-        detail:
-          '["jsonrpc must be equal to 2.0","method must be a string","params must be an array"]',
-        type: "about:blank",
+        error: {
+          code: -32600,
+          message: "JSON-RPC payload must be an object",
+        },
+        id: null,
+        jsonrpc: "2.0",
+      });
+      expect(response.status).toBe(400);
+
+      response = await request(server)
+        .post("/jsonrpc")
+        .auth(newUserDidrInviteAccessToken, { type: "bearer" })
+        .send({});
+
+      expect(response.body).toStrictEqual({
+        error: {
+          code: -32600,
+          message: [
+            "Invalid 'jsonrpc': Invalid literal value, expected \"2.0\"",
+            "Invalid 'method': Required",
+            "Invalid 'params': Required",
+          ].join("\n"),
+        },
+        id: null,
+        jsonrpc: "2.0",
       });
       expect(response.status).toBe(400);
     });
@@ -416,7 +434,7 @@ describe("JsonRpc Module", () => {
         isSecp256k1: true,
         notBefore,
         notAfter,
-      } as InsertDidDocumentParam;
+      } satisfies InsertDidDocumentSchema;
 
       const param2 = {
         from: newUser.wallet.address,
@@ -429,7 +447,7 @@ describe("JsonRpc Module", () => {
         isSecp256k1: true,
         notBefore,
         notAfter: notAfter + 1,
-      } as InsertDidDocumentParam;
+      } satisfies InsertDidDocumentSchema;
 
       const accessToken = newUserDidrInviteAccessToken;
 
@@ -554,7 +572,7 @@ describe("JsonRpc Module", () => {
         isSecp256k1: true,
         notBefore,
         notAfter,
-      } as InsertDidDocumentParam;
+      } satisfies InsertDidDocumentSchema;
 
       const accessToken = await new SignJWT({
         sub: testUser.did,
@@ -660,7 +678,7 @@ describe("JsonRpc Module", () => {
         isSecp256k1: true,
         notBefore: now,
         notAfter: now + 3600,
-      } as InsertDidDocumentParam;
+      } satisfies InsertDidDocumentSchema;
 
       const responseBuild = await request(server)
         .post("/jsonrpc")
@@ -678,6 +696,45 @@ describe("JsonRpc Module", () => {
         result: expect.objectContaining({}),
       });
       expect(responseBuild.status).toBe(200);
+    });
+
+    it("should throw an error if the from attribute is not a valid Ethereum address", async () => {
+      expect.assertions(2);
+
+      const accessToken = newUserDidrInviteAccessToken;
+      const now = Math.floor(Date.now() / 1000);
+      const param = {
+        from: "0x123",
+        did: newUser.did,
+        baseDocument: JSON.stringify({
+          "@context": ["https://www.w3.org/ns/did/v1"],
+        }),
+        vMethodId: newUser.thumbprint,
+        publicKey: newUser.wallet.publicKey,
+        isSecp256k1: true,
+        notBefore: now,
+        notAfter: now + 3600,
+      } satisfies InsertDidDocumentSchema;
+
+      const responseBuild = await request(server)
+        .post("/jsonrpc")
+        .auth(accessToken, { type: "bearer" })
+        .send({
+          jsonrpc: "2.0",
+          method: "insertDidDocument",
+          params: [param],
+          id: 123,
+        });
+
+      expect(responseBuild.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: 123,
+        error: {
+          code: -32600,
+          message: "Invalid 'params.0.from': Invalid Ethereum address",
+        },
+      });
+      expect(responseBuild.status).toBe(400);
     });
   });
 
@@ -721,7 +778,7 @@ describe("JsonRpc Module", () => {
             isSecp256k1: true,
             notBefore: now,
             notAfter: now + 3600,
-          } as InsertDidDocumentParam;
+          } satisfies InsertDidDocumentSchema;
           break;
         }
         case "updateBaseDocument": {
@@ -731,7 +788,7 @@ describe("JsonRpc Module", () => {
             baseDocument: JSON.stringify({
               "@context": existingUser.didDocument["@context"],
             }),
-          } as UpdateBaseDocumentParam;
+          } satisfies UpdateBaseDocumentSchema;
           break;
         }
         case "addService": {
@@ -750,7 +807,7 @@ describe("JsonRpc Module", () => {
                 byType: "/type/{type}",
               },
             }),
-          } as AddServiceParam;
+          } satisfies AddServiceSchema;
           break;
         }
         case "revokeService": {
@@ -758,7 +815,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             did: existingUser.did,
             serviceId: "1",
-          } as RevokeServiceParam;
+          } satisfies RevokeServiceSchema;
           break;
         }
         case "addController": {
@@ -766,7 +823,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             did: existingUser.did,
             controller: existingUser2.did,
-          } as AddControllerParam;
+          } satisfies AddControllerSchema;
 
           break;
         }
@@ -775,7 +832,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             did: existingUser.did,
             controller: existingUser2.did,
-          } as RevokeControllerParam;
+          } satisfies RevokeControllerSchema;
           break;
         }
         case "addVerificationMethod": {
@@ -787,7 +844,7 @@ describe("JsonRpc Module", () => {
               "hex",
             )}`,
             isSecp256k1: false,
-          } as AddVerificationMethodParam;
+          } satisfies AddVerificationMethodSchema;
           break;
         }
         case "addVerificationRelationship": {
@@ -798,7 +855,7 @@ describe("JsonRpc Module", () => {
             vMethodId: existingUser.thumbprint,
             notBefore: now,
             notAfter: now + 3600,
-          } as AddVerificationRelationshipParam;
+          } satisfies AddVerificationRelationshipSchema;
           break;
         }
         case "expireVerificationMethod": {
@@ -807,7 +864,7 @@ describe("JsonRpc Module", () => {
             did: existingUser.did,
             vMethodId: thumbprint2,
             notAfter: now + 600,
-          } as ExpireVerificationMethodParam;
+          } satisfies ExpireVerificationMethodSchema;
           break;
         }
         case "revokeVerificationMethod": {
@@ -816,13 +873,13 @@ describe("JsonRpc Module", () => {
             did: existingUser.did,
             vMethodId: thumbprint2,
             notAfter: now - 600,
-          } as RevokeVerificationMethodParam;
+          } satisfies RevokeVerificationMethodSchema;
           break;
         }
         case "rollVerificationMethod": {
           param = {
             from: signer.address,
-            rollArgs: {
+            args: {
               did: existingUser.did,
               vMethodId: thumbprint3,
               publicKey: `0x${Buffer.from(
@@ -834,7 +891,7 @@ describe("JsonRpc Module", () => {
               oldVMethodId: thumbprint2,
               duration: 360,
             },
-          } as RollVerificationMethodParam;
+          } satisfies RollVerificationMethodSchema;
           break;
         }
         default: {
@@ -929,7 +986,7 @@ describe("JsonRpc Module", () => {
               isSecp256k1: true,
               notBefore: now,
               notAfter: now + 3600,
-            } as InsertDidDocumentParam,
+            } satisfies InsertDidDocumentSchema,
             expectedErrorMessage:
               "Access token sub doesn't match the DID from the payload",
             accessToken: existingUserDidrInviteAccessToken,
@@ -947,9 +1004,9 @@ describe("JsonRpc Module", () => {
               isSecp256k1: true,
               notBefore: now,
               notAfter: now + 3600,
-            } as InsertDidDocumentParam,
+            } satisfies InsertDidDocumentSchema,
             expectedErrorMessage:
-              "Validation error: did must be a valid DID v1",
+              "Invalid 'params.0.did': Unsupported version \"2\"",
             accessToken: newUserDidrInviteAccessToken,
           });
 
@@ -957,15 +1014,15 @@ describe("JsonRpc Module", () => {
             params: {
               from: signer.address,
               did: newUser.did,
-              baseDocument: "{}",
+              baseDocument: JSON.stringify({}),
               vMethodId: newUser.thumbprint,
               publicKey: newUser.wallet.publicKey,
               isSecp256k1: true,
               notBefore: now,
               notAfter: now + 3600,
-            } as InsertDidDocumentParam,
+            } satisfies InsertDidDocumentSchema,
             expectedErrorMessage:
-              "Validation error: baseDocument must be a valid JSON string with at least the field @context and without verification methods, verification relationships, controllers or id",
+              "Invalid 'params.0.baseDocument': '@context' attribute is missing",
             accessToken: newUserDidrInviteAccessToken,
           });
 
@@ -973,16 +1030,15 @@ describe("JsonRpc Module", () => {
             params: {
               from: signer.address,
               did: newUser.did,
-              // authentication can not be in the base document
-              baseDocument: '{"@context":[],"authentication":[]}',
+              baseDocument: JSON.stringify({ "@context": [] }),
               vMethodId: newUser.thumbprint,
               publicKey: newUser.wallet.publicKey,
               isSecp256k1: true,
               notBefore: now,
               notAfter: now + 3600,
-            } as InsertDidDocumentParam,
+            } satisfies InsertDidDocumentSchema,
             expectedErrorMessage:
-              "Validation error: baseDocument must be a valid JSON string with at least the field @context and without verification methods, verification relationships, controllers or id",
+              "Invalid 'params.0.baseDocument': '@context' attribute must be 'https://www.w3.org/ns/did/v1' or an array with 'https://www.w3.org/ns/did/v1' as first element",
             accessToken: newUserDidrInviteAccessToken,
           });
 
@@ -992,16 +1048,38 @@ describe("JsonRpc Module", () => {
               did: newUser.did,
               baseDocument: JSON.stringify({
                 "@context": newUser.didDocument["@context"],
+                // authentication can not be in the base document
+                authentication: [],
               }),
-              vMethodId: "bad-thumbprint",
-              publicKey:
-                "0x0467ae84170dd193fd47d864caeaa36e995d62cab4a258cb9b7234b8cc6bb8aa5d6f4313b6f819d8334d4262094005700429c0e4e23b1e5427160f23f43c643d12",
+              vMethodId: newUser.thumbprint,
+              publicKey: newUser.wallet.publicKey,
               isSecp256k1: true,
               notBefore: now,
               notAfter: now + 3600,
-            } as InsertDidDocumentParam,
+            } satisfies InsertDidDocumentSchema,
             expectedErrorMessage:
-              "Validation error: vMethodId must be the thumbprint of the publicKey",
+              "Invalid 'params.0.baseDocument': attribute 'authentication' is not allowed",
+            accessToken: newUserDidrInviteAccessToken,
+          });
+
+          testSetup.push({
+            params: {
+              from: signer.address,
+              did: newUser.did,
+              baseDocument: JSON.stringify({
+                "@context": newUser.didDocument["@context"],
+                // controller and verificationMethod can not be in the base document
+                controller: "",
+                verificationMethod: [],
+              }),
+              vMethodId: newUser.thumbprint,
+              publicKey: newUser.wallet.publicKey,
+              isSecp256k1: true,
+              notBefore: now,
+              notAfter: now + 3600,
+            } satisfies InsertDidDocumentSchema,
+            expectedErrorMessage:
+              "Invalid 'params.0.baseDocument': attributes 'controller', 'verificationMethod' are not allowed",
             accessToken: newUserDidrInviteAccessToken,
           });
 
@@ -1017,9 +1095,9 @@ describe("JsonRpc Module", () => {
               isSecp256k1: true,
               notBefore: now,
               notAfter: now + 3600,
-            } as InsertDidDocumentParam,
+            } satisfies InsertDidDocumentSchema,
             expectedErrorMessage:
-              "Validation error: The public key must be of 33 bytes (secp256k1 compressed) or 65 bytes (secp256k1 uncompressed)",
+              "Invalid 'params.0.publicKey': The public key must be of 33 bytes (secp256k1 compressed) or 65 bytes (secp256k1 uncompressed)",
             accessToken: newUserDidrInviteAccessToken,
           });
 
@@ -1035,9 +1113,9 @@ describe("JsonRpc Module", () => {
               isSecp256k1: true,
               notBefore: now,
               notAfter: now + 3600,
-            } as InsertDidDocumentParam,
+            } satisfies InsertDidDocumentSchema,
             expectedErrorMessage:
-              "Validation error: Invalid public key. Unknown point format",
+              "Invalid 'params.0.publicKey': Unknown point format",
             accessToken: newUserDidrInviteAccessToken,
           });
 
@@ -1064,9 +1142,28 @@ describe("JsonRpc Module", () => {
               isSecp256k1: false,
               notBefore: now,
               notAfter: now + 3600,
-            } as InsertDidDocumentParam,
+            } as InsertDidDocumentSchema,
             expectedErrorMessage:
-              "Validation error: isSecp256k1 must be equal to true",
+              "Invalid 'params.0.isSecp256k1': Invalid literal value, expected true",
+            accessToken: newUserDidrInviteAccessToken,
+          });
+
+          testSetup.push({
+            params: {
+              from: signer.address,
+              did: newUser.did,
+              baseDocument: JSON.stringify({
+                "@context": newUser.didDocument["@context"],
+              }),
+              vMethodId: "bad-thumbprint",
+              publicKey:
+                "0x0467ae84170dd193fd47d864caeaa36e995d62cab4a258cb9b7234b8cc6bb8aa5d6f4313b6f819d8334d4262094005700429c0e4e23b1e5427160f23f43c643d12",
+              isSecp256k1: true,
+              notBefore: now,
+              notAfter: now + 3600,
+            } satisfies InsertDidDocumentSchema,
+            expectedErrorMessage:
+              "Invalid 'params.0.vMethodId': vMethodId must be the thumbprint of the publicKey",
             accessToken: newUserDidrInviteAccessToken,
           });
 
@@ -1081,7 +1178,7 @@ describe("JsonRpc Module", () => {
               baseDocument: JSON.stringify({
                 "@context": newUser.didDocument["@context"],
               }),
-            } as UpdateBaseDocumentParam,
+            } satisfies UpdateBaseDocumentSchema,
             expectedErrorMessage:
               "'updateBaseDocument' requires an access token with the scope 'didr_write'",
             accessToken: newUserDidrInviteAccessToken,
@@ -1092,9 +1189,9 @@ describe("JsonRpc Module", () => {
               from: signer.address,
               did: newUser.did,
               baseDocument: "{}",
-            } as UpdateBaseDocumentParam,
+            } satisfies UpdateBaseDocumentSchema,
             expectedErrorMessage:
-              "Validation error: baseDocument must be a valid JSON string with at least the field @context and without verification methods, verification relationships, controllers or id",
+              "Invalid 'params.0.baseDocument': '@context' attribute is missing",
             accessToken: newUserDidrWriteAccessToken,
           });
 
@@ -1104,9 +1201,9 @@ describe("JsonRpc Module", () => {
               did: newUser.did,
               // authentication can not be in the base document
               baseDocument: '{"@context":[],"authentication":[]}',
-            } as UpdateBaseDocumentParam,
+            } satisfies UpdateBaseDocumentSchema,
             expectedErrorMessage:
-              "Validation error: baseDocument must be a valid JSON string with at least the field @context and without verification methods, verification relationships, controllers or id",
+              "Invalid 'params.0.baseDocument': '@context' attribute must be 'https://www.w3.org/ns/did/v1' or an array with 'https://www.w3.org/ns/did/v1' as first element",
             accessToken: newUserDidrWriteAccessToken,
           });
 
@@ -1119,7 +1216,7 @@ describe("JsonRpc Module", () => {
               from: signer.address,
               did: newUser.did,
               controller: existingUser.did,
-            } as AddControllerParam,
+            } satisfies AddControllerSchema,
             expectedErrorMessage:
               "'addController' requires an access token with the scope 'didr_write'",
             accessToken: newUserDidrInviteAccessToken,
@@ -1130,9 +1227,9 @@ describe("JsonRpc Module", () => {
               from: signer.address,
               did: "did:ebsi:znxntxQrN369GsNyjFjYb8fuvU7g3sJGyYGwMTcUGdzuy",
               controller: existingUser.did,
-            } as AddControllerParam,
+            } satisfies AddControllerSchema,
             expectedErrorMessage:
-              "Validation error: did must be a valid DID v1",
+              "Invalid 'params.0.did': Unsupported version \"2\"",
             accessToken: newUserDidrWriteAccessToken,
           });
 
@@ -1142,9 +1239,9 @@ describe("JsonRpc Module", () => {
               did: newUser.did,
               controller:
                 "did:ebsi:znxntxQrN369GsNyjFjYb8fuvU7g3sJGyYGwMTcUGdzuy",
-            } as AddControllerParam,
+            } satisfies AddControllerSchema,
             expectedErrorMessage:
-              "Validation error: controller must be a valid DID v1",
+              "Invalid 'params.0.controller': Unsupported version \"2\"",
             accessToken: newUserDidrWriteAccessToken,
           });
 
@@ -1157,7 +1254,7 @@ describe("JsonRpc Module", () => {
               from: signer.address,
               did: newUser.did,
               controller: existingUser.did,
-            } as RevokeControllerParam,
+            } satisfies RevokeControllerSchema,
             expectedErrorMessage:
               "'revokeController' requires an access token with the scope 'didr_write'",
             accessToken: newUserDidrInviteAccessToken,
@@ -1168,9 +1265,9 @@ describe("JsonRpc Module", () => {
               from: signer.address,
               did: "did:ebsi:znxntxQrN369GsNyjFjYb8fuvU7g3sJGyYGwMTcUGdzuy",
               controller: existingUser.did,
-            } as RevokeControllerParam,
+            } satisfies RevokeControllerSchema,
             expectedErrorMessage:
-              "Validation error: did must be a valid DID v1",
+              "Invalid 'params.0.did': Unsupported version \"2\"",
             accessToken: newUserDidrWriteAccessToken,
           });
 
@@ -1180,9 +1277,9 @@ describe("JsonRpc Module", () => {
               did: newUser.did,
               controller:
                 "did:ebsi:znxntxQrN369GsNyjFjYb8fuvU7g3sJGyYGwMTcUGdzuy",
-            } as RevokeControllerParam,
+            } satisfies RevokeControllerSchema,
             expectedErrorMessage:
-              "Validation error: controller must be a valid DID v1",
+              "Invalid 'params.0.controller': Unsupported version \"2\"",
             accessToken: newUserDidrWriteAccessToken,
           });
 
@@ -1194,9 +1291,9 @@ describe("JsonRpc Module", () => {
               from: signer.address,
               did: newUser.did,
               service: JSON.stringify({}),
-            } as AddServiceParam,
+            } satisfies AddServiceSchema,
             expectedErrorMessage:
-              "Validation error: service must be a valid JSON string with the fields id, type, serviceEndpoint",
+              "Invalid 'params.0.service.id': Required\nInvalid 'params.0.service.type': Invalid input\nInvalid 'params.0.service.serviceEndpoint': Invalid input",
             accessToken: newUserDidrWriteAccessToken,
           });
 
@@ -1208,7 +1305,7 @@ describe("JsonRpc Module", () => {
               from: signer.address,
               did: newUser.did,
               serviceId: "1",
-            } as RevokeServiceParam,
+            } satisfies RevokeServiceSchema,
             expectedErrorMessage:
               "'updateBaseDocument' requires an access token with the scope 'didr_write'",
             accessToken: newUserDidrInviteAccessToken,
@@ -1226,7 +1323,7 @@ describe("JsonRpc Module", () => {
                 JSON.stringify(publicKeyJwk2),
               ).toString("hex")}`,
               isSecp256k1: false,
-            } as AddVerificationMethodParam,
+            } satisfies AddVerificationMethodSchema,
             expectedErrorMessage:
               "'addVerificationMethod' requires an access token with the scope 'didr_write'",
             accessToken: newUserDidrInviteAccessToken,
@@ -1248,9 +1345,9 @@ describe("JsonRpc Module", () => {
                 "hex",
               ),
               isSecp256k1: false,
-            } as AddVerificationMethodParam,
+            } satisfies AddVerificationMethodSchema,
             expectedErrorMessage:
-              "Validation error: vMethodId must be the thumbprint of the publicKey",
+              "Invalid 'params.0.vMethodId': vMethodId must be the thumbprint of the publicKey",
             accessToken: newUserDidrWriteAccessToken,
           });
 
@@ -1261,9 +1358,9 @@ describe("JsonRpc Module", () => {
               vMethodId: thumbprint,
               publicKey: "0x32313029",
               isSecp256k1: false,
-            } as AddVerificationMethodParam,
+            } satisfies AddVerificationMethodSchema,
             expectedErrorMessage:
-              "Validation error: Invalid public key. Unexpected non-whitespace character after JSON at position 3",
+              "Invalid 'params.0.publicKey': Unexpected non-whitespace character after JSON at position 3",
             accessToken: newUserDidrWriteAccessToken,
           });
 
@@ -1279,7 +1376,7 @@ describe("JsonRpc Module", () => {
               vMethodId: newUser.thumbprint,
               notBefore: now,
               notAfter: now + 3600,
-            } as AddVerificationRelationshipParam,
+            } satisfies AddVerificationRelationshipSchema,
             expectedErrorMessage:
               "'addVerificationRelationship' requires an access token with the scope 'didr_write'",
             accessToken: newUserDidrInviteAccessToken,
@@ -1293,9 +1390,9 @@ describe("JsonRpc Module", () => {
               vMethodId: newUser.thumbprint,
               notBefore: now,
               notAfter: now + 3600,
-            } as AddVerificationRelationshipParam,
+            } satisfies AddVerificationRelationshipSchema,
             expectedErrorMessage:
-              "Validation error: did must be a valid DID v1",
+              "Invalid 'params.0.did': Unsupported version \"2\"",
             accessToken: newUserDidrWriteAccessToken,
           });
 
@@ -1307,9 +1404,9 @@ describe("JsonRpc Module", () => {
               vMethodId: newUser.thumbprint,
               notBefore: now,
               notAfter: -10,
-            } as AddVerificationRelationshipParam,
+            } satisfies AddVerificationRelationshipSchema,
             expectedErrorMessage:
-              "Validation error: notAfter must not be less than 0",
+              "Invalid 'params.0.notAfter': Number must be greater than or equal to 0",
             accessToken: newUserDidrWriteAccessToken,
           });
 
@@ -1323,9 +1420,9 @@ describe("JsonRpc Module", () => {
               vMethodId: newUser.thumbprint,
               notBefore: now,
               notAfter: now + 3600,
-            } as AddVerificationRelationshipParam,
+            } as AddVerificationRelationshipSchema,
             expectedErrorMessage:
-              "Validation error: name must be one of the following values: authentication, assertionMethod, keyAgreement, capabilityInvocation, capabilityDelegation",
+              "Invalid 'params.0.name': Invalid enum value. Expected 'authentication' | 'assertionMethod' | 'keyAgreement' | 'capabilityInvocation' | 'capabilityDelegation', received 'bad-name'",
             accessToken: newUserDidrWriteAccessToken,
           });
 
@@ -1339,7 +1436,7 @@ describe("JsonRpc Module", () => {
               did: newUser.did,
               vMethodId: thumbprint2,
               notAfter: now + 600,
-            } as ExpireVerificationMethodParam,
+            } satisfies ExpireVerificationMethodSchema,
             expectedErrorMessage:
               "'expireVerificationMethod' requires an access token with the scope 'didr_write'",
             accessToken: newUserDidrInviteAccessToken,
@@ -1351,9 +1448,9 @@ describe("JsonRpc Module", () => {
               did: newUser.did,
               vMethodId: newUser.thumbprint,
               notAfter: -10,
-            } as ExpireVerificationMethodParam,
+            } satisfies ExpireVerificationMethodSchema,
             expectedErrorMessage:
-              "Validation error: notAfter must not be less than 0",
+              "Invalid 'params.0.notAfter': Number must be greater than or equal to 0",
             accessToken: newUserDidrWriteAccessToken,
           });
 
@@ -1363,9 +1460,9 @@ describe("JsonRpc Module", () => {
               did: "did:ebsi:znxntxQrN369GsNyjFjYb8fuvU7g3sJGyYGwMTcUGdzuy",
               vMethodId: newUser.thumbprint,
               notAfter: now + 600,
-            } as ExpireVerificationMethodParam,
+            } satisfies ExpireVerificationMethodSchema,
             expectedErrorMessage:
-              "Validation error: did must be a valid DID v1",
+              "Invalid 'params.0.did': Unsupported version \"2\"",
             accessToken: newUserDidrWriteAccessToken,
           });
 
@@ -1379,7 +1476,7 @@ describe("JsonRpc Module", () => {
               did: newUser.did,
               vMethodId: thumbprint2,
               notAfter: now - 600,
-            } as RevokeVerificationMethodParam,
+            } satisfies RevokeVerificationMethodSchema,
             expectedErrorMessage:
               "'revokeVerificationMethod' requires an access token with the scope 'didr_write'",
             accessToken: newUserDidrInviteAccessToken,
@@ -1391,9 +1488,9 @@ describe("JsonRpc Module", () => {
               did: newUser.did,
               vMethodId: newUser.thumbprint,
               notAfter: -10,
-            } as RevokeVerificationMethodParam,
+            } satisfies RevokeVerificationMethodSchema,
             expectedErrorMessage:
-              "Validation error: notAfter must not be less than 0",
+              "Invalid 'params.0.notAfter': Number must be greater than or equal to 0",
             accessToken: newUserDidrWriteAccessToken,
           });
 
@@ -1403,9 +1500,9 @@ describe("JsonRpc Module", () => {
               did: "did:ebsi:znxntxQrN369GsNyjFjYb8fuvU7g3sJGyYGwMTcUGdzuy",
               vMethodId: newUser.thumbprint,
               notAfter: now - 600,
-            } as RevokeVerificationMethodParam,
+            } satisfies RevokeVerificationMethodSchema,
             expectedErrorMessage:
-              "Validation error: did must be a valid DID v1",
+              "Invalid 'params.0.did': Unsupported version \"2\"",
             accessToken: newUserDidrWriteAccessToken,
           });
 
@@ -1416,7 +1513,7 @@ describe("JsonRpc Module", () => {
           testSetup.push({
             params: {
               from: signer.address,
-              rollArgs: {
+              args: {
                 did: newUser.did,
                 vMethodId: thumbprint3,
                 publicKey: `0x${Buffer.from(
@@ -1428,7 +1525,7 @@ describe("JsonRpc Module", () => {
                 oldVMethodId: thumbprint2,
                 duration: 360,
               },
-            } as RollVerificationMethodParam,
+            } satisfies RollVerificationMethodSchema,
             expectedErrorMessage:
               "'rollVerificationMethod' requires an access token with the scope 'didr_write'",
             accessToken: newUserDidrInviteAccessToken,
@@ -1437,7 +1534,7 @@ describe("JsonRpc Module", () => {
           testSetup.push({
             params: {
               from: signer.address,
-              rollArgs: {
+              args: {
                 did: "did:ebsi:znxntxQrN369GsNyjFjYb8fuvU7g3sJGyYGwMTcUGdzuy",
                 vMethodId: thumbprint3,
                 publicKey: `0x${Buffer.from(
@@ -1449,16 +1546,16 @@ describe("JsonRpc Module", () => {
                 oldVMethodId: thumbprint2,
                 duration: 360,
               },
-            } as RollVerificationMethodParam,
+            } satisfies RollVerificationMethodSchema,
             expectedErrorMessage:
-              "Validation error: did must be a valid DID v1",
+              "Invalid 'params.0.args.did': Unsupported version \"2\"",
             accessToken: newUserDidrWriteAccessToken,
           });
 
           testSetup.push({
             params: {
               from: signer.address,
-              rollArgs: {
+              args: {
                 did: newUser.did,
                 vMethodId: "bad-thumbprint",
                 publicKey:
@@ -1469,16 +1566,16 @@ describe("JsonRpc Module", () => {
                 oldVMethodId: thumbprint2,
                 duration: 360,
               },
-            } as RollVerificationMethodParam,
+            } satisfies RollVerificationMethodSchema,
             expectedErrorMessage:
-              "Validation error: vMethodId must be the thumbprint of the publicKey",
+              "Invalid 'params.0.args.vMethodId': vMethodId must be the thumbprint of the publicKey",
             accessToken: newUserDidrWriteAccessToken,
           });
 
           testSetup.push({
             params: {
               from: signer.address,
-              rollArgs: {
+              args: {
                 did: newUser.did,
                 vMethodId: thumbprint3,
                 publicKey: `0x${Buffer.from(
@@ -1490,9 +1587,9 @@ describe("JsonRpc Module", () => {
                 oldVMethodId: thumbprint2,
                 duration: 360,
               },
-            } as RollVerificationMethodParam,
+            } satisfies RollVerificationMethodSchema,
             expectedErrorMessage:
-              "Validation error: notBefore must not be less than 0",
+              "Invalid 'params.0.args.notBefore': Number must be greater than or equal to 0",
             accessToken: newUserDidrWriteAccessToken,
           });
 

@@ -29,9 +29,7 @@ export function IsHexadecimalDidRule(
           );
 
           // It must be a DID, i.e "did:xxx:xxx"
-          if (!isDidV1(utf8Value)) return false;
-
-          return true;
+          return isDidV1(utf8Value).success;
         },
         defaultMessage: buildMessage(
           (eachPrefix) =>

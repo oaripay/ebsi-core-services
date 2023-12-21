@@ -1,4 +1,5 @@
 // Copied from https://github.com/algoan/nestjs-components/blob/master/packages/logging-interceptor/src/logging.interceptor.ts
+import { JsonRpcError } from "@ebsiint-api/shared";
 import {
   type CallHandler,
   type ExecutionContext,
@@ -34,22 +35,19 @@ export class LoggingInterceptor implements NestInterceptor {
       .switchToHttp()
       .getRequest<FastifyRequest>();
     const { method, url, body, headers } = req;
-    const { conformance } = headers;
-    if (conformance) {
-      const ctx = `${this.ctxPrefix} - ${method} - ${url}`;
-      const message = `Incoming request - ${method} - ${url}`;
 
-      this.logger.log(
-        {
-          message,
-          method,
-          body,
-          headers,
-          conformance,
-        },
-        ctx,
-      );
-    }
+    const ctx = `${this.ctxPrefix} - ${method} - ${url}`;
+    const message = `Incoming request - ${method} - ${url}`;
+
+    this.logger.log(
+      {
+        message,
+        method,
+        body,
+        headers,
+      },
+      ctx,
+    );
 
     return call$.handle().pipe(
       tap({
@@ -75,22 +73,18 @@ export class LoggingInterceptor implements NestInterceptor {
     const res: FastifyReply = context
       .switchToHttp()
       .getResponse<FastifyReply>();
-    const { method, url, headers } = req;
-    const { conformance } = headers;
+    const { method, url } = req;
 
-    if (conformance) {
-      const { statusCode } = res;
-      const ctx = `${this.ctxPrefix} - ${statusCode} - ${method} - ${url}`;
-      const message = `Outgoing response - ${statusCode} - ${method} - ${url}`;
-      this.logger.log(
-        {
-          message,
-          body,
-          conformance,
-        },
-        ctx,
-      );
-    }
+    const { statusCode } = res;
+    const ctx = `${this.ctxPrefix} - ${statusCode} - ${method} - ${url}`;
+    const message = `Outgoing response - ${statusCode} - ${method} - ${url}`;
+    this.logger.log(
+      {
+        message,
+        body,
+      },
+      ctx,
+    );
   }
 
   /**
@@ -102,11 +96,10 @@ export class LoggingInterceptor implements NestInterceptor {
     const req: FastifyRequest = context
       .switchToHttp()
       .getRequest<FastifyRequest>();
-    const { method, url, body, headers } = req;
-    const { conformance } = headers;
+    const { method, url, body } = req;
 
     if (error instanceof HttpException) {
-      const statusCode: number = error.getStatus();
+      const statusCode = error.getStatus();
       const ctx = `${this.ctxPrefix} - ${statusCode} - ${method} - ${url}`;
       const message = `Outgoing response - ${statusCode} - ${method} - ${url}`;
       const jsonLog = {
@@ -115,15 +108,26 @@ export class LoggingInterceptor implements NestInterceptor {
         body,
         message,
         error,
-        conformance,
       };
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
       if (statusCode >= HttpStatus.INTERNAL_SERVER_ERROR) {
         this.logger.error(jsonLog, error.stack, ctx);
-      } else if (conformance) {
+      } else {
         this.logger.warn(jsonLog, ctx);
       }
+    } else if (error instanceof JsonRpcError) {
+      const statusCode: number = error.status;
+      const ctx = `${this.ctxPrefix} - ${statusCode} - ${method} - ${url}`;
+      const message = `Outgoing response - ${statusCode} - ${method} - ${url}`;
+      const jsonLog = {
+        method,
+        url,
+        body,
+        message,
+        error: error.toJSON(),
+      };
+      this.logger.warn(jsonLog, ctx);
     } else {
       this.logger.error(
         {
