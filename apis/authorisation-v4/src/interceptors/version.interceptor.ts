@@ -15,7 +15,7 @@ export class VersionInterceptor implements NestInterceptor {
   private tag: string;
 
   constructor(configService: ConfigService<ApiConfig, true>) {
-    this.tag = configService.get<string>("dockerContainerTag");
+    this.tag = configService.get("dockerContainerTag", { infer: true });
   }
 
   public intercept(

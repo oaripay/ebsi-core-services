@@ -48,18 +48,13 @@ import {
 } from "./dto/index.js";
 import { fromHexToJWK, parseDto } from "./authorisation.utils.js";
 import {
-  DIDR_INVITE_PRESENTATION_DEFINITION,
-  DIDR_WRITE_PRESENTATION_DEFINITION,
-  TIR_INVITE_PRESENTATION_DEFINITION,
-  TIR_WRITE_PRESENTATION_DEFINITION,
-  TIMESTAMP_WRITE_PRESENTATION_DEFINITION,
   SUPPORTED_SCOPES,
   DIDR_INVITE_SCOPE,
-  DIDR_WRITE_SCOPE,
   TIR_INVITE_SCOPE,
   TIR_WRITE_SCOPE,
-  TIMESTAMP_WRITE_SCOPE,
   CUSTOM_SCOPES,
+  TNT_AUTHORISE_SCOPE,
+  PRESENTATION_DEFINITIONS,
 } from "./authorisation.constants.js";
 import type { PresentationDefinition } from "../../shared/interfaces/pex.js";
 import {
@@ -104,31 +99,42 @@ export class AuthorisationService {
 
   private readonly authorisationCredentialSchema: string;
 
+  private readonly tntAuthorisePresentationDefinition: ReadonlyDeep<PresentationDefinition>;
+
   private timeout: number;
 
   constructor(
     configService: ConfigService<ApiConfig, true>,
     @Inject(CACHE_MANAGER) private cacheManager: MemoryCache,
   ) {
-    const domain = configService.get<string>("domain");
+    const domain = configService.get("domain", { infer: true });
     this.ebsiAuthority = domain.replace(/^https?:\/\//, ""); // remove http protocol scheme
-    const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
+    const apiUrlPrefix = configService.get("apiUrlPrefix", { infer: true });
     this.issuer = `${domain}${apiUrlPrefix}`;
-    this.didRegistry = configService.get<string>("didRegistry");
-    this.trustedIssuersRegistry = configService.get<string>(
-      "trustedIssuersRegistry",
-    );
-    this.trustedAppsRegistry = configService.get<string>("trustedAppsRegistry");
-    this.trustedPoliciesRegistry = configService.get<string>(
+    this.didRegistry = configService.get("didRegistry", { infer: true });
+    this.trustedIssuersRegistry = configService.get("trustedIssuersRegistry", {
+      infer: true,
+    });
+    this.trustedAppsRegistry = configService.get("trustedAppsRegistry", {
+      infer: true,
+    });
+    this.trustedPoliciesRegistry = configService.get(
       "trustedPoliciesRegistry",
+      { infer: true },
     );
-    this.timeout = configService.get<number>("requestTimeout");
-    this.apiES256PrivateKey = configService.get<string>("apiES256PrivateKey");
-    this.apiES256KPrivateKey = configService.get<string>("apiPrivateKey");
-    this.apiName = configService.get<string>("apiName");
+    this.timeout = configService.get("requestTimeout", { infer: true });
+    this.apiES256PrivateKey = configService.get("apiES256PrivateKey", {
+      infer: true,
+    });
+    this.apiES256KPrivateKey = configService.get("apiPrivateKey", {
+      infer: true,
+    });
+    this.apiName = configService.get("apiName", { infer: true });
     this.kid = `${this.trustedAppsRegistry}/${this.apiName}`;
     this.siopSessionsUrl = `${domain}${apiUrlPrefix}/siop-sessions`;
-    this.trustedHostnames = configService.get<string[]>("trustedHostnames");
+    this.trustedHostnames = configService.get("trustedHostnames", {
+      infer: true,
+    });
 
     this.oauth2RP = new OAuth2RP({
       privateKey: this.apiES256KPrivateKey,
@@ -136,9 +142,24 @@ export class AuthorisationService {
       trustedAppsRegistry: this.trustedAppsRegistry,
     });
 
-    this.authorisationCredentialSchema = configService.get<string>(
+    this.authorisationCredentialSchema = configService.get(
       "authorisationCredentialSchema",
+      { infer: true },
     );
+
+    // Create custom presentation definition for tnt_authorise scope with allowed issuers
+    const tntAuthorisePresentationDefinition = structuredClone(
+      PRESENTATION_DEFINITIONS[TNT_AUTHORISE_SCOPE],
+    );
+    const tntAuthoriseIssuersAllowlist = configService.get(
+      "tntAuthoriseIssuersAllowlist",
+      { infer: true },
+    );
+    // @ts-expect-error presentationDefinition is supposed to be immutable, but we're working on a clone.
+    tntAuthorisePresentationDefinition.input_descriptors[0].constraints.fields[1].filter.enum =
+      tntAuthoriseIssuersAllowlist;
+    this.tntAuthorisePresentationDefinition =
+      tntAuthorisePresentationDefinition;
   }
 
   async getRelyingParty(): Promise<RP> {
@@ -370,33 +391,22 @@ export class AuthorisationService {
    * - https://identity.foundation/presentation-exchange/spec/v2.0.0/#presentation-definition
    * - https://ec.europa.eu/digital-building-blocks/wikis/pages/viewpage.action?spaceKey=BLOCKCHAININT&title=RFC+-+EBSI+Platform+Identity+and+Access+Management#RFCEBSIPlatformIdentityandAccessManagement-ServicetoService-TokenFlow
    *
-   * @param scope Array of supported scopes ("openid", "didr_invite", "didr_write", "tir_invite", "tir_write")
+   * @param scope Array of supported scopes ("openid", "didr_invite", "didr_write", "tir_invite", "tir_write", "timestamp_write", "tnt_authorise")
    * @returns A Presentation Definition.
    */
   getPresentationDefinitions(scope: (typeof CUSTOM_SCOPES)[number]) {
-    if (scope === DIDR_INVITE_SCOPE) {
-      return DIDR_INVITE_PRESENTATION_DEFINITION;
+    if (!(scope in PRESENTATION_DEFINITIONS)) {
+      throw new OAuth2TokenError("invalid_request", {
+        errorDescription: `Unhandled scope "${scope as string}"`,
+      });
     }
 
-    if (scope === DIDR_WRITE_SCOPE) {
-      return DIDR_WRITE_PRESENTATION_DEFINITION;
+    // Special case for "tnt_authorise": use customized presentation definition
+    if (scope === TNT_AUTHORISE_SCOPE) {
+      return this.tntAuthorisePresentationDefinition;
     }
 
-    if (scope === TIR_INVITE_SCOPE) {
-      return TIR_INVITE_PRESENTATION_DEFINITION;
-    }
-
-    if (scope === TIR_WRITE_SCOPE) {
-      return TIR_WRITE_PRESENTATION_DEFINITION;
-    }
-
-    if (scope === TIMESTAMP_WRITE_SCOPE) {
-      return TIMESTAMP_WRITE_PRESENTATION_DEFINITION;
-    }
-
-    throw new OAuth2TokenError("invalid_request", {
-      errorDescription: `Unhandled scope "${scope as string}"`,
-    });
+    return PRESENTATION_DEFINITIONS[scope];
   }
 
   async preventReplayAttack(payload: JWTPayload) {
@@ -823,6 +833,12 @@ export class AuthorisationService {
 
     // `timestamp_write`: the client needs to have entry in DIDR / can prove her signature.
     // This is already done in validateVpJwt.
+
+    // `tnt_authorise`: the client must present a VP containing a valid VerifiableAuthorisationToOnboard VC issued by an allowlisted entity.
+    if (customScope === TNT_AUTHORISE_SCOPE) {
+      // TODO: check if VerifiableAuthorisationToOnboard issuer is allowlisted
+      // This should be done by the PEX library, based on the presentation definition.
+    }
 
     // Generate access token
     const expiresIn = 7200;

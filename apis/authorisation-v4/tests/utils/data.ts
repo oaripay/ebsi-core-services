@@ -17,6 +17,8 @@ import {
   TIR_WRITE_SCOPE,
   TIMESTAMP_WRITE_PRESENTATION_DEFINITION,
   TIMESTAMP_WRITE_SCOPE,
+  TNT_AUTHORISE_PRESENTATION_DEFINITION,
+  TNT_AUTHORISE_SCOPE,
 } from "../../src/modules/authorisation/authorisation.constants.js";
 
 export function createDidDocument(
@@ -49,21 +51,22 @@ export interface LegalEntity extends EbsiIssuer {
 
 export async function createLegalEntity(
   alg: "ES256" | "ES256K" | "EdDSA",
+  did?: string | undefined,
 ): Promise<LegalEntity> {
-  const did = EbsiWallet.createDid();
+  const legalEntityDid = did ?? EbsiWallet.createDid();
   const keypair = await generateKeyPair(alg);
   const publicKeyJwk = await exportJWK(keypair.publicKey);
   const privateKeyJwk = await exportJWK(keypair.privateKey);
   const thumbprint = await calculateJwkThumbprint(publicKeyJwk);
-  const kid = `${did}#${thumbprint}`;
+  const kid = `${legalEntityDid}#${thumbprint}`;
 
-  const didDocument = createDidDocument(did, kid, publicKeyJwk);
+  const didDocument = createDidDocument(legalEntityDid, kid, publicKeyJwk);
 
   return {
     publicKeyJwk,
     privateKeyJwk,
     alg,
-    did,
+    did: legalEntityDid,
     kid,
     didDocument,
   };
@@ -129,6 +132,23 @@ export function createPresentationSubmission(
     case TIMESTAMP_WRITE_SCOPE: {
       testPresentationSubmission.definition_id =
         TIMESTAMP_WRITE_PRESENTATION_DEFINITION.id;
+
+      break;
+    }
+    case TNT_AUTHORISE_SCOPE: {
+      testPresentationSubmission.definition_id =
+        TNT_AUTHORISE_PRESENTATION_DEFINITION.id;
+
+      testPresentationSubmission.descriptor_map.push({
+        id: TNT_AUTHORISE_PRESENTATION_DEFINITION.input_descriptors[0].id,
+        format: "jwt_vp",
+        path: "$",
+        path_nested: {
+          id: TNT_AUTHORISE_PRESENTATION_DEFINITION.input_descriptors[0].id,
+          format: "jwt_vc",
+          path: "$.verifiableCredential[0]",
+        },
+      });
 
       break;
     }

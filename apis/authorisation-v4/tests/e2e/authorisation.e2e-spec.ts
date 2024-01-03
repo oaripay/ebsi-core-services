@@ -35,6 +35,8 @@ import {
   TIR_INVITE_SCOPE,
   TIR_WRITE_PRESENTATION_DEFINITION,
   TIR_WRITE_SCOPE,
+  TNT_AUTHORISE_PRESENTATION_DEFINITION,
+  TNT_AUTHORISE_SCOPE,
 } from "../../src/modules/authorisation/authorisation.constants.js";
 import type {
   JsonWebKeySet,
@@ -74,10 +76,10 @@ describe("Authorisation  API v4 (e2e)", () => {
 
     server = getServer(app, configService);
 
-    const domain = configService.get<string>("domain");
-    const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
+    const domain = configService.get("domain", { infer: true });
+    const apiUrlPrefix = configService.get("apiUrlPrefix", { infer: true });
     authorisationApiV4Url = `${domain}${apiUrlPrefix}`;
-    trustedHostnames = configService.get<string[]>("trustedHostnames");
+    trustedHostnames = configService.get("trustedHostnames", { infer: true });
   });
 
   afterAll(async () => {
@@ -167,7 +169,7 @@ describe("Authorisation  API v4 (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write')"]`,
+        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise')"]`,
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -176,7 +178,7 @@ describe("Authorisation  API v4 (e2e)", () => {
     });
 
     it("should return the expected presentation definition for the given scope", async () => {
-      expect.assertions(10);
+      expect.assertions(12);
 
       //  With explicit scope "openid didr_invite"
       let response = await request(server).get(
@@ -229,6 +231,22 @@ describe("Authorisation  API v4 (e2e)", () => {
         TIMESTAMP_WRITE_PRESENTATION_DEFINITION,
       );
       expect(response.status).toBe(200);
+
+      // With explicit scope "openid tnt_authorise"
+      response = await request(server).get(
+        `/presentation-definitions?scope=${encodeURIComponent(
+          `openid ${TNT_AUTHORISE_SCOPE}`,
+        )}`,
+      );
+
+      const tntAuthorisePresentationDefinition = structuredClone(
+        TNT_AUTHORISE_PRESENTATION_DEFINITION,
+      );
+      // @ts-expect-error presentationDefinition is supposed to be immutable, but we're working on a clone.
+      tntAuthorisePresentationDefinition.input_descriptors[0].constraints.fields[1].filter.enum =
+        configService.get("tntAuthoriseIssuersAllowlist", { infer: true });
+      expect(response.body).toStrictEqual(tntAuthorisePresentationDefinition);
+      expect(response.status).toBe(200);
     });
   });
 
@@ -271,7 +289,7 @@ describe("Authorisation  API v4 (e2e)", () => {
       expect(response.body).toStrictEqual({
         error: "invalid_request",
         error_description:
-          "scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write')",
+          "scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise')",
       });
       expect(response.status).toBe(400);
       expect(
@@ -314,18 +332,30 @@ describe("Authorisation  API v4 (e2e)", () => {
       let expirationDate: Date;
 
       beforeAll(async () => {
-        const issuerKid = configService.get<string>("testIssuerKid");
-        const issuerAlg = configService.get<string>("testIssuerAlg");
-        const issuerPrivateKey = configService.get<string>(
-          "testIssuerPrivateKey",
-        );
-        const issuerAttribute = configService.get<string>(
-          "testIssuerAttribute",
-        );
+        const issuerKid = configService.get("testIssuerKid", { infer: true });
+        if (!issuerKid) throw new Error("TEST_ISSUER_KID must be defined");
 
+        const issuerAlg = configService.get("testIssuerAlg", {
+          infer: true,
+        });
+        if (!issuerAlg) throw new Error("TEST_ISSUER_ALG must be defined");
         // Only support ES256K issuer (temporary)
         if (issuerAlg !== "ES256K") {
           throw new Error("TEST_ISSUER_ALG must be ES256K");
+        }
+
+        const issuerPrivateKey = configService.get("testIssuerPrivateKey", {
+          infer: true,
+        });
+        if (!issuerPrivateKey) {
+          throw new Error("TEST_ISSUER_PRIVATE_KEY must be defined");
+        }
+
+        const issuerAttribute = configService.get("testIssuerAttribute", {
+          infer: true,
+        });
+        if (!issuerAttribute) {
+          throw new Error("TEST_ISSUER_ATTRIBUTE must be defined");
         }
 
         const privateKeyJwk = encode.privateKey.fromHexToJWK(issuerPrivateKey);
@@ -340,8 +370,9 @@ describe("Authorisation  API v4 (e2e)", () => {
         };
 
         if (
-          customScope.includes(DIDR_INVITE_SCOPE) ||
-          customScope.includes(TIR_INVITE_SCOPE)
+          [DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE, TNT_AUTHORISE_SCOPE].includes(
+            customScope,
+          )
         ) {
           // client is a new LE
           client = await createLegalEntity("ES256K");
@@ -365,7 +396,7 @@ describe("Authorisation  API v4 (e2e)", () => {
           expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
           credentialSubject: { id: client.did, type: "same-device" },
           credentialSchema: {
-            id: configService.get<string>("testOidSchemaPattern"),
+            id: configService.get("testOidSchemaPattern", { infer: true }),
             type: "FullJsonSchemaValidator2021",
           },
           termsOfUse: {
@@ -376,7 +407,10 @@ describe("Authorisation  API v4 (e2e)", () => {
 
         if (customScope === TIR_INVITE_SCOPE) {
           vcPayload.type.push("VerifiableAccreditationToAccredit");
-        } else if (customScope === DIDR_INVITE_SCOPE) {
+        } else if (
+          customScope === DIDR_INVITE_SCOPE ||
+          customScope === TNT_AUTHORISE_SCOPE
+        ) {
           vcPayload.type.push("VerifiableAuthorisationToOnboard");
         }
 
@@ -404,7 +438,11 @@ describe("Authorisation  API v4 (e2e)", () => {
         });
 
         it("should return an error the audience is not the service", async () => {
-          if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
+          if (
+            [DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE, TNT_AUTHORISE_SCOPE].includes(
+              customScope,
+            )
+          ) {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
               issuer,
@@ -464,7 +502,11 @@ describe("Authorisation  API v4 (e2e)", () => {
         });
 
         it("should return an error if sub is not the client's DID", async () => {
-          if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
+          if (
+            [DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE, TNT_AUTHORISE_SCOPE].includes(
+              customScope,
+            )
+          ) {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
               issuer,
@@ -540,7 +582,11 @@ describe("Authorisation  API v4 (e2e)", () => {
         });
 
         it("should return an error if the VP JWT has expired", async () => {
-          if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
+          if (
+            [DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE, TNT_AUTHORISE_SCOPE].includes(
+              customScope,
+            )
+          ) {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
               issuer,
@@ -593,7 +639,11 @@ describe("Authorisation  API v4 (e2e)", () => {
         });
 
         it("should return an error if the VP JWT is not valid yet", async () => {
-          if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
+          if (
+            [DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE, TNT_AUTHORISE_SCOPE].includes(
+              customScope,
+            )
+          ) {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
               issuer,
@@ -646,7 +696,11 @@ describe("Authorisation  API v4 (e2e)", () => {
         });
 
         it("should return an error if nonce is not included in vp_token", async () => {
-          if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
+          if (
+            [DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE, TNT_AUTHORISE_SCOPE].includes(
+              customScope,
+            )
+          ) {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
               issuer,
@@ -708,7 +762,11 @@ describe("Authorisation  API v4 (e2e)", () => {
         });
 
         it("should return an error when a nonce has been used twice", async () => {
-          if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
+          if (
+            [DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE, TNT_AUTHORISE_SCOPE].includes(
+              customScope,
+            )
+          ) {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
               issuer,
@@ -793,7 +851,11 @@ describe("Authorisation  API v4 (e2e)", () => {
           ],
         };
 
-        if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
+        if (
+          [DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE, TNT_AUTHORISE_SCOPE].includes(
+            customScope,
+          )
+        ) {
           const vcJwt = await createVerifiableCredentialJwt(vcPayload, issuer, {
             ebsiAuthority: "example.net",
             skipValidation: true,
@@ -1066,7 +1128,11 @@ describe("Authorisation  API v4 (e2e)", () => {
       });
 
       it("should return an error if the content is not application/x-www-form-urlencoded", async () => {
-        if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
+        if (
+          [DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE, TNT_AUTHORISE_SCOPE].includes(
+            customScope,
+          )
+        ) {
           const vcJwt = await createVerifiableCredentialJwt(vcPayload, issuer, {
             ebsiAuthority: "example.net",
             skipValidation: true,
@@ -1123,7 +1189,10 @@ describe("Authorisation  API v4 (e2e)", () => {
       });
 
       it("should return an access token and an ID token when the presentation is valid", async () => {
-        if (customScope === TIR_INVITE_SCOPE) {
+        if (
+          customScope === TIR_INVITE_SCOPE ||
+          customScope === TNT_AUTHORISE_SCOPE
+        ) {
           // /!\ Skip test - Could be implemented later
           // In order to pass this test, we would have to register a new DID into the DID Registry
           // and a new Trusted Issuer into the TIR. It can only be run in an environment where we

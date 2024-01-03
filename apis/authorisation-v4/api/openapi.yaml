@@ -17,7 +17,7 @@ info:
     Anonymous users can only read public information, so they can call all the REST endpoints, but no the JSON-RPC endpoints.
 
     For more information see:
-    + [CLI Tool page](https://api-pilot.ebsi.eu/docs/demonstrator): Test the capabilities using the EBSI CLI tool
+    + [CLI Tool page](https://hub.ebsi.eu/tools/cli): Test the capabilities using the EBSI CLI tool
   contact:
     name: EBSI Support - Service Desk
     url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11
@@ -40,7 +40,7 @@ paths:
   /authorisation/v4/.well-known/openid-configuration:
     get:
       summary: OpenID Provider Metadata
-      operationId: get-v4-well-known-openid-config
+      operationId: get-well-known-openid-config
       tags:
         - Authorisation Service
       description: Exposes the configuration of the OpenID Provider
@@ -139,6 +139,8 @@ paths:
                       - didr_write
                       - tir_invite
                       - tir_write
+                      - timestamp_write
+                      - tnt_authorise
                   response_types_supported:
                     title: Supported Response Types
                     description: |
@@ -363,6 +365,8 @@ paths:
                       - didr_write
                       - tir_invite
                       - tir_write
+                      - timestamp_write
+                      - tnt_authorise
                     token_endpoint: https://api-test.ebsi.eu/authorisation/v4/token
                     subject_types_supported:
                       - public
@@ -399,7 +403,7 @@ paths:
                     detail: Internal error
   /authorisation/v4/jwks:
     get:
-      operationId: get-v3-jwks
+      operationId: get-jwks
       description: Exposes the public keys of the authorisation service in JWKS format
       tags:
         - Authorisation Service
@@ -436,7 +440,7 @@ paths:
                     detail: Internal error
   /authorisation/v4/presentation-definitions:
     get:
-      operationId: get-v3-presentation-definitions
+      operationId: get-presentation-definitions
       tags:
         - Authorisation Service
       summary: Presentation definition requirements
@@ -452,6 +456,8 @@ paths:
               - openid didr_invite
               - openid tir_write
               - openid tir_invite
+              - openid timestamp_write
+              - openid tnt_authorise
           examples:
             didr_write:
               summary: Write to DID Registry
@@ -460,11 +466,17 @@ paths:
               summary: Register DID into DID Registry
               value: openid didr_invite
             tir_write:
-              summary: Write to TIR Registry
+              summary: Write to Trusted Issuers Registry
               value: openid tir_write
             tir_invite:
               summary: Register VC into Trusted Issuers Registry
               value: openid tir_invite
+            timestamp_write:
+              summary: Write to Timestamp Contract
+              value: openid timestamp_write
+            tnt_authorise:
+              summary: Allow to authorise did:ebsi to create TnT documents.
+              value: openid tnt_authorise
       responses:
         "200":
           description: Success
@@ -557,6 +569,52 @@ paths:
                       jwt_vp:
                         alg:
                           - ES256
+                timestamp_write:
+                  summary: Timestamp write
+                  value:
+                    id: timestamp_write_presentation
+                    name: Any type of Verifiable Attestation
+                    purpose: >-
+                      Please present an empty Presentation signed by a registered Legal Entity.
+                    input_descriptors: []
+                    format:
+                      jwt_vc:
+                        alg:
+                          - ES256
+                      jwt_vp:
+                        alg:
+                          - ES256
+                tnt_authorise:
+                  summary: TNT authorise
+                  value:
+                    id: tnt_authorise_presentation
+                    input_descriptors:
+                      - id: tnt_authorise_credential
+                        name: Accreditation to create Track and Trace documents
+                        purpose: >-
+                          Please present a valid VerifiableAuthorisationToOnboard issued by an
+                          allowlisted entity
+                        constraints:
+                          fields:
+                            - path:
+                                - $.type
+                              filter:
+                                type: array
+                                contains:
+                                  const: VerifiableAuthorisationToOnboard
+                            - path:
+                                - $.issuer
+                              filter:
+                                type: string
+                                enum:
+                                  - did:ebsi:zw422HHPF2McN1b8riU9Y3q
+                    format:
+                      jwt_vc:
+                        alg:
+                          - ES256
+                      jwt_vp:
+                        alg:
+                          - ES256
         "400":
           description: Bad Request
           content:
@@ -584,7 +642,7 @@ paths:
                     detail: Internal error
   /authorisation/v4/token:
     post:
-      operationId: post-v3-token
+      operationId: post-token
       tags:
         - Authorisation Service
       summary: Token Endpoint
@@ -637,6 +695,8 @@ paths:
                     - openid didr_invite
                     - openid tir_write
                     - openid tir_invite
+                    - openid timestamp_write
+                    - openid tnt_authorise
       responses:
         "200":
           description: Success
@@ -680,16 +740,10 @@ paths:
                     detail: Internal error
   /authorisation/v4/authentication-requests:
     post:
-      operationId: post-authorisation-v2-authentication-requests
+      operationId: post-authentication-requests
       summary: Initiate a SIOP DID Auth request
       description: Natural Person and Legal Entities entry point to initiate a SIOP DID Auth Request.
       requestBody:
-        description: |
-          [conformance description]
-          [EBSI conformance testing](https://api-conformance.ebsi.eu/docs/wallet-conformance)
-
-          The API supports the following EBSI conformance tests
-          - Request Access Token (CT ONBOARD_051)
         content:
           application/json:
             schema:
@@ -719,7 +773,7 @@ paths:
           $ref: "#/components/responses/500"
   /authorisation/v4/siop-sessions:
     post:
-      operationId: post-authorisation-v2-siop-sessions
+      operationId: post-siop-sessions
       summary: Create a SIOP Session
       description: Sessions Token endpoint as the callback for DID SIOP Response.
       requestBody:
@@ -771,7 +825,7 @@ paths:
           $ref: "#/components/responses/500"
   /authorisation/v4/oauth2-sessions:
     post:
-      operationId: post-authorisation-v4-oauth2-sessions
+      operationId: post-oauth2-sessions
       summary: Create an OAuth2 Session
       description: Session Token endpoint for Component Authorisation (DID Auth - CCG Flow).
       requestBody:

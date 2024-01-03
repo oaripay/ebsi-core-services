@@ -40,12 +40,14 @@ async function bootstrap(): Promise<void> {
   );
 
   const configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
-  const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
-  const port = configService.get<number>("apiPort");
-  const logLevel = configService.get<string>("logLevel");
-  const domain = configService.get<string>("domain");
-  const localOrigin = configService.get<string>("localOrigin");
-  const dockerContainerTag = configService.get<string>("dockerContainerTag");
+  const apiUrlPrefix = configService.get("apiUrlPrefix", { infer: true });
+  const port = configService.get("apiPort", { infer: true });
+  const logLevel = configService.get("logLevel", { infer: true });
+  const domain = configService.get("domain", { infer: true });
+  const localOrigin = configService.get("localOrigin", { infer: true });
+  const dockerContainerTag = configService.get("dockerContainerTag", {
+    infer: true,
+  });
 
   // Set logger level
   if (logLevel === "silent") {

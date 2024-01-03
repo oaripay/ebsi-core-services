@@ -89,8 +89,8 @@ describe("Logging interceptor", () => {
       ) as (keyof typeof DEPENDENCIES)[];
 
       const localOrigin =
-        configService.get<string>("localOrigin") ||
-        configService.get<string>("domain");
+        configService.get("localOrigin", { infer: true }) ||
+        configService.get("domain", { infer: true });
 
       // All the dependencies return a 200
       mockServer.use(

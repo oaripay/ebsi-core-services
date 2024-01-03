@@ -61,8 +61,8 @@ describe("HealthController", () => {
     httpService = await moduleFixture.resolve<HttpService>(HttpService);
 
     localOrigin =
-      configService.get<string>("localOrigin") ||
-      configService.get<string>("domain");
+      configService.get("localOrigin", { infer: true }) ||
+      configService.get("domain", { infer: true });
   });
 
   afterEach(() => {

@@ -171,11 +171,11 @@ export class AuthService {
     }
 
     // The Access Token `scp` must contain one of the valid scopes.
-    const validScopes = ["tnt_invite", "tnt_create", "tnt_write"] as const;
+    const validScopes = ["tnt_authorise", "tnt_create", "tnt_write"] as const;
     if (!validScopes.some((s) => scp.includes(s))) {
       throw new UnauthorizedError(UnauthorizedError.defaultTitle, {
         detail:
-          "Invalid JWT: scp must contain tnt_invite, tnt_create or tnt_write",
+          "Invalid JWT: scp must contain tnt_authorise, tnt_create or tnt_write",
       });
     }
 

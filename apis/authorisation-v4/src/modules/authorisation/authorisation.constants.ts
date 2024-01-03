@@ -8,6 +8,7 @@ export const DIDR_WRITE_SCOPE = "didr_write";
 export const TIR_INVITE_SCOPE = "tir_invite";
 export const TIR_WRITE_SCOPE = "tir_write";
 export const TIMESTAMP_WRITE_SCOPE = "timestamp_write";
+export const TNT_AUTHORISE_SCOPE = "tnt_authorise";
 
 export const CUSTOM_SCOPES = [
   DIDR_INVITE_SCOPE,
@@ -15,6 +16,7 @@ export const CUSTOM_SCOPES = [
   TIR_INVITE_SCOPE,
   TIR_WRITE_SCOPE,
   TIMESTAMP_WRITE_SCOPE,
+  TNT_AUTHORISE_SCOPE,
 ] as const;
 
 export const SUPPORTED_SCOPES = [OPENID_SCOPE, ...CUSTOM_SCOPES] as const;
@@ -115,3 +117,52 @@ export const TIMESTAMP_WRITE_PRESENTATION_DEFINITION = {
     jwt_vp: { alg: ["ES256"] },
   },
 } as const satisfies ReadonlyDeep<PresentationDefinition>;
+
+export const TNT_AUTHORISE_PRESENTATION_DEFINITION = {
+  id: "tnt_authorise_presentation",
+  name: "Any type of Verifiable Attestation",
+  input_descriptors: [
+    {
+      id: "tnt_authorise_credential",
+      name: "Accreditation to create Track and Trace documents",
+      purpose:
+        "Please present a valid VerifiableAuthorisationToOnboard issued by an allowlisted entity",
+      constraints: {
+        fields: [
+          {
+            path: ["$.type"],
+            filter: {
+              type: "array",
+              contains: {
+                const: "VerifiableAuthorisationToOnboard",
+              },
+            },
+          },
+          {
+            path: ["$.issuer"],
+            filter: {
+              type: "string",
+              enum: [], // This enum will be filled at runtime based on the TNT_AUTHORISE_ISSUERS_ALLOWLIST variable
+            },
+          },
+        ],
+      },
+    },
+  ],
+  format: {
+    jwt_vc: { alg: ["ES256"] },
+    jwt_vp: { alg: ["ES256"] },
+  },
+} as const satisfies ReadonlyDeep<PresentationDefinition>;
+
+export const PRESENTATION_DEFINITIONS = {
+  [`${DIDR_INVITE_SCOPE}`]: DIDR_INVITE_PRESENTATION_DEFINITION,
+  [`${DIDR_WRITE_SCOPE}`]: DIDR_WRITE_PRESENTATION_DEFINITION,
+  [`${TIR_INVITE_SCOPE}`]: TIR_INVITE_PRESENTATION_DEFINITION,
+  [`${TIR_WRITE_SCOPE}`]: TIR_WRITE_PRESENTATION_DEFINITION,
+  [`${TIMESTAMP_WRITE_SCOPE}`]: TIMESTAMP_WRITE_PRESENTATION_DEFINITION,
+  [`${TNT_AUTHORISE_SCOPE}`]: TNT_AUTHORISE_PRESENTATION_DEFINITION,
+} as const satisfies Record<
+  (typeof CUSTOM_SCOPES)[number],
+  ReadonlyDeep<PresentationDefinition>
+>;

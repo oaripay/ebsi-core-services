@@ -105,8 +105,8 @@ describe("App Module", () => {
       expect.assertions(2);
 
       const localOrigin =
-        configService.get<string>("localOrigin") ||
-        configService.get<string>("domain");
+        configService.get("localOrigin", { infer: true }) ||
+        configService.get("domain", { infer: true });
 
       // All the dependencies return a 200
       const dependencies = Object.keys(

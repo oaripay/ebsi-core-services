@@ -6,11 +6,11 @@ export const getServer = (
   app: NestFastifyApplication,
   configService: ConfigService<ApiConfig, true>,
 ) => {
-  const testEnv = configService.get<string>("testEnv");
+  const testEnv = configService.get("testEnv", { infer: true });
 
   if (testEnv === "remote") {
-    const domain = configService.get<string>("domain");
-    const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
+    const domain = configService.get("domain", { infer: true });
+    const apiUrlPrefix = configService.get("apiUrlPrefix", { infer: true });
     return `${domain}${apiUrlPrefix}`;
   }
 

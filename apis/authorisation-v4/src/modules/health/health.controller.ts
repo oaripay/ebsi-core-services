@@ -26,8 +26,8 @@ export class HealthController {
           this.http.pingCheck(
             dependency,
             `${
-              this.configService.get<string>("localOrigin") ||
-              this.configService.get<string>("domain")
+              this.configService.get("localOrigin", { infer: true }) ||
+              this.configService.get("domain", { infer: true })
             }${DEPENDENCIES[dependency]}`,
           ),
       ),

@@ -70,7 +70,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
   private tag: string;
 
   constructor(configService: ConfigService<ApiConfig, true>) {
-    this.tag = configService.get<string>("dockerContainerTag");
+    this.tag = configService.get("dockerContainerTag", { infer: true });
   }
 
   catch(err: Error, host: ArgumentsHost): FastifyReply {

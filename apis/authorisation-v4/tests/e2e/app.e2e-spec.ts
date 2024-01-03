@@ -36,10 +36,10 @@ describe("Authorisation API v4 - Generic tests (e2e)", () => {
 
     server = getServer(app, configService);
 
-    const testEnv = configService.get<string>("testEnv");
+    const testEnv = configService.get("testEnv", { infer: true });
 
     if (testEnv === "remote") {
-      apiUrlPrefix = configService.get<string>("apiUrlPrefix");
+      apiUrlPrefix = configService.get("apiUrlPrefix", { infer: true });
     }
   });
 

@@ -61,6 +61,8 @@ import {
   TIR_WRITE_SCOPE,
   TIMESTAMP_WRITE_PRESENTATION_DEFINITION,
   TIMESTAMP_WRITE_SCOPE,
+  TNT_AUTHORISE_PRESENTATION_DEFINITION,
+  TNT_AUTHORISE_SCOPE,
 } from "./authorisation.constants.js";
 import {
   createLegalEntity,
@@ -159,13 +161,18 @@ describe("Authorisation Module", () => {
 
     server = app.getHttpServer();
 
-    apiPrivateKey = configService.get("apiPrivateKey");
-    apiName = configService.get("apiName");
-    domain = configService.get<string>("domain");
-    const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
+    apiPrivateKey = configService.get("apiPrivateKey", { infer: true });
+    apiName = configService.get("apiName", { infer: true });
+    domain = configService.get("domain", { infer: true });
+    const apiUrlPrefix = configService.get("apiUrlPrefix", { infer: true });
     serviceEndpoint = `${domain}${apiUrlPrefix}`;
 
-    credentialIssuer = await createLegalEntity("ES256K");
+    // Use the DID of an issuer present in TNT_AUTHORISE_ISSUERS_ALLOWLIST
+    const [allowlistedIssuer] = configService.get(
+      "tntAuthoriseIssuersAllowlist",
+      { infer: true },
+    );
+    credentialIssuer = await createLegalEntity("ES256K", allowlistedIssuer);
     credentialIssuerAccreditationUrl = `${domain}/trusted-issuers-registry/v5/issuers/${
       credentialIssuer.did
     }/attributes/${randomBytes(16).toString("hex")}`;
@@ -189,8 +196,9 @@ describe("Authorisation Module", () => {
     );
 
     // Issuer Self-Accreditation
-    const authorisationCredentialSchema = configService.get<string>(
+    const authorisationCredentialSchema = configService.get(
       "testOidSchemaPattern",
+      { infer: true },
     );
     const iat = Math.round(Date.now() / 1000);
     const exp = iat + 365 * 24 * 3600;
@@ -355,7 +363,7 @@ describe("Authorisation Module", () => {
       let response = await request(server).get("/presentation-definitions");
 
       expect(response.body).toStrictEqual({
-        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write')"]`,
+        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise')"]`,
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -371,7 +379,7 @@ describe("Authorisation Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write')"]`,
+        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise')"]`,
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -389,7 +397,7 @@ describe("Authorisation Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write')"]`,
+        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise')"]`,
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -405,7 +413,7 @@ describe("Authorisation Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write')"]`,
+        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise')"]`,
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -417,7 +425,7 @@ describe("Authorisation Module", () => {
     });
 
     it("should return the expected presentation definition for the given scope", async () => {
-      expect.assertions(10);
+      expect.assertions(12);
 
       //  With explicit scope "openid didr_invite"
       let response = await request(server).get(
@@ -470,6 +478,22 @@ describe("Authorisation Module", () => {
         TIMESTAMP_WRITE_PRESENTATION_DEFINITION,
       );
       expect(response.status).toBe(200);
+
+      // With explicit scope "openid tnt_authorise"
+      response = await request(server).get(
+        `/presentation-definitions?scope=${encodeURIComponent(
+          `openid ${TNT_AUTHORISE_SCOPE}`,
+        )}`,
+      );
+
+      const tntAuthorisePresentationDefinition = structuredClone(
+        TNT_AUTHORISE_PRESENTATION_DEFINITION,
+      );
+      // @ts-expect-error presentationDefinition is supposed to be immutable, but we're working on a clone.
+      tntAuthorisePresentationDefinition.input_descriptors[0].constraints.fields[1].filter.enum =
+        configService.get("tntAuthoriseIssuersAllowlist", { infer: true });
+      expect(response.body).toStrictEqual(tntAuthorisePresentationDefinition);
+      expect(response.status).toBe(200);
     });
   });
 
@@ -512,7 +536,7 @@ describe("Authorisation Module", () => {
       expect(response.body).toStrictEqual({
         error: "invalid_request",
         error_description:
-          "scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write')",
+          "scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise')",
       });
       expect(response.status).toBe(400);
       expect(
@@ -571,7 +595,7 @@ describe("Authorisation Module", () => {
             type: "same-device",
           },
           credentialSchema: {
-            id: configService.get<string>("testOidSchemaPattern"),
+            id: configService.get("testOidSchemaPattern", { infer: true }),
             type: "FullJsonSchemaValidator2021",
           },
           termsOfUse: {
@@ -582,7 +606,10 @@ describe("Authorisation Module", () => {
 
         if (customScope === TIR_INVITE_SCOPE) {
           vcPayload.type.push("VerifiableAccreditationToAccredit");
-        } else if (customScope === DIDR_INVITE_SCOPE) {
+        } else if (
+          customScope === DIDR_INVITE_SCOPE ||
+          customScope === TNT_AUTHORISE_SCOPE
+        ) {
           vcPayload.type.push("VerifiableAuthorisationToOnboard");
         }
 
@@ -690,8 +717,12 @@ describe("Authorisation Module", () => {
           vpPayload["id"] = randomUUID(); // VP ID is used as JWT JTI.
         });
 
-        it("should return an error the audience is not the service", async () => {
-          if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
+        it("should return an error when the audience is not the service", async () => {
+          if (
+            [DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE, TNT_AUTHORISE_SCOPE].includes(
+              customScope,
+            )
+          ) {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
               credentialIssuer,
@@ -749,7 +780,11 @@ describe("Authorisation Module", () => {
         });
 
         it("should return an error if sub is not the client's DID", async () => {
-          if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
+          if (
+            [DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE, TNT_AUTHORISE_SCOPE].includes(
+              customScope,
+            )
+          ) {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
               credentialIssuer,
@@ -822,7 +857,11 @@ describe("Authorisation Module", () => {
         });
 
         it("should return an error if the VP JWT has expired", async () => {
-          if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
+          if (
+            [DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE, TNT_AUTHORISE_SCOPE].includes(
+              customScope,
+            )
+          ) {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
               credentialIssuer,
@@ -873,7 +912,11 @@ describe("Authorisation Module", () => {
         });
 
         it("should return an error if the VP JWT is not valid yet", async () => {
-          if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
+          if (
+            [DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE, TNT_AUTHORISE_SCOPE].includes(
+              customScope,
+            )
+          ) {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
               credentialIssuer,
@@ -924,7 +967,11 @@ describe("Authorisation Module", () => {
         });
 
         it("should return an error if nonce is not included in vp_token", async () => {
-          if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
+          if (
+            [DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE, TNT_AUTHORISE_SCOPE].includes(
+              customScope,
+            )
+          ) {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
               credentialIssuer,
@@ -984,7 +1031,13 @@ describe("Authorisation Module", () => {
         });
 
         it("should return an error when a nonce has been used twice", async () => {
-          if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
+          if (
+            [
+              DIDR_INVITE_SCOPE,
+              TIR_INVITE_SCOPE,
+              TNT_AUTHORISE_PRESENTATION_DEFINITION,
+            ].includes(customScope)
+          ) {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
               credentialIssuer,
@@ -1064,6 +1117,7 @@ describe("Authorisation Module", () => {
             )
           ) {
             // Skip test
+            expect.assertions(0);
             return;
           }
 
@@ -1105,7 +1159,11 @@ describe("Authorisation Module", () => {
       });
 
       it("should return an error if the content is not application/x-www-form-urlencoded", async () => {
-        if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
+        if (
+          [DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE, TNT_AUTHORISE_SCOPE].includes(
+            customScope,
+          )
+        ) {
           const vcJwt = await createVerifiableCredentialJwt(
             vcPayload,
             credentialIssuer,
@@ -1196,7 +1254,11 @@ describe("Authorisation Module", () => {
           ],
         };
 
-        if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
+        if (
+          [DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE, TNT_AUTHORISE_SCOPE].includes(
+            customScope,
+          )
+        ) {
           const vcJwt = await createVerifiableCredentialJwt(
             vcPayload,
             credentialIssuer,
@@ -1268,7 +1330,11 @@ describe("Authorisation Module", () => {
           ],
         };
 
-        if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
+        if (
+          [DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE, TNT_AUTHORISE_SCOPE].includes(
+            customScope,
+          )
+        ) {
           const vcJwt = await createVerifiableCredentialJwt(
             vcPayload,
             credentialIssuer,
@@ -1550,7 +1616,7 @@ describe("Authorisation Module", () => {
 
         switch (customScope) {
           case DIDR_INVITE_SCOPE: {
-            // Present a VC without VerifiableAccreditationToAccredit
+            // Present a VC without VerifiableAuthorisationToOnboard
             vcPayload.type = ["VerifiableCredential", "VerifiableAttestation"];
             expectedErrorMessage =
               "Invalid Presentation Submission:\nFilterEvaluation tag: Input candidate failed filter evaluation: $.input_descriptors[0]: $.verifiableCredential[0];,MarkForSubmissionEvaluation tag: The input candidate is not eligible for submission: $.input_descriptors[0]: $.verifiableCredential[0];";
@@ -1620,12 +1686,26 @@ describe("Authorisation Module", () => {
             expectedErrorMessage = `Invalid Verifiable Presentation: VP JWT validation failed: Unable to resolve ${vpSigner.kid}. Error: notFound. Not Found | Registry used: ${domain}/did-registry/v5/identifiers`;
             break;
           }
+          case TNT_AUTHORISE_SCOPE: {
+            // Present a VC without VerifiableAuthorisationToOnboard
+            vcPayload.type = ["VerifiableCredential", "VerifiableAttestation"];
+            vcPayload.issuer = EbsiWallet.createDid(); // Issuer is not in the allowlist
+            expectedErrorMessage = [
+              "Invalid Presentation Submission:",
+              "FilterEvaluation tag: Input candidate failed filter evaluation: $.input_descriptors[0]: $.verifiableCredential[0];,FilterEvaluation tag: Input candidate failed filter evaluation: $.input_descriptors[0]: $.verifiableCredential[0];,MarkForSubmissionEvaluation tag: The input candidate is not eligible for submission: $.input_descriptors[0]: $.verifiableCredential[0];",
+            ].join("\n");
+            break;
+          }
           default: {
             expectedErrorMessage = "";
           }
         }
 
-        if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
+        if (
+          [DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE, TNT_AUTHORISE_SCOPE].includes(
+            customScope,
+          )
+        ) {
           const vcJwt = await createVerifiableCredentialJwt(
             vcPayload,
             credentialIssuer,
@@ -1686,7 +1766,17 @@ describe("Authorisation Module", () => {
       });
 
       it("should return an access token and an ID token when the presentation is valid", async () => {
-        if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
+        if (customScope === TNT_AUTHORISE_SCOPE) {
+          // TODO: implement test
+          expect.assertions(0);
+          return;
+        }
+
+        if (
+          [DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE, TNT_AUTHORISE_SCOPE].includes(
+            customScope,
+          )
+        ) {
           const vcJwt = await createVerifiableCredentialJwt(
             vcPayload,
             credentialIssuer,
@@ -1831,7 +1921,9 @@ describe("Authorisation Module", () => {
       const agent = new Agent({
         privateKey: trustedApp.privateKeyHex,
         name: trustedApp.name,
-        trustedAppsRegistry: configService.get<string>("trustedAppsRegistry"),
+        trustedAppsRegistry: configService.get("trustedAppsRegistry", {
+          infer: true,
+        }),
       });
 
       const nonce = randomUUID();
@@ -1875,7 +1967,9 @@ describe("Authorisation Module", () => {
       const agent = new Agent({
         privateKey: trustedApp.privateKeyHex,
         name: trustedApp.name,
-        trustedAppsRegistry: configService.get<string>("trustedAppsRegistry"),
+        trustedAppsRegistry: configService.get("trustedAppsRegistry", {
+          infer: true,
+        }),
       });
 
       const nonce = randomUUID();
@@ -1968,15 +2062,15 @@ describe("Authorisation Module", () => {
           ake1_nonce: expect.any(String),
           exp: expect.any(Number),
           iat: expect.any(Number),
-          iss: configService.get<string>("apiName"),
+          iss: configService.get("apiName", { infer: true }),
           kid: expect.stringContaining(
             `/trusted-apps-registry/v4/apps/${trustedApp.name}`,
           ),
         },
         kid: expect.stringContaining(
-          `/trusted-apps-registry/v4/apps/${configService.get<string>(
-            "apiName",
-          )}`,
+          `/trusted-apps-registry/v4/apps/${configService.get("apiName", {
+            infer: true,
+          })}`,
         ),
       });
     });
@@ -2048,7 +2142,7 @@ describe("Authorisation Module", () => {
           "/authorisation/v4/siop-sessions",
         ),
         response_mode: "post",
-        iss: configService.get<string>("apiName"),
+        iss: configService.get("apiName", { infer: true }),
         exp: expect.any(Number),
         claims: expect.any(Object),
       });
@@ -2070,8 +2164,9 @@ describe("Authorisation Module", () => {
                   credentialSchema: {
                     id: {
                       essential: true,
-                      value: configService.get<string>(
+                      value: configService.get(
                         "authorisationCredentialSchema",
+                        { infer: true },
                       ),
                     },
                   },
@@ -2257,8 +2352,9 @@ describe("Authorisation Module", () => {
         expect(response.body).toStrictEqual({
           status: 400,
           title: "Invalid ID Token",
-          detail: `Unable to resolve ${clientDid}. Error: notFound. Message: not found | Registry used: ${configService.get<string>(
+          detail: `Unable to resolve ${clientDid}. Error: notFound. Message: not found | Registry used: ${configService.get(
             "didRegistry",
+            { infer: true },
           )}`,
           type: "about:blank",
         });
@@ -2396,12 +2492,12 @@ describe("Authorisation Module", () => {
             did: client.did,
             iat: expect.any(Number),
             exp: expect.any(Number),
-            iss: configService.get<string>("apiName"),
+            iss: configService.get("apiName", { infer: true }),
           }),
           kid: expect.stringContaining(
-            `/trusted-apps-registry/v4/apps/${configService.get<string>(
-              "apiName",
-            )}`,
+            `/trusted-apps-registry/v4/apps/${configService.get("apiName", {
+              infer: true,
+            })}`,
           ),
         });
         expect(response.status).toBe(200);
@@ -2468,7 +2564,7 @@ describe("Authorisation Module", () => {
         type: "same-device",
       },
       credentialSchema: {
-        id: configService.get<string>("testOidSchemaPattern"),
+        id: configService.get("testOidSchemaPattern", { infer: true }),
         type: "FullJsonSchemaValidator2021",
       },
       termsOfUse: {
@@ -2479,7 +2575,10 @@ describe("Authorisation Module", () => {
 
     if (customScope === TIR_INVITE_SCOPE) {
       vcPayload.type.push("VerifiableAccreditationToAccredit");
-    } else if (customScope === DIDR_INVITE_SCOPE) {
+    } else if (
+      customScope === DIDR_INVITE_SCOPE ||
+      customScope === TNT_AUTHORISE_SCOPE
+    ) {
       vcPayload.type.push("VerifiableAuthorisationToOnboard");
     }
 
@@ -2498,7 +2597,11 @@ describe("Authorisation Module", () => {
     const vpSigner = await createLegalEntity("ES256K");
     vpPayload.holder = vpSigner.did;
 
-    if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
+    if (
+      [DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE, TNT_AUTHORISE_SCOPE].includes(
+        customScope,
+      )
+    ) {
       vcPayload.credentialSubject.id = vpPayload.holder;
       const vcJwt = await createVerifiableCredentialJwt(
         vcPayload,
