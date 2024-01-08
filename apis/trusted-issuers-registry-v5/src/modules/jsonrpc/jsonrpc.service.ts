@@ -10,24 +10,32 @@ import {
 } from "@ebsiint-api/shared";
 import { LedgerService } from "../ledger/ledger.service.js";
 import {
-  RequestSetAttributeMetadataDto,
-  RequestSetAttributeDataDto,
-  RequestSendSignedTransactionDto,
-  UnsignedTransaction,
-  SignedTransactionParam,
-  RequestAddIssuerProxyDto,
-  ArgsAddIssuerProxy,
-  ArgsUpdateIssuerProxy,
-  ArgsSetAttributeMetadata,
-  ArgsSetAttributeData,
-} from "./dto/index.js";
-import {
   formatEthersUnsignedTransaction,
   formatEthersSignature,
-  validateClass,
 } from "./jsonrpc.utils.js";
 import type { ApiConfig } from "../../config/configuration.js";
-import { RequestUpdateIssuerProxyDto } from "./dto/updateIssuerProxy/index.js";
+import type { JsonRpcSchema } from "./validators/JsonRpcSchema.js";
+import {
+  requestSetAttributeMetadataSchema,
+  setAttributeMetadataSchema,
+} from "./validators/RequestSetAttributeMetadataSchema.js";
+import {
+  requestSetAttributeDataSchema,
+  setAttributeDataSchema,
+} from "./validators/RequestSetAttributeDataSchema.js";
+import {
+  createAddIssuerProxySchema,
+  createRequestAddIssuerProxySchema,
+} from "./validators/RequestAddIssuerProxySchema.js";
+import {
+  createRequestUpdateIssuerProxySchema,
+  createUpdateIssuerProxySchema,
+} from "./validators/RequestUpdateIssuerProxySchema.js";
+import {
+  requestSendSignedTransactionDtoSchema,
+  type SendSignedTransactionParamsSchema,
+  type UnsignedTransaction,
+} from "./validators/RequestSendSignedTransactionSchema.js";
 
 function assertScopeContains(
   scope: string,
@@ -54,6 +62,29 @@ function assertDidMatchesSub(did: string, sub: string) {
   }
 }
 
+/**
+ * Extract named attributes from a mixed array (array with named keys and number keys) as returned by ethers.js parseTransaction
+ */
+function extractNamedAttributes(mixedArray: unknown): Record<string, unknown> {
+  if (
+    !mixedArray ||
+    typeof mixedArray !== "object" ||
+    !Array.isArray(mixedArray)
+  ) {
+    throw new Error("Not a mixed array");
+  }
+
+  const keys = Object.keys(mixedArray).filter((key) =>
+    Number.isNaN(parseInt(key, 10)),
+  );
+
+  return keys.reduce((obj, key) => {
+    // @ts-expect-error Element implicitly has an 'any' type because index expression is not of type 'number'.ts(7015)
+    const value: unknown = mixedArray[key];
+    return { ...obj, [key]: value };
+  }, {});
+}
+
 @Injectable()
 export class JsonRpcService {
   private readonly logger = new Logger(JsonRpcService.name);
@@ -66,6 +97,21 @@ export class JsonRpcService {
 
   private readonly timeout: number;
 
+  // Dynamic validators which require some context
+  private addIssuerProxySchema: ReturnType<typeof createAddIssuerProxySchema>;
+
+  private updateIssuerProxySchema: ReturnType<
+    typeof createUpdateIssuerProxySchema
+  >;
+
+  private requestAddIssuerProxySchema: ReturnType<
+    typeof createRequestAddIssuerProxySchema
+  >;
+
+  private requestUpdateIssuerProxySchema: ReturnType<
+    typeof createRequestUpdateIssuerProxySchema
+  >;
+
   constructor(
     configService: ConfigService<ApiConfig, true>,
     private ledgerService: LedgerService,
@@ -73,6 +119,47 @@ export class JsonRpcService {
     this.didRegistryApiUrl = configService.get<string>("didRegistryApiUrl");
     this.contractAddress = ledgerService.getContractAddress();
     this.timeout = configService.get<number>("requestTimeout");
+
+    const authority = configService
+      .get<string>("domain")
+      .replace(/^https?:\/\//, "");
+    const trustedHostnames = configService.get<string[]>("trustedHostnames");
+    const ebsiEnvConfig = {
+      didRegistry: `${configService.get<string>(
+        "didRegistryApiUrl",
+      )}/identifiers`,
+      trustedIssuersRegistry: `${configService.get<string>(
+        "domain",
+      )}${configService.get<string>("apiUrlPrefix")}/issuers`,
+      trustedPoliciesRegistry: `${configService.get<string>(
+        "trustedPoliciesRegistryApiUrl",
+      )}/users`,
+    };
+
+    this.addIssuerProxySchema = createAddIssuerProxySchema(
+      authority,
+      this.timeout,
+      trustedHostnames,
+      ebsiEnvConfig,
+    );
+    this.updateIssuerProxySchema = createUpdateIssuerProxySchema(
+      authority,
+      this.timeout,
+      trustedHostnames,
+      ebsiEnvConfig,
+    );
+    this.requestAddIssuerProxySchema = createRequestAddIssuerProxySchema(
+      authority,
+      this.timeout,
+      trustedHostnames,
+      ebsiEnvConfig,
+    );
+    this.requestUpdateIssuerProxySchema = createRequestUpdateIssuerProxySchema(
+      authority,
+      this.timeout,
+      trustedHostnames,
+      ebsiEnvConfig,
+    );
   }
 
   async getChainId(): Promise<string> {
@@ -140,7 +227,7 @@ export class JsonRpcService {
   }
 
   async verifyTransaction(
-    param: SignedTransactionParam,
+    param: SendSignedTransactionParamsSchema,
     sub: string,
     scope: string,
   ): Promise<{ signer: string; functionName: string; args: unknown }> {
@@ -188,11 +275,16 @@ export class JsonRpcService {
       await this.ledgerService.getContract()
     ).interface.parseTransaction(unsignedTransaction);
 
+    // Extract named args from args (args is a mixed array with named and unnamed values)
+    const argsObject = {
+      ...extractNamedAttributes(args),
+      from: unsignedTransaction.from,
+    };
+
     switch (functionFragment.name) {
       case "setAttributeMetadata": {
         assertScopeContains(scope, "tir_write", functionFragment.name);
-        const castArgs = args as unknown as ArgsSetAttributeMetadata;
-        await validateClass(ArgsSetAttributeMetadata, castArgs);
+        await setAttributeMetadataSchema.parseAsync(argsObject);
         break;
       }
       case "setAttributeData": {
@@ -201,8 +293,7 @@ export class JsonRpcService {
           ["tir_invite", "tir_write"], // One of "tir_invite" or "tir_write"
           functionFragment.name,
         );
-        const castArgs = args as unknown as ArgsSetAttributeData;
-        await validateClass(ArgsSetAttributeData, castArgs);
+        const castArgs = await setAttributeDataSchema.parseAsync(argsObject);
         if (scope.includes("tir_invite")) {
           assertDidMatchesSub(castArgs.did, sub);
         }
@@ -210,14 +301,12 @@ export class JsonRpcService {
       }
       case "addIssuerProxy": {
         assertScopeContains(scope, "tir_write", functionFragment.name);
-        const castArgs = args as unknown as ArgsAddIssuerProxy;
-        await validateClass(ArgsAddIssuerProxy, castArgs);
+        await this.addIssuerProxySchema.parseAsync(argsObject);
         break;
       }
       case "updateIssuerProxy": {
         assertScopeContains(scope, "tir_write", functionFragment.name);
-        const castArgs = args as unknown as ArgsUpdateIssuerProxy;
-        await validateClass(ArgsUpdateIssuerProxy, castArgs);
+        await this.updateIssuerProxySchema.parseAsync(argsObject);
         break;
       }
       default:
@@ -277,7 +366,7 @@ export class JsonRpcService {
   }
 
   async buildTransactionSetAttributeMetadata(
-    body: RequestSetAttributeMetadataDto,
+    body: JsonRpcSchema,
     id: number | string | null | undefined,
     scope: string,
   ): Promise<UnsignedTransaction> {
@@ -286,19 +375,20 @@ export class JsonRpcService {
     try {
       assertScopeContains(scope, "tir_write", method);
 
-      await validateClass(RequestSetAttributeMetadataDto, body);
+      const parsedBody =
+        await requestSetAttributeMetadataSchema.parseAsync(body);
 
-      const { from, did, attributeId, issuerType, taoDid, taoAttributeId } =
-        body.params[0]!;
+      const { from, did, revisionId, issuerType, taoDid, attributeIdTao } =
+        parsedBody.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData(method, [
         did,
-        attributeId,
+        revisionId,
         issuerType,
         taoDid,
-        taoAttributeId,
+        attributeIdTao,
       ]);
 
       return await this.buildTransaction(from, data);
@@ -312,7 +402,7 @@ export class JsonRpcService {
   }
 
   async buildTransactionSetAttributeData(
-    body: RequestSetAttributeDataDto,
+    body: JsonRpcSchema,
     id: number | string | null | undefined,
     sub: string,
     scope: string,
@@ -322,9 +412,9 @@ export class JsonRpcService {
     try {
       assertScopeContains(scope, ["tir_invite", "tir_write"], method);
 
-      await validateClass(RequestSetAttributeDataDto, body);
+      const parsedBody = await requestSetAttributeDataSchema.parseAsync(body);
 
-      const { from, did, attributeId, attributeData } = body.params[0]!;
+      const { from, did, attributeId, attributeData } = parsedBody.params[0]!;
 
       if (scope.includes("tir_invite")) {
         // Verify that the Access Token sub and the payload DID match
@@ -346,7 +436,7 @@ export class JsonRpcService {
   }
 
   async buildTransactionAddIssuerProxy(
-    body: RequestAddIssuerProxyDto,
+    body: JsonRpcSchema,
     id: number | string | null | undefined,
     scope: string,
   ): Promise<UnsignedTransaction> {
@@ -355,9 +445,10 @@ export class JsonRpcService {
     try {
       assertScopeContains(scope, "tir_write", method);
 
-      await validateClass(RequestAddIssuerProxyDto, body);
+      const parsedBody =
+        await this.requestAddIssuerProxySchema.parseAsync(body);
 
-      const { from, did, proxyData } = body.params[0]!;
+      const { from, did, proxyData } = parsedBody.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -374,7 +465,7 @@ export class JsonRpcService {
   }
 
   async buildTransactionUpdateIssuerProxy(
-    body: RequestUpdateIssuerProxyDto,
+    body: JsonRpcSchema,
     id: number | string | null | undefined,
     scope: string,
   ): Promise<UnsignedTransaction> {
@@ -383,9 +474,10 @@ export class JsonRpcService {
     try {
       assertScopeContains(scope, "tir_write", method);
 
-      await validateClass(RequestUpdateIssuerProxyDto, body);
+      const parsedBody =
+        await this.requestUpdateIssuerProxySchema.parseAsync(body);
 
-      const { from, did, proxyId, proxyData } = body.params[0]!;
+      const { from, did, proxyId, proxyData } = parsedBody.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -403,14 +495,15 @@ export class JsonRpcService {
 
   async sendTransaction(
     sub: string,
-    body: RequestSendSignedTransactionDto,
+    body: JsonRpcSchema,
     id: number | string | null | undefined,
     scope: string,
   ): Promise<string> {
     try {
-      await validateClass(RequestSendSignedTransactionDto, body);
+      const parsedBody =
+        await requestSendSignedTransactionDtoSchema.parseAsync(body);
 
-      const request = body.params[0]!;
+      const request = parsedBody.params[0]!;
 
       const { signer } = await this.verifyTransaction(request, sub, scope);
 

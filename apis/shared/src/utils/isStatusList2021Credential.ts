@@ -57,7 +57,7 @@ export async function checkStatusList2021Credential(
   credentialJwt: unknown,
   authority: string,
   options?: Omit<VerifyCredentialOptions, "ebsiAuthority">,
-): Promise<{ success: boolean; error?: string }> {
+): Promise<{ success: true } | { success: false; error: string }> {
   // Note: we only support VC JWT for now -> the StatusList2021Credential must be a JWT
   if (!credentialJwt || typeof credentialJwt !== "string")
     return {

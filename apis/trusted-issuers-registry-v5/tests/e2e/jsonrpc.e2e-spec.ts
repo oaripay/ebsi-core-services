@@ -45,13 +45,6 @@ import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.in
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
 import { createIssuer } from "../utils/tir.js";
 import type { IssuerObject } from "../utils/tir.js";
-import type {
-  AddIssuerProxyParam,
-  SetAttributeDataParam,
-  SetAttributeMetadataParam,
-  UnsignedTransaction,
-  UpdateIssuerProxyParam,
-} from "../../src/modules/jsonrpc/dto/index.js";
 import { describeWriteOps } from "../utils/describeWriteOps.js";
 import { getServer } from "../utils/getServer.js";
 import { describeLocalTestEnvOnly } from "../utils/describeLocalTestEnvOnly.js";
@@ -60,6 +53,11 @@ import {
   getTirInviteAccessToken,
   getTirWriteAccessToken,
 } from "../utils/getAccessToken.js";
+import type { SetAttributeMetadataSchema } from "../../src/modules/jsonrpc/validators/RequestSetAttributeMetadataSchema.js";
+import type { SetAttributeDataSchema } from "../../src/modules/jsonrpc/validators/RequestSetAttributeDataSchema.js";
+import type { AddIssuerProxySchema } from "../../src/modules/jsonrpc/validators/RequestAddIssuerProxySchema.js";
+import type { UpdateIssuerProxySchema } from "../../src/modules/jsonrpc/validators/RequestUpdateIssuerProxySchema.js";
+import type { UnsignedTransaction } from "../../src/modules/jsonrpc/validators/RequestSendSignedTransactionSchema.js";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -410,11 +408,11 @@ describeWriteOps()("TIR API v5 - JSON-RPC (e2e)", () => {
               {
                 from: adminIssuer.wallet.address,
                 did: newIssuerDid,
-                attributeId: `0x${randomBytes(32).toString("hex")}`,
+                revisionId: `0x${randomBytes(32).toString("hex")}`,
                 issuerType: IssuerType.RootTAO,
                 taoDid: newIssuerDid,
-                taoAttributeId: `0x${"0".repeat(64)}`,
-              } as SetAttributeMetadataParam,
+                attributeIdTao: `0x${"0".repeat(64)}`,
+              } satisfies SetAttributeMetadataSchema,
             ],
             id: 231,
           });
@@ -528,17 +526,17 @@ describeWriteOps()("TIR API v5 - JSON-RPC (e2e)", () => {
 
       switch (method) {
         case "setAttributeMetadata": {
-          const { did, attribute, tao, taoAttributeId, issuerType } =
+          const { did, attribute, tao, attributeIdTao, issuerType } =
             createIssuer(IssuerType.RootTAO);
 
           params = {
             from: sender.wallet.address,
             did,
-            attributeId: attribute.id,
+            revisionId: attribute.id,
             taoDid: tao,
-            taoAttributeId,
+            attributeIdTao,
             issuerType,
-          } as SetAttributeMetadataParam;
+          } satisfies SetAttributeMetadataSchema;
           break;
         }
         case "setAttributeData": {
@@ -549,7 +547,7 @@ describeWriteOps()("TIR API v5 - JSON-RPC (e2e)", () => {
             did: newIssuer.info.did,
             attributeId: attribute.id,
             attributeData: attribute.hex,
-          } as SetAttributeDataParam;
+          } satisfies SetAttributeDataSchema;
           break;
         }
         default: {
@@ -596,11 +594,11 @@ describeWriteOps()("TIR API v5 - JSON-RPC (e2e)", () => {
           params = {
             from: sender.wallet.address,
             did: sender.info.did,
-            attributeId: prefixWith0x(senderFirstAttributeId),
+            revisionId: prefixWith0x(senderFirstAttributeId),
             issuerType: 1, // RootTAO
             taoDid: newIssuer1.tao,
-            taoAttributeId: newIssuer1.taoAttributeId,
-          } as SetAttributeMetadataParam;
+            attributeIdTao: newIssuer1.attributeIdTao,
+          } satisfies SetAttributeMetadataSchema;
 
           extraTestUrl = `/issuers/${sender.info.did}`;
 
@@ -629,7 +627,7 @@ describeWriteOps()("TIR API v5 - JSON-RPC (e2e)", () => {
             did: sender.info.did,
             attributeId: prefixWith0x(senderFirstAttributeId),
             attributeData: `0x${newAttributeDataBuffer.toString("hex")}`,
-          } as SetAttributeDataParam;
+          } satisfies SetAttributeDataSchema;
 
           extraTestUrl = `/issuers/${sender.info.did}`;
 
@@ -739,11 +737,11 @@ describeWriteOps()("TIR API v5 - JSON-RPC (e2e)", () => {
           params = {
             from: sender.wallet.address,
             did: EbsiWallet.createDid(),
-            attributeId: newIssuer3.attribute.id,
+            revisionId: newIssuer3.attribute.id,
             taoDid: newIssuer3.tao,
             issuerType: newIssuer3.issuerType,
-            taoAttributeId: newIssuer3.taoAttributeId,
-          } as SetAttributeMetadataParam;
+            attributeIdTao: newIssuer3.attributeIdTao,
+          } satisfies SetAttributeMetadataSchema;
           break;
         }
         case "setAttributeData": {
@@ -752,7 +750,7 @@ describeWriteOps()("TIR API v5 - JSON-RPC (e2e)", () => {
             did: newIssuer.info.did,
             attributeId: prefixWith0x(senderFirstAttributeId),
             attributeData: newIssuer3.attribute.hex,
-          } as SetAttributeDataParam;
+          } satisfies SetAttributeDataSchema;
           break;
         }
         default: {
@@ -911,7 +909,7 @@ describeWriteOps()("TIR API v5 - JSON-RPC (e2e)", () => {
                 from: testIssuerWithProxyWallet.address,
                 did,
                 proxyData: newIssuer1.proxy.utf8,
-              } as AddIssuerProxyParam;
+              } satisfies AddIssuerProxySchema;
 
               extraTestUrl = `/issuers/${did}/proxies`;
 
@@ -935,7 +933,7 @@ describeWriteOps()("TIR API v5 - JSON-RPC (e2e)", () => {
                 did,
                 proxyData: newIssuer2.proxy.utf8,
                 proxyId: newIssuer1.proxy.id,
-              } as UpdateIssuerProxyParam;
+              } satisfies UpdateIssuerProxySchema;
 
               extraTestUrl = `/issuers/${did}/proxies/${newIssuer1.proxy.id}`;
               extraTestExpectedResponse = newIssuer2.proxy.obj;

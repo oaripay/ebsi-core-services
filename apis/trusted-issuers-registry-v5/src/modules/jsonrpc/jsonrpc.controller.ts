@@ -1,17 +1,13 @@
 import { Controller, Body, Post, HttpCode, UseGuards } from "@nestjs/common";
-import { InvalidRequestJsonRpcError } from "@ebsiint-api/shared";
+import {
+  InvalidRequestJsonRpcError,
+  getErrorMessage,
+} from "@ebsiint-api/shared";
 import { JsonRpcService } from "./jsonrpc.service.js";
 import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
-import {
-  JsonRpcDto,
-  RequestSendSignedTransactionDto,
-  RequestAddIssuerProxyDto,
-  RequestUpdateIssuerProxyDto,
-  RequestSetAttributeMetadataDto,
-  RequestSetAttributeDataDto,
-} from "./dto/index.js";
 import { BearerJwtAuthGuard } from "../auth/guards/index.js";
 import { Subject, type SubjectInfo } from "../auth/decorators/index.js";
+import { jsonRpcSchema } from "./validators/JsonRpcSchema.js";
 
 function formatJsonRpcResponse(
   result: unknown,
@@ -28,9 +24,26 @@ export class JsonRpcController {
   @HttpCode(200)
   @Post()
   async jsonRPC(
-    @Body() body: JsonRpcDto,
+    @Body() unsafeBody: unknown,
     @Subject() subject: SubjectInfo,
   ): Promise<JsonRpcResponseObject> {
+    if (!unsafeBody || typeof unsafeBody !== "object") {
+      throw new InvalidRequestJsonRpcError(
+        "JSON-RPC payload must be an object",
+        null,
+      );
+    }
+
+    const parsedBody = jsonRpcSchema.safeParse(unsafeBody);
+
+    if (!parsedBody.success) {
+      throw new InvalidRequestJsonRpcError(
+        getErrorMessage(parsedBody.error),
+        null,
+      );
+    }
+
+    const body = parsedBody.data;
     const { method, id: requestId } = body;
     const id = requestId ?? null;
     const { scp: scope, sub } = subject;
@@ -39,7 +52,7 @@ export class JsonRpcController {
       case "setAttributeMetadata": {
         const transaction =
           await this.jsonRpcService.buildTransactionSetAttributeMetadata(
-            body as RequestSetAttributeMetadataDto,
+            body,
             id,
             scope,
           );
@@ -48,7 +61,7 @@ export class JsonRpcController {
       case "setAttributeData": {
         const transaction =
           await this.jsonRpcService.buildTransactionSetAttributeData(
-            body as RequestSetAttributeDataDto,
+            body,
             id,
             sub,
             scope,
@@ -58,7 +71,7 @@ export class JsonRpcController {
       case "addIssuerProxy": {
         const transaction =
           await this.jsonRpcService.buildTransactionAddIssuerProxy(
-            body as RequestAddIssuerProxyDto,
+            body,
             id,
             scope,
           );
@@ -67,7 +80,7 @@ export class JsonRpcController {
       case "updateIssuerProxy": {
         const transaction =
           await this.jsonRpcService.buildTransactionUpdateIssuerProxy(
-            body as RequestUpdateIssuerProxyDto,
+            body,
             id,
             scope,
           );
@@ -76,7 +89,7 @@ export class JsonRpcController {
       case "sendSignedTransaction": {
         const result = await this.jsonRpcService.sendTransaction(
           sub,
-          body as RequestSendSignedTransactionDto,
+          body,
           id,
           scope,
         );

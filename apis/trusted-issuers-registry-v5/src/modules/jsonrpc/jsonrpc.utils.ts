@@ -1,29 +1,5 @@
-import * as ClassValidator from "class-validator";
-import { ClassTransformer, ClassConstructor } from "class-transformer";
 import { ethers } from "ethers";
-import {
-  UnsignedTransaction,
-  RequestSetAttributeMetadataDto,
-  RequestSetAttributeDataDto,
-  RequestSendSignedTransactionDto,
-  ArgsSetAttributeMetadata,
-  ArgsSetAttributeData,
-  RequestAddIssuerProxyDto,
-  RequestUpdateIssuerProxyDto,
-  ArgsAddIssuerProxy,
-  ArgsUpdateIssuerProxy,
-} from "./dto/index.js";
-
-type JsonRpcDtos =
-  | RequestSetAttributeMetadataDto
-  | RequestSetAttributeDataDto
-  | RequestAddIssuerProxyDto
-  | RequestUpdateIssuerProxyDto
-  | RequestSendSignedTransactionDto
-  | ArgsSetAttributeMetadata
-  | ArgsSetAttributeData
-  | ArgsAddIssuerProxy
-  | ArgsUpdateIssuerProxy;
+import type { UnsignedTransaction } from "./validators/RequestSendSignedTransactionSchema.js";
 
 export function formatEthersUnsignedTransaction(
   unsignedTransaction: UnsignedTransaction,
@@ -46,17 +22,3 @@ export function formatEthersSignature(r: string, s: string, v: string) {
     v: Number(v),
   } satisfies Partial<ethers.Signature>;
 }
-
-export const validateClass = async (
-  classType: ClassConstructor<JsonRpcDtos>,
-  data: JsonRpcDtos,
-): Promise<void> => {
-  const dataClass = new ClassTransformer().plainToInstance<
-    JsonRpcDtos,
-    JsonRpcDtos
-  >(classType, data);
-  const errors = await ClassValidator.validate(dataClass);
-  if (errors.length > 0) {
-    throw new Error(errors.toString());
-  }
-};

@@ -36,13 +36,6 @@ import * as StatusList2021CredentialHelpers from "@ebsiint-api/shared";
 import { JsonRpcModule } from "./jsonrpc.module.js";
 import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
 import { JsonRpcService } from "./jsonrpc.service.js";
-import type {
-  UnsignedTransaction,
-  SetAttributeMetadataParam,
-  SetAttributeDataParam,
-  AddIssuerProxyParam,
-  UpdateIssuerProxyParam,
-} from "./dto/index.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils.js";
 import { createIssuer, setupTestEnv } from "../../../tests/utils/tir.js";
@@ -51,6 +44,11 @@ import { LedgerService } from "../ledger/ledger.service.js";
 import type { ApiConfig } from "../../config/configuration.js";
 import { createDidDocument } from "../../../tests/utils/data.js";
 import { IssuerType } from "../issuers/issuers.constants.js";
+import type { SetAttributeMetadataSchema } from "./validators/RequestSetAttributeMetadataSchema.js";
+import type { SetAttributeDataSchema } from "./validators/RequestSetAttributeDataSchema.js";
+import type { AddIssuerProxySchema } from "./validators/RequestAddIssuerProxySchema.js";
+import type { UpdateIssuerProxySchema } from "./validators/RequestUpdateIssuerProxySchema.js";
+import type { UnsignedTransaction } from "./validators/RequestSendSignedTransactionSchema.js";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -58,10 +56,10 @@ interface SupertestJsonRpcResponse {
 }
 
 type JsonRpcParams =
-  | SetAttributeMetadataParam
-  | SetAttributeDataParam
-  | AddIssuerProxyParam
-  | UpdateIssuerProxyParam;
+  | SetAttributeMetadataSchema
+  | SetAttributeDataSchema
+  | AddIssuerProxySchema
+  | UpdateIssuerProxySchema;
 
 describe("JsonRpc Module", () => {
   let app: NestFastifyApplication;
@@ -93,11 +91,11 @@ describe("JsonRpc Module", () => {
         param = {
           from: signer.address,
           did: issuer1.did,
-          attributeId: tamper ? issuer2.attribute.id : issuer1.attribute.id,
+          revisionId: tamper ? issuer2.attribute.id : issuer1.attribute.id,
           issuerType: issuer1.issuerType,
           taoDid: issuer1.tao,
-          taoAttributeId: issuer1.taoAttributeId,
-        } as SetAttributeMetadataParam;
+          attributeIdTao: issuer1.attributeIdTao,
+        } satisfies SetAttributeMetadataSchema;
         break;
       }
       case "setAttributeData": {
@@ -107,7 +105,7 @@ describe("JsonRpc Module", () => {
           did: issuer1.did,
           attributeId: tamper ? issuer2.attribute.id : issuer1.attribute.id,
           attributeData: `0x${crypto.randomBytes(12).toString("hex")}`,
-        } as SetAttributeDataParam;
+        } satisfies SetAttributeDataSchema;
         break;
       }
       case "addIssuerProxy": {
@@ -115,7 +113,7 @@ describe("JsonRpc Module", () => {
           from: signer.address,
           did: issuer1.did,
           proxyData: tamper ? issuer2.proxy.utf8 : issuer1.proxy.utf8,
-        } as AddIssuerProxyParam;
+        } satisfies AddIssuerProxySchema;
         break;
       }
       case "updateIssuerProxy": {
@@ -124,7 +122,7 @@ describe("JsonRpc Module", () => {
           did: issuer1.did,
           proxyId: tamper ? issuer2.proxy.id : issuer1.proxy.id,
           proxyData: issuer2.proxy.utf8,
-        } as UpdateIssuerProxyParam;
+        } satisfies UpdateIssuerProxySchema;
         break;
       }
       default:
@@ -283,6 +281,11 @@ describe("JsonRpc Module", () => {
         `${issuers[0]!.proxy.obj.prefix}${issuers[0]!.proxy.obj.testSuffix}`,
         () => HttpResponse.json(issuerV1StatusList2021CredentialJwt),
       ),
+      // Create "not found" status list URL
+      http.get(
+        "https://not-found.net/cred/1",
+        () => new HttpResponse(null, { status: 404 }),
+      ),
     );
   });
 
@@ -301,7 +304,7 @@ describe("JsonRpc Module", () => {
     vi.spyOn(
       StatusList2021CredentialHelpers,
       "checkStatusList2021Credential",
-    ).mockImplementation(() => Promise.resolve({ success: true }));
+    ).mockImplementation(() => Promise.resolve({ success: true } as const));
   });
 
   afterEach(() => {
@@ -415,19 +418,39 @@ describe("JsonRpc Module", () => {
   });
 
   it("should throw Bad Request for a bad JSON-RPC call", async () => {
-    expect.assertions(2);
+    expect.assertions(4);
 
-    const response = await request(server)
+    let response = await request(server)
       .post("/jsonrpc")
       .auth(tao1TirWriteAccessToken, { type: "bearer" })
       .send();
 
     expect(response.body).toStrictEqual({
-      title: "Bad Request",
-      status: 400,
-      detail:
-        '["jsonrpc must be equal to 2.0","method must be a string","params must be an array"]',
-      type: "about:blank",
+      error: {
+        code: -32600,
+        message: "JSON-RPC payload must be an object",
+      },
+      id: null,
+      jsonrpc: "2.0",
+    });
+    expect(response.status).toBe(400);
+
+    response = await request(server)
+      .post("/jsonrpc")
+      .auth(tao1TirWriteAccessToken, { type: "bearer" })
+      .send({});
+
+    expect(response.body).toStrictEqual({
+      error: {
+        code: -32600,
+        message: [
+          "Invalid 'jsonrpc': Invalid literal value, expected \"2.0\"",
+          "Invalid 'method': Required",
+          "Invalid 'params': Required",
+        ].join("\n"),
+      },
+      id: null,
+      jsonrpc: "2.0",
     });
     expect(response.status).toBe(400);
   });
@@ -521,7 +544,7 @@ describe("JsonRpc Module", () => {
 
     const signer = ethers.Wallet.createRandom();
 
-    const param: SetAttributeDataParam = {
+    const param: SetAttributeDataSchema = {
       did: issuers[0]!.did,
       attributeId: issuers[0]!.attribute.id,
       attributeData: issuers[0]!.attribute.hex,
@@ -707,114 +730,518 @@ describe("JsonRpc Module", () => {
       });
 
       it(`should throw an Invalid Request error for bad use of ${method}`, async () => {
-        expect.assertions(6);
-
         const signer = ethers.Wallet.createRandom();
 
-        const param1 = createParam(method, signer);
-        const param2 = createParam(method, signer);
-        const param3 = createParam(method, signer);
+        const testSetup: {
+          params: JsonRpcParams;
+          expectedErrorMessage: string;
+          accessToken: string;
+        }[] = [];
 
-        let expectedErrorMessage1: string;
-        let expectedErrorMessage2: string;
-        let expectedErrorMessage3: string;
+        const issuer1 = issuers[0]!;
 
         switch (method) {
-          case "setAttributeMetadata":
-          case "setAttributeData":
-            // @ts-expect-error Delete required property
-            delete (param1 as SetAttributeMetadataParam).attributeId;
-            expectedErrorMessage1 =
-              "property params[0].attributeId has failed the following constraints: isHexadecimal";
+          case "setAttributeMetadata": {
+            testSetup.push({
+              params: {
+                from: signer.address,
+                // Missing "did"
+                // did: issuer1.did,
+                revisionId: issuer1.attribute.id,
+                issuerType: issuer1.issuerType,
+                taoDid: issuer1.tao,
+                attributeIdTao: issuer1.attributeIdTao,
+              } as SetAttributeMetadataSchema,
+              expectedErrorMessage: "Invalid 'params.0.did': Required",
+              accessToken: tao1TirWriteAccessToken,
+            });
 
-            // @ts-expect-error Delete required property
-            delete (param2 as SetAttributeMetadataParam).did;
-            expectedErrorMessage2 =
-              "property params[0].did has failed the following constraints: isDidV1";
+            testSetup.push({
+              params: {
+                from: signer.address,
+                // Invalid "did"
+                did: "did:key:z2dmzD81cgPx8Vki7JbuuMmFYrWPgYoytykUZ3eyqht1j9KbqWsaTDqWzTdxV8Up5ZsKEyY2287nhqc9wPxspHkyEn5xHi9Lnnt9kEkPJd2tFpmpx8z8dgHfbLmLhFRm5jpfvxGUwoykD87ec7znw9NhN9fMTBXmm4zb3amdW5SqZ7QW5A",
+                revisionId: issuer1.attribute.id,
+                issuerType: issuer1.issuerType,
+                taoDid: issuer1.tao,
+                attributeIdTao: issuer1.attributeIdTao,
+              } as SetAttributeMetadataSchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.did': The DID must start with \"did:ebsi:\"",
+              accessToken: tao1TirWriteAccessToken,
+            });
 
-            param3.from = "bad address";
-            expectedErrorMessage3 =
-              "property params[0].from has failed the following constraints: isEthereumAddress";
+            testSetup.push({
+              params: {
+                from: signer.address,
+                did: issuer1.did,
+                // Missing "revisionId"
+                // revisionId: issuer1.attribute.id,
+                issuerType: issuer1.issuerType,
+                taoDid: issuer1.tao,
+                attributeIdTao: issuer1.attributeIdTao,
+              } as SetAttributeMetadataSchema,
+              expectedErrorMessage: "Invalid 'params.0.revisionId': Required",
+              accessToken: tao1TirWriteAccessToken,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                did: issuer1.did,
+                // Invalid "revisionId"
+                revisionId: "not hexadecimal",
+                issuerType: issuer1.issuerType,
+                taoDid: issuer1.tao,
+                attributeIdTao: issuer1.attributeIdTao,
+              } as SetAttributeMetadataSchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.revisionId': Must be hexadecimal",
+              accessToken: tao1TirWriteAccessToken,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                did: issuer1.did,
+                revisionId: issuer1.attribute.id,
+                // Invalid "issuerType"
+                issuerType: 42,
+                taoDid: issuer1.tao,
+                attributeIdTao: issuer1.attributeIdTao,
+              } as SetAttributeMetadataSchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.issuerType': Number must be less than or equal to 4",
+              accessToken: tao1TirWriteAccessToken,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                did: issuer1.did,
+                revisionId: issuer1.attribute.id,
+                issuerType: issuer1.issuerType,
+                // Invalid "taoDid"
+                taoDid:
+                  "did:key:z2dmzD81cgPx8Vki7JbuuMmFYrWPgYoytykUZ3eyqht1j9KbqWsaTDqWzTdxV8Up5ZsKEyY2287nhqc9wPxspHkyEn5xHi9Lnnt9kEkPJd2tFpmpx8z8dgHfbLmLhFRm5jpfvxGUwoykD87ec7znw9NhN9fMTBXmm4zb3amdW5SqZ7QW5A",
+                attributeIdTao: issuer1.attributeIdTao,
+              } as SetAttributeMetadataSchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.taoDid': The DID must start with \"did:ebsi:\"",
+              accessToken: tao1TirWriteAccessToken,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                did: issuer1.did,
+                revisionId: issuer1.attribute.id,
+                issuerType: issuer1.issuerType,
+                taoDid: issuer1.tao,
+                // Invalid "attributeIdTao"
+                attributeIdTao: "not hexadecimal",
+              } as SetAttributeMetadataSchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.attributeIdTao': Must be hexadecimal",
+              accessToken: tao1TirWriteAccessToken,
+            });
+
+            testSetup.push({
+              params: {
+                from: "bad address",
+                did: issuer1.did,
+                revisionId: issuer1.attribute.id,
+                issuerType: issuer1.issuerType,
+                taoDid: issuer1.tao,
+                attributeIdTao: issuer1.attributeIdTao,
+              } as SetAttributeMetadataSchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.from': Invalid Ethereum address",
+              accessToken: tao1TirWriteAccessToken,
+            });
+
             break;
-          case "addIssuerProxy":
-          case "updateIssuerProxy":
-            // @ts-expect-error Delete required property
-            delete (param1 as AddIssuerProxyParam).did;
-            expectedErrorMessage1 =
-              "property params[0].did has failed the following constraints: isDidV1";
+          }
+          case "setAttributeData": {
+            testSetup.push({
+              params: {
+                from: signer.address,
+                // Missing "did"
+                // did: issuer1.did,
+                attributeId: issuer1.attribute.id,
+                attributeData: `0x${crypto.randomBytes(12).toString("hex")}`,
+              } as SetAttributeDataSchema,
+              expectedErrorMessage: "Invalid 'params.0.did': Required",
+              accessToken: tao1TirWriteAccessToken,
+            });
 
-            // @ts-expect-error Delete required property
-            delete (param2 as AddIssuerProxyParam).proxyData;
-            expectedErrorMessage2 =
-              "property params[0].proxyData has failed the following constraints: isIssuerProxy";
+            testSetup.push({
+              params: {
+                from: signer.address,
+                // Invalid "did"
+                did: "did:key:z2dmzD81cgPx8Vki7JbuuMmFYrWPgYoytykUZ3eyqht1j9KbqWsaTDqWzTdxV8Up5ZsKEyY2287nhqc9wPxspHkyEn5xHi9Lnnt9kEkPJd2tFpmpx8z8dgHfbLmLhFRm5jpfvxGUwoykD87ec7znw9NhN9fMTBXmm4zb3amdW5SqZ7QW5A",
+                attributeId: issuer1.attribute.id,
+                attributeData: `0x${crypto.randomBytes(12).toString("hex")}`,
+              } as SetAttributeDataSchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.did': The DID must start with \"did:ebsi:\"",
+              accessToken: tao1TirWriteAccessToken,
+            });
 
-            param3.from = "bad address";
-            expectedErrorMessage3 =
-              "property params[0].from has failed the following constraints: isEthereumAddress";
+            testSetup.push({
+              params: {
+                from: signer.address,
+                did: issuer1.did,
+                // Missing "attributeId"
+                // attributeId: issuer1.attribute.id,
+                attributeData: `0x${crypto.randomBytes(12).toString("hex")}`,
+              } as SetAttributeDataSchema,
+              expectedErrorMessage: "Invalid 'params.0.attributeId': Required",
+              accessToken: tao1TirWriteAccessToken,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                did: issuer1.did,
+                // Invalid "attributeId"
+                attributeId: "not hexadecimal",
+                attributeData: `0x${crypto.randomBytes(12).toString("hex")}`,
+              } as SetAttributeDataSchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.attributeId': Must be hexadecimal",
+              accessToken: tao1TirWriteAccessToken,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                did: issuer1.did,
+                attributeId: issuer1.attribute.id,
+                // Invalid "attributeData"
+                attributeData: "not hexadecimal",
+              } as SetAttributeDataSchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.attributeData': Must be hexadecimal",
+              accessToken: tao1TirWriteAccessToken,
+            });
+
+            testSetup.push({
+              params: {
+                from: "bad address",
+                did: issuer1.did,
+                attributeId: issuer1.attribute.id,
+                attributeData: `0x${crypto.randomBytes(12).toString("hex")}`,
+              } as SetAttributeDataSchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.from': Invalid Ethereum address",
+              accessToken: tao1TirWriteAccessToken,
+            });
+
             break;
-          default:
+          }
+          case "addIssuerProxy": {
+            testSetup.push({
+              params: {
+                from: signer.address,
+                // Missing "did"
+                // did: issuer1.did,
+                proxyData: issuer1.proxy.utf8,
+              } as AddIssuerProxySchema,
+              expectedErrorMessage: "Invalid 'params.0.did': Required",
+              accessToken: tao1TirWriteAccessToken,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                // Invalid "did"
+                did: "did:key:z2dmzD81cgPx8Vki7JbuuMmFYrWPgYoytykUZ3eyqht1j9KbqWsaTDqWzTdxV8Up5ZsKEyY2287nhqc9wPxspHkyEn5xHi9Lnnt9kEkPJd2tFpmpx8z8dgHfbLmLhFRm5jpfvxGUwoykD87ec7znw9NhN9fMTBXmm4zb3amdW5SqZ7QW5A",
+                proxyData: issuer1.proxy.utf8,
+              } as AddIssuerProxySchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.did': The DID must start with \"did:ebsi:\"",
+              accessToken: tao1TirWriteAccessToken,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                did: issuer1.did,
+                // Missing "proxyData"
+                // proxyData: issuer1.proxy.utf8,
+              } as AddIssuerProxySchema,
+              expectedErrorMessage: "Invalid 'params.0.proxyData': Required",
+              accessToken: tao1TirWriteAccessToken,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                did: issuer1.did,
+                // Invalid "proxyData"
+                proxyData: JSON.stringify({
+                  // "prefix" attribute is missing
+                }),
+              } as AddIssuerProxySchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.proxyData': Missing prefix",
+              accessToken: tao1TirWriteAccessToken,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                did: issuer1.did,
+                // Invalid "proxyData"
+                proxyData: JSON.stringify({
+                  prefix: "https://example.net",
+                  // Missing "headers" attribute
+                }),
+              } as AddIssuerProxySchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.proxyData': Missing headers",
+              accessToken: tao1TirWriteAccessToken,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                did: issuer1.did,
+                // Invalid "proxyData"
+                proxyData: JSON.stringify({
+                  prefix: "https://example.net",
+                  headers: {
+                    Authorization: `Bearer ${crypto
+                      .randomBytes(16)
+                      .toString("hex")}`,
+                  },
+                  // Missing "testSuffix" attribute
+                }),
+              } as AddIssuerProxySchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.proxyData': Missing testSuffix",
+              accessToken: tao1TirWriteAccessToken,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                did: issuer1.did,
+                // Invalid "proxyData"
+                proxyData: JSON.stringify({
+                  prefix: "https://not-found.net",
+                  headers: {
+                    Authorization: `Bearer ${crypto
+                      .randomBytes(16)
+                      .toString("hex")}`,
+                  },
+                  testSuffix: "/cred/1",
+                }),
+              } as AddIssuerProxySchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.proxyData': Error while loading https://not-found.net/cred/1",
+              accessToken: tao1TirWriteAccessToken,
+            });
+
+            testSetup.push({
+              params: {
+                from: "bad address",
+                did: issuer1.did,
+                proxyData: issuer1.proxy.utf8,
+              } as AddIssuerProxySchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.from': Invalid Ethereum address",
+              accessToken: tao1TirWriteAccessToken,
+            });
+
+            break;
+          }
+          case "updateIssuerProxy": {
+            testSetup.push({
+              params: {
+                from: signer.address,
+                // Missing "did"
+                // did: issuer1.did,
+                proxyId: issuer1.proxy.id,
+                proxyData: issuer1.proxy.utf8,
+              } as UpdateIssuerProxySchema,
+              expectedErrorMessage: "Invalid 'params.0.did': Required",
+              accessToken: tao1TirWriteAccessToken,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                // Invalid "did"
+                did: "did:key:z2dmzD81cgPx8Vki7JbuuMmFYrWPgYoytykUZ3eyqht1j9KbqWsaTDqWzTdxV8Up5ZsKEyY2287nhqc9wPxspHkyEn5xHi9Lnnt9kEkPJd2tFpmpx8z8dgHfbLmLhFRm5jpfvxGUwoykD87ec7znw9NhN9fMTBXmm4zb3amdW5SqZ7QW5A",
+                proxyId: issuer1.proxy.id,
+                proxyData: issuer1.proxy.utf8,
+              } as UpdateIssuerProxySchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.did': The DID must start with \"did:ebsi:\"",
+              accessToken: tao1TirWriteAccessToken,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                did: issuer1.did,
+                // Missing "proxyId"
+                // proxyId: issuer1.proxy.id,
+                proxyData: issuer1.proxy.utf8,
+              } as UpdateIssuerProxySchema,
+              expectedErrorMessage: "Invalid 'params.0.proxyId': Required",
+              accessToken: tao1TirWriteAccessToken,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                did: issuer1.did,
+                // Invalid "proxyId"
+                proxyId: "not 66 chars and not hex",
+                proxyData: issuer1.proxy.utf8,
+              } as UpdateIssuerProxySchema,
+              expectedErrorMessage: [
+                "Invalid 'params.0.proxyId': String must contain exactly 66 character(s)",
+                "Invalid 'params.0.proxyId': Must be hexadecimal",
+              ].join("\n"),
+              accessToken: tao1TirWriteAccessToken,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                did: issuer1.did,
+                proxyId: issuer1.proxy.id,
+                // Missing "proxyData"
+                // proxyData: issuer1.proxy.utf8,
+              } as UpdateIssuerProxySchema,
+              expectedErrorMessage: "Invalid 'params.0.proxyData': Required",
+              accessToken: tao1TirWriteAccessToken,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                did: issuer1.did,
+                proxyId: issuer1.proxy.id,
+                // Invalid "proxyData"
+                proxyData: JSON.stringify({
+                  // "prefix" attribute is missing
+                }),
+              } as UpdateIssuerProxySchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.proxyData': Missing prefix",
+              accessToken: tao1TirWriteAccessToken,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                did: issuer1.did,
+                proxyId: issuer1.proxy.id,
+                // Invalid "proxyData"
+                proxyData: JSON.stringify({
+                  prefix: "https://example.net",
+                  // Missing "headers" attribute
+                }),
+              } as UpdateIssuerProxySchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.proxyData': Missing headers",
+              accessToken: tao1TirWriteAccessToken,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                did: issuer1.did,
+                proxyId: issuer1.proxy.id,
+                // Invalid "proxyData"
+                proxyData: JSON.stringify({
+                  prefix: "https://example.net",
+                  headers: {
+                    Authorization: `Bearer ${crypto
+                      .randomBytes(16)
+                      .toString("hex")}`,
+                  },
+                  // Missing "testSuffix" attribute
+                }),
+              } as UpdateIssuerProxySchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.proxyData': Missing testSuffix",
+              accessToken: tao1TirWriteAccessToken,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                did: issuer1.did,
+                proxyId: issuer1.proxy.id,
+                // Invalid "proxyData"
+                proxyData: JSON.stringify({
+                  prefix: "https://not-found.net",
+                  headers: {
+                    Authorization: `Bearer ${crypto
+                      .randomBytes(16)
+                      .toString("hex")}`,
+                  },
+                  testSuffix: "/cred/1",
+                }),
+              } as UpdateIssuerProxySchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.proxyData': Error while loading https://not-found.net/cred/1",
+              accessToken: tao1TirWriteAccessToken,
+            });
+
+            testSetup.push({
+              params: {
+                from: "bad address",
+                did: issuer1.did,
+                proxyId: issuer1.proxy.id,
+                proxyData: issuer1.proxy.utf8,
+              } as UpdateIssuerProxySchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.from': Invalid Ethereum address",
+              accessToken: tao1TirWriteAccessToken,
+            });
+
+            break;
+          }
+          default: {
             throw new Error("Test Error: Invalid method");
+          }
         }
 
-        const response1 = await request(server)
-          .post("/jsonrpc")
-          .auth(tao1TirWriteAccessToken, { type: "bearer" })
-          .send({
+        expect.assertions(testSetup.length * 2);
+
+        // Run requests sequentially
+        // eslint-disable-next-line no-restricted-syntax
+        for (const setup of testSetup) {
+          const id = crypto.randomInt(0, 256);
+
+          // eslint-disable-next-line no-await-in-loop
+          const response = await request(server)
+            .post("/jsonrpc")
+            .auth(setup.accessToken, { type: "bearer" })
+            .send({
+              jsonrpc: "2.0",
+              method,
+              params: [setup.params],
+              id,
+            });
+
+          expect(response.body).toStrictEqual({
             jsonrpc: "2.0",
-            method,
-            params: [param1],
-            id: 231,
+            id,
+            error: {
+              code: -32600,
+              message: expect.stringContaining(setup.expectedErrorMessage),
+            },
           });
-
-        expect(response1.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: 231,
-          error: {
-            code: -32600,
-            message: expect.stringContaining(expectedErrorMessage1),
-          },
-        });
-        expect(response1.status).toBe(400);
-
-        const response2 = await request(server)
-          .post("/jsonrpc")
-          .auth(tao1TirWriteAccessToken, { type: "bearer" })
-          .send({
-            jsonrpc: "2.0",
-            method,
-            params: [param2],
-            id: 231,
-          });
-
-        expect(response2.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: 231,
-          error: {
-            code: -32600,
-            message: expect.stringContaining(expectedErrorMessage2),
-          },
-        });
-        expect(response2.status).toBe(400);
-
-        const response3 = await request(server)
-          .post("/jsonrpc")
-          .auth(tao1TirWriteAccessToken, { type: "bearer" })
-          .send({
-            jsonrpc: "2.0",
-            method,
-            params: [param3],
-            id: 231,
-          });
-
-        expect(response3.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: 231,
-          error: {
-            code: -32600,
-            message: expect.stringContaining(expectedErrorMessage3),
-          },
-        });
-        expect(response3.status).toBe(400);
+          expect(response.status).toBe(400);
+        }
       });
 
       it("should throw an error when the unsignedTransaction has been tampered", async () => {

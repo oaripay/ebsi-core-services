@@ -28,7 +28,7 @@ export interface IssuerObject {
   };
   rootTao: string;
   tao: string;
-  taoAttributeId: string;
+  attributeIdTao: string;
   proxy: {
     id: string;
     obj: IssuerProxyObject;
@@ -118,16 +118,16 @@ export function createIssuer(
 
   let taoDid: string;
   let rootTao: string;
-  let taoAttributeId: string;
+  let attributeIdTao: string;
 
   if (issuerType === IssuerType.RootTAO) {
     rootTao = issuerDid;
     taoDid = issuerDid;
-    taoAttributeId = `0x${"0".repeat(64)}`;
+    attributeIdTao = `0x${"0".repeat(64)}`;
   } else {
     rootTao = inputRootTaoDid as string;
     taoDid = inputTaoDid as string;
-    taoAttributeId = inputTaoAttributeId as string;
+    attributeIdTao = inputTaoAttributeId as string;
   }
 
   // create proxy
@@ -181,7 +181,7 @@ export function createIssuer(
     attribute,
     rootTao,
     tao: taoDid,
-    taoAttributeId,
+    attributeIdTao,
     proxy,
   };
 }
@@ -207,7 +207,7 @@ export async function insertIssuer(
     firstAttributeId,
     issuer.issuerType,
     issuer.tao,
-    issuer.taoAttributeId,
+    issuer.attributeIdTao,
   );
 
   await contract.setAttributeData(

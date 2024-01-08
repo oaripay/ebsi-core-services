@@ -831,10 +831,10 @@ paths:
           Parameters:
           - **from**: Ethereum address of the administrator
           - **did**: DID of the issuer
-          - **attributeId**: Attribute ID
+          - **revisionId**: Attribute ID
           - **issuerType**: 1 (RootTAO), 2 (TAO), 3 (TI), or 4 (Revoked)
           - **taoDid**: DID of the TAO accrediting the issuer
-          - **taoAttributeId**: Attribute ID that accredits taoDid as TAO or RootTAO
+          - **attributeIdTao**: Attribute ID that accredits taoDid as TAO or RootTAO
 
           #### setAttributeData
 
@@ -918,10 +918,10 @@ paths:
                   params:
                     - from: "0x8445fC96e27ceB0d1794be16a1Ac8BF5D765AACB"
                       did: did:ebsi:zpxbBfHYA5GN45rS1tSEBJg
-                      attributeId: "0x3f4143c6f3a1c79bb32f45a6cbd90ee6bb2e2e71eadda99e371a4a144c53050f"
+                      revisionId: "0x3f4143c6f3a1c79bb32f45a6cbd90ee6bb2e2e71eadda99e371a4a144c53050f"
                       issuerType: 3
                       taoDid: did:ebsi:zj4sk7oEMx1SGNAzibWxVAV
-                      taoAttributeId: "0xbd6123874c340eaea25a1fc01785593c350fd9216ed3a69864549f8013d501b4"
+                      attributeIdTao: "0xbd6123874c340eaea25a1fc01785593c350fd9216ed3a69864549f8013d501b4"
                   id: 856
               Build tx to set attribute data:
                 value:
