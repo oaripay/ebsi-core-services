@@ -10,7 +10,7 @@ import {
   isBigNumberish,
   type BigNumberish,
   // eslint-disable-next-line import/extensions
-} from "@ethersproject/bignumber/lib.esm/bignumber.js";
+} from "@ethersproject/bignumber/lib/bignumber.js";
 import { jsonRpcSchema } from "./JsonRpcSchema.js";
 import { baseParamSchema } from "./BaseParamSchema.js";
 
