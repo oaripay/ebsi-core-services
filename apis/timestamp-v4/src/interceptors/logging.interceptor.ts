@@ -1,4 +1,5 @@
 // Copied from https://github.com/algoan/nestjs-components/blob/master/packages/logging-interceptor/src/logging.interceptor.ts
+import { JsonRpcError } from "@ebsiint-api/shared";
 import {
   type CallHandler,
   type ExecutionContext,
@@ -97,34 +98,35 @@ export class LoggingInterceptor implements NestInterceptor {
     const { method, url, body } = req;
 
     if (error instanceof HttpException) {
-      const statusCode: number = error.getStatus();
+      const statusCode = error.getStatus();
       const ctx = `${this.ctxPrefix} - ${statusCode} - ${method} - ${url}`;
       const message = `Outgoing response - ${statusCode} - ${method} - ${url}`;
+      const jsonLog = {
+        method,
+        url,
+        body,
+        message,
+        error,
+      };
+
       // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
       if (statusCode >= HttpStatus.INTERNAL_SERVER_ERROR) {
-        this.logger.error(
-          {
-            method,
-            url,
-            body,
-            message,
-            error,
-          },
-          error.stack,
-          ctx,
-        );
+        this.logger.error(jsonLog, error.stack, ctx);
       } else {
-        this.logger.warn(
-          {
-            method,
-            url,
-            error,
-            body,
-            message,
-          },
-          ctx,
-        );
+        this.logger.warn(jsonLog, ctx);
       }
+    } else if (error instanceof JsonRpcError) {
+      const statusCode: number = error.status;
+      const ctx = `${this.ctxPrefix} - ${statusCode} - ${method} - ${url}`;
+      const message = `Outgoing response - ${statusCode} - ${method} - ${url}`;
+      const jsonLog = {
+        method,
+        url,
+        body,
+        message,
+        error: error.toJSON(),
+      };
+      this.logger.warn(jsonLog, ctx);
     } else {
       this.logger.error(
         {

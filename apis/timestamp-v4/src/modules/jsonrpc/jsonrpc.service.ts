@@ -1,50 +1,97 @@
 import { Injectable, Logger } from "@nestjs/common";
 import axios from "axios";
-import { ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import { ConfigService } from "@nestjs/config";
 import {
   InvalidRequestJsonRpcError,
   isEthersError,
   getErrorMessage,
 } from "@ebsiint-api/shared";
-import {
-  ArgsInsertHashAlgorithm,
-  ArgsUpdateHashAlgorithm,
-  ArgsTimestampHashes,
-  ArgsTimestampRecordHashes,
-  ArgsDetachRecordVersionHash,
-  ArgsInsertRecordVersionInfo,
-  RequestInsertHashAlgorithmDto,
-  RequestUpdateHashAlgorithmDto,
-  RequestSendSignedTransactionDto,
-  RequestTimestampHashesDto,
-  RequestTimestampRecordHashesDto,
-  RequestTimestampRecordVersionHashesDto,
-  RequestAppendRecordVersionHashesDto,
-  RequestDetachRecordVersionHashDto,
-  RequestInsertRecordOwnerDto,
-  RequestRevokeRecordOwnerDto,
-  RequestInsertRecordVersionInfoDto,
-  SignedTransactionParam,
-  UnsignedTransaction,
-  ArgsInsertRecordOwner,
-  ArgsRevokeRecordOwner,
-  ArgsTimestampRecordVersionHashes,
-  ArgsAppendRecordVersionHashes,
-  RequestTimestampVersionHashesDto,
-  ArgsTimestampVersionHashes,
-} from "./dto/index.js";
+// eslint-disable-next-line import/extensions
+import { BigNumberish } from "@ethersproject/bignumber/lib/bignumber.js";
 import {
   formatEthersUnsignedTransaction,
   formatEthersSignature,
-  validateClass,
 } from "./jsonrpc.utils.js";
 import { LedgerService } from "../ledger/ledger.service.js";
 import type { ApiConfig } from "../../config/configuration.js";
 import { UserInfo } from "../auth/auth.interface.js";
+import {
+  appendRecordVersionHashesSchema,
+  requestAppendRecordVersionHashesDtoSchema,
+} from "./validators/RequestAppendRecordVersionHashes.js";
+import {
+  detachRecordVersionHashSchema,
+  requestDetachRecordVersionHashDtoSchema,
+} from "./validators/RequestDetachRecordVersionHashes.js";
+import {
+  insertHashAlgorithmSchema,
+  requestInsertHashAlgorithmDtoSchema,
+} from "./validators/RequestInsertHashAlgorithm.js";
+import {
+  insertRecordOwnerSchema,
+  requestInsertRecordOwnerDtoSchema,
+} from "./validators/RequestInsertRecordOwner.js";
+import {
+  insertRecordVersionInfoSchema,
+  requestInsertRecordVersionInfoDtoSchema,
+} from "./validators/RequestInsertRecordVersionInfo.js";
+import {
+  revokeRecordOwnerSchema,
+  requestRevokeRecordOwnerDtoSchema,
+} from "./validators/RequestRevokeRecordOwner.js";
+import {
+  timestampHashesSchema,
+  requestTimestampHashesDtoSchema,
+} from "./validators/RequestTimestampHashes.js";
+import {
+  timestampRecordHashesSchema,
+  requestTimestampRecordHashesDtoSchema,
+} from "./validators/RequestTimestampRecordHashes.js";
+import {
+  timestampRecordVersionHashesSchema,
+  requestTimestampRecordVersionHashesDtoSchema,
+} from "./validators/RequestTimestampRecordVersionHashes.js";
+import {
+  timestampVersionHashesSchema,
+  requestTimestampVersionHashesDtoSchema,
+} from "./validators/RequestTimestampVersionHashes.js";
+import {
+  updateHashAlgorithmSchema,
+  requestUpdateHashAlgorithmDtoSchema,
+} from "./validators/RequestUpdateHashAlgorithm.js";
+import {
+  requestSendSignedTransactionDtoSchema,
+  type SendSignedTransactionParamsSchema,
+  type UnsignedTransaction,
+} from "./validators/RequestSendSignedTransaction.js";
+import { JsonRpcSchema } from "./validators/JsonRpcSchema.js";
 
 // Cache algorithms' output lengths for 30 minutes
 const ALGORITHMS_EXP = 30 * 60 * 1000; // 30 minutes
+
+/**
+ * Extract named attributes from a mixed array (array with named keys and number keys) as returned by ethers.js parseTransaction
+ */
+function extractNamedAttributes(mixedArray: unknown): Record<string, unknown> {
+  if (
+    !mixedArray ||
+    typeof mixedArray !== "object" ||
+    !Array.isArray(mixedArray)
+  ) {
+    throw new Error("Not a mixed array");
+  }
+
+  const keys = Object.keys(mixedArray).filter((key) =>
+    Number.isNaN(parseInt(key, 10)),
+  );
+
+  return keys.reduce((obj, key) => {
+    // @ts-expect-error Element implicitly has an 'any' type because index expression is not of type 'number'.ts(7015)
+    const value: unknown = mixedArray[key];
+    return { ...obj, [key]: value };
+  }, {});
+}
 
 @Injectable()
 export class JsonRpcService {
@@ -131,7 +178,7 @@ export class JsonRpcService {
   }
 
   async checkHashes(
-    hashAlgorithmIds: number[],
+    hashAlgorithmIds: BigNumberish[],
     hashValues: string[],
   ): Promise<void> {
     if (hashAlgorithmIds.length !== hashValues.length) {
@@ -146,8 +193,8 @@ export class JsonRpcService {
     await Promise.all(
       uniqHashAlgorithmIds.map(async (algId) => {
         if (
-          this.algIdsToOutputLength[algId] &&
-          this.algIdsToOutputLength[algId]!.exp > now
+          this.algIdsToOutputLength[BigNumber.from(algId).toNumber()] &&
+          this.algIdsToOutputLength[BigNumber.from(algId).toNumber()]!.exp > now
         ) {
           // Use cached result
           return;
@@ -161,7 +208,7 @@ export class JsonRpcService {
 
           const outputLength = hashAlgorithm.outputLength.toNumber();
 
-          this.algIdsToOutputLength[algId] = {
+          this.algIdsToOutputLength[BigNumber.from(algId).toNumber()] = {
             outputLength,
             exp: now + ALGORITHMS_EXP,
           };
@@ -169,7 +216,11 @@ export class JsonRpcService {
           if (isEthersError(error)) {
             this.logger.error(error);
           }
-          throw new Error(`Can't find hash algorithm with ID: ${algId}`);
+          throw new Error(
+            `Can't find hash algorithm with ID: ${BigNumber.from(
+              algId,
+            ).toNumber()}`,
+          );
         }
       }),
     );
@@ -178,7 +229,8 @@ export class JsonRpcService {
     hashValues.forEach((hashValue, index) => {
       const algId = hashAlgorithmIds[index]!;
       const expectedOutputLength =
-        this.algIdsToOutputLength[algId]!.outputLength;
+        this.algIdsToOutputLength[BigNumber.from(algId).toNumber()]!
+          .outputLength;
       const hashLength =
         Buffer.from(hashValue.replace("0x", ""), "hex").byteLength * 8;
       if (hashLength !== expectedOutputLength) {
@@ -189,7 +241,7 @@ export class JsonRpcService {
     });
   }
 
-  async verifyTransaction(param: SignedTransactionParam): Promise<{
+  async verifyTransaction(param: SendSignedTransactionParamsSchema): Promise<{
     signer: string;
     functionName: string;
     args: ethers.utils.Result;
@@ -240,77 +292,64 @@ export class JsonRpcService {
       await this.ledgerService.getContract()
     ).interface.parseTransaction(unsignedTransaction);
 
+    // Extract named args from args (args is a mixed array with named and unnamed values)
+    const argsObject = {
+      ...extractNamedAttributes(args),
+      from: unsignedTransaction.from,
+    };
+
     switch (functionFragment.name) {
       case "insertHashAlgorithm": {
-        await validateClass(
-          ArgsInsertHashAlgorithm,
-          args as unknown as ArgsInsertHashAlgorithm,
-        );
+        await insertHashAlgorithmSchema.parseAsync(argsObject);
         break;
       }
       case "updateHashAlgorithm": {
-        await validateClass(
-          ArgsUpdateHashAlgorithm,
-          args as unknown as ArgsUpdateHashAlgorithm,
-        );
+        await updateHashAlgorithmSchema.parseAsync(argsObject);
         break;
       }
       case "timestampHashes": {
-        const castArgs = args as unknown as ArgsTimestampHashes;
-        await validateClass(ArgsTimestampHashes, castArgs);
+        const castArgs = await timestampHashesSchema.parseAsync(argsObject);
         await this.checkHashes(castArgs.hashAlgorithmIds, castArgs.hashValues);
         break;
       }
       case "timestampRecordHashes": {
-        const castArgs = args as unknown as ArgsTimestampRecordHashes;
-        await validateClass(ArgsTimestampRecordHashes, castArgs);
+        const castArgs =
+          await timestampRecordHashesSchema.parseAsync(argsObject);
         await this.checkHashes(castArgs.hashAlgorithmIds, castArgs.hashValues);
         break;
       }
       case "timestampRecordVersionHashes": {
-        const castArgs = args as unknown as ArgsTimestampRecordVersionHashes;
-        await validateClass(ArgsTimestampRecordVersionHashes, castArgs);
+        const castArgs =
+          await timestampRecordVersionHashesSchema.parseAsync(argsObject);
         await this.checkHashes(castArgs.hashAlgorithmIds, castArgs.hashValues);
         break;
       }
       case "timestampVersionHashes": {
-        const castArgs = args as unknown as ArgsTimestampVersionHashes;
-        await validateClass(ArgsTimestampVersionHashes, castArgs);
+        const castArgs =
+          await timestampVersionHashesSchema.parseAsync(argsObject);
         await this.checkHashes(castArgs.hashAlgorithmIds, castArgs.hashValues);
         break;
       }
       case "appendRecordVersionHashes": {
-        const castArgs = args as unknown as ArgsAppendRecordVersionHashes;
-        await validateClass(ArgsAppendRecordVersionHashes, castArgs);
+        const castArgs =
+          await appendRecordVersionHashesSchema.parseAsync(argsObject);
         await this.checkHashes(castArgs.hashAlgorithmIds, castArgs.hashValues);
         break;
       }
       case "insertRecordOwner": {
-        await validateClass(
-          ArgsInsertRecordOwner,
-          args as unknown as ArgsInsertRecordOwner,
-        );
+        await insertRecordOwnerSchema.parseAsync(argsObject);
         break;
       }
       case "revokeRecordOwner": {
-        await validateClass(
-          ArgsRevokeRecordOwner,
-          args as unknown as ArgsRevokeRecordOwner,
-        );
+        await revokeRecordOwnerSchema.parseAsync(argsObject);
         break;
       }
       case "insertRecordVersionInfo": {
-        await validateClass(
-          ArgsInsertRecordVersionInfo,
-          args as unknown as ArgsInsertRecordVersionInfo,
-        );
+        await insertRecordVersionInfoSchema.parseAsync(argsObject);
         break;
       }
       case "detachRecordVersionHash": {
-        await validateClass(
-          ArgsDetachRecordVersionHash,
-          args as unknown as ArgsDetachRecordVersionHash,
-        );
+        await detachRecordVersionHashSchema.parseAsync(argsObject);
         break;
       }
       default:
@@ -367,14 +406,15 @@ export class JsonRpcService {
   }
 
   async buildTransactionInsertHashAlgorithm(
-    body: RequestInsertHashAlgorithmDto,
+    body: JsonRpcSchema,
     id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
-      await validateClass(RequestInsertHashAlgorithmDto, body);
+      const parsedBody =
+        await requestInsertHashAlgorithmDtoSchema.parseAsync(body);
 
-      const { from, outputLength, ianaName, oid, status, multihash } =
-        body.params[0]!;
+      const { from, outputLength, ianaName, oid, status, multiHash } =
+        parsedBody.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -383,7 +423,7 @@ export class JsonRpcService {
         ianaName ?? "",
         oid ?? "",
         status,
-        multihash,
+        multiHash,
       ]);
 
       return await this.buildTransaction(from, data);
@@ -397,11 +437,12 @@ export class JsonRpcService {
   }
 
   async buildTransactionUpdateHashAlgorithm(
-    body: RequestUpdateHashAlgorithmDto,
+    body: JsonRpcSchema,
     id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
-      await validateClass(RequestUpdateHashAlgorithmDto, body);
+      const parsedBody =
+        await requestUpdateHashAlgorithmDtoSchema.parseAsync(body);
 
       const {
         from,
@@ -410,8 +451,8 @@ export class JsonRpcService {
         ianaName,
         oid,
         status,
-        multihash,
-      } = body.params[0]!;
+        multiHash,
+      } = parsedBody.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -421,7 +462,7 @@ export class JsonRpcService {
         ianaName ?? "",
         oid ?? "",
         status,
-        multihash,
+        multiHash,
       ]);
 
       return await this.buildTransaction(from, data);
@@ -435,14 +476,14 @@ export class JsonRpcService {
   }
 
   async buildTransactionTimestampHashes(
-    body: RequestTimestampHashesDto,
+    body: JsonRpcSchema,
     id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
-      await validateClass(RequestTimestampHashesDto, body);
+      const parsedBody = await requestTimestampHashesDtoSchema.parseAsync(body);
 
       const { from, hashAlgorithmIds, hashValues, timestampData } =
-        body.params[0]!;
+        parsedBody.params[0]!;
 
       await this.checkHashes(hashAlgorithmIds, hashValues);
 
@@ -465,11 +506,12 @@ export class JsonRpcService {
   }
 
   async buildTransactionTimestampVersionHashes(
-    body: RequestTimestampVersionHashesDto,
+    body: JsonRpcSchema,
     id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
-      await validateClass(RequestTimestampVersionHashesDto, body);
+      const parsedBody =
+        await requestTimestampVersionHashesDtoSchema.parseAsync(body);
 
       const {
         from,
@@ -478,7 +520,7 @@ export class JsonRpcService {
         timestampData,
         versionHash,
         versionInfo,
-      } = body.params[0]!;
+      } = parsedBody.params[0]!;
 
       await this.checkHashes(hashAlgorithmIds, hashValues);
 
@@ -503,13 +545,15 @@ export class JsonRpcService {
   }
 
   async buildTransactionInsertRecordOwner(
-    body: RequestInsertRecordOwnerDto,
+    body: JsonRpcSchema,
     id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
-      await validateClass(RequestInsertRecordOwnerDto, body);
+      const parsedBody =
+        await requestInsertRecordOwnerDtoSchema.parseAsync(body);
 
-      const { from, recordId, ownerId, notBefore, notAfter } = body.params[0]!;
+      const { from, recordId, ownerId, notBefore, notAfter } =
+        parsedBody.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -530,13 +574,14 @@ export class JsonRpcService {
   }
 
   async buildTransactionRevokeRecordOwner(
-    body: RequestRevokeRecordOwnerDto,
+    body: JsonRpcSchema,
     id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
-      await validateClass(RequestRevokeRecordOwnerDto, body);
+      const parsedBody =
+        await requestRevokeRecordOwnerDtoSchema.parseAsync(body);
 
-      const { from, recordId, ownerId } = body.params[0]!;
+      const { from, recordId, ownerId } = parsedBody.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -555,13 +600,14 @@ export class JsonRpcService {
   }
 
   async buildTransactionInsertRecordVersionInfo(
-    body: RequestInsertRecordVersionInfoDto,
+    body: JsonRpcSchema,
     id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
-      await validateClass(RequestInsertRecordVersionInfoDto, body);
+      const parsedBody =
+        await requestInsertRecordVersionInfoDtoSchema.parseAsync(body);
 
-      const { from, recordId, versionId, versionInfo } = body.params[0]!;
+      const { from, recordId, versionId, versionInfo } = parsedBody.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -581,13 +627,14 @@ export class JsonRpcService {
   }
 
   async buildTransactionDetachRecordVersionHash(
-    body: RequestDetachRecordVersionHashDto,
+    body: JsonRpcSchema,
     id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
-      await validateClass(RequestDetachRecordVersionHashDto, body);
+      const parsedBody =
+        await requestDetachRecordVersionHashDtoSchema.parseAsync(body);
 
-      const { from, recordId, versionId, hashValue } = body.params[0]!;
+      const { from, recordId, versionId, hashValue } = parsedBody.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -607,14 +654,15 @@ export class JsonRpcService {
   }
 
   async buildTransactionTimestampRecordHashes(
-    body: RequestTimestampRecordHashesDto,
+    body: JsonRpcSchema,
     id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
-      await validateClass(RequestTimestampRecordHashesDto, body);
+      const parsedBody =
+        await requestTimestampRecordHashesDtoSchema.parseAsync(body);
 
       const { from, hashAlgorithmIds, hashValues, timestampData, versionInfo } =
-        body.params[0]!;
+        parsedBody.params[0]!;
 
       await this.checkHashes(hashAlgorithmIds, hashValues);
 
@@ -638,11 +686,12 @@ export class JsonRpcService {
   }
 
   async buildTransactionTimestampRecordVersionHashes(
-    body: RequestTimestampRecordVersionHashesDto,
+    body: JsonRpcSchema,
     id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
-      await validateClass(RequestTimestampRecordVersionHashesDto, body);
+      const parsedBody =
+        await requestTimestampRecordVersionHashesDtoSchema.parseAsync(body);
 
       const {
         from,
@@ -651,7 +700,7 @@ export class JsonRpcService {
         hashValues,
         timestampData,
         versionInfo,
-      } = body.params[0]!;
+      } = parsedBody.params[0]!;
 
       await this.checkHashes(hashAlgorithmIds, hashValues);
 
@@ -676,11 +725,12 @@ export class JsonRpcService {
   }
 
   async buildTransactionAppendRecordVersionHashes(
-    body: RequestAppendRecordVersionHashesDto,
+    body: JsonRpcSchema,
     id?: number | string,
   ): Promise<UnsignedTransaction> {
     try {
-      await validateClass(RequestAppendRecordVersionHashesDto, body);
+      const parsedBody =
+        await requestAppendRecordVersionHashesDtoSchema.parseAsync(body);
 
       const {
         from,
@@ -690,7 +740,7 @@ export class JsonRpcService {
         hashValues,
         timestampData,
         versionInfo,
-      } = body.params[0]!;
+      } = parsedBody.params[0]!;
 
       await this.checkHashes(hashAlgorithmIds, hashValues);
 
@@ -724,14 +774,15 @@ export class JsonRpcService {
   }
 
   async sendTransaction(
-    body: RequestSendSignedTransactionDto,
+    body: JsonRpcSchema,
     user: UserInfo,
     id?: number | string,
   ): Promise<string> {
     try {
-      await validateClass(RequestSendSignedTransactionDto, body);
+      const parsedBody =
+        await requestSendSignedTransactionDtoSchema.parseAsync(body);
 
-      const request = body.params[0]!;
+      const request = parsedBody.params[0]!;
       const { signer } = await this.verifyTransaction(request);
 
       await this.verifyEthereumAddress(signer, user);

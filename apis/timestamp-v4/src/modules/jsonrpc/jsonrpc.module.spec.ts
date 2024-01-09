@@ -23,20 +23,6 @@ import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp-v2";
 import type { TransactionRequest } from "@ethersproject/abstract-provider";
 import { JsonRpcModule } from "./jsonrpc.module.js";
 import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
-import {
-  DetachRecordVersionHashParam,
-  InsertRecordOwnerParam,
-  RevokeRecordOwnerParam,
-  InsertHashAlgorithmParam,
-  InsertRecordVersionInfoParam,
-  TimestampHashesParam,
-  TimestampRecordHashesParam,
-  TimestampRecordVersionHashesParam,
-  AppendRecordVersionHashesParam,
-  UnsignedTransaction,
-  UpdateHashAlgorithmParam,
-  TimestampVersionHashesParam,
-} from "./dto/index.js";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import {
@@ -46,6 +32,18 @@ import {
 import { LedgerService } from "../ledger/ledger.service.js";
 import type { ApiConfig } from "../../config/configuration.js";
 import { createUser, type UserDetails } from "../../../tests/utils/data.js";
+import type { AppendRecordVersionHashesSchema } from "./validators/RequestAppendRecordVersionHashes.js";
+import type { DetachRecordVersionHashSchema } from "./validators/RequestDetachRecordVersionHashes.js";
+import type { InsertHashAlgorithmSchema } from "./validators/RequestInsertHashAlgorithm.js";
+import type { InsertRecordOwnerSchema } from "./validators/RequestInsertRecordOwner.js";
+import type { InsertRecordVersionInfoSchema } from "./validators/RequestInsertRecordVersionInfo.js";
+import type { RevokeRecordOwnerSchema } from "./validators/RequestRevokeRecordOwner.js";
+import type { TimestampHashesSchema } from "./validators/RequestTimestampHashes.js";
+import type { TimestampRecordHashesSchema } from "./validators/RequestTimestampRecordHashes.js";
+import type { TimestampRecordVersionHashesSchema } from "./validators/RequestTimestampRecordVersionHashes.js";
+import type { TimestampVersionHashesSchema } from "./validators/RequestTimestampVersionHashes.js";
+import type { UpdateHashAlgorithmSchema } from "./validators/RequestUpdateHashAlgorithm.js";
+import type { UnsignedTransactionSchema } from "./validators/UnsignedTransaction.js";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -53,16 +51,18 @@ interface SupertestJsonRpcResponse {
 }
 
 type JsonRpcParams =
-  | InsertHashAlgorithmParam
-  | UpdateHashAlgorithmParam
-  | TimestampHashesParam
-  | DetachRecordVersionHashParam
-  | RevokeRecordOwnerParam
-  | InsertRecordOwnerParam
-  | InsertRecordVersionInfoParam
-  | TimestampRecordVersionHashesParam
-  | AppendRecordVersionHashesParam
-  | TimestampRecordHashesParam;
+  | InsertHashAlgorithmSchema
+  | UpdateHashAlgorithmSchema
+  | TimestampHashesSchema
+  | DetachRecordVersionHashSchema
+  | RevokeRecordOwnerSchema
+  | InsertRecordOwnerSchema
+  | InsertRecordVersionInfoSchema
+  | TimestampRecordVersionHashesSchema
+  | AppendRecordVersionHashesSchema
+  | TimestampRecordHashesSchema
+  | TimestampVersionHashesSchema
+  | UnsignedTransactionSchema;
 
 describe("JsonRpc Module", () => {
   let app: NestFastifyApplication;
@@ -364,19 +364,39 @@ describe("JsonRpc Module", () => {
 
   // Generic tests
   it("should throw Bad Request for a bad JSON-RPC call", async () => {
-    expect.assertions(2);
+    expect.assertions(4);
 
-    const response = await request(server)
+    let response = await request(server)
       .post("/jsonrpc")
       .auth(testUser.token, { type: "bearer" })
       .send();
 
     expect(response.body).toStrictEqual({
-      title: "Bad Request",
-      status: 400,
-      detail:
-        '["jsonrpc must be equal to 2.0","method must be a string","params must be an array"]',
-      type: "about:blank",
+      error: {
+        code: -32600,
+        message: "JSON-RPC payload must be an object",
+      },
+      id: null,
+      jsonrpc: "2.0",
+    });
+    expect(response.status).toBe(400);
+
+    response = await request(server)
+      .post("/jsonrpc")
+      .auth(testUser.token, { type: "bearer" })
+      .send({});
+
+    expect(response.body).toStrictEqual({
+      error: {
+        code: -32600,
+        message: [
+          "Invalid 'jsonrpc': Invalid literal value, expected \"2.0\"",
+          "Invalid 'method': Required",
+          "Invalid 'params': Required",
+        ].join("\n"),
+      },
+      id: null,
+      jsonrpc: "2.0",
     });
     expect(response.status).toBe(400);
   });
@@ -399,7 +419,9 @@ describe("JsonRpc Module", () => {
     };
 
     const uTx = formatEthersUnsignedTransaction(
-      JSON.parse(JSON.stringify(transaction)) as unknown as UnsignedTransaction,
+      JSON.parse(
+        JSON.stringify(transaction),
+      ) as unknown as UnsignedTransactionSchema,
     );
     uTx.chainId = Number(uTx.chainId);
     const sgnTx = await testUser.wallet.signTransaction(
@@ -493,8 +515,8 @@ describe("JsonRpc Module", () => {
             ianaName: "sha3-256",
             oid: "2.16.840.1.101.3.4.2.1",
             status: 1,
-            multihash: "sha3-256",
-          } as InsertHashAlgorithmParam;
+            multiHash: "sha3-256",
+          } satisfies InsertHashAlgorithmSchema;
           break;
         }
         case "updateHashAlgorithm": {
@@ -505,8 +527,8 @@ describe("JsonRpc Module", () => {
             ianaName: "sha3-512",
             oid: "2.16.840.1.101.3.4.2.10",
             status: 2,
-            multihash: "sha3-512",
-          } as UpdateHashAlgorithmParam;
+            multiHash: "sha3-512",
+          } satisfies UpdateHashAlgorithmSchema;
           break;
         }
         case "timestampHashes": {
@@ -519,7 +541,7 @@ describe("JsonRpc Module", () => {
                 "hex",
               )}`,
             ],
-          } as TimestampHashesParam;
+          } satisfies TimestampHashesSchema;
           break;
         }
         case "timestampVersionHashes": {
@@ -537,7 +559,7 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 54 }),
               "utf8",
             ).toString("hex")}`,
-          } as TimestampVersionHashesParam;
+          } satisfies TimestampVersionHashesSchema;
           break;
         }
         case "timestampRecordHashes": {
@@ -554,7 +576,7 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 54 }),
               "utf8",
             ).toString("hex")}`,
-          } as TimestampRecordHashesParam;
+          } satisfies TimestampRecordHashesSchema;
           break;
         }
         case "detachRecordVersionHash": {
@@ -569,7 +591,7 @@ describe("JsonRpc Module", () => {
             recordId,
             versionId: 0,
             hashValue: firstHashValue,
-          } as DetachRecordVersionHashParam;
+          } satisfies DetachRecordVersionHashSchema;
           break;
         }
         case "insertRecordOwner": {
@@ -585,7 +607,7 @@ describe("JsonRpc Module", () => {
             ownerId: "owner",
             notBefore: 1042,
             notAfter: 1021201545,
-          } as InsertRecordOwnerParam;
+          } satisfies InsertRecordOwnerSchema;
           break;
         }
         case "revokeRecordOwner": {
@@ -599,7 +621,7 @@ describe("JsonRpc Module", () => {
             from: testAdmin.wallet.address,
             recordId,
             ownerId: "owner",
-          } as RevokeRecordOwnerParam;
+          } satisfies RevokeRecordOwnerSchema;
           break;
         }
         case "insertRecordVersionInfo": {
@@ -617,7 +639,7 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 42 }),
               "utf8",
             ).toString("hex")}`,
-          } as InsertRecordVersionInfoParam;
+          } satisfies InsertRecordVersionInfoSchema;
           break;
         }
         case "timestampRecordVersionHashes": {
@@ -641,7 +663,7 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 54 }),
               "utf8",
             ).toString("hex")}`,
-          } as TimestampRecordVersionHashesParam;
+          } satisfies TimestampRecordVersionHashesSchema;
           break;
         }
         case "appendRecordVersionHashes": {
@@ -666,7 +688,7 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 54 }),
               "utf8",
             ).toString("hex")}`,
-          } as AppendRecordVersionHashesParam;
+          } satisfies AppendRecordVersionHashesSchema;
           break;
         }
         default:
@@ -703,7 +725,7 @@ describe("JsonRpc Module", () => {
       const uTx = formatEthersUnsignedTransaction(
         JSON.parse(
           JSON.stringify(unsignedTransaction),
-        ) as unknown as UnsignedTransaction,
+        ) as unknown as UnsignedTransactionSchema,
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx = await testAdmin.wallet.signTransaction(
@@ -754,8 +776,8 @@ describe("JsonRpc Module", () => {
             ianaName: "sha-256",
             oid: "2.16.840.1.101.3.4.2.1",
             status: 1,
-            multihash: "sha2-256",
-          } as InsertHashAlgorithmParam;
+            multiHash: "sha2-256",
+          } satisfies InsertHashAlgorithmSchema;
           break;
         }
         case "updateHashAlgorithm": {
@@ -766,8 +788,8 @@ describe("JsonRpc Module", () => {
             ianaName: "sha-256",
             oid: "2.16.840.1.101.3.4.2.1",
             status: 1,
-            multihash: "sha2-256",
-          } as UpdateHashAlgorithmParam;
+            multiHash: "sha2-256",
+          } satisfies UpdateHashAlgorithmSchema;
           break;
         }
         case "timestampHashes": {
@@ -780,7 +802,7 @@ describe("JsonRpc Module", () => {
                 "hex",
               )}`,
             ],
-          } as TimestampHashesParam;
+          } satisfies TimestampHashesSchema;
           break;
         }
         case "timestampVersionHashes": {
@@ -798,7 +820,7 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 54 }),
               "utf8",
             ).toString("hex")}`,
-          } as TimestampVersionHashesParam;
+          } satisfies TimestampVersionHashesSchema;
           break;
         }
         case "timestampRecordHashes": {
@@ -815,7 +837,7 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 54 }),
               "utf8",
             ).toString("hex")}`,
-          } as TimestampRecordHashesParam;
+          } satisfies TimestampRecordHashesSchema;
           break;
         }
         case "detachRecordVersionHash": {
@@ -825,7 +847,7 @@ describe("JsonRpc Module", () => {
               "0x011742226f9fad758490f98ba3d3a7c841db6ce3b6a889748b419e50eb63513d",
             versionId: 0,
             hashValue: "0x1234567890",
-          } as DetachRecordVersionHashParam;
+          } satisfies DetachRecordVersionHashSchema;
           break;
         }
         case "timestampRecordVersionHashes": {
@@ -844,7 +866,7 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 54 }),
               "utf8",
             ).toString("hex")}`,
-          } as TimestampRecordVersionHashesParam;
+          } satisfies TimestampRecordVersionHashesSchema;
           break;
         }
         case "appendRecordVersionHashes": {
@@ -864,7 +886,7 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 54 }),
               "utf8",
             ).toString("hex")}`,
-          } as AppendRecordVersionHashesParam;
+          } satisfies AppendRecordVersionHashesSchema;
           break;
         }
         case "insertRecordOwner": {
@@ -875,7 +897,7 @@ describe("JsonRpc Module", () => {
             ownerId: "owner",
             notBefore: 1042,
             notAfter: 1021201545,
-          } as InsertRecordOwnerParam;
+          } satisfies InsertRecordOwnerSchema;
           break;
         }
         case "revokeRecordOwner": {
@@ -884,7 +906,7 @@ describe("JsonRpc Module", () => {
             recordId:
               "0x011742226f9fad758490f98ba3d3a7c841db6ce3b6a889748b419e50eb63513d",
             ownerId: "owner",
-          } as RevokeRecordOwnerParam;
+          } satisfies RevokeRecordOwnerSchema;
           break;
         }
         case "insertRecordVersionInfo": {
@@ -897,7 +919,7 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 42 }),
               "utf8",
             ).toString("hex")}`,
-          } as InsertRecordVersionInfoParam;
+          } satisfies InsertRecordVersionInfoSchema;
           break;
         }
         default:
@@ -941,11 +963,11 @@ describe("JsonRpc Module", () => {
             ianaName: "sha-256",
             oid: "2.16.840.1.101.3.4.2.1",
             status: 1,
-            multihash: "sha2-256",
-          } as InsertHashAlgorithmParam;
+            multiHash: "sha2-256",
+          } satisfies InsertHashAlgorithmSchema;
 
           expectedErrorMessage1 =
-            "property params[0].outputLength has failed the following constraints: min";
+            "Invalid 'params.0.outputLength': Number must be greater than or equal to 0";
 
           param2 = {
             from: testAdmin.wallet.address,
@@ -953,23 +975,23 @@ describe("JsonRpc Module", () => {
             ianaName: "sha-256",
             oid: "2.16.840.1.101.3.4.2.1",
             status: 3,
-            multihash: "sha2-256",
-          } as InsertHashAlgorithmParam;
+            multiHash: "sha2-256",
+          } satisfies InsertHashAlgorithmSchema;
 
           expectedErrorMessage2 =
-            "property params[0].status has failed the following constraints: max";
+            "Invalid 'params.0.status': Number must be less than or equal to 2";
 
           param3 = {
             from: testAdmin.wallet.address,
             outputLength: 256,
             ianaName: "sha-256",
-            oid: 1,
+            oid: "1",
             status: 1,
-            multihash: "sha-sha-sha-256",
-          } as unknown as InsertHashAlgorithmParam;
+            multiHash: "sha-sha-sha-256",
+          } satisfies InsertHashAlgorithmSchema;
 
           expectedErrorMessage3 =
-            "property params[0].multihash has failed the following constraints: isMultihash";
+            "Invalid 'params.0.multiHash': Must be multihash";
           break;
         }
         case "updateHashAlgorithm": {
@@ -980,11 +1002,11 @@ describe("JsonRpc Module", () => {
             ianaName: "sha-256",
             oid: "2.16.840.1.101.3.4.2.1",
             status: 1,
-            multihash: "sha2-256",
-          } as UpdateHashAlgorithmParam;
+            multiHash: "sha2-256",
+          } satisfies UpdateHashAlgorithmSchema;
 
           expectedErrorMessage1 =
-            "property params[0].hashAlgorithmId has failed the following constraints: min";
+            "Invalid 'params.0.hashAlgorithmId': Number must be greater than or equal to 0";
 
           param2 = {
             from: testAdmin.wallet.address,
@@ -993,11 +1015,11 @@ describe("JsonRpc Module", () => {
             ianaName: "sha-256",
             oid: "2.16.840.1.101.3.4.2.1",
             status: 1,
-            multihash: "sha2-256",
-          } as UpdateHashAlgorithmParam;
+            multiHash: "sha2-256",
+          } satisfies UpdateHashAlgorithmSchema;
 
           expectedErrorMessage2 =
-            "property params[0].outputLength has failed the following constraints: min";
+            "Invalid 'params.0.outputLength': Number must be greater than or equal to 0";
 
           param3 = {
             from: testAdmin.wallet.address,
@@ -1006,11 +1028,11 @@ describe("JsonRpc Module", () => {
             ianaName: "sha-256",
             oid: "2.16.840.1.101.3.4.2.1",
             status: 0,
-            multihash: "sha-sha-sha-256",
-          } as UpdateHashAlgorithmParam;
+            multiHash: "sha-sha-sha-256",
+          } satisfies UpdateHashAlgorithmSchema;
 
           expectedErrorMessage3 =
-            "property params[0].multihash has failed the following constraints: isMultihash";
+            "Invalid 'params.0.multiHash': Must be multihash";
           break;
         }
         case "timestampHashes": {
@@ -1022,10 +1044,10 @@ describe("JsonRpc Module", () => {
                 "hex",
               )}`,
             ],
-          } as TimestampHashesParam;
+          } as TimestampHashesSchema;
 
           expectedErrorMessage1 =
-            "property params[0].hashAlgorithmIds has failed the following constraints: min, isInt";
+            "Invalid 'params.0.hashAlgorithmIds': Required";
 
           param2 = {
             from: testAdmin.wallet.address,
@@ -1035,20 +1057,19 @@ describe("JsonRpc Module", () => {
                 "hex",
               )}`,
             ],
-          } as TimestampHashesParam;
+          } as TimestampHashesSchema;
 
-          expectedErrorMessage2 =
-            "property params[0].hashValues has failed the following constraints: isHexadecimal";
+          expectedErrorMessage2 = "Invalid 'params.0.hashValues': Required";
 
           param3 = {
             from: testAdmin.wallet.address,
             hashAlgorithmIds: [0],
             hashValues: [firstHashValue],
             timestampData: [`this is not hex`],
-          } as TimestampHashesParam;
+          } satisfies TimestampHashesSchema;
 
           expectedErrorMessage3 =
-            "property params[0].timestampData has failed the following constraints: isHexadecimal";
+            "Invalid 'params.0.timestampData.0': Must start with 0x";
           break;
         }
         case "timestampVersionHashes": {
@@ -1065,10 +1086,10 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 54 }),
               "utf8",
             ).toString("hex")}`,
-          } as TimestampVersionHashesParam;
+          } as TimestampVersionHashesSchema;
 
           expectedErrorMessage1 =
-            "property params[0].hashAlgorithmIds has failed the following constraints: min, isInt";
+            "Invalid 'params.0.hashAlgorithmIds': Required";
 
           param2 = {
             from: testAdmin.wallet.address,
@@ -1083,10 +1104,9 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 54 }),
               "utf8",
             ).toString("hex")}`,
-          } as TimestampVersionHashesParam;
+          } as TimestampVersionHashesSchema;
 
-          expectedErrorMessage2 =
-            "property params[0].hashValues has failed the following constraints: isHexadecimal";
+          expectedErrorMessage2 = "Invalid 'params.0.hashValues': Required";
 
           param3 = {
             from: testAdmin.wallet.address,
@@ -1098,10 +1118,10 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 54 }),
               "utf8",
             ).toString("hex")}`,
-          } as TimestampVersionHashesParam;
+          } satisfies TimestampVersionHashesSchema;
 
           expectedErrorMessage3 =
-            "property params[0].timestampData has failed the following constraints: isHexadecimal";
+            "Invalid 'params.0.timestampData.0': Must start with 0x";
           break;
         }
         case "timestampRecordHashes": {
@@ -1117,10 +1137,10 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 52 }),
               "utf8",
             ).toString("hex")}`,
-          } as unknown as TimestampRecordHashesParam;
+          } as TimestampRecordHashesSchema;
 
           expectedErrorMessage1 =
-            "property params[0].hashAlgorithmIds has failed the following constraints: min, isInt";
+            "Invalid 'params.0.hashAlgorithmIds': Required";
 
           param2 = {
             from: testAdmin.wallet.address,
@@ -1134,10 +1154,9 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 425 }),
               "utf8",
             ).toString("hex")}`,
-          } as unknown as TimestampRecordHashesParam;
+          } as unknown as TimestampRecordHashesSchema;
 
-          expectedErrorMessage2 =
-            "property params[0].hashValues has failed the following constraints: isHexadecimal";
+          expectedErrorMessage2 = "Invalid 'params.0.hashValues': Required";
 
           param3 = {
             from: testAdmin.wallet.address,
@@ -1148,10 +1167,10 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 82 }),
               "utf8",
             ).toString("hex")}`,
-          } as unknown as TimestampRecordHashesParam;
+          } as unknown as InsertRecordOwnerSchema;
 
           expectedErrorMessage3 =
-            "property params[0].timestampData has failed the following constraints: isHexadecimal";
+            "Invalid 'params.0.timestampData.0': Must start with 0x";
           break;
         }
         case "detachRecordVersionHash": {
@@ -1159,32 +1178,28 @@ describe("JsonRpc Module", () => {
             from: testAdmin.wallet.address,
             recordId:
               "0x1234567890123456789012345678901234567890123456789012345678901234",
-            versionId:
-              "0xec45567890123456789012345678901fa456789012345678901234567890abfe",
+            versionId: "-----",
             hashValue: "0x1234567890",
-          } as unknown as DetachRecordVersionHashParam;
+          } as unknown as DetachRecordVersionHashSchema;
 
-          expectedErrorMessage1 =
-            "property params[0].versionId has failed the following constraints: min, isInt";
+          expectedErrorMessage1 = "Invalid 'params.0.versionId': Invalid input";
 
           param2 = {
             from: testAdmin.wallet.address,
             recordId:
               "0x1234567890123456789012345678901234567890123456789012345678901234",
             versionId: 0,
-          } as unknown as DetachRecordVersionHashParam;
+          } as unknown as DetachRecordVersionHashSchema;
 
-          expectedErrorMessage2 =
-            "property params[0].hashValue has failed the following constraints: isHexadecimal";
+          expectedErrorMessage2 = "Invalid 'params.0.hashValue': Required";
 
           param3 = {
             from: testAdmin.wallet.address,
             versionId: 12,
             hashValue: "0x1234567890",
-          } as unknown as DetachRecordVersionHashParam;
+          } as unknown as DetachRecordVersionHashSchema;
 
-          expectedErrorMessage3 =
-            "property params[0].recordId has failed the following constraints: isHexadecimal";
+          expectedErrorMessage3 = "Invalid 'params.0.recordId': Required";
           break;
         }
         case "timestampRecordVersionHashes": {
@@ -1202,10 +1217,10 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 482 }),
               "utf8",
             ).toString("hex")}`,
-          } as unknown as TimestampRecordVersionHashesParam;
+          } as unknown as TimestampRecordVersionHashesSchema;
 
           expectedErrorMessage1 =
-            "property params[0].hashAlgorithmIds has failed the following constraints: min, isInt";
+            "Invalid 'params.0.hashAlgorithmIds': Required";
 
           param2 = {
             from: testAdmin.wallet.address,
@@ -1221,10 +1236,9 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ infotest: 42 }),
               "utf8",
             ).toString("hex")}`,
-          } as unknown as TimestampRecordVersionHashesParam;
+          } as unknown as TimestampRecordVersionHashesSchema;
 
-          expectedErrorMessage2 =
-            "property params[0].hashValues has failed the following constraints: isHexadecimal";
+          expectedErrorMessage2 = "Invalid 'params.0.hashValues': Required";
 
           param3 = {
             from: testAdmin.wallet.address,
@@ -1237,10 +1251,10 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 842 }),
               "utf8",
             ).toString("hex")}`,
-          } as unknown as TimestampRecordVersionHashesParam;
+          } as unknown as TimestampRecordVersionHashesSchema;
 
           expectedErrorMessage3 =
-            "property params[0].timestampData has failed the following constraints: isHexadecimal";
+            "Invalid 'params.0.timestampData.0': Must start with 0x";
           break;
         }
         case "appendRecordVersionHashes": {
@@ -1259,10 +1273,9 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 842 }),
               "utf8",
             ).toString("hex")}`,
-          } as unknown as AppendRecordVersionHashesParam;
+          } as unknown as AppendRecordVersionHashesSchema;
 
-          expectedErrorMessage1 =
-            "property params[0].versionId has failed the following constraints: min, isInt";
+          expectedErrorMessage1 = "Invalid 'params.0.versionId': Invalid input";
 
           param2 = {
             from: testAdmin.wallet.address,
@@ -1279,10 +1292,9 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 492 }),
               "utf8",
             ).toString("hex")}`,
-          } as unknown as AppendRecordVersionHashesParam;
+          } as unknown as AppendRecordVersionHashesSchema;
 
-          expectedErrorMessage2 =
-            "property params[0].hashValues has failed the following constraints: isHexadecimal";
+          expectedErrorMessage2 = "Invalid 'params.0.hashValues': Required";
 
           param3 = {
             from: testAdmin.wallet.address,
@@ -1296,10 +1308,10 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 42 }),
               "utf8",
             ).toString("hex")}`,
-          } as unknown as AppendRecordVersionHashesParam;
+          } as unknown as AppendRecordVersionHashesSchema;
 
           expectedErrorMessage3 =
-            "property params[0].timestampData has failed the following constraints: isHexadecimal";
+            "Invalid 'params.0.timestampData.0': Must start with 0x";
           break;
         }
         case "insertRecordOwner": {
@@ -1310,32 +1322,30 @@ describe("JsonRpc Module", () => {
             ownerId: 0,
             notBefore: 1,
             notAfter: 12,
-          } as unknown as InsertRecordOwnerParam;
+          } as unknown as InsertRecordOwnerSchema;
 
           expectedErrorMessage1 =
-            "property params[0].ownerId has failed the following constraints: isString";
+            "params.0.ownerId': Expected string, received number";
 
           param2 = {
             from: testAdmin.wallet.address,
             recordId:
               "0x1234567890123456789012345678901234567890123456789012345678901234",
             ownerId: "owner",
-            notBefore: "1",
+            notBefore: "test",
             notAfter: 12,
-          } as unknown as InsertRecordOwnerParam;
+          } as unknown as InsertRecordOwnerSchema;
 
-          expectedErrorMessage2 =
-            "property params[0].notBefore has failed the following constraints: min, isInt";
+          expectedErrorMessage2 = "Invalid 'params.0.notBefore': Invalid input";
 
           param3 = {
             from: testAdmin.wallet.address,
             ownerId: "owner",
             notBefore: 1,
             notAfter: 12,
-          } as unknown as InsertRecordOwnerParam;
+          } as unknown as InsertRecordOwnerSchema;
 
-          expectedErrorMessage3 =
-            "property params[0].recordId has failed the following constraints: isHexadecimal";
+          expectedErrorMessage3 = "Invalid 'params.0.recordId': Required";
           break;
         }
         case "revokeRecordOwner": {
@@ -1344,27 +1354,25 @@ describe("JsonRpc Module", () => {
             recordId:
               "0x1234567890123456789012345678901234567890123456789012345678901234",
             ownerId: 0,
-          } as unknown as RevokeRecordOwnerParam;
+          } as unknown as RevokeRecordOwnerSchema;
 
           expectedErrorMessage1 =
-            "property params[0].ownerId has failed the following constraints: isString";
+            "params.0.ownerId': Expected string, received number";
 
           param2 = {
             from: testAdmin.wallet.address,
             recordId:
               "0x1234567890123456789012345678901234567890123456789012345678901234",
-          } as unknown as RevokeRecordOwnerParam;
+          } as unknown as RevokeRecordOwnerSchema;
 
-          expectedErrorMessage2 =
-            "property params[0].ownerId has failed the following constraints: isString";
+          expectedErrorMessage2 = "Invalid 'params.0.ownerId': Required";
 
           param3 = {
             from: testAdmin.wallet.address,
             ownerId: "owner",
-          } as unknown as RevokeRecordOwnerParam;
+          } as unknown as RevokeRecordOwnerSchema;
 
-          expectedErrorMessage3 =
-            "property params[0].recordId has failed the following constraints: isHexadecimal";
+          expectedErrorMessage3 = "Invalid 'params.0.recordId': Required";
           break;
         }
         case "insertRecordVersionInfo": {
@@ -1377,10 +1385,10 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 42 }),
               "utf8",
             ).toString("hex")}`,
-          } as InsertRecordVersionInfoParam;
+          } satisfies InsertRecordVersionInfoSchema;
 
           expectedErrorMessage1 =
-            "property params[0].recordId has failed the following constraints: isHexadecimal";
+            "Invalid 'params.0.recordId': Must be hexadecimal";
 
           param2 = {
             from: testAdmin.wallet.address,
@@ -1391,10 +1399,10 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 42 }),
               "utf8",
             ).toString("hex")}`,
-          } as InsertRecordVersionInfoParam;
+          } satisfies InsertRecordVersionInfoSchema;
 
           expectedErrorMessage2 =
-            "property params[0].versionId has failed the following constraints: min";
+            "Invalid 'params.0.versionId': Number must be greater than or equal to 0";
 
           param3 = {
             from: testAdmin.wallet.address,
@@ -1405,10 +1413,10 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 42 }),
               "utf8",
             ).toString("hex")}f`,
-          } as InsertRecordVersionInfoParam;
+          } satisfies InsertRecordVersionInfoSchema;
 
           expectedErrorMessage3 =
-            "property params[0].versionInfo has failed the following constraints: isHexadecimalJSON";
+            "Invalid 'params.0.versionInfo': Length must be even";
           break;
         }
         default:
@@ -1490,8 +1498,8 @@ describe("JsonRpc Module", () => {
             ianaName: "sha-256",
             oid: "2.16.840.1.101.3.4.2.1",
             status: 1,
-            multihash: "sha2-256",
-          } as InsertHashAlgorithmParam;
+            multiHash: "sha2-256",
+          } satisfies InsertHashAlgorithmSchema;
 
           param2 = {
             from: testAdmin.wallet.address,
@@ -1499,8 +1507,8 @@ describe("JsonRpc Module", () => {
             ianaName: "sha-256",
             oid: "2.16.840.1.101.3.4.2.1",
             status: 2,
-            multihash: "sha2-256",
-          } as InsertHashAlgorithmParam;
+            multiHash: "sha2-256",
+          } satisfies InsertHashAlgorithmSchema;
 
           break;
         }
@@ -1512,8 +1520,8 @@ describe("JsonRpc Module", () => {
             ianaName: "sha-256",
             oid: "2.16.840.1.101.3.4.2.1",
             status: 1,
-            multihash: "sha2-256",
-          } as UpdateHashAlgorithmParam;
+            multiHash: "sha2-256",
+          } satisfies UpdateHashAlgorithmSchema;
 
           param2 = {
             from: testAdmin.wallet.address,
@@ -1522,8 +1530,8 @@ describe("JsonRpc Module", () => {
             ianaName: "sha-256",
             oid: "2.16.840.1.101.3.4.2.1",
             status: 2,
-            multihash: "sha2-256",
-          } as UpdateHashAlgorithmParam;
+            multiHash: "sha2-256",
+          } satisfies UpdateHashAlgorithmSchema;
 
           break;
         }
@@ -1537,7 +1545,7 @@ describe("JsonRpc Module", () => {
                 "hex",
               )}`,
             ],
-          } as TimestampHashesParam;
+          } satisfies TimestampHashesSchema;
 
           param2 = {
             from: testAdmin.wallet.address,
@@ -1548,7 +1556,7 @@ describe("JsonRpc Module", () => {
                 "hex",
               )}`,
             ],
-          } as TimestampHashesParam;
+          } satisfies TimestampHashesSchema;
 
           break;
         }
@@ -1567,7 +1575,7 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 54 }),
               "utf8",
             ).toString("hex")}`,
-          } as TimestampVersionHashesParam;
+          } satisfies TimestampVersionHashesSchema;
 
           param2 = {
             from: testAdmin.wallet.address,
@@ -1583,7 +1591,7 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 54 }),
               "utf8",
             ).toString("hex")}`,
-          } as TimestampVersionHashesParam;
+          } satisfies TimestampVersionHashesSchema;
 
           break;
         }
@@ -1601,7 +1609,7 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 742 }),
               "utf8",
             ).toString("hex")}`,
-          } as TimestampRecordHashesParam;
+          } satisfies TimestampRecordHashesSchema;
 
           param2 = {
             from: testAdmin.wallet.address,
@@ -1616,7 +1624,7 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ test: 742 }),
               "utf8",
             ).toString("hex")}`,
-          } as TimestampRecordHashesParam;
+          } satisfies TimestampRecordHashesSchema;
 
           break;
         }
@@ -1642,7 +1650,7 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ info: 42 }),
               "utf8",
             ).toString("hex")}`,
-          } as TimestampRecordVersionHashesParam;
+          } satisfies TimestampRecordVersionHashesSchema;
 
           param2 = {
             from: testAdmin.wallet.address,
@@ -1658,7 +1666,7 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ info: 42 }),
               "utf8",
             ).toString("hex")}`,
-          } as TimestampRecordVersionHashesParam;
+          } satisfies TimestampRecordVersionHashesSchema;
 
           break;
         }
@@ -1685,7 +1693,7 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ infos: 42 }),
               "utf8",
             ).toString("hex")}`,
-          } as AppendRecordVersionHashesParam;
+          } satisfies AppendRecordVersionHashesSchema;
 
           param2 = {
             from: testAdmin.wallet.address,
@@ -1702,7 +1710,7 @@ describe("JsonRpc Module", () => {
               JSON.stringify({ info: 42 }),
               "utf8",
             ).toString("hex")}`,
-          } as AppendRecordVersionHashesParam;
+          } satisfies AppendRecordVersionHashesSchema;
 
           break;
         }
@@ -1719,14 +1727,14 @@ describe("JsonRpc Module", () => {
             recordId,
             versionId: 0,
             hashValue: "0x125345568a",
-          } as DetachRecordVersionHashParam;
+          } satisfies DetachRecordVersionHashSchema;
 
           param2 = {
             from: testAdmin.wallet.address,
             recordId,
             versionId: 0,
             hashValue: "0x1234567890",
-          } as DetachRecordVersionHashParam;
+          } satisfies DetachRecordVersionHashSchema;
 
           break;
         }
@@ -1744,7 +1752,7 @@ describe("JsonRpc Module", () => {
             ownerId: "owner",
             notBefore: 1042,
             notAfter: 1021201545,
-          } as InsertRecordOwnerParam;
+          } satisfies InsertRecordOwnerSchema;
 
           param2 = {
             from: testAdmin.wallet.address,
@@ -1752,7 +1760,7 @@ describe("JsonRpc Module", () => {
             ownerId: "ownerchanged",
             notBefore: 1042,
             notAfter: 1021201545,
-          } as InsertRecordOwnerParam;
+          } satisfies InsertRecordOwnerSchema;
 
           break;
         }
@@ -1768,13 +1776,13 @@ describe("JsonRpc Module", () => {
             from: testUser.wallet.address,
             recordId,
             ownerId: "owner",
-          } as RevokeRecordOwnerParam;
+          } satisfies RevokeRecordOwnerSchema;
 
           param2 = {
             from: testAdmin.wallet.address,
             recordId,
             ownerId: "ownerchanged",
-          } as RevokeRecordOwnerParam;
+          } satisfies RevokeRecordOwnerSchema;
 
           break;
         }
@@ -1796,14 +1804,14 @@ describe("JsonRpc Module", () => {
             recordId,
             versionId: 0,
             versionInfo,
-          } as InsertRecordVersionInfoParam;
+          } satisfies InsertRecordVersionInfoSchema;
 
           param2 = {
             from: testAdmin.wallet.address,
             recordId,
             versionId: 1,
             versionInfo,
-          } as InsertRecordVersionInfoParam;
+          } satisfies InsertRecordVersionInfoSchema;
 
           break;
         }
@@ -1821,7 +1829,8 @@ describe("JsonRpc Module", () => {
           id: 231,
         });
       expect(responseBuild1.status).toBe(200);
-      const transaction1 = responseBuild1.body.result as UnsignedTransaction;
+      const transaction1 = responseBuild1.body
+        .result as UnsignedTransactionSchema;
 
       const responseBuild2: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
@@ -1833,12 +1842,13 @@ describe("JsonRpc Module", () => {
           id: 232,
         });
       expect(responseBuild2.status).toBe(200);
-      const transaction2 = responseBuild2.body.result as UnsignedTransaction;
+      const transaction2 = responseBuild2.body
+        .result as UnsignedTransactionSchema;
 
       const uTx = formatEthersUnsignedTransaction(
         JSON.parse(
           JSON.stringify(transaction1),
-        ) as unknown as UnsignedTransaction,
+        ) as unknown as UnsignedTransactionSchema,
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx1 = await testUser.wallet.signTransaction(
@@ -1932,7 +1942,7 @@ describe("JsonRpc Module", () => {
               from: testAdmin.wallet.address,
               hashAlgorithmIds: [0],
               hashValues: [secondHashValue],
-            } as TimestampHashesParam;
+            } satisfies TimestampHashesSchema;
             break;
           }
           case "timestampRecordHashes": {
@@ -1944,7 +1954,7 @@ describe("JsonRpc Module", () => {
                 JSON.stringify({ test: 54 }),
                 "utf8",
               ).toString("hex")}`,
-            } as TimestampRecordHashesParam;
+            } satisfies TimestampRecordHashesSchema;
             break;
           }
           case "timestampRecordVersionHashes": {
@@ -1963,7 +1973,7 @@ describe("JsonRpc Module", () => {
                 JSON.stringify({ test: 54 }),
                 "utf8",
               ).toString("hex")}`,
-            } as TimestampRecordVersionHashesParam;
+            } satisfies TimestampRecordVersionHashesSchema;
             break;
           }
           case "timestampVersionHashes": {
@@ -1976,7 +1986,7 @@ describe("JsonRpc Module", () => {
                 "utf8",
               ).toString("hex")}`,
               versionHash: secondHashValue,
-            } as TimestampVersionHashesParam;
+            } satisfies TimestampVersionHashesSchema;
             break;
           }
           case "appendRecordVersionHashes": {
@@ -1996,7 +2006,7 @@ describe("JsonRpc Module", () => {
                 JSON.stringify({ test: 54 }),
                 "utf8",
               ).toString("hex")}`,
-            } as AppendRecordVersionHashesParam;
+            } satisfies AppendRecordVersionHashesSchema;
             break;
           }
           default:
@@ -2033,7 +2043,7 @@ describe("JsonRpc Module", () => {
         const uTx = formatEthersUnsignedTransaction(
           JSON.parse(
             JSON.stringify(unsignedTransaction),
-          ) as unknown as UnsignedTransaction,
+          ) as unknown as UnsignedTransactionSchema,
         );
         uTx.chainId = Number(uTx.chainId);
         const sgnTx = await testAdmin.wallet.signTransaction(

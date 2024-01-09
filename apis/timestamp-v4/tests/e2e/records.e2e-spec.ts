@@ -21,17 +21,6 @@ import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
-import {
-  TimestampRecordHashesParam,
-  TimestampRecordVersionHashesParam,
-  AppendRecordVersionHashesParam,
-  DetachRecordVersionHashParam,
-  InsertRecordOwnerParam,
-  InsertRecordVersionInfoParam,
-  RevokeRecordOwnerParam,
-  TimestampVersionHashesParam,
-  UnsignedTransaction,
-} from "../../src/modules/jsonrpc/dto/index.js";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
 import type {
   RecordLink,
@@ -43,19 +32,31 @@ import { getServer } from "../utils/getServer.js";
 import { getTimestampWriteAccessToken } from "../utils/getAccessToken.js";
 import { getEbsiIssuer } from "../utils/getEbsiIssuer.js";
 
+import type { AppendRecordVersionHashesSchema } from "../../src/modules/jsonrpc/validators/RequestAppendRecordVersionHashes.js";
+import type { DetachRecordVersionHashSchema } from "../../src/modules/jsonrpc/validators/RequestDetachRecordVersionHashes.js";
+import type { InsertRecordOwnerSchema } from "../../src/modules/jsonrpc/validators/RequestInsertRecordOwner.js";
+import type { InsertRecordVersionInfoSchema } from "../../src/modules/jsonrpc/validators/RequestInsertRecordVersionInfo.js";
+import type { RevokeRecordOwnerSchema } from "../../src/modules/jsonrpc/validators/RequestRevokeRecordOwner.js";
+import type { TimestampRecordHashesSchema } from "../../src/modules/jsonrpc/validators/RequestTimestampRecordHashes.js";
+import type { TimestampRecordVersionHashesSchema } from "../../src/modules/jsonrpc/validators/RequestTimestampRecordVersionHashes.js";
+import type { UnsignedTransactionSchema } from "../../src/modules/jsonrpc/validators/UnsignedTransaction.js";
+import type { TimestampVersionHashesSchema } from "../../src/modules/jsonrpc/validators/RequestTimestampVersionHashes.js";
+
 interface SupertestJsonRpcResponse {
   status: number;
   body: JsonRpcResponseObject;
 }
 
 type JsonRpcParams =
-  | TimestampRecordHashesParam
-  | TimestampRecordVersionHashesParam
-  | AppendRecordVersionHashesParam
-  | DetachRecordVersionHashParam
-  | RevokeRecordOwnerParam
-  | InsertRecordOwnerParam
-  | InsertRecordVersionInfoParam;
+  | TimestampRecordHashesSchema
+  | TimestampRecordVersionHashesSchema
+  | AppendRecordVersionHashesSchema
+  | DetachRecordVersionHashSchema
+  | RevokeRecordOwnerSchema
+  | InsertRecordOwnerSchema
+  | InsertRecordVersionInfoSchema
+  | UnsignedTransactionSchema
+  | TimestampVersionHashesSchema;
 
 const multihashToNodeHashAlg = {
   "sha2-256": "sha256",
@@ -432,7 +433,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
               JSON.stringify({ info: 42 }),
               "utf8",
             ).toString("hex")}`,
-          } as TimestampRecordHashesParam;
+          } satisfies TimestampRecordHashesSchema;
           break;
         }
         case "timestampVersionHashes": {
@@ -453,7 +454,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
               JSON.stringify({ info: 42 }),
               "utf8",
             ).toString("hex")}`,
-          } as TimestampVersionHashesParam;
+          } satisfies TimestampVersionHashesSchema;
           break;
         }
         case "timestampRecordVersionHashes": {
@@ -481,7 +482,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
               JSON.stringify({ info: 42 }),
               "utf8",
             ).toString("hex")}`,
-          } as TimestampRecordVersionHashesParam;
+          } satisfies TimestampRecordVersionHashesSchema;
           break;
         }
         case "insertRecordOwner": {
@@ -498,7 +499,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
             ownerId: "myownerid",
             notBefore,
             notAfter: notBefore + 1000000,
-          } as InsertRecordOwnerParam;
+          } satisfies InsertRecordOwnerSchema;
           break;
         }
         case "revokeRecordOwner": {
@@ -512,7 +513,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
             from: testUser.wallet.address,
             recordId,
             ownerId: "myownerid",
-          } as RevokeRecordOwnerParam;
+          } satisfies RevokeRecordOwnerSchema;
           break;
         }
         case "insertRecordVersionInfo": {
@@ -531,7 +532,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
               JSON.stringify({ test: 42 }),
               "utf8",
             ).toString("hex")}`,
-          } as InsertRecordVersionInfoParam;
+          } satisfies InsertRecordVersionInfoSchema;
           break;
         }
         case "detachRecordVersionHash": {
@@ -546,7 +547,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
             recordId,
             versionId: 0,
             hashValue: hashValue1,
-          } as DetachRecordVersionHashParam;
+          } satisfies DetachRecordVersionHashSchema;
           break;
         }
         case "appendRecordVersionHashes": {
@@ -576,7 +577,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
               JSON.stringify({ info: 42 }),
               "utf8",
             ).toString("hex")}`,
-          } as AppendRecordVersionHashesParam;
+          } satisfies AppendRecordVersionHashesSchema;
           break;
         }
         default:
@@ -613,7 +614,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
       const uTx = formatEthersUnsignedTransaction(
         JSON.parse(
           JSON.stringify(unsignedTransaction),
-        ) as unknown as UnsignedTransaction,
+        ) as unknown as UnsignedTransactionSchema,
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx = await testUser.wallet.signTransaction(
@@ -676,7 +677,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
               JSON.stringify({ info: 42 }),
               "utf8",
             ).toString("hex")}`,
-          } as TimestampRecordHashesParam;
+          } satisfies TimestampRecordHashesSchema;
           break;
         }
         case "timestampVersionHashes": {
@@ -689,7 +690,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
               JSON.stringify({ info: 42 }),
               "utf8",
             ).toString("hex")}`,
-          } as TimestampVersionHashesParam;
+          } satisfies TimestampVersionHashesSchema;
           break;
         }
         case "timestampRecordVersionHashes": {
@@ -709,7 +710,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
               JSON.stringify({ info: 42 }),
               "utf8",
             ).toString("hex")}`,
-          } as TimestampRecordVersionHashesParam;
+          } satisfies TimestampRecordVersionHashesSchema;
           break;
         }
         case "insertRecordOwner": {
@@ -745,7 +746,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
               JSON.stringify({ info: 42 }),
               "utf8",
             ).toString("hex")}`,
-          } as AppendRecordVersionHashesParam;
+          } satisfies AppendRecordVersionHashesSchema;
           break;
         }
         default:
@@ -782,7 +783,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
       const uTx = formatEthersUnsignedTransaction(
         JSON.parse(
           JSON.stringify(unsignedTransaction),
-        ) as unknown as UnsignedTransaction,
+        ) as unknown as UnsignedTransactionSchema,
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx = await testUser.wallet.signTransaction(
@@ -864,7 +865,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
               JSON.stringify({ info: 42 }),
               "utf8",
             ).toString("hex")}`,
-          } as TimestampRecordVersionHashesParam;
+          } satisfies TimestampRecordVersionHashesSchema;
           break;
         }
         case "appendRecordVersionHashes": {
@@ -894,7 +895,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
               JSON.stringify({ info: 42 }),
               "utf8",
             ).toString("hex")}`,
-          } as AppendRecordVersionHashesParam;
+          } satisfies AppendRecordVersionHashesSchema;
           break;
         }
         default:
@@ -931,7 +932,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
       const uTx = formatEthersUnsignedTransaction(
         JSON.parse(
           JSON.stringify(unsignedTransaction),
-        ) as unknown as UnsignedTransaction,
+        ) as unknown as UnsignedTransactionSchema,
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx = await adminUser.wallet.signTransaction(
@@ -997,7 +998,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
           JSON.stringify({ info: 42 }),
           "utf8",
         ).toString("hex")}`,
-      } as TimestampRecordHashesParam;
+      } satisfies TimestampRecordHashesSchema;
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
@@ -1013,7 +1014,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
       const uTx = formatEthersUnsignedTransaction(
         JSON.parse(
           JSON.stringify(unsignedTransaction),
-        ) as unknown as UnsignedTransaction,
+        ) as unknown as UnsignedTransactionSchema,
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx = await adminUser.wallet.signTransaction(
@@ -1082,7 +1083,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
           JSON.stringify({ info: 42 }),
           "utf8",
         ).toString("hex")}`,
-      } as TimestampRecordHashesParam;
+      } satisfies TimestampRecordHashesSchema;
 
       const insertResponseBuild: SupertestJsonRpcResponse = await request(
         server,
@@ -1100,7 +1101,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
       const insertUTx = formatEthersUnsignedTransaction(
         JSON.parse(
           JSON.stringify(insertUnsignedTransaction),
-        ) as unknown as UnsignedTransaction,
+        ) as unknown as UnsignedTransactionSchema,
       );
       insertUTx.chainId = Number(insertUTx.chainId);
       const insertSgnTx = await adminUser.wallet.signTransaction(
@@ -1168,7 +1169,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
               JSON.stringify({ info: 42 }),
               "utf8",
             ).toString("hex")}`,
-          } as TimestampRecordVersionHashesParam;
+          } satisfies TimestampRecordVersionHashesSchema;
           break;
         }
         case "insertRecordOwner": {
@@ -1179,7 +1180,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
             ownerId: "myownerid",
             notBefore,
             notAfter: notBefore + 1000000,
-          } as InsertRecordOwnerParam;
+          } satisfies InsertRecordOwnerSchema;
           break;
         }
         case "revokeRecordOwner": {
@@ -1187,7 +1188,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
             from: testUser.wallet.address,
             recordId: decodedRecordId,
             ownerId: "myownerid",
-          } as RevokeRecordOwnerParam;
+          } satisfies RevokeRecordOwnerSchema;
           break;
         }
         case "insertRecordVersionInfo": {
@@ -1199,7 +1200,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
               JSON.stringify({ test: 42 }),
               "utf8",
             ).toString("hex")}`,
-          } as InsertRecordVersionInfoParam;
+          } satisfies InsertRecordVersionInfoSchema;
           break;
         }
         case "detachRecordVersionHash": {
@@ -1208,7 +1209,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
             recordId: decodedRecordId,
             versionId: 0,
             hashValue: hashValue1,
-          } as DetachRecordVersionHashParam;
+          } satisfies DetachRecordVersionHashSchema;
           break;
         }
         case "appendRecordVersionHashes": {
@@ -1232,7 +1233,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
               JSON.stringify({ info: 42 }),
               "utf8",
             ).toString("hex")}`,
-          } as AppendRecordVersionHashesParam;
+          } satisfies AppendRecordVersionHashesSchema;
           break;
         }
         default:
@@ -1269,7 +1270,7 @@ describe("Timestamp API v4 - Records (e2e)", () => {
       const uTx = formatEthersUnsignedTransaction(
         JSON.parse(
           JSON.stringify(unsignedTransaction),
-        ) as unknown as UnsignedTransaction,
+        ) as unknown as UnsignedTransactionSchema,
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx = await testUser.wallet.signTransaction(

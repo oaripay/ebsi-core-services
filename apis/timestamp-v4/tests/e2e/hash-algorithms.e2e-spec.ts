@@ -14,14 +14,12 @@ import type { HashName } from "multihashes";
 import { prefixWith0x, waitToBeMined } from "@ebsiint-api/shared";
 import type { TransactionRequest } from "@ethersproject/abstract-provider";
 import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
+import type { UpdateHashAlgorithmSchema } from "../../src/modules/jsonrpc/validators/RequestUpdateHashAlgorithm.js";
+import type { UnsignedTransactionSchema } from "../../src/modules/jsonrpc/validators/UnsignedTransaction.js";
+import type { InsertHashAlgorithmSchema } from "../../src/modules/jsonrpc/validators/RequestInsertHashAlgorithm.js";
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
-import {
-  InsertHashAlgorithmParam,
-  UnsignedTransaction,
-  UpdateHashAlgorithmParam,
-} from "../../src/modules/jsonrpc/dto/index.js";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
 import type { HashAlgorithmLink } from "../../src/modules/hash-algorithms/hash-algorithms.interface.js";
 import type { ApiConfig } from "../../src/config/configuration.js";
@@ -35,7 +33,10 @@ interface SupertestJsonRpcResponse {
   body: JsonRpcResponseObject;
 }
 
-type JsonRpcParams = InsertHashAlgorithmParam | UpdateHashAlgorithmParam;
+type JsonRpcParams =
+  | InsertHashAlgorithmSchema
+  | UpdateHashAlgorithmSchema
+  | UnsignedTransactionSchema;
 
 interface TestUser {
   info: EbsiIssuer;
@@ -46,12 +47,12 @@ interface TestUser {
 const newHashAlgorithm = {
   ianaName: `test-${Date.now()}`,
   outputLength: 256,
-  multihash: "sha2-256",
+  multiHash: "sha2-256",
   oid: "2.16.840.1.101.3.4.2.1",
 } as const satisfies {
   ianaName: string;
   outputLength: number;
-  multihash: HashName;
+  multiHash: HashName;
   oid: string;
 };
 
@@ -235,7 +236,7 @@ describe("Timestamp API v4 - HashAlgorithms (e2e)", () => {
         expect.assertions(5);
 
         let params: JsonRpcParams | null = null;
-        const { outputLength, ianaName, oid, multihash } = newHashAlgorithm;
+        const { outputLength, ianaName, oid, multiHash } = newHashAlgorithm;
 
         switch (method) {
           case "insertHashAlgorithm": {
@@ -245,8 +246,8 @@ describe("Timestamp API v4 - HashAlgorithms (e2e)", () => {
               ianaName,
               oid,
               status: 1,
-              multihash,
-            } as InsertHashAlgorithmParam;
+              multiHash,
+            } satisfies InsertHashAlgorithmSchema;
             break;
           }
           case "updateHashAlgorithm": {
@@ -261,8 +262,8 @@ describe("Timestamp API v4 - HashAlgorithms (e2e)", () => {
               ianaName,
               oid,
               status: 1,
-              multihash,
-            } as UpdateHashAlgorithmParam;
+              multiHash,
+            } satisfies UpdateHashAlgorithmSchema;
             break;
           }
           default:
@@ -300,7 +301,7 @@ describe("Timestamp API v4 - HashAlgorithms (e2e)", () => {
         const uTx = formatEthersUnsignedTransaction(
           JSON.parse(
             JSON.stringify(unsignedTransaction),
-          ) as unknown as UnsignedTransaction,
+          ) as unknown as UnsignedTransactionSchema,
         );
         uTx.chainId = Number(uTx.chainId);
         const sgnTx = await adminUser.wallet.signTransaction(
@@ -354,7 +355,7 @@ describe("Timestamp API v4 - HashAlgorithms (e2e)", () => {
         expect.assertions(6);
 
         let params: JsonRpcParams | null = null;
-        const { outputLength, ianaName, oid, multihash } = newHashAlgorithm;
+        const { outputLength, ianaName, oid, multiHash } = newHashAlgorithm;
 
         switch (method) {
           case "insertHashAlgorithm": {
@@ -364,8 +365,8 @@ describe("Timestamp API v4 - HashAlgorithms (e2e)", () => {
               ianaName,
               oid,
               status: 1,
-              multihash,
-            } as InsertHashAlgorithmParam;
+              multiHash,
+            } satisfies InsertHashAlgorithmSchema;
             break;
           }
           case "updateHashAlgorithm": {
@@ -380,8 +381,8 @@ describe("Timestamp API v4 - HashAlgorithms (e2e)", () => {
               ianaName,
               oid,
               status: 1,
-              multihash,
-            } as UpdateHashAlgorithmParam;
+              multiHash,
+            } satisfies UpdateHashAlgorithmSchema;
             break;
           }
           default:
@@ -419,7 +420,7 @@ describe("Timestamp API v4 - HashAlgorithms (e2e)", () => {
         const uTx = formatEthersUnsignedTransaction(
           JSON.parse(
             JSON.stringify(unsignedTransaction),
-          ) as unknown as UnsignedTransaction,
+          ) as unknown as UnsignedTransactionSchema,
         );
         uTx.chainId = Number(uTx.chainId);
         const sgnTx = await testUser.wallet.signTransaction(
@@ -472,7 +473,7 @@ describe("Timestamp API v4 - HashAlgorithms (e2e)", () => {
     async () => {
       expect.assertions(2);
 
-      const { outputLength, ianaName, oid, multihash } = newHashAlgorithm;
+      const { outputLength, ianaName, oid, multiHash } = newHashAlgorithm;
 
       const param = {
         from: adminUser.wallet.address,
@@ -480,8 +481,8 @@ describe("Timestamp API v4 - HashAlgorithms (e2e)", () => {
         ianaName,
         oid,
         status: 1,
-        multihash,
-      } as InsertHashAlgorithmParam;
+        multiHash,
+      } satisfies InsertHashAlgorithmSchema;
 
       const responseBuild: SupertestJsonRpcResponse = await request(server)
         .post("/jsonrpc")
@@ -497,7 +498,7 @@ describe("Timestamp API v4 - HashAlgorithms (e2e)", () => {
       const uTx = formatEthersUnsignedTransaction(
         JSON.parse(
           JSON.stringify(unsignedTransaction),
-        ) as unknown as UnsignedTransaction,
+        ) as unknown as UnsignedTransactionSchema,
       );
       uTx.chainId = Number(uTx.chainId);
       const sgnTx = await adminUser.wallet.signTransaction(

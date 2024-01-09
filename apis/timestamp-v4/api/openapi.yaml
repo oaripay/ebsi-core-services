@@ -159,7 +159,7 @@ paths:
                     ianaName: sha-256
                     oid: "2.16.840.1.101.3.4.2.1"
                     status: active
-                    multihash: sha2-256
+                    multiHash: sha2-256
         "400":
           description: Bad Request
           content:
@@ -850,7 +850,7 @@ paths:
           - **ianaName**: IANA name of the hash algorithm
           - **oid**: object identifier (OID)
           - **status**: status of the algorithm (1 = active, 2 = revoked)
-          - **multihash**: multihash name
+          - **multiHash**: multihash name
 
           #### updateHashAlgorithm
 
@@ -862,7 +862,7 @@ paths:
           - **ianaName**: IANA name of the hash algorithm
           - **oid**: object identifier (OID)
           - **status**: status of the algorithm (1 = active, 2 = revoked)
-          - **multihash**: multihash name
+          - **multiHash**: multihash name
 
           #### timestampHashes
 
@@ -1013,7 +1013,7 @@ paths:
                       ianaName: sha-256
                       oid: "2.16.840.1.101.3.4.2.1"
                       status: 1
-                      multihash: sha2-256
+                      multiHash: sha2-256
                   id: 1
               Build tx to updateHashAlgorithm:
                 value:
@@ -1026,7 +1026,7 @@ paths:
                       ianaName: sha-256
                       oid: "2.16.840.1.101.3.4.2.1"
                       status: 2
-                      multihash: sha2-256
+                      multiHash: sha2-256
                   id: 1
               Build tx to timestampHashes:
                 value:
@@ -1289,7 +1289,7 @@ components:
         status:
           type: string
           description: Status of the algorithm (active, revoked).
-        multihash:
+        multiHash:
           type: string
           description: Multihash name
     Record:

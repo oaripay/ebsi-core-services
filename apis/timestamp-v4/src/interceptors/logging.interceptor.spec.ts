@@ -232,7 +232,19 @@ describe("Logging interceptor", () => {
           body: {
             "invalid body": "",
           },
-          error: expect.any(Error),
+          error: {
+            error: {
+              code: -32600,
+              data: undefined,
+              message: [
+                "Invalid 'jsonrpc': Invalid literal value, expected \"2.0\"",
+                "Invalid 'method': Required",
+                "Invalid 'params': Required",
+              ].join("\n"),
+            },
+            id: null,
+            jsonrpc: "2.0",
+          },
           message: "Outgoing response - 400 - POST - /jsonrpc",
           method: "POST",
           url: "/jsonrpc",

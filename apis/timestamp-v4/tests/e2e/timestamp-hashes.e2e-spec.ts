@@ -21,12 +21,6 @@ import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
-import type {
-  InsertHashAlgorithmParam,
-  UpdateHashAlgorithmParam,
-  TimestampHashesParam,
-  UnsignedTransaction,
-} from "../../src/modules/jsonrpc/dto/index.js";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
 import type { ApiConfig } from "../../src/config/configuration.js";
 import { describeWriteOps, writeOps } from "../utils/writeOps.js";
@@ -34,15 +28,21 @@ import { getServer } from "../utils/getServer.js";
 import { getTimestampWriteAccessToken } from "../utils/getAccessToken.js";
 import { getEbsiIssuer } from "../utils/getEbsiIssuer.js";
 
+import type { InsertHashAlgorithmSchema } from "../../src/modules/jsonrpc/validators/RequestInsertHashAlgorithm.js";
+import type { TimestampHashesSchema } from "../../src/modules/jsonrpc/validators/RequestTimestampHashes.js";
+import type { UpdateHashAlgorithmSchema } from "../../src/modules/jsonrpc/validators/RequestUpdateHashAlgorithm.js";
+import type { UnsignedTransactionSchema } from "../../src/modules/jsonrpc/validators/UnsignedTransaction.js";
+
 interface SupertestJsonRpcResponse {
   status: number;
   body: JsonRpcResponseObject;
 }
 
 type JsonRpcParams =
-  | InsertHashAlgorithmParam
-  | UpdateHashAlgorithmParam
-  | TimestampHashesParam;
+  | InsertHashAlgorithmSchema
+  | UpdateHashAlgorithmSchema
+  | TimestampHashesSchema
+  | UnsignedTransactionSchema;
 
 interface TestUser {
   info: EbsiIssuer;
@@ -227,7 +227,7 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
                   "utf8",
                 ).toString("hex")}`,
               ],
-            } as TimestampHashesParam;
+            } satisfies TimestampHashesSchema;
             break;
           }
           default:
@@ -264,7 +264,7 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
         const uTx = formatEthersUnsignedTransaction(
           JSON.parse(
             JSON.stringify(unsignedTransaction),
-          ) as unknown as UnsignedTransaction,
+          ) as unknown as UnsignedTransactionSchema,
         );
         uTx.chainId = Number(uTx.chainId);
         const sgnTx = await testUser.wallet.signTransaction(
@@ -318,7 +318,7 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
               from: testUser.wallet.address,
               hashAlgorithmIds: [hashAlgorithmId, hashAlgorithmId],
               hashValues: [hashValue1, hashValue2],
-            } as TimestampHashesParam;
+            } satisfies TimestampHashesSchema;
             break;
           }
           default:
@@ -355,7 +355,7 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
         const uTx = formatEthersUnsignedTransaction(
           JSON.parse(
             JSON.stringify(unsignedTransaction),
-          ) as unknown as UnsignedTransaction,
+          ) as unknown as UnsignedTransactionSchema,
         );
         uTx.chainId = Number(uTx.chainId);
         const sgnTx = await testUser.wallet.signTransaction(
@@ -418,7 +418,7 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
                   "utf8",
                 ).toString("hex")}`,
               ],
-            } as TimestampHashesParam;
+            } satisfies TimestampHashesSchema;
             break;
           }
           default:
@@ -439,7 +439,7 @@ describe("Timestamp API v4 - Timestamp (e2e)", () => {
         const uTx = formatEthersUnsignedTransaction(
           JSON.parse(
             JSON.stringify(unsignedTransaction),
-          ) as unknown as UnsignedTransaction,
+          ) as unknown as UnsignedTransactionSchema,
         );
         uTx.chainId = Number(uTx.chainId);
         const sgnTx = await adminUser.wallet.signTransaction(
