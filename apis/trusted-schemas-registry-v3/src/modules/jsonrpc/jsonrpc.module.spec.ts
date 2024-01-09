@@ -29,12 +29,6 @@ import { computeId } from "@ebsiint-api/shared";
 import { JsonRpcModule } from "./jsonrpc.module.js";
 import { JsonRpcService } from "./jsonrpc.service.js";
 import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
-import {
-  UnsignedTransaction,
-  InsertSchemaParam,
-  UpdateMetadataParam,
-  UpdateSchemaParam,
-} from "./dto/index.js";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { setupTestEnv } from "../../../tests/utils/schemaRegistry.js";
@@ -45,6 +39,10 @@ import {
 } from "../../../tests/utils/data.js";
 import { LedgerService } from "../ledger/ledger.service.js";
 import type { ApiConfig } from "../../config/configuration.js";
+import type { InsertSchemaSchema } from "./validators/RequestInsertSchemaSchema.js";
+import type { UpdateSchemaSchema } from "./validators/RequestUpdateSchemaSchema.js";
+import type { UpdateMetadataSchema } from "./validators/RequestUpdateMetadataSchema.js";
+import type { UnsignedTransaction } from "./validators/RequestSendSignedTransactionSchema.js";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -52,9 +50,9 @@ interface SupertestJsonRpcResponse {
 }
 
 type JsonRpcParams =
-  | InsertSchemaParam
-  | UpdateSchemaParam
-  | UpdateMetadataParam;
+  | InsertSchemaSchema
+  | UpdateSchemaSchema
+  | UpdateMetadataSchema;
 
 let tokenVerificationResolve = true;
 let customPayload = {
@@ -298,11 +296,12 @@ describe("JsonRpc Module", () => {
       .send();
 
     expect(response.body).toStrictEqual({
-      title: "Bad Request",
-      status: 400,
-      detail:
-        '["jsonrpc must be equal to 2.0","method must be a string","params must be an array"]',
-      type: "about:blank",
+      error: {
+        code: -32600,
+        message: "JSON-RPC payload must be an object",
+      },
+      id: null,
+      jsonrpc: "2.0",
     });
     expect(response.status).toBe(400);
   });
@@ -409,7 +408,7 @@ describe("JsonRpc Module", () => {
       schemaId,
       schema: `0x${serializedSchemaBuffer.toString("hex")}`,
       metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
-    } as InsertSchemaParam;
+    } satisfies InsertSchemaSchema;
 
     // Mock access token verification
     tokenVerificationResolve = true;
@@ -508,7 +507,7 @@ describe("JsonRpc Module", () => {
       schemaId: schema2Id,
       schema: `0x${serializedSchema2Buffer.toString("hex")}`,
       metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
-    } as InsertSchemaParam;
+    } satisfies InsertSchemaSchema;
 
     const response: SupertestJsonRpcResponse = await request(server)
       .post("/jsonrpc")
@@ -557,7 +556,7 @@ describe("JsonRpc Module", () => {
               schemaId,
               schema: `0x${serializedSchemaBuffer.toString("hex")}`,
               metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
-            } as InsertSchemaParam;
+            } satisfies InsertSchemaSchema;
             break;
           }
           case "updateSchema": {
@@ -566,7 +565,7 @@ describe("JsonRpc Module", () => {
               schemaId,
               schema: `0x${serializedUpdatedSchemaBuffer.toString("hex")}`,
               metadata: `0x${serializedUpdatedMetadataBuffer.toString("hex")}`,
-            } as UpdateSchemaParam;
+            } satisfies UpdateSchemaSchema;
             break;
           }
           case "updateMetadata": {
@@ -574,7 +573,7 @@ describe("JsonRpc Module", () => {
               from: signer.address,
               schemaRevisionId: ethers.utils.sha256(serializedSchemaBuffer),
               metadata: `0x${serializedMetadataBuffer2.toString("hex")}`,
-            } as UpdateMetadataParam;
+            } satisfies UpdateMetadataSchema;
             break;
           }
           default: {
@@ -663,7 +662,7 @@ describe("JsonRpc Module", () => {
               schemaId,
               schema: `0x${serializedSchemaBuffer.toString("hex")}`,
               metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
-            } as InsertSchemaParam;
+            } satisfies InsertSchemaSchema;
             break;
           }
           case "updateSchema": {
@@ -672,7 +671,7 @@ describe("JsonRpc Module", () => {
               schemaId,
               schema: `0x${serializedUpdatedSchemaBuffer.toString("hex")}`,
               metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
-            } as UpdateSchemaParam;
+            } satisfies UpdateSchemaSchema;
             break;
           }
           case "updateMetadata": {
@@ -680,7 +679,7 @@ describe("JsonRpc Module", () => {
               from: signer.address,
               schemaRevisionId: ethers.utils.sha256(serializedSchemaBuffer),
               metadata: `0x${serializedMetadataBuffer2.toString("hex")}`,
-            } as UpdateMetadataParam;
+            } satisfies UpdateMetadataSchema;
             break;
           }
           default: {
@@ -717,48 +716,66 @@ describe("JsonRpc Module", () => {
 
         const testSetup: {
           params: JsonRpcParams;
-          expectedErrorMessage: string;
+          expectedErrorMessages: string[];
         }[] = [];
 
         switch (method) {
           case "insertSchema": {
-            // Test #1: `schema` param is not valid JSON encoded in hex
+            // `schema` param is not valid JSON encoded in hex
             testSetup.push({
               params: {
                 from: signer.address,
                 schemaId,
                 schema: "0x1234",
                 metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
-              } as InsertSchemaParam,
-              expectedErrorMessage:
-                "property params[0].schema has failed the following constraints: isHexadecimalJSON",
+              } satisfies InsertSchemaSchema,
+              expectedErrorMessages: [
+                "Invalid 'params.0.schema': Must be a JSON object encoded in hexadecimal",
+              ],
             });
 
-            // Test #2: `metadata` param is not valid JSON encoded in hex
+            // `metadata` param is not valid JSON encoded in hex
             testSetup.push({
               params: {
                 from: signer.address,
                 schemaId,
                 schema: `0x${serializedSchemaBuffer.toString("hex")}`,
                 metadata: "0x1234",
-              } as InsertSchemaParam,
-              expectedErrorMessage:
-                "property params[0].metadata has failed the following constraints: isHexadecimalJSON",
+              } satisfies InsertSchemaSchema,
+              expectedErrorMessages: [
+                "Invalid 'params.0.metadata': Must be a JSON object encoded in hexadecimal",
+              ],
             });
 
-            // Test #3: `metadata` param doesn't start with 0x
+            // `metadata` param doesn't start with 0x
             testSetup.push({
               params: {
                 from: signer.address,
                 schemaId,
                 schema: `0x${serializedSchemaBuffer.toString("hex")}`,
                 metadata: serializedMetadataBuffer.toString("hex"),
-              } as InsertSchemaParam,
-              expectedErrorMessage:
-                "property params[0].metadata has failed the following constraints: matches",
+              } satisfies InsertSchemaSchema,
+              expectedErrorMessages: [
+                "Invalid 'params.0.metadata': Must start with 0x",
+              ],
             });
 
-            // Test #4: `schemaId` param doesn't match the computed schema ID
+            // Multiple errors at the same time
+            testSetup.push({
+              params: {
+                from: signer.address,
+                schemaId: "42",
+                schema: "0x123",
+                metadata: "0x1234",
+              } satisfies InsertSchemaSchema,
+              expectedErrorMessages: [
+                "Invalid 'params.0.schemaId': Must start with 0x",
+                "Invalid 'params.0.schema': Length must be even",
+                "Invalid 'params.0.metadata': Must be a JSON object encoded in hexadecimal",
+              ],
+            });
+
+            // `schemaId` param doesn't match the computed schema ID
             const randomSchemaId = `0x${crypto
               .randomBytes(32)
               .toString("hex")}`;
@@ -768,58 +785,80 @@ describe("JsonRpc Module", () => {
                 schemaId: randomSchemaId,
                 schema: `0x${serializedSchemaBuffer.toString("hex")}`,
                 metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
-              } as InsertSchemaParam,
-              expectedErrorMessage: `Invalid schema ID: "${randomSchemaId}" is different from the actual schema ID "${schemaId}"`,
+              } satisfies InsertSchemaSchema,
+              expectedErrorMessages: [
+                `Invalid 'params.0.schemaId': "${randomSchemaId}" is different from the actual schema ID "${schemaId}"`,
+              ],
             });
 
             break;
           }
           case "updateSchema": {
-            // Test #1: `schema` param is not valid JSON encoded in hex
+            // `schema` param is not valid JSON encoded in hex
             testSetup.push({
               params: {
                 from: signer.address,
                 schemaId,
                 schema: "0x1234",
                 metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
-              } as UpdateSchemaParam,
-              expectedErrorMessage:
-                "property params[0].schema has failed the following constraints: isHexadecimalJSON",
+              } satisfies UpdateSchemaSchema,
+              expectedErrorMessages: [
+                "Invalid 'params.0.schema': Must be a JSON object encoded in hexadecimal",
+              ],
             });
 
-            // Test #2: `metadata` param is not valid JSON encoded in hex
+            // `metadata` param is not valid JSON encoded in hex
             testSetup.push({
               params: {
                 from: signer.address,
                 schemaId,
                 schema: `0x${serializedUpdatedSchemaBuffer.toString("hex")}`,
                 metadata: "0x1234",
-              } as UpdateSchemaParam,
-              expectedErrorMessage:
-                "property params[0].metadata has failed the following constraints: isHexadecimalJSON",
+              } satisfies UpdateSchemaSchema,
+              expectedErrorMessages: [
+                "Invalid 'params.0.metadata': Must be a JSON object encoded in hexadecimal",
+              ],
             });
 
-            // Test #3: `schemaId` is not an hex string
+            // `schemaId` is not an hex string
             testSetup.push({
               params: {
                 from: signer.address,
                 schemaId: "11.11.2011",
                 schema: `0x${serializedUpdatedSchemaBuffer.toString("hex")}`,
                 metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
-              } as UpdateSchemaParam,
-              expectedErrorMessage:
-                "property params[0].schemaId has failed the following constraints: isHexadecimal, matches",
+              } satisfies UpdateSchemaSchema,
+              expectedErrorMessages: [
+                "Invalid 'params.0.schemaId': Must start with 0x",
+              ],
             });
 
-            // Test #4: the user tries to insert breaking changes (update schema1 with schema2)
+            // Multiple errors at the same time
+            testSetup.push({
+              params: {
+                from: signer.address,
+                schemaId: "42",
+                schema: "0x123",
+                metadata: "0x1234",
+              } satisfies UpdateSchemaSchema,
+              expectedErrorMessages: [
+                "Invalid 'params.0.schemaId': Must start with 0x",
+                "Invalid 'params.0.schema': Length must be even",
+                "Invalid 'params.0.metadata': Must be a JSON object encoded in hexadecimal",
+              ],
+            });
+
+            // the user tries to insert breaking changes (update schema1 with schema2)
             testSetup.push({
               params: {
                 from: signer.address,
                 schemaId,
                 schema: `0x${serializedSchema2Buffer.toString("hex")}`,
                 metadata: `0x${serializedMetadataBuffer2.toString("hex")}`,
-              } as UpdateSchemaParam,
-              expectedErrorMessage: `Invalid schema ID: "${schemaId}" is different from the actual schema ID "${schema2Id}"`,
+              } satisfies UpdateSchemaSchema,
+              expectedErrorMessages: [
+                `Invalid 'params.0.schemaId': "${schemaId}" is different from the actual schema ID "${schema2Id}"`,
+              ],
             });
 
             break;
@@ -830,9 +869,10 @@ describe("JsonRpc Module", () => {
                 from: signer.address,
                 schemaRevisionId: "1234",
                 metadata: `0x${serializedMetadataBuffer2.toString("hex")}`,
-              } as UpdateMetadataParam,
-              expectedErrorMessage:
-                "property params[0].schemaRevisionId has failed the following constraints: matches",
+              } satisfies UpdateMetadataSchema,
+              expectedErrorMessages: [
+                "Invalid 'params.0.schemaRevisionId': Must start with 0x",
+              ],
             });
 
             testSetup.push({
@@ -840,9 +880,11 @@ describe("JsonRpc Module", () => {
                 from: signer.address,
                 schemaRevisionId: "0x",
                 metadata: "0x1234",
-              } as UpdateMetadataParam,
-              expectedErrorMessage:
-                "property params[0].metadata has failed the following constraints: isHexadecimalJSON",
+              } satisfies UpdateMetadataSchema,
+              expectedErrorMessages: [
+                "Invalid 'params.0.schemaRevisionId': Must be hexadecimal",
+                "Invalid 'params.0.metadata': Must be a JSON object encoded in hexadecimal",
+              ],
             });
 
             testSetup.push({
@@ -850,9 +892,11 @@ describe("JsonRpc Module", () => {
                 from: signer.address,
                 schemaRevisionId: "0x",
                 metadata: serializedMetadataBuffer.toString("hex"),
-              } as UpdateMetadataParam,
-              expectedErrorMessage:
-                "property params[0].metadata has failed the following constraints: matches",
+              } satisfies UpdateMetadataSchema,
+              expectedErrorMessages: [
+                "Invalid 'params.0.schemaRevisionId': Must be hexadecimal",
+                "Invalid 'params.0.metadata': Must start with 0x",
+              ],
             });
 
             break;
@@ -862,7 +906,7 @@ describe("JsonRpc Module", () => {
           }
         }
 
-        expect.assertions(testSetup.length * 2);
+        expect.assertions(testSetup.length * 3);
 
         // eslint-disable-next-line no-restricted-syntax
         for (const setup of testSetup) {
@@ -884,9 +928,14 @@ describe("JsonRpc Module", () => {
             id: 231,
             error: {
               code: -32600,
-              message: expect.stringContaining(setup.expectedErrorMessage),
+              message: expect.any(String),
             },
           });
+          expect(
+            (
+              response.body as { error: { message: string } }
+            ).error.message.split("\n"),
+          ).toStrictEqual(expect.arrayContaining(setup.expectedErrorMessages));
           expect(response.status).toBe(400);
         }
       });
@@ -914,7 +963,7 @@ describe("JsonRpc Module", () => {
               schemaId,
               schema: `0x${serializedSchemaBuffer.toString("hex")}`,
               metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
-            } as InsertSchemaParam;
+            } satisfies InsertSchemaSchema;
 
             param2 = {
               from: signer.address,
@@ -923,7 +972,7 @@ describe("JsonRpc Module", () => {
               metadata: `0x${Buffer.from(JSON.stringify(metadata2)).toString(
                 "hex",
               )}`,
-            } as InsertSchemaParam;
+            } satisfies InsertSchemaSchema;
 
             break;
           }
@@ -933,7 +982,7 @@ describe("JsonRpc Module", () => {
               schemaId,
               schema: `0x${serializedUpdatedSchemaBuffer.toString("hex")}`,
               metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
-            } as UpdateSchemaParam;
+            } satisfies UpdateSchemaSchema;
 
             param2 = {
               from: signer.address,
@@ -942,7 +991,7 @@ describe("JsonRpc Module", () => {
               metadata: `0x${Buffer.from(JSON.stringify(metadata2)).toString(
                 "hex",
               )}`,
-            } as UpdateSchemaParam;
+            } satisfies UpdateSchemaSchema;
 
             break;
           }
@@ -951,13 +1000,13 @@ describe("JsonRpc Module", () => {
               from: signer.address,
               schemaRevisionId: ethers.utils.sha256(serializedSchemaBuffer),
               metadata: `0x${serializedMetadataBuffer2.toString("hex")}`,
-            } as UpdateMetadataParam;
+            } satisfies UpdateMetadataSchema;
 
             param2 = {
               from: signer.address,
               schemaRevisionId: ethers.utils.sha256(serializedSchemaBuffer),
               metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
-            } as UpdateMetadataParam;
+            } satisfies UpdateMetadataSchema;
             break;
           }
           default: {

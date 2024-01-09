@@ -29,6 +29,7 @@
     "@cef-ebsi/siop-auth": "^4.0.0",
     "@ebsiint-api/shared": "^1.1.0-rc.5",
     "@ebsiint-sc/trusted-schemas-registry-v2": "^2.0.0-rc.1",
+    "@ethersproject/address": "^5.7.0",
     "@fastify/helmet": "^11.1.1",
     "@nestjs/axios": "^3.0.1",
     "@nestjs/common": "^10.2.10",
@@ -53,8 +54,10 @@
     "passport-http-bearer": "^1.0.1",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
+    "validator": "^13.11.0",
     "winston": "^3.11.0",
-    "yaml": "^2.3.4"
+    "yaml": "^2.3.4",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@cef-ebsi/wallet-lib": "^5.0.0",
@@ -71,6 +74,7 @@
     "@types/node": "^20.10.4",
     "@types/passport-http-bearer": "^1.0.41",
     "@types/supertest": "^2.0.16",
+    "@types/validator": "^13.11.7",
     "@vitest/coverage-v8": "^0.34.6",
     "hardhat": "^2.19.2",
     "msw": "^2.0.10",

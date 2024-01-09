@@ -16,12 +16,6 @@ import { prefixWith0x, computeId, waitToBeMined } from "@ebsiint-api/shared";
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
-import {
-  InsertSchemaParam,
-  UnsignedTransaction,
-  UpdateMetadataParam,
-  UpdateSchemaParam,
-} from "../../src/modules/jsonrpc/dto/index.js";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
 import type { ApiConfig } from "../../src/config/configuration.js";
 import { requestSiopJwt } from "../utils/siopJwt.js";
@@ -29,6 +23,10 @@ import { createVerifiableAuthorisationSchema } from "../utils/data.js";
 import { hexToMultibaseBase58Btc } from "../../src/modules/schemas/schemas.utils.js";
 import { describeWriteOps, writeOps } from "../utils/writeOps.js";
 import { getServer } from "../utils/getServer.js";
+import type { InsertSchemaSchema } from "../../src/modules/jsonrpc/validators/RequestInsertSchemaSchema.js";
+import type { UpdateSchemaSchema } from "../../src/modules/jsonrpc/validators/RequestUpdateSchemaSchema.js";
+import type { UpdateMetadataSchema } from "../../src/modules/jsonrpc/validators/RequestUpdateMetadataSchema.js";
+import type { UnsignedTransaction } from "../../src/modules/jsonrpc/validators/RequestSendSignedTransactionSchema.js";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -36,9 +34,9 @@ interface SupertestJsonRpcResponse {
 }
 
 type JsonRpcParams =
-  | InsertSchemaParam
-  | UpdateSchemaParam
-  | UpdateMetadataParam;
+  | InsertSchemaSchema
+  | UpdateSchemaSchema
+  | UpdateMetadataSchema;
 
 describe("TSR API v3 - Schemas (e2e)", () => {
   let app: NestFastifyApplication;
@@ -187,7 +185,7 @@ describe("TSR API v3 - Schemas (e2e)", () => {
               schemaId,
               schema: `0x${serializedSchemaBuffer.toString("hex")}`,
               metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
-            } as InsertSchemaParam;
+            } satisfies InsertSchemaSchema;
             break;
           }
           case "updateSchema": {
@@ -196,7 +194,7 @@ describe("TSR API v3 - Schemas (e2e)", () => {
               schemaId,
               schema: `0x${serializedSchemaUpdatedBuffer.toString("hex")}`,
               metadata: `0x${serializedUpdatedMetadataBuffer.toString("hex")}`,
-            } as UpdateSchemaParam;
+            } satisfies UpdateSchemaSchema;
             break;
           }
           case "updateMetadata": {
@@ -204,7 +202,7 @@ describe("TSR API v3 - Schemas (e2e)", () => {
               from: adminTestWallet.address,
               schemaRevisionId,
               metadata: `0x${serializedMetadataBuffer2.toString("hex")}`,
-            } as UpdateMetadataParam;
+            } satisfies UpdateMetadataSchema;
             break;
           }
           default: {

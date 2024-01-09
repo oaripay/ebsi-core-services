@@ -6,26 +6,32 @@ import {
   getErrorMessage,
   InvalidRequestJsonRpcError,
   isEthersError,
+  extractNamedAttributes,
 } from "@ebsiint-api/shared";
-import {
-  RequestSendSignedTransactionDto,
-  SignedTransactionParam,
-  UnsignedTransaction,
-  ArgsInsertSchema,
-  RequestInsertSchemaDto,
-  RequestUpdateMetadataDto,
-  ArgsUpdateMetadata,
-  RequestUpdateSchemaDto,
-  ArgsUpdateSchema,
-} from "./dto/index.js";
 import {
   formatEthersUnsignedTransaction,
   formatEthersSignature,
-  validateClass,
-  validateSchemaId,
 } from "./jsonrpc.utils.js";
 import { LedgerService } from "../ledger/ledger.service.js";
 import type { ApiConfig } from "../../config/configuration.js";
+import type { JsonRpcSchema } from "./validators/JsonRpcSchema.js";
+import {
+  insertSchemaSchema,
+  requestInsertSchemaSchema,
+} from "./validators/RequestInsertSchemaSchema.js";
+import {
+  requestUpdateSchemaSchema,
+  updateSchemaSchema,
+} from "./validators/RequestUpdateSchemaSchema.js";
+import {
+  requestUpdateMetadataSchema,
+  updateMetadataSchema,
+} from "./validators/RequestUpdateMetadataSchema.js";
+import {
+  requestSendSignedTransactionDtoSchema,
+  type SendSignedTransactionParamsSchema,
+  type UnsignedTransaction,
+} from "./validators/RequestSendSignedTransactionSchema.js";
 
 @Injectable()
 export class JsonRpcService {
@@ -129,7 +135,7 @@ export class JsonRpcService {
   }
 
   async verifyTransaction(
-    param: SignedTransactionParam,
+    param: SendSignedTransactionParamsSchema,
   ): Promise<{ signer: string; functionName: string }> {
     const { unsignedTransaction, r, s, v, signedRawTransaction } = param;
 
@@ -177,36 +183,23 @@ export class JsonRpcService {
       await this.ledgerService.getContract()
     ).interface.parseTransaction(unsignedTransaction);
 
+    // Extract named args from args (args is a mixed array with named and unnamed values)
+    const argsObject = {
+      ...extractNamedAttributes(args),
+      from: unsignedTransaction.from,
+    };
+
     switch (functionFragment.name) {
       case "insertSchema": {
-        const argsInsertSchema = args as unknown as ArgsInsertSchema;
-
-        await validateClass(ArgsInsertSchema, argsInsertSchema);
-
-        await validateSchemaId(
-          argsInsertSchema.schema,
-          argsInsertSchema.schemaId,
-        );
-
+        await insertSchemaSchema.parseAsync(argsObject);
         break;
       }
       case "updateSchema": {
-        const argsUpdateSchema = args as unknown as ArgsUpdateSchema;
-
-        await validateClass(ArgsUpdateSchema, argsUpdateSchema);
-
-        await validateSchemaId(
-          argsUpdateSchema.schema,
-          argsUpdateSchema.schemaId,
-        );
-
+        await updateSchemaSchema.parseAsync(argsObject);
         break;
       }
       case "updateMetadata": {
-        await validateClass(
-          ArgsUpdateMetadata,
-          args as unknown as ArgsUpdateMetadata,
-        );
+        await updateMetadataSchema.parseAsync(argsObject);
         break;
       }
       default:
@@ -264,15 +257,13 @@ export class JsonRpcService {
   }
 
   async buildTransactionInsertSchema(
-    body: RequestInsertSchemaDto,
-    id?: number | string,
+    body: JsonRpcSchema,
+    id: number | string | null | undefined,
   ): Promise<UnsignedTransaction> {
     try {
-      await validateClass(RequestInsertSchemaDto, body);
+      const parsedBody = await requestInsertSchemaSchema.parseAsync(body);
 
-      const { from, schemaId, schema, metadata } = body.params[0]!;
-
-      await validateSchemaId(schema, schemaId);
+      const { from, schemaId, schema, metadata } = parsedBody.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -293,15 +284,13 @@ export class JsonRpcService {
   }
 
   async buildTransactionUpdateSchema(
-    body: RequestUpdateSchemaDto,
-    id?: number | string,
+    body: JsonRpcSchema,
+    id: number | string | null | undefined,
   ): Promise<UnsignedTransaction> {
     try {
-      await validateClass(RequestUpdateSchemaDto, body);
+      const parsedBody = await requestUpdateSchemaSchema.parseAsync(body);
 
-      const { from, schemaId, schema, metadata } = body.params[0]!;
-
-      await validateSchemaId(schema, schemaId);
+      const { from, schemaId, schema, metadata } = parsedBody.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -322,13 +311,13 @@ export class JsonRpcService {
   }
 
   async buildTransactionUpdateMetadata(
-    body: RequestUpdateMetadataDto,
-    id?: number | string,
+    body: JsonRpcSchema,
+    id: number | string | null | undefined,
   ): Promise<UnsignedTransaction> {
     try {
-      await validateClass(RequestUpdateMetadataDto, body);
+      const parsedBody = await requestUpdateMetadataSchema.parseAsync(body);
 
-      const { from, schemaRevisionId, metadata } = body.params[0]!;
+      const { from, schemaRevisionId, metadata } = parsedBody.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -349,13 +338,15 @@ export class JsonRpcService {
 
   async sendTransaction(
     clientId: string,
-    body: RequestSendSignedTransactionDto,
-    id?: number | string,
+    body: JsonRpcSchema,
+    id: number | string | null | undefined,
   ): Promise<string> {
     try {
-      await validateClass(RequestSendSignedTransactionDto, body);
+      const parsedBody =
+        await requestSendSignedTransactionDtoSchema.parseAsync(body);
 
-      const request = body.params[0]!;
+      const request = parsedBody.params[0]!;
+
       const { signer } = await this.verifyTransaction(request);
 
       await this.checkWritePermission(signer, clientId);
