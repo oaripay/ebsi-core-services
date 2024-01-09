@@ -16,7 +16,7 @@ export interface PolicyObject {
 }
 
 export interface UserObject {
-  address: string;
+  user: string;
   attributes: string[];
 }
 
@@ -41,11 +41,11 @@ export async function insertUser(
   contract: PolicyRegistry,
 ): Promise<UserObject> {
   const user: UserObject = {
-    address: ethers.Wallet.createRandom().address,
+    user: ethers.Wallet.createRandom().address,
     attributes: ["test-attr1", "test-attr2", "test-attr3"],
   };
 
-  await contract.insertUserAttributes(user.address, user.attributes);
+  await contract.insertUserAttributes(user.user, user.attributes);
 
   return user;
 }

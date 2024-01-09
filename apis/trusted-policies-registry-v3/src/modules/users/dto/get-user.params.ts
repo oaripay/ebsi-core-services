@@ -2,7 +2,7 @@ import { IsEthereumAddress } from "class-validator";
 
 export class GetUserParams {
   @IsEthereumAddress()
-  address!: string;
+  user!: string;
 }
 
 export default GetUserParams;

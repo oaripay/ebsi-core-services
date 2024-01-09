@@ -54,18 +54,18 @@ export class UsersService {
     }
   }
 
-  async getUser(address: string): Promise<UserResponseObject> {
+  async getUser(user: string): Promise<UserResponseObject> {
     try {
       return {
-        address,
-        attributes: await this.getAllUserAttributes(address),
+        user,
+        attributes: await this.getAllUserAttributes(user),
       };
     } catch (e) {
       if (isEthersError(e)) {
         this.logger.error(e);
       }
       throw new NotFoundError("User Not Found", {
-        detail: `User ${address} not found:`,
+        detail: `User ${user} not found:`,
       });
     }
   }

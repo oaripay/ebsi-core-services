@@ -28,14 +28,14 @@ import { JsonRpcModule } from "./jsonrpc.module.js";
 import { JsonRpcService } from "./jsonrpc.service.js";
 import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
 import {
-  UnsignedTransaction,
-  InsertPolicyParam,
-  UpdatePolicyParam,
-  ActivatePolicyParam,
-  DeactivatePolicyParam,
-  InsertUserAttributesParam,
-  DeleteUserAttributeParam,
-} from "./dto/index.js";
+  type UnsignedTransaction,
+  type InsertPolicySchema,
+  type UpdatePolicySchema,
+  type ActivatePolicySchema,
+  type DeactivatePolicySchema,
+  type InsertUserAttributesSchema,
+  type DeleteUserAttributeSchema,
+} from "./validators/index.js";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { setupTestEnv } from "../../../tests/utils/trustedPoliciesRegistry.js";
@@ -60,10 +60,12 @@ interface SupertestJsonRpcResponse {
 }
 
 type JsonRpcParams =
-  | InsertPolicyParam
-  | UpdatePolicyParam
-  | ActivatePolicyParam
-  | DeactivatePolicyParam;
+  | InsertPolicySchema
+  | UpdatePolicySchema
+  | ActivatePolicySchema
+  | DeactivatePolicySchema
+  | InsertUserAttributesSchema
+  | DeleteUserAttributeSchema;
 
 describe("JsonRpc Module", () => {
   let app: NestFastifyApplication;
@@ -219,7 +221,7 @@ describe("JsonRpc Module", () => {
   });
 
   it("should throw Bad Request for a bad JSON-RPC call", async () => {
-    expect.assertions(2);
+    expect.assertions(4);
 
     // Mock access token verification
     vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(
@@ -229,17 +231,37 @@ describe("JsonRpc Module", () => {
         } as unknown as JWTVerifyResult),
     );
 
-    const response = await request(server)
+    let response = await request(server)
       .post("/jsonrpc")
       .auth(userAccessToken, { type: "bearer" })
       .send();
 
     expect(response.body).toStrictEqual({
-      title: "Bad Request",
-      status: 400,
-      detail:
-        '["jsonrpc must be equal to 2.0","method must be a string","params must be an array"]',
-      type: "about:blank",
+      error: {
+        code: -32600,
+        message: "JSON-RPC payload must be an object",
+      },
+      id: null,
+      jsonrpc: "2.0",
+    });
+    expect(response.status).toBe(400);
+
+    response = await request(server)
+      .post("/jsonrpc")
+      .auth(userAccessToken, { type: "bearer" })
+      .send({});
+
+    expect(response.body).toStrictEqual({
+      error: {
+        code: -32600,
+        message: [
+          "Invalid 'jsonrpc': Invalid literal value, expected \"2.0\"",
+          "Invalid 'method': Required",
+          "Invalid 'params': Required",
+        ].join("\n"),
+      },
+      id: null,
+      jsonrpc: "2.0",
     });
     expect(response.status).toBe(400);
   });
@@ -369,7 +391,7 @@ describe("JsonRpc Module", () => {
       from: signer.address,
       policyName,
       description,
-    } as InsertPolicyParam;
+    } satisfies InsertPolicySchema;
 
     const responseBuild: SupertestJsonRpcResponse = await request(server)
       .post("/jsonrpc")
@@ -457,7 +479,7 @@ describe("JsonRpc Module", () => {
       from: signer.address,
       policyName,
       description,
-    } as InsertPolicyParam;
+    } satisfies InsertPolicySchema;
 
     const responseBuild: SupertestJsonRpcResponse = await request(server)
       .post("/jsonrpc")
@@ -527,6 +549,45 @@ describe("JsonRpc Module", () => {
     expect(responseSend.status).toBe(400);
   });
 
+  it("should throw an error if the from attribute is not a valid Ethereum address", async () => {
+    expect.assertions(2);
+
+    // Mock access token verification
+    vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(
+      async (): Promise<JWTVerifyResult> =>
+        Promise.resolve({
+          payload: userAccessTokenPayload,
+        } as unknown as JWTVerifyResult),
+    );
+
+    const accessToken = userAccessToken;
+    const param = {
+      from: "0x123",
+      policyName: "test",
+      description: "test",
+    } satisfies InsertPolicySchema;
+
+    const responseBuild = await request(server)
+      .post("/jsonrpc")
+      .auth(accessToken, { type: "bearer" })
+      .send({
+        jsonrpc: "2.0",
+        method: "insertPolicy",
+        params: [param],
+        id: 123,
+      });
+
+    expect(responseBuild.body).toStrictEqual({
+      jsonrpc: "2.0",
+      id: 123,
+      error: {
+        code: -32600,
+        message: "Invalid 'params.0.from': Invalid Ethereum address",
+      },
+    });
+    expect(responseBuild.status).toBe(400);
+  });
+
   // Tests to be repeated for every method
   describe.each([
     "insertPolicy",
@@ -565,7 +626,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             policyName,
             description,
-          } as InsertPolicyParam;
+          } satisfies InsertPolicySchema;
           break;
         }
         case "updatePolicy": {
@@ -575,7 +636,7 @@ describe("JsonRpc Module", () => {
             ...(byPolicyId && { policyId: "1" }),
             ...(byPolicyName && { policyName }),
             description,
-          } as UpdatePolicyParam;
+          } satisfies UpdatePolicySchema;
           break;
         }
         case "deactivatePolicy": {
@@ -584,7 +645,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             ...(byPolicyId && { policyId: "1" }),
             ...(byPolicyName && { policyName }),
-          } as DeactivatePolicyParam;
+          } satisfies DeactivatePolicySchema;
           break;
         }
         case "activatePolicy": {
@@ -593,23 +654,23 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             ...(byPolicyId && { policyId: "1" }),
             ...(byPolicyName && { policyName }),
-          } as ActivatePolicyParam;
+          } satisfies ActivatePolicySchema;
           break;
         }
         case "insertUserAttributes": {
           param = {
             from: signer.address,
-            address: userAddress,
+            user: userAddress,
             attributes: ["attr1", "attr2"],
-          } as InsertUserAttributesParam;
+          } satisfies InsertUserAttributesSchema;
           break;
         }
         case "deleteUserAttribute": {
           param = {
             from: signer.address,
-            address: userAddress,
-            attributeName: "attr1",
-          } as DeleteUserAttributeParam;
+            user: userAddress,
+            attribute: "attr1",
+          } satisfies DeleteUserAttributeSchema;
           break;
         }
         default: {
@@ -702,7 +763,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             policyName,
             description,
-          } as InsertPolicyParam;
+          } satisfies InsertPolicySchema;
           break;
         }
         case "updatePolicy": {
@@ -712,7 +773,7 @@ describe("JsonRpc Module", () => {
             ...(byPolicyId && { policyId: "1" }),
             ...(byPolicyName && { policyName }),
             description,
-          } as UpdatePolicyParam;
+          } satisfies UpdatePolicySchema;
           break;
         }
         case "deactivatePolicy": {
@@ -721,7 +782,7 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             ...(byPolicyId && { policyId: "1" }),
             ...(byPolicyName && { policyName }),
-          } as DeactivatePolicyParam;
+          } satisfies DeactivatePolicySchema;
           break;
         }
         case "activatePolicy": {
@@ -730,23 +791,23 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             ...(byPolicyId && { policyId: "1" }),
             ...(byPolicyName && { policyName }),
-          } as ActivatePolicyParam;
+          } satisfies ActivatePolicySchema;
           break;
         }
         case "insertUserAttributes": {
           param = {
             from: signer.address,
-            address: userAddress,
+            user: userAddress,
             attributes: ["attr1", "attr2"],
-          } as InsertUserAttributesParam;
+          } satisfies InsertUserAttributesSchema;
           break;
         }
         case "deleteUserAttribute": {
           param = {
             from: signer.address,
-            address: userAddress,
-            attributeName: "attr1",
-          } as DeleteUserAttributeParam;
+            user: userAddress,
+            attribute: "attr1",
+          } satisfies DeleteUserAttributeSchema;
           break;
         }
         default: {
@@ -792,20 +853,20 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             policyName: policy1.policyName,
             // description: policy1.description, <- missing description
-          } as InsertPolicyParam);
+          } as InsertPolicySchema);
 
           expectedErrorMessages.push(
-            "- Invalid params.0.description provided: description must be a string",
+            "Invalid 'params.0.description': Required",
           );
 
           params.push({
             from: "bad address",
             policyName: policy2.policyName,
             description: policy2.description,
-          } as InsertPolicyParam);
+          } satisfies InsertPolicySchema);
 
           expectedErrorMessages.push(
-            "Invalid params.0.from provided: from must be an Ethereum address",
+            "Invalid 'params.0.from': Invalid Ethereum address",
           );
 
           break;
@@ -816,10 +877,10 @@ describe("JsonRpc Module", () => {
             policyId: "1",
             policyName: policy1.policyName,
             // description: policy1.description, <- missing description
-          } as UpdatePolicyParam);
+          } as UpdatePolicySchema);
 
           expectedErrorMessages.push(
-            "- Invalid params.0.description provided: description must be a string",
+            "Invalid 'params.0.description': Required",
           );
 
           params.push({
@@ -827,21 +888,21 @@ describe("JsonRpc Module", () => {
             policyId: "1",
             policyName: policy2.policyName,
             description: 15, // Invalid description
-          } as unknown as UpdatePolicyParam);
+          } as unknown as UpdatePolicySchema);
 
           expectedErrorMessages.push(
-            "Invalid params.0.description provided: description must be a string",
+            "Invalid 'params.0.description': Expected string, received number",
           );
 
           params.push({
             from: signer.address,
-            policyId: "0x69042",
+            policyId: "badId",
             policyName: policy2.policyName,
             description: policy2.description,
-          } as UpdatePolicyParam);
+          } satisfies UpdatePolicySchema);
 
           expectedErrorMessages.push(
-            "Invalid params.0.policyId provided: policyId must be a number string",
+            "Invalid 'params.0.policyId': Not an integer string",
           );
 
           break;
@@ -850,10 +911,10 @@ describe("JsonRpc Module", () => {
           params.push({
             from: signer.address,
             policyId: "test",
-          } as DeactivatePolicyParam);
+          } satisfies DeactivatePolicySchema);
 
           expectedErrorMessages.push(
-            "- Invalid params.0.policyId provided: policyId must be a number string",
+            "Invalid 'params.0.policyId': Not an integer string",
           );
 
           break;
@@ -862,10 +923,10 @@ describe("JsonRpc Module", () => {
           params.push({
             from: signer.address,
             policyId: "test",
-          } as ActivatePolicyParam);
+          } satisfies ActivatePolicySchema);
 
           expectedErrorMessages.push(
-            "- Invalid params.0.policyId provided: policyId must be a number string",
+            "Invalid 'params.0.policyId': Not an integer string",
           );
 
           break;
@@ -873,24 +934,24 @@ describe("JsonRpc Module", () => {
         case "insertUserAttributes": {
           params.push({
             from: signer.address,
-            address: userAddress,
+            user: userAddress,
             attributes: "attr1",
-          } as unknown as InsertUserAttributesParam);
+          } as unknown as InsertUserAttributesSchema);
 
           expectedErrorMessages.push(
-            "- Invalid params.0.attributes provided: attributes must be an array",
+            "Invalid 'params.0.attributes': Expected array, received string",
           );
           break;
         }
         case "deleteUserAttribute": {
           params.push({
             from: signer.address,
-            address: userAddress,
-            attributeName: 12,
-          } as unknown as DeleteUserAttributeParam);
+            user: userAddress,
+            attribute: 12,
+          } as unknown as DeleteUserAttributeSchema);
 
           expectedErrorMessages.push(
-            "- Invalid params.0.attributeName provided: attributeName must be a string",
+            "Invalid 'params.0.attribute': Expected string, received number",
           );
           break;
         }
@@ -950,12 +1011,12 @@ describe("JsonRpc Module", () => {
             from: signer.address,
             policyName,
             description,
-          } as InsertPolicyParam;
+          } satisfies InsertPolicySchema;
           param2 = {
             from: signer.address,
             policyName: "another name",
             description,
-          } as InsertPolicyParam;
+          } satisfies InsertPolicySchema;
           break;
         }
         case "updatePolicy": {
@@ -966,25 +1027,25 @@ describe("JsonRpc Module", () => {
             policyId: "1",
             policyName,
             description,
-          } as UpdatePolicyParam;
+          } satisfies UpdatePolicySchema;
           param2 = {
             from: signer.address,
             policyId: "1",
             policyName: "another name",
             description,
-          } as UpdatePolicyParam;
+          } satisfies UpdatePolicySchema;
           break;
         }
         case "deactivatePolicy": {
           param1 = {
             from: signer.address,
             policyId: "1",
-          } as DeactivatePolicyParam;
+          } satisfies DeactivatePolicySchema;
 
           param2 = {
             from: signer.address,
             policyId: "2",
-          } as DeactivatePolicyParam;
+          } satisfies DeactivatePolicySchema;
 
           break;
         }
@@ -992,41 +1053,41 @@ describe("JsonRpc Module", () => {
           param1 = {
             from: signer.address,
             policyId: "1",
-          } as ActivatePolicyParam;
+          } satisfies ActivatePolicySchema;
 
           param2 = {
             from: signer.address,
             policyId: "2",
-          } as ActivatePolicyParam;
+          } satisfies ActivatePolicySchema;
 
           break;
         }
         case "insertUserAttributes": {
           param1 = {
             from: signer.address,
-            address: userAddress,
+            user: userAddress,
             attributes: ["attr1", "attr2"],
-          } as InsertUserAttributesParam;
+          } satisfies InsertUserAttributesSchema;
 
           param2 = {
             from: signer.address,
-            address: userAddress,
+            user: userAddress,
             attributes: ["attr1", "attr3"],
-          } as InsertUserAttributesParam;
+          } satisfies InsertUserAttributesSchema;
           break;
         }
         case "deleteUserAttribute": {
           param1 = {
             from: signer.address,
-            address: userAddress,
-            attributeName: "attr1",
-          } as DeleteUserAttributeParam;
+            user: userAddress,
+            attribute: "attr1",
+          } satisfies DeleteUserAttributeSchema;
 
           param2 = {
             from: signer.address,
-            address: userAddress,
-            attributeName: "attr2",
-          } as DeleteUserAttributeParam;
+            user: userAddress,
+            attribute: "attr2",
+          } satisfies DeleteUserAttributeSchema;
           break;
         }
         default: {

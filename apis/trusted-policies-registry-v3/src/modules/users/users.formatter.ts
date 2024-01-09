@@ -12,10 +12,10 @@ export function formatUsers(
   const total = users.total.toNumber();
 
   // Reshape items
-  const items = users.items.map((address) => {
+  const items = users.items.map((user) => {
     return {
-      address,
-      href: `${baseUrl}/${address}`,
+      user,
+      href: `${baseUrl}/${user}`,
     };
   });
 

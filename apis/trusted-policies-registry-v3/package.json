@@ -28,6 +28,8 @@
     "@cef-ebsi/siop-auth": "^4.0.0",
     "@ebsiint-api/shared": "^1.1.0-rc.5",
     "@ebsiint-sc/trusted-policies-registry-v2": "^2.0.0-rc.1",
+    "@ethersproject/address": "^5.7.0",
+    "@ethersproject/bignumber": "^5.7.0",
     "@fastify/helmet": "^11.1.1",
     "@nestjs/axios": "^3.0.1",
     "@nestjs/common": "^10.2.10",
@@ -50,7 +52,8 @@
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
     "winston": "^3.11.0",
-    "yaml": "^2.3.4"
+    "yaml": "^2.3.4",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.2.1",

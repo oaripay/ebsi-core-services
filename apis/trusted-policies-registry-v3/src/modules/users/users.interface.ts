@@ -1,9 +1,9 @@
 export interface UserResponseObject {
-  address: string;
+  user: string;
   attributes: string[];
 }
 
 export interface UserLink {
-  address: string;
+  user: string;
   href: string;
 }

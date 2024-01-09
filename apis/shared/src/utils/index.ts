@@ -12,3 +12,4 @@ export * from "./pagination.utils.js";
 export * from "./strings.utils.js";
 export * from "./parseRevertReason.js";
 export * from "./waitToBeMined.js";
+export * from "./extractNamedAttributes.js";

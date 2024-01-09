@@ -112,34 +112,7 @@ paths:
                     policyId: "0"
                     description: description-test-036ccfd98b88a9c3ad1a23e730bc414f
                     policyName: policy-test-fd0010fa07c2ff3eba04a46547687d17
-                    operationType: AND
                     status: true
-                    policyConditions:
-                      - name: condition-string
-                        attributeName: any
-                        typeOfValue: STRING
-                        value: vxc4gdbfgb
-                        attributeOperation: EQUAL
-                      - name: condition-bytes
-                        attributeName: any
-                        typeOfValue: BYTES
-                        value: "0x61736461736464"
-                        attributeOperation: EQUAL
-                      - name: condition-boolean
-                        attributeName: any
-                        typeOfValue: BOOLEAN
-                        value: false
-                        attributeOperation: EQUAL
-                      - name: condition-address
-                        attributeName: any
-                        typeOfValue: ADDRESS
-                        value: "0x00000000219ab540356cbb839cbe05303d7705fa"
-                        attributeOperation: EQUAL
-                      - name: condition-uint256
-                        attributeName: any
-                        typeOfValue: UINT256
-                        value: "42"
-                        attributeOperation: EQUAL
         "400":
           description: Bad Request
           content:
@@ -187,7 +160,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        address:
+                        user:
                           type: string
                           description: User address
                         href:
@@ -206,9 +179,9 @@ paths:
                   value:
                     self: https://api-test.ebsi.eu/trusted-policies-registry/v3/users?page[after]=3&page[size]=2
                     items:
-                      - address: "0x7E918E979A5FFa5e540d8C8d6dB220E3f0704858"
+                      - user: "0x7E918E979A5FFa5e540d8C8d6dB220E3f0704858"
                         href: https://api-test.ebsi.eu/trusted-policies-registry/v3/users/0x7E918E979A5FFa5e540d8C8d6dB220E3f0704858
-                      - address: "0x69e48d89bf5e09588E858D757323b4abBBB3f814"
+                      - user: "0x69e48d89bf5e09588E858D757323b4abBBB3f814"
                         href: https://api-test.ebsi.eu/trusted-policies-registry/v3/users/0x69e48d89bf5e09588E858D757323b4abBBB3f814
                     total: 124
                     pageSize: 2
@@ -221,9 +194,9 @@ paths:
                   value:
                     self: https://api-pilot.ebsi.eu/trusted-policies-registry/v3/users?page[after]=3&page[size]=2
                     items:
-                      - address: "0x7E918E979A5FFa5e540d8C8d6dB220E3f0704858"
+                      - user: "0x7E918E979A5FFa5e540d8C8d6dB220E3f0704858"
                         href: https://api-pilot.ebsi.eu/trusted-policies-registry/v3/users/0x7E918E979A5FFa5e540d8C8d6dB220E3f0704858
-                      - address: "0x69e48d89bf5e09588E858D757323b4abBBB3f814"
+                      - user: "0x69e48d89bf5e09588E858D757323b4abBBB3f814"
                         href: https://api-pilot.ebsi.eu/trusted-policies-registry/v3/users/0x69e48d89bf5e09588E858D757323b4abBBB3f814
                     total: 124
                     pageSize: 2
@@ -236,7 +209,7 @@ paths:
           $ref: "#/components/responses/400"
         "500":
           $ref: "#/components/responses/500"
-  /trusted-policies-registry/v3/users/{address}:
+  /trusted-policies-registry/v3/users/{user}:
     get:
       operationId: get-user
       summary: Get a user
@@ -244,17 +217,17 @@ paths:
       tags:
         - Users
       parameters:
-        - name: address
+        - name: user
           in: path
           schema:
             type: string
           required: true
           examples:
-            "[test] address":
-              description: valid test address
+            "[test] user":
+              description: valid test user
               value: "0x69e48d89bf5e09588E858D757323b4abBBB3f814"
-            "[pilot] address":
-              description: valid pilot address
+            "[pilot] user":
+              description: valid pilot user
               value: "0x69e48d89bf5e09588E858D757323b4abBBB3f814"
       responses:
         "200":
@@ -266,10 +239,10 @@ paths:
               examples:
                 Success:
                   value:
-                    address: "0x69e48d89bf5e09588E858D757323b4abBBB3f814"
+                    user: "0x69e48d89bf5e09588E858D757323b4abBBB3f814"
                     attributes:
-                      "TSR:insertSchema": "0x0000000000000000000000000000000000000000000000000000000000000001"
-                      "TSR:updateSchema": "0x0000000000000000000000000000000000000000000000000000000000000001"
+                      - "TSR:insertSchema"
+                      - "TSR:updateSchema"
         "400":
           description: Bad Request
           content:
@@ -325,17 +298,9 @@ paths:
           This method requires OPERATOR ROLE in the Trusted Policies Registry.
 
           Parameters:
-          - **from**: Ethereum address of the administrator
-          - **opType**: operation type. 0 = "AND", 1 = "OR"
+          - **from**: Ethereum user of the administrator
           - **policyName**: name of the policy.
           - **description**: description.
-          - **policyConditions**: array of condition objects:
-            - **name**: name of the condition
-            - **attributeName**: name of the attribute on which it applies
-            - **value**: value to compare to
-            - **typeOfValue**: value type. 0 = "UINT256", 1 = "BYTES", 2 = "ADDRESS",
-              3= "BYTES32", 4 = "STRING", 5 = "BOOLEAN"
-            - **attributeOperation**: operation to apply. 0 = "EQUAL"
 
           #### updatePolicy
 
@@ -346,40 +311,7 @@ paths:
           - **from**: Ethereum address of the administrator
           - **policyId**: Policy ID
           - **policyName**: Policy Name
-          - **opType**: operation type. 0 = "AND", 1 = "OR"
           - **description**: description.
-
-          Use either `policyId` OR `policyName` to identify the policy, but not both.
-
-          #### addPolicyConditions
-
-          Call to build an unsigned transaction to add conditions to an existing policy in the
-          registry. This method requires OPERATOR ROLE in the Trusted Policies Registry.
-
-          Parameters:
-          - **from**: Ethereum address of the administrator
-          - **policyId**: Policy ID
-          - **policyName**: Policy Name
-          - **policyConditions**: array of condition objects:
-            - **name**: name of the condition
-            - **attributeName**: name of the attribute on which it applies
-            - **value**: value to compare to
-            - **typeOfValue**: value type. 0 = "UINT256", 1 = "BYTES", 2 = "ADDRESS",
-              3= "BYTES32", 4 = "STRING", 5 = "BOOLEAN"
-            - **attributeOperation**: operation to apply. 0 = "EQUAL"
-
-          Use either `policyId` OR `policyName` to identify the policy, but not both.
-
-          #### deletePolicyCondition
-
-          Call to build an unsigned transaction to delete a condition from an existing policy in
-          the registry. This method requires OPERATOR ROLE in the Trusted Policies Registry.
-
-          Parameters:
-          - **from**: Ethereum address of the administrator
-          - **policyId**: Policy ID
-          - **policyName**: Policy Name
-          - **policyConditionId:**: ID of the policy condition to remove
 
           Use either `policyId` OR `policyName` to identify the policy, but not both.
 
@@ -414,20 +346,8 @@ paths:
 
           Parameters:
           - **from**: Ethereum address of the administrator
-          - **address**: user address
-          - **attributeNames**: attribute names
-          - **attributeValues**: attribute values
-
-          #### updateUserAttribute
-
-          Call to build an unsigned transaction to update an user attribute in the registry. This
-          method requires OPERATOR ROLE in the Trusted Policies Registry.
-
-          Parameters:
-          - **from**: Ethereum address of the administrator
-          - **address**: user address
-          - **attributeName**: attribute name
-          - **attributeValue**: attribute value
+          - **user**: user address
+          - **attributes**: attribute names
 
           #### deleteUserAttribute
 
@@ -436,8 +356,8 @@ paths:
 
           Parameters:
           - **from**: Ethereum address of the administrator
-          - **address**: user address
-          - **attributeName**: attribute name
+          - **user**: user address
+          - **attribute**: attribute name
 
           #### sendSignedTransaction
 
@@ -475,35 +395,8 @@ paths:
                   id: 1
                   params:
                     - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
-                      opType: 0
                       policyName: policy-test-237a346cd80aea1afb21d66ce39f7695
                       description: description-test-98efbd91f1c40d254f4fd699a3f7b9fa
-                      policyConditions:
-                        - name: condition-string
-                          attributeName: any
-                          value: "0x76786334676462666762"
-                          attributeOperation: 0
-                          typeOfValue: 4
-                        - name: condition-bytes
-                          attributeName: any
-                          value: "0x61736461736464"
-                          attributeOperation: 0
-                          typeOfValue: 1
-                        - name: condition-boolean-uint8array
-                          attributeName: any
-                          value: "0x00"
-                          attributeOperation: 0
-                          typeOfValue: 5
-                        - name: condition-address
-                          attributeName: any
-                          value: "0x00000000219ab540356cbb839cbe05303d7705fa"
-                          attributeOperation: 0
-                          typeOfValue: 2
-                        - name: condition-uint256
-                          attributeName: any
-                          value: "0x2a"
-                          attributeOperation: 0
-                          typeOfValue: 0
               Build tx to updatePolicy (by policyId):
                 value:
                   jsonrpc: "2.0"
@@ -512,52 +405,8 @@ paths:
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       policyId: "1"
-                      opType: 0
                       policyName: policy-test-0245fd52e9606e375ffe7d46718d60c8
                       description: description-test-867fc5181e2a0df61094cb565cf18d96
-              Build tx to addPolicyConditions (by policyId):
-                value:
-                  jsonrpc: "2.0"
-                  method: addPolicyConditions
-                  id: 1
-                  params:
-                    - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
-                      policyId: "1"
-                      policyConditions:
-                        - name: condition-string
-                          attributeName: any
-                          value: "0x76786334676462666762"
-                          attributeOperation: 0
-                          typeOfValue: 4
-                        - name: condition-bytes
-                          attributeName: any
-                          value: "0x61736461736464"
-                          attributeOperation: 0
-                          typeOfValue: 1
-                        - name: condition-boolean-uint8array
-                          attributeName: any
-                          value: "0x00"
-                          attributeOperation: 0
-                          typeOfValue: 5
-                        - name: condition-address
-                          attributeName: any
-                          value: "0x00000000219ab540356cbb839cbe05303d7705fa"
-                          attributeOperation: 0
-                          typeOfValue: 2
-                        - name: condition-uint256
-                          attributeName: any
-                          value: "0x2a"
-                          attributeOperation: 0
-                          typeOfValue: 0
-              Build tx to deletePolicyCondition (by policyId):
-                value:
-                  jsonrpc: "2.0"
-                  method: deletePolicyCondition
-                  id: 1
-                  params:
-                    - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
-                      policyId: "1"
-                      policyConditionId: "2"
               Build tx to deactivatePolicy (by policyId):
                 value:
                   jsonrpc: "2.0"
@@ -582,51 +431,7 @@ paths:
                   params:
                     - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
                       policyName: "TSR:insertSchema"
-                      opType: 0
                       description: description-test-867fc5181e2a0df61094cb565cf18d96
-              Build tx to addPolicyConditions (by policyName):
-                value:
-                  jsonrpc: "2.0"
-                  method: addPolicyConditions
-                  id: 1
-                  params:
-                    - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
-                      policyName: "TSR:insertSchema"
-                      policyConditions:
-                        - name: condition-string
-                          attributeName: any
-                          value: "0x76786334676462666762"
-                          attributeOperation: 0
-                          typeOfValue: 4
-                        - name: condition-bytes
-                          attributeName: any
-                          value: "0x61736461736464"
-                          attributeOperation: 0
-                          typeOfValue: 1
-                        - name: condition-boolean-uint8array
-                          attributeName: any
-                          value: "0x00"
-                          attributeOperation: 0
-                          typeOfValue: 5
-                        - name: condition-address
-                          attributeName: any
-                          value: "0x00000000219ab540356cbb839cbe05303d7705fa"
-                          attributeOperation: 0
-                          typeOfValue: 2
-                        - name: condition-uint256
-                          attributeName: any
-                          value: "0x2a"
-                          attributeOperation: 0
-                          typeOfValue: 0
-              Build tx to deletePolicyCondition (by policyName):
-                value:
-                  jsonrpc: "2.0"
-                  method: deletePolicyCondition
-                  id: 1
-                  params:
-                    - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
-                      policyName: "TSR:insertSchema"
-                      policyConditionId: "2"
               Build tx to deactivatePolicy (by policyName):
                 value:
                   jsonrpc: "2.0"
@@ -650,23 +455,10 @@ paths:
                   id: 1
                   params:
                     - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
-                      address: "0x5B740B7aB0A383F6F03579B90e591B4B06a81BF6"
-                      attributeNames:
+                      user: "0x5B740B7aB0A383F6F03579B90e591B4B06a81BF6"
+                      attributes:
                         - TSR:insertSchema
                         - TAR:insertApp
-                      attributeValues:
-                        - "0x0000000000000000000000000000000000000000000000000000000000000001"
-                        - "0x0000000000000000000000000000000000000000000000000000000000000001"
-              Build tx to updateUserAttribute:
-                value:
-                  jsonrpc: "2.0"
-                  method: updateUserAttribute
-                  id: 1
-                  params:
-                    - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
-                      address: "0x5B740B7aB0A383F6F03579B90e591B4B06a81BF6"
-                      attributeName: TSR:insertSchema
-                      attributeValue: "0x0000000000000000000000000000000000000000000000000000000000000001"
               Build tx to deleteUserAttribute:
                 value:
                   jsonrpc: "2.0"
@@ -674,8 +466,8 @@ paths:
                   id: 1
                   params:
                     - from: "0x6bd81E8CaA368CC196d573a26F1BE6c0753aC6e6"
-                      address: "0x5B740B7aB0A383F6F03579B90e591B4B06a81BF6"
-                      attributeName: TSR:insertSchema
+                      user: "0x5B740B7aB0A383F6F03579B90e591B4B06a81BF6"
+                      attribute: TSR:insertSchema
               Send Transaction:
                 description: Call to send a signed transaction to the blockchain.
                 value:
@@ -756,12 +548,14 @@ components:
       type: object
       description: User data model
       properties:
-        address:
+        user:
           type: string
           description: User address
         attributes:
-          type: object
-          description: Set of attributes and values
+          description: Set of attributes
+          type: array
+          items:
+            type: string
     Policy:
       title: Policy
       type: object
@@ -776,41 +570,9 @@ components:
         policyName:
           type: string
           description: Name of the policy
-        operationType:
-          type: string
-          enum: [AND, OR]
-          description: Type of the operation the policy performs ("AND", "OR")
         status:
           type: boolean
           description: Status of the policy (false = inactive, true = active)
-        policyConditions:
-          type: array
-          description: List of policy conditions
-          items:
-            type: object
-            properties:
-              name:
-                type: string
-                description: Name of the condition
-              attributeName:
-                type: string
-                description: Name of the attribute to validate
-              typeOfValue:
-                type: string
-                enum: [UINT256, BYTES, ADDRESS, BYTES32, STRING, BOOLEAN]
-                description: |
-                  Expected attribute type. Valid types include: "UINT256", "BYTES", "ADDRESS",
-                  "BYTES32", "STRING", "BOOLEAN".
-              attributeOperation:
-                type: string
-                enum: [EQUAL]
-                description: |
-                  Operation to apply ("EQUAL" only)
-              value:
-                description: Value to compare the attribute to
-                oneOf:
-                  - type: string
-                  - type: boolean
     JsonRpcResponse:
       title: JSON-RPC Response
       type: object

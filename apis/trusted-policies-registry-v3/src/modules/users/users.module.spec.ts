@@ -218,7 +218,7 @@ describe("Policies Module", () => {
       // Get first user
       const user = testEnv.users[0]!;
 
-      const response = await request(server).get(`/users/${user.address}`);
+      const response = await request(server).get(`/users/${user.user}`);
 
       expect(response.body).toStrictEqual(user);
       expect(response.status).toBe(200);
@@ -232,7 +232,7 @@ describe("Policies Module", () => {
       expect(response.body).toStrictEqual({
         title: "Bad Request",
         status: 400,
-        detail: `["address must be an Ethereum address"]`,
+        detail: `["user must be an Ethereum address"]`,
         type: "about:blank",
       });
       expect(response.status).toBe(400);

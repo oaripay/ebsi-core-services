@@ -1,0 +1,28 @@
+import { z } from "zod";
+import {
+  isBigNumberish,
+  type BigNumberish,
+  // eslint-disable-next-line import/extensions
+} from "@ethersproject/bignumber/lib/bignumber.js";
+import { jsonRpcSchema } from "./JsonRpcSchema.js";
+import { baseParamSchema } from "./BaseParamSchema.js";
+
+export const activatePolicySchema = baseParamSchema.merge(
+  z.object({
+    policyId: z.optional(
+      z.custom<BigNumberish>((val) => isBigNumberish(val), {
+        message: "Not an integer string",
+      }),
+    ),
+    policyName: z.optional(z.string()),
+  }),
+);
+
+export type ActivatePolicySchema = z.infer<typeof activatePolicySchema>;
+
+export const requestActivatePolicyDtoSchema = jsonRpcSchema.merge(
+  z.object({
+    method: z.literal("activatePolicy"),
+    params: z.array(activatePolicySchema).min(1).max(1),
+  }),
+);

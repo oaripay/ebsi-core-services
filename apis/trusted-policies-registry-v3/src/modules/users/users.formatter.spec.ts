@@ -22,15 +22,15 @@ describe("formatUsers", () => {
     expect(formatUsers(users, page, pageSize, "")).toStrictEqual({
       items: [
         {
-          address: "0x123456",
+          user: "0x123456",
           href: `/0x123456`,
         },
         {
-          address: "0xab1234",
+          user: "0xab1234",
           href: "/0xab1234",
         },
         {
-          address: "0xcd1234",
+          user: "0xcd1234",
           href: "/0xcd1234",
         },
       ],

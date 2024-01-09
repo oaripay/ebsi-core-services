@@ -35,9 +35,9 @@ export class UsersController {
     );
   }
 
-  @Get("/:address")
+  @Get("/:user")
   async getUser(@Param() params: GetUserParams): Promise<UserResponseObject> {
-    return this.usersService.getUser(params.address);
+    return this.usersService.getUser(params.user);
   }
 }
 

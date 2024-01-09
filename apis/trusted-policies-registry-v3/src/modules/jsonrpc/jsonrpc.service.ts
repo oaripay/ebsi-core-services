@@ -8,29 +8,30 @@ import {
   getErrorMessage,
   InvalidRequestJsonRpcError,
   isEthersError,
+  extractNamedAttributes,
 } from "@ebsiint-api/shared";
-import {
-  RequestInsertPolicyDto,
-  RequestUpdatePolicyDto,
-  RequestActivatePolicyDto,
-  RequestDeactivatePolicyDto,
-  RequestInsertUserAttributesDto,
-  RequestDeleteUserAttributeDto,
-  ArgsInsertPolicy,
-  ArgsUpdatePolicy,
-  ArgsActivatePolicy,
-  ArgsDeactivatePolicy,
-  ArgsInsertUserAttributes,
-  ArgsDeleteUserAttribute,
-  UnsignedTransaction,
-  SignedTransactionParam,
-  RequestSendSignedTransactionDto,
-} from "./dto/index.js";
 import {
   formatEthersUnsignedTransaction,
   formatEthersSignature,
-  validateClass,
 } from "./jsonrpc.utils.js";
+import {
+  activatePolicySchema,
+  deactivatePolicySchema,
+  deleteUserAttributeSchema,
+  insertPolicySchema,
+  insertUserAttributesSchema,
+  updatePolicySchema,
+  requestActivatePolicyDtoSchema,
+  requestDeactivatePolicyDtoSchema,
+  requestDeleteUserAttributeDtoSchema,
+  requestInsertPolicyDtoSchema,
+  requestInsertUserAttributesDtoSchema,
+  requestUpdatePolicyDtoSchema,
+  requestSendSignedTransactionDtoSchema,
+  type SendSignedTransactionParamsSchema,
+  type UnsignedTransaction,
+  type JsonRpcSchema,
+} from "./validators/index.js";
 import { LedgerService } from "../ledger/ledger.service.js";
 import type { ApiConfig } from "../../config/configuration.js";
 
@@ -136,7 +137,7 @@ export class JsonRpcService {
   }
 
   async verifyTransaction(
-    param: SignedTransactionParam,
+    param: SendSignedTransactionParamsSchema,
   ): Promise<{ signer: string; functionName: string }> {
     const { unsignedTransaction, r, s, v, signedRawTransaction } = param;
 
@@ -180,47 +181,35 @@ export class JsonRpcService {
       await this.ledgerService.getContract()
     ).interface.parseTransaction(unsignedTransaction);
 
+    // Extract named args from args (args is a mixed array with named and unnamed values)
+    const argsObject = {
+      ...extractNamedAttributes(args),
+      from: unsignedTransaction.from,
+    };
+
     switch (functionFragment.name) {
       case "insertPolicy": {
-        await validateClass(
-          ArgsInsertPolicy,
-          args as unknown as ArgsInsertPolicy,
-        );
+        await insertPolicySchema.parseAsync(argsObject);
         break;
       }
       case "updatePolicy": {
-        await validateClass(
-          ArgsUpdatePolicy,
-          args as unknown as ArgsUpdatePolicy,
-        );
+        await updatePolicySchema.parseAsync(argsObject);
         break;
       }
       case "activatePolicy": {
-        await validateClass(
-          ArgsActivatePolicy,
-          args as unknown as ArgsActivatePolicy,
-        );
+        await activatePolicySchema.parseAsync(argsObject);
         break;
       }
       case "deactivatePolicy": {
-        await validateClass(
-          ArgsDeactivatePolicy,
-          args as unknown as ArgsDeactivatePolicy,
-        );
+        await deactivatePolicySchema.parseAsync(argsObject);
         break;
       }
       case "insertUserAttributes": {
-        await validateClass(
-          ArgsInsertUserAttributes,
-          args as unknown as ArgsInsertUserAttributes,
-        );
+        await insertUserAttributesSchema.parseAsync(argsObject);
         break;
       }
       case "deleteUserAttribute": {
-        await validateClass(
-          ArgsDeleteUserAttribute,
-          args as unknown as ArgsDeleteUserAttribute,
-        );
+        await deleteUserAttributeSchema.parseAsync(argsObject);
         break;
       }
       default:
@@ -278,12 +267,12 @@ export class JsonRpcService {
   }
 
   async buildTransactionInsertPolicy(
-    body: RequestInsertPolicyDto,
-    id?: number | string,
+    body: JsonRpcSchema,
+    id: number | string | null | undefined,
   ): Promise<UnsignedTransaction> {
     try {
-      await validateClass(RequestInsertPolicyDto, body);
-      const { from, policyName, description } = body.params[0]!;
+      const parsedBody = await requestInsertPolicyDtoSchema.parseAsync(body);
+      const { from, policyName, description } = parsedBody.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
@@ -300,12 +289,12 @@ export class JsonRpcService {
   }
 
   async buildTransactionUpdatePolicy(
-    body: RequestUpdatePolicyDto,
-    id?: number | string,
+    body: JsonRpcSchema,
+    id: number | string | null | undefined,
   ): Promise<UnsignedTransaction> {
     try {
-      await validateClass(RequestUpdatePolicyDto, body);
-      const { from, policyId, policyName, description } = body.params[0]!;
+      const parsedBody = await requestUpdatePolicyDtoSchema.parseAsync(body);
+      const { from, policyId, policyName, description } = parsedBody.params[0]!;
       const functionSig = policyName
         ? "updatePolicy(string,string)"
         : "updatePolicy(uint256,string)";
@@ -329,12 +318,12 @@ export class JsonRpcService {
   }
 
   async buildTransactionActivatePolicy(
-    body: RequestActivatePolicyDto,
-    id?: number | string,
+    body: JsonRpcSchema,
+    id: number | string | null | undefined,
   ): Promise<UnsignedTransaction> {
     try {
-      await validateClass(RequestActivatePolicyDto, body);
-      const { from, policyId, policyName } = body.params[0]!;
+      const parsedBody = await requestActivatePolicyDtoSchema.parseAsync(body);
+      const { from, policyId, policyName } = parsedBody.params[0]!;
       const functionSig = policyName
         ? "activatePolicy(string)"
         : "activatePolicy(uint256)";
@@ -358,12 +347,13 @@ export class JsonRpcService {
   }
 
   async buildTransactionDeactivatePolicy(
-    body: RequestDeactivatePolicyDto,
-    id?: number | string,
+    body: JsonRpcSchema,
+    id: number | string | null | undefined,
   ): Promise<UnsignedTransaction> {
     try {
-      await validateClass(RequestDeactivatePolicyDto, body);
-      const { from, policyId, policyName } = body.params[0]!;
+      const parsedBody =
+        await requestDeactivatePolicyDtoSchema.parseAsync(body);
+      const { from, policyId, policyName } = parsedBody.params[0]!;
       const functionSig = policyName
         ? "deactivatePolicy(string)"
         : "deactivatePolicy(uint256)";
@@ -387,17 +377,18 @@ export class JsonRpcService {
   }
 
   async buildTransactionInsertUserAttributes(
-    body: RequestInsertUserAttributesDto,
-    id?: number | string,
+    body: JsonRpcSchema,
+    id: number | string | null | undefined,
   ): Promise<UnsignedTransaction> {
     try {
-      await validateClass(RequestInsertUserAttributesDto, body);
-      const { from, address, attributes } = body.params[0]!;
+      const parsedBody =
+        await requestInsertUserAttributesDtoSchema.parseAsync(body);
+      const { from, user, attributes } = parsedBody.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData("insertUserAttributes", [
-        address,
+        user,
         attributes,
       ]);
 
@@ -412,19 +403,17 @@ export class JsonRpcService {
   }
 
   async buildTransactionDeleteUserAttribute(
-    body: RequestDeleteUserAttributeDto,
-    id?: number | string,
+    body: JsonRpcSchema,
+    id: number | string | null | undefined,
   ): Promise<UnsignedTransaction> {
     try {
-      await validateClass(RequestDeleteUserAttributeDto, body);
-      const { from, address, attributeName } = body.params[0]!;
+      const parsedBody =
+        await requestDeleteUserAttributeDtoSchema.parseAsync(body);
+      const { from, user, attribute } = parsedBody.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("deleteUserAttribute", [
-        address,
-        attributeName,
-      ]);
+      ).interface.encodeFunctionData("deleteUserAttribute", [user, attribute]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -438,13 +427,14 @@ export class JsonRpcService {
 
   async sendTransaction(
     clientId: string,
-    body: RequestSendSignedTransactionDto,
-    id?: number | string,
+    body: JsonRpcSchema,
+    id: number | string | null | undefined,
   ): Promise<string> {
     try {
-      await validateClass(RequestSendSignedTransactionDto, body);
+      const parsedBody =
+        await requestSendSignedTransactionDtoSchema.parseAsync(body);
 
-      const request = body.params[0]!;
+      const request = parsedBody.params[0]!;
       const { signer } = await this.verifyTransaction(request);
 
       await this.checkDidOwnership(signer, clientId);
