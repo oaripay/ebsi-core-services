@@ -140,18 +140,6 @@ paths:
                         typeOfValue: UINT256
                         value: "42"
                         attributeOperation: EQUAL
-        "400":
-          description: Bad Request
-          content:
-            application/problem+json:
-              schema:
-                $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                Invalid {policyId} Parameter:
-                  value:
-                    title: Bad Request
-                    status: 400
-                    detail: The format of {policyId} parameter is not valid
         "404":
           description: Not found
           content:
