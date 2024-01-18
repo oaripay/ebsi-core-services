@@ -187,8 +187,6 @@ paths:
               examples:
                 Schema Not Found:
                   $ref: "#/components/examples/NotFound"
-                Revision Not Found:
-                  $ref: "#/components/examples/NotFound"
         "500":
           description: Internal Server Error
           content:
