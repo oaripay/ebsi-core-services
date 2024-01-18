@@ -697,13 +697,9 @@ describe("Issuers", () => {
       await expect(
         tir
           .connect(issuer)
-          ["updateIssuer(string,bytes,uint8,string,bytes32)"](
-            didIssuer,
-            attributeData2,
-            IssuerType.TAO,
-            didIssuer,
-            ethers.utils.sha256(attributeData1),
-          ),
+          [
+            "updateIssuer(string,bytes,uint8,string,bytes32)"
+          ](didIssuer, attributeData2, IssuerType.TAO, didIssuer, ethers.utils.sha256(attributeData1)),
       ).to.emit(tir, "UpdateIssuerAttribute");
       const issuerHashes = await tir.getIssuer(didIssuer);
 
@@ -711,14 +707,9 @@ describe("Issuers", () => {
       await expect(
         tir
           .connect(issuer)
-          ["updateIssuer(string,bytes,bytes32,uint8,string,bytes32)"](
-            didIssuer,
-            attributeData3,
-            issuerHashes[0],
-            IssuerType.TAO,
-            didIssuer,
-            ethers.utils.sha256(attributeData1),
-          ),
+          [
+            "updateIssuer(string,bytes,bytes32,uint8,string,bytes32)"
+          ](didIssuer, attributeData3, issuerHashes[0], IssuerType.TAO, didIssuer, ethers.utils.sha256(attributeData1)),
       ).to.emit(tir, "UpdateIssuerAttribute");
     });
 

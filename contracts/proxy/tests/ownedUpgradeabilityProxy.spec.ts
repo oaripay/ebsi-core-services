@@ -204,11 +204,9 @@ describe("implementation", () => {
       await expect(
         proxy
           .connect(proxyOwner)
-          ["initialize(address,address,bytes)"](
-            implV1.address,
-            proxyAdmin.address,
-            initializeData(anchorOwner),
-          ),
+          [
+            "initialize(address,address,bytes)"
+          ](implV1.address, proxyAdmin.address, initializeData(anchorOwner)),
       ).to.be.revertedWith("implementation must be zero");
     });
   });

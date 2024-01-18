@@ -15,8 +15,8 @@
     "incremental": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
   },
   "include": ["src/types", "contracts"],
-  "exclude": ["node_modules", "artifacts", "cache", "dist"]
+  "exclude": ["node_modules", "artifacts", "cache", "dist"],
 }

@@ -7,7 +7,7 @@
     "experimentalDecorators": true,
     "incremental": true,
     "outDir": "./dist",
-    "baseUrl": "./"
+    "baseUrl": "./",
   },
-  "exclude": ["node_modules", "dist", "coverage"]
+  "exclude": ["node_modules", "dist", "coverage"],
 }

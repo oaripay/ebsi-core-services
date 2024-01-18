@@ -134,7 +134,7 @@ export async function insertHashAlgorithm(
   const outputLength = outputLengths[ianaName];
   const oid = "oid-test";
   const status = 1;
-  const multihash = ianaToMultihashAlg[ianaName]!;
+  const multihash = ianaToMultihashAlg[ianaName];
 
   await contract.insertHashAlgorithm(
     outputLength,
@@ -203,7 +203,7 @@ export async function insertHash(
 ): Promise<HashObject> {
   const hashAlgorithmIds = [0];
   const hashValues = [
-    `0x${createHash(multihashToNodeHashAlg[hashAlgorithm.multihash]!)
+    `0x${createHash(multihashToNodeHashAlg[hashAlgorithm.multihash])
       .update(randomBytes(32).toString("hex"), "hex")
       .digest()
       .toString("hex")}`,

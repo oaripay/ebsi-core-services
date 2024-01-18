@@ -29,14 +29,14 @@
     "@typechain/hardhat": "^9.1.0",
     "@types/chai": "^4.3.11",
     "@types/mocha": "^10.0.6",
-    "@types/node": "^20.10.4",
+    "@types/node": "^20.11.5",
     "chai": "^4.3.10",
     "ethereum-waffle": "^4.0.10",
     "ethers": "^5.7.2",
-    "hardhat": "^2.19.2",
+    "hardhat": "^2.19.4",
     "hardhat-abi-exporter": "^2.10.1",
     "solidity-coverage": "^0.8.5",
-    "ts-node": "^10.9.1",
+    "ts-node": "^10.9.2",
     "typechain": "^8.3.2"
   },
   "nx": {

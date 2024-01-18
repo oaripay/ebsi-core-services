@@ -170,7 +170,7 @@ describe("JsonRpc Module", () => {
       .toString("hex")}`;
 
     secondHashValue = `0x${crypto
-      .createHash(multihashToNodeHashAlg[testEnv.hashAlgorithms[0]!.multihash]!)
+      .createHash(multihashToNodeHashAlg[testEnv.hashAlgorithms[0]!.multihash])
       .update(crypto.randomBytes(32).toString("hex"), "hex")
       .digest()
       .toString("hex")}`;

@@ -646,10 +646,9 @@ describe("Policy", () => {
       await policyContract.grantRole(OPERATOR_ROLE, await addr1.getAddress());
       await policyContract
         .connect(addr1)
-        ["addPolicyConditions(uint256,(string,string,uint8,bytes,uint8)[])"](
-          0,
-          [],
-        );
+        [
+          "addPolicyConditions(uint256,(string,string,uint8,bytes,uint8)[])"
+        ](0, []);
       const policy = await policyContract["getPolicy(uint256)"](0);
       expect(policy.policyConditions).to.have.length(pcs.length);
     });
