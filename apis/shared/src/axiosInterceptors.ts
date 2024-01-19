@@ -1,3 +1,5 @@
+import http from "node:http";
+import https from "node:https";
 import type { LoggerService } from "@nestjs/common";
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 
@@ -33,6 +35,10 @@ export function setupInterceptors(
   localOrigin: string,
   logger?: LoggerService,
 ): void {
+  // Setup axios agents
+  axios.defaults.httpAgent = new http.Agent({ keepAlive: true });
+  axios.defaults.httpsAgent = new https.Agent({ keepAlive: true });
+
   if (!domain || !localOrigin) {
     // Don't define interceptors if the domain or local origin is not set
     return;
