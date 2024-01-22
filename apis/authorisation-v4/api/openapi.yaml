@@ -626,7 +626,7 @@ paths:
                   value:
                     title: Bad Request
                     status: 400
-                    detail: '["scope must be a combination of ''openid'' and one of the supported scopes (''did_write'', ''tir_write'')"]'
+                    detail: '["scope must be a combination of ''openid'' and one of the supported scopes (''didr_invite'', ''didr_write'', ''tir_invite'', ''tir_write'', ''timestamp_write'', ''tnt_authorise'')"]'
                     type: "about:blank"
         "500":
           description: Internal Server Error
@@ -681,6 +681,7 @@ paths:
                           "format": "jwt_vp",
                           "path": "$",
                           "path_nested": {
+                            "id": "requested credential id",
                             "format": "jwt_vc",
                             "path": "$.vp.verifiableCredential[0]"
                           }
@@ -897,8 +898,12 @@ components:
           description: The scope of the access token
           type: string
           enum:
-            - openid did_write
+            - openid didr_write
+            - openid didr_invite
+            - openid tir_invite
             - openid tir_write
+            - openid timestamp_write
+            - openid tnt_authorise
         id_token:
           description: ID Token value associated with the authenticated session. Presents client's identity. ID Token is issued in a JWS format. See also the "ID Token" schema definition.
           example: eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJpYXQiOjE2NDE1NTI2MDAsInN1YiI6Imh0dHA6Ly9sb2NhbGhvc3Q6MzAwMCIsImF1ZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6MzAwMCIsImlzcyI6ImRpZDplYnNpOnoyMVNxTUo1M2ZZUzY5VlpSWVRVRURhZyJ9.YIdjUCinbG2DRU0VhFTOPcHK9D0iLcx6zBPmF94phfVOx8IVZwOLMfnEp_9xx87-UNODVCLWNR2UdjUgQyv14A

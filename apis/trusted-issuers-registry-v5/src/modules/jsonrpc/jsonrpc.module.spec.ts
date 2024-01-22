@@ -391,7 +391,7 @@ describe("JsonRpc Module", () => {
 
     const accessTokenWithInvalidSignature = await new SignJWT({
       sub: issuers[0]!.did,
-      scp: "openid did_write",
+      scp: "openid didr_write",
     })
       .setProtectedHeader({
         typ: "JWT",
