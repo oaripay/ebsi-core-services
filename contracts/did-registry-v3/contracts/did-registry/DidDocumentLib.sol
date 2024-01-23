@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: EUPL V1.2
 pragma solidity 0.8.12;
 
-import "@ebsiint-sc/bootstrap/contracts/utils/Pagination.sol";
+import "@ebsiint-sc/bootstrap-v2/contracts/utils/Pagination.sol";
 import "./DidDocumentStorage.sol";
 import "./VRelationshipsStorage.sol";
 import "./VRelationshipsLib.sol";

@@ -117,14 +117,7 @@ describe("Issuers", () => {
   });
 
   beforeEach(async () => {
-    const paginationFactory = await ethers.getContractFactory("Pagination", {});
-    const paginationLib = await paginationFactory.deploy();
-
-    const contractFactory = await ethers.getContractFactory("Tir", {
-      libraries: {
-        Pagination: paginationLib.address,
-      },
-    });
+    const contractFactory = await ethers.getContractFactory("Tir", {});
     tir = (await contractFactory.deploy(
       testTprAddress,
       testDidrAddress,
@@ -349,16 +342,7 @@ describe("Issuers", () => {
     });
 
     it("should initialize if proxy", async () => {
-      const paginationFactory = await ethers.getContractFactory(
-        "Pagination",
-        {},
-      );
-      const paginationLib = await paginationFactory.deploy();
-      const contractFactory = await ethers.getContractFactory("Tir", {
-        libraries: {
-          Pagination: paginationLib.address,
-        },
-      });
+      const contractFactory = await ethers.getContractFactory("Tir", {});
       const tsProxy = await upgrades.deployProxy(contractFactory, [42], {
         unsafeAllow: [
           "constructor",
@@ -372,16 +356,7 @@ describe("Issuers", () => {
     });
 
     it("should fail to call init on TirDetailed", async () => {
-      const paginationFactory = await ethers.getContractFactory(
-        "Pagination",
-        {},
-      );
-      const paginationLib = await paginationFactory.deploy();
-      const contractFactory = await ethers.getContractFactory("Tir", {
-        libraries: {
-          Pagination: paginationLib.address,
-        },
-      });
+      const contractFactory = await ethers.getContractFactory("Tir", {});
       const tsProxy = await upgrades.deployProxy(contractFactory, [42], {
         unsafeAllow: [
           "constructor",
@@ -412,16 +387,7 @@ describe("Issuers", () => {
     });
 
     it("should fail on 0 address", async () => {
-      const paginationFactory = await ethers.getContractFactory(
-        "Pagination",
-        {},
-      );
-      const paginationLib = await paginationFactory.deploy();
-      const contractFactory = await ethers.getContractFactory("Tir", {
-        libraries: {
-          Pagination: paginationLib.address,
-        },
-      });
+      const contractFactory = await ethers.getContractFactory("Tir", {});
       await expect(
         upgrades.deployProxy(contractFactory, [42], {
           unsafeAllow: [

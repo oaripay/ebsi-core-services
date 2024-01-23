@@ -51,17 +51,8 @@ export async function insertUser(
 }
 
 export async function deployPoliciesRegistryContract(): Promise<PolicyRegistry> {
-  const paginationFactory = await hre.ethers.getContractFactory("Pagination");
-  const pagination = await paginationFactory.deploy();
-
-  const policiesRegistryFactory = await hre.ethers.getContractFactory(
-    "PolicyRegistry",
-    {
-      libraries: {
-        Pagination: pagination.address,
-      },
-    },
-  );
+  const policiesRegistryFactory =
+    await hre.ethers.getContractFactory("PolicyRegistry");
 
   const policyRegistry = await policiesRegistryFactory.deploy();
   await policyRegistry.initialize(1);

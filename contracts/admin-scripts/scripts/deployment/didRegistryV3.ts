@@ -7,10 +7,6 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const { deployments, getNamedAccounts } = hre;
 
   const { deployer } = await getNamedAccounts();
-  const opts = {
-    from: deployer,
-    log: true,
-  };
 
   // get Proxy of TPR
   const { chainId } = await ethers.provider.getNetwork();
@@ -24,16 +20,9 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   }
   console.log(`Trusted Policy Registry Address is ${tprAddress}`);
 
-  const pagination = await deployments.deploy("Pagination", {
-    ...opts,
-    contract: "contracts/bootstrap-v2/utils/Pagination.sol/Pagination",
-  });
   const optsPagination = {
     from: deployer,
     log: true,
-    libraries: {
-      Pagination: pagination.address,
-    },
   };
 
   const controller = await deployments.deploy("ControllersLib", {
@@ -46,9 +35,6 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const optsv = {
     from: deployer,
     log: true,
-    libraries: {
-      Pagination: pagination.address,
-    },
   };
   const vRelation = await deployments.deploy("VRelationshipsLib", {
     ...optsv,
@@ -60,7 +46,6 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     from: deployer,
     log: true,
     libraries: {
-      Pagination: pagination.address,
       VRelationshipsLib: vRelation.address,
     },
   };
@@ -81,7 +66,6 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
       ControllersLib: controller.address,
       DidDocumentLib: didDocument.address,
       VRelationshipsLib: vRelation.address,
-      Pagination: pagination.address,
     },
   });
 

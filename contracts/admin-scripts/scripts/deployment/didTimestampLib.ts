@@ -9,22 +9,14 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     from: deployer,
     log: true,
   };
-  const pagination = await deployments.deploy("Pagination", {
-    ...opts,
-    contract: "contracts/bootstrap-v2/utils/Pagination.sol/Pagination",
-  });
 
   await deployments.deploy("DidTimestampLib", {
     ...opts,
     contract:
       "contracts/did-registry-v3/did-registry/DidTimestampLib.sol/DidTimestampLib",
-    libraries: {
-      Pagination: pagination.address,
-    },
   });
 };
 
 func.tags = ["DidTimestampLib"];
-func.dependencies = ["Pagination"];
 
 export default func;

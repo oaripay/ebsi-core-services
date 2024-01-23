@@ -12,15 +12,9 @@ describe("UserAttributesManagement", () => {
   const userAttr = ["attr1", "attr2", "attr3", "attr4", "attr5"];
 
   before(async () => {
-    const pg = await ethers.getContractFactory("Pagination", {});
-    const pagination = await pg.deploy();
     const policyRegistryFactory = await ethers.getContractFactory(
       "PolicyRegistry",
-      {
-        libraries: {
-          Pagination: pagination.address,
-        },
-      },
+      {},
     );
     policyContract = (await policyRegistryFactory.deploy()) as PolicyRegistry;
     await policyContract.deployed();

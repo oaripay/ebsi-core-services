@@ -7,10 +7,6 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   const { deployments, getNamedAccounts } = hre;
 
   const { deployer } = await getNamedAccounts();
-  const opts = {
-    from: deployer,
-    log: true,
-  };
 
   // get Proxy of TPR and didr - deployed new ones for undefined vars
   const { chainId } = await ethers.provider.getNetwork();
@@ -33,18 +29,10 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
 
   console.log(`Registry addresses did: ${didAddress}, tpr: ${tprAddress}`);
 
-  const pagination = await deployments.deploy("Pagination", {
-    ...opts,
-    contract: "contracts/bootstrap-v2/utils/Pagination.sol/Pagination",
-  });
-
   const ts = await deployments.deploy("TirV3", {
     from: deployer,
     args: [tprAddress, didAddress],
     contract: "contracts/trusted-issuers-registry-v3/tir/Tir.sol:Tir",
-    libraries: {
-      Pagination: pagination.address,
-    },
     log: true,
   });
 

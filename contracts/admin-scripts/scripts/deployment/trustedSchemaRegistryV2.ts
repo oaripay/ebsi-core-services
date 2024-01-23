@@ -22,16 +22,11 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     tprAddress = (await deployments.get("PolicyRegistryV2")).address;
   }
   console.log(`Trusted Policy Registry Address is ${tprAddress}`);
-  const pagination = await deployments.deploy("Pagination", {
-    ...opts,
-    contract: "contracts/bootstrap-v2/utils/Pagination.sol/Pagination",
-  });
 
   const schemaLib = await deployments.deploy("SchemaLib", {
     ...opts,
     contract:
       "contracts/trusted-schemas-registry-v2/trusted-schemas-registry/SchemaLib.sol:SchemaLib",
-    libraries: { Pagination: pagination.address },
   });
 
   const ts = await deployments.deploy("SchemaSCRegistryV2", {
@@ -41,7 +36,6 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     args: [tprAddress],
     libraries: {
       SchemaLib: schemaLib.address,
-      Pagination: pagination.address,
     },
   });
 

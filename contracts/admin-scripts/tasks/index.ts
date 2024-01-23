@@ -14,3 +14,4 @@ import "./fixTarStatus";
 import "./insertTSRSchema";
 import "./updateTSRSchema";
 import "./grantRole";
+import "./trackAndTrace";

@@ -74,15 +74,7 @@ export async function deployTirContract(): Promise<{
   const didContractMock = didRegistryFactory.attach(testDidrAddress);
   await didContractMock.setDidResult(true);
 
-  // Deploy libs
-  const paginationFactory = await hre.ethers.getContractFactory("Pagination");
-  const pagination = await paginationFactory.deploy();
-
-  const tirFactory = await hre.ethers.getContractFactory("Tir", {
-    libraries: {
-      Pagination: pagination.address,
-    },
-  });
+  const tirFactory = await hre.ethers.getContractFactory("Tir", {});
   const tirContract = await tirFactory.deploy(testTprAddress, testDidrAddress);
 
   return {

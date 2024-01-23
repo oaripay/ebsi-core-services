@@ -9,14 +9,7 @@ describe("Schema", () => {
   let policyContractMock: Contract;
 
   async function getFactories() {
-    const paginationFactory = await ethers.getContractFactory("Pagination", {});
-    const pagination = await paginationFactory.deploy();
-
-    const schemaLibFactory = await ethers.getContractFactory("SchemaLib", {
-      libraries: {
-        Pagination: pagination.address,
-      },
-    });
+    const schemaLibFactory = await ethers.getContractFactory("SchemaLib", {});
     const schemaLib = await schemaLibFactory.deploy();
 
     const contractFactory = await ethers.getContractFactory(
@@ -29,7 +22,6 @@ describe("Schema", () => {
     );
 
     return {
-      paginationFactory,
       schemaLibFactory,
       contractFactory,
     };

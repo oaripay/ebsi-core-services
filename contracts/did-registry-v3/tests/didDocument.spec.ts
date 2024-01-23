@@ -61,9 +61,6 @@ describe("Did Documents", () => {
   });
 
   beforeEach(async () => {
-    const paginationFactory = await ethers.getContractFactory("Pagination", {});
-    const paginationLib = await paginationFactory.deploy();
-
     const vRelationshipsFactory =
       await ethers.getContractFactory("VRelationshipsLib");
     const vRelationshipsLib = await vRelationshipsFactory.deploy();
@@ -72,7 +69,6 @@ describe("Did Documents", () => {
       "DidDocumentLib",
       {
         libraries: {
-          Pagination: paginationLib.address,
           VRelationshipsLib: vRelationshipsLib.address,
         },
       },
@@ -81,11 +77,7 @@ describe("Did Documents", () => {
 
     const controllersFactory = await ethers.getContractFactory(
       "ControllersLib",
-      {
-        libraries: {
-          Pagination: paginationLib.address,
-        },
-      },
+      {},
     );
     const controllersLib = await controllersFactory.deploy();
 

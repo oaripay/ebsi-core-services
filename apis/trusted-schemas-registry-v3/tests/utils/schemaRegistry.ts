@@ -117,14 +117,7 @@ export async function deploySchemasRegistryContract(): Promise<{
   ]);
   const policyContractMock = policyRegistryFactory.attach(testTprAddress);
 
-  const paginationFactory = await hre.ethers.getContractFactory("Pagination");
-  const pagination = await paginationFactory.deploy();
-
-  const schemaLibFactory = await hre.ethers.getContractFactory("SchemaLib", {
-    libraries: {
-      Pagination: pagination.address,
-    },
-  });
+  const schemaLibFactory = await hre.ethers.getContractFactory("SchemaLib", {});
   const schemaLib = await schemaLibFactory.deploy();
 
   const schemasRegistryFactory = await hre.ethers.getContractFactory(

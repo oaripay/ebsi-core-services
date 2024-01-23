@@ -2,7 +2,7 @@
 pragma solidity 0.8.12;
 
 import "./VRelationshipsStorage.sol";
-import "@ebsiint-sc/bootstrap/contracts/utils/Pagination.sol";
+import "@ebsiint-sc/bootstrap-v2/contracts/utils/Pagination.sol";
 
 library CustomPagination {
     function paginate(

@@ -53,7 +53,7 @@ library Pagination {
         uint256 page,
         uint256 pageSize
     )
-        public
+        internal
         view
         returns (
             string[] memory items,
@@ -149,7 +149,7 @@ library Pagination {
         uint256 page,
         uint256 pageSize
     )
-        public
+        internal
         view
         returns (
             bytes[] memory items,

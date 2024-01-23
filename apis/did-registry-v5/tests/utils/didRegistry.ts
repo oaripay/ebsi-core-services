@@ -42,12 +42,6 @@ export async function deployDidRegistryContract(): Promise<{
     testTprAddress,
   ) as PolicyRegistryMock;
 
-  const paginationAddress = await deployContract("Pagination");
-  const linkLibPagination = {
-    libraries: {
-      Pagination: paginationAddress,
-    },
-  };
   const vRelationshipsLibAddress = await deployContract("VRelationshipsLib");
 
   const didRegistryContractFactory = (await hre.ethers.getContractFactory(
@@ -56,14 +50,10 @@ export async function deployDidRegistryContract(): Promise<{
       libraries: {
         DidDocumentLib: await deployContract("DidDocumentLib", {
           libraries: {
-            Pagination: paginationAddress,
             VRelationshipsLib: vRelationshipsLibAddress,
           },
         }),
-        ControllersLib: await deployContract(
-          "ControllersLib",
-          linkLibPagination,
-        ),
+        ControllersLib: await deployContract("ControllersLib"),
         VRelationshipsLib: vRelationshipsLibAddress,
       },
     },

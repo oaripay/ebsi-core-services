@@ -9,22 +9,14 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     from: deployer,
     log: true,
   };
-  const pagination = await deployments.deploy("Pagination", {
-    ...opts,
-    contract: "contracts/bootstrap-v2/utils/Pagination.sol/Pagination",
-  });
 
   await deployments.deploy("SchemaLib", {
     ...opts,
     contract:
       "contracts/trusted-schemas-registry-v2/trusted-schemas-registry/SchemaLib.sol:SchemaLib",
-    libraries: {
-      Pagination: pagination.address,
-    },
   });
 };
 
 func.tags = ["SchemaLib"];
-func.dependencies = ["Pagination"];
 
 export default func;

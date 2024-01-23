@@ -75,17 +75,9 @@ export async function deployTarContract(): Promise<Tar> {
   const didContractMock = didRegistryFactory.attach(testDidrAddress);
   await didContractMock.setDidResult(true);
 
-  const paginationAddress = await deployContract("Pagination");
-
-  const linkLibPagination = {
-    libraries: {
-      Pagination: paginationAddress,
-    },
-  };
-
   const tarFactory = await hre.ethers.getContractFactory("Tar", {
     libraries: {
-      AppLib: await deployContract("AppLib", linkLibPagination),
+      AppLib: await deployContract("AppLib"),
       AuthLib: await deployContract("AuthLib"),
       RevocationLib: await deployContract("RevocationLib"),
     },

@@ -44,13 +44,10 @@ describe("Policy", () => {
     "0x97667070c54ef182b0f5858b034beac1b6f3089aa2d3188bb1e8929f4fa9b929";
 
   before(async () => {
-    const paginationFactory = await ethers.getContractFactory("Pagination", {});
-    const pagination = await paginationFactory.deploy();
-    policyRegistryFactory = await ethers.getContractFactory("PolicyRegistry", {
-      libraries: {
-        Pagination: pagination.address,
-      },
-    });
+    policyRegistryFactory = await ethers.getContractFactory(
+      "PolicyRegistry",
+      {},
+    );
     policyContract = (await policyRegistryFactory.deploy()) as PolicyRegistry;
     [, addr1] = await ethers.getSigners();
     await policyContract.deployed();

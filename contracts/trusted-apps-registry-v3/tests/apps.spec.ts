@@ -108,12 +108,9 @@ describe("Trusted Apps", () => {
       const contract = await factory.deploy();
       return contract.address;
     };
-    const Pagination = await deployContract("Pagination");
     const contractFactory = await ethers.getContractFactory("Tar", {
       libraries: {
-        AppLib: await deployContract("AppLib", {
-          libraries: { Pagination },
-        }),
+        AppLib: await deployContract("AppLib", {}),
         RevocationLib: await deployContract("RevocationLib"),
         AuthLib: await deployContract("AuthLib"),
       },

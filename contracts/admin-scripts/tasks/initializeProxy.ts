@@ -22,7 +22,6 @@ task("initProxy", "init proxy with implementation")
       const TSC_DIAMOND_STORAGE_SLOT = ethers.utils.keccak256(
         ethers.utils.toUtf8Bytes(storage),
       );
-
       const IMPLEMENTATION_SLOT = ethers.utils.keccak256(
         ethers.utils.toUtf8Bytes("diamond.standard.diamond.storage.proxy"),
       );
@@ -35,12 +34,14 @@ task("initProxy", "init proxy with implementation")
       // to retrieve them we use the low level getStorage call
       let adminAddr = "0x0";
       try {
+        console.log("ASD2");
         adminAddr = BigNumber.from(
           await ethers.provider.getStorageAt(
             proxyCtr.address,
             IMPLEMENTATION_SLOT,
           ),
         ).toHexString();
+        console.log("ASD3");
         // eslint-disable-next-line no-empty
       } catch (e) {}
       console.log(`Proxy admin address: ${adminAddr}`);
