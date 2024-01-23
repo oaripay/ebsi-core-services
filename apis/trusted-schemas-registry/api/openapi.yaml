@@ -651,7 +651,7 @@ paths:
           Call to build an unsigned transaction to insert a new schema. This method requires having right attributes assigned in Trusted Policies Registry.
 
           Parameters:
-          - **from**: Ethereum address of the sender
+          - **from**: Ethereum address of the signer
           - **schemaId**: schema ID converted into hex string
           - **schema**: Content. This field must be a JSON stringified and converted into hex string
           - **metadata**: Metadata of the first version. This field must be a JSON stringified and converted into hex string
@@ -661,7 +661,7 @@ paths:
           Call to build an unsigned transaction to update an schema. This method requires having right attributes assigned in Trusted Policies Registry.
 
           Parameters:
-          - **from**: Ethereum address of the sender
+          - **from**: Ethereum address of the signer
           - **schemaId**: Schema ID
           - **schema**: Content. This field must be a JSON stringified and converted into hex string
           - **metadata**: Metadata. This field must be a JSON stringified and converted into hex string
@@ -671,7 +671,7 @@ paths:
           Call to build an unsigned transaction to update the metadata of a schema revision. This method requires having right attributes assigned in Trusted Policies Registry.
 
           Parameters:
-          - **from**: Ethereum address of the sender
+          - **from**: Ethereum address of the signer
           - **schemaRevisionId**: Schema revision ID
           - **metadata**: Metadata. This field must be a JSON stringified and converted into hex string
 

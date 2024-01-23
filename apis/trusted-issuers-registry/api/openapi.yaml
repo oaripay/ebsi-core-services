@@ -801,7 +801,7 @@ paths:
           to update issuers.
 
           Parameters:
-          - **from**: Ethereum address of the administrator
+          - **from**: Ethereum address of the signer
           - **did**: DID of the issuer
           - **proxyData**: Proxy configuration to be used during the verification of credentials. For the
             registration to be accepted, the configured proxy must serve a status list which is valid and
@@ -817,7 +817,7 @@ paths:
           to update issuers.
 
           Parameters:
-          - **from**: Ethereum address of the administrator
+          - **from**: Ethereum address of the signer
           - **did**: DID of the issuer
           - **proxyId**: ID of the existing proxy
           - **proxyData**: Proxy configuration to be used during the verification of credentials. For the

@@ -705,7 +705,7 @@ paths:
           Call to build an unsigned transaction to delete an app administrator. This method requires user attributes in the Trusted Policies Registry.
 
           Parameters:
-          - **from**: Ethereum address of the administrator
+          - **from**: Ethereum address of the signer
           - **applicationId**: Application ID
           - **administratorId**: DID of app administrator
 
@@ -714,7 +714,7 @@ paths:
           Call to build an unsigned transaction to insert an App. This method requires user attributes in the Trusted Policies Registry.
 
           Parameters:
-          - **from**: Ethereum address of the administrator
+          - **from**: Ethereum address of the signer
           - **name**: Name of the app
           - **domain**: Domain. 1 (ebsi) or 2 (external)
           - **appAdministrator**: DID of the app administrator
@@ -724,7 +724,7 @@ paths:
           Call to build an unsigned transaction to insert an app administrator. This method requires user attributes in the Trusted Policies Registry.
 
           Parameters:
-          - **from**: Ethereum address of the administrator
+          - **from**: Ethereum address of the signer
           - **applicationId**: Application ID.
           - **administratorId**: DID of the app administrator to add
 
@@ -733,7 +733,7 @@ paths:
           Call to build an unsigned transaction to insert app info. This method requires user attributes in the Trusted Policies Registry.
 
           Parameters:
-          - **from**: Ethereum address of the administrator
+          - **from**: Ethereum address of the signer
           - **applicationId**: Application ID.
           - **info**: Info. This field must be a JSON stringified and converted into hex string
 
@@ -742,7 +742,7 @@ paths:
           Call to build an unsigned transaction to insert a public key. This method requires user attributes in the Trusted Policies Registry.
 
           Parameters:
-          - **from**: Ethereum address of the administrator
+          - **from**: Ethereum address of the signer
           - **applicationId**: Application ID
           - **publicKey**: Public key. Insert the hex string representation of PEM string.
           - **status**: Status. 1 (active), 2 (revoked), or 3 (suspended)
@@ -754,7 +754,7 @@ paths:
           Call to build an unsigned transaction to insert an authorisation. This method requires user attributes in the Trusted Policies Registry.
 
           Parameters:
-          - **from**: Ethereum address of the administrator
+          - **from**: Ethereum address of the signer
           - **name**: Application name
           - **authorizedAppName**: Authorized app name
           - **iss**: Administrator did
@@ -768,7 +768,7 @@ paths:
           Call to build an unsigned transaction to insert a revocation. This method requires user attributes in the Trusted Policies Registry.
 
           Parameters:
-          - **from**: Ethereum address of the administrator
+          - **from**: Ethereum address of the signer
           - **applicationId**: Application ID
           - **revokedBy**: Administrator DID
           - **notBefore**: Point in time when the revocation becomes valid. It should be defined in epoch time.
@@ -778,7 +778,7 @@ paths:
           Call to build an unsigned transaction to update an app. This method requires user attributes in the Trusted Policies Registry.
 
           Parameters:
-          - **from**: Ethereum address of the administrator
+          - **from**: Ethereum address of the signer
           - **applicationId**: Application ID
           - **domain**: Domain. 1 (ebsi) or 2 (external)
 
@@ -787,7 +787,7 @@ paths:
           Call to build an unsigned transaction to update an existing public key. This method requires user attributes in the Trusted Policies Registry.
 
           Parameters:
-          - **from**: Ethereum address of the administrator
+          - **from**: Ethereum address of the signer
           - **publicKeyId**: Public key ID
           - **status**: Status. 1 (active), 2 (revoked), or 3 (suspended)
           - **notAfter**: Point in time when the public key becomes invalid. It should be defined in epoch time.
@@ -797,7 +797,7 @@ paths:
           Call to build an unsigned transaction to update an authorisation. This method requires user attributes in the Trusted Policies Registry.
 
           Parameters:
-          - **from**: Ethereum address of the administrator
+          - **from**: Ethereum address of the signer
           - **authorizationId**: Authorization ID
           - **status**: Status. 1 (active), 2 (revoked), or 3 (suspended)
           - **permissions**: CRUD permissions. It must be a number between 0 and 15 (default). It's binary representation enables or disables each one of the 4 CRUD permissions (create, read, update, delete).

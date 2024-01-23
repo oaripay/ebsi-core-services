@@ -832,7 +832,7 @@ paths:
           Requires an access token with "tir_write" scope.
 
           Parameters:
-          - **from**: Ethereum address of the administrator
+          - **from**: Ethereum address of the signer
           - **did**: DID of the issuer to insert
           - **attributeData**: Verifiable credential converted to hex string
           - **issuerType**: 1 (RootTAO), 2 (TAO), 3 (TI), or 4 (Revoked)
@@ -847,7 +847,7 @@ paths:
           Requires an access token with "tir_write" scope.
 
           Parameters (add a new attribute):
-          - **from**: Ethereum address of the administrator
+          - **from**: Ethereum address of the signer
           - **did**: DID of the issuer
           - **attributeData**: Verifiable credential converted to hex string
           - **issuerType**: 1 (RootTAO), 2 (TAO), 3 (TI), or 4 (Revoked)
@@ -855,7 +855,7 @@ paths:
           - **taoAttributeId**: Attribute ID that accredits taoDid as TAO or RootTAO
 
           Parameters (update an existing attribute):
-          - **from**: Ethereum address of the administrator
+          - **from**: Ethereum address of the signer
           - **did**: DID of the issuer
           - **prevAttributeHash**: Attribute ID to update
           - **attributeData**: Verifiable credential converted to hex string
@@ -869,7 +869,7 @@ paths:
           Requires an access token with "tir_write" scope.
 
           Parameters:
-          - **from**: Ethereum address of the administrator
+          - **from**: Ethereum address of the signer
           - **did**: DID of the issuer
           - **attributeId**: Attribute ID
           - **issuerType**: 1 (RootTAO), 2 (TAO), 3 (TI), or 4 (Revoked)
@@ -882,7 +882,7 @@ paths:
           Requires an access token with "tir_invite" or "tir_write" scope.
 
           Parameters:
-          - **from**: Ethereum address of the administrator
+          - **from**: Ethereum address of the signer
           - **did**: DID of the issuer
           - **attributeId**: ID of the attribute to set
           - **attributeData**: Verifiable credential converted to hex string
@@ -895,7 +895,7 @@ paths:
           Requires an access token with "tir_write" scope.
 
           Parameters:
-          - **from**: Ethereum address of the administrator
+          - **from**: Ethereum address of the signer
           - **did**: DID of the issuer
           - **proxyData**: Proxy configuration to be used during the verification of credentials. For the
             registration to be accepted, the configured proxy must serve a status list which is valid and
@@ -912,7 +912,7 @@ paths:
           Requires an access token with "tir_write" scope.
 
           Parameters:
-          - **from**: Ethereum address of the administrator
+          - **from**: Ethereum address of the signer
           - **did**: DID of the issuer
           - **proxyId**: ID of the existing proxy
           - **proxyData**: Proxy configuration to be used during the verification of credentials. For the

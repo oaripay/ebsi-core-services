@@ -286,7 +286,7 @@ paths:
           This method requires OPERATOR ROLE in the Trusted Policies Registry.
 
           Parameters:
-          - **from**: Ethereum address of the administrator
+          - **from**: Ethereum address of the signer
           - **policyName**: name of the policy.
           - **description**: description.
 
@@ -296,7 +296,7 @@ paths:
           This method requires OPERATOR ROLE in the Trusted Policies Registry.
 
           Parameters:
-          - **from**: Ethereum address of the administrator
+          - **from**: Ethereum address of the signer
           - **policyId**: Policy ID
           - **policyName**: Policy Name
           - **description**: description.
@@ -309,7 +309,7 @@ paths:
           requires OPERATOR ROLE in the Trusted Policies Registry.
 
           Parameters:
-          - **from**: Ethereum address of the administrator
+          - **from**: Ethereum address of the signer
           - **policyId**: ID of the policy to deactivate
           - **policyName**: Policy Name
 
@@ -321,7 +321,7 @@ paths:
           requires OPERATOR ROLE in the Trusted Policies Registry.
 
           Parameters:
-          - **from**: Ethereum address of the administrator
+          - **from**: Ethereum address of the signer
           - **policyId**: ID of the policy to activate
           - **policyName**: Policy Name
 
@@ -333,7 +333,7 @@ paths:
           method requires OPERATOR ROLE in the Trusted Policies Registry.
 
           Parameters:
-          - **from**: Ethereum address of the administrator
+          - **from**: Ethereum address of the signer
           - **user**: user address
           - **attributes**: attribute names
 
@@ -343,7 +343,7 @@ paths:
           method requires OPERATOR ROLE in the Trusted Policies Registry.
 
           Parameters:
-          - **from**: Ethereum address of the administrator
+          - **from**: Ethereum address of the signer
           - **user**: user address
           - **attribute**: attribute name
 
