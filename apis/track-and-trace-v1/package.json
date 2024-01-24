@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@ebsiint-api/shared": "^1.1.0-rc.5",
+    "@ebsiint-sc/track-and-trace": "1.0.1-rc.5",
     "@fastify/helmet": "^11.1.1",
     "@nestjs/axios": "^3.0.1",
     "@nestjs/cache-manager": "^2.2.0",
@@ -34,6 +35,7 @@
     "@nestjs/passport": "^10.0.3",
     "@nestjs/platform-fastify": "^10.3.0",
     "@nestjs/terminus": "^10.2.0",
+    "async-mutex": "^0.4.1",
     "axios": "^1.6.5",
     "axios-retry": "^4.0.0",
     "cache-manager": "^5.3.2",
@@ -56,6 +58,7 @@
     "@nestjs/schematics": "^10.1.0",
     "@nestjs/testing": "^10.3.0",
     "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "@openzeppelin/hardhat-upgrades": "^1.28.0",
     "@stoplight/spectral-cli": "^6.11.0",
     "@swc/core": "^1.3.104",
     "@total-typescript/ts-reset": "^0.5.1",

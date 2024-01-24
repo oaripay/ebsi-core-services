@@ -5,11 +5,19 @@ import { HealthModule } from "./modules/health/health.module.js";
 import { LoggingInterceptor } from "./interceptors/logging.interceptor.js";
 import { VersionInterceptor } from "./interceptors/version.interceptor.js";
 import { OpenApiModule } from "./modules/openapi/openapi.module.js";
+import { LedgerModule } from "./modules/ledger/ledger.module.js";
+import { DocumentsModule } from "./modules/documents/documents.module.js";
 import { AppService } from "./app.service.js";
 import { AppController } from "./app.controller.js";
 
 @Module({
-  imports: [ApiConfigModule, HealthModule, OpenApiModule],
+  imports: [
+    ApiConfigModule,
+    HealthModule,
+    OpenApiModule,
+    LedgerModule,
+    DocumentsModule,
+  ],
   controllers: [AppController],
   providers: [
     Logger,

@@ -15,6 +15,7 @@ declare global {
       AXIOS_RETRY_DELAY?: string;
       // Ledger & SC
       LEDGER_API_NAME?: string;
+      CONTRACT_ADDR: string;
       // Test variables
       TEST_ENV?: string;
       TEST_ENABLE_WRITE_OPS?: string;

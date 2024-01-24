@@ -15,18 +15,23 @@ export interface ApiConfig {
   // Ledger & SC
   ledgerApiUrl: string;
   ledgerApiName: string;
+  contractAddr: string;
   // Authorisation API
   authorisationApiUrl: string;
+  // Trusted Apps Registry API
+  trustedAppsRegistryApiUrl: string;
   // Test variables
   dockerContainerTag: string;
 }
 
 const AUTH_API_PATH = "/authorisation/v4";
 const LEDGER_API_PATH = "/ledger/v4";
+const TAR_API_PATH = "/trusted-apps-registry/v4";
 
 export const DEPENDENCIES = {
   "Authorisation API v4": AUTH_API_PATH,
   "Ledger API v4": LEDGER_API_PATH,
+  "TAR API v4": TAR_API_PATH,
 } as const;
 
 export const loadConfig = (): ApiConfig => {
@@ -45,8 +50,11 @@ export const loadConfig = (): ApiConfig => {
     // Ledger & SC
     ledgerApiUrl: DOMAIN + LEDGER_API_PATH,
     ledgerApiName: process.env.LEDGER_API_NAME || "ledger-api",
+    contractAddr: process.env.CONTRACT_ADDR,
     // Authorisation API
     authorisationApiUrl: DOMAIN + AUTH_API_PATH,
+    // Trusted Apps Registry API
+    trustedAppsRegistryApiUrl: DOMAIN + TAR_API_PATH,
     // Test variables
     dockerContainerTag: process.env.DOCKER_TAG || "",
   };
@@ -84,6 +92,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     AXIOS_RETRY_DELAY: Joi.string(),
     // Ledger & SC
     LEDGER_API_NAME: Joi.string(),
+    CONTRACT_ADDR: Joi.string().required(),
     // Test variables
     TEST_ENV: Joi.string(),
     TEST_ENABLE_WRITE_OPS: Joi.string(),
