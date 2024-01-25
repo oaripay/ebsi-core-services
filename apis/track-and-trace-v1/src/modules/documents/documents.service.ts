@@ -1,7 +1,8 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { NotFoundError, isEthersError } from "@ebsiint-api/shared";
-import { TrackAndTrace } from "@ebsiint-sc/track-and-trace";
+import type { TrackAndTrace } from "@ebsiint-sc/track-and-trace";
 import { LedgerService } from "../ledger/ledger.service.js";
+import type { Document } from "./documents.interface.js";
 
 @Injectable()
 export default class DocumentsService {
@@ -25,5 +26,44 @@ export default class DocumentsService {
         detail: "No documents found",
       });
     }
+  }
+
+  async getDocument(documentId: string): Promise<Document> {
+    let document: Awaited<ReturnType<TrackAndTrace["getDocument"]>>;
+
+    try {
+      document = await (
+        await this.ledgerService.getContract()
+      ).getDocument(documentId);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
+      throw new NotFoundError("Document Not Found", {
+        detail: `Document ${documentId} not found`,
+      });
+    }
+
+    const documentTimestamp =
+      document.documentTimestamp.timestamp.toHexString();
+
+    if (document.creator === "" && documentTimestamp === "0x00") {
+      throw new NotFoundError("Document Not Found", {
+        detail: `Document ${documentId} not found`,
+      });
+    }
+
+    const doc = {
+      metadata: document.documentMetadata,
+      timestamp: {
+        datetime: documentTimestamp,
+        source: document.documentTimestamp.source === 0 ? "block" : "external",
+        proof: document.documentTimestamp.proof,
+      },
+      events: document.eventHashes,
+      creator: document.creator,
+    } satisfies Document;
+
+    return doc;
   }
 }

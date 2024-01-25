@@ -119,6 +119,69 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
+  /track-and-trace/v1/documents/{documentId}:
+    get:
+      tags:
+        - Document
+      summary: Get a document
+      description: Gets the document corresponding to the ID.
+      operationId: get-document
+      parameters:
+        - in: path
+          name: documentId
+          description: |
+            The 32-bytes ID of the document, encoded in hexadecimal.
+          required: true
+          schema:
+            type: string
+          example: "0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169"
+      responses:
+        "200":
+          description: Success.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+              examples:
+                Success:
+                  value:
+                    metadata: metadata
+                    timestamp:
+                      datetime: "0x65b24e0d"
+                      source: block
+                      proof: "0x0000000000000000000000000000000000000000000000000000000000000000"
+                    events: []
+                    creator: did:ebsi:ztqWJAmfyuUEf9Jvh97p167
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Invalid {documentId} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: '["documentId must be a valid document ID (32 bytes encoded in hexadecimal and starting with 0x)"]'
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Document Not Found:
+                  $ref: "#/components/examples/NotFound"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
 components:
   schemas:
     ProblemDetails:
@@ -180,6 +243,39 @@ components:
         first:
           type: string
           description: URI of the first page
+    Document:
+      title: Document
+      description: Track and Trace Document
+      type: object
+      properties:
+        documentMetadata:
+          description: Document's metadata
+          type: string
+        documentTimestamp:
+          description: Timestamp object
+          type: object
+          properties:
+            datetime:
+              type: string
+              description: |
+                The date and time, optionally from transaction input
+            source:
+              type: string
+              description: |
+                Defines how the datetime was resolved, enumerated options are "block" and "external"
+            proof:
+              type: string
+              description: |
+                Proof of the source. Either a block number or a hash of timestamp certificate
+        events:
+          type: array
+          description: List of event hashes
+          items:
+            type: string
+            description: Event hash
+        creator:
+          type: string
+          description: The `did:key` or `did:ebsi` that created the document
   examples:
     BadRequest:
       value:

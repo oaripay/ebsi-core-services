@@ -7,7 +7,11 @@ import { TrackAndTrace } from "@ebsiint-sc/track-and-trace";
 // eslint-disable-next-line import/extensions
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers.js";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { createDocument, type Document } from "./data.js";
+import {
+  createDocument,
+  type TestDocumentWithBlockSource,
+  type TestDocumentWithExternalSource,
+} from "./data.js";
 
 export async function deployTrackAndTraceContract(): Promise<{
   trackAndTraceContract: TrackAndTrace;
@@ -47,11 +51,11 @@ export async function deployTrackAndTraceContract(): Promise<{
   };
 }
 
-export async function insertDocument(
+export async function insertDocumentWithBlockSource(
   contract: TrackAndTrace,
-  creatorAccount?: string,
-): Promise<Document> {
-  const doc = createDocument(creatorAccount);
+  creatorAccount: string,
+) {
+  const doc = createDocument(creatorAccount, false);
 
   await contract["createDocument(bytes32,string,string)"](
     doc.documentHash,
@@ -62,19 +66,40 @@ export async function insertDocument(
   return doc;
 }
 
+export async function insertDocumentWithExternalSource(
+  contract: TrackAndTrace,
+  creatorAccount: string,
+) {
+  const doc = createDocument(creatorAccount, true);
+
+  await contract["createDocument(bytes32,string,string,uint256,bytes32)"](
+    doc.documentHash,
+    doc.documentMetadata,
+    doc.didEbsiCreator,
+    doc.timestamp.datetime,
+    doc.timestamp.proof,
+  );
+
+  return doc;
+}
+
 export interface SetupOptions {
-  documentsTotal?: number;
+  documentsWithBlockSourceTotal?: number;
+  documentsWithExternalSourceTotal?: number;
 }
 
 export async function setupTestEnv({
-  documentsTotal = 1,
+  documentsWithBlockSourceTotal = 1,
+  documentsWithExternalSourceTotal = 1,
 }: SetupOptions = {}): Promise<{
   provider: ethers.providers.JsonRpcProvider;
   trackAndTraceContract: TrackAndTrace;
-  documents: Document[];
+  documentsWithBlockSource: TestDocumentWithBlockSource[];
+  documentsWithExternalSource: TestDocumentWithExternalSource[];
 }> {
   const ethersProvider = hre.ethers.provider;
-  const documents: Document[] = [];
+  const documentsWithBlockSource: TestDocumentWithBlockSource[] = [];
+  const documentsWithExternalSource: TestDocumentWithExternalSource[] = [];
   const creatorAccount = EbsiWallet.createDid();
 
   // Deploy contract
@@ -87,11 +112,25 @@ export async function setupTestEnv({
     .authoriseDid(creatorAccount, true);
 
   // Deploy documents
-  documents.push(
+  documentsWithBlockSource.push(
     ...(await Promise.all(
-      Array(documentsTotal)
+      Array(documentsWithBlockSourceTotal)
         .fill(0)
-        .map(() => insertDocument(trackAndTraceContract, creatorAccount)),
+        .map(() =>
+          insertDocumentWithBlockSource(trackAndTraceContract, creatorAccount),
+        ),
+    )),
+  );
+  documentsWithExternalSource.push(
+    ...(await Promise.all(
+      Array(documentsWithExternalSourceTotal)
+        .fill(0)
+        .map(() =>
+          insertDocumentWithExternalSource(
+            trackAndTraceContract,
+            creatorAccount,
+          ),
+        ),
     )),
   );
 
@@ -99,6 +138,7 @@ export async function setupTestEnv({
   return {
     provider: ethersProvider,
     trackAndTraceContract,
-    documents,
+    documentsWithBlockSource,
+    documentsWithExternalSource,
   };
 }

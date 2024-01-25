@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
 import request from "supertest";
 import { Test, type TestingModule } from "@nestjs/testing";
@@ -10,13 +11,18 @@ import {
 import type { RawServerDefault } from "fastify";
 import { TrackAndTrace__factory } from "@ebsiint-sc/track-and-trace";
 import { DocumentsModule } from "./documents.module.js";
+import type { Document } from "./documents.interface.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { setupTestEnv } from "../../../tests/utils/trackAndTrace.js";
 import { LedgerService } from "../ledger/ledger.service.js";
 import type { ApiConfig } from "../../config/configuration.js";
-import type { Document } from "../../../tests/utils/data.js";
+import type {
+  TestDocumentWithBlockSource,
+  TestDocumentWithExternalSource,
+} from "../../../tests/utils/data.js";
 
-const DOCUMENTS = 3;
+const DOCUMENTS_WITH_BLOCK_SOURCE = 3;
+const DOCUMENTS_WITH_EXTERNAL_SOURCE = 3;
 
 describe("Documents Module", () => {
   let app: NestFastifyApplication;
@@ -24,15 +30,18 @@ describe("Documents Module", () => {
   let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
   let ledgerService: LedgerService;
   let configService: ConfigService<ApiConfig, true>;
-  let documents: Document[];
+  let documentsWithBlockSource: TestDocumentWithBlockSource[];
+  let documentsWithExternalSource: TestDocumentWithExternalSource[];
 
   beforeAll(async () => {
     // Spin up test blockchain (hardhat)
     testEnv = await setupTestEnv({
-      documentsTotal: DOCUMENTS,
+      documentsWithBlockSourceTotal: DOCUMENTS_WITH_BLOCK_SOURCE,
+      documentsWithExternalSourceTotal: DOCUMENTS_WITH_EXTERNAL_SOURCE,
     });
     const { trackAndTraceContract } = testEnv;
-    documents = testEnv.documents;
+    documentsWithBlockSource = testEnv.documentsWithBlockSource;
+    documentsWithExternalSource = testEnv.documentsWithExternalSource;
 
     // Mock TSR contract
     vi.spyOn(TrackAndTrace__factory, "connect").mockImplementation(
@@ -77,15 +86,21 @@ describe("Documents Module", () => {
 
       expect(response.body).toStrictEqual({
         self: expect.stringContaining("/documents?page[after]=1&page[size]=10"),
-        items: expect.arrayContaining(
-          documents.map((document) => ({
+        items: expect.arrayContaining([
+          ...documentsWithBlockSource.map((document) => ({
             documentId: document.documentHash,
             href: expect.stringContaining(
               `/documents/${document.documentHash}`,
             ),
           })),
-        ),
-        total: DOCUMENTS,
+          ...documentsWithExternalSource.map((document) => ({
+            documentId: document.documentHash,
+            href: expect.stringContaining(
+              `/documents/${document.documentHash}`,
+            ),
+          })),
+        ]),
+        total: DOCUMENTS_WITH_BLOCK_SOURCE + DOCUMENTS_WITH_EXTERNAL_SOURCE,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
@@ -103,7 +118,7 @@ describe("Documents Module", () => {
         },
       });
       expect((response.body as { items: string }).items).toHaveLength(
-        DOCUMENTS,
+        DOCUMENTS_WITH_BLOCK_SOURCE + DOCUMENTS_WITH_EXTERNAL_SOURCE,
       );
       expect(response.status).toBe(200);
     });
@@ -115,7 +130,7 @@ describe("Documents Module", () => {
       expect(response1.body).toStrictEqual({
         self: expect.stringContaining("/documents?page[after]=1&page[size]=2"),
         items: expect.arrayContaining([]),
-        total: DOCUMENTS,
+        total: DOCUMENTS_WITH_BLOCK_SOURCE + DOCUMENTS_WITH_EXTERNAL_SOURCE,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
@@ -128,7 +143,7 @@ describe("Documents Module", () => {
             "/documents?page[after]=2&page[size]=2",
           ),
           last: expect.stringContaining(
-            "/documents?page[after]=2&page[size]=2",
+            "/documents?page[after]=3&page[size]=2",
           ),
         },
       });
@@ -142,7 +157,7 @@ describe("Documents Module", () => {
       expect(response2.body).toStrictEqual({
         self: expect.stringContaining("/documents?page[after]=2&page[size]=2"),
         items: expect.arrayContaining([]),
-        total: DOCUMENTS,
+        total: DOCUMENTS_WITH_BLOCK_SOURCE + DOCUMENTS_WITH_EXTERNAL_SOURCE,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
@@ -152,14 +167,14 @@ describe("Documents Module", () => {
             "/documents?page[after]=1&page[size]=2",
           ),
           next: expect.stringContaining(
-            "/documents?page[after]=2&page[size]=2",
+            "/documents?page[after]=3&page[size]=2",
           ),
           last: expect.stringContaining(
-            "/documents?page[after]=2&page[size]=2",
+            "/documents?page[after]=3&page[size]=2",
           ),
         },
       });
-      expect((response2.body as { items: string }).items).toHaveLength(1);
+      expect((response2.body as { items: string }).items).toHaveLength(2);
       expect(response2.status).toBe(200);
 
       // big page
@@ -171,20 +186,20 @@ describe("Documents Module", () => {
           "/documents?page[after]=100&page[size]=2",
         ),
         items: expect.arrayContaining([]),
-        total: DOCUMENTS,
+        total: DOCUMENTS_WITH_BLOCK_SOURCE + DOCUMENTS_WITH_EXTERNAL_SOURCE,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             "/documents?page[after]=1&page[size]=2",
           ),
           prev: expect.stringContaining(
-            "/documents?page[after]=2&page[size]=2",
+            "/documents?page[after]=3&page[size]=2",
           ),
           next: expect.stringContaining(
-            "/documents?page[after]=2&page[size]=2",
+            "/documents?page[after]=3&page[size]=2",
           ),
           last: expect.stringContaining(
-            "/documents?page[after]=2&page[size]=2",
+            "/documents?page[after]=3&page[size]=2",
           ),
         },
       });
@@ -196,7 +211,7 @@ describe("Documents Module", () => {
       expect(response4.body).toStrictEqual({
         self: expect.stringContaining("/documents?page[after]=1&page[size]=10"),
         items: expect.arrayContaining([]),
-        total: DOCUMENTS,
+        total: DOCUMENTS_WITH_BLOCK_SOURCE + DOCUMENTS_WITH_EXTERNAL_SOURCE,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
@@ -213,7 +228,9 @@ describe("Documents Module", () => {
           ),
         },
       });
-      expect((response4.body as { items: string }).items).toHaveLength(3);
+      expect((response4.body as { items: string }).items).toHaveLength(
+        DOCUMENTS_WITH_BLOCK_SOURCE + DOCUMENTS_WITH_EXTERNAL_SOURCE,
+      );
       expect(response4.status).toBe(200);
     });
 
@@ -256,6 +273,141 @@ describe("Documents Module", () => {
         type: "about:blank",
       });
       expect(response4.status).toBe(400);
+    });
+  });
+
+  describe("GET /documents/{documentId}", () => {
+    it("should throw an error 400 if the document ID is not valid", async () => {
+      expect.assertions(12);
+
+      let response = await request(server).get("/documents/no-document");
+
+      expect(response.body).toStrictEqual({
+        detail:
+          '["documentId must be a valid document ID (32 bytes encoded in hexadecimal and starting with 0x)"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+
+      response = await request(server).get("/documents/0xnothexadecimal");
+
+      expect(response.body).toStrictEqual({
+        detail:
+          '["documentId must be a valid document ID (32 bytes encoded in hexadecimal and starting with 0x)"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+
+      response = await request(server).get(
+        `/documents/${randomBytes(32).toString("hex")}`,
+      );
+
+      expect(response.body).toStrictEqual({
+        detail:
+          '["documentId must be a valid document ID (32 bytes encoded in hexadecimal and starting with 0x)"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+
+      response = await request(server).get(
+        `/documents/0x${randomBytes(24).toString("hex")}`,
+      );
+
+      expect(response.body).toStrictEqual({
+        detail:
+          '["documentId must be a valid document ID (32 bytes encoded in hexadecimal and starting with 0x)"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should throw an error if the document is not found", async () => {
+      expect.assertions(3);
+
+      const documentId = `0x${randomBytes(32).toString("hex")}`;
+      const response = await request(server).get(`/documents/${documentId}`);
+
+      expect(response.body).toStrictEqual({
+        title: "Document Not Found",
+        status: 404,
+        detail: `Document ${documentId} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should return a specific document with block source identified by its document ID", async () => {
+      expect.assertions(3);
+
+      const document = testEnv.documentsWithBlockSource[0]!;
+
+      const response = await request(server).get(
+        `/documents/${document.documentHash}`,
+      );
+
+      expect(response.body).toStrictEqual({
+        metadata: document.documentMetadata,
+        timestamp: {
+          datetime: expect.stringMatching(/^0x/),
+          source: "block",
+          proof:
+            "0x0000000000000000000000000000000000000000000000000000000000000000",
+        },
+        events: [],
+        creator: document.didEbsiCreator,
+      } satisfies Document);
+      expect(response.status).toBe(200);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/json"));
+    });
+
+    it("should return a specific document with external source identified by its document ID", async () => {
+      expect.assertions(3);
+
+      const document = testEnv.documentsWithExternalSource[0]!;
+
+      const response = await request(server).get(
+        `/documents/${document.documentHash}`,
+      );
+
+      expect(response.body).toStrictEqual({
+        metadata: document.documentMetadata,
+        timestamp: {
+          datetime: expect.stringMatching(/^0x/),
+          source: "external",
+          proof: document.timestamp?.proof,
+        },
+        events: [],
+        creator: document.didEbsiCreator,
+      } satisfies Document);
+      expect(response.status).toBe(200);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/json"));
     });
   });
 });

@@ -1,10 +1,10 @@
-import { Controller, Get, Query } from "@nestjs/common";
+import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PaginatedList } from "@ebsiint-api/shared";
 import DocumentsService from "./documents.service.js";
 import { formatDocuments } from "./documents.formatter.js";
-import type { DocumentsLink } from "./documents.interface.js";
-import { GetDocumentsDto } from "./dto/index.js";
+import type { Document, DocumentsLink } from "./documents.interface.js";
+import { GetDocumentParamsDto, GetDocumentsDto } from "./dto/index.js";
 import type { ApiConfig } from "../../config/configuration.js";
 
 @Controller("/documents")
@@ -33,5 +33,16 @@ export default class DocumentsController {
       query["page[size]"],
       baseUrl,
     );
+  }
+
+  @Get("/:documentId")
+  async getDidDocument(
+    @Param() params: GetDocumentParamsDto,
+  ): Promise<Document> {
+    const { documentId } = params;
+
+    const document = await this.documentsService.getDocument(documentId);
+
+    return document;
   }
 }

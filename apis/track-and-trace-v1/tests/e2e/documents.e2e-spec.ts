@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { describe, beforeAll, it, expect, afterAll } from "vitest";
 import request from "supertest";
 import { Test, type TestingModule } from "@nestjs/testing";
@@ -18,6 +19,10 @@ describe("Track and Trace API v1 (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let configService: ConfigService<ApiConfig, true>;
+  let lastDocuments: {
+    documentId: string;
+    href: string;
+  }[] = [];
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -42,6 +47,35 @@ describe("Track and Trace API v1 (e2e)", () => {
     await app.getHttpAdapter().getInstance().ready();
 
     server = getServer(app, configService);
+
+    // Get last documents
+    const getAllDocuments = await request(server).get(
+      "/documents?page[size]=50",
+    );
+    const { total } = getAllDocuments.body as {
+      total: number;
+    };
+
+    if (total > 50) {
+      const getDocumentsLastPage = await request(server).get(
+        `/documents?page[after]=${Math.ceil(total / 10)}&page[size]=10`,
+      );
+      const { items: documents } = getDocumentsLastPage.body as {
+        items: {
+          documentId: string;
+          href: string;
+        }[];
+      };
+      lastDocuments = documents;
+    } else if (total > 0) {
+      const { items: documents } = getAllDocuments.body as {
+        items: {
+          documentId: string;
+          href: string;
+        }[];
+      };
+      lastDocuments = documents;
+    }
   });
 
   afterAll(async () => {
@@ -49,7 +83,7 @@ describe("Track and Trace API v1 (e2e)", () => {
   });
 
   describe("GET /documents", () => {
-    it("should return a paginated collection of identifiers", async () => {
+    it("should return a paginated collection of documents", async () => {
       expect.assertions(2);
 
       const response = await request(server).get("/documents");
@@ -127,6 +161,123 @@ describe("Track and Trace API v1 (e2e)", () => {
         type: "about:blank",
       });
       expect(response4.status).toBe(400);
+    });
+  });
+
+  describe("GET /documents/{documentId}", () => {
+    it("should return a specific document", async () => {
+      if (lastDocuments.length === 0) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          "Test 'GET /documents/{documentId} should return a specific document' skipped",
+        );
+        return;
+      }
+
+      expect.assertions(4);
+
+      const response = await request(server).get(
+        `/documents/${lastDocuments[0]!.documentId}`,
+      );
+
+      expect(response.body).toStrictEqual(
+        expect.objectContaining({
+          id: expect.stringContaining("documentId:"),
+          controller: expect.arrayContaining([]),
+          verificationMethod: expect.arrayContaining([]),
+        }),
+      );
+      expect(
+        response.body as { "@context": string | string[] }["@context"],
+      ).toBeDefined();
+      expect(response.status).toBe(200);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(
+        expect.stringContaining("application/documentId+ld+json"),
+      );
+    });
+
+    it("should throw an error 400 if the document ID is not valid", async () => {
+      expect.assertions(12);
+
+      let response = await request(server).get("/documents/no-document");
+
+      expect(response.body).toStrictEqual({
+        detail:
+          '["documentId must be a valid document ID (32 bytes encoded in hexadecimal and starting with 0x)"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+
+      response = await request(server).get("/documents/0xnothexadecimal");
+
+      expect(response.body).toStrictEqual({
+        detail:
+          '["documentId must be a valid document ID (32 bytes encoded in hexadecimal and starting with 0x)"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+
+      response = await request(server).get(
+        `/documents/${randomBytes(32).toString("hex")}`,
+      );
+
+      expect(response.body).toStrictEqual({
+        detail:
+          '["documentId must be a valid document ID (32 bytes encoded in hexadecimal and starting with 0x)"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+
+      response = await request(server).get(
+        `/documents/0x${randomBytes(24).toString("hex")}`,
+      );
+
+      expect(response.body).toStrictEqual({
+        detail:
+          '["documentId must be a valid document ID (32 bytes encoded in hexadecimal and starting with 0x)"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should throw an error if the document is not found", async () => {
+      expect.assertions(3);
+
+      const documentId = `0x${randomBytes(32).toString("hex")}`;
+      const response = await request(server).get(`/documents/${documentId}`);
+
+      expect(response.body).toStrictEqual({
+        title: "Document Not Found",
+        status: 404,
+        detail: `Document ${documentId} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
   });
 });
