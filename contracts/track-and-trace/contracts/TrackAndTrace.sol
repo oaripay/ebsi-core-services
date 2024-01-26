@@ -92,7 +92,7 @@ contract TrackAndTrace is
             documentMetadata,
             block.timestamp,
             Source.Block,
-            bytes32(0),
+            bytes32(block.number),
             didEbsiCreator
         );
     }
@@ -281,7 +281,7 @@ contract TrackAndTrace is
         ) {
             revert OnlyCreatorOrWriter();
         }
-        _writeEvent(eventParams, block.timestamp, Source.Block, bytes32(0));
+        _writeEvent(eventParams, block.timestamp, Source.Block, bytes32(block.number));
     }
 
     function writeEvent(
@@ -572,6 +572,10 @@ contract TrackAndTrace is
         _timestamp.timestamp = timestamp;
         _timestamp.proof = timestampProof;
         _timestamp.source = timestampSource;
+
+        // helpers
+
+        _document.eventHashes.push(eventParams.eventHash);
 
         emit EventWritten(
             eventParams.documentHash,
