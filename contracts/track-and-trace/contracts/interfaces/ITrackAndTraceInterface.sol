@@ -2,48 +2,6 @@
 pragma solidity ^0.8.12;
 
 interface ITrackAndTraceInterface {
-    // errors
-
-    error NotUpgrader();
-    error InvalidAddress();
-    error InvalidPublicKeyLength();
-    error DidNotInvited();
-    error DocumentExists();
-    error DocumentDoesNotExist();
-    error InvalidAccess();
-    error NotWhitelisted();
-    error InvalidMetadata();
-    error PermissionExists();
-
-    // events
-
-    event DidAuthorised(address addr, bytes pubKey, bool val);
-    event DidEbsiAuthorised(string did, bool val);
-    event DocumentCreated(
-        bytes32 docHash,
-        string metadata,
-        string creator,
-        uint timestamp,
-        Source source,
-        bytes32 proof
-    );
-    event AccessGranted(
-        bytes32 docHash,
-        bytes subject,
-        bytes signer,
-        ACCESS_ENUM permission
-    );
-    event AccessRevoked(bytes32 docHash, bytes subject, bytes signer);
-    event EventWritten(
-        bytes32 docHash,
-        bytes32 eventHash,
-        string sender,
-        string metadata,
-        string origin,
-        uint timestamp,
-        Source source,
-        bytes32 proof
-    );
 
     // List of structures and variable types
 
@@ -76,7 +34,7 @@ interface ITrackAndTraceInterface {
     }
 
     struct Timestamp {
-        uint timestamp; // seconds since 1 Jan 1970 (UTC)
+        uint256 timestamp; // seconds since 1 Jan 1970 (UTC)
         Source source;
         bytes32 proof; // external proof or if internal then its block.hash
     }
@@ -117,10 +75,9 @@ interface ITrackAndTraceInterface {
          */
         bytes32[] eventHashes;
         string creator;
-        mapping(bytes => bytes[]) invitees;
         mapping(bytes => Access_Struct) invited;
         bytes[] allInvited;
-        mapping(bytes => uint) allInvitedIndex;
+        mapping(bytes => uint256) allInvitedIndex;
     }
 
     struct WriteEvent {
@@ -131,4 +88,54 @@ interface ITrackAndTraceInterface {
         string origin;
         string metadata;
     }
+
+    // events
+
+    event DidAuthorised(address addr, bytes pubKey, bool val);
+    event DidEbsiAuthorised(string did, bool val);
+    event DocumentCreated(
+        bytes32 docHash,
+        string metadata,
+        string creator,
+        uint256 timestamp,
+        Source source,
+        bytes32 proof
+    );
+    event AccessGranted(
+        bytes32 docHash,
+        bytes subject,
+        bytes signer,
+        ACCESS_ENUM permission
+    );
+    event AccessRevoked(bytes32 docHash, bytes subject, bytes signer);
+    event EventWritten(
+        bytes32 docHash,
+        bytes32 eventHash,
+        string sender,
+        string metadata,
+        string origin,
+        uint256 timestamp,
+        Source source,
+        bytes32 proof
+    );
+
+    // errors
+
+    error NotUpgrader();
+    error InvalidAddress();
+    error InvalidPublicKeyLength();
+    error DidNotInvited();
+    error DocumentExists();
+    error DocumentDoesNotExist();
+    error InvalidAccess();
+    error OnlyAccessGranter();
+    error OnlyCreator();
+    error OnlyCreatorOrDelegated();
+    error OnlyCreatorOrWriter();
+    error NotAuthorised();
+    error NotDidController();
+    error NotWhitelisted();
+    error InvalidMetadata();
+    error PermissionExists();
+    error InvalidArrayLength();
 }

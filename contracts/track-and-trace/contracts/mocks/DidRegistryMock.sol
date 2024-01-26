@@ -5,6 +5,14 @@ contract DidRegistryMock {
     bool public didResult;
 
     /**
+     * @dev set did result mock value as state variable
+     * @param newDidResult bool
+     */
+    function setDidResult(bool newDidResult) external {
+        didResult = newDidResult;
+    }
+
+    /**
      * @dev check controller is owner on a did identifier, return mock result
      * @param identifier bytes
      * @param ctrl address
@@ -17,11 +25,4 @@ contract DidRegistryMock {
         return didResult;
     }
 
-    /**
-     * @dev set did result mock value as state variable
-     * @param newDidResult bool
-     */
-    function setDidResult(bool newDidResult) external {
-        didResult = newDidResult;
-    }
 }

@@ -20,8 +20,6 @@ contract TrackAndTrace is
     using Pagination for bytes[];
 
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
-    bytes32 public constant CONTRACT_MODERATOR =
-        keccak256("CONTRACT_MODERATOR");
     uint256 public constant MAX_METADATA_LENGTH = 4000;
 
     // Variables
@@ -30,7 +28,7 @@ contract TrackAndTrace is
     mapping(bytes32 => Document) public documents;
     EnumerableMapUpgradeable.Bytes32ToBytes32Map internal documentsMapped;
     mapping(bytes => bytes32[]) internal accessBySubject;
-    mapping(bytes => mapping(bytes32 => uint)) internal accessBySubjectIndex;
+    mapping(bytes => mapping(bytes32 => uint256)) internal accessBySubjectIndex;
 
     mapping(string => bool) public invitedDidEbsiAccounts;
 
@@ -53,6 +51,9 @@ contract TrackAndTrace is
     }
 
     function authoriseDid(string calldata didEbsi, bool whiteList) external {
+        if (_authorize(bytes(didEbsi), ACCOUNT_TYPE.DID_EBSI) == false) {
+            revert NotDidController();
+        }
         if (
             _getAccountAccess(
                 bytes32(0),
@@ -61,9 +62,8 @@ contract TrackAndTrace is
                 SCOPE.TNT_AUTHORIZE
             ) == false
         ) {
-            revert InvalidAccess();
+            revert NotAuthorised();
         }
-        invitedDidEbsiAccounts[didEbsi] = true;
         invitedDidEbsiAccounts[didEbsi] = whiteList;
         emit DidEbsiAuthorised(didEbsi, whiteList);
     }
@@ -73,6 +73,10 @@ contract TrackAndTrace is
         string calldata documentMetadata,
         string calldata didEbsiCreator
     ) external {
+        // authorize
+        if (_authorize(bytes(didEbsiCreator), ACCOUNT_TYPE.DID_EBSI) == false) {
+            revert NotDidController();
+        }
         if (
             _getAccountAccess(
                 bytes32(0),
@@ -97,9 +101,13 @@ contract TrackAndTrace is
         bytes32 documentHash,
         string calldata documentMetadata,
         string calldata didEbsiCreator,
-        uint timestamp,
+        uint256 timestamp,
         bytes32 timestampProof
     ) external {
+        // authorize signer
+        if (_authorize(bytes(didEbsiCreator), ACCOUNT_TYPE.DID_EBSI) == false) {
+            revert NotDidController();
+        }
         if (
             _getAccountAccess(
                 bytes32(0),
@@ -121,6 +129,10 @@ contract TrackAndTrace is
     }
 
     function removeDocument(bytes32 documentHash) external {
+        // authorize signer
+        if (_authorize(bytes(documents[documentHash].creator), ACCOUNT_TYPE.DID_EBSI) == false) {
+            revert NotDidController();
+        }
         if (
             _getAccountAccess(
                 documentHash,
@@ -129,7 +141,7 @@ contract TrackAndTrace is
                 SCOPE.TNT_CREATE
             ) == false
         ) {
-            revert InvalidAccess();
+            revert OnlyCreator();
         }
         documentsMapped.remove(documentHash);
         delete documents[documentHash];
@@ -143,6 +155,11 @@ contract TrackAndTrace is
         ACCOUNT_TYPE subjectAccType,
         ACCESS_ENUM permission
     ) external {
+        // authorize signer
+        if (_authorize(grantedByAccount, grantedByAccType) == false) {
+            revert NotDidController();
+        }
+        // _authorize
         if (
             permission == ACCESS_ENUM.DELEGATE &&
             _getAccountAccess(
@@ -153,7 +170,7 @@ contract TrackAndTrace is
             ) ==
             false
         ) {
-            revert InvalidAccess();
+            revert OnlyCreator();
         } else if (
             permission == ACCESS_ENUM.WRITE &&
             _getAccountAccess(
@@ -171,7 +188,7 @@ contract TrackAndTrace is
             ) ==
             false
         ) {
-            revert InvalidAccess();
+            revert OnlyCreatorOrDelegated();
         }
 
         _grantAccess(
@@ -191,13 +208,25 @@ contract TrackAndTrace is
         ACCESS_ENUM permission
     ) external {
         Document storage doc = documents[documentHash];
+        // authorize signer
+        if (
+            _authorize(revokeByAccount, doc.invited[subjectAccount].grantedByAccountType[permission]) == false
+            && _authorize(revokeByAccount, ACCOUNT_TYPE.DID_EBSI) == false // in case is creator
+        ) {
+            revert NotDidController();
+        }
         if (
             !_equal(
                 revokeByAccount,
                 doc.invited[subjectAccount].grantedBy[permission]
             )
+            &&
+            !_equal(
+                revokeByAccount,
+                bytes(doc.creator)
+            )
         ) {
-            revert InvalidAccess();
+            revert OnlyCreatorOrDelegated();
         }
         delete doc.invited[subjectAccount].acc[permission];
         delete doc.invited[subjectAccount].grantedBy[permission];
@@ -206,7 +235,7 @@ contract TrackAndTrace is
             !doc.invited[subjectAccount].acc[ACCESS_ENUM.WRITE] &&
             !doc.invited[subjectAccount].acc[ACCESS_ENUM.DELEGATE]
         ) {
-            uint index = doc.allInvitedIndex[subjectAccount];
+            uint256 index = doc.allInvitedIndex[subjectAccount];
             if (index > 0) {
                 bytes memory lastAcc = doc.allInvited[
                     doc.allInvited.length - 1
@@ -218,7 +247,7 @@ contract TrackAndTrace is
             }
         }
         {
-            uint index = accessBySubjectIndex[subjectAccount][documentHash];
+            uint256 index = accessBySubjectIndex[subjectAccount][documentHash];
             bytes32 lastElement = accessBySubject[subjectAccount][accessBySubject[subjectAccount].length - 1];
             accessBySubject[subjectAccount][index] = lastElement;
             accessBySubject[subjectAccount].pop();
@@ -231,6 +260,15 @@ contract TrackAndTrace is
         WriteEvent calldata eventParams,
         bytes calldata writer
     ) external {
+        // authorize signer
+        if (
+            _authorize(
+                writer,
+                documents[eventParams.documentHash].invited[writer].subjectAccountType
+            ) == false
+        ) {
+            revert NotDidController();
+        }
         if (
             _getAccountAccess(
                 eventParams.documentHash,
@@ -241,7 +279,7 @@ contract TrackAndTrace is
                 SCOPE.TNT_WRITE
             ) == false
         ) {
-            revert InvalidAccess();
+            revert OnlyCreatorOrWriter();
         }
         _writeEvent(eventParams, block.timestamp, Source.Block, bytes32(0));
     }
@@ -249,10 +287,19 @@ contract TrackAndTrace is
     function writeEvent(
         WriteEvent calldata eventParams,
         bytes calldata writer,
-        uint timestamp,
+        uint256 timestamp,
         Source timestampSource,
         bytes32 timestampProof
     ) external {
+        // authorize signer
+        if (
+            _authorize(
+                writer,
+                documents[eventParams.documentHash].invited[writer].subjectAccountType
+            ) == false
+        ) {
+            revert NotDidController();
+        }
         if (
             _getAccountAccess(
                 eventParams.documentHash,
@@ -263,7 +310,7 @@ contract TrackAndTrace is
                 SCOPE.TNT_WRITE
             ) == false
         ) {
-            revert InvalidAccess();
+            revert OnlyCreatorOrWriter();
         }
         _writeEvent(eventParams, timestamp, timestampSource, timestampProof);
     }
@@ -273,8 +320,8 @@ contract TrackAndTrace is
     }
 
     function getDocuments(
-        uint page,
-        uint pageSize
+        uint256 page,
+        uint256 pageSize
     )
         external
         view
@@ -306,8 +353,8 @@ contract TrackAndTrace is
 
     function getEvents(
         bytes32 documentHash,
-        uint page,
-        uint pageSize
+        uint256 page,
+        uint256 pageSize
     )
         external
         view
@@ -335,8 +382,8 @@ contract TrackAndTrace is
 
     function getAccessesByDocument(
         bytes32 documentHash,
-        uint page,
-        uint pageSize
+        uint256 page,
+        uint256 pageSize
     )
         external
         view
@@ -355,7 +402,7 @@ contract TrackAndTrace is
         return invitedUsers.paginate(page, pageSize);
     }
 
-    function getAccessesBySubject(bytes calldata subject, uint page, uint pageSize) external view returns (
+    function getAccessesBySubject(bytes calldata subject, uint256 page, uint256 pageSize) external view returns (
         bytes32[] memory items,
         uint256 total,
         uint256 howMany,
@@ -378,26 +425,34 @@ contract TrackAndTrace is
             );
     }
 
+    function getGrantedBy (bytes32 docHash, bytes calldata did, ACCESS_ENUM[] calldata acc)
+    external
+    view
+    returns (bytes[] memory, ACCOUNT_TYPE[] memory, bool[] memory) {
+        if (acc.length == 0) {
+            revert InvalidArrayLength();
+        }
+        uint256 accLength = acc.length;
+        bytes[] memory grantedByAccounts = new bytes[](accLength);
+        ACCOUNT_TYPE[] memory grantedByAccountType = new ACCOUNT_TYPE[](accLength);
+        bool[] memory access = new bool[](accLength);
+        Access_Struct storage accs = documents[docHash].invited[did];
+        for (uint256 i = 0; i < accLength; i++) {
+            grantedByAccounts[i] = accs.grantedBy[acc[i]];
+            grantedByAccountType[i] = accs.grantedByAccountType[acc[i]];
+            access[i] = accs.acc[acc[i]];
+        }
+        return (grantedByAccounts, grantedByAccountType, access);
+    }
+
     // internal functions
 
     function _onInitialize() internal onlyInitializing {}
 
-    function _authorizeUpgrade(address) internal view override {
-        if (!hasRole(UPGRADER_ROLE, msg.sender)) {
-            revert NotUpgrader();
-        }
-    }
-
-    function _getWalletAddressFromPublicKey(
-        bytes memory publicKey
-    ) internal pure returns (address) {
-        return address(uint160(uint256(keccak256(publicKey))));
-    }
-
     function _createDocument(
         bytes32 documentHash,
         string calldata documentMetadata,
-        uint timestamp,
+        uint256 timestamp,
         Source timestampSource,
         bytes32 timestampProof,
         string calldata creator
@@ -472,7 +527,7 @@ contract TrackAndTrace is
         // add helpers
 
         if (_document.allInvitedIndex[subjectAccount] == 0) {
-            uint index = _document.allInvited.length;
+            uint256 index = _document.allInvited.length;
             _document.allInvited.push(subjectAccount);
             _document.allInvitedIndex[subjectAccount] = index;
         }
@@ -485,8 +540,7 @@ contract TrackAndTrace is
             accessBySubjectIndex[subjectAccount][documentHash] = accessBySubject[subjectAccount].length - 1;
         }
 
-
-    emit AccessGranted(
+        emit AccessGranted(
             documentHash,
             subjectAccount,
             grantedByAccount,
@@ -496,7 +550,7 @@ contract TrackAndTrace is
 
     function _writeEvent(
         WriteEvent calldata eventParams,
-        uint timestamp,
+        uint256 timestamp,
         Source timestampSource,
         bytes32 timestampProof
     ) internal {
@@ -531,20 +585,29 @@ contract TrackAndTrace is
         );
     }
 
+    function _authorizeUpgrade(address) internal view override {
+        if (!hasRole(UPGRADER_ROLE, msg.sender)) {
+            revert NotUpgrader();
+        }
+    }
+
+    function _authorize (
+        bytes memory account,
+        ACCOUNT_TYPE accountType
+    ) internal view returns (bool) {
+        // authorise did:ebsi or did:key with msg.sender.
+        return
+        accountType == ACCOUNT_TYPE.DID_EBSI && didRegistry.checkController(account, msg.sender)
+        || accountType == ACCOUNT_TYPE.DID_KEY && msg.sender == _getWalletAddressFromPublicKey(account);
+    }
+
     function _getAccountAccess(
         bytes32 documentHash,
         bytes memory account,
         ACCOUNT_TYPE accountType,
         SCOPE scopeRequested
     ) internal view returns (bool) {
-        // authorise did signature
-        if (accountType == ACCOUNT_TYPE.DID_EBSI) {
-            if (!didRegistry.checkController(account, msg.sender)) {
-                return false;
-            }
-        } else {
-            // @TODO: for did:key we will add auth later (withPermit)
-        }
+
         if (scopeRequested == SCOPE.TNT_AUTHORIZE) {
             // scope to authoriseDid, doesn't refer to the document, it is a general scope
             if (accountType == ACCOUNT_TYPE.DID_EBSI) {
@@ -572,21 +635,10 @@ contract TrackAndTrace is
         }
     }
 
-    function toAddress(
-        bytes memory _bytes,
-        uint256 _start
+    function _getWalletAddressFromPublicKey(
+        bytes memory publicKey
     ) internal pure returns (address) {
-        require(_bytes.length >= _start + 20, "toAddress_outOfBounds");
-        address tempAddress;
-
-        assembly {
-            tempAddress := div(
-                mload(add(add(_bytes, 0x20), _start)),
-                0x1000000000000000000000000
-            )
-        }
-
-        return tempAddress;
+        return address(uint160(uint256(keccak256(publicKey))));
     }
 
     /*
