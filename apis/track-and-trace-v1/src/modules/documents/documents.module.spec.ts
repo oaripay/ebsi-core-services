@@ -11,18 +11,16 @@ import {
 import type { RawServerDefault } from "fastify";
 import { TrackAndTrace__factory } from "@ebsiint-sc/track-and-trace";
 import { DocumentsModule } from "./documents.module.js";
-import type { Document } from "./documents.interface.js";
+import type { Document, Event } from "./documents.interface.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { setupTestEnv } from "../../../tests/utils/trackAndTrace.js";
 import { LedgerService } from "../ledger/ledger.service.js";
 import type { ApiConfig } from "../../config/configuration.js";
-import type {
-  TestDocumentWithBlockSource,
-  TestDocumentWithExternalSource,
-} from "../../../tests/utils/data.js";
+import type { TestDocument } from "../../../tests/utils/data.js";
 
 const DOCUMENTS_WITH_BLOCK_SOURCE = 3;
 const DOCUMENTS_WITH_EXTERNAL_SOURCE = 3;
+const DOCUMENT_EVENTS = 3;
 
 describe("Documents Module", () => {
   let app: NestFastifyApplication;
@@ -30,14 +28,15 @@ describe("Documents Module", () => {
   let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
   let ledgerService: LedgerService;
   let configService: ConfigService<ApiConfig, true>;
-  let documentsWithBlockSource: TestDocumentWithBlockSource[];
-  let documentsWithExternalSource: TestDocumentWithExternalSource[];
+  let documentsWithBlockSource: TestDocument[];
+  let documentsWithExternalSource: TestDocument[];
 
   beforeAll(async () => {
     // Spin up test blockchain (hardhat)
     testEnv = await setupTestEnv({
       documentsWithBlockSourceTotal: DOCUMENTS_WITH_BLOCK_SOURCE,
       documentsWithExternalSourceTotal: DOCUMENTS_WITH_EXTERNAL_SOURCE,
+      documentEventsTotal: DOCUMENT_EVENTS,
     });
     const { trackAndTraceContract } = testEnv;
     documentsWithBlockSource = testEnv.documentsWithBlockSource;
@@ -86,7 +85,7 @@ describe("Documents Module", () => {
 
       expect(response.body).toStrictEqual({
         self: expect.stringContaining("/documents?page[after]=1&page[size]=10"),
-        items: expect.arrayContaining([
+        items: [
           ...documentsWithBlockSource.map((document) => ({
             documentId: document.documentHash,
             href: expect.stringContaining(
@@ -99,7 +98,7 @@ describe("Documents Module", () => {
               `/documents/${document.documentHash}`,
             ),
           })),
-        ]),
+        ],
         total: DOCUMENTS_WITH_BLOCK_SOURCE + DOCUMENTS_WITH_EXTERNAL_SOURCE,
         pageSize: 10,
         links: {
@@ -126,10 +125,21 @@ describe("Documents Module", () => {
     it("should handle the pagination properly", async () => {
       expect.assertions(12);
 
+      const allDocs = [
+        ...documentsWithBlockSource.map((document) => ({
+          documentId: document.documentHash,
+          href: expect.stringContaining(`/documents/${document.documentHash}`),
+        })),
+        ...documentsWithExternalSource.map((document) => ({
+          documentId: document.documentHash,
+          href: expect.stringContaining(`/documents/${document.documentHash}`),
+        })),
+      ];
+
       const response1 = await request(server).get("/documents?page[size]=2");
       expect(response1.body).toStrictEqual({
         self: expect.stringContaining("/documents?page[after]=1&page[size]=2"),
-        items: expect.arrayContaining([]),
+        items: allDocs.slice(0, 2),
         total: DOCUMENTS_WITH_BLOCK_SOURCE + DOCUMENTS_WITH_EXTERNAL_SOURCE,
         pageSize: 2,
         links: {
@@ -156,7 +166,7 @@ describe("Documents Module", () => {
       );
       expect(response2.body).toStrictEqual({
         self: expect.stringContaining("/documents?page[after]=2&page[size]=2"),
-        items: expect.arrayContaining([]),
+        items: allDocs.slice(2, 4),
         total: DOCUMENTS_WITH_BLOCK_SOURCE + DOCUMENTS_WITH_EXTERNAL_SOURCE,
         pageSize: 2,
         links: {
@@ -185,7 +195,7 @@ describe("Documents Module", () => {
         self: expect.stringContaining(
           "/documents?page[after]=100&page[size]=2",
         ),
-        items: expect.arrayContaining([]),
+        items: [],
         total: DOCUMENTS_WITH_BLOCK_SOURCE + DOCUMENTS_WITH_EXTERNAL_SOURCE,
         pageSize: 2,
         links: {
@@ -210,7 +220,7 @@ describe("Documents Module", () => {
       const response4 = await request(server).get("/documents?page[after]=1");
       expect(response4.body).toStrictEqual({
         self: expect.stringContaining("/documents?page[after]=1&page[size]=10"),
-        items: expect.arrayContaining([]),
+        items: allDocs,
         total: DOCUMENTS_WITH_BLOCK_SOURCE + DOCUMENTS_WITH_EXTERNAL_SOURCE,
         pageSize: 10,
         links: {
@@ -283,8 +293,9 @@ describe("Documents Module", () => {
       let response = await request(server).get("/documents/no-document");
 
       expect(response.body).toStrictEqual({
-        detail:
-          '["documentId must be a valid document ID (32 bytes encoded in hexadecimal and starting with 0x)"]',
+        detail: JSON.stringify([
+          "documentId must be 32 bytes encoded in hexadecimal and start with 0x",
+        ]),
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -297,8 +308,9 @@ describe("Documents Module", () => {
       response = await request(server).get("/documents/0xnothexadecimal");
 
       expect(response.body).toStrictEqual({
-        detail:
-          '["documentId must be a valid document ID (32 bytes encoded in hexadecimal and starting with 0x)"]',
+        detail: JSON.stringify([
+          "documentId must be 32 bytes encoded in hexadecimal and start with 0x",
+        ]),
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -313,8 +325,9 @@ describe("Documents Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail:
-          '["documentId must be a valid document ID (32 bytes encoded in hexadecimal and starting with 0x)"]',
+        detail: JSON.stringify([
+          "documentId must be 32 bytes encoded in hexadecimal and start with 0x",
+        ]),
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -329,8 +342,9 @@ describe("Documents Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail:
-          '["documentId must be a valid document ID (32 bytes encoded in hexadecimal and starting with 0x)"]',
+        detail: JSON.stringify([
+          "documentId must be 32 bytes encoded in hexadecimal and start with 0x",
+        ]),
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -371,12 +385,11 @@ describe("Documents Module", () => {
       expect(response.body).toStrictEqual({
         metadata: document.documentMetadata,
         timestamp: {
-          datetime: expect.stringMatching(/^0x/),
+          datetime: document.timestamp.datetime,
           source: "block",
-          proof:
-            "0x0000000000000000000000000000000000000000000000000000000000000000",
+          proof: document.timestamp.proof,
         },
-        events: [],
+        events: document.events.map((event) => event.eventHash),
         creator: document.didEbsiCreator,
       } satisfies Document);
       expect(response.status).toBe(200);
@@ -404,6 +417,483 @@ describe("Documents Module", () => {
         events: [],
         creator: document.didEbsiCreator,
       } satisfies Document);
+      expect(response.status).toBe(200);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/json"));
+    });
+  });
+
+  describe("GET /documents/{documentId}/events", () => {
+    it("should throw an error 400 if the document ID is not valid", async () => {
+      expect.assertions(12);
+
+      let response = await request(server).get("/documents/no-document/events");
+
+      expect(response.body).toStrictEqual({
+        detail: JSON.stringify([
+          "documentId must be 32 bytes encoded in hexadecimal and start with 0x",
+        ]),
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+
+      response = await request(server).get(
+        "/documents/0xnothexadecimal/events",
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: JSON.stringify([
+          "documentId must be 32 bytes encoded in hexadecimal and start with 0x",
+        ]),
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+
+      response = await request(server).get(
+        `/documents/${randomBytes(32).toString("hex")}/events`,
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: JSON.stringify([
+          "documentId must be 32 bytes encoded in hexadecimal and start with 0x",
+        ]),
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+
+      response = await request(server).get(
+        `/documents/0x${randomBytes(24).toString("hex")}/events`,
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: JSON.stringify([
+          "documentId must be 32 bytes encoded in hexadecimal and start with 0x",
+        ]),
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should throw an error if the document is not found", async () => {
+      expect.assertions(3);
+
+      const documentId = `0x${randomBytes(32).toString("hex")}`;
+      const response = await request(server).get(
+        `/documents/${documentId}/events`,
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Document Not Found",
+        status: 404,
+        detail: `Document ${documentId} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should return a paginated collection of events", async () => {
+      expect.assertions(3);
+
+      const document = testEnv.documentsWithBlockSource[0]!;
+
+      const response = await request(server).get(
+        `/documents/${document.documentHash}/events`,
+      );
+
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/documents/${document.documentHash}/events?page[after]=1&page[size]=10`,
+        ),
+        items: document.events.map((event) => ({
+          eventId: event.eventHash,
+          href: expect.stringContaining(
+            `/documents/${document.documentHash}/events/${event.eventHash}`,
+          ),
+        })),
+        total: DOCUMENT_EVENTS,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            `/documents/${document.documentHash}/events?page[after]=1&page[size]=10`,
+          ),
+          prev: expect.stringContaining(
+            `/documents/${document.documentHash}/events?page[after]=1&page[size]=10`,
+          ),
+          next: expect.stringContaining(
+            `/documents/${document.documentHash}/events?page[after]=1&page[size]=10`,
+          ),
+          last: expect.stringContaining(
+            `/documents/${document.documentHash}/events?page[after]=1&page[size]=10`,
+          ),
+        },
+      });
+      expect((response.body as { items: string }).items).toHaveLength(
+        DOCUMENT_EVENTS,
+      );
+      expect(response.status).toBe(200);
+    });
+
+    it("should handle the pagination properly", async () => {
+      expect.assertions(12);
+
+      const document = testEnv.documentsWithBlockSource[0]!;
+
+      const response1 = await request(server).get(
+        `/documents/${document.documentHash}/events?page[size]=2`,
+      );
+
+      expect(response1.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/documents/${document.documentHash}/events?page[after]=1&page[size]=2`,
+        ),
+        items: document.events.slice(0, 2).map((event) => ({
+          eventId: event.eventHash,
+          href: expect.stringContaining(
+            `/documents/${document.documentHash}/events/${event.eventHash}`,
+          ),
+        })),
+        total: DOCUMENT_EVENTS,
+        pageSize: 2,
+        links: {
+          first: expect.stringContaining(
+            `/documents/${document.documentHash}/events?page[after]=1&page[size]=2`,
+          ),
+          prev: expect.stringContaining(
+            `/documents/${document.documentHash}/events?page[after]=1&page[size]=2`,
+          ),
+          next: expect.stringContaining(
+            `/documents/${document.documentHash}/events?page[after]=2&page[size]=2`,
+          ),
+          last: expect.stringContaining(
+            `/documents/${document.documentHash}/events?page[after]=2&page[size]=2`,
+          ),
+        },
+      });
+      expect((response1.body as { items: string }).items).toHaveLength(
+        Math.min(DOCUMENT_EVENTS, 2),
+      );
+      expect(response1.status).toBe(200);
+
+      // next page
+      const response2 = await request(server).get(
+        `/documents/${document.documentHash}/events?page[after]=2&page[size]=2`,
+      );
+      expect(response2.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/documents/${document.documentHash}/events?page[after]=2&page[size]=2`,
+        ),
+        items: document.events.slice(2, 4).map((event) => ({
+          eventId: event.eventHash,
+          href: expect.stringContaining(
+            `/documents/${document.documentHash}/events/${event.eventHash}`,
+          ),
+        })),
+        total: DOCUMENT_EVENTS,
+        pageSize: 2,
+        links: {
+          first: expect.stringContaining(
+            `/documents/${document.documentHash}/events?page[after]=1&page[size]=2`,
+          ),
+          prev: expect.stringContaining(
+            `/documents/${document.documentHash}/events?page[after]=1&page[size]=2`,
+          ),
+          next: expect.stringContaining(
+            `/documents/${document.documentHash}/events?page[after]=2&page[size]=2`,
+          ),
+          last: expect.stringContaining(
+            `/documents/${document.documentHash}/events?page[after]=2&page[size]=2`,
+          ),
+        },
+      });
+      expect((response2.body as { items: string }).items).toHaveLength(
+        document.events.slice(2, 4).length,
+      );
+      expect(response2.status).toBe(200);
+
+      // big page
+      const response3 = await request(server).get(
+        `/documents/${document.documentHash}/events?page[after]=100&page[size]=2`,
+      );
+      expect(response3.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/documents/${document.documentHash}/events?page[after]=100&page[size]=2`,
+        ),
+        items: [],
+        total: DOCUMENT_EVENTS,
+        pageSize: 2,
+        links: {
+          first: expect.stringContaining(
+            `/documents/${document.documentHash}/events?page[after]=1&page[size]=2`,
+          ),
+          prev: expect.stringContaining(
+            `/documents/${document.documentHash}/events?page[after]=2&page[size]=2`,
+          ),
+          next: expect.stringContaining(
+            `/documents/${document.documentHash}/events?page[after]=2&page[size]=2`,
+          ),
+          last: expect.stringContaining(
+            `/documents/${document.documentHash}/events?page[after]=2&page[size]=2`,
+          ),
+        },
+      });
+      expect((response3.body as { items: string }).items).toHaveLength(0);
+      expect(response3.status).toBe(200);
+
+      // page["after"] defined but page["size"] undefined
+      const response4 = await request(server).get(
+        `/documents/${document.documentHash}/events?page[after]=1`,
+      );
+      expect(response4.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/documents/${document.documentHash}/events?page[after]=1&page[size]=10`,
+        ),
+        items: document.events.map((event) => ({
+          eventId: event.eventHash,
+          href: expect.stringContaining(
+            `/documents/${document.documentHash}/events/${event.eventHash}`,
+          ),
+        })),
+        total: DOCUMENT_EVENTS,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            `/documents/${document.documentHash}/events?page[after]=1&page[size]=10`,
+          ),
+          prev: expect.stringContaining(
+            `/documents/${document.documentHash}/events?page[after]=1&page[size]=10`,
+          ),
+          next: expect.stringContaining(
+            `/documents/${document.documentHash}/events?page[after]=1&page[size]=10`,
+          ),
+          last: expect.stringContaining(
+            `/documents/${document.documentHash}/events?page[after]=1&page[size]=10`,
+          ),
+        },
+      });
+      expect((response4.body as { items: string }).items).toHaveLength(
+        DOCUMENT_EVENTS,
+      );
+      expect(response4.status).toBe(200);
+    });
+
+    it("should throw a Bad Request for bad pagination", async () => {
+      expect.assertions(8);
+
+      const document = testEnv.documentsWithBlockSource[0]!;
+
+      const response1 = await request(server).get(
+        `/documents/${document.documentHash}/events?page[size]=100`,
+      );
+      expect(response1.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[size] must not be greater than 50"]',
+        type: "about:blank",
+      });
+      expect(response1.status).toBe(400);
+
+      const response2 = await request(server).get(
+        `/documents/${document.documentHash}/events?page[size]=0`,
+      );
+      expect(response2.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[size] must not be less than 1"]',
+        type: "about:blank",
+      });
+      expect(response2.status).toBe(400);
+
+      const response3 = await request(server).get(
+        `/documents/${document.documentHash}/events?page[after]=0`,
+      );
+      expect(response3.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[after] must not be less than 1"]',
+        type: "about:blank",
+      });
+      expect(response3.status).toBe(400);
+
+      const response4 = await request(server).get(
+        `/documents/${document.documentHash}/events?page[after]=abc`,
+      );
+      expect(response4.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail:
+          '["page[after] must not be less than 1","page[after] must be a number conforming to the specified constraints"]',
+        type: "about:blank",
+      });
+      expect(response4.status).toBe(400);
+    });
+  });
+
+  describe("GET /documents/{documentId}/events/{eventId}", () => {
+    it("should throw an error 400 if the document ID or event ID are not valid", async () => {
+      expect.assertions(12);
+
+      let response = await request(server).get(
+        "/documents/no-document/events/no-event",
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: JSON.stringify([
+          "documentId must be 32 bytes encoded in hexadecimal and start with 0x",
+          "eventId must be 32 bytes encoded in hexadecimal and start with 0x",
+        ]),
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+
+      response = await request(server).get(
+        "/documents/0xnothexadecimal/events/0xnothexadecimal",
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: JSON.stringify([
+          "documentId must be 32 bytes encoded in hexadecimal and start with 0x",
+          "eventId must be 32 bytes encoded in hexadecimal and start with 0x",
+        ]),
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+
+      response = await request(server).get(
+        `/documents/${randomBytes(32).toString("hex")}/events/${randomBytes(32).toString("hex")}`,
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: JSON.stringify([
+          "documentId must be 32 bytes encoded in hexadecimal and start with 0x",
+          "eventId must be 32 bytes encoded in hexadecimal and start with 0x",
+        ]),
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+
+      response = await request(server).get(
+        `/documents/0x${randomBytes(24).toString("hex")}/events/0x${randomBytes(24).toString("hex")}`,
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: JSON.stringify([
+          "documentId must be 32 bytes encoded in hexadecimal and start with 0x",
+          "eventId must be 32 bytes encoded in hexadecimal and start with 0x",
+        ]),
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should throw an error if the document is not found", async () => {
+      expect.assertions(3);
+
+      const document = testEnv.documentsWithBlockSource[0]!;
+      const wrongDocumentId = `0x${randomBytes(32).toString("hex")}`;
+      const event = document.events[0]!;
+      const response = await request(server).get(
+        `/documents/${wrongDocumentId}/events/${event.eventHash}`,
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Document Not Found",
+        status: 404,
+        detail: `Document ${wrongDocumentId} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should throw an error if the event is not found", async () => {
+      expect.assertions(3);
+
+      const document = testEnv.documentsWithBlockSource[0]!;
+      const wrongEventId = `0x${randomBytes(32).toString("hex")}`;
+      const response = await request(server).get(
+        `/documents/${document.documentHash}/events/${wrongEventId}`,
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Event Not Found",
+        status: 404,
+        detail: `Event ${wrongEventId} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should return a specific event identified by its document ID and event ID", async () => {
+      expect.assertions(3);
+
+      const document = testEnv.documentsWithBlockSource[0]!;
+      const event = document.events[0]!;
+
+      const response = await request(server).get(
+        `/documents/${document.documentHash}/events/${event.eventHash}`,
+      );
+
+      expect(response.body).toStrictEqual({
+        metadata: event.metadata,
+        timestamp: {
+          datetime: event.timestamp.datetime,
+          source: "block",
+          proof: event.timestamp.proof,
+        },
+        externalHash: event.externalHash,
+        hash: expect.stringMatching(/^0x/),
+        origin: event.origin,
+        sender: event.sender,
+      } satisfies Event);
       expect(response.status).toBe(200);
       expect(
         (response.headers as { "content-type": string })["content-type"],

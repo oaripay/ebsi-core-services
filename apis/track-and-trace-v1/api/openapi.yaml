@@ -52,7 +52,7 @@ paths:
                       properties:
                         documentId:
                           type: string
-                          description: A unique record id = DID User
+                          description: The document ID
                         href:
                           type: string
                           description: Link to the resource
@@ -66,38 +66,36 @@ paths:
                       independent of the number of actually returned items.
                   links:
                     $ref: "#/components/schemas/Links"
-              examples:
-                "[test] Success":
-                  value:
-                    self: https://api-test.ebsi.eu/track-and-trace/v1/documents?page[after]=1&page[size]=10
-                    items:
-                      - documentId: "0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169"
-                        href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169
-                      - documentId: "0x99ab5f3cfc581c53a9210fc4588416fbc84b3ff09950ddc84e0efd1e2b2e147a"
-                        href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0x99ab5f3cfc581c53a9210fc4588416fbc84b3ff09950ddc84e0efd1e2b2e147a
-                      - documentId: "0x4ed9c02a2c28de4ebfb274f8036d961062b05d8ea7a06682725d36224718e03e"
-                        href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0x4ed9c02a2c28de4ebfb274f8036d961062b05d8ea7a06682725d36224718e03e
-                      - documentId: "0xdd97695335b338c3de251247b533589cd2847000c4c0100a5ece17f28feb8640"
-                        href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0xdd97695335b338c3de251247b533589cd2847000c4c0100a5ece17f28feb8640
-                      - documentId: "0xb64f68452c5b4a30ff952e4f873df8f5d340684d98b90417a6c26e9f48ff4e11"
-                        href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0xb64f68452c5b4a30ff952e4f873df8f5d340684d98b90417a6c26e9f48ff4e11
-                      - documentId: "0x9a7897302b2967c8818ea2b61fa64138ea6f370640739f4a04957dd15c0c43e2"
-                        href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0x9a7897302b2967c8818ea2b61fa64138ea6f370640739f4a04957dd15c0c43e2
-                      - documentId: "0x8edbce68309d79731a9e45bba4448b3c705e4074016e0f2cf994e8ad37e99b85"
-                        href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0x8edbce68309d79731a9e45bba4448b3c705e4074016e0f2cf994e8ad37e99b85
-                      - documentId: "0x6e64123aaaa5d5e73fc878cc374e72bc9b7791f0048c968953d1943ea0138305"
-                        href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0x6e64123aaaa5d5e73fc878cc374e72bc9b7791f0048c968953d1943ea0138305
-                      - documentId: "0x32a2334e9b8793fe4862ba6bac909e148b9ff98c4ca3ed54e598aa5cff63e670"
-                        href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0x32a2334e9b8793fe4862ba6bac909e148b9ff98c4ca3ed54e598aa5cff63e670
-                      - documentId: "0xb08f451727fd50a5cd8433a86ce04302462477e7e978028d71094fc564dbad5e"
-                        href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0xb08f451727fd50a5cd8433a86ce04302462477e7e978028d71094fc564dbad5e
-                    total: 98
-                    pageSize: 10
-                    links:
-                      first: https://api-test.ebsi.eu/track-and-trace/v1/documents?page[after]=1&page[size]=10
-                      prev: https://api-test.ebsi.eu/track-and-trace/v1/documents?page[after]=1&page[size]=10
-                      next: https://api-test.ebsi.eu/track-and-trace/v1/documents?page[after]=2&page[size]=10
-                      last: https://api-test.ebsi.eu/track-and-trace/v1/documents?page[after]=10&page[size]=10
+              example:
+                self: https://api-test.ebsi.eu/track-and-trace/v1/documents?page[after]=1&page[size]=10
+                items:
+                  - documentId: "0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169"
+                    href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169
+                  - documentId: "0x99ab5f3cfc581c53a9210fc4588416fbc84b3ff09950ddc84e0efd1e2b2e147a"
+                    href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0x99ab5f3cfc581c53a9210fc4588416fbc84b3ff09950ddc84e0efd1e2b2e147a
+                  - documentId: "0x4ed9c02a2c28de4ebfb274f8036d961062b05d8ea7a06682725d36224718e03e"
+                    href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0x4ed9c02a2c28de4ebfb274f8036d961062b05d8ea7a06682725d36224718e03e
+                  - documentId: "0xdd97695335b338c3de251247b533589cd2847000c4c0100a5ece17f28feb8640"
+                    href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0xdd97695335b338c3de251247b533589cd2847000c4c0100a5ece17f28feb8640
+                  - documentId: "0xb64f68452c5b4a30ff952e4f873df8f5d340684d98b90417a6c26e9f48ff4e11"
+                    href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0xb64f68452c5b4a30ff952e4f873df8f5d340684d98b90417a6c26e9f48ff4e11
+                  - documentId: "0x9a7897302b2967c8818ea2b61fa64138ea6f370640739f4a04957dd15c0c43e2"
+                    href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0x9a7897302b2967c8818ea2b61fa64138ea6f370640739f4a04957dd15c0c43e2
+                  - documentId: "0x8edbce68309d79731a9e45bba4448b3c705e4074016e0f2cf994e8ad37e99b85"
+                    href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0x8edbce68309d79731a9e45bba4448b3c705e4074016e0f2cf994e8ad37e99b85
+                  - documentId: "0x6e64123aaaa5d5e73fc878cc374e72bc9b7791f0048c968953d1943ea0138305"
+                    href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0x6e64123aaaa5d5e73fc878cc374e72bc9b7791f0048c968953d1943ea0138305
+                  - documentId: "0x32a2334e9b8793fe4862ba6bac909e148b9ff98c4ca3ed54e598aa5cff63e670"
+                    href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0x32a2334e9b8793fe4862ba6bac909e148b9ff98c4ca3ed54e598aa5cff63e670
+                  - documentId: "0xb08f451727fd50a5cd8433a86ce04302462477e7e978028d71094fc564dbad5e"
+                    href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0xb08f451727fd50a5cd8433a86ce04302462477e7e978028d71094fc564dbad5e
+                total: 98
+                pageSize: 10
+                links:
+                  first: https://api-test.ebsi.eu/track-and-trace/v1/documents?page[after]=1&page[size]=10
+                  prev: https://api-test.ebsi.eu/track-and-trace/v1/documents?page[after]=1&page[size]=10
+                  next: https://api-test.ebsi.eu/track-and-trace/v1/documents?page[after]=2&page[size]=10
+                  last: https://api-test.ebsi.eu/track-and-trace/v1/documents?page[after]=10&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -137,21 +135,19 @@ paths:
           example: "0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169"
       responses:
         "200":
-          description: Success.
+          description: Success
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Document"
-              examples:
-                Success:
-                  value:
-                    metadata: metadata
-                    timestamp:
-                      datetime: "0x65b24e0d"
-                      source: block
-                      proof: "0x0000000000000000000000000000000000000000000000000000000000000000"
-                    events: []
-                    creator: did:ebsi:ztqWJAmfyuUEf9Jvh97p167
+              example:
+                metadata: metadata
+                timestamp:
+                  datetime: "0x65b24e0d"
+                  source: block
+                  proof: "0x0000000000000000000000000000000000000000000000000000000000000006"
+                events: []
+                creator: did:ebsi:ztqWJAmfyuUEf9Jvh97p167
         "400":
           description: Bad Request
           content:
@@ -163,7 +159,7 @@ paths:
                   value:
                     title: Bad Request
                     status: 400
-                    detail: '["documentId must be a valid document ID (32 bytes encoded in hexadecimal and starting with 0x)"]'
+                    detail: '["documentId must be 32 bytes encoded in hexadecimal and start with 0x"]'
         "404":
           description: Not found
           content:
@@ -177,6 +173,194 @@ paths:
           description: Internal Server Error
           content:
             application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /track-and-trace/v1/documents/{documentId}/events:
+    get:
+      operationId: get-document-events
+      summary: List events
+      description: Returns a list of events.
+      tags:
+        - Document
+      parameters:
+        - in: path
+          name: documentId
+          description: |
+            The 32-bytes ID of the document, encoded in hexadecimal.
+          required: true
+          schema:
+            type: string
+          example: "0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169"
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: Absolute path to the collection (consult)
+                  items:
+                    type: array
+                    description: List of events
+                    items:
+                      type: object
+                      properties:
+                        eventId:
+                          type: string
+                          description: The event ID
+                        href:
+                          type: string
+                          description: Link to the resource
+                  total:
+                    type: integer
+                    description: Total number of items across all pages.
+                  pageSize:
+                    type: integer
+                    description: |
+                      Maximum number of items per page. For the last page, its value should be
+                      independent of the number of actually returned items.
+                  links:
+                    $ref: "#/components/schemas/Links"
+              example:
+                self: https://api-test.ebsi.eu/track-and-trace/v1/documents/0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169/events?page[after]=1&page[size]=10
+                items:
+                  - eventId: "0x17387b16ebd0df6d0debcd4204fecb5cef827b98a51d3736a223d0cf6dbe48f6"
+                    href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169/events/0x17387b16ebd0df6d0debcd4204fecb5cef827b98a51d3736a223d0cf6dbe48f6
+                  - eventId: "0x502b93df1016f58eb69e1246c97ffc2f4ffeae36432b60626c973dd029fc21e6"
+                    href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169/events/0x502b93df1016f58eb69e1246c97ffc2f4ffeae36432b60626c973dd029fc21e6
+                  - eventId: "0x780ee9343e9406d785a2261963bef1d0979e992895bddc0f2893c1946661b32f"
+                    href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169/events/0x780ee9343e9406d785a2261963bef1d0979e992895bddc0f2893c1946661b32f
+                total: 3
+                pageSize: 10
+                links:
+                  first: https://api-test.ebsi.eu/track-and-trace/v1/documents/0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169/events?page[after]=1&page[size]=10
+                  prev: https://api-test.ebsi.eu/track-and-trace/v1/documents/0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169/events?page[after]=1&page[size]=10
+                  next: https://api-test.ebsi.eu/track-and-trace/v1/documents/0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169/events?page[after]=2&page[size]=10
+                  last: https://api-test.ebsi.eu/track-and-trace/v1/documents/0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169/events?page[after]=10&page[size]=10
+        "400":
+          description: Bad Request Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Invalid {documentId} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: '["documentId must be 32 bytes encoded in hexadecimal and start with 0x"]'
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: '["page[size] must not be greater than 50"]'
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Document Not Found:
+                  $ref: "#/components/examples/NotFound"
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /track-and-trace/v1/documents/{documentId}/events/{eventId}:
+    get:
+      operationId: get-document-event
+      summary: Get an event
+      description: Gets the event corresponding to the document ID and event ID.
+      tags:
+        - Document
+      parameters:
+        - in: path
+          name: documentId
+          description: |
+            The 32-bytes ID of the document, encoded in hexadecimal.
+          required: true
+          schema:
+            type: string
+          example: "0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169"
+        - in: path
+          name: eventId
+          description: |
+            The 32-bytes ID of the event, encoded in hexadecimal.
+          required: true
+          schema:
+            type: string
+          example: "0x17387b16ebd0df6d0debcd4204fecb5cef827b98a51d3736a223d0cf6dbe48f6"
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+              example:
+                externalHash: externalHash
+                hash: "0x17387b16ebd0df6d0debcd4204fecb5cef827b98a51d3736a223d0cf6dbe48f6"
+                timestamp:
+                  datetime: "0x65b394c0"
+                  source: block
+                  proof: "0x0000000000000000000000000000000000000000000000000000000000000006"
+                sender: did:ebsi:ztqWJAmfyuUEf9Jvh97p167
+                origin: origin
+                metadata: eventMetadata
+        "400":
+          description: Bad Request Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Invalid {documentId} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: '["documentId must be 32 bytes encoded in hexadecimal and start with 0x"]'
+                Invalid {eventId} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: '["eventId must be 32 bytes encoded in hexadecimal and start with 0x"]'
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Document Not Found:
+                  $ref: "#/components/examples/NotFound"
+                Event Not Found:
+                  $ref: "#/components/examples/NotFound"
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
               examples:
@@ -248,10 +432,10 @@ components:
       description: Track and Trace Document
       type: object
       properties:
-        documentMetadata:
+        metadata:
           description: Document's metadata
           type: string
-        documentTimestamp:
+        timestamp:
           description: Timestamp object
           type: object
           properties:
@@ -276,6 +460,45 @@ components:
         creator:
           type: string
           description: The `did:key` or `did:ebsi` that created the document
+    Event:
+      title: Event
+      description: Track and Trace Event
+      type: object
+      properties:
+        metadata:
+          description: Event's metadata
+          type: string
+        timestamp:
+          description: Timestamp object
+          type: object
+          properties:
+            datetime:
+              type: string
+              description: |
+                The date and time, optionally from transaction input
+            source:
+              type: string
+              description: |
+                Defines how the datetime was resolved, enumerated options are "block" and "external"
+            proof:
+              type: string
+              description: |
+                Proof of the source. Either a block number or a hash of timestamp certificate
+        sender:
+          type: string
+          description: |
+            The `did:key` or `did:ebsi` that had permission with "write" for the given Document
+        origin:
+          type: string
+          description: |
+            Most of the times empty field, while it may be a string containing company name, while
+            it can also point into an Event. All assumed relations are external to the SC.
+        hash:
+          type: string
+          description: Event hash
+        externalHash:
+          type: string
+          description: Externally generated hash
   examples:
     BadRequest:
       value:

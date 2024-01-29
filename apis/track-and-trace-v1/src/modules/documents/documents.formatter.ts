@@ -1,6 +1,9 @@
-import { TrackAndTrace } from "@ebsiint-sc/track-and-trace";
-import { PaginatedList, paginate } from "@ebsiint-api/shared";
-import { DocumentsLink } from "./documents.interface.js";
+import type { TrackAndTrace } from "@ebsiint-sc/track-and-trace";
+import { paginate, type PaginatedList } from "@ebsiint-api/shared";
+import type {
+  DocumentEventsLink,
+  DocumentsLink,
+} from "./documents.interface.js";
 
 export function formatDocuments(
   documents: Awaited<ReturnType<TrackAndTrace["getDocuments"]>>,
@@ -21,4 +24,21 @@ export function formatDocuments(
   return paginate<DocumentsLink>(items, baseUrl, total, page, pageSize);
 }
 
-export default formatDocuments;
+export function formatDocumentEvents(
+  events: Awaited<ReturnType<TrackAndTrace["getEvents"]>>,
+  page: number,
+  pageSize: number,
+  baseUrl: string,
+): PaginatedList<DocumentEventsLink> {
+  const total = events.total.toNumber();
+
+  // Reshape items
+  const items = events.items.map((eventId) => {
+    return {
+      eventId,
+      href: `${baseUrl}/${eventId}`,
+    };
+  });
+
+  return paginate<DocumentEventsLink>(items, baseUrl, total, page, pageSize);
+}

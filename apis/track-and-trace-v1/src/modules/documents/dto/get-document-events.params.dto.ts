@@ -1,8 +1,8 @@
 import { Is32BytesHex } from "../validators/Is32BytesHex.js";
 
-export class GetDocumentParamsDto {
+export class GetDocumentEventsParamsDto {
   @Is32BytesHex()
   "documentId"!: string;
 }
 
-export default GetDocumentParamsDto;
+export default GetDocumentEventsParamsDto;

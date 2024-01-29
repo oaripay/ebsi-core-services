@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { NotFoundError, isEthersError } from "@ebsiint-api/shared";
 import type { TrackAndTrace } from "@ebsiint-sc/track-and-trace";
 import { LedgerService } from "../ledger/ledger.service.js";
-import type { Document } from "./documents.interface.js";
+import type { Document, Event } from "./documents.interface.js";
 
 @Injectable()
 export default class DocumentsService {
@@ -44,26 +44,82 @@ export default class DocumentsService {
       });
     }
 
-    const documentTimestamp =
-      document.documentTimestamp.timestamp.toHexString();
-
-    if (document.creator === "" && documentTimestamp === "0x00") {
+    if (!document.creator) {
       throw new NotFoundError("Document Not Found", {
         detail: `Document ${documentId} not found`,
       });
     }
 
-    const doc = {
+    return {
       metadata: document.documentMetadata,
       timestamp: {
-        datetime: documentTimestamp,
+        datetime: document.documentTimestamp.timestamp.toHexString(),
         source: document.documentTimestamp.source === 0 ? "block" : "external",
         proof: document.documentTimestamp.proof,
       },
       events: document.eventHashes,
       creator: document.creator,
     } satisfies Document;
+  }
 
-    return doc;
+  async getDocumentEvents(
+    documentId: string,
+    page: number,
+    pageSize: number,
+  ): ReturnType<TrackAndTrace["getEvents"]> {
+    // Make sure the document exists
+    await this.getDocument(documentId);
+
+    try {
+      return await (
+        await this.ledgerService.getContract()
+      ).getEvents(documentId, page, pageSize);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
+      throw new NotFoundError("Document Not Found", {
+        detail: `Document ${documentId} not found`,
+      });
+    }
+  }
+
+  async getDocumentEvent(documentId: string, eventId: string): Promise<Event> {
+    // Make sure the document exists
+    await this.getDocument(documentId);
+
+    let event: Awaited<ReturnType<TrackAndTrace["getEvent"]>>;
+
+    try {
+      event = await (
+        await this.ledgerService.getContract()
+      ).getEvent(documentId, eventId);
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
+      throw new NotFoundError("Event Not Found", {
+        detail: `Event ${eventId} not found`,
+      });
+    }
+
+    if (!event.sender) {
+      throw new NotFoundError("Event Not Found", {
+        detail: `Event ${eventId} not found`,
+      });
+    }
+
+    return {
+      externalHash: event.externalHash,
+      hash: event.hash,
+      timestamp: {
+        datetime: event.eventTimestamp.timestamp.toHexString(),
+        source: event.eventTimestamp.source === 0 ? "block" : "external",
+        proof: event.eventTimestamp.proof,
+      },
+      sender: event.sender,
+      origin: event.origin,
+      metadata: event.eventMetadata,
+    } satisfies Event;
   }
 }

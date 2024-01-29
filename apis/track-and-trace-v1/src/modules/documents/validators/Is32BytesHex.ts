@@ -5,9 +5,9 @@ import {
   ValidationOptions,
 } from "class-validator";
 
-export const IS_DOCUMENT_ID = "isDocumentId";
+export const IS_32_BYTES_HEX = "is32BytesHex";
 
-export const isDocumentId = (value: unknown) => {
+export const is32BytesHex = (value: unknown) => {
   // Check if the value is an hexadecimal string starting with 0x
   if (
     typeof value !== "string" ||
@@ -25,17 +25,17 @@ export const isDocumentId = (value: unknown) => {
   return true;
 };
 
-export function IsDocumentId(
+export function Is32BytesHex(
   validationOptions?: ValidationOptions,
 ): PropertyDecorator {
   return ValidateBy(
     {
-      name: IS_DOCUMENT_ID,
+      name: IS_32_BYTES_HEX,
       validator: {
-        validate: isDocumentId,
+        validate: is32BytesHex,
         defaultMessage: buildMessage(
           (eachPrefix) =>
-            `${eachPrefix}$property must be a valid document ID (32 bytes encoded in hexadecimal and starting with 0x)`,
+            `${eachPrefix}$property must be 32 bytes encoded in hexadecimal and start with 0x`,
           validationOptions,
         ),
       },

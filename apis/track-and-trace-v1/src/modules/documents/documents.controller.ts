@@ -2,9 +2,23 @@ import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PaginatedList } from "@ebsiint-api/shared";
 import DocumentsService from "./documents.service.js";
-import { formatDocuments } from "./documents.formatter.js";
-import type { Document, DocumentsLink } from "./documents.interface.js";
-import { GetDocumentParamsDto, GetDocumentsDto } from "./dto/index.js";
+import {
+  formatDocumentEvents,
+  formatDocuments,
+} from "./documents.formatter.js";
+import type {
+  Document,
+  DocumentEventsLink,
+  DocumentsLink,
+  Event,
+} from "./documents.interface.js";
+import {
+  GetDocumentEventParamsDto,
+  GetDocumentEventsDto,
+  GetDocumentEventsParamsDto,
+  GetDocumentParamsDto,
+  GetDocumentsDto,
+} from "./dto/index.js";
 import type { ApiConfig } from "../../config/configuration.js";
 
 @Controller("/documents")
@@ -36,13 +50,50 @@ export default class DocumentsController {
   }
 
   @Get("/:documentId")
-  async getDidDocument(
-    @Param() params: GetDocumentParamsDto,
-  ): Promise<Document> {
+  async getDocument(@Param() params: GetDocumentParamsDto): Promise<Document> {
     const { documentId } = params;
 
     const document = await this.documentsService.getDocument(documentId);
 
     return document;
+  }
+
+  @Get("/:documentId/events")
+  async getDocumentEvents(
+    @Param() params: GetDocumentEventsParamsDto,
+    @Query() query: GetDocumentEventsDto,
+  ): Promise<PaginatedList<DocumentEventsLink>> {
+    const { documentId } = params;
+
+    const events = await this.documentsService.getDocumentEvents(
+      documentId,
+      query["page[after]"],
+      query["page[size]"],
+    );
+
+    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
+    const domain = this.configService.get<string>("domain");
+    const baseUrl = `${domain}${apiUrlPrefix}/documents/${documentId}/events`;
+
+    return formatDocumentEvents(
+      events,
+      query["page[after]"],
+      query["page[size]"],
+      baseUrl,
+    );
+  }
+
+  @Get("/:documentId/events/:eventId")
+  async getDocumentEvent(
+    @Param() params: GetDocumentEventParamsDto,
+  ): Promise<Event> {
+    const { documentId, eventId } = params;
+
+    const event = await this.documentsService.getDocumentEvent(
+      documentId,
+      eventId,
+    );
+
+    return event;
   }
 }

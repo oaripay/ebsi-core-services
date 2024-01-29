@@ -7,11 +7,7 @@ import { TrackAndTrace } from "@ebsiint-sc/track-and-trace";
 // eslint-disable-next-line import/extensions
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers.js";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import {
-  createDocument,
-  type TestDocumentWithBlockSource,
-  type TestDocumentWithExternalSource,
-} from "./data.js";
+import { createDocument, createEvent, type TestDocument } from "./data.js";
 
 export async function deployTrackAndTraceContract(): Promise<{
   trackAndTraceContract: TrackAndTrace;
@@ -57,11 +53,20 @@ export async function insertDocumentWithBlockSource(
 ) {
   const doc = createDocument(creatorAccount, false);
 
-  await contract["createDocument(bytes32,string,string)"](
+  const tx = await contract["createDocument(bytes32,string,string)"](
     doc.documentHash,
     doc.documentMetadata,
     doc.didEbsiCreator,
   );
+
+  const receipt = await tx.wait();
+
+  const block = await hre.ethers.provider.getBlock(receipt.blockHash);
+
+  doc.timestamp = {
+    datetime: `0x${block.timestamp.toString(16)}`,
+    proof: `0x${block.number.toString(16).padStart(64, "0")}`,
+  };
 
   return doc;
 }
@@ -83,23 +88,54 @@ export async function insertDocumentWithExternalSource(
   return doc;
 }
 
+export async function addEvent(contract: TrackAndTrace, doc: TestDocument) {
+  const event = createEvent(doc.documentHash);
+
+  const tx = await contract[
+    "writeEvent((bytes32,bytes32,string,string,string,string),bytes)"
+  ](
+    {
+      documentHash: event.documentHash,
+      eventHash: event.eventHash,
+      externalHash: event.externalHash,
+      sender: event.sender,
+      origin: event.origin,
+      metadata: event.metadata,
+    },
+    ethers.utils.toUtf8Bytes(doc.didEbsiCreator),
+  );
+
+  const receipt = await tx.wait();
+
+  const block = await hre.ethers.provider.getBlock(receipt.blockHash);
+
+  event.timestamp = {
+    datetime: `0x${block.timestamp.toString(16)}`,
+    proof: `0x${block.number.toString(16).padStart(64, "0")}`,
+  };
+
+  doc.events.push(event);
+}
+
 export interface SetupOptions {
   documentsWithBlockSourceTotal?: number;
   documentsWithExternalSourceTotal?: number;
+  documentEventsTotal?: number;
 }
 
 export async function setupTestEnv({
   documentsWithBlockSourceTotal = 1,
   documentsWithExternalSourceTotal = 1,
+  documentEventsTotal = 1,
 }: SetupOptions = {}): Promise<{
   provider: ethers.providers.JsonRpcProvider;
   trackAndTraceContract: TrackAndTrace;
-  documentsWithBlockSource: TestDocumentWithBlockSource[];
-  documentsWithExternalSource: TestDocumentWithExternalSource[];
+  documentsWithBlockSource: TestDocument[];
+  documentsWithExternalSource: TestDocument[];
 }> {
   const ethersProvider = hre.ethers.provider;
-  const documentsWithBlockSource: TestDocumentWithBlockSource[] = [];
-  const documentsWithExternalSource: TestDocumentWithExternalSource[] = [];
+  const documentsWithBlockSource: TestDocument[] = [];
+  const documentsWithExternalSource: TestDocument[] = [];
   const creatorAccount = EbsiWallet.createDid();
 
   // Deploy contract
@@ -132,6 +168,13 @@ export async function setupTestEnv({
           ),
         ),
     )),
+  );
+
+  // Add events to first element of documentsWithBlockSource
+  await Promise.all(
+    Array(documentEventsTotal)
+      .fill(0)
+      .map(() => addEvent(trackAndTraceContract, documentsWithBlockSource[0]!)),
   );
 
   // Return test env variables

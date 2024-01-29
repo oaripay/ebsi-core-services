@@ -23,6 +23,10 @@ describe("Track and Trace API v1 (e2e)", () => {
     documentId: string;
     href: string;
   }[] = [];
+  let lastDocumentEvents: {
+    eventId: string;
+    href: string;
+  }[] = [];
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -75,6 +79,38 @@ describe("Track and Trace API v1 (e2e)", () => {
         }[];
       };
       lastDocuments = documents;
+    }
+
+    // Get last events
+    if (lastDocuments.length > 0) {
+      const lastDocument = lastDocuments[0]!;
+      const getAllEvents = await request(server).get(
+        `/documents/${lastDocument.documentId}/events?page[size]=50`,
+      );
+      const { total: totalEvents } = getAllEvents.body as {
+        total: number;
+      };
+
+      if (totalEvents > 50) {
+        const getEventsLastPage = await request(server).get(
+          `/documents/${lastDocument.documentId}/events?page[after]=${Math.ceil(totalEvents / 10)}&page[size]=10`,
+        );
+        const { items: events } = getEventsLastPage.body as {
+          items: {
+            eventId: string;
+            href: string;
+          }[];
+        };
+        lastDocumentEvents = events;
+      } else if (totalEvents > 0) {
+        const { items: events } = getAllEvents.body as {
+          items: {
+            eventId: string;
+            href: string;
+          }[];
+        };
+        lastDocumentEvents = events;
+      }
     }
   });
 
@@ -174,7 +210,7 @@ describe("Track and Trace API v1 (e2e)", () => {
         return;
       }
 
-      expect.assertions(4);
+      expect.assertions(3);
 
       const response = await request(server).get(
         `/documents/${lastDocuments[0]!.documentId}`,
@@ -182,14 +218,16 @@ describe("Track and Trace API v1 (e2e)", () => {
 
       expect(response.body).toStrictEqual(
         expect.objectContaining({
-          id: expect.stringContaining("documentId:"),
-          controller: expect.arrayContaining([]),
-          verificationMethod: expect.arrayContaining([]),
+          metadata: expect.any(String),
+          timestamp: {
+            datetime: expect.any(String),
+            source: expect.stringMatching(/^(block|external)$/),
+            proof: expect.any(String),
+          },
+          events: expect.arrayContaining([expect.any(String)]),
+          creator: expect.any(String),
         }),
       );
-      expect(
-        response.body as { "@context": string | string[] }["@context"],
-      ).toBeDefined();
       expect(response.status).toBe(200);
       expect(
         (response.headers as { "content-type": string })["content-type"],
@@ -205,7 +243,7 @@ describe("Track and Trace API v1 (e2e)", () => {
 
       expect(response.body).toStrictEqual({
         detail:
-          '["documentId must be a valid document ID (32 bytes encoded in hexadecimal and starting with 0x)"]',
+          '["documentId must be 32 bytes encoded in hexadecimal and start with 0x"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -219,7 +257,7 @@ describe("Track and Trace API v1 (e2e)", () => {
 
       expect(response.body).toStrictEqual({
         detail:
-          '["documentId must be a valid document ID (32 bytes encoded in hexadecimal and starting with 0x)"]',
+          '["documentId must be 32 bytes encoded in hexadecimal and start with 0x"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -235,7 +273,7 @@ describe("Track and Trace API v1 (e2e)", () => {
 
       expect(response.body).toStrictEqual({
         detail:
-          '["documentId must be a valid document ID (32 bytes encoded in hexadecimal and starting with 0x)"]',
+          '["documentId must be 32 bytes encoded in hexadecimal and start with 0x"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -251,7 +289,7 @@ describe("Track and Trace API v1 (e2e)", () => {
 
       expect(response.body).toStrictEqual({
         detail:
-          '["documentId must be a valid document ID (32 bytes encoded in hexadecimal and starting with 0x)"]',
+          '["documentId must be 32 bytes encoded in hexadecimal and start with 0x"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -272,6 +310,363 @@ describe("Track and Trace API v1 (e2e)", () => {
         title: "Document Not Found",
         status: 404,
         detail: `Document ${documentId} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+  });
+
+  describe("GET /documents/{documentId}/events", () => {
+    it("should throw an error 400 if the document ID is not valid", async () => {
+      expect.assertions(12);
+
+      let response = await request(server).get("/documents/no-document/events");
+
+      expect(response.body).toStrictEqual({
+        detail:
+          '["documentId must be 32 bytes encoded in hexadecimal and start with 0x"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+
+      response = await request(server).get(
+        "/documents/0xnothexadecimal/events",
+      );
+
+      expect(response.body).toStrictEqual({
+        detail:
+          '["documentId must be 32 bytes encoded in hexadecimal and start with 0x"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+
+      response = await request(server).get(
+        `/documents/${randomBytes(32).toString("hex")}/events`,
+      );
+
+      expect(response.body).toStrictEqual({
+        detail:
+          '["documentId must be 32 bytes encoded in hexadecimal and start with 0x"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+
+      response = await request(server).get(
+        `/documents/0x${randomBytes(24).toString("hex")}/events`,
+      );
+
+      expect(response.body).toStrictEqual({
+        detail:
+          '["documentId must be 32 bytes encoded in hexadecimal and start with 0x"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should throw an error if the document is not found", async () => {
+      expect.assertions(3);
+
+      const documentId = `0x${randomBytes(32).toString("hex")}`;
+      const response = await request(server).get(
+        `/documents/${documentId}/events`,
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Document Not Found",
+        status: 404,
+        detail: `Document ${documentId} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should return a paginated collection of events", async () => {
+      if (lastDocuments.length === 0) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          "Test 'GET /documents/{documentId}/events should return a paginated collection of events' skipped",
+        );
+        return;
+      }
+
+      expect.assertions(2);
+
+      const doc = lastDocuments[0]!;
+
+      const response = await request(server).get(
+        `/documents/${doc.documentId}/events`,
+      );
+
+      const total =
+        ((response.body as Record<string, unknown>)?.["total"] as number) ?? 0;
+
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/documents/${doc.documentId}/events?page[after]=1&page[size]=10`,
+        ),
+        items:
+          total > 0
+            ? expect.arrayContaining([
+                {
+                  eventId: expect.stringContaining("0x"),
+                  href: expect.stringContaining(
+                    `/documents/${doc.documentId}/events/`,
+                  ),
+                },
+              ])
+            : [],
+        total: expect.any(Number),
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            `/documents/${doc.documentId}/events?page[after]=1&page[size]=10`,
+          ),
+          prev: expect.stringContaining(
+            `/documents/${doc.documentId}/events?page[after]=1&page[size]=10`,
+          ),
+          next: expect.stringContaining(
+            `/documents/${doc.documentId}/events?page[after]=${total > 10 ? 2 : 1}&page[size]=10`,
+          ),
+          last: expect.stringContaining(
+            `/documents/${doc.documentId}/events?page[after]=${Math.max(Math.ceil(total / 10), 1)}&page[size]=10`,
+          ),
+        },
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should throw a Bad Request for bad pagination", async () => {
+      expect.assertions(8);
+
+      const documentId = `0x${randomBytes(32).toString("hex")}`;
+
+      const response1 = await request(server).get(
+        `/documents/${documentId}/events?page[size]=100`,
+      );
+      expect(response1.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[size] must not be greater than 50"]',
+        type: "about:blank",
+      });
+      expect(response1.status).toBe(400);
+
+      const response2 = await request(server).get(
+        `/documents/${documentId}/events?page[size]=0`,
+      );
+      expect(response2.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[size] must not be less than 1"]',
+        type: "about:blank",
+      });
+      expect(response2.status).toBe(400);
+
+      const response3 = await request(server).get(
+        `/documents/${documentId}/events?page[after]=0`,
+      );
+      expect(response3.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[after] must not be less than 1"]',
+        type: "about:blank",
+      });
+      expect(response3.status).toBe(400);
+
+      const response4 = await request(server).get(
+        `/documents/${documentId}/events?page[after]=abc`,
+      );
+      expect(response4.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail:
+          '["page[after] must not be less than 1","page[after] must be a number conforming to the specified constraints"]',
+        type: "about:blank",
+      });
+      expect(response4.status).toBe(400);
+    });
+  });
+
+  describe("GET /documents/{documentId}/events/{eventId}", () => {
+    it("should return a specific event", async () => {
+      if (lastDocuments.length === 0 || lastDocumentEvents.length === 0) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          "Test 'GET /documents/{documentId}/events/{eventId} should return a specific event' skipped",
+        );
+        return;
+      }
+
+      expect.assertions(3);
+
+      const response = await request(server).get(
+        `/documents/${lastDocuments[0]!.documentId}/events/${lastDocumentEvents[0]!.eventId}`,
+      );
+
+      expect(response.body).toStrictEqual({
+        metadata: expect.any(String),
+        timestamp: {
+          datetime: expect.any(String),
+          source: expect.stringMatching(/^(block|external)$/),
+          proof: expect.any(String),
+        },
+        externalHash: expect.any(String),
+        hash: expect.stringMatching(/^0x/),
+        origin: expect.any(String),
+        sender: expect.any(String),
+      });
+      expect(response.status).toBe(200);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(
+        expect.stringContaining("application/documentId+ld+json"),
+      );
+    });
+
+    it("should throw an error 400 if the document ID or event ID are not valid", async () => {
+      expect.assertions(12);
+
+      let response = await request(server).get(
+        "/documents/no-document/events/no-event",
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: JSON.stringify([
+          "documentId must be 32 bytes encoded in hexadecimal and start with 0x",
+          "eventId must be 32 bytes encoded in hexadecimal and start with 0x",
+        ]),
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+
+      response = await request(server).get(
+        "/documents/0xnothexadecimal/events/0xnothexadecimal",
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: JSON.stringify([
+          "documentId must be 32 bytes encoded in hexadecimal and start with 0x",
+          "eventId must be 32 bytes encoded in hexadecimal and start with 0x",
+        ]),
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+
+      response = await request(server).get(
+        `/documents/${randomBytes(32).toString("hex")}/events/${randomBytes(32).toString("hex")}`,
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: JSON.stringify([
+          "documentId must be 32 bytes encoded in hexadecimal and start with 0x",
+          "eventId must be 32 bytes encoded in hexadecimal and start with 0x",
+        ]),
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+
+      response = await request(server).get(
+        `/documents/0x${randomBytes(24).toString("hex")}/events/0x${randomBytes(24).toString("hex")}`,
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: JSON.stringify([
+          "documentId must be 32 bytes encoded in hexadecimal and start with 0x",
+          "eventId must be 32 bytes encoded in hexadecimal and start with 0x",
+        ]),
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should throw an error if the document is not found", async () => {
+      expect.assertions(3);
+
+      const wrongDocumentId = `0x${randomBytes(32).toString("hex")}`;
+      const wrongEventId = `0x${randomBytes(32).toString("hex")}`;
+      const response = await request(server).get(
+        `/documents/${wrongDocumentId}/events/${wrongEventId}`,
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Document Not Found",
+        status: 404,
+        detail: `Document ${wrongDocumentId} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should throw an error if the event is not found", async () => {
+      if (lastDocuments.length === 0) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          "Test 'GET /documents/{documentId} should return a specific document' skipped",
+        );
+        return;
+      }
+
+      expect.assertions(3);
+
+      const document = lastDocuments[0]!;
+      const wrongEventId = `0x${randomBytes(32).toString("hex")}`;
+      const response = await request(server).get(
+        `/documents/${document.documentId}/events/${wrongEventId}`,
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Event Not Found",
+        status: 404,
+        detail: `Event ${wrongEventId} not found`,
         type: "about:blank",
       });
       expect(response.status).toBe(404);
