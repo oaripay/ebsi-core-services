@@ -4,7 +4,7 @@ export default defineConfig({
   test: {
     include: ["src/**/?(*.|*-)+(spec|test).ts"],
     environment: "node",
-    threads: false,
+    fileParallelism: false,
     outputFile: {
       "vitest-sonar-reporter": "./coverage/test-reporter.xml",
     },

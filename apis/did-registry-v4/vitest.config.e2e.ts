@@ -5,7 +5,7 @@ export default defineConfig({
   test: {
     include: ["tests/**/?(*.|*-)+(spec|test).ts"],
     environment: "node",
-    threads: false,
+    fileParallelism: false,
     hookTimeout: 30_000,
     testTimeout: 30_000,
   },

@@ -3,7 +3,6 @@
 import hre from "hardhat";
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { Artifact, FactoryOptions } from "hardhat/types";
 import "@nomiclabs/hardhat-ethers";
 import crypto from "node:crypto";
@@ -71,10 +70,9 @@ const ianaToNodeHashAlg: Record<string, string> = {
   "sha3-512": "sha3-512",
 };
 
-const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const getArtifactV1 = (name: string): Artifact => {
   const pathToArtifactV1 = path.join(
-    currentDir,
+    import.meta.dirname,
     "../../../..",
     "contracts/did-registry/artifacts",
     "contracts/did-registry",

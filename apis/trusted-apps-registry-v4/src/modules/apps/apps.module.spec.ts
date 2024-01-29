@@ -7,7 +7,7 @@ import {
   afterAll,
   it,
   expect,
-  type SpyInstance,
+  type MockInstance,
 } from "vitest";
 import request from "supertest";
 import { ethers } from "ethers";
@@ -65,8 +65,8 @@ describe("Apps Module", () => {
   describe.each(["http://127.0.0.1", "ws://127.0.0.1"])(
     "with LedgerService connecting to %s",
     (besuRpcNode: string) => {
-      let webSocketProviderSpy: SpyInstance;
-      let jsonRpcProviderSpy: SpyInstance;
+      let webSocketProviderSpy: MockInstance;
+      let jsonRpcProviderSpy: MockInstance;
 
       beforeEach(async () => {
         // Spin up test blockchain (ganache)
@@ -161,8 +161,8 @@ describe("Apps Module", () => {
         expect(response.body.items).toHaveLength(Math.min(10, APPS_TOTAL));
         expect(response.status).toBe(200);
 
-        let calledProvider: SpyInstance;
-        let notCalledProvider: SpyInstance;
+        let calledProvider: MockInstance;
+        let notCalledProvider: MockInstance;
 
         if (besuRpcNode === "http://127.0.0.1") {
           calledProvider = jsonRpcProviderSpy;

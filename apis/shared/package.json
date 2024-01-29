@@ -23,10 +23,10 @@
     "@cef-ebsi/ebsi-did-resolver": "^4.0.0",
     "@cef-ebsi/key-did-resolver": "^2.0.0",
     "@cef-ebsi/key-encoder": "^1.0.0",
-    "@cef-ebsi/verifiable-credential": "^5.1.0-alpha.0",
+    "@cef-ebsi/verifiable-credential": "^5.1.0-alpha.2",
     "@ethersproject/abstract-provider": "^5.7.0",
-    "@nestjs/common": "^10.3.0",
-    "axios": "^1.6.5",
+    "@nestjs/common": "^10.3.1",
+    "axios": "^1.6.7",
     "canonicalize": "^2.0.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
@@ -49,12 +49,12 @@
     "@tsconfig/strictest": "^2.0.2",
     "@types/elliptic": "^6.4.18",
     "@types/lodash.clonedeep": "^4.5.9",
-    "@types/node": "^20.11.5",
-    "@vitest/coverage-v8": "^0.34.6",
-    "msw": "^2.1.2",
+    "@types/node": "^20.11.10",
+    "@vitest/coverage-v8": "^1.2.2",
+    "msw": "^2.1.5",
     "ts-node": "^10.9.2",
     "typescript": "5.3.3",
-    "vitest": "^0.34.6",
-    "vitest-sonar-reporter": "^0.5.0"
+    "vitest": "^1.2.2",
+    "vitest-sonar-reporter": "^1.0.0"
   }
 }
