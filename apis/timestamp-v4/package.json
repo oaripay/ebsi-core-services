@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "@cef-ebsi/oauth2-auth": "^3.0.0",
-    "@cef-ebsi/verifiable-credential": "^5.1.0-alpha.2",
+    "@cef-ebsi/verifiable-credential": "^5.1.0",
     "@ebsiint-api/shared": "^1.1.0-rc.5",
     "@ebsiint-sc/timestamp-v2": "^2.0.0-rc.1",
     "@ethersproject/address": "^5.7.0",
