@@ -29,7 +29,7 @@ export class LedgerService {
 
   private publicMethodsTrackAndTraceContract?: TrackAndTrace;
 
-  private didRegistryAddress: string;
+  private trackAndTraceAddress: string;
 
   private accessTokenExp?: number;
 
@@ -50,7 +50,7 @@ export class LedgerService {
   private readonly privateProviderMutex: Mutex;
 
   constructor(private configService: ConfigService<ApiConfig, true>) {
-    this.didRegistryAddress = this.configService.get<string>("contractAddr");
+    this.trackAndTraceAddress = this.configService.get<string>("contractAddr");
     this.authorisationApiUrl = this.configService.get<string>(
       "authorisationApiUrl",
     );
@@ -200,7 +200,7 @@ export class LedgerService {
         const provider = await this.connectProvider(token);
 
         this.trackAndTraceContract = TrackAndTrace__factory.connect(
-          this.didRegistryAddress,
+          this.trackAndTraceAddress,
           provider,
         );
       });
@@ -221,7 +221,7 @@ export class LedgerService {
         const provider = await this.connectProvider();
 
         this.publicMethodsTrackAndTraceContract =
-          TrackAndTrace__factory.connect(this.didRegistryAddress, provider);
+          TrackAndTrace__factory.connect(this.trackAndTraceAddress, provider);
       });
     }
 
@@ -238,7 +238,7 @@ export class LedgerService {
   }
 
   getContractAddress() {
-    return this.didRegistryAddress;
+    return this.trackAndTraceAddress;
   }
 }
 

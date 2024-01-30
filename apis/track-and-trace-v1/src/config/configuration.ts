@@ -21,6 +21,9 @@ export interface ApiConfig {
   // Trusted Apps Registry API
   trustedAppsRegistryApiUrl: string;
   // Test variables
+  testUserKid: string | undefined;
+  testUserPrivateKey: string | undefined;
+  testUserVcOnboard: string | undefined;
   dockerContainerTag: string;
 }
 
@@ -56,6 +59,9 @@ export const loadConfig = (): ApiConfig => {
     // Trusted Apps Registry API
     trustedAppsRegistryApiUrl: DOMAIN + TAR_API_PATH,
     // Test variables
+    testUserKid: process.env.TEST_USER_KID,
+    testUserPrivateKey: process.env.TEST_USER_PRIVATE_KEY,
+    testUserVcOnboard: process.env.TEST_USER_VC_TO_ONBOARD,
     dockerContainerTag: process.env.DOCKER_TAG || "",
   };
 };
@@ -96,6 +102,9 @@ export const ApiConfigModule = ConfigModule.forRoot({
     // Test variables
     TEST_ENV: Joi.string(),
     TEST_ENABLE_WRITE_OPS: Joi.string(),
+    TEST_USER_KID: Joi.string(),
+    TEST_USER_PRIVATE_KEY: Joi.string(),
+    TEST_USER_VC_TO_ONBOARD: Joi.string(),
     // Generic variables
     TZ: Joi.string(),
   }),

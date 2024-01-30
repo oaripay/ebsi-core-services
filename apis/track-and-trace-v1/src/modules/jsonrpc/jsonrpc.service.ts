@@ -1,0 +1,303 @@
+import { Injectable, Logger } from "@nestjs/common";
+import { ethers } from "ethers";
+import {
+  InvalidRequestJsonRpcError,
+  isEthersError,
+  getErrorMessage,
+  extractNamedAttributes,
+} from "@ebsiint-api/shared";
+import {
+  formatEthersUnsignedTransaction,
+  formatEthersSignature,
+} from "./jsonrpc.utils.js";
+import { LedgerService } from "../ledger/ledger.service.js";
+import { TNT_AUTHORISE_SCOPE } from "../auth/auth.constants.js";
+import {
+  authoriseDidSchema,
+  requestAuthoriseDidDtoSchema,
+  SendSignedTransactionParamsSchema,
+  requestSendSignedTransactionDtoSchema,
+  UnsignedTransaction,
+} from "./validators/index.js";
+import type { JsonRpcSchema } from "./validators/JsonRpcSchema.js";
+
+function assertScopeContains(
+  scope: string,
+  validScopes: string | string[],
+  methodName: string,
+) {
+  const expectedScopes = Array.isArray(validScopes)
+    ? validScopes
+    : [validScopes];
+
+  if (!expectedScopes.some((scp) => scope.includes(scp))) {
+    throw new Error(
+      `'${methodName}' requires an access token with the scope '${expectedScopes.join(
+        "' or '",
+      )}'`,
+    );
+  }
+}
+
+function assertDidMatchesSub(did: string, sub: string) {
+  if (did !== sub) {
+    throw new Error("Access token sub doesn't match the DID from the payload");
+  }
+}
+
+@Injectable()
+export class JsonRpcService {
+  private readonly logger = new Logger(JsonRpcService.name);
+
+  private chainId?: string;
+
+  private readonly contractAddress: string;
+
+  constructor(private ledgerService: LedgerService) {
+    this.contractAddress = ledgerService.getContractAddress();
+  }
+
+  async getChainId(): Promise<string> {
+    if (!this.chainId) {
+      try {
+        const { chainId } = await (
+          await this.ledgerService.getContract()
+        ).provider.getNetwork();
+        this.chainId = ethers.BigNumber.from(chainId).toHexString();
+      } catch (error) {
+        if (isEthersError(error)) {
+          this.logger.error(error);
+        }
+        throw new Error(getErrorMessage(error));
+      }
+    }
+    return this.chainId;
+  }
+
+  async estimateGas(
+    transaction: UnsignedTransaction,
+  ): Promise<ethers.BigNumber> {
+    const { from, to, data, value } = transaction;
+
+    try {
+      return await (
+        await this.ledgerService.getContract({ protectedMethod: true })
+      ).provider.estimateGas({
+        from,
+        to,
+        data,
+        value,
+      });
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
+      throw new Error(getErrorMessage(error));
+    }
+  }
+
+  async verifyTransaction(
+    clientId: string,
+    param: SendSignedTransactionParamsSchema,
+    scope: string,
+  ): Promise<{ signer: string; functionName: string }> {
+    const { unsignedTransaction, r, s, v, signedRawTransaction } = param;
+
+    const unsignedTx = formatEthersUnsignedTransaction(unsignedTransaction);
+    const signature = formatEthersSignature(r, s, v);
+
+    // Serialize transaction with and without signature
+    const serializedTransaction = ethers.utils.serializeTransaction(unsignedTx);
+    const serializedTransactionSigned = ethers.utils.serializeTransaction(
+      unsignedTx,
+      signature,
+    );
+
+    if (serializedTransactionSigned !== signedRawTransaction) {
+      throw new Error(
+        `The unsigned transaction + signature (${serializedTransactionSigned}) does not match with the signedRawTransaction (${signedRawTransaction})`,
+      );
+    }
+
+    // recover address used to sign
+    const digest = ethers.utils.keccak256(serializedTransaction);
+    const signer = ethers.utils.recoverAddress(digest, signature);
+
+    if (signer.toLowerCase() !== unsignedTransaction.from.toLowerCase()) {
+      throw new Error(
+        `The signer of the transaction (${signer}) does not match with unsignedTransaction.from (${unsignedTransaction.from}) `,
+      );
+    }
+
+    const chainId = await this.getChainId();
+    if (unsignedTransaction.chainId !== chainId) {
+      throw new Error(
+        `Invalid unsignedTransaction.chainId. Expected ${chainId}. Received ${unsignedTransaction.chainId}`,
+      );
+    }
+
+    if (unsignedTransaction.to !== this.contractAddress) {
+      throw new Error(
+        `Invalid unsignedTransaction.to. Expected ${this.contractAddress}. Received ${unsignedTransaction.to}`,
+      );
+    }
+
+    // verify function and parameters encoded in unsignedTransaction.data
+    const { args, functionFragment } = (
+      await this.ledgerService.getContract()
+    ).interface.parseTransaction(unsignedTransaction);
+
+    // Extract named args from args (args is a mixed array with named and unnamed values)
+    const argsObject = {
+      ...extractNamedAttributes(args),
+      from: unsignedTransaction.from,
+    };
+
+    switch (functionFragment.name) {
+      case "authoriseDid": {
+        assertScopeContains(
+          scope,
+          [TNT_AUTHORISE_SCOPE],
+          functionFragment.name,
+        );
+
+        const castArgs = await authoriseDidSchema.parseAsync(argsObject);
+
+        if (scope.includes(TNT_AUTHORISE_SCOPE)) {
+          assertDidMatchesSub(castArgs.didEbsi, clientId);
+        }
+        break;
+      }
+      default:
+        throw new Error(
+          `The function name ${functionFragment.name} can not be used in this context`,
+        );
+    }
+
+    return {
+      signer,
+      functionName: functionFragment.name,
+    };
+  }
+
+  async buildTransaction(
+    from: string,
+    params: string,
+  ): Promise<UnsignedTransaction> {
+    try {
+      const nonceInt = await (
+        await this.ledgerService.getContract()
+      ).provider.getTransactionCount(from);
+
+      const unsignedTransaction: UnsignedTransaction = {
+        from,
+        to: this.contractAddress,
+        data: params,
+        value: "0x0",
+        nonce: ethers.BigNumber.from(nonceInt).toHexString(),
+        chainId: await this.getChainId(),
+        gasLimit: "0x1000000",
+        gasPrice: "0x0",
+      };
+
+      let gasEstimation: string | ethers.BigNumber = "unset";
+
+      try {
+        gasEstimation = await this.estimateGas(unsignedTransaction);
+        // Multiply by 1.4
+        unsignedTransaction.gasLimit = gasEstimation
+          .mul(14)
+          .div(10)
+          .toHexString();
+      } catch (error) {
+        this.logger.warn(
+          `Gas could not be estimated.${
+            gasEstimation === "unset"
+              ? ""
+              : `Received ${gasEstimation.toString()}.`
+          } Using 0x1000000`,
+        );
+        unsignedTransaction.gasLimit = "0x1000000";
+      }
+
+      return unsignedTransaction;
+    } catch (error) {
+      if (isEthersError(error)) {
+        this.logger.error(error);
+      }
+      throw new Error("Could not build transaction.");
+    }
+  }
+
+  async buildTransactionAuthoriseDid(
+    body: JsonRpcSchema,
+    id: number | string | null | undefined,
+    sub: string,
+    scope: string,
+  ): Promise<UnsignedTransaction> {
+    try {
+      // Access Token must contain DIDR_INVITE_SCOPE or DIDR_WRITE_SCOPE scope
+      assertScopeContains(scope, [TNT_AUTHORISE_SCOPE], "authoriseDid");
+
+      const parsedBody = await requestAuthoriseDidDtoSchema.parseAsync(body);
+
+      const { from, didEbsi, whiteList } = parsedBody.params[0]!;
+
+      if (scope.includes(TNT_AUTHORISE_SCOPE)) {
+        // Verify that the Access Token sub and the payload DID match
+        assertDidMatchesSub(didEbsi, sub);
+      }
+
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData("authoriseDid", [didEbsi, whiteList]);
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
+      throw error;
+    }
+  }
+
+  async sendTransaction(
+    body: JsonRpcSchema,
+    id: number | string | null | undefined,
+    sub: string,
+    scope: string,
+  ): Promise<string> {
+    try {
+      const parsedBody =
+        await requestSendSignedTransactionDtoSchema.parseAsync(body);
+
+      const request = parsedBody.params[0]!;
+
+      await this.verifyTransaction(sub, request, scope);
+
+      const tx = await (
+        await this.ledgerService.getContract({ protectedMethod: true })
+      ).provider.sendTransaction(request.signedRawTransaction);
+
+      return tx.hash;
+    } catch (err) {
+      if (isEthersError(err)) {
+        this.logger.error(err); // Log the original error with all ethers.js details for internal debugging
+        throw new InvalidRequestJsonRpcError(err.reason, id); // throw simplified ethers error to the user
+      }
+      if (err instanceof Error) {
+        const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
+
+        if (err instanceof Error && err.stack) {
+          error.stack = err.stack;
+        }
+
+        throw error;
+      }
+      throw err;
+    }
+  }
+}
+
+export default { JsonRpcService };
