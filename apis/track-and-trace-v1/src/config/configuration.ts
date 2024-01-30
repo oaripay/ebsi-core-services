@@ -12,6 +12,7 @@ export interface ApiConfig {
   localOrigin: string;
   requestTimeout: number;
   axiosRetryDelay: number;
+  dockerContainerTag: string;
   // Ledger & SC
   ledgerApiUrl: string;
   ledgerApiName: string;
@@ -24,7 +25,6 @@ export interface ApiConfig {
   testUserKid: string | undefined;
   testUserPrivateKey: string | undefined;
   testUserVcOnboard: string | undefined;
-  dockerContainerTag: string;
 }
 
 const AUTH_API_PATH = "/authorisation/v4";
@@ -50,6 +50,7 @@ export const loadConfig = (): ApiConfig => {
     localOrigin: process.env.LOCAL_ORIGIN || "",
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     axiosRetryDelay: parseInt(process.env.AXIOS_RETRY_DELAY || "10000", 10),
+    dockerContainerTag: process.env.DOCKER_TAG || "",
     // Ledger & SC
     ledgerApiUrl: DOMAIN + LEDGER_API_PATH,
     ledgerApiName: process.env.LEDGER_API_NAME || "ledger-api",
@@ -62,7 +63,6 @@ export const loadConfig = (): ApiConfig => {
     testUserKid: process.env.TEST_USER_KID,
     testUserPrivateKey: process.env.TEST_USER_PRIVATE_KEY,
     testUserVcOnboard: process.env.TEST_USER_VC_TO_ONBOARD,
-    dockerContainerTag: process.env.DOCKER_TAG || "",
   };
 };
 

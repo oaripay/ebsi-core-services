@@ -15,7 +15,7 @@ import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js"
 import type { ApiConfig } from "../../src/config/configuration.js";
 import { getServer } from "../utils/getServer.js";
 
-describe("Track and Trace API v1 (e2e)", () => {
+describe("Track and Trace API v1 - Documents (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let configService: ConfigService<ApiConfig, true>;

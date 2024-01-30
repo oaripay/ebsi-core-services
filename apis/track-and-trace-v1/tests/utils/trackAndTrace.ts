@@ -128,6 +128,7 @@ export async function setupTestEnv({
   trackAndTraceContract: TrackAndTrace;
   documentsWithBlockSource: TestDocument[];
   documentsWithExternalSource: TestDocument[];
+  creatorAccount: string;
 }> {
   const ethersProvider = hre.ethers.provider;
   const documentsWithBlockSource: TestDocument[] = [];
@@ -179,5 +180,6 @@ export async function setupTestEnv({
     trackAndTraceContract,
     documentsWithBlockSource,
     documentsWithExternalSource,
+    creatorAccount,
   };
 }

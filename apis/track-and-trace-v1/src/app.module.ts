@@ -7,6 +7,7 @@ import { VersionInterceptor } from "./interceptors/version.interceptor.js";
 import { OpenApiModule } from "./modules/openapi/openapi.module.js";
 import { LedgerModule } from "./modules/ledger/ledger.module.js";
 import { DocumentsModule } from "./modules/documents/documents.module.js";
+import { AccessesModule } from "./modules/accesses/accesses.module.js";
 import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module.js";
 import { AppService } from "./app.service.js";
 import { AppController } from "./app.controller.js";
@@ -18,6 +19,7 @@ import { AppController } from "./app.controller.js";
     OpenApiModule,
     LedgerModule,
     DocumentsModule,
+    AccessesModule,
     JsonRpcModule,
   ],
   controllers: [AppController],

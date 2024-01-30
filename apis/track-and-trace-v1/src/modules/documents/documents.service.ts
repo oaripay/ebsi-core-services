@@ -44,12 +44,6 @@ export default class DocumentsService {
       });
     }
 
-    if (!document.creator) {
-      throw new NotFoundError("Document Not Found", {
-        detail: `Document ${documentId} not found`,
-      });
-    }
-
     return {
       metadata: document.documentMetadata,
       timestamp: {
@@ -67,9 +61,6 @@ export default class DocumentsService {
     page: number,
     pageSize: number,
   ): ReturnType<TrackAndTrace["getEvents"]> {
-    // Make sure the document exists
-    await this.getDocument(documentId);
-
     try {
       return await (
         await this.ledgerService.getContract()
@@ -85,9 +76,6 @@ export default class DocumentsService {
   }
 
   async getDocumentEvent(documentId: string, eventId: string): Promise<Event> {
-    // Make sure the document exists
-    await this.getDocument(documentId);
-
     let event: Awaited<ReturnType<TrackAndTrace["getEvent"]>>;
 
     try {
@@ -98,12 +86,16 @@ export default class DocumentsService {
       if (isEthersError(error)) {
         this.logger.error(error);
       }
-      throw new NotFoundError("Event Not Found", {
-        detail: `Event ${eventId} not found`,
-      });
-    }
 
-    if (!event.sender) {
+      if (
+        error instanceof Error &&
+        error.message.includes("Document does not exist")
+      ) {
+        throw new NotFoundError("Document Not Found", {
+          detail: `Document ${documentId} not found`,
+        });
+      }
+
       throw new NotFoundError("Event Not Found", {
         detail: `Event ${eventId} not found`,
       });

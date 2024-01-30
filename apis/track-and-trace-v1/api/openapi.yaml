@@ -366,6 +366,29 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
+  /track-and-trace/v1/accesses:
+    head:
+      operationId: head-accesses
+      summary: Check access
+      description: Checks if the DID is included in the allowlist of TnT Document creators or not.
+      tags:
+        - Accesses
+      parameters:
+        - in: query
+          name: creator
+          description: DID to check
+          schema:
+            type: string
+            required: true
+      responses:
+        "204":
+          description: Success
+        "400":
+          description: Bad Request Error
+        "404":
+          description: DID not found in the allowlist
+        "500":
+          description: Internal Server Error
   /track-and-trace/v1/jsonrpc:
     post:
       operationId: post-track-and-trace-v1-jsonrpc
