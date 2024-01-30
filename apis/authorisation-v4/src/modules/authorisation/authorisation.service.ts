@@ -55,6 +55,7 @@ import {
   CUSTOM_SCOPES,
   TNT_AUTHORISE_SCOPE,
   PRESENTATION_DEFINITIONS,
+  TNT_CREATE_SCOPE,
 } from "./authorisation.constants.js";
 import type { PresentationDefinition } from "../../shared/interfaces/pex.js";
 import {
@@ -95,6 +96,8 @@ export class AuthorisationService {
 
   private readonly trustedPoliciesRegistry: string;
 
+  private readonly trackAndTraceAccessesEndpoint: string;
+
   private readonly trustedHostnames: string[];
 
   private readonly authorisationCredentialSchema: string;
@@ -121,6 +124,12 @@ export class AuthorisationService {
     this.trustedPoliciesRegistry = configService.get(
       "trustedPoliciesRegistry",
       { infer: true },
+    );
+    this.trackAndTraceAccessesEndpoint = configService.get(
+      "trackAndTraceAccessesEndpoint",
+      {
+        infer: true,
+      },
     );
     this.timeout = configService.get("requestTimeout", { infer: true });
     this.apiES256PrivateKey = configService.get("apiES256PrivateKey", {
@@ -698,6 +707,38 @@ export class AuthorisationService {
     }
   }
 
+  async validateTntCreator(did: string): Promise<void> {
+    try {
+      await axios.head<unknown>(
+        `${this.trackAndTraceAccessesEndpoint}?${new URLSearchParams({
+          creator: did,
+        }).toString()}`,
+      );
+    } catch (e) {
+      logAxiosError(e, this.logger);
+
+      if (axios.isAxiosError(e)) {
+        if (e.response?.status === 404) {
+          throw new OAuth2TokenError("invalid_request", {
+            errorDescription: `Invalid Verifiable Presentation: DID ${did} is not allowlisted as a TnT Document creator`,
+          });
+        }
+
+        if (e.response?.status === 500) {
+          throw new OAuth2TokenError("server_error", {
+            errorDescription:
+              "Track And Trace API responded with an internal error",
+          });
+        }
+      }
+
+      // Fallback (should not be triggered)
+      throw new OAuth2TokenError("server_error", {
+        errorDescription: "Unexpected error",
+      });
+    }
+  }
+
   async createAccessToken(body: unknown): Promise<TokenResponse> {
     // Validate query params (full DTO)
     let parsedDto: CreateAccessTokenDto;
@@ -838,6 +879,11 @@ export class AuthorisationService {
     if (customScope === TNT_AUTHORISE_SCOPE) {
       // TODO: check if VerifiableAuthorisationToOnboard issuer is allowlisted
       // This should be done by the PEX library, based on the presentation definition.
+    }
+
+    // `tnt_create`: the client must be an allowlisted TnT Document creator
+    if (customScope === TNT_CREATE_SCOPE) {
+      await this.validateTntCreator(vp.holder);
     }
 
     // Generate access token

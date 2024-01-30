@@ -15,6 +15,7 @@ export interface ApiConfig {
   trustedIssuersRegistry: string;
   trustedAppsRegistry: string;
   trustedPoliciesRegistry: string;
+  trackAndTraceAccessesEndpoint: string;
   dockerContainerTag: string;
   trustedHostnames: string[];
   requestTimeout: number;
@@ -27,6 +28,8 @@ export interface ApiConfig {
   testIssuerAlg: string | undefined;
   testIssuerAttribute: string | undefined;
   testOidSchemaPattern: string;
+  testTntAuthorisedUserKid: string | undefined;
+  testTntAuthorisedUserPrivateKey: string | undefined;
 }
 
 const DIDR_PATH = "/did-registry/v5";
@@ -34,6 +37,7 @@ const TAR_PATH = "/trusted-apps-registry/v4";
 const TIR_PATH = "/trusted-issuers-registry/v5";
 const TPR_PATH = "/trusted-policies-registry/v3";
 const TSR_PATH = "/trusted-schemas-registry/v3";
+const TNT_PATH = "/track-and-trace/v1";
 
 export const DEPENDENCIES = {
   "DIDR API v5": DIDR_PATH,
@@ -41,6 +45,7 @@ export const DEPENDENCIES = {
   "TIR API v5": TIR_PATH,
   "TPR API v3": TPR_PATH,
   "TSR API v3": TSR_PATH,
+  "TNT API v1": TNT_PATH,
 } as const;
 
 // Config factory
@@ -62,6 +67,7 @@ export const loadConfig = (): ApiConfig => {
     trustedIssuersRegistry: `${DOMAIN}${TIR_PATH}/issuers`,
     trustedAppsRegistry: `${DOMAIN}${TAR_PATH}/apps`,
     trustedPoliciesRegistry: `${DOMAIN}${TPR_PATH}/users`,
+    trackAndTraceAccessesEndpoint: `${DOMAIN}${TNT_PATH}/accesses`,
     dockerContainerTag: process.env.DOCKER_TAG || "",
     trustedHostnames: (process.env.TRUSTED_HOSTNAMES || "")
       .split(",")
@@ -78,6 +84,9 @@ export const loadConfig = (): ApiConfig => {
     testIssuerAlg: process.env.TEST_ISSUER_ALG,
     testIssuerAttribute: process.env.TEST_ISSUER_ATTRIBUTE,
     testOidSchemaPattern: process.env.TEST_OID_SCHEMA_PATTERN || "",
+    testTntAuthorisedUserKid: process.env.TEST_TNT_AUTHORISED_USER_KID,
+    testTntAuthorisedUserPrivateKey:
+      process.env.TEST_TNT_AUTHORISED_USER_PRIVATE_KEY,
   };
 };
 
@@ -120,6 +129,8 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_ISSUER_ALG: Joi.string(),
     TEST_ISSUER_ATTRIBUTE: Joi.string().uri(),
     TEST_OID_SCHEMA_PATTERN: Joi.string(),
+    TEST_TNT_AUTHORISED_USER_KID: Joi.string(),
+    TEST_TNT_AUTHORISED_USER_PRIVATE_KEY: Joi.string(),
     // Generic variables
     TZ: Joi.string(),
   }),

@@ -37,6 +37,8 @@ import {
   TIR_WRITE_SCOPE,
   TNT_AUTHORISE_PRESENTATION_DEFINITION,
   TNT_AUTHORISE_SCOPE,
+  TNT_CREATE_PRESENTATION_DEFINITION,
+  TNT_CREATE_SCOPE,
 } from "../../src/modules/authorisation/authorisation.constants.js";
 import type {
   JsonWebKeySet,
@@ -169,7 +171,7 @@ describe("Authorisation  API v4 (e2e)", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise')"]`,
+        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise', 'tnt_create')"]`,
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -178,7 +180,7 @@ describe("Authorisation  API v4 (e2e)", () => {
     });
 
     it("should return the expected presentation definition for the given scope", async () => {
-      expect.assertions(12);
+      expect.assertions(14);
 
       //  With explicit scope "openid didr_invite"
       let response = await request(server).get(
@@ -247,6 +249,16 @@ describe("Authorisation  API v4 (e2e)", () => {
         configService.get("tntAuthoriseIssuersAllowlist", { infer: true });
       expect(response.body).toStrictEqual(tntAuthorisePresentationDefinition);
       expect(response.status).toBe(200);
+
+      // With explicit scope "openid tnt_create"
+      response = await request(server).get(
+        `/presentation-definitions?scope=${encodeURIComponent(
+          `openid ${TNT_CREATE_SCOPE}`,
+        )}`,
+      );
+
+      expect(response.body).toStrictEqual(TNT_CREATE_PRESENTATION_DEFINITION);
+      expect(response.status).toBe(200);
     });
   });
 
@@ -289,7 +301,7 @@ describe("Authorisation  API v4 (e2e)", () => {
       expect(response.body).toStrictEqual({
         error: "invalid_request",
         error_description:
-          "scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise')",
+          "scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise', 'tnt_create')",
       });
       expect(response.status).toBe(400);
       expect(
@@ -376,6 +388,37 @@ describe("Authorisation  API v4 (e2e)", () => {
         ) {
           // client is a new LE
           client = await createLegalEntity("ES256K");
+        } else if (customScope === TNT_CREATE_SCOPE) {
+          const clientKid = configService.get("testTntAuthorisedUserKid", {
+            infer: true,
+          });
+
+          if (!clientKid) {
+            throw new Error("TEST_TNT_AUTHORISED_USER_KID must be defined");
+          }
+
+          const clientPrivateKey = configService.get(
+            "testTntAuthorisedUserPrivateKey",
+            { infer: true },
+          );
+
+          if (!clientPrivateKey) {
+            throw new Error(
+              "TEST_TNT_AUTHORISED_USER_PRIVATE_KEY must be defined",
+            );
+          }
+
+          const clientPrivateKeyJwk =
+            encode.privateKey.fromHexToJWK(clientPrivateKey);
+          const { d: unusedD, ...clientPublicKeyJwk } = privateKeyJwk;
+
+          client = {
+            kid: clientKid,
+            did: clientKid.split("#")[0]!,
+            publicKeyJwk: clientPublicKeyJwk,
+            privateKeyJwk: clientPrivateKeyJwk,
+            alg: "ES256K",
+          };
         } else {
           client = issuer;
         }
@@ -469,6 +512,7 @@ describe("Authorisation  API v4 (e2e)", () => {
                 DIDR_WRITE_SCOPE,
                 TIR_WRITE_SCOPE,
                 TIMESTAMP_WRITE_SCOPE,
+                TNT_CREATE_SCOPE,
               ].includes(customScope)
                 ? {
                     // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
@@ -533,6 +577,7 @@ describe("Authorisation  API v4 (e2e)", () => {
                 DIDR_WRITE_SCOPE,
                 TIR_WRITE_SCOPE,
                 TIMESTAMP_WRITE_SCOPE,
+                TNT_CREATE_SCOPE,
               ].includes(customScope)
                 ? {
                     // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
@@ -727,6 +772,7 @@ describe("Authorisation  API v4 (e2e)", () => {
                 DIDR_WRITE_SCOPE,
                 TIR_WRITE_SCOPE,
                 TIMESTAMP_WRITE_SCOPE,
+                TNT_CREATE_SCOPE,
               ].includes(customScope)
                 ? {
                     // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
@@ -878,6 +924,7 @@ describe("Authorisation  API v4 (e2e)", () => {
               DIDR_WRITE_SCOPE,
               TIR_WRITE_SCOPE,
               TIMESTAMP_WRITE_SCOPE,
+              TNT_CREATE_SCOPE,
             ].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
@@ -941,6 +988,7 @@ describe("Authorisation  API v4 (e2e)", () => {
               DIDR_WRITE_SCOPE,
               TIR_WRITE_SCOPE,
               TIMESTAMP_WRITE_SCOPE,
+              TNT_CREATE_SCOPE,
             ].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
@@ -1003,6 +1051,7 @@ describe("Authorisation  API v4 (e2e)", () => {
               DIDR_WRITE_SCOPE,
               TIR_WRITE_SCOPE,
               TIMESTAMP_WRITE_SCOPE,
+              TNT_CREATE_SCOPE,
             ].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
@@ -1048,6 +1097,7 @@ describe("Authorisation  API v4 (e2e)", () => {
               DIDR_WRITE_SCOPE,
               TIR_WRITE_SCOPE,
               TIMESTAMP_WRITE_SCOPE,
+              TNT_CREATE_SCOPE,
             ].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
@@ -1092,6 +1142,7 @@ describe("Authorisation  API v4 (e2e)", () => {
               DIDR_WRITE_SCOPE,
               TIR_WRITE_SCOPE,
               TIMESTAMP_WRITE_SCOPE,
+              TNT_CREATE_SCOPE,
             ].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
@@ -1157,6 +1208,7 @@ describe("Authorisation  API v4 (e2e)", () => {
               DIDR_WRITE_SCOPE,
               TIR_WRITE_SCOPE,
               TIMESTAMP_WRITE_SCOPE,
+              TNT_CREATE_SCOPE,
             ].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
@@ -1227,6 +1279,7 @@ describe("Authorisation  API v4 (e2e)", () => {
               DIDR_WRITE_SCOPE,
               TIR_WRITE_SCOPE,
               TIMESTAMP_WRITE_SCOPE,
+              TNT_CREATE_SCOPE,
             ].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from

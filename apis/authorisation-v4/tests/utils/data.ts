@@ -19,6 +19,8 @@ import {
   TIMESTAMP_WRITE_SCOPE,
   TNT_AUTHORISE_PRESENTATION_DEFINITION,
   TNT_AUTHORISE_SCOPE,
+  TNT_CREATE_SCOPE,
+  TNT_CREATE_PRESENTATION_DEFINITION,
 } from "../../src/modules/authorisation/authorisation.constants.js";
 
 export function createDidDocument(
@@ -149,6 +151,12 @@ export function createPresentationSubmission(
           path: "$.verifiableCredential[0]",
         },
       });
+
+      break;
+    }
+    case TNT_CREATE_SCOPE: {
+      testPresentationSubmission.definition_id =
+        TNT_CREATE_PRESENTATION_DEFINITION.id;
 
       break;
     }

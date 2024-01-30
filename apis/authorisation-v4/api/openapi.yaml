@@ -141,6 +141,7 @@ paths:
                       - tir_write
                       - timestamp_write
                       - tnt_authorise
+                      - tnt_create
                   response_types_supported:
                     title: Supported Response Types
                     description: |
@@ -367,6 +368,7 @@ paths:
                       - tir_write
                       - timestamp_write
                       - tnt_authorise
+                      - tnt_create
                     token_endpoint: https://api-test.ebsi.eu/authorisation/v4/token
                     subject_types_supported:
                       - public
@@ -458,6 +460,7 @@ paths:
               - openid tir_invite
               - openid timestamp_write
               - openid tnt_authorise
+              - openid tnt_create
           examples:
             didr_write:
               summary: Write to DID Registry
@@ -477,6 +480,9 @@ paths:
             tnt_authorise:
               summary: Allow to authorise did:ebsi to create TnT documents.
               value: openid tnt_authorise
+            tnt_create:
+              summary: Allow to create a new Document.
+              value: openid tnt_create
       responses:
         "200":
           description: Success
@@ -615,6 +621,20 @@ paths:
                       jwt_vp:
                         alg:
                           - ES256
+                tnt_create:
+                  summary: TNT create
+                  value:
+                    id: tnt_create_presentation
+                    name: Any type of Verifiable Attestation
+                    purpose: Please present a valid Presentation signed by an allowlisted TnT Document creator.
+                    input_descriptors: []
+                    format:
+                      jwt_vc:
+                        alg:
+                          - ES256
+                      jwt_vp:
+                        alg:
+                          - ES256
         "400":
           description: Bad Request
           content:
@@ -626,7 +646,7 @@ paths:
                   value:
                     title: Bad Request
                     status: 400
-                    detail: '["scope must be a combination of ''openid'' and one of the supported scopes (''didr_invite'', ''didr_write'', ''tir_invite'', ''tir_write'', ''timestamp_write'', ''tnt_authorise'')"]'
+                    detail: '["scope must be a combination of ''openid'' and one of the supported scopes (''didr_invite'', ''didr_write'', ''tir_invite'', ''tir_write'', ''timestamp_write'', ''tnt_authorise'', ''tnt_create'')"]'
                     type: "about:blank"
         "500":
           description: Internal Server Error
@@ -698,6 +718,7 @@ paths:
                     - openid tir_invite
                     - openid timestamp_write
                     - openid tnt_authorise
+                    - openid tnt_create
       responses:
         "200":
           description: Success
@@ -904,6 +925,7 @@ components:
             - openid tir_write
             - openid timestamp_write
             - openid tnt_authorise
+            - openid tnt_create
         id_token:
           description: ID Token value associated with the authenticated session. Presents client's identity. ID Token is issued in a JWS format. See also the "ID Token" schema definition.
           example: eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJpYXQiOjE2NDE1NTI2MDAsInN1YiI6Imh0dHA6Ly9sb2NhbGhvc3Q6MzAwMCIsImF1ZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6MzAwMCIsImlzcyI6ImRpZDplYnNpOnoyMVNxTUo1M2ZZUzY5VlpSWVRVRURhZyJ9.YIdjUCinbG2DRU0VhFTOPcHK9D0iLcx6zBPmF94phfVOx8IVZwOLMfnEp_9xx87-UNODVCLWNR2UdjUgQyv14A
