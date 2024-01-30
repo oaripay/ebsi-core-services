@@ -87,6 +87,20 @@ describe("TrackAndTrace - tests", () => {
       ).to.be.revertedWith("NotDidController");
     });
 
+    it("should revert if the external timestamp is zero", async () => {
+      await didRegistryMock.setDidResult(true);
+      const documentHash = ethers.utils.formatBytes32String("e68905e6");
+      const proof = ethers.utils.formatBytes32String("ab4567");
+      const metadata = "metadata";
+      await expect(
+        trackAndTrace
+          .connect(broadcaster)
+          [
+            "createDocument(bytes32,string,string,uint256,bytes32)"
+          ](documentHash, metadata, creatorAccount, 0, proof),
+      ).to.revertedWith("InvalidTimestamp");
+    });
+
     it("should create document", async () => {
       const documentHash = ethers.utils.formatBytes32String("e68905e6");
       const metadata = "metadata";
@@ -303,20 +317,18 @@ describe("TrackAndTrace - tests", () => {
 
     it("should write event", async () => {
       const documentHash = ethers.utils.formatBytes32String("writeEvent01");
-      const eventHash = ethers.utils.formatBytes32String("writeEventHash");
       const externalHash = "externalHash";
-      const sender = "sender";
+      const sender = ethers.utils.toUtf8Bytes(creatorAccount);
       const origin = "origin";
       const metadata = "metadata";
-      const creatorAcc = ethers.utils.toUtf8Bytes(creatorAccount);
       await createDocument(documentHash);
 
       await expect(
         trackAndTrace
           .connect(broadcaster)
           [
-            "writeEvent((bytes32,bytes32,string,string,string,string),bytes)"
-          ]({ documentHash, eventHash, externalHash, sender, origin, metadata }, creatorAcc),
+            "writeEvent((bytes32,string,bytes,string,string))"
+          ]({ documentHash, externalHash, sender, origin, metadata }),
       ).to.emit(trackAndTrace, "EventWritten");
     });
   });

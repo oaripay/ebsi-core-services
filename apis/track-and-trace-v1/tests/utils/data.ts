@@ -56,12 +56,17 @@ export function createDocument(
   };
 }
 
-export function createEvent(documentHash: string): TestDocumentEvent {
-  const eventHash = ethers.utils.sha256(randomBytes(32));
-  const externalHash = "externalHash";
-  const sender = "sender";
+export function createEvent(
+  documentHash: string,
+  didEbsiCreator: string,
+): TestDocumentEvent {
+  const externalHash = `externalHash${randomBytes(5).toString("hex")}`;
+  const eventHash = ethers.utils.keccak256(
+    ethers.utils.toUtf8Bytes(externalHash),
+  );
   const origin = "origin";
   const metadata = "eventMetadata";
+  const sender = `0x${Buffer.from(didEbsiCreator).toString("hex")}`;
 
   const event = {
     documentHash,

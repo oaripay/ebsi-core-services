@@ -89,20 +89,16 @@ export async function insertDocumentWithExternalSource(
 }
 
 export async function addEvent(contract: TrackAndTrace, doc: TestDocument) {
-  const event = createEvent(doc.documentHash);
+  const event = createEvent(doc.documentHash, doc.didEbsiCreator);
 
-  const tx = await contract[
-    "writeEvent((bytes32,bytes32,string,string,string,string),bytes)"
-  ](
+  const tx = await contract["writeEvent((bytes32,string,bytes,string,string))"](
     {
       documentHash: event.documentHash,
-      eventHash: event.eventHash,
       externalHash: event.externalHash,
       sender: event.sender,
       origin: event.origin,
       metadata: event.metadata,
     },
-    ethers.utils.toUtf8Bytes(doc.didEbsiCreator),
   );
 
   const receipt = await tx.wait();

@@ -43,7 +43,7 @@ interface ITrackAndTraceInterface {
         string externalHash;
         bytes32 hash;
         Timestamp eventTimestamp; // creation of the event timestamp
-        string sender; // did:ebsi or did:key
+        bytes sender; // did:ebsi or did:key
         string origin;
         string eventMetadata; // limited to 2k char in strings -> will be casted to bytes and use string utilities
     }
@@ -82,9 +82,8 @@ interface ITrackAndTraceInterface {
 
     struct WriteEvent {
         bytes32 documentHash;
-        bytes32 eventHash;
         string externalHash;
-        string sender;
+        bytes sender;
         string origin;
         string metadata;
     }
@@ -111,7 +110,7 @@ interface ITrackAndTraceInterface {
     event EventWritten(
         bytes32 docHash,
         bytes32 eventHash,
-        string sender,
+        bytes sender,
         string metadata,
         string origin,
         uint256 timestamp,
@@ -138,4 +137,6 @@ interface ITrackAndTraceInterface {
     error InvalidMetadata();
     error PermissionExists();
     error InvalidArrayLength();
+    error InvalidTimestamp();
+    error ExternalHashExist();
 }

@@ -257,14 +257,13 @@ contract TrackAndTrace is
     }
 
     function writeEvent(
-        WriteEvent calldata eventParams,
-        bytes calldata writer
+        WriteEvent calldata eventParams
     ) external {
         // authorize signer
         if (
             _authorize(
-                writer,
-                documents[eventParams.documentHash].invited[writer].subjectAccountType
+                eventParams.sender,
+                documents[eventParams.documentHash].invited[eventParams.sender].subjectAccountType
             ) == false
         ) {
             revert NotDidController();
@@ -272,9 +271,9 @@ contract TrackAndTrace is
         if (
             _getAccountAccess(
                 eventParams.documentHash,
-                writer,
+                eventParams.sender,
                 documents[eventParams.documentHash]
-                    .invited[writer]
+                    .invited[eventParams.sender]
                     .subjectAccountType,
                 SCOPE.TNT_WRITE
             ) == false
@@ -286,16 +285,14 @@ contract TrackAndTrace is
 
     function writeEvent(
         WriteEvent calldata eventParams,
-        bytes calldata writer,
         uint256 timestamp,
-        Source timestampSource,
         bytes32 timestampProof
     ) external {
         // authorize signer
         if (
             _authorize(
-                writer,
-                documents[eventParams.documentHash].invited[writer].subjectAccountType
+                eventParams.sender,
+                documents[eventParams.documentHash].invited[eventParams.sender].subjectAccountType
             ) == false
         ) {
             revert NotDidController();
@@ -303,16 +300,16 @@ contract TrackAndTrace is
         if (
             _getAccountAccess(
                 eventParams.documentHash,
-                writer,
+                eventParams.sender,
                 documents[eventParams.documentHash]
-                    .invited[writer]
+                    .invited[eventParams.sender]
                     .subjectAccountType,
                 SCOPE.TNT_WRITE
             ) == false
         ) {
             revert OnlyCreatorOrWriter();
         }
-        _writeEvent(eventParams, timestamp, timestampSource, timestampProof);
+        _writeEvent(eventParams, timestamp, Source.External, timestampProof);
     }
 
     function getImplementation() external view returns (address) {
@@ -343,6 +340,7 @@ contract TrackAndTrace is
         bytes32 documentHash
     ) external view returns (DocumentGetter memory) {
         Document storage iDoc = documents[documentHash];
+        require(bytes(iDoc.creator).length > 0, "Document does not exist");
         DocumentGetter memory doc;
         doc.creator = iDoc.creator;
         doc.documentMetadata = iDoc.documentMetadata;
@@ -369,6 +367,7 @@ contract TrackAndTrace is
         require(pageSize <= 50, "PSize not <= 50");
         require(pageSize > 0, "PSize not >0");
         require(page > 0, "Page not >0");
+        require(bytes(documents[documentHash].creator).length > 0, "Document does not exist");
         return documents[documentHash].eventHashes.paginate(page, pageSize);
     }
 
@@ -376,7 +375,9 @@ contract TrackAndTrace is
         bytes32 documentHash,
         bytes32 eventHash
     ) external view returns (Event memory) {
+        require(bytes(documents[documentHash].creator).length > 0, "Document does not exist");
         Event memory ev = documents[documentHash].events[eventHash];
+        require(ev.sender.length > 0, "Event does not exist");
         return ev;
     }
 
@@ -398,6 +399,7 @@ contract TrackAndTrace is
         require(pageSize <= 50, "PSize not <= 50");
         require(pageSize > 0, "PSize not >0");
         require(page > 0, "Page not >0");
+        require(bytes(documents[documentHash].creator).length > 0, "Document does not exist");
         bytes[] storage invitedUsers = documents[documentHash].allInvited;
         return invitedUsers.paginate(page, pageSize);
     }
@@ -412,6 +414,7 @@ contract TrackAndTrace is
         require(pageSize <= 50, "PSize not <= 50");
         require(pageSize > 0, "PSize not >0");
         require(page > 0, "Page not >0");
+        require(accessBySubject[subject].length > 0, "Subject does not exist");
         return accessBySubject[subject].paginate(page, pageSize);
     }
 
@@ -432,6 +435,7 @@ contract TrackAndTrace is
         if (acc.length == 0) {
             revert InvalidArrayLength();
         }
+        require(bytes(documents[docHash].creator).length > 0, "Document does not exist");
         uint256 accLength = acc.length;
         bytes[] memory grantedByAccounts = new bytes[](accLength);
         ACCOUNT_TYPE[] memory grantedByAccountType = new ACCOUNT_TYPE[](accLength);
@@ -468,6 +472,9 @@ contract TrackAndTrace is
         _document.documentMetadata = documentMetadata;
         _document.creator = creator;
         // add Timestamp
+        if (timestamp == 0) {
+            revert InvalidTimestamp();
+        }
         Timestamp storage _timestamp = _document.documentTimestamp;
         _timestamp.timestamp = timestamp;
         _timestamp.proof = timestampProof;
@@ -557,17 +564,24 @@ contract TrackAndTrace is
         if (bytes(eventParams.metadata).length > MAX_METADATA_LENGTH) {
             revert InvalidMetadata();
         }
+        bytes32 eventHash = keccak256(bytes(eventParams.externalHash));
         Document storage _document = documents[eventParams.documentHash];
-        _document.events[eventParams.eventHash].hash = eventParams.eventHash;
-        _document.events[eventParams.eventHash].externalHash = eventParams
+        if (_document.events[eventHash].hash != 0x00) {
+            revert ExternalHashExist();
+        }
+        _document.events[eventHash].hash = eventHash;
+        _document.events[eventHash].externalHash = eventParams
             .externalHash;
-        _document.events[eventParams.eventHash].sender = eventParams.sender;
-        _document.events[eventParams.eventHash].origin = eventParams.origin;
-        _document.events[eventParams.eventHash].eventMetadata = eventParams
+        _document.events[eventHash].sender = eventParams.sender;
+        _document.events[eventHash].origin = eventParams.origin;
+        _document.events[eventHash].eventMetadata = eventParams
             .metadata;
         // add Timestamp
+        if (timestamp == 0) {
+            revert InvalidTimestamp();
+        }
         Timestamp storage _timestamp = _document
-            .events[eventParams.eventHash]
+            .events[eventHash]
             .eventTimestamp;
         _timestamp.timestamp = timestamp;
         _timestamp.proof = timestampProof;
@@ -575,11 +589,11 @@ contract TrackAndTrace is
 
         // helpers
 
-        _document.eventHashes.push(eventParams.eventHash);
+        _document.eventHashes.push(eventHash);
 
         emit EventWritten(
             eventParams.documentHash,
-            eventParams.eventHash,
+            eventHash,
             eventParams.sender,
             eventParams.metadata,
             eventParams.origin,
