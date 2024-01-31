@@ -495,31 +495,36 @@ paths:
                   summary: DIDR invite
                   value:
                     id: didr_invite_presentation
+                    format:
+                      jwt_vp:
+                        alg:
+                          - ES256
                     input_descriptors:
                       - id: didr_invite_credential
                         name: Accreditation to write to the DID Registry
                         purpose: >-
                           Please present a valid VerifiableAuthorisationToOnboard issued by Root TAO
                           or TAO
+                        format:
+                          jwt_vc:
+                            alg:
+                              - ES256
                         constraints:
                           fields:
                             - path:
-                                - $.type
+                                - $.vc.type
                               filter:
                                 type: array
                                 contains:
                                   const: VerifiableAuthorisationToOnboard
-                    format:
-                      jwt_vc:
-                        alg:
-                          - ES256
-                      jwt_vp:
-                        alg:
-                          - ES256
                 tir_invite:
                   summary: TIR invite
                   value:
                     id: tir_invite_presentation
+                    format:
+                      jwt_vp:
+                        alg:
+                          - ES256
                     input_descriptors:
                       - id: tir_invite_credential
                         name: Accreditation to write to the Trusted Issuers Registry
@@ -527,10 +532,14 @@ paths:
                           Please present a valid VerifiableAuthorisationForTrustChain from EBSI TO,
                           or a Verifiable Accreditation (VerifiableAccreditationToAttest,
                           VerifiableAccreditationToAccredit) issued by Root TAO or TAO.
+                        format:
+                          jwt_vc:
+                            alg:
+                              - ES256
                         constraints:
                           fields:
                             - path:
-                                - $.type
+                                - $.vc.type
                               filter:
                                 type: array
                                 contains:
@@ -538,28 +547,18 @@ paths:
                                     - const: VerifiableAuthorisationForTrustChain
                                     - const: VerifiableAccreditationToAttest
                                     - const: VerifiableAccreditationToAccredit
-                    format:
-                      jwt_vc:
-                        alg:
-                          - ES256
-                      jwt_vp:
-                        alg:
-                          - ES256
                 didr_write:
                   summary: DIDR write
                   value:
                     id: didr_write_presentation
                     name: Any type of Verifiable Attestation
-                    purpose: >-
-                      Please present a valid Presentation signed by a registered Legal Entity.
-                    input_descriptors: []
                     format:
-                      jwt_vc:
-                        alg:
-                          - ES256
                       jwt_vp:
                         alg:
                           - ES256
+                    purpose: >-
+                      Please present a valid Presentation signed by a registered Legal Entity.
+                    input_descriptors: []
                 tir_write:
                   summary: TIR write
                   value:
@@ -567,14 +566,11 @@ paths:
                     name: Any type of Verifiable Attestation
                     purpose: >-
                       Please present a valid Presentation signed by a Trusted Issuer.
-                    input_descriptors: []
                     format:
-                      jwt_vc:
-                        alg:
-                          - ES256
                       jwt_vp:
                         alg:
                           - ES256
+                    input_descriptors: []
                 timestamp_write:
                   summary: Timestamp write
                   value:
@@ -582,59 +578,54 @@ paths:
                     name: Any type of Verifiable Attestation
                     purpose: >-
                       Please present an empty Presentation signed by a registered Legal Entity.
-                    input_descriptors: []
                     format:
-                      jwt_vc:
-                        alg:
-                          - ES256
                       jwt_vp:
                         alg:
                           - ES256
+                    input_descriptors: []
                 tnt_authorise:
                   summary: TNT authorise
                   value:
                     id: tnt_authorise_presentation
+                    format:
+                      jwt_vp:
+                        alg:
+                          - ES256
                     input_descriptors:
                       - id: tnt_authorise_credential
                         name: Accreditation to create Track and Trace documents
                         purpose: >-
                           Please present a valid VerifiableAuthorisationToOnboard issued by an
                           allowlisted entity
+                        format:
+                          jwt_vc:
+                            alg:
+                              - ES256
                         constraints:
                           fields:
                             - path:
-                                - $.type
+                                - $.vc.type
                               filter:
                                 type: array
                                 contains:
                                   const: VerifiableAuthorisationToOnboard
                             - path:
-                                - $.issuer
+                                - $.vc.issuer
                               filter:
                                 type: string
                                 enum:
                                   - did:ebsi:zw422HHPF2McN1b8riU9Y3q
-                    format:
-                      jwt_vc:
-                        alg:
-                          - ES256
-                      jwt_vp:
-                        alg:
-                          - ES256
                 tnt_create:
                   summary: TNT create
                   value:
                     id: tnt_create_presentation
                     name: Any type of Verifiable Attestation
                     purpose: Please present a valid Presentation signed by an allowlisted TnT Document creator.
-                    input_descriptors: []
                     format:
-                      jwt_vc:
-                        alg:
-                          - ES256
                       jwt_vp:
                         alg:
                           - ES256
+                    input_descriptors: []
         "400":
           description: Bad Request
           content:

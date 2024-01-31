@@ -24,6 +24,7 @@ export const SUPPORTED_SCOPES = [OPENID_SCOPE, ...CUSTOM_SCOPES] as const;
 
 export const DIDR_INVITE_PRESENTATION_DEFINITION = {
   id: "didr_invite_presentation",
+  format: { jwt_vp: { alg: ["ES256"] } },
   input_descriptors: [
     {
       id: "didr_invite_credential",
@@ -46,26 +47,20 @@ export const DIDR_INVITE_PRESENTATION_DEFINITION = {
       },
     },
   ],
-  format: {
-    jwt_vc: { alg: ["ES256"] },
-    jwt_vp: { alg: ["ES256"] },
-  },
 } as const satisfies PresentationDefinitionV2;
 
 export const DIDR_WRITE_PRESENTATION_DEFINITION = {
   id: "didr_write_presentation",
+  format: { jwt_vp: { alg: ["ES256"] } },
   name: "Any type of Verifiable Attestation",
   purpose:
     "Please present a valid Presentation signed by a registered Legal Entity.",
   input_descriptors: [],
-  format: {
-    jwt_vc: { alg: ["ES256"] },
-    jwt_vp: { alg: ["ES256"] },
-  },
 } as const satisfies PresentationDefinitionV2;
 
 export const TIR_INVITE_PRESENTATION_DEFINITION = {
   id: "tir_invite_presentation",
+  format: { jwt_vp: { alg: ["ES256"] } },
   input_descriptors: [
     {
       id: "tir_invite_credential",
@@ -93,37 +88,28 @@ export const TIR_INVITE_PRESENTATION_DEFINITION = {
       },
     },
   ],
-  format: {
-    jwt_vc: { alg: ["ES256"] },
-    jwt_vp: { alg: ["ES256"] },
-  },
 } as const satisfies PresentationDefinitionV2;
 
 export const TIR_WRITE_PRESENTATION_DEFINITION = {
   id: "tir_write_presentation",
+  format: { jwt_vp: { alg: ["ES256"] } },
   name: "Any type of Verifiable Attestation",
   purpose: "Please present a valid Presentation signed by a Trusted Issuer.",
   input_descriptors: [],
-  format: {
-    jwt_vc: { alg: ["ES256"] },
-    jwt_vp: { alg: ["ES256"] },
-  },
 } as const satisfies PresentationDefinitionV2;
 
 export const TIMESTAMP_WRITE_PRESENTATION_DEFINITION = {
   id: "timestamp_write_presentation",
+  format: { jwt_vp: { alg: ["ES256"] } },
   name: "Any type of Verifiable Attestation",
   purpose:
     "Please present an empty Presentation signed by a registered Legal Entity.",
   input_descriptors: [],
-  format: {
-    jwt_vc: { alg: ["ES256"] },
-    jwt_vp: { alg: ["ES256"] },
-  },
 } as const satisfies PresentationDefinitionV2;
 
 export const TNT_AUTHORISE_PRESENTATION_DEFINITION = {
   id: "tnt_authorise_presentation",
+  format: { jwt_vp: { alg: ["ES256"] } },
   name: "Any type of Verifiable Attestation",
   input_descriptors: [
     {
@@ -154,22 +140,15 @@ export const TNT_AUTHORISE_PRESENTATION_DEFINITION = {
       },
     },
   ],
-  format: {
-    jwt_vc: { alg: ["ES256"] },
-    jwt_vp: { alg: ["ES256"] },
-  },
 } as const satisfies PresentationDefinitionV2;
 
 export const TNT_CREATE_PRESENTATION_DEFINITION = {
   id: "tnt_create_presentation",
+  format: { jwt_vp: { alg: ["ES256"] } },
   name: "Any type of Verifiable Attestation",
   purpose:
     "Please present a valid Presentation signed by an allowlisted TnT Document creator.",
   input_descriptors: [],
-  format: {
-    jwt_vc: { alg: ["ES256"] },
-    jwt_vp: { alg: ["ES256"] },
-  },
 } as const satisfies PresentationDefinitionV2;
 
 export const PRESENTATION_DEFINITIONS = {
