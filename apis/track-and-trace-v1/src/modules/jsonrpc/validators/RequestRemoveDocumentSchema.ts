@@ -1,0 +1,21 @@
+import { z } from "zod";
+import { jsonRpcSchema } from "./JsonRpcSchema.js";
+import { baseParamSchema } from "./BaseParamSchema.js";
+import { refinements } from "./utils.js";
+
+const { isHexadecimal } = refinements;
+
+export const removeDocumentSchema = baseParamSchema.merge(
+  z.object({
+    documentHash: z.string().superRefine(isHexadecimal),
+  }),
+);
+
+export type RemoveDocumentSchema = z.infer<typeof removeDocumentSchema>;
+
+export const requestRemoveDocumentDtoSchema = jsonRpcSchema.merge(
+  z.object({
+    method: z.literal("removeDocument"),
+    params: z.array(removeDocumentSchema).min(1).max(1),
+  }),
+);

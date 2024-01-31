@@ -14,12 +14,15 @@ import { LedgerService } from "../ledger/ledger.service.js";
 import {
   TNT_AUTHORISE_SCOPE,
   TNT_CREATE_SCOPE,
+  TNT_WRITE_SCOPE,
 } from "../auth/auth.constants.js";
 import {
   authoriseDidSchema,
   createDocumentSchema,
+  removeDocumentSchema,
   requestAuthoriseDidDtoSchema,
   requestCreateDocumentDtoSchema,
+  requestRemoveDocumentDtoSchema,
   SendSignedTransactionParamsSchema,
   requestSendSignedTransactionDtoSchema,
   UnsignedTransaction,
@@ -175,6 +178,12 @@ export class JsonRpcService {
         assertDidMatchesSub(castArgs.didEbsiCreator, clientId);
         break;
       }
+      case "removeDocument": {
+        assertScopeContains(scope, [TNT_WRITE_SCOPE], functionFragment.name);
+
+        await removeDocumentSchema.parseAsync(argsObject);
+        break;
+      }
       default:
         throw new Error(
           `The function name ${functionFragment.name} can not be used in this context`,
@@ -305,6 +314,33 @@ export class JsonRpcService {
 
       const data = (await this.ledgerService.getContract()).interface // @ts-expect-error No overload matches this call
         .encodeFunctionData(functionSig, args);
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
+      throw error;
+    }
+  }
+
+  async buildTransactionRemoveDocument(
+    body: JsonRpcSchema,
+    id: number | string | null | undefined,
+    _: string,
+    scope: string,
+  ): Promise<UnsignedTransaction> {
+    try {
+      assertScopeContains(scope, [TNT_WRITE_SCOPE], "removeDocument");
+
+      const parsedBody = await requestRemoveDocumentDtoSchema.parseAsync(body);
+
+      const { from, documentHash } = parsedBody.params[0]!;
+
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData("removeDocument", [documentHash]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {

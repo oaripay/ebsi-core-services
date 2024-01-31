@@ -25,10 +25,14 @@ import { getAccessToken } from "../utils/getAccessToken.js";
 import type {
   AuthoriseDidSchema,
   CreateDocumentSchema,
+  RemoveDocumentSchema,
   UnsignedTransaction,
 } from "../../src/modules/jsonrpc/validators/index.js";
 
-type JsonRpcParams = AuthoriseDidSchema | CreateDocumentSchema;
+type JsonRpcParams =
+  | AuthoriseDidSchema
+  | CreateDocumentSchema
+  | RemoveDocumentSchema;
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -52,6 +56,7 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
   let configService: ConfigService<ApiConfig, true>;
   let ledgerApi: string;
   let user: TestUser;
+  const documentHash1 = `0x${randomBytes(32).toString("hex")}`;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -117,12 +122,21 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
         undefined,
         [],
       );
+
+      user.accessToken.tntWrite = await getAccessToken(
+        configService.get<string>("authorisationApiUrl"),
+        user.info,
+        "openid tnt_write",
+        undefined,
+        [],
+      );
     });
 
     describe.each([
       "authoriseDid",
       "createDocument",
       "createDocument(external timestamp)",
+      "removeDocument",
     ] as const)("/jsonrpc - send transaction for %s", (m) => {
       const method = m.replace("(external timestamp)", "");
       it("should work", async () => {
@@ -144,7 +158,7 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
           case "createDocument": {
             params = {
               from: user.wallet.address,
-              documentHash: `0x${randomBytes(32).toString("hex")}`,
+              documentHash: documentHash1,
               documentMetadata: "test metadata",
               didEbsiCreator: user.info.did,
             } satisfies CreateDocumentSchema;
@@ -161,6 +175,14 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
               timestampProof: `0x${randomBytes(32).toString("hex")}`,
             } satisfies CreateDocumentSchema;
             accessToken = user.accessToken.tntCreate;
+            break;
+          }
+          case "removeDocument": {
+            params = {
+              from: user.wallet.address,
+              documentHash: documentHash1,
+            } satisfies RemoveDocumentSchema;
+            accessToken = user.accessToken.tntWrite;
             break;
           }
           default: {

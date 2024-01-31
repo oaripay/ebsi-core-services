@@ -43,6 +43,7 @@ import type {
   UnsignedTransaction,
   AuthoriseDidSchema,
   CreateDocumentSchema,
+  RemoveDocumentSchema,
 } from "./validators/index.js";
 
 interface SupertestJsonRpcResponse {
@@ -60,7 +61,10 @@ interface UserDetails {
   };
 }
 
-type JsonRpcParams = AuthoriseDidSchema | CreateDocumentSchema;
+type JsonRpcParams =
+  | AuthoriseDidSchema
+  | CreateDocumentSchema
+  | RemoveDocumentSchema;
 
 describe("JsonRpc Module", () => {
   let app: NestFastifyApplication;
@@ -74,6 +78,7 @@ describe("JsonRpc Module", () => {
   let user2: UserDetails;
   let authApiKeyPair: GenerateKeyPairResult;
   let authApiKid: string;
+  const documentHash1 = `0x${randomBytes(32).toString("hex")}`;
 
   const mockServer = setupServer();
 
@@ -544,6 +549,7 @@ describe("JsonRpc Module", () => {
     "authoriseDid",
     "createDocument",
     "createDocument(external timestamp)",
+    "removeDocument",
   ] as const)("/jsonrpc with method %s", (m) => {
     const method = m.replace("(external timestamp)", "");
     it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction", async () => {
@@ -566,7 +572,7 @@ describe("JsonRpc Module", () => {
         case "createDocument": {
           param = {
             from: signer.address,
-            documentHash: `0x${randomBytes(32).toString("hex")}`,
+            documentHash: documentHash1,
             documentMetadata: "test metadata",
             didEbsiCreator: user1.did,
           } satisfies CreateDocumentSchema;
@@ -583,6 +589,14 @@ describe("JsonRpc Module", () => {
             timestampProof: `0x${randomBytes(32).toString("hex")}`,
           } satisfies CreateDocumentSchema;
           accessToken = user1.accessToken.tntCreate;
+          break;
+        }
+        case "removeDocument": {
+          param = {
+            from: signer.address,
+            documentHash: documentHash1,
+          } satisfies RemoveDocumentSchema;
+          accessToken = user1.accessToken.tntWrite;
           break;
         }
         default: {
@@ -740,6 +754,29 @@ describe("JsonRpc Module", () => {
             expectedErrorMessage:
               "Invalid 'params.0.timestampProof': Must start with 0x",
             accessToken: user1.accessToken.tntCreate,
+          });
+
+          break;
+        }
+        case "removeDocument": {
+          testSetup.push({
+            params: {
+              from: signer.address,
+              documentHash: `0x${randomBytes(32).toString("hex")}`,
+            } satisfies RemoveDocumentSchema,
+            expectedErrorMessage:
+              "'removeDocument' requires an access token with the scope 'tnt_write'",
+            accessToken: user1.accessToken.tntAuthorise,
+          });
+
+          testSetup.push({
+            params: {
+              from: signer.address,
+              documentHash: `bad-document-hash`,
+            } satisfies RemoveDocumentSchema,
+            expectedErrorMessage:
+              "Invalid 'params.0.documentHash': Must start with 0x",
+            accessToken: user1.accessToken.tntWrite,
           });
 
           break;

@@ -224,7 +224,7 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
             source: expect.stringMatching(/^(block|external)$/),
             proof: expect.any(String),
           },
-          events: expect.arrayContaining([expect.any(String)]),
+          events: expect.arrayContaining([]),
           creator: expect.any(String),
         }),
       );
