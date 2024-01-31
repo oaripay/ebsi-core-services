@@ -1,4 +1,5 @@
 import { describe, beforeAll, it, expect, afterAll } from "vitest";
+import { randomBytes } from "node:crypto";
 import request from "supertest";
 import { Test, type TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger } from "@nestjs/common";
@@ -23,10 +24,11 @@ import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonr
 import { getAccessToken } from "../utils/getAccessToken.js";
 import type {
   AuthoriseDidSchema,
+  CreateDocumentSchema,
   UnsignedTransaction,
 } from "../../src/modules/jsonrpc/validators/index.js";
 
-type JsonRpcParams = AuthoriseDidSchema;
+type JsonRpcParams = AuthoriseDidSchema | CreateDocumentSchema;
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -35,7 +37,11 @@ interface SupertestJsonRpcResponse {
 
 interface TestUser {
   info: EbsiIssuer;
-  token: string;
+  accessToken: {
+    tntAuthorise: string;
+    tntCreate: string;
+    tntWrite: string;
+  };
   wallet: ethers.Wallet;
   vcOnboard: string;
 }
@@ -81,7 +87,11 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
     user = {
       info: { did, kid, privateKeyJwk, publicKeyJwk, alg: "ES256K" },
       wallet: new ethers.Wallet(privateKeyHex),
-      token: "",
+      accessToken: {
+        tntAuthorise: "",
+        tntCreate: "",
+        tntWrite: "",
+      },
       vcOnboard: configService.get<string>("testUserVcOnboard"),
     };
   });
@@ -92,107 +102,141 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
 
   describe("Track and Trace", () => {
     beforeAll(async () => {
-      user.token = await getAccessToken(
+      user.accessToken.tntAuthorise = await getAccessToken(
         configService.get<string>("authorisationApiUrl"),
         user.info,
         "openid tnt_authorise",
         undefined,
         user.vcOnboard,
       );
+
+      user.accessToken.tntCreate = await getAccessToken(
+        configService.get<string>("authorisationApiUrl"),
+        user.info,
+        "openid tnt_create",
+        undefined,
+        [],
+      );
     });
 
-    describe.each(["authoriseDid"] as const)(
-      "/jsonrpc - send transaction for %s",
-      (method) => {
-        it("should work", async () => {
-          expect.assertions(5);
+    describe.each([
+      "authoriseDid",
+      "createDocument",
+      "createDocument(external timestamp)",
+    ] as const)("/jsonrpc - send transaction for %s", (m) => {
+      const method = m.replace("(external timestamp)", "");
+      it("should work", async () => {
+        expect.assertions(5);
 
-          let params: JsonRpcParams | null = null;
+        let params: JsonRpcParams | null = null;
+        let accessToken: string;
 
-          switch (method) {
-            case "authoriseDid": {
-              params = {
-                from: user.wallet.address,
-                didEbsi: user.info.did,
-                whiteList: true,
-              } satisfies AuthoriseDidSchema;
-              break;
-            }
-            default: {
-              throw new Error("Test Error: Invalid method");
-            }
-          }
-
-          const responseBuild: SupertestJsonRpcResponse = await request(server)
-            .post("/jsonrpc")
-            .auth(user.token, { type: "bearer" })
-            .send({
-              jsonrpc: "2.0",
-              method,
-              params: [params],
-              id: 1,
-            });
-
-          expect(responseBuild.body).toStrictEqual({
-            jsonrpc: "2.0",
-            id: 1,
-            result: {
-              chainId: expect.any(String),
-              data: expect.any(String),
+        switch (m) {
+          case "authoriseDid": {
+            params = {
               from: user.wallet.address,
-              gasLimit: expect.any(String),
-              gasPrice: expect.any(String),
-              nonce: expect.any(String),
-              to: expect.any(String),
-              value: expect.any(String),
-            },
-          });
-          expect(responseBuild.status).toBe(200);
+              didEbsi: user.info.did,
+              whiteList: true,
+            } satisfies AuthoriseDidSchema;
+            accessToken = user.accessToken.tntAuthorise;
+            break;
+          }
+          case "createDocument": {
+            params = {
+              from: user.wallet.address,
+              documentHash: `0x${randomBytes(32).toString("hex")}`,
+              documentMetadata: "test metadata",
+              didEbsiCreator: user.info.did,
+            } satisfies CreateDocumentSchema;
+            accessToken = user.accessToken.tntCreate;
+            break;
+          }
+          case "createDocument(external timestamp)": {
+            params = {
+              from: user.wallet.address,
+              documentHash: `0x${randomBytes(32).toString("hex")}`,
+              documentMetadata: "test metadata",
+              didEbsiCreator: user.info.did,
+              timestamp: Math.floor(Date.now() / 1000),
+              timestampProof: `0x${randomBytes(32).toString("hex")}`,
+            } satisfies CreateDocumentSchema;
+            accessToken = user.accessToken.tntCreate;
+            break;
+          }
+          default: {
+            throw new Error("Test Error: Invalid method");
+          }
+        }
 
-          const unsignedTransaction = responseBuild.body.result;
-          const uTx = formatEthersUnsignedTransaction(
-            JSON.parse(
-              JSON.stringify(unsignedTransaction),
-            ) as UnsignedTransaction,
-          ) as TransactionRequest;
-          uTx.chainId = Number(uTx.chainId);
-          const sgnTx = await user.wallet.signTransaction(uTx);
-          const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
-
-          const responseSend: SupertestJsonRpcResponse = await request(server)
-            .post("/jsonrpc")
-            .auth(user.token, { type: "bearer" })
-            .send({
-              jsonrpc: "2.0",
-              method: "sendSignedTransaction",
-              params: [
-                {
-                  protocol: "eth",
-                  unsignedTransaction,
-                  r,
-                  s,
-                  v: `0x${Number(v).toString(16)}`,
-                  signedRawTransaction: sgnTx,
-                },
-              ],
-              id: "45",
-            });
-
-          expect(responseSend.body).toStrictEqual({
+        const responseBuild: SupertestJsonRpcResponse = await request(server)
+          .post("/jsonrpc")
+          .auth(accessToken, { type: "bearer" })
+          .send({
             jsonrpc: "2.0",
-            id: "45",
-            result: expect.any(String),
+            method,
+            params: [params],
+            id: 1,
           });
-          expect(responseSend.status).toBe(200);
 
-          // wait to be mined
-          const receipt = await waitToBeMined(
-            ledgerApi,
-            responseSend.body.result as string,
-          );
-          expect(receipt.status).toBe(1);
+        expect(responseBuild.body).toStrictEqual({
+          jsonrpc: "2.0",
+          id: 1,
+          result: {
+            chainId: expect.any(String),
+            data: expect.any(String),
+            from: user.wallet.address,
+            gasLimit: expect.any(String),
+            gasPrice: expect.any(String),
+            nonce: expect.any(String),
+            to: expect.any(String),
+            value: expect.any(String),
+          },
         });
-      },
-    );
+        expect(responseBuild.status).toBe(200);
+
+        const unsignedTransaction = responseBuild.body.result;
+        const uTx = formatEthersUnsignedTransaction(
+          JSON.parse(
+            JSON.stringify(unsignedTransaction),
+          ) as UnsignedTransaction,
+        ) as TransactionRequest;
+        uTx.chainId = Number(uTx.chainId);
+        const sgnTx = await user.wallet.signTransaction(uTx);
+        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+        const responseSend: SupertestJsonRpcResponse = await request(server)
+          .post("/jsonrpc")
+          .auth(accessToken, { type: "bearer" })
+          .send({
+            jsonrpc: "2.0",
+            method: "sendSignedTransaction",
+            params: [
+              {
+                protocol: "eth",
+                unsignedTransaction,
+                r,
+                s,
+                v: `0x${Number(v).toString(16)}`,
+                signedRawTransaction: sgnTx,
+              },
+            ],
+            id: "45",
+          });
+
+        expect(responseSend.body).toStrictEqual({
+          jsonrpc: "2.0",
+          id: "45",
+          result: expect.any(String),
+        });
+        expect(responseSend.status).toBe(200);
+
+        // wait to be mined
+        const receipt = await waitToBeMined(
+          ledgerApi,
+          responseSend.body.result as string,
+        );
+        expect(receipt.status).toBe(1);
+      });
+    });
   });
 });

@@ -62,6 +62,16 @@ export default class AppController {
           );
         return formatJsonRpcResponse(transaction, id);
       }
+      case "createDocument": {
+        const transaction =
+          await this.jsonRpcService.buildTransactionCreateDocument(
+            body,
+            id,
+            sub,
+            scope,
+          );
+        return formatJsonRpcResponse(transaction, id);
+      }
       case "sendSignedTransaction": {
         const result = await this.jsonRpcService.sendTransaction(
           body,

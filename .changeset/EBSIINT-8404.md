@@ -2,4 +2,4 @@
 "@ebsiint-api/track-and-trace-api-v1": minor
 ---
 
-JSON RPC method: authoriseDid
+JSON RPC method: createDocument

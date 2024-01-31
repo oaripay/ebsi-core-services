@@ -8,6 +8,7 @@ import {
   expect,
 } from "vitest";
 import request from "supertest";
+import { randomBytes } from "crypto";
 import { Test, type TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
 import { ValidationPipe, Logger } from "@nestjs/common";
@@ -41,6 +42,7 @@ import { LedgerService } from "../ledger/ledger.service.js";
 import type {
   UnsignedTransaction,
   AuthoriseDidSchema,
+  CreateDocumentSchema,
 } from "./validators/index.js";
 
 interface SupertestJsonRpcResponse {
@@ -58,7 +60,7 @@ interface UserDetails {
   };
 }
 
-type JsonRpcParams = AuthoriseDidSchema;
+type JsonRpcParams = AuthoriseDidSchema | CreateDocumentSchema;
 
 describe("JsonRpc Module", () => {
   let app: NestFastifyApplication;
@@ -136,6 +138,16 @@ describe("JsonRpc Module", () => {
     const publicKeyJwk = await exportJWK(authApiKeyPair.publicKey);
     authApiKid = await calculateJwkThumbprint(publicKeyJwk);
 
+    const createAccessToken = (sub: string, scp: string) => {
+      return new SignJWT({ sub, scp })
+        .setProtectedHeader({
+          typ: "JWT",
+          alg: "ES256",
+          kid: authApiKid,
+        })
+        .sign(authApiKeyPair.privateKey);
+    };
+
     user1 = {
       did: "did:ebsi:zf62uhvaQuUZty6sMxz9qVV",
       wallet: ethers.Wallet.createRandom(),
@@ -146,16 +158,18 @@ describe("JsonRpc Module", () => {
       },
     };
 
-    user1.accessToken.tntAuthorise = await new SignJWT({
-      sub: user1.did,
-      scp: "openid tnt_authorise",
-    })
-      .setProtectedHeader({
-        typ: "JWT",
-        alg: "ES256",
-        kid: authApiKid,
-      })
-      .sign(authApiKeyPair.privateKey);
+    user1.accessToken.tntAuthorise = await createAccessToken(
+      user1.did,
+      "openid tnt_authorise",
+    );
+    user1.accessToken.tntCreate = await createAccessToken(
+      user1.did,
+      "openid tnt_create",
+    );
+    user1.accessToken.tntWrite = await createAccessToken(
+      user1.did,
+      "openid tnt_write",
+    );
 
     user2 = {
       did: "did:ebsi:z25eGB9RuaYR1nQGpH6mvm4Q",
@@ -167,16 +181,18 @@ describe("JsonRpc Module", () => {
       },
     };
 
-    user2.accessToken.tntAuthorise = await new SignJWT({
-      sub: user2.did,
-      scp: "openid tnt_authorise",
-    })
-      .setProtectedHeader({
-        typ: "JWT",
-        alg: "ES256",
-        kid: authApiKid,
-      })
-      .sign(authApiKeyPair.privateKey);
+    user2.accessToken.tntAuthorise = await createAccessToken(
+      user2.did,
+      "openid tnt_authorise",
+    );
+    user2.accessToken.tntCreate = await createAccessToken(
+      user2.did,
+      "openid tnt_create",
+    );
+    user2.accessToken.tntWrite = await createAccessToken(
+      user2.did,
+      "openid tnt_write",
+    );
 
     // Mock Auth API
     const authorisationApiUrl = configService.get<string>(
@@ -524,163 +540,241 @@ describe("JsonRpc Module", () => {
   });
 
   // Tests to be repeated for every method
-  describe.each(["authoriseDid"] as const)(
-    "/jsonrpc with method %s",
-    (method) => {
-      it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction", async () => {
-        expect.assertions(4);
+  describe.each([
+    "authoriseDid",
+    "createDocument",
+    "createDocument(external timestamp)",
+  ] as const)("/jsonrpc with method %s", (m) => {
+    const method = m.replace("(external timestamp)", "");
+    it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction", async () => {
+      expect.assertions(4);
 
-        let param: JsonRpcParams;
-        const accessToken = user1.accessToken.tntAuthorise;
+      let param: JsonRpcParams;
+      let accessToken: string;
+      const signer = ethers.Wallet.createRandom();
 
-        const signer = ethers.Wallet.createRandom();
+      switch (m) {
+        case "authoriseDid": {
+          param = {
+            from: signer.address,
+            didEbsi: user1.did,
+            whiteList: true,
+          } satisfies AuthoriseDidSchema;
+          accessToken = user1.accessToken.tntAuthorise;
+          break;
+        }
+        case "createDocument": {
+          param = {
+            from: signer.address,
+            documentHash: `0x${randomBytes(32).toString("hex")}`,
+            documentMetadata: "test metadata",
+            didEbsiCreator: user1.did,
+          } satisfies CreateDocumentSchema;
+          accessToken = user1.accessToken.tntCreate;
+          break;
+        }
+        case "createDocument(external timestamp)": {
+          param = {
+            from: signer.address,
+            documentHash: `0x${randomBytes(32).toString("hex")}`,
+            documentMetadata: "test metadata",
+            didEbsiCreator: user1.did,
+            timestamp: Math.floor(Date.now() / 1000),
+            timestampProof: `0x${randomBytes(32).toString("hex")}`,
+          } satisfies CreateDocumentSchema;
+          accessToken = user1.accessToken.tntCreate;
+          break;
+        }
+        default: {
+          throw new Error(`Test Error: Invalid method ${m as string}`);
+        }
+      }
 
-        switch (method) {
-          case "authoriseDid": {
-            param = {
+      const responseBuild: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .auth(accessToken, { type: "bearer" })
+        .send({
+          jsonrpc: "2.0",
+          method,
+          params: [param],
+          id: 231,
+        });
+
+      expect(responseBuild.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: 231,
+        result: {
+          chainId: expect.any(String),
+          data: expect.any(String),
+          from: param.from,
+          gasLimit: expect.any(String),
+          gasPrice: expect.any(String),
+          nonce: expect.any(String),
+          to: expect.any(String),
+          value: "0x0",
+        },
+      });
+      expect(responseBuild.status).toBe(200);
+
+      const unsignedTransaction = responseBuild.body.result;
+      const uTx = formatEthersUnsignedTransaction(
+        JSON.parse(JSON.stringify(unsignedTransaction)) as UnsignedTransaction,
+      );
+      uTx.chainId = Number(uTx.chainId);
+      const sgnTx = await signer.signTransaction(uTx);
+      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+      const responseSend = await request(server)
+        .post("/jsonrpc")
+        .auth(accessToken, { type: "bearer" })
+        .send({
+          jsonrpc: "2.0",
+          method: "sendSignedTransaction",
+          params: [
+            {
+              protocol: "eth",
+              unsignedTransaction,
+              r,
+              s,
+              v: `0x${Number(v).toString(16)}`,
+              signedRawTransaction: sgnTx,
+            },
+          ],
+          id: "45",
+        });
+
+      expect(responseSend.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: "45",
+        result: expect.any(String),
+      });
+      expect(responseSend.status).toBe(200);
+    });
+
+    it(`should throw an Invalid Request error for bad use of ${method}`, async () => {
+      const signer = ethers.Wallet.createRandom();
+
+      const testSetup: {
+        params: JsonRpcParams;
+        expectedErrorMessage: string;
+        accessToken: string;
+      }[] = [];
+
+      switch (m) {
+        case "authoriseDid": {
+          // Invalid access token (not the right sub)
+          testSetup.push({
+            params: {
               from: signer.address,
               didEbsi: user1.did,
               whiteList: true,
-            } satisfies AuthoriseDidSchema;
-            break;
-          }
-          default: {
-            throw new Error(`Test Error: Invalid method ${method as string}`);
-          }
-        }
+            } satisfies AuthoriseDidSchema,
+            expectedErrorMessage:
+              "Access token sub doesn't match the DID from the payload",
+            accessToken: user2.accessToken.tntAuthorise,
+          });
 
-        const responseBuild: SupertestJsonRpcResponse = await request(server)
+          testSetup.push({
+            params: {
+              from: signer.address,
+              didEbsi: "did:ebsi:znxntxQrN369GsNyjFjYb8fuvU7g3sJGyYGwMTcUGdzuy",
+              whiteList: true,
+            } satisfies AuthoriseDidSchema,
+            expectedErrorMessage:
+              "Invalid 'params.0.didEbsi': Unsupported version \"2\"",
+            accessToken: user1.accessToken.tntAuthorise,
+          });
+
+          break;
+        }
+        case "createDocument": {
+          testSetup.push({
+            params: {
+              from: signer.address,
+              documentHash: `0x${randomBytes(32).toString("hex")}`,
+              documentMetadata: "test metadata",
+              didEbsiCreator: user1.did,
+            } satisfies CreateDocumentSchema,
+            expectedErrorMessage:
+              "'createDocument' requires an access token with the scope 'tnt_create'",
+            accessToken: user1.accessToken.tntAuthorise,
+          });
+
+          testSetup.push({
+            params: {
+              from: signer.address,
+              documentHash: `bad-document-hash`,
+              documentMetadata: "test metadata",
+              didEbsiCreator: user1.did,
+            } satisfies CreateDocumentSchema,
+            expectedErrorMessage:
+              "Invalid 'params.0.documentHash': Must start with 0x",
+            accessToken: user1.accessToken.tntCreate,
+          });
+
+          break;
+        }
+        case "createDocument(external timestamp)": {
+          testSetup.push({
+            params: {
+              from: signer.address,
+              documentHash: `0x${randomBytes(32).toString("hex")}`,
+              documentMetadata: "test metadata",
+              didEbsiCreator: user1.did,
+              timestamp: "bad-timestamp",
+              timestampProof: `0x${randomBytes(32).toString("hex")}`,
+            } satisfies CreateDocumentSchema,
+            expectedErrorMessage: "Invalid 'params.0.timestamp': Invalid input",
+            accessToken: user1.accessToken.tntCreate,
+          });
+
+          testSetup.push({
+            params: {
+              from: signer.address,
+              documentHash: `0x${randomBytes(32).toString("hex")}`,
+              documentMetadata: "test metadata",
+              didEbsiCreator: user1.did,
+              timestamp: Math.floor(Date.now() / 1000),
+              timestampProof: "bad proof",
+            } satisfies CreateDocumentSchema,
+            expectedErrorMessage:
+              "Invalid 'params.0.timestampProof': Must start with 0x",
+            accessToken: user1.accessToken.tntCreate,
+          });
+
+          break;
+        }
+        default: {
+          throw new Error(`Test Error: Invalid method ${m as string}`);
+        }
+      }
+
+      expect.assertions(testSetup.length * 2);
+
+      // Run requests sequentially
+      // eslint-disable-next-line no-restricted-syntax
+      for (const setup of testSetup) {
+        // eslint-disable-next-line no-await-in-loop
+        const response = await request(server)
           .post("/jsonrpc")
-          .auth(accessToken, { type: "bearer" })
+          .auth(setup.accessToken, { type: "bearer" })
           .send({
             jsonrpc: "2.0",
             method,
-            params: [param],
+            params: [setup.params],
             id: 231,
           });
 
-        expect(responseBuild.body).toStrictEqual({
+        expect(response.body).toStrictEqual({
           jsonrpc: "2.0",
           id: 231,
-          result: {
-            chainId: expect.any(String),
-            data: expect.any(String),
-            from: param.from,
-            gasLimit: expect.any(String),
-            gasPrice: expect.any(String),
-            nonce: expect.any(String),
-            to: expect.any(String),
-            value: "0x0",
+          error: {
+            code: -32600,
+            message: expect.stringContaining(setup.expectedErrorMessage),
           },
         });
-        expect(responseBuild.status).toBe(200);
-
-        const unsignedTransaction = responseBuild.body.result;
-        const uTx = formatEthersUnsignedTransaction(
-          JSON.parse(
-            JSON.stringify(unsignedTransaction),
-          ) as UnsignedTransaction,
-        );
-        uTx.chainId = Number(uTx.chainId);
-        const sgnTx = await signer.signTransaction(uTx);
-        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
-
-        const responseSend = await request(server)
-          .post("/jsonrpc")
-          .auth(accessToken, { type: "bearer" })
-          .send({
-            jsonrpc: "2.0",
-            method: "sendSignedTransaction",
-            params: [
-              {
-                protocol: "eth",
-                unsignedTransaction,
-                r,
-                s,
-                v: `0x${Number(v).toString(16)}`,
-                signedRawTransaction: sgnTx,
-              },
-            ],
-            id: "45",
-          });
-
-        expect(responseSend.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: "45",
-          result: expect.any(String),
-        });
-        expect(responseSend.status).toBe(200);
-      });
-
-      it(`should throw an Invalid Request error for bad use of ${method}`, async () => {
-        const signer = ethers.Wallet.createRandom();
-
-        const testSetup: {
-          params: JsonRpcParams;
-          expectedErrorMessage: string;
-          accessToken: string;
-        }[] = [];
-
-        switch (method) {
-          case "authoriseDid": {
-            // Invalid access token (not the right sub)
-            testSetup.push({
-              params: {
-                from: signer.address,
-                didEbsi: user1.did,
-                whiteList: true,
-              } satisfies AuthoriseDidSchema,
-              expectedErrorMessage:
-                "Access token sub doesn't match the DID from the payload",
-              accessToken: user2.accessToken.tntAuthorise,
-            });
-
-            testSetup.push({
-              params: {
-                from: signer.address,
-                didEbsi:
-                  "did:ebsi:znxntxQrN369GsNyjFjYb8fuvU7g3sJGyYGwMTcUGdzuy",
-                whiteList: true,
-              } satisfies AuthoriseDidSchema,
-              expectedErrorMessage:
-                "Invalid 'params.0.didEbsi': Unsupported version \"2\"",
-              accessToken: user1.accessToken.tntAuthorise,
-            });
-
-            break;
-          }
-          default: {
-            throw new Error(`Test Error: Invalid method ${method as string}`);
-          }
-        }
-
-        expect.assertions(testSetup.length * 2);
-
-        // Run requests sequentially
-        // eslint-disable-next-line no-restricted-syntax
-        for (const setup of testSetup) {
-          // eslint-disable-next-line no-await-in-loop
-          const response = await request(server)
-            .post("/jsonrpc")
-            .auth(setup.accessToken, { type: "bearer" })
-            .send({
-              jsonrpc: "2.0",
-              method,
-              params: [setup.params],
-              id: 231,
-            });
-
-          expect(response.body).toStrictEqual({
-            jsonrpc: "2.0",
-            id: 231,
-            error: {
-              code: -32600,
-              message: expect.stringContaining(setup.expectedErrorMessage),
-            },
-          });
-          expect(response.status).toBe(400);
-        }
-      });
-    },
-  );
+        expect(response.status).toBe(400);
+      }
+    });
+  });
 });

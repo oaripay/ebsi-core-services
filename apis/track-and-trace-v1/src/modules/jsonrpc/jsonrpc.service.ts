@@ -11,15 +11,20 @@ import {
   formatEthersSignature,
 } from "./jsonrpc.utils.js";
 import { LedgerService } from "../ledger/ledger.service.js";
-import { TNT_AUTHORISE_SCOPE } from "../auth/auth.constants.js";
+import {
+  TNT_AUTHORISE_SCOPE,
+  TNT_CREATE_SCOPE,
+} from "../auth/auth.constants.js";
 import {
   authoriseDidSchema,
+  createDocumentSchema,
   requestAuthoriseDidDtoSchema,
+  requestCreateDocumentDtoSchema,
   SendSignedTransactionParamsSchema,
   requestSendSignedTransactionDtoSchema,
   UnsignedTransaction,
+  type JsonRpcSchema,
 } from "./validators/index.js";
-import type { JsonRpcSchema } from "./validators/JsonRpcSchema.js";
 
 function assertScopeContains(
   scope: string,
@@ -160,12 +165,14 @@ export class JsonRpcService {
           [TNT_AUTHORISE_SCOPE],
           functionFragment.name,
         );
-
         const castArgs = await authoriseDidSchema.parseAsync(argsObject);
-
-        if (scope.includes(TNT_AUTHORISE_SCOPE)) {
-          assertDidMatchesSub(castArgs.didEbsi, clientId);
-        }
+        assertDidMatchesSub(castArgs.didEbsi, clientId);
+        break;
+      }
+      case "createDocument": {
+        assertScopeContains(scope, [TNT_CREATE_SCOPE], functionFragment.name);
+        const castArgs = await createDocumentSchema.parseAsync(argsObject);
+        assertDidMatchesSub(castArgs.didEbsiCreator, clientId);
         break;
       }
       default:
@@ -236,21 +243,68 @@ export class JsonRpcService {
     scope: string,
   ): Promise<UnsignedTransaction> {
     try {
-      // Access Token must contain DIDR_INVITE_SCOPE or DIDR_WRITE_SCOPE scope
       assertScopeContains(scope, [TNT_AUTHORISE_SCOPE], "authoriseDid");
 
       const parsedBody = await requestAuthoriseDidDtoSchema.parseAsync(body);
 
       const { from, didEbsi, whiteList } = parsedBody.params[0]!;
 
-      if (scope.includes(TNT_AUTHORISE_SCOPE)) {
-        // Verify that the Access Token sub and the payload DID match
-        assertDidMatchesSub(didEbsi, sub);
-      }
+      // Verify that the Access Token sub and the payload DID match
+      assertDidMatchesSub(didEbsi, sub);
 
       const data = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData("authoriseDid", [didEbsi, whiteList]);
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
+      throw error;
+    }
+  }
+
+  async buildTransactionCreateDocument(
+    body: JsonRpcSchema,
+    id: number | string | null | undefined,
+    sub: string,
+    scope: string,
+  ): Promise<UnsignedTransaction> {
+    try {
+      assertScopeContains(scope, [TNT_CREATE_SCOPE], "createDocument");
+
+      const parsedBody = await requestCreateDocumentDtoSchema.parseAsync(body);
+
+      const {
+        from,
+        documentHash,
+        documentMetadata,
+        didEbsiCreator,
+        timestamp,
+        timestampProof,
+      } = parsedBody.params[0]!;
+
+      // Verify that the Access Token sub and the payload DID match
+      assertDidMatchesSub(didEbsiCreator, sub);
+
+      const functionSig = timestamp
+        ? "createDocument(bytes32,string,string,uint256,bytes32)"
+        : "createDocument(bytes32,string,string)";
+
+      const args = timestamp
+        ? [
+            documentHash,
+            documentMetadata,
+            didEbsiCreator,
+            timestamp,
+            timestampProof,
+          ]
+        : [documentHash, documentMetadata, didEbsiCreator];
+
+      const data = (await this.ledgerService.getContract()).interface // @ts-expect-error No overload matches this call
+        .encodeFunctionData(functionSig, args);
 
       return await this.buildTransaction(from, data);
     } catch (err) {

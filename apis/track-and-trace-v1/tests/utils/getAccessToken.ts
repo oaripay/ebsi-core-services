@@ -113,19 +113,21 @@ export async function getAccessToken(
   const presentationSubmission = {
     id: randomUUID(),
     definition_id: `${scope.replace("openid ", "")}_presentation`,
-    descriptor_map: [
-      {
-        id: "tnt_authorise_credential",
-        format: "jwt_vp",
-        path: "$",
-        path_nested: {
-          id: "tnt_authorise_credential",
-          format: "jwt_vc",
-          path: "$.verifiableCredential[0]",
-        },
-      },
-    ],
+    descriptor_map: [] as unknown[],
   };
+
+  if (scope === "openid tnt_authorise") {
+    presentationSubmission.descriptor_map.push({
+      id: "tnt_authorise_credential",
+      format: "jwt_vp",
+      path: "$",
+      path_nested: {
+        id: "tnt_authorise_credential",
+        format: "jwt_vc",
+        path: "$.verifiableCredential[0]",
+      },
+    });
+  }
 
   const response = await axios.post(
     `${authorisationApiUrl}/token`,
