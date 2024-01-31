@@ -2,7 +2,6 @@ import { JsonWebKey, randomUUID } from "node:crypto";
 import { Injectable, Inject, Logger } from "@nestjs/common";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { ConfigService } from "@nestjs/config";
-import type { ReadonlyDeep } from "type-fest";
 import {
   BadRequestError,
   logAxiosError,
@@ -10,12 +9,13 @@ import {
   ProblemDetailsError,
   InternalServerError,
 } from "@ebsiint-api/shared";
-import type { PresentationSubmission } from "@sphereon/pex-models";
-import { verifyPresentationJwt } from "@cef-ebsi/verifiable-presentation";
+import { PEXv2, type Checked } from "@sphereon/pex";
 import type {
-  EbsiVerifiablePresentation,
-  VpJwtPayload,
-} from "@cef-ebsi/verifiable-presentation";
+  PresentationDefinitionV2,
+  PresentationSubmission,
+} from "@sphereon/pex-models";
+import { verifyPresentationJwt } from "@cef-ebsi/verifiable-presentation";
+import type { VpJwtPayload } from "@cef-ebsi/verifiable-presentation";
 import { RP as OAuth2RP, verifyJwtTar } from "@cef-ebsi/oauth2-auth";
 import type {
   AkeResponse as OAuth2AkeResponse,
@@ -26,9 +26,6 @@ import type {
   VerifyResponseResult,
   AkeResponse as SiopAkeResponse,
 } from "@cef-ebsi/siop-auth";
-import { PEXv2 } from "@sphereon/pex";
-import type { Checked } from "@sphereon/pex";
-import type { IPresentation, IVerifiableCredential } from "@sphereon/ssi-types";
 import { decodeJWT, createJWT, ES256Signer, hexToBytes } from "did-jwt";
 import type { JWTPayload } from "did-jwt";
 import type { MemoryCache } from "cache-manager";
@@ -57,7 +54,6 @@ import {
   PRESENTATION_DEFINITIONS,
   TNT_CREATE_SCOPE,
 } from "./authorisation.constants.js";
-import type { PresentationDefinition } from "../../shared/interfaces/pex.js";
 import {
   issuerSchema,
   presentationSubmissionSchema,
@@ -102,7 +98,7 @@ export class AuthorisationService {
 
   private readonly authorisationCredentialSchema: string;
 
-  private readonly tntAuthorisePresentationDefinition: ReadonlyDeep<PresentationDefinition>;
+  private readonly tntAuthorisePresentationDefinition: PresentationDefinitionV2;
 
   private timeout: number;
 
@@ -446,60 +442,43 @@ export class AuthorisationService {
    * @param presentationSubmission - The Presentation Submission that describes the proofs submitted.
    */
   validatePresentationExchange(
-    vp: EbsiVerifiablePresentation,
-    presentationDefinition: ReadonlyDeep<PresentationDefinition>,
+    vpJwt: string,
+    presentationDefinition: PresentationDefinitionV2,
     presentationSubmission: PresentationSubmission,
   ) {
-    const errors: Checked[] = [];
-
-    // Exit early if the presentation submission is empty (e.g. for didr_write or tir_write)
-    if (
-      !presentationSubmission.descriptor_map ||
-      presentationSubmission.descriptor_map.length === 0
-    ) {
+    // Only evaluate the presentation if the presentation definition requires some VCs
+    // Otherwise, https://github.com/Sphereon-Opensource/SSI-SDK/blob/8d0ea61f25e33ef614e9579e727ba319cce5bcc0/packages/ssi-types/src/mapper/credential-mapper.ts#L184 will throw an error
+    if (presentationDefinition.input_descriptors.length === 0) {
       return;
     }
 
-    // Evaluate each descriptor_map[x] individually
-    presentationSubmission.descriptor_map.forEach((descriptor) => {
-      // Trim presentation definition: keep only the constraints related to descriptor.id
-      // Reason: the PEX library tries to apply every constraint to every input
-      const trimmedPresentationDefinition = {
-        ...presentationDefinition,
-        input_descriptors: presentationDefinition.input_descriptors.filter(
-          (inputDescriptor) => inputDescriptor.id === descriptor.id,
-        ),
-      } as const;
+    const pex = new PEXv2();
+    let errors: Checked[] = [];
 
-      const presentation = {
-        "@context": vp["@context"],
-        type: vp.type,
-        holder: vp.holder,
-        presentation_submission: presentationSubmission,
-        verifiableCredential:
-          vp.verifiableCredential as unknown as IVerifiableCredential[],
-      } satisfies IPresentation;
+    try {
+      const res = pex.evaluatePresentation(presentationDefinition, vpJwt, {
+        // Pass presentation submission as an option (although it's not declared in PEXv2.ts)
+        // https://github.com/Sphereon-Opensource/PEX/blob/develop/lib/PEXv2.ts#L34
+        // https://github.com/Sphereon-Opensource/PEX/blob/develop/lib/PEX.ts#L79C7-L79C29
+        // @ts-expect-error This property is not declared, but it exists
+        presentationSubmission,
+      });
 
-      try {
-        const pex = new PEXv2();
-        const result = pex.evaluatePresentation(
-          trimmedPresentationDefinition as PresentationDefinition,
-          presentation,
-        );
-
-        if (result.errors) {
-          errors.push(...result.errors);
-        }
-      } catch (error) {
-        if (error instanceof Error) {
-          throw new OAuth2TokenError("invalid_request", {
-            errorDescription: `Invalid Presentation Submission: ${error.message}`,
-          });
-        }
+      if (res.errors) {
+        errors = res.errors;
       }
-    });
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription: `Invalid Presentation Submission: ${error.message}`,
+        });
+      }
 
-    if (errors && errors.length > 0) {
+      // Unhandled error
+      throw error;
+    }
+
+    if (errors.length > 0) {
       throw new OAuth2TokenError("invalid_request", {
         errorDescription: `Invalid Presentation Submission:\n${errors
           .map(
@@ -551,7 +530,7 @@ export class AuthorisationService {
    */
   validatePresentationSubmissionObject(
     presentationSubmission: PresentationSubmission,
-    presentationDefinition: ReadonlyDeep<PresentationDefinition>,
+    presentationDefinition: PresentationDefinitionV2,
   ) {
     const validationResult = PEXv2.validateSubmission(presentationSubmission);
 
@@ -800,7 +779,8 @@ export class AuthorisationService {
       });
     }
 
-    const presentationSubmission = parsedPresentationSubmission.data;
+    const presentationSubmission =
+      parsedPresentationSubmission.data as PresentationSubmission;
 
     let vpTokenDecoded: ReturnType<typeof decodeJWT>;
     try {
@@ -827,7 +807,7 @@ export class AuthorisationService {
 
     // Verify presentation_submission object
     this.validatePresentationSubmissionObject(
-      presentationSubmission as PresentationSubmission,
+      presentationSubmission,
       presentationDefinition,
     );
 
@@ -836,9 +816,9 @@ export class AuthorisationService {
 
     // Verify presentation exchange
     this.validatePresentationExchange(
-      vp,
+      vpToken,
       presentationDefinition,
-      presentationSubmission as PresentationSubmission,
+      presentationSubmission,
     );
 
     // Verify VP JWT

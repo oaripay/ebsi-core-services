@@ -969,7 +969,7 @@ describe("Authorisation  API v4 (e2e)", () => {
               path_nested: {
                 id: randomUUID(),
                 format: "jwt_vc",
-                path: "$.verifiableCredential[1]", // no credential at this index
+                path: "$.vp.verifiableCredential[1]", // no credential at this index
               },
             },
           ],

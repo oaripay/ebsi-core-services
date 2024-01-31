@@ -1427,7 +1427,7 @@ describe("Authorisation Module", () => {
               path_nested: {
                 id: randomUUID(),
                 format: "jwt_vc",
-                path: "$.verifiableCredential[1]", // no credential at this index
+                path: "$.vp.verifiableCredential[1]", // no credential at this index
               },
             },
           ],

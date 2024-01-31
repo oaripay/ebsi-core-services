@@ -1,5 +1,4 @@
-import type { ReadonlyDeep } from "type-fest";
-import type { PresentationDefinition } from "../../shared/interfaces/pex.js";
+import type { FilterV2, PresentationDefinitionV2 } from "@sphereon/pex-models";
 
 export const OPENID_SCOPE = "openid";
 
@@ -31,10 +30,11 @@ export const DIDR_INVITE_PRESENTATION_DEFINITION = {
       name: "Accreditation to write to the DID Registry",
       purpose:
         "Please present a valid VerifiableAuthorisationToOnboard issued by Root TAO or TAO",
+      format: { jwt_vc: { alg: ["ES256"] } },
       constraints: {
         fields: [
           {
-            path: ["$.type"],
+            path: ["$.vc.type"],
             filter: {
               type: "array",
               contains: {
@@ -50,7 +50,7 @@ export const DIDR_INVITE_PRESENTATION_DEFINITION = {
     jwt_vc: { alg: ["ES256"] },
     jwt_vp: { alg: ["ES256"] },
   },
-} as const satisfies ReadonlyDeep<PresentationDefinition>;
+} as const satisfies PresentationDefinitionV2;
 
 export const DIDR_WRITE_PRESENTATION_DEFINITION = {
   id: "didr_write_presentation",
@@ -62,7 +62,7 @@ export const DIDR_WRITE_PRESENTATION_DEFINITION = {
     jwt_vc: { alg: ["ES256"] },
     jwt_vp: { alg: ["ES256"] },
   },
-} as const satisfies ReadonlyDeep<PresentationDefinition>;
+} as const satisfies PresentationDefinitionV2;
 
 export const TIR_INVITE_PRESENTATION_DEFINITION = {
   id: "tir_invite_presentation",
@@ -72,10 +72,11 @@ export const TIR_INVITE_PRESENTATION_DEFINITION = {
       name: "Accreditation to write to the Trusted Issuers Registry",
       purpose:
         "Please present a valid VerifiableAuthorisationForTrustChain from EBSI TO, or a Verifiable Accreditation (VerifiableAccreditationToAttest, VerifiableAccreditationToAccredit) issued by Root TAO or TAO.",
+      format: { jwt_vc: { alg: ["ES256"] } },
       constraints: {
         fields: [
           {
-            path: ["$.type"],
+            path: ["$.vc.type"],
             filter: {
               type: "array",
               contains: {
@@ -84,7 +85,8 @@ export const TIR_INVITE_PRESENTATION_DEFINITION = {
                   { const: "VerifiableAccreditationToAttest" },
                   { const: "VerifiableAccreditationToAccredit" },
                 ],
-              },
+                // TODO: potential issue here, as "anyOf" is not defined in PEX's FilterV2
+              } as unknown as FilterV2,
             },
           },
         ],
@@ -95,7 +97,7 @@ export const TIR_INVITE_PRESENTATION_DEFINITION = {
     jwt_vc: { alg: ["ES256"] },
     jwt_vp: { alg: ["ES256"] },
   },
-} as const satisfies ReadonlyDeep<PresentationDefinition>;
+} as const satisfies PresentationDefinitionV2;
 
 export const TIR_WRITE_PRESENTATION_DEFINITION = {
   id: "tir_write_presentation",
@@ -106,7 +108,7 @@ export const TIR_WRITE_PRESENTATION_DEFINITION = {
     jwt_vc: { alg: ["ES256"] },
     jwt_vp: { alg: ["ES256"] },
   },
-} as const satisfies ReadonlyDeep<PresentationDefinition>;
+} as const satisfies PresentationDefinitionV2;
 
 export const TIMESTAMP_WRITE_PRESENTATION_DEFINITION = {
   id: "timestamp_write_presentation",
@@ -118,7 +120,7 @@ export const TIMESTAMP_WRITE_PRESENTATION_DEFINITION = {
     jwt_vc: { alg: ["ES256"] },
     jwt_vp: { alg: ["ES256"] },
   },
-} as const satisfies ReadonlyDeep<PresentationDefinition>;
+} as const satisfies PresentationDefinitionV2;
 
 export const TNT_AUTHORISE_PRESENTATION_DEFINITION = {
   id: "tnt_authorise_presentation",
@@ -129,10 +131,11 @@ export const TNT_AUTHORISE_PRESENTATION_DEFINITION = {
       name: "Accreditation to create Track and Trace documents",
       purpose:
         "Please present a valid VerifiableAuthorisationToOnboard issued by an allowlisted entity",
+      format: { jwt_vc: { alg: ["ES256"] } },
       constraints: {
         fields: [
           {
-            path: ["$.type"],
+            path: ["$.vc.type"],
             filter: {
               type: "array",
               contains: {
@@ -141,7 +144,7 @@ export const TNT_AUTHORISE_PRESENTATION_DEFINITION = {
             },
           },
           {
-            path: ["$.issuer"],
+            path: ["$.vc.issuer"],
             filter: {
               type: "string",
               enum: [], // This enum will be filled at runtime based on the TNT_AUTHORISE_ISSUERS_ALLOWLIST variable
@@ -155,7 +158,7 @@ export const TNT_AUTHORISE_PRESENTATION_DEFINITION = {
     jwt_vc: { alg: ["ES256"] },
     jwt_vp: { alg: ["ES256"] },
   },
-} as const satisfies ReadonlyDeep<PresentationDefinition>;
+} as const satisfies PresentationDefinitionV2;
 
 export const TNT_CREATE_PRESENTATION_DEFINITION = {
   id: "tnt_create_presentation",
@@ -167,7 +170,7 @@ export const TNT_CREATE_PRESENTATION_DEFINITION = {
     jwt_vc: { alg: ["ES256"] },
     jwt_vp: { alg: ["ES256"] },
   },
-} as const satisfies ReadonlyDeep<PresentationDefinition>;
+} as const satisfies PresentationDefinitionV2;
 
 export const PRESENTATION_DEFINITIONS = {
   [`${DIDR_INVITE_SCOPE}`]: DIDR_INVITE_PRESENTATION_DEFINITION,
@@ -179,5 +182,5 @@ export const PRESENTATION_DEFINITIONS = {
   [`${TNT_CREATE_SCOPE}`]: TNT_CREATE_PRESENTATION_DEFINITION,
 } as const satisfies Record<
   (typeof CUSTOM_SCOPES)[number],
-  ReadonlyDeep<PresentationDefinition>
+  PresentationDefinitionV2
 >;

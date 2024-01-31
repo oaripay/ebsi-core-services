@@ -96,7 +96,7 @@ export function createPresentationSubmission(
         path_nested: {
           id: DIDR_INVITE_PRESENTATION_DEFINITION.input_descriptors[0].id,
           format: "jwt_vc",
-          path: "$.verifiableCredential[0]",
+          path: "$.vp.verifiableCredential[0]",
         },
       });
 
@@ -119,7 +119,7 @@ export function createPresentationSubmission(
         path_nested: {
           id: TIR_INVITE_PRESENTATION_DEFINITION.input_descriptors[0].id,
           format: "jwt_vc",
-          path: "$.verifiableCredential[0]",
+          path: "$.vp.verifiableCredential[0]",
         },
       });
 
@@ -148,7 +148,7 @@ export function createPresentationSubmission(
         path_nested: {
           id: TNT_AUTHORISE_PRESENTATION_DEFINITION.input_descriptors[0].id,
           format: "jwt_vc",
-          path: "$.verifiableCredential[0]",
+          path: "$.vp.verifiableCredential[0]",
         },
       });
 

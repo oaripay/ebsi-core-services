@@ -8,8 +8,8 @@ import {
   Headers,
   Header,
 } from "@nestjs/common";
-import type { ReadonlyDeep } from "type-fest";
 import type { AkeResponse } from "@cef-ebsi/oauth2-auth";
+import type { PresentationDefinitionV2 } from "@sphereon/pex-models";
 import { AuthorisationService } from "./authorisation.service.js";
 import type {
   JsonWebKeySet,
@@ -22,7 +22,6 @@ import {
   AuthenticationRequestDto,
   SiopSessionDto,
 } from "./dto/index.js";
-import type { PresentationDefinition } from "../../shared/interfaces/pex.js";
 import { OAuth2TokenError } from "./errors/index.js";
 import { CUSTOM_SCOPES } from "./authorisation.constants.js";
 
@@ -68,7 +67,7 @@ export class AuthorisationController {
   @Get("/presentation-definitions")
   getPresentationDefinitions(
     @Query() { scope }: GetPresentationDefinitionsDto,
-  ): ReadonlyDeep<PresentationDefinition> {
+  ): PresentationDefinitionV2 {
     const customScope = scope.split(" ")[1] as (typeof CUSTOM_SCOPES)[number];
     return this.authorisationService.getPresentationDefinitions(customScope);
   }
