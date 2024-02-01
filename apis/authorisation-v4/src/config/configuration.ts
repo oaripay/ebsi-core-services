@@ -75,7 +75,9 @@ export const loadConfig = (): ApiConfig => {
     authorisationCredentialSchema: `${DOMAIN}${TSR_PATH}/schemas/${process.env.AUTHORISATION_CREDENTIAL_SCHEMA}`,
     tntAuthoriseIssuersAllowlist: (
       process.env.TNT_AUTHORISE_ISSUERS_ALLOWLIST || ""
-    ).split(","),
+    )
+      .split(",")
+      .filter(Boolean),
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     // Test-specific variables
     testEnv: process.env.TEST_ENV,
@@ -121,7 +123,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     LOCAL_ORIGIN: Joi.string().uri(),
     TRUSTED_HOSTNAMES: Joi.string(),
     REQUEST_TIMEOUT: Joi.string(),
-    TNT_AUTHORISE_ISSUERS_ALLOWLIST: Joi.string(),
+    TNT_AUTHORISE_ISSUERS_ALLOWLIST: Joi.string().allow(""),
     // Test-specific variables
     TEST_ENV: Joi.string(),
     TEST_ISSUER_KID: Joi.string(),
