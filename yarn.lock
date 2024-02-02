@@ -2258,10 +2258,10 @@
     lodash "^4.17.19"
     node-fetch "^2.6.0"
 
-"@openzeppelin/upgrades-core@^1.27.0":
-  version "1.31.1"
-  resolved "https://registry.yarnpkg.com/@openzeppelin/upgrades-core/-/upgrades-core-1.31.1.tgz#d4f9ff703c4006d45c02e08819357a4f92860b8b"
-  integrity sha512-BdkTZwvBxgZ9BYYfhOhuivmqZLOZ/bm6mK5eEDZ36I3Fy64a9BDL/NusaDV5XAoGn4La/j9dZSbTtgP/6d8jAQ==
+"@openzeppelin/upgrades-core@^1.27.0", "@openzeppelin/upgrades-core@^1.32.4":
+  version "1.32.4"
+  resolved "https://registry.yarnpkg.com/@openzeppelin/upgrades-core/-/upgrades-core-1.32.4.tgz#6cfb610927a58003574e3fc0c1ed38687c5d4ea4"
+  integrity sha512-Ojd7clhknPaQP5uIREPZxaKSTccKGrUDhuNAMQdLSf6LPQmyeL+JFGoLrckZ/Mg5x5NO4WivJ1ApXU3ckf6kxw==
   dependencies:
     cbor "^9.0.0"
     chalk "^4.1.0"

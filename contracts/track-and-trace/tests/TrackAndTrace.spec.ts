@@ -1,6 +1,7 @@
 import { ethers, upgrades } from "hardhat";
 import { BytesLike, Wallet } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { getImplementationAddress } from "@openzeppelin/upgrades-core";
 import { expect } from "chai";
 import type { TrackAndTrace } from "../src/types";
 import { DidRegistryMock } from "../dist";
@@ -86,7 +87,20 @@ describe("TrackAndTrace - tests", () => {
           ["authoriseDid(string,bool)"]("didebsi", true),
       ).to.be.revertedWith("NotDidController");
     });
+    it("should revert if user not upgrader", async () => {
+      const trackAndTraceFactory = await ethers.getContractFactory(
+        "TrackAndTrace",
+        {},
+      );
+      const newTrackAndTraceImplementation =
+        await trackAndTraceFactory.deploy();
 
+      await expect(
+        trackAndTrace
+          .connect(broadcaster)
+          .upgradeTo(newTrackAndTraceImplementation.address),
+      ).to.be.revertedWith("NotUpgrader");
+    });
     it("should revert if the external timestamp is zero", async () => {
       await didRegistryMock.setDidResult(true);
       const documentHash = ethers.utils.formatBytes32String("e68905e6");
@@ -124,6 +138,33 @@ describe("TrackAndTrace - tests", () => {
 
       expect(creator).to.eq("");
     });
+    it("should get the implementation", async () => {
+      const implInContract = await trackAndTrace.getImplementation();
+      const implAddress = await getImplementationAddress(
+        ethers.provider,
+        trackAndTrace.address,
+      );
+      expect(implInContract).to.be.equal(implAddress);
+    });
+    it("should get the documents paginated and get the document", async () => {
+      await didRegistryMock.setDidResult(true);
+      for (let i = 0; i < 10; ) {
+        i += 1;
+        // eslint-disable-next-line no-await-in-loop
+        await createDocument(ethers.utils.formatBytes32String(`randomDoc${i}`));
+      }
+      const docs = await trackAndTrace.getDocuments(1, 1);
+      expect(docs).to.be.deep.equal([
+        [ethers.utils.formatBytes32String("e68905e6")],
+        ethers.BigNumber.from(11),
+        ethers.BigNumber.from(1),
+        ethers.BigNumber.from(1),
+        ethers.BigNumber.from(2),
+      ]);
+      const docHash = ethers.utils.formatBytes32String("e68905e6");
+      const doc = await trackAndTrace.getDocument(docHash);
+      expect(doc.creator).to.be.equal("didEbsi");
+    });
     it("should grant delegate access to a did ebsi", async () => {
       const documentHash = ethers.utils.formatBytes32String("delegate01");
       await createDocument(documentHash);
@@ -149,6 +190,34 @@ describe("TrackAndTrace - tests", () => {
           ethers.utils.hexlify(ethers.utils.toUtf8Bytes(creatorAccount)),
           0,
         );
+      const accesses = await trackAndTrace.getAccessesByDocument(
+        documentHash,
+        1,
+        2,
+      );
+      expect(accesses).to.be.deep.equal([
+        [
+          ethers.utils.hexlify(ethers.utils.toUtf8Bytes(creatorAccount)),
+          ethers.utils.hexlify(subjectAccount),
+        ],
+        ethers.BigNumber.from(2),
+        ethers.BigNumber.from(2),
+        ethers.BigNumber.from(1),
+        ethers.BigNumber.from(1),
+      ]);
+      const accessesBySubject = await trackAndTrace.getAccessesBySubject(
+        ethers.utils.toUtf8Bytes(creatorAccount),
+        1,
+        1,
+      );
+      expect(accessesBySubject.items[0]).to.be.equal(
+        ethers.utils.formatBytes32String("e68905e6"),
+      );
+    });
+    it("should check if did is creator", async () => {
+      expect(
+        await trackAndTrace.isCreator(ethers.utils.toUtf8Bytes(creatorAccount)),
+      ).to.be.equal(true);
     });
     it("should grant delegate access to a did key", async () => {
       const documentHash = ethers.utils.formatBytes32String("delegate02");
@@ -315,21 +384,61 @@ describe("TrackAndTrace - tests", () => {
         );
     });
 
-    it("should write event", async () => {
+    it("should write event and get events", async () => {
       const documentHash = ethers.utils.formatBytes32String("writeEvent01");
       const externalHash = "externalHash";
       const sender = ethers.utils.toUtf8Bytes(creatorAccount);
       const origin = "origin";
       const metadata = "metadata";
+      const longMetadata = metadata.repeat(4000);
       await createDocument(documentHash);
 
       await expect(
         trackAndTrace
           .connect(broadcaster)
-          [
-            "writeEvent((bytes32,string,bytes,string,string))"
-          ]({ documentHash, externalHash, sender, origin, metadata }),
+          ["writeEvent((bytes32,string,bytes,string,string))"]({
+            documentHash,
+            externalHash,
+            sender,
+            origin,
+            metadata,
+          }),
       ).to.emit(trackAndTrace, "EventWritten");
+      const events = await trackAndTrace.getEvents(documentHash, 1, 1);
+      expect(events).to.deep.equal([
+        [ethers.utils.keccak256(ethers.utils.toUtf8Bytes(externalHash))],
+        ethers.BigNumber.from(1),
+        ethers.BigNumber.from(1),
+        ethers.BigNumber.from(1),
+        ethers.BigNumber.from(1),
+      ]);
+      const event = await trackAndTrace.getEvent(
+        documentHash,
+        ethers.utils.keccak256(ethers.utils.toUtf8Bytes(externalHash)),
+      );
+      expect(event.externalHash).to.be.equal(externalHash);
+      await expect(
+        trackAndTrace
+          .connect(broadcaster)
+          ["writeEvent((bytes32,string,bytes,string,string))"]({
+            documentHash,
+            externalHash,
+            sender,
+            origin,
+            metadata,
+          }),
+      ).to.be.revertedWith("ExternalHashExist");
+      await expect(
+        trackAndTrace
+          .connect(broadcaster)
+          ["writeEvent((bytes32,string,bytes,string,string))"]({
+            documentHash,
+            externalHash,
+            sender,
+            origin,
+            longMetadata,
+          }),
+      ).to.be.revertedWith("");
     });
   });
 });

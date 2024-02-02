@@ -45,7 +45,7 @@ task("trackAndTrace", "Deploy contract Track And Trace")
 task("trackAndTraceUpgrade", "Deploy contract Track And Trace").setAction(
   async (taskArgs: NonNullable<unknown>, { ethers, upgrades, run }) => {
     // compile
-    await run("compile", { quiet: true });
+    await run("compile", { force: true });
 
     const settings = new Settings("track-and-trace");
     const proxyAddress = settings.mustGet("trackAndTraceAddress");
@@ -56,6 +56,8 @@ task("trackAndTraceUpgrade", "Deploy contract Track And Trace").setAction(
       "TrackAndTrace",
       {},
     );
+
+    console.log(`factory loaded`);
 
     // deploy
     const trackAndTrace = await upgrades.upgradeProxy(
