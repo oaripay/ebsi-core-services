@@ -231,9 +231,7 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
       expect(response.status).toBe(200);
       expect(
         (response.headers as { "content-type": string })["content-type"],
-      ).toStrictEqual(
-        expect.stringContaining("application/documentId+ld+json"),
-      );
+      ).toStrictEqual(expect.stringContaining("application/json"));
     });
 
     it("should throw an error 400 if the document ID is not valid", async () => {
@@ -544,9 +542,7 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
       expect(response.status).toBe(200);
       expect(
         (response.headers as { "content-type": string })["content-type"],
-      ).toStrictEqual(
-        expect.stringContaining("application/documentId+ld+json"),
-      );
+      ).toStrictEqual(expect.stringContaining("application/json"));
     });
 
     it("should throw an error 400 if the document ID or event ID are not valid", async () => {
