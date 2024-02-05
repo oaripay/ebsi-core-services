@@ -6,6 +6,37 @@ import { expect } from "chai";
 import type { TrackAndTrace } from "../src/types";
 import { DidRegistryMock } from "../dist";
 
+const num = ethers.BigNumber.from;
+
+function getEthObject(o: unknown): Record<string, unknown> | unknown[] {
+  const obj = o as string[] & Record<string, unknown>;
+  const keys = Object.keys(obj);
+
+  // check if it is a string
+  if (typeof obj === "string") return obj;
+
+  // check if it is an array
+  if (keys[keys.length - 1] === String(keys.length - 1)) {
+    return (o as unknown[]).map((item) => getEthObject(item));
+  }
+
+  // check if it is a buffer
+  if (keys[0] !== "0") return obj;
+
+  // treat it as object. ["alice", "name": "alice"] ==> { "name" : "alice" }
+  const result: Record<string, unknown> = {};
+  keys.forEach((k, i) => {
+    if (i < keys.length / 2) return;
+
+    if (typeof obj[k] === "object") {
+      result[k] = getEthObject(obj[k]);
+    } else {
+      result[k] = obj[k];
+    }
+  });
+  return result;
+}
+
 describe("TrackAndTrace - tests", () => {
   let admin: SignerWithAddress;
   let upgrader: SignerWithAddress;
@@ -439,6 +470,218 @@ describe("TrackAndTrace - tests", () => {
             longMetadata,
           }),
       ).to.be.revertedWith("");
+    });
+
+    it("should not duplicate document IDs in getAccessesBySubject", async () => {
+      const documentHash = ethers.utils.formatBytes32String("document0");
+      const creatorBuffer = Buffer.from(creatorAccount);
+      await createDocument(documentHash);
+      const subjectAccount = `0x${ethers.Wallet.createRandom().publicKey.slice(4)}`;
+
+      // permission to delegate
+      await trackAndTrace.grantAccess(
+        documentHash,
+        creatorBuffer,
+        subjectAccount,
+        0,
+        1,
+        0,
+      );
+
+      // permission to write
+      await trackAndTrace.grantAccess(
+        documentHash,
+        creatorBuffer,
+        subjectAccount,
+        0,
+        1,
+        1,
+      );
+
+      const documents = await trackAndTrace.getAccessesBySubject(
+        subjectAccount,
+        1,
+        10,
+      );
+      expect(getEthObject(documents)).to.eql({
+        items: [documentHash],
+        total: num(1),
+        howMany: num(1),
+        prev: num(1),
+        next: num(1),
+      });
+    });
+
+    it("should grant, revoke and get accesses", async () => {
+      const documentHash = ethers.utils.formatBytes32String("document1");
+      await didRegistryMock.setDidResult(true);
+      await createDocument(documentHash);
+      const creatorAcc = `0x${Buffer.from(creatorAccount).toString("hex")}`;
+      const subjectKeyAccount = `0x${ethers.Wallet.createRandom().publicKey.slice(4)}`;
+
+      // grant delegate access
+      await trackAndTrace
+        .connect(broadcaster)
+        .grantAccess(documentHash, creatorAcc, subjectKeyAccount, 0, 1, 0);
+
+      // grant write access
+      await trackAndTrace
+        .connect(broadcaster)
+        .grantAccess(documentHash, creatorAcc, subjectKeyAccount, 0, 1, 1);
+
+      const documents = await trackAndTrace.getAccessesBySubject(
+        subjectKeyAccount,
+        1,
+        10,
+      );
+      expect(getEthObject(documents)).to.eql({
+        items: [documentHash],
+        total: num(1),
+        howMany: num(1),
+        prev: num(1),
+        next: num(1),
+      });
+
+      let accesses = await trackAndTrace.getGrantedBy(
+        documentHash,
+        subjectKeyAccount,
+        [0, 1, 2],
+      );
+      expect(getEthObject(accesses)).to.eql([
+        // granted by
+        [creatorAcc, creatorAcc, "0x"],
+        // granted by type
+        [0, 0, 0],
+        // access: [delegate, write, creator]
+        [true, true, false],
+      ]);
+
+      // revoke delegate access
+      await trackAndTrace
+        .connect(broadcaster)
+        .revokeAccess(documentHash, creatorAcc, subjectKeyAccount, 0);
+      accesses = await trackAndTrace.getGrantedBy(
+        documentHash,
+        subjectKeyAccount,
+        [0, 1, 2],
+      );
+      expect(getEthObject(accesses)).to.eql([
+        // granted by
+        ["0x", creatorAcc, "0x"],
+        // granted by type
+        [0, 0, 0],
+        // access: [delegate, write, creator]
+        [false, true, false],
+      ]);
+
+      // revoke write access
+      await trackAndTrace
+        .connect(broadcaster)
+        .revokeAccess(documentHash, creatorAcc, subjectKeyAccount, 1);
+      accesses = await trackAndTrace.getGrantedBy(
+        documentHash,
+        subjectKeyAccount,
+        [0, 1, 2],
+      );
+      expect(getEthObject(accesses)).to.eql([
+        // granted by
+        ["0x", "0x", "0x"],
+        // granted by type
+        [0, 0, 0],
+        // access: [delegate, write, creator]
+        [false, false, false],
+      ]);
+    });
+
+    it("should grant and revoke accesses to the creator", async () => {
+      await didRegistryMock.setDidResult(true);
+      const creator = "did:ebsi:creator1";
+      const creatorBuffer = `0x${Buffer.from(creator).toString("hex")}`;
+      const documentHash = ethers.utils.formatBytes32String("document2");
+      await trackAndTrace.authoriseDid(creator, true);
+      await trackAndTrace["createDocument(bytes32,string,string)"](
+        documentHash,
+        "metadata",
+        creator,
+      );
+
+      // grant delegate access to himself
+      await trackAndTrace.grantAccess(
+        documentHash,
+        creatorBuffer,
+        creatorBuffer,
+        0,
+        1,
+        0,
+      );
+
+      // grant write access to himself
+      await trackAndTrace
+        .connect(broadcaster)
+        .grantAccess(documentHash, creatorBuffer, creatorBuffer, 0, 1, 1);
+
+      const documents = await trackAndTrace.getAccessesBySubject(
+        creatorBuffer,
+        1,
+        10,
+      );
+      expect(getEthObject(documents)).to.eql({
+        items: [documentHash],
+        total: num(1),
+        howMany: num(1),
+        prev: num(1),
+        next: num(1),
+      });
+
+      let accesses = await trackAndTrace.getGrantedBy(
+        documentHash,
+        creatorBuffer,
+        [0, 1, 2],
+      );
+      expect(getEthObject(accesses)).to.eql([
+        // granted by
+        [creatorBuffer, creatorBuffer, creatorBuffer],
+        // granted by type
+        [0, 0, 0],
+        // access: [delegate, write, creator]
+        [true, true, true],
+      ]);
+
+      // revoke delegate access
+      await trackAndTrace
+        .connect(broadcaster)
+        .revokeAccess(documentHash, creatorBuffer, creatorBuffer, 0);
+      accesses = await trackAndTrace.getGrantedBy(
+        documentHash,
+        creatorBuffer,
+        [0, 1, 2],
+      );
+      expect(getEthObject(accesses)).to.eql([
+        // granted by
+        ["0x", creatorBuffer, creatorBuffer],
+        // granted by type
+        [0, 0, 0],
+        // access: [delegate, write, creator]
+        [false, true, true],
+      ]);
+
+      // revoke write access
+      await trackAndTrace
+        .connect(broadcaster)
+        .revokeAccess(documentHash, creatorBuffer, creatorBuffer, 1);
+      accesses = await trackAndTrace.getGrantedBy(
+        documentHash,
+        creatorBuffer,
+        [0, 1, 2],
+      );
+      expect(getEthObject(accesses)).to.eql([
+        // granted by
+        ["0x", "0x", creatorBuffer],
+        // granted by type
+        [0, 0, 0],
+        // access: [delegate, write, creator]
+        [false, false, true],
+      ]);
     });
   });
 });

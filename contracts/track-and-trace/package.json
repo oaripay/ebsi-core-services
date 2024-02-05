@@ -20,7 +20,7 @@
     "lint:prettier": "prettier . --check",
     "test": "hardhat compile && hardhat test",
     "test:unit": "yarn test",
-    "test:ci": "hardhat compile && hardhat tests && yarn coverage"
+    "test:ci": "hardhat compile && hardhat test && yarn coverage"
   },
   "dependencies": {
     "@ebsiint-sc/bootstrap-v2": "^2.0.0-rc.1",

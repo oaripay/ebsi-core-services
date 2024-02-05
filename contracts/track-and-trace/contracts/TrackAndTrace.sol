@@ -233,7 +233,8 @@ contract TrackAndTrace is
         delete doc.invited[subjectAccount].grantedByAccountType[permission];
         if (
             !doc.invited[subjectAccount].acc[ACCESS_ENUM.WRITE] &&
-            !doc.invited[subjectAccount].acc[ACCESS_ENUM.DELEGATE]
+            !doc.invited[subjectAccount].acc[ACCESS_ENUM.DELEGATE] &&
+            !_equal(subjectAccount, bytes(doc.creator))
         ) {
             uint256 index = doc.allInvitedIndex[subjectAccount];
             if (index > 0) {
@@ -242,16 +243,16 @@ contract TrackAndTrace is
                 ];
                 doc.allInvited[index] = lastAcc;
                 doc.allInvited.pop();
-                doc.allInvitedIndex[subjectAccount] = 0;
                 doc.allInvitedIndex[lastAcc] = index;
+                doc.allInvitedIndex[subjectAccount] = 0;
             }
-        }
-        {
-            uint256 index = accessBySubjectIndex[subjectAccount][documentHash];
+
+            index = accessBySubjectIndex[subjectAccount][documentHash];
             bytes32 lastElement = accessBySubject[subjectAccount][accessBySubject[subjectAccount].length - 1];
             accessBySubject[subjectAccount][index] = lastElement;
             accessBySubject[subjectAccount].pop();
             accessBySubjectIndex[subjectAccount][lastElement] = index;
+            accessBySubjectIndex[subjectAccount][documentHash] = 0;
         }
         emit AccessRevoked(documentHash, subjectAccount, revokeByAccount);
     }
@@ -440,11 +441,20 @@ contract TrackAndTrace is
         bytes[] memory grantedByAccounts = new bytes[](accLength);
         ACCOUNT_TYPE[] memory grantedByAccountType = new ACCOUNT_TYPE[](accLength);
         bool[] memory access = new bool[](accLength);
-        Access_Struct storage accs = documents[docHash].invited[did];
+        Document storage doc = documents[docHash];
+        Access_Struct storage accs = doc.invited[did];
         for (uint256 i = 0; i < accLength; i++) {
-            grantedByAccounts[i] = accs.grantedBy[acc[i]];
-            grantedByAccountType[i] = accs.grantedByAccountType[acc[i]];
-            access[i] = accs.acc[acc[i]];
+            if (acc[i] == ACCESS_ENUM.CREATOR) {
+                if (compareStrings(string(did), doc.creator)) {
+                    grantedByAccounts[i] = did;
+                    grantedByAccountType[i] = ACCOUNT_TYPE.DID_EBSI;
+                    access[i] = true;
+                }
+            } else {
+               grantedByAccounts[i] = accs.grantedBy[acc[i]];
+               grantedByAccountType[i] = accs.grantedByAccountType[acc[i]];
+               access[i] = accs.acc[acc[i]];
+            }
         }
         return (grantedByAccounts, grantedByAccountType, access);
     }
@@ -489,6 +499,7 @@ contract TrackAndTrace is
         if (
             accessBySubject[creatorBytes].length == 0
             || accessBySubject[creatorBytes].length > 0 && accessBySubjectIndex[creatorBytes][documentHash] == 0
+            && accessBySubject[creatorBytes][0] != documentHash
         ) {
             accessBySubject[creatorBytes].push(documentHash);
             accessBySubjectIndex[creatorBytes][documentHash] = accessBySubject[creatorBytes].length - 1;
@@ -533,7 +544,7 @@ contract TrackAndTrace is
         }
         // add helpers
 
-        if (_document.allInvitedIndex[subjectAccount] == 0) {
+        if (_document.allInvitedIndex[subjectAccount] == 0 && !_equal(_document.allInvited[0], subjectAccount)) {
             uint256 index = _document.allInvited.length;
             _document.allInvited.push(subjectAccount);
             _document.allInvitedIndex[subjectAccount] = index;
@@ -542,6 +553,7 @@ contract TrackAndTrace is
         if (
             accessBySubject[subjectAccount].length == 0 ||
             accessBySubject[subjectAccount].length > 0 && accessBySubjectIndex[subjectAccount][documentHash] == 0
+            && accessBySubject[subjectAccount][0] != documentHash
         ) {
             accessBySubject[subjectAccount].push(documentHash);
             accessBySubjectIndex[subjectAccount][documentHash] = accessBySubject[subjectAccount].length - 1;

@@ -11,7 +11,8 @@ interface ITrackAndTraceInterface {
     }
     enum ACCESS_ENUM {
         DELEGATE,
-        WRITE
+        WRITE,
+        CREATOR
     }
     enum ACCOUNT_TYPE {
         DID_EBSI,
