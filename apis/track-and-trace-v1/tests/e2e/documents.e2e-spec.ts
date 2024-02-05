@@ -671,4 +671,202 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
   });
+
+  describe("GET /documents/{documentId}/accesses", () => {
+    it("should throw an error 400 if the document ID is not valid", async () => {
+      expect.assertions(12);
+
+      let response = await request(server).get(
+        "/documents/no-document/accesses",
+      );
+
+      expect(response.body).toStrictEqual({
+        detail:
+          '["documentId must be 32 bytes encoded in hexadecimal and start with 0x"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+
+      response = await request(server).get(
+        "/documents/0xnothexadecimal/accesses",
+      );
+
+      expect(response.body).toStrictEqual({
+        detail:
+          '["documentId must be 32 bytes encoded in hexadecimal and start with 0x"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+
+      response = await request(server).get(
+        `/documents/${randomBytes(32).toString("hex")}/accesses`,
+      );
+
+      expect(response.body).toStrictEqual({
+        detail:
+          '["documentId must be 32 bytes encoded in hexadecimal and start with 0x"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+
+      response = await request(server).get(
+        `/documents/0x${randomBytes(24).toString("hex")}/accesses`,
+      );
+
+      expect(response.body).toStrictEqual({
+        detail:
+          '["documentId must be 32 bytes encoded in hexadecimal and start with 0x"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should throw an error if the document is not found", async () => {
+      expect.assertions(3);
+
+      const documentId = `0x${randomBytes(32).toString("hex")}`;
+      const response = await request(server).get(
+        `/documents/${documentId}/accesses`,
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Document Not Found",
+        status: 404,
+        detail: `Document ${documentId} not found`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+    });
+
+    it("should return a paginated collection of accesses", async () => {
+      if (lastDocuments.length === 0) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          "Test 'GET /documents/{documentId}/accesses should return a paginated collection of accesses' skipped",
+        );
+        return;
+      }
+
+      expect.assertions(2);
+
+      const doc = lastDocuments[0]!;
+
+      const response = await request(server).get(
+        `/documents/${doc.documentId}/accesses`,
+      );
+
+      const total =
+        ((response.body as Record<string, unknown>)?.["total"] as number) ?? 0;
+
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/documents/${doc.documentId}/accesses?page[after]=1&page[size]=10`,
+        ),
+        items:
+          total > 0
+            ? expect.arrayContaining([
+                {
+                  grantedBy: expect.stringMatching(/^did:/),
+                  permission: expect.stringMatching(
+                    /^(write|delegate|creator)$/,
+                  ),
+                  subject: expect.stringMatching(/^did:/),
+                  documentId: doc.documentId,
+                },
+              ])
+            : [],
+        total: expect.any(Number),
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            `/documents/${doc.documentId}/accesses?page[after]=1&page[size]=10`,
+          ),
+          prev: expect.stringContaining(
+            `/documents/${doc.documentId}/accesses?page[after]=1&page[size]=10`,
+          ),
+          next: expect.stringContaining(
+            `/documents/${doc.documentId}/accesses?page[after]=${total > 10 ? 2 : 1}&page[size]=10`,
+          ),
+          last: expect.stringContaining(
+            `/documents/${doc.documentId}/accesses?page[after]=${Math.max(Math.ceil(total / 10), 1)}&page[size]=10`,
+          ),
+        },
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should throw a Bad Request for bad pagination", async () => {
+      expect.assertions(8);
+
+      const documentId = `0x${randomBytes(32).toString("hex")}`;
+
+      const response1 = await request(server).get(
+        `/documents/${documentId}/accesses?page[size]=100`,
+      );
+      expect(response1.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[size] must not be greater than 50"]',
+        type: "about:blank",
+      });
+      expect(response1.status).toBe(400);
+
+      const response2 = await request(server).get(
+        `/documents/${documentId}/accesses?page[size]=0`,
+      );
+      expect(response2.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[size] must not be less than 1"]',
+        type: "about:blank",
+      });
+      expect(response2.status).toBe(400);
+
+      const response3 = await request(server).get(
+        `/documents/${documentId}/accesses?page[after]=0`,
+      );
+      expect(response3.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[after] must not be less than 1"]',
+        type: "about:blank",
+      });
+      expect(response3.status).toBe(400);
+
+      const response4 = await request(server).get(
+        `/documents/${documentId}/accesses?page[after]=abc`,
+      );
+      expect(response4.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail:
+          '["page[after] must not be less than 1","page[after] must be a number conforming to the specified constraints"]',
+        type: "about:blank",
+      });
+      expect(response4.status).toBe(400);
+    });
+  });
 });

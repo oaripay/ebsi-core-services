@@ -3,16 +3,20 @@ import { ConfigService } from "@nestjs/config";
 import { PaginatedList } from "@ebsiint-api/shared";
 import DocumentsService from "./documents.service.js";
 import {
+  formatDocumentAccesses,
   formatDocumentEvents,
   formatDocuments,
 } from "./documents.formatter.js";
 import type {
+  Access,
   Document,
   DocumentEventsLink,
   DocumentsLink,
   Event,
 } from "./documents.interface.js";
 import {
+  GetDocumentAccessesDto,
+  GetDocumentAccessesParamsDto,
   GetDocumentEventParamsDto,
   GetDocumentEventsDto,
   GetDocumentEventsParamsDto,
@@ -95,5 +99,27 @@ export default class DocumentsController {
     );
 
     return event;
+  }
+
+  @Get("/:documentId/accesses")
+  async getDocumentAccesses(
+    @Param() params: GetDocumentAccessesParamsDto,
+    @Query() query: GetDocumentAccessesDto,
+  ): Promise<PaginatedList<Access>> {
+    const { documentId } = params;
+
+    const accesses =
+      await this.documentsService.getDocumentAccesses(documentId);
+
+    const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
+    const domain = this.configService.get<string>("domain");
+    const baseUrl = `${domain}${apiUrlPrefix}/documents/${documentId}/accesses`;
+
+    return formatDocumentAccesses(
+      accesses,
+      query["page[after]"],
+      query["page[size]"],
+      baseUrl,
+    );
   }
 }

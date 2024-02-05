@@ -24,6 +24,7 @@
     "test:ci": "yarn test:unit --coverage --reporter=default --reporter=vitest-sonar-reporter"
   },
   "dependencies": {
+    "@cef-ebsi/key-did-resolver": "^2.0.0",
     "@cef-ebsi/oauth2-auth": "^3.0.0",
     "@ebsiint-api/shared": "^1.1.0-rc.5",
     "@ebsiint-sc/track-and-trace": "1.0.1-rc.5",
@@ -59,6 +60,8 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@cef-ebsi/verifiable-credential": "^5.1.0",
+    "@cef-ebsi/verifiable-presentation": "^6.1.0",
     "@cef-ebsi/wallet-lib": "^5.0.0",
     "@nestjs/cli": "^10.3.0",
     "@nestjs/schematics": "^10.1.0",

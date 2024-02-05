@@ -366,6 +366,131 @@ paths:
               examples:
                 Internal Server Error:
                   $ref: "#/components/examples/InternalError"
+  /track-and-trace/v1/documents/{documentId}/accesses:
+    get:
+      operationId: get-document-accesses
+      summary: List accesses
+      description: Returns a list of accesses related to the document.
+      tags:
+        - Document
+      parameters:
+        - in: path
+          name: documentId
+          description: |
+            The 32-bytes ID of the document, encoded in hexadecimal.
+          required: true
+          schema:
+            type: string
+          example: "0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169"
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: Absolute path to the collection (consult)
+                  items:
+                    type: array
+                    description: List of accesses
+                    items:
+                      type: object
+                      properties:
+                        subject:
+                          type: string
+                          description: A `did:ebsi` or `did:key` DID.
+                        documentId:
+                          type: string
+                          description: The document ID.
+                        grantedBy:
+                          type: string
+                          description: |
+                            The `did:ebsi` or `did:key` DID of the granter of the permission.
+                            "creator" shall have itself as "grantedBy".
+                        permission:
+                          type: string
+                          description: |
+                            Permission granted: "write", "delegate" or "creator".
+                  total:
+                    type: integer
+                    description: Total number of items across all pages.
+                  pageSize:
+                    type: integer
+                    description: |
+                      Maximum number of items per page. For the last page, its value should be
+                      independent of the number of actually returned items.
+                  links:
+                    $ref: "#/components/schemas/Links"
+              example:
+                self: https://api-test.ebsi.eu/track-and-trace/v1/documents/0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169/accesses?page[after]=1&page[size]=10
+                items:
+                  - subject: did:ebsi:zYgwhP7EDQ5bsNeghFLDVbk
+                    documentId: "0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169"
+                    grantedBy: did:ebsi:zYgwhP7EDQ5bsNeghFLDVbk
+                    permission: creator
+                  - subject: did:ebsi:zqNtY2Cv8wuFBVW7FTtNk84
+                    documentId: "0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169"
+                    grantedBy: did:ebsi:zYgwhP7EDQ5bsNeghFLDVbk
+                    permission: delegate
+                  - subject: did:ebsi:zqNtY2Cv8wuFBVW7FTtNk84
+                    documentId: "0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169"
+                    grantedBy: did:ebsi:zYgwhP7EDQ5bsNeghFLDVbk
+                    permission: write
+                total: 3
+                pageSize: 10
+                links:
+                  first: https://api-test.ebsi.eu/track-and-trace/v1/documents/0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169/accesses?page[after]=1&page[size]=10
+                  prev: https://api-test.ebsi.eu/track-and-trace/v1/documents/0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169/accesses?page[after]=1&page[size]=10
+                  next: https://api-test.ebsi.eu/track-and-trace/v1/documents/0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169/accesses?page[after]=1&page[size]=10
+                  last: https://api-test.ebsi.eu/track-and-trace/v1/documents/0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169/accesses?page[after]=1&page[size]=10
+        "400":
+          description: Bad Request Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Invalid {documentId} Parameter:
+                  value:
+                    title: Bad Request
+                    status: 400
+                    detail: '["documentId must be 32 bytes encoded in hexadecimal and start with 0x"]'
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: '["page[size] must not be greater than 50"]'
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Document Not Found:
+                  $ref: "#/components/examples/NotFound"
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
   /track-and-trace/v1/accesses:
     head:
       operationId: head-accesses

@@ -1,6 +1,8 @@
 import type { TrackAndTrace } from "@ebsiint-sc/track-and-trace";
 import { paginate, type PaginatedList } from "@ebsiint-api/shared";
 import type {
+  Access,
+  DocumentAccesses,
   DocumentEventsLink,
   DocumentsLink,
 } from "./documents.interface.js";
@@ -41,4 +43,17 @@ export function formatDocumentEvents(
   });
 
   return paginate<DocumentEventsLink>(items, baseUrl, total, page, pageSize);
+}
+
+export function formatDocumentAccesses(
+  accesses: DocumentAccesses,
+  page: number,
+  pageSize: number,
+  baseUrl: string,
+): PaginatedList<Access> {
+  const total = accesses.length;
+
+  const items = accesses.slice((page - 1) * pageSize, page * pageSize);
+
+  return paginate<Access>(items, baseUrl, total, page, pageSize);
 }

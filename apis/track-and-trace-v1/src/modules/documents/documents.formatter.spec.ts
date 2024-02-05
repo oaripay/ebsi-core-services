@@ -2,9 +2,11 @@ import { describe, it, expect } from "vitest";
 import { ethers } from "ethers";
 import { TrackAndTrace } from "@ebsiint-sc/track-and-trace";
 import {
+  formatDocumentAccesses,
   formatDocumentEvents,
   formatDocuments,
 } from "./documents.formatter.js";
+import type { DocumentAccesses } from "./documents.interface.js";
 
 describe("formatDocuments", () => {
   const documents = {
@@ -98,6 +100,106 @@ describe("formatDocumentEvents", () => {
       pageSize,
       self: `?page[after]=${page}&page[size]=${pageSize}`,
       total: 42,
+    });
+  });
+});
+
+describe("formatDocumentAccesses", () => {
+  const accesses = [
+    {
+      subject: "did:ebsi:zbymX5AX8D2ibRy6EgxQVEu",
+      documentId:
+        "0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169",
+      grantedBy: "did:ebsi:zbymX5AX8D2ibRy6EgxQVEu",
+      permission: "creator",
+    },
+    {
+      subject: "did:ebsi:zhbiAY9JHxAxao5vGUCq2RT",
+      documentId:
+        "0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169",
+      grantedBy: "did:ebsi:zbymX5AX8D2ibRy6EgxQVEu",
+      permission: "delegate",
+    },
+    {
+      subject: "did:ebsi:zhbiAY9JHxAxao5vGUCq2RT",
+      documentId:
+        "0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169",
+      grantedBy: "did:ebsi:zbymX5AX8D2ibRy6EgxQVEu",
+      permission: "write",
+    },
+  ] satisfies DocumentAccesses;
+
+  it("should use filter the values returned by the DocumentsService", () => {
+    expect.assertions(3);
+
+    const pageSize = 2;
+
+    // First page
+    let page = 1;
+    expect(formatDocumentAccesses(accesses, page, pageSize, "")).toStrictEqual({
+      items: [
+        {
+          subject: "did:ebsi:zbymX5AX8D2ibRy6EgxQVEu",
+          documentId:
+            "0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169",
+          grantedBy: "did:ebsi:zbymX5AX8D2ibRy6EgxQVEu",
+          permission: "creator",
+        },
+        {
+          subject: "did:ebsi:zhbiAY9JHxAxao5vGUCq2RT",
+          documentId:
+            "0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169",
+          grantedBy: "did:ebsi:zbymX5AX8D2ibRy6EgxQVEu",
+          permission: "delegate",
+        },
+      ],
+      links: {
+        first: `?page[after]=1&page[size]=${pageSize}`,
+        last: `?page[after]=2&page[size]=${pageSize}`,
+        next: `?page[after]=2&page[size]=${pageSize}`,
+        prev: `?page[after]=1&page[size]=${pageSize}`,
+      },
+      pageSize,
+      self: `?page[after]=${page}&page[size]=${pageSize}`,
+      total: 3,
+    });
+
+    // Second page
+    page = 2;
+    expect(formatDocumentAccesses(accesses, page, pageSize, "")).toStrictEqual({
+      items: [
+        {
+          subject: "did:ebsi:zhbiAY9JHxAxao5vGUCq2RT",
+          documentId:
+            "0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169",
+          grantedBy: "did:ebsi:zbymX5AX8D2ibRy6EgxQVEu",
+          permission: "write",
+        },
+      ],
+      links: {
+        first: `?page[after]=1&page[size]=${pageSize}`,
+        last: `?page[after]=2&page[size]=${pageSize}`,
+        next: `?page[after]=2&page[size]=${pageSize}`,
+        prev: `?page[after]=1&page[size]=${pageSize}`,
+      },
+      pageSize,
+      self: `?page[after]=${page}&page[size]=${pageSize}`,
+      total: 3,
+    });
+
+    // Empty page
+    page = 3;
+    expect(formatDocumentAccesses(accesses, page, pageSize, "")).toStrictEqual({
+      items: [],
+      links: {
+        first: `?page[after]=1&page[size]=${pageSize}`,
+        last: `?page[after]=2&page[size]=${pageSize}`,
+        next: `?page[after]=2&page[size]=${pageSize}`,
+        prev: `?page[after]=2&page[size]=${pageSize}`,
+      },
+      pageSize,
+      self: `?page[after]=${page}&page[size]=${pageSize}`,
+      total: 3,
     });
   });
 });

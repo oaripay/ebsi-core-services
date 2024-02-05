@@ -113,6 +113,35 @@ export async function addEvent(contract: TrackAndTrace, doc: TestDocument) {
   doc.events.push(event);
 }
 
+export async function grantAccess(
+  contract: TrackAndTrace,
+  documentHash: string,
+  grantedByAccount: string,
+  grantedDidEbsiAccount: string,
+) {
+  // permission to delegate
+  const txDelegate = await contract.grantAccess(
+    documentHash,
+    Buffer.from(grantedByAccount),
+    Buffer.from(grantedDidEbsiAccount),
+    0,
+    0,
+    0,
+  );
+  await txDelegate.wait();
+
+  // permission to write
+  const txWrite = await contract.grantAccess(
+    documentHash,
+    Buffer.from(grantedByAccount),
+    Buffer.from(grantedDidEbsiAccount),
+    0,
+    0,
+    1,
+  );
+  await txWrite.wait();
+}
+
 export interface SetupOptions {
   documentsWithBlockSourceTotal?: number;
   documentsWithExternalSourceTotal?: number;
@@ -129,11 +158,13 @@ export async function setupTestEnv({
   documentsWithBlockSource: TestDocument[];
   documentsWithExternalSource: TestDocument[];
   creatorAccount: string;
+  grantedDidEbsiAccount: string;
 }> {
   const ethersProvider = hre.ethers.provider;
   const documentsWithBlockSource: TestDocument[] = [];
   const documentsWithExternalSource: TestDocument[] = [];
   const creatorAccount = EbsiWallet.createDid();
+  const grantedDidEbsiAccount = EbsiWallet.createDid();
 
   // Deploy contract
   const { trackAndTraceContract, broadcaster } =
@@ -174,6 +205,20 @@ export async function setupTestEnv({
       .map(() => addEvent(trackAndTraceContract, documentsWithBlockSource[0]!)),
   );
 
+  // Grant access to an account
+  await Promise.all(
+    Array(documentsWithBlockSourceTotal)
+      .fill(0)
+      .map((_, i) =>
+        grantAccess(
+          trackAndTraceContract,
+          documentsWithBlockSource[i]!.documentHash,
+          creatorAccount,
+          grantedDidEbsiAccount,
+        ),
+      ),
+  );
+
   // Return test env variables
   return {
     provider: ethersProvider,
@@ -181,5 +226,6 @@ export async function setupTestEnv({
     documentsWithBlockSource,
     documentsWithExternalSource,
     creatorAccount,
+    grantedDidEbsiAccount,
   };
 }

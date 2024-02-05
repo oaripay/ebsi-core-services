@@ -2,7 +2,12 @@ import { Injectable, Logger } from "@nestjs/common";
 import { NotFoundError, isEthersError } from "@ebsiint-api/shared";
 import type { TrackAndTrace } from "@ebsiint-sc/track-and-trace";
 import { LedgerService } from "../ledger/ledger.service.js";
-import type { Document, Event } from "./documents.interface.js";
+import type {
+  Document,
+  DocumentAccesses,
+  Event,
+} from "./documents.interface.js";
+import { hexToDid, permissionToString } from "../../shared/utils.js";
 
 @Injectable()
 export default class DocumentsService {
@@ -113,5 +118,68 @@ export default class DocumentsService {
       origin: event.origin,
       metadata: event.eventMetadata,
     } satisfies Event;
+  }
+
+  async getDocumentAccesses(documentId: string): Promise<DocumentAccesses> {
+    const pageSize = 50;
+    let currentPage = 1;
+    const documentAccesses: DocumentAccesses = [];
+
+    let invitedUsers: Awaited<
+      ReturnType<TrackAndTrace["getAccessesByDocument"]>
+    >;
+
+    /* eslint-disable no-await-in-loop */
+    do {
+      try {
+        invitedUsers = await (
+          await this.ledgerService.getContract()
+        ).getAccessesByDocument(documentId, currentPage, pageSize);
+      } catch (error) {
+        if (isEthersError(error)) {
+          this.logger.error(error);
+        }
+        throw new NotFoundError("Document Not Found", {
+          detail: `Document ${documentId} not found`,
+        });
+      }
+
+      documentAccesses.push(
+        ...(
+          await Promise.all(
+            invitedUsers.items.map(async (did) => {
+              const [grantedByAccounts, , access] = await (
+                await this.ledgerService.getContract()
+              ).getGrantedBy(
+                documentId,
+                did,
+                [0 /* DELEGATE */, 1 /* WRITE */, 2 /* CREATOR */],
+              );
+
+              const accesses: DocumentAccesses = [];
+
+              grantedByAccounts.forEach((grantedByAccount, permission) => {
+                if (!grantedByAccount || grantedByAccount === "0x") return;
+                if (!access[permission]) return;
+
+                accesses.push({
+                  subject: hexToDid(did),
+                  grantedBy: hexToDid(grantedByAccount),
+                  permission: permissionToString(permission),
+                  documentId,
+                });
+              });
+
+              return accesses;
+            }),
+          )
+        ).flat(),
+      );
+
+      currentPage += 1;
+    } while (invitedUsers.total.gt((currentPage - 1) * pageSize));
+    /* eslint-enable no-await-in-loop */
+
+    return documentAccesses;
   }
 }
