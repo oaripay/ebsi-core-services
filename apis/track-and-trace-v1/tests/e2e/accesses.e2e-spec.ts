@@ -19,6 +19,7 @@ describe("Track and Trace API v1 - Accesses (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let configService: ConfigService<ApiConfig, true>;
+  let testUserDid: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -43,6 +44,16 @@ describe("Track and Trace API v1 - Accesses (e2e)", () => {
     await app.getHttpAdapter().getInstance().ready();
 
     server = getServer(app, configService);
+
+    const testUserKid = configService.get("testUserKid", {
+      infer: true,
+    });
+
+    if (!testUserKid) {
+      throw new Error("TEST_USER_KID must be defined");
+    }
+
+    testUserDid = testUserKid.split("#")[0]!;
   });
 
   afterAll(async () => {
@@ -79,22 +90,75 @@ describe("Track and Trace API v1 - Accesses (e2e)", () => {
     it("should return 204 when the DID is a creator", async () => {
       expect.assertions(2);
 
-      const testUserKid = configService.get("testUserKid", {
-        infer: true,
-      });
-
-      if (!testUserKid) {
-        throw new Error("TEST_USER_KID must be defined");
-      }
-
-      const testUserDid = testUserKid.split("#")[0]!;
-
       const response = await request(server).head(
         `/accesses?creator=${testUserDid}`,
       );
 
       expect(response.body).toStrictEqual({});
       expect(response.status).toBe(204);
+    });
+  });
+
+  describe("GET /accesses", () => {
+    it("should throw an error 400 if the subject is invalid", async () => {
+      expect.assertions(4);
+
+      // Missing `subject` param
+      let response = await request(server).get("/accesses");
+
+      expect(response.body).toStrictEqual({
+        detail: `["subject must be a valid DID string"]`,
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+
+      // Invalid `subject` param (not a did:ebsi DID)
+      response = await request(server).get("/accesses?subject=1234");
+
+      expect(response.body).toStrictEqual({
+        detail: `["subject must be a valid DID string"]`,
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should return the list of accesses given a DID", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get(
+        `/accesses?subject=${testUserDid}`,
+      );
+
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/accesses?page[after]=1&page[size]=10&subject=${testUserDid}`,
+        ),
+        items: expect.arrayContaining([
+          expect.objectContaining({
+            subject: testUserDid,
+            documentId: expect.any(String),
+            grantedBy: expect.stringMatching(/^did:/),
+            permission: expect.stringMatching(/^(write|delegate|creator)$/),
+          }),
+        ]),
+        total: expect.any(Number),
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            `/accesses?page[after]=1&page[size]=10&subject=${testUserDid}`,
+          ),
+          prev: expect.stringContaining(
+            `/accesses?page[after]=1&page[size]=10&subject=${testUserDid}`,
+          ),
+          next: expect.stringContaining("/accesses?page[after]="),
+          last: expect.stringContaining("/accesses?page[after]="),
+        },
+      });
+      expect(response.status).toBe(200);
     });
   });
 });

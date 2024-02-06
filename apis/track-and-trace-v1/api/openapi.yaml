@@ -514,6 +514,104 @@ paths:
           description: DID not found in the allowlist
         "500":
           description: Internal Server Error
+    get:
+      operationId: get-accesses
+      summary: Get accesses
+      description: Get accesses filtered by subject.
+      tags:
+        - Accesses
+      parameters:
+        - in: query
+          name: subject
+          description: Subject DID
+          schema:
+            type: string
+            required: true
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: Absolute path to the collection (consult)
+                  items:
+                    type: array
+                    description: List of accesses
+                    items:
+                      type: object
+                      properties:
+                        subject:
+                          type: string
+                          description: Subject
+                        documentId:
+                          type: string
+                          description: Document ID
+                        grantedBy:
+                          description: DID that granted the access
+                          type: string
+                        permission:
+                          description: Type of permission
+                          type: string
+                          enum:
+                            - write
+                            - delegate
+                            - creator
+                  total:
+                    type: integer
+                    description: Total number of items across all pages.
+                  pageSize:
+                    type: integer
+                    description: |
+                      Maximum number of items per page. For the last page, its value should be
+                      independent of the number of actually returned items.
+                  links:
+                    $ref: "#/components/schemas/Links"
+              example:
+                self: https://api-test.ebsi.eu/track-and-trace/v1/accesses?page[after]=1&page[size]=10&subject=did:ebsi:ztqWJAmfyuUEf9Jvh97p167
+                items:
+                  - documentId: "0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169"
+                    subject: did:ebsi:ztqWJAmfyuUEf9Jvh97p167
+                    grantedBy: did:ebsi:zmRQoAM1YrVBVA3cP6CwYfc
+                    permission: write
+                  - documentId: "0xd06f39f1b07bdb5040665111ca96c63b100165f8e06ab2787d273d25ad6bb169"
+                    subject: did:ebsi:ztqWJAmfyuUEf9Jvh97p167
+                    grantedBy: did:ebsi:zmRQoAM1YrVBVA3cP6CwYfc
+                    permission: delegate
+                total: 2
+                pageSize: 10
+                links:
+                  first: https://api-test.ebsi.eu/track-and-trace/v1/accesses?page[after]=1&page[size]=10&subject=did:ebsi:ztqWJAmfyuUEf9Jvh97p167
+                  prev: https://api-test.ebsi.eu/track-and-trace/v1/accesses?page[after]=1&page[size]=10&subject=did:ebsi:ztqWJAmfyuUEf9Jvh97p167
+                  next: https://api-test.ebsi.eu/track-and-trace/v1/accesses?page[after]=2&page[size]=10&subject=did:ebsi:ztqWJAmfyuUEf9Jvh97p167
+                  last: https://api-test.ebsi.eu/track-and-trace/v1/accesses?page[after]=10&page[size]=10&subject=did:ebsi:ztqWJAmfyuUEf9Jvh97p167
+        "400":
+          description: Bad Request
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Document Not Found:
+                  $ref: "#/components/examples/NotFound"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
   /track-and-trace/v1/jsonrpc:
     post:
       operationId: post-track-and-trace-v1-jsonrpc
