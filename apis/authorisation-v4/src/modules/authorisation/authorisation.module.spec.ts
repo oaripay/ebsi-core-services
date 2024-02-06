@@ -14,7 +14,7 @@ import { URLSearchParams } from "node:url";
 import request from "supertest";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
-import { encode } from "@ebsiint-api/shared";
+import { encode, type PaginatedList } from "@ebsiint-api/shared";
 import { Agent } from "@cef-ebsi/oauth2-auth";
 import { Test, type TestingModule } from "@nestjs/testing";
 import { Logger } from "@nestjs/common";
@@ -44,6 +44,7 @@ import type { JWK } from "jose";
 import qs from "qs";
 import { AuthorisationModule } from "./authorisation.module.js";
 import type {
+  Access,
   JsonWebKeySet,
   Scope,
   TokenResponse,
@@ -65,6 +66,8 @@ import {
   TNT_AUTHORISE_SCOPE,
   TNT_CREATE_PRESENTATION_DEFINITION,
   TNT_CREATE_SCOPE,
+  TNT_WRITE_PRESENTATION_DEFINITION,
+  TNT_WRITE_SCOPE,
 } from "./authorisation.constants.js";
 import {
   createLegalEntity,
@@ -365,7 +368,7 @@ describe("Authorisation Module", () => {
       let response = await request(server).get("/presentation-definitions");
 
       expect(response.body).toStrictEqual({
-        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise', 'tnt_create')"]`,
+        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise', 'tnt_create', 'tnt_write')"]`,
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -381,7 +384,7 @@ describe("Authorisation Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise', 'tnt_create')"]`,
+        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise', 'tnt_create', 'tnt_write')"]`,
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -399,7 +402,7 @@ describe("Authorisation Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise', 'tnt_create')"]`,
+        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise', 'tnt_create', 'tnt_write')"]`,
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -415,7 +418,7 @@ describe("Authorisation Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise', 'tnt_create')"]`,
+        detail: `["scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise', 'tnt_create', 'tnt_write')"]`,
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -427,7 +430,7 @@ describe("Authorisation Module", () => {
     });
 
     it("should return the expected presentation definition for the given scope", async () => {
-      expect.assertions(14);
+      expect.assertions(16);
 
       //  With explicit scope "openid didr_invite"
       let response = await request(server).get(
@@ -509,6 +512,19 @@ describe("Authorisation Module", () => {
       );
       expect(response.body).toStrictEqual(tntCreatePresentationDefinition);
       expect(response.status).toBe(200);
+
+      // With explicit scope "openid tnt_write"
+      response = await request(server).get(
+        `/presentation-definitions?scope=${encodeURIComponent(
+          `openid ${TNT_WRITE_SCOPE}`,
+        )}`,
+      );
+
+      const tntWritePresentationDefinition = structuredClone(
+        TNT_WRITE_PRESENTATION_DEFINITION,
+      );
+      expect(response.body).toStrictEqual(tntWritePresentationDefinition);
+      expect(response.status).toBe(200);
     });
   });
 
@@ -551,7 +567,7 @@ describe("Authorisation Module", () => {
       expect(response.body).toStrictEqual({
         error: "invalid_request",
         error_description:
-          "scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise', 'tnt_create')",
+          "scope must be a combination of 'openid' and one of the supported scopes ('didr_invite', 'didr_write', 'tir_invite', 'tir_write', 'timestamp_write', 'tnt_authorise', 'tnt_create', 'tnt_write')",
       });
       expect(response.status).toBe(400);
       expect(
@@ -763,6 +779,7 @@ describe("Authorisation Module", () => {
                 TIR_WRITE_SCOPE,
                 TIMESTAMP_WRITE_SCOPE,
                 TNT_CREATE_SCOPE,
+                TNT_WRITE_SCOPE,
               ].includes(customScope)
                 ? {
                     // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
@@ -826,6 +843,7 @@ describe("Authorisation Module", () => {
                 TIR_WRITE_SCOPE,
                 TIMESTAMP_WRITE_SCOPE,
                 TNT_CREATE_SCOPE,
+                TNT_WRITE_SCOPE,
               ].includes(customScope)
                 ? {
                     // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
@@ -1014,6 +1032,7 @@ describe("Authorisation Module", () => {
                 TIR_WRITE_SCOPE,
                 TIMESTAMP_WRITE_SCOPE,
                 TNT_CREATE_SCOPE,
+                TNT_WRITE_SCOPE,
               ].includes(customScope)
                 ? {
                     // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
@@ -1135,6 +1154,7 @@ describe("Authorisation Module", () => {
               TIR_WRITE_SCOPE,
               TIMESTAMP_WRITE_SCOPE,
               TNT_CREATE_SCOPE,
+              TNT_WRITE_SCOPE,
             ].includes(customScope)
           ) {
             // Skip test
@@ -1212,6 +1232,7 @@ describe("Authorisation Module", () => {
               TIR_WRITE_SCOPE,
               TIMESTAMP_WRITE_SCOPE,
               TNT_CREATE_SCOPE,
+              TNT_WRITE_SCOPE,
             ].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
@@ -1306,6 +1327,7 @@ describe("Authorisation Module", () => {
               TIR_WRITE_SCOPE,
               TIMESTAMP_WRITE_SCOPE,
               TNT_CREATE_SCOPE,
+              TNT_WRITE_SCOPE,
             ].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
@@ -1383,6 +1405,7 @@ describe("Authorisation Module", () => {
               TIR_WRITE_SCOPE,
               TIMESTAMP_WRITE_SCOPE,
               TNT_CREATE_SCOPE,
+              TNT_WRITE_SCOPE,
             ].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
@@ -1446,6 +1469,7 @@ describe("Authorisation Module", () => {
               TIR_WRITE_SCOPE,
               TIMESTAMP_WRITE_SCOPE,
               TNT_CREATE_SCOPE,
+              TNT_WRITE_SCOPE,
             ].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
@@ -1508,6 +1532,7 @@ describe("Authorisation Module", () => {
               TIR_WRITE_SCOPE,
               TIMESTAMP_WRITE_SCOPE,
               TNT_CREATE_SCOPE,
+              TNT_WRITE_SCOPE,
             ].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
@@ -1553,6 +1578,7 @@ describe("Authorisation Module", () => {
               TIR_WRITE_SCOPE,
               TIMESTAMP_WRITE_SCOPE,
               TNT_CREATE_SCOPE,
+              TNT_WRITE_SCOPE,
             ].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
@@ -1600,6 +1626,7 @@ describe("Authorisation Module", () => {
               TIR_WRITE_SCOPE,
               TIMESTAMP_WRITE_SCOPE,
               TNT_CREATE_SCOPE,
+              TNT_WRITE_SCOPE,
             ].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
@@ -1745,6 +1772,33 @@ describe("Authorisation Module", () => {
             expectedErrorMessage = `Invalid Verifiable Presentation: DID ${vpSigner.did} is not allowlisted as a TnT Document creator`;
             break;
           }
+          case TNT_WRITE_SCOPE: {
+            mockServer.use(
+              http.get(
+                `${domain}/track-and-trace/v1/accesses`,
+                ({ request: req }) => {
+                  const subject = new URL(req.url).searchParams.get("subject");
+
+                  if (subject === vpSigner.did) {
+                    return HttpResponse.json(
+                      {
+                        self: "",
+                        items: [],
+                        total: 0,
+                        links: { first: "", prev: "", next: "", last: "" },
+                      } satisfies PaginatedList<Access>,
+                      { status: 200 },
+                    );
+                  }
+
+                  throw new Error(`Unexpected TnT subject: ${subject}`);
+                },
+              ),
+            );
+
+            expectedErrorMessage = `Invalid Verifiable Presentation: DID ${vpSigner.did} doesn't have write or delegate permission in TnT`;
+            break;
+          }
           default: {
             expectedErrorMessage = "";
           }
@@ -1783,6 +1837,7 @@ describe("Authorisation Module", () => {
               TIR_INVITE_SCOPE,
               TIMESTAMP_WRITE_SCOPE,
               TNT_CREATE_SCOPE,
+              TNT_WRITE_SCOPE,
             ].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
@@ -1850,6 +1905,38 @@ describe("Authorisation Module", () => {
           );
         }
 
+        if (customScope === TNT_WRITE_SCOPE) {
+          mockServer.use(
+            http.get(
+              `${domain}/track-and-trace/v1/accesses`,
+              ({ request: req }) => {
+                const subject = new URL(req.url).searchParams.get("subject");
+
+                if (subject === vpPayload.holder) {
+                  return HttpResponse.json(
+                    {
+                      self: "",
+                      items: [
+                        {
+                          documentId: "0x00",
+                          subject,
+                          grantedBy: "did:ebsi:1234",
+                          permission: "write",
+                        },
+                      ],
+                      total: 1,
+                      links: { first: "", prev: "", next: "", last: "" },
+                    } satisfies PaginatedList<Access>,
+                    { status: 200 },
+                  );
+                }
+
+                throw new Error(`Unexpected TnT subject: ${subject}`);
+              },
+            ),
+          );
+        }
+
         const nonce = randomUUID();
 
         const vpJwt = await createVerifiablePresentationJwt(
@@ -1865,6 +1952,7 @@ describe("Authorisation Module", () => {
               TIR_WRITE_SCOPE,
               TIMESTAMP_WRITE_SCOPE,
               TNT_CREATE_SCOPE,
+              TNT_WRITE_SCOPE,
             ].includes(customScope)
               ? {
                   // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from

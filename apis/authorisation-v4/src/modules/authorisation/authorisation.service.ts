@@ -8,6 +8,7 @@ import {
   encode,
   ProblemDetailsError,
   InternalServerError,
+  type PaginatedList,
 } from "@ebsiint-api/shared";
 import { PEXv2, type Checked } from "@sphereon/pex";
 import type {
@@ -33,6 +34,7 @@ import axios, { type AxiosResponse } from "axios";
 import { importJWK } from "jose";
 import type { ApiConfig } from "../../config/configuration.js";
 import type {
+  Access,
   JsonWebKeySet,
   OPMetadata,
   TokenResponse,
@@ -53,6 +55,7 @@ import {
   TNT_AUTHORISE_SCOPE,
   PRESENTATION_DEFINITIONS,
   TNT_CREATE_SCOPE,
+  TNT_WRITE_SCOPE,
 } from "./authorisation.constants.js";
 import {
   issuerSchema,
@@ -396,7 +399,7 @@ export class AuthorisationService {
    * - https://identity.foundation/presentation-exchange/spec/v2.0.0/#presentation-definition
    * - https://ec.europa.eu/digital-building-blocks/wikis/pages/viewpage.action?spaceKey=BLOCKCHAININT&title=RFC+-+EBSI+Platform+Identity+and+Access+Management#RFCEBSIPlatformIdentityandAccessManagement-ServicetoService-TokenFlow
    *
-   * @param scope Array of supported scopes ("openid", "didr_invite", "didr_write", "tir_invite", "tir_write", "timestamp_write", "tnt_authorise")
+   * @param scope Array of supported scopes ("openid", "didr_invite", "didr_write", "tir_invite", "tir_write", "timestamp_write", "tnt_authorise", "tnt_create", "tnt_write")
    * @returns A Presentation Definition.
    */
   getPresentationDefinitions(scope: (typeof CUSTOM_SCOPES)[number]) {
@@ -718,6 +721,46 @@ export class AuthorisationService {
     }
   }
 
+  async validateTntWriter(did: string): Promise<void> {
+    let accesses: Access[];
+    try {
+      const { data } = await axios.get<PaginatedList<Access>>(
+        `${this.trackAndTraceAccessesEndpoint}?${new URLSearchParams({
+          subject: did,
+        }).toString()}`,
+      );
+      accesses = data.items;
+    } catch (e) {
+      logAxiosError(e, this.logger);
+
+      if (axios.isAxiosError(e)) {
+        if (e.response?.status === 400) {
+          throw new OAuth2TokenError("invalid_request", {
+            errorDescription: `Invalid Verifiable Presentation: DID ${did} doesn't have write permission in TnT`,
+          });
+        }
+
+        if (e.response?.status === 500) {
+          throw new OAuth2TokenError("server_error", {
+            errorDescription:
+              "Track And Trace API responded with an internal error",
+          });
+        }
+      }
+
+      // Fallback (should not be triggered)
+      throw new OAuth2TokenError("server_error", {
+        errorDescription: "Unexpected error",
+      });
+    }
+
+    if (!accesses || accesses.length === 0) {
+      throw new OAuth2TokenError("invalid_request", {
+        errorDescription: `Invalid Verifiable Presentation: DID ${did} doesn't have write or delegate permission in TnT`,
+      });
+    }
+  }
+
   async createAccessToken(body: unknown): Promise<TokenResponse> {
     // Validate query params (full DTO)
     let parsedDto: CreateAccessTokenDto;
@@ -864,6 +907,11 @@ export class AuthorisationService {
     // `tnt_create`: the client must be an allowlisted TnT Document creator
     if (customScope === TNT_CREATE_SCOPE) {
       await this.validateTntCreator(vp.holder);
+    }
+
+    // `tnt_write`: the client must have granted access for write
+    if (customScope === TNT_WRITE_SCOPE) {
+      await this.validateTntWriter(vp.holder);
     }
 
     // Generate access token

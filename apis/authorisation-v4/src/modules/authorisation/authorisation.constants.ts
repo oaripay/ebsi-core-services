@@ -9,6 +9,7 @@ export const TIR_WRITE_SCOPE = "tir_write";
 export const TIMESTAMP_WRITE_SCOPE = "timestamp_write";
 export const TNT_AUTHORISE_SCOPE = "tnt_authorise";
 export const TNT_CREATE_SCOPE = "tnt_create";
+export const TNT_WRITE_SCOPE = "tnt_write";
 
 export const CUSTOM_SCOPES = [
   DIDR_INVITE_SCOPE,
@@ -18,6 +19,7 @@ export const CUSTOM_SCOPES = [
   TIMESTAMP_WRITE_SCOPE,
   TNT_AUTHORISE_SCOPE,
   TNT_CREATE_SCOPE,
+  TNT_WRITE_SCOPE,
 ] as const;
 
 export const SUPPORTED_SCOPES = [OPENID_SCOPE, ...CUSTOM_SCOPES] as const;
@@ -151,6 +153,15 @@ export const TNT_CREATE_PRESENTATION_DEFINITION = {
   input_descriptors: [],
 } as const satisfies PresentationDefinitionV2;
 
+export const TNT_WRITE_PRESENTATION_DEFINITION = {
+  id: "tnt_write_presentation",
+  format: { jwt_vp: { alg: ["ES256"] } },
+  name: "Any type of Verifiable Attestation",
+  purpose:
+    "Please present a valid Presentation signed by an account with granted access to write in TnT.",
+  input_descriptors: [],
+} as const satisfies PresentationDefinitionV2;
+
 export const PRESENTATION_DEFINITIONS = {
   [`${DIDR_INVITE_SCOPE}`]: DIDR_INVITE_PRESENTATION_DEFINITION,
   [`${DIDR_WRITE_SCOPE}`]: DIDR_WRITE_PRESENTATION_DEFINITION,
@@ -159,6 +170,7 @@ export const PRESENTATION_DEFINITIONS = {
   [`${TIMESTAMP_WRITE_SCOPE}`]: TIMESTAMP_WRITE_PRESENTATION_DEFINITION,
   [`${TNT_AUTHORISE_SCOPE}`]: TNT_AUTHORISE_PRESENTATION_DEFINITION,
   [`${TNT_CREATE_SCOPE}`]: TNT_CREATE_PRESENTATION_DEFINITION,
+  [`${TNT_WRITE_SCOPE}`]: TNT_WRITE_PRESENTATION_DEFINITION,
 } as const satisfies Record<
   (typeof CUSTOM_SCOPES)[number],
   PresentationDefinitionV2
