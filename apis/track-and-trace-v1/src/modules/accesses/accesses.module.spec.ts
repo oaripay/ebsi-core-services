@@ -132,6 +132,39 @@ describe("Accesses Module", () => {
       expect(response.status).toBe(400);
     });
 
+    it("should return an empty list when there are no accesses", async () => {
+      expect.assertions(2);
+
+      const randomDid = EbsiWallet.createDid();
+      const response = await request(server).get(
+        `/accesses?subject=${randomDid}`,
+      );
+
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/accesses?page[after]=1&page[size]=10&subject=${randomDid}`,
+        ),
+        items: [],
+        total: 0,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            `/accesses?page[after]=1&page[size]=10&subject=${randomDid}`,
+          ),
+          prev: expect.stringContaining(
+            `/accesses?page[after]=1&page[size]=10&subject=${randomDid}`,
+          ),
+          next: expect.stringContaining(
+            `/accesses?page[after]=1&page[size]=10&subject=${randomDid}`,
+          ),
+          last: expect.stringContaining(
+            `/accesses?page[after]=1&page[size]=10&subject=${randomDid}`,
+          ),
+        },
+      });
+      expect(response.status).toBe(200);
+    });
+
     it("should return the list of accesses given a DID", async () => {
       expect.assertions(2);
 

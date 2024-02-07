@@ -39,37 +39,46 @@ export default class AccessesService {
     >;
     /* eslint-disable no-await-in-loop */
     do {
-      accessesBySubject = await contract.getAccessesBySubject(
-        subjectBuffer,
-        currentPage,
-        pageSize,
-      );
-      currentPage += 1;
-      documentIds.push(...accessesBySubject.items);
+      try {
+        accessesBySubject = await contract.getAccessesBySubject(
+          subjectBuffer,
+          currentPage,
+          pageSize,
+        );
+        currentPage += 1;
+        documentIds.push(...accessesBySubject.items);
+      } catch {
+        // do not update documentIds
+        break;
+      }
     } while (accessesBySubject.total.gt((currentPage - 1) * pageSize));
     /* eslint-enable no-await-in-loop */
 
     const accesses: Access[] = [];
     await Promise.all(
       documentIds.map(async (documentId) => {
-        const [grantedByAccounts, , access] = await contract.getGrantedBy(
-          documentId,
-          subjectBuffer,
-          [0 /* DELEGATE */, 1 /* WRITE */, 2 /* CREATOR */],
-        );
-        grantedByAccounts.forEach((grantedByAccount, i) => {
-          if (!grantedByAccount || grantedByAccount === "0x") return;
-          if (!access[i]) return;
-          const grantedBy = hexToDid(grantedByAccount);
-          const permission = permissionToString(i);
-
-          accesses.push({
+        try {
+          const [grantedByAccounts, , access] = await contract.getGrantedBy(
             documentId,
-            subject,
-            grantedBy,
-            permission,
+            subjectBuffer,
+            [0 /* DELEGATE */, 1 /* WRITE */, 2 /* CREATOR */],
+          );
+          grantedByAccounts.forEach((grantedByAccount, i) => {
+            if (!grantedByAccount || grantedByAccount === "0x") return;
+            if (!access[i]) return;
+            const grantedBy = hexToDid(grantedByAccount);
+            const permission = permissionToString(i);
+
+            accesses.push({
+              documentId,
+              subject,
+              grantedBy,
+              permission,
+            });
           });
-        });
+        } catch {
+          // do not update accesses
+        }
       }),
     );
     return accesses;
