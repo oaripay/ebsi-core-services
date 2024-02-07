@@ -27,12 +27,15 @@ import type {
   CreateDocumentSchema,
   RemoveDocumentSchema,
   UnsignedTransaction,
+  WriteEventSchema,
 } from "../../src/modules/jsonrpc/validators/index.js";
+import { didToHex } from "../../src/shared/utils.js";
 
 type JsonRpcParams =
   | AuthoriseDidSchema
   | CreateDocumentSchema
-  | RemoveDocumentSchema;
+  | RemoveDocumentSchema
+  | WriteEventSchema;
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -136,9 +139,12 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
       "authoriseDid",
       "createDocument",
       "createDocument(external timestamp)",
+      "writeEvent",
+      "writeEvent(external timestamp)",
       "removeDocument",
     ] as const)("/jsonrpc - send transaction for %s", (m) => {
       const method = m.replace("(external timestamp)", "");
+
       it("should work", async () => {
         expect.assertions(5);
 
@@ -177,6 +183,36 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
             accessToken = user.accessToken.tntCreate;
             break;
           }
+          case "writeEvent": {
+            params = {
+              from: user.wallet.address,
+              eventParams: {
+                documentHash: documentHash1,
+                externalHash: `0x${randomBytes(32).toString("hex")}`,
+                sender: await didToHex(user.info.did),
+                origin: "",
+                metadata: "test event metadata",
+              },
+            } satisfies WriteEventSchema;
+            accessToken = user.accessToken.tntWrite;
+            break;
+          }
+          case "writeEvent(external timestamp)": {
+            params = {
+              from: user.wallet.address,
+              eventParams: {
+                documentHash: documentHash1,
+                externalHash: `0x${randomBytes(32).toString("hex")}`,
+                sender: await didToHex(user.info.did),
+                origin: "",
+                metadata: "test event metadata",
+              },
+              timestamp: Math.floor(Date.now() / 1000),
+              timestampProof: `0x${randomBytes(32).toString("hex")}`,
+            } satisfies WriteEventSchema;
+            accessToken = user.accessToken.tntWrite;
+            break;
+          }
           case "removeDocument": {
             params = {
               from: user.wallet.address,
@@ -186,7 +222,11 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
             break;
           }
           default: {
-            throw new Error("Test Error: Invalid method");
+            // TS will return an error if we forget to cover a case
+            const exhaustiveCheck: never = m;
+            throw new Error(
+              `Test Error: Invalid method ${exhaustiveCheck as string}`,
+            );
           }
         }
 

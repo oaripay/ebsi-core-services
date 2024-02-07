@@ -14,18 +14,19 @@ describe("hexToDid", () => {
     );
   });
 
-  it("should return the expected did:ebsi DID", () => {
-    expect.assertions(1);
+  it("should return the expected did:ebsi DID", async () => {
+    expect.assertions(2);
 
     const did = EbsiWallet.createDid();
 
     expect(hexToDid(`0x${Buffer.from(did).toString("hex")}`)).toStrictEqual(
       did,
     );
+    expect(hexToDid(await didToHex(did))).toStrictEqual(did);
   });
 
   it("should return the expected did:key DID", async () => {
-    expect.assertions(1);
+    expect.assertions(2);
 
     // Create random did:key DID
     const { publicKey } = await generateKeyPair("ES256K");
@@ -36,6 +37,7 @@ describe("hexToDid", () => {
     const didBuffer = Buffer.from(publicKeyHex, "hex");
 
     expect(hexToDid(`0x${didBuffer.toString("hex")}`)).toStrictEqual(did);
+    expect(hexToDid(await didToHex(did))).toStrictEqual(did);
   });
 });
 
@@ -48,7 +50,7 @@ describe("didToHex", () => {
     const did = EbsiWallet.createDid("NATURAL_PERSON", publicKeyJwk);
 
     await expect(didToHex(did)).rejects.toThrow(
-      `The did ${did} must use secp256k1 curve. Received: P-256`,
+      `The DID ${did} must use secp256k1 curve. Received: P-256`,
     );
   });
 
@@ -71,6 +73,8 @@ describe("didToHex", () => {
     const publicKeyHex = encode.publicKey.fromJWKToHex(publicKeyJwk);
     const didBuffer = Buffer.from(publicKeyHex, "hex");
 
-    await expect(didToHex(did)).resolves.toBe(`0x${didBuffer.toString("hex")}`);
+    await expect(didToHex(did)).resolves.toBe(
+      `0x${didBuffer.subarray(1).toString("hex")}`,
+    );
   });
 });

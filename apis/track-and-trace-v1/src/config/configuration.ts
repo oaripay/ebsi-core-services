@@ -25,6 +25,7 @@ export interface ApiConfig {
   testUserKid: string | undefined;
   testUserPrivateKey: string | undefined;
   testUserVcOnboard: string | undefined;
+  testDocWithEvents: string | undefined;
 }
 
 const AUTH_API_PATH = "/authorisation/v4";
@@ -63,6 +64,7 @@ export const loadConfig = (): ApiConfig => {
     testUserKid: process.env.TEST_USER_KID,
     testUserPrivateKey: process.env.TEST_USER_PRIVATE_KEY,
     testUserVcOnboard: process.env.TEST_USER_VC_TO_ONBOARD,
+    testDocWithEvents: process.env.TEST_DOC_WITH_EVENTS,
   };
 };
 
@@ -105,6 +107,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_USER_KID: Joi.string(),
     TEST_USER_PRIVATE_KEY: Joi.string(),
     TEST_USER_VC_TO_ONBOARD: Joi.string(),
+    TEST_DOC_WITH_EVENTS: Joi.string(),
     // Generic variables
     TZ: Joi.string(),
   }),

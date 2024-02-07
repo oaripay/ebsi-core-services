@@ -23,10 +23,12 @@ import {
   requestAuthoriseDidDtoSchema,
   requestCreateDocumentDtoSchema,
   requestRemoveDocumentDtoSchema,
-  SendSignedTransactionParamsSchema,
   requestSendSignedTransactionDtoSchema,
-  UnsignedTransaction,
+  requestWriteEventDtoSchema,
+  writeEventSchema,
   type JsonRpcSchema,
+  type SendSignedTransactionParamsSchema,
+  type UnsignedTransaction,
 } from "./validators/index.js";
 
 function assertScopeContains(
@@ -182,6 +184,18 @@ export class JsonRpcService {
         assertScopeContains(scope, [TNT_WRITE_SCOPE], functionFragment.name);
 
         await removeDocumentSchema.parseAsync(argsObject);
+        break;
+      }
+      case "writeEvent": {
+        assertScopeContains(scope, [TNT_WRITE_SCOPE], functionFragment.name);
+
+        if ("eventParams" in argsObject) {
+          argsObject.eventParams = extractNamedAttributes(
+            argsObject.eventParams,
+          );
+        }
+
+        await writeEventSchema.parseAsync(argsObject);
         break;
       }
       default:
@@ -341,6 +355,51 @@ export class JsonRpcService {
       const data = (
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData("removeDocument", [documentHash]);
+
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
+      throw error;
+    }
+  }
+
+  async buildTransactionWriteEvent(
+    body: JsonRpcSchema,
+    id: number | string | null | undefined,
+    _: string,
+    scope: string,
+  ): Promise<UnsignedTransaction> {
+    try {
+      assertScopeContains(scope, [TNT_WRITE_SCOPE], "writeEvent");
+
+      const parsedBody = await requestWriteEventDtoSchema.parseAsync(body);
+
+      const { from, eventParams, timestamp, timestampProof } =
+        parsedBody.params[0]!;
+
+      // TODO: assert if eventParams.sender = sub?
+      // Verify that the Access Token sub and the payload DID match
+      // assertDidMatchesSub(sender, sub);
+
+      let data: string;
+      if (timestamp && timestampProof !== undefined) {
+        data = (
+          await this.ledgerService.getContract()
+        ).interface.encodeFunctionData(
+          "writeEvent((bytes32,string,bytes,string,string),uint256,bytes32)",
+          [eventParams, timestamp, timestampProof],
+        );
+      } else {
+        data = (
+          await this.ledgerService.getContract()
+        ).interface.encodeFunctionData(
+          "writeEvent((bytes32,string,bytes,string,string))",
+          [eventParams],
+        );
+      }
 
       return await this.buildTransaction(from, data);
     } catch (err) {

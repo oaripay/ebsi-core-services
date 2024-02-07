@@ -7,7 +7,9 @@ import { TrackAndTrace } from "@ebsiint-sc/track-and-trace";
 // eslint-disable-next-line import/extensions
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers.js";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
+import { exportJWK, generateKeyPair } from "jose";
 import { createDocument, createEvent, type TestDocument } from "./data.js";
+import { didToHex } from "../../src/shared/utils.js";
 
 export async function deployTrackAndTraceContract(): Promise<{
   trackAndTraceContract: TrackAndTrace;
@@ -117,15 +119,16 @@ export async function grantAccess(
   contract: TrackAndTrace,
   documentHash: string,
   grantedByAccount: string,
-  grantedDidEbsiAccount: string,
+  subjectAccount: string,
+  subjectAccType: 0 | 1,
 ) {
   // permission to delegate
   const txDelegate = await contract.grantAccess(
     documentHash,
     Buffer.from(grantedByAccount),
-    Buffer.from(grantedDidEbsiAccount),
+    await didToHex(subjectAccount),
     0,
-    0,
+    subjectAccType,
     0,
   );
   await txDelegate.wait();
@@ -134,9 +137,9 @@ export async function grantAccess(
   const txWrite = await contract.grantAccess(
     documentHash,
     Buffer.from(grantedByAccount),
-    Buffer.from(grantedDidEbsiAccount),
+    await didToHex(subjectAccount),
     0,
-    0,
+    subjectAccType,
     1,
   );
   await txWrite.wait();
@@ -159,12 +162,19 @@ export async function setupTestEnv({
   documentsWithExternalSource: TestDocument[];
   creatorAccount: string;
   grantedDidEbsiAccount: string;
+  grantedDidKeyAccount: string;
 }> {
   const ethersProvider = hre.ethers.provider;
   const documentsWithBlockSource: TestDocument[] = [];
   const documentsWithExternalSource: TestDocument[] = [];
   const creatorAccount = EbsiWallet.createDid();
   const grantedDidEbsiAccount = EbsiWallet.createDid();
+  const { publicKey: didKeyPublicKey } = await generateKeyPair("ES256K");
+  const didKeyPublicKeyJwk = await exportJWK(didKeyPublicKey);
+  const grantedDidKeyAccount = EbsiWallet.createDid(
+    "NATURAL_PERSON",
+    didKeyPublicKeyJwk,
+  );
 
   // Deploy contract
   const { trackAndTraceContract, broadcaster } =
@@ -205,7 +215,7 @@ export async function setupTestEnv({
       .map(() => addEvent(trackAndTraceContract, documentsWithBlockSource[0]!)),
   );
 
-  // Grant access to an account
+  // Grant access to a did:ebsi account
   await Promise.all(
     Array(documentsWithBlockSourceTotal)
       .fill(0)
@@ -215,6 +225,22 @@ export async function setupTestEnv({
           documentsWithBlockSource[i]!.documentHash,
           creatorAccount,
           grantedDidEbsiAccount,
+          0,
+        ),
+      ),
+  );
+
+  // Grant access to a did:key account
+  await Promise.all(
+    Array(documentsWithBlockSourceTotal)
+      .fill(0)
+      .map((_, i) =>
+        grantAccess(
+          trackAndTraceContract,
+          documentsWithBlockSource[i]!.documentHash,
+          creatorAccount,
+          grantedDidKeyAccount,
+          1,
         ),
       ),
   );
@@ -227,5 +253,6 @@ export async function setupTestEnv({
     documentsWithExternalSource,
     creatorAccount,
     grantedDidEbsiAccount,
+    grantedDidKeyAccount,
   };
 }

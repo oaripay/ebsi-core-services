@@ -1001,7 +1001,7 @@ describe("Documents Module", () => {
     it("should return a paginated collection of accesses", async () => {
       expect.assertions(3);
 
-      const { grantedDidEbsiAccount } = testEnv;
+      const { grantedDidEbsiAccount, grantedDidKeyAccount } = testEnv;
       const document = testEnv.documentsWithBlockSource[0]!;
 
       const response = await request(server).get(
@@ -1012,7 +1012,7 @@ describe("Documents Module", () => {
         self: expect.stringContaining(
           `/documents/${document.documentHash}/accesses?page[after]=1&page[size]=10`,
         ),
-        items: expect.arrayContaining([
+        items: [
           {
             grantedBy: document.didEbsiCreator,
             documentId: document.documentHash,
@@ -1031,8 +1031,20 @@ describe("Documents Module", () => {
             permission: "write",
             subject: grantedDidEbsiAccount,
           },
-        ] satisfies DocumentAccesses),
-        total: 3,
+          {
+            grantedBy: document.didEbsiCreator,
+            documentId: document.documentHash,
+            permission: "delegate",
+            subject: grantedDidKeyAccount,
+          },
+          {
+            grantedBy: document.didEbsiCreator,
+            documentId: document.documentHash,
+            permission: "write",
+            subject: grantedDidKeyAccount,
+          },
+        ] satisfies DocumentAccesses,
+        total: 5,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
@@ -1049,14 +1061,14 @@ describe("Documents Module", () => {
           ),
         },
       });
-      expect((response.body as { items: string }).items).toHaveLength(3);
+      expect((response.body as { items: string }).items).toHaveLength(5);
       expect(response.status).toBe(200);
     });
 
     it("should handle the pagination properly", async () => {
       expect.assertions(12);
 
-      const { grantedDidEbsiAccount } = testEnv;
+      const { grantedDidEbsiAccount, grantedDidKeyAccount } = testEnv;
       const document = testEnv.documentsWithBlockSource[0]!;
 
       const response1 = await request(server).get(
@@ -1081,7 +1093,7 @@ describe("Documents Module", () => {
             subject: grantedDidEbsiAccount,
           },
         ] satisfies DocumentAccesses,
-        total: 3,
+        total: 5,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
@@ -1094,7 +1106,7 @@ describe("Documents Module", () => {
             `/documents/${document.documentHash}/accesses?page[after]=2&page[size]=2`,
           ),
           last: expect.stringContaining(
-            `/documents/${document.documentHash}/accesses?page[after]=2&page[size]=2`,
+            `/documents/${document.documentHash}/accesses?page[after]=3&page[size]=2`,
           ),
         },
       });
@@ -1116,8 +1128,14 @@ describe("Documents Module", () => {
             permission: "write",
             subject: grantedDidEbsiAccount,
           },
+          {
+            grantedBy: document.didEbsiCreator,
+            documentId: document.documentHash,
+            permission: "delegate",
+            subject: grantedDidKeyAccount,
+          },
         ] satisfies DocumentAccesses,
-        total: 3,
+        total: 5,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
@@ -1127,16 +1145,14 @@ describe("Documents Module", () => {
             `/documents/${document.documentHash}/accesses?page[after]=1&page[size]=2`,
           ),
           next: expect.stringContaining(
-            `/documents/${document.documentHash}/accesses?page[after]=2&page[size]=2`,
+            `/documents/${document.documentHash}/accesses?page[after]=3&page[size]=2`,
           ),
           last: expect.stringContaining(
-            `/documents/${document.documentHash}/accesses?page[after]=2&page[size]=2`,
+            `/documents/${document.documentHash}/accesses?page[after]=3&page[size]=2`,
           ),
         },
       });
-      expect((response2.body as { items: string }).items).toHaveLength(
-        document.events.slice(2, 4).length,
-      );
+      expect((response2.body as { items: string }).items).toHaveLength(2);
       expect(response2.status).toBe(200);
 
       // big page
@@ -1148,20 +1164,20 @@ describe("Documents Module", () => {
           `/documents/${document.documentHash}/accesses?page[after]=100&page[size]=2`,
         ),
         items: [],
-        total: DOCUMENT_EVENTS,
+        total: 5,
         pageSize: 2,
         links: {
           first: expect.stringContaining(
             `/documents/${document.documentHash}/accesses?page[after]=1&page[size]=2`,
           ),
           prev: expect.stringContaining(
-            `/documents/${document.documentHash}/accesses?page[after]=2&page[size]=2`,
+            `/documents/${document.documentHash}/accesses?page[after]=3&page[size]=2`,
           ),
           next: expect.stringContaining(
-            `/documents/${document.documentHash}/accesses?page[after]=2&page[size]=2`,
+            `/documents/${document.documentHash}/accesses?page[after]=3&page[size]=2`,
           ),
           last: expect.stringContaining(
-            `/documents/${document.documentHash}/accesses?page[after]=2&page[size]=2`,
+            `/documents/${document.documentHash}/accesses?page[after]=3&page[size]=2`,
           ),
         },
       });
@@ -1195,8 +1211,20 @@ describe("Documents Module", () => {
             permission: "write",
             subject: grantedDidEbsiAccount,
           },
+          {
+            grantedBy: document.didEbsiCreator,
+            documentId: document.documentHash,
+            permission: "delegate",
+            subject: grantedDidKeyAccount,
+          },
+          {
+            grantedBy: document.didEbsiCreator,
+            documentId: document.documentHash,
+            permission: "write",
+            subject: grantedDidKeyAccount,
+          },
         ] satisfies DocumentAccesses,
-        total: 3,
+        total: 5,
         pageSize: 10,
         links: {
           first: expect.stringContaining(
@@ -1213,9 +1241,7 @@ describe("Documents Module", () => {
           ),
         },
       });
-      expect((response4.body as { items: string }).items).toHaveLength(
-        DOCUMENT_EVENTS,
-      );
+      expect((response4.body as { items: string }).items).toHaveLength(5);
       expect(response4.status).toBe(200);
     });
 

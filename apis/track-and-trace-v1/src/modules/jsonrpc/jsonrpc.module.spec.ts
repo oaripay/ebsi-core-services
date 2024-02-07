@@ -8,7 +8,7 @@ import {
   expect,
 } from "vitest";
 import request from "supertest";
-import { randomBytes } from "crypto";
+import { randomBytes } from "node:crypto";
 import { Test, type TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
 import { ValidationPipe, Logger } from "@nestjs/common";
@@ -32,6 +32,8 @@ import {
   TrackAndTrace,
   TrackAndTrace__factory,
 } from "@ebsiint-sc/track-and-trace";
+import { util } from "@cef-ebsi/key-did-resolver";
+import { encode } from "@ebsiint-api/shared";
 import { JsonRpcModule } from "./jsonrpc.module.js";
 import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
 import { formatEthersUnsignedTransaction } from "./jsonrpc.utils.js";
@@ -44,7 +46,9 @@ import type {
   AuthoriseDidSchema,
   CreateDocumentSchema,
   RemoveDocumentSchema,
+  WriteEventSchema,
 } from "./validators/index.js";
+import { didToHex } from "../../shared/utils.js";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -64,7 +68,8 @@ interface UserDetails {
 type JsonRpcParams =
   | AuthoriseDidSchema
   | CreateDocumentSchema
-  | RemoveDocumentSchema;
+  | RemoveDocumentSchema
+  | WriteEventSchema;
 
 describe("JsonRpc Module", () => {
   let app: NestFastifyApplication;
@@ -74,11 +79,40 @@ describe("JsonRpc Module", () => {
   let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
   let ledgerService: LedgerService;
 
-  let user1: UserDetails;
-  let user2: UserDetails;
+  const user1 = {
+    did: "did:ebsi:zf62uhvaQuUZty6sMxz9qVV",
+    wallet: ethers.Wallet.createRandom(),
+    accessToken: {
+      tntAuthorise: "",
+      tntCreate: "",
+      tntWrite: "",
+    },
+  } satisfies UserDetails;
+  const user2 = {
+    did: "did:ebsi:z25eGB9RuaYR1nQGpH6mvm4Q",
+    wallet: ethers.Wallet.createRandom(),
+    accessToken: {
+      tntAuthorise: "",
+      tntCreate: "",
+      tntWrite: "",
+    },
+  } satisfies UserDetails;
+  const user3Wallet = ethers.Wallet.createRandom();
+  const user3PublicKeyJwk = encode.publicKey.fromHexToJWK(
+    user3Wallet.publicKey,
+  );
+  const user3 = {
+    did: util.createDid(user3PublicKeyJwk),
+    wallet: user3Wallet,
+    accessToken: {
+      tntAuthorise: "",
+      tntCreate: "",
+      tntWrite: "",
+    },
+  } satisfies UserDetails;
+
   let authApiKeyPair: GenerateKeyPairResult;
   let authApiKid: string;
-  const documentHash1 = `0x${randomBytes(32).toString("hex")}`;
 
   const mockServer = setupServer();
 
@@ -153,16 +187,6 @@ describe("JsonRpc Module", () => {
         .sign(authApiKeyPair.privateKey);
     };
 
-    user1 = {
-      did: "did:ebsi:zf62uhvaQuUZty6sMxz9qVV",
-      wallet: ethers.Wallet.createRandom(),
-      accessToken: {
-        tntAuthorise: "",
-        tntCreate: "",
-        tntWrite: "",
-      },
-    };
-
     user1.accessToken.tntAuthorise = await createAccessToken(
       user1.did,
       "openid tnt_authorise",
@@ -176,16 +200,6 @@ describe("JsonRpc Module", () => {
       "openid tnt_write",
     );
 
-    user2 = {
-      did: "did:ebsi:z25eGB9RuaYR1nQGpH6mvm4Q",
-      wallet: ethers.Wallet.createRandom(),
-      accessToken: {
-        tntAuthorise: "",
-        tntCreate: "",
-        tntWrite: "",
-      },
-    };
-
     user2.accessToken.tntAuthorise = await createAccessToken(
       user2.did,
       "openid tnt_authorise",
@@ -196,6 +210,19 @@ describe("JsonRpc Module", () => {
     );
     user2.accessToken.tntWrite = await createAccessToken(
       user2.did,
+      "openid tnt_write",
+    );
+
+    user3.accessToken.tntAuthorise = await createAccessToken(
+      user3.did,
+      "openid tnt_authorise",
+    );
+    user3.accessToken.tntCreate = await createAccessToken(
+      user3.did,
+      "openid tnt_create",
+    );
+    user3.accessToken.tntWrite = await createAccessToken(
+      user3.did,
       "openid tnt_write",
     );
 
@@ -216,6 +243,32 @@ describe("JsonRpc Module", () => {
         }),
       ),
     );
+
+    // Grant "write" access to user1 and user3 on documentsWithBlockSource[0]
+    const { trackAndTraceContract, creatorAccount } = testEnv;
+    const document = testEnv.documentsWithBlockSource[0]!;
+
+    const txWrite1 = await trackAndTraceContract.grantAccess(
+      document.documentHash,
+      Buffer.from(creatorAccount),
+      await didToHex(user1.did),
+      0,
+      0,
+      1,
+    );
+
+    await txWrite1.wait();
+
+    const txWrite2 = await trackAndTraceContract.grantAccess(
+      document.documentHash,
+      Buffer.from(creatorAccount),
+      await didToHex(user3.did),
+      0,
+      1,
+      1,
+    );
+
+    await txWrite2.wait();
   });
 
   afterEach(() => {
@@ -544,274 +597,502 @@ describe("JsonRpc Module", () => {
     });
   });
 
+  const documentHash1 = `0x${randomBytes(32).toString("hex")}`;
+
   // Tests to be repeated for every method
   describe.each([
-    "authoriseDid",
-    "createDocument",
-    "createDocument(external timestamp)",
-    "removeDocument",
-  ] as const)("/jsonrpc with method %s", (m) => {
-    const method = m.replace("(external timestamp)", "");
-    it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction", async () => {
-      expect.assertions(4);
+    { method: "authoriseDid", user: user1 },
+    { method: "createDocument", user: user1 },
+    { method: "createDocument(external timestamp)", user: user1 },
+    { method: "writeEvent", user: user1 },
+    { method: "writeEvent", user: user3 },
+    { method: "writeEvent(external timestamp)", user: user1 },
+    { method: "removeDocument", user: user1 },
+  ] as const)(
+    "/jsonrpc with method $method (user: $user.did)",
+    ({ method, user }) => {
+      it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction", async () => {
+        expect.assertions(4);
 
-      let param: JsonRpcParams;
-      let accessToken: string;
-      const signer = ethers.Wallet.createRandom();
+        let param: JsonRpcParams;
+        let accessToken: string;
+        const signer = user.wallet;
 
-      switch (m) {
-        case "authoriseDid": {
-          param = {
-            from: signer.address,
-            didEbsi: user1.did,
-            whiteList: true,
-          } satisfies AuthoriseDidSchema;
-          accessToken = user1.accessToken.tntAuthorise;
-          break;
-        }
-        case "createDocument": {
-          param = {
-            from: signer.address,
-            documentHash: documentHash1,
-            documentMetadata: "test metadata",
-            didEbsiCreator: user1.did,
-          } satisfies CreateDocumentSchema;
-          accessToken = user1.accessToken.tntCreate;
-          break;
-        }
-        case "createDocument(external timestamp)": {
-          param = {
-            from: signer.address,
-            documentHash: `0x${randomBytes(32).toString("hex")}`,
-            documentMetadata: "test metadata",
-            didEbsiCreator: user1.did,
-            timestamp: Math.floor(Date.now() / 1000),
-            timestampProof: `0x${randomBytes(32).toString("hex")}`,
-          } satisfies CreateDocumentSchema;
-          accessToken = user1.accessToken.tntCreate;
-          break;
-        }
-        case "removeDocument": {
-          param = {
-            from: signer.address,
-            documentHash: documentHash1,
-          } satisfies RemoveDocumentSchema;
-          accessToken = user1.accessToken.tntWrite;
-          break;
-        }
-        default: {
-          throw new Error(`Test Error: Invalid method ${m as string}`);
-        }
-      }
-
-      const responseBuild: SupertestJsonRpcResponse = await request(server)
-        .post("/jsonrpc")
-        .auth(accessToken, { type: "bearer" })
-        .send({
-          jsonrpc: "2.0",
-          method,
-          params: [param],
-          id: 231,
-        });
-
-      expect(responseBuild.body).toStrictEqual({
-        jsonrpc: "2.0",
-        id: 231,
-        result: {
-          chainId: expect.any(String),
-          data: expect.any(String),
-          from: param.from,
-          gasLimit: expect.any(String),
-          gasPrice: expect.any(String),
-          nonce: expect.any(String),
-          to: expect.any(String),
-          value: "0x0",
-        },
-      });
-      expect(responseBuild.status).toBe(200);
-
-      const unsignedTransaction = responseBuild.body.result;
-      const uTx = formatEthersUnsignedTransaction(
-        JSON.parse(JSON.stringify(unsignedTransaction)) as UnsignedTransaction,
-      );
-      uTx.chainId = Number(uTx.chainId);
-      const sgnTx = await signer.signTransaction(uTx);
-      const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
-
-      const responseSend = await request(server)
-        .post("/jsonrpc")
-        .auth(accessToken, { type: "bearer" })
-        .send({
-          jsonrpc: "2.0",
-          method: "sendSignedTransaction",
-          params: [
-            {
-              protocol: "eth",
-              unsignedTransaction,
-              r,
-              s,
-              v: `0x${Number(v).toString(16)}`,
-              signedRawTransaction: sgnTx,
-            },
-          ],
-          id: "45",
-        });
-
-      expect(responseSend.body).toStrictEqual({
-        jsonrpc: "2.0",
-        id: "45",
-        result: expect.any(String),
-      });
-      expect(responseSend.status).toBe(200);
-    });
-
-    it(`should throw an Invalid Request error for bad use of ${method}`, async () => {
-      const signer = ethers.Wallet.createRandom();
-
-      const testSetup: {
-        params: JsonRpcParams;
-        expectedErrorMessage: string;
-        accessToken: string;
-      }[] = [];
-
-      switch (m) {
-        case "authoriseDid": {
-          // Invalid access token (not the right sub)
-          testSetup.push({
-            params: {
+        switch (method) {
+          case "authoriseDid": {
+            param = {
               from: signer.address,
-              didEbsi: user1.did,
+              didEbsi: user.did,
               whiteList: true,
-            } satisfies AuthoriseDidSchema,
-            expectedErrorMessage:
-              "Access token sub doesn't match the DID from the payload",
-            accessToken: user2.accessToken.tntAuthorise,
-          });
-
-          testSetup.push({
-            params: {
+            } satisfies AuthoriseDidSchema;
+            accessToken = user.accessToken.tntAuthorise;
+            break;
+          }
+          case "createDocument": {
+            param = {
               from: signer.address,
-              didEbsi: "did:ebsi:znxntxQrN369GsNyjFjYb8fuvU7g3sJGyYGwMTcUGdzuy",
-              whiteList: true,
-            } satisfies AuthoriseDidSchema,
-            expectedErrorMessage:
-              "Invalid 'params.0.didEbsi': Unsupported version \"2\"",
-            accessToken: user1.accessToken.tntAuthorise,
-          });
-
-          break;
-        }
-        case "createDocument": {
-          testSetup.push({
-            params: {
+              documentHash: documentHash1,
+              documentMetadata: "test metadata",
+              didEbsiCreator: user.did,
+            } satisfies CreateDocumentSchema;
+            accessToken = user.accessToken.tntCreate;
+            break;
+          }
+          case "createDocument(external timestamp)": {
+            param = {
               from: signer.address,
               documentHash: `0x${randomBytes(32).toString("hex")}`,
               documentMetadata: "test metadata",
-              didEbsiCreator: user1.did,
-            } satisfies CreateDocumentSchema,
-            expectedErrorMessage:
-              "'createDocument' requires an access token with the scope 'tnt_create'",
-            accessToken: user1.accessToken.tntAuthorise,
-          });
-
-          testSetup.push({
-            params: {
-              from: signer.address,
-              documentHash: `bad-document-hash`,
-              documentMetadata: "test metadata",
-              didEbsiCreator: user1.did,
-            } satisfies CreateDocumentSchema,
-            expectedErrorMessage:
-              "Invalid 'params.0.documentHash': Must start with 0x",
-            accessToken: user1.accessToken.tntCreate,
-          });
-
-          break;
-        }
-        case "createDocument(external timestamp)": {
-          testSetup.push({
-            params: {
-              from: signer.address,
-              documentHash: `0x${randomBytes(32).toString("hex")}`,
-              documentMetadata: "test metadata",
-              didEbsiCreator: user1.did,
-              timestamp: "bad-timestamp",
-              timestampProof: `0x${randomBytes(32).toString("hex")}`,
-            } satisfies CreateDocumentSchema,
-            expectedErrorMessage: "Invalid 'params.0.timestamp': Invalid input",
-            accessToken: user1.accessToken.tntCreate,
-          });
-
-          testSetup.push({
-            params: {
-              from: signer.address,
-              documentHash: `0x${randomBytes(32).toString("hex")}`,
-              documentMetadata: "test metadata",
-              didEbsiCreator: user1.did,
+              didEbsiCreator: user.did,
               timestamp: Math.floor(Date.now() / 1000),
-              timestampProof: "bad proof",
-            } satisfies CreateDocumentSchema,
-            expectedErrorMessage:
-              "Invalid 'params.0.timestampProof': Must start with 0x",
-            accessToken: user1.accessToken.tntCreate,
-          });
-
-          break;
-        }
-        case "removeDocument": {
-          testSetup.push({
-            params: {
+              timestampProof: `0x${randomBytes(32).toString("hex")}`,
+            } satisfies CreateDocumentSchema;
+            accessToken = user.accessToken.tntCreate;
+            break;
+          }
+          case "writeEvent": {
+            // TODO: check why it returns "NotDidController()"
+            const document = testEnv.documentsWithBlockSource[0]!;
+            param = {
               from: signer.address,
-              documentHash: `0x${randomBytes(32).toString("hex")}`,
-            } satisfies RemoveDocumentSchema,
-            expectedErrorMessage:
-              "'removeDocument' requires an access token with the scope 'tnt_write'",
-            accessToken: user1.accessToken.tntAuthorise,
-          });
-
-          testSetup.push({
-            params: {
+              eventParams: {
+                documentHash: document.documentHash,
+                externalHash: `0x${randomBytes(32).toString("hex")}`,
+                sender: await didToHex(user.did),
+                origin: "",
+                metadata: "test event metadata",
+              },
+            } satisfies WriteEventSchema;
+            accessToken = user.accessToken.tntWrite;
+            break;
+          }
+          case "writeEvent(external timestamp)": {
+            const document = testEnv.documentsWithBlockSource[0]!;
+            param = {
               from: signer.address,
-              documentHash: `bad-document-hash`,
-            } satisfies RemoveDocumentSchema,
-            expectedErrorMessage:
-              "Invalid 'params.0.documentHash': Must start with 0x",
-            accessToken: user1.accessToken.tntWrite,
-          });
-
-          break;
+              eventParams: {
+                documentHash: document.documentHash,
+                externalHash: `0x${randomBytes(32).toString("hex")}`,
+                sender: await didToHex(user.did),
+                origin: "",
+                metadata: "test event metadata",
+              },
+              timestamp: Math.floor(Date.now() / 1000),
+              timestampProof: `0x${randomBytes(32).toString("hex")}`,
+            } satisfies WriteEventSchema;
+            accessToken = user.accessToken.tntWrite;
+            break;
+          }
+          case "removeDocument": {
+            param = {
+              from: signer.address,
+              documentHash: documentHash1,
+            } satisfies RemoveDocumentSchema;
+            accessToken = user.accessToken.tntWrite;
+            break;
+          }
+          default: {
+            // TS will return an error if we forget to cover a case
+            const exhaustiveCheck: never = method;
+            throw new Error(
+              `Test Error: Invalid method ${exhaustiveCheck as string}`,
+            );
+          }
         }
-        default: {
-          throw new Error(`Test Error: Invalid method ${m as string}`);
-        }
-      }
 
-      expect.assertions(testSetup.length * 2);
-
-      // Run requests sequentially
-      // eslint-disable-next-line no-restricted-syntax
-      for (const setup of testSetup) {
-        // eslint-disable-next-line no-await-in-loop
-        const response = await request(server)
+        const responseBuild: SupertestJsonRpcResponse = await request(server)
           .post("/jsonrpc")
-          .auth(setup.accessToken, { type: "bearer" })
+          .auth(accessToken, { type: "bearer" })
           .send({
             jsonrpc: "2.0",
-            method,
-            params: [setup.params],
+            method: method.replace("(external timestamp)", ""),
+            params: [param],
             id: 231,
           });
 
-        expect(response.body).toStrictEqual({
+        expect(responseBuild.body).toStrictEqual({
           jsonrpc: "2.0",
           id: 231,
-          error: {
-            code: -32600,
-            message: expect.stringContaining(setup.expectedErrorMessage),
+          result: {
+            chainId: expect.any(String),
+            data: expect.any(String),
+            from: param.from,
+            gasLimit: expect.any(String),
+            gasPrice: expect.any(String),
+            nonce: expect.any(String),
+            to: expect.any(String),
+            value: "0x0",
           },
         });
-        expect(response.status).toBe(400);
-      }
-    });
-  });
+        expect(responseBuild.status).toBe(200);
+
+        const unsignedTransaction = responseBuild.body.result;
+        const uTx = formatEthersUnsignedTransaction(
+          JSON.parse(
+            JSON.stringify(unsignedTransaction),
+          ) as UnsignedTransaction,
+        );
+        uTx.chainId = Number(uTx.chainId);
+        const sgnTx = await signer.signTransaction(uTx);
+        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+        const responseSend = await request(server)
+          .post("/jsonrpc")
+          .auth(accessToken, { type: "bearer" })
+          .send({
+            jsonrpc: "2.0",
+            method: "sendSignedTransaction",
+            params: [
+              {
+                protocol: "eth",
+                unsignedTransaction,
+                r,
+                s,
+                v: `0x${Number(v).toString(16)}`,
+                signedRawTransaction: sgnTx,
+              },
+            ],
+            id: "45",
+          });
+
+        expect(responseSend.body).toStrictEqual({
+          jsonrpc: "2.0",
+          id: "45",
+          result: expect.any(String),
+        });
+        expect(responseSend.status).toBe(200);
+      });
+
+      it(`should throw an Invalid Request error for bad use of ${method}`, async () => {
+        const signer = ethers.Wallet.createRandom();
+
+        const testSetup: {
+          params: JsonRpcParams;
+          expectedErrorMessage: string;
+          accessToken: string;
+        }[] = [];
+
+        switch (method) {
+          case "authoriseDid": {
+            // Invalid access token (not the right sub)
+            testSetup.push({
+              params: {
+                from: signer.address,
+                didEbsi: user.did,
+                whiteList: true,
+              } satisfies AuthoriseDidSchema,
+              expectedErrorMessage:
+                "Access token sub doesn't match the DID from the payload",
+              accessToken: user2.accessToken.tntAuthorise,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                didEbsi:
+                  "did:ebsi:znxntxQrN369GsNyjFjYb8fuvU7g3sJGyYGwMTcUGdzuy",
+                whiteList: true,
+              } satisfies AuthoriseDidSchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.didEbsi': Unsupported version \"2\"",
+              accessToken: user.accessToken.tntAuthorise,
+            });
+
+            break;
+          }
+          case "createDocument": {
+            testSetup.push({
+              params: {
+                from: signer.address,
+                documentHash: `0x${randomBytes(32).toString("hex")}`,
+                documentMetadata: "test metadata",
+                didEbsiCreator: user.did,
+              } satisfies CreateDocumentSchema,
+              expectedErrorMessage:
+                "'createDocument' requires an access token with the scope 'tnt_create'",
+              accessToken: user.accessToken.tntAuthorise,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                documentHash: `bad-document-hash`,
+                documentMetadata: "test metadata",
+                didEbsiCreator: user.did,
+              } satisfies CreateDocumentSchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.documentHash': Must start with 0x",
+              accessToken: user.accessToken.tntCreate,
+            });
+
+            break;
+          }
+          case "createDocument(external timestamp)": {
+            testSetup.push({
+              params: {
+                from: signer.address,
+                documentHash: `0x${randomBytes(32).toString("hex")}`,
+                documentMetadata: "test metadata",
+                didEbsiCreator: user.did,
+                timestamp: "bad-timestamp",
+                timestampProof: `0x${randomBytes(32).toString("hex")}`,
+              } satisfies CreateDocumentSchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.timestamp': Invalid input",
+              accessToken: user.accessToken.tntCreate,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                documentHash: `0x${randomBytes(32).toString("hex")}`,
+                documentMetadata: "test metadata",
+                didEbsiCreator: user.did,
+                timestamp: Math.floor(Date.now() / 1000),
+                timestampProof: "bad proof",
+              } satisfies CreateDocumentSchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.timestampProof': Must start with 0x",
+              accessToken: user.accessToken.tntCreate,
+            });
+
+            break;
+          }
+          case "writeEvent": {
+            testSetup.push({
+              params: {
+                from: signer.address,
+                eventParams: {
+                  documentHash: documentHash1,
+                  externalHash: `0x${randomBytes(32).toString("hex")}`,
+                  sender: await didToHex(user.did),
+                  origin: "",
+                  metadata: "test event metadata",
+                },
+              } satisfies WriteEventSchema,
+              accessToken: user.accessToken.tntCreate,
+              expectedErrorMessage:
+                "'writeEvent' requires an access token with the scope 'tnt_write'",
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                eventParams: {
+                  documentHash: `bad-document-hash`, // Invalid hash
+                  externalHash: `0x${randomBytes(32).toString("hex")}`,
+                  sender: await didToHex(user.did),
+                  origin: "",
+                  metadata: "test event metadata",
+                },
+              } satisfies WriteEventSchema,
+              accessToken: user.accessToken.tntWrite,
+              expectedErrorMessage:
+                "Invalid 'params.0.eventParams.documentHash': Must start with 0x",
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                eventParams: {
+                  documentHash: documentHash1,
+                  externalHash: `0x${randomBytes(32).toString("hex")}`,
+                  sender: user.did, // DID is not encoded in hexadecimal
+                  origin: "",
+                  metadata: "test event metadata",
+                },
+              } satisfies WriteEventSchema,
+              accessToken: user.accessToken.tntWrite,
+              expectedErrorMessage: "Invalid 'params.0.eventParams.sender",
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                eventParams: {
+                  documentHash: documentHash1,
+                  externalHash: `0x${randomBytes(32).toString("hex")}`,
+                  sender: `0x${randomBytes(32).toString("hex")}`, // Not a DID
+                  origin: "",
+                  metadata: "test event metadata",
+                },
+              } satisfies WriteEventSchema,
+              accessToken: user.accessToken.tntWrite,
+              expectedErrorMessage:
+                "Invalid 'params.0.eventParams.sender': Unknown point format",
+            });
+
+            break;
+          }
+          case "writeEvent(external timestamp)": {
+            testSetup.push({
+              params: {
+                from: signer.address,
+                eventParams: {
+                  documentHash: documentHash1,
+                  externalHash: `0x${randomBytes(32).toString("hex")}`,
+                  sender: await didToHex(user.did),
+                  origin: "",
+                  metadata: "test event metadata",
+                },
+                timestamp: Math.floor(Date.now() / 1000),
+                timestampProof: `0x${randomBytes(32).toString("hex")}`,
+              } satisfies WriteEventSchema,
+              accessToken: user.accessToken.tntCreate,
+              expectedErrorMessage:
+                "'writeEvent' requires an access token with the scope 'tnt_write'",
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                eventParams: {
+                  documentHash: `bad-document-hash`, // Invalid hash
+                  externalHash: `0x${randomBytes(32).toString("hex")}`,
+                  sender: await didToHex(user.did),
+                  origin: "",
+                  metadata: "test event metadata",
+                },
+                timestamp: Math.floor(Date.now() / 1000),
+                timestampProof: `0x${randomBytes(32).toString("hex")}`,
+              } satisfies WriteEventSchema,
+              accessToken: user.accessToken.tntWrite,
+              expectedErrorMessage:
+                "Invalid 'params.0.eventParams.documentHash': Must start with 0x",
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                eventParams: {
+                  documentHash: documentHash1,
+                  externalHash: `0x${randomBytes(32).toString("hex")}`,
+                  sender: user.did, // DID is not encoded in hexadecimal
+                  origin: "",
+                  metadata: "test event metadata",
+                },
+                timestamp: Math.floor(Date.now() / 1000),
+                timestampProof: `0x${randomBytes(32).toString("hex")}`,
+              } satisfies WriteEventSchema,
+              accessToken: user.accessToken.tntWrite,
+              expectedErrorMessage: "Invalid 'params.0.eventParams.sender",
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                eventParams: {
+                  documentHash: documentHash1,
+                  externalHash: `0x${randomBytes(32).toString("hex")}`,
+                  sender: `0x${randomBytes(32).toString("hex")}`, // Not a DID
+                  origin: "",
+                  metadata: "test event metadata",
+                },
+                timestamp: Math.floor(Date.now() / 1000),
+                timestampProof: `0x${randomBytes(32).toString("hex")}`,
+              } satisfies WriteEventSchema,
+              accessToken: user.accessToken.tntWrite,
+              expectedErrorMessage:
+                "Invalid 'params.0.eventParams.sender': Unknown point format",
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                eventParams: {
+                  documentHash: documentHash1,
+                  externalHash: `0x${randomBytes(32).toString("hex")}`,
+                  sender: await didToHex(user.did),
+                  origin: "",
+                  metadata: "test event metadata",
+                },
+                timestamp: "bad-timestamp",
+                timestampProof: `0x${randomBytes(32).toString("hex")}`,
+              } satisfies WriteEventSchema,
+              accessToken: user.accessToken.tntWrite,
+              expectedErrorMessage:
+                "Invalid 'params.0.timestamp': Invalid input",
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                eventParams: {
+                  documentHash: documentHash1,
+                  externalHash: `0x${randomBytes(32).toString("hex")}`,
+                  sender: await didToHex(user.did),
+                  origin: "",
+                  metadata: "test event metadata",
+                },
+                timestamp: Math.floor(Date.now() / 1000),
+                timestampProof: "bad-proof",
+              } satisfies WriteEventSchema,
+              accessToken: user.accessToken.tntWrite,
+              expectedErrorMessage:
+                "Invalid 'params.0.timestampProof': Must start with 0x",
+            });
+
+            break;
+          }
+          case "removeDocument": {
+            testSetup.push({
+              params: {
+                from: signer.address,
+                documentHash: `0x${randomBytes(32).toString("hex")}`,
+              } satisfies RemoveDocumentSchema,
+              expectedErrorMessage:
+                "'removeDocument' requires an access token with the scope 'tnt_write'",
+              accessToken: user.accessToken.tntAuthorise,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                documentHash: `bad-document-hash`,
+              } satisfies RemoveDocumentSchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.documentHash': Must start with 0x",
+              accessToken: user.accessToken.tntWrite,
+            });
+
+            break;
+          }
+          default: {
+            // TS will return an error if we forget to cover a case
+            const exhaustiveCheck: never = method;
+            throw new Error(
+              `Test Error: Invalid method ${exhaustiveCheck as string}`,
+            );
+          }
+        }
+
+        expect.assertions(testSetup.length * 2);
+
+        // Run requests sequentially
+        // eslint-disable-next-line no-restricted-syntax
+        for (const setup of testSetup) {
+          // eslint-disable-next-line no-await-in-loop
+          const response = await request(server)
+            .post("/jsonrpc")
+            .auth(setup.accessToken, { type: "bearer" })
+            .send({
+              jsonrpc: "2.0",
+              method: method.replace("(external timestamp)", ""),
+              params: [setup.params],
+              id: 231,
+            });
+
+          expect(response.body).toStrictEqual({
+            jsonrpc: "2.0",
+            id: 231,
+            error: {
+              code: -32600,
+              message: expect.stringContaining(setup.expectedErrorMessage),
+            },
+          });
+          expect(response.status).toBe(400);
+        }
+      });
+    },
+  );
 });

@@ -165,7 +165,7 @@ describe("Accesses Module", () => {
       expect(response.status).toBe(200);
     });
 
-    it("should return the list of accesses given a DID", async () => {
+    it("should return the list of accesses given a DID (did:ebsi)", async () => {
       expect.assertions(2);
 
       const {
@@ -193,6 +193,7 @@ describe("Accesses Module", () => {
           permission: "write",
         });
       });
+
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           `/accesses?page[after]=1&page[size]=10&subject=${grantedDidEbsiAccount}`,
@@ -212,6 +213,57 @@ describe("Accesses Module", () => {
           ),
           last: expect.stringContaining(
             `/accesses?page[after]=1&page[size]=10&subject=${grantedDidEbsiAccount}`,
+          ),
+        },
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should return the list of accesses given a DID (did:key)", async () => {
+      expect.assertions(2);
+
+      const { creatorAccount, grantedDidKeyAccount, documentsWithBlockSource } =
+        testEnv;
+
+      const response = await request(server).get(
+        `/accesses?subject=${grantedDidKeyAccount}`,
+      );
+
+      const items: Access[] = [];
+      documentsWithBlockSource.forEach((doc) => {
+        items.push({
+          subject: grantedDidKeyAccount,
+          documentId: doc.documentHash,
+          grantedBy: creatorAccount,
+          permission: "delegate",
+        });
+        items.push({
+          subject: grantedDidKeyAccount,
+          documentId: doc.documentHash,
+          grantedBy: creatorAccount,
+          permission: "write",
+        });
+      });
+
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          `/accesses?page[after]=1&page[size]=10&subject=${grantedDidKeyAccount}`,
+        ),
+        items,
+        total: documentsWithBlockSource.length * 2,
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            `/accesses?page[after]=1&page[size]=10&subject=${grantedDidKeyAccount}`,
+          ),
+          prev: expect.stringContaining(
+            `/accesses?page[after]=1&page[size]=10&subject=${grantedDidKeyAccount}`,
+          ),
+          next: expect.stringContaining(
+            `/accesses?page[after]=1&page[size]=10&subject=${grantedDidKeyAccount}`,
+          ),
+          last: expect.stringContaining(
+            `/accesses?page[after]=1&page[size]=10&subject=${grantedDidKeyAccount}`,
           ),
         },
       });

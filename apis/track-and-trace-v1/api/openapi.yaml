@@ -700,15 +700,12 @@ paths:
           - **from**: Ethereum address of the signer
           - **eventParams**: Event parameters. JSON with the following fields:
             - **documentHash**: Document hash (hex string)
-            - **eventHash**: Event hash (hex string)
             - **externalHash**: External hash (string)
-            - **sender**: Sender (string)
+            - **sender**: Sender (hex string)
             - **origin**: Origin (string)
             - **metadata**: Metadata (string)
-          - **writer**: DID that writes the event (hex string format)
           - **timestamp** (optional): Timestamp as hex string. By default it uses takes the timestamp from the blockchain
           - **timestampProof** (optional): Timestamp proof as hex string. It must be defined when "timestamp" is defined
-          - **timestampSource** (optional): It should be defined when timestamp is defined. Its value should be 1 (external source)
 
           #### sendSignedTransaction
 
@@ -811,12 +808,10 @@ paths:
                     - from: "0xc9765eC58E49e6E386549CEAA34FB0d8bB69C320"
                     - eventParams:
                         - documentHash: "cd299cdabd6299907c31f7cdf112830bda9e2d9f5d33c9fc75dd62caa6b9bd67"
-                        - eventHash: "0x2c406e706b5a365d99fc52072edec3abac8a3e19a57e343df9033851c71631d2"
                         - externalHash: "external hash"
-                        - sender: did:ebsi:z23eve8qDNzYuNVqfSaErpuJ
+                        - sender: "0x6469643a656273693a7a663632756876615175555a747936734d787a39715656"
                         - origin: origin
                         - metadata: "test metadata"
-                    - writer: "0x6469643a656273693a7a32336576653871444e7a59754e5671665361457270754a"
                   id: 474
               Build tx to writeEvent (using external timestamp):
                 value:
@@ -826,15 +821,12 @@ paths:
                     - from: "0xc9765eC58E49e6E386549CEAA34FB0d8bB69C320"
                     - eventParams:
                         - documentHash: "cd299cdabd6299907c31f7cdf112830bda9e2d9f5d33c9fc75dd62caa6b9bd67"
-                        - eventHash: "0x2c406e706b5a365d99fc52072edec3abac8a3e19a57e343df9033851c71631d2"
                         - externalHash: "external hash"
-                        - sender: did:ebsi:z23eve8qDNzYuNVqfSaErpuJ
+                        - sender: "0x6469643a656273693a7a663632756876615175555a747936734d787a39715656"
                         - origin: origin
                         - metadata: "test metadata"
-                    - writer: "0x6469643a656273693a7a32336576653871444e7a59754e5671665361457270754a"
                     - timestamp: "0x65b776cb"
                     - timestampProof: "0x4d9f29fa5c0676e0888a3be59223609962c93b61c5c022d46812348aaae1b528"
-                    - timestampSource: "0x01"
                   id: 474
               Send Transaction:
                 value:

@@ -1,4 +1,4 @@
-import { ethers, upgrades } from "hardhat";
+import { ethers, upgrades, config } from "hardhat";
 import { BytesLike, Wallet } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { getImplementationAddress } from "@openzeppelin/upgrades-core";
@@ -470,6 +470,46 @@ describe("TrackAndTrace - tests", () => {
             longMetadata,
           }),
       ).to.be.revertedWith("");
+    });
+
+    it("should write event using a did:key", async () => {
+      const documentHash = ethers.utils.formatBytes32String("writeEvent02");
+      const creatorAcc = ethers.utils.toUtf8Bytes(creatorAccount);
+      const externalHash = "externalHash";
+
+      const { mnemonic, path } = config.networks.hardhat.accounts;
+      const walletDidKeyWithoutProvider = ethers.Wallet.fromMnemonic(
+        mnemonic,
+        `${path}/3`,
+      );
+      const walletDidKey = new ethers.Wallet(
+        walletDidKeyWithoutProvider.privateKey,
+        broadcaster.provider,
+      );
+
+      const pubDidKey = `0x${walletDidKey.publicKey.slice(4)}`;
+      const origin = "origin";
+      const metadata = "metadata";
+      await createDocument(documentHash);
+      await trackAndTrace.grantAccess(
+        documentHash,
+        creatorAcc,
+        pubDidKey,
+        0,
+        1,
+        1,
+      );
+      await expect(
+        trackAndTrace
+          .connect(walletDidKey)
+          ["writeEvent((bytes32,string,bytes,string,string))"]({
+            documentHash,
+            externalHash,
+            sender: pubDidKey,
+            origin,
+            metadata,
+          }),
+      ).to.emit(trackAndTrace, "EventWritten");
     });
 
     it("should not duplicate document IDs in getAccessesBySubject", async () => {

@@ -19,14 +19,11 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let configService: ConfigService<ApiConfig, true>;
-  let lastDocuments: {
-    documentId: string;
-    href: string;
-  }[] = [];
   let lastDocumentEvents: {
     eventId: string;
     href: string;
   }[] = [];
+  let documentWithEvents: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -52,65 +49,37 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
 
     server = getServer(app, configService);
 
-    // Get last documents
-    const getAllDocuments = await request(server).get(
-      "/documents?page[size]=50",
+    documentWithEvents = configService.get("testDocWithEvents", {
+      infer: true,
+    });
+
+    // Get last events
+    const getAllEvents = await request(server).get(
+      `/documents/${documentWithEvents}/events?page[size]=50`,
     );
-    const { total } = getAllDocuments.body as {
+    const { total: totalEvents } = getAllEvents.body as {
       total: number;
     };
 
-    if (total > 50) {
-      const getDocumentsLastPage = await request(server).get(
-        `/documents?page[after]=${Math.ceil(total / 10)}&page[size]=10`,
+    if (totalEvents > 50) {
+      const getEventsLastPage = await request(server).get(
+        `/documents/${documentWithEvents}/events?page[after]=${Math.ceil(totalEvents / 10)}&page[size]=10`,
       );
-      const { items: documents } = getDocumentsLastPage.body as {
+      const { items: events } = getEventsLastPage.body as {
         items: {
-          documentId: string;
+          eventId: string;
           href: string;
         }[];
       };
-      lastDocuments = documents;
-    } else if (total > 0) {
-      const { items: documents } = getAllDocuments.body as {
+      lastDocumentEvents = events;
+    } else if (totalEvents > 0) {
+      const { items: events } = getAllEvents.body as {
         items: {
-          documentId: string;
+          eventId: string;
           href: string;
         }[];
       };
-      lastDocuments = documents;
-    }
-
-    // Get last events
-    if (lastDocuments.length > 0) {
-      const lastDocument = lastDocuments[0]!;
-      const getAllEvents = await request(server).get(
-        `/documents/${lastDocument.documentId}/events?page[size]=50`,
-      );
-      const { total: totalEvents } = getAllEvents.body as {
-        total: number;
-      };
-
-      if (totalEvents > 50) {
-        const getEventsLastPage = await request(server).get(
-          `/documents/${lastDocument.documentId}/events?page[after]=${Math.ceil(totalEvents / 10)}&page[size]=10`,
-        );
-        const { items: events } = getEventsLastPage.body as {
-          items: {
-            eventId: string;
-            href: string;
-          }[];
-        };
-        lastDocumentEvents = events;
-      } else if (totalEvents > 0) {
-        const { items: events } = getAllEvents.body as {
-          items: {
-            eventId: string;
-            href: string;
-          }[];
-        };
-        lastDocumentEvents = events;
-      }
+      lastDocumentEvents = events;
     }
   });
 
@@ -202,18 +171,10 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
 
   describe("GET /documents/{documentId}", () => {
     it("should return a specific document", async () => {
-      if (lastDocuments.length === 0) {
-        // eslint-disable-next-line no-console
-        console.warn(
-          "Test 'GET /documents/{documentId} should return a specific document' skipped",
-        );
-        return;
-      }
-
       expect.assertions(3);
 
       const response = await request(server).get(
-        `/documents/${lastDocuments[0]!.documentId}`,
+        `/documents/${documentWithEvents}`,
       );
 
       expect(response.body).toStrictEqual(
@@ -405,20 +366,10 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
     });
 
     it("should return a paginated collection of events", async () => {
-      if (lastDocuments.length === 0) {
-        // eslint-disable-next-line no-console
-        console.warn(
-          "Test 'GET /documents/{documentId}/events should return a paginated collection of events' skipped",
-        );
-        return;
-      }
-
       expect.assertions(2);
 
-      const doc = lastDocuments[0]!;
-
       const response = await request(server).get(
-        `/documents/${doc.documentId}/events`,
+        `/documents/${documentWithEvents}/events`,
       );
 
       const total =
@@ -426,7 +377,7 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
 
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          `/documents/${doc.documentId}/events?page[after]=1&page[size]=10`,
+          `/documents/${documentWithEvents}/events?page[after]=1&page[size]=10`,
         ),
         items:
           total > 0
@@ -434,7 +385,7 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
                 {
                   eventId: expect.stringContaining("0x"),
                   href: expect.stringContaining(
-                    `/documents/${doc.documentId}/events/`,
+                    `/documents/${documentWithEvents}/events/`,
                   ),
                 },
               ])
@@ -443,16 +394,16 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/documents/${doc.documentId}/events?page[after]=1&page[size]=10`,
+            `/documents/${documentWithEvents}/events?page[after]=1&page[size]=10`,
           ),
           prev: expect.stringContaining(
-            `/documents/${doc.documentId}/events?page[after]=1&page[size]=10`,
+            `/documents/${documentWithEvents}/events?page[after]=1&page[size]=10`,
           ),
           next: expect.stringContaining(
-            `/documents/${doc.documentId}/events?page[after]=${total > 10 ? 2 : 1}&page[size]=10`,
+            `/documents/${documentWithEvents}/events?page[after]=${total > 10 ? 2 : 1}&page[size]=10`,
           ),
           last: expect.stringContaining(
-            `/documents/${doc.documentId}/events?page[after]=${Math.max(Math.ceil(total / 10), 1)}&page[size]=10`,
+            `/documents/${documentWithEvents}/events?page[after]=${Math.max(Math.ceil(total / 10), 1)}&page[size]=10`,
           ),
         },
       });
@@ -513,18 +464,10 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
 
   describe("GET /documents/{documentId}/events/{eventId}", () => {
     it("should return a specific event", async () => {
-      if (lastDocuments.length === 0 || lastDocumentEvents.length === 0) {
-        // eslint-disable-next-line no-console
-        console.warn(
-          "Test 'GET /documents/{documentId}/events/{eventId} should return a specific event' skipped",
-        );
-        return;
-      }
-
       expect.assertions(3);
 
       const response = await request(server).get(
-        `/documents/${lastDocuments[0]!.documentId}/events/${lastDocumentEvents[0]!.eventId}`,
+        `/documents/${documentWithEvents}/events/${lastDocumentEvents[0]!.eventId}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -643,20 +586,11 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
     });
 
     it("should throw an error if the event is not found", async () => {
-      if (lastDocuments.length === 0) {
-        // eslint-disable-next-line no-console
-        console.warn(
-          "Test 'GET /documents/{documentId} should return a specific document' skipped",
-        );
-        return;
-      }
-
       expect.assertions(3);
 
-      const document = lastDocuments[0]!;
       const wrongEventId = `0x${randomBytes(32).toString("hex")}`;
       const response = await request(server).get(
-        `/documents/${document.documentId}/events/${wrongEventId}`,
+        `/documents/${documentWithEvents}/events/${wrongEventId}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -762,20 +696,10 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
     });
 
     it("should return a paginated collection of accesses", async () => {
-      if (lastDocuments.length === 0) {
-        // eslint-disable-next-line no-console
-        console.warn(
-          "Test 'GET /documents/{documentId}/accesses should return a paginated collection of accesses' skipped",
-        );
-        return;
-      }
-
       expect.assertions(2);
 
-      const doc = lastDocuments[0]!;
-
       const response = await request(server).get(
-        `/documents/${doc.documentId}/accesses`,
+        `/documents/${documentWithEvents}/accesses`,
       );
 
       const total =
@@ -783,7 +707,7 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
 
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          `/documents/${doc.documentId}/accesses?page[after]=1&page[size]=10`,
+          `/documents/${documentWithEvents}/accesses?page[after]=1&page[size]=10`,
         ),
         items:
           total > 0
@@ -794,7 +718,7 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
                     /^(write|delegate|creator)$/,
                   ),
                   subject: expect.stringMatching(/^did:/),
-                  documentId: doc.documentId,
+                  documentId: documentWithEvents,
                 },
               ])
             : [],
@@ -802,16 +726,16 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/documents/${doc.documentId}/accesses?page[after]=1&page[size]=10`,
+            `/documents/${documentWithEvents}/accesses?page[after]=1&page[size]=10`,
           ),
           prev: expect.stringContaining(
-            `/documents/${doc.documentId}/accesses?page[after]=1&page[size]=10`,
+            `/documents/${documentWithEvents}/accesses?page[after]=1&page[size]=10`,
           ),
           next: expect.stringContaining(
-            `/documents/${doc.documentId}/accesses?page[after]=${total > 10 ? 2 : 1}&page[size]=10`,
+            `/documents/${documentWithEvents}/accesses?page[after]=${total > 10 ? 2 : 1}&page[size]=10`,
           ),
           last: expect.stringContaining(
-            `/documents/${doc.documentId}/accesses?page[after]=${Math.max(Math.ceil(total / 10), 1)}&page[size]=10`,
+            `/documents/${documentWithEvents}/accesses?page[after]=${Math.max(Math.ceil(total / 10), 1)}&page[size]=10`,
           ),
         },
       });
