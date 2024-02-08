@@ -48,6 +48,7 @@ import type {
   CreateDocumentSchema,
   RemoveDocumentSchema,
   GrantAccessSchema,
+  RevokeAccessSchema,
   WriteEventSchema,
 } from "./validators/index.js";
 import { didToHex } from "../../shared/utils.js";
@@ -72,6 +73,7 @@ type JsonRpcParams =
   | CreateDocumentSchema
   | RemoveDocumentSchema
   | GrantAccessSchema
+  | RevokeAccessSchema
   | WriteEventSchema;
 
 describe("JsonRpc Module", () => {
@@ -612,6 +614,8 @@ describe("JsonRpc Module", () => {
     },
     { test: "grantAccess", user: user1 },
     { test: "grantAccess(granted by did:key)", user: user3 },
+    { test: "revokeAccess(revoked by did:key)", user: user3 },
+    { test: "revokeAccess", user: user1 },
     { test: "writeEvent", user: user1 },
     { test: "writeEvent", user: user3 },
     { test: "writeEvent(external timestamp)", user: user1 },
@@ -621,7 +625,8 @@ describe("JsonRpc Module", () => {
     ({ test, user }) => {
       const method = test
         .replace("(external timestamp)", "")
-        .replace("(granted by did:key)", "");
+        .replace("(granted by did:key)", "")
+        .replace("(revoked by did:key)", "");
 
       it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction", async () => {
         expect.assertions(4);
@@ -681,12 +686,36 @@ describe("JsonRpc Module", () => {
               from: signer.address,
               documentHash: documentHash2,
               grantedByAccount: await didToHex(user3.did),
-              subjectAccount: await didToHex(EbsiWallet.createDid()),
+              subjectAccount: await didToHex(user2.did),
               grantedByAccType: 0,
               subjectAccType: 0,
               permission: 1,
             } satisfies GrantAccessSchema;
             accessToken = user3.accessToken.tntWrite;
+            break;
+          }
+          case "revokeAccess(revoked by did:key)": {
+            // access revoked by a did:key
+            param = {
+              from: signer.address,
+              documentHash: documentHash2,
+              revokeByAccount: await didToHex(user3.did),
+              subjectAccount: await didToHex(user2.did),
+              permission: 1,
+            } satisfies RevokeAccessSchema;
+            accessToken = user3.accessToken.tntWrite;
+            break;
+          }
+          case "revokeAccess": {
+            // access revoked by a did:ebsi
+            param = {
+              from: signer.address,
+              documentHash: documentHash2,
+              revokeByAccount: await didToHex(user.did),
+              subjectAccount: await didToHex(user3.did),
+              permission: 0,
+            } satisfies RevokeAccessSchema;
+            accessToken = user.accessToken.tntWrite;
             break;
           }
           case "writeEvent": {
@@ -953,6 +982,35 @@ describe("JsonRpc Module", () => {
               } satisfies GrantAccessSchema,
               expectedErrorMessage:
                 "Invalid 'params.0.subjectAccType': Number must be 0 (did:ebsi) or 1 (did:key)",
+              accessToken: user1.accessToken.tntWrite,
+            });
+
+            break;
+          }
+          case "revokeAccess(revoked by did:key)":
+          case "revokeAccess": {
+            testSetup.push({
+              params: {
+                from: signer.address,
+                documentHash: documentHash2,
+                revokeByAccount: `0x${Buffer.from("bad did").toString("hex")}`,
+                subjectAccount: `0x${Buffer.from(user2.did).toString("hex")}`,
+                permission: 0,
+              } satisfies RevokeAccessSchema,
+              expectedErrorMessage: `Invalid 'params.0.revokeByAccount': Unknown point format`,
+              accessToken: user1.accessToken.tntWrite,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                documentHash: documentHash2,
+                revokeByAccount: `0x${Buffer.from(user1.did).toString("hex")}`,
+                subjectAccount: `0x${Buffer.from(user2.did).toString("hex")}`,
+                permission: 10,
+              } satisfies RevokeAccessSchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.permission': Number must be 0 (delegate) or 1 (write)",
               accessToken: user1.accessToken.tntWrite,
             });
 

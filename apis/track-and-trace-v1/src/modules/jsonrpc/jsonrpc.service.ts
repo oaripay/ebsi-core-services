@@ -22,12 +22,14 @@ import {
   createDocumentSchema,
   removeDocumentSchema,
   grantAccessSchema,
+  revokeAccessSchema,
   writeEventSchema,
   requestAuthoriseDidDtoSchema,
   requestCreateDocumentDtoSchema,
   requestRemoveDocumentDtoSchema,
   requestGrantAccessDtoSchema,
   requestWriteEventDtoSchema,
+  requestRevokeAccessDtoSchema,
   requestSendSignedTransactionDtoSchema,
   type JsonRpcSchema,
   type SendSignedTransactionParamsSchema,
@@ -192,6 +194,14 @@ export class JsonRpcService {
         assertScopeContains(scope, [TNT_WRITE_SCOPE], functionFragment.name);
         const castArgs = await grantAccessSchema.parseAsync(argsObject);
         const did = hexToDid(castArgs.grantedByAccount);
+        assertDidMatchesSub(did, clientId);
+        break;
+      }
+      case "revokeAccess": {
+        assertScopeContains(scope, [TNT_WRITE_SCOPE], functionFragment.name);
+
+        const castArgs = await revokeAccessSchema.parseAsync(argsObject);
+        const did = hexToDid(castArgs.revokeByAccount);
         assertDidMatchesSub(did, clientId);
         break;
       }
@@ -403,6 +413,43 @@ export class JsonRpcService {
         subjectAccount,
         grantedByAccType,
         subjectAccType,
+        permission,
+      ]);
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
+      throw error;
+    }
+  }
+
+  async buildTransactionRevokeAccess(
+    body: JsonRpcSchema,
+    id: number | string | null | undefined,
+    _: string,
+    scope: string,
+  ): Promise<UnsignedTransaction> {
+    try {
+      assertScopeContains(scope, [TNT_WRITE_SCOPE], "grantAccess");
+
+      const parsedBody = await requestRevokeAccessDtoSchema.parseAsync(body);
+
+      const {
+        from,
+        documentHash,
+        revokeByAccount,
+        subjectAccount,
+        permission,
+      } = parsedBody.params[0]!;
+
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData("revokeAccess", [
+        documentHash,
+        revokeByAccount,
+        subjectAccount,
         permission,
       ]);
       return await this.buildTransaction(from, data);

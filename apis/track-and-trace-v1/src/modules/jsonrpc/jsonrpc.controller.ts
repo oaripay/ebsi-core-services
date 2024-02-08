@@ -92,6 +92,16 @@ export default class AppController {
           );
         return formatJsonRpcResponse(transaction, id);
       }
+      case "revokeAccess": {
+        const transaction =
+          await this.jsonRpcService.buildTransactionRevokeAccess(
+            body,
+            id,
+            sub,
+            scope,
+          );
+        return formatJsonRpcResponse(transaction, id);
+      }
       case "writeEvent": {
         const transaction =
           await this.jsonRpcService.buildTransactionWriteEvent(

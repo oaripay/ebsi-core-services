@@ -28,6 +28,7 @@ import type {
   CreateDocumentSchema,
   RemoveDocumentSchema,
   GrantAccessSchema,
+  RevokeAccessSchema,
   UnsignedTransaction,
   WriteEventSchema,
 } from "../../src/modules/jsonrpc/validators/index.js";
@@ -38,6 +39,7 @@ type JsonRpcParams =
   | CreateDocumentSchema
   | RemoveDocumentSchema
   | GrantAccessSchema
+  | RevokeAccessSchema
   | WriteEventSchema;
 
 interface SupertestJsonRpcResponse {
@@ -62,6 +64,7 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
   let configService: ConfigService<ApiConfig, true>;
   let ledgerApi: string;
   let user: TestUser;
+  const did1 = EbsiWallet.createDid();
   const documentHash1 = `0x${randomBytes(32).toString("hex")}`;
   const documentHash2 = `0x${randomBytes(32).toString("hex")}`;
 
@@ -147,6 +150,7 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
       "writeEvent(external timestamp)",
       "removeDocument",
       "grantAccess",
+      "revokeAccess",
     ] as const)("/jsonrpc - send transaction for %s", (m) => {
       const method = m.replace("(external timestamp)", "");
 
@@ -231,11 +235,22 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
               from: user.wallet.address,
               documentHash: documentHash2,
               grantedByAccount: await didToHex(user.info.did),
-              subjectAccount: await didToHex(EbsiWallet.createDid()),
+              subjectAccount: await didToHex(did1),
               grantedByAccType: 0,
               subjectAccType: 0,
               permission: 0,
             } satisfies GrantAccessSchema;
+            accessToken = user.accessToken.tntWrite;
+            break;
+          }
+          case "revokeAccess": {
+            params = {
+              from: user.wallet.address,
+              documentHash: documentHash2,
+              revokeByAccount: await didToHex(user.info.did),
+              subjectAccount: await didToHex(did1),
+              permission: 0,
+            } satisfies RevokeAccessSchema;
             accessToken = user.accessToken.tntWrite;
             break;
           }
