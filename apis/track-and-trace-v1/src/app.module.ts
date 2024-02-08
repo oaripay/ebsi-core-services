@@ -5,7 +5,6 @@ import { HealthModule } from "./modules/health/health.module.js";
 import { LoggingInterceptor } from "./interceptors/logging.interceptor.js";
 import { VersionInterceptor } from "./interceptors/version.interceptor.js";
 import { OpenApiModule } from "./modules/openapi/openapi.module.js";
-import { LedgerModule } from "./modules/ledger/ledger.module.js";
 import { DocumentsModule } from "./modules/documents/documents.module.js";
 import { AccessesModule } from "./modules/accesses/accesses.module.js";
 import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module.js";
@@ -17,7 +16,6 @@ import { AppController } from "./app.controller.js";
     ApiConfigModule,
     HealthModule,
     OpenApiModule,
-    LedgerModule,
     DocumentsModule,
     AccessesModule,
     JsonRpcModule,

@@ -2,12 +2,12 @@ import { Module, Logger } from "@nestjs/common";
 import { ApiConfigModule } from "../../config/configuration.js";
 import IdentifiersController from "./identifiers.controller.js";
 import IdentifiersService from "./identifiers.service.js";
-import { LedgerService } from "../ledger/ledger.service.js";
+import { LedgerModule } from "../ledger/ledger.module.js";
 
 @Module({
-  imports: [ApiConfigModule],
+  imports: [ApiConfigModule, LedgerModule],
   controllers: [IdentifiersController],
-  providers: [Logger, IdentifiersService, LedgerService],
+  providers: [Logger, IdentifiersService],
 })
 export class IdentifiersModule {}
 

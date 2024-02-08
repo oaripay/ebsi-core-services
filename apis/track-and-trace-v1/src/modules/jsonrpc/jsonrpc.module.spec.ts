@@ -74,7 +74,7 @@ type JsonRpcParams =
 describe("JsonRpc Module", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault;
-  let trackAndTraceRegistryContract: TrackAndTrace;
+  let trackAndTraceContract: TrackAndTrace;
   let configService: ConfigService<ApiConfig, true>;
   let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
   let ledgerService: LedgerService;
@@ -130,15 +130,15 @@ describe("JsonRpc Module", () => {
     // Spin up test blockchain (hardhat)
     testEnv = await setupTestEnv();
 
-    trackAndTraceRegistryContract = testEnv.trackAndTraceContract;
+    trackAndTraceContract = testEnv.trackAndTraceContract;
 
     vi.spyOn(LedgerService.prototype, "getContractAddress").mockImplementation(
-      () => trackAndTraceRegistryContract.address,
+      () => trackAndTraceContract.address,
     );
 
     // Mock TrackAndTrace contract
     vi.spyOn(TrackAndTrace__factory, "connect").mockImplementation(
-      () => trackAndTraceRegistryContract,
+      () => trackAndTraceContract,
     );
 
     // Start server
@@ -169,10 +169,10 @@ describe("JsonRpc Module", () => {
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
     vi.spyOn(ledgerService, "getContract").mockImplementation(async () =>
-      Promise.resolve(trackAndTraceRegistryContract),
+      Promise.resolve(trackAndTraceContract),
     );
 
-    // Generate key pair for Authorisation API v3 and create access token
+    // Generate key pair for Authorisation API v4 and create access token
     authApiKeyPair = await generateKeyPair("ES256");
     const publicKeyJwk = await exportJWK(authApiKeyPair.publicKey);
     authApiKid = await calculateJwkThumbprint(publicKeyJwk);
@@ -245,7 +245,7 @@ describe("JsonRpc Module", () => {
     );
 
     // Grant "write" access to user1 and user3 on documentsWithBlockSource[0]
-    const { trackAndTraceContract, creatorAccount } = testEnv;
+    const { creatorAccount } = testEnv;
     const document = testEnv.documentsWithBlockSource[0]!;
 
     const txWrite1 = await trackAndTraceContract.grantAccess(
