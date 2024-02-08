@@ -82,6 +82,16 @@ export default class AppController {
           );
         return formatJsonRpcResponse(transaction, id);
       }
+      case "grantAccess": {
+        const transaction =
+          await this.jsonRpcService.buildTransactionGrantAccess(
+            body,
+            id,
+            sub,
+            scope,
+          );
+        return formatJsonRpcResponse(transaction, id);
+      }
       case "writeEvent": {
         const transaction =
           await this.jsonRpcService.buildTransactionWriteEvent(

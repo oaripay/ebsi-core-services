@@ -13,6 +13,7 @@ import { ethers } from "ethers";
 import type { RawServerDefault } from "fastify";
 import { useContainer } from "class-validator";
 import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { waitToBeMined, encode } from "@ebsiint-api/shared";
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
@@ -26,6 +27,7 @@ import type {
   AuthoriseDidSchema,
   CreateDocumentSchema,
   RemoveDocumentSchema,
+  GrantAccessSchema,
   UnsignedTransaction,
   WriteEventSchema,
 } from "../../src/modules/jsonrpc/validators/index.js";
@@ -35,6 +37,7 @@ type JsonRpcParams =
   | AuthoriseDidSchema
   | CreateDocumentSchema
   | RemoveDocumentSchema
+  | GrantAccessSchema
   | WriteEventSchema;
 
 interface SupertestJsonRpcResponse {
@@ -60,6 +63,7 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
   let ledgerApi: string;
   let user: TestUser;
   const documentHash1 = `0x${randomBytes(32).toString("hex")}`;
+  const documentHash2 = `0x${randomBytes(32).toString("hex")}`;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -142,6 +146,7 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
       "writeEvent",
       "writeEvent(external timestamp)",
       "removeDocument",
+      "grantAccess",
     ] as const)("/jsonrpc - send transaction for %s", (m) => {
       const method = m.replace("(external timestamp)", "");
 
@@ -174,7 +179,7 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
           case "createDocument(external timestamp)": {
             params = {
               from: user.wallet.address,
-              documentHash: `0x${randomBytes(32).toString("hex")}`,
+              documentHash: documentHash2,
               documentMetadata: "test metadata",
               didEbsiCreator: user.info.did,
               timestamp: Math.floor(Date.now() / 1000),
@@ -218,6 +223,19 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
               from: user.wallet.address,
               documentHash: documentHash1,
             } satisfies RemoveDocumentSchema;
+            accessToken = user.accessToken.tntWrite;
+            break;
+          }
+          case "grantAccess": {
+            params = {
+              from: user.wallet.address,
+              documentHash: documentHash2,
+              grantedByAccount: await didToHex(user.info.did),
+              subjectAccount: await didToHex(EbsiWallet.createDid()),
+              grantedByAccType: 0,
+              subjectAccType: 0,
+              permission: 0,
+            } satisfies GrantAccessSchema;
             accessToken = user.accessToken.tntWrite;
             break;
           }

@@ -1,7 +1,6 @@
 import { z, type RefinementCtx } from "zod";
 import validator from "validator";
-import { isDidV1 } from "@ebsiint-api/shared";
-import { util } from "@cef-ebsi/key-did-resolver";
+import { isDid } from "@ebsiint-api/shared";
 import { hexToDid } from "../../../shared/utils.js";
 
 const validators = validator.default;
@@ -54,36 +53,14 @@ function isSender(
     };
   }
 
-  // Validate "did:ebsi" DID
-  if (did.startsWith("did:ebsi:")) {
-    const didValidation = isDidV1(did);
-    if (!didValidation.success) {
-      return {
-        success: false,
-        error: didValidation.error,
-      };
-    }
-    return { success: true };
+  const didValidation = isDid(did);
+  if (!didValidation.success) {
+    return {
+      success: false,
+      error: didValidation.error,
+    };
   }
-
-  // Validate "did:key" DID
-  if (did.startsWith("did:key:")) {
-    try {
-      util.validateDid(did);
-      return { success: true };
-    } catch (error) {
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "unknown error",
-      };
-    }
-  }
-
-  // Should be unreachable in theory
-  return {
-    success: false,
-    error: "The DID must either be a did:ebsi DID or a did:key DID",
-  };
+  return { success: true };
 }
 
 export const refinements = {

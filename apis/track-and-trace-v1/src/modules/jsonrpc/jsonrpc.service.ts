@@ -16,16 +16,19 @@ import {
   TNT_CREATE_SCOPE,
   TNT_WRITE_SCOPE,
 } from "../auth/auth.constants.js";
+import { hexToDid } from "../../shared/utils.js";
 import {
   authoriseDidSchema,
   createDocumentSchema,
   removeDocumentSchema,
+  grantAccessSchema,
+  writeEventSchema,
   requestAuthoriseDidDtoSchema,
   requestCreateDocumentDtoSchema,
   requestRemoveDocumentDtoSchema,
-  requestSendSignedTransactionDtoSchema,
+  requestGrantAccessDtoSchema,
   requestWriteEventDtoSchema,
-  writeEventSchema,
+  requestSendSignedTransactionDtoSchema,
   type JsonRpcSchema,
   type SendSignedTransactionParamsSchema,
   type UnsignedTransaction,
@@ -170,8 +173,7 @@ export class JsonRpcService {
           [TNT_AUTHORISE_SCOPE],
           functionFragment.name,
         );
-        const castArgs = await authoriseDidSchema.parseAsync(argsObject);
-        assertDidMatchesSub(castArgs.didEbsi, clientId);
+        await authoriseDidSchema.parseAsync(argsObject);
         break;
       }
       case "createDocument": {
@@ -186,6 +188,13 @@ export class JsonRpcService {
         await removeDocumentSchema.parseAsync(argsObject);
         break;
       }
+      case "grantAccess": {
+        assertScopeContains(scope, [TNT_WRITE_SCOPE], functionFragment.name);
+        const castArgs = await grantAccessSchema.parseAsync(argsObject);
+        const did = hexToDid(castArgs.grantedByAccount);
+        assertDidMatchesSub(did, clientId);
+        break;
+      }
       case "writeEvent": {
         assertScopeContains(scope, [TNT_WRITE_SCOPE], functionFragment.name);
 
@@ -195,7 +204,9 @@ export class JsonRpcService {
           );
         }
 
-        await writeEventSchema.parseAsync(argsObject);
+        const castArgs = await writeEventSchema.parseAsync(argsObject);
+        const did = hexToDid(castArgs.eventParams.sender);
+        assertDidMatchesSub(did, clientId);
         break;
       }
       default:
@@ -262,7 +273,7 @@ export class JsonRpcService {
   async buildTransactionAuthoriseDid(
     body: JsonRpcSchema,
     id: number | string | null | undefined,
-    sub: string,
+    _: string,
     scope: string,
   ): Promise<UnsignedTransaction> {
     try {
@@ -271,9 +282,6 @@ export class JsonRpcService {
       const parsedBody = await requestAuthoriseDidDtoSchema.parseAsync(body);
 
       const { from, didEbsi, whiteList } = parsedBody.params[0]!;
-
-      // Verify that the Access Token sub and the payload DID match
-      assertDidMatchesSub(didEbsi, sub);
 
       const data = (
         await this.ledgerService.getContract()
@@ -366,10 +374,51 @@ export class JsonRpcService {
     }
   }
 
-  async buildTransactionWriteEvent(
+  async buildTransactionGrantAccess(
     body: JsonRpcSchema,
     id: number | string | null | undefined,
     _: string,
+    scope: string,
+  ): Promise<UnsignedTransaction> {
+    try {
+      assertScopeContains(scope, [TNT_WRITE_SCOPE], "grantAccess");
+
+      const parsedBody = await requestGrantAccessDtoSchema.parseAsync(body);
+
+      const {
+        from,
+        documentHash,
+        grantedByAccount,
+        subjectAccount,
+        grantedByAccType,
+        subjectAccType,
+        permission,
+      } = parsedBody.params[0]!;
+
+      const data = (
+        await this.ledgerService.getContract()
+      ).interface.encodeFunctionData("grantAccess", [
+        documentHash,
+        grantedByAccount,
+        subjectAccount,
+        grantedByAccType,
+        subjectAccType,
+        permission,
+      ]);
+      return await this.buildTransaction(from, data);
+    } catch (err) {
+      const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
+      if (err instanceof Error && err.stack) {
+        error.stack = err.stack;
+      }
+      throw error;
+    }
+  }
+
+  async buildTransactionWriteEvent(
+    body: JsonRpcSchema,
+    id: number | string | null | undefined,
+    sub: string,
     scope: string,
   ): Promise<UnsignedTransaction> {
     try {
@@ -380,9 +429,8 @@ export class JsonRpcService {
       const { from, eventParams, timestamp, timestampProof } =
         parsedBody.params[0]!;
 
-      // TODO: assert if eventParams.sender = sub?
-      // Verify that the Access Token sub and the payload DID match
-      // assertDidMatchesSub(sender, sub);
+      const did = hexToDid(eventParams.sender);
+      assertDidMatchesSub(did, sub);
 
       let data: string;
       if (timestamp && timestampProof !== undefined) {

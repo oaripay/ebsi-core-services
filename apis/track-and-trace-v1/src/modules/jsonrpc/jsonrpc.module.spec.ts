@@ -32,6 +32,7 @@ import {
   TrackAndTrace,
   TrackAndTrace__factory,
 } from "@ebsiint-sc/track-and-trace";
+import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { util } from "@cef-ebsi/key-did-resolver";
 import { encode } from "@ebsiint-api/shared";
 import { JsonRpcModule } from "./jsonrpc.module.js";
@@ -46,6 +47,7 @@ import type {
   AuthoriseDidSchema,
   CreateDocumentSchema,
   RemoveDocumentSchema,
+  GrantAccessSchema,
   WriteEventSchema,
 } from "./validators/index.js";
 import { didToHex } from "../../shared/utils.js";
@@ -69,6 +71,7 @@ type JsonRpcParams =
   | AuthoriseDidSchema
   | CreateDocumentSchema
   | RemoveDocumentSchema
+  | GrantAccessSchema
   | WriteEventSchema;
 
 describe("JsonRpc Module", () => {
@@ -113,6 +116,8 @@ describe("JsonRpc Module", () => {
 
   let authApiKeyPair: GenerateKeyPairResult;
   let authApiKid: string;
+  const documentHash1 = `0x${randomBytes(32).toString("hex")}`;
+  const documentHash2 = `0x${randomBytes(32).toString("hex")}`;
 
   const mockServer = setupServer();
 
@@ -597,20 +602,27 @@ describe("JsonRpc Module", () => {
     });
   });
 
-  const documentHash1 = `0x${randomBytes(32).toString("hex")}`;
-
   // Tests to be repeated for every method
   describe.each([
-    { method: "authoriseDid", user: user1 },
-    { method: "createDocument", user: user1 },
-    { method: "createDocument(external timestamp)", user: user1 },
-    { method: "writeEvent", user: user1 },
-    { method: "writeEvent", user: user3 },
-    { method: "writeEvent(external timestamp)", user: user1 },
-    { method: "removeDocument", user: user1 },
+    { test: "authoriseDid", user: user1 },
+    { test: "createDocument", user: user1 },
+    {
+      test: "createDocument(external timestamp)",
+      user: user1,
+    },
+    { test: "grantAccess", user: user1 },
+    { test: "grantAccess(granted by did:key)", user: user3 },
+    { test: "writeEvent", user: user1 },
+    { test: "writeEvent", user: user3 },
+    { test: "writeEvent(external timestamp)", user: user1 },
+    { test: "removeDocument", user: user1 },
   ] as const)(
-    "/jsonrpc with method $method (user: $user.did)",
-    ({ method, user }) => {
+    "/jsonrpc with method $test (user: $user.did)",
+    ({ test, user }) => {
+      const method = test
+        .replace("(external timestamp)", "")
+        .replace("(granted by did:key)", "");
+
       it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction", async () => {
         expect.assertions(4);
 
@@ -618,7 +630,7 @@ describe("JsonRpc Module", () => {
         let accessToken: string;
         const signer = user.wallet;
 
-        switch (method) {
+        switch (test) {
           case "authoriseDid": {
             param = {
               from: signer.address,
@@ -641,7 +653,7 @@ describe("JsonRpc Module", () => {
           case "createDocument(external timestamp)": {
             param = {
               from: signer.address,
-              documentHash: `0x${randomBytes(32).toString("hex")}`,
+              documentHash: documentHash2,
               documentMetadata: "test metadata",
               didEbsiCreator: user.did,
               timestamp: Math.floor(Date.now() / 1000),
@@ -650,8 +662,34 @@ describe("JsonRpc Module", () => {
             accessToken = user.accessToken.tntCreate;
             break;
           }
+          case "grantAccess": {
+            // access granted by a did:ebsi
+            param = {
+              from: signer.address,
+              documentHash: documentHash2,
+              grantedByAccount: await didToHex(user.did),
+              subjectAccount: await didToHex(user3.did),
+              grantedByAccType: 0,
+              subjectAccType: 0,
+              permission: 0,
+            } satisfies GrantAccessSchema;
+            accessToken = user1.accessToken.tntWrite;
+            break;
+          }
+          case "grantAccess(granted by did:key)": {
+            param = {
+              from: signer.address,
+              documentHash: documentHash2,
+              grantedByAccount: await didToHex(user3.did),
+              subjectAccount: await didToHex(EbsiWallet.createDid()),
+              grantedByAccType: 0,
+              subjectAccType: 0,
+              permission: 1,
+            } satisfies GrantAccessSchema;
+            accessToken = user3.accessToken.tntWrite;
+            break;
+          }
           case "writeEvent": {
-            // TODO: check why it returns "NotDidController()"
             const document = testEnv.documentsWithBlockSource[0]!;
             param = {
               from: signer.address,
@@ -693,7 +731,7 @@ describe("JsonRpc Module", () => {
           }
           default: {
             // TS will return an error if we forget to cover a case
-            const exhaustiveCheck: never = method;
+            const exhaustiveCheck: never = test;
             throw new Error(
               `Test Error: Invalid method ${exhaustiveCheck as string}`,
             );
@@ -705,7 +743,7 @@ describe("JsonRpc Module", () => {
           .auth(accessToken, { type: "bearer" })
           .send({
             jsonrpc: "2.0",
-            method: method.replace("(external timestamp)", ""),
+            method,
             params: [param],
             id: 231,
           });
@@ -772,17 +810,15 @@ describe("JsonRpc Module", () => {
           accessToken: string;
         }[] = [];
 
-        switch (method) {
+        switch (test) {
           case "authoriseDid": {
-            // Invalid access token (not the right sub)
             testSetup.push({
               params: {
                 from: signer.address,
-                didEbsi: user.did,
+                didEbsi: "not did",
                 whiteList: true,
               } satisfies AuthoriseDidSchema,
-              expectedErrorMessage:
-                "Access token sub doesn't match the DID from the payload",
+              expectedErrorMessage: `Invalid 'params.0.didEbsi': The DID must start with "did:ebsi:"`,
               accessToken: user2.accessToken.tntAuthorise,
             });
 
@@ -858,6 +894,70 @@ describe("JsonRpc Module", () => {
 
             break;
           }
+          case "grantAccess": {
+            testSetup.push({
+              params: {
+                from: signer.address,
+                documentHash: documentHash2,
+                grantedByAccount: `0x${Buffer.from("bad did").toString("hex")}`,
+                subjectAccount: `0x${Buffer.from(user2.did).toString("hex")}`,
+                grantedByAccType: 0,
+                subjectAccType: 0,
+                permission: 0,
+              } satisfies GrantAccessSchema,
+              expectedErrorMessage: `Invalid 'params.0.grantedByAccount': Unknown point format`,
+              accessToken: user1.accessToken.tntWrite,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                documentHash: documentHash2,
+                grantedByAccount: `0x${Buffer.from(user1.did).toString("hex")}`,
+                subjectAccount: `0x${Buffer.from(user2.did).toString("hex")}`,
+                grantedByAccType: 0,
+                subjectAccType: 10,
+                permission: 0,
+              } satisfies GrantAccessSchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.subjectAccType': Number must be 0 (did:ebsi) or 1 (did:key)",
+              accessToken: user1.accessToken.tntWrite,
+            });
+
+            break;
+          }
+          case "grantAccess(granted by did:key)": {
+            testSetup.push({
+              params: {
+                from: signer.address,
+                documentHash: documentHash2,
+                grantedByAccount: `0x${Buffer.from("bad did").toString("hex")}`,
+                subjectAccount: `0x${Buffer.from(user2.did).toString("hex")}`,
+                grantedByAccType: 0,
+                subjectAccType: 0,
+                permission: 0,
+              } satisfies GrantAccessSchema,
+              expectedErrorMessage: `Invalid 'params.0.grantedByAccount': Unknown point format`,
+              accessToken: user1.accessToken.tntWrite,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                documentHash: documentHash2,
+                grantedByAccount: `0x${Buffer.from(user1.did).toString("hex")}`,
+                subjectAccount: `0x${Buffer.from(user2.did).toString("hex")}`,
+                grantedByAccType: 0,
+                subjectAccType: 10,
+                permission: 0,
+              } satisfies GrantAccessSchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.subjectAccType': Number must be 0 (did:ebsi) or 1 (did:key)",
+              accessToken: user1.accessToken.tntWrite,
+            });
+
+            break;
+          }
           case "writeEvent": {
             testSetup.push({
               params: {
@@ -920,6 +1020,22 @@ describe("JsonRpc Module", () => {
               accessToken: user.accessToken.tntWrite,
               expectedErrorMessage:
                 "Invalid 'params.0.eventParams.sender': Unknown point format",
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                eventParams: {
+                  documentHash: documentHash1,
+                  externalHash: `0x${randomBytes(32).toString("hex")}`,
+                  sender: await didToHex(EbsiWallet.createDid()),
+                  origin: "",
+                  metadata: "test event metadata",
+                },
+              } satisfies WriteEventSchema,
+              accessToken: user.accessToken.tntWrite,
+              expectedErrorMessage:
+                "Access token sub doesn't match the DID from the payload",
             });
 
             break;
@@ -1059,7 +1175,7 @@ describe("JsonRpc Module", () => {
           }
           default: {
             // TS will return an error if we forget to cover a case
-            const exhaustiveCheck: never = method;
+            const exhaustiveCheck: never = test;
             throw new Error(
               `Test Error: Invalid method ${exhaustiveCheck as string}`,
             );
@@ -1077,7 +1193,7 @@ describe("JsonRpc Module", () => {
             .auth(setup.accessToken, { type: "bearer" })
             .send({
               jsonrpc: "2.0",
-              method: method.replace("(external timestamp)", ""),
+              method,
               params: [setup.params],
               id: 231,
             });
