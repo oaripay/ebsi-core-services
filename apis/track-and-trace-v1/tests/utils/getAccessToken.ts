@@ -124,7 +124,7 @@ export async function getAccessToken(
       path_nested: {
         id: "tnt_authorise_credential",
         format: "jwt_vc",
-        path: "$.verifiableCredential[0]",
+        path: "$.vp.verifiableCredential[0]",
       },
     });
   }

@@ -8,10 +8,8 @@ import {
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
-import { TransactionRequest } from "@ethersproject/abstract-provider";
 import { ethers } from "ethers";
 import type { RawServerDefault } from "fastify";
-import { useContainer } from "class-validator";
 import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { waitToBeMined, encode } from "@ebsiint-api/shared";
@@ -33,6 +31,7 @@ import type {
   WriteEventSchema,
 } from "../../src/modules/jsonrpc/validators/index.js";
 import { didToHex } from "../../src/shared/utils.js";
+import { AccountType, Permission } from "../../src/shared/constants.js";
 
 type JsonRpcParams =
   | AuthoriseDidSchema
@@ -77,8 +76,6 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
       new FastifyAdapter(),
     );
 
-    useContainer(app.select(AppModule), { fallbackOnErrors: true });
-
     // Turn off logger
     Logger.overrideLogger(false);
 
@@ -94,9 +91,11 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
 
     ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
 
-    const kid = configService.get<string>("testUserKid");
+    const kid = configService.get<string>("testAuthorisedLegalEntityKid");
     const did = kid.split("#")[0] as string;
-    const privateKeyHex = configService.get<string>("testUserPrivateKey");
+    const privateKeyHex = configService.get<string>(
+      "testAuthorisedLegalEntityPrivateKey",
+    );
     const privateKeyJwk = encode.privateKey.fromHexToJWK(privateKeyHex);
     const { d, ...publicKeyJwk } = privateKeyJwk;
     user = {
@@ -107,7 +106,9 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
         tntCreate: "",
         tntWrite: "",
       },
-      vcOnboard: configService.get<string>("testUserVcOnboard"),
+      vcOnboard: configService.get<string>(
+        "testAuthorisedLegalEntityVcToOnboard",
+      ),
     };
   });
 
@@ -236,9 +237,9 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
               documentHash: documentHash2,
               grantedByAccount: await didToHex(user.info.did),
               subjectAccount: await didToHex(did1),
-              grantedByAccType: 0,
-              subjectAccType: 0,
-              permission: 0,
+              grantedByAccType: AccountType.DID_EBSI,
+              subjectAccType: AccountType.DID_EBSI,
+              permission: Permission.DELEGATE,
             } satisfies GrantAccessSchema;
             accessToken = user.accessToken.tntWrite;
             break;
@@ -247,7 +248,7 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
             params = {
               from: user.wallet.address,
               documentHash: documentHash2,
-              revokeByAccount: await didToHex(user.info.did),
+              revokedByAccount: await didToHex(user.info.did),
               subjectAccount: await didToHex(did1),
               permission: 0,
             } satisfies RevokeAccessSchema;
@@ -294,7 +295,7 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
           JSON.parse(
             JSON.stringify(unsignedTransaction),
           ) as UnsignedTransaction,
-        ) as TransactionRequest;
+        );
         uTx.chainId = Number(uTx.chainId);
         const sgnTx = await user.wallet.signTransaction(uTx);
         const { r, s, v } = ethers.utils.parseTransaction(sgnTx);

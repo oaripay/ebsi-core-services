@@ -201,7 +201,7 @@ export class JsonRpcService {
         assertScopeContains(scope, [TNT_WRITE_SCOPE], functionFragment.name);
 
         const castArgs = await revokeAccessSchema.parseAsync(argsObject);
-        const did = hexToDid(castArgs.revokeByAccount);
+        const did = hexToDid(castArgs.revokedByAccount);
         assertDidMatchesSub(did, clientId);
         break;
       }
@@ -439,7 +439,7 @@ export class JsonRpcService {
       const {
         from,
         documentHash,
-        revokeByAccount,
+        revokedByAccount,
         subjectAccount,
         permission,
       } = parsedBody.params[0]!;
@@ -448,7 +448,7 @@ export class JsonRpcService {
         await this.ledgerService.getContract()
       ).interface.encodeFunctionData("revokeAccess", [
         documentHash,
-        revokeByAccount,
+        revokedByAccount,
         subjectAccount,
         permission,
       ]);

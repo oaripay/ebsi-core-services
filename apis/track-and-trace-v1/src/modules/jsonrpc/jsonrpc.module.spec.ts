@@ -18,7 +18,6 @@ import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { useContainer } from "class-validator";
 import {
   calculateJwkThumbprint,
   SignJWT,
@@ -52,6 +51,7 @@ import type {
   WriteEventSchema,
 } from "./validators/index.js";
 import { didToHex } from "../../shared/utils.js";
+import { Permission, AccountType } from "../../shared/constants.js";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -156,8 +156,6 @@ describe("JsonRpc Module", () => {
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter(),
     );
-
-    useContainer(app.select(JsonRpcModule), { fallbackOnErrors: true });
 
     // Turn off logger
     Logger.overrideLogger(false);
@@ -674,9 +672,9 @@ describe("JsonRpc Module", () => {
               documentHash: documentHash2,
               grantedByAccount: await didToHex(user.did),
               subjectAccount: await didToHex(user3.did),
-              grantedByAccType: 0,
-              subjectAccType: 0,
-              permission: 0,
+              grantedByAccType: AccountType.DID_EBSI,
+              subjectAccType: AccountType.DID_KEY,
+              permission: Permission.DELEGATE,
             } satisfies GrantAccessSchema;
             accessToken = user1.accessToken.tntWrite;
             break;
@@ -687,9 +685,9 @@ describe("JsonRpc Module", () => {
               documentHash: documentHash2,
               grantedByAccount: await didToHex(user3.did),
               subjectAccount: await didToHex(user2.did),
-              grantedByAccType: 0,
-              subjectAccType: 0,
-              permission: 1,
+              grantedByAccType: AccountType.DID_KEY,
+              subjectAccType: AccountType.DID_EBSI,
+              permission: Permission.WRITE,
             } satisfies GrantAccessSchema;
             accessToken = user3.accessToken.tntWrite;
             break;
@@ -699,7 +697,7 @@ describe("JsonRpc Module", () => {
             param = {
               from: signer.address,
               documentHash: documentHash2,
-              revokeByAccount: await didToHex(user3.did),
+              revokedByAccount: await didToHex(user3.did),
               subjectAccount: await didToHex(user2.did),
               permission: 1,
             } satisfies RevokeAccessSchema;
@@ -711,7 +709,7 @@ describe("JsonRpc Module", () => {
             param = {
               from: signer.address,
               documentHash: documentHash2,
-              revokeByAccount: await didToHex(user.did),
+              revokedByAccount: await didToHex(user.did),
               subjectAccount: await didToHex(user3.did),
               permission: 0,
             } satisfies RevokeAccessSchema;
@@ -930,9 +928,9 @@ describe("JsonRpc Module", () => {
                 documentHash: documentHash2,
                 grantedByAccount: `0x${Buffer.from("bad did").toString("hex")}`,
                 subjectAccount: `0x${Buffer.from(user2.did).toString("hex")}`,
-                grantedByAccType: 0,
-                subjectAccType: 0,
-                permission: 0,
+                grantedByAccType: AccountType.DID_EBSI,
+                subjectAccType: AccountType.DID_EBSI,
+                permission: Permission.DELEGATE,
               } satisfies GrantAccessSchema,
               expectedErrorMessage: `Invalid 'params.0.grantedByAccount': Unknown point format`,
               accessToken: user1.accessToken.tntWrite,
@@ -944,12 +942,42 @@ describe("JsonRpc Module", () => {
                 documentHash: documentHash2,
                 grantedByAccount: `0x${Buffer.from(user1.did).toString("hex")}`,
                 subjectAccount: `0x${Buffer.from(user2.did).toString("hex")}`,
-                grantedByAccType: 0,
+                grantedByAccType: AccountType.DID_EBSI,
                 subjectAccType: 10,
-                permission: 0,
+                permission: Permission.DELEGATE,
               } satisfies GrantAccessSchema,
               expectedErrorMessage:
                 "Invalid 'params.0.subjectAccType': Number must be 0 (did:ebsi) or 1 (did:key)",
+              accessToken: user1.accessToken.tntWrite,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                documentHash: documentHash2,
+                grantedByAccount: `0x${Buffer.from(user1.did).toString("hex")}`,
+                subjectAccount: `0x${Buffer.from(user2.did).toString("hex")}`,
+                grantedByAccType: AccountType.DID_EBSI,
+                subjectAccType: AccountType.DID_KEY,
+                permission: Permission.DELEGATE,
+              } satisfies GrantAccessSchema,
+              expectedErrorMessage:
+                "Invalid 'params.0': subjectAccount and subjectAccType don't match",
+              accessToken: user1.accessToken.tntWrite,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                documentHash: documentHash2,
+                grantedByAccount: `0x${Buffer.from(user1.did).toString("hex")}`,
+                subjectAccount: `0x${Buffer.from(user2.did).toString("hex")}`,
+                grantedByAccType: AccountType.DID_KEY,
+                subjectAccType: AccountType.DID_EBSI,
+                permission: Permission.DELEGATE,
+              } satisfies GrantAccessSchema,
+              expectedErrorMessage:
+                "Invalid 'params.0': grantedByAccount and grantedByAccType don't match",
               accessToken: user1.accessToken.tntWrite,
             });
 
@@ -962,9 +990,9 @@ describe("JsonRpc Module", () => {
                 documentHash: documentHash2,
                 grantedByAccount: `0x${Buffer.from("bad did").toString("hex")}`,
                 subjectAccount: `0x${Buffer.from(user2.did).toString("hex")}`,
-                grantedByAccType: 0,
-                subjectAccType: 0,
-                permission: 0,
+                grantedByAccType: AccountType.DID_EBSI,
+                subjectAccType: AccountType.DID_EBSI,
+                permission: Permission.DELEGATE,
               } satisfies GrantAccessSchema,
               expectedErrorMessage: `Invalid 'params.0.grantedByAccount': Unknown point format`,
               accessToken: user1.accessToken.tntWrite,
@@ -976,9 +1004,9 @@ describe("JsonRpc Module", () => {
                 documentHash: documentHash2,
                 grantedByAccount: `0x${Buffer.from(user1.did).toString("hex")}`,
                 subjectAccount: `0x${Buffer.from(user2.did).toString("hex")}`,
-                grantedByAccType: 0,
+                grantedByAccType: AccountType.DID_EBSI,
                 subjectAccType: 10,
-                permission: 0,
+                permission: Permission.DELEGATE,
               } satisfies GrantAccessSchema,
               expectedErrorMessage:
                 "Invalid 'params.0.subjectAccType': Number must be 0 (did:ebsi) or 1 (did:key)",
@@ -993,11 +1021,11 @@ describe("JsonRpc Module", () => {
               params: {
                 from: signer.address,
                 documentHash: documentHash2,
-                revokeByAccount: `0x${Buffer.from("bad did").toString("hex")}`,
+                revokedByAccount: `0x${Buffer.from("bad did").toString("hex")}`,
                 subjectAccount: `0x${Buffer.from(user2.did).toString("hex")}`,
                 permission: 0,
               } satisfies RevokeAccessSchema,
-              expectedErrorMessage: `Invalid 'params.0.revokeByAccount': Unknown point format`,
+              expectedErrorMessage: `Invalid 'params.0.revokedByAccount': Unknown point format`,
               accessToken: user1.accessToken.tntWrite,
             });
 
@@ -1005,7 +1033,7 @@ describe("JsonRpc Module", () => {
               params: {
                 from: signer.address,
                 documentHash: documentHash2,
-                revokeByAccount: `0x${Buffer.from(user1.did).toString("hex")}`,
+                revokedByAccount: `0x${Buffer.from(user1.did).toString("hex")}`,
                 subjectAccount: `0x${Buffer.from(user2.did).toString("hex")}`,
                 permission: 10,
               } satisfies RevokeAccessSchema,

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { TransactionReceipt } from "@ethersproject/abstract-provider";
+import type { TransactionReceipt } from "@ethersproject/abstract-provider";
 import { parseRevertReason } from "./parseRevertReason.js";
 
 export interface TransactionReceiptBesu extends TransactionReceipt {
@@ -38,10 +38,9 @@ export const waitToBeMined = async (
     mined = !!receipt;
   } while (!mined);
 
-  if (receipt.revertReason)
+  if (receipt.revertReason) {
     receipt.revertReason = parseRevertReason(receipt.revertReason);
+  }
 
   return receipt;
 };
-
-export default waitToBeMined;

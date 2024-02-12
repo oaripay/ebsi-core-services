@@ -14,7 +14,7 @@ const { isHexadecimal, isSender } = refinements;
 export const revokeAccessSchema = baseParamSchema.merge(
   z.object({
     documentHash: z.string().superRefine(isHexadecimal),
-    revokeByAccount: z.string().superRefine(isSender),
+    revokedByAccount: z.string().superRefine(isSender),
     subjectAccount: z.string().superRefine(isSender),
     permission: z
       .custom<BigNumberish>((val) => isBigNumberish(val))

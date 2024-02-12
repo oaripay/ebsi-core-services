@@ -22,9 +22,11 @@ export interface ApiConfig {
   // Trusted Apps Registry API
   trustedAppsRegistryApiUrl: string;
   // Test variables
-  testUserKid: string | undefined;
-  testUserPrivateKey: string | undefined;
-  testUserVcOnboard: string | undefined;
+  testAuthorisedLegalEntityKid: string | undefined;
+  testAuthorisedLegalEntityPrivateKey: string | undefined;
+  testAuthorisedLegalEntityVcToOnboard: string | undefined;
+  testRegularLegalEntityKid: string | undefined;
+  testRegularLegalEntityPrivateKey: string | undefined;
   testDocWithEvents: string | undefined;
 }
 
@@ -61,9 +63,14 @@ export const loadConfig = (): ApiConfig => {
     // Trusted Apps Registry API
     trustedAppsRegistryApiUrl: DOMAIN + TAR_API_PATH,
     // Test variables
-    testUserKid: process.env.TEST_USER_KID,
-    testUserPrivateKey: process.env.TEST_USER_PRIVATE_KEY,
-    testUserVcOnboard: process.env.TEST_USER_VC_TO_ONBOARD,
+    testAuthorisedLegalEntityKid: process.env.TEST_AUTHORISED_LEGAL_ENTITY_KID,
+    testAuthorisedLegalEntityPrivateKey:
+      process.env.TEST_AUTHORISED_LEGAL_ENTITY_PRIVATE_KEY,
+    testAuthorisedLegalEntityVcToOnboard:
+      process.env.TEST_AUTHORISED_LEGAL_ENTITY_VC_TO_ONBOARD,
+    testRegularLegalEntityKid: process.env.TEST_REGULAR_LEGAL_ENTITY_KID,
+    testRegularLegalEntityPrivateKey:
+      process.env.TEST_REGULAR_LEGAL_ENTITY_PRIVATE_KEY,
     testDocWithEvents: process.env.TEST_DOC_WITH_EVENTS,
   };
 };
@@ -104,9 +111,11 @@ export const ApiConfigModule = ConfigModule.forRoot({
     // Test variables
     TEST_ENV: Joi.string(),
     TEST_ENABLE_WRITE_OPS: Joi.string(),
-    TEST_USER_KID: Joi.string(),
-    TEST_USER_PRIVATE_KEY: Joi.string(),
-    TEST_USER_VC_TO_ONBOARD: Joi.string(),
+    TEST_AUTHORISED_LEGAL_ENTITY_KID: Joi.string(),
+    TEST_AUTHORISED_LEGAL_ENTITY_PRIVATE_KEY: Joi.string(),
+    TEST_AUTHORISED_LEGAL_ENTITY_VC_TO_ONBOARD: Joi.string(),
+    TEST_REGULAR_LEGAL_ENTITY_KID: Joi.string(),
+    TEST_REGULAR_LEGAL_ENTITY_PRIVATE_KEY: Joi.string(),
     TEST_DOC_WITH_EVENTS: Joi.string(),
     // Generic variables
     TZ: Joi.string(),

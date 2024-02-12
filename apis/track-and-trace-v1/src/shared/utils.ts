@@ -1,6 +1,7 @@
 import { Resolver } from "did-resolver";
 import { remove0xPrefix, encode } from "@ebsiint-api/shared";
 import { util, getResolver } from "@cef-ebsi/key-did-resolver";
+import { Permission, PermissionLabel } from "./constants.js";
 
 export function hexToDid(hex: string) {
   let buffer = Buffer.from(remove0xPrefix(hex), "hex");
@@ -53,12 +54,12 @@ export async function didToHex(did: string) {
 
 export function permissionToString(permission: number) {
   switch (permission) {
-    case 0:
-      return "delegate";
-    case 1:
-      return "write";
-    case 2:
-      return "creator";
+    case Permission.DELEGATE:
+      return PermissionLabel[Permission.DELEGATE];
+    case Permission.WRITE:
+      return PermissionLabel[Permission.WRITE];
+    case Permission.CREATOR:
+      return PermissionLabel[Permission.CREATOR];
     default:
       throw new Error(`unsupported permission ${permission}`);
   }

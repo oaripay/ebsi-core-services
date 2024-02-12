@@ -8,6 +8,7 @@ import type {
   Event,
 } from "./documents.interface.js";
 import { hexToDid, permissionToString } from "../../shared/utils.js";
+import { Permission } from "../../shared/constants.js";
 
 @Injectable()
 export default class DocumentsService {
@@ -150,11 +151,11 @@ export default class DocumentsService {
             invitedUsers.items.map(async (did) => {
               const [grantedByAccounts, , access] = await (
                 await this.ledgerService.getContract()
-              ).getGrantedBy(
-                documentId,
-                did,
-                [0 /* DELEGATE */, 1 /* WRITE */, 2 /* CREATOR */],
-              );
+              ).getGrantedBy(documentId, did, [
+                Permission.DELEGATE,
+                Permission.WRITE,
+                Permission.CREATOR,
+              ]);
 
               const accesses: DocumentAccesses = [];
 

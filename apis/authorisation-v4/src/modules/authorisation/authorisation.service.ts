@@ -16,7 +16,10 @@ import type {
   PresentationSubmission,
 } from "@sphereon/pex-models";
 import { verifyPresentationJwt } from "@cef-ebsi/verifiable-presentation";
-import type { VpJwtPayload } from "@cef-ebsi/verifiable-presentation";
+import type {
+  ProofPurposeTypes,
+  VpJwtPayload,
+} from "@cef-ebsi/verifiable-presentation";
 import { RP as OAuth2RP, verifyJwtTar } from "@cef-ebsi/oauth2-auth";
 import type {
   AkeResponse as OAuth2AkeResponse,
@@ -498,7 +501,11 @@ export class AuthorisationService {
    * @param vpToken - The VP Token to validate.
    * @param isDidUnresolvable - If the holder DID is unresolvable, the signature validation is skipped.
    */
-  async validateVpJwt(vpToken: string, isDidUnresolvable: boolean) {
+  async validateVpJwt(
+    vpToken: string,
+    isDidUnresolvable: boolean,
+    proofPurpose?: ProofPurposeTypes,
+  ) {
     try {
       const audience = this.issuer;
       const now = Math.floor(Date.now() / 1000);
@@ -515,6 +522,7 @@ export class AuthorisationService {
         skipSignatureValidation: isDidUnresolvable,
         validateAccreditationWithoutTermsOfUse: true, // The VC must contain terms of use (or be self-accredited)
         trustedHostnames: this.trustedHostnames,
+        ...(proofPurpose && { proofPurpose }),
       });
     } catch (e) {
       throw new OAuth2TokenError("invalid_request", {
@@ -865,7 +873,13 @@ export class AuthorisationService {
     );
 
     // Verify VP JWT
-    await this.validateVpJwt(vpToken, customScope === DIDR_INVITE_SCOPE);
+    await this.validateVpJwt(
+      vpToken,
+      // skip DID resolution:
+      customScope === DIDR_INVITE_SCOPE,
+      // proofPurpose to be used:
+      customScope === TNT_AUTHORISE_SCOPE ? "capabilityInvocation" : undefined,
+    );
 
     // Additional verifications based on the requested scope
 
@@ -899,10 +913,7 @@ export class AuthorisationService {
     // This is already done in validateVpJwt.
 
     // `tnt_authorise`: the client must present a VP containing a valid VerifiableAuthorisationToOnboard VC issued by an allowlisted entity.
-    if (customScope === TNT_AUTHORISE_SCOPE) {
-      // TODO: check if VerifiableAuthorisationToOnboard issuer is allowlisted
-      // This should be done by the PEX library, based on the presentation definition.
-    }
+    // This is already done in validateVpJwt.
 
     // `tnt_create`: the client must be an allowlisted TnT Document creator
     if (customScope === TNT_CREATE_SCOPE) {

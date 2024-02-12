@@ -70,6 +70,7 @@ import {
   TNT_WRITE_SCOPE,
 } from "./authorisation.constants.js";
 import {
+  createDidDocument,
   createLegalEntity,
   createPresentationSubmission,
   LegalEntity,
@@ -2047,6 +2048,117 @@ describe("Authorisation Module", () => {
 
         await expect(jwtVerify(idToken, apiPublicKey)).resolves.not.toThrow();
       });
+    });
+
+    it("with scope 'openid tnt_authorise' should return an error if the verification method is not in 'capabilityInvocation'", async () => {
+      expect.assertions(2);
+
+      const scope = "openid tnt_authorise";
+      const issuanceDate = new Date();
+      // JWT access token must have 2 hours expiration time and there are no Refresh Tokens.
+      const expirationDate = new Date(
+        issuanceDate.getTime() + 2 * 60 * 60 * 1000,
+      );
+
+      const vcPayload = {
+        "@context": ["https://www.w3.org/2018/credentials/v1"],
+        id: `urn:uuid:${randomUUID()}`,
+        type: [
+          "VerifiableCredential",
+          "VerifiableAttestation",
+          "VerifiableAuthorisationToOnboard",
+        ],
+        issuer: credentialIssuer.did,
+        issuanceDate: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+        issued: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+        validFrom: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+        expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
+        credentialSubject: {
+          id: credentialSubject.did,
+          type: "same-device",
+        },
+        credentialSchema: {
+          id: configService.get("testOidSchemaPattern", { infer: true }),
+          type: "FullJsonSchemaValidator2021",
+        },
+        termsOfUse: {
+          id: credentialIssuerAccreditationUrl,
+          type: "IssuanceCertificate",
+        },
+      } satisfies EbsiVerifiableAttestation;
+
+      const vcJwt = await createVerifiableCredentialJwt(
+        vcPayload,
+        credentialIssuer,
+        {
+          ebsiAuthority: "example.net",
+          skipValidation: true,
+        },
+      );
+
+      const vpPayload = {
+        "@context": ["https://www.w3.org/2018/credentials/v1"],
+        type: ["VerifiablePresentation"],
+        id: randomUUID(),
+        verifiableCredential: [vcJwt],
+        holder: credentialSubject.did,
+      } satisfies EbsiVerifiablePresentation;
+
+      // Reset to valid presentation submission before each test
+      const presentationSubmission =
+        createPresentationSubmission(TNT_AUTHORISE_SCOPE);
+
+      const didDocument = createDidDocument(
+        credentialSubject.did,
+        credentialSubject.kid,
+        credentialSubject.publicKeyJwk,
+      );
+
+      // Remove capabilityInvocation, which is required in order to get an access token with tnt_authorise scope
+      didDocument.capabilityInvocation = [];
+
+      mockServer.use(
+        http.get(
+          `${domain}/did-registry/v5/identifiers/${encodeDid(
+            credentialSubject.did,
+          )}`,
+          () => HttpResponse.json(didDocument),
+        ),
+      );
+
+      const nonce = randomUUID();
+
+      const vpJwt = await createVerifiablePresentationJwt(
+        vpPayload,
+        credentialSubject,
+        serviceEndpoint,
+        {
+          ebsiAuthority: "example.net",
+          skipValidation: true,
+          nonce,
+        },
+      );
+
+      const response = await request(server)
+        .post("/token")
+        .set("Content-Type", "application/x-www-form-urlencoded")
+        .send(
+          new URLSearchParams({
+            grant_type: "vp_token",
+            scope,
+            vp_token: vpJwt,
+            presentation_submission: JSON.stringify(presentationSubmission),
+          } satisfies CreateAccessTokenDto).toString(),
+        );
+
+      expect(response.body).toStrictEqual({
+        error: "invalid_request",
+        error_description: `Invalid Verifiable Presentation: Could not find a verification method related to "${credentialSubject.kid}" for the proof purpose "capabilityInvocation"`,
+      });
+
+      expect(response.status).toBe(400);
+
+      mockServer.resetHandlers();
     });
   });
 

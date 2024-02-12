@@ -10,11 +10,10 @@ import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { exportJWK, generateKeyPair } from "jose";
 import { createDocument, createEvent, type TestDocument } from "./data.js";
 import { didToHex } from "../../src/shared/utils.js";
+import { AccountType, Permission } from "../../src/shared/constants.js";
 
 export async function deployTrackAndTraceContract(): Promise<{
   trackAndTraceContract: TrackAndTrace;
-  admin: SignerWithAddress;
-  upgrader: SignerWithAddress;
   broadcaster: SignerWithAddress;
 }> {
   const signers = (await hre.ethers.getSigners()) as [
@@ -43,8 +42,6 @@ export async function deployTrackAndTraceContract(): Promise<{
 
   return {
     trackAndTraceContract,
-    admin,
-    upgrader,
     broadcaster,
   };
 }
@@ -120,16 +117,16 @@ export async function grantAccess(
   documentHash: string,
   grantedByAccount: string,
   subjectAccount: string,
-  subjectAccType: 0 | 1,
+  subjectAccType: (typeof AccountType)[keyof typeof AccountType],
 ) {
   // permission to delegate
   const txDelegate = await contract.grantAccess(
     documentHash,
     Buffer.from(grantedByAccount),
     await didToHex(subjectAccount),
-    0,
+    AccountType.DID_EBSI,
     subjectAccType,
-    0,
+    Permission.DELEGATE,
   );
   await txDelegate.wait();
 
@@ -138,9 +135,9 @@ export async function grantAccess(
     documentHash,
     Buffer.from(grantedByAccount),
     await didToHex(subjectAccount),
-    0,
+    AccountType.DID_EBSI,
     subjectAccType,
-    1,
+    Permission.WRITE,
   );
   await txWrite.wait();
 }
@@ -225,7 +222,7 @@ export async function setupTestEnv({
           documentsWithBlockSource[i]!.documentHash,
           creatorAccount,
           grantedDidEbsiAccount,
-          0,
+          AccountType.DID_EBSI,
         ),
       ),
   );
@@ -240,7 +237,7 @@ export async function setupTestEnv({
           documentsWithBlockSource[i]!.documentHash,
           creatorAccount,
           grantedDidKeyAccount,
-          1,
+          AccountType.DID_KEY,
         ),
       ),
   );

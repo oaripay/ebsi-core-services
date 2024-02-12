@@ -19,7 +19,7 @@ describe("Track and Trace API v1 - Accesses (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let configService: ConfigService<ApiConfig, true>;
-  let testUserDid: string;
+  let testAuthorisedLegalEntityDid: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -45,15 +45,18 @@ describe("Track and Trace API v1 - Accesses (e2e)", () => {
 
     server = getServer(app, configService);
 
-    const testUserKid = configService.get("testUserKid", {
-      infer: true,
-    });
+    const testAuthorisedLegalEntityKid = configService.get(
+      "testAuthorisedLegalEntityKid",
+      {
+        infer: true,
+      },
+    );
 
-    if (!testUserKid) {
-      throw new Error("TEST_USER_KID must be defined");
+    if (!testAuthorisedLegalEntityKid) {
+      throw new Error("TEST_AUTHORISED_LEGAL_ENTITY_KID must be defined");
     }
 
-    testUserDid = testUserKid.split("#")[0]!;
+    testAuthorisedLegalEntityDid = testAuthorisedLegalEntityKid.split("#")[0]!;
   });
 
   afterAll(async () => {
@@ -91,7 +94,7 @@ describe("Track and Trace API v1 - Accesses (e2e)", () => {
       expect.assertions(2);
 
       const response = await request(server).head(
-        `/accesses?creator=${testUserDid}`,
+        `/accesses?creator=${testAuthorisedLegalEntityDid}`,
       );
 
       expect(response.body).toStrictEqual({});
@@ -130,16 +133,16 @@ describe("Track and Trace API v1 - Accesses (e2e)", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        `/accesses?subject=${testUserDid}`,
+        `/accesses?subject=${testAuthorisedLegalEntityDid}`,
       );
 
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          `/accesses?page[after]=1&page[size]=10&subject=${testUserDid}`,
+          `/accesses?page[after]=1&page[size]=10&subject=${testAuthorisedLegalEntityDid}`,
         ),
         items: expect.arrayContaining([
           expect.objectContaining({
-            subject: testUserDid,
+            subject: testAuthorisedLegalEntityDid,
             documentId: expect.any(String),
             grantedBy: expect.stringMatching(/^did:/),
             permission: expect.stringMatching(/^(write|delegate|creator)$/),
@@ -149,10 +152,10 @@ describe("Track and Trace API v1 - Accesses (e2e)", () => {
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/accesses?page[after]=1&page[size]=10&subject=${testUserDid}`,
+            `/accesses?page[after]=1&page[size]=10&subject=${testAuthorisedLegalEntityDid}`,
           ),
           prev: expect.stringContaining(
-            `/accesses?page[after]=1&page[size]=10&subject=${testUserDid}`,
+            `/accesses?page[after]=1&page[size]=10&subject=${testAuthorisedLegalEntityDid}`,
           ),
           next: expect.stringContaining("/accesses?page[after]="),
           last: expect.stringContaining("/accesses?page[after]="),

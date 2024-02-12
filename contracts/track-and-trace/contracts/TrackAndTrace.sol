@@ -203,26 +203,26 @@ contract TrackAndTrace is
 
     function revokeAccess(
         bytes32 documentHash,
-        bytes calldata revokeByAccount,
+        bytes calldata revokedByAccount,
         bytes calldata subjectAccount,
         ACCESS_ENUM permission
     ) external {
         Document storage doc = documents[documentHash];
         // authorize signer
         if (
-            _authorize(revokeByAccount, doc.invited[subjectAccount].grantedByAccountType[permission]) == false
-            && _authorize(revokeByAccount, ACCOUNT_TYPE.DID_EBSI) == false // in case is creator
+            _authorize(revokedByAccount, doc.invited[subjectAccount].grantedByAccountType[permission]) == false
+            && _authorize(revokedByAccount, ACCOUNT_TYPE.DID_EBSI) == false // in case is creator
         ) {
             revert NotDidController();
         }
         if (
             !_equal(
-                revokeByAccount,
+                revokedByAccount,
                 doc.invited[subjectAccount].grantedBy[permission]
             )
             &&
             !_equal(
-                revokeByAccount,
+                revokedByAccount,
                 bytes(doc.creator)
             )
         ) {
@@ -254,7 +254,7 @@ contract TrackAndTrace is
             accessBySubjectIndex[subjectAccount][lastElement] = index;
             accessBySubjectIndex[subjectAccount][documentHash] = 0;
         }
-        emit AccessRevoked(documentHash, subjectAccount, revokeByAccount);
+        emit AccessRevoked(documentHash, subjectAccount, revokedByAccount);
     }
 
     function writeEvent(

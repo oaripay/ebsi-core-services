@@ -640,8 +640,7 @@ paths:
 
           #### authoriseDid
 
-          Call to build an unsigned transaction to authorise a DID to create
-          documents. Requires an access token with "tnt_authorise" scope.
+          Call to build an unsigned transaction to authorise a DID to create documents. Requires an access token with "tnt_authorise" scope.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -675,8 +674,8 @@ paths:
           Parameters:
           - **from**: Ethereum address of the signer
           - **documentHash**: Document hash
-          - **grantedByAccount**: DID that grants the permission (hex string format)
-          - **subjectAccount**: DID that receives the grant (hex string format)
+          - **grantedByAccount**: DID (did:ebsi) or public key (did:key) that grants the permission (hex string format)
+          - **subjectAccount**: DID (did:ebsi) or public key (did:key) that receives the grant (hex string format)
           - **grantedByAccType**: grantedBy type. Use 0 for "did:ebsi" or 1 for "did:key"
           - **subjectAccType**: subject type. Use 0 for "did:ebsi" or 1 for "did:key"
           - **permission**: Type of permission. Use 0 for "delegate" or 1 for "write"
@@ -688,20 +687,20 @@ paths:
           Parameters:
           - **from**: Ethereum address of the signer
           - **documentHash**: Document hash
-          - **revokeByAccount**: DID that revokes the grant (hex string format)
-          - **subjectAccount**: DID revoked (hex string format)
+          - **revokedByAccount**: DID (did:ebsi) or public key (did:key) that revokes the grant (hex string format)
+          - **subjectAccount**: DID (did:ebsi) or public key (did:key) revoked (hex string format)
           - **permission**: Type of permission. Use 0 for "delegate" or 1 for "write"
 
           #### writeEvent
 
-          Call to build an unsigned transaction to write an event into a specific document. Requires an access token with "tnt_write" scope. By default it records the timestamp of the blockchain, but it's possible to define a different timestamp with its respective proof.
+          Call to build an unsigned transaction to write an event into a specific document. Requires an access token with "tnt_write" scope. By default, it records the timestamp of the blockchain, but it's possible to define a different timestamp with its respective proof.
 
           Parameters:
           - **from**: Ethereum address of the signer
           - **eventParams**: Event parameters. JSON with the following fields:
             - **documentHash**: Document hash (hex string)
             - **externalHash**: External hash (string)
-            - **sender**: Sender (hex string)
+            - **sender**: DID (did:ebsi) or public key (did:key) of the event sender (hex string format)
             - **origin**: Origin (string)
             - **metadata**: Metadata (string)
           - **timestamp** (optional): Timestamp as hex string. By default it uses takes the timestamp from the blockchain
@@ -796,7 +795,7 @@ paths:
                   params:
                     - from: "0xc9765eC58E49e6E386549CEAA34FB0d8bB69C320"
                     - documentHash: "cd299cdabd6299907c31f7cdf112830bda9e2d9f5d33c9fc75dd62caa6b9bd67"
-                    - revokeByAccount: "0x6469643a656273693a7a32336576653871444e7a59754e5671665361457270754a"
+                    - revokedByAccount: "0x6469643a656273693a7a32336576653871444e7a59754e5671665361457270754a"
                     - subjectAccount: "0x6469643a656273693a7a625a4e464d5863454e664161523137376e394d596738"
                     - permission: "0x01"
                   id: 474

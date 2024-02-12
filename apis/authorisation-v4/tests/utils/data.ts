@@ -46,6 +46,7 @@ export function createDidDocument(
     ],
     authentication: [kid],
     assertionMethod: [kid],
+    capabilityInvocation: [kid],
   };
 }
 

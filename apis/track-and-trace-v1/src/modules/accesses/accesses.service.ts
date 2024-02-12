@@ -5,6 +5,7 @@ import { utils } from "ethers";
 import { LedgerService } from "../ledger/ledger.service.js";
 import type { Access } from "./accesses.interface.js";
 import { hexToDid, didToHex, permissionToString } from "../../shared/utils.js";
+import { Permission } from "../../shared/constants.js";
 
 @Injectable()
 export default class AccessesService {
@@ -61,7 +62,7 @@ export default class AccessesService {
           const [grantedByAccounts, , access] = await contract.getGrantedBy(
             documentId,
             subjectBuffer,
-            [0 /* DELEGATE */, 1 /* WRITE */, 2 /* CREATOR */],
+            [Permission.DELEGATE, Permission.WRITE, Permission.CREATOR],
           );
           grantedByAccounts.forEach((grantedByAccount, i) => {
             if (!grantedByAccount || grantedByAccount === "0x") return;
