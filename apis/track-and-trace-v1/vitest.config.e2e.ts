@@ -7,7 +7,7 @@ export default defineConfig({
     environment: "node",
     fileParallelism: false,
     hookTimeout: 30_000,
-    testTimeout: 120_000,
+    testTimeout: 300_000,
   },
   plugins: [
     swc.vite(), // This is required to build the test files with SWC

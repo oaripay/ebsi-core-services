@@ -255,7 +255,9 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
             undefined,
             authoriser.vcOnboard,
           );
-        } else if (!creator.accessToken.tntCreate) {
+        } else if (method === "createDocument") {
+          // request the tnt_create access token after "authoriseDid"
+          // is submitted
           creator.accessToken.tntCreate = await getAccessToken(
             configService.get<string>("authorisationApiUrl"),
             creator.info,
@@ -263,7 +265,9 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
             undefined,
             [],
           );
-
+        } else if (method === "writeEvent") {
+          // request the tnt_write access token after "createDocument"
+          // is submitted
           creator.accessToken.tntWrite = await getAccessToken(
             configService.get<string>("authorisationApiUrl"),
             creator.info,
