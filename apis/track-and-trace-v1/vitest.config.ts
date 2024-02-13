@@ -14,6 +14,7 @@ export default defineConfig({
       reporter: ["text", "lcov"],
     },
     globalSetup: "./tests/globalSetup.unit.ts",
+    testTimeout: 120_000,
   },
   plugins: [
     swc.vite(), // This is required to build the test files with SWC

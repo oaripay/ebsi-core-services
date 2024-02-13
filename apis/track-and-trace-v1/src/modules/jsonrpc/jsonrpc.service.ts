@@ -175,7 +175,8 @@ export class JsonRpcService {
           [TNT_AUTHORISE_SCOPE],
           functionFragment.name,
         );
-        await authoriseDidSchema.parseAsync(argsObject);
+        const castArgs = await authoriseDidSchema.parseAsync(argsObject);
+        assertDidMatchesSub(castArgs.senderDid, clientId);
         break;
       }
       case "createDocument": {
@@ -291,11 +292,16 @@ export class JsonRpcService {
 
       const parsedBody = await requestAuthoriseDidDtoSchema.parseAsync(body);
 
-      const { from, didEbsi, whiteList } = parsedBody.params[0]!;
+      const { from, senderDid, authorisedDid, whiteList } =
+        parsedBody.params[0]!;
 
       const data = (
         await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("authoriseDid", [didEbsi, whiteList]);
+      ).interface.encodeFunctionData("authoriseDid", [
+        senderDid,
+        authorisedDid,
+        whiteList,
+      ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {

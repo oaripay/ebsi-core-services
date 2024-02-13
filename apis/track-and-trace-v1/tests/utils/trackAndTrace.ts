@@ -164,6 +164,7 @@ export async function setupTestEnv({
   const ethersProvider = hre.ethers.provider;
   const documentsWithBlockSource: TestDocument[] = [];
   const documentsWithExternalSource: TestDocument[] = [];
+  const supportOfficeAccount = EbsiWallet.createDid();
   const creatorAccount = EbsiWallet.createDid();
   const grantedDidEbsiAccount = EbsiWallet.createDid();
   const { publicKey: didKeyPublicKey } = await generateKeyPair("ES256K");
@@ -180,7 +181,7 @@ export async function setupTestEnv({
   // Authorise creator account
   await trackAndTraceContract
     .connect(broadcaster)
-    .authoriseDid(creatorAccount, true);
+    .authoriseDid(supportOfficeAccount, creatorAccount, true);
 
   // Deploy documents
   documentsWithBlockSource.push(

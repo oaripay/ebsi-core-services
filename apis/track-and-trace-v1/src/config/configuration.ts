@@ -22,6 +22,7 @@ export interface ApiConfig {
   // Trusted Apps Registry API
   trustedAppsRegistryApiUrl: string;
   // Test variables
+  testAuthApiES256PrivateKey: string;
   testAuthorisedLegalEntityKid: string | undefined;
   testAuthorisedLegalEntityPrivateKey: string | undefined;
   testAuthorisedLegalEntityVcToOnboard: string | undefined;
@@ -63,6 +64,8 @@ export const loadConfig = (): ApiConfig => {
     // Trusted Apps Registry API
     trustedAppsRegistryApiUrl: DOMAIN + TAR_API_PATH,
     // Test variables
+    testAuthApiES256PrivateKey:
+      process.env.TEST_AUTH_API_ES256_PRIVATE_KEY || "",
     testAuthorisedLegalEntityKid: process.env.TEST_AUTHORISED_LEGAL_ENTITY_KID,
     testAuthorisedLegalEntityPrivateKey:
       process.env.TEST_AUTHORISED_LEGAL_ENTITY_PRIVATE_KEY,
@@ -111,6 +114,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     // Test variables
     TEST_ENV: Joi.string(),
     TEST_ENABLE_WRITE_OPS: Joi.string(),
+    TEST_AUTH_API_ES256_PRIVATE_KEY: Joi.string(),
     TEST_AUTHORISED_LEGAL_ENTITY_KID: Joi.string(),
     TEST_AUTHORISED_LEGAL_ENTITY_PRIVATE_KEY: Joi.string(),
     TEST_AUTHORISED_LEGAL_ENTITY_VC_TO_ONBOARD: Joi.string(),

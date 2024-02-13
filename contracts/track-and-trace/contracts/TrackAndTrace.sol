@@ -50,22 +50,17 @@ contract TrackAndTrace is
         didRegistry = IDidRegistry(_didRegistryAddress);
     }
 
-    function authoriseDid(string calldata didEbsi, bool whiteList) external {
-        if (_authorize(bytes(didEbsi), ACCOUNT_TYPE.DID_EBSI) == false) {
+    function authoriseDid(string calldata senderDid, string calldata authorisedDid, bool whiteList) external {
+        // At SC level any senderDid registered in the DID Registry can
+        // authorise new DIDs to create documents. However, At API level
+        // the senderDid will require an access token that is granted to
+        // a closed list of DIDs.
+        if (_authorize(bytes(senderDid), ACCOUNT_TYPE.DID_EBSI) == false) {
             revert NotDidController();
         }
-        if (
-            _getAccountAccess(
-                bytes32(0),
-                bytes(didEbsi),
-                ACCOUNT_TYPE.DID_EBSI,
-                SCOPE.TNT_AUTHORIZE
-            ) == false
-        ) {
-            revert NotAuthorised();
-        }
-        invitedDidEbsiAccounts[didEbsi] = whiteList;
-        emit DidEbsiAuthorised(didEbsi, whiteList);
+        
+        invitedDidEbsiAccounts[authorisedDid] = whiteList;
+        emit DidEbsiAuthorised(authorisedDid, whiteList);
     }
 
     function createDocument(
@@ -81,7 +76,6 @@ contract TrackAndTrace is
             _getAccountAccess(
                 bytes32(0),
                 bytes(didEbsiCreator),
-                ACCOUNT_TYPE.DID_EBSI,
                 SCOPE.TNT_CREATE
             ) == false
         ) {
@@ -112,7 +106,6 @@ contract TrackAndTrace is
             _getAccountAccess(
                 bytes32(0),
                 bytes(didEbsiCreator),
-                ACCOUNT_TYPE.DID_EBSI,
                 SCOPE.TNT_CREATE
             ) == false
         ) {
@@ -137,7 +130,6 @@ contract TrackAndTrace is
             _getAccountAccess(
                 documentHash,
                 bytes(documents[documentHash].creator),
-                ACCOUNT_TYPE.DID_EBSI,
                 SCOPE.TNT_CREATE
             ) == false
         ) {
@@ -165,7 +157,6 @@ contract TrackAndTrace is
             _getAccountAccess(
                 documentHash,
                 grantedByAccount,
-                grantedByAccType,
                 SCOPE.TNT_CREATE
             ) ==
             false
@@ -176,14 +167,12 @@ contract TrackAndTrace is
             _getAccountAccess(
                 documentHash,
                 grantedByAccount,
-                grantedByAccType,
                 SCOPE.TNT_CREATE
             ) ==
             false &&
             _getAccountAccess(
                 documentHash,
                 grantedByAccount,
-                grantedByAccType,
                 SCOPE.TNT_DELEGATE
             ) ==
             false
@@ -273,9 +262,6 @@ contract TrackAndTrace is
             _getAccountAccess(
                 eventParams.documentHash,
                 eventParams.sender,
-                documents[eventParams.documentHash]
-                    .invited[eventParams.sender]
-                    .subjectAccountType,
                 SCOPE.TNT_WRITE
             ) == false
         ) {
@@ -302,9 +288,6 @@ contract TrackAndTrace is
             _getAccountAccess(
                 eventParams.documentHash,
                 eventParams.sender,
-                documents[eventParams.documentHash]
-                    .invited[eventParams.sender]
-                    .subjectAccountType,
                 SCOPE.TNT_WRITE
             ) == false
         ) {
@@ -424,7 +407,6 @@ contract TrackAndTrace is
             _getAccountAccess(
                 bytes32(0),
                 did,
-                ACCOUNT_TYPE.DID_EBSI,
                 SCOPE.TNT_CREATE
             );
     }
@@ -634,17 +616,8 @@ contract TrackAndTrace is
     function _getAccountAccess(
         bytes32 documentHash,
         bytes memory account,
-        ACCOUNT_TYPE accountType,
         SCOPE scopeRequested
     ) internal view returns (bool) {
-
-        if (scopeRequested == SCOPE.TNT_AUTHORIZE) {
-            // scope to authoriseDid, doesn't refer to the document, it is a general scope
-            if (accountType == ACCOUNT_TYPE.DID_EBSI) {
-                return true;
-            }
-        }
-
         Document storage doc = documents[documentHash];
         Access_Struct storage current = doc.invited[account];
         if (SCOPE.TNT_DELEGATE == scopeRequested) {

@@ -50,6 +50,34 @@ function fromHexToJWK(hexPrivateKey: string): JsonWebKey {
   return jwk;
 }
 
+/**
+ * Sign a "didr_invite" access token as the Authorisation API.
+ * Useful for bypassing the whole onboarding process.
+ */
+export async function getDidrInviteAccessToken(
+  did: string,
+  authApiES256PrivateKey: string,
+) {
+  const authApiPrivateKeyJwk = fromHexToJWK(authApiES256PrivateKey);
+  const authApiPrivateKey = await importJWK(
+    authApiPrivateKeyJwk as JWK,
+    "ES256",
+  );
+  const authApiKid = await calculateJwkThumbprint(authApiPrivateKeyJwk as JWK);
+  const newUserAccessToken = await new SignJWT({
+    scp: "openid didr_invite",
+    sub: did,
+  })
+    .setProtectedHeader({
+      alg: "ES256",
+      typ: "JWT",
+      kid: authApiKid,
+    })
+    .sign(authApiPrivateKey);
+
+  return newUserAccessToken;
+}
+
 export async function bypassAndGetAccessToken(
   did: string,
   authApiV3ES256PrivateKey: string,

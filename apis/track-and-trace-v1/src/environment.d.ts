@@ -17,6 +17,7 @@ declare global {
       LEDGER_API_NAME?: string;
       CONTRACT_ADDR: string;
       // Test variables
+      TEST_AUTH_API_ES256_PRIVATE_KEY?: string;
       TEST_AUTHORISED_LEGAL_ENTITY_KID?: string;
       TEST_AUTHORISED_LEGAL_ENTITY_PRIVATE_KEY?: string;
       TEST_AUTHORISED_LEGAL_ENTITY_VC_TO_ONBOARD?: string;

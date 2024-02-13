@@ -10,6 +10,8 @@ import {
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import type { RawServerDefault } from "fastify";
+import axios from "axios";
+import { calculateJwkThumbprint } from "jose";
 import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { waitToBeMined, encode } from "@ebsiint-api/shared";
@@ -20,7 +22,10 @@ import { getServer } from "../utils/getServer.js";
 import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
 import { describeWriteOps } from "../utils/describeWriteOps.js";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
-import { getAccessToken } from "../utils/getAccessToken.js";
+import {
+  getAccessToken,
+  getDidrInviteAccessToken,
+} from "../utils/getAccessToken.js";
 import type {
   AuthoriseDidSchema,
   CreateDocumentSchema,
@@ -52,6 +57,7 @@ interface TestUser {
     tntAuthorise: string;
     tntCreate: string;
     tntWrite: string;
+    didInvite?: string;
   };
   wallet: ethers.Wallet;
   vcOnboard: string;
@@ -62,10 +68,14 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
   let server: RawServerDefault | string;
   let configService: ConfigService<ApiConfig, true>;
   let ledgerApi: string;
-  let user: TestUser;
+  let authoriser: TestUser;
+  let creator: TestUser;
   const did1 = EbsiWallet.createDid();
   const documentHash1 = `0x${randomBytes(32).toString("hex")}`;
   const documentHash2 = `0x${randomBytes(32).toString("hex")}`;
+
+  const now = Math.floor(Date.now() / 1000);
+  const in6months = now + 6 * 30 * 24 * 3600;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -93,14 +103,23 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
 
     const kid = configService.get<string>("testAuthorisedLegalEntityKid");
     const did = kid.split("#")[0] as string;
-    const privateKeyHex = configService.get<string>(
+    const authoriserPrivateKeyHex = configService.get<string>(
       "testAuthorisedLegalEntityPrivateKey",
     );
-    const privateKeyJwk = encode.privateKey.fromHexToJWK(privateKeyHex);
-    const { d, ...publicKeyJwk } = privateKeyJwk;
-    user = {
-      info: { did, kid, privateKeyJwk, publicKeyJwk, alg: "ES256K" },
-      wallet: new ethers.Wallet(privateKeyHex),
+    const authoriserPrivateKeyJwk = encode.privateKey.fromHexToJWK(
+      authoriserPrivateKeyHex,
+    );
+    const { d: dAuthorisedLegalEntity, ...authoriserPublicKeyJwk } =
+      authoriserPrivateKeyJwk;
+    authoriser = {
+      info: {
+        did,
+        kid,
+        privateKeyJwk: authoriserPrivateKeyJwk,
+        publicKeyJwk: authoriserPublicKeyJwk,
+        alg: "ES256K",
+      },
+      wallet: new ethers.Wallet(authoriserPrivateKeyHex),
       accessToken: {
         tntAuthorise: "",
         tntCreate: "",
@@ -110,6 +129,102 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
         "testAuthorisedLegalEntityVcToOnboard",
       ),
     };
+
+    // register new DID in the DID Registry
+    const creatorDid = EbsiWallet.createDid();
+    const creatorPrivateKeyHex = `0x${randomBytes(32).toString("hex")}`;
+    const creatorPrivateKeyJwk =
+      encode.privateKey.fromHexToJWK(creatorPrivateKeyHex);
+    const { d: dCreator, ...creatorPublicKeyJwk } = creatorPrivateKeyJwk;
+    const creatorThumbprint = await calculateJwkThumbprint(creatorPublicKeyJwk);
+    creator = {
+      info: {
+        did: creatorDid,
+        kid: `${creatorDid}#${creatorThumbprint}`,
+        privateKeyJwk: creatorPrivateKeyJwk,
+        publicKeyJwk: creatorPublicKeyJwk,
+        alg: "ES256K",
+      },
+      wallet: new ethers.Wallet(creatorPrivateKeyHex),
+      accessToken: {
+        tntAuthorise: "",
+        tntCreate: "",
+        tntWrite: "",
+        didInvite: "",
+      },
+      vcOnboard: "",
+    };
+    creator.accessToken.didInvite = await getDidrInviteAccessToken(
+      creatorDid,
+      configService.get<string>("testAuthApiES256PrivateKey"),
+    );
+
+    const params = {
+      from: creator.wallet.address,
+      did: creator.info.did,
+      baseDocument: JSON.stringify({
+        "@context": [
+          "https://www.w3.org/ns/did/v1",
+          "https://w3id.org/security/suites/jws-2020/v1",
+        ],
+      }),
+      vMethodId: creatorThumbprint,
+      publicKey: creator.wallet.publicKey,
+      isSecp256k1: true,
+      notBefore: now,
+      notAfter: in6months,
+    };
+
+    const domain = configService.get<string>("domain");
+    const responseBuild = await axios.post<
+      JsonRpcResponseObject<UnsignedTransaction>
+    >(
+      `${domain}/did-registry/v5/jsonrpc`,
+      {
+        jsonrpc: "2.0",
+        method: "insertDidDocument",
+        params: [params],
+        id: 1,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${creator.accessToken.didInvite}`,
+        },
+      },
+    );
+
+    const unsignedTransaction = responseBuild.data.result;
+    const uTx = formatEthersUnsignedTransaction(unsignedTransaction);
+    uTx.chainId = Number(uTx.chainId);
+    const sgnTx = await creator.wallet.signTransaction(uTx);
+    const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+    const responseSend = await axios.post<JsonRpcResponseObject<string>>(
+      `${domain}/did-registry/v5/jsonrpc`,
+      {
+        jsonrpc: "2.0",
+        method: "sendSignedTransaction",
+        params: [
+          {
+            protocol: "eth",
+            unsignedTransaction,
+            r,
+            s,
+            v: `0x${Number(v).toString(16)}`,
+            signedRawTransaction: sgnTx,
+          },
+        ],
+        id: "45",
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${creator.accessToken.didInvite}`,
+        },
+      },
+    );
+
+    // wait to be mined
+    await waitToBeMined(ledgerApi, responseSend.data.result);
   });
 
   afterAll(async () => {
@@ -117,32 +232,6 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
   });
 
   describe("Track and Trace", () => {
-    beforeAll(async () => {
-      user.accessToken.tntAuthorise = await getAccessToken(
-        configService.get<string>("authorisationApiUrl"),
-        user.info,
-        "openid tnt_authorise",
-        undefined,
-        user.vcOnboard,
-      );
-
-      user.accessToken.tntCreate = await getAccessToken(
-        configService.get<string>("authorisationApiUrl"),
-        user.info,
-        "openid tnt_create",
-        undefined,
-        [],
-      );
-
-      user.accessToken.tntWrite = await getAccessToken(
-        configService.get<string>("authorisationApiUrl"),
-        user.info,
-        "openid tnt_write",
-        undefined,
-        [],
-      );
-    });
-
     describe.each([
       "authoriseDid",
       "createDocument",
@@ -155,6 +244,38 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
     ] as const)("/jsonrpc - send transaction for %s", (m) => {
       const method = m.replace("(external timestamp)", "");
 
+      let user: TestUser;
+
+      beforeAll(async () => {
+        if (method === "authoriseDid") {
+          authoriser.accessToken.tntAuthorise = await getAccessToken(
+            configService.get<string>("authorisationApiUrl"),
+            authoriser.info,
+            "openid tnt_authorise",
+            undefined,
+            authoriser.vcOnboard,
+          );
+        } else if (!creator.accessToken.tntCreate) {
+          creator.accessToken.tntCreate = await getAccessToken(
+            configService.get<string>("authorisationApiUrl"),
+            creator.info,
+            "openid tnt_create",
+            undefined,
+            [],
+          );
+
+          creator.accessToken.tntWrite = await getAccessToken(
+            configService.get<string>("authorisationApiUrl"),
+            creator.info,
+            "openid tnt_write",
+            undefined,
+            [],
+          );
+        }
+
+        user = method === "authoriseDid" ? authoriser : creator;
+      });
+
       it("should work", async () => {
         expect.assertions(5);
 
@@ -164,95 +285,96 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
         switch (m) {
           case "authoriseDid": {
             params = {
-              from: user.wallet.address,
-              didEbsi: user.info.did,
+              from: authoriser.wallet.address,
+              senderDid: authoriser.info.did,
+              authorisedDid: creator.info.did,
               whiteList: true,
             } satisfies AuthoriseDidSchema;
-            accessToken = user.accessToken.tntAuthorise;
+            accessToken = authoriser.accessToken.tntAuthorise;
             break;
           }
           case "createDocument": {
             params = {
-              from: user.wallet.address,
+              from: creator.wallet.address,
               documentHash: documentHash1,
               documentMetadata: "test metadata",
-              didEbsiCreator: user.info.did,
+              didEbsiCreator: creator.info.did,
             } satisfies CreateDocumentSchema;
-            accessToken = user.accessToken.tntCreate;
+            accessToken = creator.accessToken.tntCreate;
             break;
           }
           case "createDocument(external timestamp)": {
             params = {
-              from: user.wallet.address,
+              from: creator.wallet.address,
               documentHash: documentHash2,
               documentMetadata: "test metadata",
-              didEbsiCreator: user.info.did,
+              didEbsiCreator: creator.info.did,
               timestamp: Math.floor(Date.now() / 1000),
               timestampProof: `0x${randomBytes(32).toString("hex")}`,
             } satisfies CreateDocumentSchema;
-            accessToken = user.accessToken.tntCreate;
+            accessToken = creator.accessToken.tntCreate;
             break;
           }
           case "writeEvent": {
             params = {
-              from: user.wallet.address,
+              from: creator.wallet.address,
               eventParams: {
                 documentHash: documentHash1,
                 externalHash: `0x${randomBytes(32).toString("hex")}`,
-                sender: await didToHex(user.info.did),
+                sender: await didToHex(creator.info.did),
                 origin: "",
                 metadata: "test event metadata",
               },
             } satisfies WriteEventSchema;
-            accessToken = user.accessToken.tntWrite;
+            accessToken = creator.accessToken.tntWrite;
             break;
           }
           case "writeEvent(external timestamp)": {
             params = {
-              from: user.wallet.address,
+              from: creator.wallet.address,
               eventParams: {
                 documentHash: documentHash1,
                 externalHash: `0x${randomBytes(32).toString("hex")}`,
-                sender: await didToHex(user.info.did),
+                sender: await didToHex(creator.info.did),
                 origin: "",
                 metadata: "test event metadata",
               },
               timestamp: Math.floor(Date.now() / 1000),
               timestampProof: `0x${randomBytes(32).toString("hex")}`,
             } satisfies WriteEventSchema;
-            accessToken = user.accessToken.tntWrite;
+            accessToken = creator.accessToken.tntWrite;
             break;
           }
           case "removeDocument": {
             params = {
-              from: user.wallet.address,
+              from: creator.wallet.address,
               documentHash: documentHash1,
             } satisfies RemoveDocumentSchema;
-            accessToken = user.accessToken.tntWrite;
+            accessToken = creator.accessToken.tntWrite;
             break;
           }
           case "grantAccess": {
             params = {
-              from: user.wallet.address,
+              from: creator.wallet.address,
               documentHash: documentHash2,
-              grantedByAccount: await didToHex(user.info.did),
+              grantedByAccount: await didToHex(creator.info.did),
               subjectAccount: await didToHex(did1),
               grantedByAccType: AccountType.DID_EBSI,
               subjectAccType: AccountType.DID_EBSI,
               permission: Permission.DELEGATE,
             } satisfies GrantAccessSchema;
-            accessToken = user.accessToken.tntWrite;
+            accessToken = creator.accessToken.tntWrite;
             break;
           }
           case "revokeAccess": {
             params = {
-              from: user.wallet.address,
+              from: creator.wallet.address,
               documentHash: documentHash2,
-              revokedByAccount: await didToHex(user.info.did),
+              revokedByAccount: await didToHex(creator.info.did),
               subjectAccount: await didToHex(did1),
               permission: 0,
             } satisfies RevokeAccessSchema;
-            accessToken = user.accessToken.tntWrite;
+            accessToken = creator.accessToken.tntWrite;
             break;
           }
           default: {
@@ -290,12 +412,9 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
         });
         expect(responseBuild.status).toBe(200);
 
-        const unsignedTransaction = responseBuild.body.result;
-        const uTx = formatEthersUnsignedTransaction(
-          JSON.parse(
-            JSON.stringify(unsignedTransaction),
-          ) as UnsignedTransaction,
-        );
+        const unsignedTransaction = responseBuild.body
+          .result as UnsignedTransaction;
+        const uTx = formatEthersUnsignedTransaction(unsignedTransaction);
         uTx.chainId = Number(uTx.chainId);
         const sgnTx = await user.wallet.signTransaction(uTx);
         const { r, s, v } = ethers.utils.parseTransaction(sgnTx);

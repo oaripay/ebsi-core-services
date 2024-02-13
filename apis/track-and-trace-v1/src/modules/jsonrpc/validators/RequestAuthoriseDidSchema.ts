@@ -5,7 +5,16 @@ import { baseParamSchema } from "./BaseParamSchema.js";
 
 export const authoriseDidSchema = baseParamSchema.merge(
   z.object({
-    didEbsi: z.string().superRefine((val, ctx) => {
+    senderDid: z.string().superRefine((val, ctx) => {
+      const didValidation = isDidV1(val);
+      if (!didValidation.success) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: didValidation.error,
+        });
+      }
+    }),
+    authorisedDid: z.string().superRefine((val, ctx) => {
       const didValidation = isDidV1(val);
       if (!didValidation.success) {
         ctx.addIssue({

@@ -285,7 +285,8 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
       params: [
         {
           from: authoriser.wallet.address,
-          didEbsi: documentCreator.info.did,
+          senderDid: authoriser.info.did,
+          authorisedDid: documentCreator.info.did,
           whiteList: true,
         } satisfies AuthoriseDidSchema,
       ],

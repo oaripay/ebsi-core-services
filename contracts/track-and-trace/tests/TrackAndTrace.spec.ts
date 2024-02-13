@@ -41,6 +41,7 @@ describe("TrackAndTrace - tests", () => {
   let admin: SignerWithAddress;
   let upgrader: SignerWithAddress;
   let broadcaster: SignerWithAddress;
+  const supportOfficeAccount = "didSupportOffice";
   const creatorAccount = "didEbsi";
   const writerAccount = "didWriter";
   const delegateAccount = "didDelegate";
@@ -98,7 +99,7 @@ describe("TrackAndTrace - tests", () => {
 
     await trackAndTrace
       .connect(broadcaster)
-      ["authoriseDid(string,bool)"](creatorAccount, true);
+      .authoriseDid(supportOfficeAccount, creatorAccount, true);
   });
   describe("Basic", () => {
     it("should be already initialized", async () => {
@@ -115,7 +116,7 @@ describe("TrackAndTrace - tests", () => {
       await expect(
         trackAndTrace
           .connect(broadcaster)
-          ["authoriseDid(string,bool)"]("didebsi", true),
+          .authoriseDid("didebsi", creatorAccount, true),
       ).to.be.revertedWith("NotDidController");
     });
     it("should revert if user not upgrader", async () => {
@@ -303,8 +304,16 @@ describe("TrackAndTrace - tests", () => {
       const documentHash = ethers.utils.formatBytes32String("write01");
       await didRegistryMock.setDidResult(true);
       await createDocument(documentHash);
-      await trackAndTrace["authoriseDid(string,bool)"](delegateAccount, true);
-      await trackAndTrace["authoriseDid(string,bool)"](writerAccount, true);
+      await trackAndTrace.authoriseDid(
+        supportOfficeAccount,
+        delegateAccount,
+        true,
+      );
+      await trackAndTrace.authoriseDid(
+        supportOfficeAccount,
+        writerAccount,
+        true,
+      );
       await grantAccess(
         documentHash,
         ethers.utils.toUtf8Bytes(creatorAccount),
@@ -638,7 +647,7 @@ describe("TrackAndTrace - tests", () => {
       const creator = "did:ebsi:creator1";
       const creatorBuffer = `0x${Buffer.from(creator).toString("hex")}`;
       const documentHash = ethers.utils.formatBytes32String("document2");
-      await trackAndTrace.authoriseDid(creator, true);
+      await trackAndTrace.authoriseDid(supportOfficeAccount, creator, true);
       await trackAndTrace["createDocument(bytes32,string,string)"](
         documentHash,
         "metadata",

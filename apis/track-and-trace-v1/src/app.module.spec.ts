@@ -534,7 +534,8 @@ describe("App Module", () => {
       params: [
         {
           from: authoriser.wallet.address,
-          didEbsi: documentCreator.did,
+          senderDid: authoriser.did,
+          authorisedDid: documentCreator.did,
           whiteList: true,
         } satisfies AuthoriseDidSchema,
       ],

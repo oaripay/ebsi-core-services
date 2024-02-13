@@ -457,13 +457,15 @@ describe("JsonRpc Module", () => {
 
       const param1 = {
         from: user1.wallet.address,
-        didEbsi: user1.did,
+        senderDid: user1.did,
+        authorisedDid: user1.did,
         whiteList: true,
       } satisfies AuthoriseDidSchema;
 
       const param2 = {
         from: user1.wallet.address,
-        didEbsi: user1.did,
+        senderDid: user1.did,
+        authorisedDid: user1.did,
         whiteList: false,
       } satisfies AuthoriseDidSchema;
 
@@ -576,7 +578,8 @@ describe("JsonRpc Module", () => {
       const accessToken = user1.accessToken.tntAuthorise;
       const param = {
         from: "0x123",
-        didEbsi: user1.did,
+        senderDid: user1.did,
+        authorisedDid: user1.did,
         whiteList: true,
       } satisfies AuthoriseDidSchema;
 
@@ -637,7 +640,8 @@ describe("JsonRpc Module", () => {
           case "authoriseDid": {
             param = {
               from: signer.address,
-              didEbsi: user.did,
+              senderDid: user.did,
+              authorisedDid: user.did,
               whiteList: true,
             } satisfies AuthoriseDidSchema;
             accessToken = user.accessToken.tntAuthorise;
@@ -842,22 +846,24 @@ describe("JsonRpc Module", () => {
             testSetup.push({
               params: {
                 from: signer.address,
-                didEbsi: "not did",
+                senderDid: user.did,
+                authorisedDid: "not did",
                 whiteList: true,
               } satisfies AuthoriseDidSchema,
-              expectedErrorMessage: `Invalid 'params.0.didEbsi': The DID must start with "did:ebsi:"`,
+              expectedErrorMessage: `Invalid 'params.0.authorisedDid': The DID must start with "did:ebsi:"`,
               accessToken: user2.accessToken.tntAuthorise,
             });
 
             testSetup.push({
               params: {
                 from: signer.address,
-                didEbsi:
+                senderDid: user.did,
+                authorisedDid:
                   "did:ebsi:znxntxQrN369GsNyjFjYb8fuvU7g3sJGyYGwMTcUGdzuy",
                 whiteList: true,
               } satisfies AuthoriseDidSchema,
               expectedErrorMessage:
-                "Invalid 'params.0.didEbsi': Unsupported version \"2\"",
+                "Invalid 'params.0.authorisedDid': Unsupported version \"2\"",
               accessToken: user.accessToken.tntAuthorise,
             });
 

@@ -644,7 +644,8 @@ paths:
 
           Parameters:
           - **from**: Ethereum address of the signer
-          - **didEbsi**: DID to authorise
+          - **senderDid**: Authoriser
+          - **authorisedDid**: DID to authorise
           - **whiteList**: Boolean to define if the DID is authorized or unauthorized
 
           #### createDocument
@@ -742,7 +743,8 @@ paths:
                   method: authoriseDid
                   params:
                     - from: "0xc9765eC58E49e6E386549CEAA34FB0d8bB69C320"
-                      didEbsi: did:ebsi:z23eve8qDNzYuNVqfSaErpuJ
+                      senderDid: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw
+                      authorisedDid: did:ebsi:z23eve8qDNzYuNVqfSaErpuJ
                       whiteList: "0x01"
                   id: 474
               Build tx to createDocument (using block timestamp):
