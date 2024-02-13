@@ -1,7 +1,7 @@
 import {
-  EbsiVerifiableAttestation,
   verifyCredentialJwt,
-  VerifyCredentialOptions,
+  type EbsiVerifiableAttestation,
+  type VerifyCredentialOptions,
 } from "@cef-ebsi/verifiable-credential";
 import Joi from "joi";
 
@@ -75,9 +75,14 @@ export async function checkStatusList2021Credential(
 
     Joi.assert(credential, statusList2021CredentialSchema);
   } catch (error) {
+    let errorMessage = "Unknown error";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+
     return {
       success: false,
-      error: (error as Error).message,
+      error: errorMessage,
     };
   }
 

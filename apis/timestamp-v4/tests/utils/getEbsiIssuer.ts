@@ -1,4 +1,4 @@
-import { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
+import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
 import { ec as EC } from "elliptic";
 import { calculateJwkThumbprint } from "jose";
 import { bytes } from "multiformats";

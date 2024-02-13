@@ -15,10 +15,10 @@ import type {
   PresentationDefinitionV2,
   PresentationSubmission,
 } from "@sphereon/pex-models";
-import { verifyPresentationJwt } from "@cef-ebsi/verifiable-presentation";
-import type {
-  ProofPurposeTypes,
-  VpJwtPayload,
+import {
+  verifyPresentationJwt,
+  type ProofPurposeTypes,
+  type VpJwtPayload,
 } from "@cef-ebsi/verifiable-presentation";
 import { RP as OAuth2RP, verifyJwtTar } from "@cef-ebsi/oauth2-auth";
 import type {
@@ -525,6 +525,8 @@ export class AuthorisationService {
         ...(proofPurpose && { proofPurpose }),
       });
     } catch (e) {
+      this.logger.error(e);
+
       throw new OAuth2TokenError("invalid_request", {
         errorDescription: `Invalid Verifiable Presentation: ${
           e instanceof Error ? e.message : "Unknown error"

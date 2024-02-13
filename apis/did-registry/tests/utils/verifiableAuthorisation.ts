@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
 import {
   createVerifiableCredentialJwt,
-  EbsiIssuer,
-  EbsiVerifiableAttestation,
+  type EbsiIssuer,
+  type EbsiVerifiableAttestation,
 } from "@cef-ebsi/verifiable-credential";
 import { encode } from "@ebsiint-api/shared";
 

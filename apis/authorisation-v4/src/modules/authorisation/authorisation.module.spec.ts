@@ -27,11 +27,13 @@ import * as didJwt from "did-jwt";
 import { decodeJWT, createJWT, ES256KSigner } from "did-jwt";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import {
-  EbsiVerifiableAttestation,
   createVerifiableCredentialJwt,
+  type EbsiVerifiableAttestation,
 } from "@cef-ebsi/verifiable-credential";
-import { createVerifiablePresentationJwt } from "@cef-ebsi/verifiable-presentation";
-import type { EbsiVerifiablePresentation } from "@cef-ebsi/verifiable-presentation";
+import {
+  createVerifiablePresentationJwt,
+  type EbsiVerifiablePresentation,
+} from "@cef-ebsi/verifiable-presentation";
 import {
   calculateJwkThumbprint,
   importJWK,
@@ -598,6 +600,72 @@ describe("Authorisation Module", () => {
       expect(
         (response.headers as Record<string, unknown>)["content-type"],
       ).toBe("application/json; charset=utf-8");
+    });
+
+    it("should return a detailed error if VP JWT is invalid (missing 'verifiableCredential' property)", async () => {
+      expect.assertions(2);
+
+      const scope = "openid tnt_create";
+      const issuanceDate = new Date();
+      // JWT access token must have 2 hours expiration time and there are no Refresh Tokens.
+      const expirationDate = new Date(
+        issuanceDate.getTime() + 2 * 60 * 60 * 1000,
+      );
+
+      const vpPayload = {
+        "@context": ["https://www.w3.org/2018/credentials/v1"],
+        type: ["VerifiablePresentation"],
+        id: randomUUID(),
+        // 'verifiableCredential' is missing
+        // verifiableCredential: [],
+        holder: credentialSubject.did,
+      };
+
+      const presentationSubmission =
+        createPresentationSubmission(TNT_CREATE_SCOPE);
+
+      // Manually create VP JWT
+      // Create VP JWT manually
+      const privateKey = await importJWK(
+        credentialIssuer.privateKeyJwk,
+        credentialIssuer.alg,
+      );
+      const vpJwt = await new SignJWT({
+        aud: serviceEndpoint,
+        sub: credentialIssuer.did,
+        iat: Math.floor(issuanceDate.getTime() / 1000),
+        nbf: Math.floor(issuanceDate.getTime() / 1000),
+        exp: Math.floor(expirationDate.getTime() / 1000),
+        vp: vpPayload,
+        nonce: randomUUID(),
+        iss: credentialIssuer.did,
+      })
+        .setProtectedHeader({
+          alg: credentialIssuer.alg,
+          typ: "JWT",
+          kid: credentialIssuer.kid,
+        })
+        .sign(privateKey);
+
+      const response = await request(server)
+        .post("/token")
+        .set("Content-Type", "application/x-www-form-urlencoded")
+        .send(
+          new URLSearchParams({
+            grant_type: "vp_token",
+            scope,
+            vp_token: vpJwt,
+            presentation_submission: JSON.stringify(presentationSubmission),
+          } satisfies CreateAccessTokenDto).toString(),
+        );
+
+      expect(response.body).toStrictEqual({
+        error: "invalid_request",
+        error_description:
+          "Invalid Verifiable Presentation: Invalid EBSI Verifiable Presentation. The root value is missing the required field 'verifiableCredential'.",
+      });
+
+      expect(response.status).toBe(400);
     });
 
     describe.each(CUSTOM_SCOPES)("with scope 'openid %s'", (customScope) => {
