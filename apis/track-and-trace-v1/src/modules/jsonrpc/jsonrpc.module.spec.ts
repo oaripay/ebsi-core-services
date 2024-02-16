@@ -867,6 +867,18 @@ describe("JsonRpc Module", () => {
               accessToken: user.accessToken.tntAuthorise,
             });
 
+            testSetup.push({
+              params: {
+                from: signer.address,
+                senderDid: EbsiWallet.createDid(), // senderDid doesn't match the access token subject
+                authorisedDid: EbsiWallet.createDid(),
+                whiteList: true,
+              } satisfies AuthoriseDidSchema,
+              expectedErrorMessage:
+                "Access token sub doesn't match the DID from the payload",
+              accessToken: user.accessToken.tntAuthorise,
+            });
+
             break;
           }
           case "createDocument": {
@@ -987,6 +999,22 @@ describe("JsonRpc Module", () => {
               accessToken: user1.accessToken.tntWrite,
             });
 
+            testSetup.push({
+              params: {
+                from: signer.address,
+                documentHash: documentHash2,
+                // Random DID, doesn't match with access token sub
+                grantedByAccount: `0x${Buffer.from(EbsiWallet.createDid()).toString("hex")}`,
+                subjectAccount: `0x${Buffer.from(user2.did).toString("hex")}`,
+                grantedByAccType: AccountType.DID_EBSI,
+                subjectAccType: AccountType.DID_EBSI,
+                permission: Permission.DELEGATE,
+              } satisfies GrantAccessSchema,
+              expectedErrorMessage:
+                "Access token sub doesn't match the DID from the payload",
+              accessToken: user1.accessToken.tntWrite,
+            });
+
             break;
           }
           case "grantAccess(granted by did:key)": {
@@ -1016,6 +1044,22 @@ describe("JsonRpc Module", () => {
               } satisfies GrantAccessSchema,
               expectedErrorMessage:
                 "Invalid 'params.0.subjectAccType': Number must be 0 (did:ebsi) or 1 (did:key)",
+              accessToken: user1.accessToken.tntWrite,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                documentHash: documentHash2,
+                // Random DID, doesn't match with access token sub
+                grantedByAccount: `0x${Buffer.from(EbsiWallet.createDid()).toString("hex")}`,
+                subjectAccount: `0x${Buffer.from(user2.did).toString("hex")}`,
+                grantedByAccType: AccountType.DID_EBSI,
+                subjectAccType: AccountType.DID_EBSI,
+                permission: Permission.DELEGATE,
+              } satisfies GrantAccessSchema,
+              expectedErrorMessage:
+                "Access token sub doesn't match the DID from the payload",
               accessToken: user1.accessToken.tntWrite,
             });
 

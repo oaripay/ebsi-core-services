@@ -284,7 +284,7 @@ export class JsonRpcService {
   async buildTransactionAuthoriseDid(
     body: JsonRpcSchema,
     id: number | string | null | undefined,
-    _: string,
+    sub: string,
     scope: string,
   ): Promise<UnsignedTransaction> {
     try {
@@ -294,6 +294,9 @@ export class JsonRpcService {
 
       const { from, senderDid, authorisedDid, whiteList } =
         parsedBody.params[0]!;
+
+      // Verify that the Access Token sub and the senderDid match
+      assertDidMatchesSub(senderDid, sub);
 
       const data = (
         await this.ledgerService.getContract()
@@ -393,7 +396,7 @@ export class JsonRpcService {
   async buildTransactionGrantAccess(
     body: JsonRpcSchema,
     id: number | string | null | undefined,
-    _: string,
+    sub: string,
     scope: string,
   ): Promise<UnsignedTransaction> {
     try {
@@ -410,6 +413,10 @@ export class JsonRpcService {
         subjectAccType,
         permission,
       } = parsedBody.params[0]!;
+
+      // Verify that the Access Token sub and grantedByAccount match
+      const grantedByAccountDid = hexToDid(grantedByAccount);
+      assertDidMatchesSub(grantedByAccountDid, sub);
 
       const data = (
         await this.ledgerService.getContract()
@@ -434,7 +441,7 @@ export class JsonRpcService {
   async buildTransactionRevokeAccess(
     body: JsonRpcSchema,
     id: number | string | null | undefined,
-    _: string,
+    sub: string,
     scope: string,
   ): Promise<UnsignedTransaction> {
     try {
@@ -449,6 +456,10 @@ export class JsonRpcService {
         subjectAccount,
         permission,
       } = parsedBody.params[0]!;
+
+      // Verify that the Access Token sub and revokedByAccount match
+      const revokedByAccountDid = hexToDid(revokedByAccount);
+      assertDidMatchesSub(revokedByAccountDid, sub);
 
       const data = (
         await this.ledgerService.getContract()
