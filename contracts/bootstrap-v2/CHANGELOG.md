@@ -1,5 +1,17 @@
 # @ebsiint-sc/bootstrap-v2
 
+## 2.0.0-rc.2
+
+### Minor Changes
+
+- [0873147653f7a41503e046da3a9f8614a4b30830](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/0873147653f7a41503e046da3a9f8614a4b30830): Pagination for array bytes (bytes[]) from public to internal which removed the need to deploy pagination library externally and link it to the contract.
+
+### Patch Changes
+
+- [48b06089e979a20d1ca3df1be08ac614e5b6856e](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/48b06089e979a20d1ca3df1be08ac614e5b6856e): Bump dependencies, support Verifiable Attestation 2024-01 schema.
+- [733354a1d2e4e6a18a9a834a96b7b9a4eb321060](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/733354a1d2e4e6a18a9a834a96b7b9a4eb321060): Bump dependencies, update Node.js to v20.11.0.
+- [f84767e4aedf5c103d6aad87f81c3708ad915e73](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/f84767e4aedf5c103d6aad87f81c3708ad915e73): Bump dependencies.
+
 ## 2.0.0-rc.1
 
 ### Patch Changes

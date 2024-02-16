@@ -1,6 +1,6 @@
 {
   "name": "@ebsiint-sc/trusted-issuers-registry-v3",
-  "version": "3.0.0-rc.2",
+  "version": "3.0.0-rc.3",
   "license": "EUPL-1.2",
   "private": true,
   "main": "dist/index.js",
@@ -21,9 +21,9 @@
     "test:ci": "hardhat compile && hardhat test && yarn coverage"
   },
   "dependencies": {
-    "@ebsiint-sc/bootstrap-v2": "^2.0.0-rc.1",
-    "@ebsiint-sc/did-registry-v3": "^3.0.0-rc.1",
-    "@ebsiint-sc/trusted-policies-registry-v2": "^2.0.0-rc.1"
+    "@ebsiint-sc/bootstrap-v2": "^2.0.0-rc.2",
+    "@ebsiint-sc/did-registry-v3": "^3.0.0-rc.2",
+    "@ebsiint-sc/trusted-policies-registry-v2": "^2.0.0-rc.2"
   },
   "devDependencies": {
     "@ethersproject/abi": "^5.7.0",

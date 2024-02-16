@@ -1,5 +1,29 @@
 # Changelog
 
+## 5.0.0-rc.2
+
+### Patch Changes
+
+- [f5e36ba8b269823c49651c3e4eb66b201a12c119](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/f5e36ba8b269823c49651c3e4eb66b201a12c119): Use Zod to validate the JSON-RPC request parameters.
+- [5c6c9e9227b705958af5a1869ddfbdbe237d6262](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/5c6c9e9227b705958af5a1869ddfbdbe237d6262): extractNamedAttributes function from shared library
+- [48b06089e979a20d1ca3df1be08ac614e5b6856e](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/48b06089e979a20d1ca3df1be08ac614e5b6856e): Bump dependencies, support Verifiable Attestation 2024-01 schema.
+- [99abef34ed7e8a91e3335e712173a45027f9277e](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/99abef34ed7e8a91e3335e712173a45027f9277e): Update VC and VP libraries.
+- [733354a1d2e4e6a18a9a834a96b7b9a4eb321060](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/733354a1d2e4e6a18a9a834a96b7b9a4eb321060): Bump dependencies, update Node.js to v20.11.0.
+- [fe81418ed2d3d8759944423997e4371fff61e348](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/fe81418ed2d3d8759944423997e4371fff61e348): Setup axios agents with `keepAlive: true`.
+- [de238473eb36b1f275866c848e945e9417e917e3](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/de238473eb36b1f275866c848e945e9417e917e3): Initialize LedgerService only once.
+- [f84767e4aedf5c103d6aad87f81c3708ad915e73](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/f84767e4aedf5c103d6aad87f81c3708ad915e73): Bump dependencies.
+- [79dc01786e983e02373501ec858f4897d8ae3680](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/79dc01786e983e02373501ec858f4897d8ae3680): Return more detailed error when Ajv validation fails.
+- Updated dependencies [61fffd7ccdb3e8aa20dfe2ea6e546b3784a9adcd](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/61fffd7ccdb3e8aa20dfe2ea6e546b3784a9adcd)
+- Updated dependencies [5c6c9e9227b705958af5a1869ddfbdbe237d6262](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/5c6c9e9227b705958af5a1869ddfbdbe237d6262)
+- Updated dependencies [48b06089e979a20d1ca3df1be08ac614e5b6856e](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/48b06089e979a20d1ca3df1be08ac614e5b6856e)
+- Updated dependencies [99abef34ed7e8a91e3335e712173a45027f9277e](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/99abef34ed7e8a91e3335e712173a45027f9277e)
+- Updated dependencies [733354a1d2e4e6a18a9a834a96b7b9a4eb321060](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/733354a1d2e4e6a18a9a834a96b7b9a4eb321060)
+- Updated dependencies [fe81418ed2d3d8759944423997e4371fff61e348](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/fe81418ed2d3d8759944423997e4371fff61e348)
+- Updated dependencies [f84767e4aedf5c103d6aad87f81c3708ad915e73](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/f84767e4aedf5c103d6aad87f81c3708ad915e73)
+- Updated dependencies [79dc01786e983e02373501ec858f4897d8ae3680](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/79dc01786e983e02373501ec858f4897d8ae3680)
+  - @ebsiint-api/shared@1.1.0-rc.6
+  - @ebsiint-sc/trusted-issuers-registry-v3@3.0.0-rc.3
+
 ## 5.0.0-rc.1
 
 ### Minor Changes

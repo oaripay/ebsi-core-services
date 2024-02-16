@@ -1,7 +1,7 @@
 {
   "name": "@ebsiint-api/timestamp-api-v3",
   "private": true,
-  "version": "3.0.0-rc.8",
+  "version": "3.0.0-rc.9",
   "type": "module",
   "license": "EUPL-1.2",
   "scripts": {
@@ -27,8 +27,8 @@
     "@cef-ebsi/key-encoder": "^1.0.0",
     "@cef-ebsi/oauth2-auth": "^3.0.0",
     "@cef-ebsi/siop-auth": "^4.0.0",
-    "@ebsiint-api/shared": "^1.1.0-rc.5",
-    "@ebsiint-sc/timestamp": "^1.0.1-rc.5",
+    "@ebsiint-api/shared": "^1.1.0-rc.6",
+    "@ebsiint-sc/timestamp": "^1.0.1-rc.6",
     "@fastify/helmet": "^11.1.1",
     "@nestjs/axios": "^3.0.2",
     "@nestjs/common": "^10.3.3",

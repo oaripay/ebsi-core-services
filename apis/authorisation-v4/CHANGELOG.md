@@ -1,5 +1,36 @@
 # Changelog
 
+## 4.0.0-rc.2
+
+### Minor Changes
+
+- [136b4b6fb64fdbf08d7d337c1d0adadef0f1ca90](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/136b4b6fb64fdbf08d7d337c1d0adadef0f1ca90): Support new `tnt_authorise` scope.
+- [027a37e996d0075b1265b40ef75db5ab03ee16ca](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/027a37e996d0075b1265b40ef75db5ab03ee16ca): Support new `tnt_create` scope.
+- [1cc039d086a0ac8401a20d40d17d2361da15fdf5](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/1cc039d086a0ac8401a20d40d17d2361da15fdf5): Support new `tnt_write` scope.
+
+### Patch Changes
+
+- [48b06089e979a20d1ca3df1be08ac614e5b6856e](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/48b06089e979a20d1ca3df1be08ac614e5b6856e): Bump dependencies, support Verifiable Attestation 2024-01 schema.
+- [99abef34ed7e8a91e3335e712173a45027f9277e](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/99abef34ed7e8a91e3335e712173a45027f9277e): Update VC and VP libraries.
+- [733354a1d2e4e6a18a9a834a96b7b9a4eb321060](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/733354a1d2e4e6a18a9a834a96b7b9a4eb321060): Bump dependencies, update Node.js to v20.11.0.
+- [fe81418ed2d3d8759944423997e4371fff61e348](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/fe81418ed2d3d8759944423997e4371fff61e348): Setup axios agents with `keepAlive: true`.
+- [6df732c659bed9be9cca12ad56cda71d8b1f6813](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/6df732c659bed9be9cca12ad56cda71d8b1f6813): Update OpenAPI definition.
+- [ca04571b57f937551cad46f298c0652d67deafd1](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/ca04571b57f937551cad46f298c0652d67deafd1): Fix presentation definitions.
+- [8640a1950c01c877e4db70b59860e8e72c7bb9d9](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/8640a1950c01c877e4db70b59860e8e72c7bb9d9): Allow empty TNT_AUTHORISE_ISSUERS_ALLOWLIST.
+- [e6578657c1032726bd20ae0ac6a66753bebd2bce](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/e6578657c1032726bd20ae0ac6a66753bebd2bce): Fix presentation exchange.
+- [bbf0d034fe7a717e756dc89e89701e842022854b](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/bbf0d034fe7a717e756dc89e89701e842022854b): Require verification method to be a capabilityInvocation in order to get an access token with tnt_authorise scope.
+- [f84767e4aedf5c103d6aad87f81c3708ad915e73](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/f84767e4aedf5c103d6aad87f81c3708ad915e73): Bump dependencies.
+- [79dc01786e983e02373501ec858f4897d8ae3680](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/79dc01786e983e02373501ec858f4897d8ae3680): Return more detailed error when Ajv validation fails.
+- Updated dependencies [61fffd7ccdb3e8aa20dfe2ea6e546b3784a9adcd](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/61fffd7ccdb3e8aa20dfe2ea6e546b3784a9adcd)
+- Updated dependencies [5c6c9e9227b705958af5a1869ddfbdbe237d6262](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/5c6c9e9227b705958af5a1869ddfbdbe237d6262)
+- Updated dependencies [48b06089e979a20d1ca3df1be08ac614e5b6856e](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/48b06089e979a20d1ca3df1be08ac614e5b6856e)
+- Updated dependencies [99abef34ed7e8a91e3335e712173a45027f9277e](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/99abef34ed7e8a91e3335e712173a45027f9277e)
+- Updated dependencies [733354a1d2e4e6a18a9a834a96b7b9a4eb321060](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/733354a1d2e4e6a18a9a834a96b7b9a4eb321060)
+- Updated dependencies [fe81418ed2d3d8759944423997e4371fff61e348](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/fe81418ed2d3d8759944423997e4371fff61e348)
+- Updated dependencies [f84767e4aedf5c103d6aad87f81c3708ad915e73](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/f84767e4aedf5c103d6aad87f81c3708ad915e73)
+- Updated dependencies [79dc01786e983e02373501ec858f4897d8ae3680](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/79dc01786e983e02373501ec858f4897d8ae3680)
+  - @ebsiint-api/shared@1.1.0-rc.6
+
 ## 4.0.0-rc.1
 
 ### Minor Changes

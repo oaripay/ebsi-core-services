@@ -12,4 +12,4 @@
 "@ebsiint-api/shared": patch
 ---
 
-Update VC and P libraries.
+Update VC and VP libraries.

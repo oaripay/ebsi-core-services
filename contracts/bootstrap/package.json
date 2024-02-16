@@ -1,7 +1,7 @@
 {
   "name": "@ebsiint-sc/bootstrap",
   "private": true,
-  "version": "1.0.1-rc.5",
+  "version": "1.0.1-rc.6",
   "license": "EUPL-1.2",
   "main": "index.js",
   "scripts": {

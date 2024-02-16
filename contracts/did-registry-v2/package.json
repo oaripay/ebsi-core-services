@@ -1,6 +1,6 @@
 {
   "name": "@ebsiint-sc/did-registry-v2",
-  "version": "2.0.0-rc.4",
+  "version": "2.0.0-rc.5",
   "license": "EUPL-1.2",
   "private": true,
   "main": "dist/index.js",
@@ -21,8 +21,8 @@
     "test:ci": "hardhat compile && hardhat test && yarn coverage"
   },
   "dependencies": {
-    "@ebsiint-sc/bootstrap": "^1.0.1-rc.5",
-    "@ebsiint-sc/trusted-policies-registry": "^1.0.1-rc.5"
+    "@ebsiint-sc/bootstrap": "^1.0.1-rc.6",
+    "@ebsiint-sc/trusted-policies-registry": "^1.0.1-rc.6"
   },
   "devDependencies": {
     "@ethersproject/abi": "^5.7.0",
