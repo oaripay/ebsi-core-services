@@ -66,7 +66,7 @@ export function createEvent(
   );
   const origin = "origin";
   const metadata = "eventMetadata";
-  const sender = `0x${Buffer.from(didEbsiCreator).toString("hex")}`;
+  const sender = didEbsiCreator;
 
   const event = {
     documentHash,

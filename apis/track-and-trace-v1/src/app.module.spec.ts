@@ -630,7 +630,7 @@ describe("App Module", () => {
 
     const document1Event1 = {
       externalHash: `0x${randomBytes(32).toString("hex")}`,
-      sender: await didToHex(documentCreator.did),
+      sender: documentCreator.did,
       origin: "",
       metadata: "test event metadata",
       hash: "",
@@ -648,7 +648,7 @@ describe("App Module", () => {
           eventParams: {
             documentHash: document1.hash,
             externalHash: document1Event1.externalHash,
-            sender: document1Event1.sender,
+            sender: await didToHex(document1Event1.sender),
             origin: document1Event1.origin,
             metadata: document1Event1.metadata,
           },
@@ -790,7 +790,7 @@ describe("App Module", () => {
 
     const document1Event2 = {
       externalHash: `0x${randomBytes(32).toString("hex")}`,
-      sender: await didToHex(didEbsiEventsCreator.did),
+      sender: didEbsiEventsCreator.did,
       origin: "",
       metadata: "test event metadata",
       hash: "",
@@ -808,7 +808,7 @@ describe("App Module", () => {
           eventParams: {
             documentHash: document1.hash,
             externalHash: document1Event2.externalHash,
-            sender: document1Event2.sender,
+            sender: await didToHex(document1Event2.sender),
             origin: document1Event2.origin,
             metadata: document1Event2.metadata,
           },
@@ -1028,7 +1028,7 @@ describe("App Module", () => {
 
     const document1Event3 = {
       externalHash: `0x${randomBytes(32).toString("hex")}`,
-      sender: await didToHex(didKeyEventsCreator.did),
+      sender: didKeyEventsCreator.did,
       origin: "",
       metadata: "test event metadata",
       hash: "",
@@ -1046,7 +1046,7 @@ describe("App Module", () => {
           eventParams: {
             documentHash: document1.hash,
             externalHash: document1Event3.externalHash,
-            sender: document1Event3.sender,
+            sender: await didToHex(document1Event3.sender),
             origin: document1Event3.origin,
             metadata: document1Event3.metadata,
           },

@@ -94,7 +94,7 @@ export async function addEvent(contract: TrackAndTrace, doc: TestDocument) {
     {
       documentHash: event.documentHash,
       externalHash: event.externalHash,
-      sender: event.sender,
+      sender: await didToHex(event.sender),
       origin: event.origin,
       metadata: event.metadata,
     },

@@ -395,7 +395,7 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
 
     const document1Event1 = {
       externalHash: `0x${randomBytes(32).toString("hex")}`,
-      sender: await didToHex(documentCreator.info.did),
+      sender: documentCreator.info.did,
       origin: "",
       metadata: "test event metadata",
       hash: "",
@@ -413,7 +413,7 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
           eventParams: {
             documentHash: document1.hash,
             externalHash: document1Event1.externalHash,
-            sender: document1Event1.sender,
+            sender: await didToHex(document1Event1.sender),
             origin: document1Event1.origin,
             metadata: document1Event1.metadata,
           },
@@ -654,7 +654,7 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
 
     const document1Event2 = {
       externalHash: `0x${randomBytes(32).toString("hex")}`,
-      sender: await didToHex(didKeyEventsCreator.info.did),
+      sender: didKeyEventsCreator.info.did,
       origin: "",
       metadata: "test event metadata",
       hash: "",
@@ -672,7 +672,7 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
           eventParams: {
             documentHash: document1.hash,
             externalHash: document1Event2.externalHash,
-            sender: document1Event2.sender,
+            sender: await didToHex(document1Event2.sender),
             origin: document1Event2.origin,
             metadata: document1Event2.metadata,
           },

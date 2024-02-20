@@ -115,7 +115,7 @@ export default class DocumentsService {
         source: event.eventTimestamp.source === 0 ? "block" : "external",
         proof: event.eventTimestamp.proof,
       },
-      sender: event.sender,
+      sender: hexToDid(event.sender),
       origin: event.origin,
       metadata: event.eventMetadata,
     } satisfies Event;

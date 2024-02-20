@@ -480,7 +480,7 @@ describe("Track and Trace API v1 - Documents (e2e)", () => {
         externalHash: expect.any(String),
         hash: expect.stringMatching(/^0x/),
         origin: expect.any(String),
-        sender: expect.any(String),
+        sender: expect.stringMatching(/^did:/),
       });
       expect(response.status).toBe(200);
       expect(
