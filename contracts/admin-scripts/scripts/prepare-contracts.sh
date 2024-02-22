@@ -27,6 +27,9 @@ cp -r ${SCRIPT_DIR}/../../did-registry-v2/contracts ${SCRIPT_DIR}/../contracts/d
 echo Copy the did-registry-v3
 cp -r ${SCRIPT_DIR}/../../did-registry-v3/contracts ${SCRIPT_DIR}/../contracts/did-registry-v3
 
+echo Copy the did-registry-v4
+cp -r ${SCRIPT_DIR}/../../did-registry-v4/contracts ${SCRIPT_DIR}/../contracts/did-registry-v4
+
 echo Copy the proxy
 cp -r ${SCRIPT_DIR}/../../proxy/contracts ${SCRIPT_DIR}/../contracts/proxy
 
