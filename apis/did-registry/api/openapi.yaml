@@ -1399,7 +1399,6 @@ paths:
 
                     - create an [EBSI-compliant DID](https://ec.europa.eu/digital-building-blocks/wikis/x/x4XyGQ)
                     - create an [EBSI-compliant DID document](https://ec.europa.eu/digital-building-blocks/wikis/x/x4XyGQ)
-
                 value:
                   jsonrpc: "2.0"
                   method: insertDidDocument
@@ -1414,7 +1413,7 @@ paths:
                   id: 1
               "[conformance] ct1_did_02":
                 summary: Send blockchain transaction to register a DID document (CT ONBOARD_062)
-                description: >
+                description: |
                   EBSI conformance test: Send blockchain transaction to register a DID document (DID_02).
 
                   A successful response (HTTP 200) means that the service (wallet) can:
@@ -1422,7 +1421,6 @@ paths:
                     - create an [EBSI-compliant DID](https://ec.europa.eu/digital-building-blocks/wikis/x/x4XyGQ)
                     - create an [EBSI-compliant DID document](https://ec.europa.eu/digital-building-blocks/wikis/x/x4XyGQ)
                     - [create signed blockchain transaction]()
-
                 value:
                   jsonrpc: "2.0"
                   method: sendSignedTransaction

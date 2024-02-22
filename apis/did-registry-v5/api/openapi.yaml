@@ -949,8 +949,6 @@ components:
         detail: Internal error
   securitySchemes:
     bearerAuth:
-      description: >
-
       type: http
       scheme: bearer
       bearerFormat: JWT

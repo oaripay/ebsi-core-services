@@ -326,7 +326,7 @@ paths:
                   datetime: "0x65c3881c"
                   source: block
                   proof: "0x0000000000000000000000000000000000000000000000000000000000a026d9"
-                sender: did:ebsi:ztqWJAmfyuUEf9Jvh97p167
+                sender: "did:ebsi:zkrLJ5WyqiHbiXjur3TqzfA"
                 origin: origin
                 metadata: eventMetadata
         "400":
@@ -616,7 +616,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /track-and-trace/v1/jsonrpc:
     post:
-      operationId: post-track-and-trace-v1-jsonrpc
+      operationId: post-jsonrpc
       tags:
         - JSON-RPC
       summary: JSON-RPC API
@@ -628,8 +628,7 @@ paths:
       requestBody:
         required: true
         description: |
-          The body follows the
-          [JSON-RPC 2.0 specification](https://www.jsonrpc.org/specification).
+          The body follows the [JSON-RPC 2.0 specification](https://www.jsonrpc.org/specification).
 
           It requires the following fields:
 
@@ -646,8 +645,8 @@ paths:
 
           Parameters:
           - **from**: Ethereum address of the signer
-          - **senderDid**: Authoriser
-          - **authorisedDid**: DID to authorise
+          - **senderDid**: DID of the signer. Must be a `did:ebsi` DID (UTF-8)
+          - **authorisedDid**: DID to authorise. Must be a `did:ebsi` DID (UTF-8)
           - **whiteList**: Boolean to define if the DID is authorized or unauthorized
 
           #### createDocument
@@ -658,7 +657,7 @@ paths:
           - **from**: Ethereum address of the signer
           - **documentHash**: Document hash
           - **documentMetadata**: Document metadata as hex string
-          - **didEbsiCreator**: DID of the creator
+          - **didEbsiCreator**: DID of the document creator. Must be a `did:ebsi` DID (UTF-8)
           - **timestamp** (optional): Timestamp as hex string. By default it uses takes the timestamp from the blockchain
           - **timestampProof** (optional): Timestamp proof as hex string. It must be defined when "timestamp" is defined
 
@@ -677,11 +676,11 @@ paths:
           Parameters:
           - **from**: Ethereum address of the signer
           - **documentHash**: Document hash
-          - **grantedByAccount**: DID (did:ebsi) or public key (did:key) that grants the permission (hex string format)
-          - **subjectAccount**: DID (did:ebsi) or public key (did:key) that receives the grant (hex string format)
-          - **grantedByAccType**: grantedBy type. Use 0 for "did:ebsi" or 1 for "did:key"
-          - **subjectAccType**: subject type. Use 0 for "did:ebsi" or 1 for "did:key"
-          - **permission**: Type of permission. Use 0 for "delegate" or 1 for "write"
+          - **grantedByAccount**: Entity that grants the permission. If the entity uses the `did:ebsi` method, `grantedByAccount` must be the UTF-8 DID encoded in hexadecimal. If the entity uses the `did:key` method, `grantedByAccount` must be the 64 bytes uncompressed public key encoded in hexadecimal.
+          - **subjectAccount**: Entity that receives the permission. If the entity uses the `did:ebsi` method, `subjectAccount` must be the UTF-8 DID encoded in hexadecimal. If the entity uses the `did:key` method, `subjectAccount` must be the 64 bytes uncompressed public key encoded in hexadecimal.
+          - **grantedByAccType**: DID method of `grantedByAccount`. Use `0` for `did:ebsi` or `1` for `did:key`.
+          - **subjectAccType**: DID method of `subjectAccount`. Use `0` for `did:ebsi` or `1` for `did:key`.
+          - **permission**: Type of the permission to grant. Use `0` for "delegate" or `1` for "write"
 
           #### revokeAccess
 
@@ -690,9 +689,9 @@ paths:
           Parameters:
           - **from**: Ethereum address of the signer
           - **documentHash**: Document hash
-          - **revokedByAccount**: DID (did:ebsi) or public key (did:key) that revokes the grant (hex string format)
-          - **subjectAccount**: DID (did:ebsi) or public key (did:key) revoked (hex string format)
-          - **permission**: Type of permission. Use 0 for "delegate" or 1 for "write"
+          - **revokedByAccount**: Entity that revokes the permission. If the entity uses the `did:ebsi` method, `revokedByAccount` must be the UTF-8 DID encoded in hexadecimal. If the entity uses the `did:key` method, `revokedByAccount` must be the 64 bytes uncompressed public key encoded in hexadecimal.
+          - **subjectAccount**: Entity whose permission is revoked. If the entity uses the `did:ebsi` method, `subjectAccount` must be the UTF-8 DID encoded in hexadecimal. If the entity uses the `did:key` method, `subjectAccount` must be the 64 bytes uncompressed public key encoded in hexadecimal.
+          - **permission**: Type of the permission to revoke. Use `0` for "delegate" or `1` for "write"
 
           #### writeEvent
 
@@ -703,7 +702,7 @@ paths:
           - **eventParams**: Event parameters. JSON with the following fields:
             - **documentHash**: Document hash (hex string)
             - **externalHash**: External hash (string)
-            - **sender**: DID (did:ebsi) or public key (did:key) of the event sender (hex string format)
+            - **sender**: Entity that sends the event. If the entity uses the `did:ebsi` method, `sender` must be the UTF-8 DID encoded in hexadecimal. If the entity uses the `did:key` method, `sender` must be the 64 bytes uncompressed public key encoded in hexadecimal.
             - **origin**: Origin (string)
             - **metadata**: Metadata (string)
           - **timestamp** (optional): Timestamp as hex string. By default it uses takes the timestamp from the blockchain

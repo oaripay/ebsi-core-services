@@ -13,8 +13,8 @@ export type Scope = `${typeof OPENID_SCOPE} ${(typeof CUSTOM_SCOPES)[number]}`;
  * Specs:
  * - https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
  * - https://www.ietf.org/archive/id/draft-ietf-oauth-par-03.html#section-5
- * - https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#section-8.1
- * - https://openid.net/specs/openid-connect-self-issued-v2-1_0.html#section-9.2.3
+ * - https://openid.net/specs/openid-4-verifiable-presentations-1_0-14.html#section-8.1
+ * - https://openid.net/specs/openid-connect-self-issued-v2-1_0-12.html#section-9.2.3
  * - https://openid.net/specs/openid-connect-federation-1_0-25.html#section-4.4
  * - https://ec.europa.eu/digital-building-blocks/wikis/display/BLOCKCHAININT/OpenAPI+specification+-+Onboarding+and+accreditations+for+EBSI+Authentication+service
  * - https://ec.europa.eu/digital-building-blocks/wikis/display/BLOCKCHAININT/RFC+-+EBSI+Platform+Identity+and+Access+Management#RFCEBSIPlatformIdentityandAccessManagement-PresentationDefinition

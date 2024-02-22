@@ -55,8 +55,8 @@ paths:
                   It builds on the following specifications:
                   - [OIDC - Provider Metadata](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
                   - [OAuth 2.0 Pushed Authorization Requests](https://www.rfc-editor.org/rfc/rfc9126.html)
-                  - [SIOPv2 - Provider Metadata](https://openid.net/specs/openid-connect-self-issued-v2-1_0.html#name-self-issued-openid-provider-)
-                  - [OID4VP - Authorisation Server Metadata](https://openid.net/specs/openid-4-verifiable-presentations-1_0.html#name-authorization-server-metada)
+                  - [SIOPv2 - Provider Metadata](https://openid.net/specs/openid-connect-self-issued-v2-1_0-12.html#name-self-issued-openid-provider-)
+                  - [OID4VP - Authorisation Server Metadata](https://openid.net/specs/openid-4-verifiable-presentations-1_0-14.html#name-authorization-server-metada)
                 type: object
                 required:
                   - issuer
@@ -128,7 +128,7 @@ paths:
 
                       Ref:
                       - [OIDC](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
-                      - [SIOPv2](https://openid.net/specs/openid-connect-self-issued-v2-1_0.html#name-self-issued-openid-provider-)
+                      - [SIOPv2](https://openid.net/specs/openid-connect-self-issued-v2-1_0-12.html#name-self-issued-openid-provider-)
                     type: array
                     items:
                       description: A list of openid scope values
@@ -152,7 +152,7 @@ paths:
 
                       Ref:
                       - [OIDC](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
-                      - [SIOPv2](https://openid.net/specs/openid-connect-self-issued-v2-1_0.html#name-self-issued-openid-provider-)
+                      - [SIOPv2](https://openid.net/specs/openid-connect-self-issued-v2-1_0-12.html#name-self-issued-openid-provider-)
                     type: array
                     items:
                       type: string
@@ -207,7 +207,7 @@ paths:
                       The algorithm ES256 MUST be included.
                       Ref:
                       - [OIDC](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
-                      - [SIOPv2](https://openid.net/specs/openid-connect-self-issued-v2-1_0.html)
+                      - [SIOPv2](https://openid.net/specs/openid-connect-self-issued-v2-1_0-12.html)
                     type: array
                     items:
                       type: string
@@ -222,7 +222,7 @@ paths:
 
                       Ref:
                       - [OIDC](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
-                      - [SIOPv2](https://openid.net/specs/openid-connect-self-issued-v2-1_0.html)
+                      - [SIOPv2](https://openid.net/specs/openid-connect-self-issued-v2-1_0-12.html)
                     type: array
                     items:
                       type: string
@@ -308,7 +308,7 @@ paths:
                     description: |
                       REQUIRED. A JSON array of strings representing URI scheme identifiers and optionally method names of supported Subject Syntax Types defined in {#sub-syntax-type}. When Subject Syntax Type is JWK Thumbprint, valid value is urn:ietf:params:oauth:jwk-thumbprint defined in [RFC9278]. When Subject Syntax Type is Decentralized Identifier, valid values MUST be a did: prefix followed by a supported DID method without a : suffix. For example, support for the DID method with a method-name "example" would be represented by did:example. Support for all DID methods listed in Section 13 of [DID_Specification_Registries] is indicated by sending did without any method-name.
 
-                      Reference: https://openid.net/specs/openid-connect-self-issued-v2-1_0.html
+                      Reference: https://openid.net/specs/openid-connect-self-issued-v2-1_0-12.html
 
                       MUST contain: did:ebsi, did:key
                     type: array
