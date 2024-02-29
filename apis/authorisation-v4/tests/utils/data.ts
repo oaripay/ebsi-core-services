@@ -79,6 +79,7 @@ export async function createLegalEntity(
 
 export function createPresentationSubmission(
   scope: (typeof CUSTOM_SCOPES)[number],
+  format: "jwt_vc" | "jwt_vc_json",
 ): PresentationSubmission {
   // Note that there are no .vc or .vp in path or path_nested below.
   const testPresentationSubmission: PresentationSubmission = {
@@ -98,7 +99,7 @@ export function createPresentationSubmission(
         path: "$",
         path_nested: {
           id: DIDR_INVITE_PRESENTATION_DEFINITION.input_descriptors[0].id,
-          format: "jwt_vc",
+          format,
           path: "$.vp.verifiableCredential[0]",
         },
       });
@@ -121,7 +122,7 @@ export function createPresentationSubmission(
         path: "$",
         path_nested: {
           id: TIR_INVITE_PRESENTATION_DEFINITION.input_descriptors[0].id,
-          format: "jwt_vc",
+          format,
           path: "$.vp.verifiableCredential[0]",
         },
       });
@@ -150,7 +151,7 @@ export function createPresentationSubmission(
         path: "$",
         path_nested: {
           id: TNT_AUTHORISE_PRESENTATION_DEFINITION.input_descriptors[0].id,
-          format: "jwt_vc",
+          format,
           path: "$.vp.verifiableCredential[0]",
         },
       });

@@ -373,7 +373,9 @@ export class AuthorisationService {
       token_endpoint_auth_methods_supported: ["private_key_jwt"],
       vp_formats_supported: {
         jwt_vp: { alg_values_supported: ["ES256"] },
+        jwt_vp_json: { alg_values_supported: ["ES256"] },
         jwt_vc: { alg_values_supported: ["ES256"] },
+        jwt_vc_json: { alg_values_supported: ["ES256"] },
       },
       grant_types_supported: ["vp_token"],
       subject_trust_frameworks_supported: ["ebsi"],

@@ -33,7 +33,7 @@ export const DIDR_INVITE_PRESENTATION_DEFINITION = {
       name: "Accreditation to write to the DID Registry",
       purpose:
         "Please present a valid VerifiableAuthorisationToOnboard issued by Root TAO or TAO",
-      format: { jwt_vc: { alg: ["ES256"] } },
+      format: { jwt_vc: { alg: ["ES256"] }, jwt_vc_json: { alg: ["ES256"] } },
       constraints: {
         fields: [
           {
@@ -69,7 +69,7 @@ export const TIR_INVITE_PRESENTATION_DEFINITION = {
       name: "Accreditation to write to the Trusted Issuers Registry",
       purpose:
         "Please present a valid VerifiableAuthorisationForTrustChain from EBSI TO, or a Verifiable Accreditation (VerifiableAccreditationToAttest, VerifiableAccreditationToAccredit) issued by Root TAO or TAO.",
-      format: { jwt_vc: { alg: ["ES256"] } },
+      format: { jwt_vc: { alg: ["ES256"] }, jwt_vc_json: { alg: ["ES256"] } },
       constraints: {
         fields: [
           {
@@ -119,7 +119,7 @@ export const TNT_AUTHORISE_PRESENTATION_DEFINITION = {
       name: "Accreditation to create Track and Trace documents",
       purpose:
         "Please present a valid VerifiableAuthorisationToOnboard issued by an allowlisted entity",
-      format: { jwt_vc: { alg: ["ES256"] } },
+      format: { jwt_vc: { alg: ["ES256"] }, jwt_vc_json: { alg: ["ES256"] } },
       constraints: {
         fields: [
           {

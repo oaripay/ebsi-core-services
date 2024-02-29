@@ -39,7 +39,7 @@
     "@nestjs/core": "^10.3.3",
     "@nestjs/platform-fastify": "^10.3.3",
     "@nestjs/terminus": "^10.2.2",
-    "@sphereon/pex": "^3.0.1",
+    "@sphereon/pex": "^3.2.0",
     "axios": "^1.6.7",
     "cache-manager": "^5.4.0",
     "class-transformer": "^0.5.1",

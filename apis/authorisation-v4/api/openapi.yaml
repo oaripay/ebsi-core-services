@@ -289,7 +289,34 @@ paths:
                               type: string
                               enum:
                                 - ES256
+                      jwt_vp_json:
+                        title: JWC VP
+                        type: object
+                        properties:
+                          alg_values_supported:
+                            description: |
+                              An object where the value is an array of case sensitive strings that identify the cryptographic suites that are supported. Cryptosuites for Verifiable Presentations.
+                              MUST contain ES256
+                            type: array
+                            items:
+                              type: string
+                              enum:
+                                - ES256
                       jwt_vc:
+                        title: JWC VC
+                        type: object
+                        properties:
+                          alg_values_supported:
+                            description: |
+                              An object where the value is an array of case sensitive strings that identify the cryptographic suites that are supported. Cryptosuites for Verifiable Credentials in jwt_vc_json, json_vc_json-ld, jwt_vp_json, json_vp_json-ld formats should use algorithm names defined in IANA JOSE Algorithms Registry. Cryptosuites for Verifiable Credentials in ldp_vc and ldp_vp format should use signature suites names defined in Linked Data Cryptographic Suite Registry. Cryptosuites for Verifiable Credentials in mso_mdoc format should use signature suites names defined in ISO/IEC 18013-5:2021. Parties using other credential formats will need to agree upon the meanings of the values used, which may be context-specific.
+
+                              MUST contain ES256
+                            type: array
+                            items:
+                              type: string
+                              enum:
+                                - ES256
+                      jwt_vc_json:
                         title: JWC VC
                         type: object
                         properties:
@@ -383,7 +410,13 @@ paths:
                       jwt_vp:
                         alg_values_supported:
                           - ES256
+                      jwt_vp_json:
+                        alg_values_supported:
+                          - ES256
                       jwt_vc:
+                        alg_values_supported:
+                          - ES256
+                      jwt_vc_json:
                         alg_values_supported:
                           - ES256
                     subject_syntax_types_supported:
@@ -515,6 +548,9 @@ paths:
                           jwt_vc:
                             alg:
                               - ES256
+                          jwt_vc_json:
+                            alg:
+                              - ES256
                         constraints:
                           fields:
                             - path:
@@ -540,6 +576,9 @@ paths:
                           VerifiableAccreditationToAccredit) issued by Root TAO or TAO.
                         format:
                           jwt_vc:
+                            alg:
+                              - ES256
+                          jwt_vc_json:
                             alg:
                               - ES256
                         constraints:
@@ -605,6 +644,9 @@ paths:
                           allowlisted entity
                         format:
                           jwt_vc:
+                            alg:
+                              - ES256
+                          jwt_vc_json:
                             alg:
                               - ES256
                         constraints:
@@ -700,6 +742,7 @@ paths:
                   type: string
                   example: |
                     Non-normative example:
+                    ```json
                     {
                       "id": "jwt_vp with one jwt_vc",
                       "definition_id": "Selecting JWT from credentials",
@@ -716,6 +759,7 @@ paths:
                         }
                       ]
                     }
+                    ```
                 scope:
                   description: OIDC scope
                   type: string
@@ -996,7 +1040,288 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/jwk"
-    # example_tir_write
+    jwt_object:
+      type: object
+      description: Which JWT Algorithm is supported
+      properties:
+        alg:
+          type: array
+          description: List of names of the the JWT Algorithms
+          minItems: 1
+          items:
+            type: string
+            example: ES256
+      required:
+        - alg
+      additionalProperties: false
+    format:
+      title: Format
+      description: What claim variants Verifiers and Holders support.
+      type: object
+      additionalProperties: false
+      properties:
+        jwt_vc:
+          $ref: "#/components/schemas/jwt_object"
+        jwt_vc_json:
+          $ref: "#/components/schemas/jwt_object"
+        jwt_vp:
+          $ref: "#/components/schemas/jwt_object"
+        jwt_vp_json:
+          $ref: "#/components/schemas/jwt_object"
+    optionality:
+      type: string
+      description: Whether an item is optional or not in the presentation. E.g. if an item is required presentation can not be accepted without it.
+      enum:
+        - required
+        - preferred
+    holder_subject:
+      title: Holder Subject
+      type: object
+      description: The is_holder/same_subject property would be used by a Verifier to require that certain inputs be provided by a certain subject or are about a certain subject.
+      properties:
+        field_id:
+          type: array
+          description: The value of this property MUST be an array of strings, with each string matching the string value from a field object’s id property.
+          items:
+            type: string
+        directive:
+          $ref: "#/components/schemas/optionality"
+      required:
+        - field_id
+        - directive
+      additionalProperties: false
+    directives:
+      type: string
+      description: |
+        A directive is an instruction to the holder about what significance to give to the element it refers to.
+
+        * `required` - The item 'must' be presented
+        * `allowed` - The item 'can' be presented
+        * `disallowed` - The item 'must NOT' be presented
+      enum:
+        - required
+        - allowed
+        - disallowed
+    pd_status:
+      title: Presentation Definition Status
+      description: This is a requirement to show what directive is to be followed for this status.
+      type: object
+      properties:
+        directive:
+          $ref: "#/components/schemas/directives"
+    statuses:
+      title: Statuses
+      description: statuses which are acceptable
+      type: object
+      properties:
+        active:
+          $ref: "#/components/schemas/pd_status"
+        suspended:
+          $ref: "#/components/schemas/pd_status"
+        revoked:
+          $ref: "#/components/schemas/pd_status"
+    one_of_number_string:
+      title: One of number or string
+      oneOf:
+        - type: number
+        - type: string
+      additionalProperties: false
+    filter_v2_base:
+      title: Filter V2
+      type: object
+      description: This is the filter that can be applied on the field's value to know if the available credential with a specifici field is acceptable or not.
+      properties:
+        "const":
+          $ref: "#/components/schemas/one_of_number_string"
+        "enum":
+          type: array
+          description: Fixed listed values which are acceptable in this variable.
+          items:
+            $ref: "#/components/schemas/one_of_number_string"
+        exclusiveMinimum:
+          $ref: "#/components/schemas/one_of_number_string"
+        exclusiveMaximum:
+          $ref: "#/components/schemas/one_of_number_string"
+        format:
+          type: string
+          description: format in which the item is expected. e.g. date time format of some sort.
+        formatMaximum:
+          type: string
+          description: When this keyword are added, they also add comparison functions to formats "date", "time" and "date-time"
+        formatMinimum:
+          type: string
+          description: When this keyword are added, they also add comparison functions to formats "date", "time" and "date-time"
+        formatExclusiveMaximum:
+          type: string
+          description: When this keyword are added, they also add comparison functions to formats "date", "time" and "date-time"
+        formatExclusiveMinimum:
+          type: string
+          description: When this keyword are added, they also add comparison functions to formats "date", "time" and "date-time"
+        minLength:
+          type: integer
+          description: acceptable minimum length (e.g. of string) that is acceptable
+        maxLength:
+          type: integer
+          description: acceptable maximum length (e.g. of string) that is acceptable
+        minimum:
+          $ref: "#/components/schemas/one_of_number_string"
+        maximum:
+          $ref: "#/components/schemas/one_of_number_string"
+        not:
+          type: object
+          description: The values which will make the item unacceptable
+          minProperties: 1
+        pattern:
+          type: string
+          description: The regular expression that can help filter the target object.
+        type:
+          type: string
+          description: Object type of the acceptable field.
+        contains:
+          $ref: "#/components/schemas/filter_v2_base"
+        items:
+          anyOf:
+            - $ref: "#/components/schemas/filter_v2"
+            - items:
+                $ref: "#/components/schemas/filter_v2"
+              minItems: 1
+              type: array
+      additionalProperties: false
+    filter_v2:
+      allOf:
+        - $ref: "#/components/schemas/filter_v2_base"
+        - type: object
+          properties:
+            type:
+              type: string
+              description: Object type of the acceptable field.
+          required:
+            - type
+    field_v2:
+      title: Field V2
+      description: Field required by Verifier to be submitted by Holder.
+      type: object
+      properties:
+        # [path, filter and predicate] is one set that can be filled. Or only 'path can be filled.'
+        id:
+          type: string
+          description: Must be a unique identifier between all the fields in the Presentation Definition.
+        path:
+          type: array
+          description: List of JSon paths where the field is expected to be found.
+          items:
+            type: string
+        purpose:
+          type: string
+          description: purpose for which the Claim's data is being requested.
+        filter:
+          $ref: "#/components/schemas/filter_v2"
+        predicate:
+          $ref: "#/components/schemas/optionality"
+        name:
+          type: string
+          description: human-friendly name that describes what the target field represents
+      required:
+        - path
+      additionalProperties: false
+    constraints_v2:
+      title: Constraints V2
+      description: Describes the constraints from Verifier that should be followed by Holder.
+      type: object
+      properties:
+        limit_disclosure:
+          # Allows the Verifier to convey to Holder to see which properties are required and what optional credentials can be ommitted if desired by Holder.
+          $ref: "#/components/schemas/optionality"
+        statuses:
+          $ref: "#/components/schemas/statuses"
+        fields:
+          type: array
+          description: It's a list of Fields.
+          items:
+            $ref: "#/components/schemas/field_v2"
+        subject_is_issuer:
+          $ref: "#/components/schemas/optionality"
+        is_holder:
+          type: array
+          description: It's a list of holder_subjects.
+          items:
+            $ref: "#/components/schemas/holder_subject"
+        same_subject:
+          type: array
+          description: It's a list of holder_subjects.
+          items:
+            $ref: "#/components/schemas/holder_subject"
+      additionalProperties: false
+    input_descriptor_v2:
+      title: Input Descriptor V2
+      description: Input Descriptor is used by a Verifier to describe the information required of a Holder before an interaction can proceed.
+      type: object
+      properties:
+        id:
+          type: string
+          description: The verifiable credentials that is acceptable from the holder. e.g. wa_driver_license
+        name:
+          type: string
+          description: The verifiable credentials that is acceptable from the holder in a human readibly string form. i.e. an alternative for the humans to the id
+        purpose:
+          type: string
+          description: It describes the purpose for which the Presentation Definition's inputs are being requested.
+        format:
+          $ref: "#/components/schemas/format"
+        group:
+          type: array
+          description: A group from which the specific credential is required.
+          items:
+            type: string
+        constraints:
+          $ref: "#/components/schemas/constraints_v2"
+      required:
+        - id
+        - constraints
+    rules:
+      type: string
+      description: Whether all the requirements are mandatory or holder has multiple options to select verifiable credentials from
+      enum:
+        - all
+        - pick
+    submission_requirement:
+      title: Submission Requirement
+      description: It defines what combinations of inputs a processing entity must submit to comply with the requirements of a Verifier.
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          description: what verifiable credential is demanded in order for the presentation to be sensible.
+        purpose:
+          type: string
+          description: Why this verifiable credentials is requested.
+        rule:
+          $ref: "#/components/schemas/rules"
+        count:
+          type: integer
+          description: How many of the credentials are demanded for the presentation to be sensible.
+          minimum: 1
+        min:
+          type: integer
+          description: Minimum of the credentials are demanded for the presentation to be sensible.
+          minimum: 0
+        max:
+          type: integer
+          description: Maximum of the credentials are demanded for the presentation to be sensible.
+          minimum: 0
+          # It is expected that 'from' or 'from_nested' will be populated
+        from:
+          type: string
+          description: One of the group strings specified for one or more [[ref:Input Descriptor Objects].
+        from_nested:
+          type: array
+          description: nested submission_requirement and is a way to organize the requirements. For example requirements mentioned in the flat list will also be able to provide same information but will be less organized.
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/submission_requirement"
+      required:
+        - rule
     presentation_definition_response:
       title: Presentation Definition
       description: |
@@ -1007,41 +1332,33 @@ components:
       properties:
         id:
           type: string
-          example: didr_write_credential
+          description: A UUID or some other unique ID to identify this Presentation Definition
         name:
           type: string
-          example: Accreditation to write to the DID Registry
+          description: A name property is a human-friendly string intended to constitute a distinctive designation of the Presentation Definition.
         purpose:
           type: string
-          example: Please present a valid VerifiableAuthorisationToOnboard issued by Root TAO or TAO
+          description: It describes the purpose for which the Presentation Definition's inputs are being requested.
         format:
-          title: Presentation Definition Claim Format Designations
-          description: |
-            [DIF - Presentation Definition Claim Format Designations](https://identity.foundation/claim-format-registry/schemas/presentation-definition-claim-format-designations.json)
+          $ref: "#/components/schemas/format"
+        submission_requirements:
+          type: array
+          description: List of requirements for described inputs in input descriptors.
+          items:
+            $ref: "#/components/schemas/submission_requirement"
+        input_descriptors:
+          type: array
+          description: List of descriptions of the required inputs.
+          items:
+            $ref: "#/components/schemas/input_descriptor_v2"
+        frame:
           type: object
-          additionalProperties: false
-          properties:
-            jwt_vc:
-              type: object
-              additionalProperties: false
-              properties:
-                alg:
-                  type: array
-                  minItems: 1
-                  items:
-                    type: string
-                    example: ES256
-            jwt_vp:
-              type: object
-              additionalProperties: false
-              properties:
-                alg:
-                  type: array
-                  minItems: 1
-                  items:
-                    type: string
-                    example: ES256
-    #Removed "Submission requirement" since its a optional extension we dont use, thus better not include.
+          description: a JSON LD Framing Document object.
+      required:
+        - id
+        - input_descriptors
+      additionalProperties: false
+    # Removed "Submission requirement" since its a optional extension we dont use, thus better not include.
     presentation_submission:
       title: Presentation Submission
       type: object
@@ -1068,12 +1385,10 @@ components:
                   format:
                     type: string
                     enum:
-                      - jwt
                       - jwt_vc
+                      - jwt_vc_json
                       - jwt_vp
-                      - ldp
-                      - ldp_vc
-                      - ldp_vp
+                      - jwt_vp_json
                 required:
                   - id
                   - path

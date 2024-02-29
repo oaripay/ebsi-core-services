@@ -2636,21 +2636,21 @@
   resolved "https://registry.yarnpkg.com/@sphereon/pex-models/-/pex-models-2.1.2.tgz#e1a0ce16ccc6b32128fc8c2da79d65fc35f6d10f"
   integrity sha512-Ec1qZl8tuPd+s6E+ZM7v+HkGkSOjGDMLNN1kqaxAfWpITBYtTLb+d5YvwjvBZ1P2upZ7zwNER97FfW5n/30y2w==
 
-"@sphereon/pex-models@^2.1.5", "@sphereon/pex-models@^2.2.0":
+"@sphereon/pex-models@^2.2.0":
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/@sphereon/pex-models/-/pex-models-2.2.0.tgz#32013fff43d4f47df03e213792a9bcc6866a1f06"
   integrity sha512-dGDRdoxJj+P0TRqu0R8R0/IdIzrCya1MsnxIFbcmSW3rjPsbwXbV0EojEfxXGD5LhqsUJiuAffMtyE2dtVI/XQ==
 
-"@sphereon/pex@^3.0.1":
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/@sphereon/pex/-/pex-3.0.1.tgz#e7d9d36c7c921ab97190a735c67e0a2632432e3b"
-  integrity sha512-rj+GhFfV5JLyo7dTIA3htWlrT+f6tayF9JRAGxdsIYBfYictLi9BirQ++JRBXsiq7T5zMnfermz4RGi3cvt13Q==
+"@sphereon/pex@^3.2.0":
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/@sphereon/pex/-/pex-3.2.0.tgz#2b8cd5e9094c88c2cbf822b1b70584ca4a08293a"
+  integrity sha512-6qk4L7PaxFsHSVjG0w5SbffwuwI0sbnwyoaNBNku17u2WOThBcnH22sgCdNRRbzacXs0e4iAw7Cb1cd730LQaQ==
   dependencies:
     "@astronautlabs/jsonpath" "^1.1.2"
     "@sd-jwt/decode" "^0.2.0"
     "@sd-jwt/present" "^0.2.0"
     "@sd-jwt/utils" "^0.2.0"
-    "@sphereon/pex-models" "^2.1.5"
+    "@sphereon/pex-models" "^2.2.0"
     "@sphereon/ssi-types" "0.18.1"
     ajv "^8.12.0"
     ajv-formats "^2.1.1"
@@ -3726,6 +3726,13 @@
   version "12.20.55"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-12.20.55.tgz#c329cbd434c42164f846b909bd6f85b5537f6240"
   integrity sha512-J8xLz7q2OFulZ2cyGTLE1TbbZcjpno7FaN6zdJNrgAdrJ+DZzh/uFR6YrTb4C+nXakvud8Q4+rbhoIWlYQbUFQ==
+
+"@types/node@^20.11.10":
+  version "20.11.21"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-20.11.21.tgz#ad67e65652f7be15686e2df87a38076a81c5e9c5"
+  integrity sha512-/ySDLGscFPNasfqStUuWWPfL78jompfIoVzLJPVVAHBh6rpG68+pI2Gk+fNLeI8/f1yPYL4s46EleVIc20F1Ow==
+  dependencies:
+    undici-types "~5.26.4"
 
 "@types/normalize-package-data@^2.4.0":
   version "2.4.3"
@@ -7391,7 +7398,7 @@ hardhat-deploy@^0.11.45:
     qs "^6.9.4"
     zksync-web3 "^0.14.3"
 
-hardhat@^2.20.1:
+hardhat@^2.19.4, hardhat@^2.20.1:
   version "2.20.1"
   resolved "https://registry.yarnpkg.com/hardhat/-/hardhat-2.20.1.tgz#3ad8f2b003a96c9ce80a55fec3575580ff2ddcd4"
   integrity sha512-q75xDQiQtCZcTMBwjTovrXEU5ECr49baxr4/OBkIu/ULTPzlB20yk1dRWNmD2IFbAeAeXggaWvQAdpiScaHtPw==
@@ -10961,6 +10968,31 @@ solidity-comments-extractor@^0.0.8:
   version "0.0.8"
   resolved "https://registry.yarnpkg.com/solidity-comments-extractor/-/solidity-comments-extractor-0.0.8.tgz#f6e148ab0c49f30c1abcbecb8b8df01ed8e879f8"
   integrity sha512-htM7Vn6LhHreR+EglVMd2s+sZhcXAirB1Zlyrv5zBuTxieCvjfnRpd7iZk75m/u6NOlEyQ94C6TWbBn2cY7w8g==
+
+solidity-coverage@^0.8.6:
+  version "0.8.9"
+  resolved "https://registry.yarnpkg.com/solidity-coverage/-/solidity-coverage-0.8.9.tgz#d885207df927faf6b4f729904fab8ce0943cfd14"
+  integrity sha512-ZhPsxlsLkYyzgwoVGh8RBN2ju7JVahvMkk+8RBVc0vP/3UNq88GzvL8kvbuY48lVIRL8eQjJ+0X8al2Bu9/2iQ==
+  dependencies:
+    "@ethersproject/abi" "^5.0.9"
+    "@solidity-parser/parser" "^0.18.0"
+    chalk "^2.4.2"
+    death "^1.1.0"
+    difflib "^0.2.4"
+    fs-extra "^8.1.0"
+    ghost-testrpc "^0.0.2"
+    global-modules "^2.0.0"
+    globby "^10.0.1"
+    jsonschema "^1.2.4"
+    lodash "^4.17.15"
+    mocha "^10.2.0"
+    node-emoji "^1.10.0"
+    pify "^4.0.1"
+    recursive-readdir "^2.2.2"
+    sc-istanbul "^0.4.5"
+    semver "^7.3.4"
+    shelljs "^0.8.3"
+    web3-utils "^1.3.6"
 
 solidity-coverage@^0.8.7:
   version "0.8.7"

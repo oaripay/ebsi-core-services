@@ -98,16 +98,18 @@ export interface OPMetadata {
    * An object containing a list of key value pairs, where the key is a string identifying a
    * credential format supported by the AS.
    */
-  vp_formats_supported: Record<
-    "jwt_vc" | "jwt_vp",
-    {
-      /**
-       * An object where the value is an array of case sensitive strings that identify the
-       * cryptographic suites that are supported. Cryptosuites for Credentials in jwt_vc format
-       * should use algorithm names defined in [IANA JOSE Algorithms Registry](https://www.iana.org/assignments/jose/jose.xhtml#web-signature-encryption-algorithms).
-       */
-      alg_values_supported: string[];
-    }
+  vp_formats_supported: Partial<
+    Record<
+      "jwt_vc" | "jwt_vc_json" | "jwt_vp" | "jwt_vp_json",
+      {
+        /**
+         * An object where the value is an array of case sensitive strings that identify the
+         * cryptographic suites that are supported. Cryptosuites for Credentials in jwt_vc format
+         * should use algorithm names defined in [IANA JOSE Algorithms Registry](https://www.iana.org/assignments/jose/jose.xhtml#web-signature-encryption-algorithms).
+         */
+        alg_values_supported: string[];
+      }
+    >
   >;
 
   /**
