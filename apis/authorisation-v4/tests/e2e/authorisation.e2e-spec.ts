@@ -350,9 +350,14 @@ describe("Authorisation  API v4 (e2e)", () => {
     describe.each(CUSTOM_SCOPES)("with scope 'openid %s'", (customScope) => {
       const scope: Scope = `openid ${customScope}`;
 
-      describe.each(["jwt_vc", "jwt_vc_json"] as const)(
-        "and format '%s'",
-        (format) => {
+      describe.each([
+        ["jwt_vp", "jwt_vc"],
+        ["jwt_vp", "jwt_vc_json"],
+        ["jwt_vp_json", "jwt_vc"],
+        ["jwt_vp_json", "jwt_vc_json"],
+      ] as const)(
+        "and VP format '%s' and VC format '%s'",
+        (vpFormat, vcFormat) => {
           let issuer: EbsiIssuer;
           let client: EbsiIssuer;
           let vcPayload: EbsiVerifiableAttestation;
@@ -497,7 +502,8 @@ describe("Authorisation  API v4 (e2e)", () => {
             // Reset to valid presentation submission before each test
             presentationSubmission = createPresentationSubmission(
               customScope,
-              format,
+              vpFormat,
+              vcFormat,
             );
             // Reset to empty verifiable credential array before each test to allow each test to add its own verifiable credential
             vpPayload.verifiableCredential = [];
@@ -950,10 +956,10 @@ describe("Authorisation  API v4 (e2e)", () => {
                 {
                   id: "same-device-in-time-credential",
                   path: "$",
-                  format: "jwt_vp",
+                  format: vpFormat,
                   path_nested: {
                     id: randomUUID(),
-                    format,
+                    format: vcFormat,
                     path: "$vp.verifiableCredential[0]", // wrong path
                   },
                 },
@@ -1037,10 +1043,10 @@ describe("Authorisation  API v4 (e2e)", () => {
                 {
                   id: "same-device-in-time-credential",
                   path: "$",
-                  format: "jwt_vp",
+                  format: vpFormat,
                   path_nested: {
                     id: randomUUID(),
-                    format,
+                    format: vcFormat,
                     path: "$.vp.verifiableCredential[1]", // no credential at this index
                   },
                 },
@@ -1103,10 +1109,10 @@ describe("Authorisation  API v4 (e2e)", () => {
                 {
                   id: "same-device-in-time-credential",
                   path: "$.vp", // wrong path
-                  format: "jwt_vp",
+                  format: vpFormat,
                   path_nested: {
                     id: randomUUID(),
-                    format,
+                    format: vcFormat,
                     path: "$.vc.verifiableCredential[0]", // wrong path
                   },
                 },

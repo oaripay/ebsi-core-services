@@ -530,9 +530,14 @@ describe("Authorisation Module", () => {
     });
   });
 
-  describe.each(["jwt_vc", "jwt_vc_json"] as const)(
-    "POST /token (format: %s)",
-    (format) => {
+  describe.each([
+    ["jwt_vp", "jwt_vc"],
+    ["jwt_vp", "jwt_vc_json"],
+    ["jwt_vp_json", "jwt_vc"],
+    ["jwt_vp_json", "jwt_vc_json"],
+  ] as const)(
+    "POST /token (VP format: %s, VC format: %s)",
+    (vpFormat, vcFormat) => {
       it("should return an error if the grant_type is invalid", async () => {
         expect.assertions(3);
 
@@ -624,7 +629,8 @@ describe("Authorisation Module", () => {
 
         const presentationSubmission = createPresentationSubmission(
           TNT_CREATE_SCOPE,
-          format,
+          vpFormat,
+          vcFormat,
         );
 
         // Manually create VP JWT
@@ -729,7 +735,8 @@ describe("Authorisation Module", () => {
           // Reset to valid presentation submission before each test
           presentationSubmission = createPresentationSubmission(
             customScope,
-            format,
+            vpFormat,
+            vcFormat,
           );
 
           // If scope=didr_invite, the DID is not yet registered in the DIDR and TIR
@@ -1390,10 +1397,10 @@ describe("Authorisation Module", () => {
               {
                 id: "same-device-in-time-credential",
                 path: "$",
-                format: "jwt_vp",
+                format: vpFormat,
                 path_nested: {
                   id: randomUUID(),
-                  format,
+                  format: vcFormat,
                   path: "$vp.verifiableCredential[0]", // wrong path
                 },
               },
@@ -1468,10 +1475,10 @@ describe("Authorisation Module", () => {
               {
                 id: "same-device-in-time-credential",
                 path: "$",
-                format: "jwt_vp",
+                format: vpFormat,
                 path_nested: {
                   id: randomUUID(),
-                  format,
+                  format: vcFormat,
                   path: "$vp.verifiableCredential[0]", // wrong path
                 },
               },
@@ -1549,10 +1556,10 @@ describe("Authorisation Module", () => {
               {
                 id: "same-device-in-time-credential",
                 path: "$",
-                format: "jwt_vp",
+                format: vpFormat,
                 path_nested: {
                   id: randomUUID(),
-                  format,
+                  format: vcFormat,
                   path: "$.vp.verifiableCredential[1]", // no credential at this index
                 },
               },
@@ -1612,10 +1619,10 @@ describe("Authorisation Module", () => {
               {
                 id: "same-device-in-time-credential",
                 path: "$.vp", // wrong path
-                format: "jwt_vp",
+                format: vpFormat,
                 path_nested: {
                   id: randomUUID(),
-                  format,
+                  format: vcFormat,
                   path: "$.vc.verifiableCredential[0]", // wrong path
                 },
               },
@@ -1742,7 +1749,8 @@ describe("Authorisation Module", () => {
 
           const invalidPresentationSubmission = createPresentationSubmission(
             TIR_WRITE_SCOPE,
-            format,
+            vpFormat,
+            vcFormat,
           );
           invalidPresentationSubmission.definition_id = "invalid_def_id";
           response = await request(server)
@@ -2226,7 +2234,8 @@ describe("Authorisation Module", () => {
         // Reset to valid presentation submission before each test
         const presentationSubmission = createPresentationSubmission(
           TNT_AUTHORISE_SCOPE,
-          format,
+          vpFormat,
+          vcFormat,
         );
 
         const didDocument = createDidDocument(
@@ -2923,9 +2932,14 @@ describe("Authorisation Module", () => {
 
   // Bug fix: EBSIINT-5937
   // Fix Axios error handling (was returning "Unexpected error")
-  it.each(["jwt_vc", "jwt_vc_json"] as const)(
-    "Fix EBSIINT-5937 (format: %s)",
-    async (format) => {
+  it.each([
+    ["jwt_vp", "jwt_vc"],
+    ["jwt_vp", "jwt_vc_json"],
+    ["jwt_vp_json", "jwt_vc"],
+    ["jwt_vp_json", "jwt_vc_json"],
+  ] as const)(
+    "Fix EBSIINT-5937 (VP format: %s, VC format: %s)",
+    async (vpFormat, vcFormat) => {
       const customScope = TIR_INVITE_SCOPE;
 
       const scope: Scope = `openid ${customScope}`;
@@ -2979,7 +2993,8 @@ describe("Authorisation Module", () => {
       // Reset to valid presentation submission before each test
       const presentationSubmission = createPresentationSubmission(
         customScope,
-        format,
+        vpFormat,
+        vcFormat,
       );
 
       // VP Signer is not registered in the TIR

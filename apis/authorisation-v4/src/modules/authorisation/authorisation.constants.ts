@@ -26,7 +26,7 @@ export const SUPPORTED_SCOPES = [OPENID_SCOPE, ...CUSTOM_SCOPES] as const;
 
 export const DIDR_INVITE_PRESENTATION_DEFINITION = {
   id: "didr_invite_presentation",
-  format: { jwt_vp: { alg: ["ES256"] } },
+  format: { jwt_vp: { alg: ["ES256"] }, jwt_vp_json: { alg: ["ES256"] } },
   input_descriptors: [
     {
       id: "didr_invite_credential",
@@ -53,7 +53,7 @@ export const DIDR_INVITE_PRESENTATION_DEFINITION = {
 
 export const DIDR_WRITE_PRESENTATION_DEFINITION = {
   id: "didr_write_presentation",
-  format: { jwt_vp: { alg: ["ES256"] } },
+  format: { jwt_vp: { alg: ["ES256"] }, jwt_vp_json: { alg: ["ES256"] } },
   name: "Any type of Verifiable Attestation",
   purpose:
     "Please present a valid Presentation signed by a registered Legal Entity.",
@@ -62,7 +62,7 @@ export const DIDR_WRITE_PRESENTATION_DEFINITION = {
 
 export const TIR_INVITE_PRESENTATION_DEFINITION = {
   id: "tir_invite_presentation",
-  format: { jwt_vp: { alg: ["ES256"] } },
+  format: { jwt_vp: { alg: ["ES256"] }, jwt_vp_json: { alg: ["ES256"] } },
   input_descriptors: [
     {
       id: "tir_invite_credential",
@@ -94,7 +94,7 @@ export const TIR_INVITE_PRESENTATION_DEFINITION = {
 
 export const TIR_WRITE_PRESENTATION_DEFINITION = {
   id: "tir_write_presentation",
-  format: { jwt_vp: { alg: ["ES256"] } },
+  format: { jwt_vp: { alg: ["ES256"] }, jwt_vp_json: { alg: ["ES256"] } },
   name: "Any type of Verifiable Attestation",
   purpose: "Please present a valid Presentation signed by a Trusted Issuer.",
   input_descriptors: [],
@@ -102,7 +102,7 @@ export const TIR_WRITE_PRESENTATION_DEFINITION = {
 
 export const TIMESTAMP_WRITE_PRESENTATION_DEFINITION = {
   id: "timestamp_write_presentation",
-  format: { jwt_vp: { alg: ["ES256"] } },
+  format: { jwt_vp: { alg: ["ES256"] }, jwt_vp_json: { alg: ["ES256"] } },
   name: "Any type of Verifiable Attestation",
   purpose:
     "Please present an empty Presentation signed by a registered Legal Entity.",
@@ -111,7 +111,7 @@ export const TIMESTAMP_WRITE_PRESENTATION_DEFINITION = {
 
 export const TNT_AUTHORISE_PRESENTATION_DEFINITION = {
   id: "tnt_authorise_presentation",
-  format: { jwt_vp: { alg: ["ES256"] } },
+  format: { jwt_vp: { alg: ["ES256"] }, jwt_vp_json: { alg: ["ES256"] } },
   name: "Any type of Verifiable Attestation",
   input_descriptors: [
     {
@@ -146,7 +146,7 @@ export const TNT_AUTHORISE_PRESENTATION_DEFINITION = {
 
 export const TNT_CREATE_PRESENTATION_DEFINITION = {
   id: "tnt_create_presentation",
-  format: { jwt_vp: { alg: ["ES256"] } },
+  format: { jwt_vp: { alg: ["ES256"] }, jwt_vp_json: { alg: ["ES256"] } },
   name: "Any type of Verifiable Attestation",
   purpose:
     "Please present a valid Presentation signed by an allowlisted TnT Document creator.",
@@ -155,7 +155,7 @@ export const TNT_CREATE_PRESENTATION_DEFINITION = {
 
 export const TNT_WRITE_PRESENTATION_DEFINITION = {
   id: "tnt_write_presentation",
-  format: { jwt_vp: { alg: ["ES256"] } },
+  format: { jwt_vp: { alg: ["ES256"] }, jwt_vp_json: { alg: ["ES256"] } },
   name: "Any type of Verifiable Attestation",
   purpose:
     "Please present a valid Presentation signed by an account with granted access to write in TnT.",
