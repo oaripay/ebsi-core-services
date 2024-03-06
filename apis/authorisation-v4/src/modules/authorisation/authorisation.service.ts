@@ -17,6 +17,7 @@ import type {
 } from "@sphereon/pex-models";
 import {
   verifyPresentationJwt,
+  type EbsiVerifiablePresentation,
   type ProofPurposeTypes,
   type VpJwtPayload,
 } from "@cef-ebsi/verifiable-presentation";
@@ -31,7 +32,7 @@ import type {
   AkeResponse as SiopAkeResponse,
 } from "@cef-ebsi/siop-auth";
 import { decodeJWT, createJWT, ES256Signer, hexToBytes } from "did-jwt";
-import type { JWTPayload } from "did-jwt";
+import type { JWTHeader, JWTPayload } from "did-jwt";
 import type { MemoryCache } from "cache-manager";
 import axios, { type AxiosResponse } from "axios";
 import { importJWK } from "jose";
@@ -43,10 +44,10 @@ import type {
   TokenResponse,
 } from "./authorisation.interfaces.js";
 import {
-  ClaimRequest,
   CreateAccessTokenDto,
-  OAuth2SessionDto,
-  SiopSessionDto,
+  type ClaimRequest,
+  type OAuth2SessionDto,
+  type SiopSessionDto,
 } from "./dto/index.js";
 import { fromHexToJWK, parseDto } from "./authorisation.utils.js";
 import {
@@ -512,7 +513,7 @@ export class AuthorisationService {
       const audience = this.issuer;
       const now = Math.floor(Date.now() / 1000);
 
-      await verifyPresentationJwt(vpToken, audience, {
+      return await verifyPresentationJwt(vpToken, audience, {
         ebsiAuthority: this.ebsiAuthority,
         ebsiEnvConfig: {
           didRegistry: this.didRegistry,
@@ -535,6 +536,146 @@ export class AuthorisationService {
         }`,
       });
     }
+  }
+
+  /**
+   * Validate that the VP and VC(s) "alg" match the requirements of the given presentation definition.
+   *
+   * @param vpTokenHeader - The header of VP Token to validate.
+   * @param presentation - The VP JWT payload.
+   * @param presentationDefinition - The presentation definition to validate against.
+   */
+  validateCredentialsAlgos(
+    vpTokenHeader: JWTHeader,
+    presentation: EbsiVerifiablePresentation,
+    presentationSubmission: PresentationSubmission,
+    presentationDefinition: PresentationDefinitionV2,
+  ) {
+    // Presentation without credentials
+    if (presentationSubmission.descriptor_map.length === 0) {
+      // Only check VP JWT alg
+      if (!presentationDefinition.format) return; // Invalid presentation definition
+
+      const supportedVpAlgos = [
+        ...(presentationDefinition.format.jwt_vp?.alg ?? []),
+        ...(presentationDefinition.format.jwt_vp_json?.alg ?? []),
+      ];
+
+      if (!supportedVpAlgos.includes(vpTokenHeader.alg)) {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription: `Invalid Verifiable Presentation: the algorithm '${vpTokenHeader.alg}' is not supported`,
+        });
+      }
+
+      return;
+    }
+
+    // Presentation with credentials
+    presentationSubmission.descriptor_map.forEach((descriptor, index) => {
+      if (descriptor.path !== "$") {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription:
+            "Invalid Verifiable Presentation submission: descriptor root path must be '$'",
+        });
+      }
+
+      if (!presentationDefinition.format) return; // Invalid presentation definition
+
+      const { format: vpFormat } = descriptor;
+
+      if (!Object.keys(presentationDefinition.format).includes(vpFormat)) {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription: `Invalid Verifiable Presentation submission: format '${vpFormat}' is not supported in 'descriptor_map[${index}].format'`,
+        });
+      }
+
+      // Extra check to narrow down the type of vpFormat
+      if (vpFormat !== "jwt_vp" && vpFormat !== "jwt_vp_json") {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription: `Invalid Verifiable Presentation submission: format '${vpFormat}' is not supported in 'descriptor_map[${index}].format'`,
+        });
+      }
+
+      const supportedVpAlgos =
+        presentationDefinition.format[vpFormat]?.alg ?? [];
+
+      if (!supportedVpAlgos.includes(vpTokenHeader.alg)) {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription: `Invalid Verifiable Presentation: the algorithm '${vpTokenHeader.alg}' is not supported`,
+        });
+      }
+
+      const matchingInputDescriptor =
+        presentationDefinition.input_descriptors.find(
+          (inputDescriptor) => inputDescriptor.id === descriptor.id,
+        );
+
+      if (!matchingInputDescriptor) {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription: `The presentation definition doesn't contain any input descriptor with the ID ${descriptor.id}`,
+        });
+      }
+
+      // Check if the VC format is supported
+      if (!descriptor.path_nested) return;
+
+      const { format: vcFormat } = descriptor.path_nested;
+
+      if (!matchingInputDescriptor.format) return; // Invalid presentation definition
+
+      if (!Object.keys(matchingInputDescriptor.format).includes(vcFormat)) {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription: `Invalid Verifiable Presentation submission: format '${vcFormat}' is not supported in 'descriptor_map[${index}].path_nested.format'`,
+        });
+      }
+
+      // Extra check to narrow down the type of vcFormat
+      if (vcFormat !== "jwt_vc" && vcFormat !== "jwt_vc_json") {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription: `Invalid Verifiable Presentation submission: format '${vcFormat}' is not supported in 'descriptor_map[${index}].path_nested.format'`,
+        });
+      }
+
+      // Get corresponding VC
+      const matches = /^\$\.vp\.verifiableCredential\[(\d*)\]/gm.exec(
+        descriptor.path_nested.path,
+      );
+
+      if (!matches) {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription: `Invalid Verifiable Presentation submission: path_nested.path '${descriptor.path_nested.path}' is not valid`,
+        });
+      }
+      const vcIndex = parseInt(matches[1]!, 10);
+
+      const vcJwt = presentation.verifiableCredential[vcIndex];
+
+      if (!vcJwt || typeof vcJwt !== "string") {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription: `Invalid Verifiable Presentation submission: $.vp.verifiableCredential[${vcIndex}] not found`,
+        });
+      }
+
+      if (!matchingInputDescriptor.format) return;
+
+      const supportedVcAlgos =
+        matchingInputDescriptor.format[vcFormat]?.alg ?? [];
+
+      let header: JWTHeader;
+      try {
+        header = decodeJWT(vcJwt).header;
+      } catch (e) {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription: `Invalid Verifiable Presentation submission: credential ${vcIndex} is not a valid JWT: ${vcJwt}`,
+        });
+      }
+
+      if (!supportedVcAlgos.includes(header.alg)) {
+        throw new OAuth2TokenError("invalid_request", {
+          errorDescription: `Invalid Verifiable Credential: the algorithm '${header.alg}' is not supported`,
+        });
+      }
+    });
   }
 
   /**
@@ -877,12 +1018,20 @@ export class AuthorisationService {
     );
 
     // Verify VP JWT
-    await this.validateVpJwt(
+    const presentation = await this.validateVpJwt(
       vpToken,
       // skip DID resolution:
       customScope === DIDR_INVITE_SCOPE,
       // proofPurpose to be used:
       customScope === TNT_AUTHORISE_SCOPE ? "capabilityInvocation" : undefined,
+    );
+
+    // Verify algorithms
+    this.validateCredentialsAlgos(
+      vpTokenDecoded.header,
+      presentation,
+      presentationSubmission,
+      presentationDefinition,
     );
 
     // Additional verifications based on the requested scope

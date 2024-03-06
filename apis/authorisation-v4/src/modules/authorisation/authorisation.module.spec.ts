@@ -28,6 +28,7 @@ import { decodeJWT, createJWT, ES256KSigner } from "did-jwt";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import {
   createVerifiableCredentialJwt,
+  type EbsiIssuer,
   type EbsiVerifiableAttestation,
 } from "@cef-ebsi/verifiable-credential";
 import {
@@ -136,9 +137,9 @@ describe("Authorisation Module", () => {
   let apiName: string;
   let apiPrivateKey: string;
   let serviceEndpoint: string;
-  let credentialIssuer: LegalEntity;
+  let credentialIssuer: LegalEntity<"ES256" | "EdDSA">;
   let credentialIssuerAccreditationUrl: string;
-  let credentialSubject: LegalEntity;
+  let credentialSubject: LegalEntity<"ES256" | "ES256K" | "EdDSA">;
   const mockServer = setupServer();
 
   beforeAll(async () => {
@@ -180,11 +181,14 @@ describe("Authorisation Module", () => {
       "tntAuthoriseIssuersAllowlist",
       { infer: true },
     );
-    credentialIssuer = await createLegalEntity("ES256K", allowlistedIssuer);
+    credentialIssuer = await createLegalEntity(
+      ["ES256", "EdDSA"],
+      allowlistedIssuer,
+    );
     credentialIssuerAccreditationUrl = `${domain}/trusted-issuers-registry/v5/issuers/${
       credentialIssuer.did
     }/attributes/${randomBytes(16).toString("hex")}`;
-    credentialSubject = await createLegalEntity("ES256K");
+    credentialSubject = await createLegalEntity(["ES256K", "ES256", "EdDSA"]);
   });
 
   beforeEach(async () => {
@@ -263,12 +267,15 @@ describe("Authorisation Module", () => {
       vc: accreditation,
     })
       .setProtectedHeader({
-        alg: credentialIssuer.alg,
+        alg: credentialIssuer.keys.ES256.alg,
         typ: "JWT",
-        kid: credentialIssuer.kid,
+        kid: credentialIssuer.keys.ES256.kid,
       })
       .sign(
-        await importJWK(credentialIssuer.privateKeyJwk, credentialIssuer.alg),
+        await importJWK(
+          credentialIssuer.keys.ES256.privateKeyJwk,
+          credentialIssuer.keys.ES256.alg,
+        ),
       );
 
     mockServer.use(
@@ -636,8 +643,8 @@ describe("Authorisation Module", () => {
         // Manually create VP JWT
         // Create VP JWT manually
         const privateKey = await importJWK(
-          credentialIssuer.privateKeyJwk,
-          credentialIssuer.alg,
+          credentialIssuer.keys.ES256.privateKeyJwk,
+          credentialIssuer.keys.ES256.alg,
         );
         const vpJwt = await new SignJWT({
           aud: serviceEndpoint,
@@ -650,9 +657,9 @@ describe("Authorisation Module", () => {
           iss: credentialIssuer.did,
         })
           .setProtectedHeader({
-            alg: credentialIssuer.alg,
+            alg: credentialIssuer.keys.ES256.alg,
             typ: "JWT",
-            kid: credentialIssuer.kid,
+            kid: credentialIssuer.keys.ES256.kid,
           })
           .sign(privateKey);
 
@@ -842,7 +849,7 @@ describe("Authorisation Module", () => {
             ) {
               const vcJwt = await createVerifiableCredentialJwt(
                 vcPayload,
-                credentialIssuer,
+                credentialIssuer.keys.ES256,
                 {
                   ebsiAuthority: "example.net",
                   skipValidation: true,
@@ -854,7 +861,7 @@ describe("Authorisation Module", () => {
 
             const vpJwt = await createVerifiablePresentationJwt(
               vpPayload,
-              credentialSubject,
+              credentialSubject.keys.ES256K,
               "authentication-service-v3",
               {
                 ebsiAuthority: "example.net",
@@ -910,7 +917,7 @@ describe("Authorisation Module", () => {
             ) {
               const vcJwt = await createVerifiableCredentialJwt(
                 vcPayload,
-                credentialIssuer,
+                credentialIssuer.keys.ES256,
                 {
                   ebsiAuthority: "example.net",
                   skipValidation: true,
@@ -922,7 +929,7 @@ describe("Authorisation Module", () => {
 
             const vpJwt = await createVerifiablePresentationJwt(
               vpPayload,
-              credentialSubject,
+              credentialSubject.keys.ES256K,
               serviceEndpoint,
               {
                 ebsiAuthority: "example.net",
@@ -955,7 +962,7 @@ describe("Authorisation Module", () => {
                 signer: ES256KSigner(randomBytes(32)),
               },
               {
-                kid: credentialIssuer.kid,
+                kid: credentialIssuer.keys.ES256.kid,
               },
             );
 
@@ -993,7 +1000,7 @@ describe("Authorisation Module", () => {
             ) {
               const vcJwt = await createVerifiableCredentialJwt(
                 vcPayload,
-                credentialIssuer,
+                credentialIssuer.keys.ES256,
                 {
                   ebsiAuthority: "example.net",
                   skipValidation: true,
@@ -1005,7 +1012,7 @@ describe("Authorisation Module", () => {
 
             const vpJwt = await createVerifiablePresentationJwt(
               vpPayload,
-              credentialSubject,
+              credentialSubject.keys.ES256K,
               serviceEndpoint,
               {
                 ebsiAuthority: "example.net",
@@ -1052,7 +1059,7 @@ describe("Authorisation Module", () => {
             ) {
               const vcJwt = await createVerifiableCredentialJwt(
                 vcPayload,
-                credentialIssuer,
+                credentialIssuer.keys.ES256,
                 {
                   ebsiAuthority: "example.net",
                   skipValidation: true,
@@ -1064,7 +1071,7 @@ describe("Authorisation Module", () => {
 
             const vpJwt = await createVerifiablePresentationJwt(
               vpPayload,
-              credentialSubject,
+              credentialSubject.keys.ES256K,
               serviceEndpoint,
               {
                 ebsiAuthority: "example.net",
@@ -1111,7 +1118,7 @@ describe("Authorisation Module", () => {
             ) {
               const vcJwt = await createVerifiableCredentialJwt(
                 vcPayload,
-                credentialIssuer,
+                credentialIssuer.keys.ES256,
                 {
                   ebsiAuthority: "example.net",
                   skipValidation: true,
@@ -1123,7 +1130,7 @@ describe("Authorisation Module", () => {
 
             const vpJwt = await createVerifiablePresentationJwt(
               vpPayload,
-              credentialSubject,
+              credentialSubject.keys.ES256K,
               serviceEndpoint,
               {
                 ebsiAuthority: "example.net",
@@ -1181,7 +1188,7 @@ describe("Authorisation Module", () => {
             ) {
               const vcJwt = await createVerifiableCredentialJwt(
                 vcPayload,
-                credentialIssuer,
+                credentialIssuer.keys.ES256,
                 {
                   ebsiAuthority: "example.net",
                   skipValidation: true,
@@ -1193,8 +1200,8 @@ describe("Authorisation Module", () => {
 
             // Create VP JWT manually
             const privateKey = await importJWK(
-              credentialIssuer.privateKeyJwk,
-              credentialIssuer.alg,
+              credentialIssuer.keys.ES256.privateKeyJwk,
+              credentialIssuer.keys.ES256.alg,
             );
             const vpJwt = await new SignJWT({
               aud: serviceEndpoint,
@@ -1207,9 +1214,9 @@ describe("Authorisation Module", () => {
               iss: credentialIssuer.did,
             })
               .setProtectedHeader({
-                alg: credentialIssuer.alg,
+                alg: credentialIssuer.keys.ES256.alg,
                 typ: "JWT",
-                kid: credentialIssuer.kid,
+                kid: credentialIssuer.keys.ES256.kid,
               })
               .sign(privateKey);
 
@@ -1272,7 +1279,7 @@ describe("Authorisation Module", () => {
 
             const vpJwt = await createVerifiablePresentationJwt(
               vpPayload,
-              credentialSubject,
+              credentialSubject.keys.ES256K,
               serviceEndpoint,
               {
                 ebsiAuthority: "example.net",
@@ -1317,7 +1324,7 @@ describe("Authorisation Module", () => {
           ) {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
-              credentialIssuer,
+              credentialIssuer.keys.ES256,
               {
                 ebsiAuthority: "example.net",
                 skipValidation: true,
@@ -1331,7 +1338,7 @@ describe("Authorisation Module", () => {
 
           const vpJwt = await createVerifiablePresentationJwt(
             vpPayload,
-            credentialSubject,
+            credentialSubject.keys.ES256K,
             serviceEndpoint,
             {
               ebsiAuthority: "example.net",
@@ -1414,7 +1421,7 @@ describe("Authorisation Module", () => {
           ) {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
-              credentialIssuer,
+              credentialIssuer.keys.ES256,
               {
                 ebsiAuthority: "example.net",
                 skipValidation: true,
@@ -1426,7 +1433,7 @@ describe("Authorisation Module", () => {
 
           const vpJwt = await createVerifiablePresentationJwt(
             vpPayload,
-            credentialSubject,
+            credentialSubject.keys.ES256K,
             serviceEndpoint,
             {
               ebsiAuthority: "example.net",
@@ -1492,7 +1499,7 @@ describe("Authorisation Module", () => {
           ) {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
-              credentialIssuer,
+              credentialIssuer.keys.ES256,
               {
                 ebsiAuthority: "example.net",
                 skipValidation: true,
@@ -1504,7 +1511,7 @@ describe("Authorisation Module", () => {
 
           let vpJwt = await createVerifiablePresentationJwt(
             vpPayload,
-            credentialSubject,
+            credentialSubject.keys.ES256K,
             serviceEndpoint,
             {
               ebsiAuthority: "example.net",
@@ -1568,7 +1575,7 @@ describe("Authorisation Module", () => {
 
           vpJwt = await createVerifiablePresentationJwt(
             vpPayload,
-            credentialSubject,
+            credentialSubject.keys.ES256K,
             serviceEndpoint,
             {
               ebsiAuthority: "example.net",
@@ -1631,7 +1638,7 @@ describe("Authorisation Module", () => {
 
           vpJwt = await createVerifiablePresentationJwt(
             vpPayload,
-            credentialSubject,
+            credentialSubject.keys.ES256K,
             serviceEndpoint,
             {
               ebsiAuthority: "example.net",
@@ -1677,7 +1684,7 @@ describe("Authorisation Module", () => {
 
           vpJwt = await createVerifiablePresentationJwt(
             vpPayload,
-            credentialSubject,
+            credentialSubject.keys.ES256K,
             serviceEndpoint,
             {
               ebsiAuthority: "example.net",
@@ -1725,7 +1732,7 @@ describe("Authorisation Module", () => {
 
           vpJwt = await createVerifiablePresentationJwt(
             vpPayload,
-            credentialSubject,
+            credentialSubject.keys.ES256K,
             serviceEndpoint,
             {
               ebsiAuthority: "example.net",
@@ -1780,10 +1787,12 @@ describe("Authorisation Module", () => {
 
         it("should return an error if the conditions specific to the scope are not met", async () => {
           let expectedErrorMessage: string;
-          let vpSigner = credentialSubject;
+          let vpSigner: EbsiIssuer = credentialSubject.keys.ES256;
 
           switch (customScope) {
             case DIDR_INVITE_SCOPE: {
+              vpSigner = credentialSubject.keys.ES256K;
+
               // Present a VC without VerifiableAuthorisationToOnboard
               vcPayload.type = [
                 "VerifiableCredential",
@@ -1795,7 +1804,8 @@ describe("Authorisation Module", () => {
             }
             case DIDR_WRITE_SCOPE: {
               // VP Signer is not registered in the DIDR
-              vpSigner = await createLegalEntity("ES256K");
+              const legalEntity = await createLegalEntity(["ES256K"]);
+              vpSigner = legalEntity.keys.ES256K;
               vpPayload.holder = vpSigner.did;
 
               mockServer.use(
@@ -1822,7 +1832,8 @@ describe("Authorisation Module", () => {
             }
             case TIR_WRITE_SCOPE: {
               // VP Signer is not registered in the TIR
-              vpSigner = await createLegalEntity("ES256K");
+              const legalEntity = await createLegalEntity(["ES256"]);
+              vpSigner = legalEntity.keys.ES256;
               vpPayload.holder = vpSigner.did;
 
               mockServer.use(
@@ -1830,7 +1841,7 @@ describe("Authorisation Module", () => {
                   `${domain}/did-registry/v5/identifiers/${encodeDid(
                     vpSigner.did,
                   )}`,
-                  () => HttpResponse.json(vpSigner.didDocument),
+                  () => HttpResponse.json(legalEntity.didDocument),
                 ),
                 http.get(
                   `${domain}/trusted-issuers-registry/v5/issuers/${encodeDid(
@@ -1845,7 +1856,8 @@ describe("Authorisation Module", () => {
             }
             case TIMESTAMP_WRITE_SCOPE: {
               // VP Signer is not registered in the DIDR
-              vpSigner = await createLegalEntity("ES256K");
+              const legalEntity = await createLegalEntity(["ES256"]);
+              vpSigner = legalEntity.keys.ES256;
               vpPayload.holder = vpSigner.did;
 
               mockServer.use(
@@ -1937,7 +1949,7 @@ describe("Authorisation Module", () => {
           ) {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
-              credentialIssuer,
+              credentialIssuer.keys.ES256,
               {
                 ebsiAuthority: "example.net",
                 skipValidation: true,
@@ -1996,7 +2008,9 @@ describe("Authorisation Module", () => {
           ).toBe("application/json; charset=utf-8");
         });
 
-        it("should return an access token and an ID token when the presentation is valid", async () => {
+        it("should return an error when the VP JWT is not signed with the expected algorithm (validateCredentialsAlgos)", async () => {
+          const vpSigner = credentialSubject.keys.EdDSA; // No presentation definition supports EdDSA
+
           if (
             [DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE, TNT_AUTHORISE_SCOPE].includes(
               customScope,
@@ -2004,7 +2018,7 @@ describe("Authorisation Module", () => {
           ) {
             const vcJwt = await createVerifiableCredentialJwt(
               vcPayload,
-              credentialIssuer,
+              credentialIssuer.keys.ES256,
               {
                 ebsiAuthority: "example.net",
                 skipValidation: true,
@@ -2069,7 +2083,7 @@ describe("Authorisation Module", () => {
 
           const vpJwt = await createVerifiablePresentationJwt(
             vpPayload,
-            credentialSubject,
+            vpSigner,
             serviceEndpoint,
             {
               ebsiAuthority: "example.net",
@@ -2103,7 +2117,523 @@ describe("Authorisation Module", () => {
               } satisfies CreateAccessTokenDto).toString(),
             );
 
-          expect(response.status).toBe(200);
+          expect(response.body).toStrictEqual({
+            error: "invalid_request",
+            error_description:
+              "Invalid Verifiable Presentation: the algorithm 'EdDSA' is not supported",
+          });
+
+          expect(response.status).toBe(400);
+        });
+
+        it("should return an error when descriptor_map[0].path is invalid (validateCredentialsAlgos)", async () => {
+          if (
+            [
+              DIDR_WRITE_SCOPE,
+              TIR_WRITE_SCOPE,
+              TIMESTAMP_WRITE_SCOPE,
+              TNT_CREATE_SCOPE,
+              TNT_WRITE_SCOPE,
+            ].includes(customScope)
+          ) {
+            expect.assertions(0);
+            return;
+          }
+
+          presentationSubmission.descriptor_map[0]!.path = "$[0]"; // should be "$"
+
+          const vpSigner =
+            customScope === DIDR_INVITE_SCOPE
+              ? credentialSubject.keys.ES256K
+              : credentialSubject.keys.ES256;
+
+          const vcJwt = await createVerifiableCredentialJwt(
+            vcPayload,
+            credentialIssuer.keys.ES256,
+            {
+              ebsiAuthority: "example.net",
+              skipValidation: true,
+            },
+          );
+
+          vpPayload.verifiableCredential.push(vcJwt);
+
+          const nonce = randomUUID();
+
+          const vpJwt = await createVerifiablePresentationJwt(
+            vpPayload,
+            vpSigner,
+            serviceEndpoint,
+            {
+              ebsiAuthority: "example.net",
+              skipValidation: true,
+              nonce,
+            },
+          );
+
+          const response = await request(server)
+            .post("/token")
+            .set("Content-Type", "application/x-www-form-urlencoded")
+            .send(
+              new URLSearchParams({
+                grant_type: "vp_token",
+                scope,
+                vp_token: vpJwt,
+                presentation_submission: JSON.stringify(presentationSubmission),
+              } satisfies CreateAccessTokenDto).toString(),
+            );
+
+          expect(response.body).toStrictEqual({
+            error: "invalid_request",
+            error_description:
+              "Invalid Verifiable Presentation submission: descriptor root path must be '$'",
+          });
+
+          expect(response.status).toBe(400);
+        });
+
+        it("should return an error when descriptor_map[0].format is invalid (validateCredentialsAlgos)", async () => {
+          if (
+            [
+              DIDR_WRITE_SCOPE,
+              TIR_WRITE_SCOPE,
+              TIMESTAMP_WRITE_SCOPE,
+              TNT_CREATE_SCOPE,
+              TNT_WRITE_SCOPE,
+            ].includes(customScope)
+          ) {
+            expect.assertions(0);
+            return;
+          }
+
+          presentationSubmission.descriptor_map[0]!.format = "jwt"; // should be "jwt_vp" or "jwt_vp_json"
+
+          const vpSigner =
+            customScope === DIDR_INVITE_SCOPE
+              ? credentialSubject.keys.ES256K
+              : credentialSubject.keys.ES256;
+
+          const vcJwt = await createVerifiableCredentialJwt(
+            vcPayload,
+            credentialIssuer.keys.ES256,
+            {
+              ebsiAuthority: "example.net",
+              skipValidation: true,
+            },
+          );
+
+          vpPayload.verifiableCredential.push(vcJwt);
+
+          const nonce = randomUUID();
+
+          const vpJwt = await createVerifiablePresentationJwt(
+            vpPayload,
+            vpSigner,
+            serviceEndpoint,
+            {
+              ebsiAuthority: "example.net",
+              skipValidation: true,
+              nonce,
+            },
+          );
+
+          const response = await request(server)
+            .post("/token")
+            .set("Content-Type", "application/x-www-form-urlencoded")
+            .send(
+              new URLSearchParams({
+                grant_type: "vp_token",
+                scope,
+                vp_token: vpJwt,
+                presentation_submission: JSON.stringify(presentationSubmission),
+              } satisfies CreateAccessTokenDto).toString(),
+            );
+
+          expect(response.body).toStrictEqual({
+            error: "invalid_request",
+            error_description:
+              "Invalid Verifiable Presentation submission: format 'jwt' is not supported in 'descriptor_map[0].format'",
+          });
+
+          expect(response.status).toBe(400);
+        });
+
+        it("should return an error when the credentials are signed with an unsupported algorithm (validateCredentialsAlgos)", async () => {
+          if (
+            [
+              DIDR_WRITE_SCOPE,
+              TIR_WRITE_SCOPE,
+              TIMESTAMP_WRITE_SCOPE,
+              TNT_CREATE_SCOPE,
+              TNT_WRITE_SCOPE,
+            ].includes(customScope)
+          ) {
+            expect.assertions(0);
+            return;
+          }
+
+          const vpSigner =
+            customScope === DIDR_INVITE_SCOPE
+              ? credentialSubject.keys.ES256K
+              : credentialSubject.keys.ES256;
+
+          const vcJwt = await createVerifiableCredentialJwt(
+            vcPayload,
+            credentialIssuer.keys.EdDSA,
+            {
+              ebsiAuthority: "example.net",
+              skipValidation: true,
+            },
+          );
+
+          vpPayload.verifiableCredential.push(vcJwt);
+
+          const nonce = randomUUID();
+
+          const vpJwt = await createVerifiablePresentationJwt(
+            vpPayload,
+            vpSigner,
+            serviceEndpoint,
+            {
+              ebsiAuthority: "example.net",
+              skipValidation: true,
+              nonce,
+            },
+          );
+
+          const response = await request(server)
+            .post("/token")
+            .set("Content-Type", "application/x-www-form-urlencoded")
+            .send(
+              new URLSearchParams({
+                grant_type: "vp_token",
+                scope,
+                vp_token: vpJwt,
+                presentation_submission: JSON.stringify(presentationSubmission),
+              } satisfies CreateAccessTokenDto).toString(),
+            );
+
+          expect(response.body).toStrictEqual({
+            error: "invalid_request",
+            error_description:
+              "Invalid Verifiable Credential: the algorithm 'EdDSA' is not supported",
+          });
+
+          expect(response.status).toBe(400);
+        });
+
+        it("should return an error when descriptor_map[0].path_nested.format is invalid (validateCredentialsAlgos)", async () => {
+          if (
+            [
+              DIDR_WRITE_SCOPE,
+              TIR_WRITE_SCOPE,
+              TIMESTAMP_WRITE_SCOPE,
+              TNT_CREATE_SCOPE,
+              TNT_WRITE_SCOPE,
+            ].includes(customScope)
+          ) {
+            expect.assertions(0);
+            return;
+          }
+
+          presentationSubmission.descriptor_map[0]!.path_nested!.format = "jwt"; // should be "jwt_vc" or "jwt_vc_json"
+
+          const vpSigner =
+            customScope === DIDR_INVITE_SCOPE
+              ? credentialSubject.keys.ES256K
+              : credentialSubject.keys.ES256;
+
+          const vcJwt = await createVerifiableCredentialJwt(
+            vcPayload,
+            credentialIssuer.keys.ES256,
+            {
+              ebsiAuthority: "example.net",
+              skipValidation: true,
+            },
+          );
+
+          vpPayload.verifiableCredential.push(vcJwt);
+
+          const nonce = randomUUID();
+
+          const vpJwt = await createVerifiablePresentationJwt(
+            vpPayload,
+            vpSigner,
+            serviceEndpoint,
+            {
+              ebsiAuthority: "example.net",
+              skipValidation: true,
+              nonce,
+            },
+          );
+
+          const response = await request(server)
+            .post("/token")
+            .set("Content-Type", "application/x-www-form-urlencoded")
+            .send(
+              new URLSearchParams({
+                grant_type: "vp_token",
+                scope,
+                vp_token: vpJwt,
+                presentation_submission: JSON.stringify(presentationSubmission),
+              } satisfies CreateAccessTokenDto).toString(),
+            );
+
+          expect(response.body).toStrictEqual({
+            error: "invalid_request",
+            error_description:
+              "Invalid Verifiable Presentation submission: format 'jwt' is not supported in 'descriptor_map[0].path_nested.format'",
+          });
+
+          expect(response.status).toBe(400);
+        });
+
+        it("should return an error when descriptor_map[0].path_nested.path is invalid (validateCredentialsAlgos)", async () => {
+          if (
+            [
+              DIDR_WRITE_SCOPE,
+              TIR_WRITE_SCOPE,
+              TIMESTAMP_WRITE_SCOPE,
+              TNT_CREATE_SCOPE,
+              TNT_WRITE_SCOPE,
+            ].includes(customScope)
+          ) {
+            expect.assertions(0);
+            return;
+          }
+
+          presentationSubmission.descriptor_map[0]!.path_nested!.path =
+            "$.vp.verifiableCredential"; // Doesn't pass the regex /^\$\.vp\.verifiableCredential\[(\d*)\]/
+
+          const vpSigner =
+            customScope === DIDR_INVITE_SCOPE
+              ? credentialSubject.keys.ES256K
+              : credentialSubject.keys.ES256;
+
+          const vcJwt = await createVerifiableCredentialJwt(
+            vcPayload,
+            credentialIssuer.keys.ES256,
+            {
+              ebsiAuthority: "example.net",
+              skipValidation: true,
+            },
+          );
+
+          vpPayload.verifiableCredential.push(vcJwt);
+
+          const nonce = randomUUID();
+
+          const vpJwt = await createVerifiablePresentationJwt(
+            vpPayload,
+            vpSigner,
+            serviceEndpoint,
+            {
+              ebsiAuthority: "example.net",
+              skipValidation: true,
+              nonce,
+            },
+          );
+
+          const response = await request(server)
+            .post("/token")
+            .set("Content-Type", "application/x-www-form-urlencoded")
+            .send(
+              new URLSearchParams({
+                grant_type: "vp_token",
+                scope,
+                vp_token: vpJwt,
+                presentation_submission: JSON.stringify(presentationSubmission),
+              } satisfies CreateAccessTokenDto).toString(),
+            );
+
+          expect(response.body).toStrictEqual({
+            error: "invalid_request",
+            error_description:
+              "Invalid Verifiable Presentation submission: path_nested.path '$.vp.verifiableCredential' is not valid",
+          });
+
+          expect(response.status).toBe(400);
+        });
+
+        it("should return an error when descriptor_map[0].path_nested.path doesn't match any credential (validateCredentialsAlgos)", async () => {
+          if (
+            [
+              DIDR_WRITE_SCOPE,
+              TIR_WRITE_SCOPE,
+              TIMESTAMP_WRITE_SCOPE,
+              TNT_CREATE_SCOPE,
+              TNT_WRITE_SCOPE,
+            ].includes(customScope)
+          ) {
+            expect.assertions(0);
+            return;
+          }
+
+          presentationSubmission.descriptor_map[0]!.path_nested!.path =
+            "$.vp.verifiableCredential[1]"; // Doesn't match any credential
+
+          const vpSigner =
+            customScope === DIDR_INVITE_SCOPE
+              ? credentialSubject.keys.ES256K
+              : credentialSubject.keys.ES256;
+
+          const vcJwt = await createVerifiableCredentialJwt(
+            vcPayload,
+            credentialIssuer.keys.ES256,
+            {
+              ebsiAuthority: "example.net",
+              skipValidation: true,
+            },
+          );
+
+          vpPayload.verifiableCredential.push(vcJwt);
+
+          const nonce = randomUUID();
+
+          const vpJwt = await createVerifiablePresentationJwt(
+            vpPayload,
+            vpSigner,
+            serviceEndpoint,
+            {
+              ebsiAuthority: "example.net",
+              skipValidation: true,
+              nonce,
+            },
+          );
+
+          const response = await request(server)
+            .post("/token")
+            .set("Content-Type", "application/x-www-form-urlencoded")
+            .send(
+              new URLSearchParams({
+                grant_type: "vp_token",
+                scope,
+                vp_token: vpJwt,
+                presentation_submission: JSON.stringify(presentationSubmission),
+              } satisfies CreateAccessTokenDto).toString(),
+            );
+
+          expect(response.body).toStrictEqual({
+            error: "invalid_request",
+            error_description:
+              "Invalid Verifiable Presentation submission: $.vp.verifiableCredential[1] not found",
+          });
+
+          expect(response.status).toBe(400);
+        });
+
+        it("should return an access token and an ID token when the presentation is valid", async () => {
+          const vpSigner = [DIDR_INVITE_SCOPE, DIDR_WRITE_SCOPE].includes(
+            customScope,
+          )
+            ? credentialSubject.keys.ES256K
+            : credentialSubject.keys.ES256;
+
+          if (
+            [DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE, TNT_AUTHORISE_SCOPE].includes(
+              customScope,
+            )
+          ) {
+            const vcJwt = await createVerifiableCredentialJwt(
+              vcPayload,
+              credentialIssuer.keys.ES256,
+              {
+                ebsiAuthority: "example.net",
+                skipValidation: true,
+              },
+            );
+
+            vpPayload.verifiableCredential.push(vcJwt);
+          }
+
+          if (customScope === TNT_CREATE_SCOPE) {
+            mockServer.use(
+              http.head(
+                `${domain}/track-and-trace/v1/accesses`,
+                ({ request: req }) => {
+                  const creator = new URL(req.url).searchParams.get("creator");
+
+                  if (creator === vpPayload.holder) {
+                    return new HttpResponse(null, { status: 204 });
+                  }
+
+                  throw new Error(
+                    `Unexpected TnT Document creator: ${creator}`,
+                  );
+                },
+              ),
+            );
+          }
+
+          if (customScope === TNT_WRITE_SCOPE) {
+            mockServer.use(
+              http.get(
+                `${domain}/track-and-trace/v1/accesses`,
+                ({ request: req }) => {
+                  const subject = new URL(req.url).searchParams.get("subject");
+
+                  if (subject === vpPayload.holder) {
+                    return HttpResponse.json(
+                      {
+                        self: "",
+                        items: [
+                          {
+                            documentId: "0x00",
+                            subject,
+                            grantedBy: "did:ebsi:1234",
+                            permission: "write",
+                          },
+                        ],
+                        total: 1,
+                        links: { first: "", prev: "", next: "", last: "" },
+                      } satisfies PaginatedList<Access>,
+                      { status: 200 },
+                    );
+                  }
+
+                  throw new Error(`Unexpected TnT subject: ${subject}`);
+                },
+              ),
+            );
+          }
+
+          const nonce = randomUUID();
+
+          const vpJwt = await createVerifiablePresentationJwt(
+            vpPayload,
+            vpSigner,
+            serviceEndpoint,
+            {
+              ebsiAuthority: "example.net",
+              skipValidation: true,
+              nonce,
+              ...([
+                DIDR_WRITE_SCOPE,
+                TIR_WRITE_SCOPE,
+                TIMESTAMP_WRITE_SCOPE,
+                TNT_CREATE_SCOPE,
+                TNT_WRITE_SCOPE,
+              ].includes(customScope)
+                ? {
+                    // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
+                    exp: Math.floor(Date.now() / 1000) + 100,
+                    nbf: Math.floor(Date.now() / 1000) - 100,
+                  }
+                : {}),
+            },
+          );
+
+          const response = await request(server)
+            .post("/token")
+            .set("Content-Type", "application/x-www-form-urlencoded")
+            .send(
+              new URLSearchParams({
+                grant_type: "vp_token",
+                scope,
+                vp_token: vpJwt,
+                presentation_submission: JSON.stringify(presentationSubmission),
+              } satisfies CreateAccessTokenDto).toString(),
+            );
 
           expect(response.body).toStrictEqual({
             access_token: expect.any(String),
@@ -2112,6 +2642,8 @@ describe("Authorisation Module", () => {
             scope,
             token_type: "Bearer",
           });
+
+          expect(response.status).toBe(200);
 
           // Decode access token
           const { access_token: accessToken } = response.body as TokenResponse;
@@ -2216,7 +2748,7 @@ describe("Authorisation Module", () => {
 
         const vcJwt = await createVerifiableCredentialJwt(
           vcPayload,
-          credentialIssuer,
+          credentialIssuer.keys.ES256,
           {
             ebsiAuthority: "example.net",
             skipValidation: true,
@@ -2240,8 +2772,7 @@ describe("Authorisation Module", () => {
 
         const didDocument = createDidDocument(
           credentialSubject.did,
-          credentialSubject.kid,
-          credentialSubject.publicKeyJwk,
+          credentialSubject.keys,
         );
 
         // Remove capabilityInvocation, which is required in order to get an access token with tnt_authorise scope
@@ -2260,7 +2791,7 @@ describe("Authorisation Module", () => {
 
         const vpJwt = await createVerifiablePresentationJwt(
           vpPayload,
-          credentialSubject,
+          credentialSubject.keys.ES256K,
           serviceEndpoint,
           {
             ebsiAuthority: "example.net",
@@ -2283,7 +2814,7 @@ describe("Authorisation Module", () => {
 
         expect(response.body).toStrictEqual({
           error: "invalid_request",
-          error_description: `Invalid Verifiable Presentation: Could not find a verification method related to "${credentialSubject.kid}" for the proof purpose "capabilityInvocation"`,
+          error_description: `Invalid Verifiable Presentation: Could not find a verification method related to "${credentialSubject.keys.ES256K.kid}" for the proof purpose "capabilityInvocation"`,
         });
 
         expect(response.status).toBe(400);
@@ -2998,7 +3529,11 @@ describe("Authorisation Module", () => {
       );
 
       // VP Signer is not registered in the TIR
-      const vpSigner = await createLegalEntity("ES256K");
+      const vpSigner = [DIDR_INVITE_SCOPE, DIDR_WRITE_SCOPE].includes(
+        customScope,
+      )
+        ? await createLegalEntity(["ES256K"])
+        : await createLegalEntity(["ES256"]);
       vpPayload.holder = vpSigner.did;
 
       if (
@@ -3009,7 +3544,7 @@ describe("Authorisation Module", () => {
         vcPayload.credentialSubject.id = vpPayload.holder;
         const vcJwt = await createVerifiableCredentialJwt(
           vcPayload,
-          credentialIssuer,
+          credentialIssuer.keys.ES256,
           {
             ebsiAuthority: "example.net",
             skipValidation: true,
@@ -3038,7 +3573,7 @@ describe("Authorisation Module", () => {
 
       const vpJwt = await createVerifiablePresentationJwt(
         vpPayload,
-        vpSigner,
+        "ES256K" in vpSigner.keys ? vpSigner.keys.ES256K : vpSigner.keys.ES256,
         serviceEndpoint,
         {
           ebsiAuthority: "example.net",

@@ -1,4 +1,4 @@
-import { randomBytes, randomUUID } from "node:crypto";
+import { randomBytes, randomUUID, type JsonWebKey } from "node:crypto";
 import { URLSearchParams } from "node:url";
 import { describe, beforeAll, it, expect, beforeEach, afterAll } from "vitest";
 import request from "supertest";
@@ -19,8 +19,15 @@ import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 import { encode } from "@ebsiint-api/shared";
 import { createJWT, decodeJWT, ES256KSigner } from "did-jwt";
-import { calculateJwkThumbprint, importJWK, jwtVerify, SignJWT } from "jose";
+import {
+  calculateJwkThumbprint,
+  importJWK,
+  jwtVerify,
+  SignJWT,
+  base64url,
+} from "jose";
 import type { JWK } from "jose";
+import elliptic from "elliptic";
 import { AppModule } from "../../src/app.module.js";
 import type { ApiConfig } from "../../src/config/configuration.js";
 import {
@@ -54,6 +61,44 @@ import {
   createPresentationSubmission,
 } from "../utils/data.js";
 import { CreateAccessTokenDto } from "../../src/modules/authorisation/dto/index.js";
+
+/**
+ * Transform an ES256 private key into a JWK private key.
+ *
+ * @param hexPrivateKey The compressed ES256 private key
+ * @returns The private key as a JWK
+ */
+function fromHexToJWK(hexPrivateKey: string) {
+  if (!hexPrivateKey || typeof hexPrivateKey !== "string") {
+    throw new Error("You must provide a non-empty hexadecimal private key");
+  }
+
+  const EC = elliptic.ec;
+  const ec = new EC("p256");
+
+  // Get key pair from hex private key
+  const keyPair = ec.keyFromPrivate(hexPrivateKey, "hex");
+
+  // Validate key pair
+  const validation = keyPair.validate();
+  if (validation.result === false) {
+    throw new Error(validation.reason);
+  }
+
+  // Format as JWK
+  const pubPoint = keyPair.getPublic();
+
+  const jwk = {
+    kty: "EC",
+    crv: "P-256",
+    alg: "ES256",
+    x: base64url.encode(pubPoint.getX().toBuffer("be", 32)),
+    y: base64url.encode(pubPoint.getY().toBuffer("be", 32)),
+    d: base64url.encode(Buffer.from(hexPrivateKey, "hex")),
+  } satisfies JsonWebKey;
+
+  return jwk;
+}
 
 describe("Authorisation  API v4 (e2e)", () => {
   let app: NestFastifyApplication;
@@ -376,9 +421,9 @@ describe("Authorisation  API v4 (e2e)", () => {
               infer: true,
             });
             if (!issuerAlg) throw new Error("TEST_ISSUER_ALG must be defined");
-            // Only support ES256K issuer (temporary)
-            if (issuerAlg !== "ES256K") {
-              throw new Error("TEST_ISSUER_ALG must be ES256K");
+            // Only support ES256 issuer
+            if (issuerAlg !== "ES256") {
+              throw new Error("TEST_ISSUER_ALG must be ES256");
             }
 
             const issuerPrivateKey = configService.get("testIssuerPrivateKey", {
@@ -395,8 +440,7 @@ describe("Authorisation  API v4 (e2e)", () => {
               throw new Error("TEST_ISSUER_ATTRIBUTE must be defined");
             }
 
-            const privateKeyJwk =
-              encode.privateKey.fromHexToJWK(issuerPrivateKey);
+            const privateKeyJwk = fromHexToJWK(issuerPrivateKey);
             const { d, ...publicKeyJwk } = privateKeyJwk;
 
             issuer = {
@@ -415,7 +459,7 @@ describe("Authorisation  API v4 (e2e)", () => {
               ].includes(customScope)
             ) {
               // client is a new LE
-              client = await createLegalEntity("ES256K");
+              client = (await createLegalEntity(["ES256"])).keys.ES256;
             } else if (
               customScope === TNT_CREATE_SCOPE ||
               customScope === TNT_WRITE_SCOPE
@@ -441,7 +485,7 @@ describe("Authorisation  API v4 (e2e)", () => {
 
               const clientPrivateKeyJwk =
                 encode.privateKey.fromHexToJWK(clientPrivateKey);
-              const { d: unusedD, ...clientPublicKeyJwk } = privateKeyJwk;
+              const { d: unusedD, ...clientPublicKeyJwk } = clientPrivateKeyJwk;
 
               client = {
                 kid: clientKid,

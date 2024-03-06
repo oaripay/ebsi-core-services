@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
 import { calculateJwkThumbprint, exportJWK, generateKeyPair } from "jose";
-import type { JWK } from "jose";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import type { DIDDocument, JsonWebKey } from "did-resolver";
 import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
@@ -27,52 +26,65 @@ import {
 
 export function createDidDocument(
   did: string,
-  kid: string,
-  publicKeyJwk: JWK,
+  keys: Record<string, EbsiIssuer>,
 ): DIDDocument {
+  const kids = Object.keys(keys).map((alg) => keys[alg]!.kid);
   return {
     "@context": [
       "https://www.w3.org/ns/did/v1",
       "https://w3id.org/security/suites/jws-2020/v1",
     ],
     id: did,
-    verificationMethod: [
-      {
-        id: kid,
-        type: "JsonWebKey2020",
-        controller: did,
-        publicKeyJwk: publicKeyJwk as JsonWebKey,
-      },
-    ],
-    authentication: [kid],
-    assertionMethod: [kid],
-    capabilityInvocation: [kid],
+    verificationMethod: Object.keys(keys).map((alg) => ({
+      id: keys[alg]!.kid,
+      type: "JsonWebKey2020",
+      controller: did,
+      publicKeyJwk: keys[alg]!.publicKeyJwk as JsonWebKey,
+    })),
+    authentication: kids,
+    assertionMethod: kids,
+    capabilityInvocation: kids,
   };
 }
 
-export interface LegalEntity extends EbsiIssuer {
+export interface LegalEntity<T extends "ES256" | "ES256K" | "EdDSA"> {
+  did: string;
+  keys: Record<T, EbsiIssuer>;
   didDocument: DIDDocument;
 }
 
-export async function createLegalEntity(
-  alg: "ES256" | "ES256K" | "EdDSA",
+export async function createLegalEntity<T extends "ES256" | "ES256K" | "EdDSA">(
+  algs: T[],
   did?: string | undefined,
-): Promise<LegalEntity> {
+): Promise<LegalEntity<T>> {
   const legalEntityDid = did ?? EbsiWallet.createDid();
-  const keypair = await generateKeyPair(alg);
-  const publicKeyJwk = await exportJWK(keypair.publicKey);
-  const privateKeyJwk = await exportJWK(keypair.privateKey);
-  const thumbprint = await calculateJwkThumbprint(publicKeyJwk);
-  const kid = `${legalEntityDid}#${thumbprint}`;
 
-  const didDocument = createDidDocument(legalEntityDid, kid, publicKeyJwk);
+  const keys: Record<string, EbsiIssuer> = {};
+
+  /* eslint-disable no-await-in-loop */
+  // eslint-disable-next-line no-restricted-syntax
+  for (const alg of algs) {
+    const keypair = await generateKeyPair(alg);
+    const publicKeyJwk = await exportJWK(keypair.publicKey);
+    const privateKeyJwk = await exportJWK(keypair.privateKey);
+    const thumbprint = await calculateJwkThumbprint(publicKeyJwk);
+    const kid = `${legalEntityDid}#${thumbprint}`;
+
+    keys[alg] = {
+      did: legalEntityDid,
+      publicKeyJwk,
+      privateKeyJwk,
+      kid,
+      alg,
+    };
+  }
+  /* eslint-enable no-await-in-loop */
+
+  const didDocument = createDidDocument(legalEntityDid, keys);
 
   return {
-    publicKeyJwk,
-    privateKeyJwk,
-    alg,
+    keys,
     did: legalEntityDid,
-    kid,
     didDocument,
   };
 }

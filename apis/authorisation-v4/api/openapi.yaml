@@ -538,6 +538,11 @@ paths:
                       jwt_vp:
                         alg:
                           - ES256
+                          - ES256K
+                      jwt_vp_json:
+                        alg:
+                          - ES256
+                          - ES256K
                     input_descriptors:
                       - id: didr_invite_credential
                         name: Accreditation to write to the DID Registry
@@ -565,6 +570,9 @@ paths:
                     id: tir_invite_presentation
                     format:
                       jwt_vp:
+                        alg:
+                          - ES256
+                      jwt_vp_json:
                         alg:
                           - ES256
                     input_descriptors:
@@ -601,6 +609,11 @@ paths:
                       jwt_vp:
                         alg:
                           - ES256
+                          - ES256K
+                      jwt_vp_json:
+                        alg:
+                          - ES256
+                          - ES256K
                     purpose: >-
                       Please present a valid Presentation signed by a registered Legal Entity.
                     input_descriptors: []
@@ -615,6 +628,9 @@ paths:
                       jwt_vp:
                         alg:
                           - ES256
+                      jwt_vp_json:
+                        alg:
+                          - ES256
                     input_descriptors: []
                 timestamp_write:
                   summary: Timestamp write
@@ -627,6 +643,9 @@ paths:
                       jwt_vp:
                         alg:
                           - ES256
+                      jwt_vp_json:
+                        alg:
+                          - ES256
                     input_descriptors: []
                 tnt_authorise:
                   summary: TNT authorise
@@ -636,6 +655,11 @@ paths:
                       jwt_vp:
                         alg:
                           - ES256
+                          - ES256K
+                      jwt_vp_json:
+                        alg:
+                          - ES256
+                          - ES256K
                     input_descriptors:
                       - id: tnt_authorise_credential
                         name: Accreditation to create Track and Trace documents
@@ -673,6 +697,11 @@ paths:
                       jwt_vp:
                         alg:
                           - ES256
+                          - ES256K
+                      jwt_vp_json:
+                        alg:
+                          - ES256
+                          - ES256K
                     input_descriptors: []
                 tnt_write:
                   summary: TNT write
@@ -684,6 +713,11 @@ paths:
                       jwt_vp:
                         alg:
                           - ES256
+                          - ES256K
+                      jwt_vp_json:
+                        alg:
+                          - ES256
+                          - ES256K
                     input_descriptors: []
         "400":
           description: Bad Request
