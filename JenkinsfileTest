@@ -30,56 +30,53 @@ pipeline {
           branch 'main'
         }
       }
-      stages {
-        stage('Static analysis') {
-          failFast true
-          parallel {
-            stage('Check changesets status') {
-              steps {
-                sh '''
-                  source $NVM_DIR/nvm.sh > /dev/null 2>&1
-                  nvm use > /dev/null 2>&1
-                  node -v
-                  yarn changeset status --since=main
-                '''
-              }
-            }
-
-            stage ('Lint Dockerfile-s') {
-              agent {
-                docker {
-                    image 'hadolint/hadolint:latest-debian'
-                    reuseNode true
-                }
-              }
-              steps {
-                sh 'hadolint Dockerfile apis/**/Dockerfile'
-              }
-            }
-
-            stage('Lint affected packages') {
-              steps {
-                sh '''
-                  source $NVM_DIR/nvm.sh > /dev/null 2>&1
-                  nvm use > /dev/null 2>&1
-                  node -v
-                  yarn lint
-                '''
-              }
-            }
-
-            stage('Audit dependencies') {
-              steps {
-                sh '''
-                  source $NVM_DIR/nvm.sh > /dev/null 2>&1
-                  nvm use > /dev/null 2>&1
-                  node -v
-                  yarn run audit
-                '''
-              }
-            }
+      failFast true
+      parallel {
+        stage('Check changesets status') {
+          steps {
+            sh '''
+              source $NVM_DIR/nvm.sh > /dev/null 2>&1
+              nvm use > /dev/null 2>&1
+              node -v
+              yarn changeset status --since=main
+            '''
           }
         }
+
+        stage ('Lint Dockerfile-s') {
+          agent {
+            docker {
+                image 'hadolint/hadolint:latest-debian'
+                reuseNode true
+            }
+          }
+          steps {
+            sh 'hadolint Dockerfile apis/**/Dockerfile'
+          }
+        }
+
+        stage('Lint affected packages') {
+          steps {
+            sh '''
+              source $NVM_DIR/nvm.sh > /dev/null 2>&1
+              nvm use > /dev/null 2>&1
+              node -v
+              yarn lint
+            '''
+          }
+        }
+
+        stage('Audit dependencies') {
+          steps {
+            sh '''
+              source $NVM_DIR/nvm.sh > /dev/null 2>&1
+              nvm use > /dev/null 2>&1
+              node -v
+              yarn run audit
+            '''
+          }
+        }
+
         stage('Unit test affected packages') {
           environment {
             API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')

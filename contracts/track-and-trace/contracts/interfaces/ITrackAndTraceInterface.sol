@@ -2,7 +2,6 @@
 pragma solidity ^0.8.12;
 
 interface ITrackAndTraceInterface {
-
     // List of structures and variable types
 
     enum Source {

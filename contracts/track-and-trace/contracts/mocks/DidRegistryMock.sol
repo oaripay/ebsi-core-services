@@ -24,5 +24,4 @@ contract DidRegistryMock {
     ) external view returns (bool) {
         return didResult;
     }
-
 }

@@ -50,7 +50,11 @@ contract TrackAndTrace is
         didRegistry = IDidRegistry(_didRegistryAddress);
     }
 
-    function authoriseDid(string calldata senderDid, string calldata authorisedDid, bool whiteList) external {
+    function authoriseDid(
+        string calldata senderDid,
+        string calldata authorisedDid,
+        bool whiteList
+    ) external {
         // At SC level any senderDid registered in the DID Registry can
         // authorise new DIDs to create documents. However, At API level
         // the senderDid will require an access token that is granted to
@@ -58,7 +62,7 @@ contract TrackAndTrace is
         if (_authorize(bytes(senderDid), ACCOUNT_TYPE.DID_EBSI) == false) {
             revert NotDidController();
         }
-        
+
         invitedDidEbsiAccounts[authorisedDid] = whiteList;
         emit DidEbsiAuthorised(authorisedDid, whiteList);
     }
@@ -123,7 +127,12 @@ contract TrackAndTrace is
 
     function removeDocument(bytes32 documentHash) external {
         // authorize signer
-        if (_authorize(bytes(documents[documentHash].creator), ACCOUNT_TYPE.DID_EBSI) == false) {
+        if (
+            _authorize(
+                bytes(documents[documentHash].creator),
+                ACCOUNT_TYPE.DID_EBSI
+            ) == false
+        ) {
             revert NotDidController();
         }
         if (
@@ -199,8 +208,12 @@ contract TrackAndTrace is
         Document storage doc = documents[documentHash];
         // authorize signer
         if (
-            _authorize(revokedByAccount, doc.invited[subjectAccount].grantedByAccountType[permission]) == false
-            && _authorize(revokedByAccount, ACCOUNT_TYPE.DID_EBSI) == false // in case is creator
+            _authorize(
+                revokedByAccount,
+                doc.invited[subjectAccount].grantedByAccountType[permission]
+            ) ==
+            false &&
+            _authorize(revokedByAccount, ACCOUNT_TYPE.DID_EBSI) == false // in case is creator
         ) {
             revert NotDidController();
         }
@@ -208,12 +221,7 @@ contract TrackAndTrace is
             !_equal(
                 revokedByAccount,
                 doc.invited[subjectAccount].grantedBy[permission]
-            )
-            &&
-            !_equal(
-                revokedByAccount,
-                bytes(doc.creator)
-            )
+            ) && !_equal(revokedByAccount, bytes(doc.creator))
         ) {
             revert OnlyCreatorOrDelegated();
         }
@@ -237,7 +245,9 @@ contract TrackAndTrace is
             }
 
             index = accessBySubjectIndex[subjectAccount][documentHash];
-            bytes32 lastElement = accessBySubject[subjectAccount][accessBySubject[subjectAccount].length - 1];
+            bytes32 lastElement = accessBySubject[subjectAccount][
+                accessBySubject[subjectAccount].length - 1
+            ];
             accessBySubject[subjectAccount][index] = lastElement;
             accessBySubject[subjectAccount].pop();
             accessBySubjectIndex[subjectAccount][lastElement] = index;
@@ -246,14 +256,14 @@ contract TrackAndTrace is
         emit AccessRevoked(documentHash, subjectAccount, revokedByAccount);
     }
 
-    function writeEvent(
-        WriteEvent calldata eventParams
-    ) external {
+    function writeEvent(WriteEvent calldata eventParams) external {
         // authorize signer
         if (
             _authorize(
                 eventParams.sender,
-                documents[eventParams.documentHash].invited[eventParams.sender].subjectAccountType
+                documents[eventParams.documentHash]
+                    .invited[eventParams.sender]
+                    .subjectAccountType
             ) == false
         ) {
             revert NotDidController();
@@ -267,7 +277,12 @@ contract TrackAndTrace is
         ) {
             revert OnlyCreatorOrWriter();
         }
-        _writeEvent(eventParams, block.timestamp, Source.Block, bytes32(block.number));
+        _writeEvent(
+            eventParams,
+            block.timestamp,
+            Source.Block,
+            bytes32(block.number)
+        );
     }
 
     function writeEvent(
@@ -279,7 +294,9 @@ contract TrackAndTrace is
         if (
             _authorize(
                 eventParams.sender,
-                documents[eventParams.documentHash].invited[eventParams.sender].subjectAccountType
+                documents[eventParams.documentHash]
+                    .invited[eventParams.sender]
+                    .subjectAccountType
             ) == false
         ) {
             revert NotDidController();
@@ -351,7 +368,10 @@ contract TrackAndTrace is
         require(pageSize <= 50, "PSize not <= 50");
         require(pageSize > 0, "PSize not >0");
         require(page > 0, "Page not >0");
-        require(bytes(documents[documentHash].creator).length > 0, "Document does not exist");
+        require(
+            bytes(documents[documentHash].creator).length > 0,
+            "Document does not exist"
+        );
         return documents[documentHash].eventHashes.paginate(page, pageSize);
     }
 
@@ -359,7 +379,10 @@ contract TrackAndTrace is
         bytes32 documentHash,
         bytes32 eventHash
     ) external view returns (Event memory) {
-        require(bytes(documents[documentHash].creator).length > 0, "Document does not exist");
+        require(
+            bytes(documents[documentHash].creator).length > 0,
+            "Document does not exist"
+        );
         Event memory ev = documents[documentHash].events[eventHash];
         require(ev.sender.length > 0, "Event does not exist");
         return ev;
@@ -383,18 +406,29 @@ contract TrackAndTrace is
         require(pageSize <= 50, "PSize not <= 50");
         require(pageSize > 0, "PSize not >0");
         require(page > 0, "Page not >0");
-        require(bytes(documents[documentHash].creator).length > 0, "Document does not exist");
+        require(
+            bytes(documents[documentHash].creator).length > 0,
+            "Document does not exist"
+        );
         bytes[] storage invitedUsers = documents[documentHash].allInvited;
         return invitedUsers.paginate(page, pageSize);
     }
 
-    function getAccessesBySubject(bytes calldata subject, uint256 page, uint256 pageSize) external view returns (
-        bytes32[] memory items,
-        uint256 total,
-        uint256 howMany,
-        uint256 prev,
-        uint256 next
-    ) {
+    function getAccessesBySubject(
+        bytes calldata subject,
+        uint256 page,
+        uint256 pageSize
+    )
+        external
+        view
+        returns (
+            bytes32[] memory items,
+            uint256 total,
+            uint256 howMany,
+            uint256 prev,
+            uint256 next
+        )
+    {
         require(pageSize <= 50, "PSize not <= 50");
         require(pageSize > 0, "PSize not >0");
         require(page > 0, "Page not >0");
@@ -403,25 +437,30 @@ contract TrackAndTrace is
     }
 
     function isCreator(bytes calldata did) external view returns (bool) {
-        return
-            _getAccountAccess(
-                bytes32(0),
-                did,
-                SCOPE.TNT_CREATE
-            );
+        return _getAccountAccess(bytes32(0), did, SCOPE.TNT_CREATE);
     }
 
-    function getGrantedBy (bytes32 docHash, bytes calldata did, ACCESS_ENUM[] calldata acc)
-    external
-    view
-    returns (bytes[] memory, ACCOUNT_TYPE[] memory, bool[] memory) {
+    function getGrantedBy(
+        bytes32 docHash,
+        bytes calldata did,
+        ACCESS_ENUM[] calldata acc
+    )
+        external
+        view
+        returns (bytes[] memory, ACCOUNT_TYPE[] memory, bool[] memory)
+    {
         if (acc.length == 0) {
             revert InvalidArrayLength();
         }
-        require(bytes(documents[docHash].creator).length > 0, "Document does not exist");
+        require(
+            bytes(documents[docHash].creator).length > 0,
+            "Document does not exist"
+        );
         uint256 accLength = acc.length;
         bytes[] memory grantedByAccounts = new bytes[](accLength);
-        ACCOUNT_TYPE[] memory grantedByAccountType = new ACCOUNT_TYPE[](accLength);
+        ACCOUNT_TYPE[] memory grantedByAccountType = new ACCOUNT_TYPE[](
+            accLength
+        );
         bool[] memory access = new bool[](accLength);
         Document storage doc = documents[docHash];
         Access_Struct storage accs = doc.invited[did];
@@ -433,9 +472,9 @@ contract TrackAndTrace is
                     access[i] = true;
                 }
             } else {
-               grantedByAccounts[i] = accs.grantedBy[acc[i]];
-               grantedByAccountType[i] = accs.grantedByAccountType[acc[i]];
-               access[i] = accs.acc[acc[i]];
+                grantedByAccounts[i] = accs.grantedBy[acc[i]];
+                grantedByAccountType[i] = accs.grantedByAccountType[acc[i]];
+                access[i] = accs.acc[acc[i]];
             }
         }
         return (grantedByAccounts, grantedByAccountType, access);
@@ -479,15 +518,16 @@ contract TrackAndTrace is
         _document.allInvited.push(creatorBytes);
 
         if (
-            accessBySubject[creatorBytes].length == 0
-            || accessBySubject[creatorBytes].length > 0 && accessBySubjectIndex[creatorBytes][documentHash] == 0
-            && accessBySubject[creatorBytes][0] != documentHash
+            accessBySubject[creatorBytes].length == 0 ||
+            (accessBySubject[creatorBytes].length > 0 &&
+                accessBySubjectIndex[creatorBytes][documentHash] == 0 &&
+                accessBySubject[creatorBytes][0] != documentHash)
         ) {
             accessBySubject[creatorBytes].push(documentHash);
-            accessBySubjectIndex[creatorBytes][documentHash] = accessBySubject[creatorBytes].length - 1;
+            accessBySubjectIndex[creatorBytes][documentHash] =
+                accessBySubject[creatorBytes].length -
+                1;
         }
-
-
 
         emit DocumentCreated(
             documentHash,
@@ -526,7 +566,10 @@ contract TrackAndTrace is
         }
         // add helpers
 
-        if (_document.allInvitedIndex[subjectAccount] == 0 && !_equal(_document.allInvited[0], subjectAccount)) {
+        if (
+            _document.allInvitedIndex[subjectAccount] == 0 &&
+            !_equal(_document.allInvited[0], subjectAccount)
+        ) {
             uint256 index = _document.allInvited.length;
             _document.allInvited.push(subjectAccount);
             _document.allInvitedIndex[subjectAccount] = index;
@@ -534,11 +577,14 @@ contract TrackAndTrace is
 
         if (
             accessBySubject[subjectAccount].length == 0 ||
-            accessBySubject[subjectAccount].length > 0 && accessBySubjectIndex[subjectAccount][documentHash] == 0
-            && accessBySubject[subjectAccount][0] != documentHash
+            (accessBySubject[subjectAccount].length > 0 &&
+                accessBySubjectIndex[subjectAccount][documentHash] == 0 &&
+                accessBySubject[subjectAccount][0] != documentHash)
         ) {
             accessBySubject[subjectAccount].push(documentHash);
-            accessBySubjectIndex[subjectAccount][documentHash] = accessBySubject[subjectAccount].length - 1;
+            accessBySubjectIndex[subjectAccount][documentHash] =
+                accessBySubject[subjectAccount].length -
+                1;
         }
 
         emit AccessGranted(
@@ -564,12 +610,10 @@ contract TrackAndTrace is
             revert ExternalHashExist();
         }
         _document.events[eventHash].hash = eventHash;
-        _document.events[eventHash].externalHash = eventParams
-            .externalHash;
+        _document.events[eventHash].externalHash = eventParams.externalHash;
         _document.events[eventHash].sender = eventParams.sender;
         _document.events[eventHash].origin = eventParams.origin;
-        _document.events[eventHash].eventMetadata = eventParams
-            .metadata;
+        _document.events[eventHash].eventMetadata = eventParams.metadata;
         // add Timestamp
         if (timestamp == 0) {
             revert InvalidTimestamp();
@@ -603,14 +647,16 @@ contract TrackAndTrace is
         }
     }
 
-    function _authorize (
+    function _authorize(
         bytes memory account,
         ACCOUNT_TYPE accountType
     ) internal view returns (bool) {
         // authorise did:ebsi or did:key with msg.sender.
         return
-        accountType == ACCOUNT_TYPE.DID_EBSI && didRegistry.checkController(account, msg.sender)
-        || accountType == ACCOUNT_TYPE.DID_KEY && msg.sender == _getWalletAddressFromPublicKey(account);
+            (accountType == ACCOUNT_TYPE.DID_EBSI &&
+                didRegistry.checkController(account, msg.sender)) ||
+            (accountType == ACCOUNT_TYPE.DID_KEY &&
+                msg.sender == _getWalletAddressFromPublicKey(account));
     }
 
     function _getAccountAccess(
