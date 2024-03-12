@@ -1280,10 +1280,9 @@ describe("Did Documents", () => {
       notBefore,
       notAfter,
     ];
+    const newWallet = ethers.Wallet.createRandom();
+    const publicKey2 = newWallet.publicKey;
 
-    const publicKey2 = `0x${Buffer.from(
-      '{"kty":"OKP","crv":"Ed25519","x":"dEb1y-9idZ2zR3AUTIJ_z-no_dVMHRf9qiD5GQg1zbI"}',
-    ).toString("hex")}`;
     const vMethodId2 = "O_EWDo1JUm3glFxTw3a9f2YfeKwbLuvG9kdGrb6gzHE";
     const args2: InsertDidDocumentArgs = [
       did,

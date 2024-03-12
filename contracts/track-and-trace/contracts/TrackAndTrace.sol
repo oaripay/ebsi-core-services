@@ -480,6 +480,23 @@ contract TrackAndTrace is
         return (grantedByAccounts, grantedByAccountType, access);
     }
 
+    function sliceBytes(
+        bytes calldata pubKeyBytes
+    ) public view returns (bytes memory) {
+        if (pubKeyBytes.length == 65) {
+            require(pubKeyBytes[0] == 0x04, "Invalid control byte");
+            return pubKeyBytes[1:];
+        } else if (pubKeyBytes.length == 64) {
+            return pubKeyBytes;
+        } else {
+            revert("invalid pub key length");
+        }
+    }
+
+    function getWallet(bytes calldata pubKey) public view returns (address) {
+        return getAddress(pubKey);
+    }
+
     // internal functions
 
     function _onInitialize() internal onlyInitializing {}
@@ -656,7 +673,7 @@ contract TrackAndTrace is
             (accountType == ACCOUNT_TYPE.DID_EBSI &&
                 didRegistry.checkController(account, msg.sender)) ||
             (accountType == ACCOUNT_TYPE.DID_KEY &&
-                msg.sender == _getWalletAddressFromPublicKey(account));
+                msg.sender == getAddress(account));
     }
 
     function _getAccountAccess(
@@ -684,10 +701,10 @@ contract TrackAndTrace is
         }
     }
 
-    function _getWalletAddressFromPublicKey(
+    function getAddress(
         bytes memory publicKey
-    ) internal pure returns (address) {
-        return address(uint160(uint256(keccak256(publicKey))));
+    ) internal view returns (address) {
+        return address(uint160(uint256(keccak256(this.sliceBytes(publicKey)))));
     }
 
     /*

@@ -676,18 +676,29 @@ library DidDocumentLib {
     function getAddress(
         bytes memory publicKey
     ) internal pure returns (address) {
-        /**
-         * step 1: Remove the compression prefix (04, 03, or 02)
-         * Note: We can not use the built-in array slices (like publicKey[1:])
-         * because it is only for calldata arrays, not storage arrays.
-         * Then we have to use a loop to make the slice
-         */
-        bytes memory publicKeyWithoutPrefix = new bytes(publicKey.length - 1);
-        for (uint256 i = 1; i < publicKey.length; i++) {
-            publicKeyWithoutPrefix[i - 1] = publicKey[i];
-        }
+        return
+            address(uint160(uint256(keccak256(sanitizePublicKey(publicKey)))));
+    }
 
-        // step 2: Evaluate keccak256 and get the latest 20 bytes
-        return address(uint160(uint256(keccak256(publicKeyWithoutPrefix))));
+    function sanitizePublicKey(
+        bytes memory publicKey
+    ) internal pure returns (bytes memory) {
+        if (publicKey.length == 65) {
+            require(publicKey[0] == 0x04, "Invalid control byte");
+            /**
+             * step 1: EC public key prefix (04)
+             * Note: We can not use the built-in array slices (like publicKey[1:])
+             * because it is only for calldata arrays, not storage arrays.
+             * Then we have to use a loop to make the slice
+             */
+            bytes memory publicKeyWithoutPrefix = new bytes(
+                publicKey.length - 1
+            );
+            for (uint256 i = 1; i < publicKey.length; i++) {
+                publicKeyWithoutPrefix[i - 1] = publicKey[i];
+            }
+            return publicKeyWithoutPrefix;
+        }
+        return publicKey;
     }
 }

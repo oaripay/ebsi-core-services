@@ -521,6 +521,48 @@ describe("TrackAndTrace - tests", () => {
       ).to.emit(trackAndTrace, "EventWritten");
     });
 
+    it("should write event using a did:key not sliced", async () => {
+      const documentHash = ethers.utils.formatBytes32String(
+        "writeEvent02-notsliced",
+      );
+      const creatorAcc = ethers.utils.toUtf8Bytes(creatorAccount);
+      const externalHash = "externalHash";
+
+      const { mnemonic, path } = config.networks.hardhat.accounts;
+      const walletDidKeyWithoutProvider = ethers.Wallet.fromMnemonic(
+        mnemonic,
+        `${path}/3`,
+      );
+      const walletDidKey = new ethers.Wallet(
+        walletDidKeyWithoutProvider.privateKey,
+        broadcaster.provider,
+      );
+
+      const pubDidKey = `${walletDidKey.publicKey}`;
+      const origin = "origin";
+      const metadata = "metadata";
+      await createDocument(documentHash);
+      await trackAndTrace.grantAccess(
+        documentHash,
+        creatorAcc,
+        pubDidKey,
+        0,
+        1,
+        1,
+      );
+      await expect(
+        trackAndTrace
+          .connect(walletDidKey)
+          ["writeEvent((bytes32,string,bytes,string,string))"]({
+            documentHash,
+            externalHash,
+            sender: pubDidKey,
+            origin,
+            metadata,
+          }),
+      ).to.emit(trackAndTrace, "EventWritten");
+    });
+
     it("should not duplicate document IDs in getAccessesBySubject", async () => {
       const documentHash = ethers.utils.formatBytes32String("document0");
       const creatorBuffer = Buffer.from(creatorAccount);

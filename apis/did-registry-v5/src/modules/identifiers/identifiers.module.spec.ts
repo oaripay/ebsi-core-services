@@ -681,8 +681,27 @@ describe("Identifiers Module", () => {
           user.did,
           JSON.stringify(user.didDocument["@context"]),
           user.thumbprint,
-          "0x1234567890", // bad public key
+          user.wallet.publicKey,
           true,
+          now,
+          now + 3600,
+        )
+      ).wait();
+
+      await (
+        await testEnv.didRegistryContract.addVerificationMethod(
+          user.did,
+          "method2",
+          "0xff", // bad public key
+          false,
+        )
+      ).wait();
+
+      await (
+        await testEnv.didRegistryContract.addVerificationRelationship(
+          user.did,
+          "assertionMethod",
+          "method2",
           now,
           now + 3600,
         )
@@ -693,7 +712,9 @@ describe("Identifiers Module", () => {
       expect(response.body).toStrictEqual({
         title: "Bad Request",
         status: 400,
-        detail: `Identifier ${user.did} contains an invalid public key in a verification method. Unknown point format`,
+        detail: expect.stringContaining(
+          `Identifier ${user.did} contains an invalid public key in a verification method. Unexpected token`,
+        ),
         type: "about:blank",
       });
       expect(response.status).toBe(400);
