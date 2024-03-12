@@ -811,7 +811,7 @@ describe("JsonRpc Module", () => {
           testSetup.push({
             params: params2,
             expectedErrorMessage:
-              "property params[0].policyData has failed the following constraints: isHexadecimal",
+              "property params[0].policyData has failed the following constraints: matches, isHexadecimal",
           });
 
           testSetup.push({
@@ -859,7 +859,7 @@ describe("JsonRpc Module", () => {
               metadata: serializedMetadataBuffer.toString("hex"),
             } as InsertSchemaParam,
             expectedErrorMessage:
-              "property params[0].metadata has failed the following constraints: matches",
+              "property params[0].metadata has failed the following constraints: isHexadecimalJSON",
           });
 
           // Test #4: `schemaId` param doesn't match the computed schema ID
@@ -954,7 +954,7 @@ describe("JsonRpc Module", () => {
               metadata: serializedMetadataBuffer.toString("hex"),
             } as UpdateMetadataParam,
             expectedErrorMessage:
-              "property params[0].metadata has failed the following constraints: matches",
+              "property params[0].metadata has failed the following constraints: isHexadecimalJSON",
           });
 
           break;
@@ -985,7 +985,7 @@ describe("JsonRpc Module", () => {
           testSetup.push({
             params: params2,
             expectedErrorMessage:
-              "property params[0].policyData has failed the following constraints: isHexadecimal",
+              "property params[0].policyData has failed the following constraints: matches, isHexadecimal",
           });
 
           testSetup.push({

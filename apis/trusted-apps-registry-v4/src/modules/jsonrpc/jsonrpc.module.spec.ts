@@ -846,7 +846,7 @@ describe("JsonRpc Module", () => {
           } as InsertAppAdministratorParam;
 
           expectedErrorMessage2 =
-            "property params[0].applicationId has failed the following constraints: isHexadecimal";
+            "property params[0].applicationId has failed the following constraints: matches, isHexadecimal";
 
           param3 = {
             from: signer.address,
@@ -876,7 +876,7 @@ describe("JsonRpc Module", () => {
           } as DeleteAppAdministratorParam;
 
           expectedErrorMessage2 =
-            "property params[0].applicationId has failed the following constraints: isHexadecimal";
+            "property params[0].applicationId has failed the following constraints: matches, isHexadecimal";
 
           param3 = {
             from: signer.address,
@@ -897,7 +897,7 @@ describe("JsonRpc Module", () => {
           } as unknown as InsertAppInfoParam;
 
           expectedErrorMessage1 =
-            "property params[0].applicationId has failed the following constraints: isHexadecimal";
+            "property params[0].applicationId has failed the following constraints: matches, isHexadecimal";
 
           // insert info to an app
           param2 = {
@@ -943,7 +943,7 @@ describe("JsonRpc Module", () => {
           expectedErrorMessage1 =
             "property params[0].domain has failed the following constraints: max";
           expectedErrorMessage2 =
-            "property params[0].applicationId has failed the following constraints: isHexadecimal";
+            "property params[0].applicationId has failed the following constraints: matches, isHexadecimal";
           expectedErrorMessage3 =
             "property params[0].domain has failed the following constraints: max, min, isInt";
 
@@ -957,7 +957,7 @@ describe("JsonRpc Module", () => {
           } as InsertRevocationParam;
 
           expectedErrorMessage1 =
-            "property params[0].applicationId has failed the following constraints: isHexadecimal";
+            "property params[0].applicationId has failed the following constraints: matches, isHexadecimal";
 
           param2 = {
             from: signer.address,
@@ -1027,7 +1027,7 @@ describe("JsonRpc Module", () => {
           } as UpdateAuthorizationParam;
 
           expectedErrorMessage1 =
-            "property params[0].authorizationId has failed the following constraints: isHexadecimal";
+            "property params[0].authorizationId has failed the following constraints: matches, isHexadecimal";
 
           param2 = {
             from: "invalid address",
@@ -1060,7 +1060,7 @@ describe("JsonRpc Module", () => {
           } as InsertAppPublicKeyParam;
 
           expectedErrorMessage1 =
-            "property params[0].applicationId has failed the following constraints: isHexadecimal";
+            "property params[0].applicationId has failed the following constraints: matches, isHexadecimal";
 
           param2 = {
             from: signer.address,
@@ -1075,14 +1075,14 @@ describe("JsonRpc Module", () => {
             "property params[0].status has failed the following constraints: max";
 
           param3 = {
-            from: "invalid address",
+            from: signer.address,
             applicationId: "0x1234",
-            publicKey: `0x${crypto.randomBytes(12).toString("hex")}`,
+            publicKey: `${crypto.randomBytes(12).toString("hex")}`, // Doesn't start with "0x"
             status: 0,
           } as InsertAppPublicKeyParam;
 
           expectedErrorMessage3 =
-            "property params[0].from has failed the following constraints: isEthereumAddress";
+            "property params[0].publicKey has failed the following constraints: matches";
           break;
         }
         case "updateAppPublicKey": {
@@ -1093,7 +1093,7 @@ describe("JsonRpc Module", () => {
           } as UpdateAppPublicKeyParam;
 
           expectedErrorMessage1 =
-            "property params[0].publicKeyId has failed the following constraints: isHexadecimal";
+            "property params[0].publicKeyId has failed the following constraints: matches, isHexadecimal";
 
           param2 = {
             from: signer.address,

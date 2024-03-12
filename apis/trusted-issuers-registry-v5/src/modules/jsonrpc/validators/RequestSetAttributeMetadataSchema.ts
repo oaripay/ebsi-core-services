@@ -20,6 +20,7 @@ export const setAttributeMetadataSchema = baseParamSchema.merge(
 
     revisionId: z
       .string()
+      .startsWith("0x", "Must be prefixed with 0x")
       .refine(isHexadecimal, { message: "Must be hexadecimal" }),
 
     /**
@@ -43,6 +44,7 @@ export const setAttributeMetadataSchema = baseParamSchema.merge(
 
     attributeIdTao: z
       .string()
+      .startsWith("0x", "Must be prefixed with 0x")
       .refine(isHexadecimal, { message: "Must be hexadecimal" }),
   }),
 );

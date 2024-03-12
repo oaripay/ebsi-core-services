@@ -1,7 +1,8 @@
-import { IsInt, IsHexadecimal, Min } from "class-validator";
+import { IsInt, IsHexadecimal, Min, Matches } from "class-validator";
 
 export class ArgsDetachRecordVersionHash {
   @IsHexadecimal()
+  @Matches(/^0x/, { message: "must start with 0x" })
   recordId!: string;
 
   @IsInt()
@@ -9,6 +10,7 @@ export class ArgsDetachRecordVersionHash {
   versionId!: number;
 
   @IsHexadecimal()
+  @Matches(/^0x/, { message: "must start with 0x" })
   hashValue!: string;
 }
 

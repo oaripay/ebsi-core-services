@@ -831,10 +831,10 @@ paths:
           Parameters:
           - **from**: Ethereum address of the signer
           - **did**: DID of the issuer
-          - **revisionId**: Attribute ID
+          - **revisionId**: Attribute ID (hexadecimal string prefixed with 0x)
           - **issuerType**: 1 (RootTAO), 2 (TAO), 3 (TI), or 4 (Revoked)
           - **taoDid**: DID of the TAO accrediting the issuer
-          - **attributeIdTao**: Attribute ID that accredits taoDid as TAO or RootTAO
+          - **attributeIdTao**: Attribute ID that accredits taoDid as TAO or RootTAO (hexadecimal string prefixed with 0x)
 
           #### setAttributeData
 
@@ -844,8 +844,8 @@ paths:
           Parameters:
           - **from**: Ethereum address of the signer
           - **did**: DID of the issuer
-          - **attributeId**: ID of the attribute to set
-          - **attributeData**: Verifiable credential converted to hex string
+          - **attributeId**: ID of the attribute to set (hexadecimal string prefixed with 0x)
+          - **attributeData**: Verifiable credential converted to an hexadecimal string prefixed with 0x
 
           #### addIssuerProxy
 
@@ -874,7 +874,7 @@ paths:
           Parameters:
           - **from**: Ethereum address of the signer
           - **did**: DID of the issuer
-          - **proxyId**: ID of the existing proxy
+          - **proxyId**: ID of the existing proxy (hexadecimal string prefixed with 0x)
           - **proxyData**: Proxy configuration to be used during the verification of credentials. For the
             registration to be accepted, the configured proxy must serve a status list which is valid and
             signed by the issuer requesting the proxy. The validation is done by combining "prefix" with

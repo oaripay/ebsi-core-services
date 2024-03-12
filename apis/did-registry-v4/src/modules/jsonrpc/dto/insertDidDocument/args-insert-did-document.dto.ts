@@ -1,4 +1,11 @@
-import { IsString, IsHexadecimal, IsInt, Min, Equals } from "class-validator";
+import {
+  IsString,
+  IsHexadecimal,
+  IsInt,
+  Min,
+  Equals,
+  Matches,
+} from "class-validator";
 import {
   IsDidV1,
   IsBaseDocument,
@@ -18,6 +25,7 @@ export class ArgsInsertDidDocument {
   vMethodId!: string;
 
   @IsHexadecimal()
+  @Matches(/^0x/, { message: "must start with 0x" })
   @IsPublicKeyHex()
   publicKey!: string;
 

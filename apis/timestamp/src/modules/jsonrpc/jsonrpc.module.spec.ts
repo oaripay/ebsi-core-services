@@ -1077,7 +1077,7 @@ describe("JsonRpc Module", () => {
           } as TimestampHashesParam;
 
           expectedErrorMessage2 =
-            "property params[0].hashValues has failed the following constraints: isHexadecimal";
+            "property params[0].hashValues has failed the following constraints: matches, isHexadecimal";
 
           param3 = {
             from: testAdmin.wallet.address,
@@ -1125,7 +1125,7 @@ describe("JsonRpc Module", () => {
           } as TimestampVersionHashesParam;
 
           expectedErrorMessage2 =
-            "property params[0].hashValues has failed the following constraints: isHexadecimal";
+            "property params[0].hashValues has failed the following constraints: matches, isHexadecimal";
 
           param3 = {
             from: testAdmin.wallet.address,
@@ -1176,7 +1176,7 @@ describe("JsonRpc Module", () => {
           } as unknown as TimestampRecordHashesParam;
 
           expectedErrorMessage2 =
-            "property params[0].hashValues has failed the following constraints: isHexadecimal";
+            "property params[0].hashValues has failed the following constraints: matches, isHexadecimal";
 
           param3 = {
             from: testAdmin.wallet.address,
@@ -1214,7 +1214,7 @@ describe("JsonRpc Module", () => {
           } as unknown as DetachRecordVersionHashParam;
 
           expectedErrorMessage2 =
-            "property params[0].hashValue has failed the following constraints: isHexadecimal";
+            "property params[0].hashValue has failed the following constraints: matches, isHexadecimal";
 
           param3 = {
             from: testAdmin.wallet.address,
@@ -1223,7 +1223,7 @@ describe("JsonRpc Module", () => {
           } as unknown as DetachRecordVersionHashParam;
 
           expectedErrorMessage3 =
-            "property params[0].recordId has failed the following constraints: isHexadecimal";
+            "property params[0].recordId has failed the following constraints: matches, isHexadecimal";
           break;
         }
         case "timestampRecordVersionHashes": {
@@ -1263,7 +1263,7 @@ describe("JsonRpc Module", () => {
           } as unknown as TimestampRecordVersionHashesParam;
 
           expectedErrorMessage2 =
-            "property params[0].hashValues has failed the following constraints: isHexadecimal";
+            "property params[0].hashValues has failed the following constraints: matches, isHexadecimal";
 
           param3 = {
             from: testAdmin.wallet.address,
@@ -1321,7 +1321,7 @@ describe("JsonRpc Module", () => {
           } as unknown as AppendRecordVersionHashesParam;
 
           expectedErrorMessage2 =
-            "property params[0].hashValues has failed the following constraints: isHexadecimal";
+            "property params[0].hashValues has failed the following constraints: matches, isHexadecimal";
 
           param3 = {
             from: testAdmin.wallet.address,
@@ -1374,7 +1374,7 @@ describe("JsonRpc Module", () => {
           } as unknown as InsertRecordOwnerParam;
 
           expectedErrorMessage3 =
-            "property params[0].recordId has failed the following constraints: isHexadecimal";
+            "property params[0].recordId has failed the following constraints: matches, isHexadecimal";
           break;
         }
         case "revokeRecordOwner": {
@@ -1403,7 +1403,7 @@ describe("JsonRpc Module", () => {
           } as unknown as RevokeRecordOwnerParam;
 
           expectedErrorMessage3 =
-            "property params[0].recordId has failed the following constraints: isHexadecimal";
+            "property params[0].recordId has failed the following constraints: matches, isHexadecimal";
           break;
         }
         case "insertRecordVersionInfo": {

@@ -1,4 +1,4 @@
-import { IsHexadecimal, IsNumber, Max, Min } from "class-validator";
+import { IsHexadecimal, IsNumber, Matches, Max, Min } from "class-validator";
 import { IsDidV1 } from "@ebsiint-api/shared";
 
 export class ArgsSetAttributeMetadata {
@@ -6,6 +6,7 @@ export class ArgsSetAttributeMetadata {
   did!: string;
 
   @IsHexadecimal()
+  @Matches(/^0x/, { message: "must start with 0x" })
   attributeId!: string;
 
   // Undefined, RootTAO, TAO, TI, Revoked
@@ -18,6 +19,7 @@ export class ArgsSetAttributeMetadata {
   taoDid!: string;
 
   @IsHexadecimal()
+  @Matches(/^0x/, { message: "must start with 0x" })
   taoAttributeId!: string;
 }
 

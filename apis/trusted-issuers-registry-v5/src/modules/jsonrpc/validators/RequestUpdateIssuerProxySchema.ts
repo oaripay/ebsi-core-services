@@ -30,6 +30,7 @@ export const createUpdateIssuerProxySchema = (
 
       proxyId: z
         .string()
+        .startsWith("0x", "Must be prefixed with 0x")
         .length(66) // 2 -> "0x" + 64 -> sha256
         .refine(isHexadecimal, { message: "Must be hexadecimal" }),
 

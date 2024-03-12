@@ -1,4 +1,11 @@
-import { IsHexadecimal, IsNumber, IsString, Max, Min } from "class-validator";
+import {
+  IsHexadecimal,
+  IsNumber,
+  IsString,
+  Matches,
+  Max,
+  Min,
+} from "class-validator";
 import {
   ATTRIBUTE_TYPES,
   ATTRIBUTE_OPERATIONS,
@@ -21,6 +28,7 @@ export class PolicyConditionDto {
   typeOfValue!: number;
 
   @IsHexadecimal()
+  @Matches(/^0x/, { message: "must start with 0x" })
   value!: string;
 
   @IsNumber()

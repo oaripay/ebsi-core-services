@@ -782,7 +782,7 @@ describe("JsonRpc Module", () => {
             // @ts-expect-error Delete required property
             delete (param1 as InsertIssuerParam).attributeData;
             expectedErrorMessage1 =
-              "property params[0].attributeData has failed the following constraints: isHexadecimal";
+              "property params[0].attributeData has failed the following constraints: matches, isHexadecimal";
 
             // @ts-expect-error Delete required property
             delete (param2 as InsertIssuerParam).did;
@@ -794,11 +794,11 @@ describe("JsonRpc Module", () => {
               "property params[0].from has failed the following constraints: isEthereumAddress";
             break;
           case "setAttributeMetadata":
-          case "setAttributeData":
-            // @ts-expect-error Delete required property
-            delete (param1 as SetAttributeMetadataParam).attributeId;
+            (param1 as SetAttributeMetadataParam).attributeId = crypto
+              .randomBytes(12)
+              .toString("hex"); // Not prefixed with 0x
             expectedErrorMessage1 =
-              "property params[0].attributeId has failed the following constraints: isHexadecimal";
+              "property params[0].attributeId has failed the following constraints: matches";
 
             // @ts-expect-error Delete required property
             delete (param2 as InsertIssuerParam).did;
@@ -808,6 +808,24 @@ describe("JsonRpc Module", () => {
             param3.from = "bad address";
             expectedErrorMessage3 =
               "property params[0].from has failed the following constraints: isEthereumAddress";
+            break;
+          case "setAttributeData":
+            (param1 as SetAttributeDataParam).attributeId = crypto
+              .randomBytes(12)
+              .toString("hex"); // Not prefixed with 0x
+            expectedErrorMessage1 =
+              "property params[0].attributeId has failed the following constraints: matches";
+
+            // @ts-expect-error Delete required property
+            delete (param2 as InsertIssuerParam).did;
+            expectedErrorMessage2 =
+              "property params[0].did has failed the following constraints: isDidV1";
+
+            (param3 as SetAttributeDataParam).attributeData = crypto
+              .randomBytes(12)
+              .toString("hex"); // Not prefixed with 0x
+            expectedErrorMessage3 =
+              "property params[0].attributeData has failed the following constraints: matches";
             break;
           case "addIssuerProxy":
           case "updateIssuerProxy":

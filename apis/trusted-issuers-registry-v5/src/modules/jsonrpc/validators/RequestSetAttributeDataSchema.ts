@@ -20,10 +20,12 @@ export const setAttributeDataSchema = baseParamSchema.merge(
 
     attributeId: z
       .string()
+      .startsWith("0x", "Must be prefixed with 0x")
       .refine(isHexadecimal, { message: "Must be hexadecimal" }),
 
     attributeData: z
       .string()
+      .startsWith("0x", "Must be prefixed with 0x")
       .refine(isHexadecimal, { message: "Must be hexadecimal" }),
   }),
 );

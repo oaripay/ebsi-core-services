@@ -1,10 +1,11 @@
-import { IsString, IsHexadecimal } from "class-validator";
+import { IsString, IsHexadecimal, Matches } from "class-validator";
 
 export class ArgsUpdatePolicy {
   @IsString()
   policyId!: string;
 
   @IsHexadecimal()
+  @Matches(/^0x/, { message: "must start with 0x" })
   policyData!: string;
 }
 

@@ -1,4 +1,10 @@
-import { IsInt, Min, IsHexadecimal, IsOptional } from "class-validator";
+import {
+  IsInt,
+  Min,
+  IsHexadecimal,
+  IsOptional,
+  Matches,
+} from "class-validator";
 import { IsHexadecimalJSON } from "../../validators/index.js";
 
 export class ArgsTimestampVersionHashes {
@@ -7,6 +13,7 @@ export class ArgsTimestampVersionHashes {
   hashAlgorithmIds!: number[];
 
   @IsHexadecimal({ each: true })
+  @Matches(/^0x/, { each: true, message: "must start with 0x" })
   hashValues!: string[];
 
   @IsOptional()
@@ -14,6 +21,7 @@ export class ArgsTimestampVersionHashes {
   timestampData?: string[];
 
   @IsHexadecimal()
+  @Matches(/^0x/, { message: "must start with 0x" })
   versionHash!: string;
 
   @IsHexadecimalJSON()

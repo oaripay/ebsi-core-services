@@ -1031,9 +1031,9 @@ describe(
                   "@context": newUser.didDocument["@context"],
                 }),
                 vMethodId: thumbprint,
-                publicKey: Buffer.from(JSON.stringify(publicKeyJwk)).toString(
-                  "hex",
-                ),
+                publicKey: `0x${Buffer.from(
+                  JSON.stringify(publicKeyJwk),
+                ).toString("hex")}`,
                 isSecp256k1: false,
                 notBefore: now,
                 notAfter: now + 3600,
@@ -1218,9 +1218,9 @@ describe(
                 from: signer.address,
                 did: newUser.did,
                 vMethodId: "bad vMethodId",
-                publicKey: Buffer.from(JSON.stringify(publicKeyJwk)).toString(
-                  "hex",
-                ),
+                publicKey: `0x${Buffer.from(
+                  JSON.stringify(publicKeyJwk),
+                ).toString("hex")}`,
                 isSecp256k1: false,
               } as AddVerificationMethodParam,
               expectedErrorMessage:

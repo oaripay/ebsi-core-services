@@ -14,7 +14,12 @@ export const IS_HEXADECIMAL_JSON = "isHexadecimalJSON";
  * If given value is not a string, then it returns false.
  */
 export function isHexadecimalJSON(value: unknown): boolean {
-  if (typeof value !== "string" || !isHexadecimal(value)) return false;
+  if (
+    typeof value !== "string" ||
+    !value.startsWith("0x") ||
+    !isHexadecimal(value)
+  )
+    return false;
 
   // Length must be even
   if (value.length % 2 !== 0) return false;

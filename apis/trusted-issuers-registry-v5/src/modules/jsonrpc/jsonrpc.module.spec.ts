@@ -804,6 +804,22 @@ describe("JsonRpc Module", () => {
               params: {
                 from: signer.address,
                 did: issuer1.did,
+                // Invalid "revisionId"
+                revisionId:
+                  "883a16a2b265a6ebf1e9e375c59a7171baa3122a425b745eda806401127c8b2f",
+                issuerType: issuer1.issuerType,
+                taoDid: issuer1.tao,
+                attributeIdTao: issuer1.attributeIdTao,
+              } as SetAttributeMetadataSchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.revisionId': Must be prefixed with 0x",
+              accessToken: tao1TirWriteAccessToken,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                did: issuer1.did,
                 revisionId: issuer1.attribute.id,
                 // Invalid "issuerType"
                 issuerType: 42,
@@ -841,8 +857,40 @@ describe("JsonRpc Module", () => {
                 // Invalid "attributeIdTao"
                 attributeIdTao: "not hexadecimal",
               } as SetAttributeMetadataSchema,
+              expectedErrorMessage: [
+                "Invalid 'params.0.attributeIdTao': Must be prefixed with 0x",
+                "Invalid 'params.0.attributeIdTao': Must be hexadecimal",
+              ].join("\n"),
+              accessToken: tao1TirWriteAccessToken,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                did: issuer1.did,
+                revisionId: issuer1.attribute.id,
+                issuerType: issuer1.issuerType,
+                taoDid: issuer1.tao,
+                // Invalid "attributeIdTao"
+                attributeIdTao: "0xnot hexadecimal",
+              } as SetAttributeMetadataSchema,
               expectedErrorMessage:
                 "Invalid 'params.0.attributeIdTao': Must be hexadecimal",
+              accessToken: tao1TirWriteAccessToken,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                did: issuer1.did,
+                revisionId: issuer1.attribute.id,
+                issuerType: issuer1.issuerType,
+                taoDid: issuer1.tao,
+                attributeIdTao:
+                  "883a16a2b265a6ebf1e9e375c59a7171baa3122a425b745eda806401127c8b2f",
+              } as SetAttributeMetadataSchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.attributeIdTao': Must be prefixed with 0x",
               accessToken: tao1TirWriteAccessToken,
             });
 
@@ -905,11 +953,38 @@ describe("JsonRpc Module", () => {
                 from: signer.address,
                 did: issuer1.did,
                 // Invalid "attributeId"
-                attributeId: "not hexadecimal",
+                attributeId:
+                  "883a16a2b265a6ebf1e9e375c59a7171baa3122a425b745eda806401127c8b2f",
+                attributeData: `0x${crypto.randomBytes(12).toString("hex")}`,
+              } as SetAttributeDataSchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.attributeId': Must be prefixed with 0x",
+              accessToken: tao1TirWriteAccessToken,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                did: issuer1.did,
+                // Invalid "attributeId"
+                attributeId: "0xnot hexadecimal",
                 attributeData: `0x${crypto.randomBytes(12).toString("hex")}`,
               } as SetAttributeDataSchema,
               expectedErrorMessage:
                 "Invalid 'params.0.attributeId': Must be hexadecimal",
+              accessToken: tao1TirWriteAccessToken,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                did: issuer1.did,
+                attributeId: issuer1.attribute.id,
+                // Invalid "attributeData", not prefixed with 0x
+                attributeData: crypto.randomBytes(12).toString("hex"),
+              } as SetAttributeDataSchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.attributeData': Must be prefixed with 0x",
               accessToken: tao1TirWriteAccessToken,
             });
 
@@ -1104,6 +1179,7 @@ describe("JsonRpc Module", () => {
                 proxyData: issuer1.proxy.utf8,
               } as UpdateIssuerProxySchema,
               expectedErrorMessage: [
+                "Invalid 'params.0.proxyId': Must be prefixed with 0x",
                 "Invalid 'params.0.proxyId': String must contain exactly 66 character(s)",
                 "Invalid 'params.0.proxyId': Must be hexadecimal",
               ].join("\n"),

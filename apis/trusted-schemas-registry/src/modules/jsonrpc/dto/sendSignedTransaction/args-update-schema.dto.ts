@@ -6,11 +6,9 @@ export class ArgsUpdateSchema {
   @IsHexadecimal()
   schemaId!: string;
 
-  @Matches(/^0x/)
   @IsHexadecimalJSON()
   schema!: string;
 
-  @Matches(/^0x/)
   @IsHexadecimalJSON()
   metadata!: string;
 }

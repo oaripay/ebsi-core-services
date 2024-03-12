@@ -4,6 +4,7 @@ import {
   IsInt,
   Min,
   IsBoolean,
+  Matches,
 } from "class-validator";
 
 import {
@@ -21,6 +22,7 @@ export class ArgsRollVerificationMethod {
   vMethodId!: string;
 
   @IsHexadecimal()
+  @Matches(/^0x/, { message: "must start with 0x" })
   @IsPublicKeyHex()
   publicKey!: string;
 

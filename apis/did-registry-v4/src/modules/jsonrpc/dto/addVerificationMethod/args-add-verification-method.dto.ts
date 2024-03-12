@@ -1,4 +1,4 @@
-import { IsBoolean, IsHexadecimal, IsString } from "class-validator";
+import { IsBoolean, IsHexadecimal, IsString, Matches } from "class-validator";
 import {
   IsDidV1,
   IsPublicKeyHex,
@@ -14,6 +14,7 @@ export class ArgsAddVerificationMethod {
   vMethodId!: string;
 
   @IsHexadecimal()
+  @Matches(/^0x/, { message: "must start with 0x" })
   @IsPublicKeyHex()
   publicKey!: string;
 

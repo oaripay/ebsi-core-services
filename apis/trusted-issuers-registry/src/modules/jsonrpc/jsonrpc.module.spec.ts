@@ -738,7 +738,7 @@ describe("JsonRpc Module", () => {
           // @ts-expect-error "The operand of a 'delete' operator must be optional"
           delete (param1 as InsertPolicyParam).policyData;
           expectedErrorMessage1 =
-            "property params[0].policyData has failed the following constraints: isHexadecimal";
+            "property params[0].policyData has failed the following constraints: matches, isHexadecimal";
 
           // @ts-expect-error "The operand of a 'delete' operator must be optional"
           delete (param2 as InsertPolicyParam).policyId;
