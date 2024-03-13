@@ -902,7 +902,7 @@ paths:
             signed by the issuer requesting the proxy. The validation is done by combining "prefix" with
             "testSuffix" and executed before accepting the registration. Proxy must be configured before
             any VCs are issued. The validation will fail if the credential status proxy doesn't exist.
-            It must be a JSON object converted to hex string. Example: `Buffer.from('{"prefix":"https://example.net","headers":{"Authorization":"Bearer 1234567890"},"testSuffix":"/cred/1"}').toString("hex")`.
+            It must be a JSON object converted to a string. Example: `JSON.stringify({"prefix":"https://example.net","headers":{"Authorization":"Bearer 1234567890"},"testSuffix":"/cred/1"})`.
 
           #### updateIssuerProxy
 
@@ -920,7 +920,7 @@ paths:
             signed by the issuer requesting the proxy. The validation is done by combining "prefix" with
             "testSuffix" and executed before accepting the registration. Proxy must be configured before
             any VCs are issued. The validation will fail if the credential status proxy doesn't exist.
-            It must be a JSON object converted to hex string. Example: `Buffer.from('{"prefix":"https://example.net","headers":{"Authorization":"Bearer 1234567890"},"testSuffix":"/cred/1"}').toString("hex")`.
+            It must be a JSON object converted to a string. Example: `JSON.stringify({"prefix":"https://example.net","headers":{"Authorization":"Bearer 1234567890"},"testSuffix":"/cred/1"})`.
 
           #### sendSignedTransaction
 
