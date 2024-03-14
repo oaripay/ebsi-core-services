@@ -271,7 +271,9 @@ export class JsonRpcService {
           ["tir_invite", "tir_write"], // One of "tir_invite" or "tir_write"
           functionFragment.name,
         );
-        const castArgs = await setAttributeDataSchema.parseAsync(argsObject);
+        const castArgs = await setAttributeDataSchema(
+          await this.ledgerService.getContract(),
+        ).parseAsync(argsObject);
         if (scope.includes("tir_invite")) {
           assertDidMatchesSub(castArgs.did, sub);
         }
@@ -390,7 +392,9 @@ export class JsonRpcService {
     try {
       assertScopeContains(scope, ["tir_invite", "tir_write"], method);
 
-      const parsedBody = await requestSetAttributeDataSchema.parseAsync(body);
+      const parsedBody = await requestSetAttributeDataSchema(
+        await this.ledgerService.getContract(),
+      ).parseAsync(body);
 
       const { from, did, attributeId, attributeData } = parsedBody.params[0]!;
 

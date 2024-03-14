@@ -103,7 +103,7 @@ describe("JsonRpc Module", () => {
         param = {
           from: signer.address,
           did: issuer1.did,
-          attributeId: tamper ? issuer2.attribute.id : issuer1.attribute.id,
+          attributeId: issuer1.attribute.id,
           attributeData: `0x${crypto.randomBytes(12).toString("hex")}`,
         } satisfies SetAttributeDataSchema;
         break;
@@ -543,12 +543,15 @@ describe("JsonRpc Module", () => {
     expect.assertions(4);
 
     const signer = ethers.Wallet.createRandom();
+    const issuer = issuers[0]!;
 
-    const param: SetAttributeDataSchema = {
-      did: issuers[0]!.did,
-      attributeId: issuers[0]!.attribute.id,
-      attributeData: issuers[0]!.attribute.hex,
+    const param: SetAttributeMetadataSchema = {
       from: signer.address,
+      did: issuer.did,
+      revisionId: issuer.attribute.id,
+      issuerType: issuer.issuerType,
+      taoDid: issuer.tao,
+      attributeIdTao: issuer.attributeIdTao,
     };
 
     // The DID is not controlled by the signer
@@ -561,7 +564,7 @@ describe("JsonRpc Module", () => {
       .auth(tao1TirWriteAccessToken, { type: "bearer" })
       .send({
         jsonrpc: "2.0",
-        method: "setAttributeData",
+        method: "setAttributeMetadata",
         params: [param],
         id: 231,
       });
@@ -739,6 +742,7 @@ describe("JsonRpc Module", () => {
         }[] = [];
 
         const issuer1 = issuers[0]!;
+        const issuer2 = issuers[1]!;
 
         switch (method) {
           case "setAttributeMetadata": {
@@ -859,6 +863,7 @@ describe("JsonRpc Module", () => {
               } as SetAttributeMetadataSchema,
               expectedErrorMessage: [
                 "Invalid 'params.0.attributeIdTao': Must be prefixed with 0x",
+                "Invalid 'params.0.attributeIdTao': String must contain exactly 66 character(s)",
                 "Invalid 'params.0.attributeIdTao': Must be hexadecimal",
               ].join("\n"),
               accessToken: tao1TirWriteAccessToken,
@@ -889,8 +894,10 @@ describe("JsonRpc Module", () => {
                 attributeIdTao:
                   "883a16a2b265a6ebf1e9e375c59a7171baa3122a425b745eda806401127c8b2f",
               } as SetAttributeMetadataSchema,
-              expectedErrorMessage:
+              expectedErrorMessage: [
                 "Invalid 'params.0.attributeIdTao': Must be prefixed with 0x",
+                "Invalid 'params.0.attributeIdTao': String must contain exactly 66 character(s)",
+              ].join("\n"),
               accessToken: tao1TirWriteAccessToken,
             });
 
@@ -1010,6 +1017,41 @@ describe("JsonRpc Module", () => {
               } as SetAttributeDataSchema,
               expectedErrorMessage:
                 "Invalid 'params.0.from': Invalid Ethereum address",
+              accessToken: tao1TirWriteAccessToken,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                did: issuer1.did,
+                attributeId: `0x${crypto.randomBytes(12).toString("hex")}`, // Too short
+                attributeData: `0x${crypto.randomBytes(12).toString("hex")}`,
+              } as SetAttributeDataSchema,
+              expectedErrorMessage:
+                "Invalid 'params.0.attributeId': String must contain exactly 66 character(s)",
+              accessToken: tao1TirWriteAccessToken,
+            });
+
+            const randomAttributeId = `0x${crypto.randomBytes(32).toString("hex")}`;
+            testSetup.push({
+              params: {
+                from: signer.address,
+                did: issuer1.did,
+                attributeId: randomAttributeId,
+                attributeData: `0x${crypto.randomBytes(12).toString("hex")}`,
+              } as SetAttributeDataSchema,
+              expectedErrorMessage: `Invalid 'params.0.attributeId': Attribute ${randomAttributeId} does not exist`,
+              accessToken: tao1TirWriteAccessToken,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                did: issuer2.did,
+                attributeId: issuer1.attribute.id,
+                attributeData: `0x${crypto.randomBytes(12).toString("hex")}`,
+              } as SetAttributeDataSchema,
+              expectedErrorMessage: `Invalid 'params.0': Attribute ${issuer1.attribute.id} does not relate to ${issuer2.did}`,
               accessToken: tao1TirWriteAccessToken,
             });
 
