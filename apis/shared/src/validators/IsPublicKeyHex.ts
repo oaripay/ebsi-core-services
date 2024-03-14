@@ -1,14 +1,16 @@
 import { KeyObject } from "node:crypto";
 import { ValidateBy, ValidationOptions } from "class-validator";
 import { z } from "zod";
-import { isBase64 } from "validator";
+import validator from "validator";
 import { importJWK } from "jose";
 import { encode } from "../utils/encode.utils.js";
 import type { ValidationResult } from "./types.js";
 import { getErrorMessage } from "../utils/getErrorMessages.utils.js";
 
+const validators = validator.default;
+
 function isBase64url(value: string): boolean {
-  return isBase64(value, { urlSafe: true });
+  return validators.isBase64(value, { urlSafe: true });
 }
 
 export const IS_PUBLIC_KEY_HEX = "isPublicKeyHex";
