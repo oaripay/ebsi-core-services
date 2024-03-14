@@ -480,7 +480,7 @@ paths:
           - **did**: DID to insert. It must be for a legal entity (DID v1)
           - **baseDocument**: JSON string containing the @context of the DID document
           - **vMethodId**: Thumbprint of the public key
-          - **publicKey**: Public key for secp256k1 in compressed or uncompressed format
+          - **publicKey**: Public key for secp256k1 in uncompressed format prefixed with "0x04"
           - **isSecp256k1**: It must be true
           - **notBefore**: capability invocation is valid from this time
           - **notAfter**: expiration of the capability invocation
@@ -527,11 +527,10 @@ paths:
           - **from**: Ethereum address of the signer
           - **did**: Existing DID
           - **vMethodId**: New verification method id
-          - **isSecp256k1**: Boolean defining if the public key is for
-            secp256k1 curve or not
-          - **publicKey**: Public key as hex string. For algorithms different
-            to ES256K it must be the JWK transformed to string and then to
-            hex format.
+          - **isSecp256k1**: Boolean defining if the public key is for secp256k1 curve or not
+          - **publicKey**: Public key as hex string. For an ES256K key, it must be in uncompressed
+            format prefixed with "0x04". For other algorithms, it must be the JWK transformed to
+            string and then to hex format.
 
           #### addVerificationRelationship
 
@@ -577,16 +576,15 @@ paths:
           - **from**: Ethereum address of the signer
           - **did**: Existing DID
           - **vMethodId**: New verification method id (thumbprint of the new public key)
-          - **isSecp256k1**: Boolean defining if the public key is for
-            secp256k1 curve or not
-          - **publicKey**: Public key as hex string. For algorithms different
-            to ES256K it must be the JWK transformed to string and then to
-            hex format.
+          - **isSecp256k1**: Boolean defining if the public key is for secp256k1 curve or not
+          - **publicKey**: Public key as hex string. For an ES256K key, it must be in uncompressed
+            format prefixed with "0x04". For other algorithms, it must be the JWK transformed to
+            string and then to hex format.
           - **notBefore**: Verification relationship is valid from this time
           - **notAfter**: Expiration of the verification relationship
           - **oldVMethodId**: Old verification method id that will be rolled
-          - **duration**: Duration of the period of transition. During this period
-            both verification methods will be valid.
+          - **duration**: Duration of the period of transition. During this period both
+            verification methods will be valid.
 
           #### sendSignedTransaction
 

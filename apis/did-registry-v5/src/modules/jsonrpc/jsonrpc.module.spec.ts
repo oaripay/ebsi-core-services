@@ -1097,25 +1097,7 @@ describe("JsonRpc Module", () => {
               notAfter: now + 3600,
             } satisfies InsertDidDocumentSchema,
             expectedErrorMessage:
-              "Invalid 'params.0.publicKey': The public key must be of 33 bytes (secp256k1 compressed) or 65 bytes (secp256k1 uncompressed)",
-            accessToken: newUserDidrInviteAccessToken,
-          });
-
-          testSetup.push({
-            params: {
-              from: signer.address,
-              did: newUser.did,
-              baseDocument: JSON.stringify({
-                "@context": newUser.didDocument["@context"],
-              }),
-              vMethodId: newUser.thumbprint,
-              publicKey: `0x00${crypto.randomBytes(32).toString("hex")}`,
-              isSecp256k1: true,
-              notBefore: now,
-              notAfter: now + 3600,
-            } satisfies InsertDidDocumentSchema,
-            expectedErrorMessage:
-              "Invalid 'params.0.publicKey': Unknown point format",
+              "Invalid 'params.0.publicKey': The public key must be secp256k1 uncompressed (64 bytes or 65 bytes with 0x04 prefix)",
             accessToken: newUserDidrInviteAccessToken,
           });
 
@@ -1341,9 +1323,9 @@ describe("JsonRpc Module", () => {
               from: signer.address,
               did: newUser.did,
               vMethodId: "bad vMethodId",
-              publicKey: Buffer.from(JSON.stringify(publicKeyJwk)).toString(
-                "hex",
-              ),
+              publicKey: `0x${Buffer.from(
+                JSON.stringify(publicKeyJwk),
+              ).toString("hex")}`,
               isSecp256k1: false,
             } satisfies AddVerificationMethodSchema,
             expectedErrorMessage:
@@ -1356,11 +1338,75 @@ describe("JsonRpc Module", () => {
               from: signer.address,
               did: newUser.did,
               vMethodId: thumbprint,
-              publicKey: "0x32313029",
+              publicKey: "0x3231302",
               isSecp256k1: false,
             } satisfies AddVerificationMethodSchema,
             expectedErrorMessage:
-              "Invalid 'params.0.publicKey': Unexpected non-whitespace character after JSON at position 3",
+              "Invalid 'params.0.publicKey': The public key must be an even number of bytes",
+            accessToken: newUserDidrWriteAccessToken,
+          });
+
+          testSetup.push({
+            params: {
+              from: signer.address,
+              did: newUser.did,
+              vMethodId: thumbprint,
+              publicKey: `0x${Buffer.from(
+                JSON.stringify({
+                  // Not a valid JWK
+                  kty: "EC",
+                  foo: "bar",
+                }),
+              ).toString("hex")}`,
+              isSecp256k1: false,
+            } satisfies AddVerificationMethodSchema,
+            expectedErrorMessage: `Invalid 'params.0.publicKey': Invalid 'crv': Invalid input
+Invalid 'x': Required
+Invalid 'y': Required
+Unrecognized key(s) in object: 'foo'`,
+            accessToken: newUserDidrWriteAccessToken,
+          });
+
+          testSetup.push({
+            params: {
+              from: signer.address,
+              did: newUser.did,
+              vMethodId: thumbprint,
+              publicKey: `0x${Buffer.from(
+                JSON.stringify({
+                  // Not a valid JWK
+                  kty: "EC",
+                  crv: "P-256",
+                  x: "0",
+                  y: "0",
+                }),
+              ).toString("hex")}`,
+              isSecp256k1: false,
+            } satisfies AddVerificationMethodSchema,
+            expectedErrorMessage:
+              "Invalid 'params.0.publicKey': Invalid JWK EC key",
+            accessToken: newUserDidrWriteAccessToken,
+          });
+
+          testSetup.push({
+            params: {
+              from: signer.address,
+              did: newUser.did,
+              vMethodId: thumbprint,
+              publicKey: `0x${Buffer.from(
+                JSON.stringify({
+                  kty: "EC",
+                  x: "t7vngJgDSKdHLcUghceCC6zU7IISAhJwcYj3DJe-npc",
+                  y: "ccPOx7uc_xoWEC3o3tPzAwupdj7go7OVVOjnJ4nJFS8",
+                  crv: "P-256",
+                  // Trying to register a private key
+                  d: "yonRY9HaidYqPo1pP277AuuCxcIE3vWayvsOxqWJ9Sg",
+                }),
+              ).toString("hex")}`,
+              isSecp256k1: false,
+            } satisfies AddVerificationMethodSchema,
+            expectedErrorMessage:
+              "Invalid 'params.0.publicKey': Unrecognized key(s) in object: 'd'",
             accessToken: newUserDidrWriteAccessToken,
           });
 

@@ -9,8 +9,9 @@ describe("hexToDid", () => {
     expect.assertions(1);
 
     expect(() => hexToDid("")).toThrow(
-      // Note: this error is returned by bn.js after we call elliptic's KeyPair.getPublic method
-      new Error("Cannot read properties of null (reading '-1')"),
+      new Error(
+        "The public key must be secp256k1 uncompressed (64 bytes or 65 bytes with 0x04 prefix)",
+      ),
     );
   });
 
@@ -26,7 +27,7 @@ describe("hexToDid", () => {
   });
 
   it("should return the expected did:key DID", async () => {
-    expect.assertions(2);
+    expect.assertions(3);
 
     // Create random did:key DID
     const { publicKey } = await generateKeyPair("ES256K");
@@ -34,9 +35,12 @@ describe("hexToDid", () => {
     const did = EbsiWallet.createDid("NATURAL_PERSON", publicKeyJwk);
 
     const publicKeyHex = encode.publicKey.fromJWKToHex(publicKeyJwk);
-    const didBuffer = Buffer.from(publicKeyHex, "hex");
 
-    expect(hexToDid(`0x${didBuffer.toString("hex")}`)).toStrictEqual(did);
+    // With "04" prefix
+    expect(hexToDid(`0x${publicKeyHex}`)).toStrictEqual(did);
+    // Without "04" prefix
+    expect(hexToDid(`0x${publicKeyHex.replace(/^04/, "")}`)).toStrictEqual(did);
+
     expect(hexToDid(await didToHex(did))).toStrictEqual(did);
   });
 });

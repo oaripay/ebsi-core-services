@@ -676,8 +676,8 @@ paths:
           Parameters:
           - **from**: Ethereum address of the signer
           - **documentHash**: Document hash
-          - **grantedByAccount**: Entity that grants the permission. If the entity uses the `did:ebsi` method, `grantedByAccount` must be the UTF-8 DID encoded in hexadecimal. If the entity uses the `did:key` method, `grantedByAccount` must be the 64 bytes uncompressed public key encoded in hexadecimal.
-          - **subjectAccount**: Entity that receives the permission. If the entity uses the `did:ebsi` method, `subjectAccount` must be the UTF-8 DID encoded in hexadecimal. If the entity uses the `did:key` method, `subjectAccount` must be the 64 bytes uncompressed public key encoded in hexadecimal.
+          - **grantedByAccount**: Entity that grants the permission. If the entity uses the `did:ebsi` method, `grantedByAccount` must be the UTF-8 DID encoded in hexadecimal. If the entity uses the `did:key` method, `grantedByAccount` must be the secp256k1 uncompressed public key (64 bytes or 65 bytes with 04 prefix) encoded in hexadecimal.
+          - **subjectAccount**: Entity that receives the permission. If the entity uses the `did:ebsi` method, `subjectAccount` must be the UTF-8 DID encoded in hexadecimal. If the entity uses the `did:key` method, `subjectAccount` must be the secp256k1 uncompressed public key (64 bytes or 65 bytes with 04 prefix) encoded in hexadecimal.
           - **grantedByAccType**: DID method of `grantedByAccount`. Use `0` for `did:ebsi` or `1` for `did:key`.
           - **subjectAccType**: DID method of `subjectAccount`. Use `0` for `did:ebsi` or `1` for `did:key`.
           - **permission**: Type of the permission to grant. Use `0` for "delegate" or `1` for "write"
@@ -689,8 +689,8 @@ paths:
           Parameters:
           - **from**: Ethereum address of the signer
           - **documentHash**: Document hash
-          - **revokedByAccount**: Entity that revokes the permission. If the entity uses the `did:ebsi` method, `revokedByAccount` must be the UTF-8 DID encoded in hexadecimal. If the entity uses the `did:key` method, `revokedByAccount` must be the 64 bytes uncompressed public key encoded in hexadecimal.
-          - **subjectAccount**: Entity whose permission is revoked. If the entity uses the `did:ebsi` method, `subjectAccount` must be the UTF-8 DID encoded in hexadecimal. If the entity uses the `did:key` method, `subjectAccount` must be the 64 bytes uncompressed public key encoded in hexadecimal.
+          - **revokedByAccount**: Entity that revokes the permission. If the entity uses the `did:ebsi` method, `revokedByAccount` must be the UTF-8 DID encoded in hexadecimal. If the entity uses the `did:key` method, `revokedByAccount` must be the secp256k1 uncompressed public key (64 bytes or 65 bytes with 04 prefix) encoded in hexadecimal.
+          - **subjectAccount**: Entity whose permission is revoked. If the entity uses the `did:ebsi` method, `subjectAccount` must be the UTF-8 DID encoded in hexadecimal. If the entity uses the `did:key` method, `subjectAccount` must be the secp256k1 uncompressed public key (64 bytes or 65 bytes with 04 prefix) encoded in hexadecimal.
           - **permission**: Type of the permission to revoke. Use `0` for "delegate" or `1` for "write"
 
           #### writeEvent
@@ -702,7 +702,7 @@ paths:
           - **eventParams**: Event parameters. JSON with the following fields:
             - **documentHash**: Document hash (hex string)
             - **externalHash**: External hash (string)
-            - **sender**: Entity that sends the event. If the entity uses the `did:ebsi` method, `sender` must be the UTF-8 DID encoded in hexadecimal. If the entity uses the `did:key` method, `sender` must be the 64 bytes uncompressed public key encoded in hexadecimal.
+            - **sender**: Entity that sends the event. If the entity uses the `did:ebsi` method, `sender` must be the UTF-8 DID encoded in hexadecimal. If the entity uses the `did:key` method, `sender` must be the secp256k1 uncompressed public key (64 bytes or 65 bytes with 04 prefix) encoded in hexadecimal.
             - **origin**: Origin (string)
             - **metadata**: Metadata (string)
           - **timestamp** (optional): Timestamp as hex string. By default it uses takes the timestamp from the blockchain

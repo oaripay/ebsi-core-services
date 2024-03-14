@@ -11,6 +11,17 @@ export function hexToDid(hex: string) {
     return utf8String;
   }
 
+  if (
+    !(
+      buffer.byteLength === 64 ||
+      (buffer.byteLength === 65 && buffer[0] === 0x04)
+    )
+  ) {
+    throw new Error(
+      "The public key must be secp256k1 uncompressed (64 bytes or 65 bytes with 0x04 prefix)",
+    );
+  }
+
   if (buffer.byteLength === 64) {
     // Add first byte "04"
     buffer = Buffer.from([0x04, ...buffer]);

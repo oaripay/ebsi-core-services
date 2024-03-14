@@ -22,17 +22,30 @@ export function getErrorMessages(
     .flat();
 }
 
-export function getErrorMessage(error: unknown) {
+export function getErrorMessage(error: unknown, defaultErrorMessage?: string) {
   if (isEthersError(error)) {
     return error.reason;
   }
+
   if (error instanceof ZodError) {
     return error.issues
-      .map((issue) => `Invalid '${issue.path.join(".")}': ${issue.message}`)
+      .map((issue) => {
+        if (issue.path.length === 0) {
+          return issue.message;
+        }
+
+        return `Invalid '${issue.path.join(".")}': ${issue.message}`;
+      })
       .join("\n");
   }
+
   if (error instanceof ProblemDetailsError && error.detail) {
     return error.detail;
   }
-  return (error as Error).message;
+
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return defaultErrorMessage ?? "Unknown error";
 }

@@ -950,7 +950,8 @@ describe("JsonRpc Module", () => {
                 subjectAccType: AccountType.DID_EBSI,
                 permission: Permission.DELEGATE,
               } satisfies GrantAccessSchema,
-              expectedErrorMessage: `Invalid 'params.0.grantedByAccount': Unknown point format`,
+              expectedErrorMessage:
+                "Invalid 'params.0.grantedByAccount': The public key must be secp256k1 uncompressed (64 bytes or 65 bytes with 0x04 prefix)",
               accessToken: user1.accessToken.tntWrite,
             });
 
@@ -1028,7 +1029,8 @@ describe("JsonRpc Module", () => {
                 subjectAccType: AccountType.DID_EBSI,
                 permission: Permission.DELEGATE,
               } satisfies GrantAccessSchema,
-              expectedErrorMessage: `Invalid 'params.0.grantedByAccount': Unknown point format`,
+              expectedErrorMessage:
+                "Invalid 'params.0.grantedByAccount': The public key must be secp256k1 uncompressed (64 bytes or 65 bytes with 0x04 prefix)",
               accessToken: user1.accessToken.tntWrite,
             });
 
@@ -1075,7 +1077,8 @@ describe("JsonRpc Module", () => {
                 subjectAccount: `0x${Buffer.from(user2.did).toString("hex")}`,
                 permission: 0,
               } satisfies RevokeAccessSchema,
-              expectedErrorMessage: `Invalid 'params.0.revokedByAccount': Unknown point format`,
+              expectedErrorMessage:
+                "Invalid 'params.0.revokedByAccount': The public key must be secp256k1 uncompressed (64 bytes or 65 bytes with 0x04 prefix)",
               accessToken: user1.accessToken.tntWrite,
             });
 
@@ -1155,7 +1158,7 @@ describe("JsonRpc Module", () => {
               } satisfies WriteEventSchema,
               accessToken: user.accessToken.tntWrite,
               expectedErrorMessage:
-                "Invalid 'params.0.eventParams.sender': Unknown point format",
+                "Invalid 'params.0.eventParams.sender': The public key must be secp256k1 uncompressed (64 bytes or 65 bytes with 0x04 prefix)",
             });
 
             testSetup.push({
@@ -1245,7 +1248,7 @@ describe("JsonRpc Module", () => {
               } satisfies WriteEventSchema,
               accessToken: user.accessToken.tntWrite,
               expectedErrorMessage:
-                "Invalid 'params.0.eventParams.sender': Unknown point format",
+                "Invalid 'params.0.eventParams.sender': The public key must be secp256k1 uncompressed (64 bytes or 65 bytes with 0x04 prefix)",
             });
 
             testSetup.push({

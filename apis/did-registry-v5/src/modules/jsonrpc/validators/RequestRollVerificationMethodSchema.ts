@@ -49,7 +49,10 @@ export const rollVerificationMethodSchema = baseParamSchema.merge(
       .superRefine(async (val, ctx) => {
         const { publicKey, vMethodId, isSecp256k1 } = val;
 
-        const publicKeyHexValidation = isPublicKeyHex(publicKey, isSecp256k1);
+        const publicKeyHexValidation = await isPublicKeyHex(
+          publicKey,
+          isSecp256k1,
+        );
         if (!publicKeyHexValidation.success) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,

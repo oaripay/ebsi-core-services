@@ -417,7 +417,7 @@ describe(
           isSecp256k1: true,
           notBefore,
           notAfter,
-        } as InsertDidDocumentParam;
+        } satisfies InsertDidDocumentParam;
 
         const param2 = {
           from: newUser.wallet.address,
@@ -430,7 +430,7 @@ describe(
           isSecp256k1: true,
           notBefore,
           notAfter: notAfter + 1,
-        } as InsertDidDocumentParam;
+        } satisfies InsertDidDocumentParam;
 
         const accessToken = newUserDidrInviteAccessToken;
 
@@ -555,7 +555,7 @@ describe(
           isSecp256k1: true,
           notBefore,
           notAfter,
-        } as InsertDidDocumentParam;
+        } satisfies InsertDidDocumentParam;
 
         const accessToken = await new SignJWT({
           sub: testUser.did,
@@ -663,7 +663,7 @@ describe(
           isSecp256k1: true,
           notBefore: now,
           notAfter: now + 3600,
-        } as InsertDidDocumentParam;
+        } satisfies InsertDidDocumentParam;
 
         const responseBuild = await request(server)
           .post("/jsonrpc")
@@ -722,7 +722,7 @@ describe(
               isSecp256k1: true,
               notBefore: now,
               notAfter: now + 3600,
-            } as InsertDidDocumentParam;
+            } satisfies InsertDidDocumentParam;
             break;
           }
           case "updateBaseDocument": {
@@ -732,7 +732,7 @@ describe(
               baseDocument: JSON.stringify({
                 "@context": existingUser.didDocument["@context"],
               }),
-            } as UpdateBaseDocumentParam;
+            } satisfies UpdateBaseDocumentParam;
             break;
           }
           case "addController": {
@@ -740,7 +740,7 @@ describe(
               from: signer.address,
               did: existingUser.did,
               controller: existingUser2.did,
-            } as AddControllerParam;
+            } satisfies AddControllerParam;
 
             break;
           }
@@ -749,7 +749,7 @@ describe(
               from: signer.address,
               did: existingUser.did,
               controller: existingUser2.did,
-            } as RevokeControllerParam;
+            } satisfies RevokeControllerParam;
             break;
           }
           case "addVerificationMethod": {
@@ -761,7 +761,7 @@ describe(
                 JSON.stringify(publicKeyJwk2),
               ).toString("hex")}`,
               isSecp256k1: false,
-            } as AddVerificationMethodParam;
+            } satisfies AddVerificationMethodParam;
             break;
           }
           case "addVerificationRelationship": {
@@ -772,7 +772,7 @@ describe(
               vMethodId: existingUser.thumbprint,
               notBefore: now,
               notAfter: now + 3600,
-            } as AddVerificationRelationshipParam;
+            } satisfies AddVerificationRelationshipParam;
             break;
           }
           case "expireVerificationMethod": {
@@ -781,7 +781,7 @@ describe(
               did: existingUser.did,
               vMethodId: thumbprint2,
               notAfter: now + 600,
-            } as ExpireVerificationMethodParam;
+            } satisfies ExpireVerificationMethodParam;
             break;
           }
           case "revokeVerificationMethod": {
@@ -790,7 +790,7 @@ describe(
               did: existingUser.did,
               vMethodId: thumbprint2,
               notAfter: now - 600,
-            } as RevokeVerificationMethodParam;
+            } satisfies RevokeVerificationMethodParam;
             break;
           }
           case "rollVerificationMethod": {
@@ -806,7 +806,7 @@ describe(
               notAfter: now + 3600,
               oldVMethodId: thumbprint2,
               duration: 360,
-            } as RollVerificationMethodParam;
+            } satisfies RollVerificationMethodParam;
             break;
           }
           default: {
@@ -903,7 +903,7 @@ describe(
                 isSecp256k1: true,
                 notBefore: now,
                 notAfter: now + 3600,
-              } as InsertDidDocumentParam,
+              } satisfies InsertDidDocumentParam,
               expectedErrorMessage:
                 "Access token sub doesn't match the DID from the payload",
               accessToken: existingUserDidrInviteAccessToken,
@@ -921,7 +921,7 @@ describe(
                 isSecp256k1: true,
                 notBefore: now,
                 notAfter: now + 3600,
-              } as InsertDidDocumentParam,
+              } satisfies InsertDidDocumentParam,
               expectedErrorMessage:
                 "Validation error: did must be a valid DID v1",
               accessToken: newUserDidrInviteAccessToken,
@@ -937,7 +937,7 @@ describe(
                 isSecp256k1: true,
                 notBefore: now,
                 notAfter: now + 3600,
-              } as InsertDidDocumentParam,
+              } satisfies InsertDidDocumentParam,
               expectedErrorMessage:
                 "Validation error: baseDocument must be a valid JSON string with at least the field @context and without verification methods, verification relationships, controllers or id",
               accessToken: newUserDidrInviteAccessToken,
@@ -954,7 +954,7 @@ describe(
                 isSecp256k1: true,
                 notBefore: now,
                 notAfter: now + 3600,
-              } as InsertDidDocumentParam,
+              } satisfies InsertDidDocumentParam,
               expectedErrorMessage:
                 "Validation error: baseDocument must be a valid JSON string with at least the field @context and without verification methods, verification relationships, controllers or id",
               accessToken: newUserDidrInviteAccessToken,
@@ -973,7 +973,7 @@ describe(
                 isSecp256k1: true,
                 notBefore: now,
                 notAfter: now + 3600,
-              } as InsertDidDocumentParam,
+              } satisfies InsertDidDocumentParam,
               expectedErrorMessage:
                 "Validation error: vMethodId must be the thumbprint of the publicKey",
               accessToken: newUserDidrInviteAccessToken,
@@ -991,26 +991,9 @@ describe(
                 isSecp256k1: true,
                 notBefore: now,
                 notAfter: now + 3600,
-              } as InsertDidDocumentParam,
+              } satisfies InsertDidDocumentParam,
               expectedErrorMessage:
-                "Invalid public key. The public key must be of 33 bytes (secp256k1 compressed) or 65 bytes (secp256k1 uncompressed)",
-              accessToken: newUserDidrInviteAccessToken,
-            });
-
-            testSetup.push({
-              params: {
-                from: signer.address,
-                did: newUser.did,
-                baseDocument: JSON.stringify({
-                  "@context": newUser.didDocument["@context"],
-                }),
-                vMethodId: newUser.thumbprint,
-                publicKey: `0x00${crypto.randomBytes(32).toString("hex")}`,
-                isSecp256k1: true,
-                notBefore: now,
-                notAfter: now + 3600,
-              } as InsertDidDocumentParam,
-              expectedErrorMessage: "Invalid public key. Unknown point format",
+                "Invalid public key. The public key must be secp256k1 uncompressed (64 bytes or 65 bytes with 0x04 prefix)",
               accessToken: newUserDidrInviteAccessToken,
             });
 
@@ -1066,7 +1049,7 @@ describe(
                 isSecp256k1: true,
                 notBefore: now,
                 notAfter: now + 3600,
-              } as InsertDidDocumentParam,
+              } satisfies InsertDidDocumentParam,
               expectedErrorMessage: `The address ${signer.address} is not the controller of ${v1Did} in DID Registry V3`,
               accessToken: v1UserDidrInviteAccessToken,
             });
@@ -1082,7 +1065,7 @@ describe(
                 baseDocument: JSON.stringify({
                   "@context": newUser.didDocument["@context"],
                 }),
-              } as UpdateBaseDocumentParam,
+              } satisfies UpdateBaseDocumentParam,
               expectedErrorMessage:
                 "'updateBaseDocument' requires an access token with the scope 'didr_write'",
               accessToken: newUserDidrInviteAccessToken,
@@ -1093,7 +1076,7 @@ describe(
                 from: signer.address,
                 did: newUser.did,
                 baseDocument: "{}",
-              } as UpdateBaseDocumentParam,
+              } satisfies UpdateBaseDocumentParam,
               expectedErrorMessage:
                 "Validation error: baseDocument must be a valid JSON string with at least the field @context and without verification methods, verification relationships, controllers or id",
               accessToken: newUserDidrWriteAccessToken,
@@ -1105,7 +1088,7 @@ describe(
                 did: newUser.did,
                 // authentication can not be in the base document
                 baseDocument: '{"@context":[],"authentication":[]}',
-              } as UpdateBaseDocumentParam,
+              } satisfies UpdateBaseDocumentParam,
               expectedErrorMessage:
                 "Validation error: baseDocument must be a valid JSON string with at least the field @context and without verification methods, verification relationships, controllers or id",
               accessToken: newUserDidrWriteAccessToken,
@@ -1120,7 +1103,7 @@ describe(
                 from: signer.address,
                 did: newUser.did,
                 controller: existingUser.did,
-              } as AddControllerParam,
+              } satisfies AddControllerParam,
               expectedErrorMessage:
                 "'addController' requires an access token with the scope 'didr_write'",
               accessToken: newUserDidrInviteAccessToken,
@@ -1131,7 +1114,7 @@ describe(
                 from: signer.address,
                 did: "did:ebsi:znxntxQrN369GsNyjFjYb8fuvU7g3sJGyYGwMTcUGdzuy",
                 controller: existingUser.did,
-              } as AddControllerParam,
+              } satisfies AddControllerParam,
               expectedErrorMessage:
                 "Validation error: did must be a valid DID v1",
               accessToken: newUserDidrWriteAccessToken,
@@ -1143,7 +1126,7 @@ describe(
                 did: newUser.did,
                 controller:
                   "did:ebsi:znxntxQrN369GsNyjFjYb8fuvU7g3sJGyYGwMTcUGdzuy",
-              } as AddControllerParam,
+              } satisfies AddControllerParam,
               expectedErrorMessage:
                 "Validation error: controller must be a valid DID v1",
               accessToken: newUserDidrWriteAccessToken,
@@ -1158,7 +1141,7 @@ describe(
                 from: signer.address,
                 did: newUser.did,
                 controller: existingUser.did,
-              } as RevokeControllerParam,
+              } satisfies RevokeControllerParam,
               expectedErrorMessage:
                 "'revokeController' requires an access token with the scope 'didr_write'",
               accessToken: newUserDidrInviteAccessToken,
@@ -1169,7 +1152,7 @@ describe(
                 from: signer.address,
                 did: "did:ebsi:znxntxQrN369GsNyjFjYb8fuvU7g3sJGyYGwMTcUGdzuy",
                 controller: existingUser.did,
-              } as RevokeControllerParam,
+              } satisfies RevokeControllerParam,
               expectedErrorMessage:
                 "Validation error: did must be a valid DID v1",
               accessToken: newUserDidrWriteAccessToken,
@@ -1181,7 +1164,7 @@ describe(
                 did: newUser.did,
                 controller:
                   "did:ebsi:znxntxQrN369GsNyjFjYb8fuvU7g3sJGyYGwMTcUGdzuy",
-              } as RevokeControllerParam,
+              } satisfies RevokeControllerParam,
               expectedErrorMessage:
                 "Validation error: controller must be a valid DID v1",
               accessToken: newUserDidrWriteAccessToken,
@@ -1200,7 +1183,7 @@ describe(
                   JSON.stringify(publicKeyJwk2),
                 ).toString("hex")}`,
                 isSecp256k1: false,
-              } as AddVerificationMethodParam,
+              } satisfies AddVerificationMethodParam,
               expectedErrorMessage:
                 "'addVerificationMethod' requires an access token with the scope 'didr_write'",
               accessToken: newUserDidrInviteAccessToken,
@@ -1222,7 +1205,7 @@ describe(
                   JSON.stringify(publicKeyJwk),
                 ).toString("hex")}`,
                 isSecp256k1: false,
-              } as AddVerificationMethodParam,
+              } satisfies AddVerificationMethodParam,
               expectedErrorMessage:
                 "Validation error: vMethodId must be the thumbprint of the publicKey",
               accessToken: newUserDidrWriteAccessToken,
@@ -1233,11 +1216,80 @@ describe(
                 from: signer.address,
                 did: newUser.did,
                 vMethodId: thumbprint,
-                publicKey: "0x32313029",
+                publicKey: "0x3231302",
                 isSecp256k1: false,
-              } as AddVerificationMethodParam,
-              expectedErrorMessage:
-                "Invalid public key. Unexpected non-whitespace character after JSON at position 3",
+              } satisfies AddVerificationMethodParam,
+              expectedErrorMessage: `Validation errors:
+- vMethodId must be the thumbprint of the publicKey,
+- Invalid public key. The public key must be an even number of bytes`,
+              accessToken: newUserDidrWriteAccessToken,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                did: newUser.did,
+                vMethodId: thumbprint,
+                publicKey: `0x${Buffer.from(
+                  JSON.stringify({
+                    // Not a valid JWK
+                    kty: "EC",
+                    foo: "bar",
+                  }),
+                ).toString("hex")}`,
+                isSecp256k1: false,
+              } satisfies AddVerificationMethodParam,
+              expectedErrorMessage: `Validation errors:
+- vMethodId must be the thumbprint of the publicKey,
+- Invalid public key. Invalid 'crv': Invalid input
+Invalid 'x': Required
+Invalid 'y': Required
+Unrecognized key(s) in object: 'foo'`,
+              accessToken: newUserDidrWriteAccessToken,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                did: newUser.did,
+                vMethodId: thumbprint,
+                publicKey: `0x${Buffer.from(
+                  JSON.stringify({
+                    // Not a valid JWK
+                    kty: "EC",
+                    crv: "P-256",
+                    x: "0",
+                    y: "0",
+                  }),
+                ).toString("hex")}`,
+                isSecp256k1: false,
+              } satisfies AddVerificationMethodParam,
+              expectedErrorMessage: `Validation errors:
+- vMethodId must be the thumbprint of the publicKey,
+- Invalid public key`,
+              accessToken: newUserDidrWriteAccessToken,
+            });
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                did: newUser.did,
+                vMethodId: thumbprint,
+                publicKey: `0x${Buffer.from(
+                  JSON.stringify({
+                    kty: "EC",
+                    x: "t7vngJgDSKdHLcUghceCC6zU7IISAhJwcYj3DJe-npc",
+                    y: "ccPOx7uc_xoWEC3o3tPzAwupdj7go7OVVOjnJ4nJFS8",
+                    crv: "P-256",
+                    // Trying to register a private key
+                    d: "yonRY9HaidYqPo1pP277AuuCxcIE3vWayvsOxqWJ9Sg",
+                  }),
+                ).toString("hex")}`,
+                isSecp256k1: false,
+              } satisfies AddVerificationMethodParam,
+              expectedErrorMessage: `Validation errors:
+- vMethodId must be the thumbprint of the publicKey,
+- Invalid public key. Unrecognized key(s) in object: 'd'`,
               accessToken: newUserDidrWriteAccessToken,
             });
 
@@ -1253,7 +1305,7 @@ describe(
                 vMethodId: newUser.thumbprint,
                 notBefore: now,
                 notAfter: now + 3600,
-              } as AddVerificationRelationshipParam,
+              } satisfies AddVerificationRelationshipParam,
               expectedErrorMessage:
                 "'addVerificationRelationship' requires an access token with the scope 'didr_write'",
               accessToken: newUserDidrInviteAccessToken,
@@ -1267,7 +1319,7 @@ describe(
                 vMethodId: newUser.thumbprint,
                 notBefore: now,
                 notAfter: now + 3600,
-              } as AddVerificationRelationshipParam,
+              } satisfies AddVerificationRelationshipParam,
               expectedErrorMessage:
                 "Validation error: did must be a valid DID v1",
               accessToken: newUserDidrWriteAccessToken,
@@ -1281,7 +1333,7 @@ describe(
                 vMethodId: newUser.thumbprint,
                 notBefore: now,
                 notAfter: -10,
-              } as AddVerificationRelationshipParam,
+              } satisfies AddVerificationRelationshipParam,
               expectedErrorMessage:
                 "Validation error: notAfter must not be less than 0",
               accessToken: newUserDidrWriteAccessToken,
@@ -1313,7 +1365,7 @@ describe(
                 did: newUser.did,
                 vMethodId: thumbprint2,
                 notAfter: now + 600,
-              } as ExpireVerificationMethodParam,
+              } satisfies ExpireVerificationMethodParam,
               expectedErrorMessage:
                 "'expireVerificationMethod' requires an access token with the scope 'didr_write'",
               accessToken: newUserDidrInviteAccessToken,
@@ -1325,7 +1377,7 @@ describe(
                 did: newUser.did,
                 vMethodId: newUser.thumbprint,
                 notAfter: -10,
-              } as ExpireVerificationMethodParam,
+              } satisfies ExpireVerificationMethodParam,
               expectedErrorMessage:
                 "Validation error: notAfter must not be less than 0",
               accessToken: newUserDidrWriteAccessToken,
@@ -1337,7 +1389,7 @@ describe(
                 did: "did:ebsi:znxntxQrN369GsNyjFjYb8fuvU7g3sJGyYGwMTcUGdzuy",
                 vMethodId: newUser.thumbprint,
                 notAfter: now + 600,
-              } as ExpireVerificationMethodParam,
+              } satisfies ExpireVerificationMethodParam,
               expectedErrorMessage:
                 "Validation error: did must be a valid DID v1",
               accessToken: newUserDidrWriteAccessToken,
@@ -1353,7 +1405,7 @@ describe(
                 did: newUser.did,
                 vMethodId: thumbprint2,
                 notAfter: now - 600,
-              } as RevokeVerificationMethodParam,
+              } satisfies RevokeVerificationMethodParam,
               expectedErrorMessage:
                 "'revokeVerificationMethod' requires an access token with the scope 'didr_write'",
               accessToken: newUserDidrInviteAccessToken,
@@ -1365,7 +1417,7 @@ describe(
                 did: newUser.did,
                 vMethodId: newUser.thumbprint,
                 notAfter: -10,
-              } as RevokeVerificationMethodParam,
+              } satisfies RevokeVerificationMethodParam,
               expectedErrorMessage:
                 "Validation error: notAfter must not be less than 0",
               accessToken: newUserDidrWriteAccessToken,
@@ -1377,7 +1429,7 @@ describe(
                 did: "did:ebsi:znxntxQrN369GsNyjFjYb8fuvU7g3sJGyYGwMTcUGdzuy",
                 vMethodId: newUser.thumbprint,
                 notAfter: now - 600,
-              } as RevokeVerificationMethodParam,
+              } satisfies RevokeVerificationMethodParam,
               expectedErrorMessage:
                 "Validation error: did must be a valid DID v1",
               accessToken: newUserDidrWriteAccessToken,
@@ -1400,7 +1452,7 @@ describe(
                 notAfter: now + 3600,
                 oldVMethodId: thumbprint2,
                 duration: 360,
-              } as RollVerificationMethodParam,
+              } satisfies RollVerificationMethodParam,
               expectedErrorMessage:
                 "'rollVerificationMethod' requires an access token with the scope 'didr_write'",
               accessToken: newUserDidrInviteAccessToken,
@@ -1419,7 +1471,7 @@ describe(
                 notAfter: now + 3600,
                 oldVMethodId: thumbprint2,
                 duration: 360,
-              } as RollVerificationMethodParam,
+              } satisfies RollVerificationMethodParam,
               expectedErrorMessage:
                 "Validation error: did must be a valid DID v1",
               accessToken: newUserDidrWriteAccessToken,
@@ -1437,7 +1489,7 @@ describe(
                 notAfter: now + 3600,
                 oldVMethodId: thumbprint2,
                 duration: 360,
-              } as RollVerificationMethodParam,
+              } satisfies RollVerificationMethodParam,
               expectedErrorMessage:
                 "Validation error: vMethodId must be the thumbprint of the publicKey",
               accessToken: newUserDidrWriteAccessToken,
@@ -1456,7 +1508,7 @@ describe(
                 notAfter: now + 3600,
                 oldVMethodId: thumbprint2,
                 duration: 360,
-              } as RollVerificationMethodParam,
+              } satisfies RollVerificationMethodParam,
               expectedErrorMessage:
                 "Validation error: notBefore must not be less than 0",
               accessToken: newUserDidrWriteAccessToken,

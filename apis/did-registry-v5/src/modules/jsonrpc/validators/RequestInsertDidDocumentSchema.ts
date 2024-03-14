@@ -53,7 +53,7 @@ export const insertDidDocumentSchema = baseParamSchema
   .superRefine(async (val, ctx) => {
     const { publicKey, vMethodId } = val;
 
-    const publicKeyHexValidation = isPublicKeyHex(publicKey, true);
+    const publicKeyHexValidation = await isPublicKeyHex(publicKey, true);
     if (!publicKeyHexValidation.success) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
