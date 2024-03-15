@@ -23,7 +23,7 @@
     "@cef-ebsi/ebsi-did-resolver": "^4.0.1-alpha.1",
     "@cef-ebsi/key-did-resolver": "^2.0.1-alpha.1",
     "@cef-ebsi/key-encoder": "^1.0.1-alpha.0",
-    "@cef-ebsi/verifiable-credential": "^5.2.1-alpha.2",
+    "@cef-ebsi/verifiable-credential": "^5.2.1-alpha.3",
     "@ethersproject/abstract-provider": "^5.7.0",
     "@nestjs/common": "^10.3.3",
     "axios": "^1.6.7",
