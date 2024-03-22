@@ -26,4 +26,4 @@ ARG DOCKER_TAG
 RUN echo "DOCKER_TAG=$DOCKER_TAG" >> .env.default
 RUN chown node:node /app
 USER node
-CMD [ "node", "apis/authorisation/dist/main" ]
+CMD [ "node", "--security-revert=CVE-2023-46809", "apis/authorisation/dist/main" ]
