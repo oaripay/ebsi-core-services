@@ -42,27 +42,38 @@ export async function getTimestampWriteAccessToken(
     descriptor_map: [],
   };
 
-  const response = await axios.post(
-    `${authorisationApiUrl}/token`,
-    new URLSearchParams({
-      grant_type: "vp_token",
-      scope: "openid timestamp_write",
-      vp_token: vpJwt,
-      presentation_submission: JSON.stringify(presentationSubmission),
-    }).toString(),
-    {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
+  try {
+    const response = await axios.post(
+      `${authorisationApiUrl}/token`,
+      new URLSearchParams({
+        grant_type: "vp_token",
+        scope: "openid timestamp_write",
+        vp_token: vpJwt,
+        presentation_submission: JSON.stringify(presentationSubmission),
+      }).toString(),
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
       },
-    },
-  );
+    );
 
-  // Decode access token
-  const { access_token: accessToken } = response.data as {
-    access_token: string;
-  };
+    // Decode access token
+    const { access_token: accessToken } = response.data as {
+      access_token: string;
+    };
 
-  return accessToken;
+    return accessToken;
+  } catch (e) {
+    if (axios.isAxiosError(e)) {
+      // eslint-disable-next-line no-console
+      console.error(e.response?.data);
+    } else {
+      // eslint-disable-next-line no-console
+      console.error(e);
+    }
+    throw new Error("Failed to get access token");
+  }
 }
 
 export default getTimestampWriteAccessToken;

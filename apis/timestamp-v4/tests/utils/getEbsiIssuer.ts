@@ -10,11 +10,11 @@ export async function getEbsiIssuer(
   kid?: string,
 ) {
   const hexIssuerPrivateKey = privateKey.replace("0x", "");
-  const ec = new EC("secp256k1");
+  const ec = new EC("p256");
   const pubPoint = ec.keyFromPrivate(hexIssuerPrivateKey, "hex").getPublic();
   const issuerPublicKeyJwk = {
     kty: "EC",
-    crv: "secp256k1",
+    crv: "P-256",
     x: base64url.baseEncode(pubPoint.getX().toBuffer("be", 32)),
     y: base64url.baseEncode(pubPoint.getY().toBuffer("be", 32)),
   };
@@ -26,7 +26,7 @@ export async function getEbsiIssuer(
   const issuer: EbsiIssuer = {
     did,
     kid: kid || `${did}#${await calculateJwkThumbprint(issuerPublicKeyJwk)}`,
-    alg: "ES256K",
+    alg: "ES256",
     publicKeyJwk: issuerPublicKeyJwk,
     privateKeyJwk: issuerPrivateKeyJwk,
   };

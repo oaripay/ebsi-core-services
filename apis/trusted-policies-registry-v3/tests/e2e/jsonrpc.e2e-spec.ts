@@ -683,7 +683,7 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
 
           // check if blockscout is working properly
           const blockscoutCheck = await request(blockscout.url)
-            .get(`/tx/${sampleTransaction}/internal-transactions`)
+            .get(`/tx/${sampleTransaction}`)
             .set({ Authorization: blockscout.bearerToken });
 
           expect(blockscoutCheck.status).toBe(200);
