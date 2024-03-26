@@ -8,9 +8,11 @@ import {
   Logger,
   NestInterceptor,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import type { FastifyRequest, FastifyReply } from "fastify";
 import type { Observable } from "rxjs";
 import { tap } from "rxjs/operators";
+import type { ApiConfig } from "../config/configuration.js";
 
 /**
  * Interceptor that logs input/output requests
@@ -20,6 +22,8 @@ export class LoggingInterceptor implements NestInterceptor {
   private readonly ctxPrefix: string = LoggingInterceptor.name;
 
   private readonly logger: Logger = new Logger(this.ctxPrefix);
+
+  constructor(private configService: ConfigService<ApiConfig, true>) {}
 
   /**
    * Intercept method, logs before and after the request being processed
@@ -34,8 +38,9 @@ export class LoggingInterceptor implements NestInterceptor {
       .switchToHttp()
       .getRequest<FastifyRequest>();
     const { method, url, body, headers } = req;
-    const { conformance } = headers;
-    if (conformance) {
+    const skipLogging = headers && "ebsi-healthcheck" in headers;
+
+    if (!skipLogging) {
       const ctx = `${this.ctxPrefix} - ${method} - ${url}`;
       const message = `Incoming request - ${method} - ${url}`;
 
@@ -45,7 +50,6 @@ export class LoggingInterceptor implements NestInterceptor {
           method,
           body,
           headers,
-          conformance,
         },
         ctx,
       );
@@ -76,17 +80,17 @@ export class LoggingInterceptor implements NestInterceptor {
       .switchToHttp()
       .getResponse<FastifyReply>();
     const { method, url, headers } = req;
-    const { conformance } = headers;
+    const skipLogging = headers && "ebsi-healthcheck" in headers;
 
-    if (conformance) {
+    if (!skipLogging) {
       const { statusCode } = res;
       const ctx = `${this.ctxPrefix} - ${statusCode} - ${method} - ${url}`;
       const message = `Outgoing response - ${statusCode} - ${method} - ${url}`;
+      const logLevel = this.configService.get("logLevel", { infer: true });
       this.logger.log(
         {
           message,
-          body,
-          conformance,
+          ...(logLevel === "debug" && { body }),
         },
         ctx,
       );
@@ -102,8 +106,7 @@ export class LoggingInterceptor implements NestInterceptor {
     const req: FastifyRequest = context
       .switchToHttp()
       .getRequest<FastifyRequest>();
-    const { method, url, body, headers } = req;
-    const { conformance } = headers;
+    const { method, url, body } = req;
 
     if (error instanceof HttpException) {
       const statusCode: number = error.getStatus();
@@ -115,13 +118,12 @@ export class LoggingInterceptor implements NestInterceptor {
         body,
         message,
         error,
-        conformance,
       };
 
       // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
       if (statusCode >= HttpStatus.INTERNAL_SERVER_ERROR) {
         this.logger.error(jsonLog, error.stack, ctx);
-      } else if (conformance) {
+      } else {
         this.logger.warn(jsonLog, ctx);
       }
     } else {

@@ -9,9 +9,11 @@ import {
   Logger,
   NestInterceptor,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import type { FastifyRequest, FastifyReply } from "fastify";
 import type { Observable } from "rxjs";
 import { tap } from "rxjs/operators";
+import type { ApiConfig } from "../config/configuration.js";
 
 /**
  * Interceptor that logs input/output requests
@@ -21,6 +23,8 @@ export class LoggingInterceptor implements NestInterceptor {
   private readonly ctxPrefix: string = LoggingInterceptor.name;
 
   private readonly logger: Logger = new Logger(this.ctxPrefix);
+
+  constructor(private configService: ConfigService<ApiConfig, true>) {}
 
   /**
    * Intercept method, logs before and after the request being processed
@@ -35,19 +39,22 @@ export class LoggingInterceptor implements NestInterceptor {
       .switchToHttp()
       .getRequest<FastifyRequest>();
     const { method, url, body, headers } = req;
+    const skipLogging = headers && "ebsi-healthcheck" in headers;
 
-    const ctx = `${this.ctxPrefix} - ${method} - ${url}`;
-    const message = `Incoming request - ${method} - ${url}`;
+    if (!skipLogging) {
+      const ctx = `${this.ctxPrefix} - ${method} - ${url}`;
+      const message = `Incoming request - ${method} - ${url}`;
 
-    this.logger.log(
-      {
-        message,
-        method,
-        body,
-        headers,
-      },
-      ctx,
-    );
+      this.logger.log(
+        {
+          message,
+          method,
+          body,
+          headers,
+        },
+        ctx,
+      );
+    }
 
     return call$.handle().pipe(
       tap({
@@ -73,18 +80,22 @@ export class LoggingInterceptor implements NestInterceptor {
     const res: FastifyReply = context
       .switchToHttp()
       .getResponse<FastifyReply>();
-    const { method, url } = req;
+    const { method, url, headers } = req;
+    const skipLogging = headers && "ebsi-healthcheck" in headers;
 
-    const { statusCode } = res;
-    const ctx = `${this.ctxPrefix} - ${statusCode} - ${method} - ${url}`;
-    const message = `Outgoing response - ${statusCode} - ${method} - ${url}`;
-    this.logger.log(
-      {
-        message,
-        body,
-      },
-      ctx,
-    );
+    if (!skipLogging) {
+      const { statusCode } = res;
+      const ctx = `${this.ctxPrefix} - ${statusCode} - ${method} - ${url}`;
+      const message = `Outgoing response - ${statusCode} - ${method} - ${url}`;
+      const logLevel = this.configService.get("logLevel", { infer: true });
+      this.logger.log(
+        {
+          message,
+          ...(logLevel === "debug" && { body }),
+        },
+        ctx,
+      );
+    }
   }
 
   /**
