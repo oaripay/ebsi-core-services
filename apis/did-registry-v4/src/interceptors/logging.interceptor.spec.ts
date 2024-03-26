@@ -95,10 +95,12 @@ describe("Logging interceptor", () => {
   });
 
   describe("GET /health", () => {
-    it("should NOT log the request and response", async () => {
+    it('should NOT log the request and response if the header "EBSI-Healthcheck" is present', async () => {
       expect.assertions(1);
 
-      await request(app.getHttpServer()).get("/health");
+      await request(app.getHttpServer())
+        .get("/health")
+        .set("EBSI-Healthcheck", "1");
 
       const calls = mockedLogger.log.mock.calls.length;
       expect(mockedLogger.log).toHaveBeenNthCalledWith(
@@ -108,8 +110,10 @@ describe("Logging interceptor", () => {
       );
     });
 
-    it("should log the request and response", async () => {
+    it('should log the request and response without response body when the log level is not "debug"', async () => {
       expect.assertions(2);
+
+      configService.set("logLevel", "info");
 
       const dependencies = Object.keys(
         DEPENDENCIES,
@@ -128,9 +132,7 @@ describe("Logging interceptor", () => {
         ),
       );
 
-      await request(app.getHttpServer())
-        .get(`/health`)
-        .set("conformance", "test-id-conformance");
+      await request(app.getHttpServer()).get("/health");
 
       const calls = mockedLogger.log.mock.calls.length;
 
@@ -142,11 +144,62 @@ describe("Logging interceptor", () => {
             "accept-encoding": "gzip, deflate",
             connection: "close",
             host: expect.stringContaining("127.0.0.1:"),
-            conformance: "test-id-conformance",
           },
           message: "Incoming request - GET - /health",
           method: "GET",
-          conformance: "test-id-conformance",
+        },
+        "LoggingInterceptor - GET - /health",
+        "LoggingInterceptor",
+      );
+
+      // It should have logged the response (without body)
+      expect(mockedLogger.log).toHaveBeenNthCalledWith(
+        calls,
+        {
+          message: "Outgoing response - 200 - GET - /health",
+        },
+        "LoggingInterceptor - 200 - GET - /health",
+        "LoggingInterceptor",
+      );
+    });
+
+    it('should log the request and response with response body when the log level is "debug"', async () => {
+      expect.assertions(2);
+
+      configService.set("logLevel", "debug");
+
+      const dependencies = Object.keys(
+        DEPENDENCIES,
+      ) as (keyof typeof DEPENDENCIES)[];
+
+      const localOrigin =
+        configService.get<string>("localOrigin") ||
+        configService.get<string>("domain");
+
+      // All the dependencies return a 200
+      mockServer.use(
+        ...dependencies.map((dependency) =>
+          http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
+            HttpResponse.json({}),
+          ),
+        ),
+      );
+
+      await request(app.getHttpServer()).get("/health");
+
+      const calls = mockedLogger.log.mock.calls.length;
+
+      // It should have logged the request
+      expect(mockedLogger.log).toHaveBeenNthCalledWith(
+        calls - 1,
+        {
+          headers: {
+            "accept-encoding": "gzip, deflate",
+            connection: "close",
+            host: expect.stringContaining("127.0.0.1:"),
+          },
+          message: "Incoming request - GET - /health",
+          method: "GET",
         },
         "LoggingInterceptor - GET - /health",
         "LoggingInterceptor",
@@ -159,7 +212,7 @@ describe("Logging interceptor", () => {
         }))
         .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
 
-      // It should have logged the response
+      // It should have logged the response (with body)
       expect(mockedLogger.log).toHaveBeenNthCalledWith(
         calls,
         {
@@ -170,7 +223,6 @@ describe("Logging interceptor", () => {
             status: "ok",
           },
           message: "Outgoing response - 200 - GET - /health",
-          conformance: "test-id-conformance",
         },
         "LoggingInterceptor - 200 - GET - /health",
         "LoggingInterceptor",
@@ -218,7 +270,6 @@ describe("Logging interceptor", () => {
       await request(app.getHttpServer())
         .post("/jsonrpc")
         .auth(userAccessToken, { type: "bearer" })
-        .set("conformance", "test-id-conformance")
         .send("invalid body");
 
       const logCalls = mockedLogger.log.mock.calls.length;
@@ -236,11 +287,9 @@ describe("Logging interceptor", () => {
             "content-length": "12",
             "content-type": "application/x-www-form-urlencoded",
             host: expect.stringContaining("127.0.0.1:"),
-            conformance: "test-id-conformance",
           },
           message: "Incoming request - POST - /jsonrpc",
           method: "POST",
-          conformance: "test-id-conformance",
         },
         "LoggingInterceptor - POST - /jsonrpc",
         "LoggingInterceptor",
@@ -257,7 +306,6 @@ describe("Logging interceptor", () => {
           message: "Outgoing response - 400 - POST - /jsonrpc",
           method: "POST",
           url: "/jsonrpc",
-          conformance: "test-id-conformance",
         },
         "LoggingInterceptor - 400 - POST - /jsonrpc",
         "LoggingInterceptor",
