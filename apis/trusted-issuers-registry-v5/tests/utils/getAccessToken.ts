@@ -47,33 +47,44 @@ export async function getTirInviteAccessToken(
         path_nested: {
           id: "tir_invite_credential",
           format: "jwt_vc",
-          path: "$.verifiableCredential[0]",
+          path: "$.vp.verifiableCredential[0]",
         },
       },
     ],
   };
 
-  const response = await axios.post(
-    `${authorisationApiUrl}/token`,
-    new URLSearchParams({
-      grant_type: "vp_token",
-      scope: "openid tir_invite",
-      vp_token: vpJwt,
-      presentation_submission: JSON.stringify(presentationSubmission),
-    }).toString(),
-    {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
+  try {
+    const response = await axios.post(
+      `${authorisationApiUrl}/token`,
+      new URLSearchParams({
+        grant_type: "vp_token",
+        scope: "openid tir_invite",
+        vp_token: vpJwt,
+        presentation_submission: JSON.stringify(presentationSubmission),
+      }).toString(),
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
       },
-    },
-  );
+    );
 
-  // Decode access token
-  const { access_token: accessToken } = response.data as {
-    access_token: string;
-  };
+    // Decode access token
+    const { access_token: accessToken } = response.data as {
+      access_token: string;
+    };
 
-  return accessToken;
+    return accessToken;
+  } catch (e) {
+    if (axios.isAxiosError(e)) {
+      // eslint-disable-next-line no-console
+      console.error(e.response?.data);
+    } else {
+      // eslint-disable-next-line no-console
+      console.error(e);
+    }
+    throw new Error("Failed to get access token");
+  }
 }
 
 /**
@@ -113,27 +124,38 @@ export async function getTirWriteAccessToken(
     descriptor_map: [],
   };
 
-  const response = await axios.post(
-    `${authorisationApiUrl}/token`,
-    new URLSearchParams({
-      grant_type: "vp_token",
-      scope: "openid tir_write",
-      vp_token: vpJwt,
-      presentation_submission: JSON.stringify(presentationSubmission),
-    }).toString(),
-    {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
+  try {
+    const response = await axios.post(
+      `${authorisationApiUrl}/token`,
+      new URLSearchParams({
+        grant_type: "vp_token",
+        scope: "openid tir_write",
+        vp_token: vpJwt,
+        presentation_submission: JSON.stringify(presentationSubmission),
+      }).toString(),
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
       },
-    },
-  );
+    );
 
-  // Decode access token
-  const { access_token: accessToken } = response.data as {
-    access_token: string;
-  };
+    // Decode access token
+    const { access_token: accessToken } = response.data as {
+      access_token: string;
+    };
 
-  return accessToken;
+    return accessToken;
+  } catch (e) {
+    if (axios.isAxiosError(e)) {
+      // eslint-disable-next-line no-console
+      console.error(e.response?.data);
+    } else {
+      // eslint-disable-next-line no-console
+      console.error(e);
+    }
+    throw new Error("Failed to get access token");
+  }
 }
 
 /**
@@ -173,25 +195,36 @@ export async function getDidrWriteAccessToken(
     descriptor_map: [],
   };
 
-  const response = await axios.post(
-    `${authorisationApiUrl}/token`,
-    new URLSearchParams({
-      grant_type: "vp_token",
-      scope: "openid didr_write",
-      vp_token: vpJwt,
-      presentation_submission: JSON.stringify(presentationSubmission),
-    }).toString(),
-    {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
+  try {
+    const response = await axios.post(
+      `${authorisationApiUrl}/token`,
+      new URLSearchParams({
+        grant_type: "vp_token",
+        scope: "openid didr_write",
+        vp_token: vpJwt,
+        presentation_submission: JSON.stringify(presentationSubmission),
+      }).toString(),
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
       },
-    },
-  );
+    );
 
-  // Decode access token
-  const { access_token: accessToken } = response.data as {
-    access_token: string;
-  };
+    // Decode access token
+    const { access_token: accessToken } = response.data as {
+      access_token: string;
+    };
 
-  return accessToken;
+    return accessToken;
+  } catch (e) {
+    if (axios.isAxiosError(e)) {
+      // eslint-disable-next-line no-console
+      console.error(e.response?.data);
+    } else {
+      // eslint-disable-next-line no-console
+      console.error(e);
+    }
+    throw new Error("Failed to get access token");
+  }
 }

@@ -17,13 +17,14 @@ import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import elliptic from "elliptic";
 import { bytes } from "multiformats";
 import { base64url } from "multiformats/bases/base64";
-import { calculateJwkThumbprint } from "jose";
+import { calculateJwkThumbprint, exportJWK, generateKeyPair } from "jose";
 import {
   createVerifiableCredentialJwt,
   type EbsiIssuer,
   type EbsiVerifiableAttestation,
 } from "@cef-ebsi/verifiable-credential";
 import {
+  encode,
   prefixWith0x,
   remove0xPrefix,
   waitToBeMined,
@@ -82,14 +83,19 @@ interface TestIssuer {
   wallet: ethers.Wallet;
 }
 
-async function getEbsiIssuer(privateKey: string, did: string, kid?: string) {
+async function getEbsiIssuer(
+  privateKey: string,
+  did: string,
+  kid?: string,
+  alg: "ES256" | "ES256K" = "ES256",
+) {
   const hexIssuerPrivateKey = privateKey.replace("0x", "");
   const EC = elliptic.ec;
-  const ec = new EC("secp256k1");
+  const ec = new EC(alg === "ES256" ? "p256" : "secp256k1");
   const pubPoint = ec.keyFromPrivate(hexIssuerPrivateKey, "hex").getPublic();
   const issuerPublicKeyJwk = {
     kty: "EC",
-    crv: "secp256k1",
+    crv: alg === "ES256" ? "P-256" : "secp256k1",
     x: base64url.baseEncode(pubPoint.getX().toBuffer("be", 32)),
     y: base64url.baseEncode(pubPoint.getY().toBuffer("be", 32)),
   };
@@ -101,10 +107,11 @@ async function getEbsiIssuer(privateKey: string, did: string, kid?: string) {
   const issuer: EbsiIssuer = {
     did,
     kid: kid || `${did}#${await calculateJwkThumbprint(issuerPublicKeyJwk)}`,
-    alg: "ES256K",
+    alg,
     publicKeyJwk: issuerPublicKeyJwk,
     privateKeyJwk: issuerPrivateKeyJwk,
   };
+
   return issuer;
 }
 
@@ -310,7 +317,7 @@ describeWriteOps()("TIR API v5 - JSON-RPC (e2e)", () => {
   describe.each([
     { method: "setAttributeMetadata" },
     { method: "setAttributeData", useNewIssuer: true },
-  ])("/jsonrpc - %o", ({ method, useNewIssuer = false }) => {
+  ] as const)("/jsonrpc - %o", ({ method, useNewIssuer = false }) => {
     let sender: TestIssuer;
     let senderFirstAttributeId: string;
     let newIssuer: TestIssuer;
@@ -323,6 +330,25 @@ describeWriteOps()("TIR API v5 - JSON-RPC (e2e)", () => {
         const newIssuerDid = EbsiWallet.createDid();
         const newIssuerInfo = await getEbsiIssuer(
           newIssuerPrivateKey,
+          newIssuerDid,
+          undefined,
+          "ES256K",
+        );
+        const {
+          privateKey: newIssuerES256PrivateKey,
+          publicKey: newIssuerES256PublicKey,
+        } = await generateKeyPair("ES256");
+        const newIssuerES256PrivateKeyHex = encode.privateKey.fromJWKToHex(
+          await exportJWK(newIssuerES256PrivateKey),
+        );
+        const newIssuerES256PublicKeyJwk = await exportJWK(
+          newIssuerES256PublicKey,
+        );
+        const newIssuerES256PublicKeyThumbprint = await calculateJwkThumbprint(
+          newIssuerES256PublicKeyJwk,
+        );
+        const newIssuerES256Info = await getEbsiIssuer(
+          newIssuerES256PrivateKeyHex,
           newIssuerDid,
         );
 
@@ -376,6 +402,163 @@ describeWriteOps()("TIR API v5 - JSON-RPC (e2e)", () => {
         let responseSend: SupertestJsonRpcResponse = await request(
           didRegistryApiUrl,
         )
+          .post("/jsonrpc")
+          .auth(didWriteAccessToken, { type: "bearer" })
+          .send({
+            jsonrpc: "2.0",
+            method: "sendSignedTransaction",
+            params: [
+              {
+                protocol: "eth",
+                unsignedTransaction,
+                r: parsedTx.r,
+                s: parsedTx.s,
+                v: `0x${Number(parsedTx.v).toString(16)}`,
+                signedRawTransaction: sgnTx,
+              },
+            ],
+            id: "45",
+          });
+
+        // Wait to be mined
+        await waitToBeMined(ledgerApi, responseSend.body.result as string);
+
+        // Add ES256 verification method to DID document
+        responseBuild = await request(didRegistryApiUrl)
+          .post("/jsonrpc")
+          .auth(didWriteAccessToken, { type: "bearer" })
+          .send({
+            jsonrpc: "2.0",
+            method: "addVerificationMethod",
+            params: [
+              {
+                from: adminIssuer.wallet.address,
+                did: newIssuerInfo.did,
+                vMethodId: newIssuerES256PublicKeyThumbprint,
+                publicKey: `0x${Buffer.from(
+                  JSON.stringify(newIssuerES256PublicKeyJwk),
+                ).toString("hex")}`,
+                isSecp256k1: false,
+              },
+            ],
+            id: 1,
+          });
+
+        unsignedTransaction = responseBuild.body.result;
+
+        uTx = formatEthersUnsignedTransaction(
+          JSON.parse(
+            JSON.stringify(unsignedTransaction),
+          ) as UnsignedTransaction,
+        );
+        uTx.chainId = Number(uTx.chainId);
+        sgnTx = await adminIssuer.wallet.signTransaction(uTx);
+        parsedTx = ethers.utils.parseTransaction(sgnTx);
+        responseSend = await request(didRegistryApiUrl)
+          .post("/jsonrpc")
+          .auth(didWriteAccessToken, { type: "bearer" })
+          .send({
+            jsonrpc: "2.0",
+            method: "sendSignedTransaction",
+            params: [
+              {
+                protocol: "eth",
+                unsignedTransaction,
+                r: parsedTx.r,
+                s: parsedTx.s,
+                v: `0x${Number(parsedTx.v).toString(16)}`,
+                signedRawTransaction: sgnTx,
+              },
+            ],
+            id: "45",
+          });
+
+        // Wait to be mined
+        await waitToBeMined(ledgerApi, responseSend.body.result as string);
+
+        // Register ES256 verification method as assertionMethod
+        responseBuild = await request(didRegistryApiUrl)
+          .post("/jsonrpc")
+          .auth(didWriteAccessToken, { type: "bearer" })
+          .send({
+            jsonrpc: "2.0",
+            method: "addVerificationRelationship",
+            params: [
+              {
+                from: adminIssuer.wallet.address,
+                did: newIssuerInfo.did,
+                name: "assertionMethod",
+                vMethodId: newIssuerES256PublicKeyThumbprint,
+                notBefore: now,
+                notAfter: in6months,
+              },
+            ],
+            id: 1,
+          });
+
+        unsignedTransaction = responseBuild.body.result;
+
+        uTx = formatEthersUnsignedTransaction(
+          JSON.parse(
+            JSON.stringify(unsignedTransaction),
+          ) as UnsignedTransaction,
+        );
+        uTx.chainId = Number(uTx.chainId);
+        sgnTx = await adminIssuer.wallet.signTransaction(uTx);
+        parsedTx = ethers.utils.parseTransaction(sgnTx);
+        responseSend = await request(didRegistryApiUrl)
+          .post("/jsonrpc")
+          .auth(didWriteAccessToken, { type: "bearer" })
+          .send({
+            jsonrpc: "2.0",
+            method: "sendSignedTransaction",
+            params: [
+              {
+                protocol: "eth",
+                unsignedTransaction,
+                r: parsedTx.r,
+                s: parsedTx.s,
+                v: `0x${Number(parsedTx.v).toString(16)}`,
+                signedRawTransaction: sgnTx,
+              },
+            ],
+            id: "45",
+          });
+
+        // Wait to be mined
+        await waitToBeMined(ledgerApi, responseSend.body.result as string);
+
+        // Register ES256 verification method as authentication method
+        responseBuild = await request(didRegistryApiUrl)
+          .post("/jsonrpc")
+          .auth(didWriteAccessToken, { type: "bearer" })
+          .send({
+            jsonrpc: "2.0",
+            method: "addVerificationRelationship",
+            params: [
+              {
+                from: adminIssuer.wallet.address,
+                did: newIssuerInfo.did,
+                name: "authentication",
+                vMethodId: newIssuerES256PublicKeyThumbprint,
+                notBefore: now,
+                notAfter: in6months,
+              },
+            ],
+            id: 1,
+          });
+
+        unsignedTransaction = responseBuild.body.result;
+
+        uTx = formatEthersUnsignedTransaction(
+          JSON.parse(
+            JSON.stringify(unsignedTransaction),
+          ) as UnsignedTransaction,
+        );
+        uTx.chainId = Number(uTx.chainId);
+        sgnTx = await adminIssuer.wallet.signTransaction(uTx);
+        parsedTx = ethers.utils.parseTransaction(sgnTx);
+        responseSend = await request(didRegistryApiUrl)
           .post("/jsonrpc")
           .auth(didWriteAccessToken, { type: "bearer" })
           .send({
@@ -494,7 +677,7 @@ describeWriteOps()("TIR API v5 - JSON-RPC (e2e)", () => {
             info: newIssuerInfo,
             token: await getTirInviteAccessToken(
               authorisationApiUrl,
-              newIssuerInfo,
+              newIssuerES256Info,
               vcJwt,
               trustedHostnames,
             ),
@@ -520,6 +703,12 @@ describeWriteOps()("TIR API v5 - JSON-RPC (e2e)", () => {
     });
 
     it("should return a new unsigned transaction", async () => {
+      if (method === "setAttributeData") {
+        // TIR API v5 would return an error because attributeId does not exist
+        expect.assertions(0);
+        return;
+      }
+
       expect.assertions(2);
 
       let params = {};
@@ -537,17 +726,6 @@ describeWriteOps()("TIR API v5 - JSON-RPC (e2e)", () => {
             attributeIdTao,
             issuerType,
           } satisfies SetAttributeMetadataSchema;
-          break;
-        }
-        case "setAttributeData": {
-          const { attribute } = createIssuer(IssuerType.RootTAO);
-
-          params = {
-            from: sender.wallet.address,
-            did: newIssuer.info.did,
-            attributeId: attribute.id,
-            attributeData: attribute.hex,
-          } satisfies SetAttributeDataSchema;
           break;
         }
         default: {
@@ -580,6 +758,53 @@ describeWriteOps()("TIR API v5 - JSON-RPC (e2e)", () => {
         },
       });
       expect(responseBuild.status).toBe(200);
+    });
+
+    it("should return an error when the attribute ID doesn't exist (setAttributeData only)", async () => {
+      if (method !== "setAttributeData") {
+        expect.assertions(0);
+        return;
+      }
+
+      expect.assertions(2);
+
+      let params = {};
+      const { attribute } = createIssuer(IssuerType.RootTAO);
+
+      switch (method) {
+        case "setAttributeData": {
+          params = {
+            from: sender.wallet.address,
+            did: newIssuer.info.did,
+            attributeId: attribute.id,
+            attributeData: attribute.hex,
+          } satisfies SetAttributeDataSchema;
+          break;
+        }
+        default: {
+          throw new Error("Invalid method");
+        }
+      }
+
+      const responseBuild: SupertestJsonRpcResponse = await request(server)
+        .post("/jsonrpc")
+        .auth(sender.token, { type: "bearer" })
+        .send({
+          jsonrpc: "2.0",
+          method,
+          params: [params],
+          id: 231,
+        });
+
+      expect(responseBuild.body).toStrictEqual({
+        jsonrpc: "2.0",
+        id: 231,
+        error: {
+          code: -32600,
+          message: `Invalid 'params.0.attributeId': Attribute ${attribute.id} does not exist`,
+        },
+      });
+      expect(responseBuild.status).toBe(400);
     });
 
     it("should send a transaction", async () => {
