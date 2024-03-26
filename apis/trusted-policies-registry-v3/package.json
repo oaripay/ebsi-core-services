@@ -24,8 +24,8 @@
     "test:ci": "yarn test:unit --coverage --reporter=default --reporter=vitest-sonar-reporter"
   },
   "dependencies": {
-    "@cef-ebsi/oauth2-auth": "^3.0.1-alpha.1",
-    "@cef-ebsi/siop-auth": "^4.0.1-alpha.1",
+    "@cef-ebsi/oauth2-auth": "^3.0.1",
+    "@cef-ebsi/siop-auth": "^4.0.1",
     "@ebsiint-api/shared": "^1.1.0-rc.6",
     "@ebsiint-sc/trusted-policies-registry-v2": "^2.0.0-rc.2",
     "@ethersproject/address": "^5.7.0",

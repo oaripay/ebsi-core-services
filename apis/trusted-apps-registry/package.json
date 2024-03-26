@@ -24,7 +24,7 @@
     "test:ci": "yarn test:unit --coverage --reporter=default --reporter=vitest-sonar-reporter"
   },
   "dependencies": {
-    "@cef-ebsi/siop-auth": "^4.0.1-alpha.1",
+    "@cef-ebsi/siop-auth": "^4.0.1",
     "@ebsiint-api/shared": "^1.1.0-rc.6",
     "@ebsiint-sc/trusted-apps-registry": "^2.0.1-rc.6",
     "@fastify/helmet": "^11.1.1",
@@ -51,7 +51,7 @@
     "yaml": "^2.4.1"
   },
   "devDependencies": {
-    "@cef-ebsi/wallet-lib": "^5.0.1-alpha.2",
+    "@cef-ebsi/wallet-lib": "^5.0.1",
     "@ethersproject/abstract-provider": "^5.7.0",
     "@nestjs/cli": "^10.3.2",
     "@nestjs/schematics": "^10.1.1",
