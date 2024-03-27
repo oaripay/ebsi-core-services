@@ -1,5 +1,35 @@
 # @ebsiint-sc/admin-scripts
 
+## 2.0.0-rc.7
+
+### Minor Changes
+
+- [c11ee3389aec111c7187909266e143adfc9cec20](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/c11ee3389aec111c7187909266e143adfc9cec20): Add new DID Registry SC version
+
+### Patch Changes
+
+- [1960638f1c5cce829eae0535733d0714632d8841](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/1960638f1c5cce829eae0535733d0714632d8841): Bump dependencies.
+- [e5e5cd041db2e6c9670a596d7526d0e7159efcc5](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/e5e5cd041db2e6c9670a596d7526d0e7159efcc5): Bump dependencies.
+- Updated dependencies [7d078a503d96c4408fe2c78ab995053777d936fe](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/7d078a503d96c4408fe2c78ab995053777d936fe)
+- Updated dependencies [1960638f1c5cce829eae0535733d0714632d8841](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/1960638f1c5cce829eae0535733d0714632d8841)
+- Updated dependencies [e5e5cd041db2e6c9670a596d7526d0e7159efcc5](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/e5e5cd041db2e6c9670a596d7526d0e7159efcc5)
+  - @ebsiint-sc/did-registry-v2@2.0.0-rc.6
+  - @ebsiint-sc/did-registry-v3@3.0.0-rc.3
+  - @ebsiint-sc/trusted-policies-registry-v2@2.0.0-rc.3
+  - @ebsiint-sc/trusted-issuers-registry-v3@3.0.0-rc.4
+  - @ebsiint-sc/trusted-schemas-registry-v2@2.0.0-rc.3
+  - @ebsiint-sc/trusted-policies-registry@1.0.1-rc.7
+  - @ebsiint-sc/trusted-apps-registry-v3@3.0.0-rc.3
+  - @ebsiint-sc/trusted-issuers-registry@2.0.0-rc.7
+  - @ebsiint-sc/trusted-schemas-registry@1.0.1-rc.7
+  - @ebsiint-sc/trusted-apps-registry@2.0.1-rc.7
+  - @ebsiint-sc/bootstrap-v2@2.0.0-rc.3
+  - @ebsiint-sc/did-registry@1.1.0-rc.7
+  - @ebsiint-sc/timestamp-v2@2.0.0-rc.3
+  - @ebsiint-sc/bootstrap@1.0.1-rc.7
+  - @ebsiint-sc/timestamp@1.0.1-rc.7
+  - @ebsiint-sc/proxy@2.0.0-rc.7
+
 ## 2.0.0-rc.6
 
 ### Minor Changes

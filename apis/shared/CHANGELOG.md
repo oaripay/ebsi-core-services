@@ -1,5 +1,20 @@
 # @ebsiint-api/shared
 
+## 1.1.0-rc.7
+
+### Minor Changes
+
+- [520038797ef25f4c8ac19150274b8a5368175dfc](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/520038797ef25f4c8ac19150274b8a5368175dfc): Bump VC and VP libraries, support `JsonSchema` credential schema type.
+
+### Patch Changes
+
+- [82e12c8c38442379aadb957fee5ec8ca4fea4fac](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/82e12c8c38442379aadb957fee5ec8ca4fea4fac): Fix import from validator library (CJS).
+- [3900b6f7697df366effd4110dc1827b6c36c169f](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/3900b6f7697df366effd4110dc1827b6c36c169f): Only accept uncompressed public keys prefixed with 0x04 when the algorithm is ES256K.
+- [1960638f1c5cce829eae0535733d0714632d8841](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/1960638f1c5cce829eae0535733d0714632d8841): Bump dependencies.
+- [1960638f1c5cce829eae0535733d0714632d8841](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/1960638f1c5cce829eae0535733d0714632d8841): Bump jose to v4.15.5, fix CVE-2024-28176.
+- [ddfc40a1f21fae1498059618e71bf1f2e9271ee8](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/ddfc40a1f21fae1498059618e71bf1f2e9271ee8): Bump VC and VP libraries.
+- [e5e5cd041db2e6c9670a596d7526d0e7159efcc5](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/e5e5cd041db2e6c9670a596d7526d0e7159efcc5): Bump dependencies.
+
 ## 1.1.0-rc.6
 
 ### Minor Changes

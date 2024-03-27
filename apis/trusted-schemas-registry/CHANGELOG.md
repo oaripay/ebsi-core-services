@@ -1,5 +1,25 @@
 # Changelog
 
+## 2.0.0-rc.10
+
+### Patch Changes
+
+- [a9c5aae4bcd176080f27498816ea8a55081cb84a](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/a9c5aae4bcd176080f27498816ea8a55081cb84a): Fix JSON-RPC request parameters validation. Ensure that hexadecimal strings are prefixed with "0x".
+- [1960638f1c5cce829eae0535733d0714632d8841](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/1960638f1c5cce829eae0535733d0714632d8841): Bump dependencies.
+- [1960638f1c5cce829eae0535733d0714632d8841](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/1960638f1c5cce829eae0535733d0714632d8841): Bump jose to v4.15.5, fix CVE-2024-28176.
+- [ddfc40a1f21fae1498059618e71bf1f2e9271ee8](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/ddfc40a1f21fae1498059618e71bf1f2e9271ee8): Bump VC and VP libraries.
+- [e5e5cd041db2e6c9670a596d7526d0e7159efcc5](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/e5e5cd041db2e6c9670a596d7526d0e7159efcc5): Bump dependencies.
+- [85e2c4cd45daea5e75d1f68484a0a062348068e0](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/85e2c4cd45daea5e75d1f68484a0a062348068e0): Do not log requests made by the EBSI healthcheck service.
+- Updated dependencies [82e12c8c38442379aadb957fee5ec8ca4fea4fac](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/82e12c8c38442379aadb957fee5ec8ca4fea4fac)
+- Updated dependencies [3900b6f7697df366effd4110dc1827b6c36c169f](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/3900b6f7697df366effd4110dc1827b6c36c169f)
+- Updated dependencies [1960638f1c5cce829eae0535733d0714632d8841](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/1960638f1c5cce829eae0535733d0714632d8841)
+- Updated dependencies [1960638f1c5cce829eae0535733d0714632d8841](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/1960638f1c5cce829eae0535733d0714632d8841)
+- Updated dependencies [ddfc40a1f21fae1498059618e71bf1f2e9271ee8](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/ddfc40a1f21fae1498059618e71bf1f2e9271ee8)
+- Updated dependencies [520038797ef25f4c8ac19150274b8a5368175dfc](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/520038797ef25f4c8ac19150274b8a5368175dfc)
+- Updated dependencies [e5e5cd041db2e6c9670a596d7526d0e7159efcc5](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/e5e5cd041db2e6c9670a596d7526d0e7159efcc5)
+  - @ebsiint-api/shared@1.1.0-rc.7
+  - @ebsiint-sc/trusted-schemas-registry@1.0.1-rc.7
+
 ## 2.0.0-rc.9
 
 ### Patch Changes

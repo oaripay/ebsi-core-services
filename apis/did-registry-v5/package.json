@@ -1,7 +1,7 @@
 {
   "name": "@ebsiint-api/did-registry-api-v5",
   "private": true,
-  "version": "5.0.0-rc.2",
+  "version": "5.0.0-rc.3",
   "type": "module",
   "license": "EUPL-1.2",
   "scripts": {
@@ -25,8 +25,8 @@
   },
   "dependencies": {
     "@cef-ebsi/oauth2-auth": "^3.0.1",
-    "@ebsiint-api/shared": "^1.1.0-rc.6",
-    "@ebsiint-sc/did-registry-v3": "^3.0.0-rc.2",
+    "@ebsiint-api/shared": "^1.1.0-rc.7",
+    "@ebsiint-sc/did-registry-v3": "^3.0.0-rc.3",
     "@ethersproject/address": "^5.7.0",
     "@ethersproject/bignumber": "^5.7.0",
     "@fastify/helmet": "^11.1.1",

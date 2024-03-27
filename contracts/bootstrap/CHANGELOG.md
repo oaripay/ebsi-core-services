@@ -1,5 +1,12 @@
 # @ebsiint-sc/bootstrap
 
+## 1.0.1-rc.7
+
+### Patch Changes
+
+- [1960638f1c5cce829eae0535733d0714632d8841](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/1960638f1c5cce829eae0535733d0714632d8841): Bump dependencies.
+- [e5e5cd041db2e6c9670a596d7526d0e7159efcc5](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/e5e5cd041db2e6c9670a596d7526d0e7159efcc5): Bump dependencies.
+
 ## 1.0.1-rc.6
 
 ### Patch Changes

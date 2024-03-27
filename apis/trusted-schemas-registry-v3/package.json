@@ -1,7 +1,7 @@
 {
   "name": "@ebsiint-api/trusted-schemas-registry-api-v3",
   "private": true,
-  "version": "3.0.0-rc.2",
+  "version": "3.0.0-rc.3",
   "type": "module",
   "license": "EUPL-1.2",
   "scripts": {
@@ -27,8 +27,8 @@
     "@apidevtools/json-schema-ref-parser": "^11.5.4",
     "@cef-ebsi/oauth2-auth": "^3.0.1",
     "@cef-ebsi/siop-auth": "^4.0.1",
-    "@ebsiint-api/shared": "^1.1.0-rc.6",
-    "@ebsiint-sc/trusted-schemas-registry-v2": "^2.0.0-rc.2",
+    "@ebsiint-api/shared": "^1.1.0-rc.7",
+    "@ebsiint-sc/trusted-schemas-registry-v2": "^2.0.0-rc.3",
     "@ethersproject/address": "^5.7.0",
     "@fastify/helmet": "^11.1.1",
     "@nestjs/axios": "^3.0.2",
