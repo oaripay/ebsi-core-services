@@ -26,149 +26,171 @@ export const IS_PUBLIC_KEY_HEX = "isPublicKeyHex";
  *
  * @see https://www.rfc-editor.org/rfc/rfc7517
  */
-export const jwkSchema = z.discriminatedUnion("kty", [
-  /**
-   * Elliptic Curve keys
-   *
-   * @see https://www.rfc-editor.org/rfc/rfc7518#section-6.2
-   */
-  z
-    .object({
-      /**
-       * "kty" (Key Type) Parameter
-       *
-       * The "kty" (key type) parameter identifies the cryptographic algorithm family used with the
-       * key.
-       *
-       * @see https://www.rfc-editor.org/rfc/rfc7517#section-4.1
-       * @see https://www.rfc-editor.org/rfc/rfc7518#section-6.1
-       */
-      kty: z.literal("EC"),
+export const jwkSchema = z
+  .discriminatedUnion("kty", [
+    /**
+     * Elliptic Curve keys
+     *
+     * @see https://www.rfc-editor.org/rfc/rfc7518#section-6.2
+     */
+    z
+      .object({
+        /**
+         * "kty" (Key Type) Parameter
+         *
+         * The "kty" (key type) parameter identifies the cryptographic algorithm family used with the
+         * key.
+         *
+         * @see https://www.rfc-editor.org/rfc/rfc7517#section-4.1
+         * @see https://www.rfc-editor.org/rfc/rfc7518#section-6.1
+         */
+        kty: z.literal("EC"),
 
-      /**
-       * "crv" (Curve) Parameter
-       *
-       * The "crv" (curve) parameter identifies the cryptographic curve used with the key.
-       *
-       * @see https://www.rfc-editor.org/rfc/rfc7518#section-6.2.1.1
-       * @see https://www.rfc-editor.org/rfc/rfc8812#section-3
-       */
-      crv: z.union([
-        z.literal("P-256"),
-        z.literal("P-384"),
-        z.literal("P-521"),
-        z.literal("secp256k1"),
-      ]),
+        /**
+         * "crv" (Curve) Parameter
+         *
+         * The "crv" (curve) parameter identifies the cryptographic curve used with the key.
+         *
+         * @see https://www.rfc-editor.org/rfc/rfc7518#section-6.2.1.1
+         * @see https://www.rfc-editor.org/rfc/rfc8812#section-3
+         */
+        crv: z.union([
+          z.literal("P-256"),
+          z.literal("P-384"),
+          z.literal("P-521"),
+          z.literal("secp256k1"),
+        ]),
 
-      /**
-       * "x" (X Coordinate) Parameter
-       *
-       * The "x" (x coordinate) parameter contains the x coordinate for the Elliptic Curve point. It
-       * is represented as the base64url encoding of the octet string representation of the
-       * coordinate.  The length of this octet string MUST be the full size of a coordinate for the
-       * curve specified in the "crv" parameter.  For example, if the value of "crv" is "P-521", the
-       * octet string must be 66 octets long.
-       *
-       * @see https://www.rfc-editor.org/rfc/rfc7518#section-6.2.1.2
-       */
-      x: z.string().refine(isBase64url),
+        /**
+         * "x" (X Coordinate) Parameter
+         *
+         * The "x" (x coordinate) parameter contains the x coordinate for the Elliptic Curve point. It
+         * is represented as the base64url encoding of the octet string representation of the
+         * coordinate.  The length of this octet string MUST be the full size of a coordinate for the
+         * curve specified in the "crv" parameter.  For example, if the value of "crv" is "P-521", the
+         * octet string must be 66 octets long.
+         *
+         * @see https://www.rfc-editor.org/rfc/rfc7518#section-6.2.1.2
+         */
+        x: z.string().refine(isBase64url),
 
-      /**
-       * "y" (Y Coordinate) Parameter
-       *
-       * @see https://www.rfc-editor.org/rfc/rfc7518#section-6.2.1.3
-       */
-      y: z.string().refine(isBase64url),
-    })
-    .strict(),
+        /**
+         * "y" (Y Coordinate) Parameter
+         *
+         * @see https://www.rfc-editor.org/rfc/rfc7518#section-6.2.1.3
+         */
+        y: z.string().refine(isBase64url),
+      })
+      .passthrough(), // Allow extra properties
 
-  /**
-   * RSA keys
-   *
-   * @see https://www.rfc-editor.org/rfc/rfc7518#section-6.3
-   */
-  z
-    .object({
-      /**
-       * "kty" (Key Type) Parameter
-       *
-       * The "kty" (key type) parameter identifies the cryptographic algorithm family used with the
-       * key.
-       *
-       * @see https://www.rfc-editor.org/rfc/rfc7517#section-4.1
-       * @see https://www.rfc-editor.org/rfc/rfc7518#section-6.1
-       */
-      kty: z.literal("RSA"),
+    /**
+     * RSA keys
+     *
+     * @see https://www.rfc-editor.org/rfc/rfc7518#section-6.3
+     */
+    z
+      .object({
+        /**
+         * "kty" (Key Type) Parameter
+         *
+         * The "kty" (key type) parameter identifies the cryptographic algorithm family used with the
+         * key.
+         *
+         * @see https://www.rfc-editor.org/rfc/rfc7517#section-4.1
+         * @see https://www.rfc-editor.org/rfc/rfc7518#section-6.1
+         */
+        kty: z.literal("RSA"),
 
-      /**
-       * "n" (Modulus) Parameter
-       *
-       * The "n" (modulus) parameter contains the modulus value for the RSA public key. It is
-       * represented as a Base64urlUInt-encoded value.
-       *
-       * @see https://www.rfc-editor.org/rfc/rfc7518#section-6.3.1.1
-       */
-      n: z.string().refine(isBase64url),
+        /**
+         * "n" (Modulus) Parameter
+         *
+         * The "n" (modulus) parameter contains the modulus value for the RSA public key. It is
+         * represented as a Base64urlUInt-encoded value.
+         *
+         * @see https://www.rfc-editor.org/rfc/rfc7518#section-6.3.1.1
+         */
+        n: z.string().refine(isBase64url),
 
-      /**
-       * "e" (Exponent) Parameter
-       *
-       * The "e" (exponent) parameter contains the exponent value for the RSA public key. It is
-       * represented as a Base64urlUInt-encoded value.
-       *
-       * @see https://www.rfc-editor.org/rfc/rfc7518#section-6.3.1.2
-       */
-      e: z.string().refine(isBase64url),
-    })
-    .strict(),
+        /**
+         * "e" (Exponent) Parameter
+         *
+         * The "e" (exponent) parameter contains the exponent value for the RSA public key. It is
+         * represented as a Base64urlUInt-encoded value.
+         *
+         * @see https://www.rfc-editor.org/rfc/rfc7518#section-6.3.1.2
+         */
+        e: z.string().refine(isBase64url),
+      })
+      .passthrough(), // Allow extra properties
 
-  /**
-   * EdDSA keys
-   *
-   * @see https://www.rfc-editor.org/rfc/rfc8032.html
-   * @see https://www.rfc-editor.org/rfc/rfc8037#section-2
-   */
-  z
-    .object({
-      /**
-       * "kty" (Key Type) Parameter
-       *
-       * The "kty" (key type) parameter identifies the cryptographic algorithm family used with the
-       * key.
-       *
-       * @see https://www.rfc-editor.org/rfc/rfc7517#section-4.1
-       * @see https://www.rfc-editor.org/rfc/rfc7518#section-6.1
-       * @see https://www.rfc-editor.org/rfc/rfc8037#section-2
-       */
-      kty: z.literal("OKP"),
+    /**
+     * EdDSA keys
+     *
+     * @see https://www.rfc-editor.org/rfc/rfc8032.html
+     * @see https://www.rfc-editor.org/rfc/rfc8037#section-2
+     */
+    z
+      .object({
+        /**
+         * "kty" (Key Type) Parameter
+         *
+         * The "kty" (key type) parameter identifies the cryptographic algorithm family used with the
+         * key.
+         *
+         * @see https://www.rfc-editor.org/rfc/rfc7517#section-4.1
+         * @see https://www.rfc-editor.org/rfc/rfc7518#section-6.1
+         * @see https://www.rfc-editor.org/rfc/rfc8037#section-2
+         */
+        kty: z.literal("OKP"),
 
-      /**
-       * "crv" (Curve) Parameter
-       *
-       * The "crv" (curve) parameter identifies the cryptographic curve used with the key.
-       *
-       * @see https://www.rfc-editor.org/rfc/rfc8037#section-3.1
-       * @see https://www.rfc-editor.org/rfc/rfc8037#section-3.2
-       */
-      crv: z.union([
-        z.literal("Ed25519"),
-        z.literal("Ed448"),
-        z.literal("X25519"),
-        z.literal("X448"),
-      ]),
+        /**
+         * "crv" (Curve) Parameter
+         *
+         * The "crv" (curve) parameter identifies the cryptographic curve used with the key.
+         *
+         * @see https://www.rfc-editor.org/rfc/rfc8037#section-3.1
+         * @see https://www.rfc-editor.org/rfc/rfc8037#section-3.2
+         */
+        crv: z.union([
+          z.literal("Ed25519"),
+          z.literal("Ed448"),
+          z.literal("X25519"),
+          z.literal("X448"),
+        ]),
 
-      /**
-       * "x" (Public Key) Parameter
-       *
-       * The parameter "x" MUST be present and contain the public key encoded using the base64url
-       * encoding.
-       *
-       * @see https://www.rfc-editor.org/rfc/rfc8037#section-2
-       */
-      x: z.string().refine(isBase64url),
-    })
-    .strict(),
-]);
+        /**
+         * "x" (Public Key) Parameter
+         *
+         * The parameter "x" MUST be present and contain the public key encoded using the base64url
+         * encoding.
+         *
+         * @see https://www.rfc-editor.org/rfc/rfc8037#section-2
+         */
+        x: z.string().refine(isBase64url),
+      })
+      .passthrough(), // Allow extra properties
+  ])
+  .superRefine((key, ctx) => {
+    if (key.kty === "EC" && "d" in key) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "ECC Private Key 'd' is not allowed",
+        fatal: true,
+      });
+    } else if (key.kty === "RSA" && "d" in key) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Private Exponent 'd' is not allowed",
+        fatal: true,
+      });
+    } else if (key.kty === "OKP" && "d" in key) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "EdDSA Private Key 'd' is not allowed",
+        fatal: true,
+      });
+    }
+  });
 
 export function getPublicKeyJwk(value: unknown, isSecp256k1: boolean) {
   if (typeof value !== "string") {
