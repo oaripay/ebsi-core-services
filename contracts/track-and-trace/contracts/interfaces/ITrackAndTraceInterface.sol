@@ -31,6 +31,13 @@ interface ITrackAndTraceInterface {
         mapping(ACCESS_ENUM => ACCOUNT_TYPE) grantedByAccountType;
         bytes subject;
         ACCOUNT_TYPE subjectAccountType;
+        /**
+         * When the subject has "delegate" permission he can grant
+         * write access to other accounts. These accounts are the
+         * "children" of the subject.
+         */
+        bytes[] children;
+        mapping(bytes => uint256) childrenIndex;
     }
 
     struct Timestamp {
@@ -119,7 +126,6 @@ interface ITrackAndTraceInterface {
     );
 
     // errors
-
     error NotUpgrader();
     error InvalidAddress();
     error InvalidPublicKeyLength();
@@ -139,4 +145,5 @@ interface ITrackAndTraceInterface {
     error InvalidArrayLength();
     error InvalidTimestamp();
     error ExternalHashExist();
+    error TooManyDelegatedChildren();
 }

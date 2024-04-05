@@ -24,9 +24,15 @@ export async function deployTrackAndTraceContract(): Promise<{
   ];
   const [admin, upgrader, broadcaster] = signers;
 
+  const trackAndTraceLibFactory = await hre.ethers.getContractFactory(
+    "TrackAndTraceLib",
+    {},
+  );
+  const trackAndTraceLibContract = await trackAndTraceLibFactory.deploy();
+
   const trackAndTraceContractFactory = await hre.ethers.getContractFactory(
     "TrackAndTrace",
-    {},
+    { libraries: { TrackAndTraceLib: trackAndTraceLibContract.address } },
   );
 
   const didMockFactory = await hre.ethers.getContractFactory("DidRegistryMock");
@@ -36,6 +42,7 @@ export async function deployTrackAndTraceContract(): Promise<{
   const trackAndTraceContract = (await hre.upgrades.deployProxy(
     trackAndTraceContractFactory,
     [admin.address, upgrader.address, didRegistryMock.address],
+    { unsafeAllowLinkedLibraries: true },
   )) as unknown as TrackAndTrace;
 
   await didRegistryMock.setDidResult(true);

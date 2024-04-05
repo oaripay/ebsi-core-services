@@ -8,6 +8,7 @@ import "@ebsiint-sc/did-registry-v3/contracts/did-registry/interfaces/IDidRegist
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import {EnumerableMapUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableMapUpgradeable.sol";
 import "@ebsiint-sc/bootstrap-v2/contracts/utils/Pagination.sol";
+import "./libraries/TrackAndTraceLib.sol";
 
 contract TrackAndTrace is
     UUPSUpgradeable,
@@ -21,6 +22,7 @@ contract TrackAndTrace is
 
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
     uint256 public constant MAX_METADATA_LENGTH = 4000;
+    uint256 public constant MAX_DELEGATED_CHILDREN = 10;
 
     // Variables
 
@@ -135,15 +137,7 @@ contract TrackAndTrace is
         ) {
             revert NotDidController();
         }
-        if (
-            _getAccountAccess(
-                documentHash,
-                bytes(documents[documentHash].creator),
-                SCOPE.TNT_CREATE
-            ) == false
-        ) {
-            revert OnlyCreator();
-        }
+
         documentsMapped.remove(documentHash);
         delete documents[documentHash];
     }
@@ -206,54 +200,31 @@ contract TrackAndTrace is
         ACCESS_ENUM permission
     ) external {
         Document storage doc = documents[documentHash];
+        if (
+            !TrackAndTraceLib._equal(
+                revokedByAccount,
+                doc.invited[subjectAccount].grantedBy[permission]
+            )
+        ) {
+            revert OnlyAccessGranter();
+        }
+
         // authorize signer
         if (
             _authorize(
                 revokedByAccount,
                 doc.invited[subjectAccount].grantedByAccountType[permission]
-            ) ==
-            false &&
-            _authorize(revokedByAccount, ACCOUNT_TYPE.DID_EBSI) == false // in case is creator
+            ) == false
         ) {
             revert NotDidController();
         }
-        if (
-            !_equal(
-                revokedByAccount,
-                doc.invited[subjectAccount].grantedBy[permission]
-            ) && !_equal(revokedByAccount, bytes(doc.creator))
-        ) {
-            revert OnlyCreatorOrDelegated();
-        }
-        delete doc.invited[subjectAccount].acc[permission];
-        delete doc.invited[subjectAccount].grantedBy[permission];
-        delete doc.invited[subjectAccount].grantedByAccountType[permission];
-        if (
-            !doc.invited[subjectAccount].acc[ACCESS_ENUM.WRITE] &&
-            !doc.invited[subjectAccount].acc[ACCESS_ENUM.DELEGATE] &&
-            !_equal(subjectAccount, bytes(doc.creator))
-        ) {
-            uint256 index = doc.allInvitedIndex[subjectAccount];
-            if (index > 0) {
-                bytes memory lastAcc = doc.allInvited[
-                    doc.allInvited.length - 1
-                ];
-                doc.allInvited[index] = lastAcc;
-                doc.allInvited.pop();
-                doc.allInvitedIndex[lastAcc] = index;
-                doc.allInvitedIndex[subjectAccount] = 0;
-            }
 
-            index = accessBySubjectIndex[subjectAccount][documentHash];
-            bytes32 lastElement = accessBySubject[subjectAccount][
-                accessBySubject[subjectAccount].length - 1
-            ];
-            accessBySubject[subjectAccount][index] = lastElement;
-            accessBySubject[subjectAccount].pop();
-            accessBySubjectIndex[subjectAccount][lastElement] = index;
-            accessBySubjectIndex[subjectAccount][documentHash] = 0;
-        }
-        emit AccessRevoked(documentHash, subjectAccount, revokedByAccount);
+        _revokeAccess(
+            documentHash,
+            revokedByAccount,
+            subjectAccount,
+            permission
+        );
     }
 
     function writeEvent(WriteEvent calldata eventParams) external {
@@ -480,23 +451,6 @@ contract TrackAndTrace is
         return (grantedByAccounts, grantedByAccountType, access);
     }
 
-    function sliceBytes(
-        bytes calldata pubKeyBytes
-    ) public view returns (bytes memory) {
-        if (pubKeyBytes.length == 65) {
-            require(pubKeyBytes[0] == 0x04, "Invalid control byte");
-            return pubKeyBytes[1:];
-        } else if (pubKeyBytes.length == 64) {
-            return pubKeyBytes;
-        } else {
-            revert("invalid pub key length");
-        }
-    }
-
-    function getWallet(bytes calldata pubKey) public view returns (address) {
-        return getAddress(pubKey);
-    }
-
     // internal functions
 
     function _onInitialize() internal onlyInitializing {}
@@ -568,6 +522,24 @@ contract TrackAndTrace is
         if (_document.invited[subjectAccount].acc[permission]) {
             revert PermissionExists();
         }
+
+        if (
+            !TrackAndTraceLib._equal(grantedByAccount, bytes(_document.creator))
+        ) {
+            // granted by an account with "delegate" permission.
+            // Save the subjectAccount as one of its children
+            if (
+                _document.invited[grantedByAccount].children.length ==
+                MAX_DELEGATED_CHILDREN
+            ) {
+                revert TooManyDelegatedChildren();
+            }
+            _document.invited[grantedByAccount].children.push(subjectAccount);
+            _document.invited[grantedByAccount].childrenIndex[subjectAccount] =
+                _document.invited[grantedByAccount].children.length -
+                1;
+        }
+
         _document.invited[subjectAccount].acc[permission] = true;
         _document.invited[subjectAccount].grantedBy[
             permission
@@ -585,7 +557,7 @@ contract TrackAndTrace is
 
         if (
             _document.allInvitedIndex[subjectAccount] == 0 &&
-            !_equal(_document.allInvited[0], subjectAccount)
+            !TrackAndTraceLib._equal(_document.allInvited[0], subjectAccount)
         ) {
             uint256 index = _document.allInvited.length;
             _document.allInvited.push(subjectAccount);
@@ -610,6 +582,74 @@ contract TrackAndTrace is
             grantedByAccount,
             permission
         );
+    }
+
+    function _revokeAccess(
+        bytes32 documentHash,
+        bytes memory revokedByAccount,
+        bytes memory subjectAccount,
+        ACCESS_ENUM permission
+    ) internal {
+        Document storage doc = documents[documentHash];
+
+        delete doc.invited[subjectAccount].acc[permission];
+        delete doc.invited[subjectAccount].grantedBy[permission];
+        delete doc.invited[subjectAccount].grantedByAccountType[permission];
+        if (
+            !doc.invited[subjectAccount].acc[ACCESS_ENUM.WRITE] &&
+            !doc.invited[subjectAccount].acc[ACCESS_ENUM.DELEGATE] &&
+            !TrackAndTraceLib._equal(subjectAccount, bytes(doc.creator))
+        ) {
+            // remove subject from allInvited
+            uint256 index = doc.allInvitedIndex[subjectAccount];
+            bytes memory lastAcc = doc.allInvited[doc.allInvited.length - 1];
+            doc.allInvited[index] = lastAcc;
+            doc.allInvited.pop();
+            doc.allInvitedIndex[lastAcc] = index;
+            doc.allInvitedIndex[subjectAccount] = 0;
+
+            // remove subject from accessBySubject
+            index = accessBySubjectIndex[subjectAccount][documentHash];
+            bytes32 lastElement = accessBySubject[subjectAccount][
+                accessBySubject[subjectAccount].length - 1
+            ];
+            accessBySubject[subjectAccount][index] = lastElement;
+            accessBySubject[subjectAccount].pop();
+            accessBySubjectIndex[subjectAccount][lastElement] = index;
+            accessBySubjectIndex[subjectAccount][documentHash] = 0;
+        }
+
+        if (
+            permission == ACCESS_ENUM.WRITE &&
+            !TrackAndTraceLib._equal(revokedByAccount, bytes(doc.creator))
+        ) {
+            // revoked by an account with "delegate" permission.
+            // Remove the subjectAccount from the children
+            uint256 index = doc.invited[revokedByAccount].childrenIndex[
+                subjectAccount
+            ];
+            bytes memory lastChild = doc.invited[revokedByAccount].children[
+                doc.invited[revokedByAccount].children.length - 1
+            ];
+            doc.invited[revokedByAccount].children[index] = lastChild;
+            doc.invited[revokedByAccount].childrenIndex[lastChild] = index;
+            doc.invited[revokedByAccount].children.pop();
+            doc.invited[revokedByAccount].childrenIndex[subjectAccount] = 0;
+        }
+
+        if (permission == ACCESS_ENUM.DELEGATE) {
+            while (doc.invited[subjectAccount].children.length > 0) {
+                bytes memory child = doc.invited[subjectAccount].children[0];
+                _revokeAccess(
+                    documentHash,
+                    subjectAccount,
+                    child,
+                    ACCESS_ENUM.WRITE
+                );
+            }
+        }
+
+        emit AccessRevoked(documentHash, subjectAccount, revokedByAccount);
     }
 
     function _writeEvent(
@@ -673,7 +713,7 @@ contract TrackAndTrace is
             (accountType == ACCOUNT_TYPE.DID_EBSI &&
                 didRegistry.checkController(account, msg.sender)) ||
             (accountType == ACCOUNT_TYPE.DID_KEY &&
-                msg.sender == getAddress(account));
+                msg.sender == TrackAndTraceLib.getAddress(account));
     }
 
     function _getAccountAccess(
@@ -699,71 +739,6 @@ contract TrackAndTrace is
         } else {
             return false;
         }
-    }
-
-    function getAddress(
-        bytes memory publicKey
-    ) internal view returns (address) {
-        return address(uint160(uint256(keccak256(this.sliceBytes(publicKey)))));
-    }
-
-    /*
-    Function: equal(bytes memory, bytes memory)
-
-    Assert that two tightly packed bytes arrays are equal.
-
-    Params:
-        A (bytes) - The first bytes.
-        B (bytes) - The second bytes.
-        message (string) - A message that is sent if the assertion fails.
-
-    Returns:
-        result (bool) - The result.
-    */
-    function _equal(
-        bytes memory _a,
-        bytes memory _b
-    ) internal pure returns (bool) {
-        bool returnBool = true;
-
-        assembly {
-            let length := mload(_a)
-
-            // if lengths don't match the arrays are not equal
-            switch eq(length, mload(_b))
-            case 1 {
-                // cb is a circuit breaker in the for loop since there's
-                //  no said feature for inline assembly loops
-                // cb = 1 - don't breaker
-                // cb = 0 - break
-                let cb := 1
-
-                let mc := add(_a, 0x20)
-                let end := add(mc, length)
-
-                for {
-                    let cc := add(_b, 0x20)
-                    // the next line is the loop condition:
-                    // while(uint256(mc < end) + cb == 2)
-                } eq(add(lt(mc, end), cb), 2) {
-                    mc := add(mc, 0x20)
-                    cc := add(cc, 0x20)
-                } {
-                    // if any of these checks fails then arrays are not equal
-                    if iszero(eq(mload(mc), mload(cc))) {
-                        // unsuccess:
-                        returnBool := 0
-                        cb := 0
-                    }
-                }
-            }
-            default {
-                // unsuccess:
-                returnBool := 0
-            }
-        }
-
-        return returnBool;
     }
 
     function compareStrings(

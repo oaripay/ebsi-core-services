@@ -20,16 +20,23 @@ task("trackAndTrace", "Deploy contract Track And Trace")
       const settings = new Settings("track-and-trace");
 
       // get contract
-      const trackAndTraceFactory = await ethers.getContractFactory(
-        "TrackAndTrace",
+      const trackAndTraceLibFactory = await ethers.getContractFactory(
+        "TrackAndTraceLib",
         {},
       );
+      const trackAndTraceLibContract = await trackAndTraceLibFactory.deploy();
+
+      const trackAndTraceFactory = await ethers.getContractFactory(
+        "TrackAndTrace",
+        { libraries: { TrackAndTraceLib: trackAndTraceLibContract.address } },
+      );
+
       // deploy
-      const trackAndTrace = await upgrades.deployProxy(trackAndTraceFactory, [
-        taskArgs.admin,
-        taskArgs.upgrader,
-        taskArgs.registry,
-      ]);
+      const trackAndTrace = await upgrades.deployProxy(
+        trackAndTraceFactory,
+        [taskArgs.admin, taskArgs.upgrader, taskArgs.registry],
+        { unsafeAllowLinkedLibraries: true },
+      );
 
       settings.set("trackAndTraceAddress", trackAndTrace.address);
       settings.set("adminAddress", taskArgs.admin);

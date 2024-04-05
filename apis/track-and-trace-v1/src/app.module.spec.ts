@@ -1278,6 +1278,216 @@ describe("App Module", () => {
       type: "about:blank",
     });
 
+    /**
+     * Check revocation in cascade:
+     * - Grant delegate access to an account
+     * - Use that account to grant write access to other accounts
+     * - Revoke the delegate access
+     * - Check if the children were revoked as well
+     */
+
+    // "documentCreator" creates a new document
+    const document2 = {
+      hash: `0x${randomBytes(32).toString("hex")}`,
+      metadata: "test metadata",
+      creator: documentCreator.did,
+      timestamp: {
+        datetime: "",
+        proof: "",
+      },
+    };
+
+    responseBuild = await buildTransaction({
+      method: "createDocument",
+      params: [
+        {
+          from: documentCreator.wallet.address,
+          documentHash: document2.hash,
+          documentMetadata: document2.metadata,
+          didEbsiCreator: document2.creator,
+        } satisfies CreateDocumentSchema,
+      ],
+      accessToken: documentCreatorCreateAccessToken,
+    });
+
+    expect(responseBuild.status).toBe(200);
+
+    responseSend = await signAndSendTransaction({
+      unsignedTransaction: responseBuild.body.result,
+      signer: documentCreator.wallet,
+      accessToken: documentCreatorCreateAccessToken,
+    });
+
+    expect(responseSend.status).toBe(200);
+
+    // "documentCreator" grants "delegate" permission to "didEbsiEventsCreator" for the document
+    responseBuild = await buildTransaction({
+      method: "grantAccess",
+      params: [
+        {
+          from: documentCreator.wallet.address,
+          documentHash: document2.hash,
+          grantedByAccount: await didToHex(documentCreator.did),
+          grantedByAccType: AccountType.DID_EBSI,
+          subjectAccount: await didToHex(didEbsiEventsCreator.did),
+          subjectAccType: AccountType.DID_EBSI,
+          permission: Permission.DELEGATE,
+        } satisfies GrantAccessSchema,
+      ],
+      accessToken: documentCreatorWriteAccessToken,
+    });
+
+    expect(responseBuild.status).toBe(200);
+
+    responseSend = await signAndSendTransaction({
+      unsignedTransaction: responseBuild.body.result,
+      signer: documentCreator.wallet,
+      accessToken: documentCreatorWriteAccessToken,
+    });
+
+    expect(responseSend.status).toBe(200);
+
+    // "didEbsiEventsCreator" grants "write" permission to multiple accounts
+    for (let i = 0; i < 10; i += 1) {
+      // eslint-disable-next-line no-await-in-loop
+      responseBuild = await buildTransaction({
+        method: "grantAccess",
+        params: [
+          {
+            from: didEbsiEventsCreator.wallet.address,
+            documentHash: document2.hash,
+            // eslint-disable-next-line no-await-in-loop
+            grantedByAccount: await didToHex(didEbsiEventsCreator.did),
+            grantedByAccType: AccountType.DID_EBSI,
+            // eslint-disable-next-line no-await-in-loop
+            subjectAccount: await didToHex(EbsiWallet.createDid()),
+            subjectAccType: AccountType.DID_EBSI,
+            permission: Permission.WRITE,
+          } satisfies GrantAccessSchema,
+        ],
+        accessToken: didEbsiEventsCreatorWriteAccessToken,
+      });
+
+      expect(responseBuild.status).toBe(200);
+
+      // eslint-disable-next-line no-await-in-loop
+      responseSend = await signAndSendTransaction({
+        unsignedTransaction: responseBuild.body.result,
+        signer: didEbsiEventsCreator.wallet,
+        accessToken: didEbsiEventsCreatorWriteAccessToken,
+      });
+
+      expect(responseSend.status).toBe(200);
+    }
+
+    // Check access
+    response = await request(server).get(
+      `/documents/${document2.hash}/accesses?page[after]=1&page[size]=20`,
+    );
+
+    expect(response.body).toStrictEqual({
+      self: expect.stringContaining(
+        `/documents/${document2.hash}/accesses?page[after]=1&page[size]=20`,
+      ),
+      items: [
+        {
+          documentId: document2.hash,
+          grantedBy: documentCreator.did,
+          permission: "creator",
+          subject: documentCreator.did,
+        },
+        {
+          documentId: document2.hash,
+          grantedBy: documentCreator.did,
+          permission: "delegate",
+          subject: didEbsiEventsCreator.did,
+        },
+        ...new Array(10).fill({
+          documentId: document2.hash,
+          grantedBy: didEbsiEventsCreator.did,
+          permission: "write",
+          subject: expect.any(String),
+        }),
+      ] satisfies DocumentAccesses,
+      total: 12,
+      pageSize: 20,
+      links: {
+        first: expect.stringContaining(
+          `/documents/${document2.hash}/accesses?page[after]=1&page[size]=20`,
+        ),
+        prev: expect.stringContaining(
+          `/documents/${document2.hash}/accesses?page[after]=1&page[size]=20`,
+        ),
+        next: expect.stringContaining(
+          `/documents/${document2.hash}/accesses?page[after]=1&page[size]=20`,
+        ),
+        last: expect.stringContaining(
+          `/documents/${document2.hash}/accesses?page[after]=1&page[size]=20`,
+        ),
+      },
+    });
+
+    // "documentCreator" revokes "delegate" permission to "didEbsiEventsCreator" for the document
+    responseBuild = await buildTransaction({
+      method: "revokeAccess",
+      params: [
+        {
+          from: documentCreator.wallet.address,
+          documentHash: document2.hash,
+          revokedByAccount: await didToHex(documentCreator.did),
+          subjectAccount: await didToHex(didEbsiEventsCreator.did),
+          permission: Permission.DELEGATE,
+        } satisfies RevokeAccessSchema,
+      ],
+      accessToken: documentCreatorWriteAccessToken,
+    });
+
+    expect(responseBuild.status).toBe(200);
+
+    responseSend = await signAndSendTransaction({
+      unsignedTransaction: responseBuild.body.result,
+      signer: documentCreator.wallet,
+      accessToken: documentCreatorWriteAccessToken,
+    });
+
+    expect(responseSend.status).toBe(200);
+
+    // Check access
+    response = await request(server).get(
+      `/documents/${document2.hash}/accesses?page[after]=1&page[size]=20`,
+    );
+
+    expect(response.body).toStrictEqual({
+      self: expect.stringContaining(
+        `/documents/${document2.hash}/accesses?page[after]=1&page[size]=20`,
+      ),
+      items: [
+        {
+          documentId: document2.hash,
+          grantedBy: documentCreator.did,
+          permission: "creator",
+          subject: documentCreator.did,
+        },
+        // the other accounts (didEbsiEventsCreator and its children) are revoked
+      ] satisfies DocumentAccesses,
+      total: 1,
+      pageSize: 20,
+      links: {
+        first: expect.stringContaining(
+          `/documents/${document2.hash}/accesses?page[after]=1&page[size]=20`,
+        ),
+        prev: expect.stringContaining(
+          `/documents/${document2.hash}/accesses?page[after]=1&page[size]=20`,
+        ),
+        next: expect.stringContaining(
+          `/documents/${document2.hash}/accesses?page[after]=1&page[size]=20`,
+        ),
+        last: expect.stringContaining(
+          `/documents/${document2.hash}/accesses?page[after]=1&page[size]=20`,
+        ),
+      },
+    });
+
     // End of the test, close server
     await app.close();
   });
