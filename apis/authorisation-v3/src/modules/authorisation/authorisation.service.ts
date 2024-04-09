@@ -234,7 +234,9 @@ export class AuthorisationService {
       try {
         const pex = new PEXv2();
         const result = pex.evaluatePresentation(
-          trimmedPresentationDefinition as PresentationDefinition,
+          trimmedPresentationDefinition as Parameters<
+            PEXv2["evaluatePresentation"]
+          >[0],
           presentation,
         );
 

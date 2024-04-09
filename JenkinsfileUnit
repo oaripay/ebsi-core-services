@@ -179,6 +179,29 @@ pipeline {
                 }
             }
         }
+        stage('Did-Registry-Api-v6') {
+            when {
+                expression { params.api == 'all' || params.api.contains('did-registry-api-v6') }
+            }
+            steps {
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    sh '''
+                        source $NVM_DIR/nvm.sh > /dev/null 2>&1
+                        nvm use > /dev/null 2>&1
+                        yarn nx test:ci @ebsiint-api/did-registry-api-v6
+                    '''
+                }
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    withSonarQubeEnv('LocalSonar'){
+                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=did-registry-api-v6 -Dsonar.projectVersion=1.0 -Dsonar.projectKey=did-registry-api-v6 -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/did-registry-v6"
+                    }
+                    waitForQualityGate abortPipeline: true
+                }
+                script {
+                    sh 'rm ${WORKSPACE}/apis/did-registry-v6/.scannerwork/report-task.txt'
+                }
+            }
+        }
         stage('Ledger-Api') {
             when {
                 expression { params.api == 'all' || params.api.contains('ledger-api') }

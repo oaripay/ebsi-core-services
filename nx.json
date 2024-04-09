@@ -18,8 +18,10 @@
       "{projectRoot}/contracts/**/*",
       "!{projectRoot}/**/*.spec.ts",
       "!{projectRoot}/.solhint*",
+      "{projectRoot}/.graphclientrc.yml",
       "{projectRoot}/hardhat.config.ts",
       "{projectRoot}/nest-cli.json",
+      "{projectRoot}/package.json",
       "{projectRoot}/tsconfig.production.json",
       "{projectRoot}/tsconfig.json"
     ]
@@ -28,12 +30,18 @@
     "build": {
       "inputs": ["production", "^production"],
       "outputs": ["{projectRoot}/dist"],
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "prepare"],
       "cache": true
     },
     "lint": {
       "inputs": ["default", "^production", "!{projectRoot}/.env*"],
       "outputs": [],
+      "dependsOn": ["^build", "prepare"],
+      "cache": true
+    },
+    "prepare": {
+      "inputs": ["production", "^production"],
+      "outputs": ["{projectRoot}/graphclient"],
       "dependsOn": ["^build"],
       "cache": true
     },
@@ -43,30 +51,30 @@
     "start:prod": {
       "inputs": ["production", "^production"],
       "outputs": [],
-      "dependsOn": ["^build"]
+      "dependsOn": ["^build", "build"]
     },
     "test": {
       "inputs": ["test", "^production"],
       "outputs": [],
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "prepare"],
       "cache": true
     },
     "test:unit": {
       "inputs": ["test", "^production"],
       "outputs": [],
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "prepare"],
       "cache": true
     },
     "test:ci": {
       "inputs": ["test", "^production"],
       "outputs": [],
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "prepare"],
       "cache": true
     },
     "test:e2e": {
       "inputs": ["test", "^production"],
       "outputs": [],
-      "dependsOn": ["^build"]
+      "dependsOn": ["^build", "prepare"]
     },
     "compile": {
       "cache": true

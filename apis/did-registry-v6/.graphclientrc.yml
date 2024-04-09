@@ -1,0 +1,9 @@
+# .graphclientrc.yml
+sources:
+  - name: DidRegistry
+    handler:
+      graphql:
+        endpoint: "{context.myCustomEndpoint}"
+        source: "./schema.graphql"
+documents:
+  - ./src/modules/identifiers/queries/queries.graphql

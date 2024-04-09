@@ -1,0 +1,173 @@
+query getDids($skip: Int!, $pagesize: Int!) {
+  didDocuments(first: $pagesize, skip: $skip) {
+    ...DocumentsFields
+  }
+}
+
+query getDidsByController($controller: String!, $skip: Int!, $pagesize: Int!) {
+  didDocuments(
+    first: $pagesize
+    skip: $skip
+    where: { controllers_: { controller: $controller } }
+  ) {
+    ...DocumentsFields
+  }
+}
+
+query getDidsByVerificationRelationship(
+  $vMethodId: Bytes!
+  $vRelationship: String!
+  $skip: Int!
+  $pagesize: Int!
+) {
+  didDocuments(
+    first: $pagesize
+    skip: $skip
+    where: {
+      verificationRelationships_: {
+        and: [{ name: $vRelationship }, { vMethodId: $vMethodId }]
+      }
+    }
+  ) {
+    ...DocumentsFields
+  }
+}
+
+query getDidsByControllerAndVerificationRelationshipQuery(
+  $controller: String
+  $vMethodId: Bytes
+  $vRelationship: String
+  $skip: Int
+  $pagesize: Int
+) {
+  didDocuments(
+    first: $pagesize
+    skip: $skip
+    where: {
+      and: [
+        { controllers_: { controller: $controller } }
+        {
+          verificationRelationships_: {
+            and: [{ name: $vRelationship }, { vMethodId: $vMethodId }]
+          }
+        }
+      ]
+    }
+  ) {
+    ...DocumentsFields
+  }
+}
+
+query getDidDocument($did: ID!) {
+  didDocument(id: $did) {
+    ...DocumentFields
+  }
+}
+
+query getDidDocumentByTimestamp($id: ID!, $did: String, $timestamp: BigInt!) {
+  didDocument(id: $id) {
+    ...DocumentFieldsByTimestamp
+  }
+}
+
+query getDidDocumentEvents($did: ID!, $skip: Int, $pagesize: Int) {
+  didDocument(id: $did) {
+    ...DidDocumentEvents
+  }
+}
+
+fragment DocumentsFields on DidDocument {
+  baseDocument
+  id
+  isSecp256k1
+  notBefore
+  notAfter
+  publicKey
+  vMethodId
+}
+
+fragment DocumentFields on DidDocument {
+  baseDocument
+  id
+  isSecp256k1
+  notBefore
+  notAfter
+  publicKey
+  vMethodId
+  controllers {
+    id
+    controller {
+      id
+    }
+    controlledDocument {
+      id
+    }
+    status
+  }
+  verificationRelationships {
+    id
+    name
+    vMethodId
+    notBefore
+    notAfter
+  }
+  verificationMethods {
+    id
+    publicKey
+    isSecp256k1
+    status
+  }
+}
+
+fragment DocumentFieldsByTimestamp on DidDocument {
+  baseDocument
+  id
+  isSecp256k1
+  notBefore
+  notAfter
+  publicKey
+  vMethodId
+  controllers {
+    id
+    controller {
+      id
+    }
+    controlledDocument {
+      id
+    }
+    status
+  }
+  verificationRelationships(
+    where: {
+      and: [
+        { did: $did }
+        { notBefore_lte: $timestamp }
+        { notAfter_gte: $timestamp }
+      ]
+    }
+  ) {
+    id
+    name
+    vMethodId
+    notBefore
+    notAfter
+  }
+  verificationMethods {
+    id
+    publicKey
+    isSecp256k1
+    status
+  }
+}
+
+fragment DidDocumentEvents on DidDocument {
+  id
+  events(first: $pagesize, skip: $skip) {
+    id
+    event
+    signer
+    timestamp
+    txId
+    blockNumber
+  }
+}
