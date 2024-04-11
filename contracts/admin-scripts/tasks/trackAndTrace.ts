@@ -59,10 +59,20 @@ task("trackAndTraceUpgrade", "Deploy contract Track And Trace").setAction(
     console.log(proxyAddress);
 
     // get contract
-    const trackAndTraceFactory = await ethers.getContractFactory(
-      "TrackAndTrace",
+    const trackAndTraceLibFactory = await ethers.getContractFactory(
+      "TrackAndTraceLib",
       {},
     );
+    const trackAndTraceLibContract = await trackAndTraceLibFactory.deploy();
+
+    // get contract
+    const trackAndTraceFactory = await ethers.getContractFactory(
+      "TrackAndTrace",
+      { libraries: { TrackAndTraceLib: trackAndTraceLibContract.address } },
+    );
+
+    // forceImport
+    await upgrades.forceImport(proxyAddress, trackAndTraceFactory);
 
     console.log(`factory loaded`);
 
@@ -70,10 +80,11 @@ task("trackAndTraceUpgrade", "Deploy contract Track And Trace").setAction(
     const trackAndTrace = await upgrades.upgradeProxy(
       proxyAddress,
       trackAndTraceFactory,
+      { unsafeAllowLinkedLibraries: true },
     );
 
     console.log(
-      `TrackAndTrace contract upgraded to ${trackAndTrace.getImplementation()}`,
+      `TrackAndTrace contract upgraded to ${await trackAndTrace.getImplementation()}`,
     );
   },
 );

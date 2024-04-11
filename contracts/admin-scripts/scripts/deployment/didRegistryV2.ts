@@ -46,11 +46,15 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   };
 
   const controller = await deployments.deploy("ControllersLib", {
+    contract:
+      "contracts/did-registry-v2/did-registry/ControllersLib.sol:ControllersLib",
     ...optsPagination,
   });
   console.log(`Controller deployed;`);
 
   const customPagination = await deployments.deploy("CustomPagination", {
+    contract:
+      "contracts/did-registry-v2/did-registry/CustomPagination.sol:CustomPagination",
     ...optsPagination,
   });
 
@@ -78,6 +82,8 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
     },
   };
   const didDocument = await deployments.deploy("DidDocumentLib", {
+    contract:
+      "contracts/did-registry-v2/did-registry/DidDocumentLib.sol:DidDocumentLib",
     ...optsPagVrel,
   });
 
