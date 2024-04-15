@@ -212,7 +212,7 @@ describe("Authorisation Module", () => {
       "testOidSchemaPattern",
       { infer: true },
     );
-    const iat = Math.round(Date.now() / 1000);
+    const iat = Math.round(Date.now() / 1000) - 5; // issued 5 seconds ago
     const exp = iat + 365 * 24 * 3600;
     const jti = `urn:uuid:${randomUUID()}`;
     const issuanceDate = new Date(iat * 1000).toISOString();
@@ -619,7 +619,7 @@ describe("Authorisation Module", () => {
         expect.assertions(2);
 
         const scope = "openid tnt_create";
-        const issuanceDate = new Date();
+        const issuanceDate = new Date(Date.now() - 5000); // issue 5 seconds ago
         // JWT access token must have 2 hours expiration time and there are no Refresh Tokens.
         const expirationDate = new Date(
           issuanceDate.getTime() + 2 * 60 * 60 * 1000,
@@ -693,7 +693,7 @@ describe("Authorisation Module", () => {
         let expirationDate: Date;
 
         beforeEach(() => {
-          issuanceDate = new Date();
+          issuanceDate = new Date(Date.now() - 5000); // issue 5 seconds ago
           // JWT access token must have 2 hours expiration time and there are no Refresh Tokens.
           expirationDate = new Date(
             issuanceDate.getTime() + 2 * 60 * 60 * 1000,
@@ -2713,7 +2713,7 @@ describe("Authorisation Module", () => {
         expect.assertions(2);
 
         const scope = "openid tnt_authorise";
-        const issuanceDate = new Date();
+        const issuanceDate = new Date(Date.now() - 5000); // issue 5 seconds ago
         // JWT access token must have 2 hours expiration time and there are no Refresh Tokens.
         const expirationDate = new Date(
           issuanceDate.getTime() + 2 * 60 * 60 * 1000,
@@ -3475,7 +3475,7 @@ describe("Authorisation Module", () => {
 
       const scope: Scope = `openid ${customScope}`;
 
-      const issuanceDate = new Date();
+      const issuanceDate = new Date(Date.now() - 5000); // issue 5 seconds ago
       // JWT access token must have 2 hours expiration time and there are no Refresh Tokens.
       const expirationDate = new Date(
         issuanceDate.getTime() + 2 * 60 * 60 * 1000,

@@ -464,7 +464,7 @@ describeWriteOps()("TIR API v4 - JSON-RPC (e2e)", () => {
           await waitToBeMined(ledgerApi, responseSend.body.result as string);
 
           // Admin Issuer issues a "VerifiableAccreditationToAccredit" to the new issuer
-          const issuanceDate = new Date();
+          const issuanceDate = new Date(Date.now() - 5000); // issue 5 seconds ago
           const expirationDate = new Date(
             issuanceDate.getTime() + 2 * 60 * 60 * 1000,
           );

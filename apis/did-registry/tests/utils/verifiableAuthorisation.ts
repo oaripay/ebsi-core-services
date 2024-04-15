@@ -14,7 +14,7 @@ export async function createVerifiableAuthorisation(
   ebsiAuthority: string,
   trustedHostnames?: string[],
 ): Promise<string> {
-  const issuanceDate = new Date();
+  const issuanceDate = new Date(Date.now() - 5000); // issue 5 seconds ago
   const expirationDate = new Date(
     issuanceDate.getTime() + 1000 * 60 * 60 * 24 * 182, // 365/2 = 6 months
   );

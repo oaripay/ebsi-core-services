@@ -498,7 +498,7 @@ describe("Authorisation  API v4 (e2e)", () => {
               client = issuer;
             }
 
-            issuanceDate = new Date();
+            issuanceDate = new Date(Date.now() - 5000); // issue 5 seconds ago
             // JWT access token must have 2 hours expiration time and there are no Refresh Tokens.
             expirationDate = new Date(
               issuanceDate.getTime() + 2 * 60 * 60 * 1000,
