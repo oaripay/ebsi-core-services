@@ -1,5 +1,12 @@
 # @ebsiint-sc/admin-scripts
 
+## 2.0.0-rc.8
+
+### Minor Changes
+
+- [ff07e727ebbcb7ce1376d8df83563c9f23aeefd1](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/ff07e727ebbcb7ce1376d8df83563c9f23aeefd1): Fixed the upgrade scripts for did registry v2 and track and trace
+- [78750bf4bedbeb6186bfab2629a08025e5fe698a](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/78750bf4bedbeb6186bfab2629a08025e5fe698a): Implement revocation in cascade
+
 ## 2.0.0-rc.7
 
 ### Minor Changes

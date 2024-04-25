@@ -41,7 +41,8 @@
     "@ebsiint-api/trusted-schemas-registry-api-v3": "3.0.0-rc.0",
     "@ebsiint-api/track-and-trace-api-v1": "1.0.0-rc.0",
     "@ebsiint-sc/track-and-trace": "1.0.1-rc.5",
-    "@ebsiint-sc/did-registry-v4": "4.0.0-rc.0"
+    "@ebsiint-sc/did-registry-v4": "4.0.0-rc.0",
+    "@ebsiint-api/did-registry-api-v6": "6.0.0-rc.0"
   },
   "changesets": [
     "EBSIINT-4512",
@@ -268,6 +269,7 @@
     "EBSIINT-8699",
     "EBSIINT-8710",
     "EBSIINT-8778",
+    "EBSIINT-8780",
     "EBSIINT-8816-auth-tnt-authorise",
     "EBSIINT-8816-grantAccess",
     "EBSIINT-8816-revokedByAccount",
@@ -280,6 +282,8 @@
     "EBSIINT-8830-tnt-fix",
     "EBSIINT-8830",
     "EBSIINT-8844",
+    "EBSIINT-8863-fixed_upgrade_scripts",
+    "EBSIINT-8863",
     "EBSIINT-8905",
     "EBSIINT-8927-docker",
     "EBSIINT-8927-jwt-vp-json",
@@ -299,6 +303,11 @@
     "EBSIINT-9247-deps",
     "EBSIINT-9247-e2e-tests-tir-v5",
     "EBSIINT-9247-e2e-tests",
-    "EBSIINT-9247-logs"
+    "EBSIINT-9247-logs",
+    "EBSIINT-9247-release",
+    "EBSIINT-9310",
+    "EBSIINT-9313",
+    "EBSIINT-9341",
+    "EBSIINT-9373"
   ]
 }

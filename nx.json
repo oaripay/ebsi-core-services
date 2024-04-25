@@ -41,7 +41,7 @@
     },
     "prepare": {
       "inputs": ["production", "^production"],
-      "outputs": ["{projectRoot}/graphclient"],
+      "outputs": ["{projectRoot}/.graphclient"],
       "dependsOn": ["^build"],
       "cache": true
     },

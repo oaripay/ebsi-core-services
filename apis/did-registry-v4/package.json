@@ -1,7 +1,7 @@
 {
   "name": "@ebsiint-api/did-registry-api-v4",
   "private": true,
-  "version": "4.0.0-rc.7",
+  "version": "4.0.0-rc.8",
   "type": "module",
   "license": "EUPL-1.2",
   "scripts": {
@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "@cef-ebsi/oauth2-auth": "^3.0.1",
-    "@ebsiint-api/shared": "^1.1.0-rc.7",
+    "@ebsiint-api/shared": "^1.1.0-rc.8",
     "@ebsiint-sc/did-registry": "^1.1.0-rc.7",
     "@ebsiint-sc/did-registry-v2": "^2.0.0-rc.6",
     "@fastify/helmet": "^11.1.1",

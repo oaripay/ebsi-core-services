@@ -1,5 +1,16 @@
 # @ebsiint-api/did-registry-api-v4
 
+## 4.0.0-rc.8
+
+### Patch Changes
+
+- [b8b8b09c11f84e7809fdea74f93167141eb3916e](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/b8b8b09c11f84e7809fdea74f93167141eb3916e): Verify if the credentials are valid at the current time.
+- [57664612da9826a6db50734cb03728133be5eec9](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/57664612da9826a6db50734cb03728133be5eec9): Allow extra properties in verification method JWK.
+- [713311de4a45a79c4059b58bb42bf2e258205aac](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/713311de4a45a79c4059b58bb42bf2e258205aac): Validate dates of credentials linked in termsOfUse
+- Updated dependencies [b8b8b09c11f84e7809fdea74f93167141eb3916e](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/b8b8b09c11f84e7809fdea74f93167141eb3916e)
+- Updated dependencies [713311de4a45a79c4059b58bb42bf2e258205aac](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/713311de4a45a79c4059b58bb42bf2e258205aac)
+  - @ebsiint-api/shared@1.1.0-rc.8
+
 ## 4.0.0-rc.7
 
 ### Minor Changes

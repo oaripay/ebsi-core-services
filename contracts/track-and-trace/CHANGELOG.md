@@ -1,5 +1,11 @@
 # @ebsiint-sc/track-and-trace
 
+## 1.0.0-rc.2
+
+### Minor Changes
+
+- [78750bf4bedbeb6186bfab2629a08025e5fe698a](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/78750bf4bedbeb6186bfab2629a08025e5fe698a): Implement revocation in cascade
+
 ## 1.0.0-rc.1
 
 ### Minor Changes
