@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "@cef-ebsi/oauth2-auth": "^3.0.1",
-    "@cef-ebsi/verifiable-credential": "^5.4.0",
+    "@cef-ebsi/verifiable-credential": "^5.5.0-alpha.0",
     "@ebsiint-api/shared": "^1.1.0-rc.8",
     "@ebsiint-sc/trusted-issuers-registry-v3": "^3.0.0-rc.4",
     "@ethersproject/address": "^5.7.0",
@@ -58,7 +58,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@cef-ebsi/verifiable-presentation": "^6.3.0",
+    "@cef-ebsi/verifiable-presentation": "^6.4.0-alpha.0",
     "@cef-ebsi/wallet-lib": "^5.0.1",
     "@nestjs/cli": "^10.3.2",
     "@nestjs/schematics": "^10.1.1",
