@@ -24,8 +24,8 @@
     "test:ci": "yarn test:unit --coverage --reporter=default --reporter=vitest-sonar-reporter"
   },
   "dependencies": {
-    "@cef-ebsi/verifiable-credential": "^5.5.0-alpha.0",
-    "@cef-ebsi/verifiable-presentation": "^6.4.0-alpha.0",
+    "@cef-ebsi/verifiable-credential": "^5.5.0-alpha.1",
+    "@cef-ebsi/verifiable-presentation": "^6.4.0-alpha.1",
     "@cef-ebsi/wallet-lib": "^5.0.1",
     "@ebsiint-api/shared": "^1.1.0-rc.8",
     "@fastify/formbody": "^7.4.0",
