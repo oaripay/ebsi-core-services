@@ -1,5 +1,15 @@
 # Changelog
 
+## 4.0.0-rc.5
+
+### Patch Changes
+
+- [d3a4a64a16df2bbeec587aadbf7bb5c02c577316](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/d3a4a64a16df2bbeec587aadbf7bb5c02c577316): Bump VC and VP libraries.
+- [c66c349218fe427cfa59df0973b987ce14bbec09](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/c66c349218fe427cfa59df0973b987ce14bbec09): Support VC with credentialStatus as an array.
+- Updated dependencies [d3a4a64a16df2bbeec587aadbf7bb5c02c577316](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/d3a4a64a16df2bbeec587aadbf7bb5c02c577316)
+- Updated dependencies [c66c349218fe427cfa59df0973b987ce14bbec09](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/c66c349218fe427cfa59df0973b987ce14bbec09)
+  - @ebsiint-api/shared@1.1.0-rc.9
+
 ## 4.0.0-rc.4
 
 ### Patch Changes

@@ -307,7 +307,11 @@
     "EBSIINT-9247-release",
     "EBSIINT-9310",
     "EBSIINT-9313",
+    "EBSIINT-9326",
     "EBSIINT-9341",
-    "EBSIINT-9373"
+    "EBSIINT-9373-release",
+    "EBSIINT-9373",
+    "EBSIINT-9562",
+    "EBSIINT-9590"
   ]
 }

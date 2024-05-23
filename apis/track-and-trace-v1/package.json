@@ -1,7 +1,7 @@
 {
   "name": "@ebsiint-api/track-and-trace-api-v1",
   "private": true,
-  "version": "1.0.0-rc.2",
+  "version": "1.0.0-rc.3",
   "type": "module",
   "license": "EUPL-1.2",
   "scripts": {
@@ -26,7 +26,7 @@
   "dependencies": {
     "@cef-ebsi/key-did-resolver": "^2.0.1",
     "@cef-ebsi/oauth2-auth": "^3.0.1",
-    "@ebsiint-api/shared": "^1.1.0-rc.8",
+    "@ebsiint-api/shared": "^1.1.0-rc.9",
     "@ebsiint-sc/track-and-trace": "1.0.0-rc.2",
     "@ethersproject/address": "^5.7.0",
     "@ethersproject/bignumber": "^5.7.0",
