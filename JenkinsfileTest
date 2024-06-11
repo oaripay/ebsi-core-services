@@ -24,7 +24,22 @@ pipeline {
         '''
       }
     }
-    stage("Build and test the feature branch") {
+    stage('Prepare tests') {
+      when {
+        not {
+          branch 'main'
+        }
+      }
+      steps {
+        sh '''
+          source $NVM_DIR/nvm.sh > /dev/null 2>&1
+          nvm install > /dev/null 2>&1
+          node -v
+          yarn nx affected --target=prepare
+        '''
+      }
+    }
+    stage("Test the feature branch") {
       when {
         not {
           branch 'main'

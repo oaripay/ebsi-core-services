@@ -1,0 +1,253 @@
+import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
+import request from "supertest";
+import { ethers } from "ethers";
+import { Test, type TestingModule } from "@nestjs/testing";
+import { ValidationPipe, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import {
+  FastifyAdapter,
+  type NestFastifyApplication,
+} from "@nestjs/platform-fastify";
+import type { RawServerDefault } from "fastify";
+import { UsersModule } from "./users.module.js";
+import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
+import { setupTestEnv } from "../../../tests/utils/trustedPoliciesRegistry.js";
+import { LedgerService } from "../ledger/ledger.service.js";
+import type { ApiConfig } from "../../config/configuration.js";
+// eslint-disable-next-line import/extensions
+import { graphServer } from "../../../tests/utils/graphServer.js";
+import { USERS_TOTAL } from "../../../tests/utils/data.js";
+
+describe("Policies Module", () => {
+  let app: NestFastifyApplication;
+  let server: RawServerDefault;
+  let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
+  let configService: ConfigService<ApiConfig, true>;
+
+  beforeAll(async () => {
+    // Spin up test blockchain (ganache)
+    testEnv = await setupTestEnv();
+    const { policiesRegistryContract } = testEnv;
+
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [UsersModule],
+    }).compile();
+
+    app = moduleFixture.createNestApplication<NestFastifyApplication>(
+      new FastifyAdapter(),
+    );
+
+    // Turn off logger
+    Logger.overrideLogger(false);
+
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
+
+    app.useGlobalFilters(new AllExceptionsFilter(configService));
+    app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
+    await app.init();
+    await app.getHttpAdapter().getInstance().ready();
+
+    server = app.getHttpServer();
+
+    // Mock contract
+    const ledgerService = moduleFixture.get<LedgerService>(LedgerService);
+
+    vi.spyOn(ledgerService, "getContract").mockImplementation(async () =>
+      Promise.resolve(policiesRegistryContract),
+    );
+
+    graphServer.listen({
+      // This is to ignore GET/POST Requests and only focus on GraphQL
+      onUnhandledRequest: "bypass",
+    });
+  });
+
+  afterAll(async () => {
+    await app.close();
+    graphServer.close();
+  });
+
+  describe("GET /users", () => {
+    it("should return a paginated collection of users", async () => {
+      expect.assertions(3);
+
+      const response = await request(server).get("/users");
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining("/users?page[after]=1&page[size]=10"),
+        items: expect.arrayContaining([]),
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining("/users?page[after]=1&page[size]=10"),
+          prev: expect.stringContaining("/users?page[after]=1&page[size]=10"),
+          next: expect.stringContaining(
+            `/users?page[after]=${Math.min(
+              Math.ceil(USERS_TOTAL / 10),
+              2,
+            )}&page[size]=10`,
+          ),
+        },
+      });
+      expect((response.body as { items: string }).items).toHaveLength(
+        Math.min(10, USERS_TOTAL),
+      );
+      expect(response.status).toBe(200);
+    });
+
+    it("should handle the pagination properly", async () => {
+      expect.assertions(12);
+
+      const response1 = await request(server).get("/users?page[size]=3");
+      expect(response1.body).toStrictEqual({
+        self: expect.stringContaining("/users?page[after]=1&page[size]=3"),
+        items: expect.arrayContaining([]),
+        pageSize: 3,
+        links: {
+          first: expect.stringContaining("/users?page[after]=1&page[size]=3"),
+          prev: expect.stringContaining("/users?page[after]=1&page[size]=3"),
+          next: expect.stringContaining("/users?page[after]=2&page[size]=3"),
+        },
+      });
+      expect((response1.body as { items: string }).items).toHaveLength(3);
+      expect(response1.status).toBe(200);
+
+      // next page
+      const response2 = await request(server).get(
+        "/users?page[after]=2&page[size]=3",
+      );
+      expect(response2.body).toStrictEqual({
+        self: expect.stringContaining("/users"),
+        items: expect.arrayContaining([]),
+        pageSize: 3,
+        links: {
+          first: expect.stringContaining("/users?page[after]=1&page[size]=3"),
+          prev: expect.stringContaining("/users?page[after]=1&page[size]=3"),
+          next: expect.stringContaining("/users?page[after]=3&page[size]=3"),
+        },
+      });
+      expect((response2.body as { items: string }).items).toHaveLength(3);
+      expect(response2.status).toBe(200);
+
+      // big page
+      const response3 = await request(server).get(
+        "/users?page[after]=100&page[size]=3",
+      );
+      expect(response3.body).toStrictEqual({
+        self: expect.stringContaining("/users?page[after]=100&page[size]=3"),
+        items: expect.arrayContaining([]),
+        pageSize: 3,
+        links: {
+          first: expect.stringContaining("/users?page[after]=1&page[size]=3"),
+          prev: expect.stringContaining("/users?page[after]=99&page[size]=3"),
+          next: expect.stringContaining("/users?page[after]=100&page[size]=3"),
+          last: expect.stringContaining("/users?page[after]=100&page[size]=3"),
+        },
+      });
+      expect((response3.body as { items: string }).items).toHaveLength(0);
+      expect(response3.status).toBe(200);
+
+      // page after defined but page size undefined
+      const response4 = await request(server).get("/users?page[after]=1");
+      expect(response4.body).toStrictEqual({
+        self: expect.stringContaining("/users"),
+        items: expect.arrayContaining([]),
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining("/users?page[after]=1&page[size]=10"),
+          prev: expect.stringContaining("/users?page[after]=1&page[size]=10"),
+          next: expect.stringContaining("/users?page[after]=2&page[size]=10"),
+        },
+      });
+      expect((response4.body as { items: string }).items).toHaveLength(10);
+      expect(response4.status).toBe(200);
+    });
+
+    it("should throw a Bad Request for bad pagination", async () => {
+      expect.assertions(8);
+
+      const response1 = await request(server).get("/users?page[size]=100");
+      expect(response1.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[size] must not be greater than 50"]',
+        type: "about:blank",
+      });
+      expect(response1.status).toBe(400);
+
+      const response2 = await request(server).get("/users?page[size]=0");
+      expect(response2.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[size] must not be less than 1"]',
+        type: "about:blank",
+      });
+      expect(response2.status).toBe(400);
+
+      const response3 = await request(server).get("/users?page[after]=0");
+      expect(response3.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["page[after] must not be less than 1"]',
+        type: "about:blank",
+      });
+      expect(response3.status).toBe(400);
+
+      const response4 = await request(server).get("/users?page[after]=abc");
+      expect(response4.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail:
+          '["page[after] must not be less than 1","page[after] must be a number conforming to the specified constraints"]',
+        type: "about:blank",
+      });
+      expect(response4.status).toBe(400);
+    });
+  });
+
+  describe("GET /users/{address}", () => {
+    it("should return a specific user", async () => {
+      expect.assertions(2);
+
+      // Get first user
+      const user = testEnv.users[0]!;
+
+      const response = await request(server).get(`/users/${user.user}`);
+
+      expect(response.body).toStrictEqual({
+        user: user.user,
+        attributes: user.attributes,
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should throw an error for bad requests", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get("/users/bad-address");
+
+      expect(response.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: `["user must be an Ethereum address"]`,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
+    it("should throw an error if the user is not found", async () => {
+      expect.assertions(2);
+
+      const randomAddress = ethers.Wallet.createRandom().address;
+      const response = await request(server).get(`/users/${randomAddress}`);
+
+      expect(response.body).toStrictEqual({
+        title: "User Not Found",
+        status: 404,
+        detail: expect.stringContaining(`User ${randomAddress} not found`),
+        type: "about:blank",
+      });
+      expect(response.status).toBe(404);
+    });
+  });
+});

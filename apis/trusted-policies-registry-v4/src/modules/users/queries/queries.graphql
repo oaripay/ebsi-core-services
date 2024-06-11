@@ -1,0 +1,12 @@
+query getUsers($skip: Int!, $pagesize: Int!) {
+  users(first: $pagesize, skip: $skip) {
+    id
+  }
+}
+
+query getUser($user: ID!) {
+  user(id: $user) {
+    id
+    attributes
+  }
+}

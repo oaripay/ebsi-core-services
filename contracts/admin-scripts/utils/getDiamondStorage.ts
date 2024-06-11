@@ -1,7 +1,8 @@
 export function getDiamondStorage(contractName) {
   switch (contractName) {
     case "PolicyRegistry":
-    case "PolicyRegistryV2": {
+    case "PolicyRegistryV2":
+    case "PolicyRegistryV3": {
       return "diamond.standard.policy.registry.storage";
     }
     case "DidRegistry":

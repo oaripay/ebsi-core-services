@@ -57,6 +57,9 @@ cp -r ${SCRIPT_DIR}/../../trusted-policies-registry/contracts ${SCRIPT_DIR}/../c
 echo Copy the trusted-policies-registry-v2
 cp -r ${SCRIPT_DIR}/../../trusted-policies-registry-v2/contracts ${SCRIPT_DIR}/../contracts/trusted-policies-registry-v2
 
+echo Copy the trusted-policies-registry-v3
+cp -r ${SCRIPT_DIR}/../../trusted-policies-registry-v3/contracts ${SCRIPT_DIR}/../contracts/trusted-policies-registry-v3
+
 echo Copy the trusted-schemas-registry
 cp -r ${SCRIPT_DIR}/../../trusted-schemas-registry/contracts ${SCRIPT_DIR}/../contracts/trusted-schemas-registry
 
