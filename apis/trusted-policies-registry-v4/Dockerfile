@@ -15,6 +15,7 @@ COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/apis/trusted-policies-registry-v4/package.json ./apis/trusted-policies-registry-v4/package.json
 COPY --from=builder /app/apis/trusted-policies-registry-v4/dist ./apis/trusted-policies-registry-v4/dist
 COPY --from=builder /app/apis/trusted-policies-registry-v4/api ./apis/trusted-policies-registry-v4/api
+COPY --from=builder /app/apis/trusted-policies-registry-v4/.graphclient ./apis/trusted-policies-registry-v4/.graphclient
 # Copy TPR SC v3
 COPY --from=builder /app/contracts/trusted-policies-registry-v3/package.json ./contracts/trusted-policies-registry-v3/package.json
 COPY --from=builder /app/contracts/trusted-policies-registry-v3/dist ./contracts/trusted-policies-registry-v3/dist
