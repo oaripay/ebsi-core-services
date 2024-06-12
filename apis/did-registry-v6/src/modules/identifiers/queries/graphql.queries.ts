@@ -1,6 +1,6 @@
 export function getDidsQuery() {
   return /* GraphQL */ `
-    query getDids($skip: Int, $pagesize: Int) {
+    query GetDids($skip: Int, $pagesize: Int) {
       didDocuments(first: $pagesize, skip: $skip) {
         baseDocument
         id
@@ -16,7 +16,7 @@ export function getDidsQuery() {
 
 export function getDidsByControllerQuery() {
   return /* GraphQL */ `
-    query getDidsByController($controller: String, $skip: Int, $pagesize: Int) {
+    query GetDidsByController($controller: String, $skip: Int, $pagesize: Int) {
       didDocuments(
         first: $pagesize
         skip: $skip
@@ -36,7 +36,7 @@ export function getDidsByControllerQuery() {
 
 export function getDidsByVerificationRelationshipQuery() {
   return /* GraphQL */ `
-    query getDidsByVerificationRelationship(
+    query GetDidsByVerificationRelationship(
       $vMethodId: String
       $vRelationship: String
       $skip: Int
@@ -65,7 +65,7 @@ export function getDidsByVerificationRelationshipQuery() {
 
 export function getDidsByControllerAndVerificationRelationshipQuery() {
   return /* GraphQL */ `
-    query getDidsByControllerAndVerificationRelationshipQuery(
+    query GetDidsByControllerAndVerificationRelationshipQuery(
       $controller: String
       $vMethodId: String
       $vRelationship: String
@@ -100,7 +100,7 @@ export function getDidsByControllerAndVerificationRelationshipQuery() {
 
 export function getDidDocumentQuery() {
   return /* GraphQL */ `
-    query getDidDocument($did: String) {
+    query GetDidDocument($did: String) {
       didDocument(id: $did) {
         id
         baseDocument
@@ -139,7 +139,7 @@ export function getDidDocumentQuery() {
 
 export function getDidDocumentByTimestampQuery() {
   return /* GraphQL */ `
-    query getDidDocument($did: String, $timestamp: Int) {
+    query GetDidDocument($did: String, $timestamp: Int) {
       didDocument(id: $did) {
         id
         baseDocument
@@ -186,7 +186,7 @@ export function getDidDocumentByTimestampQuery() {
 
 export function getDidDocumentEventsQuery() {
   return /* GraphQL */ `
-    query getDidDocumentEvents($did: String, $skip: Int, $pagesize: Int) {
+    query GetDidDocumentEvents($did: String, $skip: Int, $pagesize: Int) {
       didDocument(id: $did) {
         id
         events(first: $pagesize, skip: $skip) {

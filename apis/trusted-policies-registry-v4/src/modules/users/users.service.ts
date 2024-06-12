@@ -15,7 +15,7 @@ export class UsersService {
     try {
       // get one more item to clarify next pages in pagination
       const queryPageSize = pagesize + 1;
-      const res = await sdk.getUsers({ skip, pagesize: queryPageSize });
+      const res = await sdk.GetUsers({ skip, pagesize: queryPageSize });
       const users = res.users.map((u) => u.id);
       return { items: users };
     } catch (error) {
@@ -27,7 +27,7 @@ export class UsersService {
 
   async getUser(user: string): Promise<UserResponseObject> {
     try {
-      const res = await sdk.getUser({ user });
+      const res = await sdk.GetUser({ user });
       if (!res.user) throw new Error("not found");
 
       return {

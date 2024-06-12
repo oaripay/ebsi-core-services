@@ -32,7 +32,7 @@
     "@ethersproject/address": "^5.7.0",
     "@ethersproject/bignumber": "^5.7.0",
     "@fastify/helmet": "^11.1.1",
-    "@graphprotocol/client-cli": "^3.0.0",
+    "@graphprotocol/client-cli": "^3.0.3",
     "@nestjs/axios": "^3.0.2",
     "@nestjs/cache-manager": "^2.2.2",
     "@nestjs/common": "^10.3.5",

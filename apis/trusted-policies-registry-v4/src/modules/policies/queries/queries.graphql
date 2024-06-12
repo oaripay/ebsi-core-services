@@ -1,10 +1,10 @@
-query getPolicyNames($skip: Int!, $pagesize: Int!) {
+query GetPolicyNames($skip: Int!, $pagesize: Int!) {
   policies(first: $pagesize, skip: $skip) {
     policyName
   }
 }
 
-query getPolicy($policyName: String!) {
+query GetPolicy($policyName: String!) {
   policies(first: 1, where: { policyName: $policyName }) {
     id
     policyName

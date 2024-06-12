@@ -1,19 +1,15 @@
 // eslint-disable-next-line import/extensions, import/no-relative-packages
-import { Scalars } from "../../../.graphclient/index.js";
+import type { Event as GraphClientEvent } from "../../../.graphclient/index.js";
 
 export interface DidLink {
   did: string;
   href: string;
 }
 
-export interface Event {
-  id: Scalars["Bytes"];
-  signer: Scalars["Bytes"];
-  blockNumber: Scalars["BigInt"];
-  timestamp: Scalars["BigInt"];
-  event: Scalars["String"];
-  txId: Scalars["Bytes"];
-}
+export type Event = Pick<
+  GraphClientEvent,
+  "id" | "event" | "signer" | "timestamp" | "txId" | "blockNumber"
+>;
 
 export interface DidDocumentData {
   didDocument: DidDocument;
@@ -82,10 +78,6 @@ export interface Events {
   events: Event[];
   prevPageEvents: Event[];
   nextPageEvents: Event[];
-}
-
-export interface DidsArray {
-  didDocuments: DidDocument[];
 }
 
 export interface VerificationMethod {

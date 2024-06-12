@@ -54,7 +54,7 @@ Note that by default smart contracts will be deployed locally using hardhat deve
 
 ### Requirements:
 
-- node 20.11.1 (use nvm)
+- node 20.14.0 (use nvm)
 
 ### Launch all tests
 

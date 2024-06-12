@@ -146,7 +146,7 @@ const didsData: unknown[] = [];
 dids.forEach((did) => didsData.push(did.didDocument));
 
 export const handlers = [
-  graphql.query("getDids", ({ variables }) => {
+  graphql.query("GetDids", ({ variables }) => {
     const { skip, pagesize } = variables;
 
     if (skip === 0 && pagesize === 2) {
@@ -195,7 +195,7 @@ export const handlers = [
       },
     });
   }),
-  graphql.query("getDidsByController", ({ variables }) => {
+  graphql.query("GetDidsByController", ({ variables }) => {
     const { controller, skip, pagesize } = variables;
 
     if (controller === `${did2}#${did2}`) {
@@ -244,7 +244,7 @@ export const handlers = [
       },
     });
   }),
-  graphql.query("getDidsByVerificationRelationship", ({ variables }) => {
+  graphql.query("GetDidsByVerificationRelationship", ({ variables }) => {
     const { vMethodId, vRelationship, skip, pagesize } = variables;
 
     if (
@@ -273,7 +273,7 @@ export const handlers = [
       },
     });
   }),
-  graphql.query("getDidDocument", ({ variables }) => {
+  graphql.query("GetDidDocument", ({ variables }) => {
     const { did } = variables;
 
     if (did === did2) {
@@ -315,7 +315,7 @@ export const handlers = [
   }),
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  graphql.query("getDidDocumentByTimestamp", ({ variables }) => {
+  graphql.query("GetDidDocumentByTimestamp", ({ variables }) => {
     const { did, timestamp } = variables;
 
     if (did === did2 && timestamp === 1713484800) {

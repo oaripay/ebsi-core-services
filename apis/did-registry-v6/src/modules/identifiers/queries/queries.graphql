@@ -1,10 +1,10 @@
-query getDids($skip: Int!, $pagesize: Int!) {
+query GetDids($skip: Int!, $pagesize: Int!) {
   didDocuments(first: $pagesize, skip: $skip) {
     ...DocumentsFields
   }
 }
 
-query getDidsByController($controller: String!, $skip: Int!, $pagesize: Int!) {
+query GetDidsByController($controller: String!, $skip: Int!, $pagesize: Int!) {
   didDocuments(
     first: $pagesize
     skip: $skip
@@ -14,7 +14,7 @@ query getDidsByController($controller: String!, $skip: Int!, $pagesize: Int!) {
   }
 }
 
-query getDidsByVerificationRelationship(
+query GetDidsByVerificationRelationship(
   $vMethodId: Bytes!
   $vRelationship: String!
   $skip: Int!
@@ -33,7 +33,7 @@ query getDidsByVerificationRelationship(
   }
 }
 
-query getDidsByControllerAndVerificationRelationshipQuery(
+query GetDidsByControllerAndVerificationRelationshipQuery(
   $controller: String
   $vMethodId: Bytes
   $vRelationship: String
@@ -58,19 +58,19 @@ query getDidsByControllerAndVerificationRelationshipQuery(
   }
 }
 
-query getDidDocument($did: ID!) {
+query GetDidDocument($did: ID!) {
   didDocument(id: $did) {
     ...DocumentFields
   }
 }
 
-query getDidDocumentByTimestamp($id: ID!, $did: String, $timestamp: BigInt!) {
+query GetDidDocumentByTimestamp($id: ID!, $did: String, $timestamp: BigInt!) {
   didDocument(id: $id) {
     ...DocumentFieldsByTimestamp
   }
 }
 
-query getDidDocumentEvents($did: ID!, $skip: Int, $pagesize: Int) {
+query GetDidDocumentEvents($did: ID!, $skip: Int, $pagesize: Int) {
   didDocument(id: $did) {
     ...DidDocumentEvents
   }

@@ -1,10 +1,10 @@
-query getUsers($skip: Int!, $pagesize: Int!) {
+query GetUsers($skip: Int!, $pagesize: Int!) {
   users(first: $pagesize, skip: $skip) {
     id
   }
 }
 
-query getUser($user: ID!) {
+query GetUser($user: ID!) {
   user(id: $user) {
     id
     attributes

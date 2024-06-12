@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { formatIdentifiers } from "./identifiers.formatter.js";
-import { Documents } from "./identifiers.interface.js";
+import type { Documents } from "./identifiers.interface.js";
 
 describe("formatIdentifiers", () => {
   const identifiers = {

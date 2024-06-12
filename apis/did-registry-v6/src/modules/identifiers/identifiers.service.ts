@@ -11,7 +11,7 @@ import {
 import type { JWK } from "jose";
 import {
   getBuiltGraphSDK,
-  getDidDocumentQuery,
+  type GetDidDocumentQuery,
   // eslint-disable-next-line import/extensions, import/no-relative-packages
 } from "../../../.graphclient/index.js";
 import type { JsonRpcSchema } from "./validators/JsonRpcSchema.js";
@@ -66,7 +66,7 @@ export default class IdentifiersService {
 
         try {
           const res =
-            await sdk.getDidsByControllerAndVerificationRelationshipQuery({
+            await sdk.GetDidsByControllerAndVerificationRelationshipQuery({
               controller,
               skip,
               vMethodId,
@@ -80,7 +80,7 @@ export default class IdentifiersService {
 
           if (Math.sign(skipPrev) !== -1) {
             const resPrev =
-              await sdk.getDidsByControllerAndVerificationRelationshipQuery({
+              await sdk.GetDidsByControllerAndVerificationRelationshipQuery({
                 controller,
                 skip: skipPrev,
                 vMethodId,
@@ -94,7 +94,7 @@ export default class IdentifiersService {
           }
 
           const resNext =
-            await sdk.getDidsByControllerAndVerificationRelationshipQuery({
+            await sdk.GetDidsByControllerAndVerificationRelationshipQuery({
               controller,
               skip: skipNext,
               vMethodId,
@@ -118,7 +118,7 @@ export default class IdentifiersService {
       }
 
       try {
-        const res = await sdk.getDidsByController({
+        const res = await sdk.GetDidsByController({
           controller,
           skip,
           pagesize: pagesizeVar,
@@ -129,7 +129,7 @@ export default class IdentifiersService {
         });
 
         if (Math.sign(skipPrev) !== -1) {
-          const resPrev = await sdk.getDidsByController({
+          const resPrev = await sdk.GetDidsByController({
             controller,
             skip: skipPrev,
             pagesize: pagesizeVar,
@@ -140,7 +140,7 @@ export default class IdentifiersService {
           });
         }
 
-        const resNext = await sdk.getDidsByController({
+        const resNext = await sdk.GetDidsByController({
           controller,
           skip: skipNext,
           pagesize: pagesizeVar,
@@ -172,7 +172,7 @@ export default class IdentifiersService {
       }
 
       try {
-        const res = await sdk.getDidsByVerificationRelationship({
+        const res = await sdk.GetDidsByVerificationRelationship({
           vMethodId,
           vRelationship,
           skip,
@@ -184,7 +184,7 @@ export default class IdentifiersService {
         });
 
         if (Math.sign(skipPrev) !== -1) {
-          const resPrev = await sdk.getDidsByVerificationRelationship({
+          const resPrev = await sdk.GetDidsByVerificationRelationship({
             vMethodId,
             vRelationship,
             skip: skipPrev,
@@ -196,7 +196,7 @@ export default class IdentifiersService {
           });
         }
 
-        const resNext = await sdk.getDidsByVerificationRelationship({
+        const resNext = await sdk.GetDidsByVerificationRelationship({
           vMethodId,
           vRelationship,
           skip: skipNext,
@@ -216,14 +216,14 @@ export default class IdentifiersService {
     }
 
     try {
-      const res = await sdk.getDids({ skip, pagesize: pagesizeVar });
+      const res = await sdk.GetDids({ skip, pagesize: pagesizeVar });
 
       res.didDocuments.forEach((did) => {
         identifiers.push(did.id);
       });
 
       if (Math.sign(skipPrev) !== -1) {
-        const resPrev = await sdk.getDids({
+        const resPrev = await sdk.GetDids({
           skip: skipPrev,
           pagesize: pagesizeVar,
         });
@@ -233,7 +233,7 @@ export default class IdentifiersService {
         });
       }
 
-      const resNext = await sdk.getDids({
+      const resNext = await sdk.GetDids({
         skip: skipNext,
         pagesize: pagesizeVar,
       });
@@ -254,14 +254,14 @@ export default class IdentifiersService {
     did: string,
     validAt?: string,
   ): Promise<Record<string, unknown>> {
-    let document: getDidDocumentQuery;
+    let document: GetDidDocumentQuery;
 
     if (!validAt) {
-      const res = await sdk.getDidDocument({ did });
+      const res = await sdk.GetDidDocument({ did });
       document = res;
     } else {
       const timestamp = Math.floor(new Date(validAt).getTime() / 1000);
-      const res = await sdk.getDidDocumentByTimestamp({
+      const res = await sdk.GetDidDocumentByTimestamp({
         id: did,
         did,
         timestamp,
@@ -362,7 +362,7 @@ export default class IdentifiersService {
     const skipNext = pageVar * pagesizeVar;
 
     try {
-      const res = await sdk.getDidDocumentEvents({
+      const res = await sdk.GetDidDocumentEvents({
         did,
         skip,
         pagesize: pagesizeVar,
@@ -373,7 +373,7 @@ export default class IdentifiersService {
       }
 
       if (Math.sign(skipPrev) !== -1) {
-        const resPrev = await sdk.getDidDocumentEvents({
+        const resPrev = await sdk.GetDidDocumentEvents({
           did,
           skip: skipPrev,
           pagesize: pagesizeVar,
@@ -384,7 +384,7 @@ export default class IdentifiersService {
         }
       }
 
-      const resNext = await sdk.getDidDocumentEvents({
+      const resNext = await sdk.GetDidDocumentEvents({
         did,
         skip: skipNext,
         pagesize: pagesizeVar,

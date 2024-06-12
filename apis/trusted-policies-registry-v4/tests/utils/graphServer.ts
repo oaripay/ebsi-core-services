@@ -3,7 +3,7 @@ import { graphql, HttpResponse } from "msw";
 import { dummyPolicies, dummyUsers } from "./data.js";
 
 export const graphServer = setupServer(
-  graphql.query("getPolicyNames", ({ variables }) => {
+  graphql.query("GetPolicyNames", ({ variables }) => {
     const { skip, pagesize } = variables as { skip: number; pagesize: number };
 
     return HttpResponse.json({
@@ -15,7 +15,7 @@ export const graphServer = setupServer(
     });
   }),
 
-  graphql.query("getPolicy", ({ variables }) => {
+  graphql.query("GetPolicy", ({ variables }) => {
     const { policyName } = variables;
 
     return HttpResponse.json({
@@ -25,7 +25,7 @@ export const graphServer = setupServer(
     });
   }),
 
-  graphql.query("getUsers", ({ variables }) => {
+  graphql.query("GetUsers", ({ variables }) => {
     const { skip, pagesize } = variables as { skip: number; pagesize: number };
 
     return HttpResponse.json({
@@ -37,7 +37,7 @@ export const graphServer = setupServer(
     });
   }),
 
-  graphql.query("getUser", ({ variables }) => {
+  graphql.query("GetUser", ({ variables }) => {
     const { user } = variables;
 
     return HttpResponse.json({

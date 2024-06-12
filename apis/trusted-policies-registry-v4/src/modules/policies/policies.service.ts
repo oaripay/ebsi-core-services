@@ -13,7 +13,7 @@ export class PoliciesService {
     try {
       // get one more item to clarify next pages in pagination
       const queryPageSize = pagesize + 1;
-      const res = await sdk.getPolicyNames({ skip, pagesize: queryPageSize });
+      const res = await sdk.GetPolicyNames({ skip, pagesize: queryPageSize });
       const policyNames = res.policies.map((p) => p.policyName);
       return { items: policyNames };
     } catch (error) {
@@ -25,7 +25,7 @@ export class PoliciesService {
 
   async getPolicy(policyName: string): Promise<PolicyResponseObject> {
     try {
-      const res = await sdk.getPolicy({ policyName });
+      const res = await sdk.GetPolicy({ policyName });
       const policy = res.policies[0];
       if (!policy) throw new Error("not found");
 
