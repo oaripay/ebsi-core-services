@@ -7,8 +7,10 @@ import {
   getErrorMessage,
   isEthersError,
   InvalidRequestJsonRpcError,
+  logAxiosError,
 } from "@ebsiint-api/shared";
 import type { JWK } from "jose";
+import axios from "axios";
 import {
   getBuiltGraphSDK,
   type GetDidDocumentQuery,
@@ -414,18 +416,27 @@ export default class IdentifiersService {
       return await contract["checkController(string,address)"](did, address);
     } catch (err) {
       if (isEthersError(err)) {
-        this.logger.error(err); // Log the original error with all ethers.js details for internal debugging
+        this.logger.error(err, err.stack); // Log the original error with all ethers.js details for internal debugging
         throw new InvalidRequestJsonRpcError(err.reason, id); // throw simplified ethers error to the user
       }
+
       if (err instanceof Error) {
+        if (axios.isAxiosError(err)) {
+          logAxiosError(err, this.logger);
+        } else {
+          this.logger.error(err.message, err.stack);
+        }
+
         const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
 
-        if (err instanceof Error && err.stack) {
+        if (err.stack) {
           error.stack = err.stack;
         }
 
         throw error;
       }
+
+      this.logger.error(err);
       throw err;
     }
   }

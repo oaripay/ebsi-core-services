@@ -29,7 +29,7 @@ export default class TimestampsService {
       ).getTimestamps(page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("No timestamps found", {
         detail: "No timestamps found",
@@ -143,7 +143,7 @@ export default class TimestampsService {
       };
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
         // Throw the user-friendly error hiding details of blockchain/besu issues
         throw new NotFoundError("Timestamp Not Found", {
           detail: `Timestamp ${timestampId} not found`,

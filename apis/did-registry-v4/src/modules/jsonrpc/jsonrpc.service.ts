@@ -103,7 +103,7 @@ export class JsonRpcService {
         this.chainId = ethers.BigNumber.from(chainId).toHexString();
       } catch (error) {
         if (isEthersError(error)) {
-          this.logger.error(error);
+          this.logger.error(error, error.stack);
         }
         throw new Error(getErrorMessage(error));
       }
@@ -127,7 +127,7 @@ export class JsonRpcService {
       });
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new Error(getErrorMessage(error));
     }
@@ -302,7 +302,7 @@ export class JsonRpcService {
       return unsignedTransaction;
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new Error("Could not build transaction.");
     }
@@ -643,7 +643,7 @@ export class JsonRpcService {
       return tx.hash;
     } catch (err) {
       if (isEthersError(err)) {
-        this.logger.error(err); // Log the original error with all ethers.js details for internal debugging
+        this.logger.error(err, err.stack); // Log the original error with all ethers.js details for internal debugging
         throw new InvalidRequestJsonRpcError(err.reason, id); // throw simplified ethers error to the user
       }
       if (err instanceof Error) {

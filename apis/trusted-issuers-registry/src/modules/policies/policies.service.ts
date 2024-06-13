@@ -25,7 +25,7 @@ export class PoliciesService {
       ).getPolicies(page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("No policies found", {
         detail: "No policies found",
@@ -43,7 +43,7 @@ export class PoliciesService {
       ).getPolicy(policyId);
     } catch (e) {
       if (isEthersError(e)) {
-        this.logger.error(e);
+        this.logger.error(e, e.stack);
       }
       throw new NotFoundError("Policy Not Found", {
         detail: `Policy ${policyId} not found`,
@@ -74,7 +74,7 @@ export class PoliciesService {
       ).getPolicyRevisions(policyId, page, pageSize);
     } catch (e) {
       if (isEthersError(e)) {
-        this.logger.error(e);
+        this.logger.error(e, e.stack);
       }
       throw new NotFoundError("Policy Not Found", {
         detail: `Policy ${policyId} not found`,
@@ -99,7 +99,7 @@ export class PoliciesService {
       };
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Policy revisions not found", {
         detail: `Policy revisions for ${policyId} not found`,

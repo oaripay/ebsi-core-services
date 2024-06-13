@@ -31,7 +31,7 @@ export class SchemasService {
       };
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Schemas Not Found", {
         detail: `Schemas not found`,
@@ -51,7 +51,7 @@ export class SchemasService {
       ).getLatestSchemaRevision(hexSchemaId);
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Schema Not Found", {
         detail: `Schema ${schemaId} not found`,
@@ -80,7 +80,7 @@ export class SchemasService {
       ).getLatestSchemaRevision(hexSchemaId);
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Schema Not Found", {
         detail: `Schema ${schemaId} not found`,
@@ -185,7 +185,7 @@ export class SchemasService {
       };
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Revisions Not Found", {
         detail: "Revisions not found",
@@ -206,7 +206,7 @@ export class SchemasService {
       ).getLatestSchemaRevision(hexSchemaId);
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Schema Not Found", {
         detail: `Schema ${schemaId} not found`,
@@ -221,7 +221,7 @@ export class SchemasService {
       ).getSchemaRevision(schemaRevisionId);
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Revision Not Found", {
         detail: `Revision ${schemaRevisionId} not found`,
@@ -250,7 +250,7 @@ export class SchemasService {
       ).getLatestSchemaRevision(hexSchemaId);
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Schema Not Found", {
         detail: `Schema ${schemaId} not found`,
@@ -264,7 +264,7 @@ export class SchemasService {
       ).getSchemaRevision(schemaRevisionId);
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Revision Not Found", {
         detail: `Revision ${schemaRevisionId} not found`,
@@ -283,7 +283,7 @@ export class SchemasService {
       };
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Schema revision metadata not found", {
         detail: `Metadata for revision ${schemaRevisionId} not found`,
@@ -305,7 +305,7 @@ export class SchemasService {
       ).getLatestSchemaRevision(hexSchemaId);
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Schema Not Found", {
         detail: `Schema ${schemaId} not found`,
@@ -319,7 +319,7 @@ export class SchemasService {
       ).getSchemaRevision(schemaRevisionId);
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Revision Not Found", {
         detail: `Revision ${schemaRevisionId} not found`,
@@ -336,7 +336,7 @@ export class SchemasService {
       ).getSchemaRevisionMetadataByMetadataId(metadataId);
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Metadata Not Found", {
         detail: `Metadata ${metadataId} not found`,

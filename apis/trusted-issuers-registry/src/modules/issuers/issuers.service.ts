@@ -59,7 +59,7 @@ export class IssuersService {
       ).getIssuers(page, pageSize);
     } catch (e) {
       if (isEthersError(e)) {
-        this.logger.error(e);
+        this.logger.error(e, e.stack);
       }
       throw new NotFoundError("Failed to get issuers", {
         detail: "Failed to get issuers",
@@ -79,7 +79,7 @@ export class IssuersService {
       ).getIssuerAttributeByHash(hash);
     } catch (e) {
       if (isEthersError(e)) {
-        this.logger.error(e);
+        this.logger.error(e, e.stack);
       }
       throw new NotFoundError("Attribute Not Found", {
         detail: `Attribute ${hash} not found`,
@@ -106,7 +106,7 @@ export class IssuersService {
       ).getIssuer(issuerDid);
     } catch (e) {
       if (isEthersError(e)) {
-        this.logger.error(e);
+        this.logger.error(e, e.stack);
       }
       throw new NotFoundError("Issuer Not Found", {
         detail: `Issuer ${issuerDid} not found`,
@@ -125,7 +125,7 @@ export class IssuersService {
       await (await this.ledgerService.getContract()).getIssuer(did);
     } catch (e) {
       if (isEthersError(e)) {
-        this.logger.error(e);
+        this.logger.error(e, e.stack);
       }
       throw new NotFoundError("Issuer Not Found", {
         detail: `Issuer ${did} not found`,
@@ -139,7 +139,7 @@ export class IssuersService {
       return { did, attributes };
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Issuer Not Found", {
         detail: `Issuer ${did} not found`,
@@ -160,7 +160,7 @@ export class IssuersService {
       ).getIssuer(did);
     } catch (e) {
       if (isEthersError(e)) {
-        this.logger.error(e);
+        this.logger.error(e, e.stack);
       }
       throw new NotFoundError("Issuer Not Found", {
         detail: `Issuer ${did} not found`,
@@ -187,7 +187,7 @@ export class IssuersService {
       });
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Attribute Not Found", {
         detail: `Attribute ${attribId} not found`,
@@ -217,7 +217,7 @@ export class IssuersService {
       return { revisions, total: revisionHashes.total.toNumber() };
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Attribute Not Found", {
         detail: `Attribute with ${hash} not found`,
@@ -237,7 +237,7 @@ export class IssuersService {
       ).getIssuerProxies(did);
     } catch (e) {
       if (isEthersError(e)) {
-        this.logger.error(e);
+        this.logger.error(e, e.stack);
       }
       throw new NotFoundError("Issuer Not Found", {
         detail: `Issuer ${did} not found`,

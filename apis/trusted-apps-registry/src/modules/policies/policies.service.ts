@@ -33,7 +33,7 @@ export default class PoliciesService {
       policy = await this.tarContract.getPolicy(policyId);
     } catch (e) {
       if (isEthersError(e)) {
-        this.logger.error(e);
+        this.logger.error(e, e.stack);
       }
       throw new NotFoundError("Policy Not Found", {
         detail: `Policy ${policyId} not found`,
@@ -66,7 +66,7 @@ export default class PoliciesService {
       );
     } catch (e) {
       if (isEthersError(e)) {
-        this.logger.error(e);
+        this.logger.error(e, e.stack);
       }
       throw new NotFoundError("Policy Not Found", {
         detail: `Policy ${policyId} not found`,
@@ -83,7 +83,7 @@ export default class PoliciesService {
       policies = await Promise.all(getPoliciesByRevisions);
     } catch (e) {
       if (isEthersError(e)) {
-        this.logger.error(e);
+        this.logger.error(e, e.stack);
       }
       throw new Error("Failed to fetch policies revisions");
     }

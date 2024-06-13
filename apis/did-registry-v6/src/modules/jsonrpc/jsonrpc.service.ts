@@ -5,8 +5,10 @@ import {
   isEthersError,
   getErrorMessage,
   extractNamedAttributes,
+  logAxiosError,
 } from "@ebsiint-api/shared";
 import { DidRegistry } from "@ebsiint-sc/did-registry-v4";
+import axios from "axios";
 import {
   formatEthersUnsignedTransaction,
   formatEthersSignature,
@@ -109,7 +111,7 @@ export class JsonRpcService {
         this.chainId = ethers.BigNumber.from(chainId).toHexString();
       } catch (error) {
         if (isEthersError(error)) {
-          this.logger.error(error);
+          this.logger.error(error, error.stack);
         }
         throw new Error(getErrorMessage(error));
       }
@@ -133,7 +135,7 @@ export class JsonRpcService {
       });
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new Error(getErrorMessage(error));
     }
@@ -321,7 +323,7 @@ export class JsonRpcService {
       return unsignedTransaction;
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new Error("Could not build transaction.");
     }
@@ -388,7 +390,7 @@ export class JsonRpcService {
       return await contract.getDidDocument(did);
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
         // Throw a generic error to avoid leaking information.
         throw new InvalidRequestJsonRpcError(
           `Identifier ${did} Not Found`,
@@ -776,18 +778,27 @@ export class JsonRpcService {
       return tx.hash;
     } catch (err) {
       if (isEthersError(err)) {
-        this.logger.error(err); // Log the original error with all ethers.js details for internal debugging
+        this.logger.error(err, err.stack); // Log the original error with all ethers.js details for internal debugging
         throw new InvalidRequestJsonRpcError(err.reason, id); // throw simplified ethers error to the user
       }
+
       if (err instanceof Error) {
+        if (axios.isAxiosError(err)) {
+          logAxiosError(err, this.logger);
+        } else {
+          this.logger.error(err.message, err.stack);
+        }
+
         const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
 
-        if (err instanceof Error && err.stack) {
+        if (err.stack) {
           error.stack = err.stack;
         }
 
         throw error;
       }
+
+      this.logger.error(err);
       throw err;
     }
   }

@@ -29,7 +29,7 @@ export default class IdentifiersService {
         );
       } catch (error) {
         if (isEthersError(error)) {
-          this.logger.error(error);
+          this.logger.error(error, error.stack);
         }
         throw new NotFoundError("Could not retreive identifiers", {
           detail: `Could not retreive identifiers by controller ID ${controllerId}`,
@@ -43,7 +43,7 @@ export default class IdentifiersService {
       ).getDidRecordIdentifiers(page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Could not retreive identifiers", {
         detail: "Could not retreive identifiers",
@@ -63,7 +63,7 @@ export default class IdentifiersService {
       ) as Record<string, unknown>;
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Identifier Not Found", {
         detail: `Identifier ${hexIdentifier} not found`,
@@ -77,7 +77,7 @@ export default class IdentifiersService {
       return await this.retrieveIdentifier(hexDid);
     } catch (e) {
       if (isEthersError(e)) {
-        this.logger.error(e);
+        this.logger.error(e, e.stack);
       }
       throw new NotFoundError("Identifier Not Found", {
         detail: `Identifier ${did} not found`,
@@ -96,7 +96,7 @@ export default class IdentifiersService {
       ).getDidDocumentVersionIds(hexDid, page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Identifier Not Found", {
         detail: `Identifier ${hexDid} not found`,
@@ -120,7 +120,7 @@ export default class IdentifiersService {
       return await this.retrieveIdentifiersVersions(hexDid, page, pageSize);
     } catch (e) {
       if (isEthersError(e)) {
-        this.logger.error(e);
+        this.logger.error(e, e.stack);
       }
       throw new NotFoundError("Identifier Not Found", {
         detail: `Identifier ${did} not found`,
@@ -144,7 +144,7 @@ export default class IdentifiersService {
       ) as Record<string, unknown>;
     } catch (e) {
       if (isEthersError(e)) {
-        this.logger.error(e);
+        this.logger.error(e, e.stack);
       }
       throw new NotFoundError("Version Not Found", {
         detail: `Version ${versionId} not found`,
@@ -168,7 +168,7 @@ export default class IdentifiersService {
       ).getDidDocumentVersionMetadataIds(hexDid, versionId, page, pageSize);
     } catch (e) {
       if (isEthersError(e)) {
-        this.logger.error(e);
+        this.logger.error(e, e.stack);
       }
       throw new NotFoundError("Identifier Not Found", {
         detail: `Identifier ${did} not found`,
@@ -194,7 +194,7 @@ export default class IdentifiersService {
       ) as Record<string, unknown>;
     } catch (e) {
       if (isEthersError(e)) {
-        this.logger.error(e);
+        this.logger.error(e, e.stack);
       }
       throw new NotFoundError("Metadata Not Found", {
         detail: `Metadata ${metadataId} not found`,

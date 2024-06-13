@@ -55,7 +55,7 @@ export default class IdentifiersService {
         ).getDidsByController(controller, page, pageSize);
       } catch (error) {
         if (isEthersError(error)) {
-          this.logger.error(error);
+          this.logger.error(error, error.stack);
         }
         if ((error as Error).message.includes(`"controller doesn't exist"`)) {
           throw new NotFoundError(NotFoundError.defaultTitle, {
@@ -102,7 +102,7 @@ export default class IdentifiersService {
         } as unknown as ReturnType<DidRegistry["getDids"]>);
       } catch (error) {
         if (isEthersError(error)) {
-          this.logger.error(error);
+          this.logger.error(error, error.stack);
         }
         throw new NotFoundError("No identifiers found", {
           detail: "No identifiers found",
@@ -116,7 +116,7 @@ export default class IdentifiersService {
       ).getDids(page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("No identifiers found", {
         detail: "No identifiers found",
@@ -205,7 +205,7 @@ export default class IdentifiersService {
       } as Record<string, unknown>;
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
         // Throw a generic error to avoid leaking information.
         throw new NotFoundError("Identifier Not Found", {
           detail: `Identifier ${did} not found`,
@@ -228,7 +228,7 @@ export default class IdentifiersService {
       return await contract["checkController(string,address)"](did, address);
     } catch (err) {
       if (isEthersError(err)) {
-        this.logger.error(err); // Log the original error with all ethers.js details for internal debugging
+        this.logger.error(err, err.stack); // Log the original error with all ethers.js details for internal debugging
         throw new InvalidRequestJsonRpcError(err.reason, id); // throw simplified ethers error to the user
       }
       if (err instanceof Error) {

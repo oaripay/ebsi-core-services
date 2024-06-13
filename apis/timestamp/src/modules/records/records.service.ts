@@ -45,7 +45,7 @@ export default class RecordsService {
           return { hashValues, infoIds, total };
         } catch (error) {
           if (isEthersError(error)) {
-            this.logger.error(error);
+            this.logger.error(error, error.stack);
           }
           throw new NotFoundError("Record Not Found", {
             detail: "Record not found",
@@ -95,7 +95,7 @@ export default class RecordsService {
       ).getRecordIds(page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new BadRequestError("Invalid page or pageSize", {
         detail: "Invalid page or pageSize",
@@ -114,7 +114,7 @@ export default class RecordsService {
       ).getRecordIdsByFirstVersionHash(firstVersion, page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new BadRequestError("Invalid firstVersion, page or pageSize", {
         detail: "Invalid firstVersion, page or pageSize",
@@ -133,7 +133,7 @@ export default class RecordsService {
       ).getRecordIdsByOwnerId(owner.toLowerCase(), page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new BadRequestError("Invalid owner, page or pageSize", {
         detail: "Invalid owner, page or pageSize",
@@ -153,7 +153,7 @@ export default class RecordsService {
       ).getRecord(recordId);
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Record Not Found", {
         detail: `Record ${recordIdEncoded} not found`,
@@ -193,7 +193,7 @@ export default class RecordsService {
       ).getRecord(recordId);
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Record Not Found", {
         detail: `Record ${recordIdEncoded} not found`,
@@ -250,7 +250,7 @@ export default class RecordsService {
       };
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new Error(getErrorMessage(error));
     }

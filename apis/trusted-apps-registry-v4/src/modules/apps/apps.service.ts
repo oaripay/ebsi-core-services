@@ -70,7 +70,7 @@ export default class AppsService {
       }
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
         throw new NotFoundError("No results found for the query", {
           detail: "No results found for the query",
         });
@@ -101,7 +101,7 @@ export default class AppsService {
       return await this.getContract().getApps(page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
         throw new NotFoundError("No apps found", {
           detail: "No apps found",
         });
@@ -128,7 +128,7 @@ export default class AppsService {
       return await this.getContract().getAppByPublicKeyId(publicKeyId);
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
         throw new NotFoundError("App Not Found", {
           detail: `App with public key id ${publicKeyId} not found`,
         });
@@ -142,7 +142,7 @@ export default class AppsService {
       return await this.getContract().getAppById(applicationId);
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
         throw new NotFoundError("App Not Found", {
           detail: `App with id ${applicationId} not found`,
         });
@@ -213,7 +213,7 @@ export default class AppsService {
       };
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("App Not Found", {
         detail: `App with name ${appName} not found`,
@@ -252,7 +252,7 @@ export default class AppsService {
       );
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Public Keys Not Found", {
         detail: `Public keys for ${appName} not found`,
@@ -272,7 +272,7 @@ export default class AppsService {
       result = await this.getContract().getPublicKey(publicKeyId);
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Public Key Not Found", {
         detail: `Public key ${publicKeyId} not found`,
@@ -308,7 +308,7 @@ export default class AppsService {
       );
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
     }
 
@@ -336,7 +336,7 @@ export default class AppsService {
         );
       } catch (error) {
         if (isEthersError(error)) {
-          this.logger.error(error);
+          this.logger.error(error, error.stack);
         }
       }
 
@@ -396,7 +396,7 @@ export default class AppsService {
       return authorizations;
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Authorizations Not Found", {
         detail: `Authorizations for ${resourceApplicationId} not found`,
@@ -444,7 +444,7 @@ export default class AppsService {
       );
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
     }
 
@@ -474,7 +474,7 @@ export default class AppsService {
         await this.getContract().getAuthorizationById(authorizationId);
     } catch (e) {
       if (isEthersError(e)) {
-        this.logger.error(e);
+        this.logger.error(e, e.stack);
       }
       throw new NotFoundError("Authorization Not Found", {
         detail: `Authorization ${authorizationId} not found`,

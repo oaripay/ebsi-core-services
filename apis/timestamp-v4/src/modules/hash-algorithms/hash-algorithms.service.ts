@@ -20,7 +20,7 @@ export class HashAlgorithmsService {
       ).getHashAlgorithms(page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Failed to get hash algorithms", {
         detail: "Failed to get hash algorithms",
@@ -39,7 +39,7 @@ export class HashAlgorithmsService {
       ).getHashAlgorithmById(hashAlgorithmId);
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Hash algorithm Not Found", {
         detail: `Hash algorithm ${hashAlgorithmId} not found`,

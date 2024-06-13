@@ -103,7 +103,9 @@ export default class LedgerService implements OnModuleDestroy {
 
     const tarAddress = this.configService.get<string>("contractAddr");
     this.tarContract = Tar__factory.connect(tarAddress, this.ethersProvider);
-    this.tarContract.on("error", (err) => this.logger.error(err));
+    this.tarContract.on("error", (err) =>
+      this.logger.error(err, err instanceof Error ? err.stack : undefined),
+    );
   }
 
   async onModuleDestroy(): Promise<void> {

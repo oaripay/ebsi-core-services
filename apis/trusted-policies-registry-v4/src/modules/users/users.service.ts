@@ -36,7 +36,7 @@ export class UsersService {
       };
     } catch (e) {
       if (isEthersError(e)) {
-        this.logger.error(e);
+        this.logger.error(e, e.stack);
       }
       throw new NotFoundError("User Not Found", {
         detail: `User ${user} not found`,

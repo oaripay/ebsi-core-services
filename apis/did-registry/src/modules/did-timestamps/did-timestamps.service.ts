@@ -49,7 +49,7 @@ export class DidTimestampsService {
         };
       } catch (err) {
         if (isEthersError(err)) {
-          this.logger.error(err);
+          this.logger.error(err, err.stack);
         }
         return {
           items: [],
@@ -69,7 +69,7 @@ export class DidTimestampsService {
       };
     } catch (err) {
       if (isEthersError(err)) {
-        this.logger.error(err);
+        this.logger.error(err, err.stack);
       }
 
       return {
@@ -93,7 +93,7 @@ export class DidTimestampsService {
       ).getDidTimestampById(timestampIdDecoded);
     } catch (e) {
       if (isEthersError(e)) {
-        this.logger.error(e);
+        this.logger.error(e, e.stack);
       }
       throw new NotFoundError("Timestamp Not Found", {
         detail: `Timestamp ${timestampId} not found`,
@@ -121,7 +121,7 @@ export class DidTimestampsService {
       };
     } catch (err) {
       if (isEthersError(err)) {
-        this.logger.error(err);
+        this.logger.error(err, err.stack);
       }
 
       return {

@@ -7,9 +7,11 @@ import {
   remove0xPrefix,
   isEthersError,
   getErrorMessage,
+  logAxiosError,
 } from "@ebsiint-api/shared";
 import { DidRegistry } from "@ebsiint-sc/did-registry-v3";
 import type { JWK } from "jose";
+import axios from "axios";
 import { LedgerService } from "../ledger/ledger.service.js";
 import type { JsonRpcSchema } from "./validators/JsonRpcSchema.js";
 import { requestCheckControllerDtoSchema } from "./validators/RequestCheckControllerSchema.js";
@@ -41,7 +43,7 @@ export default class IdentifiersService {
         ).getDidsByController(controller, page, pageSize);
       } catch (error) {
         if (isEthersError(error)) {
-          this.logger.error(error);
+          this.logger.error(error, error.stack);
         }
         if ((error as Error).message.includes(`"controller doesn't exist"`)) {
           throw new NotFoundError(NotFoundError.defaultTitle, {
@@ -88,7 +90,7 @@ export default class IdentifiersService {
         } as unknown as ReturnType<DidRegistry["getDids"]>);
       } catch (error) {
         if (isEthersError(error)) {
-          this.logger.error(error);
+          this.logger.error(error, error.stack);
         }
         throw new NotFoundError("No identifiers found", {
           detail: "No identifiers found",
@@ -102,7 +104,7 @@ export default class IdentifiersService {
       ).getDids(page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("No identifiers found", {
         detail: "No identifiers found",
@@ -187,7 +189,7 @@ export default class IdentifiersService {
       } as Record<string, unknown>;
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
         // Throw a generic error to avoid leaking information.
         throw new NotFoundError("Identifier Not Found", {
           detail: `Identifier ${did} not found`,
@@ -210,18 +212,27 @@ export default class IdentifiersService {
       return await contract["checkController(string,address)"](did, address);
     } catch (err) {
       if (isEthersError(err)) {
-        this.logger.error(err); // Log the original error with all ethers.js details for internal debugging
+        this.logger.error(err, err.stack); // Log the original error with all ethers.js details for internal debugging
         throw new InvalidRequestJsonRpcError(err.reason, id); // throw simplified ethers error to the user
       }
+
       if (err instanceof Error) {
+        if (axios.isAxiosError(err)) {
+          logAxiosError(err, this.logger);
+        } else {
+          this.logger.error(err.message, err.stack);
+        }
+
         const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
 
-        if (err instanceof Error && err.stack) {
+        if (err.stack) {
           error.stack = err.stack;
         }
 
         throw error;
       }
+
+      this.logger.error(err);
       throw err;
     }
   }

@@ -69,7 +69,7 @@ export class JsonRpcService {
         this.chainId = ethers.BigNumber.from(chainId).toHexString();
       } catch (error) {
         if (isEthersError(error)) {
-          this.logger.error(error);
+          this.logger.error(error, error.stack);
         }
         throw new Error(getErrorMessage(error));
       }
@@ -93,7 +93,7 @@ export class JsonRpcService {
       });
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new Error(getErrorMessage(error));
     }
@@ -136,7 +136,7 @@ export class JsonRpcService {
       }
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       return false;
     }
@@ -166,7 +166,7 @@ export class JsonRpcService {
         };
       } catch (error) {
         if (isEthersError(error)) {
-          this.logger.error(error);
+          this.logger.error(error, error.stack);
         }
         throw new Error(
           `Can't find hash algorithm with ID: ${hashAlgorithmId}`,
@@ -393,7 +393,7 @@ export class JsonRpcService {
       return unsignedTransaction;
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new Error("Could not build transaction.");
     }
@@ -807,7 +807,7 @@ export class JsonRpcService {
       return tx.hash;
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
         throw new InvalidRequestJsonRpcError(error.reason, id);
       }
 

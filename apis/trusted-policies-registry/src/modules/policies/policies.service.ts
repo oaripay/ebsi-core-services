@@ -67,7 +67,7 @@ export class PoliciesService {
       ).getPolicyNames(page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error.message);
+        this.logger.error(error.message, error.stack);
       }
       throw new NotFoundError("Policies not found", {
         detail: "Policies not found",
@@ -84,7 +84,7 @@ export class PoliciesService {
       )["getPolicy(string)"](policyName);
     } catch (e) {
       if (isEthersError(e)) {
-        this.logger.error(e.message);
+        this.logger.error(e.message, e.stack);
       }
       throw new NotFoundError("Policy Not Found", {
         detail: `Policy ${policyName} not found`,

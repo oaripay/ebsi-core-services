@@ -21,7 +21,7 @@ export class UsersService {
       ).getUsers(page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Users Not Found", {
         detail: "Users Not Found",
@@ -46,7 +46,7 @@ export class UsersService {
       return userAttributes.items;
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("User Attributes Not Found", {
         detail: "User Attributes Not Found",
@@ -72,7 +72,7 @@ export class UsersService {
       );
     } catch (e) {
       if (isEthersError(e)) {
-        this.logger.error(e);
+        this.logger.error(e, e.stack);
       }
       throw new NotFoundError("User Not Found", {
         detail: `User ${address} not found:`,

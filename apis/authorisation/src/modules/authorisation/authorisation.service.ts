@@ -169,7 +169,7 @@ export class AuthorisationService {
       });
     } catch (e) {
       if (e instanceof Error) {
-        this.logger.error(e.message);
+        this.logger.error(e.message, e.stack);
         throw new BadRequestError("Invalid Client Assertion", {
           detail: e.message,
         });

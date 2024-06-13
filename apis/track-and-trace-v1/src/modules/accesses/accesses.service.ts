@@ -21,7 +21,7 @@ export default class AccessesService {
       if (!res) throw new Error();
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Creator Not Found", {
         detail: `${did} is not allowlisted as a creator`,

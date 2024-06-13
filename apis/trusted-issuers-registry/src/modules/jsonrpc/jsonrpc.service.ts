@@ -6,6 +6,7 @@ import {
   getErrorMessage,
   InvalidRequestJsonRpcError,
   isEthersError,
+  logAxiosError,
 } from "@ebsiint-api/shared";
 import { LedgerService } from "../ledger/ledger.service.js";
 import {
@@ -58,7 +59,7 @@ export class JsonRpcService {
         this.chainId = ethers.BigNumber.from(chainId).toHexString();
       } catch (error) {
         if (isEthersError(error)) {
-          this.logger.error(error);
+          this.logger.error(error, error.stack);
         }
         throw new Error(getErrorMessage(error));
       }
@@ -82,7 +83,7 @@ export class JsonRpcService {
       });
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new Error(getErrorMessage(error));
     }
@@ -359,10 +360,17 @@ export class JsonRpcService {
       return tx.hash;
     } catch (err) {
       if (isEthersError(err)) {
-        this.logger.error(err); // Log the original error with all ethers.js details for internal debugging
+        this.logger.error(err, err.stack); // Log the original error with all ethers.js details for internal debugging
         throw new InvalidRequestJsonRpcError(err.reason, id); // throw simplified ethers error to the user
       }
+
       if (err instanceof Error) {
+        if (axios.isAxiosError(err)) {
+          logAxiosError(err, this.logger);
+        } else {
+          this.logger.error(err.message, err.stack);
+        }
+
         const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
 
         if (err.stack) {
@@ -371,6 +379,8 @@ export class JsonRpcService {
 
         throw error;
       }
+
+      this.logger.error(err);
       throw err;
     }
   }

@@ -26,7 +26,7 @@ export default class DocumentsService {
       ).getDocuments(page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("No documents found", {
         detail: "No documents found",
@@ -43,7 +43,7 @@ export default class DocumentsService {
       ).getDocument(documentId);
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Document Not Found", {
         detail: `Document ${documentId} not found`,
@@ -73,7 +73,7 @@ export default class DocumentsService {
       ).getEvents(documentId, page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
       throw new NotFoundError("Document Not Found", {
         detail: `Document ${documentId} not found`,
@@ -90,7 +90,7 @@ export default class DocumentsService {
       ).getEvent(documentId, eventId);
     } catch (error) {
       if (isEthersError(error)) {
-        this.logger.error(error);
+        this.logger.error(error, error.stack);
       }
 
       if (
@@ -138,7 +138,7 @@ export default class DocumentsService {
         ).getAccessesByDocument(documentId, currentPage, pageSize);
       } catch (error) {
         if (isEthersError(error)) {
-          this.logger.error(error);
+          this.logger.error(error, error.stack);
         }
         throw new NotFoundError("Document Not Found", {
           detail: `Document ${documentId} not found`,
