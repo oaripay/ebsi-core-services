@@ -53,12 +53,10 @@ export class AuthService {
           },
         );
       } catch (err) {
-        if (err instanceof Error) {
-          if (axios.isAxiosError(err)) {
-            logAxiosError(err, this.logger);
-          } else {
-            this.logger.error(err.message, err.stack);
-          }
+        if (axios.isAxiosError(err)) {
+          logAxiosError(err, this.logger);
+        } else if (err instanceof Error) {
+          this.logger.error(err.message, err.stack);
         } else {
           this.logger.error(err);
         }
@@ -88,12 +86,10 @@ export class AuthService {
           timeout: this.timeout,
         });
       } catch (err) {
-        if (err instanceof Error) {
-          if (axios.isAxiosError(err)) {
-            logAxiosError(err, this.logger);
-          } else {
-            this.logger.error(err.message, err.stack);
-          }
+        if (axios.isAxiosError(err)) {
+          logAxiosError(err, this.logger);
+        } else if (err instanceof Error) {
+          this.logger.error(err.message, err.stack);
         } else {
           this.logger.error(err);
         }

@@ -1,29 +1,37 @@
-import { Logger } from "@nestjs/common";
+import type { Logger } from "@nestjs/common";
 import axios from "axios";
 
-export function logAxiosError(error: unknown, logger: Logger): void {
-  if (!error || !(error instanceof Error) || !axios.isAxiosError(error)) return;
-
-  logger.error("Axios error intercepted.", error.stack);
+export function logAxiosError(
+  error: unknown,
+  logger: Logger,
+  /**
+   * Minimum status code to log the error with the "error" level.
+   * Errors with a status code below that threshold will be logged with the "log" level.
+   */
+  minErrorStatus = 400,
+): void {
+  if (!axios.isAxiosError<unknown, unknown>(error)) return;
 
   if (error.response) {
     // The request was made and the server responded with a status code
     // that falls out of the range of 2xx
-    if (!error.status || error.status >= 500) {
+    if (!error.status || error.status >= minErrorStatus) {
       logger.error(
         {
-          data: error.response.data as unknown,
+          config: error.config,
+          data: error.response.data,
           status: error.response.status,
-          headers: error.response.headers as unknown,
+          headers: error.response.headers,
         },
         error.stack,
       );
     } else {
       logger.log(
         {
-          data: error.response.data as unknown,
+          config: error.config,
+          data: error.response.data,
           status: error.response.status,
-          headers: error.response.headers as unknown,
+          headers: error.response.headers,
         },
         error.stack,
       );
@@ -34,6 +42,7 @@ export function logAxiosError(error: unknown, logger: Logger): void {
     // http.ClientRequest in node.js
     logger.error(
       {
+        config: error.config,
         request: error.request as unknown,
       },
       error.stack,
@@ -42,13 +51,14 @@ export function logAxiosError(error: unknown, logger: Logger): void {
     // Something happened in setting up the request that triggered an Error
     logger.error(
       {
+        config: error.config,
         message: error.message,
       },
       error.stack,
     );
   }
 
-  logger.error(error.toJSON());
+  logger.debug(error.toJSON());
 }
 
 export default logAxiosError;

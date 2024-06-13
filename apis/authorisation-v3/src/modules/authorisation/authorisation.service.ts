@@ -388,7 +388,7 @@ export class AuthorisationService {
       await axios.get(`${this.didRegistry}/${did}`);
     } catch (e) {
       if (axios.isAxiosError(e)) {
-        logAxiosError(e, this.logger);
+        logAxiosError(e, this.logger, 500);
       } else if (e instanceof Error) {
         this.logger.error(e.message, e.stack);
       } else {
@@ -415,7 +415,7 @@ export class AuthorisationService {
       );
     } catch (e) {
       if (axios.isAxiosError(e)) {
-        logAxiosError(e, this.logger);
+        logAxiosError(e, this.logger, 500);
 
         if (e.response?.status === 404) {
           throw new OAuth2TokenError("invalid_request", {
