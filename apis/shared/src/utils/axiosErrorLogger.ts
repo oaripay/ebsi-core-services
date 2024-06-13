@@ -9,23 +9,43 @@ export function logAxiosError(error: unknown, logger: Logger): void {
   if (error.response) {
     // The request was made and the server responded with a status code
     // that falls out of the range of 2xx
-    logger.error({
-      data: error.response.data as unknown,
-      status: error.response.status,
-      headers: error.response.headers as unknown,
-    });
+    if (!error.status || error.status >= 500) {
+      logger.error(
+        {
+          data: error.response.data as unknown,
+          status: error.response.status,
+          headers: error.response.headers as unknown,
+        },
+        error.stack,
+      );
+    } else {
+      logger.log(
+        {
+          data: error.response.data as unknown,
+          status: error.response.status,
+          headers: error.response.headers as unknown,
+        },
+        error.stack,
+      );
+    }
   } else if (error.request) {
     // The request was made but no response was received
     // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
     // http.ClientRequest in node.js
-    logger.error({
-      request: error.request as unknown,
-    });
+    logger.error(
+      {
+        request: error.request as unknown,
+      },
+      error.stack,
+    );
   } else {
     // Something happened in setting up the request that triggered an Error
-    logger.error({
-      message: error.message,
-    });
+    logger.error(
+      {
+        message: error.message,
+      },
+      error.stack,
+    );
   }
 
   logger.error(error.toJSON());

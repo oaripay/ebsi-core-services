@@ -773,7 +773,14 @@ export class AuthorisationService {
     try {
       await axios.get(`${this.didRegistry}/${did}`);
     } catch (e) {
-      logAxiosError(e, this.logger);
+      if (axios.isAxiosError(e)) {
+        logAxiosError(e, this.logger);
+      } else if (e instanceof Error) {
+        this.logger.error(e.message, e.stack);
+      } else {
+        this.logger.error(e);
+      }
+
       return false;
     }
 
@@ -793,9 +800,9 @@ export class AuthorisationService {
         `${this.trustedIssuersRegistry}/${did}`,
       );
     } catch (e) {
-      logAxiosError(e, this.logger);
-
       if (axios.isAxiosError(e)) {
+        logAxiosError(e, this.logger);
+
         if (e.response?.status === 404) {
           throw new OAuth2TokenError("invalid_request", {
             errorDescription: `Invalid Verifiable Presentation: DID ${did} is not registered in the Trusted Issuers Registry`,
@@ -808,6 +815,10 @@ export class AuthorisationService {
               "Trusted Issuers Registry responded with an internal error",
           });
         }
+      } else if (e instanceof Error) {
+        this.logger.error(e.message, e.stack);
+      } else {
+        this.logger.error(e);
       }
 
       // Fallback (should not be triggered)
@@ -850,9 +861,9 @@ export class AuthorisationService {
         }).toString()}`,
       );
     } catch (e) {
-      logAxiosError(e, this.logger);
-
       if (axios.isAxiosError(e)) {
+        logAxiosError(e, this.logger);
+
         if (e.response?.status === 404) {
           throw new OAuth2TokenError("invalid_request", {
             errorDescription: `Invalid Verifiable Presentation: DID ${did} is not allowlisted as a TnT Document creator`,
@@ -865,6 +876,10 @@ export class AuthorisationService {
               "Track And Trace API responded with an internal error",
           });
         }
+      } else if (e instanceof Error) {
+        this.logger.error(e.message, e.stack);
+      } else {
+        this.logger.error(e);
       }
 
       // Fallback (should not be triggered)
@@ -884,9 +899,9 @@ export class AuthorisationService {
       );
       accesses = data.items;
     } catch (e) {
-      logAxiosError(e, this.logger);
-
       if (axios.isAxiosError(e)) {
+        logAxiosError(e, this.logger);
+
         if (e.response?.status === 400) {
           throw new OAuth2TokenError("invalid_request", {
             errorDescription: `Invalid Verifiable Presentation: DID ${did} doesn't have write permission in TnT`,
@@ -899,6 +914,10 @@ export class AuthorisationService {
               "Track And Trace API responded with an internal error",
           });
         }
+      } else if (e instanceof Error) {
+        this.logger.error(e.message, e.stack);
+      } else {
+        this.logger.error(e);
       }
 
       // Fallback (should not be triggered)

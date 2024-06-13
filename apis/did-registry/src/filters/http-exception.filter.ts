@@ -9,7 +9,7 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type { FastifyReply } from "fastify";
-import axios, { type AxiosError } from "axios";
+import axios from "axios";
 import {
   logAxiosError,
   ProblemDetailsError,
@@ -52,9 +52,10 @@ function getProblemDetailsError(
 
   if (axios.isAxiosError(error)) {
     logAxiosError(error, logger);
+  } else if (error instanceof Error) {
+    logger.error(error.message, error.stack);
   } else {
-    const err = error as AxiosError;
-    logger.error(err.message, err.stack);
+    logger.error(error);
   }
 
   return new InternalServerError(undefined, {

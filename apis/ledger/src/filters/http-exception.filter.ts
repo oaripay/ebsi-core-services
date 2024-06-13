@@ -18,7 +18,7 @@ import {
   logAxiosError,
 } from "@ebsiint-api/shared";
 import type { FastifyReply } from "fastify";
-import axios, { type AxiosError } from "axios";
+import axios from "axios";
 import type { ApiConfig } from "../config/configuration.js";
 
 function getProblemDetailsError(
@@ -59,9 +59,10 @@ function getProblemDetailsError(
 
   if (axios.isAxiosError(error)) {
     logAxiosError(error, logger);
+  } else if (error instanceof Error) {
+    logger.error(error.message, error.stack);
   } else {
-    const err = error as AxiosError;
-    logger.error(err.message, err.stack);
+    logger.error(error);
   }
 
   return new InternalServerError(undefined, {
