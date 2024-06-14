@@ -873,6 +873,7 @@ paths:
           - **hashAlgorithmIds**: Array of hash algorithms ids used (up to 3)
           - **hashValues**: Array of hashes (up to 3)
           - **timestampData** (optional): Timestamp data. This field must be a JSON stringified and converted into hex string
+          - **versionInfo**: Version info. This field must be a JSON stringified and converted into hex string
 
           #### timestampVersionHashes
 
@@ -886,7 +887,7 @@ paths:
           - **hashAlgorithmIds**: Array of hash algorithms ids used (up to 3)
           - **hashValues**: Array of hashes (up to 3)
           - **timestampData** (optional): Timestamp data. This field must be a JSON stringified and converted into hex string
-          - **versionInfo** (optional): Version info. This field must be a JSON stringified and converted into hex string
+          - **versionInfo**: Version info. This field must be a JSON stringified and converted into hex string
 
           #### insertRecordOwner
 
@@ -922,7 +923,7 @@ paths:
           - **hashAlgorithmIds**: Array of hash algorithms ids used (up to 3)
           - **hashValues**: Array of hashes (up to 3)
           - **timestampData** (optional): Timestamp data. This field must be a JSON stringified and converted into hex string
-          - **versionInfo** (optional): Version info. This field must be a JSON stringified and converted into hex string
+          - **versionInfo**: Version info. This field must be a JSON stringified and converted into hex string
 
           #### appendRecordVersionHashes
 
@@ -937,7 +938,7 @@ paths:
           - **hashAlgorithmIds**: Array of hash algorithms ids used (up to 3)
           - **hashValues**: Array of hashes (up to 3)
           - **timestampData** (optional): Timestamp data. This field must be a JSON stringified and converted into hex string
-          - **versionInfo** (optional): Version info. This field must be a JSON stringified and converted into hex string
+          - **versionInfo**: Version info. This field must be a JSON stringified and converted into hex string
 
           #### detachRecordVersionHash
 
@@ -960,7 +961,7 @@ paths:
           - **from**: Ethereum address of the signer
           - **recordId**: Record ID to update
           - **versionId**: Version ID to update
-          - **versionInfo** (optional): Version info. This field must be a JSON stringified and converted into hex string
+          - **versionInfo**: Version info. This field must be a JSON stringified and converted into hex string
 
           #### sendSignedTransaction
 
