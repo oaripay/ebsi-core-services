@@ -7,6 +7,7 @@ import {
   afterAll,
   it,
   expect,
+  MockInstance,
 } from "vitest";
 import crypto from "node:crypto";
 import axios from "axios";
@@ -83,6 +84,7 @@ describe("JsonRpc Module", () => {
   let userAccessTokenPayload: Record<string, unknown>;
   let defaultSignerSiopAccessToken: string;
   let defaultSignerSiopAccessTokenPayload: Record<string, unknown>;
+  let isDidControlledByAddressMock: MockInstance;
 
   const policy1 = createPolicy(1, "my-policy1");
   const policy2 = createPolicy(1, "my-policy1");
@@ -159,8 +161,12 @@ describe("JsonRpc Module", () => {
     });
 
     // For the tests, we assume that the DID is controlled by the signer
-    vi.spyOn(jsonRpcService, "isDidControlledByAddress").mockImplementation(
-      async () => Promise.resolve(true),
+    isDidControlledByAddressMock = vi.spyOn(
+      jsonRpcService,
+      "isDidControlledByAddress",
+    );
+    isDidControlledByAddressMock.mockImplementation(async () =>
+      Promise.resolve(true),
     );
   });
 
@@ -170,6 +176,110 @@ describe("JsonRpc Module", () => {
 
   afterAll(async () => {
     await app.close();
+  });
+
+  it("should throw an error if the DID does not exist", async () => {
+    expect.assertions(4);
+
+    const signer = ethers.Wallet.createRandom();
+
+    // Mock access token verification
+    vi.spyOn(SiopLib, "verifyJwtTar").mockImplementation(
+      async (): Promise<JWTVerifyResult> =>
+        Promise.resolve({
+          payload: defaultSignerSiopAccessTokenPayload,
+        } as unknown as JWTVerifyResult),
+    );
+
+    // The DID does not exist
+    vi.spyOn(axios, "post").mockImplementation((url: string) => {
+      if (url.includes("/identifiers/did:ebsi:default-signer/actions")) {
+        return Promise.resolve({
+          data: {
+            jsonrpc: "2.0",
+            error: { code: -32600, message: "did doesn't exist" },
+            id: null,
+          },
+          status: 400,
+        });
+      }
+      throw new Error(`Forgot to mock an axios call? POST ${url}`);
+    });
+    isDidControlledByAddressMock.mockRestore();
+
+    const { opType, policyConditions, policyName, description } = policy1;
+    const param = {
+      from: signer.address,
+      opType,
+      policyConditions,
+      policyName,
+      description,
+    } as InsertPolicyParam;
+
+    const responseBuild: SupertestJsonRpcResponse = await request(server)
+      .post("/jsonrpc")
+      .auth(defaultSignerSiopAccessToken, { type: "bearer" })
+      .send({
+        jsonrpc: "2.0",
+        method: "insertPolicy",
+        params: [param],
+        id: 231,
+      });
+
+    expect(responseBuild.body).toStrictEqual({
+      jsonrpc: "2.0",
+      id: 231,
+      result: {
+        chainId: expect.any(String),
+        data: expect.any(String),
+        from: param.from,
+        gasLimit: expect.any(String),
+        gasPrice: expect.any(String),
+        nonce: expect.any(String),
+        to: expect.any(String),
+        value: "0x0",
+      },
+    });
+    expect(responseBuild.status).toBe(200);
+
+    const unsignedTransaction = responseBuild.body.result;
+    const uTx = formatEthersUnsignedTransaction(
+      JSON.parse(
+        JSON.stringify(unsignedTransaction),
+      ) as unknown as UnsignedTransaction,
+    );
+    uTx.chainId = Number(uTx.chainId);
+    const sgnTx = await signer.signTransaction(uTx);
+    const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+    const responseSend = await request(server)
+      .post("/jsonrpc")
+      .auth(defaultSignerSiopAccessToken, { type: "bearer" })
+      .send({
+        jsonrpc: "2.0",
+        method: "sendSignedTransaction",
+        params: [
+          {
+            protocol: "eth",
+            unsignedTransaction,
+            r,
+            s,
+            v: `0x${Number(v).toString(16)}`,
+            signedRawTransaction: sgnTx,
+          },
+        ],
+        id: "45",
+      });
+
+    expect(responseSend.body).toStrictEqual({
+      error: {
+        code: -32600,
+        message: "The DID did:ebsi:default-signer does not exist",
+      },
+      id: "45",
+      jsonrpc: "2.0",
+    });
+    expect(responseSend.status).toBe(400);
   });
 
   // Generic tests

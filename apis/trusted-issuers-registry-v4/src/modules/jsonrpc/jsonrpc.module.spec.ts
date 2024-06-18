@@ -7,6 +7,7 @@ import {
   it,
   expect,
   afterEach,
+  MockInstance,
 } from "vitest";
 import request from "supertest";
 import { Test, type TestingModule } from "@nestjs/testing";
@@ -80,7 +81,8 @@ describe("JsonRpc Module", () => {
   let tao1TirWriteAccessToken: string;
   let issuers: IssuerObject[];
   let issuer1TirInviteAccessToken: string;
-
+  let isDidControlledByAddressMock: MockInstance;
+  let configService: ConfigService<ApiConfig, true>;
   let authApiKeyPair: GenerateKeyPairResult;
   let authApiKid: string;
 
@@ -234,7 +236,7 @@ describe("JsonRpc Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    const configService =
+    configService =
       moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
 
     app.useGlobalFilters(new AllExceptionsFilter(configService));
@@ -343,8 +345,12 @@ describe("JsonRpc Module", () => {
     );
 
     // For the tests, we assume that the DID is controlled by the signer
-    vi.spyOn(jsonRpcService, "isDidControlledByAddress").mockImplementation(
-      async () => Promise.resolve(true),
+    isDidControlledByAddressMock = vi.spyOn(
+      jsonRpcService,
+      "isDidControlledByAddress",
+    );
+    isDidControlledByAddressMock.mockImplementation(async () =>
+      Promise.resolve(true),
     );
 
     // Mock isStatusList2021Credential
@@ -362,6 +368,103 @@ describe("JsonRpc Module", () => {
     mockServer.close();
 
     await app.close();
+  });
+
+  it("should throw an error if the DID does not exist", async () => {
+    expect.assertions(4);
+
+    const signer = ethers.Wallet.createRandom();
+
+    const param: InsertIssuerParam = {
+      attributeData: issuers[0]!.attribute.hex,
+      did: issuers[0]!.did,
+      issuerType: issuers[0]!.issuerType,
+      taoDid: issuers[0]!.tao,
+      taoAttributeId: issuers[0]!.taoAttributeId,
+      from: signer.address,
+    };
+
+    // The DID does not exist
+    mockServer.use(
+      http.post(
+        `${configService.get<string>(
+          "didRegistryApiUrl",
+        )}/identifiers/${tao1.did}/actions`,
+        () =>
+          HttpResponse.json(
+            {
+              jsonrpc: "2.0",
+              error: { code: -32600, message: "did doesn't exist" },
+              id: null,
+            },
+            { status: 400 },
+          ),
+      ),
+    );
+    isDidControlledByAddressMock.mockRestore();
+
+    const responseBuild: SupertestJsonRpcResponse = await request(server)
+      .post("/jsonrpc")
+      .auth(tao1TirWriteAccessToken, { type: "bearer" })
+      .send({
+        jsonrpc: "2.0",
+        method: "insertIssuer",
+        params: [param],
+        id: 231,
+      });
+
+    expect(responseBuild.body).toStrictEqual({
+      jsonrpc: "2.0",
+      id: 231,
+      result: {
+        chainId: expect.any(String),
+        data: expect.any(String),
+        from: param.from,
+        gasLimit: expect.any(String),
+        gasPrice: expect.any(String),
+        nonce: expect.any(String),
+        to: expect.any(String),
+        value: "0x0",
+      },
+    });
+    expect(responseBuild.status).toBe(200);
+
+    const unsignedTransaction = responseBuild.body.result;
+    const uTx = formatEthersUnsignedTransaction(
+      JSON.parse(JSON.stringify(unsignedTransaction)) as UnsignedTransaction,
+    );
+    uTx.chainId = Number(uTx.chainId);
+    const sgnTx = await signer.signTransaction(uTx);
+    const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+    const responseSend = await request(server)
+      .post("/jsonrpc")
+      .auth(tao1TirWriteAccessToken, { type: "bearer" })
+      .send({
+        jsonrpc: "2.0",
+        method: "sendSignedTransaction",
+        params: [
+          {
+            protocol: "eth",
+            unsignedTransaction,
+            r,
+            s,
+            v: `0x${Number(v).toString(16)}`,
+            signedRawTransaction: sgnTx,
+          },
+        ],
+        id: "45",
+      });
+
+    expect(responseSend.body).toStrictEqual({
+      error: {
+        code: -32600,
+        message: `The DID ${tao1.did} does not exist`,
+      },
+      id: "45",
+      jsonrpc: "2.0",
+    });
+    expect(responseSend.status).toBe(400);
   });
 
   // Generic tests

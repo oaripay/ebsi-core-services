@@ -1,4 +1,12 @@
-import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
+import {
+  vi,
+  describe,
+  beforeEach,
+  beforeAll,
+  afterAll,
+  it,
+  expect,
+} from "vitest";
 import crypto from "node:crypto";
 import request from "supertest";
 import { Test, type TestingModule } from "@nestjs/testing";
@@ -225,7 +233,9 @@ describe("JsonRpc Module", () => {
         HttpResponse.json({ keys: [{ ...publicKeyJwk, kid: authApiKid }] }),
       ),
     );
+  });
 
+  beforeEach(() => {
     // Mock DIDR API
     const didRegistryApiUrl = configService.get<string>("didRegistryApiUrl");
     mockServer.use(
@@ -360,6 +370,99 @@ describe("JsonRpc Module", () => {
         (response.headers as { "content-type": string })["content-type"],
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
+  });
+
+  it("should throw an error if the DID does not exist", async () => {
+    expect.assertions(4);
+
+    // The DID does not exist
+    mockServer.use(
+      http.post(
+        `${configService.get<string>(
+          "didRegistryApiUrl",
+        )}/identifiers/${testAdmin.did}/actions`,
+        () =>
+          HttpResponse.json(
+            {
+              jsonrpc: "2.0",
+              error: { code: -32600, message: "did doesn't exist" },
+              id: null,
+            },
+            { status: 400 },
+          ),
+      ),
+    );
+
+    const param = {
+      from: testAdmin.wallet.address,
+      hashAlgorithmIds: [0],
+      hashValues: [secondHashValue],
+    };
+
+    const responseBuild: SupertestJsonRpcResponse = await request(server)
+      .post("/jsonrpc")
+      .auth(testAdmin.token, { type: "bearer" })
+      .send({
+        jsonrpc: "2.0",
+        method: "timestampHashes",
+        params: [param],
+        id: 231,
+      });
+
+    expect(responseBuild.body).toStrictEqual({
+      jsonrpc: "2.0",
+      id: 231,
+      result: {
+        chainId: expect.any(String),
+        data: expect.any(String),
+        from: param.from,
+        gasLimit: expect.any(String),
+        gasPrice: expect.any(String),
+        nonce: expect.any(String),
+        to: expect.any(String),
+        value: "0x0",
+      },
+    });
+    expect(responseBuild.status).toBe(200);
+
+    const unsignedTransaction = responseBuild.body.result;
+    const uTx = formatEthersUnsignedTransaction(
+      JSON.parse(
+        JSON.stringify(unsignedTransaction),
+      ) as unknown as UnsignedTransactionSchema,
+    );
+    uTx.chainId = Number(uTx.chainId);
+    const sgnTx = await testAdmin.wallet.signTransaction(uTx);
+    const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+    const responseSend = await request(server)
+      .post("/jsonrpc")
+      .auth(testAdmin.token, { type: "bearer" })
+      .send({
+        jsonrpc: "2.0",
+        method: "sendSignedTransaction",
+        params: [
+          {
+            protocol: "eth",
+            unsignedTransaction,
+            r,
+            s,
+            v: `0x${Number(v).toString(16)}`,
+            signedRawTransaction: sgnTx,
+          },
+        ],
+        id: "45",
+      });
+
+    expect(responseSend.body).toStrictEqual({
+      error: {
+        code: -32600,
+        message: `The DID ${testAdmin.did} does not exist`,
+      },
+      id: "45",
+      jsonrpc: "2.0",
+    });
+    expect(responseSend.status).toBe(400);
   });
 
   // Generic tests

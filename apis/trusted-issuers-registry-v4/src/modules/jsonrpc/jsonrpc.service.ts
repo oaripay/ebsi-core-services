@@ -123,25 +123,24 @@ export class JsonRpcService {
     did: string,
     controllerAddress: string,
   ): Promise<boolean> {
-    try {
-      const { data } = await axios.post<{
-        result: boolean;
-      }>(
-        `${this.didRegistryApiUrl}/identifiers/${did}/actions`,
-        {
-          jsonrpc: "2.0",
-          method: "checkController",
-          params: [controllerAddress],
-        },
-        { timeout: this.timeout },
-      );
-      return data.result;
-    } catch (err) {
-      // Note: DIDR API v4 /identifiers/${did}/actions should always return 200, even if the response contains an error.
-      // Reason: JSON-RPC response always use the status code 200. To be fixed.
-      logAxiosError(err, this.logger);
-      return false;
+    const { data } = await axios.post<{
+      result: boolean;
+      error?: { message: string };
+    }>(
+      `${this.didRegistryApiUrl}/identifiers/${did}/actions`,
+      {
+        jsonrpc: "2.0",
+        method: "checkController",
+        params: [controllerAddress],
+      },
+      { timeout: this.timeout, validateStatus: (s) => s >= 200 && s <= 400 },
+    );
+
+    if (data.error) {
+      throw new Error(`The DID ${did} does not exist`);
     }
+
+    return data.result;
   }
 
   async verifyTransaction(

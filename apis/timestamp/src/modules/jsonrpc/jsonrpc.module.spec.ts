@@ -1,4 +1,12 @@
-import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
+import {
+  vi,
+  describe,
+  beforeEach,
+  beforeAll,
+  afterAll,
+  it,
+  expect,
+} from "vitest";
 import crypto from "node:crypto";
 import axios, { type AxiosError } from "axios";
 import request from "supertest";
@@ -106,6 +114,7 @@ describe("JsonRpc Module", () => {
   let recordId: string;
   let blockNumber = 0;
   let provider: ethers.providers.JsonRpcProvider;
+
   const genToken = (sub: string, siop = true) =>
     `${multibase.base64url.baseEncode(
       Buffer.from(
@@ -200,29 +209,6 @@ describe("JsonRpc Module", () => {
     await app.getHttpAdapter().getInstance().ready();
     server = app.getHttpServer();
 
-    // Make sure we never use axios.post in tests ;-)
-    vi.spyOn(axios, "post").mockImplementation((url, data: unknown) => {
-      if (url.includes("/actions")) {
-        const urlParts = url.split("/");
-        const did = urlParts[urlParts.length - 2];
-        const address = (data as { params: string[] }).params[0]!;
-        const result =
-          (testAdmin.did === did &&
-            testAdmin.wallet.address.toLocaleLowerCase() ===
-              address.toLocaleLowerCase()) ||
-          (testUser.did === did &&
-            testUser.wallet.address.toLocaleLowerCase() ===
-              address.toLocaleLowerCase());
-        return Promise.resolve({
-          data: {
-            jsonrpc: "2.0",
-            result,
-          },
-        });
-      }
-      throw new Error("Forgot to mock an axios post call?");
-    });
-
     vi.spyOn(axios, "get").mockImplementation((url): Promise<unknown> => {
       // accessing administrators in TAR
       if (url.includes("/administrators")) {
@@ -302,6 +288,30 @@ describe("JsonRpc Module", () => {
     vi.spyOn(ledgerService, "getContract").mockImplementation(async () =>
       Promise.resolve(timestampContract),
     );
+  });
+
+  beforeEach(() => {
+    vi.spyOn(axios, "post").mockImplementation((url, data: unknown) => {
+      if (url.includes("/actions")) {
+        const urlParts = url.split("/");
+        const did = urlParts[urlParts.length - 2];
+        const address = (data as { params: string[] }).params[0]!;
+        const result =
+          (testAdmin.did === did &&
+            testAdmin.wallet.address.toLocaleLowerCase() ===
+              address.toLocaleLowerCase()) ||
+          (testUser.did === did &&
+            testUser.wallet.address.toLocaleLowerCase() ===
+              address.toLocaleLowerCase());
+        return Promise.resolve({
+          data: {
+            jsonrpc: "2.0",
+            result,
+          },
+        });
+      }
+      throw new Error("Forgot to mock an axios post call?");
+    });
   });
 
   afterAll(async () => {
@@ -403,6 +413,96 @@ describe("JsonRpc Module", () => {
       });
       expect(responseSend.status).toBe(400);
     });
+  });
+
+  it("should throw an error if the DID does not exist", async () => {
+    expect.assertions(4);
+
+    // The DID does not exist
+    vi.spyOn(axios, "post").mockImplementation((url: string) => {
+      if (url.includes(`/identifiers/${testAdmin.did}/actions`)) {
+        return Promise.resolve({
+          data: {
+            jsonrpc: "2.0",
+            error: { code: -32600, message: "did doesn't exist" },
+            id: null,
+          },
+          status: 400,
+        });
+      }
+      throw new Error(`Forgot to mock an axios call? POST ${url}`);
+    });
+
+    const param = {
+      from: testAdmin.wallet.address,
+      hashAlgorithmIds: [0],
+      hashValues: [secondHashValue],
+    };
+
+    const responseBuild: SupertestJsonRpcResponse = await request(server)
+      .post("/jsonrpc")
+      .auth(testAdmin.token, { type: "bearer" })
+      .send({
+        jsonrpc: "2.0",
+        method: "timestampHashes",
+        params: [param],
+        id: 231,
+      });
+
+    expect(responseBuild.body).toStrictEqual({
+      jsonrpc: "2.0",
+      id: 231,
+      result: {
+        chainId: expect.any(String),
+        data: expect.any(String),
+        from: param.from,
+        gasLimit: expect.any(String),
+        gasPrice: expect.any(String),
+        nonce: expect.any(String),
+        to: expect.any(String),
+        value: "0x0",
+      },
+    });
+    expect(responseBuild.status).toBe(200);
+
+    const unsignedTransaction = responseBuild.body.result;
+    const uTx = formatEthersUnsignedTransaction(
+      JSON.parse(
+        JSON.stringify(unsignedTransaction),
+      ) as unknown as UnsignedTransaction,
+    );
+    uTx.chainId = Number(uTx.chainId);
+    const sgnTx = await testAdmin.wallet.signTransaction(uTx);
+    const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
+
+    const responseSend = await request(server)
+      .post("/jsonrpc")
+      .auth(testAdmin.token, { type: "bearer" })
+      .send({
+        jsonrpc: "2.0",
+        method: "sendSignedTransaction",
+        params: [
+          {
+            protocol: "eth",
+            unsignedTransaction,
+            r,
+            s,
+            v: `0x${Number(v).toString(16)}`,
+            signedRawTransaction: sgnTx,
+          },
+        ],
+        id: "45",
+      });
+
+    expect(responseSend.body).toStrictEqual({
+      error: {
+        code: -32600,
+        message: `The DID ${testAdmin.did} does not exist`,
+      },
+      id: "45",
+      jsonrpc: "2.0",
+    });
+    expect(responseSend.status).toBe(400);
   });
 
   // Generic tests

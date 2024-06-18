@@ -113,6 +113,7 @@ export class JsonRpcService {
   ): Promise<boolean> {
     const { data } = await axios.post<{
       result: boolean;
+      error?: { message: string };
     }>(
       `${this.didRegistry}/identifiers/${did}/actions`,
       {
@@ -120,8 +121,12 @@ export class JsonRpcService {
         method: "checkController",
         params: [controllerAddress],
       },
-      { timeout: this.timeout },
+      { timeout: this.timeout, validateStatus: (s) => s >= 200 && s <= 400 },
     );
+
+    if (data.error) {
+      throw new Error(`The DID ${did} does not exist`);
+    }
 
     return data.result;
   }
