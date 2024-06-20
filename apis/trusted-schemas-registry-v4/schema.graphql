@@ -1,0 +1,32 @@
+schema {
+  query: Query
+}
+
+input ID_filter {
+  id: String!
+}
+
+type Schema {
+  id: String!
+  revisions(first: Int = 100, skip: Int = 0, where: ID_filter): [Revision!]!
+  lastRevision: Revision!
+}
+
+type Revision {
+  id: String!
+  content: String!
+  metadata(first: Int = 100, skip: Int = 0, where: ID_filter): [Metadata!]!
+}
+
+type Metadata {
+  id: String!
+  content: String!
+}
+
+type Query {
+  schemas(skip: Int = 0, first: Int = 100): [Schema!]!
+  schema(id: String!): Schema!
+  revisions(skip: Int = 0, first: Int = 100): [Revision!]!
+  revision(id: String!): Revision!
+  metadata(id: String!): Metadata!
+}

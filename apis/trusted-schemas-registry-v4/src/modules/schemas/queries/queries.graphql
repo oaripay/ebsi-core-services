@@ -1,0 +1,69 @@
+query GetSchemas($skip: Int!, $pagesize: Int!) {
+  schemas(first: $pagesize, skip: $skip) {
+    id
+  }
+}
+
+query GetSchema($schemaId: String!) {
+  schema(id: $schemaId) {
+    lastRevision {
+      content
+    }
+  }
+}
+
+query GetRevisions($schemaId: String!, $skip: Int!, $pagesize: Int!) {
+  schema(id: $schemaId) {
+    revisions(first: $pagesize, skip: $skip) {
+      id
+    }
+  }
+}
+
+query GetAllRevisionsWithMetadata($schemaId: String!) {
+  schema(id: $schemaId) {
+    revisions(first: 10000, skip: 0) {
+      id
+      metadata(first: 10000, skip: 0) {
+        content
+      }
+    }
+  }
+}
+
+query GetRevision($schemaId: String!, $revisionId: String!) {
+  schema(id: $schemaId) {
+    revisions(first: 1, skip: 0, where: { id: $revisionId }) {
+      content
+    }
+  }
+}
+
+query GetMetadatas(
+  $schemaId: String!
+  $revisionId: String!
+  $skip: Int!
+  $pagesize: Int!
+) {
+  schema(id: $schemaId) {
+    revisions(first: 1, skip: 0, where: { id: $revisionId }) {
+      metadata(first: $pagesize, skip: $skip) {
+        id
+      }
+    }
+  }
+}
+
+query GetMetadata(
+  $schemaId: String!
+  $revisionId: String!
+  $metadataId: String!
+) {
+  schema(id: $schemaId) {
+    revisions(first: 1, skip: 0, where: { id: $revisionId }) {
+      metadata(first: 1, skip: 0, where: { id: $metadataId }) {
+        content
+      }
+    }
+  }
+}

@@ -247,6 +247,14 @@ Add the default hash algorithms to Timestamp:
 npx hardhat --network localWithData addHashAlgo --proxy PROXY_ADDRESS --contract CONTRACT
 ```
 
+###
+
+Deploy new TrustedSchemaRegistryV3
+
+```
+yarn hardhat --network <test|pilot|prod|conformance> trustedSchemaRegistryV3 --upgrader <address of admin> --tpr <address of tpr>
+```
+
 # Hardhat console
 
 Hardhat comes built-in with an interactive JavaScript console. You can use it by running yarn hardhat console. Anything that has been injected into the Hardhat Runtime Environment will be available in the global scope.

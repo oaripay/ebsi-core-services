@@ -15,3 +15,4 @@ import "./insertTSRSchema";
 import "./updateTSRSchema";
 import "./grantRole";
 import "./trackAndTrace";
+import "./trustedSchemaRegistryV3SC";

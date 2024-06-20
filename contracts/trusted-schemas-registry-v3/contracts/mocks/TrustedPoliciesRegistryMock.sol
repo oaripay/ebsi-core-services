@@ -1,0 +1,17 @@
+// SPDX-License-Identifier: EUPL V1.2
+pragma solidity 0.8.12;
+
+contract TrustedPoliciesRegistryMock {
+    bool public policyResult;
+
+    function checkPolicy(
+        string calldata,
+        address
+    ) external view returns (bool) {
+        return policyResult;
+    }
+
+    function setPolicyResult(bool newPolicyResult) external {
+        policyResult = newPolicyResult;
+    }
+}
