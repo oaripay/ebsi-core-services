@@ -14,6 +14,7 @@ COPY --from=builder /app/package.json ./package.json
 # Copy TSR API v4
 COPY --from=builder /app/apis/trusted-schemas-registry-v4/package.json ./apis/trusted-schemas-registry-v4/package.json
 COPY --from=builder /app/apis/trusted-schemas-registry-v4/dist ./apis/trusted-schemas-registry-v4/dist
+COPY --from=builder /app/apis/trusted-schemas-registry-v4/.graphclient ./apis/trusted-schemas-registry-v4/.graphclient
 COPY --from=builder /app/apis/trusted-schemas-registry-v4/api ./apis/trusted-schemas-registry-v4/api
 # Copy TPR SC v3
 COPY --from=builder /app/contracts/trusted-policies-registry-v3/package.json ./contracts/trusted-policies-registry-v3/package.json
