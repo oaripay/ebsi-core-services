@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-
 import { Injectable, Logger } from "@nestjs/common";
 import axios from "axios";
 import { ethers } from "ethers";
@@ -94,7 +92,7 @@ export class JsonRpcService {
 
     try {
       return await (
-        await this.ledgerService.getContract({ protectedMethod: true })
+        await this.ledgerService.getContract()
       ).provider.estimateGas({
         from,
         to,
@@ -301,17 +299,26 @@ export class JsonRpcService {
     try {
       const parsedBody = await requestUpdatePolicyDtoSchema.parseAsync(body);
       const { from, policyId, policyName, description } = parsedBody.params[0]!;
-      const functionSig = policyName
-        ? "updatePolicy(string,string)"
-        : "updatePolicy(uint256,string)";
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData(
-        // @ts-ignore
-        functionSig,
-        [policyName ?? policyId, description],
-      );
+      let data: string;
+
+      if (policyName) {
+        data = (
+          await this.ledgerService.getContract()
+        ).interface.encodeFunctionData("updatePolicy(string,string)", [
+          policyName,
+          description,
+        ]);
+      } else if (policyId) {
+        data = (
+          await this.ledgerService.getContract()
+        ).interface.encodeFunctionData("updatePolicy(uint256,string)", [
+          policyId,
+          description,
+        ]);
+      } else {
+        throw new Error("Either policyId or policyName must be provided");
+      }
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -330,17 +337,20 @@ export class JsonRpcService {
     try {
       const parsedBody = await requestActivatePolicyDtoSchema.parseAsync(body);
       const { from, policyId, policyName } = parsedBody.params[0]!;
-      const functionSig = policyName
-        ? "activatePolicy(string)"
-        : "activatePolicy(uint256)";
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData(
-        // @ts-ignore
-        functionSig,
-        [policyName ?? policyId],
-      );
+      let data: string;
+
+      if (policyName) {
+        data = (
+          await this.ledgerService.getContract()
+        ).interface.encodeFunctionData("activatePolicy(string)", [policyName]);
+      } else if (policyId) {
+        data = (
+          await this.ledgerService.getContract()
+        ).interface.encodeFunctionData("activatePolicy(uint256)", [policyId]);
+      } else {
+        throw new Error("Either policyId or policyName must be provided");
+      }
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -360,17 +370,22 @@ export class JsonRpcService {
       const parsedBody =
         await requestDeactivatePolicyDtoSchema.parseAsync(body);
       const { from, policyId, policyName } = parsedBody.params[0]!;
-      const functionSig = policyName
-        ? "deactivatePolicy(string)"
-        : "deactivatePolicy(uint256)";
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData(
-        // @ts-ignore
-        functionSig,
-        [policyName ?? policyId],
-      );
+      let data: string;
+
+      if (policyName) {
+        data = (
+          await this.ledgerService.getContract()
+        ).interface.encodeFunctionData("deactivatePolicy(string)", [
+          policyName,
+        ]);
+      } else if (policyId) {
+        data = (
+          await this.ledgerService.getContract()
+        ).interface.encodeFunctionData("deactivatePolicy(uint256)", [policyId]);
+      } else {
+        throw new Error("Either policyId or policyName must be provided");
+      }
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -446,7 +461,7 @@ export class JsonRpcService {
       await this.checkDidOwnership(signer, clientId);
 
       const tx = await (
-        await this.ledgerService.getContract({ protectedMethod: true })
+        await this.ledgerService.getContract()
       ).provider.sendTransaction(request.signedRawTransaction);
       return tx.hash;
     } catch (err) {

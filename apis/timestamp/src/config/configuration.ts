@@ -9,7 +9,6 @@ export interface ApiConfig {
   apiName: string;
   authorisationApiName: string;
   authorisationApiUrl: string;
-  ledgerApiName: string;
   ledgerApiUrl: string;
   trustedAppsRegistryApiUrl: string;
   didRegistryApiUrl: string;
@@ -17,6 +16,7 @@ export interface ApiConfig {
   domain: string;
   localOrigin: string;
   logLevel: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
+  besuRpcNode: string;
   requestTimeout: number;
   axiosRetryDelay: number;
   testAdmin: {
@@ -65,7 +65,7 @@ export const loadConfig = (): ApiConfig => {
     authorisationApiName:
       process.env.AUTHORISATION_API_NAME || "authorisation-api",
     authorisationApiUrl: DOMAIN + AUTH_API_PATH,
-    ledgerApiName: process.env.LEDGER_API_NAME || "ledger-api",
+    besuRpcNode: process.env.BESU_RPC_NODE,
     ledgerApiUrl: DOMAIN + LEDGER_API_PATH,
     trustedAppsRegistryApiUrl: DOMAIN + TAR_API_PATH,
     didRegistryApiUrl: DOMAIN + DIDR_API_PATH,
@@ -126,7 +126,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     DOMAIN: Joi.string().uri().required(),
     LOCAL_ORIGIN: Joi.string().uri(),
     AUTHORISATION_API_NAME: Joi.string(),
-    LEDGER_API_NAME: Joi.string(),
+    BESU_RPC_NODE: Joi.string().uri().required(),
     CONTRACT_ADDR: Joi.string(),
     REQUEST_TIMEOUT: Joi.string(),
     AXIOS_RETRY_DELAY: Joi.string(),

@@ -76,6 +76,7 @@
     "@types/k6": "^0.50.0",
     "@types/node": "^20.11.30",
     "@types/passport-http-bearer": "^1.0.41",
+    "@types/ws": "^7.4.7",
     "@types/supertest": "^6.0.2",
     "@vitest/coverage-v8": "^1.4.0",
     "did-resolver": "^4.1.0",

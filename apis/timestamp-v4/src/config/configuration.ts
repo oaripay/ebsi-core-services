@@ -10,7 +10,6 @@ export interface ApiConfig {
   apiName: string;
   authorisationApiName: string;
   authorisationApiUrl: string;
-  ledgerApiName: string;
   ledgerApiUrl: string;
   trustedAppsRegistryApiUrl: string;
   didRegistryApiUrl: string;
@@ -19,6 +18,7 @@ export interface ApiConfig {
   localOrigin: string;
   network: Network;
   logLevel: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
+  besuRpcNode: string;
   requestTimeout: number;
   axiosRetryDelay: number;
   testAdmin: {
@@ -64,7 +64,7 @@ export const loadConfig = (): ApiConfig => {
     authorisationApiName:
       process.env.AUTHORISATION_API_NAME || "authorisation-api",
     authorisationApiUrl: DOMAIN + AUTH_API_PATH,
-    ledgerApiName: process.env.LEDGER_API_NAME || "ledger-api",
+    besuRpcNode: process.env.BESU_RPC_NODE,
     ledgerApiUrl: DOMAIN + LEDGER_API_PATH,
     trustedAppsRegistryApiUrl: DOMAIN + TAR_API_PATH,
     didRegistryApiUrl: DOMAIN + DIDR_API_PATH,
@@ -124,11 +124,11 @@ export const ApiConfigModule = ConfigModule.forRoot({
     // Timestamp specific variables
     DOMAIN: Joi.string().uri().required(),
     LOCAL_ORIGIN: Joi.string().uri(),
+    BESU_RPC_NODE: Joi.string().uri().required(),
     NETWORK: Joi.string()
       .valid(...NETWORKS)
       .required(),
     AUTHORISATION_API_NAME: Joi.string(),
-    LEDGER_API_NAME: Joi.string(),
     CONTRACT_ADDR: Joi.string(),
     REQUEST_TIMEOUT: Joi.string(),
     AXIOS_RETRY_DELAY: Joi.string(),

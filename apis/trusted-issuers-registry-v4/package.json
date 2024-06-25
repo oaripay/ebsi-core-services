@@ -73,6 +73,7 @@
     "@types/node": "^20.11.30",
     "@types/passport-http-bearer": "^1.0.41",
     "@types/supertest": "^6.0.2",
+    "@types/ws": "^7.4.7",
     "@vitest/coverage-v8": "^1.4.0",
     "elliptic": "^6.5.5",
     "hardhat": "~2.20.1",

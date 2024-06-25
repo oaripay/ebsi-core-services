@@ -16,8 +16,8 @@ export interface ApiConfig {
   axiosRetryDelay: number;
   trustedHostnames: string[];
   // Ledger & SC
+  besuRpcNode: string;
   ledgerApiUrl: string;
-  ledgerApiName: string;
   besuTrustedIssuersRegistryAddress: string;
   // Authorisation API
   authorisationApiUrl: string;
@@ -79,8 +79,8 @@ export const loadConfig = (): ApiConfig => {
       .split(",")
       .filter(Boolean),
     // Ledger & SC
+    besuRpcNode: process.env.BESU_RPC_NODE,
     ledgerApiUrl: DOMAIN + LEDGER_API_PATH,
-    ledgerApiName: process.env.LEDGER_API_NAME || "ledger-api",
     besuTrustedIssuersRegistryAddress:
       process.env.BESU_TRUSTED_ISSUERS_REGISTRY_ADDRESS,
     // Authorisation API
@@ -147,8 +147,8 @@ export const ApiConfigModule = ConfigModule.forRoot({
     AXIOS_RETRY_DELAY: Joi.string(),
     TRUSTED_HOSTNAMES: Joi.string(),
     // Ledger & SC
+    BESU_RPC_NODE: Joi.string().uri().required(),
     BESU_TRUSTED_ISSUERS_REGISTRY_ADDRESS: Joi.string().required(),
-    LEDGER_API_NAME: Joi.string(),
     // Test vars
     TEST_ADMIN_KID: Joi.string(),
     TEST_ADMIN_PRIVATE_KEY: Joi.string(),

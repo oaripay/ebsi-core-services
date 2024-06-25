@@ -8,8 +8,6 @@ import type { ApiConfig } from "./config/configuration.js";
 export class AppService implements OnApplicationBootstrap {
   private readonly logger = new Logger(AppService.name);
 
-  private readonly ledgerApiUrl: string;
-
   private readonly authorisationApiUrl: string;
 
   private readonly axiosClient: AxiosInstance;
@@ -19,7 +17,6 @@ export class AppService implements OnApplicationBootstrap {
   private readonly localOrigin: string;
 
   constructor(configService: ConfigService<ApiConfig, true>) {
-    this.ledgerApiUrl = configService.get<string>("ledgerApiUrl");
     this.authorisationApiUrl = configService.get<string>("authorisationApiUrl");
     this.domain = configService.get<string>("domain");
     this.localOrigin = configService.get<string>("localOrigin");
@@ -64,7 +61,6 @@ export class AppService implements OnApplicationBootstrap {
     // Wait for dependencies to be up and running
     this.logger.debug("Checking dependencies...");
 
-    await this.check(this.ledgerApiUrl);
     await this.check(this.authorisationApiUrl);
 
     // Let's go!

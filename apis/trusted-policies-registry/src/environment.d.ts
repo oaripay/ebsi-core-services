@@ -13,7 +13,7 @@ declare global {
       LOCAL_ORIGIN?: string;
       REQUEST_TIMEOUT?: string;
       AXIOS_RETRY_DELAY?: string;
-      LEDGER_API_NAME: string;
+      BESU_RPC_NODE: string;
       CONTRACT_ADDR: string;
       // Tests
       TEST_ADMIN_KID: string;

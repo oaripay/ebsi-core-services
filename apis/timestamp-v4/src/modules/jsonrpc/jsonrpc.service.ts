@@ -144,7 +144,7 @@ export class JsonRpcService {
 
     try {
       return await (
-        await this.ledgerService.getContract({ protectedMethod: true })
+        await this.ledgerService.getContract()
       ).provider.estimateGas({
         from,
         to,
@@ -794,7 +794,7 @@ export class JsonRpcService {
       await this.verifyEthereumAddress(signer, user);
 
       const tx = await (
-        await this.ledgerService.getContract({ protectedMethod: true })
+        await this.ledgerService.getContract()
       ).provider.sendTransaction(request.signedRawTransaction);
       return tx.hash;
     } catch (err) {

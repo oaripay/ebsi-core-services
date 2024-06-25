@@ -17,8 +17,8 @@ export interface ApiConfig {
   dockerContainerTag: string;
   trustedHostnames: string[];
   // Ledger & SC
+  besuRpcNode: string;
   ledgerApiUrl: string;
-  ledgerApiName: string;
   contractAddr: string;
   // Authorisation API
   authorisationApiUrl: string;
@@ -63,8 +63,8 @@ export const loadConfig = (): ApiConfig => {
       .split(",")
       .filter(Boolean),
     // Ledger & SC
+    besuRpcNode: process.env.BESU_RPC_NODE,
     ledgerApiUrl: DOMAIN + LEDGER_API_PATH,
-    ledgerApiName: process.env.LEDGER_API_NAME || "ledger-api",
     contractAddr: process.env.CONTRACT_ADDR,
     // Authorisation API
     authorisationApiUrl: DOMAIN + AUTH_API_PATH,
@@ -120,7 +120,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     AXIOS_RETRY_DELAY: Joi.string(),
     TRUSTED_HOSTNAMES: Joi.string(),
     // Ledger & SC
-    LEDGER_API_NAME: Joi.string(),
+    BESU_RPC_NODE: Joi.string().uri().required(),
     CONTRACT_ADDR: Joi.string().required(),
     // Test variables
     TEST_ENV: Joi.string(),

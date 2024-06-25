@@ -1,212 +1,123 @@
-import { randomUUID } from "node:crypto";
-import { Agent, AkeResponse } from "@cef-ebsi/oauth2-auth";
-import { decodeJWT } from "did-jwt";
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, OnModuleDestroy } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
-import axios, { type AxiosResponse } from "axios";
+import type WebSocket from "ws";
 import { Mutex } from "async-mutex";
 import { Tir, Tir__factory } from "@ebsiint-sc/trusted-issuers-registry";
-import { logAxiosError, InternalServerError } from "@ebsiint-api/shared";
+import { InternalServerError } from "@ebsiint-api/shared";
 import type { ApiConfig } from "../../config/configuration.js";
 
-// Refresh the token if it expires in less than 10 seconds
-const REFRESH_LIMIT = 10 * 1000;
+const EXPECTED_PONG_BACK = 15000;
+const KEEP_ALIVE_CHECK_INTERVAL = 7500;
 
 @Injectable()
-export class LedgerService {
+export class LedgerService implements OnModuleDestroy {
   private readonly logger = new Logger(LedgerService.name);
 
   private ethersProvider: ethers.providers.JsonRpcProvider | undefined;
 
-  private ethersProviderWithoutToken:
-    | ethers.providers.JsonRpcProvider
-    | undefined;
+  private reconnectWebSocket = true;
 
   private tirContract: Tir | undefined;
 
-  private publicMethodsTirContract: Tir | undefined;
-
   private tirAddress: string;
-
-  private accessTokenExp: number | undefined;
-
-  private agent: Agent;
-
-  private authorisationApiUrl: string;
-
-  private domain: string;
-
-  private localOrigin: string;
-
-  private remoteLedgerApi: string;
 
   private timeout: number;
 
   private readonly publicProviderMutex: Mutex;
 
-  private readonly privateProviderMutex: Mutex;
-
   constructor(private configService: ConfigService<ApiConfig, true>) {
     this.tirAddress = this.configService.get<string>(
       "besuTrustedIssuersRegistryAddress",
     );
-    this.authorisationApiUrl = this.configService.get<string>(
-      "authorisationApiUrl",
-    );
-
-    this.agent = new Agent({
-      privateKey: configService.get<string>("apiPrivateKey"),
-      name: configService.get<string>("apiName"),
-      trustedAppsRegistry: `${configService.get<string>(
-        "trustedAppsRegistryApiUrl",
-      )}/apps`,
-    });
-
-    this.domain = this.configService.get<string>("domain");
-    this.localOrigin = this.configService.get<string>("localOrigin");
-    this.remoteLedgerApi = `${this.configService.get<string>(
-      "ledgerApiUrl",
-    )}/blockchains/besu`;
-
     this.timeout = configService.get<number>("requestTimeout");
     this.publicProviderMutex = new Mutex();
-    this.privateProviderMutex = new Mutex();
   }
 
-  private async checkSession(): Promise<void> {
-    if (
-      !this.accessTokenExp ||
-      Date.now() + REFRESH_LIMIT > this.accessTokenExp * 1000
-    ) {
-      await this.refreshConnection();
+  private initBesuProvider(): void {
+    const besuRpcNode = this.configService.get<string>("besuRpcNode");
+
+    if (!besuRpcNode || typeof besuRpcNode !== "string") {
+      throw new Error("Invalid or missing BESU_RPC_NODE");
     }
-  }
 
-  private async getAccessToken() {
-    const nonce = randomUUID();
-
-    const requestComponent = await this.agent.createRequest(
-      this.configService.get<string>("ledgerApiName"),
-      { nonce },
-    );
-
-    // Send request payload to Authorisation API
-    try {
-      const res = await axios.post<
-        typeof requestComponent,
-        AxiosResponse<AkeResponse>
-      >(`${this.authorisationApiUrl}/oauth2-sessions`, requestComponent, {
-        timeout: this.timeout,
-      });
-
-      const accessToken = await this.agent.verifyAkeResponse(res.data, {
-        nonce,
-        timeout: this.timeout,
-      });
-
-      const { payload } = decodeJWT(accessToken);
-      this.accessTokenExp = payload.exp;
-
-      return accessToken;
-    } catch (err) {
-      if (axios.isAxiosError(err)) {
-        logAxiosError(err, this.logger);
-      } else if (err instanceof Error) {
-        this.logger.error(err.message, err.stack);
-      } else {
-        this.logger.error(err);
-      }
-      throw new InternalServerError();
-    }
-  }
-
-  private setupProvider(url: string, token?: string) {
-    if (token) {
+    // Useful for local testing
+    if (besuRpcNode.startsWith("http")) {
+      const { origin, pathname, username, password } = new URL(besuRpcNode);
       this.ethersProvider = new ethers.providers.JsonRpcProvider({
-        url,
-        headers: {
-          authorization: `Bearer ${token}`,
-        },
+        url: `${origin}${pathname}`,
         timeout: this.timeout,
+        ...(username &&
+          password && {
+            user: username,
+            password,
+          }),
       });
-
-      this.ethersProvider.on("debug", (...args) => {
-        try {
-          if (typeof args[0] === "object" && "error" in args[0]) {
-            this.logger.debug(JSON.stringify(args[0]));
-          }
-        } catch {
-          // Ignore debug
-        }
-      });
-
-      return this.ethersProvider;
+      return;
     }
 
-    this.ethersProviderWithoutToken = new ethers.providers.JsonRpcProvider({
-      url,
-      timeout: this.timeout,
+    this.ethersProvider = new ethers.providers.WebSocketProvider(besuRpcNode);
+
+    /* global NodeJS */
+    let pingTimeout: NodeJS.Timeout | null = null;
+    let keepAliveInterval: NodeJS.Timeout | null = null;
+
+    // Reconnect WS on accidental close
+    // Inspired by https://github.com/ethers-io/ethers.js/issues/1053#issuecomment-808736570
+
+    // eslint-disable-next-line no-underscore-dangle
+    const websocket = (
+      this.ethersProvider as ethers.providers.WebSocketProvider
+    )._websocket as WebSocket;
+
+    if (!websocket) {
+      // Allow websocket to be undefined during unit tests
+      if (process.env.NODE_ENV === "test") return;
+
+      throw new InternalServerError(InternalServerError.defaultTitle, {
+        detail: "Something went wrong when initializing the WebSocketProvider",
+      });
+    }
+
+    websocket.on("open", () => {
+      keepAliveInterval = setInterval(() => {
+        websocket.ping();
+        pingTimeout = setTimeout(
+          () => websocket.terminate(),
+          EXPECTED_PONG_BACK,
+        );
+      }, KEEP_ALIVE_CHECK_INTERVAL);
     });
 
-    this.ethersProviderWithoutToken.on("debug", (...args) => {
-      try {
-        if (typeof args[0] === "object" && "error" in args[0]) {
-          this.logger.debug(JSON.stringify(args[0]));
-        }
-      } catch {
-        // Ignore debug
+    websocket.on("close", (err: unknown) => {
+      this.logger.warn(
+        `The ws connection was closed: ${JSON.stringify(err, null, 2)}`,
+      );
+
+      if (keepAliveInterval) clearInterval(keepAliveInterval);
+      if (pingTimeout) clearTimeout(pingTimeout);
+
+      if (this.reconnectWebSocket) {
+        this.logger.log("Trying to reconnect");
+        this.initBesuProvider();
       }
     });
 
-    return this.ethersProviderWithoutToken;
+    websocket.on("pong", () => {
+      if (pingTimeout) clearInterval(pingTimeout);
+    });
   }
 
-  private async connectProvider(token?: string) {
-    if (this.domain && this.localOrigin) {
-      const localUrl = this.remoteLedgerApi.replace(
-        this.domain,
-        this.localOrigin,
-      );
-
-      this.logger.debug(
-        `Trying to connect to local Ledger API: ${localUrl} (${
-          token ? "with" : "without"
-        } access token)`,
-      );
-
-      const provider = this.setupProvider(localUrl, token);
-
-      await provider.getNetwork();
-
-      this.logger.debug("Connected to local Ledger API");
-
-      return provider;
+  private getEthersProvider() {
+    if (!this.ethersProvider) {
+      this.initBesuProvider();
     }
-
-    this.logger.debug(`Using remote Ledger API: ${this.remoteLedgerApi}`);
-    return this.setupProvider(this.remoteLedgerApi, token);
+    return this.ethersProvider!;
   }
 
-  private async refreshConnection() {
-    if (this.privateProviderMutex.isLocked()) {
-      // A connection is already being made, wait until it's finished
-      await this.privateProviderMutex.waitForUnlock();
-    } else {
-      // Create a new connection
-      await this.privateProviderMutex.runExclusive(async () => {
-        const token = await this.getAccessToken();
-
-        const provider = await this.connectProvider(token);
-
-        this.tirContract = Tir__factory.connect(this.tirAddress, provider);
-      });
-    }
-  }
-
-  private async getPublicMethodsTirContract() {
-    if (this.publicMethodsTirContract) {
-      return this.publicMethodsTirContract;
+  async getContract() {
+    if (this.tirContract) {
+      return this.tirContract;
     }
 
     if (this.publicProviderMutex.isLocked()) {
@@ -214,30 +125,29 @@ export class LedgerService {
       await this.publicProviderMutex.waitForUnlock();
     } else {
       // Create a new connection
-      await this.publicProviderMutex.runExclusive(async () => {
-        const provider = await this.connectProvider();
+      await this.publicProviderMutex.runExclusive(() => {
+        const provider = this.getEthersProvider();
 
-        this.publicMethodsTirContract = Tir__factory.connect(
-          this.tirAddress,
-          provider,
-        );
+        this.tirContract = Tir__factory.connect(this.tirAddress, provider);
       });
     }
 
-    return this.publicMethodsTirContract!;
-  }
-
-  async getContract({ protectedMethod = false } = {}): Promise<Tir> {
-    if (protectedMethod) {
-      await this.checkSession();
-      return this.tirContract!;
-    }
-
-    return this.getPublicMethodsTirContract();
+    return this.tirContract!;
   }
 
   getContractAddress() {
     return this.tirAddress;
+  }
+
+  async onModuleDestroy() {
+    if (
+      this.ethersProvider &&
+      this.ethersProvider instanceof ethers.providers.WebSocketProvider &&
+      this.ethersProvider.destroy
+    ) {
+      this.reconnectWebSocket = false;
+      await this.ethersProvider.destroy();
+    }
   }
 }
 

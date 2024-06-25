@@ -10,7 +10,7 @@ declare global {
       API_URL_PREFIX?: string;
       API_NAME: string;
       AUTHORISATION_API_NAME?: string;
-      LEDGER_API_NAME?: string;
+      BESU_RPC_NODE: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
       DOCKER_TAG?: string;
       CONTRACT_ADDR: string;

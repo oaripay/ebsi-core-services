@@ -80,7 +80,7 @@ describe("App Module", () => {
       const domain = configService.get<string>("domain");
       const localOrigin = configService.get<string>("localOrigin") || domain;
       const url = configService
-        .get<string>("ledgerApiUrl")
+        .get<string>("authorisationApiUrl")
         .replace(domain, localOrigin);
 
       await expect(() => app.init()).rejects.toThrow(
@@ -117,7 +117,7 @@ describe("App Module", () => {
       const domain = configService.get<string>("domain");
       const localOrigin = configService.get<string>("localOrigin") || domain;
       const url = configService
-        .get<string>("ledgerApiUrl")
+        .get<string>("authorisationApiUrl")
         .replace(domain, localOrigin);
 
       mockServer.use(
@@ -161,20 +161,16 @@ describe("App Module", () => {
       const domain = configService.get<string>("domain");
       const localOrigin = configService.get<string>("localOrigin") || domain;
 
-      const ledgerApiUrl = configService
-        .get<string>("ledgerApiUrl")
-        .replace(domain, localOrigin);
       const authorisationApiUrl = `${configService.get<string>(
         "authorisationApiUrl",
       )}`.replace(domain, localOrigin);
 
-      // Ledger API first responds 15 times with a 404 (because it's starting)
       let reqCounter = 0;
       mockServer.use(
-        http.get(ledgerApiUrl, () => {
+        http.get(authorisationApiUrl, () => {
           reqCounter += 1;
 
-          // Ledger API first responds 15 times with a 404 (because it's starting)
+          // Authorisation API first responds 15 times with a 404 (because it's starting)
           if (reqCounter <= 15) {
             return HttpResponse.text("Not Found", { status: 404 });
           }
@@ -182,7 +178,6 @@ describe("App Module", () => {
           // Then, it responds with a 200
           return HttpResponse.json({});
         }),
-        http.get(authorisationApiUrl, () => HttpResponse.json({})),
       );
 
       await expect(app.init()).resolves.not.toThrow();
@@ -223,15 +218,11 @@ describe("App Module", () => {
       const localOrigin = configService.get<string>("localOrigin") || domain;
 
       // Mock dependencies
-      const ledgerApiUrl = configService
-        .get<string>("ledgerApiUrl")
-        .replace(domain, localOrigin);
       const authorisationApiUrl = `${configService.get<string>(
         "authorisationApiUrl",
       )}`.replace(domain, localOrigin);
 
       mockServer.use(
-        http.get(ledgerApiUrl, () => HttpResponse.json({})),
         http.get(authorisationApiUrl, () => HttpResponse.json({})),
       );
 

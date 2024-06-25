@@ -9,7 +9,7 @@ declare global {
       API_URL_PREFIX?: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
       DOCKER_TAG?: string;
-      LEDGER_API_NAME?: string;
+      BESU_RPC_NODE: string;
       REQUEST_TIMEOUT?: string;
       AXIOS_RETRY_DELAY?: string;
       CONTRACT_ADDR: string;

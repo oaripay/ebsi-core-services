@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-
 import { Injectable, Logger } from "@nestjs/common";
 import axios from "axios";
 import { ethers } from "ethers";
@@ -99,7 +97,7 @@ export class JsonRpcService {
 
     try {
       return await (
-        await this.ledgerService.getContract({ protectedMethod: true })
+        await this.ledgerService.getContract()
       ).provider.estimateGas({
         from,
         to,
@@ -346,17 +344,28 @@ export class JsonRpcService {
       await validateClass(RequestUpdatePolicyDto, body);
       const { from, policyId, opType, policyName, description } =
         body.params[0]!;
-      const functionSig = policyName
-        ? "updatePolicy(string,uint8,string)"
-        : "updatePolicy(uint256,uint8,string)";
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData(
-        // @ts-ignore
-        functionSig,
-        [policyName ?? policyId, opType, description],
-      );
+      let data: string;
+
+      if (policyName) {
+        data = (
+          await this.ledgerService.getContract()
+        ).interface.encodeFunctionData("updatePolicy(string,uint8,string)", [
+          policyName,
+          opType,
+          description,
+        ]);
+      } else if (policyId) {
+        data = (
+          await this.ledgerService.getContract()
+        ).interface.encodeFunctionData("updatePolicy(uint256,uint8,string)", [
+          policyId,
+          opType,
+          description,
+        ]);
+      } else {
+        throw new Error("Either policyId or policyName must be provided");
+      }
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -375,17 +384,26 @@ export class JsonRpcService {
     try {
       await validateClass(RequestAddPolicyConditionsDto, body);
       const { from, policyId, policyName, policyConditions } = body.params[0]!;
-      const functionSig = policyName
-        ? "addPolicyConditions(string,(string,string,uint8,bytes,uint8)[])"
-        : "addPolicyConditions(uint256,(string,string,uint8,bytes,uint8)[])";
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData(
-        // @ts-ignore
-        functionSig,
-        [policyName ?? policyId, policyConditions],
-      );
+      let data: string;
+
+      if (policyName) {
+        data = (
+          await this.ledgerService.getContract()
+        ).interface.encodeFunctionData(
+          "addPolicyConditions(string,(string,string,uint8,bytes,uint8)[])",
+          [policyName, policyConditions],
+        );
+      } else if (policyId) {
+        data = (
+          await this.ledgerService.getContract()
+        ).interface.encodeFunctionData(
+          "addPolicyConditions(uint256,(string,string,uint8,bytes,uint8)[])",
+          [policyId, policyConditions],
+        );
+      } else {
+        throw new Error("Either policyId or policyName must be provided");
+      }
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -404,17 +422,26 @@ export class JsonRpcService {
     try {
       await validateClass(RequestDeletePolicyConditionDto, body);
       const { from, policyId, policyName, policyConditionId } = body.params[0]!;
-      const functionSig = policyName
-        ? "deletePolicyCondition(string,uint256)"
-        : "deletePolicyCondition(uint256,uint256)";
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData(
-        // @ts-ignore
-        functionSig,
-        [policyName ?? policyId, policyConditionId],
-      );
+      let data: string;
+
+      if (policyName) {
+        data = (
+          await this.ledgerService.getContract()
+        ).interface.encodeFunctionData(
+          "deletePolicyCondition(string,uint256)",
+          [policyName, policyConditionId],
+        );
+      } else if (policyId) {
+        data = (
+          await this.ledgerService.getContract()
+        ).interface.encodeFunctionData(
+          "deletePolicyCondition(uint256,uint256)",
+          [policyId, policyConditionId],
+        );
+      } else {
+        throw new Error("Either policyId or policyName must be provided");
+      }
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -433,17 +460,20 @@ export class JsonRpcService {
     try {
       await validateClass(RequestActivatePolicyDto, body);
       const { from, policyId, policyName } = body.params[0]!;
-      const functionSig = policyName
-        ? "activatePolicy(string)"
-        : "activatePolicy(uint256)";
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData(
-        // @ts-ignore
-        functionSig,
-        [policyName ?? policyId],
-      );
+      let data: string;
+
+      if (policyName) {
+        data = (
+          await this.ledgerService.getContract()
+        ).interface.encodeFunctionData("activatePolicy(string)", [policyName]);
+      } else if (policyId) {
+        data = (
+          await this.ledgerService.getContract()
+        ).interface.encodeFunctionData("activatePolicy(uint256)", [policyId]);
+      } else {
+        throw new Error("Either policyId or policyName must be provided");
+      }
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -462,17 +492,22 @@ export class JsonRpcService {
     try {
       await validateClass(RequestDeactivatePolicyDto, body);
       const { from, policyId, policyName } = body.params[0]!;
-      const functionSig = policyName
-        ? "deactivatePolicy(string)"
-        : "deactivatePolicy(uint256)";
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData(
-        // @ts-ignore
-        functionSig,
-        [policyName ?? policyId],
-      );
+      let data: string;
+
+      if (policyName) {
+        data = (
+          await this.ledgerService.getContract()
+        ).interface.encodeFunctionData("deactivatePolicy(string)", [
+          policyName,
+        ]);
+      } else if (policyId) {
+        data = (
+          await this.ledgerService.getContract()
+        ).interface.encodeFunctionData("deactivatePolicy(uint256)", [policyId]);
+      } else {
+        throw new Error("Either policyId or policyName must be provided");
+      }
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -576,7 +611,7 @@ export class JsonRpcService {
       await this.checkDidOwnership(signer, clientId);
 
       const tx = await (
-        await this.ledgerService.getContract({ protectedMethod: true })
+        await this.ledgerService.getContract()
       ).provider.sendTransaction(request.signedRawTransaction);
       return tx.hash;
     } catch (err) {

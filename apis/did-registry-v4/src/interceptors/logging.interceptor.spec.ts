@@ -67,16 +67,11 @@ describe("Logging interceptor", () => {
     const domain = configService.get<string>("domain");
     const localOrigin = configService.get<string>("localOrigin") || domain;
 
-    const ledgerApiUrl = `${configService.get<string>("ledgerApiUrl")}`.replace(
-      domain,
-      localOrigin,
-    );
     const authorisationApiV2Url = `${configService.get<string>(
       "authorisationApiV2Url",
     )}`.replace(domain, localOrigin);
 
     mockServer.use(
-      http.get(ledgerApiUrl, () => HttpResponse.json({})),
       http.get(authorisationApiV2Url, () => HttpResponse.json({})),
     );
 

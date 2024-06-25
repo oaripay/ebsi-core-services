@@ -18,7 +18,7 @@ declare global {
       AXIOS_RETRY_DELAY?: string;
       TRUSTED_HOSTNAMES?: string;
       // Ledger & SC
-      LEDGER_API_NAME?: string;
+      BESU_RPC_NODE: string;
       CONTRACT_ADDR: string;
       // Test variables
       TEST_AUTH_API_ES256_PRIVATE_KEY?: string;
