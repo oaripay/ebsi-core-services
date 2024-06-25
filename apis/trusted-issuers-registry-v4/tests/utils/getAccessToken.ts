@@ -3,6 +3,7 @@ import { URLSearchParams } from "node:url";
 import { createVerifiablePresentationJwt } from "@cef-ebsi/verifiable-presentation";
 import type { EbsiIssuer } from "@cef-ebsi/verifiable-presentation";
 import axios from "axios";
+import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
 
 /**
  * Get an actual "tir_invite" access token from Authorisation API v3.
@@ -11,7 +12,7 @@ export async function getTirInviteAccessToken(
   authorisationApiUrl: string,
   subject: EbsiIssuer,
   vcJwt: string,
-  trustedHostnames: string[],
+  ebsiEnvConfig: EbsiEnvConfiguration,
 ) {
   const nonce = randomUUID();
   const vpPayload = {
@@ -26,10 +27,9 @@ export async function getTirInviteAccessToken(
     subject,
     authorisationApiUrl,
     {
-      ebsiAuthority: "example.net",
+      ...ebsiEnvConfig,
       skipValidation: true,
       nonce,
-      trustedHostnames,
       // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
       exp: Math.floor(Date.now() / 1000) + 100,
       nbf: Math.floor(Date.now() / 1000) - 100,
@@ -82,7 +82,7 @@ export async function getTirInviteAccessToken(
 export async function getTirWriteAccessToken(
   authorisationApiUrl: string,
   subject: EbsiIssuer,
-  trustedHostnames: string[],
+  ebsiEnvConfig: EbsiEnvConfiguration,
 ) {
   const nonce = randomUUID();
   const vpPayload = {
@@ -97,10 +97,8 @@ export async function getTirWriteAccessToken(
     subject,
     authorisationApiUrl,
     {
-      ebsiAuthority: "example.net",
-      skipValidation: true,
+      ...ebsiEnvConfig,
       nonce,
-      trustedHostnames,
       // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
       exp: Math.floor(Date.now() / 1000) + 100,
       nbf: Math.floor(Date.now() / 1000) - 100,
@@ -142,7 +140,7 @@ export async function getTirWriteAccessToken(
 export async function getDidrWriteAccessToken(
   authorisationApiUrl: string,
   issuer: EbsiIssuer,
-  trustedHostnames: string[],
+  ebsiEnvConfig: EbsiEnvConfiguration,
 ) {
   const nonce = randomUUID();
   const vpPayload = {
@@ -157,10 +155,9 @@ export async function getDidrWriteAccessToken(
     issuer,
     authorisationApiUrl,
     {
-      ebsiAuthority: "example.net",
+      ...ebsiEnvConfig,
       skipValidation: true,
       nonce,
-      trustedHostnames,
       // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
       exp: Math.floor(Date.now() / 1000) + 100,
       nbf: Math.floor(Date.now() / 1000) - 100,

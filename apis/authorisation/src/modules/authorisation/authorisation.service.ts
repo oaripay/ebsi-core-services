@@ -61,40 +61,46 @@ export class AuthorisationService {
 
   private timeout: number;
 
-  private trustedHostnames: string[];
-
-  private readonly ebsiAuthority: string;
-
   private readonly ebsiEnvConfig: EbsiEnvConfiguration;
 
   constructor(private configService: ConfigService<ApiConfig, true>) {
-    const domain = this.configService.get<string>("domain");
-    this.ebsiAuthority = domain.replace(/^https?:\/\//, ""); // remove http protocol scheme
+    const domain = this.configService.get("domain", { infer: true });
+    const ebsiAuthority = domain.replace(/^https?:\/\//, ""); // remove http protocol scheme
+    const trustedHostnames = configService.get("trustedHostnames", {
+      infer: true,
+    });
     this.ebsiEnvConfig = {
-      didRegistry: `${domain}/did-registry/v4/identifiers`,
-      trustedIssuersRegistry: `${domain}/trusted-issuers-registry/v3/issuers`,
-      trustedPoliciesRegistry: `${domain}/trusted-policies-registry/v2/users`,
+      network: configService.get("network", { infer: true }),
+      hosts: [ebsiAuthority, ...trustedHostnames],
+      services: {
+        "did-registry": "v4",
+        "trusted-issuers-registry": "v3",
+        "trusted-policies-registry": "v2",
+        "trusted-schemas-registry": "v2",
+      },
     };
-    const urlPrefix = this.configService.get<string>("apiUrlPrefix");
+    const urlPrefix = this.configService.get("apiUrlPrefix", { infer: true });
     this.siopSessionsUrl = `${domain}${urlPrefix}/siop-sessions`;
-    this.privateKey = prefix0x(this.configService.get<string>("apiPrivateKey"));
-    this.onboardingAllowlist = this.configService.get<string[]>(
-      "onboardingAllowlist",
+    this.privateKey = prefix0x(
+      this.configService.get("apiPrivateKey", { infer: true }),
     );
-    this.didRegistry = this.configService.get<string>("didRegistry");
-    this.trustedAppsRegistry = this.configService.get<string>(
-      "trustedAppsRegistry",
-    );
-    const apiName = this.configService.get<string>("apiName");
+    this.onboardingAllowlist = this.configService.get("onboardingAllowlist", {
+      infer: true,
+    });
+    this.didRegistry = this.configService.get("didRegistry", { infer: true });
+    this.trustedAppsRegistry = this.configService.get("trustedAppsRegistry", {
+      infer: true,
+    });
+    const apiName = this.configService.get("apiName", { infer: true });
     this.kid = `${this.trustedAppsRegistry}/${apiName}`;
-    this.authorisationCredentialSchema = this.configService.get<string>(
+    this.authorisationCredentialSchema = this.configService.get(
       "authorisationCredentialSchema",
+      { infer: true },
     );
-    this.timeout = configService.get<number>("requestTimeout");
-    this.trustedHostnames = configService.get<string[]>("trustedHostnames");
+    this.timeout = configService.get("requestTimeout", { infer: true });
 
     this.oauth2RP = new OAuth2RP({
-      privateKey: this.configService.get<string>("apiPrivateKey"),
+      privateKey: this.configService.get("apiPrivateKey", { infer: true }),
       name: apiName,
       trustedAppsRegistry: this.trustedAppsRegistry,
     });
@@ -111,7 +117,7 @@ export class AuthorisationService {
         "ES256K",
       ),
       alg: "ES256K",
-      name: this.configService.get<string>("apiName"),
+      name: this.configService.get("apiName", { infer: true }),
       kid: this.kid,
       redirectUri: this.siopSessionsUrl,
       didRegistry: this.didRegistry,
@@ -200,11 +206,9 @@ export class AuthorisationService {
           try {
             // Verify VC
             await verifyCredentialJwt(verifiableCredential, {
-              ebsiAuthority: this.ebsiAuthority,
-              ebsiEnvConfig: this.ebsiEnvConfig,
+              ...this.ebsiEnvConfig,
               timeout: this.timeout,
               skipAccreditationsValidation: true,
-              trustedHostnames: this.trustedHostnames,
             });
           } catch (e) {
             if (e instanceof Error) {

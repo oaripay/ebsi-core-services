@@ -256,12 +256,23 @@ describe("JsonRpc Module", () => {
       alg: "ES256K",
     };
 
+    const domain = configService.get("domain", { infer: true });
+    const ebsiAuthority = domain.replace(/^https?:\/\//, ""); // remove http protocol scheme
+    const trustedHostnames = configService.get<string[]>("trustedHostnames");
+
     const issuerV1StatusList2021CredentialJwt =
       await createVerifiableCredentialJwt(
         issuers[0]!.proxy.statusList2021Credential,
         issuer,
         {
-          ebsiAuthority: "example.net",
+          network: configService.get("network", { infer: true }),
+          hosts: [ebsiAuthority, ...trustedHostnames],
+          services: {
+            "did-registry": "v5",
+            "trusted-issuers-registry": "v5",
+            "trusted-policies-registry": "v3",
+            "trusted-schemas-registry": "v3",
+          },
           skipValidation: true,
         },
       );

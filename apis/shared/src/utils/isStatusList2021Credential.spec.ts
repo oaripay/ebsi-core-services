@@ -79,7 +79,16 @@ describe("isStatusList2021Credential", () => {
         {
           not: "a string",
         },
-        "example.net",
+        {
+          network: "test",
+          hosts: ["example.net"],
+          services: {
+            "did-registry": "v5",
+            "trusted-issuers-registry": "v5",
+            "trusted-policies-registry": "v3",
+            "trusted-schemas-registry": "v3",
+          },
+        },
       ),
     ).resolves.toBe(false);
   });
@@ -92,7 +101,16 @@ describe("isStatusList2021Credential", () => {
     );
 
     await expect(
-      isStatusList2021Credential("jwt", "example.net"),
+      isStatusList2021Credential("jwt", {
+        network: "test",
+        hosts: ["example.net"],
+        services: {
+          "did-registry": "v5",
+          "trusted-issuers-registry": "v5",
+          "trusted-policies-registry": "v3",
+          "trusted-schemas-registry": "v3",
+        },
+      }),
     ).resolves.toBe(false);
   });
 
@@ -109,7 +127,16 @@ describe("isStatusList2021Credential", () => {
     );
 
     await expect(
-      isStatusList2021Credential("jwt", "example.net"),
+      isStatusList2021Credential("jwt", {
+        network: "test",
+        hosts: ["example.net"],
+        services: {
+          "did-registry": "v5",
+          "trusted-issuers-registry": "v5",
+          "trusted-policies-registry": "v3",
+          "trusted-schemas-registry": "v3",
+        },
+      }),
     ).resolves.toBe(false);
   });
 
@@ -121,7 +148,16 @@ describe("isStatusList2021Credential", () => {
     );
 
     await expect(
-      isStatusList2021Credential("jwt", "example.net"),
+      isStatusList2021Credential("jwt", {
+        network: "test",
+        hosts: ["example.net"],
+        services: {
+          "did-registry": "v5",
+          "trusted-issuers-registry": "v5",
+          "trusted-policies-registry": "v3",
+          "trusted-schemas-registry": "v3",
+        },
+      }),
     ).resolves.toBe(true);
   });
 
@@ -133,13 +169,22 @@ describe("isStatusList2021Credential", () => {
     );
 
     await expect(
-      isStatusList2021Credential("jwt", "example.net"),
+      isStatusList2021Credential("jwt", {
+        network: "test",
+        hosts: ["example.net"],
+        services: {
+          "did-registry": "v5",
+          "trusted-issuers-registry": "v5",
+          "trusted-policies-registry": "v3",
+          "trusted-schemas-registry": "v3",
+        },
+      }),
     ).resolves.toBe(true);
   });
 });
 
 describe("statusList2021CredentialSchema", () => {
-  it("should not throw when asserting a valid objet", () => {
+  it("should not throw when asserting a valid object", () => {
     expect(() =>
       Joi.assert(validStatusListCredential, statusList2021CredentialSchema),
     ).not.toThrow();
@@ -152,7 +197,7 @@ describe("statusList2021CredentialSchema", () => {
     ).not.toThrow();
   });
 
-  it("should throw an error when asserting an invalid objet", () => {
+  it("should throw an error when asserting an invalid object", () => {
     const invalidObject = {
       "@context": [
         "https://www.w3.org/2018/credentials/v1",

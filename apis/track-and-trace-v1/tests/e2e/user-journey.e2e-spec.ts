@@ -11,7 +11,10 @@ import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import { util } from "@cef-ebsi/key-did-resolver";
 import { waitToBeMined, encode } from "@ebsiint-api/shared";
-import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
+import type {
+  EbsiEnvConfiguration,
+  EbsiIssuer,
+} from "@cef-ebsi/verifiable-credential";
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 import type { ApiConfig } from "../../src/config/configuration.js";
@@ -269,6 +272,23 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
       return responseSend;
     }
 
+    const ebsiAuthority = configService
+      .get<string>("domain")
+      .replace(/^https?:\/\//, "");
+    const trustedHostnames = configService.get("trustedHostnames", {
+      infer: true,
+    });
+    const ebsiEnvConfig = {
+      network: configService.get("network", { infer: true }),
+      hosts: [ebsiAuthority, ...trustedHostnames],
+      services: {
+        "did-registry": "v5",
+        "trusted-issuers-registry": "v5",
+        "trusted-policies-registry": "v3",
+        "trusted-schemas-registry": "v3",
+      },
+    } satisfies EbsiEnvConfiguration;
+
     // "authoriser" allows "documentCreator" to create documents
 
     // Pre-requisites: "authoriser" has obtained a VC from an allowlisted entity and can get an access token with "tnt_authorise" scope
@@ -276,7 +296,7 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
       configService.get("authorisationApiUrl", { infer: true }),
       authoriser.info,
       "openid tnt_authorise",
-      undefined,
+      ebsiEnvConfig,
       vcOnboard,
     );
 
@@ -322,6 +342,7 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
       configService.get("authorisationApiUrl", { infer: true }),
       documentCreator.info,
       "openid tnt_create",
+      ebsiEnvConfig,
     );
 
     const document1 = {
@@ -391,6 +412,7 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
       configService.get("authorisationApiUrl", { infer: true }),
       documentCreator.info,
       "openid tnt_write",
+      ebsiEnvConfig,
     );
 
     const document1Event1 = {
@@ -563,6 +585,7 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
       configService.get("authorisationApiUrl", { infer: true }),
       didKeyDelegate.info,
       "openid tnt_write",
+      ebsiEnvConfig,
     );
 
     responseBuild = await buildTransaction({
@@ -650,6 +673,7 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
       configService.get("authorisationApiUrl", { infer: true }),
       didKeyEventsCreator.info,
       "openid tnt_write",
+      ebsiEnvConfig,
     );
 
     const document1Event2 = {

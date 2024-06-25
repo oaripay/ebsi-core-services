@@ -5,13 +5,13 @@ import {
   BadRequestError,
   InternalServerError,
   NotFoundError,
-  isStatusList2021Credential,
   prefixWith0x,
   isEthersError,
   remove0xPrefix,
+  checkStatusList2021Credential,
 } from "@ebsiint-api/shared";
 import axios, { type AxiosResponse } from "axios";
-import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+import { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
 import { LedgerService } from "../ledger/ledger.service.js";
 import {
   AttributeObject,
@@ -25,29 +25,28 @@ import { IssuerTypeNames } from "./issuers.constants.js";
 export class IssuersService {
   private readonly logger = new Logger(IssuersService.name);
 
-  private timeout: number;
-
-  private trustedHostnames: string[];
-
   private ebsiEnvConfig: EbsiEnvConfiguration;
+
+  private timeout: number;
 
   constructor(
     private ledgerService: LedgerService,
-    private configService: ConfigService<ApiConfig, true>,
+    configService: ConfigService<ApiConfig, true>,
   ) {
-    this.timeout = configService.get<number>("requestTimeout");
-    this.trustedHostnames = configService.get<string[]>("trustedHostnames");
+    const domain = configService.get("domain", { infer: true });
+    const ebsiAuthority = domain.replace(/^https?:\/\//, ""); // remove http protocol scheme
+    const trustedHostnames = configService.get<string[]>("trustedHostnames");
     this.ebsiEnvConfig = {
-      didRegistry: `${configService.get<string>(
-        "didRegistryApiUrl",
-      )}/identifiers`,
-      trustedIssuersRegistry: `${configService.get<string>(
-        "domain",
-      )}${configService.get<string>("apiUrlPrefix")}/issuers`,
-      trustedPoliciesRegistry: `${configService.get<string>(
-        "trustedPoliciesRegistryApiUrl",
-      )}/users`,
+      network: configService.get("network", { infer: true }),
+      hosts: [ebsiAuthority, ...trustedHostnames],
+      services: {
+        "did-registry": "v4",
+        "trusted-issuers-registry": "v4",
+        "trusted-policies-registry": "v2",
+        "trusted-schemas-registry": "v2",
+      },
     };
+    this.timeout = configService.get<number>("requestTimeout");
   }
 
   async getIssuers(
@@ -347,15 +346,16 @@ export class IssuersService {
       });
     }
 
-    const domain = this.configService.get<string>("domain");
-    const authority = domain.replace(/^https?:\/\//, "");
+    const statusListValidation = await checkStatusList2021Credential(
+      res.data,
+      this.ebsiEnvConfig,
+    );
 
-    if (
-      !(await isStatusList2021Credential(res.data, authority, {
-        trustedHostnames: this.trustedHostnames,
-        ebsiEnvConfig: this.ebsiEnvConfig,
-      }))
-    ) {
+    if (!statusListValidation.success) {
+      this.logger.error(
+        `The Status List Credential returned by the Issuer's proxy is invalid: ${statusListValidation.error}`,
+      );
+
       throw new InternalServerError("Invalid Status List Credential", {
         detail:
           "The Status List Credential returned by the Issuer's proxy is invalid",

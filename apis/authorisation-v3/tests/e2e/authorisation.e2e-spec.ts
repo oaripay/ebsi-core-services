@@ -22,6 +22,7 @@ import { encode } from "@ebsiint-api/shared";
 import { createJWT, decodeJWT, ES256KSigner } from "did-jwt";
 import { calculateJwkThumbprint, importJWK, jwtVerify, SignJWT } from "jose";
 import type { JWK } from "jose";
+import { fromUrl } from "@cef-ebsi/ebsi-uri";
 import { AppModule } from "../../src/app.module.js";
 import type { ApiConfig } from "../../src/config/configuration.js";
 import {
@@ -53,7 +54,6 @@ describe("Authorisation API v3 (e2e)", () => {
   let server: RawServerDefault | string;
   let configService: ConfigService<ApiConfig, true>;
   let authorisationApiV3Url: string;
-  let trustedHostnames: string[];
   let ebsiAuthority: string;
   let ebsiEnvConfig: EbsiEnvConfiguration;
 
@@ -75,17 +75,24 @@ describe("Authorisation API v3 (e2e)", () => {
 
     server = getServer(app, configService);
 
-    const domain = configService.get<string>("domain");
+    const domain = configService.get("domain", { infer: true });
     ebsiAuthority = domain.replace(/^https?:\/\//, ""); // remove http protocol scheme
+    const trustedHostnames = configService.get("trustedHostnames", {
+      infer: true,
+    });
     ebsiEnvConfig = {
-      didRegistry: `${domain}/did-registry/v4/identifiers`,
-      trustedIssuersRegistry: `${domain}/trusted-issuers-registry/v4/issuers`,
-      trustedPoliciesRegistry: `${domain}/trusted-policies-registry/v2/users`,
+      network: process.env.NETWORK,
+      hosts: [ebsiAuthority, ...trustedHostnames],
+      services: {
+        "did-registry": "v5",
+        "trusted-issuers-registry": "v5",
+        "trusted-policies-registry": "v3",
+        "trusted-schemas-registry": "v3",
+      },
     };
 
-    const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
+    const apiUrlPrefix = configService.get("apiUrlPrefix", { infer: true });
     authorisationApiV3Url = `${domain}${apiUrlPrefix}`;
-    trustedHostnames = configService.get<string[]>("trustedHostnames");
   });
 
   afterAll(async () => {
@@ -299,936 +306,1011 @@ describe("Authorisation API v3 (e2e)", () => {
       ).toBe("application/json; charset=utf-8");
     });
 
-    describe.each(CUSTOM_SCOPES)("with scope 'openid %s'", (customScope) => {
-      const scope: Scope = `openid ${customScope}`;
-      let issuer: EbsiIssuer;
-      let client: EbsiIssuer;
-      let vcPayload: EbsiVerifiableAttestation;
-      let vpPayload: EbsiVerifiablePresentation;
-      let presentationSubmission: PresentationSubmission;
-      let issuanceDate: Date;
-      let expirationDate: Date;
+    describe.each(["EBSI URI", "URL"] as const)(
+      "using %s as resource locator",
+      (uriType) => {
+        describe.each(CUSTOM_SCOPES)(
+          "with scope 'openid %s'",
+          (customScope) => {
+            const scope: Scope = `openid ${customScope}`;
+            let issuer: EbsiIssuer;
+            let client: EbsiIssuer;
+            let vcPayload: EbsiVerifiableAttestation;
+            let vpPayload: EbsiVerifiablePresentation;
+            let presentationSubmission: PresentationSubmission;
+            let issuanceDate: Date;
+            let expirationDate: Date;
 
-      beforeAll(async () => {
-        const issuerKid = configService.get<string>("testIssuerKid");
-        const issuerAlg = configService.get<string>("testIssuerAlg");
-        const issuerPrivateKey = configService.get<string>(
-          "testIssuerPrivateKey",
-        );
-        const issuerAttribute = configService.get<string>(
-          "testIssuerAttribute",
-        );
+            beforeAll(async () => {
+              const issuerKid = configService.get("testIssuerKid", {
+                infer: true,
+              });
+              const issuerAlg = configService.get("testIssuerAlg", {
+                infer: true,
+              });
+              const issuerPrivateKey = configService.get(
+                "testIssuerPrivateKey",
+                {
+                  infer: true,
+                },
+              );
+              const issuerAttribute = configService.get("testIssuerAttribute", {
+                infer: true,
+              });
 
-        // Only support ES256K issuer (temporary)
-        if (issuerAlg !== "ES256K") {
-          throw new Error("TEST_ISSUER_ALG must be ES256K");
-        }
+              if (!issuerKid) {
+                throw new Error("TEST_ISSUER_KID is not defined");
+              }
 
-        const privateKeyJwk = encode.privateKey.fromHexToJWK(issuerPrivateKey);
-        const { d, ...publicKeyJwk } = privateKeyJwk;
+              if (!issuerPrivateKey) {
+                throw new Error("TEST_ISSUER_PRIVATE_KEY is not defined");
+              }
 
-        issuer = {
-          kid: issuerKid,
-          did: issuerKid.split("#")[0]!,
-          publicKeyJwk,
-          privateKeyJwk,
-          alg: issuerAlg,
-        };
+              if (!issuerAttribute) {
+                throw new Error("TEST_ISSUER_ATTRIBUTE is not defined");
+              }
 
-        if (
-          customScope.includes(DIDR_INVITE_SCOPE) ||
-          customScope.includes(TIR_INVITE_SCOPE)
-        ) {
-          // client is a new LE
-          client = await createLegalEntity("ES256K");
-        } else {
-          client = issuer;
-        }
+              // Only support ES256K issuer (temporary)
+              if (issuerAlg !== "ES256K") {
+                throw new Error("TEST_ISSUER_ALG must be ES256K");
+              }
 
-        issuanceDate = new Date();
-        // JWT access token must have 2 hours expiration time and there are no Refresh Tokens.
-        expirationDate = new Date(issuanceDate.getTime() + 2 * 60 * 60 * 1000);
+              const privateKeyJwk =
+                encode.privateKey.fromHexToJWK(issuerPrivateKey);
+              const { d, ...publicKeyJwk } = privateKeyJwk;
 
-        // Note: in this test, the VC issuer is also the VC subject and the VP holder
-        vcPayload = {
-          "@context": ["https://www.w3.org/2018/credentials/v1"],
-          id: `urn:uuid:${randomUUID()}`,
-          type: ["VerifiableCredential", "VerifiableAttestation"],
-          issuer: issuer.did,
-          issuanceDate: `${issuanceDate.toISOString().slice(0, -5)}Z`,
-          issued: `${issuanceDate.toISOString().slice(0, -5)}Z`,
-          validFrom: `${issuanceDate.toISOString().slice(0, -5)}Z`,
-          expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
-          credentialSubject: { id: client.did, type: "same-device" },
-          credentialSchema: {
-            id: configService.get<string>("testOidSchemaPattern"),
-            type: "FullJsonSchemaValidator2021",
-          },
-          termsOfUse: {
-            id: issuerAttribute,
-            type: "IssuanceCertificate",
-          },
-        };
+              issuer = {
+                kid: issuerKid,
+                did: issuerKid.split("#")[0]!,
+                publicKeyJwk,
+                privateKeyJwk,
+                alg: issuerAlg,
+              };
 
-        if (customScope === TIR_INVITE_SCOPE) {
-          vcPayload.type.push("VerifiableAccreditationToAccredit");
-        } else if (customScope === DIDR_INVITE_SCOPE) {
-          vcPayload.type.push("VerifiableAuthorisationToOnboard");
-        }
+              if (
+                customScope.includes(DIDR_INVITE_SCOPE) ||
+                customScope.includes(TIR_INVITE_SCOPE)
+              ) {
+                // client is a new LE
+                client = await createLegalEntity("ES256K");
+              } else {
+                client = issuer;
+              }
 
-        vpPayload = {
-          "@context": ["https://www.w3.org/2018/credentials/v1"],
-          type: ["VerifiablePresentation"],
-          verifiableCredential: [],
-          holder: client.did,
-        };
-      });
+              issuanceDate = new Date();
+              // JWT access token must have 2 hours expiration time and there are no Refresh Tokens.
+              expirationDate = new Date(
+                issuanceDate.getTime() + 2 * 60 * 60 * 1000,
+              );
 
-      beforeEach(() => {
-        // Reset to valid presentation submission before each test
-        presentationSubmission = createPresentationSubmission(customScope);
-        // Reset to empty verifiable credential array before each test to allow each test to add its own verifiable credential
-        vpPayload.verifiableCredential = [];
-        vpPayload["id"] = randomUUID(); // VP ID is used as JWT JTI.
-      });
+              const credentialSchemaUrl = configService.get(
+                "testOidSchemaPattern",
+                {
+                  infer: true,
+                },
+              );
 
-      describe("vp_token validation", () => {
-        beforeEach(() => {
-          // Reset to empty verifiable credential array before each test to allow each test to add its own verifiable credential
-          vpPayload.verifiableCredential = [];
-          vpPayload["id"] = randomUUID(); // VP ID is used as JWT JTI.
-        });
+              if (!credentialSchemaUrl) {
+                throw new Error("TEST_OID_SCHEMA_PATTERN is not defined");
+              }
 
-        it("should return an error the audience is not the service", async () => {
-          if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
-            const vcJwt = await createVerifiableCredentialJwt(
-              vcPayload,
-              issuer,
-              {
-                ebsiAuthority,
-                ebsiEnvConfig,
-                skipValidation: true,
-                trustedHostnames,
-              },
-            );
+              // Note: in this test, the VC issuer is also the VC subject and the VP holder
+              vcPayload = {
+                "@context": ["https://www.w3.org/2018/credentials/v1"],
+                id: `urn:uuid:${randomUUID()}`,
+                type: ["VerifiableCredential", "VerifiableAttestation"],
+                issuer: issuer.did,
+                issuanceDate: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+                issued: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+                validFrom: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+                expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
+                credentialSubject: { id: client.did, type: "same-device" },
+                credentialSchema: {
+                  id:
+                    uriType === "EBSI URI"
+                      ? fromUrl(credentialSchemaUrl)
+                      : credentialSchemaUrl,
+                  type: "FullJsonSchemaValidator2021",
+                },
+                termsOfUse: {
+                  id:
+                    uriType === "EBSI URI"
+                      ? fromUrl(issuerAttribute)
+                      : issuerAttribute,
+                  type: "IssuanceCertificate",
+                },
+              };
 
-            vpPayload.verifiableCredential.push(vcJwt);
-          }
+              if (customScope === TIR_INVITE_SCOPE) {
+                vcPayload.type.push("VerifiableAccreditationToAccredit");
+              } else if (customScope === DIDR_INVITE_SCOPE) {
+                vcPayload.type.push("VerifiableAuthorisationToOnboard");
+              }
 
-          const vpJwt = await createVerifiablePresentationJwt(
-            vpPayload,
-            client,
-            "authentication-service-v3",
-            {
-              ebsiAuthority,
-              ebsiEnvConfig,
-              skipValidation: true,
-              nonce: randomUUID(),
-              trustedHostnames,
-              ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
-                ? {
-                    // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                    exp: Math.floor(Date.now() / 1000) + 100,
-                    nbf: Math.floor(Date.now() / 1000) - 100,
-                  }
-                : {}),
-            },
-          );
+              vpPayload = {
+                "@context": ["https://www.w3.org/2018/credentials/v1"],
+                type: ["VerifiablePresentation"],
+                verifiableCredential: [],
+                holder: client.did,
+              };
+            });
 
-          const response = await request(server)
-            .post("/token")
-            .set("Content-Type", "application/x-www-form-urlencoded")
-            .send(
-              new URLSearchParams({
-                grant_type: "vp_token",
-                scope,
-                vp_token: vpJwt,
-                presentation_submission: JSON.stringify(presentationSubmission),
-              } satisfies CreateAccessTokenDto).toString(),
-            );
+            beforeEach(() => {
+              // Reset to valid presentation submission before each test
+              presentationSubmission =
+                createPresentationSubmission(customScope);
+              // Reset to empty verifiable credential array before each test to allow each test to add its own verifiable credential
+              vpPayload.verifiableCredential = [];
+              vpPayload["id"] = randomUUID(); // VP ID is used as JWT JTI.
+            });
 
-          expect(response.body).toStrictEqual({
-            error: "invalid_request",
-            error_description: `Invalid Verifiable Presentation: JWT "aud" property MUST match the expected audience "${authorisationApiV3Url}"`,
-          });
-          expect(response.status).toBe(400);
-          expect(
-            (response.headers as Record<string, unknown>)["content-type"],
-          ).toBe("application/json; charset=utf-8");
-        });
+            describe("vp_token validation", () => {
+              beforeEach(() => {
+                // Reset to empty verifiable credential array before each test to allow each test to add its own verifiable credential
+                vpPayload.verifiableCredential = [];
+                vpPayload["id"] = randomUUID(); // VP ID is used as JWT JTI.
+              });
 
-        it("should return an error if sub is not the client's DID", async () => {
-          if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
-            const vcJwt = await createVerifiableCredentialJwt(
-              vcPayload,
-              issuer,
-              {
-                ebsiAuthority,
-                ebsiEnvConfig,
-                skipValidation: true,
-                trustedHostnames,
-              },
-            );
+              it("should return an error the audience is not the service", async () => {
+                if (
+                  [DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)
+                ) {
+                  const vcJwt = await createVerifiableCredentialJwt(
+                    vcPayload,
+                    issuer,
+                    {
+                      ...ebsiEnvConfig,
+                      skipValidation: true,
+                    },
+                  );
 
-            vpPayload.verifiableCredential.push(vcJwt);
-          }
-
-          const vpJwt = await createVerifiablePresentationJwt(
-            vpPayload,
-            client,
-            authorisationApiV3Url,
-            {
-              ebsiAuthority,
-              ebsiEnvConfig,
-              skipValidation: true,
-              nonce: randomUUID(),
-              trustedHostnames,
-              ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
-                ? {
-                    // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                    exp: Math.floor(Date.now() / 1000) + 100,
-                    nbf: Math.floor(Date.now() / 1000) - 100,
-                  }
-                : {}),
-            },
-          );
-
-          // Fake a change in original vpJwt
-          const vpJwtDecoded = decodeJWT(vpJwt);
-          const anotherDid = EbsiWallet.createDid();
-          vpJwtDecoded.payload.sub = anotherDid;
-          const vpTokenTampered = await createJWT(
-            vpJwtDecoded.payload,
-            {
-              // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-              issuer: vpJwtDecoded.payload.iss as string,
-              signer: ES256KSigner(randomBytes(32)),
-            },
-            {
-              kid: client.kid,
-            },
-          );
-
-          const response = await request(server)
-            .post("/token")
-            .set("Content-Type", "application/x-www-form-urlencoded")
-            .send(
-              new URLSearchParams({
-                grant_type: "vp_token",
-                scope,
-                vp_token: vpTokenTampered,
-                presentation_submission: JSON.stringify(presentationSubmission),
-              } satisfies CreateAccessTokenDto).toString(),
-            );
-
-          expect(response.body).toStrictEqual({
-            error: "invalid_request",
-            error_description: `Invalid Verifiable Presentation: JWT "sub" property MUST match the VP holder "${client.did}"`,
-          });
-          expect(response.status).toBe(400);
-          expect(
-            (response.headers as Record<string, unknown>)["content-type"],
-          ).toBe("application/json; charset=utf-8");
-        });
-
-        it("should return an error if the VP JWT has expired", async () => {
-          if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
-            const vcJwt = await createVerifiableCredentialJwt(
-              vcPayload,
-              issuer,
-              {
-                ebsiAuthority,
-                ebsiEnvConfig,
-                skipValidation: true,
-                trustedHostnames,
-              },
-            );
-
-            vpPayload.verifiableCredential.push(vcJwt);
-          }
-
-          const vpJwt = await createVerifiablePresentationJwt(
-            vpPayload,
-            client,
-            authorisationApiV3Url,
-            {
-              ebsiAuthority,
-              ebsiEnvConfig,
-              skipValidation: true,
-              nonce: randomUUID(),
-              trustedHostnames,
-              // Override "exp" and "nbf"
-              exp: Math.floor(Date.now() / 1000) - 100,
-              nbf: Math.floor(Date.now() / 1000) - 1000,
-            },
-          );
-
-          const response = await request(server)
-            .post("/token")
-            .set("Content-Type", "application/x-www-form-urlencoded")
-            .send(
-              new URLSearchParams({
-                grant_type: "vp_token",
-                scope,
-                vp_token: vpJwt,
-                presentation_submission: JSON.stringify(presentationSubmission),
-              } satisfies CreateAccessTokenDto).toString(),
-            );
-
-          expect(response.body).toStrictEqual({
-            error: "invalid_request",
-            error_description:
-              "Invalid Verifiable Presentation: JWT has expired",
-          });
-          expect(response.status).toBe(400);
-          expect(
-            (response.headers as Record<string, unknown>)["content-type"],
-          ).toBe("application/json; charset=utf-8");
-        });
-
-        it("should return an error if the VP JWT is not valid yet", async () => {
-          if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
-            const vcJwt = await createVerifiableCredentialJwt(
-              vcPayload,
-              issuer,
-              {
-                ebsiAuthority,
-                ebsiEnvConfig,
-                skipValidation: true,
-                trustedHostnames,
-              },
-            );
-
-            vpPayload.verifiableCredential.push(vcJwt);
-          }
-
-          const vpJwt = await createVerifiablePresentationJwt(
-            vpPayload,
-            client,
-            authorisationApiV3Url,
-            {
-              ebsiAuthority,
-              ebsiEnvConfig,
-              skipValidation: true,
-              nonce: randomUUID(),
-              trustedHostnames,
-              // Override "exp" and "nbf"
-              exp: Math.floor(Date.now() / 1000) + 1000,
-              nbf: Math.floor(Date.now() / 1000) + 100,
-            },
-          );
-
-          const response = await request(server)
-            .post("/token")
-            .set("Content-Type", "application/x-www-form-urlencoded")
-            .send(
-              new URLSearchParams({
-                grant_type: "vp_token",
-                scope,
-                vp_token: vpJwt,
-                presentation_submission: JSON.stringify(presentationSubmission),
-              } satisfies CreateAccessTokenDto).toString(),
-            );
-
-          expect(response.body).toStrictEqual({
-            error: "invalid_request",
-            error_description:
-              "Invalid Verifiable Presentation: JWT is not valid yet",
-          });
-          expect(response.status).toBe(400);
-          expect(
-            (response.headers as Record<string, unknown>)["content-type"],
-          ).toBe("application/json; charset=utf-8");
-        });
-
-        it("should return an error if nonce is not included in vp_token", async () => {
-          if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
-            const vcJwt = await createVerifiableCredentialJwt(
-              vcPayload,
-              issuer,
-              {
-                ebsiAuthority,
-                ebsiEnvConfig,
-                skipValidation: true,
-                trustedHostnames,
-              },
-            );
-
-            vpPayload.verifiableCredential.push(vcJwt);
-          }
-
-          const vpJwt = await createVerifiablePresentationJwt(
-            vpPayload,
-            client,
-            authorisationApiV3Url,
-            {
-              ebsiAuthority,
-              ebsiEnvConfig,
-              skipValidation: true,
-              trustedHostnames,
-              // We don't add any nonce
-              ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
-                ? {
-                    // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                    exp: Math.floor(Date.now() / 1000) + 100,
-                    nbf: Math.floor(Date.now() / 1000) - 100,
-                  }
-                : {}),
-            },
-          );
-
-          // Try submitting a vp without neither a nonce.
-          const response = await request(server)
-            .post("/token")
-            .set("Content-Type", "application/x-www-form-urlencoded")
-            .send(
-              new URLSearchParams({
-                grant_type: "vp_token",
-                scope,
-                vp_token: vpJwt,
-                presentation_submission: JSON.stringify(presentationSubmission),
-              } satisfies CreateAccessTokenDto).toString(),
-            );
-
-          expect(response.body).toStrictEqual({
-            error: "invalid_request",
-            error_description:
-              "The vp_token must contain a nonce in order to prevent replay attacks.",
-          });
-          expect(response.status).toBe(400);
-          expect(
-            (response.headers as Record<string, unknown>)["content-type"],
-          ).toBe("application/json; charset=utf-8");
-        });
-
-        it("should return an error when a nonce has been used twice", async () => {
-          if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
-            const vcJwt = await createVerifiableCredentialJwt(
-              vcPayload,
-              issuer,
-              {
-                ebsiAuthority,
-                ebsiEnvConfig,
-                skipValidation: true,
-                trustedHostnames,
-              },
-            );
-
-            vpPayload.verifiableCredential.push(vcJwt);
-          }
-
-          // Create VP JWT manually
-          const privateKey = await importJWK(client.privateKeyJwk, client.alg);
-          const vpJwt = await new SignJWT({
-            aud: authorisationApiV3Url,
-            sub: client.did,
-            iat: Math.floor(issuanceDate.getTime() / 1000),
-            nbf: Math.floor(issuanceDate.getTime() / 1000),
-            exp: Math.floor(expirationDate.getTime() / 1000),
-            vp: vpPayload,
-            nonce: randomUUID(),
-            iss: client.did,
-          })
-            .setProtectedHeader({
-              alg: client.alg,
-              typ: "JWT",
-              kid: client.kid,
-            })
-            .sign(privateKey);
-
-          await request(server)
-            .post("/token")
-            .set("Content-Type", "application/x-www-form-urlencoded")
-            .send(
-              new URLSearchParams({
-                grant_type: "vp_token",
-                scope,
-                vp_token: vpJwt,
-                presentation_submission: JSON.stringify(presentationSubmission),
-              } satisfies CreateAccessTokenDto).toString(),
-            );
-
-          // Try submitting the same VP again.
-          const response = await request(server)
-            .post("/token")
-            .set("Content-Type", "application/x-www-form-urlencoded")
-            .send(
-              new URLSearchParams({
-                grant_type: "vp_token",
-                scope,
-                vp_token: vpJwt,
-                presentation_submission: JSON.stringify(presentationSubmission),
-              } satisfies CreateAccessTokenDto).toString(),
-            );
-
-          expect(response.body).toStrictEqual({
-            error: "invalid_request",
-            error_description:
-              "The vp_token contains a nonce which has already been used.",
-          });
-          expect(response.status).toBe(400);
-        });
-      });
-
-      it("should return an error if the presentation submission is invalid (including error details)", async () => {
-        presentationSubmission = {
-          id: randomUUID(),
-          definition_id: "openid_presentation",
-          descriptor_map: [
-            {
-              id: "same-device-in-time-credential",
-              path: "$",
-              format: "jwt_vp",
-              path_nested: {
-                id: randomUUID(),
-                format: "jwt_vc",
-                path: "$vp.verifiableCredential[0]", // wrong path
-              },
-            },
-          ],
-        };
-
-        if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
-          const vcJwt = await createVerifiableCredentialJwt(vcPayload, issuer, {
-            ebsiAuthority,
-            ebsiEnvConfig,
-            skipValidation: true,
-            trustedHostnames,
-          });
-
-          vpPayload.verifiableCredential.push(vcJwt);
-        }
-
-        let vpJwt = await createVerifiablePresentationJwt(
-          vpPayload,
-          client,
-          authorisationApiV3Url,
-          {
-            ebsiAuthority,
-            ebsiEnvConfig,
-            skipValidation: true,
-            nonce: randomUUID(),
-            trustedHostnames,
-            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
-              ? {
-                  // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                  exp: Math.floor(Date.now() / 1000) + 100,
-                  nbf: Math.floor(Date.now() / 1000) - 100,
+                  vpPayload.verifiableCredential.push(vcJwt);
                 }
-              : {}),
-          },
-        );
 
-        let response = await request(server)
-          .post("/token")
-          .set("Content-Type", "application/x-www-form-urlencoded")
-          .send(
-            new URLSearchParams({
-              grant_type: "vp_token",
-              scope,
-              vp_token: vpJwt,
-              presentation_submission: JSON.stringify(presentationSubmission),
-            } satisfies CreateAccessTokenDto).toString(),
-          );
+                const vpJwt = await createVerifiablePresentationJwt(
+                  vpPayload,
+                  client,
+                  "authentication-service-v3",
+                  {
+                    ...ebsiEnvConfig,
+                    skipValidation: true,
+                    nonce: randomUUID(),
+                    ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(
+                      customScope,
+                    )
+                      ? {
+                          // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
+                          exp: Math.floor(Date.now() / 1000) + 100,
+                          nbf: Math.floor(Date.now() / 1000) - 100,
+                        }
+                      : {}),
+                  },
+                );
 
-        expect(response.body).toStrictEqual({
-          error: "invalid_request",
-          error_description: `Invalid Presentation Submission:
+                const response = await request(server)
+                  .post("/token")
+                  .set("Content-Type", "application/x-www-form-urlencoded")
+                  .send(
+                    new URLSearchParams({
+                      grant_type: "vp_token",
+                      scope,
+                      vp_token: vpJwt,
+                      presentation_submission: JSON.stringify(
+                        presentationSubmission,
+                      ),
+                    } satisfies CreateAccessTokenDto).toString(),
+                  );
+
+                expect(response.body).toStrictEqual({
+                  error: "invalid_request",
+                  error_description: `Invalid Verifiable Presentation: JWT "aud" property MUST match the expected audience "${authorisationApiV3Url}"`,
+                });
+                expect(response.status).toBe(400);
+                expect(
+                  (response.headers as Record<string, unknown>)["content-type"],
+                ).toBe("application/json; charset=utf-8");
+              });
+
+              it("should return an error if sub is not the client's DID", async () => {
+                if (
+                  [DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)
+                ) {
+                  const vcJwt = await createVerifiableCredentialJwt(
+                    vcPayload,
+                    issuer,
+                    {
+                      ...ebsiEnvConfig,
+                      skipValidation: true,
+                    },
+                  );
+
+                  vpPayload.verifiableCredential.push(vcJwt);
+                }
+
+                const vpJwt = await createVerifiablePresentationJwt(
+                  vpPayload,
+                  client,
+                  authorisationApiV3Url,
+                  {
+                    ...ebsiEnvConfig,
+                    skipValidation: true,
+                    nonce: randomUUID(),
+                    ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(
+                      customScope,
+                    )
+                      ? {
+                          // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
+                          exp: Math.floor(Date.now() / 1000) + 100,
+                          nbf: Math.floor(Date.now() / 1000) - 100,
+                        }
+                      : {}),
+                  },
+                );
+
+                // Fake a change in original vpJwt
+                const vpJwtDecoded = decodeJWT(vpJwt);
+                const anotherDid = EbsiWallet.createDid();
+                vpJwtDecoded.payload.sub = anotherDid;
+                const vpTokenTampered = await createJWT(
+                  vpJwtDecoded.payload,
+                  {
+                    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+                    issuer: vpJwtDecoded.payload.iss as string,
+                    signer: ES256KSigner(randomBytes(32)),
+                  },
+                  {
+                    kid: client.kid,
+                  },
+                );
+
+                const response = await request(server)
+                  .post("/token")
+                  .set("Content-Type", "application/x-www-form-urlencoded")
+                  .send(
+                    new URLSearchParams({
+                      grant_type: "vp_token",
+                      scope,
+                      vp_token: vpTokenTampered,
+                      presentation_submission: JSON.stringify(
+                        presentationSubmission,
+                      ),
+                    } satisfies CreateAccessTokenDto).toString(),
+                  );
+
+                expect(response.body).toStrictEqual({
+                  error: "invalid_request",
+                  error_description: `Invalid Verifiable Presentation: JWT "sub" property MUST match the VP holder "${client.did}"`,
+                });
+                expect(response.status).toBe(400);
+                expect(
+                  (response.headers as Record<string, unknown>)["content-type"],
+                ).toBe("application/json; charset=utf-8");
+              });
+
+              it("should return an error if the VP JWT has expired", async () => {
+                if (
+                  [DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)
+                ) {
+                  const vcJwt = await createVerifiableCredentialJwt(
+                    vcPayload,
+                    issuer,
+                    {
+                      ...ebsiEnvConfig,
+                      skipValidation: true,
+                    },
+                  );
+
+                  vpPayload.verifiableCredential.push(vcJwt);
+                }
+
+                const vpJwt = await createVerifiablePresentationJwt(
+                  vpPayload,
+                  client,
+                  authorisationApiV3Url,
+                  {
+                    ...ebsiEnvConfig,
+                    skipValidation: true,
+                    nonce: randomUUID(),
+
+                    // Override "exp" and "nbf"
+                    exp: Math.floor(Date.now() / 1000) - 100,
+                    nbf: Math.floor(Date.now() / 1000) - 1000,
+                  },
+                );
+
+                const response = await request(server)
+                  .post("/token")
+                  .set("Content-Type", "application/x-www-form-urlencoded")
+                  .send(
+                    new URLSearchParams({
+                      grant_type: "vp_token",
+                      scope,
+                      vp_token: vpJwt,
+                      presentation_submission: JSON.stringify(
+                        presentationSubmission,
+                      ),
+                    } satisfies CreateAccessTokenDto).toString(),
+                  );
+
+                expect(response.body).toStrictEqual({
+                  error: "invalid_request",
+                  error_description:
+                    "Invalid Verifiable Presentation: JWT has expired",
+                });
+                expect(response.status).toBe(400);
+                expect(
+                  (response.headers as Record<string, unknown>)["content-type"],
+                ).toBe("application/json; charset=utf-8");
+              });
+
+              it("should return an error if the VP JWT is not valid yet", async () => {
+                if (
+                  [DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)
+                ) {
+                  const vcJwt = await createVerifiableCredentialJwt(
+                    vcPayload,
+                    issuer,
+                    {
+                      ...ebsiEnvConfig,
+                      skipValidation: true,
+                    },
+                  );
+
+                  vpPayload.verifiableCredential.push(vcJwt);
+                }
+
+                const vpJwt = await createVerifiablePresentationJwt(
+                  vpPayload,
+                  client,
+                  authorisationApiV3Url,
+                  {
+                    ...ebsiEnvConfig,
+                    skipValidation: true,
+                    nonce: randomUUID(),
+
+                    // Override "exp" and "nbf"
+                    exp: Math.floor(Date.now() / 1000) + 1000,
+                    nbf: Math.floor(Date.now() / 1000) + 100,
+                  },
+                );
+
+                const response = await request(server)
+                  .post("/token")
+                  .set("Content-Type", "application/x-www-form-urlencoded")
+                  .send(
+                    new URLSearchParams({
+                      grant_type: "vp_token",
+                      scope,
+                      vp_token: vpJwt,
+                      presentation_submission: JSON.stringify(
+                        presentationSubmission,
+                      ),
+                    } satisfies CreateAccessTokenDto).toString(),
+                  );
+
+                expect(response.body).toStrictEqual({
+                  error: "invalid_request",
+                  error_description:
+                    "Invalid Verifiable Presentation: JWT is not valid yet",
+                });
+                expect(response.status).toBe(400);
+                expect(
+                  (response.headers as Record<string, unknown>)["content-type"],
+                ).toBe("application/json; charset=utf-8");
+              });
+
+              it("should return an error if nonce is not included in vp_token", async () => {
+                if (
+                  [DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)
+                ) {
+                  const vcJwt = await createVerifiableCredentialJwt(
+                    vcPayload,
+                    issuer,
+                    {
+                      ...ebsiEnvConfig,
+                      skipValidation: true,
+                    },
+                  );
+
+                  vpPayload.verifiableCredential.push(vcJwt);
+                }
+
+                const vpJwt = await createVerifiablePresentationJwt(
+                  vpPayload,
+                  client,
+                  authorisationApiV3Url,
+                  {
+                    ...ebsiEnvConfig,
+                    skipValidation: true,
+
+                    // We don't add any nonce
+                    ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(
+                      customScope,
+                    )
+                      ? {
+                          // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
+                          exp: Math.floor(Date.now() / 1000) + 100,
+                          nbf: Math.floor(Date.now() / 1000) - 100,
+                        }
+                      : {}),
+                  },
+                );
+
+                // Try submitting a vp without neither a nonce.
+                const response = await request(server)
+                  .post("/token")
+                  .set("Content-Type", "application/x-www-form-urlencoded")
+                  .send(
+                    new URLSearchParams({
+                      grant_type: "vp_token",
+                      scope,
+                      vp_token: vpJwt,
+                      presentation_submission: JSON.stringify(
+                        presentationSubmission,
+                      ),
+                    } satisfies CreateAccessTokenDto).toString(),
+                  );
+
+                expect(response.body).toStrictEqual({
+                  error: "invalid_request",
+                  error_description:
+                    "The vp_token must contain a nonce in order to prevent replay attacks.",
+                });
+                expect(response.status).toBe(400);
+                expect(
+                  (response.headers as Record<string, unknown>)["content-type"],
+                ).toBe("application/json; charset=utf-8");
+              });
+
+              it("should return an error when a nonce has been used twice", async () => {
+                if (
+                  [DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)
+                ) {
+                  const vcJwt = await createVerifiableCredentialJwt(
+                    vcPayload,
+                    issuer,
+                    {
+                      ...ebsiEnvConfig,
+                      skipValidation: true,
+                    },
+                  );
+
+                  vpPayload.verifiableCredential.push(vcJwt);
+                }
+
+                // Create VP JWT manually
+                const privateKey = await importJWK(
+                  client.privateKeyJwk,
+                  client.alg,
+                );
+                const vpJwt = await new SignJWT({
+                  aud: authorisationApiV3Url,
+                  sub: client.did,
+                  iat: Math.floor(issuanceDate.getTime() / 1000),
+                  nbf: Math.floor(issuanceDate.getTime() / 1000),
+                  exp: Math.floor(expirationDate.getTime() / 1000),
+                  vp: vpPayload,
+                  nonce: randomUUID(),
+                  iss: client.did,
+                })
+                  .setProtectedHeader({
+                    alg: client.alg,
+                    typ: "JWT",
+                    kid: client.kid,
+                  })
+                  .sign(privateKey);
+
+                await request(server)
+                  .post("/token")
+                  .set("Content-Type", "application/x-www-form-urlencoded")
+                  .send(
+                    new URLSearchParams({
+                      grant_type: "vp_token",
+                      scope,
+                      vp_token: vpJwt,
+                      presentation_submission: JSON.stringify(
+                        presentationSubmission,
+                      ),
+                    } satisfies CreateAccessTokenDto).toString(),
+                  );
+
+                // Try submitting the same VP again.
+                const response = await request(server)
+                  .post("/token")
+                  .set("Content-Type", "application/x-www-form-urlencoded")
+                  .send(
+                    new URLSearchParams({
+                      grant_type: "vp_token",
+                      scope,
+                      vp_token: vpJwt,
+                      presentation_submission: JSON.stringify(
+                        presentationSubmission,
+                      ),
+                    } satisfies CreateAccessTokenDto).toString(),
+                  );
+
+                expect(response.body).toStrictEqual({
+                  error: "invalid_request",
+                  error_description:
+                    "The vp_token contains a nonce which has already been used.",
+                });
+                expect(response.status).toBe(400);
+              });
+            });
+
+            it("should return an error if the presentation submission is invalid (including error details)", async () => {
+              presentationSubmission = {
+                id: randomUUID(),
+                definition_id: "openid_presentation",
+                descriptor_map: [
+                  {
+                    id: "same-device-in-time-credential",
+                    path: "$",
+                    format: "jwt_vp",
+                    path_nested: {
+                      id: randomUUID(),
+                      format: "jwt_vc",
+                      path: "$vp.verifiableCredential[0]", // wrong path
+                    },
+                  },
+                ],
+              };
+
+              if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
+                const vcJwt = await createVerifiableCredentialJwt(
+                  vcPayload,
+                  issuer,
+                  {
+                    ...ebsiEnvConfig,
+                    skipValidation: true,
+                  },
+                );
+
+                vpPayload.verifiableCredential.push(vcJwt);
+              }
+
+              let vpJwt = await createVerifiablePresentationJwt(
+                vpPayload,
+                client,
+                authorisationApiV3Url,
+                {
+                  ...ebsiEnvConfig,
+                  skipValidation: true,
+                  nonce: randomUUID(),
+
+                  ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
+                    ? {
+                        // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
+                        exp: Math.floor(Date.now() / 1000) + 100,
+                        nbf: Math.floor(Date.now() / 1000) - 100,
+                      }
+                    : {}),
+                },
+              );
+
+              let response = await request(server)
+                .post("/token")
+                .set("Content-Type", "application/x-www-form-urlencoded")
+                .send(
+                  new URLSearchParams({
+                    grant_type: "vp_token",
+                    scope,
+                    vp_token: vpJwt,
+                    presentation_submission: JSON.stringify(
+                      presentationSubmission,
+                    ),
+                  } satisfies CreateAccessTokenDto).toString(),
+                );
+
+              expect(response.body).toStrictEqual({
+                error: "invalid_request",
+                error_description: `Invalid Presentation Submission:
 - [root.presentation_submission] each descriptor should have a one id in it, on all levels
 - [root.presentation_submission] each path should be a valid jsonPath`,
-        });
-        expect(response.status).toBe(400);
-        expect(
-          (response.headers as Record<string, unknown>)["content-type"],
-        ).toBe("application/json; charset=utf-8");
+              });
+              expect(response.status).toBe(400);
+              expect(
+                (response.headers as Record<string, unknown>)["content-type"],
+              ).toBe("application/json; charset=utf-8");
 
-        presentationSubmission = {
-          id: randomUUID(),
-          definition_id: "openid_presentation",
-          descriptor_map: [
-            {
-              id: "same-device-in-time-credential",
-              path: "$",
-              format: "jwt_vp",
-              path_nested: {
+              presentationSubmission = {
                 id: randomUUID(),
-                format: "jwt_vc",
-                path: "$.verifiableCredential[1]", // no credential at this index
-              },
-            },
-          ],
-        };
+                definition_id: "openid_presentation",
+                descriptor_map: [
+                  {
+                    id: "same-device-in-time-credential",
+                    path: "$",
+                    format: "jwt_vp",
+                    path_nested: {
+                      id: randomUUID(),
+                      format: "jwt_vc",
+                      path: "$.verifiableCredential[1]", // no credential at this index
+                    },
+                  },
+                ],
+              };
 
-        vpJwt = await createVerifiablePresentationJwt(
-          vpPayload,
-          client,
-          authorisationApiV3Url,
-          {
-            ebsiAuthority,
-            ebsiEnvConfig,
-            skipValidation: true,
-            nonce: randomUUID(),
-            trustedHostnames,
-            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
-              ? {
-                  // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                  exp: Math.floor(Date.now() / 1000) + 100,
-                  nbf: Math.floor(Date.now() / 1000) - 100,
-                }
-              : {}),
-          },
-        );
+              vpJwt = await createVerifiablePresentationJwt(
+                vpPayload,
+                client,
+                authorisationApiV3Url,
+                {
+                  ...ebsiEnvConfig,
+                  skipValidation: true,
+                  nonce: randomUUID(),
 
-        response = await request(server)
-          .post("/token")
-          .set("Content-Type", "application/x-www-form-urlencoded")
-          .send(
-            new URLSearchParams({
-              grant_type: "vp_token",
-              scope,
-              vp_token: vpJwt,
-              presentation_submission: JSON.stringify(presentationSubmission),
-            } satisfies CreateAccessTokenDto).toString(),
-          );
+                  ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
+                    ? {
+                        // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
+                        exp: Math.floor(Date.now() / 1000) + 100,
+                        nbf: Math.floor(Date.now() / 1000) - 100,
+                      }
+                    : {}),
+                },
+              );
 
-        expect(response.body).toStrictEqual({
-          error: "invalid_request",
-          error_description: `Invalid Presentation Submission:
+              response = await request(server)
+                .post("/token")
+                .set("Content-Type", "application/x-www-form-urlencoded")
+                .send(
+                  new URLSearchParams({
+                    grant_type: "vp_token",
+                    scope,
+                    vp_token: vpJwt,
+                    presentation_submission: JSON.stringify(
+                      presentationSubmission,
+                    ),
+                  } satisfies CreateAccessTokenDto).toString(),
+                );
+
+              expect(response.body).toStrictEqual({
+                error: "invalid_request",
+                error_description: `Invalid Presentation Submission:
 - [root.presentation_submission] each descriptor should have a one id in it, on all levels`,
-        });
-        expect(response.status).toBe(400);
-        expect(
-          (response.headers as Record<string, unknown>)["content-type"],
-        ).toBe("application/json; charset=utf-8");
+              });
+              expect(response.status).toBe(400);
+              expect(
+                (response.headers as Record<string, unknown>)["content-type"],
+              ).toBe("application/json; charset=utf-8");
 
-        presentationSubmission = {
-          id: randomUUID(),
-          definition_id: "openid_presentation",
-          descriptor_map: [
-            {
-              id: "same-device-in-time-credential",
-              path: "$.vp", // wrong path
-              format: "jwt_vp",
-              path_nested: {
+              presentationSubmission = {
                 id: randomUUID(),
-                format: "jwt_vc",
-                path: "$.vc.verifiableCredential[0]", // wrong path
-              },
-            },
-          ],
-        };
+                definition_id: "openid_presentation",
+                descriptor_map: [
+                  {
+                    id: "same-device-in-time-credential",
+                    path: "$.vp", // wrong path
+                    format: "jwt_vp",
+                    path_nested: {
+                      id: randomUUID(),
+                      format: "jwt_vc",
+                      path: "$.vc.verifiableCredential[0]", // wrong path
+                    },
+                  },
+                ],
+              };
 
-        vpJwt = await createVerifiablePresentationJwt(
-          vpPayload,
-          client,
-          authorisationApiV3Url,
-          {
-            ebsiAuthority,
-            ebsiEnvConfig,
-            skipValidation: true,
-            nonce: randomUUID(),
-            trustedHostnames,
-            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
-              ? {
-                  // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                  exp: Math.floor(Date.now() / 1000) + 100,
-                  nbf: Math.floor(Date.now() / 1000) - 100,
-                }
-              : {}),
-          },
-        );
+              vpJwt = await createVerifiablePresentationJwt(
+                vpPayload,
+                client,
+                authorisationApiV3Url,
+                {
+                  ...ebsiEnvConfig,
+                  skipValidation: true,
+                  nonce: randomUUID(),
 
-        response = await request(server)
-          .post("/token")
-          .set("Content-Type", "application/x-www-form-urlencoded")
-          .send(
-            new URLSearchParams({
-              grant_type: "vp_token",
-              scope,
-              vp_token: vpJwt,
-              presentation_submission: JSON.stringify(presentationSubmission),
-            } satisfies CreateAccessTokenDto).toString(),
-          );
+                  ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
+                    ? {
+                        // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
+                        exp: Math.floor(Date.now() / 1000) + 100,
+                        nbf: Math.floor(Date.now() / 1000) - 100,
+                      }
+                    : {}),
+                },
+              );
 
-        expect(response.body).toStrictEqual({
-          error: "invalid_request",
-          error_description: `Invalid Presentation Submission:
+              response = await request(server)
+                .post("/token")
+                .set("Content-Type", "application/x-www-form-urlencoded")
+                .send(
+                  new URLSearchParams({
+                    grant_type: "vp_token",
+                    scope,
+                    vp_token: vpJwt,
+                    presentation_submission: JSON.stringify(
+                      presentationSubmission,
+                    ),
+                  } satisfies CreateAccessTokenDto).toString(),
+                );
+
+              expect(response.body).toStrictEqual({
+                error: "invalid_request",
+                error_description: `Invalid Presentation Submission:
 - [root.presentation_submission] each descriptor should have a one id in it, on all levels`,
-        });
-        expect(response.status).toBe(400);
-        expect(
-          (response.headers as Record<string, unknown>)["content-type"],
-        ).toBe("application/json; charset=utf-8");
+              });
+              expect(response.status).toBe(400);
+              expect(
+                (response.headers as Record<string, unknown>)["content-type"],
+              ).toBe("application/json; charset=utf-8");
 
-        vpJwt = await createVerifiablePresentationJwt(
-          vpPayload,
-          client,
-          authorisationApiV3Url,
-          {
-            ebsiAuthority,
-            ebsiEnvConfig,
-            skipValidation: true,
-            nonce: randomUUID(),
-            trustedHostnames,
-            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
-              ? {
-                  // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                  exp: Math.floor(Date.now() / 1000) + 100,
-                  nbf: Math.floor(Date.now() / 1000) - 100,
-                }
-              : {}),
-          },
-        );
+              vpJwt = await createVerifiablePresentationJwt(
+                vpPayload,
+                client,
+                authorisationApiV3Url,
+                {
+                  ...ebsiEnvConfig,
+                  skipValidation: true,
+                  nonce: randomUUID(),
 
-        response = await request(server)
-          .post("/token")
-          .set("Content-Type", "application/x-www-form-urlencoded")
-          .send(
-            qs.stringify({
-              grant_type: "vp_token",
-              scope,
-              vp_token: vpJwt,
-              presentation_submission: presentationSubmission,
-            }),
-          );
+                  ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
+                    ? {
+                        // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
+                        exp: Math.floor(Date.now() / 1000) + 100,
+                        nbf: Math.floor(Date.now() / 1000) - 100,
+                      }
+                    : {}),
+                },
+              );
 
-        expect(response.body).toStrictEqual({
-          error: "invalid_request",
-          error_description: "presentation_submission must be a json string",
-        });
-        expect(response.status).toBe(400);
-        expect(
-          (response.headers as Record<string, unknown>)["content-type"],
-        ).toBe("application/json; charset=utf-8");
+              response = await request(server)
+                .post("/token")
+                .set("Content-Type", "application/x-www-form-urlencoded")
+                .send(
+                  qs.stringify({
+                    grant_type: "vp_token",
+                    scope,
+                    vp_token: vpJwt,
+                    presentation_submission: presentationSubmission,
+                  }),
+                );
 
-        vpJwt = await createVerifiablePresentationJwt(
-          vpPayload,
-          client,
-          authorisationApiV3Url,
-          {
-            ebsiAuthority,
-            ebsiEnvConfig,
-            skipValidation: true,
-            nonce: randomUUID(),
-            trustedHostnames,
-            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
-              ? {
-                  // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                  exp: Math.floor(Date.now() / 1000) + 100,
-                  nbf: Math.floor(Date.now() / 1000) - 100,
-                }
-              : {}),
-          },
-        );
+              expect(response.body).toStrictEqual({
+                error: "invalid_request",
+                error_description:
+                  "presentation_submission must be a json string",
+              });
+              expect(response.status).toBe(400);
+              expect(
+                (response.headers as Record<string, unknown>)["content-type"],
+              ).toBe("application/json; charset=utf-8");
 
-        response = await request(server)
-          .post("/token")
-          .set("Content-Type", "application/x-www-form-urlencoded")
-          .send(
-            new URLSearchParams({
-              grant_type: "vp_token",
-              scope,
-              vp_token: vpJwt,
-              presentation_submission: JSON.stringify({ foo: "bar" }), // invalid json
-            } satisfies CreateAccessTokenDto).toString(),
-          );
+              vpJwt = await createVerifiablePresentationJwt(
+                vpPayload,
+                client,
+                authorisationApiV3Url,
+                {
+                  ...ebsiEnvConfig,
+                  skipValidation: true,
+                  nonce: randomUUID(),
 
-        expect(response.body).toStrictEqual({
-          error: "invalid_request",
-          error_description: `Invalid Presentation Submission:
+                  ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
+                    ? {
+                        // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
+                        exp: Math.floor(Date.now() / 1000) + 100,
+                        nbf: Math.floor(Date.now() / 1000) - 100,
+                      }
+                    : {}),
+                },
+              );
+
+              response = await request(server)
+                .post("/token")
+                .set("Content-Type", "application/x-www-form-urlencoded")
+                .send(
+                  new URLSearchParams({
+                    grant_type: "vp_token",
+                    scope,
+                    vp_token: vpJwt,
+                    presentation_submission: JSON.stringify({ foo: "bar" }), // invalid json
+                  } satisfies CreateAccessTokenDto).toString(),
+                );
+
+              expect(response.body).toStrictEqual({
+                error: "invalid_request",
+                error_description: `Invalid Presentation Submission:
 - Validation error. Path: 'presentation_submission.id'. Reason: Required
 - Validation error. Path: 'presentation_submission.definition_id'. Reason: Required
 - Validation error. Path: 'presentation_submission.descriptor_map'. Reason: Required`,
-        });
-        expect(response.status).toBe(400);
-        expect(
-          (response.headers as Record<string, unknown>)["content-type"],
-        ).toBe("application/json; charset=utf-8");
-      });
+              });
+              expect(response.status).toBe(400);
+              expect(
+                (response.headers as Record<string, unknown>)["content-type"],
+              ).toBe("application/json; charset=utf-8");
+            });
 
-      it("should return an error if the content is not application/x-www-form-urlencoded", async () => {
-        if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
-          const vcJwt = await createVerifiableCredentialJwt(vcPayload, issuer, {
-            ebsiAuthority,
-            ebsiEnvConfig,
-            skipValidation: true,
-            trustedHostnames,
-          });
+            it("should return an error if the content is not application/x-www-form-urlencoded", async () => {
+              if ([DIDR_INVITE_SCOPE, TIR_INVITE_SCOPE].includes(customScope)) {
+                const vcJwt = await createVerifiableCredentialJwt(
+                  vcPayload,
+                  issuer,
+                  {
+                    ...ebsiEnvConfig,
+                    skipValidation: true,
+                  },
+                );
 
-          vpPayload.verifiableCredential.push(vcJwt);
-        }
+                vpPayload.verifiableCredential.push(vcJwt);
+              }
 
-        const nonce = randomUUID();
+              const nonce = randomUUID();
 
-        const vpJwt = await createVerifiablePresentationJwt(
-          vpPayload,
-          client,
-          authorisationApiV3Url,
-          {
-            ebsiAuthority,
-            ebsiEnvConfig,
-            skipValidation: true,
-            nonce,
-            trustedHostnames,
-            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
-              ? {
-                  // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                  exp: Math.floor(Date.now() / 1000) + 100,
-                  nbf: Math.floor(Date.now() / 1000) - 100,
-                }
-              : {}),
+              const vpJwt = await createVerifiablePresentationJwt(
+                vpPayload,
+                client,
+                authorisationApiV3Url,
+                {
+                  ...ebsiEnvConfig,
+                  skipValidation: true,
+                  nonce,
+
+                  ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
+                    ? {
+                        // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
+                        exp: Math.floor(Date.now() / 1000) + 100,
+                        nbf: Math.floor(Date.now() / 1000) - 100,
+                      }
+                    : {}),
+                },
+              );
+
+              const response = await request(server)
+                .post("/token")
+                .set("Content-Type", "application/json")
+                .send({
+                  grant_type: "vp_token",
+                  scope,
+                  vp_token: vpJwt,
+                  presentation_submission: presentationSubmission,
+                });
+
+              expect(response.body).toStrictEqual({
+                error: "invalid_request",
+                error_description:
+                  "Content-type must be application/x-www-form-urlencoded",
+              });
+              expect(response.status).toBe(400);
+              expect(
+                (response.headers as Record<string, unknown>)["content-type"],
+              ).toBe("application/json; charset=utf-8");
+            });
+
+            it("should return an access token and an ID token when the presentation is valid", async () => {
+              if (customScope === TIR_INVITE_SCOPE) {
+                // /!\ Skip test - Could be implemented later
+                // In order to pass this test, we would have to register a new DID into the DID Registry
+                // and a new Trusted Issuer into the TIR. It can only be run in an environment where we
+                // can use write operations, and where the DIDR API v4 and TIR API v4 support the new
+                // auth mechanism.
+                expect.assertions(0);
+                return;
+              }
+
+              if (customScope === DIDR_INVITE_SCOPE) {
+                const vcJwt = await createVerifiableCredentialJwt(
+                  vcPayload,
+                  issuer,
+                  {
+                    ...ebsiEnvConfig,
+                    skipValidation: true,
+                  },
+                );
+
+                vpPayload.verifiableCredential.push(vcJwt);
+              }
+
+              const nonce = randomUUID();
+
+              const vpJwt = await createVerifiablePresentationJwt(
+                vpPayload,
+                client,
+                authorisationApiV3Url,
+                {
+                  ...ebsiEnvConfig,
+                  skipValidation: true,
+                  nonce,
+
+                  ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
+                    ? {
+                        // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
+                        exp: Math.floor(Date.now() / 1000) + 100,
+                        nbf: Math.floor(Date.now() / 1000) - 100,
+                      }
+                    : {}),
+                },
+              );
+
+              const response = await request(server)
+                .post("/token")
+                .set("Content-Type", "application/x-www-form-urlencoded")
+                .send(
+                  new URLSearchParams({
+                    grant_type: "vp_token",
+                    scope,
+                    vp_token: vpJwt,
+                    presentation_submission: JSON.stringify(
+                      presentationSubmission,
+                    ),
+                  } satisfies CreateAccessTokenDto).toString(),
+                );
+
+              expect(response.status).toBe(200);
+
+              expect(response.body).toStrictEqual({
+                access_token: expect.any(String),
+                expires_in: 7200,
+                id_token: expect.any(String),
+                scope,
+                token_type: "Bearer",
+              });
+
+              // Decode access token
+              const { access_token: accessToken } =
+                response.body as TokenResponse;
+              const decodedAccessToken = decodeJWT(accessToken);
+
+              expect(decodedAccessToken.header).toStrictEqual({
+                alg: "ES256",
+                kid: expect.any(String),
+                typ: "JWT",
+              });
+
+              expect(decodedAccessToken.payload).toStrictEqual({
+                aud: authorisationApiV3Url,
+                exp: expect.any(Number),
+                iat: expect.any(Number),
+                iss: authorisationApiV3Url,
+                jti: expect.any(String),
+                scp: scope,
+                sub: client.did,
+              });
+
+              // Get API public key in order to verify the signature
+              const { kid: accessTokenKid } = decodedAccessToken.header;
+              const jwksResponse = await request(server).get("/jwks");
+
+              expect(jwksResponse.status).toBe(200);
+
+              const { keys } = jwksResponse.body as JsonWebKeySet;
+              const apiPublicKeyJwk = keys.find(
+                (key) => key["kid"] === accessTokenKid,
+              );
+
+              expect(apiPublicKeyJwk).toBeDefined();
+
+              const apiPublicKey = await importJWK(apiPublicKeyJwk as JWK);
+
+              // Verify the signature of the access token
+              await expect(
+                jwtVerify(accessToken, apiPublicKey),
+              ).resolves.not.toThrow();
+
+              // Decode and verify ID Token
+              const { id_token: idToken } = response.body as TokenResponse;
+              const decodedIdToken = decodeJWT(idToken);
+
+              expect(decodedIdToken.header).toStrictEqual({
+                alg: "ES256",
+                kid: expect.any(String),
+                typ: "JWT",
+              });
+
+              expect(decodedIdToken.payload).toStrictEqual({
+                aud: client.did,
+                exp: expect.any(Number),
+                iat: expect.any(Number),
+                iss: authorisationApiV3Url,
+                jti: expect.any(String),
+                sub: client.did,
+                nonce,
+              });
+
+              await expect(
+                jwtVerify(idToken, apiPublicKey),
+              ).resolves.not.toThrow();
+            });
           },
         );
-
-        const response = await request(server)
-          .post("/token")
-          .set("Content-Type", "application/json")
-          .send({
-            grant_type: "vp_token",
-            scope,
-            vp_token: vpJwt,
-            presentation_submission: presentationSubmission,
-          });
-
-        expect(response.body).toStrictEqual({
-          error: "invalid_request",
-          error_description:
-            "Content-type must be application/x-www-form-urlencoded",
-        });
-        expect(response.status).toBe(400);
-        expect(
-          (response.headers as Record<string, unknown>)["content-type"],
-        ).toBe("application/json; charset=utf-8");
-      });
-
-      it("should return an access token and an ID token when the presentation is valid", async () => {
-        if (customScope === TIR_INVITE_SCOPE) {
-          // /!\ Skip test - Could be implemented later
-          // In order to pass this test, we would have to register a new DID into the DID Registry
-          // and a new Trusted Issuer into the TIR. It can only be run in an environment where we
-          // can use write operations, and where the DIDR API v4 and TIR API v4 support the new
-          // auth mechanism.
-          expect.assertions(0);
-          return;
-        }
-
-        if (customScope === DIDR_INVITE_SCOPE) {
-          const vcJwt = await createVerifiableCredentialJwt(vcPayload, issuer, {
-            ebsiAuthority,
-            ebsiEnvConfig,
-            skipValidation: true,
-            trustedHostnames,
-          });
-
-          vpPayload.verifiableCredential.push(vcJwt);
-        }
-
-        const nonce = randomUUID();
-
-        const vpJwt = await createVerifiablePresentationJwt(
-          vpPayload,
-          client,
-          authorisationApiV3Url,
-          {
-            ebsiAuthority,
-            ebsiEnvConfig,
-            skipValidation: true,
-            nonce,
-            trustedHostnames,
-            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE].includes(customScope)
-              ? {
-                  // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                  exp: Math.floor(Date.now() / 1000) + 100,
-                  nbf: Math.floor(Date.now() / 1000) - 100,
-                }
-              : {}),
-          },
-        );
-
-        const response = await request(server)
-          .post("/token")
-          .set("Content-Type", "application/x-www-form-urlencoded")
-          .send(
-            new URLSearchParams({
-              grant_type: "vp_token",
-              scope,
-              vp_token: vpJwt,
-              presentation_submission: JSON.stringify(presentationSubmission),
-            } satisfies CreateAccessTokenDto).toString(),
-          );
-
-        expect(response.status).toBe(200);
-
-        expect(response.body).toStrictEqual({
-          access_token: expect.any(String),
-          expires_in: 7200,
-          id_token: expect.any(String),
-          scope,
-          token_type: "Bearer",
-        });
-
-        // Decode access token
-        const { access_token: accessToken } = response.body as TokenResponse;
-        const decodedAccessToken = decodeJWT(accessToken);
-
-        expect(decodedAccessToken.header).toStrictEqual({
-          alg: "ES256",
-          kid: expect.any(String),
-          typ: "JWT",
-        });
-
-        expect(decodedAccessToken.payload).toStrictEqual({
-          aud: authorisationApiV3Url,
-          exp: expect.any(Number),
-          iat: expect.any(Number),
-          iss: authorisationApiV3Url,
-          jti: expect.any(String),
-          scp: scope,
-          sub: client.did,
-        });
-
-        // Get API public key in order to verify the signature
-        const { kid: accessTokenKid } = decodedAccessToken.header;
-        const jwksResponse = await request(server).get("/jwks");
-
-        expect(jwksResponse.status).toBe(200);
-
-        const { keys } = jwksResponse.body as JsonWebKeySet;
-        const apiPublicKeyJwk = keys.find(
-          (key) => key["kid"] === accessTokenKid,
-        );
-
-        expect(apiPublicKeyJwk).toBeDefined();
-
-        const apiPublicKey = await importJWK(apiPublicKeyJwk as JWK);
-
-        // Verify the signature of the access token
-        await expect(
-          jwtVerify(accessToken, apiPublicKey),
-        ).resolves.not.toThrow();
-
-        // Decode and verify ID Token
-        const { id_token: idToken } = response.body as TokenResponse;
-        const decodedIdToken = decodeJWT(idToken);
-
-        expect(decodedIdToken.header).toStrictEqual({
-          alg: "ES256",
-          kid: expect.any(String),
-          typ: "JWT",
-        });
-
-        expect(decodedIdToken.payload).toStrictEqual({
-          aud: client.did,
-          exp: expect.any(Number),
-          iat: expect.any(Number),
-          iss: authorisationApiV3Url,
-          jti: expect.any(String),
-          sub: client.did,
-          nonce,
-        });
-
-        await expect(jwtVerify(idToken, apiPublicKey)).resolves.not.toThrow();
-      });
-    });
+      },
+    );
   });
 });

@@ -8,7 +8,7 @@ import {
 import axios from "axios";
 import { ConfigService } from "@nestjs/config";
 import { isStatusList2021Credential } from "@ebsiint-api/shared";
-import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+import { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
 import type { ApiConfig } from "../../config/configuration.js";
 
 export const IS_ISSUER_PROXY = "isIssuerProxy";
@@ -28,10 +28,8 @@ function isRequestHeaders(
 
 export async function isIssuerProxy(
   value: unknown,
-  authority: string,
+  ebsiEnvConfig: EbsiEnvConfiguration,
   timeout: number,
-  trustedHostnames?: string[],
-  ebsiEnvConfig?: EbsiEnvConfiguration,
 ): Promise<boolean> {
   if (typeof value !== "string") return false;
 
@@ -59,10 +57,8 @@ export async function isIssuerProxy(
     if (testResponse.status !== 200) return false;
 
     if (
-      !(await isStatusList2021Credential(testResponse.data, authority, {
+      !(await isStatusList2021Credential(testResponse.data, ebsiEnvConfig, {
         skipAccreditationsValidation: true,
-        ...(trustedHostnames && { trustedHostnames }),
-        ...(ebsiEnvConfig && { ebsiEnvConfig }),
       }))
     ) {
       return false;
@@ -77,41 +73,29 @@ export async function isIssuerProxy(
 @ValidatorConstraint({ name: IS_ISSUER_PROXY, async: true })
 @Injectable()
 export class IsIssuerProxy implements ValidatorConstraintInterface {
-  private authority: string;
+  private ebsiEnvConfig: EbsiEnvConfiguration;
 
   private timeout: number;
 
-  private trustedHostnames: string[];
-
-  private ebsiEnvConfig: EbsiEnvConfiguration;
-
   constructor(configService: ConfigService<ApiConfig, true>) {
-    this.authority = configService
-      .get<string>("domain")
-      .replace(/^https?:\/\//, "");
-    this.timeout = configService.get<number>("requestTimeout");
-    this.trustedHostnames = configService.get<string[]>("trustedHostnames");
+    const domain = configService.get("domain", { infer: true });
+    const ebsiAuthority = domain.replace(/^https?:\/\//, ""); // remove http protocol scheme
+    const trustedHostnames = configService.get<string[]>("trustedHostnames");
     this.ebsiEnvConfig = {
-      didRegistry: `${configService.get<string>(
-        "didRegistryApiUrl",
-      )}/identifiers`,
-      trustedIssuersRegistry: `${configService.get<string>(
-        "domain",
-      )}${configService.get<string>("apiUrlPrefix")}/issuers`,
-      trustedPoliciesRegistry: `${configService.get<string>(
-        "trustedPoliciesRegistryApiUrl",
-      )}/users`,
+      network: configService.get("network", { infer: true }),
+      hosts: [ebsiAuthority, ...trustedHostnames],
+      services: {
+        "did-registry": "v4",
+        "trusted-issuers-registry": "v3",
+        "trusted-policies-registry": "v2",
+        "trusted-schemas-registry": "v2",
+      },
     };
+    this.timeout = configService.get<number>("requestTimeout");
   }
 
   async validate(value: unknown) {
-    return isIssuerProxy(
-      value,
-      this.authority,
-      this.timeout,
-      this.trustedHostnames,
-      this.ebsiEnvConfig,
-    );
+    return isIssuerProxy(value, this.ebsiEnvConfig, this.timeout);
   }
 
   defaultMessage(validationArguments?: ValidationArguments) {

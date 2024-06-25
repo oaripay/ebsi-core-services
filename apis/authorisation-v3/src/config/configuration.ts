@@ -1,5 +1,6 @@
 import { ConfigModule } from "@nestjs/config";
 import Joi from "joi";
+import { NETWORKS, type Network } from "@cef-ebsi/ebsi-uri";
 
 // List here all the values that will be returned by the config factory
 export interface ApiConfig {
@@ -9,6 +10,7 @@ export interface ApiConfig {
   domain: string;
   localOrigin: string;
   logLevel: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
+  network: Network;
   didRegistry: string;
   trustedIssuersRegistry: string;
   dockerContainerTag: string;
@@ -43,6 +45,7 @@ export const loadConfig = (): ApiConfig => {
     logLevel: process.env.LOG_LEVEL || "warn",
     domain: DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
+    network: process.env.NETWORK,
     didRegistry: `${DOMAIN}${DIDR_PATH}/identifiers`,
     trustedIssuersRegistry: `${DOMAIN}${TIR_PATH}/issuers`,
     dockerContainerTag: process.env.DOCKER_TAG || "",
@@ -85,6 +88,9 @@ export const ApiConfigModule = ConfigModule.forRoot({
     DOCKER_TAG: Joi.string(),
     DOMAIN: Joi.string().uri().required(),
     LOCAL_ORIGIN: Joi.string().uri(),
+    NETWORK: Joi.string()
+      .valid(...NETWORKS)
+      .required(),
     TRUSTED_HOSTNAMES: Joi.string(),
     // Test-specific variables
     TEST_ENV: Joi.string(),

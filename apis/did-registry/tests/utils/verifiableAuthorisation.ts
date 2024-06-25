@@ -1,18 +1,20 @@
 import { randomUUID } from "node:crypto";
 import {
   createVerifiableCredentialJwt,
+  type EbsiEnvConfiguration,
   type EbsiIssuer,
   type EbsiVerifiableAttestation,
 } from "@cef-ebsi/verifiable-credential";
 import { encode } from "@ebsiint-api/shared";
+import { fromUrl } from "@cef-ebsi/ebsi-uri";
 
 export async function createVerifiableAuthorisation(
   subjectDid: string,
   authorisationCredentialSchema: string,
   privateKey: string,
   applicationDid: string,
-  ebsiAuthority: string,
-  trustedHostnames?: string[],
+  ebsiEnvConfig: EbsiEnvConfiguration,
+  uriType: "URL" | "EBSI URI",
 ): Promise<string> {
   const issuanceDate = new Date(Date.now() - 5000); // issue 5 seconds ago
   const expirationDate = new Date(
@@ -30,7 +32,10 @@ export async function createVerifiableAuthorisation(
     expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
     credentialSubject: { id: subjectDid },
     credentialSchema: {
-      id: authorisationCredentialSchema,
+      id:
+        uriType === "EBSI URI"
+          ? fromUrl(authorisationCredentialSchema)
+          : authorisationCredentialSchema,
       type: "FullJsonSchemaValidator2021",
     },
   };
@@ -47,9 +52,8 @@ export async function createVerifiableAuthorisation(
   };
 
   return createVerifiableCredentialJwt(credential, issuer, {
-    ebsiAuthority,
+    ...ebsiEnvConfig,
     skipValidation: true,
-    ...(trustedHostnames && { trustedHostnames }),
   });
 }
 

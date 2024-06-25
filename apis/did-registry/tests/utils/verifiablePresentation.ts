@@ -1,5 +1,8 @@
 import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
-import type { EbsiVerifiablePresentation } from "@cef-ebsi/verifiable-presentation";
+import type {
+  EbsiVerifiablePresentation,
+  EbsiVpEnvConfiguration,
+} from "@cef-ebsi/verifiable-presentation";
 import { createVerifiablePresentationJwt } from "@cef-ebsi/verifiable-presentation";
 import { encode } from "@ebsiint-api/shared";
 
@@ -8,15 +11,13 @@ export async function createVP({
   clientKid,
   clientPrivateKey,
   audience,
-  ebsiAuthority,
-  trustedHostnames,
+  ebsiEnvConfig,
 }: {
   vc: string;
   clientKid: string;
   clientPrivateKey: string;
   audience: string;
-  ebsiAuthority: string;
-  trustedHostnames?: string[];
+  ebsiEnvConfig: EbsiVpEnvConfiguration;
 }): Promise<string> {
   const clientDid = clientKid.split("#")[0]!;
   const presentation: EbsiVerifiablePresentation = {
@@ -38,9 +39,8 @@ export async function createVP({
   };
 
   return createVerifiablePresentationJwt(presentation, issuer, audience, {
-    ebsiAuthority,
+    ...ebsiEnvConfig,
     skipValidation: true,
-    ...(trustedHostnames && { trustedHostnames }),
   });
 }
 

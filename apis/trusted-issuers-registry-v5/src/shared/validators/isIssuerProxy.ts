@@ -17,10 +17,8 @@ function isRequestHeaders(
 
 export async function isIssuerProxy(
   value: string,
-  authority: string,
+  ebsiEnvConfig: EbsiEnvConfiguration,
   timeout: number,
-  trustedHostnames?: string[],
-  ebsiEnvConfig?: EbsiEnvConfiguration,
 ): Promise<{ success: true } | { success: false; error: string }> {
   let proxyAsObject: unknown;
 
@@ -79,10 +77,11 @@ export async function isIssuerProxy(
   }
 
   try {
-    return await checkStatusList2021Credential(testResponse.data, authority, {
-      ...(trustedHostnames && { trustedHostnames }),
-      ...(ebsiEnvConfig && { ebsiEnvConfig }),
-    });
+    return await checkStatusList2021Credential(
+      testResponse.data,
+      ebsiEnvConfig,
+      { timeout },
+    );
   } catch {
     return { success: false, error: "Not a StatusList2021Credential" };
   }

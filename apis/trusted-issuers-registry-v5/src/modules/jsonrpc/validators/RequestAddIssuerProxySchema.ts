@@ -6,10 +6,8 @@ import { baseParamSchema } from "./BaseParamSchema.js";
 import { isIssuerProxy } from "../../../shared/validators/isIssuerProxy.js";
 
 export const createAddIssuerProxySchema = (
-  authority: string,
+  ebsiEnvConfig: EbsiEnvConfiguration,
   timeout: number,
-  trustedHostnames?: string[],
-  ebsiEnvConfig?: EbsiEnvConfiguration,
 ) =>
   baseParamSchema.merge(
     z.object({
@@ -26,10 +24,8 @@ export const createAddIssuerProxySchema = (
       proxyData: z.string().superRefine(async (val, ctx) => {
         const proxyValidation = await isIssuerProxy(
           val,
-          authority,
-          timeout,
-          trustedHostnames,
           ebsiEnvConfig,
+          timeout,
         );
 
         if (!proxyValidation.success) {
@@ -47,23 +43,14 @@ export type AddIssuerProxySchema = z.infer<
 >;
 
 export const createRequestAddIssuerProxySchema = (
-  authority: string,
+  ebsiEnvConfig: EbsiEnvConfiguration,
   timeout: number,
-  trustedHostnames?: string[],
-  ebsiEnvConfig?: EbsiEnvConfiguration,
 ) =>
   jsonRpcSchema.merge(
     z.object({
       method: z.literal("addIssuerProxy"),
       params: z
-        .array(
-          createAddIssuerProxySchema(
-            authority,
-            timeout,
-            trustedHostnames,
-            ebsiEnvConfig,
-          ),
-        )
+        .array(createAddIssuerProxySchema(ebsiEnvConfig, timeout))
         .min(1)
         .max(1),
     }),

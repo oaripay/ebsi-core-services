@@ -13,7 +13,10 @@ import type { RawServerDefault } from "fastify";
 import type { HashName } from "multihashes";
 import { prefixWith0x, waitToBeMined } from "@ebsiint-api/shared";
 import type { TransactionRequest } from "@ethersproject/abstract-provider";
-import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
+import type {
+  EbsiEnvConfiguration,
+  EbsiIssuer,
+} from "@cef-ebsi/verifiable-credential";
 import type { UpdateHashAlgorithmSchema } from "../../src/modules/jsonrpc/validators/RequestUpdateHashAlgorithm.js";
 import type { UnsignedTransactionSchema } from "../../src/modules/jsonrpc/validators/UnsignedTransaction.js";
 import type { InsertHashAlgorithmSchema } from "../../src/modules/jsonrpc/validators/RequestInsertHashAlgorithm.js";
@@ -105,13 +108,27 @@ describe("Timestamp API v4 - HashAlgorithms (e2e)", () => {
         adminKid,
       );
 
+      const ebsiAuthority = configService
+        .get<string>("domain")
+        .replace(/^https?:\/\//, "");
+      const ebsiEnvConfig = {
+        network: configService.get("network", { infer: true }),
+        hosts: [ebsiAuthority, ...trustedHostnames],
+        services: {
+          "did-registry": "v5",
+          "trusted-issuers-registry": "v5",
+          "trusted-policies-registry": "v3",
+          "trusted-schemas-registry": "v3",
+        },
+      } satisfies EbsiEnvConfiguration;
+
       try {
         adminUser = {
           info: adminIssuerInfo,
           token: await getTimestampWriteAccessToken(
             authorisationApiUrl,
             adminIssuerInfo,
-            trustedHostnames,
+            ebsiEnvConfig,
           ),
           wallet: adminWallet,
         };
@@ -137,7 +154,7 @@ describe("Timestamp API v4 - HashAlgorithms (e2e)", () => {
           token: await getTimestampWriteAccessToken(
             authorisationApiUrl,
             userInfo,
-            trustedHostnames,
+            ebsiEnvConfig,
           ),
           wallet: userWallet,
         };

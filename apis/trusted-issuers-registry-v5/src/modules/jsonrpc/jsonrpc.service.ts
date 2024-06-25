@@ -103,40 +103,31 @@ export class JsonRpcService {
       .replace(/^https?:\/\//, "");
     const trustedHostnames = configService.get<string[]>("trustedHostnames");
     const ebsiEnvConfig = {
-      didRegistry: `${configService.get<string>(
-        "didRegistryApiUrl",
-      )}/identifiers`,
-      trustedIssuersRegistry: `${configService.get<string>(
-        "domain",
-      )}${configService.get<string>("apiUrlPrefix")}/issuers`,
-      trustedPoliciesRegistry: `${configService.get<string>(
-        "trustedPoliciesRegistryApiUrl",
-      )}/users`,
+      network: configService.get("network", { infer: true }),
+      hosts: [authority, ...trustedHostnames],
+      services: {
+        "did-registry": "v5",
+        "trusted-issuers-registry": "v5",
+        "trusted-policies-registry": "v3",
+        "trusted-schemas-registry": "v3",
+      },
     };
 
     this.addIssuerProxySchema = createAddIssuerProxySchema(
-      authority,
-      this.timeout,
-      trustedHostnames,
       ebsiEnvConfig,
+      this.timeout,
     );
     this.updateIssuerProxySchema = createUpdateIssuerProxySchema(
-      authority,
-      this.timeout,
-      trustedHostnames,
       ebsiEnvConfig,
+      this.timeout,
     );
     this.requestAddIssuerProxySchema = createRequestAddIssuerProxySchema(
-      authority,
-      this.timeout,
-      trustedHostnames,
       ebsiEnvConfig,
+      this.timeout,
     );
     this.requestUpdateIssuerProxySchema = createRequestUpdateIssuerProxySchema(
-      authority,
-      this.timeout,
-      trustedHostnames,
       ebsiEnvConfig,
+      this.timeout,
     );
   }
 

@@ -18,6 +18,7 @@ import type {
 import {
   verifyPresentationJwt,
   type EbsiVerifiablePresentation,
+  type EbsiVpEnvConfiguration,
   type ProofPurposeTypes,
   type VpJwtPayload,
 } from "@cef-ebsi/verifiable-presentation";
@@ -79,7 +80,7 @@ export class AuthorisationService {
 
   private publicKeyJwk?: JsonWebKey;
 
-  private readonly ebsiAuthority: string;
+  private readonly ebsiEnvConfig: EbsiVpEnvConfiguration;
 
   private readonly apiES256KPrivateKey: string;
 
@@ -97,11 +98,7 @@ export class AuthorisationService {
 
   private readonly trustedAppsRegistry: string;
 
-  private readonly trustedPoliciesRegistry: string;
-
   private readonly trackAndTraceAccessesEndpoint: string;
-
-  private readonly trustedHostnames: string[];
 
   private readonly authorisationCredentialSchema: string;
 
@@ -114,9 +111,21 @@ export class AuthorisationService {
     @Inject(CACHE_MANAGER) private cacheManager: MemoryCache,
   ) {
     const domain = configService.get("domain", { infer: true });
-    this.ebsiAuthority = domain.replace(/^https?:\/\//, ""); // remove http protocol scheme
     const apiUrlPrefix = configService.get("apiUrlPrefix", { infer: true });
     this.issuer = `${domain}${apiUrlPrefix}`;
+    this.ebsiEnvConfig = {
+      network: configService.get("network", { infer: true }),
+      hosts: [
+        domain.replace(/^https?:\/\//, ""), // remove http protocol scheme
+        ...configService.get("trustedHostnames", { infer: true }),
+      ],
+      services: {
+        "did-registry": "v5",
+        "trusted-issuers-registry": "v5",
+        "trusted-policies-registry": "v3",
+        "trusted-schemas-registry": "v3",
+      },
+    };
     this.didRegistry = configService.get("didRegistry", { infer: true });
     this.trustedIssuersRegistry = configService.get("trustedIssuersRegistry", {
       infer: true,
@@ -124,10 +133,6 @@ export class AuthorisationService {
     this.trustedAppsRegistry = configService.get("trustedAppsRegistry", {
       infer: true,
     });
-    this.trustedPoliciesRegistry = configService.get(
-      "trustedPoliciesRegistry",
-      { infer: true },
-    );
     this.trackAndTraceAccessesEndpoint = configService.get(
       "trackAndTraceAccessesEndpoint",
       {
@@ -144,9 +149,6 @@ export class AuthorisationService {
     this.apiName = configService.get("apiName", { infer: true });
     this.kid = `${this.trustedAppsRegistry}/${this.apiName}`;
     this.siopSessionsUrl = `${domain}${apiUrlPrefix}/siop-sessions`;
-    this.trustedHostnames = configService.get("trustedHostnames", {
-      infer: true,
-    });
 
     this.oauth2RP = new OAuth2RP({
       privateKey: this.apiES256KPrivateKey,
@@ -514,17 +516,11 @@ export class AuthorisationService {
       const now = Math.floor(Date.now() / 1000);
 
       return await verifyPresentationJwt(vpToken, audience, {
-        ebsiAuthority: this.ebsiAuthority,
-        ebsiEnvConfig: {
-          didRegistry: this.didRegistry,
-          trustedIssuersRegistry: this.trustedIssuersRegistry,
-          trustedPoliciesRegistry: this.trustedPoliciesRegistry,
-        },
+        ...this.ebsiEnvConfig,
         validAt: now, // The JWT VC(s) must be valid now
         skipHolderDidResolutionValidation: isDidUnresolvable,
         skipSignatureValidation: isDidUnresolvable,
         validateAccreditationWithoutTermsOfUse: true, // The VC must contain terms of use (or be self-accredited)
-        trustedHostnames: this.trustedHostnames,
         ...(proofPurpose && { proofPurpose }),
       });
     } catch (e) {

@@ -1,5 +1,6 @@
 import { ConfigModule } from "@nestjs/config";
 import Joi from "joi";
+import { NETWORKS, type Network } from "@cef-ebsi/ebsi-uri";
 
 // List here all the values that will be returned by the config factory
 export interface ApiConfig {
@@ -16,6 +17,7 @@ export interface ApiConfig {
   contractAddr: string;
   domain: string;
   localOrigin: string;
+  network: Network;
   logLevel: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
   requestTimeout: number;
   axiosRetryDelay: number;
@@ -69,6 +71,7 @@ export const loadConfig = (): ApiConfig => {
     contractAddr: process.env.CONTRACT_ADDR,
     domain: DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
+    network: process.env.NETWORK,
     logLevel: process.env.LOG_LEVEL || "warn",
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     axiosRetryDelay: parseInt(process.env.AXIOS_RETRY_DELAY || "10000", 10),
@@ -121,6 +124,9 @@ export const ApiConfigModule = ConfigModule.forRoot({
     // Timestamp specific variables
     DOMAIN: Joi.string().uri().required(),
     LOCAL_ORIGIN: Joi.string().uri(),
+    NETWORK: Joi.string()
+      .valid(...NETWORKS)
+      .required(),
     AUTHORISATION_API_NAME: Joi.string(),
     LEDGER_API_NAME: Joi.string(),
     CONTRACT_ADDR: Joi.string(),

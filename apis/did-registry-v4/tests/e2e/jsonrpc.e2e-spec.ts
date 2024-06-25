@@ -241,9 +241,24 @@ describeWriteOps()("DID Registry API v4 - JSON RPC - e2e", () => {
 
     beforeAll(async () => {
       try {
+        const domain = configService.get("domain", { infer: true });
+        const ebsiAuthority = domain.replace(/^https?:\/\//, ""); // remove http protocol scheme
+        const trustedHostnames = configService.get("trustedHostnames", {
+          infer: true,
+        });
         const didrWriteToken = await getDidrWriteAccessToken(
           configService.get<string>("authorisationApiV3Url"),
           user.info,
+          {
+            network: configService.get("network", { infer: true }),
+            hosts: [ebsiAuthority, ...trustedHostnames],
+            services: {
+              "did-registry": "v4",
+              "trusted-issuers-registry": "v4",
+              "trusted-policies-registry": "v2",
+              "trusted-schemas-registry": "v2",
+            },
+          },
         );
         user.token = didrWriteToken;
       } catch (e) {

@@ -53,8 +53,6 @@ export class AuthorisationService {
 
   private publicKeyJwk?: JsonWebKey;
 
-  private readonly ebsiAuthority: string;
-
   private readonly ebsiEnvConfig: EbsiVpEnvConfiguration;
 
   private readonly apiES256PrivateKey: string;
@@ -63,27 +61,33 @@ export class AuthorisationService {
 
   private readonly trustedIssuersRegistry: string;
 
-  private readonly trustedHostnames: string[];
-
   constructor(
     configService: ConfigService<ApiConfig, true>,
     @Inject(CACHE_MANAGER) private cacheManager: MemoryCache,
   ) {
-    const domain = configService.get<string>("domain");
-    this.ebsiAuthority = domain.replace(/^https?:\/\//, ""); // remove http protocol scheme
+    const domain = configService.get("domain", { infer: true });
     this.ebsiEnvConfig = {
-      didRegistry: `${domain}/did-registry/v4/identifiers`,
-      trustedIssuersRegistry: `${domain}/trusted-issuers-registry/v4/issuers`,
-      trustedPoliciesRegistry: `${domain}/trusted-policies-registry/v2/users`,
+      network: configService.get("network", { infer: true }),
+      hosts: [
+        domain.replace(/^https?:\/\//, ""), // remove http protocol scheme
+        ...configService.get("trustedHostnames", { infer: true }),
+      ],
+      services: {
+        "did-registry": "v4",
+        "trusted-issuers-registry": "v4",
+        "trusted-policies-registry": "v2",
+        "trusted-schemas-registry": "v2",
+      },
     };
-    const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
+    const apiUrlPrefix = configService.get("apiUrlPrefix", { infer: true });
     this.issuer = `${domain}${apiUrlPrefix}`;
-    this.didRegistry = configService.get<string>("didRegistry");
-    this.trustedIssuersRegistry = configService.get<string>(
-      "trustedIssuersRegistry",
-    );
-    this.apiES256PrivateKey = configService.get<string>("apiES256PrivateKey");
-    this.trustedHostnames = configService.get<string[]>("trustedHostnames");
+    this.didRegistry = configService.get("didRegistry", { infer: true });
+    this.trustedIssuersRegistry = configService.get("trustedIssuersRegistry", {
+      infer: true,
+    });
+    this.apiES256PrivateKey = configService.get("apiES256PrivateKey", {
+      infer: true,
+    });
   }
 
   /**
@@ -275,13 +279,11 @@ export class AuthorisationService {
       const now = Math.floor(Date.now() / 1000);
 
       await verifyPresentationJwt(vpToken, audience, {
-        ebsiAuthority: this.ebsiAuthority,
+        ...this.ebsiEnvConfig,
         validAt: now, // The JWT VC(s) must be valid now
         skipHolderDidResolutionValidation: isDidUnresolvable,
         skipSignatureValidation: isDidUnresolvable,
         validateAccreditationWithoutTermsOfUse: true, // The VC must contain terms of use (or be self-accredited)
-        trustedHostnames: this.trustedHostnames,
-        ebsiEnvConfig: this.ebsiEnvConfig,
       });
     } catch (e) {
       throw new OAuth2TokenError("invalid_request", {

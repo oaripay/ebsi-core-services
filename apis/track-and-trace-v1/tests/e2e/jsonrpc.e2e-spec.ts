@@ -12,7 +12,10 @@ import { ethers } from "ethers";
 import type { RawServerDefault } from "fastify";
 import axios from "axios";
 import { calculateJwkThumbprint } from "jose";
-import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
+import type {
+  EbsiEnvConfiguration,
+  EbsiIssuer,
+} from "@cef-ebsi/verifiable-credential";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { waitToBeMined, encode } from "@ebsiint-api/shared";
 import { AppModule } from "../../src/app.module.js";
@@ -247,12 +250,29 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
       let user: TestUser;
 
       beforeAll(async () => {
+        const ebsiAuthority = configService
+          .get<string>("domain")
+          .replace(/^https?:\/\//, "");
+        const trustedHostnames = configService.get("trustedHostnames", {
+          infer: true,
+        });
+        const ebsiEnvConfig = {
+          network: configService.get("network", { infer: true }),
+          hosts: [ebsiAuthority, ...trustedHostnames],
+          services: {
+            "did-registry": "v5",
+            "trusted-issuers-registry": "v5",
+            "trusted-policies-registry": "v3",
+            "trusted-schemas-registry": "v3",
+          },
+        } satisfies EbsiEnvConfiguration;
+
         if (method === "authoriseDid") {
           authoriser.accessToken.tntAuthorise = await getAccessToken(
             configService.get<string>("authorisationApiUrl"),
             authoriser.info,
             "openid tnt_authorise",
-            undefined,
+            ebsiEnvConfig,
             authoriser.vcOnboard,
           );
         } else if (method === "createDocument") {
@@ -262,7 +282,7 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
             configService.get<string>("authorisationApiUrl"),
             creator.info,
             "openid tnt_create",
-            undefined,
+            ebsiEnvConfig,
             [],
           );
         } else if (method === "writeEvent") {
@@ -272,7 +292,7 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
             configService.get<string>("authorisationApiUrl"),
             creator.info,
             "openid tnt_write",
-            undefined,
+            ebsiEnvConfig,
             [],
           );
         }

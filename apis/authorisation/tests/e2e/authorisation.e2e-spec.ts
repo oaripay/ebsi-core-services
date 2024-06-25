@@ -118,12 +118,17 @@ describe("Authorisation API v2 (e2e)", () => {
     };
     domain = configService.get<string>("domain");
     ebsiAuthority = domain.replace(/^https?:\/\//, ""); // remove http protocol scheme
-    ebsiEnvConfig = {
-      didRegistry: `${domain}/did-registry/v4/identifiers`,
-      trustedIssuersRegistry: `${domain}/trusted-issuers-registry/v3/issuers`,
-      trustedPoliciesRegistry: `${domain}/trusted-policies-registry/v2/users`,
-    };
     trustedHostnames = configService.get<string[]>("trustedHostnames");
+    ebsiEnvConfig = {
+      network: process.env.NETWORK,
+      hosts: [ebsiAuthority, ...trustedHostnames],
+      services: {
+        "did-registry": "v4",
+        "trusted-issuers-registry": "v3",
+        "trusted-policies-registry": "v2",
+        "trusted-schemas-registry": "v2",
+      },
+    };
 
     testLoadBalancerDomain = configService.get<string>(
       "testLoadBalancerDomain",
@@ -876,243 +881,247 @@ describe("Authorisation API v2 (e2e)", () => {
       ).resolves.not.toThrow();
     });
 
-    describe("should support the full SIOP flow for an unknown user (not registered did)", () => {
-      it.each(["ES256K", "ES256", "EdDSA"] as const)(
-        "with alg %s",
-        async (alg) => {
-          expect.assertions(3);
+    describe.each(["EBSI URI", "URL"] as const)(
+      "should support the full SIOP flow for an unknown user (not registered did, using %s as resource locator)",
+      (uriType) => {
+        it.each(["ES256K", "ES256", "EdDSA"] as const)(
+          "with alg %s",
+          async (alg) => {
+            expect.assertions(3);
 
-          // 1. The user creates an authentication request in Onboarding api
-          // Since this step requires human intervention (EU Login, recaptcha) this test
-          // will skip it and create the response:
-          // A verifiable credential signed by onboarding api
-          const did = EbsiWallet.createDid("LEGAL_ENTITY");
-          const keyPair = await generateKeyPair(alg);
-          const publicKeyJwk = await exportJWK(keyPair.publicKey);
-          const privateKeyJwk = await exportJWK(keyPair.privateKey);
-          const privateKeyHexEncryption = randomPrivateKeySecp256k1();
-          const privateEncryptionKeyJwk = encode.privateKey.fromHexToJWK(
-            privateKeyHexEncryption,
-          );
-          const publicKeyEncryption = new EbsiWallet(
-            privateKeyHexEncryption,
-          ).getPublicKey({ format: "jwk" }) as JsonWebKey;
+            // 1. The user creates an authentication request in Onboarding api
+            // Since this step requires human intervention (EU Login, recaptcha) this test
+            // will skip it and create the response:
+            // A verifiable credential signed by onboarding api
+            const did = EbsiWallet.createDid("LEGAL_ENTITY");
+            const keyPair = await generateKeyPair(alg);
+            const publicKeyJwk = await exportJWK(keyPair.publicKey);
+            const privateKeyJwk = await exportJWK(keyPair.privateKey);
+            const privateKeyHexEncryption = randomPrivateKeySecp256k1();
+            const privateEncryptionKeyJwk = encode.privateKey.fromHexToJWK(
+              privateKeyHexEncryption,
+            );
+            const publicKeyEncryption = new EbsiWallet(
+              privateKeyHexEncryption,
+            ).getPublicKey({ format: "jwk" }) as JsonWebKey;
 
-          const verifiableCredentialJwt =
-            await createVerifiableAuthorisationJwt(
+            const verifiableCredentialJwt =
+              await createVerifiableAuthorisationJwt(
+                did,
+                authorisationCredentialSchema,
+                onboardingApiPrivateKey,
+                onboardingAllowlist[0]!, // must be did of onboarding api
+                ebsiEnvConfig,
+                uriType,
+              );
+
+            // 2. The client creates a verifiable presentation using the verifiable credential
+            const siopAgent = new SiopAgent({
+              privateKey: await importJWK(
+                encode.privateKey.fromHexToJWK(privateKeyHexEncryption),
+                "ES256K",
+              ),
+              kid: `${did}#keys-1`,
+              alg: "ES256K",
+              siopV2: true,
+            });
+
+            const vp = await createVpJwt(
               did,
-              authorisationCredentialSchema,
-              onboardingApiPrivateKey,
-              onboardingAllowlist[0]!, // must be did of onboarding api
-              domain,
+              publicKeyJwk,
+              privateKeyJwk,
+              verifiableCredentialJwt,
+              audience,
+              ebsiEnvConfig,
+              alg,
             );
 
-          // 2. The client creates a verifiable presentation using the verifiable credential
-          const siopAgent = new SiopAgent({
-            privateKey: await importJWK(
-              encode.privateKey.fromHexToJWK(privateKeyHexEncryption),
-              "ES256K",
-            ),
-            kid: `${did}#keys-1`,
-            alg: "ES256K",
-            siopV2: true,
-          });
+            const nonce = randomUUID();
 
-          const vp = await createVpJwt(
-            did,
-            publicKeyJwk,
-            privateKeyJwk,
-            verifiableCredentialJwt,
-            audience,
-            ebsiAuthority,
-            ebsiEnvConfig,
-            alg,
-            trustedHostnames,
-          );
-
-          const nonce = randomUUID();
-
-          const authenticationResponse = await siopAgent.createResponse({
-            nonce,
-            redirectUri: "/siop-sessions",
-            responseMode: "form_post",
-            claims: {
-              encryption_key: { ...publicKeyEncryption } as JWK,
-            },
-            _vp_token: {
-              presentation_submission: {
-                // The presentation_submission object MUST contain an id property.
-                // The value of this property MUST be a unique identifier, such as a UUID.
-                id: randomUUID(),
-                // The presentation_submission object MUST contain a definition_id property.
-                // The value of this property MUST be the id value of a valid Presentation Definition.
-                definition_id: randomUUID(),
-                // The presentation_submission object MUST include a descriptor_map property.
-                // The value of this property MUST be an array of Input Descriptor Mapping Objects, composed as follows:
-                descriptor_map: [
-                  {
-                    // The descriptor_map object MUST include an id property.
-                    // The value of this property MUST be a string that matches the id property of the Input Descriptor in the Presentation Definition that this Presentation Submission is related to.
-                    id: randomUUID(),
-                    // The descriptor_map object MUST include a format property.
-                    // The value of this property MUST be a string that matches one of the Claim Format Designation. This denotes the data format of the Claim.
-                    format: "jwt_vp",
-                    // The descriptor_map object MUST include a path property.
-                    // The value of this property MUST be a JSONPath string expression. The path property indicates the Claim submitted in relation to the identified Input Descriptor, when executed against the top-level of the object the Presentation Submission is embedded within.
-                    path: "$",
-                    // The object MAY include a path_nested object to indicate the presence of a multi-Claim envelope format.
-                    // This means the Claim indicated is to be decoded separately from its parent enclosure.
-                    path_nested: {
-                      id: "onboarding-input-id",
-                      format: "jwt_vc",
-                      path: "$.vp.verifiableCredential[0]",
-                    },
-                  },
-                ],
-              },
-            },
-          });
-
-          const { idToken } = authenticationResponse;
-
-          // 3. The client calls /siop-sessions with the ID Token
-          const siopSessionsResponse = await request(server)
-            .post("/siop-sessions")
-            .set("Content-Type", "application/x-www-form-urlencoded")
-            .send({ id_token: idToken, vp_token: vp });
-
-          expect(siopSessionsResponse.status).toBe(200);
-
-          // 4. Finally, the client verifies the SIOP authentication response and gets an access token
-          const accessToken = await SiopAgent.verifyAkeResponse(
-            siopSessionsResponse.body as AkeResponse,
-            {
+            const authenticationResponse = await siopAgent.createResponse({
               nonce,
-              privateEncryptionKeyJwk,
-              trustedAppsRegistry,
-              alg: "ES256K",
-            },
-          );
-
-          expect(accessToken).toBeDefined();
-
-          // Verify access token
-          await expect(
-            verifyJwtTar(accessToken, {
-              trustedAppsRegistry,
-              audience: "ebsi-core-services",
-            }),
-          ).resolves.not.toThrow();
-        },
-      );
-    });
-
-    it("should not support the full SIOP flow for an unknown user (not registered did) if the verifiable authorisation is not signed by Users onboarding API", async () => {
-      expect.assertions(2);
-
-      // 1. A Trusted Issuer (different from onboarding api)
-      // creates a verifiable authorisation
-      const did = EbsiWallet.createDid();
-      const keyPair = await generateKeyPair("ES256K");
-      const publicKeyJwk = await exportJWK(keyPair.publicKey);
-      const privateKeyJwk = await exportJWK(keyPair.privateKey);
-      const privateKeyHexEncryption = randomPrivateKeySecp256k1();
-
-      const publicKeyEncryption = new EbsiWallet(
-        privateKeyHexEncryption,
-      ).getPublicKey({ format: "jwk" }) as JsonWebKey;
-
-      const verifiableCredentialJwt = await createVerifiableAuthorisationJwt(
-        did,
-        authorisationCredentialSchema,
-        trustedIssuer.privateKey, // not signed by onboarding api, but by a different Trusted Issuer
-        trustedIssuer.did,
-        domain,
-      );
-
-      // 2. The client creates a verifiable presentation using the verifiable credential
-      const siopAgent = new SiopAgent({
-        privateKey: await importJWK(
-          encode.privateKey.fromHexToJWK(privateKeyHexEncryption),
-          "ES256K",
-        ),
-        alg: "ES256K",
-        kid: `${did}#keys-1`,
-        siopV2: true,
-      });
-
-      const vp = await createVpJwt(
-        did,
-        publicKeyJwk,
-        privateKeyJwk,
-        verifiableCredentialJwt,
-        audience,
-        ebsiAuthority,
-        ebsiEnvConfig,
-        "ES256K",
-        trustedHostnames,
-      );
-
-      const nonce = randomUUID();
-
-      const authenticationResponse = await siopAgent.createResponse({
-        nonce,
-        redirectUri: "/siop-sessions",
-        responseMode: "form_post",
-        claims: {
-          encryption_key: { ...publicKeyEncryption } as JWK,
-        },
-        _vp_token: {
-          presentation_submission: {
-            // The presentation_submission object MUST contain an id property.
-            // The value of this property MUST be a unique identifier, such as a UUID.
-            id: randomUUID(),
-            // The presentation_submission object MUST contain a definition_id property.
-            // The value of this property MUST be the id value of a valid Presentation Definition.
-            definition_id: randomUUID(),
-            // The presentation_submission object MUST include a descriptor_map property.
-            // The value of this property MUST be an array of Input Descriptor Mapping Objects, composed as follows:
-            descriptor_map: [
-              {
-                // The descriptor_map object MUST include an id property.
-                // The value of this property MUST be a string that matches the id property of the Input Descriptor in the Presentation Definition that this Presentation Submission is related to.
-                id: randomUUID(),
-                // The descriptor_map object MUST include a format property.
-                // The value of this property MUST be a string that matches one of the Claim Format Designation. This denotes the data format of the Claim.
-                format: "jwt_vp",
-                // The descriptor_map object MUST include a path property.
-                // The value of this property MUST be a JSONPath string expression. The path property indicates the Claim submitted in relation to the identified Input Descriptor, when executed against the top-level of the object the Presentation Submission is embedded within.
-                path: "$",
-                // The object MAY include a path_nested object to indicate the presence of a multi-Claim envelope format.
-                // This means the Claim indicated is to be decoded separately from its parent enclosure.
-                path_nested: {
-                  id: "onboarding-input-id",
-                  format: "jwt_vc",
-                  path: "$.vp.verifiableCredential[0]",
+              redirectUri: "/siop-sessions",
+              responseMode: "form_post",
+              claims: {
+                encryption_key: { ...publicKeyEncryption } as JWK,
+              },
+              _vp_token: {
+                presentation_submission: {
+                  // The presentation_submission object MUST contain an id property.
+                  // The value of this property MUST be a unique identifier, such as a UUID.
+                  id: randomUUID(),
+                  // The presentation_submission object MUST contain a definition_id property.
+                  // The value of this property MUST be the id value of a valid Presentation Definition.
+                  definition_id: randomUUID(),
+                  // The presentation_submission object MUST include a descriptor_map property.
+                  // The value of this property MUST be an array of Input Descriptor Mapping Objects, composed as follows:
+                  descriptor_map: [
+                    {
+                      // The descriptor_map object MUST include an id property.
+                      // The value of this property MUST be a string that matches the id property of the Input Descriptor in the Presentation Definition that this Presentation Submission is related to.
+                      id: randomUUID(),
+                      // The descriptor_map object MUST include a format property.
+                      // The value of this property MUST be a string that matches one of the Claim Format Designation. This denotes the data format of the Claim.
+                      format: "jwt_vp",
+                      // The descriptor_map object MUST include a path property.
+                      // The value of this property MUST be a JSONPath string expression. The path property indicates the Claim submitted in relation to the identified Input Descriptor, when executed against the top-level of the object the Presentation Submission is embedded within.
+                      path: "$",
+                      // The object MAY include a path_nested object to indicate the presence of a multi-Claim envelope format.
+                      // This means the Claim indicated is to be decoded separately from its parent enclosure.
+                      path_nested: {
+                        id: "onboarding-input-id",
+                        format: "jwt_vc",
+                        path: "$.vp.verifiableCredential[0]",
+                      },
+                    },
+                  ],
                 },
               },
-            ],
+            });
+
+            const { idToken } = authenticationResponse;
+
+            // 3. The client calls /siop-sessions with the ID Token
+            const siopSessionsResponse = await request(server)
+              .post("/siop-sessions")
+              .set("Content-Type", "application/x-www-form-urlencoded")
+              .send({ id_token: idToken, vp_token: vp });
+
+            expect(siopSessionsResponse.status).toBe(200);
+
+            // 4. Finally, the client verifies the SIOP authentication response and gets an access token
+            const accessToken = await SiopAgent.verifyAkeResponse(
+              siopSessionsResponse.body as AkeResponse,
+              {
+                nonce,
+                privateEncryptionKeyJwk,
+                trustedAppsRegistry,
+                alg: "ES256K",
+              },
+            );
+
+            expect(accessToken).toBeDefined();
+
+            // Verify access token
+            await expect(
+              verifyJwtTar(accessToken, {
+                trustedAppsRegistry,
+                audience: "ebsi-core-services",
+              }),
+            ).resolves.not.toThrow();
           },
-        },
-      });
+        );
+      },
+    );
 
-      const { idToken } = authenticationResponse;
+    it.each(["EBSI URI", "URL"] as const)(
+      "should not support the full SIOP flow for an unknown user (not registered did) if the verifiable authorisation is not signed by Users onboarding API (using %s as resource locator)",
+      async (uriType) => {
+        expect.assertions(2);
 
-      // 3. The client calls /siop-sessions with the ID Token
-      const siopSessionsResponse = await request(server)
-        .post("/siop-sessions")
-        .set("Content-Type", "application/x-www-form-urlencoded")
-        .send({ id_token: idToken, vp_token: vp });
+        // 1. A Trusted Issuer (different from onboarding api)
+        // creates a verifiable authorisation
+        const did = EbsiWallet.createDid();
+        const keyPair = await generateKeyPair("ES256K");
+        const publicKeyJwk = await exportJWK(keyPair.publicKey);
+        const privateKeyJwk = await exportJWK(keyPair.privateKey);
+        const privateKeyHexEncryption = randomPrivateKeySecp256k1();
 
-      expect(siopSessionsResponse.body).toStrictEqual({
-        detail: `All verifiable credentials must be signed by issuers in the allowlist: ${onboardingAllowlist.join(
-          ", ",
-        )}`,
-        status: 400,
-        title: "Invalid Verifiable Presentation",
-        type: "about:blank",
-      });
-      expect(siopSessionsResponse.status).toBe(400);
-    });
+        const publicKeyEncryption = new EbsiWallet(
+          privateKeyHexEncryption,
+        ).getPublicKey({ format: "jwk" }) as JsonWebKey;
+
+        const verifiableCredentialJwt = await createVerifiableAuthorisationJwt(
+          did,
+          authorisationCredentialSchema,
+          trustedIssuer.privateKey, // not signed by onboarding api, but by a different Trusted Issuer
+          trustedIssuer.did,
+          ebsiEnvConfig,
+          uriType,
+        );
+
+        // 2. The client creates a verifiable presentation using the verifiable credential
+        const siopAgent = new SiopAgent({
+          privateKey: await importJWK(
+            encode.privateKey.fromHexToJWK(privateKeyHexEncryption),
+            "ES256K",
+          ),
+          alg: "ES256K",
+          kid: `${did}#keys-1`,
+          siopV2: true,
+        });
+
+        const vp = await createVpJwt(
+          did,
+          publicKeyJwk,
+          privateKeyJwk,
+          verifiableCredentialJwt,
+          audience,
+          ebsiEnvConfig,
+          "ES256K",
+        );
+
+        const nonce = randomUUID();
+
+        const authenticationResponse = await siopAgent.createResponse({
+          nonce,
+          redirectUri: "/siop-sessions",
+          responseMode: "form_post",
+          claims: {
+            encryption_key: { ...publicKeyEncryption } as JWK,
+          },
+          _vp_token: {
+            presentation_submission: {
+              // The presentation_submission object MUST contain an id property.
+              // The value of this property MUST be a unique identifier, such as a UUID.
+              id: randomUUID(),
+              // The presentation_submission object MUST contain a definition_id property.
+              // The value of this property MUST be the id value of a valid Presentation Definition.
+              definition_id: randomUUID(),
+              // The presentation_submission object MUST include a descriptor_map property.
+              // The value of this property MUST be an array of Input Descriptor Mapping Objects, composed as follows:
+              descriptor_map: [
+                {
+                  // The descriptor_map object MUST include an id property.
+                  // The value of this property MUST be a string that matches the id property of the Input Descriptor in the Presentation Definition that this Presentation Submission is related to.
+                  id: randomUUID(),
+                  // The descriptor_map object MUST include a format property.
+                  // The value of this property MUST be a string that matches one of the Claim Format Designation. This denotes the data format of the Claim.
+                  format: "jwt_vp",
+                  // The descriptor_map object MUST include a path property.
+                  // The value of this property MUST be a JSONPath string expression. The path property indicates the Claim submitted in relation to the identified Input Descriptor, when executed against the top-level of the object the Presentation Submission is embedded within.
+                  path: "$",
+                  // The object MAY include a path_nested object to indicate the presence of a multi-Claim envelope format.
+                  // This means the Claim indicated is to be decoded separately from its parent enclosure.
+                  path_nested: {
+                    id: "onboarding-input-id",
+                    format: "jwt_vc",
+                    path: "$.vp.verifiableCredential[0]",
+                  },
+                },
+              ],
+            },
+          },
+        });
+
+        const { idToken } = authenticationResponse;
+
+        // 3. The client calls /siop-sessions with the ID Token
+        const siopSessionsResponse = await request(server)
+          .post("/siop-sessions")
+          .set("Content-Type", "application/x-www-form-urlencoded")
+          .send({ id_token: idToken, vp_token: vp });
+
+        expect(siopSessionsResponse.body).toStrictEqual({
+          detail: `All verifiable credentials must be signed by issuers in the allowlist: ${onboardingAllowlist.join(
+            ", ",
+          )}`,
+          status: 400,
+          title: "Invalid Verifiable Presentation",
+          type: "about:blank",
+        });
+        expect(siopSessionsResponse.status).toBe(400);
+      },
+    );
   });
 });

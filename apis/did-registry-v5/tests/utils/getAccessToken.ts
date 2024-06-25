@@ -1,8 +1,11 @@
 import { randomUUID } from "node:crypto";
 import type { JsonWebKey } from "node:crypto";
 import { URLSearchParams } from "node:url";
-import { createVerifiablePresentationJwt } from "@cef-ebsi/verifiable-presentation";
-import type { EbsiIssuer } from "@cef-ebsi/verifiable-presentation";
+import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+import {
+  createVerifiablePresentationJwt,
+  type EbsiIssuer,
+} from "@cef-ebsi/verifiable-presentation";
 import axios from "axios";
 import {
   importJWK,
@@ -84,7 +87,7 @@ export async function getDidrInviteAccessToken(
 export async function getDidrWriteAccessToken(
   authorisationApiUrl: string,
   issuer: EbsiIssuer,
-  trustedHostnames?: string[],
+  ebsiEnvConfig: EbsiEnvConfiguration,
 ) {
   const nonce = randomUUID();
   const vpPayload = {
@@ -99,10 +102,9 @@ export async function getDidrWriteAccessToken(
     issuer,
     authorisationApiUrl,
     {
-      ebsiAuthority: "example.net",
+      ...ebsiEnvConfig,
       skipValidation: true,
       nonce,
-      ...(trustedHostnames && { trustedHostnames }),
       // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
       exp: Math.floor(Date.now() / 1000) + 100,
       nbf: Math.floor(Date.now() / 1000) - 100,

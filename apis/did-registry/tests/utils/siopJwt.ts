@@ -2,6 +2,7 @@ import { URLSearchParams } from "node:url";
 import { randomUUID } from "node:crypto";
 import axios, { type AxiosResponse } from "axios";
 import { ConfigService } from "@nestjs/config";
+import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
 import {
   Agent as SiopAgent,
   AkeResponse,
@@ -119,10 +120,12 @@ export const requestNewUserSiopJwt = async ({
   clientKid,
   clientPrivateKey,
   configService,
+  uriType,
 }: {
   clientKid: string;
   clientPrivateKey: string;
   configService: ConfigService<ApiConfig, true>;
+  uriType: "URL" | "EBSI URI";
 }): Promise<string> => {
   let authorisationApiUrl = configService.get<string>("authorisationApiUrl");
   const authorisationCredentialSchema = configService.get<string>(
@@ -157,12 +160,27 @@ export const requestNewUserSiopJwt = async ({
     );
   }
 
+  const trustedHostnames = configService.get("trustedHostnames", {
+    infer: true,
+  });
+  const ebsiEnvConfig = {
+    network: process.env.NETWORK,
+    hosts: [ebsiAuthority, ...trustedHostnames],
+    services: {
+      "did-registry": "v4",
+      "trusted-issuers-registry": "v3",
+      "trusted-policies-registry": "v2",
+      "trusted-schemas-registry": "v2",
+    },
+  } satisfies EbsiEnvConfiguration;
+
   const verifiableCredential = await createVerifiableAuthorisation(
     clientKid.split("#")[0]!,
     authorisationCredentialSchema,
     usersOnboardingApiPrivateKey,
     usersOnboardingApiDid,
-    ebsiAuthority,
+    ebsiEnvConfig,
+    uriType,
   );
 
   const nonce = randomUUID();
@@ -172,7 +190,7 @@ export const requestNewUserSiopJwt = async ({
     clientKid,
     clientPrivateKey,
     audience: "",
-    ebsiAuthority,
+    ebsiEnvConfig,
   });
 
   const alg = "ES256K";

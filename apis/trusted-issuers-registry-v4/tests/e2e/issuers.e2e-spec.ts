@@ -17,7 +17,11 @@ import elliptic from "elliptic";
 import { bytes } from "multiformats";
 import { base64url } from "multiformats/bases/base64";
 import { createVerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential";
-import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
+import type {
+  EbsiEnvConfiguration,
+  EbsiIssuer,
+} from "@cef-ebsi/verifiable-credential";
+import { fromUrl } from "@cef-ebsi/ebsi-uri";
 import type {
   StatusList2021Credential,
   PaginatedList,
@@ -110,14 +114,16 @@ describe("TIR API v4 - Issuers (e2e)", () => {
   let testVerifiableAttestationSchemaId: string;
   let testStatusListSchemaId: string;
   let trustedSchemasRegistryApiUrl: string;
-  let trustedHostnames: string[];
   const randomDid = EbsiWallet.createDid();
 
   async function createStatusList2021CredentialJwt(
     issuer: EbsiIssuer,
     issuerProxy: IssuerProxyResponseObject,
-    ebsiAuthority: string,
+    ebsiEnvConfig: EbsiEnvConfiguration,
+    uriType: "URL" | "EBSI URI",
   ) {
+    const verifiableAttestationSchemaUrl = `${trustedSchemasRegistryApiUrl}/schemas/${testVerifiableAttestationSchemaId}`;
+    const statusListSchemaUrl = `${trustedSchemasRegistryApiUrl}/schemas/${testStatusListSchemaId}`;
     const newIssuer1StatusList2021Credential: StatusList2021Credential = {
       "@context": [
         "https://www.w3.org/2018/credentials/v1",
@@ -144,11 +150,17 @@ describe("TIR API v4 - Issuers (e2e)", () => {
       },
       credentialSchema: [
         {
-          id: `${trustedSchemasRegistryApiUrl}/schemas/${testVerifiableAttestationSchemaId}`,
+          id:
+            uriType === "URL"
+              ? verifiableAttestationSchemaUrl
+              : fromUrl(verifiableAttestationSchemaUrl),
           type: "FullJsonSchemaValidator2021",
         },
         {
-          id: `${trustedSchemasRegistryApiUrl}/schemas/${testStatusListSchemaId}`,
+          id:
+            uriType === "URL"
+              ? statusListSchemaUrl
+              : fromUrl(statusListSchemaUrl),
           type: "FullJsonSchemaValidator2021",
         },
       ],
@@ -158,9 +170,8 @@ describe("TIR API v4 - Issuers (e2e)", () => {
         newIssuer1StatusList2021Credential,
         issuer,
         {
-          ebsiAuthority,
+          ...ebsiEnvConfig,
           skipValidation: true,
-          trustedHostnames,
         },
       );
 
@@ -193,8 +204,6 @@ describe("TIR API v4 - Issuers (e2e)", () => {
     await app.getHttpAdapter().getInstance().ready();
 
     server = getServer(app, configService);
-
-    trustedHostnames = configService.get<string[]>("trustedHostnames");
 
     // Get last 2 issuers DID
     let issuersResponse: SupertestIssuersResponse =
@@ -844,34 +853,50 @@ describe("TIR API v4 - Issuers (e2e)", () => {
         mockServer.close();
       });
 
-      it("should return a StatusList2021Credential JWT", async () => {
-        expect.assertions(2);
+      it.each(["URL", "EBSI URI"] as const)(
+        "should return a StatusList2021Credential JWT (using %s as resource locator)",
+        async (uriType) => {
+          expect.assertions(2);
 
-        // Mock issuer's endpoint response
-        const authority = configService
-          .get<string>("domain")
-          .replace(/^https?:\/\//, "");
+          // Mock issuer's endpoint response
+          const authority = configService
+            .get<string>("domain")
+            .replace(/^https?:\/\//, "");
 
-        const statusList2021CredentialJwt =
-          await createStatusList2021CredentialJwt(
-            testIssuerWithProxy,
-            proxy,
-            authority,
+          const trustedHostnames =
+            configService.get<string[]>("trustedHostnames");
+
+          const statusList2021CredentialJwt =
+            await createStatusList2021CredentialJwt(
+              testIssuerWithProxy,
+              proxy,
+              {
+                network: configService.get("network", { infer: true }),
+                hosts: [authority, ...trustedHostnames],
+                services: {
+                  "did-registry": "v4",
+                  "trusted-issuers-registry": "v4",
+                  "trusted-policies-registry": "v2",
+                  "trusted-schemas-registry": "v2",
+                },
+              },
+              uriType,
+            );
+
+          mockServer.use(
+            http.get(`${proxy.prefix}${path}`, () =>
+              HttpResponse.json(statusList2021CredentialJwt),
+            ),
           );
 
-        mockServer.use(
-          http.get(`${proxy.prefix}${path}`, () =>
-            HttpResponse.json(statusList2021CredentialJwt),
-          ),
-        );
+          const response: SupertestStringResponse = await request(server).get(
+            `/issuers/${testIssuerWithProxyDid}/proxies/${testIssuerWithProxyFirstProxyId}${path}`,
+          );
 
-        const response: SupertestStringResponse = await request(server).get(
-          `/issuers/${testIssuerWithProxyDid}/proxies/${testIssuerWithProxyFirstProxyId}${path}`,
-        );
-
-        expect(response.text).toStrictEqual(statusList2021CredentialJwt);
-        expect(response.status).toBe(200);
-      });
+          expect(response.text).toStrictEqual(statusList2021CredentialJwt);
+          expect(response.status).toBe(200);
+        },
+      );
 
       it("should return an error 500 when the Trusted Issuer's endpoint respond with a 500", async () => {
         expect.assertions(2);

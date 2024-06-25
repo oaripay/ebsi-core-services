@@ -1,3 +1,5 @@
+import type { Network } from "@cef-ebsi/ebsi-uri";
+
 // Provide typings for process.env
 declare global {
   namespace NodeJS {
@@ -11,6 +13,7 @@ declare global {
       DOMAIN: string;
       DOCKER_TAG?: string;
       LOCAL_ORIGIN?: string;
+      NETWORK: Network;
       REQUEST_TIMEOUT?: string;
       AXIOS_RETRY_DELAY?: string;
       TRUSTED_HOSTNAMES?: string;

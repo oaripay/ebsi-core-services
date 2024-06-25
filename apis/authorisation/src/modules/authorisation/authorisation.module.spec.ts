@@ -28,6 +28,7 @@ import { createJWT, ES256KSigner } from "did-jwt";
 import type { DIDDocument } from "did-resolver";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import * as vcLib from "@cef-ebsi/verifiable-credential";
+import { fromUrl } from "@cef-ebsi/ebsi-uri";
 import type { EbsiVerifiableAttestation } from "@cef-ebsi/verifiable-credential";
 import { AuthorisationModule } from "./authorisation.module.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
@@ -790,185 +791,196 @@ describe("Authorisation Module", () => {
         expect(response.status).toBe(200);
       });
 
-      it(`should create a siop session for a user that uses alg ${alg} and presents a VP JWT`, async () => {
-        expect.assertions(2);
-        const nonce = randomUUID();
+      it.each(["EBSI URI", "URL"] as const)(
+        `should create a siop session for a user that uses alg ${alg} and presents a VP JWT`,
+        async (uriType) => {
+          expect.assertions(2);
+          const nonce = randomUUID();
 
-        const client = await createTestClient();
-        const clientPrivateKeys = client.keys;
-        const keyObject = await getKeyByAlg(clientPrivateKeys, alg);
+          const client = await createTestClient();
+          const clientPrivateKeys = client.keys;
+          const keyObject = await getKeyByAlg(clientPrivateKeys, alg);
 
-        const onboardingAllowlist = configService.get<string[]>(
-          "onboardingAllowlist",
-        );
-        const allowedIssuer = onboardingAllowlist[0]!;
+          const onboardingAllowlist = configService.get<string[]>(
+            "onboardingAllowlist",
+          );
+          const allowedIssuer = onboardingAllowlist[0]!;
 
-        const mockedCredential = {
-          "@context": ["https://www.w3.org/2018/credentials/v1"],
-          id: "urn:did:123456",
-          type: [
-            "VerifiableCredential",
-            "VerifiableAttestation",
-            "VerifiableId",
-          ],
-          issuer: allowedIssuer,
-          issuanceDate: "2021-11-01T00:00:00Z",
-          validFrom: "2021-11-01T00:00:00Z",
-          credentialSubject: {
-            id: client.did,
-          },
-          credentialSchema: {
-            id: "https://api-test.ebsi.eu/trusted-schemas-registry/v2/schemas/0x312e332e362e312e342e312e3234342e332e3137302e332e332e312e3734",
-            type: "FullJsonSchemaValidator2021",
-          },
-          expirationDate: "2031-11-30T00:00:00Z",
-        };
-        const vcJwt = await createJWT(
-          {
-            sub: client.did,
-            vc: mockedCredential,
-          },
-          {
+          const mockedCredential = {
+            "@context": ["https://www.w3.org/2018/credentials/v1"],
+            id: "urn:did:123456",
+            type: [
+              "VerifiableCredential",
+              "VerifiableAttestation",
+              "VerifiableId",
+            ],
             issuer: allowedIssuer,
-            signer: ES256KSigner(
-              Buffer.from(
-                EbsiWallet.generateKeyPair({ format: "hex" }).privateKey,
-                "hex",
+            issuanceDate: "2021-11-01T00:00:00Z",
+            validFrom: "2021-11-01T00:00:00Z",
+            credentialSubject: {
+              id: client.did,
+            },
+            credentialSchema: {
+              id:
+                uriType === "EBSI URI"
+                  ? fromUrl(
+                      "https://api-test.ebsi.eu/trusted-schemas-registry/v2/schemas/0x312e332e362e312e342e312e3234342e332e3137302e332e332e312e3734",
+                    )
+                  : "https://api-test.ebsi.eu/trusted-schemas-registry/v2/schemas/0x312e332e362e312e342e312e3234342e332e3137302e332e332e312e3734",
+              type: "FullJsonSchemaValidator2021",
+            },
+            expirationDate: "2031-11-30T00:00:00Z",
+          };
+          const vcJwt = await createJWT(
+            {
+              sub: client.did,
+              vc: mockedCredential,
+            },
+            {
+              issuer: allowedIssuer,
+              signer: ES256KSigner(
+                Buffer.from(
+                  EbsiWallet.generateKeyPair({ format: "hex" }).privateKey,
+                  "hex",
+                ),
               ),
-            ),
-          },
-        );
+            },
+          );
 
-        const mockedPresentation = {
-          id: "urn:did:123456",
-          "@context": ["https://www.w3.org/2018/credentials/v1"],
-          type: ["VerifiablePresentation"],
-          holder: client.did,
-          verifiableCredential: [vcJwt],
-        };
-        const vpJwt = await createJWT(
-          {
+          const mockedPresentation = {
+            id: "urn:did:123456",
+            "@context": ["https://www.w3.org/2018/credentials/v1"],
+            type: ["VerifiablePresentation"],
+            holder: client.did,
+            verifiableCredential: [vcJwt],
+          };
+          const vpJwt = await createJWT(
+            {
+              sub: client.did,
+              vp: mockedPresentation,
+            },
+            {
+              issuer: client.did,
+              signer: ES256KSigner(
+                Buffer.from(
+                  client.privateKeyHexES256K.replace(/^0x/, ""),
+                  "hex",
+                ),
+              ),
+            },
+          );
+
+          const payload = {
             sub: client.did,
-            vp: mockedPresentation,
-          },
-          {
-            issuer: client.did,
-            signer: ES256KSigner(
-              Buffer.from(client.privateKeyHexES256K.replace(/^0x/, ""), "hex"),
-            ),
-          },
-        );
-
-        const payload = {
-          sub: client.did,
-          sub_jwk: {},
-          sub_did_verification_method_uri: keyObject.id,
-          nonce,
-          claims: {
-            encryption_key: keyObject.publicKeyEncryptionJwk,
-          },
-          _vp_token: {
-            presentation_submission: {
-              // The presentation_submission object MUST contain an id property.
-              // The value of this property MUST be a unique identifier, such as a UUID.
-              id: randomUUID(),
-              // The presentation_submission object MUST contain a definition_id property.
-              // The value of this property MUST be the id value of a valid Presentation Definition.
-              definition_id: randomUUID(),
-              // The presentation_submission object MUST include a descriptor_map property.
-              // The value of this property MUST be an array of Input Descriptor Mapping Objects, composed as follows:
-              descriptor_map: [
-                {
-                  // The descriptor_map object MUST include an id property.
-                  // The value of this property MUST be a string that matches the id property of the Input Descriptor in the Presentation Definition that this Presentation Submission is related to.
-                  id: randomUUID(),
-                  // The descriptor_map object MUST include a format property.
-                  // The value of this property MUST be a string that matches one of the Claim Format Designation. This denotes the data format of the Claim.
-                  format: "jwt_vp",
-                  // The descriptor_map object MUST include a path property.
-                  // The value of this property MUST be a JSONPath string expression. The path property indicates the Claim submitted in relation to the identified Input Descriptor, when executed against the top-level of the object the Presentation Submission is embedded within.
-                  path: "$",
-                  // The object MAY include a path_nested object to indicate the presence of a multi-Claim envelope format.
-                  // This means the Claim indicated is to be decoded separately from its parent enclosure.
-                  path_nested: {
-                    id: "onboarding-input-id",
-                    format: "jwt_vc",
-                    path: "$.vp.verifiableCredential[0]",
+            sub_jwk: {},
+            sub_did_verification_method_uri: keyObject.id,
+            nonce,
+            claims: {
+              encryption_key: keyObject.publicKeyEncryptionJwk,
+            },
+            _vp_token: {
+              presentation_submission: {
+                // The presentation_submission object MUST contain an id property.
+                // The value of this property MUST be a unique identifier, such as a UUID.
+                id: randomUUID(),
+                // The presentation_submission object MUST contain a definition_id property.
+                // The value of this property MUST be the id value of a valid Presentation Definition.
+                definition_id: randomUUID(),
+                // The presentation_submission object MUST include a descriptor_map property.
+                // The value of this property MUST be an array of Input Descriptor Mapping Objects, composed as follows:
+                descriptor_map: [
+                  {
+                    // The descriptor_map object MUST include an id property.
+                    // The value of this property MUST be a string that matches the id property of the Input Descriptor in the Presentation Definition that this Presentation Submission is related to.
+                    id: randomUUID(),
+                    // The descriptor_map object MUST include a format property.
+                    // The value of this property MUST be a string that matches one of the Claim Format Designation. This denotes the data format of the Claim.
+                    format: "jwt_vp",
+                    // The descriptor_map object MUST include a path property.
+                    // The value of this property MUST be a JSONPath string expression. The path property indicates the Claim submitted in relation to the identified Input Descriptor, when executed against the top-level of the object the Presentation Submission is embedded within.
+                    path: "$",
+                    // The object MAY include a path_nested object to indicate the presence of a multi-Claim envelope format.
+                    // This means the Claim indicated is to be decoded separately from its parent enclosure.
+                    path_nested: {
+                      id: "onboarding-input-id",
+                      format: "jwt_vc",
+                      path: "$.vp.verifiableCredential[0]",
+                    },
                   },
-                },
-              ],
-            },
-          },
-        };
-
-        const idToken = await createAuthenticationResponseJose({
-          alg,
-          keyId: keyObject.id,
-          nonce,
-          redirectUri: "redirect_uri",
-          privateKeyJwk: keyObject.privateKeyJwk,
-          publicKeyEncryptionJwk: keyObject.publicKeyEncryptionJwk!,
-          payload,
-        });
-
-        // Fake verifyJWT result
-        vi.spyOn(didJwt, "verifyJWT").mockImplementation(async () =>
-          Promise.resolve({
-            payload,
-            verified: true,
-            didResolutionResult: {
-              didDocument: {
-                id: client.did,
+                ],
               },
-              didDocumentMetadata: {},
-              didResolutionMetadata: {},
             },
-            issuer: "",
-            signer: {
-              publicKeyJwk: { ...keyObject.publicKeyJwk, kty: "" },
-              id: "",
-              type: "",
-              controller: "",
-            },
-            jwt: "",
-          } as Awaited<ReturnType<typeof didJwt.verifyJWT>>),
-        );
+          };
 
-        vi.spyOn(axios, "get").mockImplementation(
-          async (): Promise<AxiosResponse<DIDDocument>> =>
+          const idToken = await createAuthenticationResponseJose({
+            alg,
+            keyId: keyObject.id,
+            nonce,
+            redirectUri: "redirect_uri",
+            privateKeyJwk: keyObject.privateKeyJwk,
+            publicKeyEncryptionJwk: keyObject.publicKeyEncryptionJwk!,
+            payload,
+          });
+
+          // Fake verifyJWT result
+          vi.spyOn(didJwt, "verifyJWT").mockImplementation(async () =>
             Promise.resolve({
-              data: client.didDocument,
-            } as AxiosResponse<DIDDocument>),
-        );
+              payload,
+              verified: true,
+              didResolutionResult: {
+                didDocument: {
+                  id: client.did,
+                },
+                didDocumentMetadata: {},
+                didResolutionMetadata: {},
+              },
+              issuer: "",
+              signer: {
+                publicKeyJwk: { ...keyObject.publicKeyJwk, kty: "" },
+                id: "",
+                type: "",
+                controller: "",
+              },
+              jwt: "",
+            } as Awaited<ReturnType<typeof didJwt.verifyJWT>>),
+          );
 
-        vi.spyOn(vcLib, "verifyCredentialJwt").mockImplementation(async () =>
-          Promise.resolve(mockedCredential as EbsiVerifiableAttestation),
-        );
+          vi.spyOn(axios, "get").mockImplementation(
+            async (): Promise<AxiosResponse<DIDDocument>> =>
+              Promise.resolve({
+                data: client.didDocument,
+              } as AxiosResponse<DIDDocument>),
+          );
 
-        const response = await request(server)
-          .post("/siop-sessions")
-          .set("Content-Type", "application/x-www-form-urlencoded")
-          .send({ id_token: idToken, vp_token: vpJwt });
+          vi.spyOn(vcLib, "verifyCredentialJwt").mockImplementation(async () =>
+            Promise.resolve(mockedCredential as EbsiVerifiableAttestation),
+          );
 
-        expect(response.body).toStrictEqual({
-          ake1_enc_payload: expect.any(String),
-          ake1_jws_detached: expect.stringContaining(".."), // payload removed from the JWT
-          ake1_sig_payload: expect.objectContaining({
+          const response = await request(server)
+            .post("/siop-sessions")
+            .set("Content-Type", "application/x-www-form-urlencoded")
+            .send({ id_token: idToken, vp_token: vpJwt });
+
+          expect(response.body).toStrictEqual({
             ake1_enc_payload: expect.any(String),
-            ake1_nonce: nonce,
-            did: client.did,
-            iat: expect.any(Number),
-            exp: expect.any(Number),
-            iss: configService.get<string>("apiName"),
-          }),
-          kid: expect.stringContaining(
-            `/trusted-apps-registry/v3/apps/${configService.get<string>(
-              "apiName",
-            )}`,
-          ),
-        });
-        expect(response.status).toBe(200);
-      });
+            ake1_jws_detached: expect.stringContaining(".."), // payload removed from the JWT
+            ake1_sig_payload: expect.objectContaining({
+              ake1_enc_payload: expect.any(String),
+              ake1_nonce: nonce,
+              did: client.did,
+              iat: expect.any(Number),
+              exp: expect.any(Number),
+              iss: configService.get<string>("apiName"),
+            }),
+            kid: expect.stringContaining(
+              `/trusted-apps-registry/v3/apps/${configService.get<string>(
+                "apiName",
+              )}`,
+            ),
+          });
+          expect(response.status).toBe(200);
+        },
+      );
 
       it(`should throw bad request error when creating a siop session for a user that uses alg ${alg} and provides an invalid vp_token (not a JWT)`, async () => {
         expect.assertions(2);

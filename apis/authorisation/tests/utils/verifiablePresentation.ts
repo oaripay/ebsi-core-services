@@ -12,10 +12,8 @@ export async function createVpJwt(
   holderPrivateKeyJwk: JWK,
   vc: string,
   audience: string,
-  ebsiAuthority: string,
   ebsiEnvConfig: EbsiEnvConfiguration,
   alg: "ES256" | "ES256K" | "EdDSA" = "ES256K",
-  trustedHostnames?: string[],
 ): Promise<string> {
   const presentation: EbsiVerifiablePresentation = {
     "@context": ["https://www.w3.org/2018/credentials/v1"],
@@ -39,10 +37,8 @@ export async function createVpJwt(
     holder,
     audience,
     {
-      ebsiAuthority,
-      ebsiEnvConfig,
+      ...ebsiEnvConfig,
       skipValidation: true,
-      ...(trustedHostnames && { trustedHostnames }),
     },
   );
 
