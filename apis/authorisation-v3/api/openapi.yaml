@@ -273,7 +273,7 @@ paths:
                     type: object
                     properties:
                       jwt_vp:
-                        title: JWC VP
+                        title: JWT VP
                         type: object
                         properties:
                           alg_values_supported:
@@ -286,7 +286,7 @@ paths:
                               enum:
                                 - ES256
                       jwt_vc:
-                        title: JWC VC
+                        title: JWT VC
                         type: object
                         properties:
                           alg_values_supported:

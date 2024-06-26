@@ -22,6 +22,10 @@ import {
   TNT_CREATE_PRESENTATION_DEFINITION,
   TNT_WRITE_SCOPE,
   TNT_WRITE_PRESENTATION_DEFINITION,
+  TPR_WRITE_SCOPE,
+  TPR_WRITE_PRESENTATION_DEFINITION,
+  TSR_WRITE_SCOPE,
+  TSR_WRITE_PRESENTATION_DEFINITION,
 } from "../../src/modules/authorisation/authorisation.constants.js";
 
 export function createDidDocument(
@@ -180,6 +184,18 @@ export function createPresentationSubmission(
     case TNT_WRITE_SCOPE: {
       testPresentationSubmission.definition_id =
         TNT_WRITE_PRESENTATION_DEFINITION.id;
+
+      break;
+    }
+    case TPR_WRITE_SCOPE: {
+      testPresentationSubmission.definition_id =
+        TPR_WRITE_PRESENTATION_DEFINITION.id;
+
+      break;
+    }
+    case TSR_WRITE_SCOPE: {
+      testPresentationSubmission.definition_id =
+        TSR_WRITE_PRESENTATION_DEFINITION.id;
 
       break;
     }

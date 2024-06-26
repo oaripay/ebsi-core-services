@@ -143,6 +143,8 @@ paths:
                       - tnt_authorise
                       - tnt_create
                       - tnt_write
+                      - tpr_write
+                      - tsr_write
                   response_types_supported:
                     title: Supported Response Types
                     description: |
@@ -277,7 +279,7 @@ paths:
                     type: object
                     properties:
                       jwt_vp:
-                        title: JWC VP
+                        title: JWT VP
                         type: object
                         properties:
                           alg_values_supported:
@@ -290,7 +292,7 @@ paths:
                               enum:
                                 - ES256
                       jwt_vp_json:
-                        title: JWC VP
+                        title: JWT VP
                         type: object
                         properties:
                           alg_values_supported:
@@ -303,7 +305,7 @@ paths:
                               enum:
                                 - ES256
                       jwt_vc:
-                        title: JWC VC
+                        title: JWT VC
                         type: object
                         properties:
                           alg_values_supported:
@@ -317,7 +319,7 @@ paths:
                               enum:
                                 - ES256
                       jwt_vc_json:
-                        title: JWC VC
+                        title: JWT VC
                         type: object
                         properties:
                           alg_values_supported:
@@ -398,6 +400,8 @@ paths:
                       - tnt_authorise
                       - tnt_create
                       - tnt_write
+                      - tpr_write
+                      - tsr_write
                     token_endpoint: https://api-test.ebsi.eu/authorisation/v4/token
                     subject_types_supported:
                       - public
@@ -497,6 +501,8 @@ paths:
               - openid tnt_authorise
               - openid tnt_create
               - openid tnt_write
+              - openid tpr_write
+              - openid tsr_write
           examples:
             didr_write:
               summary: Write to DID Registry
@@ -522,6 +528,12 @@ paths:
             tnt_write:
               summary: Allow to create events in a Document, grant access or remove documents.
               value: openid tnt_write
+            tpr_write:
+              summary: Write to Trusted Policies Registry Contract
+              value: openid tpr_write
+            tsr_write:
+              summary: Write to Trusted Schemas Registry Contract
+              value: openid tsr_write
       responses:
         "200":
           description: Success
@@ -719,6 +731,36 @@ paths:
                           - ES256
                           - ES256K
                     input_descriptors: []
+                tpr_write:
+                  summary: TPR write
+                  value:
+                    id: tpr_write_presentation
+                    name: Any type of Verifiable Attestation
+                    purpose: >-
+                      Please present an empty Presentation signed by a registered Legal Entity.
+                    format:
+                      jwt_vp:
+                        alg:
+                          - ES256
+                      jwt_vp_json:
+                        alg:
+                          - ES256
+                    input_descriptors: []
+                tsr_write:
+                  summary: TSR write
+                  value:
+                    id: tsr_write_presentation
+                    name: Any type of Verifiable Attestation
+                    purpose: >-
+                      Please present an empty Presentation signed by a registered Legal Entity.
+                    format:
+                      jwt_vp:
+                        alg:
+                          - ES256
+                      jwt_vp_json:
+                        alg:
+                          - ES256
+                    input_descriptors: []
         "400":
           description: Bad Request
           content:
@@ -730,7 +772,7 @@ paths:
                   value:
                     title: Bad Request
                     status: 400
-                    detail: '["scope must be a combination of ''openid'' and one of the supported scopes (''didr_invite'', ''didr_write'', ''tir_invite'', ''tir_write'', ''timestamp_write'', ''tnt_authorise'', ''tnt_create'', ''tnt_write'')"]'
+                    detail: '["scope must be a combination of ''openid'' and one of the supported scopes (''didr_invite'', ''didr_write'', ''tir_invite'', ''tir_write'', ''timestamp_write'', ''tnt_authorise'', ''tnt_create'', ''tnt_write'', ''tpr_write'', ''tsr_write'')"]'
                     type: "about:blank"
         "500":
           description: Internal Server Error
@@ -806,6 +848,8 @@ paths:
                     - openid tnt_authorise
                     - openid tnt_create
                     - openid tnt_write
+                    - openid tpr_write
+                    - openid tsr_write
       responses:
         "200":
           description: Success
@@ -1014,6 +1058,8 @@ components:
             - openid tnt_authorise
             - openid tnt_create
             - openid tnt_write
+            - openid tpr_write
+            - openid tsr_write
         id_token:
           description: ID Token value associated with the authenticated session. Presents client's identity. ID Token is issued in a JWS format. See also the "ID Token" schema definition.
           example: eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJpYXQiOjE2NDE1NTI2MDAsInN1YiI6Imh0dHA6Ly9sb2NhbGhvc3Q6MzAwMCIsImF1ZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6MzAwMCIsImlzcyI6ImRpZDplYnNpOnoyMVNxTUo1M2ZZUzY5VlpSWVRVRURhZyJ9.YIdjUCinbG2DRU0VhFTOPcHK9D0iLcx6zBPmF94phfVOx8IVZwOLMfnEp_9xx87-UNODVCLWNR2UdjUgQyv14A
