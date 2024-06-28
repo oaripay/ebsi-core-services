@@ -8,9 +8,8 @@ import {
   it,
   expect,
 } from "vitest";
-import axios from "axios";
 import request from "supertest";
-import crypto from "node:crypto";
+import { randomBytes } from "node:crypto";
 import { Test, type TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -20,10 +19,15 @@ import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { createJWT, ES256KSigner } from "did-jwt";
+import {
+  SignJWT,
+  calculateJwkThumbprint,
+  exportJWK,
+  generateKeyPair,
+  type GenerateKeyPairResult,
+} from "jose";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
-import type { JWTVerifyResult } from "jose";
 import { TrustedSchemasRegistry } from "@ebsiint-sc/trusted-schemas-registry-v3";
 import { computeId } from "@ebsiint-api/shared";
 import { JsonRpcModule } from "./jsonrpc.module.js";
@@ -53,28 +57,6 @@ type JsonRpcParams =
   | InsertSchemaSchema
   | UpdateSchemaSchema
   | UpdateMetadataSchema;
-
-let tokenVerificationResolve = true;
-let customPayload = {
-  sub: "test",
-} as unknown;
-
-vi.mock("@cef-ebsi/siop-auth", async () => {
-  const mod = await vi.importActual<typeof import("@cef-ebsi/siop-auth")>(
-    "@cef-ebsi/siop-auth",
-  );
-
-  return {
-    ...mod,
-    verifyJwtTar: vi.fn().mockImplementation(async () => {
-      if (!tokenVerificationResolve)
-        return Promise.reject(new Error("error message"));
-      return Promise.resolve({
-        payload: customPayload,
-      } as JWTVerifyResult);
-    }),
-  };
-});
 
 describe("JsonRpc Module", () => {
   let app: NestFastifyApplication;
@@ -132,6 +114,9 @@ describe("JsonRpc Module", () => {
 
   const mockServer = setupServer();
 
+  let authApiKeyPair: GenerateKeyPairResult;
+  let authApiKid: string;
+
   beforeAll(async () => {
     // Intercept network requests
     mockServer.listen({
@@ -187,39 +172,44 @@ describe("JsonRpc Module", () => {
     jsonRpcService = moduleFixture.get<JsonRpcService>(JsonRpcService);
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
-    // Generate JWTs
-    userAccessTokenPayload = { sub: adminDid };
-    userAccessToken = await createJWT(userAccessTokenPayload, {
-      issuer: "any",
-      signer: ES256KSigner(crypto.randomBytes(32)),
-    });
+    // Generate key pair for Authorisation API v3 and create access token
+    authApiKeyPair = await generateKeyPair("ES256");
+    const publicKeyJwk = await exportJWK(authApiKeyPair.publicKey);
+    authApiKid = await calculateJwkThumbprint(publicKeyJwk);
+
+    userAccessTokenPayload = {
+      sub: adminDid,
+      scp: "openid tsr_write",
+    };
+    userAccessToken = await new SignJWT(userAccessTokenPayload)
+      .setProtectedHeader({
+        typ: "JWT",
+        alg: "ES256",
+        kid: authApiKid,
+      })
+      .sign(authApiKeyPair.privateKey);
 
     defaultSignerSiopAccessTokenPayload = {
       sub: testEnv.user.did,
+      scp: "openid tsr_write",
     };
-    defaultSignerSiopAccessToken = await createJWT(
+
+    defaultSignerSiopAccessToken = await new SignJWT(
       defaultSignerSiopAccessTokenPayload,
-      {
-        issuer: "any",
-        signer: ES256KSigner(crypto.randomBytes(32)),
-      },
-    );
+    )
+      .setProtectedHeader({
+        typ: "JWT",
+        alg: "ES256",
+        kid: authApiKid,
+      })
+      .sign(authApiKeyPair.privateKey);
   });
 
-  beforeEach(() => {
+  beforeEach(async () => {
     // Mock TSR contract
     vi.spyOn(ledgerService, "getContract").mockImplementation(async () =>
       Promise.resolve(testEnv.schemasRegistryContract),
     );
-
-    // Make sure we never use axios.post or axios.get in tests ;-)
-    vi.spyOn(axios, "post").mockImplementation((url: string) => {
-      throw new Error(`Forgot to mock an axios call? POST ${url}`);
-    });
-
-    vi.spyOn(axios, "get").mockImplementation((url: string) => {
-      throw new Error(`Forgot to mock an axios call? GET ${url}`);
-    });
 
     // For the tests, we assume that the DID is controlled by the signer
     vi.spyOn(jsonRpcService, "isDidControlledByAddress").mockImplementation(
@@ -229,6 +219,25 @@ describe("JsonRpc Module", () => {
     // Mock $ref response
     mockServer.use(
       http.get(referencedSchemaUrl, () => HttpResponse.json(rawSchema)),
+    );
+
+    // Mock Auth API
+    const publicKeyJwk = await exportJWK(authApiKeyPair.publicKey);
+    const authorisationApiUrl = configService.get<string>(
+      "authorisationApiUrl",
+    );
+
+    mockServer.use(
+      // Mock Auth API /.well-known/openid-configuration endpoint
+      http.get(`${authorisationApiUrl}/.well-known/openid-configuration`, () =>
+        HttpResponse.json({ jwks_uri: `${authorisationApiUrl}/jwks` }),
+      ),
+      // Mock Auth API /jwks endpoint
+      http.get(`${authorisationApiUrl}/jwks`, () =>
+        HttpResponse.json({
+          keys: [{ ...publicKeyJwk, kid: authApiKid }],
+        }),
+      ),
     );
   });
 
@@ -260,19 +269,74 @@ describe("JsonRpc Module", () => {
     ).toStrictEqual(expect.stringContaining("application/problem+json"));
   });
 
-  it("should reject a POST with an invalid user token", async () => {
+  it("should reject a POST with an invalid token", async () => {
     expect.assertions(3);
-
-    // Mock reject JWT
-    tokenVerificationResolve = false;
 
     const response = await request(server)
       .post("/jsonrpc")
-      .auth(userAccessToken, { type: "bearer" })
+      .auth("very.bad.token.123.abc", { type: "bearer" })
       .send();
 
     expect(response.body).toStrictEqual({
-      detail: "Invalid JWT: error message",
+      detail:
+        "Invalid Authorisation Token: Only JWTs using Compact JWS serialization can be decoded",
+      status: 401,
+      title: "Unauthorized",
+      type: "about:blank",
+    });
+    expect(response.status).toBe(401);
+    expect(
+      (response.headers as { "content-type": string })["content-type"],
+    ).toStrictEqual(expect.stringContaining("application/problem+json"));
+  });
+
+  it("should reject a POST with an invalid access token", async () => {
+    expect.assertions(6);
+
+    const signer = await generateKeyPair("ES256");
+    const kid = await calculateJwkThumbprint(await exportJWK(signer.publicKey));
+    const accessTokenWithInvalidKid = await new SignJWT(userAccessTokenPayload)
+      .setProtectedHeader({
+        typ: "JWT",
+        alg: "ES256",
+        kid,
+      })
+      .sign(signer.privateKey);
+
+    let response = await request(server)
+      .post("/jsonrpc")
+      .auth(accessTokenWithInvalidKid, { type: "bearer" })
+      .send();
+
+    expect(response.body).toStrictEqual({
+      detail:
+        "Invalid Access Token. Couldn't find a public key related to the given kid.",
+      status: 401,
+      title: "Unauthorized",
+      type: "about:blank",
+    });
+    expect(response.status).toBe(401);
+    expect(
+      (response.headers as { "content-type": string })["content-type"],
+    ).toStrictEqual(expect.stringContaining("application/problem+json"));
+
+    const accessTokenWithInvalidSignature = await new SignJWT(
+      userAccessTokenPayload,
+    )
+      .setProtectedHeader({
+        typ: "JWT",
+        alg: "ES256",
+        kid: authApiKid,
+      })
+      .sign(signer.privateKey);
+
+    response = await request(server)
+      .post("/jsonrpc")
+      .auth(accessTokenWithInvalidSignature, { type: "bearer" })
+      .send();
+
+    expect(response.body).toStrictEqual({
+      detail: "Access Token signature validation failed",
       status: 401,
       title: "Unauthorized",
       type: "about:blank",
@@ -285,10 +349,6 @@ describe("JsonRpc Module", () => {
 
   it("should throw Bad Request for a bad JSON-RPC call", async () => {
     expect.assertions(2);
-
-    // Mock access token verification
-    tokenVerificationResolve = true;
-    customPayload = userAccessTokenPayload;
 
     const response = await request(server)
       .post("/jsonrpc")
@@ -309,10 +369,6 @@ describe("JsonRpc Module", () => {
   it("should throw an error when sendSignedTransaction is used with a wrong chainId", async () => {
     expect.assertions(2);
     const wallet = ethers.Wallet.createRandom();
-
-    // Mock access token verification
-    tokenVerificationResolve = true;
-    customPayload = userAccessTokenPayload;
 
     const transaction = {
       from: wallet.address,
@@ -371,10 +427,6 @@ describe("JsonRpc Module", () => {
   it("should throw an Invalid Request error for bad method", async () => {
     expect.assertions(2);
 
-    // Mock access token verification
-    tokenVerificationResolve = true;
-    customPayload = userAccessTokenPayload;
-
     const response = await request(server)
       .post("/jsonrpc")
       .auth(userAccessToken, { type: "bearer" })
@@ -409,10 +461,6 @@ describe("JsonRpc Module", () => {
       schema: `0x${serializedSchemaBuffer.toString("hex")}`,
       metadata: `0x${serializedMetadataBuffer.toString("hex")}`,
     } satisfies InsertSchemaSchema;
-
-    // Mock access token verification
-    tokenVerificationResolve = true;
-    customPayload = defaultSignerSiopAccessTokenPayload;
 
     // The DID is not controlled by the signer
     vi.spyOn(jsonRpcService, "isDidControlledByAddress").mockImplementation(
@@ -496,10 +544,6 @@ describe("JsonRpc Module", () => {
       ),
     );
 
-    // Mock access token verification
-    tokenVerificationResolve = true;
-    customPayload = defaultSignerSiopAccessTokenPayload;
-
     const signer = ethers.Wallet.createRandom();
 
     const param: JsonRpcParams = {
@@ -540,10 +584,6 @@ describe("JsonRpc Module", () => {
 
       it("should return a valid unsigned transaction that we can sign and send to sendSignedTransaction", async () => {
         expect.assertions(4);
-
-        // Mock access token verification
-        tokenVerificationResolve = true;
-        customPayload = defaultSignerSiopAccessTokenPayload;
 
         let param: JsonRpcParams | null = null;
 
@@ -647,10 +687,6 @@ describe("JsonRpc Module", () => {
       it("should accept a request without id", async () => {
         expect.assertions(2);
 
-        // Mock access token verification
-        tokenVerificationResolve = true;
-        customPayload = defaultSignerSiopAccessTokenPayload;
-
         const signer = ethers.Wallet.createRandom();
 
         let param: JsonRpcParams | null = null;
@@ -707,10 +743,6 @@ describe("JsonRpc Module", () => {
 
       it(`should throw an Invalid Request error for bad use of ${method}`, async () => {
         expect.assertions(6);
-
-        // Mock access token verification
-        tokenVerificationResolve = true;
-        customPayload = defaultSignerSiopAccessTokenPayload;
 
         const signer = ethers.Wallet.createRandom();
 
@@ -776,9 +808,7 @@ describe("JsonRpc Module", () => {
             });
 
             // `schemaId` param doesn't match the computed schema ID
-            const randomSchemaId = `0x${crypto
-              .randomBytes(32)
-              .toString("hex")}`;
+            const randomSchemaId = `0x${randomBytes(32).toString("hex")}`;
             testSetup.push({
               params: {
                 from: signer.address,
@@ -942,10 +972,6 @@ describe("JsonRpc Module", () => {
 
       it("should throw an error when the unsignedTransaction has been tampered", async () => {
         expect.assertions(6);
-
-        // Mock access token verification
-        tokenVerificationResolve = true;
-        customPayload = defaultSignerSiopAccessTokenPayload;
 
         const signer = ethers.Wallet.createRandom();
 

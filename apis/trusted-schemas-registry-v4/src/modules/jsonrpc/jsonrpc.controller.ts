@@ -5,27 +5,48 @@ import {
 } from "@ebsiint-api/shared";
 import { JsonRpcService } from "./jsonrpc.service.js";
 import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
-import { SiopJwtAuthGuard } from "../auth/guards/index.js";
-import { Client, type ClientInfo } from "../auth/decorators/index.js";
 import { jsonRpcSchema } from "./validators/JsonRpcSchema.js";
+import { BearerJwtAuthGuard } from "../auth/guards/index.js";
+import { Subject, type SubjectInfo } from "../auth/decorators/index.js";
+import { TSR_WRITE_SCOPE } from "../auth/auth.constants.js";
 
 function formatJsonRpcResponse(
   result: unknown,
-  id: string | number | null | undefined,
+  id: string | number | null,
 ): JsonRpcResponseObject {
   return { jsonrpc: "2.0", id: id ?? null, result };
 }
 
-@UseGuards(SiopJwtAuthGuard)
+function assertScopeContains(
+  scope: string,
+  validScopes: string | string[],
+  methodName: string,
+  id: number | string | null | undefined,
+) {
+  const expectedScopes = Array.isArray(validScopes)
+    ? validScopes
+    : [validScopes];
+
+  if (!expectedScopes.some((scp) => scope.includes(scp))) {
+    throw new InvalidRequestJsonRpcError(
+      `'${methodName}' requires an access token with the scope '${expectedScopes.join(
+        "' or '",
+      )}'`,
+      id,
+    );
+  }
+}
+
 @Controller("/jsonrpc")
 export class JsonRpcController {
   constructor(private jsonRpcService: JsonRpcService) {}
 
   @HttpCode(200)
+  @UseGuards(BearerJwtAuthGuard)
   @Post()
   async jsonRPC(
     @Body() unsafeBody: unknown,
-    @Client() client: ClientInfo,
+    @Subject() subject: SubjectInfo,
   ): Promise<JsonRpcResponseObject> {
     if (!unsafeBody || typeof unsafeBody !== "object") {
       throw new InvalidRequestJsonRpcError(
@@ -46,6 +67,9 @@ export class JsonRpcController {
     const body = parsedBody.data;
     const { method, id: requestId } = body;
     const id = requestId ?? null;
+    const { scp: scope, sub } = subject;
+
+    assertScopeContains(scope, [TSR_WRITE_SCOPE], "method", id);
 
     switch (method) {
       case "insertSchema": {
@@ -72,11 +96,7 @@ export class JsonRpcController {
       case "sendSignedTransaction":
       case "signedTransaction": {
         // Note: "signedTransaction" is deprecated and will be replaced by "sendSignedTransaction" in the next major version
-        const result = await this.jsonRpcService.sendTransaction(
-          client.did,
-          body,
-          id,
-        );
+        const result = await this.jsonRpcService.sendTransaction(sub, body, id);
         return formatJsonRpcResponse(result, id);
       }
       default:

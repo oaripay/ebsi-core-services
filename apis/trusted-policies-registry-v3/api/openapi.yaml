@@ -283,7 +283,8 @@ paths:
           #### insertPolicy
 
           Call to build an unsigned transaction to insert a policy in the registry.
-          This method requires OPERATOR ROLE in the Trusted Policies Registry.
+          This method requires an access token with "tpr_write" scope and the OPERATOR role in the
+          Trusted Policies Registry.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -293,7 +294,8 @@ paths:
           #### updatePolicy
 
           Call to build an unsigned transaction to update a policy.
-          This method requires OPERATOR ROLE in the Trusted Policies Registry.
+          This method requires an access token with "tpr_write" scope and the OPERATOR role in the
+          Trusted Policies Registry.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -305,8 +307,9 @@ paths:
 
           #### deactivatePolicy
 
-          Call to build an unsigned transaction to deactivate a policy in the registry. This method
-          requires OPERATOR ROLE in the Trusted Policies Registry.
+          Call to build an unsigned transaction to deactivate a policy in the registry.
+          This method requires an access token with "tpr_write" scope and the OPERATOR role in the
+          Trusted Policies Registry.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -317,8 +320,9 @@ paths:
 
           #### activatePolicy
 
-          Call to build an unsigned transaction to activate a policy in the registry. This method
-          requires OPERATOR ROLE in the Trusted Policies Registry.
+          Call to build an unsigned transaction to activate a policy in the registry.
+          This method requires an access token with "tpr_write" scope and the OPERATOR role in the
+          Trusted Policies Registry.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -329,8 +333,9 @@ paths:
 
           #### insertUserAttributes
 
-          Call to build an unsigned transaction to insert user attributes in the registry. This
-          method requires OPERATOR ROLE in the Trusted Policies Registry.
+          Call to build an unsigned transaction to insert user attributes in the registry.
+          This method requires an access token with "tpr_write" scope and the OPERATOR role in the
+          Trusted Policies Registry.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -339,8 +344,9 @@ paths:
 
           #### deleteUserAttribute
 
-          Call to build an unsigned transaction to delete an user attribute in the registry. This
-          method requires OPERATOR ROLE in the Trusted Policies Registry.
+          Call to build an unsigned transaction to delete an user attribute in the registry.
+          This method requires an access token with "tpr_write" scope and the OPERATOR role in the
+          Trusted Policies Registry.
 
           Parameters:
           - **from**: Ethereum address of the signer

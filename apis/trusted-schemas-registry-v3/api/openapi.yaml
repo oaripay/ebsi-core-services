@@ -648,7 +648,9 @@ paths:
 
           #### insertSchema
 
-          Call to build an unsigned transaction to insert a new schema. This method requires having right attributes assigned in Trusted Policies Registry.
+          Call to build an unsigned transaction to insert a new schema.
+          This method requires an access token with "tsr_write" scope and having the required
+          attributes assigned in Trusted Policies Registry.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -658,7 +660,9 @@ paths:
 
           #### updateSchema
 
-          Call to build an unsigned transaction to update an schema. This method requires having right attributes assigned in Trusted Policies Registry.
+          Call to build an unsigned transaction to update an schema.
+          This method requires an access token with "tsr_write" scope and having the required
+          attributes assigned in Trusted Policies Registry.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -668,7 +672,9 @@ paths:
 
           #### updateMetadata
 
-          Call to build an unsigned transaction to update the metadata of a schema revision. This method requires having right attributes assigned in Trusted Policies Registry.
+          Call to build an unsigned transaction to update the metadata of a schema revision.
+          This method requires an access token with "tsr_write" scope and having the required
+          attributes assigned in Trusted Policies Registry.
 
           Parameters:
           - **from**: Ethereum address of the signer

@@ -2,23 +2,23 @@ import { ExecutionContext, Injectable } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import type { Observable } from "rxjs";
 import { UnauthorizedError } from "@ebsiint-api/shared";
-import { ClientInfo } from "../auth.interface.js";
+import { SubjectInfo } from "../auth.interface.js";
 
 @Injectable()
-export class SiopJwtAuthGuard extends AuthGuard("siop-jwt") {
+export class BearerJwtAuthGuard extends AuthGuard("bearer-jwt") {
   override canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     return super.canActivate(context);
   }
 
-  override handleRequest<TUser = ClientInfo>(
+  override handleRequest<TUser = SubjectInfo>(
     err: Error,
-    clientInfo: TUser,
+    subjectInfo: TUser,
     info: unknown,
   ): TUser {
     // You can throw an exception based on either "info" or "err" arguments
-    if (err || info || !clientInfo) {
+    if (err || info || !subjectInfo) {
       throw (
         err ||
         new UnauthorizedError(UnauthorizedError.defaultTitle, {
@@ -27,8 +27,8 @@ export class SiopJwtAuthGuard extends AuthGuard("siop-jwt") {
       );
     }
 
-    return clientInfo;
+    return subjectInfo;
   }
 }
 
-export default SiopJwtAuthGuard;
+export default BearerJwtAuthGuard;

@@ -15,6 +15,7 @@ import {
   prefixWith0x,
   waitToBeMined,
 } from "@ebsiint-api/shared";
+import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
 import type { ApiConfig } from "../../src/config/configuration.js";
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
@@ -34,9 +35,10 @@ import {
   DeleteUserAttributeSchema,
 } from "../../src/modules/jsonrpc/validators/index.js";
 import { createPolicy } from "../utils/data.js";
-import { requestSiopJwt } from "../utils/siopJwt.js";
 import { describeWriteOps, writeOps } from "../utils/writeOps.js";
 import { getServer } from "../utils/getServer.js";
+import { getTprWriteAccessToken } from "../utils/getAccessToken.js";
+import { getEbsiIssuer } from "../utils/getEbsiIssuer.js";
 
 interface SupertestPoliciesResponse {
   status: number;
@@ -107,23 +109,59 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
     server = getServer(app, configService);
 
     if (writeOps()) {
-      adminTestWallet = new ethers.Wallet(
-        prefixWith0x(configService.get("testAdminPrivateKey")),
+      const trustedHostnames = configService.get<string[]>("trustedHostnames");
+      const ebsiAuthority = configService
+        .get<string>("domain")
+        .replace(/^https?:\/\//, "");
+      const ebsiEnvConfig = {
+        network: configService.get("network", { infer: true }),
+        hosts: [ebsiAuthority, ...trustedHostnames],
+        services: {
+          "did-registry": "v5",
+          "trusted-issuers-registry": "v5",
+          "trusted-policies-registry": "v3",
+          "trusted-schemas-registry": "v3",
+        },
+      } satisfies EbsiEnvConfiguration;
+
+      const adminPrivateKeyHex = configService.get<string>(
+        "testAdminPrivateKey",
+      );
+      adminTestWallet = new ethers.Wallet(prefixWith0x(adminPrivateKeyHex));
+      const adminKid = configService.get<string>("testAdminKid");
+      const adminDid = adminKid.split("#")[0]!;
+      const adminIssuerInfo = await getEbsiIssuer(
+        adminPrivateKeyHex,
+        adminDid,
+        adminKid,
       );
 
-      // Generate a valid Client JWT (SIOP) for the tests
-      try {
-        testUserAccessToken = await requestSiopJwt({
-          clientKid: configService.get<string>("testUserKid"),
-          clientPrivateKey: configService.get<string>("testUserPrivateKey"),
-          configService,
-        });
+      const testUserPrivateKeyHex =
+        configService.get<string>("testUserPrivateKey");
+      const testUserKid = configService.get<string>("testUserKid");
+      const testUserDid = testUserKid.split("#")[0]!;
+      const testUserIssuerInfo = await getEbsiIssuer(
+        testUserPrivateKeyHex,
+        testUserDid,
+        testUserKid,
+      );
 
-        testAdminAccessToken = await requestSiopJwt({
-          clientKid: configService.get<string>("testAdminKid"),
-          clientPrivateKey: configService.get<string>("testAdminPrivateKey"),
-          configService,
-        });
+      const authorisationApiUrl = configService.get<string>(
+        "authorisationApiUrl",
+      );
+
+      try {
+        testUserAccessToken = await getTprWriteAccessToken(
+          authorisationApiUrl,
+          testUserIssuerInfo,
+          ebsiEnvConfig,
+        );
+
+        testAdminAccessToken = await getTprWriteAccessToken(
+          authorisationApiUrl,
+          adminIssuerInfo,
+          ebsiEnvConfig,
+        );
       } catch (e) {
         // eslint-disable-next-line no-console
         console.error(e);
@@ -184,31 +222,17 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
       ).toStrictEqual(expect.stringContaining("application/problem+json"));
     });
 
-    it("should reject a POST with an invalid user token", async () => {
+    it("should reject a POST with an invalid access token", async () => {
       expect.assertions(3);
-
-      const invalidAccessToken =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
 
       const response = await request(server)
         .post("/jsonrpc")
-        .auth(invalidAccessToken, { type: "bearer" })
+        .auth("very.bad.token.123.abc", { type: "bearer" })
         .send();
 
-      let trustedAppsRegistryApiUrl = configService.get<string>(
-        "trustedAppsRegistryApiUrl",
-      );
-
-      // Use TEST_LB_DOMAIN if defined
-      if (configService.get<string>("testLoadBalancerDomain")) {
-        trustedAppsRegistryApiUrl = trustedAppsRegistryApiUrl.replace(
-          configService.get<string>("domain"),
-          configService.get<string>("testLoadBalancerDomain"),
-        );
-      }
-
       expect(response.body).toStrictEqual({
-        detail: `Invalid JWT: JWT with invalid kid. It should be hosted at ${trustedAppsRegistryApiUrl}/apps`,
+        detail:
+          "Invalid Authorisation Token: Only JWTs using Compact JWS serialization can be decoded",
         status: 401,
         title: "Unauthorized",
         type: "about:blank",

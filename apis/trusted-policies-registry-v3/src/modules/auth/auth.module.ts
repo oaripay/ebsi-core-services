@@ -1,12 +1,13 @@
-import { Module } from "@nestjs/common";
+import { Module, Logger } from "@nestjs/common";
+import { CacheModule } from "@nestjs/cache-manager";
 import { PassportModule } from "@nestjs/passport";
 import { ApiConfigModule } from "../../config/configuration.js";
 import { AuthService } from "./auth.service.js";
-import { SiopJwtStrategy } from "./strategies/index.js";
+import { BearerJwtStrategy } from "./strategies/index.js";
 
 @Module({
-  imports: [ApiConfigModule, PassportModule],
-  providers: [AuthService, SiopJwtStrategy],
+  imports: [ApiConfigModule, CacheModule.register(), PassportModule],
+  providers: [Logger, AuthService, BearerJwtStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}

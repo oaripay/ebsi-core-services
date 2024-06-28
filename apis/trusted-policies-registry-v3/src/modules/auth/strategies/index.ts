@@ -1,1 +1,1 @@
-export * from "./siop-jwt.strategy.js";
+export * from "./bearer-jwt.strategy.js";

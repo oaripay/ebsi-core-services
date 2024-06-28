@@ -1,5 +1,6 @@
 import { ConfigModule } from "@nestjs/config";
 import Joi from "joi";
+import { NETWORKS, type Network } from "@cef-ebsi/ebsi-uri";
 
 // List here all the values that will be returned by the config factory
 export interface ApiConfig {
@@ -9,6 +10,8 @@ export interface ApiConfig {
   apiName: string;
   domain: string;
   localOrigin: string;
+  network: Network;
+  trustedHostnames: string[];
   logLevel: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
   requestTimeout: number;
   axiosRetryDelay: number;
@@ -61,6 +64,10 @@ export const loadConfig = (): ApiConfig => {
     apiUrlPrefix: process.env.API_URL_PREFIX || "/trusted-schemas-registry/v3",
     domain: DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
+    network: process.env.NETWORK,
+    trustedHostnames: (process.env.TRUSTED_HOSTNAMES || "")
+      .split(",")
+      .filter(Boolean),
     logLevel: process.env.LOG_LEVEL || "warn",
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     axiosRetryDelay: parseInt(process.env.AXIOS_RETRY_DELAY || "10000", 10),
@@ -115,6 +122,10 @@ export const ApiConfigModule = ConfigModule.forRoot({
     DOCKER_TAG: Joi.string(),
     DOMAIN: Joi.string().uri().required(),
     LOCAL_ORIGIN: Joi.string().uri(),
+    NETWORK: Joi.string()
+      .valid(...NETWORKS)
+      .required(),
+    TRUSTED_HOSTNAMES: Joi.string(),
     REQUEST_TIMEOUT: Joi.string(),
     AXIOS_RETRY_DELAY: Joi.string(),
     // Ledger & SC

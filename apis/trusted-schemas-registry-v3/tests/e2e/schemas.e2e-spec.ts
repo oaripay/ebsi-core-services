@@ -13,12 +13,12 @@ import type { RawServerDefault } from "fastify";
 import type { TransactionRequest } from "@ethersproject/abstract-provider";
 import type { JSONSchema } from "@apidevtools/json-schema-ref-parser/dist/lib/types";
 import { prefixWith0x, computeId, waitToBeMined } from "@ebsiint-api/shared";
+import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
 import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
 import type { ApiConfig } from "../../src/config/configuration.js";
-import { requestSiopJwt } from "../utils/siopJwt.js";
 import { createVerifiableAuthorisationSchema } from "../utils/data.js";
 import { hexToMultibaseBase58Btc } from "../../src/modules/schemas/schemas.utils.js";
 import { describeWriteOps, writeOps } from "../utils/writeOps.js";
@@ -27,6 +27,8 @@ import type { InsertSchemaSchema } from "../../src/modules/jsonrpc/validators/Re
 import type { UpdateSchemaSchema } from "../../src/modules/jsonrpc/validators/RequestUpdateSchemaSchema.js";
 import type { UpdateMetadataSchema } from "../../src/modules/jsonrpc/validators/RequestUpdateMetadataSchema.js";
 import type { UnsignedTransaction } from "../../src/modules/jsonrpc/validators/RequestSendSignedTransactionSchema.js";
+import { getTsrWriteAccessToken } from "../utils/getAccessToken.js";
+import { getEbsiIssuer } from "../utils/getEbsiIssuer.js";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -100,13 +102,46 @@ describe("TSR API v3 - Schemas (e2e)", () => {
     server = getServer(app, configService);
 
     if (writeOps()) {
+      const trustedHostnames = configService.get<string[]>("trustedHostnames");
+      const ebsiAuthority = configService
+        .get<string>("domain")
+        .replace(/^https?:\/\//, "");
+      const ebsiEnvConfig = {
+        network: configService.get("network", { infer: true }),
+        hosts: [ebsiAuthority, ...trustedHostnames],
+        services: {
+          "did-registry": "v5",
+          "trusted-issuers-registry": "v5",
+          "trusted-policies-registry": "v3",
+          "trusted-schemas-registry": "v3",
+        },
+      } satisfies EbsiEnvConfiguration;
+
+      const testUserPrivateKeyHex = configService.get<string>(
+        "testAdminPrivateKey",
+      );
+      const testUserKid = configService.get<string>("testAdminKid");
+      const testUserDid = testUserKid.split("#")[0]!;
+      const testUserIssuerInfo = await getEbsiIssuer(
+        testUserPrivateKeyHex,
+        testUserDid,
+        testUserKid,
+      );
+
       adminTestWallet = new ethers.Wallet(
         prefixWith0x(configService.get("testAdminPrivateKey")),
       );
 
+      const authorisationApiUrl = configService.get<string>(
+        "authorisationApiUrl",
+      );
+
       try {
-        // Generate a valid Client JWT (SIOP) for the tests
-        testUserAccessToken = await requestSiopJwt(configService);
+        testUserAccessToken = await getTsrWriteAccessToken(
+          authorisationApiUrl,
+          testUserIssuerInfo,
+          ebsiEnvConfig,
+        );
       } catch (e) {
         // eslint-disable-next-line no-console
         console.error(e);
