@@ -53,12 +53,6 @@ pipeline {
                         yarn nx test:ci @ebsiint-api/authorisation-api-v2
                     '''
                 }
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    withSonarQubeEnv('LocalSonar'){
-                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=authorisation-api-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=authorisation-api-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/authorisation"
-                    }
-                    waitForQualityGate abortPipeline: true
-                }
                 script{
                     sh 'rm ${WORKSPACE}/apis/authorisation/.scannerwork/report-task.txt'
                 }
@@ -75,12 +69,6 @@ pipeline {
                         nvm use > /dev/null 2>&1
                         yarn nx test:ci @ebsiint-api/authorisation-api-v3
                     '''
-                }
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    withSonarQubeEnv('LocalSonar'){
-                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=authorisation-api-v3-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=authorisation-api-v3-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/authorisation-v3"
-                    }
-                    waitForQualityGate abortPipeline: true
                 }
                 script {
                     sh 'rm ${WORKSPACE}/apis/authorisation-v3/.scannerwork/report-task.txt'
@@ -99,12 +87,6 @@ pipeline {
                         yarn nx test:ci @ebsiint-api/authorisation-api-v4
                     '''
                 }
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    withSonarQubeEnv('LocalSonar'){
-                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=authorisation-api-v4-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=authorisation-api-v4-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/authorisation-v4"
-                    }
-                    waitForQualityGate abortPipeline: true
-                }
                 script {
                     sh 'rm ${WORKSPACE}/apis/authorisation-v4/.scannerwork/report-task.txt'
                 }
@@ -121,12 +103,6 @@ pipeline {
                         nvm use > /dev/null 2>&1
                         yarn nx test:ci @ebsiint-api/did-registry-api-v3
                     '''
-                }
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    withSonarQubeEnv('LocalSonar'){
-                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=did-registry-api-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=did-registry-api-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/did-registry"
-                    }
-                    waitForQualityGate abortPipeline: true
                 }
                 script {
                     sh 'rm ${WORKSPACE}/apis/did-registry/.scannerwork/report-task.txt'
@@ -145,12 +121,6 @@ pipeline {
                         yarn nx test:ci @ebsiint-api/did-registry-api-v4
                     '''
                 }
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    withSonarQubeEnv('LocalSonar'){
-                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=did-registry-api-v4 -Dsonar.projectVersion=1.0 -Dsonar.projectKey=did-registry-api-v4 -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/did-registry-v4"
-                    }
-                    waitForQualityGate abortPipeline: true
-                }
                 script {
                     sh 'rm ${WORKSPACE}/apis/did-registry-v4/.scannerwork/report-task.txt'
                 }
@@ -167,12 +137,6 @@ pipeline {
                         nvm use > /dev/null 2>&1
                         yarn nx test:ci @ebsiint-api/did-registry-api-v5
                     '''
-                }
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    withSonarQubeEnv('LocalSonar'){
-                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=did-registry-api-v5 -Dsonar.projectVersion=1.0 -Dsonar.projectKey=did-registry-api-v5 -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/did-registry-v5"
-                    }
-                    waitForQualityGate abortPipeline: true
                 }
                 script {
                     sh 'rm ${WORKSPACE}/apis/did-registry-v5/.scannerwork/report-task.txt'
@@ -191,12 +155,6 @@ pipeline {
                         yarn nx test:ci @ebsiint-api/did-registry-api-v6
                     '''
                 }
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    withSonarQubeEnv('LocalSonar'){
-                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=did-registry-api-v6 -Dsonar.projectVersion=1.0 -Dsonar.projectKey=did-registry-api-v6 -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/did-registry-v6"
-                    }
-                    waitForQualityGate abortPipeline: true
-                }
                 script {
                     sh 'rm ${WORKSPACE}/apis/did-registry-v6/.scannerwork/report-task.txt'
                 }
@@ -213,12 +171,6 @@ pipeline {
                         nvm use > /dev/null 2>&1
                         yarn nx test:ci @ebsiint-api/ledger-api-v3
                     '''
-                }
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    withSonarQubeEnv('LocalSonar'){
-                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=ledger-api-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=ledger-api-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/ledger"
-                    }
-                    waitForQualityGate abortPipeline: true
                 }
                 script {
                     sh 'rm ${WORKSPACE}/apis/ledger/.scannerwork/report-task.txt'
@@ -237,12 +189,6 @@ pipeline {
                         yarn nx test:ci @ebsiint-api/timestamp-api-v3
                     '''
                 }
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    withSonarQubeEnv('LocalSonar'){
-                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=timestamp-api-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=timestamp-api-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/timestamp"
-                    }
-                    waitForQualityGate abortPipeline: true
-                }
                 script {
                     sh 'rm ${WORKSPACE}/apis/timestamp/.scannerwork/report-task.txt'
                 }
@@ -259,12 +205,6 @@ pipeline {
                         nvm use > /dev/null 2>&1
                         yarn nx test:ci @ebsiint-api/timestamp-api-v4
                     '''
-                }
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    withSonarQubeEnv('LocalSonar'){
-                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=timestamp-api-v4-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=timestamp-api-v4-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/timestamp-v4"
-                    }
-                    waitForQualityGate abortPipeline: true
                 }
                 script {
                     sh 'rm ${WORKSPACE}/apis/timestamp-v4/.scannerwork/report-task.txt'
@@ -283,12 +223,6 @@ pipeline {
                         yarn nx test:ci @ebsiint-api/track-and-trace-api-v1
                     '''
                 }
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    withSonarQubeEnv('LocalSonar'){
-                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=track-and-trace-api-v1-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=track-and-trace-api-v1-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/track-and-trace-api-v1"
-                    }
-                    waitForQualityGate abortPipeline: true
-                }
                 script {
                     sh 'rm ${WORKSPACE}/apis/track-and-trace-api-v1/.scannerwork/report-task.txt'
                 }
@@ -305,12 +239,6 @@ pipeline {
                         nvm use > /dev/null 2>&1
                         yarn nx test:ci @ebsiint-api/trusted-apps-registry-api-v3
                     '''
-                }
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    withSonarQubeEnv('LocalSonar'){
-                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=trusted-apps-registry-api-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=trusted-apps-registry-api-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/trusted-apps-registry"
-                    }
-                    waitForQualityGate abortPipeline: true
                 }
                 script {
                     sh 'rm ${WORKSPACE}/apis/trusted-apps-registry/.scannerwork/report-task.txt'
@@ -329,12 +257,6 @@ pipeline {
                         yarn nx test:ci @ebsiint-api/trusted-apps-registry-api-v4
                     '''
                 }
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    withSonarQubeEnv('LocalSonar'){
-                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=trusted-apps-registry-api-v4-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=trusted-apps-registry-api-v4-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/trusted-apps-registry-v4"
-                    }
-                    waitForQualityGate abortPipeline: true
-                }
                 script {
                     sh 'rm ${WORKSPACE}/apis/trusted-apps-registry-v4/.scannerwork/report-task.txt'
                 }
@@ -351,12 +273,6 @@ pipeline {
                         nvm use > /dev/null 2>&1
                         yarn nx test:ci @ebsiint-api/trusted-issuers-registry-api-v3
                     '''
-                }
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    withSonarQubeEnv('LocalSonar'){
-                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=trusted-issuers-api-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=trusted-issuers-api-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/trusted-issuers-registry"
-                    }
-                    waitForQualityGate abortPipeline: true
                 }
                 script {
                     sh 'rm ${WORKSPACE}/apis/trusted-issuers-registry/.scannerwork/report-task.txt'
@@ -375,12 +291,6 @@ pipeline {
                         yarn nx test:ci @ebsiint-api/trusted-issuers-registry-api-v4
                     '''
                 }
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    withSonarQubeEnv('LocalSonar'){
-                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=trusted-issuers-api-v4-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=trusted-issuers-api-v4-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/trusted-issuers-registry-v4"
-                    }
-                    waitForQualityGate abortPipeline: true
-                }
                 script {
                     sh 'rm ${WORKSPACE}/apis/trusted-issuers-registry-v4/.scannerwork/report-task.txt'
                 }
@@ -397,12 +307,6 @@ pipeline {
                         nvm use > /dev/null 2>&1
                         yarn nx test:ci @ebsiint-api/trusted-issuers-registry-api-v5
                     '''
-                }
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    withSonarQubeEnv('LocalSonar'){
-                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=trusted-issuers-api-v5-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=trusted-issuers-api-v5-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/trusted-issuers-registry-v5"
-                    }
-                    waitForQualityGate abortPipeline: true
                 }
                 script {
                     sh 'rm ${WORKSPACE}/apis/trusted-issuers-registry-v5/.scannerwork/report-task.txt'
@@ -421,12 +325,6 @@ pipeline {
                         yarn nx test:ci @ebsiint-api/trusted-policies-registry-api-v2
                     '''
                 }
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    withSonarQubeEnv('LocalSonar'){
-                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=trusted-policies-registry-api-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=trusted-policies-registry-api-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/trusted-policies-registry"
-                    }
-                    waitForQualityGate abortPipeline: true
-                }
                 script {
                     sh 'rm ${WORKSPACE}/apis/trusted-policies-registry/.scannerwork/report-task.txt'
                 }
@@ -443,12 +341,6 @@ pipeline {
                         nvm use > /dev/null 2>&1
                         yarn nx test:ci @ebsiint-api/trusted-policies-registry-api-v3
                     '''
-                }
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    withSonarQubeEnv('LocalSonar'){
-                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=trusted-policies-registry-api-v3-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=trusted-policies-registry-api-v3-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/trusted-policies-registry-v3"
-                    }
-                    waitForQualityGate abortPipeline: true
                 }
                 script {
                     sh 'rm ${WORKSPACE}/apis/trusted-policies-registry-v3/.scannerwork/report-task.txt'
@@ -467,12 +359,6 @@ pipeline {
                         yarn nx test:ci @ebsiint-api/trusted-schemas-registry-api-v2
                     '''
                 }
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    withSonarQubeEnv('LocalSonar'){
-                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=trusted-schemas-registry-api-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=trusted-schemas-registry-api-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/trusted-schemas-registry"
-                    }
-                    waitForQualityGate abortPipeline: true
-                }
                 script {
                     sh 'rm ${WORKSPACE}/apis/trusted-schemas-registry/.scannerwork/report-task.txt'
                 }
@@ -489,12 +375,6 @@ pipeline {
                         nvm use > /dev/null 2>&1
                         yarn nx test:ci @ebsiint-api/trusted-schemas-registry-api-v3
                     '''
-                }
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    withSonarQubeEnv('LocalSonar'){
-                        sh "/var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner/bin/sonar-scanner -Dsonar.host.url=https://infra.ebsi.xyz/sonar -Dsonar.projectName=trusted-schemas-registry-api-v3-core-services -Dsonar.projectVersion=1.0 -Dsonar.projectKey=trusted-schemas-registry-api-v3-core-services -Dsonar.sources=. -Dsonar.projectBaseDir=${WORKSPACE}/apis/trusted-schemas-registry-v3"
-                    }
-                    waitForQualityGate abortPipeline: true
                 }
                 script {
                     sh 'rm ${WORKSPACE}/apis/trusted-schemas-registry-v3/.scannerwork/report-task.txt'

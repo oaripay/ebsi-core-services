@@ -5,9 +5,6 @@ export default defineConfig({
   test: {
     include: ["src/**/?(*.|*-)+(spec|test).ts"],
     environment: "node",
-    outputFile: {
-      "vitest-sonar-reporter": "./coverage/test-reporter.xml",
-    },
     coverage: {
       reportsDirectory: "./coverage",
       reporter: ["text", "lcov"],

@@ -7,9 +7,6 @@ export default defineConfig({
     environment: "node",
     pool: "threads",
     fileParallelism: false,
-    outputFile: {
-      "vitest-sonar-reporter": "./coverage/test-reporter.xml",
-    },
     coverage: {
       reportsDirectory: "./coverage",
       reporter: ["text", "lcov"],
