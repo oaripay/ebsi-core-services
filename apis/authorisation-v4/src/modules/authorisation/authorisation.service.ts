@@ -2,14 +2,7 @@ import { JsonWebKey, randomUUID } from "node:crypto";
 import { Injectable, Inject, Logger } from "@nestjs/common";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { ConfigService } from "@nestjs/config";
-import {
-  BadRequestError,
-  logAxiosError,
-  encode,
-  ProblemDetailsError,
-  InternalServerError,
-  type PaginatedList,
-} from "@ebsiint-api/shared";
+import { logAxiosError, type PaginatedList } from "@ebsiint-api/shared";
 import { PEXv2, type Checked } from "@sphereon/pex";
 import type {
   PresentationDefinitionV2,
@@ -22,21 +15,10 @@ import {
   type ProofPurposeTypes,
   type VpJwtPayload,
 } from "@cef-ebsi/verifiable-presentation";
-import { RP as OAuth2RP, verifyJwtTar } from "@cef-ebsi/oauth2-auth";
-import type {
-  AkeResponse as OAuth2AkeResponse,
-  JwtTarVerifyResult,
-} from "@cef-ebsi/oauth2-auth";
-import { RP, verifyJwtDid } from "@cef-ebsi/siop-auth";
-import type {
-  VerifyResponseResult,
-  AkeResponse as SiopAkeResponse,
-} from "@cef-ebsi/siop-auth";
 import { decodeJWT, createJWT, ES256Signer, hexToBytes } from "did-jwt";
 import type { JWTHeader, JWTPayload } from "did-jwt";
 import type { MemoryCache } from "cache-manager";
 import axios, { type AxiosResponse } from "axios";
-import { importJWK } from "jose";
 import type { ApiConfig } from "../../config/configuration.js";
 import type {
   Access,
@@ -44,12 +26,7 @@ import type {
   OPMetadata,
   TokenResponse,
 } from "./authorisation.interfaces.js";
-import {
-  CreateAccessTokenDto,
-  type ClaimRequest,
-  type OAuth2SessionDto,
-  type SiopSessionDto,
-} from "./dto/index.js";
+import { CreateAccessTokenDto } from "./dto/index.js";
 import { fromHexToJWK, parseDto } from "./authorisation.utils.js";
 import {
   SUPPORTED_SCOPES,
@@ -74,37 +51,21 @@ export class AuthorisationService {
 
   private readonly issuer: string;
 
-  private oauth2RP: OAuth2RP;
-
-  private relyingParty?: RP;
-
   private publicKeyJwk?: JsonWebKey;
 
   private readonly ebsiEnvConfig: EbsiVpEnvConfiguration;
 
-  private readonly apiES256KPrivateKey: string;
-
   private readonly apiES256PrivateKey: string;
-
-  private readonly apiName: string;
-
-  private readonly kid: string;
-
-  private readonly siopSessionsUrl: string;
 
   private readonly didRegistry: string;
 
   private readonly trustedIssuersRegistry: string;
 
-  private readonly trustedAppsRegistry: string;
-
   private readonly trackAndTraceAccessesEndpoint: string;
-
-  private readonly authorisationCredentialSchema: string;
 
   private readonly tntAuthorisePresentationDefinition: PresentationDefinitionV2;
 
-  private timeout: number;
+  private readonly requestTimeout: number;
 
   constructor(
     configService: ConfigService<ApiConfig, true>,
@@ -130,36 +91,16 @@ export class AuthorisationService {
     this.trustedIssuersRegistry = configService.get("trustedIssuersRegistry", {
       infer: true,
     });
-    this.trustedAppsRegistry = configService.get("trustedAppsRegistry", {
-      infer: true,
-    });
     this.trackAndTraceAccessesEndpoint = configService.get(
       "trackAndTraceAccessesEndpoint",
       {
         infer: true,
       },
     );
-    this.timeout = configService.get("requestTimeout", { infer: true });
     this.apiES256PrivateKey = configService.get("apiES256PrivateKey", {
       infer: true,
     });
-    this.apiES256KPrivateKey = configService.get("apiPrivateKey", {
-      infer: true,
-    });
-    this.apiName = configService.get("apiName", { infer: true });
-    this.kid = `${this.trustedAppsRegistry}/${this.apiName}`;
-    this.siopSessionsUrl = `${domain}${apiUrlPrefix}/siop-sessions`;
-
-    this.oauth2RP = new OAuth2RP({
-      privateKey: this.apiES256KPrivateKey,
-      name: this.apiName,
-      trustedAppsRegistry: this.trustedAppsRegistry,
-    });
-
-    this.authorisationCredentialSchema = configService.get(
-      "authorisationCredentialSchema",
-      { infer: true },
-    );
+    this.requestTimeout = configService.get("requestTimeout", { infer: true });
 
     // Create custom presentation definition for tnt_authorise scope with allowed issuers
     const tntAuthorisePresentationDefinition = structuredClone(
@@ -174,177 +115,6 @@ export class AuthorisationService {
       tntAuthoriseIssuersAllowlist;
     this.tntAuthorisePresentationDefinition =
       tntAuthorisePresentationDefinition;
-  }
-
-  async getRelyingParty(): Promise<RP> {
-    if (this.relyingParty) {
-      return this.relyingParty;
-    }
-
-    this.relyingParty = new RP({
-      privateKey: await importJWK(
-        encode.privateKey.fromHexToJWK(this.apiES256KPrivateKey),
-        "ES256K",
-      ),
-      alg: "ES256K",
-      name: this.apiName,
-      kid: this.kid,
-      redirectUri: this.siopSessionsUrl,
-      didRegistry: this.didRegistry,
-    });
-
-    return this.relyingParty;
-  }
-
-  async authenticationRequest(): Promise<string> {
-    const claimRequest: ClaimRequest = {
-      verified_claims: {
-        verification: {
-          trust_framework: "EBSI",
-          evidence: {
-            type: {
-              value: "verifiable_credential",
-            },
-            document: {
-              type: {
-                essential: true,
-                value: ["VerifiableCredential", "VerifiableAuthorisation"],
-              },
-              credentialSchema: {
-                id: {
-                  essential: true,
-                  value: this.authorisationCredentialSchema,
-                },
-              },
-            },
-          },
-        },
-      },
-    };
-
-    const res = await (
-      await this.getRelyingParty()
-    ).createRequest({
-      claims: {
-        id_token: { ...claimRequest },
-      },
-    });
-
-    return res;
-  }
-
-  async createOAuth2Session(
-    body: OAuth2SessionDto,
-  ): Promise<OAuth2AkeResponse> {
-    let resVerification: JwtTarVerifyResult;
-
-    try {
-      resVerification = await verifyJwtTar(body.clientAssertion, {
-        trustedAppsRegistry: this.trustedAppsRegistry,
-        timeout: this.timeout,
-      });
-    } catch (e) {
-      if (e instanceof Error) {
-        this.logger.error(e.message, e.stack);
-        throw new BadRequestError("Invalid Client Assertion", {
-          detail: e.message,
-        });
-      }
-
-      throw e;
-    }
-
-    return this.oauth2RP.createAccessToken(body, resVerification);
-  }
-
-  async createSiopSession(body: SiopSessionDto): Promise<SiopAkeResponse> {
-    const { header } = decodeJWT(body.id_token);
-
-    if (body.vp_token) {
-      throw new BadRequestError("Invalid Verifiable Presentation", {
-        detail: "Verifiable Presentations are deprecated for /siop-sessions",
-      });
-    }
-
-    /**
-     * No Verifiable Presentation is presented
-     * The user is authenticated using the DID Registry
-     */
-    let resVerification: VerifyResponseResult;
-
-    const allowedAlgs = ["RS256", "ES256", "ES256K", "EdDSA"];
-
-    if (!allowedAlgs.includes(header.alg)) {
-      throw new BadRequestError("Invalid ID Token", {
-        detail: `Algorithm ${
-          header.alg
-        } not supported. Supported algorithms: ${JSON.stringify(allowedAlgs)}`,
-      });
-    }
-
-    try {
-      resVerification = await RP.verifyResponse(
-        body.id_token,
-        async (idTokenClaims) => {
-          if (!idTokenClaims || !idTokenClaims.encryption_key) {
-            throw new Error("no encryption_key found in the claims");
-          }
-
-          const { didDocument } = await verifyJwtDid(body.id_token, {
-            didRegistry: this.didRegistry,
-            timeout: this.timeout,
-          });
-
-          const did = didDocument?.id ?? "";
-
-          return { ...idTokenClaims, did };
-        },
-      );
-    } catch (error) {
-      if (error instanceof Error) {
-        if (
-          error.message === "Internal Server Error" ||
-          error.message.includes("Error: internalServerError")
-        ) {
-          throw new InternalServerError();
-        }
-
-        if (axios.isAxiosError(error)) {
-          if (typeof error.response?.data !== "object") {
-            throw new BadRequestError("Invalid ID Token", {
-              detail: error.response?.data as string,
-            });
-          }
-
-          const response = error.response.data as {
-            status: number;
-            title: string;
-            type?: string;
-            detail?: string;
-            instance?: string;
-          };
-
-          if (response && response.status && response.title) {
-            throw new ProblemDetailsError(response.status, response.title, {
-              ...(response.type && { type: response.type }),
-              ...(response.detail && { detail: response.detail }),
-              ...(response.instance && { instance: response.instance }),
-            });
-          }
-          throw new BadRequestError("Invalid ID Token", {
-            detail: error.message,
-          });
-        }
-
-        throw new BadRequestError("Invalid ID Token", {
-          detail: error.message,
-        });
-      }
-
-      throw error;
-    }
-
-    return (await this.getRelyingParty()).createAccessToken(resVerification);
   }
 
   /**
@@ -521,6 +291,7 @@ export class AuthorisationService {
         skipHolderDidResolutionValidation: isDidUnresolvable,
         skipSignatureValidation: isDidUnresolvable,
         validateAccreditationWithoutTermsOfUse: true, // The VC must contain terms of use (or be self-accredited)
+        timeout: this.requestTimeout,
         ...(proofPurpose && { proofPurpose }),
       });
     } catch (e) {

@@ -15,7 +15,6 @@ export interface ApiConfig {
   network: Network;
   didRegistry: string;
   trustedIssuersRegistry: string;
-  trustedAppsRegistry: string;
   trustedPoliciesRegistry: string;
   trackAndTraceAccessesEndpoint: string;
   dockerContainerTag: string;
@@ -35,7 +34,6 @@ export interface ApiConfig {
 }
 
 const DIDR_PATH = "/did-registry/v5";
-const TAR_PATH = "/trusted-apps-registry/v4";
 const TIR_PATH = "/trusted-issuers-registry/v5";
 const TPR_PATH = "/trusted-policies-registry/v3";
 const TSR_PATH = "/trusted-schemas-registry/v3";
@@ -43,7 +41,6 @@ const TNT_PATH = "/track-and-trace/v1";
 
 export const DEPENDENCIES = {
   "DIDR API v5": DIDR_PATH,
-  "TAR API v4": TAR_PATH,
   "TIR API v5": TIR_PATH,
   "TPR API v3": TPR_PATH,
   "TSR API v3": TSR_PATH,
@@ -68,14 +65,12 @@ export const loadConfig = (): ApiConfig => {
     network: process.env.NETWORK,
     didRegistry: `${DOMAIN}${DIDR_PATH}/identifiers`,
     trustedIssuersRegistry: `${DOMAIN}${TIR_PATH}/issuers`,
-    trustedAppsRegistry: `${DOMAIN}${TAR_PATH}/apps`,
     trustedPoliciesRegistry: `${DOMAIN}${TPR_PATH}/users`,
     trackAndTraceAccessesEndpoint: `${DOMAIN}${TNT_PATH}/accesses`,
     dockerContainerTag: process.env.DOCKER_TAG || "",
     trustedHostnames: (process.env.TRUSTED_HOSTNAMES || "")
       .split(",")
       .filter(Boolean),
-    authorisationCredentialSchema: `${DOMAIN}${TSR_PATH}/schemas/${process.env.AUTHORISATION_CREDENTIAL_SCHEMA}`,
     tntAuthoriseIssuersAllowlist: (
       process.env.TNT_AUTHORISE_ISSUERS_ALLOWLIST || ""
     )
@@ -83,6 +78,7 @@ export const loadConfig = (): ApiConfig => {
       .filter(Boolean),
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     // Test-specific variables
+    authorisationCredentialSchema: `${DOMAIN}${TSR_PATH}/schemas/${process.env.AUTHORISATION_CREDENTIAL_SCHEMA}`,
     testEnv: process.env.TEST_ENV,
     testIssuerKid: process.env.TEST_ISSUER_KID,
     testIssuerPrivateKey: process.env.TEST_ISSUER_PRIVATE_KEY,

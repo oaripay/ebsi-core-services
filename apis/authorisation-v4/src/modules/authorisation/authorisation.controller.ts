@@ -8,7 +8,6 @@ import {
   Headers,
   Header,
 } from "@nestjs/common";
-import type { AkeResponse } from "@cef-ebsi/oauth2-auth";
 import type { PresentationDefinitionV2 } from "@sphereon/pex-models";
 import { AuthorisationService } from "./authorisation.service.js";
 import type {
@@ -16,39 +15,13 @@ import type {
   OPMetadata,
   TokenResponse,
 } from "./authorisation.interfaces.js";
-import {
-  GetPresentationDefinitionsDto,
-  OAuth2SessionDto,
-  AuthenticationRequestDto,
-  SiopSessionDto,
-} from "./dto/index.js";
+import { GetPresentationDefinitionsDto } from "./dto/index.js";
 import { OAuth2TokenError } from "./errors/index.js";
 import { CUSTOM_SCOPES } from "./authorisation.constants.js";
 
 @Controller("/")
 export class AuthorisationController {
   constructor(private authorisationService: AuthorisationService) {}
-
-  @HttpCode(200)
-  @Post("/authentication-requests")
-  async authenticationRequests(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    @Body() _body: AuthenticationRequestDto,
-  ): Promise<string> {
-    return this.authorisationService.authenticationRequest();
-  }
-
-  @HttpCode(200)
-  @Post("/oauth2-sessions")
-  async oauth2Sessions(@Body() body: OAuth2SessionDto): Promise<AkeResponse> {
-    return this.authorisationService.createOAuth2Session(body);
-  }
-
-  @HttpCode(200)
-  @Post("/siop-sessions")
-  async siopSessions(@Body() body: SiopSessionDto): Promise<AkeResponse> {
-    return this.authorisationService.createSiopSession(body);
-  }
 
   @HttpCode(200)
   @Get("/.well-known/openid-configuration")
