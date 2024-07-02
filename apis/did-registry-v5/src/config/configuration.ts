@@ -18,10 +18,8 @@ export interface ApiConfig {
   ledgerApiUrl: string;
   requestTimeout: number;
   axiosRetryDelay: number;
-  trustedAppsRegistryApiUrl: string;
   trustedHostnames: string[];
-  testAuthApiV3ES256PrivateKey: string;
-  testLoadBalancerDomain: string;
+  testAuthApiV4ES256PrivateKey: string;
   dockerContainerTag: string;
   blockscout: {
     url: string;
@@ -31,12 +29,10 @@ export interface ApiConfig {
 
 const AUTH_API_PATH = "/authorisation/v4";
 const LEDGER_API_PATH = "/ledger/v4";
-const TAR_API_PATH = "/trusted-apps-registry/v4";
 
 export const DEPENDENCIES = {
   "Authorisation API v4": AUTH_API_PATH,
-  "Ledger API v4": LEDGER_API_PATH,
-  "TAR API v4": TAR_API_PATH,
+  "Ledger API v4": LEDGER_API_PATH, // Only used for e2e tests
 } as const;
 
 // Config factory
@@ -60,13 +56,11 @@ export const loadConfig = (): ApiConfig => {
     ledgerApiUrl: DOMAIN + LEDGER_API_PATH,
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     axiosRetryDelay: parseInt(process.env.AXIOS_RETRY_DELAY || "10000", 10),
-    trustedAppsRegistryApiUrl: DOMAIN + TAR_API_PATH,
     trustedHostnames: (process.env.TRUSTED_HOSTNAMES || "")
       .split(",")
       .filter(Boolean),
-    testAuthApiV3ES256PrivateKey:
-      process.env.TEST_AUTH_API_V3_ES256_PRIVATE_KEY || "",
-    testLoadBalancerDomain: process.env.TEST_LB_DOMAIN || "",
+    testAuthApiV4ES256PrivateKey:
+      process.env.TEST_AUTH_API_V4_ES256_PRIVATE_KEY || "",
     dockerContainerTag: process.env.DOCKER_TAG || "",
     blockscout: {
       url: process.env.BLOCKSCOUT_URL || "",
@@ -112,8 +106,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     REQUEST_TIMEOUT: Joi.string(),
     AXIOS_RETRY_DELAY: Joi.string(),
     TRUSTED_HOSTNAMES: Joi.string(),
-    TEST_AUTH_API_V3_ES256_PRIVATE_KEY: Joi.string(),
-    TEST_LB_DOMAIN: Joi.string().uri(),
+    TEST_AUTH_API_V4_ES256_PRIVATE_KEY: Joi.string(),
     TEST_ENV: Joi.string(),
     TEST_ENABLE_WRITE_OPS: Joi.string(),
     BLOCKSCOUT_URL: Joi.string(),

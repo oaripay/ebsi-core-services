@@ -22,8 +22,6 @@ export interface ApiConfig {
   contractAddr: string;
   // Authorisation API
   authorisationApiUrl: string;
-  // Trusted Apps Registry API
-  trustedAppsRegistryApiUrl: string;
   // Test variables
   testAuthApiES256PrivateKey: string;
   testAuthorisedLegalEntityKid: string | undefined;
@@ -36,12 +34,10 @@ export interface ApiConfig {
 
 const AUTH_API_PATH = "/authorisation/v4";
 const LEDGER_API_PATH = "/ledger/v4";
-const TAR_API_PATH = "/trusted-apps-registry/v4";
 
 export const DEPENDENCIES = {
   "Authorisation API v4": AUTH_API_PATH,
   "Ledger API v4": LEDGER_API_PATH,
-  "TAR API v4": TAR_API_PATH,
 } as const;
 
 export const loadConfig = (): ApiConfig => {
@@ -68,8 +64,6 @@ export const loadConfig = (): ApiConfig => {
     contractAddr: process.env.CONTRACT_ADDR,
     // Authorisation API
     authorisationApiUrl: DOMAIN + AUTH_API_PATH,
-    // Trusted Apps Registry API
-    trustedAppsRegistryApiUrl: DOMAIN + TAR_API_PATH,
     // Test variables
     testAuthApiES256PrivateKey:
       process.env.TEST_AUTH_API_ES256_PRIVATE_KEY || "",

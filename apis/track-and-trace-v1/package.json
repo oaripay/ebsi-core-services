@@ -26,7 +26,6 @@
   "dependencies": {
     "@cef-ebsi/ebsi-uri": "^0.1.0-alpha.0",
     "@cef-ebsi/key-did-resolver": "^2.0.1",
-    "@cef-ebsi/oauth2-auth": "^3.0.1",
     "@ebsiint-api/shared": "^1.1.0-rc.9",
     "@ebsiint-sc/track-and-trace": "1.0.0-rc.2",
     "@ethersproject/address": "^5.7.0",

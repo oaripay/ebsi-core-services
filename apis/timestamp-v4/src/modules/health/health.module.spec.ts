@@ -113,11 +113,11 @@ describe("Health Module", () => {
     it("should return 'error' if some dependencies do not return a 20x", async () => {
       expect.assertions(2 + dependencies.length);
 
-      // All the dependencies return a 200 except TAR API v4
+      // All the dependencies return a 200 except Ledger API v4
       mockServer.use(
         ...dependencies.map((dependency) =>
           http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
-            dependency === "TAR API v4"
+            dependency === "Ledger API v4"
               ? HttpResponse.json({}, { status: 500 })
               : HttpResponse.json({}),
           ),
@@ -135,13 +135,13 @@ describe("Health Module", () => {
         });
       });
 
-      // Expect all the dependencies to be up except TAR API v4
+      // Expect all the dependencies to be up except Ledger API v4
       const expectedStatuses = dependencies
         .map(
           (dependency) =>
             ({
               [`${dependency}`]:
-                dependency === "TAR API v4"
+                dependency === "Ledger API v4"
                   ? ({
                       message: "Request failed with status code 500",
                       status: "down",
@@ -153,12 +153,13 @@ describe("Health Module", () => {
         )
         .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
 
-      const { "TAR API v4": errorStatus, ...otherStatuses } = expectedStatuses;
+      const { "Ledger API v4": errorStatus, ...otherStatuses } =
+        expectedStatuses;
 
       expect(response.body).toStrictEqual({
         details: expectedStatuses,
         error: {
-          "TAR API v4": errorStatus,
+          "Ledger API v4": errorStatus,
         },
         info: otherStatuses,
         status: "error",

@@ -23,8 +23,6 @@ export interface ApiConfig {
   authorisationApiUrl: string;
   // DID Registry API
   didRegistryApiUrl: string;
-  // Trusted Apps Registry API
-  trustedAppsRegistryApiUrl: string;
   // Trusted Policies Registry API
   trustedPoliciesRegistryApiUrl: string;
   // TSR API (using in tests only)
@@ -37,7 +35,6 @@ export interface ApiConfig {
   testIssuerWithProxyPrivateKey: string;
   testVerifiableAttestationSchemaId: string;
   testStatusListSchemaId: string;
-  testLoadBalancerDomain: string;
   dockerContainerTag: string;
   blockscout: {
     url: string;
@@ -48,7 +45,6 @@ export interface ApiConfig {
 const AUTH_API_PATH = "/authorisation/v4";
 const DIDR_API_PATH = "/did-registry/v5";
 const LEDGER_API_PATH = "/ledger/v4";
-const TAR_API_PATH = "/trusted-apps-registry/v4";
 const TPR_API_PATH = "/trusted-policies-registry/v3";
 const TSR_API_PATH = "/trusted-schemas-registry/v3";
 
@@ -56,7 +52,6 @@ export const DEPENDENCIES = {
   "Authorisation API v4": AUTH_API_PATH,
   "DIDR API v5": DIDR_API_PATH,
   "Ledger API v4": LEDGER_API_PATH,
-  "TAR API v4": TAR_API_PATH,
   "TPR API v3": TPR_API_PATH,
   "TSR API v3": TSR_API_PATH,
 } as const;
@@ -89,8 +84,6 @@ export const loadConfig = (): ApiConfig => {
     didRegistryApiUrl: DOMAIN + DIDR_API_PATH,
     // TSR API
     trustedSchemasRegistryApiUrl: DOMAIN + TSR_API_PATH,
-    // Trusted Apps Registry API
-    trustedAppsRegistryApiUrl: DOMAIN + TAR_API_PATH,
     // Trusted Policies Registry API
     trustedPoliciesRegistryApiUrl: DOMAIN + TPR_API_PATH,
     // Test vars
@@ -103,7 +96,6 @@ export const loadConfig = (): ApiConfig => {
     testVerifiableAttestationSchemaId:
       process.env.TEST_VERIFIABLE_ATTESTATION_SCHEMA_ID ?? "",
     testStatusListSchemaId: process.env.TEST_STATUS_LIST_SCHEMA_ID ?? "",
-    testLoadBalancerDomain: process.env.TEST_LB_DOMAIN || "",
     dockerContainerTag: process.env.DOCKER_TAG || "",
     blockscout: {
       url: process.env.BLOCKSCOUT_URL ?? "",
@@ -157,7 +149,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_ISSUER_WITH_PROXY_PRIVATE_KEY: Joi.string(),
     TEST_VERIFIABLE_ATTESTATION_SCHEMA_ID: Joi.string(),
     TEST_STATUS_LIST_SCHEMA_ID: Joi.string(),
-    TEST_LB_DOMAIN: Joi.string().uri(),
     TEST_ENV: Joi.string(),
     TEST_ENABLE_WRITE_OPS: Joi.string(),
     BLOCKSCOUT_URL: Joi.string(),

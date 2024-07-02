@@ -24,7 +24,6 @@ declare global {
       TEST_VA_SCHEMA?: string;
       TEST_ENV?: string;
       TEST_ENABLE_WRITE_OPS?: string;
-      TEST_LB_DOMAIN?: string;
       BLOCKSCOUT_URL?: string;
       BLOCKSCOUT_BEARER_TOKEN?: string;
     }

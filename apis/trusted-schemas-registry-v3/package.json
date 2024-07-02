@@ -59,6 +59,9 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@cef-ebsi/ebsi-uri": "^0.1.0-alpha.0",
+    "@cef-ebsi/verifiable-credential": "^6.0.0-alpha.0",
+    "@cef-ebsi/verifiable-presentation": "^7.0.0-alpha.0",
     "@cef-ebsi/wallet-lib": "^5.0.1",
     "@ethersproject/abstract-provider": "^5.7.0",
     "@nestjs/cli": "^10.3.2",

@@ -25,7 +25,6 @@
   },
   "dependencies": {
     "@cef-ebsi/ebsi-uri": "^0.1.0-alpha.0",
-    "@cef-ebsi/oauth2-auth": "^3.0.1",
     "@ebsiint-api/shared": "^1.1.0-rc.9",
     "@ebsiint-sc/timestamp-v2": "^2.0.0-rc.3",
     "@ethersproject/address": "^5.7.0",
@@ -62,6 +61,7 @@
   },
   "devDependencies": {
     "@cef-ebsi/verifiable-credential": "^6.0.0-alpha.0",
+    "@cef-ebsi/verifiable-presentation": "^7.0.0-alpha.0",
     "@cef-ebsi/wallet-lib": "^5.0.1",
     "@ethersproject/abstract-provider": "^5.7.0",
     "@nestjs/cli": "^10.3.2",
@@ -80,6 +80,7 @@
     "@types/validator": "^13.11.9",
     "@types/ws": "^7.4.7",
     "@vitest/coverage-v8": "^1.4.0",
+    "did-resolver": "^4.1.0",
     "elliptic": "^6.5.5",
     "hardhat": "~2.20.1",
     "msw": "^2.2.11",

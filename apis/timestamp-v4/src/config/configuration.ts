@@ -11,7 +11,6 @@ export interface ApiConfig {
   authorisationApiName: string;
   authorisationApiUrl: string;
   ledgerApiUrl: string;
-  trustedAppsRegistryApiUrl: string;
   didRegistryApiUrl: string;
   contractAddr: string;
   domain: string;
@@ -29,7 +28,6 @@ export interface ApiConfig {
     kid: string;
     privateKey: string;
   };
-  testLoadBalancerDomain: string;
   dockerContainerTag: string;
   blockscout: {
     url: string | undefined;
@@ -41,13 +39,11 @@ export interface ApiConfig {
 const AUTH_API_PATH = "/authorisation/v4";
 const DIDR_API_PATH = "/did-registry/v5";
 const LEDGER_API_PATH = "/ledger/v4";
-const TAR_API_PATH = "/trusted-apps-registry/v4";
 
 export const DEPENDENCIES = {
   "Authorisation API v4": AUTH_API_PATH,
   "DIDR API v5": DIDR_API_PATH,
   "Ledger API v4": LEDGER_API_PATH,
-  "TAR API v4": TAR_API_PATH,
 } as const;
 
 // Config factory
@@ -66,7 +62,6 @@ export const loadConfig = (): ApiConfig => {
     authorisationApiUrl: DOMAIN + AUTH_API_PATH,
     besuRpcNode: process.env.BESU_RPC_NODE,
     ledgerApiUrl: DOMAIN + LEDGER_API_PATH,
-    trustedAppsRegistryApiUrl: DOMAIN + TAR_API_PATH,
     didRegistryApiUrl: DOMAIN + DIDR_API_PATH,
     contractAddr: process.env.CONTRACT_ADDR,
     domain: DOMAIN,
@@ -83,7 +78,6 @@ export const loadConfig = (): ApiConfig => {
       kid: process.env.TEST_USER_KID || "",
       privateKey: process.env.TEST_USER_PRIVATE_KEY || "",
     },
-    testLoadBalancerDomain: process.env.TEST_LB_DOMAIN || "",
     dockerContainerTag: process.env.DOCKER_TAG || "",
     blockscout: {
       url: process.env.BLOCKSCOUT_URL || "",
@@ -136,7 +130,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_ADMIN_PRIVATE_KEY: Joi.string(),
     TEST_USER_KID: Joi.string(),
     TEST_USER_PRIVATE_KEY: Joi.string(),
-    TEST_LB_DOMAIN: Joi.string().uri(),
     TEST_ENV: Joi.string(),
     TEST_ENABLE_WRITE_OPS: Joi.string(),
     BLOCKSCOUT_URL: Joi.string(),

@@ -10,7 +10,6 @@ export interface ApiConfig {
   apiName: string;
   authorisationApiUrl: string;
   didRegistryApiUrl: string;
-  trustedAppsRegistryApiUrl: string;
   domain: string;
   localOrigin: string;
   network: Network;
@@ -27,7 +26,6 @@ export interface ApiConfig {
   testAdminPrivateKey: string;
   testUserKid: string;
   testUserPrivateKey: string;
-  testLoadBalancerDomain: string;
   dockerContainerTag: string;
   blockscout: {
     url: string | undefined;
@@ -38,13 +36,11 @@ export interface ApiConfig {
 const AUTH_API_PATH = "/authorisation/v4";
 const DIDR_API_PATH = "/did-registry/v5";
 const LEDGER_API_PATH = "/ledger/v4";
-const TAR_API_PATH = "/trusted-apps-registry/v4";
 
 export const DEPENDENCIES = {
   "Authorisation API v4": AUTH_API_PATH,
   "DIDR API v5": DIDR_API_PATH,
   "Ledger API v4": LEDGER_API_PATH,
-  "TAR API v4": TAR_API_PATH,
 } as const;
 
 // Config factory
@@ -67,7 +63,6 @@ export const loadConfig = (): ApiConfig => {
       .filter(Boolean),
     logLevel: process.env.LOG_LEVEL || "warn",
     didRegistryApiUrl: DOMAIN + DIDR_API_PATH,
-    trustedAppsRegistryApiUrl: DOMAIN + TAR_API_PATH,
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     axiosRetryDelay: parseInt(process.env.AXIOS_RETRY_DELAY || "10000", 10),
     // Ledger & SC
@@ -78,7 +73,6 @@ export const loadConfig = (): ApiConfig => {
     testAdminPrivateKey: process.env.TEST_ADMIN_PRIVATE_KEY || "",
     testUserKid: process.env.TEST_USER_KID || "",
     testUserPrivateKey: process.env.TEST_USER_PRIVATE_KEY || "",
-    testLoadBalancerDomain: process.env.TEST_LB_DOMAIN || "",
     dockerContainerTag: process.env.DOCKER_TAG || "",
     blockscout: {
       url: process.env.BLOCKSCOUT_URL,
@@ -129,7 +123,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_ADMIN_PRIVATE_KEY: Joi.string().allow(""),
     TEST_USER_KID: Joi.string().allow(""),
     TEST_USER_PRIVATE_KEY: Joi.string().allow(""),
-    TEST_LB_DOMAIN: Joi.string().uri(),
     BLOCKSCOUT_URL: Joi.string(),
     BLOCKSCOUT_BEARER_TOKEN: Joi.string(),
     TEST_ENV: Joi.string(),

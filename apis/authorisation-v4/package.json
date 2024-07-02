@@ -71,6 +71,7 @@
     "@types/qs": "^6.9.14",
     "@types/supertest": "^6.0.2",
     "@vitest/coverage-v8": "^1.4.0",
+    "did-resolver": "^4.1.0",
     "msw": "^2.2.11",
     "supertest": "^6.3.4",
     "ts-node": "^10.9.2",

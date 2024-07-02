@@ -23,13 +23,10 @@ export interface ApiConfig {
   authorisationApiUrl: string;
   // DID Registry API
   didRegistryApiUrl: string;
-  // Trusted Apps Registry API
-  trustedAppsRegistryApiUrl: string;
   // Test variables
   testAdminKid: string | undefined;
   testAdminPrivateKey: string | undefined;
   testVaSchemaUrl: string;
-  testLoadBalancerDomain: string;
   dockerContainerTag: string;
   blockscout: {
     url: string | undefined;
@@ -40,14 +37,12 @@ export interface ApiConfig {
 const AUTH_API_PATH = "/authorisation/v4";
 const DIDR_API_PATH = "/did-registry/v6";
 const LEDGER_API_PATH = "/ledger/v4";
-const TAR_API_PATH = "/trusted-apps-registry/v4";
 const TSR_API_PATH = "/trusted-schemas-registry/v4";
 
 export const DEPENDENCIES = {
   "Authorisation API v4": AUTH_API_PATH,
   "DIDR API v6": DIDR_API_PATH,
   "Ledger API v4": LEDGER_API_PATH,
-  "TAR API v4": TAR_API_PATH,
 } as const;
 
 // Config factory
@@ -78,13 +73,10 @@ export const loadConfig = (): ApiConfig => {
     authorisationApiUrl: DOMAIN + AUTH_API_PATH,
     // DID Registry API
     didRegistryApiUrl: DOMAIN + DIDR_API_PATH,
-    // Trusted Apps Registry API
-    trustedAppsRegistryApiUrl: DOMAIN + TAR_API_PATH,
     // Test vars
     testAdminKid: process.env.TEST_ADMIN_KID,
     testAdminPrivateKey: process.env.TEST_ADMIN_PRIVATE_KEY,
     testVaSchemaUrl: `${DOMAIN}${TSR_API_PATH}/schemas/${process.env.TEST_VA_SCHEMA}`,
-    testLoadBalancerDomain: process.env.TEST_LB_DOMAIN || "",
     dockerContainerTag: process.env.DOCKER_TAG || "",
     blockscout: {
       url: process.env.BLOCKSCOUT_URL,
@@ -134,7 +126,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_ADMIN_KID: Joi.string(),
     TEST_ADMIN_PRIVATE_KEY: Joi.string(),
     TEST_VA_SCHEMA: Joi.string(),
-    TEST_LB_DOMAIN: Joi.string().uri(),
     TEST_ENV: Joi.string(),
     TEST_ENABLE_WRITE_OPS: Joi.string(),
     BLOCKSCOUT_URL: Joi.string(),

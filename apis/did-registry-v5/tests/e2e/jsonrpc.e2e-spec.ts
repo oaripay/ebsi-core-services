@@ -129,7 +129,7 @@ describeWriteOps()("DID Registry API v5 - JSON-RPC (e2e)", () => {
       const userDetails = await createUser();
 
       const authApiV3ES256PrivateKey = configService.get<string>(
-        "testAuthApiV3ES256PrivateKey",
+        "testAuthApiV4ES256PrivateKey",
       );
 
       const userAccessToken = await getDidrInviteAccessToken(
