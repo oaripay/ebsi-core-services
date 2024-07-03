@@ -1,22 +1,23 @@
-import { Controller, Body, Post, Response, UseGuards } from "@nestjs/common";
+import { Controller, Body, Post, Response } from "@nestjs/common";
 import type { FastifyReply } from "fastify";
 import { BesuService } from "./besu.service.js";
 import { BesuDto } from "./dto/index.js";
-import { JwtAuthGuard } from "../auth/guards/index.js";
 
 @Controller("/blockchains/besu")
 export class BesuController {
   constructor(private besuService: BesuService) {}
 
-  @UseGuards(JwtAuthGuard)
   @Post()
   async besu(
     @Body() body: BesuDto,
-    @Response() res: FastifyReply,
-  ): Promise<FastifyReply> {
+    @Response({ passthrough: true }) res: FastifyReply,
+  ) {
     const ledgerResponse = await this.besuService.sendToBesu(body);
 
-    return res.code(ledgerResponse.status).send(ledgerResponse.data);
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    res.status(ledgerResponse.status);
+
+    return ledgerResponse.data;
   }
 }
 

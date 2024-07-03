@@ -24,10 +24,7 @@
     "test:ci": "yarn test:unit --coverage --reporter=default"
   },
   "dependencies": {
-    "@cef-ebsi/oauth2-auth": "^3.0.1",
     "@ebsiint-api/shared": "^1.1.0-rc.7",
-    "@ethereumjs/common": "^3.2.0",
-    "@ethereumjs/tx": "^4.2.0",
     "@fastify/helmet": "^11.1.1",
     "@nestjs/axios": "^3.0.2",
     "@nestjs/common": "^10.3.5",
@@ -38,7 +35,6 @@
     "axios": "^1.6.8",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
-    "did-jwt": "^8.0.4",
     "ethers": "^5.7.2",
     "joi": "^17.12.2",
     "nest-winston": "^1.9.4",
@@ -48,8 +44,6 @@
     "yaml": "^2.4.1"
   },
   "devDependencies": {
-    "@cef-ebsi/siop-auth": "^4.0.1",
-    "@cef-ebsi/wallet-lib": "^5.0.1",
     "@nestjs/cli": "^10.3.2",
     "@nestjs/schematics": "^10.1.1",
     "@nestjs/testing": "^10.3.5",
@@ -64,7 +58,6 @@
     "@types/ws": "^7.4.7",
     "@vitest/coverage-v8": "^1.4.0",
     "hardhat": "~2.20.1",
-    "jose": "^4.15.5",
     "msw": "^2.2.11",
     "supertest": "^6.3.4",
     "ts-node": "^10.9.2",

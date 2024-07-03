@@ -15,19 +15,10 @@ import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import type { JwtTarVerifyResult } from "@cef-ebsi/oauth2-auth";
-import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { AppModule } from "../app.module.js";
 import { AllExceptionsFilter } from "../filters/http-exception.filter.js";
-import { createFakeToken } from "../../tests/utils/authorisation.js";
-import { DEPENDENCIES, type ApiConfig } from "../config/configuration.js";
-
-vi.mock("@cef-ebsi/oauth2-auth", () => ({
-  // In the following tests, we assume that the OAuth2 JWT is valid
-  verifyJwtTar: async (): Promise<JwtTarVerifyResult> =>
-    Promise.resolve({} as JwtTarVerifyResult),
-}));
+import type { ApiConfig } from "../config/configuration.js";
 
 describe("Logging interceptor", () => {
   let app: NestFastifyApplication;
@@ -100,23 +91,6 @@ describe("Logging interceptor", () => {
 
       configService.set("logLevel", "info");
 
-      const dependencies = Object.keys(
-        DEPENDENCIES,
-      ) as (keyof typeof DEPENDENCIES)[];
-
-      const localOrigin =
-        configService.get<string>("localOrigin") ||
-        configService.get<string>("domain");
-
-      // All the dependencies return a 200
-      mockServer.use(
-        ...dependencies.map((dependency) =>
-          http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
-            HttpResponse.json({}),
-          ),
-        ),
-      );
-
       await request(app.getHttpServer()).get("/health");
 
       const calls = mockedLogger.log.mock.calls.length;
@@ -153,23 +127,6 @@ describe("Logging interceptor", () => {
 
       configService.set("logLevel", "debug");
 
-      const dependencies = Object.keys(
-        DEPENDENCIES,
-      ) as (keyof typeof DEPENDENCIES)[];
-
-      const localOrigin =
-        configService.get<string>("localOrigin") ||
-        configService.get<string>("domain");
-
-      // All the dependencies return a 200
-      mockServer.use(
-        ...dependencies.map((dependency) =>
-          http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
-            HttpResponse.json({}),
-          ),
-        ),
-      );
-
       await request(app.getHttpServer()).get("/health");
 
       const calls = mockedLogger.log.mock.calls.length;
@@ -191,11 +148,7 @@ describe("Logging interceptor", () => {
       );
 
       // Expect all the dependencies to be up
-      const expectedStatuses = dependencies
-        .map((dependency) => ({
-          [`${dependency}`]: { status: "up" },
-        }))
-        .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
+      const expectedStatuses = {};
 
       // It should have logged the response (with body)
       expect(mockedLogger.log).toHaveBeenNthCalledWith(
@@ -219,35 +172,22 @@ describe("Logging interceptor", () => {
     it("should log the request and response", async () => {
       expect.assertions(2);
 
-      const tokenOAuth2 = await createFakeToken({
-        loginHint: "oauth2",
-        authorisationApiName: "authorisation-api",
-        testAppName: "test-app",
-        useKidAuthApi: false,
-        configService,
+      await request(app.getHttpServer()).post("/blockchains/besu").send({
+        jsonrpc: "2.0",
+        method: "eth_invalid",
+        params: [],
+        id: "42",
       });
 
-      await request(app.getHttpServer())
-        .post("/blockchains/besu")
-        .auth(tokenOAuth2, { type: "bearer" })
-        .send({
-          jsonrpc: "2.0",
-          method: "eth_invalid",
-          params: [],
-          id: "42",
-        });
-
       const logCalls = mockedLogger.log.mock.calls.length;
-      const warnCalls = mockedLogger.warn.mock.calls.length;
 
       // It should have logged the request
       expect(mockedLogger.log).toHaveBeenNthCalledWith(
-        logCalls,
+        logCalls - 1,
         {
           body: { jsonrpc: "2.0", method: "eth_invalid", params: [], id: "42" },
           headers: {
             "accept-encoding": "gzip, deflate",
-            authorization: `Bearer ${tokenOAuth2}`,
             connection: "close",
             "content-length": "62",
             "content-type": "application/json",
@@ -261,21 +201,22 @@ describe("Logging interceptor", () => {
       );
 
       // It should have logged the response
-      expect(mockedLogger.warn).toHaveBeenNthCalledWith(
-        warnCalls,
+      expect(mockedLogger.log).toHaveBeenNthCalledWith(
+        logCalls,
         {
           body: {
-            jsonrpc: "2.0",
-            method: "eth_invalid",
-            params: [],
+            error: {
+              code: -32601,
+              data: null,
+              message:
+                "The method eth_invalid does not exist / is not available.",
+            },
             id: "42",
+            jsonrpc: "2.0",
           },
-          error: expect.any(Error),
-          message: "Outgoing response - 400 - POST - /blockchains/besu",
-          method: "POST",
-          url: "/blockchains/besu",
+          message: "Outgoing response - 200 - POST - /blockchains/besu",
         },
-        "LoggingInterceptor - 400 - POST - /blockchains/besu",
+        "LoggingInterceptor - 200 - POST - /blockchains/besu",
         "LoggingInterceptor",
       );
     });

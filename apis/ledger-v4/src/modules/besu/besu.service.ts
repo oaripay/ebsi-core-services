@@ -3,18 +3,39 @@ import { Injectable, Logger, OnModuleDestroy } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import type WebSocket from "ws";
-import {
-  BadRequestError,
-  ForbiddenError,
-  InternalServerError,
-} from "@ebsiint-api/shared";
+import { InternalServerError } from "@ebsiint-api/shared";
 import { BesuResponseObject, BesuServiceResponse } from "./besu.interface.js";
 import type { ApiConfig } from "../../config/configuration.js";
-import { isDeployingSmartContract } from "./besu.utils.js";
 import { BesuDto } from "./dto/index.js";
 
 const EXPECTED_PONG_BACK = 15000;
 const KEEP_ALIVE_CHECK_INTERVAL = 7500;
+
+const PUBLIC_BESU_METHODS = new Set([
+  "net_version",
+  "eth_chainId",
+  "eth_blockNumber",
+  "eth_getTransactionCount",
+  "eth_getBlockTransactionCountByHash",
+  "eth_getBlockTransactionCountByNumber",
+  "eth_getUncleByBlockHashAndIndex",
+  "eth_getUncleByBlockNumberAndIndex",
+  "eth_getUncleCountByBlockHash",
+  "eth_getUncleCountByBlockNumber",
+  "eth_getCode",
+  // Not allowed:
+  // "eth_sendRawTransaction",
+  "eth_call",
+  // Not allowed:
+  // "eth_estimateGas",
+  "eth_getBlockByHash",
+  "eth_getBlockByNumber",
+  "eth_getTransactionByHash",
+  "eth_getTransactionByBlockHashAndIndex",
+  "eth_getTransactionByBlockNumberAndIndex",
+  "eth_getTransactionReceipt",
+  "eth_getLogs",
+]);
 
 interface WsResponse {
   code: number;
@@ -59,8 +80,6 @@ export class BesuService implements OnModuleDestroy {
   private ethersProvider: ethers.providers.JsonRpcProvider | undefined;
 
   private reconnectWebSocket = true;
-
-  private chainId: number | undefined;
 
   private timeout: number;
 
@@ -141,20 +160,6 @@ export class BesuService implements OnModuleDestroy {
     });
   }
 
-  async getChainId(): Promise<number> {
-    if (!this.chainId) {
-      try {
-        this.chainId = (await this.getEthersProvider().getNetwork()).chainId;
-      } catch (error) {
-        throw new Error(
-          `Error getting EBSI chainId: ${(error as Error).message}`,
-        );
-      }
-    }
-
-    return this.chainId;
-  }
-
   getEthersProvider() {
     if (!this.ethersProvider) {
       this.initBesuProvider();
@@ -172,29 +177,25 @@ export class BesuService implements OnModuleDestroy {
   }
 
   async sendToBesu(query: BesuDto): Promise<BesuServiceResponse> {
-    let isDeployingSC = false;
+    if (!PUBLIC_BESU_METHODS.has(query.method)) {
+      // https://github.com/ethereum/execution-apis/blob/main/src/engine/common.md#errors
+      // -32601 - Method not found - The method does not exist / is not available.
+      return {
+        status: 200, // Besu also returns 200 when the error code is -32601
+        data: {
+          jsonrpc: query.jsonrpc,
+          id: query.id ?? null,
+          error: {
+            code: -32601,
+            message: `The method ${query.method} does not exist / is not available.`,
+            data: null,
+          },
+        },
+      };
+    }
 
     if (!this.ethersProvider) {
       this.initBesuProvider();
-    }
-
-    try {
-      const chainId = await this.getChainId();
-      isDeployingSC = isDeployingSmartContract(query, chainId);
-    } catch (error) {
-      if ((error as Error).message.includes("Error getting EBSI chainId")) {
-        throw error;
-      }
-
-      throw new BadRequestError(BadRequestError.defaultTitle, {
-        detail: `Error parsing the transaction: ${(error as Error).message}`,
-      });
-    }
-
-    if (isDeployingSC) {
-      throw new ForbiddenError(ForbiddenError.defaultTitle, {
-        detail: "Deployment of new smart contracts is not allowed",
-      });
     }
 
     // Send request to Besu
@@ -239,9 +240,7 @@ export class BesuService implements OnModuleDestroy {
           return {
             status:
               e.status ??
-              jsonRpcErrorCodeToHttpCode(
-                parseInt(response.error?.code ?? "-32600", 10),
-              ),
+              jsonRpcErrorCodeToHttpCode(response.error?.code ?? -32600),
             data: {
               ...response,
               id: query.id ?? null,

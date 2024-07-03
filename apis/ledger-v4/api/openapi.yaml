@@ -27,13 +27,6 @@ paths:
       summary: Besu JSON-RPC API
       description: |
         Hyperledger Besu Ethereum Enterprise Client JSON-RPC API.
-        For some protected methods, the endpoint requires authentication via the Authorisation API.
-        It accepts OAuth2 tokens (for Trusted Apps) or SIOP tokens (for DIDs).
-        The protected methods are:
-          - eth_sendRawTransaction
-          - eth_estimateGas
-      security:
-        - bearerAuth: []
       requestBody:
         required: true
         description: |
@@ -297,11 +290,6 @@ components:
         status: 400
         detail: Token has expired. Max age of a token is 15 min.
         type: about:blank
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
 servers:
   - url: http://localhost
     description: Local Computer Environment

@@ -11,8 +11,7 @@ export function getDiamondStorage(contractName) {
     case "DidRegistryV4": {
       return "diamond.standard.did.registry.storage";
     }
-    case "Tar":
-    case "TarV3": {
+    case "Tar": {
       return "diamond.standard.tar.storage";
     }
     case "Tir":

@@ -1,5 +1,5 @@
-# Trusted Apps Registry Smart Contract v3
+![EBSI Logo](https://ec.europa.eu/digital-building-blocks/wikis/images/logo/default-space-logo.svg)
 
-![Logo of the project](https://ec.europa.eu/digital-building-blocks/wikis/images/logo/default-space-logo.svg)
+# DECOMMISSIONED - Trusted Apps Registry Smart Contract v3
 
-> Smart Contract to store the trusted Applications
+[TAR SC v3 has been decommissioned](https://ec.europa.eu/digital-building-blocks/wikis/pages/viewpage.action?spaceKey=BLOCKCHAININT&title=RFC+-+Remove+TAR+from+EBSI).

@@ -42,9 +42,6 @@ cp -r ${SCRIPT_DIR}/../../timestamp-v2/contracts ${SCRIPT_DIR}/../contracts/time
 echo Copy the trusted-apps-registry
 cp -r ${SCRIPT_DIR}/../../trusted-apps-registry/contracts ${SCRIPT_DIR}/../contracts/trusted-apps-registry
 
-echo Copy the trusted-apps-registry-v3
-cp -r ${SCRIPT_DIR}/../../trusted-apps-registry-v3/contracts ${SCRIPT_DIR}/../contracts/trusted-apps-registry-v3
-
 echo Copy the trusted-issuers-registry
 cp -r ${SCRIPT_DIR}/../../trusted-issuers-registry/contracts ${SCRIPT_DIR}/../contracts/trusted-issuers-registry
 
@@ -68,7 +65,6 @@ cp -r ${SCRIPT_DIR}/../../trusted-schemas-registry-v2/contracts ${SCRIPT_DIR}/..
 
 echo Copy the trusted-schemas-registry-v3
 cp -r ${SCRIPT_DIR}/../../trusted-schemas-registry-v3/contracts ${SCRIPT_DIR}/../contracts/trusted-schemas-registry-v3
-
 
 echo Copy the track-and-trace
 cp -r ${SCRIPT_DIR}/../../track-and-trace/contracts ${SCRIPT_DIR}/../contracts/track-and-trace

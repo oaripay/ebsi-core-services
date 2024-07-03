@@ -1,11 +1,10 @@
-import { IsArray, Equals, IsOptional } from "class-validator";
-import { IsValidMethod } from "../validators/index.js";
+import { IsArray, Equals, IsOptional, IsString } from "class-validator";
 
 export class BesuDto {
   @Equals("2.0")
-  jsonrpc!: string;
+  jsonrpc!: "2.0";
 
-  @IsValidMethod()
+  @IsString()
   method!: string;
 
   @IsArray()

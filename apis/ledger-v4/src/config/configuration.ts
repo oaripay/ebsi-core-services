@@ -9,26 +9,11 @@ export interface ApiConfig {
   besuRpcNode: string;
   domain: string;
   localOrigin: string;
-  authorisationApiName: string;
-  trustedAppsRegistryApiUrl: string;
   requestTimeout: number;
-  testUser: {
-    kid: string | undefined;
-    privateKey: string | undefined;
-  };
-  testApp: {
-    name: string | undefined;
-    privateKey: string | undefined;
-  };
-  testLoadBalancerDomain: string;
   dockerContainerTag: string;
 }
 
-const TAR_API_PATH = "/trusted-apps-registry/v4";
-
-export const DEPENDENCIES = {
-  "TAR API v4": TAR_API_PATH,
-} as const;
+export const DEPENDENCIES = {} as const;
 
 // Config factory
 // Note that process.env — for which provide typings in src/environment.d.ts —
@@ -43,19 +28,7 @@ export const loadConfig = (): ApiConfig => {
     besuRpcNode: process.env.BESU_RPC_NODE,
     domain: DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
-    trustedAppsRegistryApiUrl: DOMAIN + TAR_API_PATH,
-    authorisationApiName:
-      process.env.AUTHORISATION_API_NAME || "authorisation-api",
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
-    testUser: {
-      kid: process.env.TEST_USER_KID,
-      privateKey: process.env.TEST_USER_PRIVATE_KEY,
-    },
-    testApp: {
-      name: process.env.TEST_APP_NAME,
-      privateKey: process.env.TEST_APP_PRIVATE_KEY,
-    },
-    testLoadBalancerDomain: process.env.TEST_LB_DOMAIN || "",
     dockerContainerTag: process.env.DOCKER_TAG || "",
   };
 };
@@ -89,11 +62,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
     DOMAIN: Joi.string().uri().required(),
     LOCAL_ORIGIN: Joi.string().uri(),
     REQUEST_TIMEOUT: Joi.string(),
-    TEST_USER_KID: Joi.string(),
-    TEST_USER_PRIVATE_KEY: Joi.string(),
-    TEST_APP_NAME: Joi.string(),
-    TEST_APP_PRIVATE_KEY: Joi.string(),
-    TEST_LB_DOMAIN: Joi.string().uri(),
     TEST_ENV: Joi.string(),
     // Generic variables
     TZ: Joi.string(),

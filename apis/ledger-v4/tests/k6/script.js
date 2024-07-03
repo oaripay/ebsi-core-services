@@ -3,7 +3,6 @@ import http from "k6/http";
 import { group, check } from "k6";
 
 const BASE_URL = __ENV.BASE_URL || "http://0.0.0.0:3000";
-const token = __ENV.JWT;
 
 export const options = {
   stages: [
@@ -29,7 +28,6 @@ export default function loadTesting() {
       {
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
       },
     );

@@ -1,5 +1,7 @@
 export interface BesuResponseErrorObject {
-  code?: string;
+  code?: number;
+  message?: string;
+  data?: unknown;
 }
 
 export interface BesuResponseObject {
