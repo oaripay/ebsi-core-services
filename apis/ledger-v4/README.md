@@ -16,8 +16,8 @@ For more information, see:
 
 - [Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/x/V4iWFQ)
 - API catalogs:
-  - [EBSI Pilot network API Catalog](https://api-pilot.ebsi.eu/docs/apis)
-  - [EBSI Conformance network API Catalog](https://api-conformance.ebsi.eu/docs/apis)
+  - [EBSI Pilot network API Catalog](https://hub.ebsi.eu/apis/pilot)
+  - [EBSI Conformance network API Catalog](https://hub.ebsi.eu/apis/conformance)
 
 ## Service configuration
 

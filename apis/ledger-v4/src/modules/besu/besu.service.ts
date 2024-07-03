@@ -23,11 +23,7 @@ const PUBLIC_BESU_METHODS = new Set([
   "eth_getUncleCountByBlockHash",
   "eth_getUncleCountByBlockNumber",
   "eth_getCode",
-  // Not allowed:
-  // "eth_sendRawTransaction",
   "eth_call",
-  // Not allowed:
-  // "eth_estimateGas",
   "eth_getBlockByHash",
   "eth_getBlockByNumber",
   "eth_getTransactionByHash",
@@ -35,6 +31,9 @@ const PUBLIC_BESU_METHODS = new Set([
   "eth_getTransactionByBlockNumberAndIndex",
   "eth_getTransactionReceipt",
   "eth_getLogs",
+  // Not allowed:
+  // "eth_sendRawTransaction",
+  // "eth_estimateGas",
 ]);
 
 interface WsResponse {

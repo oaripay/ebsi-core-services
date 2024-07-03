@@ -7,8 +7,13 @@ const { writeFileSync } = require("fs");
 /**
  * The script below should prepare a list of affected (modified) services and apps managed through Docker containers.
  * Therefore, results should not contain SC or shared utilities which are not Dockerized.
- * Git commit hash values should be used consistently througout the rest of the toolchain managing the manifested resources.
+ * Git commit hash values should be used consistently throughout the rest of the toolchain managing the manifested resources.
  */
+
+const deprecatedServices = [
+  "@ebsiint-sc/trusted-apps-registry-v3",
+  "@ebsiint-api/trusted-apps-registry-api-v4",
+];
 
 const processResult = spawnSync("sh", [
   "-c",
@@ -26,6 +31,8 @@ try {
     )
     // NOT service utilities
     .filter((project) => project !== "@ebsiint-api/shared")
+    // Filter out deprecated services
+    .filter((project) => !deprecatedServices.includes(project))
     .map((project) => {
       const [scope, packageName] = project.split("/");
       return packageName;
