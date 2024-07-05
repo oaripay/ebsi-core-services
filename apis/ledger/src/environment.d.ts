@@ -18,6 +18,7 @@ declare global {
       TEST_APP_PRIVATE_KEY?: string;
       TEST_ENV?: string;
       TEST_LB_DOMAIN?: string;
+      TEST_SPECIFIC_NODE_DOMAIN?: string;
     }
   }
 

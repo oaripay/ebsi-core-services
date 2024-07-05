@@ -7,8 +7,10 @@ export const getServer = (
   configService: ConfigService<ApiConfig, true>,
 ) => {
   if (process.env.TEST_ENV === "remote") {
-    const domain = configService.get<string>("domain");
-    const apiUrlPrefix = configService.get<string>("apiUrlPrefix");
+    const domain =
+      configService.get("testSpecificNodeDomain", { infer: true }) ||
+      configService.get("domain", { infer: true });
+    const apiUrlPrefix = configService.get("apiUrlPrefix", { infer: true });
     return `${domain}${apiUrlPrefix}`;
   }
 

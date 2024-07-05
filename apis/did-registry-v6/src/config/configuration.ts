@@ -20,6 +20,7 @@ export interface ApiConfig {
   axiosRetryDelay: number;
   trustedHostnames: string[];
   testAuthApiV4ES256PrivateKey: string;
+  testSpecificNodeDomain: string | undefined;
   dockerContainerTag: string;
   blockscout: {
     url: string;
@@ -61,6 +62,7 @@ export const loadConfig = (): ApiConfig => {
       .filter(Boolean),
     testAuthApiV4ES256PrivateKey:
       process.env.TEST_AUTH_API_V4_ES256_PRIVATE_KEY || "",
+    testSpecificNodeDomain: process.env.TEST_SPECIFIC_NODE_DOMAIN,
     dockerContainerTag: process.env.DOCKER_TAG || "",
     blockscout: {
       url: process.env.BLOCKSCOUT_URL || "",
@@ -109,6 +111,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_AUTH_API_V4_ES256_PRIVATE_KEY: Joi.string(),
     TEST_ENV: Joi.string(),
     TEST_ENABLE_WRITE_OPS: Joi.string(),
+    TEST_SPECIFIC_NODE_DOMAIN: Joi.string().uri(),
     BLOCKSCOUT_URL: Joi.string(),
     BLOCKSCOUT_BEARER_TOKEN: Joi.string(),
     // Generic variables

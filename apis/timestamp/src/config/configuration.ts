@@ -32,6 +32,7 @@ export interface ApiConfig {
     privateKey: string | undefined;
   };
   testLoadBalancerDomain: string;
+  testSpecificNodeDomain: string | undefined;
   dockerContainerTag: string;
   blockscout: {
     url: string | undefined;
@@ -88,6 +89,7 @@ export const loadConfig = (): ApiConfig => {
       privateKey: process.env.TEST_APP_PRIVATE_KEY,
     },
     testLoadBalancerDomain: process.env.TEST_LB_DOMAIN || "",
+    testSpecificNodeDomain: process.env.TEST_SPECIFIC_NODE_DOMAIN,
     dockerContainerTag: process.env.DOCKER_TAG || "",
     blockscout: {
       url: process.env.BLOCKSCOUT_URL,
@@ -139,6 +141,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_LB_DOMAIN: Joi.string().uri(),
     TEST_ENV: Joi.string(),
     TEST_ENABLE_WRITE_OPS: Joi.string(),
+    TEST_SPECIFIC_NODE_DOMAIN: Joi.string().uri(),
     BLOCKSCOUT_URL: Joi.string(),
     BLOCKSCOUT_BEARER_TOKEN: Joi.string(),
     // Generic variables

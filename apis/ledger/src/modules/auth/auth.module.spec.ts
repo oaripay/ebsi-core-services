@@ -27,7 +27,6 @@ describe("Auth Module", () => {
   let authService: AuthService;
   let jwtCacheService: JwtCacheService;
   let trustedAppsRegistryApiV3Url: string;
-  let trustedAppsRegistryApiV4Url: string;
 
   const mockVerifyAccessToken = vi.spyOn(OAuth2lib, "verifyJwtTar");
   const mockDecodeJwt = vi.spyOn(DidJwt, "decodeJWT");
@@ -55,9 +54,6 @@ describe("Auth Module", () => {
 
     trustedAppsRegistryApiV3Url = configService.get(
       "trustedAppsRegistryApiV3Url",
-    );
-    trustedAppsRegistryApiV4Url = configService.get(
-      "trustedAppsRegistryApiV4Url",
     );
   });
 
@@ -249,42 +245,6 @@ describe("Auth Module", () => {
 
       expect(mockVerifyAccessToken).toHaveBeenLastCalledWith("tokenV3", {
         trustedAppsRegistry: `${trustedAppsRegistryApiV3Url}/apps`,
-        op: expect.any(String),
-        timeout: expect.any(Number),
-      });
-    });
-
-    it("should accept tokens issued by from Authorisation API v4", async () => {
-      expect.assertions(1);
-
-      const now = Math.floor(Date.now() / 1000);
-      const jwtPayload = { exp: now + 30 };
-
-      // kid using TAR v4
-      const kid = `${trustedAppsRegistryApiV4Url}/apps/authorisation-api`;
-
-      mockVerifyAccessToken.mockImplementation(
-        async (): Promise<JwtTarVerifyResult> =>
-          Promise.resolve({
-            payload: jwtPayload,
-            protectedHeader: { kid },
-          } as JwtTarVerifyResult),
-      );
-      mockDecodeJwt.mockImplementation(() => ({
-        header: {
-          typ: "JWT" as const,
-          alg: "ES256K",
-          kid,
-        },
-        signature: "",
-        payload: jwtPayload,
-        data: "",
-      }));
-
-      await authService.validateToken("tokenV4", "api.local");
-
-      expect(mockVerifyAccessToken).toHaveBeenLastCalledWith("tokenV4", {
-        trustedAppsRegistry: `${trustedAppsRegistryApiV4Url}/apps`,
         op: expect.any(String),
         timeout: expect.any(Number),
       });

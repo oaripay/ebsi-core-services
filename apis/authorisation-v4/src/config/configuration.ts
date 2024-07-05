@@ -31,6 +31,7 @@ export interface ApiConfig {
   testOidSchemaPattern: string;
   testTntAuthorisedUserKid: string | undefined;
   testTntAuthorisedUserPrivateKey: string | undefined;
+  testSpecificNodeDomain: string | undefined;
 }
 
 const DIDR_PATH = "/did-registry/v5";
@@ -88,6 +89,7 @@ export const loadConfig = (): ApiConfig => {
     testTntAuthorisedUserKid: process.env.TEST_TNT_AUTHORISED_USER_KID,
     testTntAuthorisedUserPrivateKey:
       process.env.TEST_TNT_AUTHORISED_USER_PRIVATE_KEY,
+    testSpecificNodeDomain: process.env.TEST_SPECIFIC_NODE_DOMAIN,
   };
 };
 
@@ -135,6 +137,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_OID_SCHEMA_PATTERN: Joi.string(),
     TEST_TNT_AUTHORISED_USER_KID: Joi.string(),
     TEST_TNT_AUTHORISED_USER_PRIVATE_KEY: Joi.string(),
+    TEST_SPECIFIC_NODE_DOMAIN: Joi.string().uri(),
     // Generic variables
     TZ: Joi.string(),
   }),

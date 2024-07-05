@@ -13,8 +13,6 @@ export class AuthService {
 
   private trustedAppsRegistryV3: string;
 
-  private trustedAppsRegistryV4: string;
-
   private authorisationApiName: string;
 
   private timeout: number;
@@ -28,9 +26,6 @@ export class AuthService {
     );
     this.trustedAppsRegistryV3 = `${configService.get<string>(
       "trustedAppsRegistryApiV3Url",
-    )}/apps`;
-    this.trustedAppsRegistryV4 = `${configService.get<string>(
-      "trustedAppsRegistryApiV4Url",
     )}/apps`;
     this.timeout = configService.get<number>("requestTimeout");
   }
@@ -73,7 +68,7 @@ export class AuthService {
     try {
       this.logger.debug(`Verifying token: ${token}`);
 
-      const { header, payload } = decodeJWT(token) as unknown as JWTDecoded;
+      const { payload } = decodeJWT(token) as unknown as JWTDecoded;
 
       if (payload.login_hint === "did_siop") {
         throw new Error(
@@ -81,19 +76,11 @@ export class AuthService {
         );
       }
 
-      if (header.kid.startsWith(this.trustedAppsRegistryV4)) {
-        await verifyJwtTar(token, {
-          trustedAppsRegistry: this.trustedAppsRegistryV4,
-          op: this.authorisationApiName,
-          timeout: this.timeout,
-        });
-      } else {
-        await verifyJwtTar(token, {
-          trustedAppsRegistry: this.trustedAppsRegistryV3,
-          op: this.authorisationApiName,
-          timeout: this.timeout,
-        });
-      }
+      await verifyJwtTar(token, {
+        trustedAppsRegistry: this.trustedAppsRegistryV3,
+        op: this.authorisationApiName,
+        timeout: this.timeout,
+      });
 
       // Try to store valid JWT in cache
       this.storeJwt(token, now, payload.exp, requestHost);

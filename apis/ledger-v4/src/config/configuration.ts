@@ -11,6 +11,7 @@ export interface ApiConfig {
   localOrigin: string;
   requestTimeout: number;
   dockerContainerTag: string;
+  testSpecificNodeDomain: string | undefined;
 }
 
 export const DEPENDENCIES = {} as const;
@@ -30,6 +31,7 @@ export const loadConfig = (): ApiConfig => {
     localOrigin: process.env.LOCAL_ORIGIN || "",
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     dockerContainerTag: process.env.DOCKER_TAG || "",
+    testSpecificNodeDomain: process.env.TEST_SPECIFIC_NODE_DOMAIN,
   };
 };
 
@@ -63,6 +65,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     LOCAL_ORIGIN: Joi.string().uri(),
     REQUEST_TIMEOUT: Joi.string(),
     TEST_ENV: Joi.string(),
+    TEST_SPECIFIC_NODE_DOMAIN: Joi.string().uri(),
     // Generic variables
     TZ: Joi.string(),
   }),

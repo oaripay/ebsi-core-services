@@ -27,6 +27,7 @@ export interface ApiConfig {
   testAdminPrivateKey: string | undefined;
   testVaSchemaUrl: string;
   testLoadBalancerDomain: string;
+  testSpecificNodeDomain: string | undefined;
   dockerContainerTag: string;
   blockscout: {
     url: string | undefined;
@@ -79,6 +80,7 @@ export const loadConfig = (): ApiConfig => {
     testAdminPrivateKey: process.env.TEST_ADMIN_PRIVATE_KEY,
     testVaSchemaUrl: `${DOMAIN}${TSR_API_PATH}/schemas/${process.env.TEST_VA_SCHEMA}`,
     testLoadBalancerDomain: process.env.TEST_LB_DOMAIN || "",
+    testSpecificNodeDomain: process.env.TEST_SPECIFIC_NODE_DOMAIN,
     dockerContainerTag: process.env.DOCKER_TAG || "",
     blockscout: {
       url: process.env.BLOCKSCOUT_URL,
@@ -129,6 +131,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_ENABLE_WRITE_OPS: Joi.string(),
     BLOCKSCOUT_URL: Joi.string(),
     BLOCKSCOUT_BEARER_TOKEN: Joi.string(),
+    TEST_SPECIFIC_NODE_DOMAIN: Joi.string().uri(),
     // Generic variables
     TZ: Joi.string(),
   }),

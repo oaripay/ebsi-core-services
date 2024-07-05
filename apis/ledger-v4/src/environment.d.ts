@@ -12,6 +12,7 @@ declare global {
       LOCAL_ORIGIN?: string;
       REQUEST_TIMEOUT?: string;
       TEST_ENV?: string;
+      TEST_SPECIFIC_NODE_DOMAIN?: string;
     }
   }
 

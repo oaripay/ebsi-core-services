@@ -20,6 +20,7 @@ declare global {
       TEST_ISSUER_ALG?: string;
       TEST_ISSUER_ATTRIBUTE?: string;
       TEST_OID_SCHEMA_PATTERN?: string;
+      TEST_SPECIFIC_NODE_DOMAIN?: string;
     }
   }
 }

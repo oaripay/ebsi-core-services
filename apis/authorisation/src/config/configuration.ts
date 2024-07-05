@@ -31,6 +31,7 @@ export interface ApiConfig {
   testIssuerDid: string;
   testIssuerPrivateKey: string;
   testLoadBalancerDomain: string;
+  testSpecificNodeDomain: string | undefined;
   dockerContainerTag: string;
 }
 
@@ -83,6 +84,7 @@ export const loadConfig = (): ApiConfig => {
     testIssuerDid: process.env.TEST_ISSUER_DID || "",
     testIssuerPrivateKey: process.env.TEST_ISSUER_PRIVATE_KEY || "",
     testLoadBalancerDomain: process.env.TEST_LB_DOMAIN || "",
+    testSpecificNodeDomain: process.env.TEST_SPECIFIC_NODE_DOMAIN,
     dockerContainerTag: process.env.DOCKER_TAG || "",
   };
 };
@@ -138,6 +140,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_ISSUER_PRIVATE_KEY: Joi.string(),
     TEST_LB_DOMAIN: Joi.string().uri(),
     TEST_ENV: Joi.string(),
+    TEST_SPECIFIC_NODE_DOMAIN: Joi.string().uri(),
     // Generic variables
     TZ: Joi.string(),
   }),

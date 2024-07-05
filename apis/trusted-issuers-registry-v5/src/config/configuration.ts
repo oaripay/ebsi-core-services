@@ -35,6 +35,7 @@ export interface ApiConfig {
   testIssuerWithProxyPrivateKey: string;
   testVerifiableAttestationSchemaId: string;
   testStatusListSchemaId: string;
+  testSpecificNodeDomain: string | undefined;
   dockerContainerTag: string;
   blockscout: {
     url: string;
@@ -96,6 +97,7 @@ export const loadConfig = (): ApiConfig => {
     testVerifiableAttestationSchemaId:
       process.env.TEST_VERIFIABLE_ATTESTATION_SCHEMA_ID ?? "",
     testStatusListSchemaId: process.env.TEST_STATUS_LIST_SCHEMA_ID ?? "",
+    testSpecificNodeDomain: process.env.TEST_SPECIFIC_NODE_DOMAIN,
     dockerContainerTag: process.env.DOCKER_TAG || "",
     blockscout: {
       url: process.env.BLOCKSCOUT_URL ?? "",
@@ -153,6 +155,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_ENABLE_WRITE_OPS: Joi.string(),
     BLOCKSCOUT_URL: Joi.string(),
     BLOCKSCOUT_BEARER_TOKEN: Joi.string(),
+    TEST_SPECIFIC_NODE_DOMAIN: Joi.string().uri(),
     // Generic variables
     TZ: Joi.string(),
   }),

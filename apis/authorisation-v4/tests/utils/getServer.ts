@@ -9,7 +9,9 @@ export const getServer = (
   const testEnv = configService.get("testEnv", { infer: true });
 
   if (testEnv === "remote") {
-    const domain = configService.get("domain", { infer: true });
+    const domain =
+      configService.get("testSpecificNodeDomain", { infer: true }) ||
+      configService.get("domain", { infer: true });
     const apiUrlPrefix = configService.get("apiUrlPrefix", { infer: true });
     return `${domain}${apiUrlPrefix}`;
   }

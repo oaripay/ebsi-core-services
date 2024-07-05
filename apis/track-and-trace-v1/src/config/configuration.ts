@@ -30,6 +30,7 @@ export interface ApiConfig {
   testRegularLegalEntityKid: string | undefined;
   testRegularLegalEntityPrivateKey: string | undefined;
   testDocWithEvents: string | undefined;
+  testSpecificNodeDomain: string | undefined;
 }
 
 const AUTH_API_PATH = "/authorisation/v4";
@@ -76,6 +77,7 @@ export const loadConfig = (): ApiConfig => {
     testRegularLegalEntityPrivateKey:
       process.env.TEST_REGULAR_LEGAL_ENTITY_PRIVATE_KEY,
     testDocWithEvents: process.env.TEST_DOC_WITH_EVENTS,
+    testSpecificNodeDomain: process.env.TEST_SPECIFIC_NODE_DOMAIN,
   };
 };
 
@@ -126,6 +128,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_REGULAR_LEGAL_ENTITY_KID: Joi.string(),
     TEST_REGULAR_LEGAL_ENTITY_PRIVATE_KEY: Joi.string(),
     TEST_DOC_WITH_EVENTS: Joi.string(),
+    TEST_SPECIFIC_NODE_DOMAIN: Joi.string().uri(),
     // Generic variables
     TZ: Joi.string(),
   }),

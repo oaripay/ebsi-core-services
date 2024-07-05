@@ -26,6 +26,7 @@ export interface ApiConfig {
   testAdminPrivateKey: string;
   testUserKid: string;
   testUserPrivateKey: string;
+  testSpecificNodeDomain: string | undefined;
   dockerContainerTag: string;
   blockscout: {
     url: string | undefined;
@@ -73,6 +74,7 @@ export const loadConfig = (): ApiConfig => {
     testAdminPrivateKey: process.env.TEST_ADMIN_PRIVATE_KEY || "",
     testUserKid: process.env.TEST_USER_KID || "",
     testUserPrivateKey: process.env.TEST_USER_PRIVATE_KEY || "",
+    testSpecificNodeDomain: process.env.TEST_SPECIFIC_NODE_DOMAIN,
     dockerContainerTag: process.env.DOCKER_TAG || "",
     blockscout: {
       url: process.env.BLOCKSCOUT_URL,
@@ -127,6 +129,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     BLOCKSCOUT_BEARER_TOKEN: Joi.string(),
     TEST_ENV: Joi.string(),
     TEST_ENABLE_WRITE_OPS: Joi.string(),
+    TEST_SPECIFIC_NODE_DOMAIN: Joi.string().uri(),
     // Generic variables
     TZ: Joi.string(),
   }),

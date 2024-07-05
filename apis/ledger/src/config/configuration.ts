@@ -12,7 +12,6 @@ export interface ApiConfig {
   authorisationApiName: string;
   authorisationApiUrl: string; // Only used in e2e tests
   trustedAppsRegistryApiV3Url: string;
-  trustedAppsRegistryApiV4Url: string;
   requestTimeout: number;
   testUser: {
     kid: string | undefined;
@@ -23,17 +22,16 @@ export interface ApiConfig {
     privateKey: string | undefined;
   };
   testLoadBalancerDomain: string;
+  testSpecificNodeDomain: string | undefined;
   dockerContainerTag: string;
 }
 
 const AUTH_API_URL = "/authorisation/v2";
 const TAR_API_V3_PATH = "/trusted-apps-registry/v3";
-const TAR_API_V4_PATH = "/trusted-apps-registry/v4";
 
 export const DEPENDENCIES = {
   "Authorisation API v2": AUTH_API_URL,
   "TAR API v3": TAR_API_V3_PATH,
-  "TAR API v4": TAR_API_V4_PATH,
 } as const;
 
 // Config factory
@@ -50,7 +48,6 @@ export const loadConfig = (): ApiConfig => {
     domain: DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
     trustedAppsRegistryApiV3Url: DOMAIN + TAR_API_V3_PATH,
-    trustedAppsRegistryApiV4Url: DOMAIN + TAR_API_V4_PATH,
     authorisationApiName:
       process.env.AUTHORISATION_API_NAME || "authorisation-api",
     authorisationApiUrl: DOMAIN + AUTH_API_URL,
@@ -64,6 +61,7 @@ export const loadConfig = (): ApiConfig => {
       privateKey: process.env.TEST_APP_PRIVATE_KEY,
     },
     testLoadBalancerDomain: process.env.TEST_LB_DOMAIN || "",
+    testSpecificNodeDomain: process.env.TEST_SPECIFIC_NODE_DOMAIN,
     dockerContainerTag: process.env.DOCKER_TAG || "",
   };
 };
@@ -103,6 +101,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_APP_PRIVATE_KEY: Joi.string(),
     TEST_LB_DOMAIN: Joi.string().uri(),
     TEST_ENV: Joi.string(),
+    TEST_SPECIFIC_NODE_DOMAIN: Joi.string().uri(),
     // Generic variables
     TZ: Joi.string(),
   }),

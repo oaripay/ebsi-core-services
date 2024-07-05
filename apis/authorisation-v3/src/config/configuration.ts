@@ -22,6 +22,7 @@ export interface ApiConfig {
   testIssuerAlg: string | undefined;
   testIssuerAttribute: string | undefined;
   testOidSchemaPattern: string | undefined;
+  testSpecificNodeDomain: string | undefined;
 }
 
 const DIDR_PATH = "/did-registry/v4";
@@ -58,7 +59,8 @@ export const loadConfig = (): ApiConfig => {
     testIssuerPrivateKey: process.env.TEST_ISSUER_PRIVATE_KEY,
     testIssuerAlg: process.env.TEST_ISSUER_ALG,
     testIssuerAttribute: process.env.TEST_ISSUER_ATTRIBUTE,
-    testOidSchemaPattern: process.env.TEST_OID_SCHEMA_PATTERN || "",
+    testOidSchemaPattern: process.env.TEST_OID_SCHEMA_PATTERN,
+    testSpecificNodeDomain: process.env.TEST_SPECIFIC_NODE_DOMAIN,
   };
 };
 
@@ -99,6 +101,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_ISSUER_ALG: Joi.string(),
     TEST_ISSUER_ATTRIBUTE: Joi.string().uri(),
     TEST_OID_SCHEMA_PATTERN: Joi.string(),
+    TEST_SPECIFIC_NODE_DOMAIN: Joi.string().uri(),
     // Generic variables
     TZ: Joi.string(),
   }),

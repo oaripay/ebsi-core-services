@@ -27,6 +27,7 @@ declare global {
       TEST_OID_SCHEMA_PATTERN?: string;
       TEST_TNT_AUTHORISED_USER_KID?: string;
       TEST_TNT_AUTHORISED_USER_PRIVATE_KEY?: string;
+      TEST_SPECIFIC_NODE_DOMAIN?: string;
     }
   }
 }

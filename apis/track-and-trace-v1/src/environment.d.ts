@@ -30,6 +30,7 @@ declare global {
       TEST_DOC_WITH_EVENTS?: string;
       TEST_ENV?: string;
       TEST_ENABLE_WRITE_OPS?: string;
+      TEST_SPECIFIC_NODE_DOMAIN?: string;
     }
   }
 
