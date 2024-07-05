@@ -646,7 +646,7 @@ paths:
           Parameters:
           - **from**: Ethereum address of the signer
           - **senderDid**: DID of the signer. Must be a `did:ebsi` DID (UTF-8)
-          - **authorisedDid**: DID to authorise. Must be a `did:ebsi` DID (UTF-8)
+          - **authorisedDid**: DID to authorise. Must be a `did:ebsi` DID (UTF-8) registered in the DID Registry.
           - **whiteList**: Boolean to define if the DID is authorized or unauthorized
 
           #### createDocument

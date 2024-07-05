@@ -1,4 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import {
   InvalidRequestJsonRpcError,
@@ -8,6 +9,8 @@ import {
   logAxiosError,
 } from "@ebsiint-api/shared";
 import axios from "axios";
+import { Resolver } from "did-resolver";
+import { getResolver } from "@cef-ebsi/ebsi-did-resolver";
 import {
   formatEthersUnsignedTransaction,
   formatEthersSignature,
@@ -18,15 +21,16 @@ import {
   TNT_CREATE_SCOPE,
   TNT_WRITE_SCOPE,
 } from "../auth/auth.constants.js";
+import type { ApiConfig } from "../../config/configuration.js";
 import { hexToDid } from "../../shared/utils.js";
 import {
-  authoriseDidSchema,
+  authoriseDidSchemaBuilder,
   createDocumentSchema,
   removeDocumentSchema,
   grantAccessSchema,
   revokeAccessSchema,
   writeEventSchema,
-  requestAuthoriseDidDtoSchema,
+  requestAuthoriseDidDtoSchemaBuilder,
   requestCreateDocumentDtoSchema,
   requestRemoveDocumentDtoSchema,
   requestGrantAccessDtoSchema,
@@ -70,8 +74,27 @@ export class JsonRpcService {
 
   private readonly contractAddress: string;
 
-  constructor(private ledgerService: LedgerService) {
+  private readonly authoriseDidSchema: ReturnType<
+    typeof authoriseDidSchemaBuilder
+  >;
+
+  private readonly requestAuthoriseDidDtoSchema: ReturnType<
+    typeof requestAuthoriseDidDtoSchemaBuilder
+  >;
+
+  constructor(
+    private ledgerService: LedgerService,
+    configService: ConfigService<ApiConfig, true>,
+  ) {
     this.contractAddress = ledgerService.getContractAddress();
+    const resolverConfig = {
+      registry: `${configService.get("didRegistryApiUrl", { infer: true })}/identifiers`,
+    };
+    const ebsiResolver = getResolver(resolverConfig);
+    const didResolver = new Resolver(ebsiResolver);
+    this.authoriseDidSchema = authoriseDidSchemaBuilder(didResolver);
+    this.requestAuthoriseDidDtoSchema =
+      requestAuthoriseDidDtoSchemaBuilder(didResolver);
   }
 
   async getChainId(): Promise<string> {
@@ -177,7 +200,7 @@ export class JsonRpcService {
           [TNT_AUTHORISE_SCOPE],
           functionFragment.name,
         );
-        const castArgs = await authoriseDidSchema.parseAsync(argsObject);
+        const castArgs = await this.authoriseDidSchema.parseAsync(argsObject);
         assertDidMatchesSub(castArgs.senderDid, clientId);
         break;
       }
@@ -292,7 +315,8 @@ export class JsonRpcService {
     try {
       assertScopeContains(scope, [TNT_AUTHORISE_SCOPE], "authoriseDid");
 
-      const parsedBody = await requestAuthoriseDidDtoSchema.parseAsync(body);
+      const parsedBody =
+        await this.requestAuthoriseDidDtoSchema.parseAsync(body);
 
       const { from, senderDid, authorisedDid, whiteList } =
         parsedBody.params[0]!;

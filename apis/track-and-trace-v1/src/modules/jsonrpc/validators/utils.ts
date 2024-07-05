@@ -25,9 +25,7 @@ function isHexadecimal(
   return { success: true };
 }
 
-function isSender(
-  value: string,
-): { success: true } | { success: false; error: string } {
+function isSender(value: string) {
   if (!value.startsWith("0x")) {
     return {
       success: false,
@@ -53,14 +51,7 @@ function isSender(
     };
   }
 
-  const didValidation = isDid(did);
-  if (!didValidation.success) {
-    return {
-      success: false,
-      error: didValidation.error,
-    };
-  }
-  return { success: true };
+  return isDid(did);
 }
 
 export const refinements = {

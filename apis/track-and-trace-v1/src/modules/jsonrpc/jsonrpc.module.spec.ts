@@ -76,6 +76,14 @@ type JsonRpcParams =
   | RevokeAccessSchema
   | WriteEventSchema;
 
+/**
+ * Encode DID in URLs mocked by MSW
+ * @see https://github.com/mswjs/msw/discussions/739#discussioncomment-2524732
+ */
+function encodeDid(did: string) {
+  return did.replaceAll(":", "\\:");
+}
+
 describe("JsonRpc Module", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault;
@@ -231,10 +239,13 @@ describe("JsonRpc Module", () => {
       "openid tnt_write",
     );
 
-    // Mock Auth API
-    const authorisationApiUrl = configService.get<string>(
-      "authorisationApiUrl",
-    );
+    // Mock Auth API and DIDR API
+    const authorisationApiUrl = configService.get("authorisationApiUrl", {
+      infer: true,
+    });
+    const didRegistryApiUrl = configService.get("didRegistryApiUrl", {
+      infer: true,
+    });
 
     mockServer.use(
       // Mock Auth API /.well-known/openid-configuration endpoint
@@ -246,6 +257,13 @@ describe("JsonRpc Module", () => {
         HttpResponse.json({
           keys: [{ ...publicKeyJwk, kid: authApiKid }],
         }),
+      ),
+      // Mock users 1 and 2 DID documents (the documents don't matter, they just need to exist)
+      http.get(`${didRegistryApiUrl}/identifiers/${encodeDid(user1.did)}`, () =>
+        HttpResponse.json({}),
+      ),
+      http.get(`${didRegistryApiUrl}/identifiers/${encodeDid(user2.did)}`, () =>
+        HttpResponse.json({}),
       ),
     );
 
@@ -867,11 +885,42 @@ describe("JsonRpc Module", () => {
               accessToken: user.accessToken.tntAuthorise,
             });
 
+            const randomAuthorisedDid = EbsiWallet.createDid();
+            const didRegistryApiUrl = configService.get("didRegistryApiUrl", {
+              infer: true,
+            });
+            mockServer.use(
+              http.get(
+                `${didRegistryApiUrl}/identifiers/${encodeDid(randomAuthorisedDid)}`,
+                () =>
+                  HttpResponse.json(
+                    {
+                      title: "Identifier Not Found",
+                      status: 404,
+                      type: "about:blank",
+                      detail: `Identifier ${randomAuthorisedDid} not found`,
+                    },
+                    { status: 404 },
+                  ),
+              ),
+            );
+
+            testSetup.push({
+              params: {
+                from: signer.address,
+                senderDid: user.did,
+                authorisedDid: randomAuthorisedDid, // Random DID that doesn't exist
+                whiteList: true,
+              } satisfies AuthoriseDidSchema,
+              expectedErrorMessage: `Invalid 'params.0.authorisedDid': Identifier ${randomAuthorisedDid} not found | Registry used: https://api-test.ebsi.eu/did-registry/v5/identifiers`,
+              accessToken: user.accessToken.tntAuthorise,
+            });
+
             testSetup.push({
               params: {
                 from: signer.address,
                 senderDid: EbsiWallet.createDid(), // senderDid doesn't match the access token subject
-                authorisedDid: EbsiWallet.createDid(),
+                authorisedDid: user2.did,
                 whiteList: true,
               } satisfies AuthoriseDidSchema,
               expectedErrorMessage:

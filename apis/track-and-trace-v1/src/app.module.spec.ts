@@ -70,6 +70,14 @@ interface SupertestJsonRpcResponse {
   body: JsonRpcResponseObject;
 }
 
+/**
+ * Encode DID in URLs mocked by MSW
+ * @see https://github.com/mswjs/msw/discussions/739#discussioncomment-2524732
+ */
+function encodeDid(did: string) {
+  return did.replaceAll(":", "\\:");
+}
+
 describe("App Module", () => {
   const mockServer = setupServer();
 
@@ -441,6 +449,22 @@ describe("App Module", () => {
       did: EbsiWallet.createDid(),
       wallet: ethers.Wallet.createRandom(),
     } satisfies Actor;
+
+    const didRegistryApiUrl = configService.get("didRegistryApiUrl", {
+      infer: true,
+    });
+
+    // documentCreator and didEbsiEventsCreator exist in the DID registry
+    mockServer.use(
+      http.get(
+        `${didRegistryApiUrl}/identifiers/${encodeDid(documentCreator.did)}`,
+        () => HttpResponse.json({}),
+      ),
+      http.get(
+        `${didRegistryApiUrl}/identifiers/${encodeDid(didEbsiEventsCreator.did)}`,
+        () => HttpResponse.json({}),
+      ),
+    );
 
     const didKeyEventsCreatorWallet = ethers.Wallet.createRandom();
     const didKeyEventsCreatorPublicKeyJwk = encode.publicKey.fromHexToJWK(

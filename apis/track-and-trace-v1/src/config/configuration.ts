@@ -22,6 +22,8 @@ export interface ApiConfig {
   contractAddr: string;
   // Authorisation API
   authorisationApiUrl: string;
+  // DIDR API
+  didRegistryApiUrl: string;
   // Test variables
   testAuthApiES256PrivateKey: string;
   testAuthorisedLegalEntityKid: string | undefined;
@@ -34,10 +36,12 @@ export interface ApiConfig {
 }
 
 const AUTH_API_PATH = "/authorisation/v4";
+const DIDR_API_PATH = "/did-registry/v5";
 const LEDGER_API_PATH = "/ledger/v4";
 
 export const DEPENDENCIES = {
   "Authorisation API v4": AUTH_API_PATH,
+  "DIDR API v5": DIDR_API_PATH,
   "Ledger API v4": LEDGER_API_PATH,
 } as const;
 
@@ -65,6 +69,8 @@ export const loadConfig = (): ApiConfig => {
     contractAddr: process.env.CONTRACT_ADDR,
     // Authorisation API
     authorisationApiUrl: DOMAIN + AUTH_API_PATH,
+    // DIDR API
+    didRegistryApiUrl: DOMAIN + DIDR_API_PATH,
     // Test variables
     testAuthApiES256PrivateKey:
       process.env.TEST_AUTH_API_ES256_PRIVATE_KEY || "",

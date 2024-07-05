@@ -24,6 +24,7 @@
     "test:ci": "yarn test:unit --coverage --reporter=default"
   },
   "dependencies": {
+    "@cef-ebsi/ebsi-did-resolver": "^4.0.1",
     "@cef-ebsi/ebsi-uri": "^0.1.0-alpha.0",
     "@cef-ebsi/key-did-resolver": "^2.0.1",
     "@ebsiint-api/shared": "^1.1.0-rc.9",
