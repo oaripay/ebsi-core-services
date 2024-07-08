@@ -1,9 +1,4 @@
-import {
-  isVerificationMethodId,
-  isBaseDocument,
-  isDidV1,
-  isPublicKeyHex,
-} from "@ebsiint-api/shared";
+import { isBaseDocument, isDidV1, isPublicKeyHex } from "@ebsiint-api/shared";
 import { z } from "zod";
 import {
   BigNumber,
@@ -51,7 +46,7 @@ export const insertDidDocumentSchema = baseParamSchema
     }),
   )
   .superRefine(async (val, ctx) => {
-    const { publicKey, vMethodId } = val;
+    const { publicKey } = val;
 
     const publicKeyHexValidation = await isPublicKeyHex(publicKey, true);
     if (!publicKeyHexValidation.success) {
@@ -60,23 +55,6 @@ export const insertDidDocumentSchema = baseParamSchema
         path: ["publicKey"],
         message: publicKeyHexValidation.error,
         fatal: true,
-      });
-
-      // Don't validate vMethodId if publicKey is invalid
-      return z.NEVER;
-    }
-
-    const vMethodIdValidation = await isVerificationMethodId(
-      vMethodId,
-      true,
-      publicKey,
-    );
-
-    if (!vMethodIdValidation.success) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["vMethodId"],
-        message: vMethodIdValidation.error,
       });
     }
 

@@ -1,16 +1,11 @@
 import { IsBoolean, IsHexadecimal, IsString, Matches } from "class-validator";
-import {
-  IsDidV1,
-  IsPublicKeyHex,
-  IsVerificationMethodId,
-} from "@ebsiint-api/shared";
+import { IsDidV1, IsPublicKeyHex } from "@ebsiint-api/shared";
 
 export class ArgsAddVerificationMethod {
   @IsDidV1()
   did!: string;
 
   @IsString()
-  @IsVerificationMethodId()
   vMethodId!: string;
 
   @IsHexadecimal()

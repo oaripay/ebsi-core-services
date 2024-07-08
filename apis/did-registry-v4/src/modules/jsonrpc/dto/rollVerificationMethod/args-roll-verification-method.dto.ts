@@ -6,19 +6,13 @@ import {
   IsBoolean,
   Matches,
 } from "class-validator";
-
-import {
-  IsDidV1,
-  IsVerificationMethodId,
-  IsPublicKeyHex,
-} from "@ebsiint-api/shared";
+import { IsDidV1, IsPublicKeyHex } from "@ebsiint-api/shared";
 
 export class ArgsRollVerificationMethod {
   @IsDidV1()
   did!: string;
 
   @IsString()
-  @IsVerificationMethodId()
   vMethodId!: string;
 
   @IsHexadecimal()

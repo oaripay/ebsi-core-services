@@ -466,7 +466,7 @@ paths:
           - **from**: Ethereum address of the signer
           - **did**: DID to insert. It must be for a legal entity (DID v1)
           - **baseDocument**: JSON string containing the @context of the DID document
-          - **vMethodId**: Thumbprint of the public key
+          - **vMethodId**: Verification method ID. Recommended: thumbprint of the public key JWK.
           - **publicKey**: Public key for secp256k1 in uncompressed format prefixed with "0x04"
           - **isSecp256k1**: It must be true
           - **notBefore**: capability invocation is valid from this time
@@ -533,7 +533,7 @@ paths:
           Parameters:
           - **from**: Ethereum address of the signer
           - **did**: Existing DID
-          - **vMethodId**: New verification method id
+          - **vMethodId**: New verification method ID. Recommended: thumbprint of the public key JWK.
           - **isSecp256k1**: Boolean defining if the public key is for secp256k1 curve or not
           - **publicKey**: Public key as hex string. For an ES256K key, it must be in uncompressed
             format prefixed with "0x04". For other algorithms, it must be the JWK transformed to
@@ -583,7 +583,7 @@ paths:
           - **from**: Ethereum address of the signer
           - **args**: Roll arguments. JSON with the following fields:
             - **did**: Existing DID
-            - **vMethodId**: New verification method id (thumbprint of the new public key)
+            - **vMethodId**: New verification method ID. Recommended: thumbprint of the public key JWK.
             - **isSecp256k1**: Boolean defining if the public key is for secp256k1 curve or not
             - **publicKey**: Public key as hex string. For an ES256K key, it must be in uncompressed
               format prefixed with "0x04". For other algorithms, it must be the JWK transformed to

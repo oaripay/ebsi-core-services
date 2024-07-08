@@ -967,25 +967,6 @@ describe(
                 baseDocument: JSON.stringify({
                   "@context": newUser.didDocument["@context"],
                 }),
-                vMethodId: "bad-thumbprint",
-                publicKey:
-                  "0x0467ae84170dd193fd47d864caeaa36e995d62cab4a258cb9b7234b8cc6bb8aa5d6f4313b6f819d8334d4262094005700429c0e4e23b1e5427160f23f43c643d12",
-                isSecp256k1: true,
-                notBefore: now,
-                notAfter: now + 3600,
-              } satisfies InsertDidDocumentParam,
-              expectedErrorMessage:
-                "Validation error: vMethodId must be the thumbprint of the publicKey",
-              accessToken: newUserDidrInviteAccessToken,
-            });
-
-            testSetup.push({
-              params: {
-                from: signer.address,
-                did: newUser.did,
-                baseDocument: JSON.stringify({
-                  "@context": newUser.didDocument["@context"],
-                }),
                 vMethodId: newUser.thumbprint,
                 publicKey: `0x${crypto.randomBytes(35).toString("hex")}`,
                 isSecp256k1: true,
@@ -1200,28 +1181,11 @@ describe(
               params: {
                 from: signer.address,
                 did: newUser.did,
-                vMethodId: "bad vMethodId",
-                publicKey: `0x${Buffer.from(
-                  JSON.stringify(publicKeyJwk),
-                ).toString("hex")}`,
-                isSecp256k1: false,
-              } satisfies AddVerificationMethodParam,
-              expectedErrorMessage:
-                "Validation error: vMethodId must be the thumbprint of the publicKey",
-              accessToken: newUserDidrWriteAccessToken,
-            });
-
-            testSetup.push({
-              params: {
-                from: signer.address,
-                did: newUser.did,
                 vMethodId: thumbprint,
                 publicKey: "0x3231302",
                 isSecp256k1: false,
               } satisfies AddVerificationMethodParam,
-              expectedErrorMessage: `Validation errors:
-- vMethodId must be the thumbprint of the publicKey,
-- Invalid public key. The public key must be an even number of bytes`,
+              expectedErrorMessage: `Validation error: Invalid public key. The public key must be an even number of bytes`,
               accessToken: newUserDidrWriteAccessToken,
             });
 
@@ -1241,9 +1205,7 @@ describe(
                 ).toString("hex")}`,
                 isSecp256k1: false,
               } satisfies AddVerificationMethodParam,
-              expectedErrorMessage: `Validation errors:
-- vMethodId must be the thumbprint of the publicKey,
-- Invalid public key`,
+              expectedErrorMessage: `Validation error: Invalid public key`,
               accessToken: newUserDidrWriteAccessToken,
             });
 
@@ -1264,9 +1226,7 @@ describe(
                 ).toString("hex")}`,
                 isSecp256k1: false,
               } satisfies AddVerificationMethodParam,
-              expectedErrorMessage: `Validation errors:
-- vMethodId must be the thumbprint of the publicKey,
-- Invalid public key. ECC Private Key 'd' is not allowed`,
+              expectedErrorMessage: `Validation error: Invalid public key. ECC Private Key 'd' is not allowed`,
               accessToken: newUserDidrWriteAccessToken,
             });
 
@@ -1286,9 +1246,7 @@ describe(
                 ).toString("hex")}`,
                 isSecp256k1: false,
               } satisfies AddVerificationMethodParam,
-              expectedErrorMessage: `Validation errors:
-- vMethodId must be the thumbprint of the publicKey,
-- Invalid public key. EdDSA Private Key 'd' is not allowed`,
+              expectedErrorMessage: `Validation error: Invalid public key. EdDSA Private Key 'd' is not allowed`,
               accessToken: newUserDidrWriteAccessToken,
             });
 
@@ -1313,9 +1271,7 @@ describe(
                 ).toString("hex")}`,
                 isSecp256k1: false,
               } satisfies AddVerificationMethodParam,
-              expectedErrorMessage: `Validation errors:
-- vMethodId must be the thumbprint of the publicKey,
-- Invalid public key. Private Exponent 'd' is not allowed`,
+              expectedErrorMessage: `Validation error: Invalid public key. Private Exponent 'd' is not allowed`,
               accessToken: newUserDidrWriteAccessToken,
             });
 
@@ -1500,24 +1456,6 @@ describe(
               } satisfies RollVerificationMethodParam,
               expectedErrorMessage:
                 "Validation error: did must be a valid DID v1",
-              accessToken: newUserDidrWriteAccessToken,
-            });
-
-            testSetup.push({
-              params: {
-                from: signer.address,
-                did: newUser.did,
-                vMethodId: "bad-thumbprint",
-                publicKey:
-                  "0x0467ae84170dd193fd47d864caeaa36e995d62cab4a258cb9b7234b8cc6bb8aa5d6f4313b6f819d8334d4262094005700429c0e4e23b1e5427160f23f43c643d12",
-                isSecp256k1: true,
-                notBefore: now,
-                notAfter: now + 3600,
-                oldVMethodId: thumbprint2,
-                duration: 360,
-              } satisfies RollVerificationMethodParam,
-              expectedErrorMessage:
-                "Validation error: vMethodId must be the thumbprint of the publicKey",
               accessToken: newUserDidrWriteAccessToken,
             });
 

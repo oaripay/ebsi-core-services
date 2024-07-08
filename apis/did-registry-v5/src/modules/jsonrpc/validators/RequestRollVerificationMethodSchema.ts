@@ -1,8 +1,4 @@
-import {
-  isVerificationMethodId,
-  isDidV1,
-  isPublicKeyHex,
-} from "@ebsiint-api/shared";
+import { isDidV1, isPublicKeyHex } from "@ebsiint-api/shared";
 import { z } from "zod";
 import {
   BigNumber,
@@ -47,7 +43,7 @@ export const rollVerificationMethodSchema = baseParamSchema.merge(
           }),
       })
       .superRefine(async (val, ctx) => {
-        const { publicKey, vMethodId, isSecp256k1 } = val;
+        const { publicKey, isSecp256k1 } = val;
 
         const publicKeyHexValidation = await isPublicKeyHex(
           publicKey,
@@ -59,23 +55,6 @@ export const rollVerificationMethodSchema = baseParamSchema.merge(
             path: ["publicKey"],
             message: publicKeyHexValidation.error,
             fatal: true,
-          });
-
-          // Don't validate vMethodId if publicKey is invalid
-          return z.NEVER;
-        }
-
-        const vMethodIdValidation = await isVerificationMethodId(
-          vMethodId,
-          isSecp256k1,
-          publicKey,
-        );
-
-        if (!vMethodIdValidation.success) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: ["vMethodId"],
-            message: vMethodIdValidation.error,
           });
         }
 

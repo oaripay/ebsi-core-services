@@ -5,5 +5,4 @@ export * from "./IsDidDocument.js";
 export * from "./IsBaseDocument.js";
 export * from "./IsPublicKeyHex.js";
 export * from "./IsSchemaId.js";
-export * from "./IsVerificationMethodId.js";
 export * from "./IsBase64url.js";

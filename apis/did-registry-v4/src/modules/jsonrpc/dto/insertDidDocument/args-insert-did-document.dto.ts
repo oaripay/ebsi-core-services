@@ -6,12 +6,7 @@ import {
   Equals,
   Matches,
 } from "class-validator";
-import {
-  IsDidV1,
-  IsBaseDocument,
-  IsVerificationMethodId,
-  IsPublicKeyHex,
-} from "@ebsiint-api/shared";
+import { IsDidV1, IsBaseDocument, IsPublicKeyHex } from "@ebsiint-api/shared";
 
 export class ArgsInsertDidDocument {
   @IsDidV1()
@@ -21,7 +16,6 @@ export class ArgsInsertDidDocument {
   baseDocument!: string;
 
   @IsString()
-  @IsVerificationMethodId()
   vMethodId!: string;
 
   @IsHexadecimal()

@@ -1130,25 +1130,6 @@ describe("JsonRpc Module", () => {
             accessToken: newUserDidrInviteAccessToken,
           });
 
-          testSetup.push({
-            params: {
-              from: signer.address,
-              did: newUser.did,
-              baseDocument: JSON.stringify({
-                "@context": newUser.didDocument["@context"],
-              }),
-              vMethodId: "bad-thumbprint",
-              publicKey:
-                "0x0467ae84170dd193fd47d864caeaa36e995d62cab4a258cb9b7234b8cc6bb8aa5d6f4313b6f819d8334d4262094005700429c0e4e23b1e5427160f23f43c643d12",
-              isSecp256k1: true,
-              notBefore: now,
-              notAfter: now + 3600,
-            } satisfies InsertDidDocumentSchema,
-            expectedErrorMessage:
-              "Invalid 'params.0.vMethodId': vMethodId must be the thumbprint of the publicKey",
-            accessToken: newUserDidrInviteAccessToken,
-          });
-
           break;
         }
         case "updateBaseDocument": {
@@ -1531,26 +1512,6 @@ describe("JsonRpc Module", () => {
             } satisfies RollVerificationMethodSchema,
             expectedErrorMessage:
               "Invalid 'params.0.args.did': Unsupported version \"2\"",
-            accessToken: newUserDidrWriteAccessToken,
-          });
-
-          testSetup.push({
-            params: {
-              from: signer.address,
-              args: {
-                did: newUser.did,
-                vMethodId: "bad-thumbprint",
-                publicKey:
-                  "0x0467ae84170dd193fd47d864caeaa36e995d62cab4a258cb9b7234b8cc6bb8aa5d6f4313b6f819d8334d4262094005700429c0e4e23b1e5427160f23f43c643d12",
-                isSecp256k1: true,
-                notBefore: now,
-                notAfter: now + 3600,
-                oldVMethodId: thumbprint2,
-                duration: 360,
-              },
-            } satisfies RollVerificationMethodSchema,
-            expectedErrorMessage:
-              "Invalid 'params.0.args.vMethodId': vMethodId must be the thumbprint of the publicKey",
             accessToken: newUserDidrWriteAccessToken,
           });
 
