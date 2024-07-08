@@ -35,7 +35,7 @@ export interface DidDocument {
 export type DidDocumentResponse = {
   "@context": string | string[];
   id: string;
-  controller: Controller[];
+  controller: string[];
   verificationMethod: VerificationMethod[];
   publicKey: VerificationMethod[];
 } & {

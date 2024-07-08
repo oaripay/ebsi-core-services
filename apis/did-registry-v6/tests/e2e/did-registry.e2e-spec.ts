@@ -199,9 +199,7 @@ describe("DID Registry API v (e2e)", () => {
           did = identifier.did;
           vRelationship = vr;
           vMethodId = (didDocument[vr] as string[])[0]!.split("#")[1]!;
-          if (didDocument.controller[0]?.controller.id) {
-            controller = didDocument.controller[0]?.controller.id;
-          }
+          controller = didDocument.controller[0]!;
           break;
         }
       }

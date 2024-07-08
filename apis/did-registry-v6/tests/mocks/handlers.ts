@@ -296,7 +296,9 @@ export const handlers = [
     }
 
     if (did === did3) {
-      const didInvalidKey = JSON.parse(JSON.stringify(didDocumentData));
+      const didInvalidKey = JSON.parse(
+        JSON.stringify(didDocumentData).replace(new RegExp(did2, "g"), did3),
+      );
       // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       didInvalidKey.didDocument.verificationMethods[0].publicKey =
         "0x7b226372762";

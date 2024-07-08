@@ -15,7 +15,7 @@ query GetDidsByController($controller: String!, $skip: Int!, $pagesize: Int!) {
 }
 
 query GetDidsByVerificationRelationship(
-  $vMethodId: Bytes!
+  $vMethodId: String!
   $vRelationship: String!
   $skip: Int!
   $pagesize: Int!
@@ -35,7 +35,7 @@ query GetDidsByVerificationRelationship(
 
 query GetDidsByControllerAndVerificationRelationshipQuery(
   $controller: String
-  $vMethodId: Bytes
+  $vMethodId: String
   $vRelationship: String
   $skip: Int
   $pagesize: Int
@@ -79,21 +79,11 @@ query GetDidDocumentEvents($did: ID!, $skip: Int, $pagesize: Int) {
 fragment DocumentsFields on DidDocument {
   baseDocument
   id
-  isSecp256k1
-  notBefore
-  notAfter
-  publicKey
-  vMethodId
 }
 
 fragment DocumentFields on DidDocument {
-  baseDocument
   id
-  isSecp256k1
-  notBefore
-  notAfter
-  publicKey
-  vMethodId
+  baseDocument
   controllers {
     id
     controller {
@@ -122,11 +112,6 @@ fragment DocumentFields on DidDocument {
 fragment DocumentFieldsByTimestamp on DidDocument {
   baseDocument
   id
-  isSecp256k1
-  notBefore
-  notAfter
-  publicKey
-  vMethodId
   controllers {
     id
     controller {

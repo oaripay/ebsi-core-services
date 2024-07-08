@@ -295,11 +295,34 @@ export default class IdentifiersService {
       });
     }
 
+    const controller = document.didDocument.controllers
+      .filter((c) => c.status === "Active")
+      .map((c) => c.controller.id);
+
+    const verificationRelationships: Record<string, string[]> = {};
+    const validVerificationMethodIds: string[] = [];
+    document.didDocument.verificationRelationships.forEach((vRelationship) => {
+      const vMethodId = `${did}#${vRelationship.vMethodId}`;
+      if (
+        !document.didDocument?.verificationMethods.find(
+          (v) => v.id === vMethodId && v.status === "Active",
+        )
+      )
+        return;
+      if (!verificationRelationships[vRelationship.name]) {
+        verificationRelationships[vRelationship.name] = [];
+      }
+
+      verificationRelationships[vRelationship.name]!.push(vMethodId);
+      validVerificationMethodIds.push(vMethodId);
+    });
+
     let verificationMethod: Record<string, unknown>[];
     try {
-      verificationMethod = document.didDocument.verificationMethods.map(
-        (vMethod, i) => ({
-          id: `${did}#${document.didDocument?.verificationMethods[i]?.id}`,
+      verificationMethod = document.didDocument.verificationMethods
+        .filter((vMethod) => validVerificationMethodIds.includes(vMethod.id))
+        .map((vMethod) => ({
+          id: vMethod.id,
           type: "JsonWebKey2020",
           controller: did,
           publicKeyJwk: vMethod.isSecp256k1
@@ -310,8 +333,7 @@ export default class IdentifiersService {
                   "hex",
                 ).toString(),
               ) as JWK),
-        }),
-      );
+        }));
     } catch (error) {
       throw new BadRequestError(BadRequestError.defaultTitle, {
         detail: `Identifier ${did} contains an invalid public key in a verification method. ${
@@ -320,20 +342,10 @@ export default class IdentifiersService {
       });
     }
 
-    const verificationRelationships: Record<string, string[]> = {};
-    document.didDocument.verificationRelationships.forEach((vRelationship) => {
-      if (!verificationRelationships[vRelationship.name]) {
-        verificationRelationships[vRelationship.name] = [];
-      }
-      verificationRelationships[vRelationship.name]!.push(
-        `${did}#${vRelationship.vMethodId}`,
-      );
-    });
-
     return {
-      ...baseDocument,
       id: did,
-      controller: document.didDocument.controllers,
+      ...baseDocument,
+      controller,
       verificationMethod,
       ...verificationRelationships,
     } as Record<string, unknown>;
