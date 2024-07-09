@@ -14,6 +14,16 @@
       "address": "0xD4fB4CE89FaD3F3576A432Db7b90106E3fAc7b99",
       "txHash": "0xfcb762a53e8b879f3f4ce2a5be2fd0aee4aed42b0f21e96497a4323833c10f9a",
       "kind": "uups"
+    },
+    {
+      "address": "0x4BC131af96e806482ae035d2bCd23D2000D8591f",
+      "txHash": "0x5effa428776b3fd151bb72041c4a3bbadb44b2ac634317e2df436ba46899df9f",
+      "kind": "uups"
+    },
+    {
+      "address": "0x4962b4Dbe26EfC3c313677C47a756205C7464C5b",
+      "txHash": "0x790836ab167719a0c20ba95ce860d151894b13f025bc0ad5fdc779897b6062b0",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -2013,6 +2023,454 @@
           },
           "t_bytes_storage": {
             "label": "bytes"
+          }
+        },
+        "namespaces": {}
+      }
+    },
+    "d095bd936bacf0f492b69e5402562e2c56b74c40db18eb6cb26fc14159609060": {
+      "address": "0x73cFc34452d01cAd27d96dDCf28150eca267F727",
+      "txHash": "0x290393ab32c8289b0a355aa8468f422b1e18eed9f93c078a9b79f50ebad2c5ce",
+      "layout": {
+        "solcVersion": "0.8.12",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:68"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:40"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC165Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:41"
+          },
+          {
+            "label": "_roles",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)1755_storage)",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:57"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:260"
+          },
+          {
+            "label": "trustedPoliciesRegistry",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_contract(IPolicyRegistry)1709",
+            "contract": "TrustedIssuersRegistry",
+            "src": "contracts/trusted-issuers-registry-v4/tir/TrustedIssuersRegistry.sol:28"
+          },
+          {
+            "label": "didRegistry",
+            "offset": 0,
+            "slot": "152",
+            "type": "t_contract(IDidRegistry)1654",
+            "contract": "TrustedIssuersRegistry",
+            "src": "contracts/trusted-issuers-registry-v4/tir/TrustedIssuersRegistry.sol:29"
+          },
+          {
+            "label": "issuerExist",
+            "offset": 0,
+            "slot": "153",
+            "type": "t_mapping(t_string_memory_ptr,t_bool)",
+            "contract": "TrustedIssuersRegistry",
+            "src": "contracts/trusted-issuers-registry-v4/tir/TrustedIssuersRegistry.sol:30"
+          },
+          {
+            "label": "attributeMetadata",
+            "offset": 0,
+            "slot": "154",
+            "type": "t_mapping(t_bytes32,t_struct(AttributeMetadata)48539_storage)",
+            "contract": "TrustedIssuersRegistry",
+            "src": "contracts/trusted-issuers-registry-v4/tir/TrustedIssuersRegistry.sol:31"
+          },
+          {
+            "label": "proxyOwner",
+            "offset": 0,
+            "slot": "155",
+            "type": "t_mapping(t_bytes32,t_string_storage)",
+            "contract": "TrustedIssuersRegistry",
+            "src": "contracts/trusted-issuers-registry-v4/tir/TrustedIssuersRegistry.sol:32"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IDidRegistry)1654": {
+            "label": "contract IDidRegistry",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IPolicyRegistry)1709": {
+            "label": "contract IPolicyRegistry",
+            "numberOfBytes": "20"
+          },
+          "t_enum(IssuerType)48527": {
+            "label": "enum TrustedIssuersRegistry.IssuerType",
+            "members": ["Undefined", "RootTAO", "TAO", "TI", "Revoked"],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_string_storage)": {
+            "label": "mapping(bytes32 => string)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(AttributeMetadata)48539_storage)": {
+            "label": "mapping(bytes32 => struct TrustedIssuersRegistry.AttributeMetadata)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)1755_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_string_memory_ptr,t_bool)": {
+            "label": "mapping(string => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_string_memory_ptr": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(AttributeMetadata)48539_storage": {
+            "label": "struct TrustedIssuersRegistry.AttributeMetadata",
+            "members": [
+              {
+                "label": "did",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "attributeId",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "issuerType",
+                "type": "t_enum(IssuerType)48527",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "taoDid",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "rootTaoDid",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(RoleData)1755_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
+          }
+        },
+        "namespaces": {}
+      }
+    },
+    "7786b21433ea77abb3802cdb2509de9ac950a1f0cff82291510c2a7f2e950d19": {
+      "address": "0x4478fD44Ea3d8b78EA15a0520426889A0072c325",
+      "txHash": "0x418cd5dc6f3c0e824da13e8201fe8b1916584b26750025aaa275b765c77bd51b",
+      "layout": {
+        "solcVersion": "0.8.12",
+        "storage": [
+          {
+            "label": "_initialized",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_uint8",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:63",
+            "retypedFrom": "bool"
+          },
+          {
+            "label": "_initializing",
+            "offset": 1,
+            "slot": "0",
+            "type": "t_bool",
+            "contract": "Initializable",
+            "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:68"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ContextUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:40"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "51",
+            "type": "t_array(t_uint256)50_storage",
+            "contract": "ERC165Upgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/utils/introspection/ERC165Upgradeable.sol:41"
+          },
+          {
+            "label": "_roles",
+            "offset": 0,
+            "slot": "101",
+            "type": "t_mapping(t_bytes32,t_struct(RoleData)1755_storage)",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:57"
+          },
+          {
+            "label": "__gap",
+            "offset": 0,
+            "slot": "102",
+            "type": "t_array(t_uint256)49_storage",
+            "contract": "AccessControlUpgradeable",
+            "src": "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol:260"
+          },
+          {
+            "label": "trustedPoliciesRegistry",
+            "offset": 0,
+            "slot": "151",
+            "type": "t_contract(IPolicyRegistry)1709",
+            "contract": "TrustedIssuersRegistry",
+            "src": "contracts/trusted-issuers-registry-v4/tir/TrustedIssuersRegistry.sol:28"
+          },
+          {
+            "label": "didRegistry",
+            "offset": 0,
+            "slot": "152",
+            "type": "t_contract(IDidRegistry)1654",
+            "contract": "TrustedIssuersRegistry",
+            "src": "contracts/trusted-issuers-registry-v4/tir/TrustedIssuersRegistry.sol:29"
+          },
+          {
+            "label": "issuerExist",
+            "offset": 0,
+            "slot": "153",
+            "type": "t_mapping(t_string_memory_ptr,t_bool)",
+            "contract": "TrustedIssuersRegistry",
+            "src": "contracts/trusted-issuers-registry-v4/tir/TrustedIssuersRegistry.sol:30"
+          },
+          {
+            "label": "attributeMetadata",
+            "offset": 0,
+            "slot": "154",
+            "type": "t_mapping(t_bytes32,t_struct(AttributeMetadata)48539_storage)",
+            "contract": "TrustedIssuersRegistry",
+            "src": "contracts/trusted-issuers-registry-v4/tir/TrustedIssuersRegistry.sol:31"
+          },
+          {
+            "label": "proxyOwner",
+            "offset": 0,
+            "slot": "155",
+            "type": "t_mapping(t_bytes32,t_string_storage)",
+            "contract": "TrustedIssuersRegistry",
+            "src": "contracts/trusted-issuers-registry-v4/tir/TrustedIssuersRegistry.sol:32"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]",
+            "numberOfBytes": "1568"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]",
+            "numberOfBytes": "1600"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_contract(IDidRegistry)1654": {
+            "label": "contract IDidRegistry",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IPolicyRegistry)1709": {
+            "label": "contract IPolicyRegistry",
+            "numberOfBytes": "20"
+          },
+          "t_enum(IssuerType)48527": {
+            "label": "enum TrustedIssuersRegistry.IssuerType",
+            "members": ["Undefined", "RootTAO", "TAO", "TI", "Revoked"],
+            "numberOfBytes": "1"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_string_storage)": {
+            "label": "mapping(bytes32 => string)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(AttributeMetadata)48539_storage)": {
+            "label": "mapping(bytes32 => struct TrustedIssuersRegistry.AttributeMetadata)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_struct(RoleData)1755_storage)": {
+            "label": "mapping(bytes32 => struct AccessControlUpgradeable.RoleData)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_string_memory_ptr,t_bool)": {
+            "label": "mapping(string => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_string_memory_ptr": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          },
+          "t_struct(AttributeMetadata)48539_storage": {
+            "label": "struct TrustedIssuersRegistry.AttributeMetadata",
+            "members": [
+              {
+                "label": "did",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "attributeId",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "issuerType",
+                "type": "t_enum(IssuerType)48527",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "taoDid",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "rootTaoDid",
+                "type": "t_string_storage",
+                "offset": 0,
+                "slot": "4"
+              }
+            ],
+            "numberOfBytes": "160"
+          },
+          "t_struct(RoleData)1755_storage": {
+            "label": "struct AccessControlUpgradeable.RoleData",
+            "members": [
+              {
+                "label": "members",
+                "type": "t_mapping(t_address,t_bool)",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "adminRole",
+                "type": "t_bytes32",
+                "offset": 0,
+                "slot": "1"
+              }
+            ],
+            "numberOfBytes": "64"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint8": {
+            "label": "uint8",
+            "numberOfBytes": "1"
           }
         },
         "namespaces": {}

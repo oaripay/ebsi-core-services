@@ -313,6 +313,23 @@ pipeline {
                 }
             }
         }
+        stage('Trusted-issuers-registry-Api-v6') {
+            when {
+                expression { params.api == 'all' || params.api.contains('trusted-issuers-registry-api-v6') }
+            }
+            steps {
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    sh '''
+                        source $NVM_DIR/nvm.sh > /dev/null 2>&1
+                        nvm use > /dev/null 2>&1
+                        yarn nx test:ci @ebsiint-api/trusted-issuers-registry-api-v6
+                    '''
+                }
+                script {
+                    sh 'rm ${WORKSPACE}/apis/trusted-issuers-registry-v6/.scannerwork/report-task.txt'
+                }
+            }
+        }
         stage('Trusted-policies-registry-Api') {
             when {
                 expression { params.api == 'all' || params.api.contains('trusted-policies-registry-api') }
@@ -347,6 +364,23 @@ pipeline {
                 }
             }
         }
+        stage('Trusted-policies-registry-Api-v4') {
+            when {
+                expression { params.api == 'all' || params.api.contains('trusted-policies-registry-api-v4') }
+            }
+            steps {
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    sh '''
+                        source $NVM_DIR/nvm.sh > /dev/null 2>&1
+                        nvm use > /dev/null 2>&1
+                        yarn nx test:ci @ebsiint-api/trusted-policies-registry-api-v4
+                    '''
+                }
+                script {
+                    sh 'rm ${WORKSPACE}/apis/trusted-policies-registry-v4/.scannerwork/report-task.txt'
+                }
+            }
+        }
         stage('Trusted-schemas-registry-Api') {
             when {
                 expression { params.api == 'all' || params.api.contains('trusted-schemas-registry-api') }
@@ -378,6 +412,23 @@ pipeline {
                 }
                 script {
                     sh 'rm ${WORKSPACE}/apis/trusted-schemas-registry-v3/.scannerwork/report-task.txt'
+                }
+            }
+        }
+        stage('Trusted-schemas-registry-Api-v4') {
+            when {
+                expression { params.api == 'all' || params.api.contains('trusted-schemas-registry-api-v4') }
+            }
+            steps {
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    sh '''
+                        source $NVM_DIR/nvm.sh > /dev/null 2>&1
+                        nvm use > /dev/null 2>&1
+                        yarn nx test:ci @ebsiint-api/trusted-schemas-registry-api-v4
+                    '''
+                }
+                script {
+                    sh 'rm ${WORKSPACE}/apis/trusted-schemas-registry-v4/.scannerwork/report-task.txt'
                 }
             }
         }

@@ -205,6 +205,12 @@ Deploy new TrustedSchemaRegistryV3
 yarn hardhat --network <test|pilot|prod|conformance> trustedSchemaRegistryV3 --upgrader <address of admin> --tpr <address of tpr>
 ```
 
+Deploy new TrustedIssuersRegistryV4
+
+```
+yarn hardhat --network <test|pilot|prod|conformance> trustedIssuersRegistryV4 --upgrader <address of admin> --tpr <address of tpr> --did <address of did registry>
+```
+
 # Hardhat console
 
 Hardhat comes built-in with an interactive JavaScript console. You can use it by running yarn hardhat console. Anything that has been injected into the Hardhat Runtime Environment will be available in the global scope.

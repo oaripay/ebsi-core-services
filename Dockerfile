@@ -29,6 +29,7 @@ COPY ./apis/trusted-apps-registry-v4/package.json ./apis/trusted-apps-registry-v
 COPY ./apis/trusted-issuers-registry/package.json ./apis/trusted-issuers-registry/
 COPY ./apis/trusted-issuers-registry-v4/package.json ./apis/trusted-issuers-registry-v4/
 COPY ./apis/trusted-issuers-registry-v5/package.json ./apis/trusted-issuers-registry-v5/
+COPY ./apis/trusted-issuers-registry-v6/package.json ./apis/trusted-issuers-registry-v6/
 COPY ./apis/trusted-policies-registry/package.json ./apis/trusted-policies-registry/
 COPY ./apis/trusted-policies-registry-v3/package.json ./apis/trusted-policies-registry-v3/
 COPY ./apis/trusted-policies-registry-v4/package.json ./apis/trusted-policies-registry-v4/
@@ -48,6 +49,7 @@ COPY ./contracts/trusted-apps-registry/package.json ./contracts/trusted-apps-reg
 COPY ./contracts/trusted-apps-registry-v3/package.json ./contracts/trusted-apps-registry-v3/
 COPY ./contracts/trusted-issuers-registry/package.json ./contracts/trusted-issuers-registry/
 COPY ./contracts/trusted-issuers-registry-v3/package.json ./contracts/trusted-issuers-registry-v3/
+COPY ./contracts/trusted-issuers-registry-v4/package.json ./contracts/trusted-issuers-registry-v4/
 COPY ./contracts/trusted-policies-registry/package.json ./contracts/trusted-policies-registry/
 COPY ./contracts/trusted-policies-registry-v2/package.json ./contracts/trusted-policies-registry-v2/
 COPY ./contracts/trusted-policies-registry-v3/package.json ./contracts/trusted-policies-registry-v3/

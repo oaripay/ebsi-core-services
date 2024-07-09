@@ -1,0 +1,43 @@
+schema {
+  query: Query
+}
+
+input ID_filter {
+  id: String!
+}
+
+type Issuer {
+  id: String!
+  attributes(first: Int = 100, skip: Int = 0, where: ID_filter): [Attribute!]!
+  proxies(first: Int = 100, skip: Int = 0, where: ID_filter): [Proxy!]!
+}
+
+type Attribute {
+  id: String!
+  revisions(first: Int = 100, skip: Int = 0, where: ID_filter): [Revision!]!
+  lastRevision: Revision!
+}
+
+type Revision {
+  id: String!
+  data: String!
+  issuerType: String!
+  tao: String!
+  rootTao: String!
+}
+
+type Proxy {
+  id: String!
+  data: String!
+}
+
+type Query {
+  issuers(skip: Int = 0, first: Int = 100): [Issuer!]!
+  issuer(id: String!): Issuer!
+  attributes(skip: Int = 0, first: Int = 100): [Attribute!]!
+  attribute(id: String!): Attribute
+  revisions(skip: Int = 0, first: Int = 100): [Revision!]!
+  revision(id: String!): Revision!
+  proxies(skip: Int = 0, first: Int = 100): [Proxy!]!
+  proxy(id: String!): Proxy!
+}

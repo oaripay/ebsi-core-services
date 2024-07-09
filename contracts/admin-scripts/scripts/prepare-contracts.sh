@@ -48,6 +48,9 @@ cp -r ${SCRIPT_DIR}/../../trusted-issuers-registry/contracts ${SCRIPT_DIR}/../co
 echo Copy the trusted-issuers-registry-v3
 cp -r ${SCRIPT_DIR}/../../trusted-issuers-registry-v3/contracts ${SCRIPT_DIR}/../contracts/trusted-issuers-registry-v3
 
+echo Copy the trusted-issuers-registry-v4
+cp -r ${SCRIPT_DIR}/../../trusted-issuers-registry-v4/contracts ${SCRIPT_DIR}/../contracts/trusted-issuers-registry-v4
+
 echo Copy the trusted-policies-registry
 cp -r ${SCRIPT_DIR}/../../trusted-policies-registry/contracts ${SCRIPT_DIR}/../contracts/trusted-policies-registry
 

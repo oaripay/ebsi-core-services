@@ -1,0 +1,9 @@
+# .graphclientrc.yml
+sources:
+  - name: TrustedIssuersRegistry
+    handler:
+      graphql:
+        endpoint: "{context.myCustomEndpoint}"
+        source: "./schema.graphql"
+documents:
+  - ./src/modules/issuers/queries/queries.graphql
