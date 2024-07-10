@@ -14,6 +14,7 @@ COPY yarn.lock package.json ./
 COPY ./apis/authorisation/package.json ./apis/authorisation/
 COPY ./apis/authorisation-v3/package.json ./apis/authorisation-v3/
 COPY ./apis/authorisation-v4/package.json ./apis/authorisation-v4/
+COPY ./apis/authorisation-v5/package.json ./apis/authorisation-v5/
 COPY ./apis/did-registry/package.json ./apis/did-registry/
 COPY ./apis/did-registry-v4/package.json ./apis/did-registry-v4/
 COPY ./apis/did-registry-v5/package.json ./apis/did-registry-v5/

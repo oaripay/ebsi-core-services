@@ -1,0 +1,53 @@
+import { ConfigService } from "@nestjs/config";
+import { TestingModule } from "@nestjs/testing";
+import { FastifyAdapter } from "@nestjs/platform-fastify";
+import type { NestFastifyApplication } from "@nestjs/platform-fastify";
+import { ValidationPipe } from "@nestjs/common";
+import { fastifyHelmet } from "@fastify/helmet";
+import { fastifyFormbody } from "@fastify/formbody";
+import qs from "qs";
+import type { ApiConfig } from "../../src/config/configuration.js";
+import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
+
+/**
+ * Configure Nest Fastify app with all the parsers, filters, and validation pipes.
+ * /!\ Must be aligned with src/main.ts.
+ */
+export async function configureApp(
+  moduleFixture: TestingModule,
+  configService: ConfigService<ApiConfig, true>,
+) {
+  const fastifyAdapter = new FastifyAdapter();
+  fastifyAdapter.enableCors({ methods: "*" });
+
+  // Register "application/x-www-form-urlencoded" parser
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-expect-error
+  await fastifyAdapter.register(fastifyFormbody, {
+    parser: (str: string) =>
+      qs.parse(str, {
+        // Parse up to 50 children deep
+        depth: 50,
+        // Parse up to 1000 parameters
+        parameterLimit: 1000,
+      }),
+  });
+
+  const app = moduleFixture.createNestApplication<NestFastifyApplication>(
+    fastifyAdapter,
+    { bodyParser: false },
+  );
+
+  app.enableShutdownHooks();
+
+  await app.register(fastifyHelmet);
+
+  app.useGlobalFilters(new AllExceptionsFilter(configService));
+  app.useGlobalPipes(
+    new ValidationPipe({ transform: true, stopAtFirstError: true }),
+  );
+
+  return app;
+}
+
+export default configureApp;
