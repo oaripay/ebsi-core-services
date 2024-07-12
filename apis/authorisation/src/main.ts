@@ -6,17 +6,18 @@ import {
 import { ConfigService } from "@nestjs/config";
 import { ValidationPipe } from "@nestjs/common";
 import { fastifyHelmet } from "@fastify/helmet";
-import { setupInterceptors } from "@ebsiint-api/shared";
+import { setupInterceptors, frameworkErrors } from "@ebsiint-api/shared";
 import { AppModule } from "./app.module.js";
 import { AllExceptionsFilter } from "./filters/http-exception.filter.js";
 import { createLogger, consoleTransport } from "./logger/logger.js";
 import type { ApiConfig } from "./config/configuration.js";
 
 async function bootstrap(): Promise<void> {
-  const fastifyAdapter = new FastifyAdapter();
-  fastifyAdapter.enableCors({ methods: "*" });
-
   const logger = createLogger();
+  const fastifyAdapter = new FastifyAdapter({
+    frameworkErrors: frameworkErrors(logger),
+  });
+  fastifyAdapter.enableCors({ methods: "*" });
 
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,

@@ -11,9 +11,11 @@ import type { RawServerDefault } from "fastify";
 import { ethers } from "ethers";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
+import { frameworkErrors } from "@ebsiint-api/shared";
 import { AppModule } from "./app.module.js";
 import { AllExceptionsFilter } from "./filters/http-exception.filter.js";
 import { DEPENDENCIES, type ApiConfig } from "./config/configuration.js";
+import { createLogger } from "./logger/logger.js";
 
 interface ResponseHeaders {
   "ebsi-image-tag"?: string;
@@ -52,9 +54,11 @@ describe("App Module", () => {
       imports: [AppModule],
     }).compile();
 
-    app = moduleFixture.createNestApplication<NestFastifyApplication>(
-      new FastifyAdapter(),
-    );
+    const logger = createLogger();
+    const adapter = new FastifyAdapter({
+      frameworkErrors: frameworkErrors(logger),
+    });
+    app = moduleFixture.createNestApplication<NestFastifyApplication>(adapter);
 
     configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
     app.useGlobalFilters(new AllExceptionsFilter(configService));
@@ -106,6 +110,18 @@ describe("App Module", () => {
       const headers = response.header as ResponseHeaders;
       expect(headers).toHaveProperty("ebsi-image-tag");
       expect(headers["ebsi-image-tag"]).toBe(dockerTag);
+    });
+
+    it("should not display the framework in the error message", async () => {
+      expect.assertions(2);
+      const response = await request(server).get("/%91").send();
+      expect(response.body).toStrictEqual({
+        title: "Bad Request",
+        detail: "/%91 is not a valid url component",
+        status: 400,
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
     });
   });
 

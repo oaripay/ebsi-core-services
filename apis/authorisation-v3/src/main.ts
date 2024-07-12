@@ -7,7 +7,7 @@ import { ConfigService } from "@nestjs/config";
 import { ValidationPipe } from "@nestjs/common";
 import { fastifyHelmet } from "@fastify/helmet";
 import { fastifyFormbody } from "@fastify/formbody";
-import { setupInterceptors } from "@ebsiint-api/shared";
+import { setupInterceptors, frameworkErrors } from "@ebsiint-api/shared";
 import qs from "qs";
 import { AppModule } from "./app.module.js";
 import { AllExceptionsFilter } from "./filters/http-exception.filter.js";
@@ -15,7 +15,10 @@ import { createLogger, consoleTransport } from "./logger/logger.js";
 import type { ApiConfig } from "./config/configuration.js";
 
 async function bootstrap(): Promise<void> {
-  const fastifyAdapter = new FastifyAdapter();
+  const logger = createLogger();
+  const fastifyAdapter = new FastifyAdapter({
+    frameworkErrors: frameworkErrors(logger),
+  });
   fastifyAdapter.enableCors({ methods: "*" });
 
   // Register "application/x-www-form-urlencoded" parser
@@ -30,8 +33,6 @@ async function bootstrap(): Promise<void> {
         parameterLimit: 1000,
       }),
   });
-
-  const logger = createLogger();
 
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,

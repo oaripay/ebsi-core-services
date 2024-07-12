@@ -13,3 +13,4 @@ export * from "./strings.utils.js";
 export * from "./parseRevertReason.js";
 export * from "./waitToBeMined.js";
 export * from "./extractNamedAttributes.js";
+export * from "./fastifyFrameworkErrors.js";
