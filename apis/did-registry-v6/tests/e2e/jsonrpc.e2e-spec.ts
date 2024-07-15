@@ -123,13 +123,13 @@ describeWriteOps()("DID Registry API v6 - JSON-RPC (e2e)", () => {
       // Create new user
       const userDetails = await createUser();
 
-      const authApiV4ES256PrivateKey = configService.get<string>(
-        "testAuthApiV4ES256PrivateKey",
+      const authApiV5ES256PrivateKey = configService.get<string>(
+        "testAuthApiV5ES256PrivateKey",
       );
 
       const userAccessToken = await getDidrInviteAccessToken(
         userDetails.did,
-        authApiV4ES256PrivateKey,
+        authApiV5ES256PrivateKey,
       );
 
       user = {
@@ -231,6 +231,11 @@ describeWriteOps()("DID Registry API v6 - JSON-RPC (e2e)", () => {
           responseSend.body.result as string,
         );
         expect(receipt.status).toBe(1);
+
+        // some seconds to update the subgraph
+        await new Promise((resolve) => {
+          setTimeout(resolve, 6000);
+        });
       });
     });
   });

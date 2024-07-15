@@ -19,7 +19,7 @@ export interface ApiConfig {
   requestTimeout: number;
   axiosRetryDelay: number;
   trustedHostnames: string[];
-  testAuthApiV4ES256PrivateKey: string;
+  testAuthApiV5ES256PrivateKey: string;
   testSpecificNodeDomain: string | undefined;
   dockerContainerTag: string;
   blockscout: {
@@ -28,11 +28,11 @@ export interface ApiConfig {
   };
 }
 
-const AUTH_API_PATH = "/authorisation/v4";
+const AUTH_API_PATH = "/authorisation/v5";
 const LEDGER_API_PATH = "/ledger/v4";
 
 export const DEPENDENCIES = {
-  "Authorisation API v4": AUTH_API_PATH,
+  "Authorisation API v5": AUTH_API_PATH,
   "Ledger API v4": LEDGER_API_PATH,
 } as const;
 
@@ -60,7 +60,7 @@ export const loadConfig = (): ApiConfig => {
     trustedHostnames: (process.env.TRUSTED_HOSTNAMES || "")
       .split(",")
       .filter(Boolean),
-    testAuthApiV4ES256PrivateKey:
+    testAuthApiV5ES256PrivateKey:
       process.env.TEST_AUTH_API_V4_ES256_PRIVATE_KEY || "",
     testSpecificNodeDomain: process.env.TEST_SPECIFIC_NODE_DOMAIN,
     dockerContainerTag: process.env.DOCKER_TAG || "",
