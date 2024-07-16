@@ -112,10 +112,10 @@ describe("TPR API v4 - JSON RPC (e2e)", () => {
         network: configService.get("network", { infer: true }),
         hosts: [ebsiAuthority, ...trustedHostnames],
         services: {
-          "did-registry": "v5",
-          "trusted-issuers-registry": "v5",
-          "trusted-policies-registry": "v3",
-          "trusted-schemas-registry": "v3",
+          "did-registry": "v6",
+          "trusted-issuers-registry": "v6",
+          "trusted-policies-registry": "v4",
+          "trusted-schemas-registry": "v4",
         },
       } satisfies EbsiEnvConfiguration;
 
