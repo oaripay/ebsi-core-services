@@ -109,10 +109,10 @@ describe("TSR API v4 - Schemas (e2e)", () => {
         network: configService.get("network", { infer: true }),
         hosts: [ebsiAuthority, ...trustedHostnames],
         services: {
-          "did-registry": "v5",
-          "trusted-issuers-registry": "v5",
-          "trusted-policies-registry": "v3",
-          "trusted-schemas-registry": "v3",
+          "did-registry": "v6",
+          "trusted-issuers-registry": "v6",
+          "trusted-policies-registry": "v4",
+          "trusted-schemas-registry": "v4",
         },
       } satisfies EbsiEnvConfiguration;
 
@@ -150,7 +150,7 @@ describe("TSR API v4 - Schemas (e2e)", () => {
 
     ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
     rawSchema = createVerifiableAuthorisationSchema(
-      configService.get<string>("testVaSchemaUrl").replace("/v4", "/v3"),
+      configService.get<string>("testVaSchemaUrl"),
     );
 
     blockscout = configService.get<{
@@ -358,6 +358,13 @@ describe("TSR API v4 - Schemas (e2e)", () => {
 
   describe("GET /schemas/{schemaId}", () => {
     describeWriteOps()("Test requiring actual data", () => {
+      beforeAll(async () => {
+        // wait some seconds to update the subgraph
+        await new Promise((r) => {
+          setTimeout(r, 6000);
+        });
+      });
+
       it("should return a specific schema identified by an hexadecimal schema ID", async () => {
         expect.assertions(3);
 
