@@ -21,13 +21,8 @@ import { setupServer } from "msw/node";
 import { frameworkErrors } from "@ebsiint-api/shared";
 import { AppModule } from "./app.module.js";
 import { AllExceptionsFilter } from "./filters/http-exception.filter.js";
-import { DEPENDENCIES, type ApiConfig } from "./config/configuration.js";
+import type { ApiConfig } from "./config/configuration.js";
 import { createLogger } from "./logger/logger.js";
-
-interface ResponseHeaders {
-  "ebsi-image-tag": string;
-  [key: string]: string;
-}
 
 describe("App Module", () => {
   const mockServer = setupServer();
@@ -76,7 +71,7 @@ describe("App Module", () => {
       const configService =
         app.get<ConfigService<ApiConfig, true>>(ConfigService);
 
-      app.useGlobalFilters(new AllExceptionsFilter(configService));
+      app.useGlobalFilters(new AllExceptionsFilter());
       app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
       const domain = configService.get<string>("domain");
@@ -113,7 +108,7 @@ describe("App Module", () => {
       const configService =
         app.get<ConfigService<ApiConfig, true>>(ConfigService);
 
-      app.useGlobalFilters(new AllExceptionsFilter(configService));
+      app.useGlobalFilters(new AllExceptionsFilter());
       app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
       const domain = configService.get<string>("domain");
@@ -157,7 +152,7 @@ describe("App Module", () => {
       const configService =
         app.get<ConfigService<ApiConfig, true>>(ConfigService);
 
-      app.useGlobalFilters(new AllExceptionsFilter(configService));
+      app.useGlobalFilters(new AllExceptionsFilter());
       app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
       const domain = configService.get<string>("domain");
@@ -196,11 +191,8 @@ describe("App Module", () => {
     let app: NestFastifyApplication;
     let server: RawServerDefault;
     let configService: ConfigService<ApiConfig, true>;
-    const dockerTag = "version";
 
     beforeAll(async () => {
-      process.env.DOCKER_TAG = dockerTag;
-
       // Start server
       const moduleFixture: TestingModule = await Test.createTestingModule({
         imports: [AppModule],
@@ -217,7 +209,7 @@ describe("App Module", () => {
       Logger.overrideLogger(false);
 
       configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
-      app.useGlobalFilters(new AllExceptionsFilter(configService));
+      app.useGlobalFilters(new AllExceptionsFilter());
       app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
       const domain = configService.get<string>("domain");
@@ -267,14 +259,6 @@ describe("App Module", () => {
         expect(response.status).toBe(404);
       });
 
-      it("should provide EBSI image version/tag in headers", async () => {
-        expect.assertions(2);
-        const response = await request(server).get("/heal").send();
-        const headers = response.header as ResponseHeaders;
-        expect(headers).toHaveProperty("ebsi-image-tag");
-        expect(headers["ebsi-image-tag"]).toBe(dockerTag);
-      });
-
       it("should not display the framework in the error message", async () => {
         expect.assertions(2);
         const response = await request(server).get("/%91").send();
@@ -285,34 +269,6 @@ describe("App Module", () => {
           type: "about:blank",
         });
         expect(response.status).toBe(400);
-      });
-    });
-
-    describe("GET /health", () => {
-      it("should provide EBSI image version/tag in headers", async () => {
-        expect.assertions(2);
-
-        const localOrigin =
-          configService.get<string>("localOrigin") ||
-          configService.get<string>("domain");
-
-        // All the dependencies return a 200
-        const dependencies = Object.keys(
-          DEPENDENCIES,
-        ) as (keyof typeof DEPENDENCIES)[];
-
-        mockServer.use(
-          ...dependencies.map((dependency) =>
-            http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
-              HttpResponse.json({}),
-            ),
-          ),
-        );
-
-        const response = await request(server).get("/health").send();
-        const headers = response.header as ResponseHeaders;
-        expect(headers).toHaveProperty("ebsi-image-tag");
-        expect(headers["ebsi-image-tag"]).toBe(dockerTag);
       });
     });
   });

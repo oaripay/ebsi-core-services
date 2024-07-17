@@ -29,7 +29,7 @@ describe("Ledger API v4 - POST /ledger/v4/blockchains/besu", () => {
     const configService =
       moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
 
-    app.useGlobalFilters(new AllExceptionsFilter(configService));
+    app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe());
 
     Logger.overrideLogger(false);

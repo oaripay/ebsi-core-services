@@ -62,7 +62,7 @@ async function bootstrap(): Promise<void> {
   await app.register(fastifyHelmet);
 
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
-  app.useGlobalFilters(new AllExceptionsFilter(configService));
+  app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
   // Setup axios interceptors

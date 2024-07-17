@@ -57,7 +57,7 @@ describe("HealthController", () => {
     );
     configService =
       moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
-    app.useGlobalFilters(new AllExceptionsFilter(configService));
+    app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe());
 
     await app.init();

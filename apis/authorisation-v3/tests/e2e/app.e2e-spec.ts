@@ -26,7 +26,7 @@ describe("Authorisation API v3 - Generic tests (e2e)", () => {
     const configService =
       moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
 
-    app = await configureApp(moduleFixture, configService);
+    app = await configureApp(moduleFixture);
 
     // Turn off logger
     Logger.overrideLogger(false);

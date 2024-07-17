@@ -31,7 +31,7 @@ describe("Timestamp API v3 - Generic tests (e2e)", () => {
     );
     const configService =
       moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
-    app.useGlobalFilters(new AllExceptionsFilter(configService));
+    app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe());
 
     Logger.overrideLogger(false);

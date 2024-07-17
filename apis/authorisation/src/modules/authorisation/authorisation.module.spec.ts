@@ -125,7 +125,7 @@ describe("Authorisation Module", () => {
       moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
     apiPrivateKey = configService.get("apiPrivateKey");
 
-    app.useGlobalFilters(new AllExceptionsFilter(configService));
+    app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     await app.init();

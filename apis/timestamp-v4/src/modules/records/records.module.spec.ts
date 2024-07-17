@@ -2,7 +2,6 @@ import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
 import request from "supertest";
 import { Test, type TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import crypto from "node:crypto";
 import {
   FastifyAdapter,
@@ -16,7 +15,6 @@ import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { setupTestEnv } from "../../../tests/utils/timestamp.js";
 import { RecordLink } from "./records.interface.js";
 import { LedgerService } from "../ledger/ledger.service.js";
-import type { ApiConfig } from "../../config/configuration.js";
 
 const RECORDS_TOTAL = 3;
 
@@ -27,7 +25,6 @@ describe("Records Module", () => {
   let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
   let ledgerService: LedgerService;
   let sender: string;
-  let configService: ConfigService<ApiConfig, true>;
 
   beforeAll(async () => {
     // Spin up test blockchain (hardhat)
@@ -53,9 +50,7 @@ describe("Records Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    configService =
-      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
-    app.useGlobalFilters(new AllExceptionsFilter(configService));
+    app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await app.getHttpAdapter().getInstance().ready();

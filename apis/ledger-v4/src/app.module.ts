@@ -4,7 +4,6 @@ import { ApiConfigModule } from "./config/configuration.js";
 import { HealthModule } from "./modules/health/health.module.js";
 import { BesuModule } from "./modules/besu/besu.module.js";
 import { LoggingInterceptor } from "./interceptors/logging.interceptor.js";
-import { VersionInterceptor } from "./interceptors/version.interceptor.js";
 import { OpenApiModule } from "./modules/openapi/openapi.module.js";
 import { AppController } from "./app.controller.js";
 
@@ -15,10 +14,6 @@ import { AppController } from "./app.controller.js";
     {
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor,
-    },
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: VersionInterceptor,
     },
   ],
 })

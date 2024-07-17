@@ -132,7 +132,7 @@ describe.each(["EBSI URI", "URL"] as const)(
       configService =
         moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
 
-      app = await configureApp(moduleFixture, configService);
+      app = await configureApp(moduleFixture);
 
       await app.init();
       await app.getHttpAdapter().getInstance().ready();

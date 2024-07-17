@@ -16,7 +16,6 @@ import * as taskNames from "hardhat/builtin-tasks/task-names.js";
 import request from "supertest";
 import { Test, type TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import type { RawServerDefault } from "fastify";
 import {
   FastifyAdapter,
@@ -25,14 +24,12 @@ import {
 import { BesuModule } from "./besu.module.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { BesuService } from "./besu.service.js";
-import type { ApiConfig } from "../../config/configuration.js";
 
 describe("Besu Module", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault;
   let hardhatServer: JsonRpcServer;
   let besuService: BesuService;
-  let configService: ConfigService<ApiConfig, true>;
   const ganachePort = 8547; // 8546 might already be used for ssh port forwarding
 
   describe.each([
@@ -60,8 +57,7 @@ describe("Besu Module", () => {
       // Turn off logger
       Logger.overrideLogger(false);
 
-      configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
-      app.useGlobalFilters(new AllExceptionsFilter(configService));
+      app.useGlobalFilters(new AllExceptionsFilter());
       app.useGlobalPipes(new ValidationPipe({ transform: true }));
       await app.init();
       await app.getHttpAdapter().getInstance().ready();

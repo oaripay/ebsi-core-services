@@ -9,7 +9,6 @@ import { AuthModule } from "./modules/auth/auth.module.js";
 import { LedgerModule } from "./modules/ledger/ledger.module.js";
 import { HealthModule } from "./modules/health/health.module.js";
 import { LoggingInterceptor } from "./interceptors/logging.interceptor.js";
-import { VersionInterceptor } from "./interceptors/version.interceptor.js";
 import { OpenApiModule } from "./modules/openapi/openapi.module.js";
 
 @Module({
@@ -28,10 +27,6 @@ import { OpenApiModule } from "./modules/openapi/openapi.module.js";
     {
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor,
-    },
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: VersionInterceptor,
     },
   ],
 })

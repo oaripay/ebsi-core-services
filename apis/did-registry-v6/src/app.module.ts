@@ -7,7 +7,6 @@ import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module.js";
 import { AuthModule } from "./modules/auth/auth.module.js";
 import { LedgerModule } from "./modules/ledger/ledger.module.js";
 import { LoggingInterceptor } from "./interceptors/logging.interceptor.js";
-import { VersionInterceptor } from "./interceptors/version.interceptor.js";
 import { OpenApiModule } from "./modules/openapi/openapi.module.js";
 import { AppService } from "./app.service.js";
 import { AppController } from "./app.controller.js";
@@ -27,10 +26,6 @@ import { AppController } from "./app.controller.js";
     {
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor,
-    },
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: VersionInterceptor,
     },
     AppService,
   ],

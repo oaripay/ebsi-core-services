@@ -2,7 +2,6 @@ import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
 import request from "supertest";
 import { Test, type TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
@@ -13,7 +12,6 @@ import { PoliciesModule } from "./policies.module.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { setupTestEnv } from "../../../tests/utils/schemaRegistry.js";
 import { LedgerService } from "../ledger/ledger.service.js";
-import type { ApiConfig } from "../../config/configuration.js";
 
 const POLICIES_TOTAL = 12;
 const POLICIES_REVISIONS_TOTAL = 5;
@@ -23,7 +21,6 @@ describe("Policies Module", () => {
   let server: RawServerDefault;
   let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
   let ledgerService: LedgerService;
-  let configService: ConfigService<ApiConfig, true>;
 
   beforeAll(async () => {
     // Spin up test blockchain (ganache)
@@ -45,10 +42,7 @@ describe("Policies Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    configService =
-      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
-
-    app.useGlobalFilters(new AllExceptionsFilter(configService));
+    app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     await app.init();

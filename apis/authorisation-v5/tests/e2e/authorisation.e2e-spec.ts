@@ -121,7 +121,7 @@ describe("Authorisation  API v5 (e2e)", () => {
     configService =
       moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
 
-    app = await configureApp(moduleFixture, configService);
+    app = await configureApp(moduleFixture);
 
     // Turn off logger
     Logger.overrideLogger(false);

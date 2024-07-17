@@ -37,7 +37,7 @@ describe("TnT API v1 - Generic tests (e2e)", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    app.useGlobalFilters(new AllExceptionsFilter(configService));
+    app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     useContainer(app.select(AppModule), { fallbackOnErrors: true });
 

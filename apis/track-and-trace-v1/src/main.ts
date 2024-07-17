@@ -61,7 +61,7 @@ async function bootstrap(): Promise<void> {
 
   await app.register(fastifyHelmet);
 
-  app.useGlobalFilters(new AllExceptionsFilter(configService));
+  app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
   // Enable DI in IsIssuerProxy validator

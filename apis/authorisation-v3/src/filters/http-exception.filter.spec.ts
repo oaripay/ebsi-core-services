@@ -11,7 +11,6 @@ import type { AxiosError } from "axios";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import { ProblemDetailsError } from "@ebsiint-api/shared";
 import { AllExceptionsFilter } from "./http-exception.filter.js";
-import type { ApiConfig } from "../config/configuration.js";
 import { configureApp } from "../../tests/utils/app.js";
 
 const mockGetResponse = vi.fn().mockImplementation(() => ({
@@ -44,7 +43,6 @@ const mockArgumentsHost: ArgumentsHost = {
 describe("All exception filter tests", () => {
   let app: NestFastifyApplication;
   let service: AllExceptionsFilter;
-  let configService: ConfigService<ApiConfig, true>;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -55,10 +53,7 @@ describe("All exception filter tests", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    configService =
-      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
-
-    app = await configureApp(moduleFixture, configService);
+    app = await configureApp(moduleFixture);
 
     await app.init();
     await app.getHttpAdapter().getInstance().ready();

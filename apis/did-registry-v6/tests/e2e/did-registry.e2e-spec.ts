@@ -44,7 +44,7 @@ describe("DID Registry API v (e2e)", () => {
     configService =
       moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
 
-    app.useGlobalFilters(new AllExceptionsFilter(configService));
+    app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await app.getHttpAdapter().getInstance().ready();

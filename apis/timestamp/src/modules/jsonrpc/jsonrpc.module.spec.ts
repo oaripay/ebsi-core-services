@@ -12,7 +12,6 @@ import axios, { type AxiosError } from "axios";
 import request from "supertest";
 import { Test, type TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import type { RawServerDefault } from "fastify";
 import * as OAuth2Lib from "@cef-ebsi/oauth2-auth";
@@ -49,7 +48,6 @@ import {
   setupTestEnv,
 } from "../../../tests/utils/timestamp.js";
 import { LedgerService } from "../ledger/ledger.service.js";
-import type { ApiConfig } from "../../config/configuration.js";
 
 vi.mock("@cef-ebsi/oauth2-auth", async () => {
   const mod = await vi.importActual<typeof import("@cef-ebsi/oauth2-auth")>(
@@ -104,7 +102,6 @@ const axiosError = (status: number, message: string): AxiosError => ({
 
 describe("JsonRpc Module", () => {
   let app: NestFastifyApplication;
-  let configService: ConfigService<ApiConfig, true>;
   let server: RawServerDefault;
   let timestampContract: Timestamp;
   let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
@@ -201,9 +198,7 @@ describe("JsonRpc Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
-
-    app.useGlobalFilters(new AllExceptionsFilter(configService));
+    app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await app.getHttpAdapter().getInstance().ready();

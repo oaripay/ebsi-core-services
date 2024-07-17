@@ -98,7 +98,7 @@ describe("TPR API v3 - JSON RPC (e2e)", () => {
     configService =
       moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
 
-    app.useGlobalFilters(new AllExceptionsFilter(configService));
+    app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     await app.init();

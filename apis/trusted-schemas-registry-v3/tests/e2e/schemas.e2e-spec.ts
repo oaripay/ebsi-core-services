@@ -93,7 +93,7 @@ describe("TSR API v3 - Schemas (e2e)", () => {
     const configService =
       moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
 
-    app.useGlobalFilters(new AllExceptionsFilter(configService));
+    app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     await app.init();

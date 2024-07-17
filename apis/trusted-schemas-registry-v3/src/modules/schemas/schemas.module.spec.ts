@@ -4,7 +4,6 @@ import request from "supertest";
 import { ethers } from "ethers";
 import { Test, type TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
@@ -15,7 +14,6 @@ import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { setupTestEnv } from "../../../tests/utils/schemaRegistry.js";
 import { LedgerService } from "../ledger/ledger.service.js";
 import { hexToMultibaseBase58Btc } from "./schemas.utils.js";
-import type { ApiConfig } from "../../config/configuration.js";
 
 const SCHEMAS_TOTAL = 3;
 const SCHEMA_REVISIONS_TOTAL = 3;
@@ -26,7 +24,6 @@ describe("Schemas Module", () => {
   let server: RawServerDefault;
   let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
   let ledgerService: LedgerService;
-  let configService: ConfigService<ApiConfig, true>;
 
   beforeAll(async () => {
     // Spin up test blockchain (ganache)
@@ -49,10 +46,7 @@ describe("Schemas Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    configService =
-      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
-
-    app.useGlobalFilters(new AllExceptionsFilter(configService));
+    app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     await app.init();

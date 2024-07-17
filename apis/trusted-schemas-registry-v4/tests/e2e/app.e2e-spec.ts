@@ -35,7 +35,7 @@ describe("TSR API v4 - Generic tests (e2e)", () => {
     const configService =
       moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
 
-    app.useGlobalFilters(new AllExceptionsFilter(configService));
+    app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     await app.init();

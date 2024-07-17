@@ -48,7 +48,7 @@ describe("Logging interceptor", () => {
     configService =
       moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
 
-    app = await configureApp(moduleFixture, configService);
+    app = await configureApp(moduleFixture);
 
     Logger.overrideLogger(mockedLogger);
 

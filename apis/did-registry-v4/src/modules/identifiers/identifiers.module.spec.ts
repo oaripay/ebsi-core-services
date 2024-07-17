@@ -2,7 +2,6 @@ import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
 import request from "supertest";
 import { Test, type TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
@@ -16,7 +15,6 @@ import { IdentifiersModule } from "./identifiers.module.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { setupTestEnv } from "../../../tests/utils/didRegistry.js";
 import { LedgerService } from "../ledger/ledger.service.js";
-import type { ApiConfig } from "../../config/configuration.js";
 import { createUser, UserDetails } from "../../../tests/utils/data.js";
 
 const DID_DOCUMENTS = 3;
@@ -28,7 +26,6 @@ describe(
     let server: RawServerDefault;
     let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
     let ledgerService: LedgerService;
-    let configService: ConfigService<ApiConfig, true>;
     let users: UserDetails[];
 
     beforeAll(async () => {
@@ -55,9 +52,7 @@ describe(
       // Turn off logger
       Logger.overrideLogger(false);
 
-      configService =
-        moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
-      app.useGlobalFilters(new AllExceptionsFilter(configService));
+      app.useGlobalFilters(new AllExceptionsFilter());
       app.useGlobalPipes(new ValidationPipe({ transform: true }));
       await app.init();
       await app.getHttpAdapter().getInstance().ready();

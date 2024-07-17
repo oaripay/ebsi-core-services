@@ -93,7 +93,7 @@ describe("TIR API v3 - Policies (e2e)", () => {
     configService =
       moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
 
-    app.useGlobalFilters(new AllExceptionsFilter(configService));
+    app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     useContainer(app.select(AppModule), { fallbackOnErrors: true });
 

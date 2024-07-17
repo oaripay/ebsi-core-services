@@ -7,7 +7,6 @@ import {
   BadRequestException,
   ServiceUnavailableException,
 } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import type { FastifyReply } from "fastify";
 import axios from "axios";
 import {
@@ -17,7 +16,6 @@ import {
   NotFoundError,
   BadRequestError,
 } from "@ebsiint-api/shared";
-import type { ApiConfig } from "../config/configuration.js";
 import { OAuth2Error } from "../modules/authorisation/errors/index.js";
 
 function getProblemDetailsError(
@@ -68,20 +66,9 @@ function getProblemDetailsError(
 export class AllExceptionsFilter implements ExceptionFilter {
   private readonly logger = new Logger(AllExceptionsFilter.name);
 
-  private tag: string;
-
-  constructor(configService: ConfigService<ApiConfig, true>) {
-    this.tag = configService.get("dockerContainerTag", { infer: true });
-  }
-
   catch(err: Error, host: ArgumentsHost): FastifyReply {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<FastifyReply>();
-
-    if (this.tag) {
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      response.header("EBSI-Image-Tag", this.tag);
-    }
 
     // Return ServiceUnavailableException (thrown by HealthCheck module) as it is
     if (err instanceof ServiceUnavailableException) {

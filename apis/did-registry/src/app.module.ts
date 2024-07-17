@@ -8,7 +8,6 @@ import { HashAlgorithmsModule } from "./modules/hash-algorithms/hash-algorithms.
 import { IdentifiersModule } from "./modules/identifiers/identifiers.module.js";
 import { AuthModule } from "./modules/auth/auth.module.js";
 import { LoggingInterceptor } from "./interceptors/logging.interceptor.js";
-import { VersionInterceptor } from "./interceptors/version.interceptor.js";
 import { OpenApiModule } from "./modules/openapi/openapi.module.js";
 import { AppService } from "./app.service.js";
 import { AppController } from "./app.controller.js";
@@ -29,10 +28,6 @@ import { AppController } from "./app.controller.js";
     {
       provide: APP_INTERCEPTOR,
       useClass: LoggingInterceptor,
-    },
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: VersionInterceptor,
     },
     AppService,
   ],

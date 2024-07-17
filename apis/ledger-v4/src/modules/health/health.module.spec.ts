@@ -2,7 +2,6 @@ import { describe, beforeAll, afterAll, it, expect } from "vitest";
 import request from "supertest";
 import { Test, type TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import type { RawServerDefault } from "fastify";
 import {
   FastifyAdapter,
@@ -11,12 +10,11 @@ import {
 import { setupServer } from "msw/node";
 import { HealthModule } from "./health.module.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { DEPENDENCIES, type ApiConfig } from "../../config/configuration.js";
+import { DEPENDENCIES } from "../../config/configuration.js";
 
 describe("Health Module", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault;
-  let configService: ConfigService<ApiConfig, true>;
   const dependencies = Object.keys(
     DEPENDENCIES,
   ) as (keyof typeof DEPENDENCIES)[];
@@ -45,8 +43,7 @@ describe("Health Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
-    app.useGlobalFilters(new AllExceptionsFilter(configService));
+    app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await app.getHttpAdapter().getInstance().ready();

@@ -14,7 +14,6 @@ import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { Test, type TestingModule } from "@nestjs/testing";
 import { Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 import type { PresentationSubmission } from "@sphereon/pex-models";
@@ -39,7 +38,6 @@ import type {
   Scope,
   TokenResponse,
 } from "./authorisation.interfaces.js";
-import type { ApiConfig } from "../../config/configuration.js";
 import {
   CUSTOM_SCOPES,
   DIDR_INVITE_PRESENTATION_DEFINITION,
@@ -101,10 +99,7 @@ describe.each(["EBSI URI", "URL"] as const)(
       // Turn off logger
       Logger.overrideLogger(false);
 
-      const configService =
-        moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
-
-      app = await configureApp(moduleFixture, configService);
+      app = await configureApp(moduleFixture);
 
       await app.init();
       await app.getHttpAdapter().getInstance().ready();

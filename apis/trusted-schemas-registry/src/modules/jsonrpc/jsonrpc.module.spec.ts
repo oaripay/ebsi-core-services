@@ -14,7 +14,6 @@ import request from "supertest";
 import crypto from "node:crypto";
 import { Test, type TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import type { RawServerDefault } from "fastify";
 import {
@@ -50,7 +49,6 @@ import {
   createVerifiableAuthorisationSchema,
 } from "../../../tests/utils/data.js";
 import { LedgerService } from "../ledger/ledger.service.js";
-import type { ApiConfig } from "../../config/configuration.js";
 
 interface SupertestJsonRpcResponse {
   status: number;
@@ -97,7 +95,6 @@ describe("JsonRpc Module", () => {
   let userAccessTokenPayload: Record<string, unknown>;
   let defaultSignerSiopAccessToken: string;
   let defaultSignerSiopAccessTokenPayload: Record<string, unknown>;
-  let configService: ConfigService<ApiConfig, true>;
   let isDidControlledByAddressMock: MockInstance;
 
   const adminDid = createDid();
@@ -205,10 +202,7 @@ describe("JsonRpc Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    configService =
-      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
-
-    app.useGlobalFilters(new AllExceptionsFilter(configService));
+    app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     await app.init();

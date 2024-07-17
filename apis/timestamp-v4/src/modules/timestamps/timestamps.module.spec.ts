@@ -2,7 +2,6 @@ import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
 import request from "supertest";
 import { Test, type TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import crypto from "node:crypto";
 import {
   FastifyAdapter,
@@ -17,7 +16,6 @@ import { TimestampLink } from "./timestamps.interface.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { setupTestEnv, insertHash } from "../../../tests/utils/timestamp.js";
 import { LedgerService } from "../ledger/ledger.service.js";
-import type { ApiConfig } from "../../config/configuration.js";
 
 const HASHES_TOTAL = 3;
 
@@ -27,7 +25,6 @@ describe("Timestamps Module", () => {
   let timestampContract: Timestamp;
   let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
   let ledgerService: LedgerService;
-  let configService: ConfigService<ApiConfig, true>;
 
   beforeAll(async () => {
     // Spin up test blockchain (hardhat)
@@ -53,9 +50,7 @@ describe("Timestamps Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    configService =
-      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
-    app.useGlobalFilters(new AllExceptionsFilter(configService));
+    app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
     await app.init();
     await app.getHttpAdapter().getInstance().ready();

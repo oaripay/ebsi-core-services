@@ -222,7 +222,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
       configService =
         moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
 
-      app.useGlobalFilters(new AllExceptionsFilter(configService));
+      app.useGlobalFilters(new AllExceptionsFilter());
       app.useGlobalPipes(new ValidationPipe({ transform: true }));
       useContainer(app.select(AppModule), { fallbackOnErrors: true });
 

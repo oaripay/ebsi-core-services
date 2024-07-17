@@ -15,7 +15,6 @@ import {
 } from "@nestjs/platform-fastify";
 import { ProblemDetailsError } from "@ebsiint-api/shared";
 import { AllExceptionsFilter } from "./http-exception.filter.js";
-import type { ApiConfig } from "../config/configuration.js";
 
 const mockGetResponse = vi.fn().mockImplementation(() => ({
   code: vi.fn().mockImplementation((code: unknown) => ({
@@ -47,7 +46,6 @@ const mockArgumentsHost: ArgumentsHost = {
 describe("All exception filter tests", () => {
   let app: NestFastifyApplication;
   let service: AllExceptionsFilter;
-  let configService: ConfigService<ApiConfig, true>;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -62,9 +60,7 @@ describe("All exception filter tests", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
-
-    app.useGlobalFilters(new AllExceptionsFilter(configService));
+    app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     await app.init();

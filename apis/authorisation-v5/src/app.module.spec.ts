@@ -2,25 +2,15 @@ import { describe, beforeAll, afterAll, it, expect, afterEach } from "vitest";
 import request from "supertest";
 import { Test, type TestingModule } from "@nestjs/testing";
 import { Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
-import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { AppModule } from "./app.module.js";
-import { DEPENDENCIES, type ApiConfig } from "./config/configuration.js";
 import { configureApp } from "../tests/utils/app.js";
-
-interface ResponseHeaders {
-  "ebsi-image-tag": string;
-  [key: string]: string;
-}
 
 describe("App Module", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault;
-  let configService: ConfigService<ApiConfig, true>;
-  const dockerTag = "version";
 
   const mockServer = setupServer();
 
@@ -35,17 +25,12 @@ describe("App Module", () => {
       },
     });
 
-    process.env.DOCKER_TAG = dockerTag;
-
     // Start server
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     }).compile();
 
-    configService =
-      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
-
-    app = await configureApp(moduleFixture, configService);
+    app = await configureApp(moduleFixture);
 
     // Turn off logger
     Logger.overrideLogger(false);
@@ -89,42 +74,6 @@ describe("App Module", () => {
         type: "about:blank",
       });
       expect(response.status).toBe(404);
-    });
-
-    it("should provide EBSI image version/tag in headers", async () => {
-      expect.assertions(2);
-      const response = await request(server).get("/heal").send();
-      const headers = response.header as ResponseHeaders;
-      expect(headers).toHaveProperty("ebsi-image-tag");
-      expect(headers["ebsi-image-tag"]).toBe(dockerTag);
-    });
-  });
-
-  describe("GET /health", () => {
-    it("should provide EBSI image version/tag in headers", async () => {
-      expect.assertions(2);
-
-      const localOrigin =
-        configService.get("localOrigin", { infer: true }) ||
-        configService.get("domain", { infer: true });
-
-      // All the dependencies return a 200
-      const dependencies = Object.keys(
-        DEPENDENCIES,
-      ) as (keyof typeof DEPENDENCIES)[];
-
-      mockServer.use(
-        ...dependencies.map((dependency) =>
-          http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
-            HttpResponse.json({}),
-          ),
-        ),
-      );
-
-      const response = await request(server).get("/health").send();
-      const headers = response.header as ResponseHeaders;
-      expect(headers).toHaveProperty("ebsi-image-tag");
-      expect(headers["ebsi-image-tag"]).toBe(dockerTag);
     });
   });
 });

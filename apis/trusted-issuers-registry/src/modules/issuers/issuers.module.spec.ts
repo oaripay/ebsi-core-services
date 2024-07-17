@@ -2,7 +2,6 @@ import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
 import request from "supertest";
 import { Test, type TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import {
   FastifyAdapter,
@@ -16,7 +15,6 @@ import { IssuersModule } from "./issuers.module.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { IssuerProxyObject, setupTestEnv } from "../../../tests/utils/tir.js";
 import { LedgerService } from "../ledger/ledger.service.js";
-import type { ApiConfig } from "../../config/configuration.js";
 
 const ISSUERS_TOTAL = 12;
 
@@ -34,7 +32,6 @@ describe("Issuers Module", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault;
   let testEnv: Awaited<ReturnType<typeof setupTestEnv>>;
-  let configService: ConfigService<ApiConfig, true>;
   const randomDid = EbsiWallet.createDid();
 
   beforeAll(async () => {
@@ -55,10 +52,7 @@ describe("Issuers Module", () => {
     // Turn off logger
     Logger.overrideLogger(false);
 
-    configService =
-      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
-
-    app.useGlobalFilters(new AllExceptionsFilter(configService));
+    app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     await app.init();
