@@ -247,7 +247,7 @@ describe("App Module", () => {
         imports: [AppModule],
       }).compile();
 
-      const logger = createLogger();
+      const logger = createLogger({ silent: true });
       const adapter = new FastifyAdapter({
         frameworkErrors: frameworkErrors(logger),
       });
