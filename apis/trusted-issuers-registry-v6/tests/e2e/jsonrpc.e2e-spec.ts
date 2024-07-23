@@ -608,6 +608,11 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
           // Wait to be mined
           await waitToBeMined(ledgerApi, responseSend.body.result as string);
 
+          // wait some seconds to update the subgraph
+          await new Promise((r) => {
+            setTimeout(r, 6000);
+          });
+
           // Admin issuer inserts the new TI
           responseBuild = await request(server)
             .post("/jsonrpc")
@@ -658,6 +663,11 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
 
           // Wait to be mined
           await waitToBeMined(ledgerApi, responseSend.body.result as string);
+
+          // wait some seconds to update the subgraph
+          await new Promise((r) => {
+            setTimeout(r, 6000);
+          });
 
           // Admin Issuer issues a "VerifiableAccreditationToAccredit" to the new issuer
           const issuanceDate = new Date(Date.now() - 5000); // issue 5 seconds ago
@@ -836,7 +846,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
           id: 231,
           error: {
             code: -32600,
-            message: `Invalid 'params.0.attributeId': Attribute ${attribute.id} does not exist`,
+            message: `Invalid 'params.0': Attribute ${attribute.id} does not relate to ${newIssuer.info.did}`,
           },
         });
         expect(responseBuild.status).toBe(400);
@@ -855,9 +865,9 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               from: sender.wallet.address,
               did: sender.info.did,
               revisionId: prefixWith0x(senderFirstAttributeId),
-              issuerType: 1, // RootTAO
-              taoDid: newIssuer1.tao,
-              attributeIdTao: newIssuer1.attributeIdTao,
+              issuerType: IssuerType.RootTAO,
+              taoDid: sender.info.did,
+              attributeIdTao: `0x${"0".repeat(64)}`,
             } satisfies SetAttributeMetadataSchema;
 
             extraTestUrl = `/issuers/${sender.info.did}`;
@@ -981,6 +991,11 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
         expect(receipt.status).toBe(1);
         sampleTransaction = responseSend.body.result as string;
 
+        // wait some seconds to update the subgraph
+        await new Promise((resolve) => {
+          setTimeout(resolve, 6000);
+        });
+
         // Extra test
         const extraTestResponse = await request(server).get(extraTestUrl);
 
@@ -996,11 +1011,12 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
 
         switch (method) {
           case "setAttributeMetadata": {
+            const newDid = EbsiWallet.createDid();
             params = {
               from: sender.wallet.address,
-              did: EbsiWallet.createDid(),
+              did: newDid,
               revisionId: newIssuer3.attribute.id,
-              taoDid: newIssuer3.tao,
+              taoDid: newDid,
               issuerType: newIssuer3.issuerType,
               attributeIdTao: newIssuer3.attributeIdTao,
             } satisfies SetAttributeMetadataSchema;
@@ -1083,7 +1099,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
 
         const expectedRevertReason =
           method === "setAttributeData"
-            ? "Not the issuer itself"
+            ? `Policy error: sender is not controller of the did ${newIssuer.info.did} and it doesn't have the attribute TIR:updateIssuer`
             : `doesn't have the attribute TIR:${method}`;
 
         // wait to be mined
@@ -1171,19 +1187,8 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
                   proxyData: newIssuer1.proxy.utf8,
                 } satisfies AddIssuerProxySchema;
 
-                extraTestUrl = `/issuers/${did}/proxies`;
-
-                extraTestExpectedResponse = {
-                  items: expect.arrayContaining([
-                    {
-                      proxyId: newIssuer1.proxy.id,
-                      href: expect.stringContaining(
-                        `/proxies/${newIssuer1.proxy.id}`,
-                      ),
-                    },
-                  ]),
-                  total: expect.any(Number),
-                };
+                extraTestUrl = `/issuers/${did}/proxies/${newIssuer1.proxy.id}`;
+                extraTestExpectedResponse = newIssuer1.proxy.obj;
 
                 break;
               }
@@ -1259,6 +1264,11 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
             );
             expect(receipt.status).toBe(1);
             sampleTransaction = responseSend.body.result as string;
+
+            // wait some seconds to update the subgraph
+            await new Promise((resolve) => {
+              setTimeout(resolve, 6000);
+            });
 
             // Extra test
             const extraTestResponse = await request(server).get(extraTestUrl);

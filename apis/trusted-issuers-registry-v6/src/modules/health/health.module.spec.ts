@@ -124,11 +124,11 @@ describe("Health Module", () => {
     it("should return 'error' if some dependencies do not return a 20x", async () => {
       expect.assertions(2 + dependencies.length);
 
-      // All the dependencies return a 200 except Authorisation API v4
+      // All the dependencies return a 200 except Authorisation API v5
       mockServer.use(
         ...dependencies.map((dependency) =>
           http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
-            dependency === "Authorisation API v4"
+            dependency === "Authorisation API v5"
               ? HttpResponse.json({}, { status: 500 })
               : HttpResponse.json({}),
           ),
@@ -146,13 +146,13 @@ describe("Health Module", () => {
         });
       });
 
-      // Expect all the dependencies to be up except Authorisation API v4
+      // Expect all the dependencies to be up except Authorisation API v5
       const expectedStatuses = dependencies
         .map(
           (dependency) =>
             ({
               [`${dependency}`]:
-                dependency === "Authorisation API v4"
+                dependency === "Authorisation API v5"
                   ? ({
                       message: "Request failed with status code 500",
                       status: "down",
@@ -164,13 +164,13 @@ describe("Health Module", () => {
         )
         .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
 
-      const { "Authorisation API v4": errorStatus, ...otherStatuses } =
+      const { "Authorisation API v5": errorStatus, ...otherStatuses } =
         expectedStatuses;
 
       expect(response.body).toStrictEqual({
         details: expectedStatuses,
         error: {
-          "Authorisation API v4": errorStatus,
+          "Authorisation API v5": errorStatus,
         },
         info: otherStatuses,
         status: "error",

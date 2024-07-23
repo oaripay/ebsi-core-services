@@ -43,14 +43,14 @@ export interface ApiConfig {
   };
 }
 
-const AUTH_API_PATH = "/authorisation/v4";
+const AUTH_API_PATH = "/authorisation/v5";
 const DIDR_API_PATH = "/did-registry/v6";
 const LEDGER_API_PATH = "/ledger/v4";
 const TPR_API_PATH = "/trusted-policies-registry/v4";
 const TSR_API_PATH = "/trusted-schemas-registry/v4";
 
 export const DEPENDENCIES = {
-  "Authorisation API v4": AUTH_API_PATH,
+  "Authorisation API v5": AUTH_API_PATH,
   "DIDR API v6": DIDR_API_PATH,
   "Ledger API v4": LEDGER_API_PATH,
   "TPR API v4": TPR_API_PATH,
