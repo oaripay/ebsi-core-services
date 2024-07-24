@@ -51,6 +51,7 @@
     "passport-http-bearer": "^1.0.1",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
+    "validator": "^13.11.0",
     "winston": "^3.13.0",
     "yaml": "^2.4.1",
     "zod": "^3.22.4"
@@ -72,6 +73,7 @@
     "@types/node": "^20.11.30",
     "@types/passport-http-bearer": "^1.0.41",
     "@types/supertest": "^6.0.2",
+    "@types/validator": "^13.11.9",
     "@types/ws": "^7.4.7",
     "@vitest/coverage-v8": "^1.4.0",
     "did-resolver": "^4.1.0",
