@@ -5,12 +5,14 @@ import {
   ValidatorConstraint,
   ValidatorConstraintInterface,
 } from "class-validator";
-import { isURL } from "validator";
+import validator from "validator";
 import axios from "axios";
 import { ConfigService } from "@nestjs/config";
 import { isStatusList2021Credential } from "@ebsiint-api/shared";
 import { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
 import type { ApiConfig } from "../../config/configuration.js";
+
+const validators = validator.default;
 
 export const IS_ISSUER_PROXY = "isIssuerProxy";
 
@@ -76,7 +78,7 @@ export async function isIssuerProxy(
       !prefix ||
       typeof prefix !== "string" ||
       // Only allow URLs with https protocol and without query components or fragments
-      !isURL(prefix, {
+      !validators.isURL(prefix, {
         protocols: ["https"],
         require_protocol: true,
         allow_fragments: false,
@@ -95,7 +97,7 @@ export async function isIssuerProxy(
     if (
       !testSuffix ||
       typeof testSuffix !== "string" ||
-      !isURL(prefix + testSuffix, {
+      !validators.isURL(prefix + testSuffix, {
         protocols: ["https"],
         require_protocol: true,
         allow_fragments: false, // do not allow fragments in testSuffix

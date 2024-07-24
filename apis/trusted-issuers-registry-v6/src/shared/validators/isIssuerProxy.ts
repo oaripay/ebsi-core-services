@@ -1,7 +1,9 @@
 import axios, { type AxiosResponse } from "axios";
 import { checkStatusList2021Credential } from "@ebsiint-api/shared";
 import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
-import { isURL } from "validator";
+import validator from "validator";
+
+const validators = validator.default;
 
 const allowedRequestHeaders = [
   /**
@@ -45,7 +47,7 @@ export async function isIssuerProxy(
 
   if (
     // Only allow URLs with https protocol and without query components or fragments
-    !isURL(prefix, {
+    !validators.isURL(prefix, {
       protocols: ["https"],
       require_protocol: true,
       allow_fragments: false,
@@ -97,7 +99,7 @@ export async function isIssuerProxy(
   }
 
   if (
-    !isURL(prefix + testSuffix, {
+    !validators.isURL(prefix + testSuffix, {
       protocols: ["https"],
       require_protocol: true,
       allow_fragments: false, // do not allow fragments in testSuffix
