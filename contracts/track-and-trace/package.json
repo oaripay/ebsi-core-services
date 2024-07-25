@@ -26,6 +26,7 @@
   "dependencies": {
     "@ebsiint-sc/bootstrap-v2": "^2.0.0-rc.3",
     "@ebsiint-sc/did-registry-v3": "^3.0.0-rc.3",
+    "@ebsiint-sc/trusted-policies-registry-v2": "^2.0.0-rc.3",
     "@openzeppelin/contracts": "^4.9.3",
     "@openzeppelin/contracts-upgradeable": "^4.9.3"
   },

@@ -15,7 +15,7 @@ const tntScPath = path.resolve(
 const config = {
   defaultNetwork: "hardhat",
   networks: {
-    hardhat: { hardfork: "berlin" },
+    hardhat: { hardfork: "berlin", allowUnlimitedContractSize: true },
   },
   solidity: {
     version: "0.8.12",

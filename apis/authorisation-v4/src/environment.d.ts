@@ -18,7 +18,6 @@ declare global {
       TRUSTED_HOSTNAMES?: string;
       REQUEST_TIMEOUT?: string;
       AUTHORISATION_CREDENTIAL_SCHEMA: string;
-      TNT_AUTHORISE_ISSUERS_ALLOWLIST?: string;
       TEST_ENV?: string;
       TEST_ISSUER_KID?: string;
       TEST_ISSUER_PRIVATE_KEY?: string;

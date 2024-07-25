@@ -197,6 +197,14 @@ Add the default hash algorithms to Timestamp:
 npx hardhat --network localWithData addHashAlgo --proxy PROXY_ADDRESS --contract CONTRACT
 ```
 
+Deploy/upgrade/ upgrade with reinitialize new TrackAndTrace
+
+```
+yarn hardhat --network <test|pilot|prod|conformance> trackAndTrace --admin  <address|0x28774ee74a79e27af87f4a7668542be43e2f742b> --upgrader <address|0x28774ee74a79e27af87f4a7668542be43e2f742b> --registry <address|0x76C8190D7422e5fa2A0190Bc2313bab0b2afEC78> --tpr <address|0x61b6AD18C74C2158445F524E9f868Da13Aba8E2F>
+yarn hardhat trackAndTraceUpgrade --network <test|pilot|prod|conformance>
+yarn hardhat --network <test|pilot|prod|conformance> trackAndTrace --admin  <address|0x28774ee74a79e27af87f4a7668542be43e2f742b> --upgrader <address|0x28774ee74a79e27af87f4a7668542be43e2f742b> --registry <address|0x76C8190D7422e5fa2A0190Bc2313bab0b2afEC78> --tpr <address|0x61b6AD18C74C2158445F524E9f868Da13Aba8E2F>
+```
+
 ###
 
 Deploy new TrustedSchemaRegistryV3

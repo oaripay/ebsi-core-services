@@ -5,7 +5,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { getImplementationAddress } from "@openzeppelin/upgrades-core";
 import { expect } from "chai";
 import type { TrackAndTrace } from "../src/types";
-import { DidRegistryMock } from "../dist";
+import { DidRegistryMock, PolicyRegistryMock } from "../dist";
 
 const DELEGATE_ACCESS = 0;
 const WRITE_ACCESS = 1;
@@ -56,6 +56,7 @@ describe("TrackAndTrace - tests", () => {
   let randomWalletWithSigner: SignerWithAddress;
   let trackAndTrace: TrackAndTrace;
   let didRegistryMock: DidRegistryMock;
+  let tprMock: PolicyRegistryMock;
 
   async function createDocument(
     documentHash: ethers.utils.formatBytes32String,
@@ -105,18 +106,31 @@ describe("TrackAndTrace - tests", () => {
       "TrackAndTrace",
       { libraries: { TrackAndTraceLib: trackAndTraceLibContract.address } },
     );
-    const didMockFactory = await ethers.getContractFactory("DidRegistryMock");
 
+    // deploy TPR mock
+    const policyRegistryFactory =
+      await ethers.getContractFactory("PolicyRegistryMock");
+    tprMock =
+      (await policyRegistryFactory.deploy()) as unknown as PolicyRegistryMock;
+
+    // deploy DID mock
+    const didMockFactory = await ethers.getContractFactory("DidRegistryMock");
     didRegistryMock =
       (await didMockFactory.deploy()) as unknown as DidRegistryMock;
 
     trackAndTrace = (await upgrades.deployProxy(
       trackAndTraceFactory,
-      [admin.address, upgrader.address, didRegistryMock.address],
+      [
+        admin.address,
+        upgrader.address,
+        tprMock.address,
+        didRegistryMock.address,
+      ],
       { unsafeAllowLinkedLibraries: true },
     )) as unknown as TrackAndTrace;
 
     await didRegistryMock.setDidResult(true);
+    await tprMock.setPolicyResult(true);
 
     await trackAndTrace
       .connect(broadcaster)
@@ -128,9 +142,16 @@ describe("TrackAndTrace - tests", () => {
         trackAndTrace.initialize(
           admin.address,
           upgrader.address,
+          tprMock.address,
           didRegistryMock.address,
         ),
       ).to.be.revertedWith("Initializable: contract is already initialized");
+    });
+    it("should reinitialize", async () => {
+      await expect(trackAndTrace.initializeV2(tprMock.address)).to.emit(
+        trackAndTrace,
+        "ContractReinitialized",
+      );
     });
     it("should be reverted if the wallet is not controller of did ebsi", async () => {
       await didRegistryMock.setDidResult(false);
@@ -172,6 +193,18 @@ describe("TrackAndTrace - tests", () => {
             "createDocument(bytes32,string,string,uint256,bytes32)"
           ](documentHash, metadata, creatorAccount, 0, proof),
       ).to.revertedWith("InvalidTimestamp");
+    });
+
+    it("should restrict authorizeDid function to only users with TPR attributes", async () => {
+      await tprMock.setPolicyResult(false);
+
+      await expect(
+        trackAndTrace
+          .connect(broadcaster)
+          .authoriseDid(supportOfficeAccount, creatorAccount, true),
+      ).to.revertedWith(
+        "Policy error: sender doesn't have the attribute TNT:authoriseDid",
+      );
     });
 
     it("should create document", async () => {
@@ -352,12 +385,8 @@ describe("TrackAndTrace - tests", () => {
     it("should grant write access with delegate account", async () => {
       const documentHash = ethers.utils.formatBytes32String("write01");
       await didRegistryMock.setDidResult(true);
+      await tprMock.setPolicyResult(true);
       await createDocument(documentHash);
-      await trackAndTrace.authoriseDid(
-        supportOfficeAccount,
-        delegateAccount,
-        true,
-      );
       await trackAndTrace.authoriseDid(
         supportOfficeAccount,
         writerAccount,

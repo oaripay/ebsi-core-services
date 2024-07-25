@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { ethers } from "ethers";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import type { DIDDocument, JsonWebKey } from "did-resolver";
 import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
@@ -59,6 +60,7 @@ export interface LegalEntity<T extends "ES256" | "ES256K" | "EdDSA"> {
   did: string;
   keys: Record<T, EbsiIssuer & { publicKeyJwk: JsonWebKey }>;
   didDocument: DIDDocument;
+  address: string;
 }
 
 export async function createLegalEntity<T extends "ES256" | "ES256K" | "EdDSA">(
@@ -68,6 +70,7 @@ export async function createLegalEntity<T extends "ES256" | "ES256K" | "EdDSA">(
   const legalEntityDid = did ?? EbsiWallet.createDid();
 
   const keys: Record<string, EbsiIssuer & { publicKeyJwk: JsonWebKey }> = {};
+  let address = "";
 
   /* eslint-disable no-await-in-loop */
   // eslint-disable-next-line no-restricted-syntax
@@ -83,6 +86,11 @@ export async function createLegalEntity<T extends "ES256" | "ES256K" | "EdDSA">(
       publicKeyJwk,
       signer: getSigner(privateKey, alg),
     };
+
+    if (alg === "ES256K") {
+      const wallet = new ethers.Wallet(privateKey);
+      address = wallet.address;
+    }
   }
   /* eslint-enable no-await-in-loop */
 
@@ -92,6 +100,7 @@ export async function createLegalEntity<T extends "ES256" | "ES256K" | "EdDSA">(
     keys,
     did: legalEntityDid,
     didDocument,
+    address,
   };
 }
 

@@ -3,6 +3,7 @@ import { Injectable, Inject, Logger } from "@nestjs/common";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { ConfigService } from "@nestjs/config";
 import {
+  encode,
   getPublicKeyJwk,
   logAxiosError,
   type PaginatedList,
@@ -21,6 +22,8 @@ import {
 } from "@cef-ebsi/verifiable-presentation";
 import { decodeJWT, createJWT, ES256Signer, hexToBytes } from "did-jwt";
 import type { JWTHeader, JWTPayload } from "did-jwt";
+import type { DIDDocument } from "did-resolver";
+import { ethers } from "ethers";
 import type { MemoryCache } from "cache-manager";
 import axios, { type AxiosResponse } from "axios";
 import type { ApiConfig } from "../../config/configuration.js";
@@ -65,9 +68,9 @@ export class AuthorisationService {
 
   private readonly trustedIssuersRegistry: string;
 
-  private readonly trackAndTraceAccessesEndpoint: string;
+  private readonly trustedPoliciesRegistry: string;
 
-  private readonly tntAuthorisePresentationDefinition: PresentationDefinitionV2;
+  private readonly trackAndTraceAccessesEndpoint: string;
 
   private readonly requestTimeout: number;
 
@@ -95,6 +98,12 @@ export class AuthorisationService {
     this.trustedIssuersRegistry = configService.get("trustedIssuersRegistry", {
       infer: true,
     });
+    this.trustedPoliciesRegistry = configService.get(
+      "trustedPoliciesRegistry",
+      {
+        infer: true,
+      },
+    );
     this.trackAndTraceAccessesEndpoint = configService.get(
       "trackAndTraceAccessesEndpoint",
       {
@@ -105,20 +114,6 @@ export class AuthorisationService {
       configService.get("apiES256PrivateKey", { infer: true }),
     );
     this.requestTimeout = configService.get("requestTimeout", { infer: true });
-
-    // Create custom presentation definition for tnt_authorise scope with allowed issuers
-    const tntAuthorisePresentationDefinition = structuredClone(
-      PRESENTATION_DEFINITIONS[TNT_AUTHORISE_SCOPE],
-    );
-    const tntAuthoriseIssuersAllowlist = configService.get(
-      "tntAuthoriseIssuersAllowlist",
-      { infer: true },
-    );
-    // @ts-expect-error presentationDefinition is supposed to be immutable, but we're working on a clone.
-    tntAuthorisePresentationDefinition.input_descriptors[0].constraints.fields[1].filter.enum =
-      tntAuthoriseIssuersAllowlist;
-    this.tntAuthorisePresentationDefinition =
-      tntAuthorisePresentationDefinition;
   }
 
   /**
@@ -192,11 +187,6 @@ export class AuthorisationService {
       throw new OAuth2TokenError("invalid_request", {
         errorDescription: `Unhandled scope "${scope as string}"`,
       });
-    }
-
-    // Special case for "tnt_authorise": use customized presentation definition
-    if (scope === TNT_AUTHORISE_SCOPE) {
-      return this.tntAuthorisePresentationDefinition;
     }
 
     return PRESENTATION_DEFINITIONS[scope];
@@ -627,6 +617,171 @@ export class AuthorisationService {
     }
   }
 
+  async getControllerAddresses(did: string): Promise<{
+    didDocument: DIDDocument;
+    addresses: string[];
+  }> {
+    let didDocument: DIDDocument;
+    try {
+      const response = await axios.get<DIDDocument>(
+        `${this.didRegistry}/${did}`,
+      );
+      didDocument = response.data;
+    } catch (e) {
+      if (axios.isAxiosError(e)) {
+        logAxiosError(e, this.logger, 500);
+
+        if (e.response?.status === 404) {
+          throw new OAuth2TokenError("invalid_request", {
+            errorDescription: `Invalid Verifiable Presentation: DID document ${did} cannot be resolved`,
+          });
+        }
+
+        if (e.response?.status === 500) {
+          throw new OAuth2TokenError("server_error", {
+            errorDescription:
+              "DID Registry API responded with an internal error",
+          });
+        }
+      } else if (e instanceof Error) {
+        this.logger.error(e.message, e.stack);
+      } else {
+        this.logger.error(e);
+      }
+
+      // Fallback (should not be triggered)
+      throw new OAuth2TokenError("server_error", {
+        errorDescription: "Unexpected error",
+      });
+    }
+
+    if (!didDocument.capabilityInvocation) {
+      throw new OAuth2TokenError("invalid_request", {
+        errorDescription: `Invalid Verifiable Presentation: DID document ${did} doesn't have capabilityInvocation`,
+      });
+    }
+
+    if (!didDocument.verificationMethod) {
+      throw new OAuth2TokenError("invalid_request", {
+        errorDescription: `Invalid Verifiable Presentation: DID document ${did} doesn't have verificationMethod`,
+      });
+    }
+
+    const addresses = didDocument.verificationMethod
+      .filter((vMethod) => {
+        return (
+          didDocument.capabilityInvocation!.includes(vMethod.id) &&
+          vMethod.publicKeyJwk &&
+          vMethod.publicKeyJwk.crv === "secp256k1"
+        );
+      })
+      .map((vMethod) => {
+        const publicKeyHex = encode.publicKey.fromJWKToHex(
+          vMethod.publicKeyJwk!,
+        );
+        return ethers.utils.computeAddress(`0x${publicKeyHex}`);
+      });
+
+    didDocument.capabilityInvocation.forEach((rel) => {
+      if (
+        typeof rel !== "string" &&
+        rel.publicKeyJwk &&
+        rel.publicKeyJwk.crv === "secp256k1"
+      ) {
+        const publicKeyHex = encode.publicKey.fromJWKToHex(rel.publicKeyJwk);
+        addresses.push(ethers.utils.computeAddress(`0x${publicKeyHex}`));
+      }
+    });
+
+    return { didDocument, addresses };
+  }
+
+  async validateTntAdmin(did: string): Promise<void> {
+    const { didDocument, addresses } = await this.getControllerAddresses(did);
+    if (didDocument.controller && Array.isArray(didDocument.controller)) {
+      await Promise.all(
+        didDocument.controller
+          .filter((controller) => controller !== did)
+          .map(async (controller) => {
+            const { addresses: controllerAddresses } =
+              await this.getControllerAddresses(controller);
+            addresses.push(...controllerAddresses);
+          }),
+      );
+    }
+
+    const resultAddresses = await Promise.all(
+      addresses.map(
+        async (
+          address: string,
+        ): Promise<{
+          valid: boolean;
+          error?: string;
+        }> => {
+          try {
+            const response = await axios.get<{
+              user: string;
+              attributes: string[];
+            }>(`${this.trustedPoliciesRegistry}/${address}`);
+            if (!response.data.attributes.includes("TNT:authoriseDid")) {
+              return {
+                valid: false,
+                error: `address ${address} doesn't have the attribute TNT:authoriseDid in Trusted Policies Registry`,
+              };
+            }
+            return {
+              valid: true,
+            };
+          } catch (e) {
+            if (axios.isAxiosError(e)) {
+              logAxiosError(e, this.logger, 500);
+
+              if (e.response?.status === 404) {
+                return {
+                  valid: false,
+                  error: `address ${address} not in Trusted Policies Registry`,
+                };
+              }
+
+              if (e.response?.status === 500) {
+                return {
+                  valid: false,
+                  error:
+                    "Trusted Policies Registry API responded with an internal error",
+                };
+              }
+
+              return {
+                valid: false,
+                error: `Error from Trusted Policies Registry: ${e.message}`,
+              };
+            }
+
+            if (e instanceof Error) {
+              this.logger.error(e.message, e.stack);
+              return {
+                valid: false,
+                error: `Error from Trusted Policies Registry: ${e.message}`,
+              };
+            }
+
+            this.logger.error(e);
+            return {
+              valid: false,
+              error: `Unknown error from Trusted Policies Registry`,
+            };
+          }
+        },
+      ),
+    );
+
+    if (resultAddresses.every((result) => !result.valid)) {
+      throw new OAuth2TokenError("invalid_request", {
+        errorDescription: `Invalid Verifiable Presentation: DID ${did} is not authorised to for ${TNT_AUTHORISE_SCOPE} access. Errors: ${resultAddresses.map((result) => result.error!).join(", ")}`,
+      });
+    }
+  }
+
   async validateTntCreator(did: string): Promise<void> {
     try {
       await axios.head<unknown>(
@@ -858,8 +1013,10 @@ export class AuthorisationService {
     // `timestamp_write`: the client needs to have entry in DIDR / can prove her signature.
     // This is already done in validateVpJwt.
 
-    // `tnt_authorise`: the client must present a VP containing a valid VerifiableAuthorisationToOnboard VC issued by an allowlisted entity.
-    // This is already done in validateVpJwt.
+    // `tnt_authorise`: the client must be have the TNT:authoriseDid attribute in Trusted Policies Registry.
+    if (customScope === TNT_AUTHORISE_SCOPE) {
+      await this.validateTntAdmin(vp.holder);
+    }
 
     // `tnt_create`: the client must be an allowlisted TnT Document creator
     if (customScope === TNT_CREATE_SCOPE) {

@@ -261,13 +261,9 @@ describe("Authorisation  API v5 (e2e)", () => {
         )}`,
       );
 
-      const tntAuthorisePresentationDefinition = structuredClone(
+      expect(response.body).toStrictEqual(
         TNT_AUTHORISE_PRESENTATION_DEFINITION,
       );
-      // @ts-expect-error presentationDefinition is supposed to be immutable, but we're working on a clone.
-      tntAuthorisePresentationDefinition.input_descriptors[0].constraints.fields[1].filter.enum =
-        configService.get("tntAuthoriseIssuersAllowlist", { infer: true });
-      expect(response.body).toStrictEqual(tntAuthorisePresentationDefinition);
       expect(response.status).toBe(200);
 
       // With explicit scope "openid tnt_create"

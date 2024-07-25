@@ -4,6 +4,7 @@ pragma solidity ^0.8.12;
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "./interfaces/ITrackAndTraceInterface.sol";
+import "@ebsiint-sc/trusted-policies-registry-v2/contracts/trusted-policies-registry/interfaces/IPolicyRegistry.sol";
 import "@ebsiint-sc/did-registry-v3/contracts/did-registry/interfaces/IDidRegistry.sol";
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import {EnumerableMapUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableMapUpgradeable.sol";
@@ -33,8 +34,8 @@ contract TrackAndTrace is
     mapping(bytes => mapping(bytes32 => uint256)) internal accessBySubjectIndex;
 
     mapping(string => bool) public invitedDidEbsiAccounts;
-
     IDidRegistry public didRegistry;
+    IPolicyRegistry public trustedPoliciesRegistry;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -44,11 +45,13 @@ contract TrackAndTrace is
     function initialize(
         address _roleDefaultAdminAddress,
         address _upgraderAddress,
+        address _tprAddress,
         address _didRegistryAddress
     ) public initializer {
         __AccessControl_init();
         _grantRole(DEFAULT_ADMIN_ROLE, _roleDefaultAdminAddress);
         _grantRole(UPGRADER_ROLE, _upgraderAddress);
+        trustedPoliciesRegistry = IPolicyRegistry(_tprAddress);
         didRegistry = IDidRegistry(_didRegistryAddress);
     }
 
@@ -57,10 +60,11 @@ contract TrackAndTrace is
         string calldata authorisedDid,
         bool whiteList
     ) external {
-        // At SC level any senderDid registered in the DID Registry can
-        // authorise new DIDs to create documents. However, At API level
-        // the senderDid will require an access token that is granted to
-        // a closed list of DIDs.
+        require(
+            trustedPoliciesRegistry.checkPolicy("TNT:authoriseDid", msg.sender),
+            "Policy error: sender doesn't have the attribute TNT:authoriseDid"
+        );
+
         if (_authorize(bytes(senderDid), ACCOUNT_TYPE.DID_EBSI) == false) {
             revert NotDidController();
         }
@@ -449,6 +453,12 @@ contract TrackAndTrace is
             }
         }
         return (grantedByAccounts, grantedByAccountType, access);
+    }
+
+    // public functions
+    function initializeV2(address _tprAddress) public reinitializer(2) {
+        trustedPoliciesRegistry = IPolicyRegistry(_tprAddress);
+        emit ContractReinitialized(2, abi.encode(_tprAddress));
     }
 
     // internal functions

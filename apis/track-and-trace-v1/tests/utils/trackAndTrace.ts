@@ -35,17 +35,23 @@ export async function deployTrackAndTraceContract(): Promise<{
     { libraries: { TrackAndTraceLib: trackAndTraceLibContract.address } },
   );
 
-  const didMockFactory = await hre.ethers.getContractFactory("DidRegistryMock");
+  // deploy TPR mock
+  const policyRegistryFactory =
+    await hre.ethers.getContractFactory("PolicyRegistryMock");
+  const tprMock = await policyRegistryFactory.deploy();
 
+  // deploy DID mock
+  const didMockFactory = await hre.ethers.getContractFactory("DidRegistryMock");
   const didRegistryMock = await didMockFactory.deploy();
 
   const trackAndTraceContract = (await hre.upgrades.deployProxy(
     trackAndTraceContractFactory,
-    [admin.address, upgrader.address, didRegistryMock.address],
+    [admin.address, upgrader.address, tprMock.address, didRegistryMock.address],
     { unsafeAllowLinkedLibraries: true },
   )) as unknown as TrackAndTrace;
 
   await didRegistryMock.setDidResult(true);
+  await tprMock.setPolicyResult(true);
 
   return {
     trackAndTraceContract,

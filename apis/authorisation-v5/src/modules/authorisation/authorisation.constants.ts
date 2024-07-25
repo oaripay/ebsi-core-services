@@ -144,13 +144,6 @@ export const TNT_AUTHORISE_PRESENTATION_DEFINITION = {
               },
             },
           },
-          {
-            path: ["$.vc.issuer"],
-            filter: {
-              type: "string",
-              enum: [], // This enum will be filled at runtime based on the TNT_AUTHORISE_ISSUERS_ALLOWLIST variable
-            },
-          },
         ],
       },
     },

@@ -98,6 +98,7 @@ interface ITrackAndTraceInterface {
     // events
 
     event DidAuthorised(address addr, bytes pubKey, bool val);
+    event ContractReinitialized(uint256 version, bytes data);
     event DidEbsiAuthorised(string did, bool val);
     event DocumentCreated(
         bytes32 docHash,

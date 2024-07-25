@@ -148,15 +148,7 @@ describe.each(["EBSI URI", "URL"] as const)(
         },
       };
 
-      // Use the DID of an issuer present in TNT_AUTHORISE_ISSUERS_ALLOWLIST
-      const [allowlistedIssuer] = configService.get(
-        "tntAuthoriseIssuersAllowlist",
-        { infer: true },
-      );
-      credentialIssuer = await createLegalEntity(
-        ["ES256", "EdDSA"],
-        allowlistedIssuer,
-      );
+      credentialIssuer = await createLegalEntity(["ES256", "EdDSA"]);
       credentialIssuerAccreditationUrl = `${domain}/trusted-issuers-registry/v5/issuers/${
         credentialIssuer.did
       }/attributes/${randomBytes(16).toString("hex")}`;
@@ -477,13 +469,9 @@ describe.each(["EBSI URI", "URL"] as const)(
           )}`,
         );
 
-        const tntAuthorisePresentationDefinition = structuredClone(
+        expect(response.body).toStrictEqual(
           TNT_AUTHORISE_PRESENTATION_DEFINITION,
         );
-        // @ts-expect-error presentationDefinition is supposed to be immutable, but we're working on a clone.
-        tntAuthorisePresentationDefinition.input_descriptors[0].constraints.fields[1].filter.enum =
-          configService.get("tntAuthoriseIssuersAllowlist", { infer: true });
-        expect(response.body).toStrictEqual(tntAuthorisePresentationDefinition);
         expect(response.status).toBe(200);
 
         // With explicit scope "openid tnt_create"
@@ -840,6 +828,19 @@ describe.each(["EBSI URI", "URL"] as const)(
                             rootTao: credentialIssuer.did,
                           },
                         ],
+                      }),
+                  ),
+                );
+              }
+
+              if (customScope === TNT_AUTHORISE_SCOPE) {
+                mockServer.use(
+                  http.get(
+                    `${domain}/trusted-policies-registry/v3/users/${credentialSubject.address}`,
+                    () =>
+                      HttpResponse.json({
+                        user: credentialSubject.address,
+                        attributes: ["TNT:authoriseDid"],
                       }),
                   ),
                 );
@@ -2940,6 +2941,209 @@ describe.each(["EBSI URI", "URL"] as const)(
           expect(response.body).toStrictEqual({
             error: "invalid_request",
             error_description: `Invalid Verifiable Presentation: Could not find a verification method related to "${credentialSubject.keys.ES256K.kid}" for the proof purpose "capabilityInvocation" and algorithm "ES256K"`,
+          });
+
+          expect(response.status).toBe(400);
+
+          mockServer.resetHandlers();
+        });
+
+        it("with scope 'openid tnt_authorise' should return an error if the user is not registered in the Trusted Policies Registry", async () => {
+          expect.assertions(6);
+
+          const scope = "openid tnt_authorise";
+          const issuanceDate = new Date(Date.now() - 5000); // issue 5 seconds ago
+          // JWT access token must have 2 hours expiration time and there are no Refresh Tokens.
+          const expirationDate = new Date(
+            issuanceDate.getTime() + 2 * 60 * 60 * 1000,
+          );
+          const testOidSchemaUrl = configService.get("testOidSchemaPattern", {
+            infer: true,
+          });
+          const vcPayload = {
+            "@context": ["https://www.w3.org/2018/credentials/v1"],
+            id: `urn:uuid:${randomUUID()}`,
+            type: [
+              "VerifiableCredential",
+              "VerifiableAttestation",
+              "VerifiableAuthorisationToOnboard",
+            ],
+            issuer: credentialIssuer.did,
+            issuanceDate: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+            issued: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+            validFrom: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+            expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
+            credentialSubject: {
+              id: credentialSubject.did,
+              type: "same-device",
+            },
+            credentialSchema: {
+              id:
+                uriType === "EBSI URI"
+                  ? fromUrl(testOidSchemaUrl)
+                  : testOidSchemaUrl,
+              type: "FullJsonSchemaValidator2021",
+            },
+            termsOfUse: {
+              id:
+                uriType === "EBSI URI"
+                  ? fromUrl(credentialIssuerAccreditationUrl)
+                  : credentialIssuerAccreditationUrl,
+              type: "IssuanceCertificate",
+            },
+          } satisfies EbsiVerifiableAttestation;
+
+          const vcJwt = await createVerifiableCredentialJwt(
+            vcPayload,
+            credentialIssuer.keys.ES256,
+            {
+              ...ebsiEnvConfig,
+              skipValidation: true,
+            },
+          );
+
+          const vpPayload = {
+            "@context": ["https://www.w3.org/2018/credentials/v1"],
+            type: ["VerifiablePresentation"],
+            id: randomUUID(),
+            verifiableCredential: [vcJwt],
+            holder: credentialSubject.did,
+          } satisfies EbsiVerifiablePresentation;
+
+          // Reset to valid presentation submission before each test
+          const presentationSubmission = createPresentationSubmission(
+            TNT_AUTHORISE_SCOPE,
+            vpFormat,
+            vcFormat,
+          );
+
+          const didDocument = createDidDocument(
+            credentialSubject.did,
+            credentialSubject.keys,
+          );
+
+          mockServer.use(
+            http.get(
+              `${domain}/did-registry/v5/identifiers/${encodeDid(
+                credentialSubject.did,
+              )}`,
+              () => HttpResponse.json(didDocument),
+            ),
+          );
+
+          let nonce = randomUUID();
+
+          let vpJwt = await createVerifiablePresentationJwt(
+            vpPayload,
+            credentialSubject.keys.ES256K,
+            serviceEndpoint,
+            {
+              ...ebsiEnvConfig,
+              skipValidation: true,
+              nonce,
+            },
+          );
+
+          // Connection error with TPR - there is no TPR mock
+          let response = await request(server)
+            .post("/token")
+            .set("Content-Type", "application/x-www-form-urlencoded")
+            .send(
+              new URLSearchParams({
+                grant_type: "vp_token",
+                scope,
+                vp_token: vpJwt,
+                presentation_submission: JSON.stringify(presentationSubmission),
+              } satisfies CreateAccessTokenDto).toString(),
+            );
+
+          expect(response.body).toStrictEqual({
+            error: "invalid_request",
+            error_description: `Invalid Verifiable Presentation: DID ${credentialSubject.did} is not authorised to for ${TNT_AUTHORISE_SCOPE} access. Errors: Error from Trusted Policies Registry: Unhandled GET request to https://api-test.ebsi.eu/trusted-policies-registry/v3/users/${credentialSubject.address}`,
+          });
+
+          expect(response.status).toBe(400);
+
+          nonce = randomUUID();
+
+          vpJwt = await createVerifiablePresentationJwt(
+            vpPayload,
+            credentialSubject.keys.ES256K,
+            serviceEndpoint,
+            {
+              ...ebsiEnvConfig,
+              skipValidation: true,
+              nonce,
+            },
+          );
+
+          // The user is not registered in TPR
+          mockServer.use(
+            http.get(
+              `${domain}/trusted-policies-registry/v3/users/${credentialSubject.address}`,
+              () => HttpResponse.text("Not found", { status: 404 }),
+            ),
+          );
+
+          response = await request(server)
+            .post("/token")
+            .set("Content-Type", "application/x-www-form-urlencoded")
+            .send(
+              new URLSearchParams({
+                grant_type: "vp_token",
+                scope,
+                vp_token: vpJwt,
+                presentation_submission: JSON.stringify(presentationSubmission),
+              } satisfies CreateAccessTokenDto).toString(),
+            );
+
+          expect(response.body).toStrictEqual({
+            error: "invalid_request",
+            error_description: `Invalid Verifiable Presentation: DID ${credentialSubject.did} is not authorised to for ${TNT_AUTHORISE_SCOPE} access. Errors: address ${credentialSubject.address} not in Trusted Policies Registry`,
+          });
+
+          expect(response.status).toBe(400);
+
+          nonce = randomUUID();
+
+          vpJwt = await createVerifiablePresentationJwt(
+            vpPayload,
+            credentialSubject.keys.ES256K,
+            serviceEndpoint,
+            {
+              ...ebsiEnvConfig,
+              skipValidation: true,
+              nonce,
+            },
+          );
+
+          // User registered in TPR but without the correct attribute
+          mockServer.use(
+            http.get(
+              `${domain}/trusted-policies-registry/v3/users/${credentialSubject.address}`,
+              () =>
+                HttpResponse.json({
+                  user: credentialSubject.address,
+                  attributes: ["not TNT attribute"],
+                }),
+            ),
+          );
+
+          response = await request(server)
+            .post("/token")
+            .set("Content-Type", "application/x-www-form-urlencoded")
+            .send(
+              new URLSearchParams({
+                grant_type: "vp_token",
+                scope,
+                vp_token: vpJwt,
+                presentation_submission: JSON.stringify(presentationSubmission),
+              } satisfies CreateAccessTokenDto).toString(),
+            );
+
+          expect(response.body).toStrictEqual({
+            error: "invalid_request",
+            error_description: `Invalid Verifiable Presentation: DID ${credentialSubject.did} is not authorised to for ${TNT_AUTHORISE_SCOPE} access. Errors: address ${credentialSubject.address} doesn't have the attribute TNT:authoriseDid in Trusted Policies Registry`,
           });
 
           expect(response.status).toBe(400);

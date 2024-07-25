@@ -31,6 +31,7 @@ const config: HardhatUserConfig = {
       gasPrice: 0,
       minGasPrice: 0,
       hardfork: "istanbul",
+      allowUnlimitedContractSize: true,
     },
     local: {
       url: "http://localhost:8545",

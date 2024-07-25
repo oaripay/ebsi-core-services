@@ -19,7 +19,6 @@ export interface ApiConfig {
   trustedHostnames: string[];
   requestTimeout: number;
   authorisationCredentialSchema: string;
-  tntAuthoriseIssuersAllowlist: string[];
   // Test-specific variables
   testEnv: string | undefined;
   testIssuerKid: string | undefined;
@@ -67,11 +66,6 @@ export const loadConfig = (): ApiConfig => {
     trackAndTraceAccessesEndpoint: `${DOMAIN}${TNT_PATH}/accesses`,
     dockerContainerTag: process.env.DOCKER_TAG || "",
     trustedHostnames: (process.env.TRUSTED_HOSTNAMES || "")
-      .split(",")
-      .filter(Boolean),
-    tntAuthoriseIssuersAllowlist: (
-      process.env.TNT_AUTHORISE_ISSUERS_ALLOWLIST || ""
-    )
       .split(",")
       .filter(Boolean),
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
@@ -122,7 +116,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
       .required(),
     TRUSTED_HOSTNAMES: Joi.string(),
     REQUEST_TIMEOUT: Joi.string(),
-    TNT_AUTHORISE_ISSUERS_ALLOWLIST: Joi.string().allow(""),
     // Test-specific variables
     TEST_ENV: Joi.string(),
     TEST_ISSUER_KID: Joi.string(),
