@@ -29,7 +29,7 @@ import {
   createVerifiablePresentationJwt,
   type EbsiVerifiablePresentation,
 } from "@cef-ebsi/verifiable-presentation";
-import { calculateJwkThumbprint, importJWK, SignJWT, jwtVerify } from "jose";
+import { calculateJwkThumbprint, importJWK, jwtVerify } from "jose";
 import type { JWK } from "jose";
 import qs from "qs";
 import { AuthorisationModule } from "./authorisation.module.js";
@@ -194,23 +194,23 @@ describe.each(["EBSI URI", "URL"] as const)(
         },
       } satisfies EbsiVerifiableAttestation;
 
-      const accreditationVcJwt = await new SignJWT({
-        iat,
-        jti,
-        nbf: iat,
-        exp,
-        sub: accreditation.credentialSubject.id,
-        iss: accreditation.issuer,
-        vc: accreditation,
-      })
-        .setProtectedHeader({
+      const accreditationVcJwt = await createJWT(
+        {
+          iat,
+          jti,
+          nbf: iat,
+          exp,
+          sub: accreditation.credentialSubject.id,
+          iss: accreditation.issuer,
+          vc: accreditation,
+        },
+        { issuer: credentialIssuer.did, signer: credentialIssuer.signer },
+        {
           alg: credentialIssuer.alg,
           typ: "JWT",
           kid: credentialIssuer.kid,
-        })
-        .sign(
-          await importJWK(credentialIssuer.privateKeyJwk, credentialIssuer.alg),
-        );
+        },
+      );
 
       mockServer.use(
         http.get(credentialIssuerAccreditationUrl, () =>
@@ -954,26 +954,24 @@ describe.each(["EBSI URI", "URL"] as const)(
             }
 
             // Create VP JWT manually
-            const privateKey = await importJWK(
-              credentialIssuer.privateKeyJwk,
-              credentialIssuer.alg,
-            );
-            const vpJwt = await new SignJWT({
-              aud: serviceEndpoint,
-              sub: credentialIssuer.did,
-              iat: Math.floor(issuanceDate.getTime() / 1000),
-              nbf: Math.floor(issuanceDate.getTime() / 1000),
-              exp: Math.floor(expirationDate.getTime() / 1000),
-              vp: vpPayload,
-              nonce: randomUUID(),
-              iss: credentialIssuer.did,
-            })
-              .setProtectedHeader({
+            const vpJwt = await createJWT(
+              {
+                aud: serviceEndpoint,
+                sub: credentialIssuer.did,
+                iat: Math.floor(issuanceDate.getTime() / 1000),
+                nbf: Math.floor(issuanceDate.getTime() / 1000),
+                exp: Math.floor(expirationDate.getTime() / 1000),
+                vp: vpPayload,
+                nonce: randomUUID(),
+                iss: credentialIssuer.did,
+              },
+              { issuer: credentialIssuer.did, signer: credentialIssuer.signer },
+              {
                 alg: credentialIssuer.alg,
                 typ: "JWT",
                 kid: credentialIssuer.kid,
-              })
-              .sign(privateKey);
+              },
+            );
 
             await request(server)
               .post("/token")
@@ -1503,7 +1501,7 @@ describe.each(["EBSI URI", "URL"] as const)(
                 ),
               );
 
-              expectedErrorMessage = `Invalid Verifiable Presentation: VP JWT validation failed: Unable to resolve ${vpSigner.kid}. Error: notFound. Not Found | Registry used: ${domain}/did-registry/v4/identifiers`;
+              expectedErrorMessage = `Invalid Verifiable Presentation: Unable to resolve ${vpSigner.did}. Error: notFound. Not Found | Registry used: ${domain}/did-registry/v4/identifiers`;
               break;
             }
             case TIR_INVITE_SCOPE: {

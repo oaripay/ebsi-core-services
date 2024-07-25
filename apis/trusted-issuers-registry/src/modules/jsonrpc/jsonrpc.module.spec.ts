@@ -28,9 +28,13 @@ import {
   EbsiIssuer,
 } from "@cef-ebsi/verifiable-credential";
 import * as vcLib from "@cef-ebsi/verifiable-credential";
-import { exportJWK, generateKeyPair, JWTVerifyResult } from "jose";
+import type { JWTVerifyResult } from "jose";
 import { useContainer } from "class-validator";
-import { StatusList2021Credential } from "@ebsiint-api/shared";
+import {
+  StatusList2021Credential,
+  generatePrivateKey,
+  getSigner,
+} from "@ebsiint-api/shared";
 import { JsonRpcModule } from "./jsonrpc.module.js";
 import type { JsonRpcResponseObject } from "./jsonrpc.interface.js";
 import { JsonRpcService } from "./jsonrpc.service.js";
@@ -299,17 +303,14 @@ describe("JsonRpc Module", () => {
       },
     );
 
-    const keyPair = await generateKeyPair("ES256K");
-    const privateKeyJwk = await exportJWK(keyPair.privateKey);
-    const publicKeyJwk = await exportJWK(keyPair.publicKey);
+    const privateKey = generatePrivateKey("ES256K");
 
-    const issuer: EbsiIssuer = {
+    const issuer = {
       did: issuerV1.did,
       kid: `${issuerV1.did}#keys-1`,
-      publicKeyJwk,
-      privateKeyJwk,
+      signer: getSigner(privateKey, "ES256K"),
       alg: "ES256K",
-    };
+    } satisfies EbsiIssuer;
 
     const domain = configService.get("domain", { infer: true });
     const ebsiAuthority = domain.replace(/^https?:\/\//, ""); // remove http protocol scheme

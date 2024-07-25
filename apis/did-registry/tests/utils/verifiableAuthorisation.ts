@@ -5,13 +5,13 @@ import {
   type EbsiIssuer,
   type EbsiVerifiableAttestation,
 } from "@cef-ebsi/verifiable-credential";
-import { encode } from "@ebsiint-api/shared";
+import { getSigner } from "@ebsiint-api/shared";
 import { fromUrl } from "@cef-ebsi/ebsi-uri";
 
 export async function createVerifiableAuthorisation(
   subjectDid: string,
   authorisationCredentialSchema: string,
-  privateKey: string,
+  privateKey: Uint8Array,
   applicationDid: string,
   ebsiEnvConfig: EbsiEnvConfiguration,
   uriType: "URL" | "EBSI URI",
@@ -40,16 +40,12 @@ export async function createVerifiableAuthorisation(
     },
   };
 
-  const privateKeyJwk = encode.privateKey.fromHexToJWK(privateKey);
-  const { d, ...publicKeyJwk } = privateKeyJwk;
-
-  const issuer: EbsiIssuer = {
+  const issuer = {
     did: applicationDid,
-    privateKeyJwk,
-    publicKeyJwk,
+    signer: getSigner(privateKey, "ES256K"),
     alg: "ES256K",
     kid: `${applicationDid}#keys-1`,
-  };
+  } satisfies EbsiIssuer;
 
   return createVerifiableCredentialJwt(credential, issuer, {
     ...ebsiEnvConfig,

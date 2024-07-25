@@ -17,7 +17,7 @@ import {
   type JWK,
 } from "jose";
 import { KeyEncoder } from "@cef-ebsi/key-encoder";
-import { createJWT, decodeJWT, ES256KSigner } from "did-jwt";
+import { createJWT, decodeJWT, ES256KSigner, hexToBytes } from "did-jwt";
 import { ConfigService } from "@nestjs/config";
 import type { RawServerDefault } from "fastify";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
@@ -25,7 +25,7 @@ import { Agent as OAuth2Agent } from "@cef-ebsi/oauth2-auth";
 import type { AkeResponse } from "@cef-ebsi/oauth2-auth";
 import { RP, Agent as SiopAgent, verifyJwtTar } from "@cef-ebsi/siop-auth";
 import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
-import { encode } from "@ebsiint-api/shared";
+import { encode, generatePrivateKey } from "@ebsiint-api/shared";
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 import type { ApiConfig } from "../../src/config/configuration.js";
@@ -48,7 +48,7 @@ describe("Authorisation API v2 (e2e)", () => {
   let trustedAppsRegistry: string;
   let didRegistry: string;
   let authorisationCredentialSchema: string;
-  let onboardingApiPrivateKey: string;
+  let onboardingApiPrivateKey: Uint8Array;
   let onboardingAllowlist: string[];
   let apiKid: string;
   let apiName: string;
@@ -58,7 +58,7 @@ describe("Authorisation API v2 (e2e)", () => {
     kid: string;
   };
   let trustedIssuer: {
-    privateKey: string;
+    privateKey: Uint8Array;
     did: string;
   };
   let configService: ConfigService<ApiConfig, true>;
@@ -96,15 +96,15 @@ describe("Authorisation API v2 (e2e)", () => {
     const testAppName = configService.get<string>("testAppName");
     const testAppPrivateKey = configService.get<string>("testAppPrivateKey");
     const testIssuerDid = configService.get<string>("testIssuerDid");
-    const testIssuerPrivateKey = configService.get<string>(
-      "testIssuerPrivateKey",
+    const testIssuerPrivateKey = hexToBytes(
+      configService.get<string>("testIssuerPrivateKey"),
     );
     trustedAppsRegistry = configService.get<string>("trustedAppsRegistry");
     didRegistry = configService.get<string>("didRegistry");
     authorisationCredentialSchema = configService.get<string>(
       "authorisationCredentialSchema",
     );
-    onboardingApiPrivateKey = prefix0x(
+    onboardingApiPrivateKey = hexToBytes(
       configService.get<string>("onboardingApiPrivateKey"),
     );
     onboardingAllowlist = configService.get<string[]>("onboardingAllowlist");
@@ -894,9 +894,7 @@ describe("Authorisation API v2 (e2e)", () => {
             // will skip it and create the response:
             // A verifiable credential signed by onboarding api
             const did = EbsiWallet.createDid("LEGAL_ENTITY");
-            const keyPair = await generateKeyPair(alg);
-            const publicKeyJwk = await exportJWK(keyPair.publicKey);
-            const privateKeyJwk = await exportJWK(keyPair.privateKey);
+            const privateKey = generatePrivateKey(alg);
             const privateKeyHexEncryption = randomPrivateKeySecp256k1();
             const privateEncryptionKeyJwk = encode.privateKey.fromHexToJWK(
               privateKeyHexEncryption,
@@ -928,8 +926,7 @@ describe("Authorisation API v2 (e2e)", () => {
 
             const vp = await createVpJwt(
               did,
-              publicKeyJwk,
-              privateKeyJwk,
+              privateKey,
               verifiableCredentialJwt,
               audience,
               ebsiEnvConfig,
@@ -1022,9 +1019,7 @@ describe("Authorisation API v2 (e2e)", () => {
         // 1. A Trusted Issuer (different from onboarding api)
         // creates a verifiable authorisation
         const did = EbsiWallet.createDid();
-        const keyPair = await generateKeyPair("ES256K");
-        const publicKeyJwk = await exportJWK(keyPair.publicKey);
-        const privateKeyJwk = await exportJWK(keyPair.privateKey);
+        const privateKey = generatePrivateKey("ES256K");
         const privateKeyHexEncryption = randomPrivateKeySecp256k1();
 
         const publicKeyEncryption = new EbsiWallet(
@@ -1053,8 +1048,7 @@ describe("Authorisation API v2 (e2e)", () => {
 
         const vp = await createVpJwt(
           did,
-          publicKeyJwk,
-          privateKeyJwk,
+          privateKey,
           verifiableCredentialJwt,
           audience,
           ebsiEnvConfig,

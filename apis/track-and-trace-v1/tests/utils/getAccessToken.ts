@@ -1,5 +1,4 @@
 import { randomUUID } from "node:crypto";
-import type { JsonWebKey } from "node:crypto";
 import { URLSearchParams } from "node:url";
 import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
 import {
@@ -7,51 +6,8 @@ import {
   type EbsiIssuer,
 } from "@cef-ebsi/verifiable-presentation";
 import axios from "axios";
-import {
-  importJWK,
-  SignJWT,
-  base64url,
-  calculateJwkThumbprint,
-  type JWK,
-} from "jose";
-import elliptic from "elliptic";
-
-/**
- * Transform an ES256 private key into a JWK private key.
- *
- * @param hexPrivateKey The compressed ES256 private key
- * @returns The private key as a JWK
- */
-function fromHexToJWK(hexPrivateKey: string): JsonWebKey {
-  if (!hexPrivateKey || typeof hexPrivateKey !== "string") {
-    throw new Error("You must provide a non-empty hexadecimal private key");
-  }
-
-  const EC = elliptic.ec;
-  const ec = new EC("p256");
-
-  // Get key pair from hex private key
-  const keyPair = ec.keyFromPrivate(hexPrivateKey, "hex");
-
-  // Validate key pair
-  const validation = keyPair.validate();
-  if (validation.result === false) {
-    throw new Error(validation.reason);
-  }
-
-  // Format as JWK
-  const pubPoint = keyPair.getPublic();
-  const jwk: JsonWebKey = {
-    kty: "EC",
-    crv: "P-256",
-    alg: "ES256",
-    x: base64url.encode(pubPoint.getX().toBuffer("be", 32)),
-    y: base64url.encode(pubPoint.getY().toBuffer("be", 32)),
-    d: base64url.encode(Buffer.from(hexPrivateKey, "hex")),
-  };
-
-  return jwk;
-}
+import { createJWT, hexToBytes } from "did-jwt";
+import { getPublicKeyJwk, getSigner } from "@ebsiint-api/shared";
 
 /**
  * Sign a "didr_invite" access token as the Authorisation API.
@@ -61,22 +17,24 @@ export async function getDidrInviteAccessToken(
   did: string,
   authApiES256PrivateKey: string,
 ) {
-  const authApiPrivateKeyJwk = fromHexToJWK(authApiES256PrivateKey);
-  const authApiPrivateKey = await importJWK(
-    authApiPrivateKeyJwk as JWK,
-    "ES256",
-  );
-  const authApiKid = await calculateJwkThumbprint(authApiPrivateKeyJwk as JWK);
-  const newUserAccessToken = await new SignJWT({
-    scp: "openid didr_invite",
-    sub: did,
-  })
-    .setProtectedHeader({
+  const authApiPrivateKey = hexToBytes(authApiES256PrivateKey);
+  const { kid: authApiKid } = await getPublicKeyJwk(authApiPrivateKey, "ES256");
+
+  const newUserAccessToken = await createJWT(
+    {
+      scp: "openid didr_invite",
+      sub: did,
+    },
+    {
+      issuer: authApiKid,
+      signer: getSigner(authApiPrivateKey, "ES256"),
+    },
+    {
       alg: "ES256",
       typ: "JWT",
       kid: authApiKid,
-    })
-    .sign(authApiPrivateKey);
+    },
+  );
 
   return newUserAccessToken;
 }
@@ -86,22 +44,24 @@ export async function bypassAndGetAccessToken(
   authApiV3ES256PrivateKey: string,
   scope: "openid tnt_authorise" | "openid tnt_create" | "openid tnt_write",
 ) {
-  const authApiPrivateKeyJwk = fromHexToJWK(authApiV3ES256PrivateKey);
-  const authApiPrivateKey = await importJWK(
-    authApiPrivateKeyJwk as JWK,
-    "ES256",
-  );
-  const authApiKid = await calculateJwkThumbprint(authApiPrivateKeyJwk as JWK);
-  const newUserAccessToken = await new SignJWT({
-    scp: scope,
-    sub: did,
-  })
-    .setProtectedHeader({
+  const authApiPrivateKey = hexToBytes(authApiV3ES256PrivateKey);
+  const { kid: authApiKid } = await getPublicKeyJwk(authApiPrivateKey, "ES256");
+
+  const newUserAccessToken = await createJWT(
+    {
+      scp: scope,
+      sub: did,
+    },
+    {
+      issuer: authApiKid,
+      signer: getSigner(authApiPrivateKey, "ES256"),
+    },
+    {
       alg: "ES256",
       typ: "JWT",
       kid: authApiKid,
-    })
-    .sign(authApiPrivateKey);
+    },
+  );
 
   return newUserAccessToken;
 }

@@ -2,7 +2,11 @@ import { JsonWebKey, randomUUID } from "node:crypto";
 import { Injectable, Inject, Logger } from "@nestjs/common";
 import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { ConfigService } from "@nestjs/config";
-import { logAxiosError, type PaginatedList } from "@ebsiint-api/shared";
+import {
+  getPublicKeyJwk,
+  logAxiosError,
+  type PaginatedList,
+} from "@ebsiint-api/shared";
 import { PEXv2, type Checked } from "@sphereon/pex";
 import type {
   PresentationDefinitionV2,
@@ -27,7 +31,7 @@ import type {
   TokenResponse,
 } from "./authorisation.interfaces.js";
 import { CreateAccessTokenDto } from "./dto/index.js";
-import { fromHexToJWK, parseDto } from "./authorisation.utils.js";
+import { parseDto } from "./authorisation.utils.js";
 import {
   SUPPORTED_SCOPES,
   DIDR_INVITE_SCOPE,
@@ -55,7 +59,7 @@ export class AuthorisationService {
 
   private readonly ebsiEnvConfig: EbsiVpEnvConfiguration;
 
-  private readonly apiES256PrivateKey: string;
+  private readonly apiES256PrivateKey: Uint8Array;
 
   private readonly didRegistry: string;
 
@@ -97,9 +101,9 @@ export class AuthorisationService {
         infer: true,
       },
     );
-    this.apiES256PrivateKey = configService.get("apiES256PrivateKey", {
-      infer: true,
-    });
+    this.apiES256PrivateKey = hexToBytes(
+      configService.get("apiES256PrivateKey", { infer: true }),
+    );
     this.requestTimeout = configService.get("requestTimeout", { infer: true });
 
     // Create custom presentation definition for tnt_authorise scope with allowed issuers
@@ -125,7 +129,10 @@ export class AuthorisationService {
    */
   private async getPublicKeyJwk() {
     if (!this.publicKeyJwk) {
-      this.publicKeyJwk = await fromHexToJWK(this.apiES256PrivateKey);
+      this.publicKeyJwk = await getPublicKeyJwk(
+        this.apiES256PrivateKey,
+        "ES256",
+      );
     }
 
     return this.publicKeyJwk;
@@ -881,7 +888,7 @@ export class AuthorisationService {
       },
       {
         issuer: this.issuer, // iss: HTTPS URL of the Authorisation Server instance. Must equal to hosted domain + suffix.
-        signer: ES256Signer(hexToBytes(this.apiES256PrivateKey)),
+        signer: ES256Signer(this.apiES256PrivateKey),
       },
       {
         alg: "ES256",
@@ -963,7 +970,7 @@ export class AuthorisationService {
          * The iss value is a case sensitive URL using the https scheme that contains scheme, host, and optionally, port number and path components and no query or fragment components.
          */
         issuer: this.issuer, // iss: HTTPS URL of the Authorisation Server instance. Must equal to hosted domain + suffix.
-        signer: ES256Signer(hexToBytes(this.apiES256PrivateKey)),
+        signer: ES256Signer(this.apiES256PrivateKey),
       },
       {
         alg: "ES256",

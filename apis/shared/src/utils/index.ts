@@ -14,3 +14,6 @@ export * from "./parseRevertReason.js";
 export * from "./waitToBeMined.js";
 export * from "./extractNamedAttributes.js";
 export * from "./fastifyFrameworkErrors.js";
+export * from "./generatePrivateKey.js";
+export * from "./getPublicKeyJwk.js";
+export * from "./getSigner.js";

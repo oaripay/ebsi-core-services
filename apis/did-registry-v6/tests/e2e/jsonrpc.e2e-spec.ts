@@ -133,10 +133,7 @@ describeWriteOps()("DID Registry API v6 - JSON-RPC (e2e)", () => {
       );
 
       user = {
-        info: {
-          ...userDetails,
-          alg: "ES256K",
-        },
+        info: userDetails,
         token: userAccessToken,
         wallet: userDetails.wallet,
         thumbprint: userDetails.thumbprint,

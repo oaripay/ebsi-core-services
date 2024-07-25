@@ -11,13 +11,18 @@ import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import type { RawServerDefault } from "fastify";
 import axios from "axios";
-import { calculateJwkThumbprint } from "jose";
 import type {
   EbsiEnvConfiguration,
   EbsiIssuer,
 } from "@cef-ebsi/verifiable-credential";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { waitToBeMined, encode } from "@ebsiint-api/shared";
+import {
+  waitToBeMined,
+  getSigner,
+  generatePrivateKey,
+  getPublicKeyJwk,
+} from "@ebsiint-api/shared";
+import { hexToBytes } from "did-jwt";
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 import type { ApiConfig } from "../../src/config/configuration.js";
@@ -109,17 +114,13 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
     const authoriserPrivateKeyHex = configService.get<string>(
       "testAuthorisedLegalEntityPrivateKey",
     );
-    const authoriserPrivateKeyJwk = encode.privateKey.fromHexToJWK(
-      authoriserPrivateKeyHex,
-    );
-    const { d: dAuthorisedLegalEntity, ...authoriserPublicKeyJwk } =
-      authoriserPrivateKeyJwk;
+    const authoriserPrivateKey = hexToBytes(authoriserPrivateKeyHex);
+
     authoriser = {
       info: {
         did,
         kid,
-        privateKeyJwk: authoriserPrivateKeyJwk,
-        publicKeyJwk: authoriserPublicKeyJwk,
+        signer: getSigner(authoriserPrivateKey, "ES256K"),
         alg: "ES256K",
       },
       wallet: new ethers.Wallet(authoriserPrivateKeyHex),
@@ -135,20 +136,20 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
 
     // register new DID in the DID Registry
     const creatorDid = EbsiWallet.createDid();
-    const creatorPrivateKeyHex = `0x${randomBytes(32).toString("hex")}`;
-    const creatorPrivateKeyJwk =
-      encode.privateKey.fromHexToJWK(creatorPrivateKeyHex);
-    const { d: dCreator, ...creatorPublicKeyJwk } = creatorPrivateKeyJwk;
-    const creatorThumbprint = await calculateJwkThumbprint(creatorPublicKeyJwk);
+    const creatorPrivateKey = generatePrivateKey("ES256K");
+    const creatorPublicKeyJwk = await getPublicKeyJwk(
+      creatorPrivateKey,
+      "ES256K",
+    );
+    const creatorThumbprint = creatorPublicKeyJwk.kid;
     creator = {
       info: {
         did: creatorDid,
         kid: `${creatorDid}#${creatorThumbprint}`,
-        privateKeyJwk: creatorPrivateKeyJwk,
-        publicKeyJwk: creatorPublicKeyJwk,
+        signer: getSigner(creatorPrivateKey, "ES256K"),
         alg: "ES256K",
       },
-      wallet: new ethers.Wallet(creatorPrivateKeyHex),
+      wallet: new ethers.Wallet(creatorPrivateKey),
       accessToken: {
         tntAuthorise: "",
         tntCreate: "",

@@ -24,8 +24,8 @@
     "test:ci": "yarn test:unit --coverage --reporter=default"
   },
   "dependencies": {
-    "@cef-ebsi/ebsi-uri": "^0.1.0-alpha.0",
-    "@cef-ebsi/verifiable-credential": "^6.0.0-alpha.0",
+    "@cef-ebsi/ebsi-uri": "^0.1.0-alpha.1",
+    "@cef-ebsi/verifiable-credential": "^6.0.0-alpha.1",
     "@ebsiint-api/shared": "^1.1.0-rc.9",
     "@ebsiint-sc/trusted-issuers-registry-v3": "^3.0.0-rc.4",
     "@ethersproject/address": "^5.7.0",
@@ -58,8 +58,8 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@cef-ebsi/verifiable-presentation": "^7.0.0-alpha.0",
-    "@cef-ebsi/wallet-lib": "^5.0.1",
+    "@cef-ebsi/verifiable-presentation": "^7.0.0-alpha.1",
+    "@cef-ebsi/wallet-lib": "^5.0.2",
     "@nestjs/cli": "^10.3.2",
     "@nestjs/schematics": "^10.1.1",
     "@nestjs/testing": "^10.3.5",
@@ -69,7 +69,6 @@
     "@total-typescript/ts-reset": "^0.5.1",
     "@tsconfig/node20": "^20.1.3",
     "@tsconfig/strictest": "^2.0.4",
-    "@types/elliptic": "^6.4.18",
     "@types/k6": "^0.50.0",
     "@types/node": "^20.11.30",
     "@types/passport-http-bearer": "^1.0.41",
@@ -77,11 +76,10 @@
     "@types/validator": "^13.11.9",
     "@types/ws": "^7.4.7",
     "@vitest/coverage-v8": "^1.4.0",
+    "did-jwt": "^8.0.4",
     "did-resolver": "^4.1.0",
-    "elliptic": "^6.5.5",
     "hardhat": "~2.20.1",
     "msw": "^2.2.11",
-    "multiformats": "^12.1.3",
     "supertest": "^6.3.4",
     "ts-node": "^10.9.2",
     "typescript": "5.3.3",

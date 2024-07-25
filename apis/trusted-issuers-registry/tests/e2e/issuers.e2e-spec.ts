@@ -14,10 +14,6 @@ import {
 import type { RawServerDefault } from "fastify";
 import { useContainer } from "class-validator";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import { exportJWK, generateKeyPair } from "jose";
-import elliptic from "elliptic";
-import { bytes } from "multiformats";
-import { base64url } from "multiformats/bases/base64";
 import {
   createVerifiableCredentialJwt,
   type EbsiEnvConfiguration,
@@ -29,7 +25,11 @@ import {
   StatusList2021Credential,
   PaginatedList,
   waitToBeMined,
+  generatePrivateKey,
+  getSigner,
+  getPublicKeyJwk,
 } from "@ebsiint-api/shared";
+import { hexToBytes } from "did-jwt";
 import type { ApiConfig } from "../../src/config/configuration.js";
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
@@ -103,17 +103,19 @@ async function createIssuerData(
   did: string,
   alg: "ES256" | "ES256K" | "EdDSA" = "ES256K",
 ) {
-  const keyPair = await generateKeyPair(alg);
-  const privateKeyJwk = await exportJWK(keyPair.privateKey);
-  const publicKeyJwk = await exportJWK(keyPair.publicKey);
+  const privateKey = generatePrivateKey(alg);
+  const {
+    kid: publicKeyJwkKid,
+    alg: publicKeyJwkAlg,
+    ...publicKeyJwk
+  } = await getPublicKeyJwk(privateKey, alg);
 
-  const issuer: EbsiIssuer = {
+  const issuer = {
     did,
     kid: `${did}#keys-1`,
-    publicKeyJwk,
-    privateKeyJwk,
+    signer: getSigner(privateKey, alg),
     alg,
-  };
+  } satisfies EbsiIssuer;
 
   const didDocument = {
     "@context": [
@@ -140,32 +142,18 @@ async function createIssuerData(
     issuer,
     didDocument,
     publicKeyJwk,
-    keyPair,
+    privateKey,
   };
 }
 
-function getEbsiIssuer(privateKey: string, did: string, kid: string) {
-  const hexIssuerPrivateKey = privateKey.replace("0x", "");
-  const EC = elliptic.ec;
-  const ec = new EC("secp256k1");
-  const pubPoint = ec.keyFromPrivate(hexIssuerPrivateKey, "hex").getPublic();
-  const issuerPublicKeyJwk = {
-    kty: "EC",
-    crv: "secp256k1",
-    x: base64url.baseEncode(pubPoint.getX().toBuffer("be", 32)),
-    y: base64url.baseEncode(pubPoint.getY().toBuffer("be", 32)),
-  };
-  const issuerPrivateKeyJwk = {
-    ...issuerPublicKeyJwk,
-    d: base64url.baseEncode(bytes.fromHex(hexIssuerPrivateKey)),
-  };
-  const issuer: EbsiIssuer = {
+function getEbsiIssuer(privateKeyHex: string, did: string, kid: string) {
+  const privateKey = hexToBytes(privateKeyHex);
+  const issuer = {
     did,
     kid,
     alg: "ES256K",
-    publicKeyJwk: issuerPublicKeyJwk,
-    privateKeyJwk: issuerPrivateKeyJwk,
-  };
+    signer: getSigner(privateKey, "ES256K"),
+  } satisfies EbsiIssuer;
   return issuer;
 }
 

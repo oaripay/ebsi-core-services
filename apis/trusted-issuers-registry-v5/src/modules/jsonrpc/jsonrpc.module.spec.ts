@@ -244,17 +244,23 @@ describe("JsonRpc Module", () => {
       .sign(authApiKeyPair.privateKey);
 
     // Generate proxy
-    const keyPair = await generateKeyPair("ES256K");
-    const privateKeyJwk = await exportJWK(keyPair.privateKey);
-    const publicKeyJwk = await exportJWK(keyPair.publicKey);
+    const privateKey =
+      StatusList2021CredentialHelpers.generatePrivateKey("ES256K");
+    const {
+      kid: publicKeyJwkKid,
+      alg: publicKeyJwkAlg,
+      ...publicKeyJwk
+    } = await StatusList2021CredentialHelpers.getPublicKeyJwk(
+      privateKey,
+      "ES256K",
+    );
 
-    const issuer: EbsiIssuer = {
+    const issuer = {
       did: issuers[0]!.did,
       kid: `${issuers[0]!.did}#keys-1`,
-      publicKeyJwk,
-      privateKeyJwk,
+      signer: StatusList2021CredentialHelpers.getSigner(privateKey, "ES256K"),
       alg: "ES256K",
-    };
+    } satisfies EbsiIssuer;
 
     const domain = configService.get("domain", { infer: true });
     const ebsiAuthority = domain.replace(/^https?:\/\//, ""); // remove http protocol scheme

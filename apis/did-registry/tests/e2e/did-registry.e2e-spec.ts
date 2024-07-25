@@ -224,7 +224,7 @@ describe.each(["EBSI URI", "URL"] as const)(
       try {
         newUserAccessToken = await requestNewUserSiopJwt({
           clientKid: newUserKid,
-          clientPrivateKey: `0x${newUserPrivateKey}`,
+          clientPrivateKeyHex: `0x${newUserPrivateKey}`,
           configService,
           uriType,
         });

@@ -1,5 +1,9 @@
 import { randomUUID } from "node:crypto";
-import { calculateJwkThumbprint, exportJWK, generateKeyPair } from "jose";
+import {
+  generatePrivateKey,
+  getPublicKeyJwk,
+  getSigner,
+} from "@ebsiint-api/shared";
 import type { JWK } from "jose";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import type { DIDDocument, JsonWebKey } from "did-resolver";
@@ -49,20 +53,17 @@ export async function createLegalEntity(
   alg: "ES256" | "ES256K" | "EdDSA",
 ): Promise<LegalEntity> {
   const did = EbsiWallet.createDid();
-  const keypair = await generateKeyPair(alg);
-  const publicKeyJwk = await exportJWK(keypair.publicKey);
-  const privateKeyJwk = await exportJWK(keypair.privateKey);
-  const thumbprint = await calculateJwkThumbprint(publicKeyJwk);
-  const kid = `${did}#${thumbprint}`;
+  const privateKey = generatePrivateKey(alg);
+  const publicKeyJwk = await getPublicKeyJwk(privateKey, alg);
+  const kid = `${did}#${publicKeyJwk.kid}`;
 
   const didDocument = createDidDocument(did, kid, publicKeyJwk);
 
   return {
-    publicKeyJwk,
-    privateKeyJwk,
     alg,
     did,
     kid,
+    signer: getSigner(privateKey, alg),
     didDocument,
   };
 }

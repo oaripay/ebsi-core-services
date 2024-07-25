@@ -4,7 +4,7 @@ import type {
   EbsiVpEnvConfiguration,
 } from "@cef-ebsi/verifiable-presentation";
 import { createVerifiablePresentationJwt } from "@cef-ebsi/verifiable-presentation";
-import { encode } from "@ebsiint-api/shared";
+import { getSigner } from "@ebsiint-api/shared";
 
 export async function createVP({
   vc,
@@ -15,7 +15,7 @@ export async function createVP({
 }: {
   vc: string;
   clientKid: string;
-  clientPrivateKey: string;
+  clientPrivateKey: Uint8Array;
   audience: string;
   ebsiEnvConfig: EbsiVpEnvConfiguration;
 }): Promise<string> {
@@ -27,16 +27,12 @@ export async function createVP({
     holder: clientDid,
   };
 
-  const privateKeyJwk = encode.privateKey.fromHexToJWK(clientPrivateKey);
-  const { d, ...publicKeyJwk } = privateKeyJwk;
-
-  const issuer: EbsiIssuer = {
+  const issuer = {
     did: clientDid,
-    privateKeyJwk,
-    publicKeyJwk,
+    signer: getSigner(clientPrivateKey, "ES256K"),
     alg: "ES256K",
     kid: clientKid,
-  };
+  } satisfies EbsiIssuer;
 
   return createVerifiablePresentationJwt(presentation, issuer, audience, {
     ...ebsiEnvConfig,

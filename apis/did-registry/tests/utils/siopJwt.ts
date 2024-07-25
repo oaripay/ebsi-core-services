@@ -10,6 +10,7 @@ import {
 } from "@cef-ebsi/siop-auth";
 import { exportJWK, generateKeyPair, importJWK } from "jose";
 import { encode } from "@ebsiint-api/shared";
+import { hexToBytes } from "did-jwt";
 import { createVP } from "./verifiablePresentation.js";
 import { createVerifiableAuthorisation } from "./verifiableAuthorisation.js";
 import type { ApiConfig } from "../../src/config/configuration.js";
@@ -118,12 +119,12 @@ export const requestSiopJwt = async ({
 // Get SIOP JWT as a new (unregistered) user
 export const requestNewUserSiopJwt = async ({
   clientKid,
-  clientPrivateKey,
+  clientPrivateKeyHex,
   configService,
   uriType,
 }: {
   clientKid: string;
-  clientPrivateKey: string;
+  clientPrivateKeyHex: string;
   configService: ConfigService<ApiConfig, true>;
   uriType: "URL" | "EBSI URI";
 }): Promise<string> => {
@@ -131,8 +132,8 @@ export const requestNewUserSiopJwt = async ({
   const authorisationCredentialSchema = configService.get<string>(
     "authorisationCredentialSchema",
   );
-  const usersOnboardingApiPrivateKey = configService.get<string>(
-    "usersOnboardingApiPrivateKey",
+  const usersOnboardingApiPrivateKey = hexToBytes(
+    configService.get<string>("usersOnboardingApiPrivateKey"),
   );
   const usersOnboardingApiDid = configService.get<string>(
     "usersOnboardingApiDid",
@@ -188,7 +189,7 @@ export const requestNewUserSiopJwt = async ({
   const verifiablePresentation = await createVP({
     vc: verifiableCredential,
     clientKid,
-    clientPrivateKey,
+    clientPrivateKey: hexToBytes(clientPrivateKeyHex),
     audience: "",
     ebsiEnvConfig,
   });
@@ -200,7 +201,7 @@ export const requestNewUserSiopJwt = async ({
 
   const agent = new SiopAgent({
     privateKey: await importJWK(
-      encode.privateKey.fromHexToJWK(clientPrivateKey),
+      encode.privateKey.fromHexToJWK(clientPrivateKeyHex),
       alg,
     ),
     kid: clientKid,

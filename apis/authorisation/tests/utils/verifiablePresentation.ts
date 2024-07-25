@@ -4,12 +4,11 @@ import type {
 } from "@cef-ebsi/verifiable-credential";
 import { createVerifiablePresentationJwt } from "@cef-ebsi/verifiable-presentation";
 import type { EbsiVerifiablePresentation } from "@cef-ebsi/verifiable-presentation";
-import { calculateJwkThumbprint, type JWK } from "jose";
+import { getPublicKeyJwk, getSigner } from "@ebsiint-api/shared";
 
 export async function createVpJwt(
   holderDid: string,
-  holderPublicKeyJwk: JWK,
-  holderPrivateKeyJwk: JWK,
+  holderPrivateKey: Uint8Array,
   vc: string,
   audience: string,
   ebsiEnvConfig: EbsiEnvConfiguration,
@@ -22,15 +21,14 @@ export async function createVpJwt(
     holder: holderDid,
   };
 
-  const thumbprint = await calculateJwkThumbprint(holderPublicKeyJwk);
+  const publicKeyJwk = await getPublicKeyJwk(holderPrivateKey, alg);
 
-  const holder: EbsiIssuer = {
+  const holder = {
     did: holderDid,
-    kid: `${holderDid}#${thumbprint}`,
+    kid: `${holderDid}#${publicKeyJwk.kid}`,
     alg,
-    publicKeyJwk: holderPublicKeyJwk,
-    privateKeyJwk: holderPrivateKeyJwk,
-  };
+    signer: getSigner(holderPrivateKey, alg),
+  } satisfies EbsiIssuer;
 
   const jwt = await createVerifiablePresentationJwt(
     presentation,

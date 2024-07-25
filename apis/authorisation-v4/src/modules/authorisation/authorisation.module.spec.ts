@@ -32,13 +32,7 @@ import {
   createVerifiablePresentationJwt,
   type EbsiVerifiablePresentation,
 } from "@cef-ebsi/verifiable-presentation";
-import {
-  calculateJwkThumbprint,
-  importJWK,
-  SignJWT,
-  jwtVerify,
-  type JWK,
-} from "jose";
+import { calculateJwkThumbprint, importJWK, jwtVerify, type JWK } from "jose";
 import qs from "qs";
 import { fromUrl } from "@cef-ebsi/ebsi-uri";
 import { AuthorisationModule } from "./authorisation.module.js";
@@ -238,26 +232,26 @@ describe.each(["EBSI URI", "URL"] as const)(
         },
       } satisfies EbsiVerifiableAttestation;
 
-      const accreditationVcJwt = await new SignJWT({
-        iat,
-        jti,
-        nbf: iat,
-        exp,
-        sub: accreditation.credentialSubject.id,
-        iss: accreditation.issuer,
-        vc: accreditation,
-      })
-        .setProtectedHeader({
+      const accreditationVcJwt = await createJWT(
+        {
+          iat,
+          jti,
+          nbf: iat,
+          exp,
+          sub: accreditation.credentialSubject.id,
+          iss: accreditation.issuer,
+          vc: accreditation,
+        },
+        {
+          issuer: credentialIssuer.did,
+          signer: credentialIssuer.keys.ES256.signer,
+        },
+        {
           alg: credentialIssuer.keys.ES256.alg,
           typ: "JWT",
           kid: credentialIssuer.keys.ES256.kid,
-        })
-        .sign(
-          await importJWK(
-            credentialIssuer.keys.ES256.privateKeyJwk,
-            credentialIssuer.keys.ES256.alg,
-          ),
-        );
+        },
+      );
 
       mockServer.use(
         http.get(credentialIssuerAccreditationUrl, () =>
@@ -651,26 +645,27 @@ describe.each(["EBSI URI", "URL"] as const)(
 
           // Manually create VP JWT
           // Create VP JWT manually
-          const privateKey = await importJWK(
-            credentialIssuer.keys.ES256.privateKeyJwk,
-            credentialIssuer.keys.ES256.alg,
-          );
-          const vpJwt = await new SignJWT({
-            aud: serviceEndpoint,
-            sub: credentialIssuer.did,
-            iat: Math.floor(issuanceDate.getTime() / 1000),
-            nbf: Math.floor(issuanceDate.getTime() / 1000),
-            exp: Math.floor(expirationDate.getTime() / 1000),
-            vp: vpPayload,
-            nonce: randomUUID(),
-            iss: credentialIssuer.did,
-          })
-            .setProtectedHeader({
+          const vpJwt = await createJWT(
+            {
+              aud: serviceEndpoint,
+              sub: credentialIssuer.did,
+              iat: Math.floor(issuanceDate.getTime() / 1000),
+              nbf: Math.floor(issuanceDate.getTime() / 1000),
+              exp: Math.floor(expirationDate.getTime() / 1000),
+              vp: vpPayload,
+              nonce: randomUUID(),
+              iss: credentialIssuer.did,
+            },
+            {
+              issuer: credentialIssuer.keys.ES256.did,
+              signer: credentialIssuer.keys.ES256.signer,
+            },
+            {
               alg: credentialIssuer.keys.ES256.alg,
               typ: "JWT",
               kid: credentialIssuer.keys.ES256.kid,
-            })
-            .sign(privateKey);
+            },
+          );
 
           const response = await request(server)
             .post("/token")
@@ -1228,26 +1223,27 @@ describe.each(["EBSI URI", "URL"] as const)(
                 }
 
                 // Create VP JWT manually
-                const privateKey = await importJWK(
-                  credentialIssuer.keys.ES256.privateKeyJwk,
-                  credentialIssuer.keys.ES256.alg,
-                );
-                const vpJwt = await new SignJWT({
-                  aud: serviceEndpoint,
-                  sub: credentialIssuer.did,
-                  iat: Math.floor(issuanceDate.getTime() / 1000),
-                  nbf: Math.floor(issuanceDate.getTime() / 1000),
-                  exp: Math.floor(expirationDate.getTime() / 1000),
-                  vp: vpPayload,
-                  nonce: randomUUID(),
-                  iss: credentialIssuer.did,
-                })
-                  .setProtectedHeader({
+                const vpJwt = await createJWT(
+                  {
+                    aud: serviceEndpoint,
+                    sub: credentialIssuer.did,
+                    iat: Math.floor(issuanceDate.getTime() / 1000),
+                    nbf: Math.floor(issuanceDate.getTime() / 1000),
+                    exp: Math.floor(expirationDate.getTime() / 1000),
+                    vp: vpPayload,
+                    nonce: randomUUID(),
+                    iss: credentialIssuer.did,
+                  },
+                  {
+                    issuer: credentialIssuer.keys.ES256.did,
+                    signer: credentialIssuer.keys.ES256.signer,
+                  },
+                  {
                     alg: credentialIssuer.keys.ES256.alg,
                     typ: "JWT",
                     kid: credentialIssuer.keys.ES256.kid,
-                  })
-                  .sign(privateKey);
+                  },
+                );
 
                 await request(server)
                   .post("/token")
@@ -1876,7 +1872,7 @@ describe.each(["EBSI URI", "URL"] as const)(
                     ),
                   );
 
-                  expectedErrorMessage = `Invalid Verifiable Presentation: VP JWT validation failed: Unable to resolve ${vpSigner.kid}. Error: notFound. Not Found | Registry used: ${domain}/did-registry/v5/identifiers`;
+                  expectedErrorMessage = `Invalid Verifiable Presentation: Unable to resolve ${vpSigner.did}. Error: notFound. Not Found | Registry used: ${domain}/did-registry/v5/identifiers`;
                   break;
                 }
                 case TIR_INVITE_SCOPE: {
@@ -1930,7 +1926,7 @@ describe.each(["EBSI URI", "URL"] as const)(
                     ),
                   );
 
-                  expectedErrorMessage = `Invalid Verifiable Presentation: VP JWT validation failed: Unable to resolve ${vpSigner.kid}. Error: notFound. Not Found | Registry used: ${domain}/did-registry/v5/identifiers`;
+                  expectedErrorMessage = `Invalid Verifiable Presentation: Unable to resolve ${vpSigner.did}. Error: notFound. Not Found | Registry used: ${domain}/did-registry/v5/identifiers`;
                   break;
                 }
                 case TNT_AUTHORISE_SCOPE: {
@@ -1939,10 +1935,10 @@ describe.each(["EBSI URI", "URL"] as const)(
                     "VerifiableCredential",
                     "VerifiableAttestation",
                   ];
-                  vcPayload.issuer = EbsiWallet.createDid(); // Issuer is not in the allowlist
+
                   expectedErrorMessage = [
                     "Invalid Presentation Submission:",
-                    "FilterEvaluation tag: Input candidate failed filter evaluation: $.input_descriptors[0]: $.verifiableCredential[0];,FilterEvaluation tag: Input candidate failed filter evaluation: $.input_descriptors[0]: $.verifiableCredential[0];,MarkForSubmissionEvaluation tag: The input candidate is not eligible for submission: $.input_descriptors[0]: $.verifiableCredential[0];",
+                    "FilterEvaluation tag: Input candidate failed filter evaluation: $.input_descriptors[0]: $.verifiableCredential[0];,MarkForSubmissionEvaluation tag: The input candidate is not eligible for submission: $.input_descriptors[0]: $.verifiableCredential[0];",
                   ].join("\n");
                   break;
                 }
@@ -2943,7 +2939,7 @@ describe.each(["EBSI URI", "URL"] as const)(
 
           expect(response.body).toStrictEqual({
             error: "invalid_request",
-            error_description: `Invalid Verifiable Presentation: Could not find a verification method related to "${credentialSubject.keys.ES256K.kid}" for the proof purpose "capabilityInvocation"`,
+            error_description: `Invalid Verifiable Presentation: Could not find a verification method related to "${credentialSubject.keys.ES256K.kid}" for the proof purpose "capabilityInvocation" and algorithm "ES256K"`,
           });
 
           expect(response.status).toBe(400);

@@ -13,19 +13,18 @@ import {
 import type { RawServerDefault } from "fastify";
 import { useContainer } from "class-validator";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import elliptic from "elliptic";
-import { bytes } from "multiformats";
-import { base64url } from "multiformats/bases/base64";
 import { createVerifiableCredentialJwt } from "@cef-ebsi/verifiable-credential";
 import type {
   EbsiEnvConfiguration,
   EbsiIssuer,
 } from "@cef-ebsi/verifiable-credential";
 import { fromUrl } from "@cef-ebsi/ebsi-uri";
-import type {
-  StatusList2021Credential,
-  PaginatedList,
+import {
+  type StatusList2021Credential,
+  type PaginatedList,
+  getSigner,
 } from "@ebsiint-api/shared";
+import { hexToBytes } from "did-jwt";
 import type { ApiConfig } from "../../src/config/configuration.js";
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
@@ -77,27 +76,13 @@ interface SupertestStringResponse {
   text: string;
 }
 
-function getEbsiIssuer(privateKey: string, did: string, kid: string) {
-  const hexIssuerPrivateKey = privateKey.replace("0x", "");
-  const EC = elliptic.ec;
-  const ec = new EC("secp256k1");
-  const pubPoint = ec.keyFromPrivate(hexIssuerPrivateKey, "hex").getPublic();
-  const issuerPublicKeyJwk = {
-    kty: "EC",
-    crv: "secp256k1",
-    x: base64url.baseEncode(pubPoint.getX().toBuffer("be", 32)),
-    y: base64url.baseEncode(pubPoint.getY().toBuffer("be", 32)),
-  };
-  const issuerPrivateKeyJwk = {
-    ...issuerPublicKeyJwk,
-    d: base64url.baseEncode(bytes.fromHex(hexIssuerPrivateKey)),
-  };
+function getEbsiIssuer(privateKeyHex: string, did: string, kid: string) {
+  const privateKey = hexToBytes(privateKeyHex);
   const issuer: EbsiIssuer = {
     did,
     kid,
     alg: "ES256K",
-    publicKeyJwk: issuerPublicKeyJwk,
-    privateKeyJwk: issuerPrivateKeyJwk,
+    signer: getSigner(privateKey, "ES256K"),
   };
   return issuer;
 }

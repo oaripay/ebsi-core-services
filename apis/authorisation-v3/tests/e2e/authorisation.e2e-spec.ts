@@ -18,11 +18,11 @@ import type { PresentationSubmission } from "@sphereon/pex-models";
 import qs from "qs";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
-import { encode } from "@ebsiint-api/shared";
-import { createJWT, decodeJWT, ES256KSigner } from "did-jwt";
-import { calculateJwkThumbprint, importJWK, jwtVerify, SignJWT } from "jose";
+import { createJWT, decodeJWT, ES256KSigner, hexToBytes } from "did-jwt";
+import { calculateJwkThumbprint, importJWK, jwtVerify } from "jose";
 import type { JWK } from "jose";
 import { fromUrl } from "@cef-ebsi/ebsi-uri";
+import { getSigner } from "@ebsiint-api/shared";
 import { AppModule } from "../../src/app.module.js";
 import type { ApiConfig } from "../../src/config/configuration.js";
 import {
@@ -355,15 +355,10 @@ describe("Authorisation API v3 (e2e)", () => {
                 throw new Error("TEST_ISSUER_ALG must be ES256K");
               }
 
-              const privateKeyJwk =
-                encode.privateKey.fromHexToJWK(issuerPrivateKey);
-              const { d, ...publicKeyJwk } = privateKeyJwk;
-
               issuer = {
                 kid: issuerKid,
                 did: issuerKid.split("#")[0]!,
-                publicKeyJwk,
-                privateKeyJwk,
+                signer: getSigner(hexToBytes(issuerPrivateKey), issuerAlg),
                 alg: issuerAlg,
               };
 
@@ -779,26 +774,27 @@ describe("Authorisation API v3 (e2e)", () => {
                 }
 
                 // Create VP JWT manually
-                const privateKey = await importJWK(
-                  client.privateKeyJwk,
-                  client.alg,
-                );
-                const vpJwt = await new SignJWT({
-                  aud: authorisationApiV3Url,
-                  sub: client.did,
-                  iat: Math.floor(issuanceDate.getTime() / 1000),
-                  nbf: Math.floor(issuanceDate.getTime() / 1000),
-                  exp: Math.floor(expirationDate.getTime() / 1000),
-                  vp: vpPayload,
-                  nonce: randomUUID(),
-                  iss: client.did,
-                })
-                  .setProtectedHeader({
+                const vpJwt = await createJWT(
+                  {
+                    aud: authorisationApiV3Url,
+                    sub: client.did,
+                    iat: Math.floor(issuanceDate.getTime() / 1000),
+                    nbf: Math.floor(issuanceDate.getTime() / 1000),
+                    exp: Math.floor(expirationDate.getTime() / 1000),
+                    vp: vpPayload,
+                    nonce: randomUUID(),
+                    iss: client.did,
+                  },
+                  {
+                    issuer: client.did,
+                    signer: client.signer,
+                  },
+                  {
                     alg: client.alg,
                     typ: "JWT",
                     kid: client.kid,
-                  })
-                  .sign(privateKey);
+                  },
+                );
 
                 await request(server)
                   .post("/token")

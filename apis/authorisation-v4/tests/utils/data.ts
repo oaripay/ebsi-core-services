@@ -1,9 +1,13 @@
 import { randomUUID } from "node:crypto";
-import { calculateJwkThumbprint, exportJWK, generateKeyPair } from "jose";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import type { DIDDocument, JsonWebKey } from "did-resolver";
 import type { EbsiIssuer } from "@cef-ebsi/verifiable-credential";
 import type { PresentationSubmission } from "@sphereon/pex-models";
+import {
+  generatePrivateKey,
+  getPublicKeyJwk,
+  getSigner,
+} from "@ebsiint-api/shared";
 import {
   CUSTOM_SCOPES,
   DIDR_INVITE_PRESENTATION_DEFINITION,
@@ -30,7 +34,7 @@ import {
 
 export function createDidDocument(
   did: string,
-  keys: Record<string, EbsiIssuer>,
+  keys: Record<string, EbsiIssuer & { publicKeyJwk: JsonWebKey }>,
 ): DIDDocument {
   const kids = Object.keys(keys).map((alg) => keys[alg]!.kid);
   return {
@@ -43,7 +47,7 @@ export function createDidDocument(
       id: keys[alg]!.kid,
       type: "JsonWebKey2020",
       controller: did,
-      publicKeyJwk: keys[alg]!.publicKeyJwk as JsonWebKey,
+      publicKeyJwk: keys[alg]!.publicKeyJwk,
     })),
     authentication: kids,
     assertionMethod: kids,
@@ -53,7 +57,7 @@ export function createDidDocument(
 
 export interface LegalEntity<T extends "ES256" | "ES256K" | "EdDSA"> {
   did: string;
-  keys: Record<T, EbsiIssuer>;
+  keys: Record<T, EbsiIssuer & { publicKeyJwk: JsonWebKey }>;
   didDocument: DIDDocument;
 }
 
@@ -63,23 +67,21 @@ export async function createLegalEntity<T extends "ES256" | "ES256K" | "EdDSA">(
 ): Promise<LegalEntity<T>> {
   const legalEntityDid = did ?? EbsiWallet.createDid();
 
-  const keys: Record<string, EbsiIssuer> = {};
+  const keys: Record<string, EbsiIssuer & { publicKeyJwk: JsonWebKey }> = {};
 
   /* eslint-disable no-await-in-loop */
   // eslint-disable-next-line no-restricted-syntax
   for (const alg of algs) {
-    const keypair = await generateKeyPair(alg);
-    const publicKeyJwk = await exportJWK(keypair.publicKey);
-    const privateKeyJwk = await exportJWK(keypair.privateKey);
-    const thumbprint = await calculateJwkThumbprint(publicKeyJwk);
-    const kid = `${legalEntityDid}#${thumbprint}`;
+    const privateKey = generatePrivateKey(alg);
+    const publicKeyJwk = await getPublicKeyJwk(privateKey, alg);
+    const kid = `${legalEntityDid}#${publicKeyJwk.kid}`;
 
     keys[alg] = {
       did: legalEntityDid,
-      publicKeyJwk,
-      privateKeyJwk,
       kid,
       alg,
+      publicKeyJwk,
+      signer: getSigner(privateKey, alg),
     };
   }
   /* eslint-enable no-await-in-loop */

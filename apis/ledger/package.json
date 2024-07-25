@@ -24,7 +24,7 @@
     "test:ci": "yarn test:unit --coverage --reporter=default"
   },
   "dependencies": {
-    "@cef-ebsi/oauth2-auth": "^3.0.1",
+    "@cef-ebsi/oauth2-auth": "^3.0.2",
     "@ebsiint-api/shared": "^1.1.0-rc.7",
     "@ethereumjs/common": "^3.2.0",
     "@ethereumjs/tx": "^4.2.0",
@@ -48,8 +48,8 @@
     "yaml": "^2.4.1"
   },
   "devDependencies": {
-    "@cef-ebsi/siop-auth": "^4.0.1",
-    "@cef-ebsi/wallet-lib": "^5.0.1",
+    "@cef-ebsi/siop-auth": "^4.0.2",
+    "@cef-ebsi/wallet-lib": "^5.0.2",
     "@nestjs/cli": "^10.3.2",
     "@nestjs/schematics": "^10.1.1",
     "@nestjs/testing": "^10.3.5",

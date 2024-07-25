@@ -192,7 +192,7 @@ export const jwkSchema = z
     }
   });
 
-export function getPublicKeyJwk(value: unknown, isSecp256k1: boolean) {
+function getPublicKeyJwk(value: unknown, isSecp256k1: boolean) {
   if (typeof value !== "string") {
     throw new Error("The public key must be a string");
   }

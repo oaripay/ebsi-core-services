@@ -14,9 +14,6 @@ import {
 import type { RawServerDefault } from "fastify";
 import { useContainer } from "class-validator";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
-import elliptic from "elliptic";
-import { bytes } from "multiformats";
-import { base64url } from "multiformats/bases/base64";
 import { calculateJwkThumbprint, exportJWK, generateKeyPair } from "jose";
 import {
   createVerifiableCredentialJwt,
@@ -27,6 +24,8 @@ import {
 import { fromUrl } from "@cef-ebsi/ebsi-uri";
 import {
   encode,
+  getPublicKeyJwk,
+  getSigner,
   prefixWith0x,
   remove0xPrefix,
   waitToBeMined,
@@ -35,6 +34,7 @@ import type {
   StatusList2021Credential,
   PaginatedList,
 } from "@ebsiint-api/shared";
+import { hexToBytes } from "did-jwt";
 import type { ApiConfig } from "../../src/config/configuration.js";
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
@@ -86,34 +86,19 @@ interface TestIssuer {
 }
 
 async function getEbsiIssuer(
-  privateKey: string,
+  privateKeyHex: string,
   did: string,
   kid?: string,
   alg: "ES256" | "ES256K" = "ES256",
 ) {
-  const hexIssuerPrivateKey = privateKey.replace("0x", "");
-  const EC = elliptic.ec;
-  const ec = new EC(alg === "ES256" ? "p256" : "secp256k1");
-  const pubPoint = ec.keyFromPrivate(hexIssuerPrivateKey, "hex").getPublic();
-  const issuerPublicKeyJwk = {
-    kty: "EC",
-    crv: alg === "ES256" ? "P-256" : "secp256k1",
-    x: base64url.baseEncode(pubPoint.getX().toBuffer("be", 32)),
-    y: base64url.baseEncode(pubPoint.getY().toBuffer("be", 32)),
-  };
-  const issuerPrivateKeyJwk = {
-    ...issuerPublicKeyJwk,
-    d: base64url.baseEncode(bytes.fromHex(hexIssuerPrivateKey)),
-  };
-
+  const privateKey = hexToBytes(privateKeyHex);
+  const publicKeyJwk = await getPublicKeyJwk(privateKey, alg);
   const issuer: EbsiIssuer = {
     did,
-    kid: kid || `${did}#${await calculateJwkThumbprint(issuerPublicKeyJwk)}`,
+    kid: kid ?? publicKeyJwk.kid,
     alg,
-    publicKeyJwk: issuerPublicKeyJwk,
-    privateKeyJwk: issuerPrivateKeyJwk,
+    signer: getSigner(privateKey, alg),
   };
-
   return issuer;
 }
 

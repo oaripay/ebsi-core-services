@@ -5,15 +5,13 @@ import {
   type EbsiIssuer,
   type EbsiVerifiableAttestation,
 } from "@cef-ebsi/verifiable-credential";
-import elliptic from "elliptic";
-import { base64url } from "multiformats/bases/base64";
-import { bytes } from "multiformats";
 import { fromUrl } from "@cef-ebsi/ebsi-uri";
+import { ES256KSigner } from "did-jwt";
 
 export async function createVerifiableAuthorisationJwt(
   subjectDid: string,
   authorisationCredentialSchema: string,
-  privateKey: string,
+  privateKey: Uint8Array,
   applicationDid: string,
   ebsiEnvConfig: EbsiEnvConfiguration,
   uriType: "URL" | "EBSI URI",
@@ -23,28 +21,12 @@ export async function createVerifiableAuthorisationJwt(
     issuanceDate.getTime() + 1000 * 60 * 60 * 24 * 182, // 365/2 = 6 months
   );
 
-  const EC = elliptic.ec;
-  const ec = new EC("secp256k1");
-  const hex = privateKey.replace(/^0x/, "");
-  const pubPoint = ec.keyFromPrivate(hex, "hex").getPublic();
-  const issuerPublicKeyJwk = {
-    kty: "EC",
-    crv: "secp256k1",
-    x: base64url.baseEncode(pubPoint.getX().toBuffer("be", 32)),
-    y: base64url.baseEncode(pubPoint.getY().toBuffer("be", 32)),
-  };
-  const issuerPrivateKeyJwk = {
-    ...issuerPublicKeyJwk,
-    d: base64url.baseEncode(bytes.fromHex(hex)),
-  };
-
-  const issuer: EbsiIssuer = {
+  const issuer = {
     did: applicationDid,
     kid: `${applicationDid}#keys-1`,
-    publicKeyJwk: issuerPublicKeyJwk,
-    privateKeyJwk: issuerPrivateKeyJwk,
+    signer: ES256KSigner(privateKey),
     alg: "ES256K",
-  };
+  } satisfies EbsiIssuer;
 
   const vcPayload: EbsiVerifiableAttestation = {
     "@context": ["https://www.w3.org/2018/credentials/v1"],

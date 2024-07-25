@@ -10,11 +10,12 @@ import {
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import { util } from "@cef-ebsi/key-did-resolver";
-import { waitToBeMined, encode } from "@ebsiint-api/shared";
+import { waitToBeMined, encode, getSigner } from "@ebsiint-api/shared";
 import type {
   EbsiEnvConfiguration,
   EbsiIssuer,
 } from "@cef-ebsi/verifiable-credential";
+import { hexToBytes } from "did-jwt";
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
 import type { ApiConfig } from "../../src/config/configuration.js";
@@ -100,10 +101,7 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
       );
     }
 
-    const authoriserPrivateKeyJwk = encode.privateKey.fromHexToJWK(
-      authoriserPrivateKeyHex,
-    );
-    const { d, ...authoriserPublicKeyJwk } = authoriserPrivateKeyJwk;
+    const authoriserPrivateKey = hexToBytes(authoriserPrivateKeyHex);
     const vcOnboard = configService.get(
       "testAuthorisedLegalEntityVcToOnboard",
       {
@@ -122,8 +120,7 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
       info: {
         did: authoriserDid,
         kid: authoriserKid,
-        privateKeyJwk: authoriserPrivateKeyJwk,
-        publicKeyJwk: authoriserPublicKeyJwk,
+        signer: getSigner(authoriserPrivateKey, "ES256K"),
         alg: "ES256K",
       },
     } satisfies Actor;
@@ -147,26 +144,21 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
       throw new Error("TEST_REGULAR_LEGAL_ENTITY_PRIVATE_KEY must be defined");
     }
 
-    const documentCreatorPrivateKeyJwk = encode.privateKey.fromHexToJWK(
-      documentCreatorPrivateKeyHex,
-    );
-    const { d: documentCreatorD, ...documentCreatorPublicKeyJwk } =
-      documentCreatorPrivateKeyJwk;
+    const documentCreatorPrivateKey = hexToBytes(documentCreatorPrivateKeyHex);
 
     const documentCreator = {
       wallet: new ethers.Wallet(documentCreatorPrivateKeyHex),
       info: {
         did: documentCreatorDid,
         kid: documentCreatorKid,
-        privateKeyJwk: documentCreatorPrivateKeyJwk,
-        publicKeyJwk: documentCreatorPublicKeyJwk,
+        signer: getSigner(documentCreatorPrivateKey, "ES256K"),
         alg: "ES256K",
       },
     } satisfies Actor;
 
     // Delegate (did:key)
     const didKeyDelegateWallet = ethers.Wallet.createRandom();
-    const didKeyDelegatePrivateKeyJwk = encode.privateKey.fromHexToJWK(
+    const didKeyDelegatePrivateKey = hexToBytes(
       didKeyDelegateWallet.privateKey,
     );
     const didKeyDelegatePublicKeyJwk = encode.publicKey.fromHexToJWK(
@@ -184,15 +176,14 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
       info: {
         did: didKeyDelegateDid,
         kid: didKeyDelegateKid,
-        privateKeyJwk: didKeyDelegatePrivateKeyJwk,
-        publicKeyJwk: didKeyDelegatePublicKeyJwk,
+        signer: getSigner(didKeyDelegatePrivateKey, "ES256K"),
         alg: "ES256K",
       },
     } satisfies Actor;
 
     // Events creator (did:key)
     const didKeyEventsCreatorWallet = ethers.Wallet.createRandom();
-    const didKeyEventsCreatorPrivateKeyJwk = encode.privateKey.fromHexToJWK(
+    const didKeyEventsCreatorPrivateKey = hexToBytes(
       didKeyEventsCreatorWallet.privateKey,
     );
     const didKeyEventsCreatorPublicKeyJwk = encode.publicKey.fromHexToJWK(
@@ -210,8 +201,7 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
       info: {
         did: didKeyEventsCreatorDid,
         kid: didKeyEventsCreatorKid,
-        privateKeyJwk: didKeyEventsCreatorPrivateKeyJwk,
-        publicKeyJwk: didKeyEventsCreatorPublicKeyJwk,
+        signer: getSigner(didKeyEventsCreatorPrivateKey, "ES256K"),
         alg: "ES256K",
       },
     } satisfies Actor;

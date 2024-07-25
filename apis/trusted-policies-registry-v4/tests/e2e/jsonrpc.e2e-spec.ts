@@ -16,6 +16,7 @@ import {
   waitToBeMined,
 } from "@ebsiint-api/shared";
 import type { EbsiEnvConfiguration } from "@cef-ebsi/verifiable-credential";
+import { hexToBytes } from "did-jwt";
 import type { ApiConfig } from "../../src/config/configuration.js";
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
@@ -126,7 +127,7 @@ describe("TPR API v4 - JSON RPC (e2e)", () => {
       const adminKid = configService.get<string>("testAdminKid");
       const adminDid = adminKid.split("#")[0]!;
       const adminIssuerInfo = await getEbsiIssuer(
-        adminPrivateKeyHex,
+        hexToBytes(adminPrivateKeyHex),
         adminDid,
         adminKid,
       );
@@ -136,7 +137,7 @@ describe("TPR API v4 - JSON RPC (e2e)", () => {
       const testUserKid = configService.get<string>("testUserKid");
       const testUserDid = testUserKid.split("#")[0]!;
       const testUserIssuerInfo = await getEbsiIssuer(
-        testUserPrivateKeyHex,
+        hexToBytes(testUserPrivateKeyHex),
         testUserDid,
         testUserKid,
       );

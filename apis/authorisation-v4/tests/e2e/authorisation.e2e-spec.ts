@@ -1,4 +1,4 @@
-import { randomBytes, randomUUID, type JsonWebKey } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
 import { URLSearchParams } from "node:url";
 import { describe, beforeAll, it, expect, beforeEach, afterAll } from "vitest";
 import request from "supertest";
@@ -18,18 +18,11 @@ import type { PresentationSubmission } from "@sphereon/pex-models";
 import qs from "qs";
 import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
-import { encode } from "@ebsiint-api/shared";
-import { createJWT, decodeJWT, ES256KSigner } from "did-jwt";
-import {
-  calculateJwkThumbprint,
-  importJWK,
-  jwtVerify,
-  SignJWT,
-  base64url,
-} from "jose";
+import { createJWT, decodeJWT, ES256KSigner, hexToBytes } from "did-jwt";
+import { calculateJwkThumbprint, importJWK, jwtVerify } from "jose";
 import type { JWK } from "jose";
-import elliptic from "elliptic";
 import { fromUrl } from "@cef-ebsi/ebsi-uri";
+import { getSigner } from "@ebsiint-api/shared";
 import { AppModule } from "../../src/app.module.js";
 import type { ApiConfig } from "../../src/config/configuration.js";
 import {
@@ -67,44 +60,6 @@ import {
   createPresentationSubmission,
 } from "../utils/data.js";
 import { CreateAccessTokenDto } from "../../src/modules/authorisation/dto/index.js";
-
-/**
- * Transform an ES256 private key into a JWK private key.
- *
- * @param hexPrivateKey The compressed ES256 private key
- * @returns The private key as a JWK
- */
-function fromHexToJWK(hexPrivateKey: string) {
-  if (!hexPrivateKey || typeof hexPrivateKey !== "string") {
-    throw new Error("You must provide a non-empty hexadecimal private key");
-  }
-
-  const EC = elliptic.ec;
-  const ec = new EC("p256");
-
-  // Get key pair from hex private key
-  const keyPair = ec.keyFromPrivate(hexPrivateKey, "hex");
-
-  // Validate key pair
-  const validation = keyPair.validate();
-  if (validation.result === false) {
-    throw new Error(validation.reason);
-  }
-
-  // Format as JWK
-  const pubPoint = keyPair.getPublic();
-
-  const jwk = {
-    kty: "EC",
-    crv: "P-256",
-    alg: "ES256",
-    x: base64url.encode(pubPoint.getX().toBuffer("be", 32)),
-    y: base64url.encode(pubPoint.getY().toBuffer("be", 32)),
-    d: base64url.encode(Buffer.from(hexPrivateKey, "hex")),
-  } satisfies JsonWebKey;
-
-  return jwk;
-}
 
 describe("Authorisation  API v4 (e2e)", () => {
   let app: NestFastifyApplication;
@@ -498,15 +453,11 @@ describe("Authorisation  API v4 (e2e)", () => {
                     throw new Error("TEST_ISSUER_ATTRIBUTE must be defined");
                   }
 
-                  const privateKeyJwk = fromHexToJWK(issuerPrivateKey);
-                  const { d, ...publicKeyJwk } = privateKeyJwk;
-
                   issuer = {
                     kid: issuerKid,
                     did: issuerKid.split("#")[0]!,
-                    publicKeyJwk,
-                    privateKeyJwk,
                     alg: issuerAlg,
+                    signer: getSigner(hexToBytes(issuerPrivateKey), issuerAlg),
                   };
 
                   if (
@@ -546,16 +497,10 @@ describe("Authorisation  API v4 (e2e)", () => {
                       );
                     }
 
-                    const clientPrivateKeyJwk =
-                      encode.privateKey.fromHexToJWK(clientPrivateKey);
-                    const { d: unusedD, ...clientPublicKeyJwk } =
-                      clientPrivateKeyJwk;
-
                     client = {
                       kid: clientKid,
                       did: clientKid.split("#")[0]!,
-                      publicKeyJwk: clientPublicKeyJwk,
-                      privateKeyJwk: clientPrivateKeyJwk,
+                      signer: getSigner(hexToBytes(clientPrivateKey), "ES256K"),
                       alg: "ES256K",
                     };
                   } else {
@@ -1023,26 +968,27 @@ describe("Authorisation  API v4 (e2e)", () => {
                     }
 
                     // Create VP JWT manually
-                    const privateKey = await importJWK(
-                      client.privateKeyJwk,
-                      client.alg,
-                    );
-                    const vpJwt = await new SignJWT({
-                      aud: authorisationApiV4Url,
-                      sub: client.did,
-                      iat: Math.floor(issuanceDate.getTime() / 1000),
-                      nbf: Math.floor(issuanceDate.getTime() / 1000),
-                      exp: Math.floor(expirationDate.getTime() / 1000),
-                      vp: vpPayload,
-                      nonce: randomUUID(),
-                      iss: client.did,
-                    })
-                      .setProtectedHeader({
+                    const vpJwt = await createJWT(
+                      {
+                        aud: authorisationApiV4Url,
+                        sub: client.did,
+                        iat: Math.floor(issuanceDate.getTime() / 1000),
+                        nbf: Math.floor(issuanceDate.getTime() / 1000),
+                        exp: Math.floor(expirationDate.getTime() / 1000),
+                        vp: vpPayload,
+                        nonce: randomUUID(),
+                        iss: client.did,
+                      },
+                      {
+                        issuer: client.did,
+                        signer: client.signer,
+                      },
+                      {
                         alg: client.alg,
                         typ: "JWT",
                         kid: client.kid,
-                      })
-                      .sign(privateKey);
+                      },
+                    );
 
                     await request(server)
                       .post("/token")
