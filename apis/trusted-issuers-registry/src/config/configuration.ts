@@ -25,8 +25,6 @@ export interface ApiConfig {
   didRegistryApiUrl: string;
   // Trusted Apps Registry API
   trustedAppsRegistryApiUrl: string;
-  // Trusted Policies Registry API
-  trustedPoliciesRegistryApiUrl: string;
   // TSR API (used in tests only)
   trustedSchemasRegistryApiUrl: string;
   // Test variables
@@ -92,8 +90,6 @@ export const loadConfig = (): ApiConfig => {
     trustedSchemasRegistryApiUrl: DOMAIN + TSR_API_PATH,
     // Trusted Apps Registry API
     trustedAppsRegistryApiUrl: DOMAIN + TAR_API_PATH,
-    // TPR API
-    trustedPoliciesRegistryApiUrl: DOMAIN + TPR_API_PATH,
     // Test vars
     testAdminKid: process.env.TEST_ADMIN_KID,
     testAdminPrivateKey: process.env.TEST_ADMIN_PRIVATE_KEY,
