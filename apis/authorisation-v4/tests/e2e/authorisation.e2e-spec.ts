@@ -611,22 +611,8 @@ describe("Authorisation  API v4 (e2e)", () => {
                         ...ebsiEnvConfig,
                         skipValidation: true,
                         nonce: randomUUID(),
-
-                        ...([
-                          DIDR_WRITE_SCOPE,
-                          TIR_WRITE_SCOPE,
-                          TIMESTAMP_WRITE_SCOPE,
-                          TNT_CREATE_SCOPE,
-                          TNT_WRITE_SCOPE,
-                          TPR_WRITE_SCOPE,
-                          TSR_WRITE_SCOPE,
-                        ].includes(customScope)
-                          ? {
-                              // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                              exp: Math.floor(Date.now() / 1000) + 100,
-                              nbf: Math.floor(Date.now() / 1000) - 100,
-                            }
-                          : {}),
+                        nbf: Math.floor(Date.now() / 1000) - 100,
+                        exp: Math.floor(Date.now() / 1000) + 60, // Expires in 1 minute (less than the 5 minutes limit)
                       },
                     );
 
@@ -684,21 +670,8 @@ describe("Authorisation  API v4 (e2e)", () => {
                         ...ebsiEnvConfig,
                         skipValidation: true,
                         nonce: randomUUID(),
-                        ...([
-                          DIDR_WRITE_SCOPE,
-                          TIR_WRITE_SCOPE,
-                          TIMESTAMP_WRITE_SCOPE,
-                          TNT_CREATE_SCOPE,
-                          TNT_WRITE_SCOPE,
-                          TPR_WRITE_SCOPE,
-                          TSR_WRITE_SCOPE,
-                        ].includes(customScope)
-                          ? {
-                              // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                              exp: Math.floor(Date.now() / 1000) + 100,
-                              nbf: Math.floor(Date.now() / 1000) - 100,
-                            }
-                          : {}),
+                        nbf: Math.floor(Date.now() / 1000) - 100,
+                        exp: Math.floor(Date.now() / 1000) + 60, // Expires in 1 minute (less than the 5 minutes limit)
                       },
                     );
 
@@ -772,10 +745,67 @@ describe("Authorisation  API v4 (e2e)", () => {
                         ...ebsiEnvConfig,
                         skipValidation: true,
                         nonce: randomUUID(),
-
-                        // Override "exp" and "nbf"
+                        nbf: Math.floor(Date.now() / 1000) - 100,
                         exp: Math.floor(Date.now() / 1000) - 100,
-                        nbf: Math.floor(Date.now() / 1000) - 1000,
+                      },
+                    );
+
+                    const response = await request(server)
+                      .post("/token")
+                      .set("Content-Type", "application/x-www-form-urlencoded")
+                      .send(
+                        new URLSearchParams({
+                          grant_type: "vp_token",
+                          scope,
+                          vp_token: vpJwt,
+                          presentation_submission: JSON.stringify(
+                            presentationSubmission,
+                          ),
+                        } satisfies CreateAccessTokenDto).toString(),
+                      );
+
+                    expect(response.body).toStrictEqual({
+                      error: "invalid_request",
+                      error_description: "The vp_token has expired.",
+                    });
+                    expect(response.status).toBe(400);
+                    expect(
+                      (response.headers as Record<string, unknown>)[
+                        "content-type"
+                      ],
+                    ).toBe("application/json; charset=utf-8");
+                  });
+
+                  it("should return an error if the VP JWT expires in more than 5 minutes", async () => {
+                    if (
+                      [
+                        DIDR_INVITE_SCOPE,
+                        TIR_INVITE_SCOPE,
+                        TNT_AUTHORISE_SCOPE,
+                      ].includes(customScope)
+                    ) {
+                      const vcJwt = await createVerifiableCredentialJwt(
+                        vcPayload,
+                        issuer,
+                        {
+                          ...ebsiEnvConfig,
+                          skipValidation: true,
+                        },
+                      );
+
+                      vpPayload.verifiableCredential.push(vcJwt);
+                    }
+
+                    const vpJwt = await createVerifiablePresentationJwt(
+                      vpPayload,
+                      client,
+                      authorisationApiV4Url,
+                      {
+                        ...ebsiEnvConfig,
+                        skipValidation: true,
+                        nonce: randomUUID(),
+                        nbf: Math.floor(Date.now() / 1000) - 100,
+                        exp: Math.floor(Date.now() / 1000) + 600, // Expires in 10 minutes, more than the 5 minutes limit
                       },
                     );
 
@@ -796,7 +826,7 @@ describe("Authorisation  API v4 (e2e)", () => {
                     expect(response.body).toStrictEqual({
                       error: "invalid_request",
                       error_description:
-                        "Invalid Verifiable Presentation: JWT has expired",
+                        "The vp_token must not have an expiration time of more than 5 minutes in the future.",
                     });
                     expect(response.status).toBe(400);
                     expect(
@@ -834,10 +864,8 @@ describe("Authorisation  API v4 (e2e)", () => {
                         ...ebsiEnvConfig,
                         skipValidation: true,
                         nonce: randomUUID(),
-
-                        // Override "exp" and "nbf"
-                        exp: Math.floor(Date.now() / 1000) + 1000,
                         nbf: Math.floor(Date.now() / 1000) + 100,
+                        exp: Math.floor(Date.now() / 1000) + 120, // Expires in 2 minutes (less than the 5 minutes limit)
                       },
                     );
 
@@ -895,23 +923,9 @@ describe("Authorisation  API v4 (e2e)", () => {
                       {
                         ...ebsiEnvConfig,
                         skipValidation: true,
-
                         // We don't add any nonce
-                        ...([
-                          DIDR_WRITE_SCOPE,
-                          TIR_WRITE_SCOPE,
-                          TIMESTAMP_WRITE_SCOPE,
-                          TNT_CREATE_SCOPE,
-                          TNT_WRITE_SCOPE,
-                          TPR_WRITE_SCOPE,
-                          TSR_WRITE_SCOPE,
-                        ].includes(customScope)
-                          ? {
-                              // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                              exp: Math.floor(Date.now() / 1000) + 100,
-                              nbf: Math.floor(Date.now() / 1000) - 100,
-                            }
-                          : {}),
+                        nbf: Math.floor(Date.now() / 1000) - 100,
+                        exp: Math.floor(Date.now() / 1000) + 60, // Expires in 1 minute (less than the 5 minutes limit)
                       },
                     );
 
@@ -970,7 +984,7 @@ describe("Authorisation  API v4 (e2e)", () => {
                         sub: client.did,
                         iat: Math.floor(issuanceDate.getTime() / 1000),
                         nbf: Math.floor(issuanceDate.getTime() / 1000),
-                        exp: Math.floor(expirationDate.getTime() / 1000),
+                        exp: Math.floor(Date.now() / 1000) + 60, // Expires in 1 minute (less than the 5 minutes limit)
                         vp: vpPayload,
                         nonce: randomUUID(),
                         iss: client.did,
@@ -1069,22 +1083,8 @@ describe("Authorisation  API v4 (e2e)", () => {
                       ...ebsiEnvConfig,
                       skipValidation: true,
                       nonce: randomUUID(),
-
-                      ...([
-                        DIDR_WRITE_SCOPE,
-                        TIR_WRITE_SCOPE,
-                        TIMESTAMP_WRITE_SCOPE,
-                        TNT_CREATE_SCOPE,
-                        TNT_WRITE_SCOPE,
-                        TPR_WRITE_SCOPE,
-                        TSR_WRITE_SCOPE,
-                      ].includes(customScope)
-                        ? {
-                            // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                            exp: Math.floor(Date.now() / 1000) + 100,
-                            nbf: Math.floor(Date.now() / 1000) - 100,
-                          }
-                        : {}),
+                      nbf: Math.floor(Date.now() / 1000) - 100,
+                      exp: Math.floor(Date.now() / 1000) + 60, // Expires in 1 minute (less than the 5 minutes limit)
                     },
                   );
 
@@ -1140,22 +1140,8 @@ describe("Authorisation  API v4 (e2e)", () => {
                       ...ebsiEnvConfig,
                       skipValidation: true,
                       nonce: randomUUID(),
-
-                      ...([
-                        DIDR_WRITE_SCOPE,
-                        TIR_WRITE_SCOPE,
-                        TIMESTAMP_WRITE_SCOPE,
-                        TNT_CREATE_SCOPE,
-                        TNT_WRITE_SCOPE,
-                        TPR_WRITE_SCOPE,
-                        TSR_WRITE_SCOPE,
-                      ].includes(customScope)
-                        ? {
-                            // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                            exp: Math.floor(Date.now() / 1000) + 100,
-                            nbf: Math.floor(Date.now() / 1000) - 100,
-                          }
-                        : {}),
+                      nbf: Math.floor(Date.now() / 1000) - 100,
+                      exp: Math.floor(Date.now() / 1000) + 60, // Expires in 1 minute (less than the 5 minutes limit)
                     },
                   );
 
@@ -1210,22 +1196,8 @@ describe("Authorisation  API v4 (e2e)", () => {
                       ...ebsiEnvConfig,
                       skipValidation: true,
                       nonce: randomUUID(),
-
-                      ...([
-                        DIDR_WRITE_SCOPE,
-                        TIR_WRITE_SCOPE,
-                        TIMESTAMP_WRITE_SCOPE,
-                        TNT_CREATE_SCOPE,
-                        TNT_WRITE_SCOPE,
-                        TPR_WRITE_SCOPE,
-                        TSR_WRITE_SCOPE,
-                      ].includes(customScope)
-                        ? {
-                            // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                            exp: Math.floor(Date.now() / 1000) + 100,
-                            nbf: Math.floor(Date.now() / 1000) - 100,
-                          }
-                        : {}),
+                      nbf: Math.floor(Date.now() / 1000) - 100,
+                      exp: Math.floor(Date.now() / 1000) + 60, // Expires in 1 minute (less than the 5 minutes limit)
                     },
                   );
 
@@ -1263,22 +1235,8 @@ describe("Authorisation  API v4 (e2e)", () => {
                       ...ebsiEnvConfig,
                       skipValidation: true,
                       nonce: randomUUID(),
-
-                      ...([
-                        DIDR_WRITE_SCOPE,
-                        TIR_WRITE_SCOPE,
-                        TIMESTAMP_WRITE_SCOPE,
-                        TNT_CREATE_SCOPE,
-                        TNT_WRITE_SCOPE,
-                        TPR_WRITE_SCOPE,
-                        TSR_WRITE_SCOPE,
-                      ].includes(customScope)
-                        ? {
-                            // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                            exp: Math.floor(Date.now() / 1000) + 100,
-                            nbf: Math.floor(Date.now() / 1000) - 100,
-                          }
-                        : {}),
+                      nbf: Math.floor(Date.now() / 1000) - 100,
+                      exp: Math.floor(Date.now() / 1000) + 60, // Expires in 1 minute (less than the 5 minutes limit)
                     },
                   );
 
@@ -1314,22 +1272,8 @@ describe("Authorisation  API v4 (e2e)", () => {
                       ...ebsiEnvConfig,
                       skipValidation: true,
                       nonce: randomUUID(),
-
-                      ...([
-                        DIDR_WRITE_SCOPE,
-                        TIR_WRITE_SCOPE,
-                        TIMESTAMP_WRITE_SCOPE,
-                        TNT_CREATE_SCOPE,
-                        TNT_WRITE_SCOPE,
-                        TPR_WRITE_SCOPE,
-                        TSR_WRITE_SCOPE,
-                      ].includes(customScope)
-                        ? {
-                            // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                            exp: Math.floor(Date.now() / 1000) + 100,
-                            nbf: Math.floor(Date.now() / 1000) - 100,
-                          }
-                        : {}),
+                      nbf: Math.floor(Date.now() / 1000) - 100,
+                      exp: Math.floor(Date.now() / 1000) + 60, // Expires in 1 minute (less than the 5 minutes limit)
                     },
                   );
 
@@ -1390,22 +1334,8 @@ describe("Authorisation  API v4 (e2e)", () => {
                       ...ebsiEnvConfig,
                       skipValidation: true,
                       nonce,
-
-                      ...([
-                        DIDR_WRITE_SCOPE,
-                        TIR_WRITE_SCOPE,
-                        TIMESTAMP_WRITE_SCOPE,
-                        TNT_CREATE_SCOPE,
-                        TNT_WRITE_SCOPE,
-                        TPR_WRITE_SCOPE,
-                        TSR_WRITE_SCOPE,
-                      ].includes(customScope)
-                        ? {
-                            // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                            exp: Math.floor(Date.now() / 1000) + 100,
-                            nbf: Math.floor(Date.now() / 1000) - 100,
-                          }
-                        : {}),
+                      nbf: Math.floor(Date.now() / 1000) - 100,
+                      exp: Math.floor(Date.now() / 1000) + 60, // Expires in 1 minute (less than the 5 minutes limit)
                     },
                   );
 
@@ -1469,22 +1399,8 @@ describe("Authorisation  API v4 (e2e)", () => {
                       ...ebsiEnvConfig,
                       skipValidation: true,
                       nonce,
-
-                      ...([
-                        DIDR_WRITE_SCOPE,
-                        TIR_WRITE_SCOPE,
-                        TIMESTAMP_WRITE_SCOPE,
-                        TNT_CREATE_SCOPE,
-                        TNT_WRITE_SCOPE,
-                        TPR_WRITE_SCOPE,
-                        TSR_WRITE_SCOPE,
-                      ].includes(customScope)
-                        ? {
-                            // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                            exp: Math.floor(Date.now() / 1000) + 100,
-                            nbf: Math.floor(Date.now() / 1000) - 100,
-                          }
-                        : {}),
+                      nbf: Math.floor(Date.now() / 1000) - 100,
+                      exp: Math.floor(Date.now() / 1000) + 60, // Expires in 1 minute (less than the 5 minutes limit)
                     },
                   );
 

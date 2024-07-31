@@ -810,7 +810,7 @@ paths:
                   type: string
                   example: vp_token
                 vp_token:
-                  description: Signed Verifiable Presentation. See also the VP Token schema definition.
+                  description: Signed Verifiable Presentation. The VP Token must have a nonce and an expiration time of less than 5 minutes. See also the VP Token schema definition.
                   type: string
                   example: eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiIsImtpZCI6ImRpZDplYnNpOnp2SFdYMzU5QTNDdmZKbkNZYUFpQWRlI0YwcjVPeXRfbGFodnZ6Nk1XbFlzM21jWU5LWmlpUWRVZnF2OHRzaEhOOXcifQ.eyJpc3MiOiJkaWQ6ZWJzaTowMDAxMjM0NSIsImF1ZCI6ImRpZDplYnNpOnp4QTl0NFoydW9yRVZueDlualdVWXZSIiwibm9uY2UiOiIxMjM0NTY3ODkwIiwiZXhwIjoxNjY4NzU1NzY4LCJpYXQiOjE2Njg3NTQyNjgsInZwIjp7IkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIl0sInR5cGUiOlsiVmVyaWZpYWJsZVByZXNlbnRhdGlvbiJdLCJob2xkZXIiOiJkaWQ6ZWJzaTowMDAxMjM0NSIsInZlcmlmaWFibGVDcmVkZW50aWFsIjpbImV5SjBlWEFpT2lKS1YxUWlMQ0poYkdjaU9pSkZVekkxTmlJc0ltdHBaQ0k2SW1ScFpEcGxZbk5wT25wMlNGZFlNelU1UVRORGRtWktia05aWVVGcFFXUmxJMFl3Y2pWUGVYUmZiR0ZvZG5aNk5rMVhiRmx6TTIxaldVNUxXbWxwVVdSVlpuRjJPSFJ6YUVoT09YY2lmUS5lMzAuMFUzZzVrZjJqZDZhN1hNTjBtNXhva091UmhkSlZRZzhFR3UtclQwUVJ2bWJUbm41a0RYbi1tVWhCRWp4SVQxeFkxRmc5YWtRWlBrQmNlR3BuWXZpSFEiXX19.CfwWBrkwOYyrm93A4QEaCCKvG14G0iqr-smrUyrUyC7YBOxhSkYPZgvOy6YCsjFT59Gczd_C0K8Pbni-AH7NRQ
                 presentation_submission:

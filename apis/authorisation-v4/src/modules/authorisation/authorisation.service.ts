@@ -193,6 +193,27 @@ export class AuthorisationService {
   }
 
   async preventReplayAttack(payload: JWTPayload) {
+    if (!payload.exp) {
+      throw new OAuth2TokenError("invalid_request", {
+        errorDescription: "The vp_token must contain an expiration time.",
+      });
+    }
+
+    const now = Math.floor(Date.now() / 1000);
+
+    if (payload.exp < now) {
+      throw new OAuth2TokenError("invalid_request", {
+        errorDescription: "The vp_token has expired.",
+      });
+    }
+
+    if (payload.exp > now + 300) {
+      throw new OAuth2TokenError("invalid_request", {
+        errorDescription:
+          "The vp_token must not have an expiration time of more than 5 minutes in the future.",
+      });
+    }
+
     if (!payload["nonce"]) {
       throw new OAuth2TokenError("invalid_request", {
         errorDescription:
@@ -208,7 +229,7 @@ export class AuthorisationService {
           "The vp_token contains a nonce which has already been used.",
       });
     }
-    await this.cacheManager.set(cacheKey, cacheKey, 300_000); // 5 minutes (5* 60 * 1000)
+    await this.cacheManager.set(cacheKey, cacheKey, 300_000); // 5 minutes (5 * 60 * 1000)
   }
 
   /**
@@ -777,7 +798,7 @@ export class AuthorisationService {
 
     if (resultAddresses.every((result) => !result.valid)) {
       throw new OAuth2TokenError("invalid_request", {
-        errorDescription: `Invalid Verifiable Presentation: DID ${did} is not authorised to for ${TNT_AUTHORISE_SCOPE} access. Errors: ${resultAddresses.map((result) => result.error!).join(", ")}`,
+        errorDescription: `Invalid Verifiable Presentation: DID ${did} is not authorised for ${TNT_AUTHORISE_SCOPE} access. Errors: ${resultAddresses.map((result) => result.error!).join(", ")}`,
       });
     }
   }

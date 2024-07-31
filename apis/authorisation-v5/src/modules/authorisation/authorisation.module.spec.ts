@@ -235,7 +235,7 @@ describe.each(["EBSI URI", "URL"] as const)(
           vc: accreditation,
         },
         {
-          issuer: accreditation.issuer,
+          issuer: credentialIssuer.did,
           signer: credentialIssuer.keys.ES256.signer,
         },
         {
@@ -610,11 +610,6 @@ describe.each(["EBSI URI", "URL"] as const)(
           expect.assertions(2);
 
           const scope = "openid tnt_create";
-          const issuanceDate = new Date(Date.now() - 5000); // issue 5 seconds ago
-          // JWT access token must have 2 hours expiration time and there are no Refresh Tokens.
-          const expirationDate = new Date(
-            issuanceDate.getTime() + 2 * 60 * 60 * 1000,
-          );
 
           const vpPayload = {
             "@context": ["https://www.w3.org/2018/credentials/v1"],
@@ -633,19 +628,20 @@ describe.each(["EBSI URI", "URL"] as const)(
 
           // Manually create VP JWT
           // Create VP JWT manually
+          const now = Math.floor(Date.now() / 1000);
           const vpJwt = await createJWT(
             {
               aud: serviceEndpoint,
               sub: credentialIssuer.did,
-              iat: Math.floor(issuanceDate.getTime() / 1000),
-              nbf: Math.floor(issuanceDate.getTime() / 1000),
-              exp: Math.floor(expirationDate.getTime() / 1000),
+              iat: now,
+              nbf: now,
+              exp: now + 60, // 1 minute expiration
               vp: vpPayload,
               nonce: randomUUID(),
               iss: credentialIssuer.did,
             },
             {
-              issuer: credentialIssuer.did,
+              issuer: credentialIssuer.keys.ES256.did,
               signer: credentialIssuer.keys.ES256.signer,
             },
             {
@@ -878,6 +874,7 @@ describe.each(["EBSI URI", "URL"] as const)(
                   vpPayload.verifiableCredential.push(vcJwt);
                 }
 
+                const now = Math.floor(Date.now() / 1000);
                 const vpJwt = await createVerifiablePresentationJwt(
                   vpPayload,
                   credentialSubject.keys.ES256K,
@@ -886,21 +883,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                     ...ebsiEnvConfig,
                     skipValidation: true,
                     nonce: randomUUID(),
-                    ...([
-                      DIDR_WRITE_SCOPE,
-                      TIR_WRITE_SCOPE,
-                      TIMESTAMP_WRITE_SCOPE,
-                      TNT_CREATE_SCOPE,
-                      TNT_WRITE_SCOPE,
-                      TPR_WRITE_SCOPE,
-                      TSR_WRITE_SCOPE,
-                    ].includes(customScope)
-                      ? {
-                          // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                          exp: Math.floor(Date.now() / 1000) + 100,
-                          nbf: Math.floor(Date.now() / 1000) - 100,
-                        }
-                      : {}),
+                    nbf: now,
+                    exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                   },
                 );
 
@@ -948,6 +932,7 @@ describe.each(["EBSI URI", "URL"] as const)(
                   vpPayload.verifiableCredential.push(vcJwt);
                 }
 
+                const now = Math.floor(Date.now() / 1000);
                 const vpJwt = await createVerifiablePresentationJwt(
                   vpPayload,
                   credentialSubject.keys.ES256K,
@@ -956,21 +941,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                     ...ebsiEnvConfig,
                     skipValidation: true,
                     nonce: randomUUID(),
-                    ...([
-                      DIDR_WRITE_SCOPE,
-                      TIR_WRITE_SCOPE,
-                      TIMESTAMP_WRITE_SCOPE,
-                      TNT_CREATE_SCOPE,
-                      TNT_WRITE_SCOPE,
-                      TPR_WRITE_SCOPE,
-                      TSR_WRITE_SCOPE,
-                    ].includes(customScope)
-                      ? {
-                          // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                          exp: Math.floor(Date.now() / 1000) + 100,
-                          nbf: Math.floor(Date.now() / 1000) - 100,
-                        }
-                      : {}),
+                    nbf: now,
+                    exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                   },
                 );
 
@@ -1063,8 +1035,7 @@ describe.each(["EBSI URI", "URL"] as const)(
 
                 expect(response.body).toStrictEqual({
                   error: "invalid_request",
-                  error_description:
-                    "Invalid Verifiable Presentation: JWT has expired",
+                  error_description: "The vp_token has expired.",
                 });
                 expect(response.status).toBe(400);
                 expect(
@@ -1092,6 +1063,7 @@ describe.each(["EBSI URI", "URL"] as const)(
                   vpPayload.verifiableCredential.push(vcJwt);
                 }
 
+                const now = Math.floor(Date.now() / 1000);
                 const vpJwt = await createVerifiablePresentationJwt(
                   vpPayload,
                   credentialSubject.keys.ES256K,
@@ -1101,8 +1073,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                     skipValidation: true,
                     nonce: randomUUID(),
                     // Override "exp" and "nbf"
-                    exp: Math.floor(Date.now() / 1000) + 1000,
-                    nbf: Math.floor(Date.now() / 1000) + 100,
+                    exp: now + 120,
+                    nbf: now + 100,
                   },
                 );
 
@@ -1151,6 +1123,7 @@ describe.each(["EBSI URI", "URL"] as const)(
                   vpPayload.verifiableCredential.push(vcJwt);
                 }
 
+                const now = Math.floor(Date.now() / 1000);
                 const vpJwt = await createVerifiablePresentationJwt(
                   vpPayload,
                   credentialSubject.keys.ES256K,
@@ -1159,21 +1132,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                     ...ebsiEnvConfig,
                     skipValidation: true,
                     // We don't add any nonce
-                    ...([
-                      DIDR_WRITE_SCOPE,
-                      TIR_WRITE_SCOPE,
-                      TIMESTAMP_WRITE_SCOPE,
-                      TNT_CREATE_SCOPE,
-                      TNT_WRITE_SCOPE,
-                      TPR_WRITE_SCOPE,
-                      TSR_WRITE_SCOPE,
-                    ].includes(customScope)
-                      ? {
-                          // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                          exp: Math.floor(Date.now() / 1000) + 100,
-                          nbf: Math.floor(Date.now() / 1000) - 100,
-                        }
-                      : {}),
+                    nbf: now,
+                    exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                   },
                 );
 
@@ -1224,19 +1184,20 @@ describe.each(["EBSI URI", "URL"] as const)(
                 }
 
                 // Create VP JWT manually
+                const now = Math.floor(Date.now() / 1000);
                 const vpJwt = await createJWT(
                   {
                     aud: serviceEndpoint,
                     sub: credentialIssuer.did,
-                    iat: Math.floor(issuanceDate.getTime() / 1000),
-                    nbf: Math.floor(issuanceDate.getTime() / 1000),
-                    exp: Math.floor(expirationDate.getTime() / 1000),
+                    iat: now,
+                    nbf: now,
+                    exp: now + 60, // 1 minute expiration
                     vp: vpPayload,
                     nonce: randomUUID(),
                     iss: credentialIssuer.did,
                   },
                   {
-                    issuer: credentialIssuer.did,
+                    issuer: credentialIssuer.keys.ES256.did,
                     signer: credentialIssuer.keys.ES256.signer,
                   },
                   {
@@ -1305,6 +1266,7 @@ describe.each(["EBSI URI", "URL"] as const)(
                   return;
                 }
 
+                const now = Math.floor(Date.now() / 1000);
                 const vpJwt = await createVerifiablePresentationJwt(
                   vpPayload,
                   credentialSubject.keys.ES256K,
@@ -1313,8 +1275,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                     ...ebsiEnvConfig,
                     skipValidation: true,
                     nonce: randomUUID(),
-                    exp: Math.floor(Date.now() / 1000) + 100,
-                    nbf: Math.floor(Date.now() / 1000) - 100,
+                    nbf: now,
+                    exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                   },
                 );
 
@@ -1365,6 +1327,7 @@ describe.each(["EBSI URI", "URL"] as const)(
               }
 
               const nonce = randomUUID();
+              const now = Math.floor(Date.now() / 1000);
 
               const vpJwt = await createVerifiablePresentationJwt(
                 vpPayload,
@@ -1374,21 +1337,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                   ...ebsiEnvConfig,
                   skipValidation: true,
                   nonce,
-                  ...([
-                    DIDR_WRITE_SCOPE,
-                    TIR_WRITE_SCOPE,
-                    TIMESTAMP_WRITE_SCOPE,
-                    TNT_CREATE_SCOPE,
-                    TNT_WRITE_SCOPE,
-                    TPR_WRITE_SCOPE,
-                    TSR_WRITE_SCOPE,
-                  ].includes(customScope)
-                    ? {
-                        // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                        exp: Math.floor(Date.now() / 1000) + 100,
-                        nbf: Math.floor(Date.now() / 1000) - 100,
-                      }
-                    : {}),
+                  nbf: now,
+                  exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                 },
               );
 
@@ -1465,6 +1415,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                 vpPayload.verifiableCredential.push(vcJwt);
               }
 
+              const now = Math.floor(Date.now() / 1000);
+
               const vpJwt = await createVerifiablePresentationJwt(
                 vpPayload,
                 credentialSubject.keys.ES256K,
@@ -1473,21 +1425,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                   ...ebsiEnvConfig,
                   skipValidation: true,
                   nonce: randomUUID(),
-                  ...([
-                    DIDR_WRITE_SCOPE,
-                    TIR_WRITE_SCOPE,
-                    TIMESTAMP_WRITE_SCOPE,
-                    TNT_CREATE_SCOPE,
-                    TNT_WRITE_SCOPE,
-                    TPR_WRITE_SCOPE,
-                    TSR_WRITE_SCOPE,
-                  ].includes(customScope)
-                    ? {
-                        // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                        exp: Math.floor(Date.now() / 1000) + 100,
-                        nbf: Math.floor(Date.now() / 1000) - 100,
-                      }
-                    : {}),
+                  nbf: now,
+                  exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                 },
               );
 
@@ -1548,6 +1487,7 @@ describe.each(["EBSI URI", "URL"] as const)(
                 vpPayload.verifiableCredential.push(vcJwt);
               }
 
+              const now = Math.floor(Date.now() / 1000);
               let vpJwt = await createVerifiablePresentationJwt(
                 vpPayload,
                 credentialSubject.keys.ES256K,
@@ -1556,21 +1496,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                   ...ebsiEnvConfig,
                   skipValidation: true,
                   nonce: randomUUID(),
-                  ...([
-                    DIDR_WRITE_SCOPE,
-                    TIR_WRITE_SCOPE,
-                    TIMESTAMP_WRITE_SCOPE,
-                    TNT_CREATE_SCOPE,
-                    TNT_WRITE_SCOPE,
-                    TPR_WRITE_SCOPE,
-                    TSR_WRITE_SCOPE,
-                  ].includes(customScope)
-                    ? {
-                        // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                        exp: Math.floor(Date.now() / 1000) + 100,
-                        nbf: Math.floor(Date.now() / 1000) - 100,
-                      }
-                    : {}),
+                  nbf: now,
+                  exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                 },
               );
 
@@ -1624,21 +1551,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                   ...ebsiEnvConfig,
                   skipValidation: true,
                   nonce: randomUUID(),
-                  ...([
-                    DIDR_WRITE_SCOPE,
-                    TIR_WRITE_SCOPE,
-                    TIMESTAMP_WRITE_SCOPE,
-                    TNT_CREATE_SCOPE,
-                    TNT_WRITE_SCOPE,
-                    TPR_WRITE_SCOPE,
-                    TSR_WRITE_SCOPE,
-                  ].includes(customScope)
-                    ? {
-                        // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                        exp: Math.floor(Date.now() / 1000) + 100,
-                        nbf: Math.floor(Date.now() / 1000) - 100,
-                      }
-                    : {}),
+                  nbf: now,
+                  exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                 },
               );
 
@@ -1691,21 +1605,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                   ...ebsiEnvConfig,
                   skipValidation: true,
                   nonce: randomUUID(),
-                  ...([
-                    DIDR_WRITE_SCOPE,
-                    TIR_WRITE_SCOPE,
-                    TIMESTAMP_WRITE_SCOPE,
-                    TNT_CREATE_SCOPE,
-                    TNT_WRITE_SCOPE,
-                    TPR_WRITE_SCOPE,
-                    TSR_WRITE_SCOPE,
-                  ].includes(customScope)
-                    ? {
-                        // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                        exp: Math.floor(Date.now() / 1000) + 100,
-                        nbf: Math.floor(Date.now() / 1000) - 100,
-                      }
-                    : {}),
+                  nbf: now,
+                  exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                 },
               );
 
@@ -1741,21 +1642,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                   ...ebsiEnvConfig,
                   skipValidation: true,
                   nonce: randomUUID(),
-                  ...([
-                    DIDR_WRITE_SCOPE,
-                    TIR_WRITE_SCOPE,
-                    TIMESTAMP_WRITE_SCOPE,
-                    TNT_CREATE_SCOPE,
-                    TNT_WRITE_SCOPE,
-                    TPR_WRITE_SCOPE,
-                    TSR_WRITE_SCOPE,
-                  ].includes(customScope)
-                    ? {
-                        // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                        exp: Math.floor(Date.now() / 1000) + 100,
-                        nbf: Math.floor(Date.now() / 1000) - 100,
-                      }
-                    : {}),
+                  nbf: now,
+                  exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                 },
               );
 
@@ -1791,21 +1679,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                   ...ebsiEnvConfig,
                   skipValidation: true,
                   nonce: randomUUID(),
-                  ...([
-                    DIDR_WRITE_SCOPE,
-                    TIR_WRITE_SCOPE,
-                    TIMESTAMP_WRITE_SCOPE,
-                    TNT_CREATE_SCOPE,
-                    TNT_WRITE_SCOPE,
-                    TPR_WRITE_SCOPE,
-                    TSR_WRITE_SCOPE,
-                  ].includes(customScope)
-                    ? {
-                        // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                        exp: Math.floor(Date.now() / 1000) + 100,
-                        nbf: Math.floor(Date.now() / 1000) - 100,
-                      }
-                    : {}),
+                  nbf: now,
+                  exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                 },
               );
 
@@ -1834,6 +1709,43 @@ describe.each(["EBSI URI", "URL"] as const)(
                 error: "invalid_request",
                 error_description:
                   "Invalid Presentation Submission: definition_id doesn't match the expected Presentation Definition ID for the requested scope",
+              });
+              expect(response.status).toBe(400);
+              expect(
+                (response.headers as Record<string, unknown>)["content-type"],
+              ).toBe("application/json; charset=utf-8");
+
+              vpJwt = await createVerifiablePresentationJwt(
+                vpPayload,
+                credentialSubject.keys.ES256K,
+                serviceEndpoint,
+                {
+                  ...ebsiEnvConfig,
+                  skipValidation: true,
+                  nonce: randomUUID(),
+                  nbf: now,
+                  exp: now + 600, // Expire in 10 minutes (more than the 5 minutes limit)
+                },
+              );
+
+              response = await request(server)
+                .post("/token")
+                .set("Content-Type", "application/x-www-form-urlencoded")
+                .send(
+                  new URLSearchParams({
+                    grant_type: "vp_token",
+                    scope,
+                    vp_token: vpJwt,
+                    presentation_submission: JSON.stringify(
+                      presentationSubmission,
+                    ),
+                  } satisfies CreateAccessTokenDto).toString(),
+                );
+
+              expect(response.body).toStrictEqual({
+                error: "invalid_request",
+                error_description:
+                  "The vp_token must not have an expiration time of more than 5 minutes in the future.",
               });
               expect(response.status).toBe(400);
               expect(
@@ -2025,6 +1937,7 @@ describe.each(["EBSI URI", "URL"] as const)(
               }
 
               const nonce = randomUUID();
+              const now = Math.floor(Date.now() / 1000);
 
               const vpJwt = await createVerifiablePresentationJwt(
                 vpPayload,
@@ -2034,22 +1947,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                   ...ebsiEnvConfig,
                   skipValidation: true,
                   nonce,
-                  ...([
-                    DIDR_WRITE_SCOPE,
-                    TIR_WRITE_SCOPE,
-                    TIR_INVITE_SCOPE,
-                    TIMESTAMP_WRITE_SCOPE,
-                    TNT_CREATE_SCOPE,
-                    TNT_WRITE_SCOPE,
-                    TPR_WRITE_SCOPE,
-                    TSR_WRITE_SCOPE,
-                  ].includes(customScope)
-                    ? {
-                        // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                        exp: Math.floor(Date.now() / 1000) + 100,
-                        nbf: Math.floor(Date.now() / 1000) - 100,
-                      }
-                    : {}),
+                  nbf: now,
+                  exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                 },
               );
 
@@ -2155,6 +2054,7 @@ describe.each(["EBSI URI", "URL"] as const)(
               }
 
               const nonce = randomUUID();
+              const now = Math.floor(Date.now() / 1000);
 
               const vpJwt = await createVerifiablePresentationJwt(
                 vpPayload,
@@ -2164,21 +2064,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                   ...ebsiEnvConfig,
                   skipValidation: true,
                   nonce,
-                  ...([
-                    DIDR_WRITE_SCOPE,
-                    TIR_WRITE_SCOPE,
-                    TIMESTAMP_WRITE_SCOPE,
-                    TNT_CREATE_SCOPE,
-                    TNT_WRITE_SCOPE,
-                    TPR_WRITE_SCOPE,
-                    TSR_WRITE_SCOPE,
-                  ].includes(customScope)
-                    ? {
-                        // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                        exp: Math.floor(Date.now() / 1000) + 100,
-                        nbf: Math.floor(Date.now() / 1000) - 100,
-                      }
-                    : {}),
+                  nbf: now,
+                  exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                 },
               );
 
@@ -2240,6 +2127,7 @@ describe.each(["EBSI URI", "URL"] as const)(
               vpPayload.verifiableCredential.push(vcJwt);
 
               const nonce = randomUUID();
+              const now = Math.floor(Date.now() / 1000);
 
               const vpJwt = await createVerifiablePresentationJwt(
                 vpPayload,
@@ -2249,6 +2137,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                   ...ebsiEnvConfig,
                   skipValidation: true,
                   nonce,
+                  nbf: now,
+                  exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                 },
               );
 
@@ -2310,6 +2200,7 @@ describe.each(["EBSI URI", "URL"] as const)(
               vpPayload.verifiableCredential.push(vcJwt);
 
               const nonce = randomUUID();
+              const now = Math.floor(Date.now() / 1000);
 
               const vpJwt = await createVerifiablePresentationJwt(
                 vpPayload,
@@ -2319,6 +2210,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                   ...ebsiEnvConfig,
                   skipValidation: true,
                   nonce,
+                  nbf: now,
+                  exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                 },
               );
 
@@ -2378,6 +2271,7 @@ describe.each(["EBSI URI", "URL"] as const)(
               vpPayload.verifiableCredential.push(vcJwt);
 
               const nonce = randomUUID();
+              const now = Math.floor(Date.now() / 1000);
 
               const vpJwt = await createVerifiablePresentationJwt(
                 vpPayload,
@@ -2387,6 +2281,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                   ...ebsiEnvConfig,
                   skipValidation: true,
                   nonce,
+                  nbf: now,
+                  exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                 },
               );
 
@@ -2449,6 +2345,7 @@ describe.each(["EBSI URI", "URL"] as const)(
               vpPayload.verifiableCredential.push(vcJwt);
 
               const nonce = randomUUID();
+              const now = Math.floor(Date.now() / 1000);
 
               const vpJwt = await createVerifiablePresentationJwt(
                 vpPayload,
@@ -2458,6 +2355,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                   ...ebsiEnvConfig,
                   skipValidation: true,
                   nonce,
+                  nbf: now,
+                  exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                 },
               );
 
@@ -2520,6 +2419,7 @@ describe.each(["EBSI URI", "URL"] as const)(
               vpPayload.verifiableCredential.push(vcJwt);
 
               const nonce = randomUUID();
+              const now = Math.floor(Date.now() / 1000);
 
               const vpJwt = await createVerifiablePresentationJwt(
                 vpPayload,
@@ -2529,6 +2429,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                   ...ebsiEnvConfig,
                   skipValidation: true,
                   nonce,
+                  nbf: now,
+                  exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                 },
               );
 
@@ -2591,6 +2493,7 @@ describe.each(["EBSI URI", "URL"] as const)(
               vpPayload.verifiableCredential.push(vcJwt);
 
               const nonce = randomUUID();
+              const now = Math.floor(Date.now() / 1000);
 
               const vpJwt = await createVerifiablePresentationJwt(
                 vpPayload,
@@ -2600,6 +2503,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                   ...ebsiEnvConfig,
                   skipValidation: true,
                   nonce,
+                  nbf: now,
+                  exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                 },
               );
 
@@ -2708,6 +2613,7 @@ describe.each(["EBSI URI", "URL"] as const)(
               }
 
               const nonce = randomUUID();
+              const now = Math.floor(Date.now() / 1000);
 
               const vpJwt = await createVerifiablePresentationJwt(
                 vpPayload,
@@ -2717,21 +2623,8 @@ describe.each(["EBSI URI", "URL"] as const)(
                   ...ebsiEnvConfig,
                   skipValidation: true,
                   nonce,
-                  ...([
-                    DIDR_WRITE_SCOPE,
-                    TIR_WRITE_SCOPE,
-                    TIMESTAMP_WRITE_SCOPE,
-                    TNT_CREATE_SCOPE,
-                    TNT_WRITE_SCOPE,
-                    TPR_WRITE_SCOPE,
-                    TSR_WRITE_SCOPE,
-                  ].includes(customScope)
-                    ? {
-                        // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                        exp: Math.floor(Date.now() / 1000) + 100,
-                        nbf: Math.floor(Date.now() / 1000) - 100,
-                      }
-                    : {}),
+                  nbf: now,
+                  exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
                 },
               );
 
@@ -2914,6 +2807,7 @@ describe.each(["EBSI URI", "URL"] as const)(
           );
 
           const nonce = randomUUID();
+          const now = Math.floor(Date.now() / 1000);
 
           const vpJwt = await createVerifiablePresentationJwt(
             vpPayload,
@@ -2923,6 +2817,8 @@ describe.each(["EBSI URI", "URL"] as const)(
               ...ebsiEnvConfig,
               skipValidation: true,
               nonce,
+              nbf: now,
+              exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
             },
           );
 
@@ -3033,6 +2929,7 @@ describe.each(["EBSI URI", "URL"] as const)(
 
           let nonce = randomUUID();
 
+          const now = Math.floor(Date.now() / 1000);
           let vpJwt = await createVerifiablePresentationJwt(
             vpPayload,
             credentialSubject.keys.ES256K,
@@ -3041,6 +2938,8 @@ describe.each(["EBSI URI", "URL"] as const)(
               ...ebsiEnvConfig,
               skipValidation: true,
               nonce,
+              nbf: now,
+              exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
             },
           );
 
@@ -3059,7 +2958,7 @@ describe.each(["EBSI URI", "URL"] as const)(
 
           expect(response.body).toStrictEqual({
             error: "invalid_request",
-            error_description: `Invalid Verifiable Presentation: DID ${credentialSubject.did} is not authorised to for ${TNT_AUTHORISE_SCOPE} access. Errors: Error from Trusted Policies Registry: Unhandled GET request to https://api-test.ebsi.eu/trusted-policies-registry/v4/users/${credentialSubject.address}`,
+            error_description: `Invalid Verifiable Presentation: DID ${credentialSubject.did} is not authorised for ${TNT_AUTHORISE_SCOPE} access. Errors: Error from Trusted Policies Registry: Unhandled GET request to https://api-test.ebsi.eu/trusted-policies-registry/v4/users/${credentialSubject.address}`,
           });
 
           expect(response.status).toBe(400);
@@ -3074,6 +2973,8 @@ describe.each(["EBSI URI", "URL"] as const)(
               ...ebsiEnvConfig,
               skipValidation: true,
               nonce,
+              nbf: now,
+              exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
             },
           );
 
@@ -3099,7 +3000,7 @@ describe.each(["EBSI URI", "URL"] as const)(
 
           expect(response.body).toStrictEqual({
             error: "invalid_request",
-            error_description: `Invalid Verifiable Presentation: DID ${credentialSubject.did} is not authorised to for ${TNT_AUTHORISE_SCOPE} access. Errors: address ${credentialSubject.address} not in Trusted Policies Registry`,
+            error_description: `Invalid Verifiable Presentation: DID ${credentialSubject.did} is not authorised for ${TNT_AUTHORISE_SCOPE} access. Errors: address ${credentialSubject.address} not in Trusted Policies Registry`,
           });
 
           expect(response.status).toBe(400);
@@ -3114,6 +3015,8 @@ describe.each(["EBSI URI", "URL"] as const)(
               ...ebsiEnvConfig,
               skipValidation: true,
               nonce,
+              nbf: now,
+              exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
             },
           );
 
@@ -3143,7 +3046,7 @@ describe.each(["EBSI URI", "URL"] as const)(
 
           expect(response.body).toStrictEqual({
             error: "invalid_request",
-            error_description: `Invalid Verifiable Presentation: DID ${credentialSubject.did} is not authorised to for ${TNT_AUTHORISE_SCOPE} access. Errors: address ${credentialSubject.address} doesn't have the attribute TNT:authoriseDid in Trusted Policies Registry`,
+            error_description: `Invalid Verifiable Presentation: DID ${credentialSubject.did} is not authorised for ${TNT_AUTHORISE_SCOPE} access. Errors: address ${credentialSubject.address} doesn't have the attribute TNT:authoriseDid in Trusted Policies Registry`,
           });
 
           expect(response.status).toBe(400);
@@ -3270,6 +3173,7 @@ describe.each(["EBSI URI", "URL"] as const)(
         const expectedErrorMessage = `Invalid Verifiable Presentation: DID ${vpSigner.did} is not registered in the Trusted Issuers Registry`;
 
         const nonce = randomUUID();
+        const now = Math.floor(Date.now() / 1000);
 
         const vpJwt = await createVerifiablePresentationJwt(
           vpPayload,
@@ -3281,15 +3185,8 @@ describe.each(["EBSI URI", "URL"] as const)(
             ...ebsiEnvConfig,
             skipValidation: true,
             nonce,
-            ...([DIDR_WRITE_SCOPE, TIR_WRITE_SCOPE, TIR_INVITE_SCOPE].includes(
-              customScope,
-            )
-              ? {
-                  // Manually add "exp" and "nbf" to the VP JWT because there's no VC to extract from
-                  exp: Math.floor(Date.now() / 1000) + 100,
-                  nbf: Math.floor(Date.now() / 1000) - 100,
-                }
-              : {}),
+            nbf: now,
+            exp: now + 60, // Expire in 60 seconds (less than the 5 minutes limit)
           },
         );
 
