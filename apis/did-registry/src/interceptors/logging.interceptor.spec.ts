@@ -136,6 +136,9 @@ describe("Logging interceptor", () => {
         http.get(configService.get<string>("besuReadinessEndpoint"), () =>
           HttpResponse.json({}),
         ),
+        http.get(configService.get<string>("besuReadinessEndpoint"), () =>
+          HttpResponse.json({}),
+        ),
       );
 
       await request(app.getHttpServer()).get("/health");
@@ -188,6 +191,9 @@ describe("Logging interceptor", () => {
           http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
             HttpResponse.json({}),
           ),
+        ),
+        http.get(configService.get<string>("besuReadinessEndpoint"), () =>
+          HttpResponse.json({}),
         ),
         http.get(configService.get<string>("besuReadinessEndpoint"), () =>
           HttpResponse.json({}),

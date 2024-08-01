@@ -14,6 +14,7 @@ declare global {
       REQUEST_TIMEOUT?: string;
       AXIOS_RETRY_DELAY?: string;
       BESU_RPC_NODE: string;
+      BESU_READINESS_ENDPOINT: string;
       CONTRACT_ADDR: string;
       // Tests
       TEST_ADMIN_KID: string;

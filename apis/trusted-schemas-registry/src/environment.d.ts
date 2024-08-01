@@ -10,6 +10,7 @@ declare global {
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
       DOCKER_TAG?: string;
       BESU_RPC_NODE: string;
+      BESU_READINESS_ENDPOINT: string;
       REQUEST_TIMEOUT?: string;
       AXIOS_RETRY_DELAY?: string;
       CONTRACT_ADDR: string;

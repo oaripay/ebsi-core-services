@@ -64,7 +64,11 @@ describe("Ledger API v4 - Generic tests (e2e)", () => {
       const response = await request(server).get("/health");
 
       // Expect all the dependencies to be up
-      const expectedStatuses = {};
+      const expectedStatuses = (["Besu"] as const)
+        .map((dependency) => ({
+          [`${dependency}`]: { status: "up" },
+        }))
+        .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
 
       expect(response.body).toStrictEqual({
         details: expectedStatuses,

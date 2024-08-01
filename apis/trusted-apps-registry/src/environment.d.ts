@@ -11,6 +11,7 @@ declare global {
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
       DOCKER_TAG?: string;
       BESU_RPC_NODE: string;
+      BESU_READINESS_ENDPOINT: string;
       CONTRACT_ADDR: string;
       AUTHORISATION_API_NAME?: string;
       REQUEST_TIMEOUT?: string;

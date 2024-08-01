@@ -15,6 +15,7 @@ export interface ApiConfig {
   network: Network;
   logLevel: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
   besuRpcNode: string;
+  besuReadinessEndpoint: string;
   ledgerApiUrl: string;
   requestTimeout: number;
   axiosRetryDelay: number;
@@ -54,6 +55,7 @@ export const loadConfig = (): ApiConfig => {
     network: process.env.NETWORK,
     logLevel: process.env.LOG_LEVEL || "warn",
     besuRpcNode: process.env.BESU_RPC_NODE,
+    besuReadinessEndpoint: process.env.BESU_READINESS_ENDPOINT,
     ledgerApiUrl: DOMAIN + LEDGER_API_PATH,
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     axiosRetryDelay: parseInt(process.env.AXIOS_RETRY_DELAY || "10000", 10),
@@ -102,6 +104,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     DOMAIN: Joi.string().uri().required(),
     LOCAL_ORIGIN: Joi.string().uri(),
     BESU_RPC_NODE: Joi.string().uri().required(),
+    BESU_READINESS_ENDPOINT: Joi.string().uri().required(),
     NETWORK: Joi.string()
       .valid(...NETWORKS)
       .required(),

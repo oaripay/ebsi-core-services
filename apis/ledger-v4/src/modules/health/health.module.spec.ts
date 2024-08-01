@@ -1,20 +1,34 @@
-import { describe, beforeAll, afterAll, it, expect } from "vitest";
+import {
+  vi,
+  describe,
+  beforeAll,
+  it,
+  expect,
+  afterEach,
+  afterAll,
+} from "vitest";
 import request from "supertest";
 import { Test, type TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger } from "@nestjs/common";
-import type { RawServerDefault } from "fastify";
+import { HealthIndicatorResult } from "@nestjs/terminus";
+import { HttpService } from "@nestjs/axios";
+import { ConfigService } from "@nestjs/config";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
+import type { RawServerDefault } from "fastify";
+import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
-import { HealthModule } from "./health.module.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { DEPENDENCIES } from "../../config/configuration.js";
+import { DEPENDENCIES, type ApiConfig } from "../../config/configuration.js";
+import { HealthModule } from "./health.module.js";
 
 describe("Health Module", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault;
+  let httpService: HttpService;
+  let configService: ConfigService<ApiConfig, true>;
   const dependencies = Object.keys(
     DEPENDENCIES,
   ) as (keyof typeof DEPENDENCIES)[];
@@ -39,6 +53,8 @@ describe("Health Module", () => {
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter(),
     );
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
 
     // Turn off logger
     Logger.overrideLogger(false);
@@ -48,6 +64,12 @@ describe("Health Module", () => {
     await app.init();
     await app.getHttpAdapter().getInstance().ready();
     server = app.getHttpServer();
+
+    httpService = await moduleFixture.resolve<HttpService>(HttpService);
+  });
+
+  afterEach(() => {
+    mockServer.resetHandlers();
   });
 
   afterAll(async () => {
@@ -58,12 +80,29 @@ describe("Health Module", () => {
 
   describe("GET /health", () => {
     it("should return 'ok' if all the dependencies return a 20x", async () => {
-      expect.assertions(2 + dependencies.length);
+      expect.assertions(3 + dependencies.length);
+
+      // All the dependencies return a 200
+      mockServer.use(
+        http.get(configService.get<string>("besuReadinessEndpoint"), () =>
+          HttpResponse.json({}),
+        ),
+      );
+
+      const spy = vi.spyOn(httpService, "request");
 
       const response = await request(server).get("/health").send();
 
+      expect(spy).toHaveBeenCalledWith({
+        url: configService.get<string>("besuReadinessEndpoint"),
+      });
+
       // Expect all the dependencies to be up
-      const expectedStatuses = {};
+      const expectedStatuses = ([...dependencies, "Besu"] as const)
+        .map((dependency) => ({
+          [`${dependency}`]: { status: "up" },
+        }))
+        .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
 
       expect(response.body).toStrictEqual({
         details: expectedStatuses,
@@ -72,6 +111,56 @@ describe("Health Module", () => {
         status: "ok",
       });
       expect(response.status).toBe(200);
+    });
+
+    it("should return 'error' if Besu readiness endpoint returns 503", async () => {
+      expect.assertions(3 + dependencies.length);
+
+      // All the dependencies return a 200 except Besu readiness (503)
+      mockServer.use(
+        http.get(configService.get<string>("besuReadinessEndpoint"), () =>
+          HttpResponse.json({}, { status: 503 }),
+        ),
+      );
+
+      const spy = vi.spyOn(httpService, "request");
+
+      const response = await request(server).get("/health").send();
+
+      // Expect httpService.request to have been called for every dependency
+      expect(spy).toHaveBeenCalledWith({
+        url: configService.get<string>("besuReadinessEndpoint"),
+      });
+
+      // Expect all the dependencies to be up except Besu
+      const expectedStatuses = ([...dependencies, "Besu"] as const)
+        .map(
+          (dependency) =>
+            ({
+              [`${dependency}`]:
+                dependency === "Besu"
+                  ? ({
+                      message: "Request failed with status code 503",
+                      status: "down",
+                      statusCode: 503,
+                      statusText: "Service Unavailable",
+                    } as const)
+                  : ({ status: "up" } as const),
+            }) satisfies HealthIndicatorResult,
+        )
+        .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
+
+      const { Besu: errorStatus, ...otherStatuses } = expectedStatuses;
+
+      expect(response.body).toStrictEqual({
+        details: expectedStatuses,
+        error: {
+          Besu: errorStatus,
+        },
+        info: otherStatuses,
+        status: "error",
+      });
+      expect(response.status).toBe(503);
     });
   });
 });

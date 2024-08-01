@@ -14,6 +14,7 @@ export interface ApiConfig {
   localOrigin: string;
   logLevel: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
   besuRpcNode: string;
+  besuReadinessEndpoint: string;
   requestTimeout: number;
   testAdminDid: string | undefined;
   testAdminPrivateKey: string | undefined;
@@ -53,6 +54,7 @@ export const loadConfig = (): ApiConfig => {
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
     // Ledger & SC
     besuRpcNode: process.env.BESU_RPC_NODE,
+    besuReadinessEndpoint: process.env.BESU_READINESS_ENDPOINT,
     contractAddr: process.env.CONTRACT_ADDR,
     // Authorisation API
     authorisationApiName:
@@ -106,6 +108,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     REQUEST_TIMEOUT: Joi.string(),
     // Ledger
     BESU_RPC_NODE: Joi.string().uri().required(),
+    BESU_READINESS_ENDPOINT: Joi.string().uri().required(),
     CONTRACT_ADDR: Joi.string().required(),
     // Authorisation API
     AUTHORISATION_API_NAME: Joi.string(),

@@ -124,6 +124,9 @@ describe("Logging interceptor", () => {
             HttpResponse.json({}),
           ),
         ),
+        http.get(configService.get<string>("besuReadinessEndpoint"), () =>
+          HttpResponse.json({}),
+        ),
       );
 
       await request(app.getHttpServer()).get("/health");
@@ -177,6 +180,9 @@ describe("Logging interceptor", () => {
             HttpResponse.json({}),
           ),
         ),
+        http.get(configService.get<string>("besuReadinessEndpoint"), () =>
+          HttpResponse.json({}),
+        ),
       );
 
       await request(app.getHttpServer()).get("/health");
@@ -200,7 +206,7 @@ describe("Logging interceptor", () => {
       );
 
       // Expect all the dependencies to be up
-      const expectedStatuses = dependencies
+      const expectedStatuses = ([...dependencies, "Besu"] as const)
         .map((dependency) => ({
           [`${dependency}`]: { status: "up" },
         }))

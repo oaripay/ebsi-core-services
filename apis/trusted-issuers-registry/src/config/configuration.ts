@@ -17,6 +17,7 @@ export interface ApiConfig {
   trustedHostnames: string[];
   // Ledger & SC
   besuRpcNode: string;
+  besuReadinessEndpoint: string;
   ledgerApiUrl: string;
   besuTrustedIssuersRegistryAddress: string;
   // Authorisation API
@@ -79,6 +80,7 @@ export const loadConfig = (): ApiConfig => {
       .filter(Boolean),
     // Ledger & SC
     besuRpcNode: process.env.BESU_RPC_NODE,
+    besuReadinessEndpoint: process.env.BESU_READINESS_ENDPOINT,
     ledgerApiUrl: DOMAIN + LEDGER_API_PATH,
     besuTrustedIssuersRegistryAddress:
       process.env.BESU_TRUSTED_ISSUERS_REGISTRY_ADDRESS,
@@ -145,6 +147,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TRUSTED_HOSTNAMES: Joi.string(),
     // Ledger & SC
     BESU_RPC_NODE: Joi.string().uri().required(),
+    BESU_READINESS_ENDPOINT: Joi.string().uri().required(),
     BESU_TRUSTED_ISSUERS_REGISTRY_ADDRESS: Joi.string().required(),
     // Test vars
     TEST_ADMIN_KID: Joi.string(),

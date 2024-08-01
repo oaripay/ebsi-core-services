@@ -20,8 +20,8 @@ export class HealthController {
   @Get()
   @HealthCheck()
   check(): Promise<HealthCheckResult> {
-    return this.health.check(
-      (Object.keys(DEPENDENCIES) as (keyof typeof DEPENDENCIES)[]).map(
+    return this.health.check([
+      ...(Object.keys(DEPENDENCIES) as (keyof typeof DEPENDENCIES)[]).map(
         (dependency) => async () =>
           this.http.pingCheck(
             dependency,
@@ -31,7 +31,12 @@ export class HealthController {
             }${DEPENDENCIES[dependency]}`,
           ),
       ),
-    );
+      () =>
+        this.http.pingCheck(
+          "Besu",
+          this.configService.get<string>("besuReadinessEndpoint"),
+        ),
+    ]);
   }
 }
 

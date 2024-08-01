@@ -11,6 +11,7 @@ declare global {
       API_NAME: string;
       AUTHORISATION_API_NAME?: string;
       BESU_RPC_NODE: string;
+      BESU_READINESS_ENDPOINT: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
       DOCKER_TAG?: string;
       CONTRACT_ADDR: string;

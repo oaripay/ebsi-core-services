@@ -19,6 +19,7 @@ declare global {
       TRUSTED_HOSTNAMES?: string;
       // Ledger & SC
       BESU_RPC_NODE: string;
+      BESU_READINESS_ENDPOINT: string;
       BESU_TRUSTED_ISSUERS_REGISTRY_ADDRESS: string;
       // Test vars
       TEST_ADMIN_KID?: string;

@@ -7,6 +7,7 @@ export interface ApiConfig {
   apiUrlPrefix: string;
   logLevel: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
   besuRpcNode: string;
+  besuReadinessEndpoint: string;
   domain: string;
   localOrigin: string;
   requestTimeout: number;
@@ -27,6 +28,7 @@ export const loadConfig = (): ApiConfig => {
     apiUrlPrefix: process.env.API_URL_PREFIX || "/ledger/v4",
     logLevel: process.env.LOG_LEVEL || "warn",
     besuRpcNode: process.env.BESU_RPC_NODE,
+    besuReadinessEndpoint: process.env.BESU_READINESS_ENDPOINT,
     domain: DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
@@ -61,6 +63,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     ),
     DOCKER_TAG: Joi.string(),
     BESU_RPC_NODE: Joi.string().uri().required(),
+    BESU_READINESS_ENDPOINT: Joi.string().uri().required(),
     DOMAIN: Joi.string().uri().required(),
     LOCAL_ORIGIN: Joi.string().uri(),
     REQUEST_TIMEOUT: Joi.string(),

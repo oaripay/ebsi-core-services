@@ -24,7 +24,7 @@ import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { DEPENDENCIES, type ApiConfig } from "../../config/configuration.js";
 import { HealthModule } from "./health.module.js";
 
-describe("HealthController", () => {
+describe("Health Module", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault;
   let httpService: HttpService;
@@ -88,6 +88,9 @@ describe("HealthController", () => {
           http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
             HttpResponse.json({}),
           ),
+        ),
+        http.get(configService.get<string>("besuReadinessEndpoint"), () =>
+          HttpResponse.json({}),
         ),
         http.get(configService.get<string>("besuReadinessEndpoint"), () =>
           HttpResponse.json({}),

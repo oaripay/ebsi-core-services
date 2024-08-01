@@ -1,20 +1,28 @@
-import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
+import {
+  vi,
+  describe,
+  beforeAll,
+  it,
+  expect,
+  afterEach,
+  afterAll,
+} from "vitest";
 import request from "supertest";
 import { Test, type TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger } from "@nestjs/common";
 import { HealthIndicatorResult } from "@nestjs/terminus";
+import { HttpService } from "@nestjs/axios";
 import { ConfigService } from "@nestjs/config";
-import type { RawServerDefault } from "fastify";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
+import type { RawServerDefault } from "fastify";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
-import { HttpService } from "@nestjs/axios";
-import { HealthModule } from "./health.module.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { DEPENDENCIES, type ApiConfig } from "../../config/configuration.js";
+import { HealthModule } from "./health.module.js";
 
 describe("Health Module", () => {
   let app: NestFastifyApplication;
@@ -38,21 +46,17 @@ describe("Health Module", () => {
       },
     });
 
-    // Start server
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [HealthModule],
     }).compile();
-
+    Logger.overrideLogger(false);
     app = moduleFixture.createNestApplication<NestFastifyApplication>(
       new FastifyAdapter(),
     );
-
-    // Turn off logger
-    Logger.overrideLogger(false);
-
-    configService = app.get<ConfigService<ApiConfig, true>>(ConfigService);
+    configService =
+      moduleFixture.get<ConfigService<ApiConfig, true>>(ConfigService);
     app.useGlobalFilters(new AllExceptionsFilter());
-    app.useGlobalPipes(new ValidationPipe({ transform: true }));
+    app.useGlobalPipes(new ValidationPipe());
     await app.init();
     await app.getHttpAdapter().getInstance().ready();
     server = app.getHttpServer();
@@ -64,6 +68,10 @@ describe("Health Module", () => {
       configService.get<string>("domain");
   });
 
+  afterEach(() => {
+    mockServer.resetHandlers();
+  });
+
   afterAll(async () => {
     mockServer.close();
 
@@ -72,7 +80,7 @@ describe("Health Module", () => {
 
   describe("GET /health", () => {
     it("should return 'ok' if all the dependencies return a 20x", async () => {
-      expect.assertions(2 + dependencies.length);
+      expect.assertions(3 + dependencies.length);
 
       // All the dependencies return a 200
       mockServer.use(
@@ -80,6 +88,12 @@ describe("Health Module", () => {
           http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
             HttpResponse.json({}),
           ),
+        ),
+        http.get(configService.get<string>("besuReadinessEndpoint"), () =>
+          HttpResponse.json({}),
+        ),
+        http.get(configService.get<string>("besuReadinessEndpoint"), () =>
+          HttpResponse.json({}),
         ),
       );
 
@@ -93,9 +107,12 @@ describe("Health Module", () => {
           url: `${localOrigin}${DEPENDENCIES[dependency]}`,
         });
       });
+      expect(spy).toHaveBeenCalledWith({
+        url: configService.get<string>("besuReadinessEndpoint"),
+      });
 
       // Expect all the dependencies to be up
-      const expectedStatuses = dependencies
+      const expectedStatuses = ([...dependencies, "Besu"] as const)
         .map((dependency) => ({
           [`${dependency}`]: { status: "up" },
         }))
@@ -111,16 +128,19 @@ describe("Health Module", () => {
     });
 
     it("should return 'error' if some dependencies do not return a 20x", async () => {
-      expect.assertions(2 + dependencies.length);
+      expect.assertions(3 + dependencies.length);
 
-      // All the dependencies return a 200 except TAR API v3
+      // All the dependencies return a 200 except Authorisation API v2
       mockServer.use(
         ...dependencies.map((dependency) =>
           http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
-            dependency === "TAR API v3"
+            dependency === "Authorisation API v2"
               ? HttpResponse.json({}, { status: 500 })
               : HttpResponse.json({}),
           ),
+        ),
+        http.get(configService.get<string>("besuReadinessEndpoint"), () =>
+          HttpResponse.json({}),
         ),
       );
 
@@ -134,14 +154,17 @@ describe("Health Module", () => {
           url: `${localOrigin}${DEPENDENCIES[dependency]}`,
         });
       });
+      expect(spy).toHaveBeenCalledWith({
+        url: configService.get<string>("besuReadinessEndpoint"),
+      });
 
-      // Expect all the dependencies to be up except TAR API v3
-      const expectedStatuses = dependencies
+      // Expect all the dependencies to be up except Authorisation API v2
+      const expectedStatuses = ([...dependencies, "Besu"] as const)
         .map(
           (dependency) =>
             ({
               [`${dependency}`]:
-                dependency === "TAR API v3"
+                dependency === "Authorisation API v2"
                   ? ({
                       message: "Request failed with status code 500",
                       status: "down",
@@ -153,12 +176,73 @@ describe("Health Module", () => {
         )
         .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
 
-      const { "TAR API v3": errorStatus, ...otherStatuses } = expectedStatuses;
+      const { "Authorisation API v2": errorStatus, ...otherStatuses } =
+        expectedStatuses;
 
       expect(response.body).toStrictEqual({
         details: expectedStatuses,
         error: {
-          "TAR API v3": errorStatus,
+          "Authorisation API v2": errorStatus,
+        },
+        info: otherStatuses,
+        status: "error",
+      });
+      expect(response.status).toBe(503);
+    });
+
+    it("should return 'error' if Besu readiness endpoint returns 503", async () => {
+      expect.assertions(3 + dependencies.length);
+
+      // All the dependencies return a 200 except Besu readiness (503)
+      mockServer.use(
+        ...dependencies.map((dependency) =>
+          http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
+            HttpResponse.json({}),
+          ),
+        ),
+        http.get(configService.get<string>("besuReadinessEndpoint"), () =>
+          HttpResponse.json({}, { status: 503 }),
+        ),
+      );
+
+      const spy = vi.spyOn(httpService, "request");
+
+      const response = await request(server).get("/health").send();
+
+      // Expect httpService.request to have been called for every dependency
+      dependencies.forEach((dependency) => {
+        expect(spy).toHaveBeenCalledWith({
+          url: `${localOrigin}${DEPENDENCIES[dependency]}`,
+        });
+      });
+      expect(spy).toHaveBeenCalledWith({
+        url: configService.get<string>("besuReadinessEndpoint"),
+      });
+
+      // Expect all the dependencies to be up except Besu
+      const expectedStatuses = ([...dependencies, "Besu"] as const)
+        .map(
+          (dependency) =>
+            ({
+              [`${dependency}`]:
+                dependency === "Besu"
+                  ? ({
+                      message: "Request failed with status code 503",
+                      status: "down",
+                      statusCode: 503,
+                      statusText: "Service Unavailable",
+                    } as const)
+                  : ({ status: "up" } as const),
+            }) satisfies HealthIndicatorResult,
+        )
+        .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
+
+      const { Besu: errorStatus, ...otherStatuses } = expectedStatuses;
+
+      expect(response.body).toStrictEqual({
+        details: expectedStatuses,
+        error: {
+          Besu: errorStatus,
         },
         info: otherStatuses,
         status: "error",

@@ -19,6 +19,7 @@ export interface ApiConfig {
   axiosRetryDelay: number;
   // Ledger & SC
   besuRpcNode: string;
+  besuReadinessEndpoint: string;
   ledgerApiUrl: string;
   contractAddr: string;
   // Tests
@@ -68,6 +69,7 @@ export const loadConfig = (): ApiConfig => {
     axiosRetryDelay: parseInt(process.env.AXIOS_RETRY_DELAY || "10000", 10),
     // Ledger & SC
     besuRpcNode: process.env.BESU_RPC_NODE,
+    besuReadinessEndpoint: process.env.BESU_READINESS_ENDPOINT,
     ledgerApiUrl: DOMAIN + LEDGER_API_PATH,
     contractAddr: process.env.CONTRACT_ADDR,
     testAdminKid: process.env.TEST_ADMIN_KID || "",
@@ -119,6 +121,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     AXIOS_RETRY_DELAY: Joi.string(),
     // Ledger & SC
     BESU_RPC_NODE: Joi.string().uri().required(),
+    BESU_READINESS_ENDPOINT: Joi.string().uri().required(),
     CONTRACT_ADDR: Joi.string().required(),
     // Tests
     TEST_ADMIN_KID: Joi.string().allow(""),

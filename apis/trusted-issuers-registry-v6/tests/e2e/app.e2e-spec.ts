@@ -73,7 +73,7 @@ describe("TIR API v6 - Generic tests (e2e)", () => {
     const dependencies = Object.keys(
       DEPENDENCIES,
     ) as (keyof typeof DEPENDENCIES)[];
-    const expectedStatuses = dependencies
+    const expectedStatuses = ([...dependencies, "Besu"] as const)
       .map((dependency) => ({
         [`${dependency}`]: { status: "up" },
       }))

@@ -15,6 +15,7 @@ import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
+import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { AppModule } from "../app.module.js";
 import { AllExceptionsFilter } from "../filters/http-exception.filter.js";
@@ -91,6 +92,13 @@ describe("Logging interceptor", () => {
 
       configService.set("logLevel", "info");
 
+      // All the dependencies return a 200
+      mockServer.use(
+        http.get(configService.get<string>("besuReadinessEndpoint"), () =>
+          HttpResponse.json({}),
+        ),
+      );
+
       await request(app.getHttpServer()).get("/health");
 
       const calls = mockedLogger.log.mock.calls.length;
@@ -127,6 +135,13 @@ describe("Logging interceptor", () => {
 
       configService.set("logLevel", "debug");
 
+      // All the dependencies return a 200
+      mockServer.use(
+        http.get(configService.get<string>("besuReadinessEndpoint"), () =>
+          HttpResponse.json({}),
+        ),
+      );
+
       await request(app.getHttpServer()).get("/health");
 
       const calls = mockedLogger.log.mock.calls.length;
@@ -148,7 +163,11 @@ describe("Logging interceptor", () => {
       );
 
       // Expect all the dependencies to be up
-      const expectedStatuses = {};
+      const expectedStatuses = (["Besu"] as const)
+        .map((dependency) => ({
+          [`${dependency}`]: { status: "up" },
+        }))
+        .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
 
       // It should have logged the response (with body)
       expect(mockedLogger.log).toHaveBeenNthCalledWith(
