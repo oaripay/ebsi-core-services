@@ -23,11 +23,11 @@ describe("App Module", () => {
   beforeAll(async () => {
     // Intercept network requests
     mockServer.listen({
-      onUnhandledRequest: ({ method, url }) => {
+      onUnhandledRequest: ({ url }, print) => {
         // Bypass local requests
         if (new URL(url).hostname === "127.0.0.1") return;
 
-        throw new Error(`Unhandled ${method} request to ${url}`);
+        print.warning();
       },
     });
 

@@ -108,11 +108,11 @@ describe.each(["EBSI URI", "URL"] as const)(
     beforeAll(async () => {
       // Intercept network requests
       mockServer.listen({
-        onUnhandledRequest: ({ method, url }) => {
+        onUnhandledRequest: ({ url }, print) => {
           // Bypass local requests
           if (new URL(url).hostname === "127.0.0.1") return;
 
-          throw new Error(`Unhandled ${method} request to ${url}`);
+          print.warning();
         },
       });
 
@@ -2925,6 +2925,11 @@ describe.each(["EBSI URI", "URL"] as const)(
               )}`,
               () => HttpResponse.json(didDocument),
             ),
+            // Network error with TPR
+            http.get(
+              `${domain}/trusted-policies-registry/v3/users/${credentialSubject.address}`,
+              () => HttpResponse.error(),
+            ),
           );
 
           let nonce = randomUUID();
@@ -2958,7 +2963,7 @@ describe.each(["EBSI URI", "URL"] as const)(
 
           expect(response.body).toStrictEqual({
             error: "invalid_request",
-            error_description: `Invalid Verifiable Presentation: DID ${credentialSubject.did} is not authorised for ${TNT_AUTHORISE_SCOPE} access. Errors: Error from Trusted Policies Registry: Unhandled GET request to https://api-test.ebsi.eu/trusted-policies-registry/v3/users/${credentialSubject.address}`,
+            error_description: `Invalid Verifiable Presentation: DID ${credentialSubject.did} is not authorised for ${TNT_AUTHORISE_SCOPE} access. Errors: Error from Trusted Policies Registry: Network error`,
           });
 
           expect(response.status).toBe(400);

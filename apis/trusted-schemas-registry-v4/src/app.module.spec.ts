@@ -21,22 +21,25 @@ import { setupServer } from "msw/node";
 import { frameworkErrors } from "@ebsiint-api/shared";
 import { AppModule } from "./app.module.js";
 import { AllExceptionsFilter } from "./filters/http-exception.filter.js";
-import type { ApiConfig } from "./config/configuration.js";
+import { DEPENDENCIES, type ApiConfig } from "./config/configuration.js";
 import { createLogger } from "./logger/logger.js";
 
 describe("App Module", () => {
   const mockServer = setupServer();
+  const dependencies = Object.keys(
+    DEPENDENCIES,
+  ) as (keyof typeof DEPENDENCIES)[];
 
   beforeAll(() => {
     process.env.AXIOS_RETRY_DELAY = "1"; // 1ms
 
     // Intercept network requests
     mockServer.listen({
-      onUnhandledRequest: ({ method, url }) => {
+      onUnhandledRequest: ({ url }, print) => {
         // Bypass local requests
         if (new URL(url).hostname === "127.0.0.1") return;
 
-        throw new Error(`Unhandled ${method} request to ${url}`);
+        print.warning();
       },
     });
   });
@@ -54,7 +57,7 @@ describe("App Module", () => {
       mockServer.resetHandlers();
     });
 
-    it("should prevent the app from starting if the url of a dependency is not mocked with MSW", async () => {
+    it("should prevent the app from starting if a dependency triggers a network error", async () => {
       expect.assertions(1);
 
       const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -76,12 +79,20 @@ describe("App Module", () => {
 
       const domain = configService.get<string>("domain");
       const localOrigin = configService.get<string>("localOrigin") || domain;
-      const url = configService
-        .get<string>("authorisationApiUrl")
-        .replace(domain, localOrigin);
+
+      // All the dependencies return a 200 except Authorisation API
+      mockServer.use(
+        ...dependencies.map((dependency) => {
+          return http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
+            dependency === "Authorisation API v5"
+              ? HttpResponse.error()
+              : HttpResponse.json({}),
+          );
+        }),
+      );
 
       await expect(() => app.init()).rejects.toThrow(
-        `Unable to get ${url}, shutting down...`,
+        `Unable to get ${localOrigin}${DEPENDENCIES["Authorisation API v5"]}, shutting down...`,
       );
 
       await app.close();
@@ -113,16 +124,19 @@ describe("App Module", () => {
 
       const domain = configService.get<string>("domain");
       const localOrigin = configService.get<string>("localOrigin") || domain;
-      const url = configService
-        .get<string>("authorisationApiUrl")
-        .replace(domain, localOrigin);
 
       mockServer.use(
-        http.get(url, () => HttpResponse.text("Not Found", { status: 404 })),
+        ...dependencies.map((dependency) => {
+          return http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
+            dependency === "Authorisation API v5"
+              ? HttpResponse.text("Not Found", { status: 404 })
+              : HttpResponse.json({}),
+          );
+        }),
       );
 
       await expect(() => app.init()).rejects.toThrow(
-        `Unable to get ${url}, shutting down...`,
+        `Unable to get ${localOrigin}${DEPENDENCIES["Authorisation API v5"]}, shutting down...`,
       );
 
       // Retry 30 times -> log 30 errors
@@ -158,22 +172,26 @@ describe("App Module", () => {
       const domain = configService.get<string>("domain");
       const localOrigin = configService.get<string>("localOrigin") || domain;
 
-      const authorisationApiUrl = `${configService.get<string>(
-        "authorisationApiUrl",
-      )}`.replace(domain, localOrigin);
-
       let reqCounter = 0;
+
       mockServer.use(
-        http.get(authorisationApiUrl, () => {
-          reqCounter += 1;
+        ...dependencies.map((dependency) => {
+          return http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () => {
+            if (dependency === "Authorisation API v5") {
+              reqCounter += 1;
 
-          // Authorisation API first responds 15 times with a 404 (because it's starting)
-          if (reqCounter <= 15) {
-            return HttpResponse.text("Not Found", { status: 404 });
-          }
+              // Authorisation API first responds 15 times with a 404 (because it's starting)
+              if (reqCounter <= 15) {
+                return HttpResponse.text("Not Found", { status: 404 });
+              }
 
-          // Then, it responds with a 200
-          return HttpResponse.json({});
+              // Then, it responds with a 200
+              return HttpResponse.json({});
+            }
+
+            // All other dependencies respond with a 200
+            return HttpResponse.json({});
+          });
         }),
       );
 

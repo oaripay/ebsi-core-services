@@ -57,11 +57,11 @@ describe("Logging interceptor", () => {
   beforeAll(async () => {
     // Intercept network requests
     mockServer.listen({
-      onUnhandledRequest: ({ method, url }) => {
+      onUnhandledRequest: ({ url }, print) => {
         // Bypass local requests
         if (new URL(url).hostname === "127.0.0.1") return;
 
-        throw new Error(`Unhandled ${method} request to ${url}`);
+        print.warning();
       },
     });
 
@@ -106,6 +106,26 @@ describe("Logging interceptor", () => {
   describe("GET /health", () => {
     it('should NOT log the request and response if the header "EBSI-Healthcheck" is present', async () => {
       expect.assertions(1);
+
+      const dependencies = Object.keys(
+        DEPENDENCIES,
+      ) as (keyof typeof DEPENDENCIES)[];
+
+      const localOrigin =
+        configService.get<string>("localOrigin") ||
+        configService.get<string>("domain");
+
+      // All the dependencies return a 200
+      mockServer.use(
+        ...dependencies.map((dependency) =>
+          http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
+            HttpResponse.json({}),
+          ),
+        ),
+        http.get(configService.get<string>("besuReadinessEndpoint"), () =>
+          HttpResponse.json({}),
+        ),
+      );
 
       await request(app.getHttpServer())
         .get("/health")

@@ -20,11 +20,7 @@ describe("setupInterceptors", () => {
 
   beforeAll(() => {
     // Intercept network requests
-    mockServer.listen({
-      onUnhandledRequest: ({ method, url }) => {
-        throw new Error(`Unhandled ${method} request to ${url}`);
-      },
-    });
+    mockServer.listen({ onUnhandledRequest: "warn" });
   });
 
   afterEach(() => {

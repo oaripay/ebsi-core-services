@@ -1,6 +1,9 @@
 import { format, transports } from "winston";
-import { utilities as winstonUtilities, WinstonModule } from "nest-winston";
-import type { LoggerService } from "@nestjs/common";
+import {
+  utilities as winstonUtilities,
+  WinstonModule,
+  type WinstonModuleOptions,
+} from "nest-winston";
 
 export const consoleTransport = new transports.Console({
   format: format.combine(
@@ -14,6 +17,9 @@ export const loggerOptions = {
   transports: [consoleTransport],
 };
 
-export const createLogger = (): LoggerService => {
-  return WinstonModule.createLogger(loggerOptions);
+export const createLogger = (customLoggerOptions?: WinstonModuleOptions) => {
+  return WinstonModule.createLogger({
+    ...loggerOptions,
+    ...customLoggerOptions,
+  });
 };
