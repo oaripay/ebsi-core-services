@@ -1,0 +1,80 @@
+schema {
+  query: Query
+}
+
+enum HashAlgoStatus {
+  undefined
+  active
+  revoked
+}
+
+type HashAlgo {
+  id: String!
+  ianaName: String!
+  multiHash: String!
+  oid: String!
+  outputLength: String!
+  status: HashAlgoStatus!
+}
+
+type TimestampSet {
+  id: String!
+  creator: String!
+  blockNumber: String!
+  transactionHash: String!
+  timestamp: String!
+  hashAlgorithmId: String!
+  timestampData: String!
+  hashValue: String!
+  recordIdsFirstVersion(first: Int = 100, skip: Int = 0): [String!]!
+}
+
+type VersionInfo {
+  id: String!
+  content: String!
+}
+
+type Version {
+  id: String!
+  recordId: String!
+  versionNumber: String!
+  timestamps(first: Int = 100, skip: Int = 0): [TimestampSet!]!
+  infos(first: Int = 100, skip: Int = 0): [VersionInfo!]!
+}
+
+type Owner {
+  id: String!
+  recordIds(first: Int = 100, skip: Int = 0): [String!]!
+}
+
+type OwnerRecord {
+  id: String!
+  notBefore: String!
+  notAfter: String!
+}
+
+type Record {
+  id: String!
+  owners(first: Int = 100, skip: Int = 0): [OwnerRecord!]!
+  versions(
+    first: Int = 100
+    skip: Int = 0
+    where: Timestamp_filter
+  ): [Version!]!
+}
+
+type Query {
+  hashAlgos(skip: Int = 0, first: Int = 100): [HashAlgo!]!
+  hashAlgo(id: String!): HashAlgo!
+  timestampSets(skip: Int = 0, first: Int = 100): [TimestampSet!]!
+  timestampSet(id: String!): TimestampSet!
+  records(skip: Int = 0, first: Int = 100): [Record!]!
+  record(id: String!): Record!
+  owner(id: String!): Owner!
+}
+
+input Timestamp_filter {
+  id: String
+  versionNumber: String
+  owner: String
+}

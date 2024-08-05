@@ -211,6 +211,23 @@ pipeline {
                 }
             }
         }
+        stage('Timestamp-Api-v5') {
+            when {
+                expression { params.api == 'all' || params.api.contains('timestamp-api-v5') }
+            }
+            steps {
+                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                    sh '''
+                        source $NVM_DIR/nvm.sh > /dev/null 2>&1
+                        nvm use > /dev/null 2>&1
+                        yarn nx test:ci @ebsiint-api/timestamp-api-v5
+                    '''
+                }
+                script {
+                    sh 'rm ${WORKSPACE}/apis/timestamp-v5/.scannerwork/report-task.txt'
+                }
+            }
+        }
         stage('Track-and-trace-Api-v1') {
             when {
                 expression { params.api == 'all' || params.api.contains('track-and-trace-api-v1') }

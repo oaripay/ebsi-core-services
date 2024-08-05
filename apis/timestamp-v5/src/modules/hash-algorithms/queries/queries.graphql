@@ -1,0 +1,15 @@
+query GetHashAlgorithms($skip: Int!, $pagesize: Int!) {
+  hashAlgos(first: $pagesize, skip: $skip) {
+    id
+  }
+}
+
+query GetHashAlgorithm($hashAlgorithmId: String!) {
+  hashAlgo(id: $hashAlgorithmId) {
+    ianaName
+    multiHash
+    oid
+    outputLength
+    status
+  }
+}

@@ -1,0 +1,11 @@
+# .graphclientrc.yml
+sources:
+  - name: Timestamp
+    handler:
+      graphql:
+        endpoint: "{context.myCustomEndpoint}"
+        source: "./schema.graphql"
+documents:
+  - ./src/modules/hash-algorithms/queries/queries.graphql
+  - ./src/modules/records/queries/queries.graphql
+  - ./src/modules/timestamps/queries/queries.graphql

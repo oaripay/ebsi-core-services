@@ -16,3 +16,4 @@ import "./grantRole";
 import "./trackAndTrace";
 import "./trustedSchemaRegistryV3SC";
 import "./trustedIssuersRegistryV4SC";
+import "./timestampV3";

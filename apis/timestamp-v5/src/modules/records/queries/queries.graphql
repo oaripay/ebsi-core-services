@@ -1,0 +1,57 @@
+query GetRecords($skip: Int!, $pagesize: Int!) {
+  records(first: $pagesize, skip: $skip) {
+    id
+  }
+}
+
+query GetRecord($recordId: String!) {
+  record(id: $recordId) {
+    owners(first: 1000, skip: 0) {
+      id
+      notBefore
+      notAfter
+    }
+    versions(first: 1000, skip: 0) {
+      timestamps(first: 1000, skip: 0) {
+        hashValue
+      }
+    }
+  }
+}
+
+query GetRecordVersions($recordId: String!, $skip: Int!, $pagesize: Int!) {
+  record(id: $recordId) {
+    versions(first: $pagesize, skip: $skip) {
+      versionNumber
+    }
+  }
+}
+
+query GetRecordVersion($recordId: String!, $versionNumber: String!) {
+  record(id: $recordId) {
+    versions(first: 1, skip: 0, where: { versionNumber: $versionNumber }) {
+      timestamps(first: 1000, skip: 0) {
+        hashValue
+      }
+      infos(first: 1000, skip: 0) {
+        content
+      }
+    }
+  }
+}
+
+query GetTimestampRecordIdsFirstVersion(
+  $timestampId: String!
+  $skip: Int!
+  $pagesize: Int!
+) {
+  timestampSet(id: $timestampId) {
+    recordIdsFirstVersion(first: $pagesize, skip: $skip)
+  }
+}
+
+query GetOwner($id: String!, $skip: Int!, $pagesize: Int!) {
+  owner(id: $id) {
+    recordIds(first: $pagesize, skip: $skip)
+  }
+}

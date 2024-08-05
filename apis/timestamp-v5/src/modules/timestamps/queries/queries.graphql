@@ -1,0 +1,17 @@
+query GetTimestamps($skip: Int!, $pagesize: Int!) {
+  timestampSets(first: $pagesize, skip: $skip) {
+    id
+  }
+}
+
+query GetTimestamp($timestampId: String!) {
+  timestampSet(id: $timestampId) {
+    creator
+    blockNumber
+    transactionHash
+    timestamp
+    hashAlgorithmId
+    timestampData
+    hashValue
+  }
+}

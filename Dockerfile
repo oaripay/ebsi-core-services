@@ -24,6 +24,7 @@ COPY ./apis/ledger-v4/package.json ./apis/ledger-v4/
 COPY ./apis/shared/package.json ./apis/shared/
 COPY ./apis/timestamp/package.json ./apis/timestamp/
 COPY ./apis/timestamp-v4/package.json ./apis/timestamp-v4/
+COPY ./apis/timestamp-v5/package.json ./apis/timestamp-v5/
 COPY ./apis/track-and-trace-v1/package.json ./apis/track-and-trace-v1/
 COPY ./apis/trusted-apps-registry/package.json ./apis/trusted-apps-registry/
 COPY ./apis/trusted-apps-registry-v4/package.json ./apis/trusted-apps-registry-v4/
@@ -46,6 +47,7 @@ COPY ./contracts/did-registry-v4/package.json ./contracts/did-registry-v4/
 COPY ./contracts/track-and-trace/package.json ./contracts/track-and-trace/
 COPY ./contracts/timestamp/package.json ./contracts/timestamp/
 COPY ./contracts/timestamp-v2/package.json ./contracts/timestamp-v2/
+COPY ./contracts/timestamp-v3/package.json ./contracts/timestamp-v3/
 COPY ./contracts/trusted-apps-registry/package.json ./contracts/trusted-apps-registry/
 COPY ./contracts/trusted-apps-registry-v3/package.json ./contracts/trusted-apps-registry-v3/
 COPY ./contracts/trusted-issuers-registry/package.json ./contracts/trusted-issuers-registry/

@@ -1,4 +1,4 @@
-#!/bin/bash
+147#!/bin/bash
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
@@ -38,6 +38,9 @@ cp -r ${SCRIPT_DIR}/../../timestamp/contracts ${SCRIPT_DIR}/../contracts/timesta
 
 echo Copy the timestamp-v2
 cp -r ${SCRIPT_DIR}/../../timestamp-v2/contracts ${SCRIPT_DIR}/../contracts/timestamp-v2
+
+echo Copy the timestamp-v3
+cp -r ${SCRIPT_DIR}/../../timestamp-v3/contracts ${SCRIPT_DIR}/../contracts/timestamp-v3
 
 echo Copy the trusted-apps-registry
 cp -r ${SCRIPT_DIR}/../../trusted-apps-registry/contracts ${SCRIPT_DIR}/../contracts/trusted-apps-registry
