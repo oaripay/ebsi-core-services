@@ -4,6 +4,7 @@ interface NetworkConfig {
   didV1Address?: string;
   didV2Address?: string;
   didV3Address?: string;
+  didV4Address?: string;
 }
 
 interface Dependencies {
@@ -39,6 +40,7 @@ export const dependencies: Dependencies = {
     didV2Address: "0x755DEd5d5e81282F0BE85EDaE8e6852814bAC3fa", // DID API v4
     tprV2Address: "0x81872fccf3AEDD94C00E643bC2967Bd7aC91CFEB", // TPR API v3
     didV3Address: "0x76C8190D7422e5fa2A0190Bc2313bab0b2afEC78", // DID API v5
+    didV4Address: "0x236De3Bdd88764858d985681f3fc607EBf2082Df", // DID API v6
   },
 };
 
