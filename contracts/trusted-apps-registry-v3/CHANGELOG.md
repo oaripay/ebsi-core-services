@@ -1,5 +1,11 @@
 # @ebsiint-sc/trusted-apps-registry-v3
 
+## 3.0.0-rc.4
+
+### Minor Changes
+
+- [b9124c22497bc0bb9310bb8a11c9642808c2071f](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/b9124c22497bc0bb9310bb8a11c9642808c2071f): Decommission TAR SC v3 and TAR API v4.
+
 ## 3.0.0-rc.3
 
 ### Patch Changes

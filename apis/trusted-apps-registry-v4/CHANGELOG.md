@@ -1,5 +1,18 @@
 # @ebsiint-api/trusted-apps-registry-api-v4
 
+## 4.0.0-rc.4
+
+### Minor Changes
+
+- [b9124c22497bc0bb9310bb8a11c9642808c2071f](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/b9124c22497bc0bb9310bb8a11c9642808c2071f): Decommission TAR SC v3 and TAR API v4.
+
+### Patch Changes
+
+- [7a4068e0d9804be6295aedec7e610cbc253cb03e](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/7a4068e0d9804be6295aedec7e610cbc253cb03e): Update Node.js to v20.14.0
+- [f2b00c7ff4f00ee5186bca56f8c036e0ef73099a](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/f2b00c7ff4f00ee5186bca56f8c036e0ef73099a): Log errors in `sendTransaction`.
+- [4c4d31138e5ba5c9cedd3e598a0017b90335119e](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/4c4d31138e5ba5c9cedd3e598a0017b90335119e): Refactor Axios error logging.
+- [712daf23f46f3010ee81970e532b3ec4deb34d4f](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/712daf23f46f3010ee81970e532b3ec4deb34d4f): Catch error when verifying if DID is controlled by address
+
 ## 4.0.0-rc.3
 
 ### Patch Changes

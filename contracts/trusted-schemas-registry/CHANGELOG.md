@@ -1,5 +1,14 @@
 # @ebsiint-sc/trusted-schemas-registry
 
+## 1.0.1-rc.8
+
+### Patch Changes
+
+- [917370b20c6efe84f3f7c7128dfdb2a7a5457c81](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/917370b20c6efe84f3f7c7128dfdb2a7a5457c81): Bump dependencies and upgrade Node.js to v20.16.0.
+- Updated dependencies [917370b20c6efe84f3f7c7128dfdb2a7a5457c81](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/917370b20c6efe84f3f7c7128dfdb2a7a5457c81)
+  - @ebsiint-sc/trusted-policies-registry@1.0.1-rc.8
+  - @ebsiint-sc/bootstrap@1.0.1-rc.8
+
 ## 1.0.1-rc.7
 
 ### Patch Changes

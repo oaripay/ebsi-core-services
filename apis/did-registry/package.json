@@ -1,7 +1,7 @@
 {
   "name": "@ebsiint-api/did-registry-api-v3",
   "private": true,
-  "version": "3.0.0-rc.12",
+  "version": "3.0.0-rc.13",
   "type": "module",
   "license": "EUPL-1.2",
   "scripts": {
@@ -27,8 +27,8 @@
     "@cef-ebsi/ebsi-uri": "^0.1.0",
     "@cef-ebsi/oauth2-auth": "^3.0.2",
     "@cef-ebsi/siop-auth": "^4.0.2",
-    "@ebsiint-api/shared": "^1.1.0-rc.9",
-    "@ebsiint-sc/did-registry": "^1.1.0-rc.7",
+    "@ebsiint-api/shared": "^1.1.0-rc.10",
+    "@ebsiint-sc/did-registry": "^1.1.0-rc.8",
     "@fastify/helmet": "^11.1.1",
     "@nestjs/axios": "^3.0.2",
     "@nestjs/common": "^10.3.10",
@@ -59,7 +59,7 @@
     "@cef-ebsi/verifiable-credential": "^6.0.0",
     "@cef-ebsi/verifiable-presentation": "^7.0.0",
     "@cef-ebsi/wallet-lib": "^5.0.2",
-    "@ebsiint-api/shared": "^1.1.0-rc.9",
+    "@ebsiint-api/shared": "^1.1.0-rc.10",
     "@ethersproject/abstract-provider": "^5.7.0",
     "@nestjs/cli": "^10.4.2",
     "@nestjs/schematics": "^10.1.3",

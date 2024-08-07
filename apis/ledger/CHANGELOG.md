@@ -1,5 +1,24 @@
 # Changelog
 
+## 3.0.0-rc.11
+
+### Patch Changes
+
+- [7a4068e0d9804be6295aedec7e610cbc253cb03e](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/7a4068e0d9804be6295aedec7e610cbc253cb03e): Update Node.js to v20.14.0
+- [90b8973cbf68a6e6d34ba2a79ce8469f34eaa5c4](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/90b8973cbf68a6e6d34ba2a79ce8469f34eaa5c4): Catch error for malformed uri
+- [a983eb905a08f3f3c2e25b69b320112726a088e1](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/a983eb905a08f3f3c2e25b69b320112726a088e1): Remove dependency on TAR API v4.
+- [4c4d31138e5ba5c9cedd3e598a0017b90335119e](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/4c4d31138e5ba5c9cedd3e598a0017b90335119e): Refactor Axios error logging.
+- [50694cacbd827eeefecbcd2cc765b5660083cccd](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/50694cacbd827eeefecbcd2cc765b5660083cccd): Check Besu readiness in health check.
+- [4c68d45d647735cefa90e5545ff1b5b0c89703ae](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/4c68d45d647735cefa90e5545ff1b5b0c89703ae): Do not return "EBSI-Image-Tag" header anymore.
+- [917370b20c6efe84f3f7c7128dfdb2a7a5457c81](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/917370b20c6efe84f3f7c7128dfdb2a7a5457c81): Bump dependencies and upgrade Node.js to v20.16.0.
+- Updated dependencies [90b8973cbf68a6e6d34ba2a79ce8469f34eaa5c4](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/90b8973cbf68a6e6d34ba2a79ce8469f34eaa5c4)
+- Updated dependencies [8993a31a472a9ad2a59dbc2999f20e863f4c581d](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/8993a31a472a9ad2a59dbc2999f20e863f4c581d)
+- Updated dependencies [9c3dba3e038d65e5970171ce242a8e7b93c2970f](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/9c3dba3e038d65e5970171ce242a8e7b93c2970f)
+- Updated dependencies [651235bffbb0168f18ff4631b750103de7312477](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/651235bffbb0168f18ff4631b750103de7312477)
+- Updated dependencies [4c4d31138e5ba5c9cedd3e598a0017b90335119e](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/4c4d31138e5ba5c9cedd3e598a0017b90335119e)
+- Updated dependencies [917370b20c6efe84f3f7c7128dfdb2a7a5457c81](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/917370b20c6efe84f3f7c7128dfdb2a7a5457c81)
+  - @ebsiint-api/shared@1.1.0-rc.10
+
 ## 3.0.0-rc.10
 
 ### Patch Changes

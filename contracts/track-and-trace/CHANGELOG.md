@@ -1,5 +1,19 @@
 # @ebsiint-sc/track-and-trace
 
+## 1.0.0-rc.3
+
+### Minor Changes
+
+- [47971f1222a9d42b4d999cc34ca9c86a4e8ccf63](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/47971f1222a9d42b4d999cc34ca9c86a4e8ccf63): Require TPR attributes in `authoriseDid` function, and check these attributes in Authorisation API for `tnt_authorise` access token.
+
+### Patch Changes
+
+- [917370b20c6efe84f3f7c7128dfdb2a7a5457c81](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/917370b20c6efe84f3f7c7128dfdb2a7a5457c81): Bump dependencies and upgrade Node.js to v20.16.0.
+- Updated dependencies [917370b20c6efe84f3f7c7128dfdb2a7a5457c81](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/917370b20c6efe84f3f7c7128dfdb2a7a5457c81)
+  - @ebsiint-sc/trusted-policies-registry-v2@2.0.0-rc.4
+  - @ebsiint-sc/did-registry-v3@3.0.0-rc.4
+  - @ebsiint-sc/bootstrap-v2@2.0.0-rc.4
+
 ## 1.0.0-rc.2
 
 ### Minor Changes

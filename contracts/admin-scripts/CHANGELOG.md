@@ -1,5 +1,33 @@
 # @ebsiint-sc/admin-scripts
 
+## 2.0.0-rc.9
+
+### Minor Changes
+
+- [0e486f1a2e125182a84b89732c68c0b64c07872a](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/0e486f1a2e125182a84b89732c68c0b64c07872a): Deployment of pilot tnt
+
+### Patch Changes
+
+- [917370b20c6efe84f3f7c7128dfdb2a7a5457c81](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/917370b20c6efe84f3f7c7128dfdb2a7a5457c81): Bump dependencies and upgrade Node.js to v20.16.0.
+- Updated dependencies [b9124c22497bc0bb9310bb8a11c9642808c2071f](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/b9124c22497bc0bb9310bb8a11c9642808c2071f)
+- Updated dependencies [917370b20c6efe84f3f7c7128dfdb2a7a5457c81](https://ec.europa.eu/digital-building-blocks/code/projects/EBSI/repos/core-services/commits/917370b20c6efe84f3f7c7128dfdb2a7a5457c81)
+  - @ebsiint-sc/trusted-apps-registry-v3@3.0.0-rc.4
+  - @ebsiint-sc/trusted-policies-registry-v2@2.0.0-rc.4
+  - @ebsiint-sc/trusted-issuers-registry-v3@3.0.0-rc.5
+  - @ebsiint-sc/trusted-schemas-registry-v2@2.0.0-rc.4
+  - @ebsiint-sc/trusted-policies-registry@1.0.1-rc.8
+  - @ebsiint-sc/trusted-issuers-registry@2.0.0-rc.8
+  - @ebsiint-sc/trusted-schemas-registry@1.0.1-rc.8
+  - @ebsiint-sc/trusted-apps-registry@2.0.1-rc.8
+  - @ebsiint-sc/did-registry-v2@2.0.0-rc.7
+  - @ebsiint-sc/did-registry-v3@3.0.0-rc.4
+  - @ebsiint-sc/bootstrap-v2@2.0.0-rc.4
+  - @ebsiint-sc/did-registry@1.1.0-rc.8
+  - @ebsiint-sc/timestamp-v2@2.0.0-rc.4
+  - @ebsiint-sc/bootstrap@1.0.1-rc.8
+  - @ebsiint-sc/timestamp@1.0.1-rc.8
+  - @ebsiint-sc/proxy@2.0.0-rc.8
+
 ## 2.0.0-rc.8
 
 ### Minor Changes
