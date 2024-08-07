@@ -23,7 +23,7 @@ info:
 paths:
   /trusted-schemas-registry/v4/schemas:
     get:
-      operationId: get-trusted-schemas-registry-v4-schemas
+      operationId: get-schemas
       summary: List schemas
       description: Returns a list of schemas.
       tags:
@@ -70,25 +70,7 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                "[test] Success":
-                  value:
-                    self: https://api-test.ebsi.eu/trusted-schemas-registry/v4/schemas?page[after]=1&page[size]=10
-                    items:
-                      - schemaId: "z3kRpVjUFj4Bq8qHRENUHiZrVF5VgMBUe7biEafp1wf2J"
-                        href: https://api-test.ebsi.eu/trusted-schemas-registry/v4/schemas/z3kRpVjUFj4Bq8qHRENUHiZrVF5VgMBUe7biEafp1wf2J
-                      - schemaId: "zkVjiLUWHoDtRie9iRAV1oDfjY7onVTEdzzqdXajvBa"
-                        href: https://api-test.ebsi.eu/trusted-schemas-registry/v4/schemas/zkVjiLUWHoDtRie9iRAV1oDfjY7onVTEdzzqdXajvBa
-                      - schemaId: "zArZLLNBiR4puGn7xbvnbuwTTUMpwuLTD2rSEHYmFc"
-                        href: https://api-test.ebsi.eu/trusted-schemas-registry/v4/schemas/zArZLLNBiR4puGn7xbvnbuwTTUMpwuLTD2rSEHYmFc
-                      - schemaId: z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM
-                        href: https://api-test.ebsi.eu/trusted-schemas-registry/v4/schemas/z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM
-                    pageSize: 10
-                    links:
-                      first: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas?page[after]=1&page[size]=10
-                      prev: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas?page[after]=1&page[size]=10
-                      next: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas?page[after]=1&page[size]=10
-                      last: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas?page[after]=1&page[size]=10
-                "[pilot] Success":
+                Success:
                   value:
                     self: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas?page[after]=1&page[size]=10
                     items:
@@ -129,7 +111,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /trusted-schemas-registry/v4/schemas/{schemaId}:
     get:
-      operationId: get-trusted-schemas-registry-v4-schema
+      operationId: get-schema
       summary: Get a schema
       description: Returns a trusted schema identified by its ID.
       tags:
@@ -140,11 +122,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] schemaId":
-              description: valid test schemaId
-              value: z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM
-            "[pilot] schemaId":
-              description: valid pilot schemaId
+            schemaId:
+              description: Valid Pilot schemaId
               value: z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM
           required: true
       responses:
@@ -193,7 +172,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /trusted-schemas-registry/v4/schemas/{schemaId}/revisions:
     get:
-      operationId: get-trusted-schemas-registry-v4-schemas-revisions
+      operationId: get-schema-revisions
       summary: List a schema's revisions
       description: Returns a list of revisions of a specific schema.
       tags:
@@ -204,11 +183,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] schemaId":
-              description: valid test schemaId
-              value: z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM
-            "[pilot] schemaId":
-              description: valid pilot schemaId
+            schemaId:
+              description: Valid Pilot schemaId
               value: z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM
           required: true
         - in: query
@@ -257,19 +233,7 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                "[test] Success":
-                  value:
-                    self: https://api-test.ebsi.eu/trusted-schemas-registry/v4/schemas/z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM/revisions?page[after]=1&page[size]=10
-                    items:
-                      - schemaRevisionId: "0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066"
-                        href: https://api-test.ebsi.eu/trusted-schemas-registry/v4/schemas/z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066
-                    pageSize: 10
-                    links:
-                      first: https://api-test.ebsi.eu/trusted-schemas-registry/v4/schemas/z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM/revisions?page[after]=1&page[size]=10
-                      prev: https://api-test.ebsi.eu/trusted-schemas-registry/v4/schemas/z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM/revisions?page[after]=1&page[size]=10
-                      next: https://api-test.ebsi.eu/trusted-schemas-registry/v4/schemas/z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM/revisions?page[after]=1&page[size]=10
-                      last: https://api-test.ebsi.eu/trusted-schemas-registry/v4/schemas/z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM/revisions?page[after]=1&page[size]=10
-                "[pilot] Success":
+                Success:
                   value:
                     self: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas/z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM/revisions?page[after]=1&page[size]=10
                     items:
@@ -304,7 +268,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /trusted-schemas-registry/v4/schemas/{schemaId}/revisions/{schemaRevisionId}:
     get:
-      operationId: get-trusted-schemas-registry-v4-schema-revision
+      operationId: get-schema-revision
       summary: Get a schema revision
       description: Returns a trusted schema revision identified by its ID.
       tags:
@@ -315,11 +279,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] schemaId":
-              description: valid test schemaId
-              value: z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM
-            "[pilot] schemaId":
-              description: valid pilot schemaId
+            schemaId:
+              description: Valid Pilot schemaId
               value: z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM
           required: true
         - name: schemaRevisionId
@@ -327,11 +288,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] schemaRevisionId":
-              description: valid test schemaRevisionId
-              value: "0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066"
-            "[pilot] schemaRevisionId":
-              description: valid pilot schemaRevisionId
+            schemaRevisionId:
+              description: Valid Pilot schemaRevisionId
               value: "0x76a2bbfaf876171785a02eaef767f8a2b3d1d67fa995edc03a27a83a73b2ae16"
           required: true
       responses:
@@ -382,7 +340,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /trusted-schemas-registry/v4/schemas/{schemaId}/revisions/{schemaRevisionId}/metadata:
     get:
-      operationId: get-trusted-schemas-registry-v4-schemas-revision-metadata-list
+      operationId: get-schema-revision-metadata-list
       summary: List revision's metadata
       description: Returns a list of schemas revision's metadata.
       tags:
@@ -393,11 +351,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] schemaId":
-              description: valid test schemaId
-              value: z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM
-            "[pilot] schemaId":
-              description: valid pilot schemaId
+            schemaId:
+              description: Valid Pilot schemaId
               value: z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM
           required: true
         - name: schemaRevisionId
@@ -405,11 +360,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] schemaRevisionId":
-              description: valid test schemaRevisionId
-              value: "0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066"
-            "[pilot] schemaRevisionId":
-              description: valid pilot schemaRevisionId
+            schemaRevisionId:
+              description: Valid Pilot schemaRevisionId
               value: "0x76a2bbfaf876171785a02eaef767f8a2b3d1d67fa995edc03a27a83a73b2ae16"
           required: true
         - in: query
@@ -453,19 +405,7 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                "[test] Success":
-                  value:
-                    self: https://api-test.ebsi.eu/trusted-schemas-registry/v4/schemas/z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata?page[after]=1&page[size]=10
-                    items:
-                      - metadataId: "0x007e4954f43d3cc40b3a0a5ab81a8e6098fda8c54e0d66bb5d196cb27b55c3be"
-                        href: https://api-test.ebsi.eu/trusted-schemas-registry/v4/schemas/z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata/0x007e4954f43d3cc40b3a0a5ab81a8e6098fda8c54e0d66bb5d196cb27b55c3be
-                    pageSize: 10
-                    links:
-                      first: https://api-test.ebsi.eu/trusted-schemas-registry/v4/schemas/z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata?page[after]=1&page[size]=10
-                      prev: https://api-test.ebsi.eu/trusted-schemas-registry/v4/schemas/z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata?page[after]=1&page[size]=10
-                      next: https://api-test.ebsi.eu/trusted-schemas-registry/v4/schemas/z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata?page[after]=1&page[size]=10
-                      last: https://api-test.ebsi.eu/trusted-schemas-registry/v4/schemas/z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM/revisions/0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066/metadata?page[after]=1&page[size]=10
-                "[pilot] Success":
+                Success:
                   value:
                     self: https://api-pilot.ebsi.eu/trusted-schemas-registry/v4/schemas/z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM/revisions/0xeb23ad59866910271641e0c685d191b0ef324b389c3e7c0ca10f870aacfa4ccd/metadata?page[after]=1&page[size]=10
                     items:
@@ -511,7 +451,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /trusted-schemas-registry/v4/schemas/{schemaId}/revisions/{schemaRevisionId}/metadata/{metadataId}:
     get:
-      operationId: get-trusted-schemas-registry-v4-schema-revision-metadata
+      operationId: get-schema-revision-metadata
       summary: Get metadata
       description: Returns a trusted schema revision metadata identified by its ID.
       tags:
@@ -522,11 +462,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] schemaId":
-              description: valid test schemaId
-              value: z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM
-            "[pilot] schemaId":
-              description: valid pilot schemaId
+            schemaId:
+              description: Valid Pilot schemaId
               value: z3MgUFUkb722uq4x3dv5yAJmnNmzDFeK5UC8x83QoeLJM
           required: true
         - name: schemaRevisionId
@@ -534,11 +471,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] schemaRevisionId":
-              description: valid test schemaRevisionId
-              value: "0x95fd4168add3da11e4574d19426788a41cfcc3cc35688adb90c5b1362d8ce066"
-            "[pilot] schemaRevisionId":
-              description: valid pilot schemaRevisionId
+            schemaRevisionId:
+              description: Valid Pilot schemaRevisionId
               value: "0x76a2bbfaf876171785a02eaef767f8a2b3d1d67fa995edc03a27a83a73b2ae16"
           required: true
         - name: metadataId
@@ -546,11 +480,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] metadataId":
-              description: valid test metadataId
-              value: "0x007e4954f43d3cc40b3a0a5ab81a8e6098fda8c54e0d66bb5d196cb27b55c3be"
-            "[pilot] metadataId":
-              description: valid pilot metadataId
+            metadataId:
+              description: Valid Pilot metadataId
               value: "0x44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
           required: true
       responses:
@@ -561,13 +492,7 @@ paths:
               schema:
                 type: object
               examples:
-                "[test] Success":
-                  value:
-                    meta: value
-                    data: 2d0859c9d9c2cc06987333c9fe238abe
-                    validFrom: "2021-06-10T07:51:36.334Z"
-                    validTo: "2021-06-10T07:57:36.334Z"
-                "[pilot] Success":
+                Success:
                   value:
                     meta: value
                     data: 2d0859c9d9c2cc06987333c9fe238abe
@@ -607,7 +532,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /trusted-schemas-registry/v4/jsonrpc:
     post:
-      operationId: post-trusted-schemas-registry-v4-jsonrpc
+      operationId: post-jsonrpc
       summary: JSON-RPC API
       description: |
         The JSON-RPC API provides methods assisting the construction of blockchain transactions and
@@ -901,5 +826,5 @@ servers:
     description: EBSI Test Environment
   - url: https://api-pilot.ebsi.eu
     description: EBSI Pilot Environment
-  - url: "https://api-conformance.ebsi.eu"
+  - url: https://api-conformance.ebsi.eu
     description: EBSI Conformance Environment

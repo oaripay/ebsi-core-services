@@ -13,8 +13,8 @@ info:
     - Resolve a DID (and obtain a DID document)
 
     For more information see:
-    * [DID Registry API Technical Specifications](https://ec.europa.eu/digital-building-blocks/wikis/display/EBSIDOC/DID+Registry+API)
-    * [CLI Tool page](https://api-pilot.ebsi.eu/docs/demonstrator): Test the capabilities using the EBSI CLI tool
+    * [How to register a DID document](https://hub.ebsi.eu/vc-framework/guidelines/didr)
+    * [CLI Tool page](https://hub.ebsi.eu/tools/cli): Test the capabilities using the EBSI CLI tool
   version: 6.0.0
   contact:
     name: EBSI Support - Service Desk
@@ -80,51 +80,7 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                "[test] Success":
-                  value:
-                    self: https://api-test.ebsi.eu/did-registry/v6/identifiers?page[after]=1&page[size]=10
-                    items:
-                      - did: did:ebsi:zxAFkP2dnB5oL2A5iaaK5K3
-                        href: https://api-test.ebsi.eu/did-registry/v6/identifiers/did:ebsi:zxAFkP2dnB5oL2A5iaaK5K3
-                      - did: did:ebsi:zz5f4mD24zdq5rAshHd9R57
-                        href: https://api-test.ebsi.eu/did-registry/v6/identifiers/did:ebsi:zz5f4mD24zdq5rAshHd9R57
-                      - did: did:ebsi:zgUB1p2zNmGtymUwzHrxh24
-                        href: https://api-test.ebsi.eu/did-registry/v6/identifiers/did:ebsi:zgUB1p2zNmGtymUwzHrxh24
-                      - did: did:ebsi:zjCwFPzJgv1dk42v9MsRahg
-                        href: https://api-test.ebsi.eu/did-registry/v6/identifiers/did:ebsi:zjCwFPzJgv1dk42v9MsRahg
-                      - did: did:ebsi:z23S8YPCtw4XYdTPJKJdxYRP
-                        href: https://api-test.ebsi.eu/did-registry/v6/identifiers/did:ebsi:z23S8YPCtw4XYdTPJKJdxYRP
-                      - did: did:ebsi:zZ91pGjbnuQmEf3RJfi5K1t
-                        href: https://api-test.ebsi.eu/did-registry/v6/identifiers/did:ebsi:zZ91pGjbnuQmEf3RJfi5K1t
-                      - did: did:ebsi:ztnQABC7mzp2yUq2uzLYEqJ
-                        href: https://api-test.ebsi.eu/did-registry/v6/identifiers/did:ebsi:ztnQABC7mzp2yUq2uzLYEqJ
-                      - did: did:ebsi:zdGrPkuKPmQ1QuATyoTCqVQ
-                        href: https://api-test.ebsi.eu/did-registry/v6/identifiers/did:ebsi:zdGrPkuKPmQ1QuATyoTCqVQ
-                      - did: did:ebsi:zgEQpSQLSKoKG6dES7ab5xn
-                        href: https://api-test.ebsi.eu/did-registry/v6/identifiers/did:ebsi:zgEQpSQLSKoKG6dES7ab5xn
-                      - did: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
-                        href: https://api-test.ebsi.eu/did-registry/v6/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z
-                    total: 98
-                    pageSize: 10
-                    links:
-                      first: https://api-test.ebsi.eu/did-registry/v6/identifiers?page[after]=1&page[size]=10
-                      prev: https://api-test.ebsi.eu/did-registry/v6/identifiers?page[after]=1&page[size]=10
-                      next: https://api-test.ebsi.eu/did-registry/v6/identifiers?page[after]=2&page[size]=10
-                      last: https://api-test.ebsi.eu/did-registry/v6/identifiers?page[after]=10&page[size]=10
-                "[test] Filter by controller":
-                  value:
-                    self: https://api-test.ebsi.eu/did-registry/v6/identifiers?page[after]=1&page[size]=10&controller=did:ebsi:z23ETkVyJGeLWysGD11s2Jof
-                    items:
-                      - did: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
-                        href: https://api-test.ebsi.eu/did-registry/v6/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
-                    total: 1
-                    pageSize: 10
-                    links:
-                      first: https://api-test.ebsi.eu/did-registry/v6/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
-                      prev: https://api-test.ebsi.eu/did-registry/v6/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
-                      next: https://api-test.ebsi.eu/did-registry/v6/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
-                      last: https://api-test.ebsi.eu/did-registry/v6/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
-                "[pilot] Success":
+                Success:
                   value:
                     self: https://api-pilot.ebsi.eu/did-registry/v6/identifiers?page[after]=1&page[size]=10
                     items:
@@ -155,12 +111,12 @@ paths:
                       prev: https://api-pilot.ebsi.eu/did-registry/v6/identifiers?page[after]=1&page[size]=10
                       next: https://api-pilot.ebsi.eu/did-registry/v6/identifiers?page[after]=2&page[size]=10
                       last: https://api-pilot.ebsi.eu/did-registry/v6/identifiers?page[after]=10&page[size]=10
-                "[pilot] Filter by controller":
+                Filter by controller:
                   value:
                     self: https://api-pilot.ebsi.eu/did-registry/v6/identifiers?page[after]=1&page[size]=10&controller=did:ebsi:z23ETkVyJGeLWysGD11s2Jof
                     items:
-                      - did: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
-                        href: https://api-pilot.ebsi.eu/did-registry/v6/identifiers/did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
+                      - did: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
+                        href: https://api-pilot.ebsi.eu/did-registry/v6/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z
                     total: 1
                     pageSize: 10
                     links:
@@ -199,18 +155,13 @@ paths:
       parameters:
         - in: path
           name: did
-          description: |
-            A DID to be resolved.
-            [conformance description] The API supports the following EBSI conformance tests:
-            - A user wallet checks if the DID is correctly included in the DID Registry (CT ONBOARD_063)
+          description: A DID to be resolved.
           required: true
           schema:
             type: string
           examples:
-            "[test] DID":
-              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
-            "[pilot] DID":
-              value: did:ebsi:zZeKyEJfUTGwajhNyNX928z
+            DID:
+              value: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
         - in: query
           name: valid-at
           description: |
@@ -220,13 +171,13 @@ paths:
             type: string
       responses:
         "200":
-          description: Success. A user wallet gets DID resolution (CT ONBOARD_063)
+          description: Success. A user wallet gets DID resolution.
           content:
             application/did+ld+json:
               schema:
                 $ref: "#/components/schemas/DIDDocument"
               examples:
-                "[test] Success":
+                Success:
                   value:
                     "@context":
                       - https://www.w3.org/ns/did/v1
@@ -241,42 +192,23 @@ paths:
                         publicKeyJwk:
                           kty: EC
                           crv: secp256k1
-                          x: bn0VlNS3FFt6m0Uyb3hs9AEUlyrQucseOGjzw4TUoY0
-                          y: 4KENQAlExFYMjI59fdA1mEBjkyL8D4-j4KwhPuX_zWA
-                    capabilityInvocation:
-                      - did:ebsi:z25F87e2MyLKF7DViuHi5b4z#0NivQmyibuMALzL2VYcsZiPXRLNtBPOSy4G4-qHFHzU
-                "[pilot] Success":
-                  value:
-                    "@context":
-                      - https://www.w3.org/ns/did/v1
-                      - https://w3id.org/security/suites/jws-2020/v1
-                    id: did:ebsi:zZeKyEJfUTGwajhNyNX928z
-                    controller:
-                      - did:ebsi:zZeKyEJfUTGwajhNyNX928z
-                    verificationMethod:
-                      - id: did:ebsi:zZeKyEJfUTGwajhNyNX928z#RqnJsdrEXgSMJgCdlxFGya2oLmVEP1zz0Jo-VMFqq6E
-                        type: JsonWebKey2020
-                        controller: did:ebsi:zZeKyEJfUTGwajhNyNX928z
-                        publicKeyJwk:
-                          kty: EC
-                          crv: secp256k1
                           x: wBmAchcZfv7IIWzLdSPysdT_33r02KH18nJM_r01pig
                           y: MABWTgJIKuObHLi8G8ta_OoUpqwBShoKlbT2_PcEybI
-                      - id: did:ebsi:zZeKyEJfUTGwajhNyNX928z#So1HIRt0Kqf0_BSwqv4VMNgkax3mCF9IjcQJwMnB3bs
+                      - id: did:ebsi:z25F87e2MyLKF7DViuHi5b4z#So1HIRt0Kqf0_BSwqv4VMNgkax3mCF9IjcQJwMnB3bs
                         type: JsonWebKey2020
-                        controller: did:ebsi:zZeKyEJfUTGwajhNyNX928z
+                        controller: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
                         publicKeyJwk:
                           kty: EC
                           x: AfLzzSLO_rH1n7fIJsGS9AUyZXCql78npwshtYE0Rf4
                           y: vVoDE_-A4Yptu0oelJD2OYdTARMF52lSQXc2IqiwIMQ
                           crv: P-256
                     authentication:
-                      - did:ebsi:zZeKyEJfUTGwajhNyNX928z#RqnJsdrEXgSMJgCdlxFGya2oLmVEP1zz0Jo-VMFqq6E
-                      - did:ebsi:zZeKyEJfUTGwajhNyNX928z#So1HIRt0Kqf0_BSwqv4VMNgkax3mCF9IjcQJwMnB3bs
+                      - did:ebsi:z25F87e2MyLKF7DViuHi5b4z#0NivQmyibuMALzL2VYcsZiPXRLNtBPOSy4G4-qHFHzU
+                      - did:ebsi:z25F87e2MyLKF7DViuHi5b4z#So1HIRt0Kqf0_BSwqv4VMNgkax3mCF9IjcQJwMnB3bs
                     assertionMethod:
-                      - did:ebsi:zZeKyEJfUTGwajhNyNX928z#So1HIRt0Kqf0_BSwqv4VMNgkax3mCF9IjcQJwMnB3bs
+                      - did:ebsi:z25F87e2MyLKF7DViuHi5b4z#So1HIRt0Kqf0_BSwqv4VMNgkax3mCF9IjcQJwMnB3bs
                     capabilityInvocation:
-                      - did:ebsi:zZeKyEJfUTGwajhNyNX928z#RqnJsdrEXgSMJgCdlxFGya2oLmVEP1zz0Jo-VMFqq6E
+                      - did:ebsi:z25F87e2MyLKF7DViuHi5b4z#0NivQmyibuMALzL2VYcsZiPXRLNtBPOSy4G4-qHFHzU
         "400":
           description: Bad Request
           content:
@@ -313,7 +245,7 @@ paths:
         - DID documents
       summary: Perform actions in DID
       description: Perform actions in DID like checking a controller
-      operationId: get-actions
+      operationId: post-actions
       parameters:
         - in: path
           name: did
@@ -322,10 +254,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] DID":
-              value: did:ebsi:z24q8qN8UE1j4XAFiFKtvJbH
-            "[pilot] DID":
-              value: did:ebsi:zZeKyEJfUTGwajhNyNX928z
+            DID:
+              value: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
       requestBody:
         description: |
           The body follows the
@@ -428,20 +358,6 @@ paths:
         interaction with the ledger, i.e. write operation on ledger.
       security:
         - bearerAuth: []
-      parameters:
-        - in: header
-          name: Conformance
-          description: |
-            The header MUST be used ONLY for the EBSI conformance testing.
-            - Type: string
-            - Format: UUID V4
-
-            The header is used to log the activities. See Conformance testing header section in the [documentation](https://ec.europa.eu/digital-building-blocks/wikis/x/5YDwG).
-          required: false
-          schema:
-            type: string
-            format: uuid
-          example: edb60e02-398d-4b62-8028-85710b2476a5
       requestBody:
         required: true
         description: |
@@ -467,7 +383,7 @@ paths:
           - **did**: DID to insert. It must be for a legal entity (DID v1)
           - **baseDocument**: JSON string containing the @context of the DID document
           - **vMethodId**: Verification method ID. Recommended: thumbprint of the public key JWK.
-          - **publicKey**: Public key for secp256k1 in compressed or uncompressed format
+          - **publicKey**: Public key for secp256k1 in uncompressed format prefixed with "0x04"
           - **isSecp256k1**: It must be true
           - **notBefore**: capability invocation is valid from this time
           - **notAfter**: expiration of the capability invocation
@@ -527,18 +443,17 @@ paths:
 
           #### addVerificationMethod
 
-          Call to build an unsigned transaction to add a verification method.
+          Call to build an unsigned transaction to add a verification method. Please note that this verification method will only appear in the DID document after adding a verification relationship.
           Requires an access token with "didr_write" scope.
 
           Parameters:
           - **from**: Ethereum address of the signer
           - **did**: Existing DID
           - **vMethodId**: New verification method ID. Recommended: thumbprint of the public key JWK.
-          - **isSecp256k1**: Boolean defining if the public key is for
-            secp256k1 curve or not
-          - **publicKey**: Public key as hex string. For algorithms different
-            to ES256K it must be the JWK transformed to string and then to
-            hex format.
+          - **isSecp256k1**: Boolean defining if the public key is for secp256k1 curve or not
+          - **publicKey**: Public key as hex string. For an ES256K key, it must be in uncompressed
+            format prefixed with "0x04". For other algorithms, it must be the JWK transformed to
+            string and then to hex format.
 
           #### addVerificationRelationship
 
@@ -585,30 +500,20 @@ paths:
           - **args**: Roll arguments. JSON with the following fields:
             - **did**: Existing DID
             - **vMethodId**: New verification method ID. Recommended: thumbprint of the public key JWK.
-            - **isSecp256k1**: Boolean defining if the public key is for
-              secp256k1 curve or not
-            - **publicKey**: Public key as hex string. For algorithms different
-              to ES256K it must be the JWK transformed to string and then to
-              hex format.
+            - **isSecp256k1**: Boolean defining if the public key is for secp256k1 curve or not
+            - **publicKey**: Public key as hex string. For an ES256K key, it must be in uncompressed
+              format prefixed with "0x04". For other algorithms, it must be the JWK transformed to
+              string and then to hex format.
             - **notBefore**: Verification relationship is valid from this time
             - **notAfter**: Expiration of the verification relationship
             - **oldVMethodId**: Old verification method id that will be rolled
-            - **duration**: Duration of the period of transition. During this period
-              both verification methods will be valid.
+            - **duration**: Duration of the period of transition. During this period both
+              verification methods will be valid.
 
           #### sendSignedTransaction
 
           Call to send a signed transaction to the blockchain.
           Requires an access token with "didr_invite" or "didr_write" scope.
-
-          [conformance description]
-
-          ### [EBSI conformance testing](https://ec.europa.eu/digital-building-blocks/wikis/x/5YDwG)
-
-          The API supports the following EBSI conformance tests:
-
-          - Construct a blockchain transaction to register a DID (CT ONBOARD_061)
-          - Broadcast a signed blockchain transaction to register a DID (CT ONBOARD_062)
         content:
           application/json:
             schema:
@@ -949,8 +854,6 @@ components:
         detail: Internal error
   securitySchemes:
     bearerAuth:
-      description: >
-
       type: http
       scheme: bearer
       bearerFormat: JWT

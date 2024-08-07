@@ -16,7 +16,7 @@ info:
 paths:
   /timestamp/v4/hash-algorithms:
     get:
-      operationId: get-timestamp-v4-hash-algorithms
+      operationId: get-hash-algorithms
       summary: List hash algorithms
       description: Returns a list of hash algorithms.
       tags:
@@ -64,22 +64,7 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                "[test] Success":
-                  value:
-                    self: https://api-test.ebsi.eu/timestamp/v4/hash-algorithms?page[after]=3&page[size]=2
-                    items:
-                      - hashAlgorithmId: 0
-                        href: https://api-test.ebsi.eu/timestamp/v4/hash-algorithms/4
-                      - hashAlgorithmId: 1
-                        href: https://api-test.ebsi.eu/timestamp/v4/hash-algorithms/5
-                    total: 873
-                    pageSize: 2
-                    links:
-                      first: https://api-test.ebsi.eu/timestamp/v4/hash-algorithms?page[after]=1&page[size]=2
-                      prev: https://api-test.ebsi.eu/timestamp/v4/hash-algorithms?page[after]=2&page[size]=2
-                      next: https://api-test.ebsi.eu/timestamp/v4/hash-algorithms?page[after]=4&page[size]=2
-                      last: https://api-test.ebsi.eu/timestamp/v4/hash-algorithms?page[after]=437&page[size]=2
-                "[pilot] Success":
+                Success:
                   value:
                     self: https://api-pilot.ebsi.eu/timestamp/v4/hash-algorithms?page[after]=3&page[size]=2
                     items:
@@ -94,22 +79,6 @@ paths:
                       prev: https://api-pilot.ebsi.eu/timestamp/v4/hash-algorithms?page[after]=2&page[size]=2
                       next: https://api-pilot.ebsi.eu/timestamp/v4/hash-algorithms?page[after]=4&page[size]=2
                       last: https://api-pilot.ebsi.eu/timestamp/v4/hash-algorithms?page[after]=42&page[size]=2
-                "[conformance] Success":
-                  value:
-                    self: https://api-conformance.ebsi.eu/timestamp/v4/hash-algorithms?page[after]=1&page[size]=2
-                    items:
-                      - hashAlgorithmId: 0
-                        href: https://api-conformance.ebsi.eu/timestamp/v4/hash-algorithms/0
-                      - hashAlgorithmId: 1
-                        href: https://api-conformance.ebsi.eu/timestamp/v4/hash-algorithms/1
-                    total: 8
-                    pageSize: 10
-                    links:
-                      first: https://api-conformance.ebsi.eu/timestamp/v4/hash-algorithms?page[after]=1&page[size]=2
-                      prev: https://api-conformance.ebsi.eu/timestamp/v4/hash-algorithms?page[after]=1&page[size]=2
-                      next: https://api-conformance.ebsi.eu/timestamp/v4/hash-algorithms?page[after]=2&page[size]=2
-                      last: https://api-conformance.ebsi.eu/timestamp/v4/hash-algorithms?page[after]=42&page[size]=2
-
         "400":
           description: Bad Request Error
           content:
@@ -133,7 +102,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /timestamp/v4/hash-algorithms/{hashAlgorithmId}:
     get:
-      operationId: get-timestamp-v4-hash-algorithms-hash-algorithm-id
+      operationId: get-hash-algorithm
       summary: Get a hash algorithm
       description: Returns a hash algorithm identified by its ID.
       tags:
@@ -192,7 +161,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /timestamp/v4/timestamps:
     get:
-      operationId: get-timestamp-v4-timestamps
+      operationId: get-timestamps
       summary: List timestamps
       description: Returns a list of timestamps.
       tags:
@@ -242,22 +211,7 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                "[test] Success":
-                  value:
-                    self: https://api-test.ebsi.eu/timestamp/v4/timestamps?page[after]=3&page[size]=2
-                    items:
-                      - timestampId: uEiDmj6io2CZGUPTl_uUmPmBufC_S41T4yAHAkggPRrQN1A
-                        href: https://api-test.ebsi.eu/timestamp/v4/timestamps/uEiDmj6io2CZGUPTl_uUmPmBufC_S41T4yAHAkggPRrQN1A
-                      - timestampId: uEiDIVMa0OK3HgiSv_tEwLs1ZopJ7Pw8es7jdx_3BN3Wlrg
-                        href: https://api-test.ebsi.eu/timestamp/v4/timestamps/uEiDIVMa0OK3HgiSv_tEwLs1ZopJ7Pw8es7jdx_3BN3Wlrg
-                    total: 7924
-                    pageSize: 2
-                    links:
-                      first: https://api-test.ebsi.eu/timestamp/v4/timestamps?page[after]=1&page[size]=2
-                      prev: https://api-test.ebsi.eu/timestamp/v4/timestamps?page[after]=2&page[size]=2
-                      next: https://api-test.ebsi.eu/timestamp/v4/timestamps?page[after]=4&page[size]=2
-                      last: https://api-test.ebsi.eu/timestamp/v4/timestamps?page[after]=3962&page[size]=2
-                "[pilot] Success":
+                Success:
                   value:
                     self: https://api-pilot.ebsi.eu/timestamp/v4/timestamps?page[after]=3&page[size]=2
                     items:
@@ -272,21 +226,6 @@ paths:
                       prev: https://api-pilot.ebsi.eu/timestamp/v4/timestamps?page[after]=2&page[size]=2
                       next: https://api-pilot.ebsi.eu/timestamp/v4/timestamps?page[after]=4&page[size]=2
                       last: https://api-pilot.ebsi.eu/timestamp/v4/timestamps?page[after]=208&page[size]=2
-                "[conformance] Success":
-                  value:
-                    self: https://api-conformance.ebsi.eu/timestamp/v4/timestamps?page[after]=3&page[size]=2
-                    items:
-                      - timestampId: uEiCuezPKD4AhaK0LCCH85rrMSK-G-0M4Merd2ASZO-59HQ
-                        href: https://api-conformance.ebsi.eu/timestamp/v4/timestamps/uEiCuezPKD4AhaK0LCCH85rrMSK-G-0M4Merd2ASZO-59HQ
-                      - timestampId: uEiCw27hwe5frnhyPo_NDlptLth1oWZ_UdpcuVHYiA2vavg
-                        href: https://api-conformance.ebsi.eu/timestamp/v4/timestamps/uEiCuezPKD4AhaK0LCCH85rrMSK-G-0M4Merd2ASZO-59HQ
-                    total: 415
-                    pageSize: 2
-                    links:
-                      first: https://api-conformance.ebsi.eu/timestamp/v4/timestamps?page[after]=1&page[size]=2
-                      prev: https://api-conformance.ebsi.eu/timestamp/v4/timestamps?page[after]=2&page[size]=2
-                      next: https://api-conformance.ebsi.eu/timestamp/v4/timestamps?page[after]=4&page[size]=2
-                      last: https://api-conformance.ebsi.eu/timestamp/v4/timestamps?page[after]=208&page[size]=2
         "400":
           description: Bad Request Error
           content:
@@ -310,7 +249,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /timestamp/v4/timestamps/{timestampId}:
     get:
-      operationId: get-timestamp-v4-timestamps-timestampId
+      operationId: get-timestamp
       summary: Get a timestamp
       description: Returns a timestamp identified by its ID.
       tags:
@@ -342,11 +281,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] timestampId":
-              description: Valid test timestampId
-              value: uEiAbFEn1TXr__LSFdj16CqLZR48_R9TQfd088lEXspM-5A
-            "[pilot] timestampId":
-              description: Valid pilot timestampId
+            timestampId:
+              description: Valid Pilot timestampId
               value: uEiCyzskEVXTNJVok_wI3wHty3LIJ3Apz_4HDocgAUtKGjg
           required: true
       responses:
@@ -397,7 +333,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /timestamp/v4/records:
     get:
-      operationId: get-timestamp-v4-records
+      operationId: get-records
       summary: List records
       description: Returns a list of records.
       tags:
@@ -419,10 +355,7 @@ paths:
             type: string
           description: Filter records by first version hash
           examples:
-            "[test] first-version":
-              description: Valid test first-version
-              value: "0xa3ae912d3e6133480ad4ce8bd16588a80fc6a9071a7edbcd743fd53e3fe0c11a"
-            "[pilot] first-version":
+            first-version:
               description: Valid pilot first-version
               value: "0xc44c79e0e1f1f4a61a580d3146c13657a6622fcc2f586c63297c76722a6049ff"
         - in: query
@@ -431,10 +364,7 @@ paths:
             type: string
           description: Filter records by owner address
           examples:
-            "[test] owner":
-              description: Valid test owner
-              value: "0x43d3cd3a351acd502c53a7b4a63b299b62665b6f"
-            "[pilot] owner":
+            owner:
               description: Valid pilot owner
               value: "0x8a5f8001e772b325cfc2898a51300b0afaf71b65"
       responses:
@@ -469,22 +399,7 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                "[test] Success":
-                  value:
-                    self: https://api-test.ebsi.eu/timestamp/v4/records?page[after]=3&page[size]=2
-                    items:
-                      - recordId: uxbCgjOrW9U086Nc9MJ-bJGXZt6SxY0jIXxCBdFF6nbU
-                        href: https://api-test.ebsi.eu/timestamp/v4/records/uxbCgjOrW9U086Nc9MJ-bJGXZt6SxY0jIXxCBdFF6nbU
-                      - recordId: uNf5VlU49iDHH461yIwzJiczCHc_PcO-v5fO5NK7MXgg
-                        href: https://api-test.ebsi.eu/timestamp/v4/records/uNf5VlU49iDHH461yIwzJiczCHc_PcO-v5fO5NK7MXgg
-                    total: 2193
-                    pageSize: 2
-                    links:
-                      first: https://api-test.ebsi.eu/timestamp/v4/records?page[after]=1&page[size]=2
-                      prev: https://api-test.ebsi.eu/timestamp/v4/records?page[after]=2&page[size]=2
-                      next: https://api-test.ebsi.eu/timestamp/v4/records?page[after]=4&page[size]=2
-                      last: https://api-test.ebsi.eu/timestamp/v4/records?page[after]=1097&page[size]=2
-                "[pilot] Success":
+                Success:
                   value:
                     self: https://api-pilot.ebsi.eu/timestamp/v4/records?page[after]=1&page[size]=2
                     items:
@@ -497,19 +412,6 @@ paths:
                       prev: https://api-pilot.ebsi.eu/timestamp/v4/records?page[after]=1&page[size]=2
                       next: https://api-pilot.ebsi.eu/timestamp/v4/records?page[after]=1&page[size]=2
                       last: https://api-pilot.ebsi.eu/timestamp/v4/records?page[after]=1&page[size]=2
-                "[conformance] Success":
-                  value:
-                    self: https://api-conformance.ebsi.eu/timestamp/v4/records?page[after]=1&page[size]=2
-                    items:
-                      - recordId: uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE
-                        href: https://api-conformance.ebsi.eu/timestamp/v4/records/uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE
-                    total: 1
-                    pageSize: 1
-                    links:
-                      first: https://api-conformance.ebsi.eu/timestamp/v4/records?page[after]=1&page[size]=2
-                      prev: https://api-conformance.ebsi.eu/timestamp/v4/records?page[after]=1&page[size]=2
-                      next: https://api-conformance.ebsi.eu/timestamp/v4/records?page[after]=1&page[size]=2
-                      last: https://api-conformance.ebsi.eu/timestamp/v4/records?page[after]=1&page[size]=2
         "400":
           description: Bad Request Error
           content:
@@ -533,7 +435,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /timestamp/v4/records/{recordId}:
     get:
-      operationId: get-timestamp-v4-records-record-id
+      operationId: get-record
       summary: Get a record
       description: Returns a record identified by its ID.
       tags:
@@ -545,11 +447,8 @@ paths:
             type: string
           description: Record ID (multibase base64url encoded)
           examples:
-            "[test] recordId":
-              description: valid test multibase base64url encoded recordId
-              value: uN70SX6SsuY1s0qZK0eD0uFbfoswfmyuSdcVj2gQaFZI
-            "[pilot] recordId":
-              description: valid pilot multibase base64url encoded recordId
+            recordId:
+              description: Valid Pilot multibase base64url encoded recordId
               value: u6QSSvW57IyOocLlWQS3rB3w3qwXj4rTImwusvMkt9ZM
           required: true
       responses:
@@ -605,7 +504,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /timestamp/v4/records/{recordId}/versions:
     get:
-      operationId: get-timestamp-v4-records-record-id-versions
+      operationId: get-record-versions
       summary: List a record's versions
       description: Returns a list of versions of a given record.
       tags:
@@ -616,11 +515,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] recordId":
-              description: valid test multibase base64url encoded recordId
-              value: uN70SX6SsuY1s0qZK0eD0uFbfoswfmyuSdcVj2gQaFZI
-            "[pilot] recordId":
-              description: valid pilot multibase base64url encoded recordId
+            recordId:
+              description: Valid Pilot multibase base64url encoded recordId
               value: u6QSSvW57IyOocLlWQS3rB3w3qwXj4rTImwusvMkt9ZM
           description: Record ID (multibase base64url encoded)
           required: true
@@ -666,22 +562,7 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                "[test] Success":
-                  value:
-                    self: https://api-test.ebsi.eu/timestamp/v4/records/utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8/versions?page[after]=1&page[size]=2
-                    items:
-                      - versionId: 0
-                        href: https://api-test.ebsi.eu/timestamp/v4/records/utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8/versions/0
-                      - versionId: 1
-                        href: https://api-test.ebsi.eu/timestamp/v4/records/utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8/versions/1
-                    total: 2
-                    pageSize: 2
-                    links:
-                      first: https://api-test.ebsi.eu/timestamp/v4/records/utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8/versions?page[after]=1&page[size]=2
-                      prev: https://api-test.ebsi.eu/timestamp/v4/records/utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8/versions?page[after]=1&page[size]=2
-                      next: https://api-test.ebsi.eu/timestamp/v4/records/utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8/versions?page[after]=1&page[size]=2
-                      last: https://api-test.ebsi.eu/timestamp/v4/records/utgO2PCoXwOu-YDMZhoSMl5jdLV3cE8kD3HzfNYps6p8/versions?page[after]=1&page[size]=2
-                "[pilot] Success":
+                Success:
                   value:
                     self: https://api-pilot.ebsi.eu/timestamp/v4/records/u6QSSvW57IyOocLlWQS3rB3w3qwXj4rTImwusvMkt9ZM/versions?page[after]=1&page[size]=2
                     items:
@@ -694,19 +575,6 @@ paths:
                       prev: https://api-pilot.ebsi.eu/timestamp/v4/records/u6QSSvW57IyOocLlWQS3rB3w3qwXj4rTImwusvMkt9ZM/versions?page[after]=1&page[size]=2
                       next: https://api-pilot.ebsi.eu/timestamp/v4/records/u6QSSvW57IyOocLlWQS3rB3w3qwXj4rTImwusvMkt9ZM/versions?page[after]=1&page[size]=2
                       last: https://api-pilot.ebsi.eu/timestamp/v4/records/u6QSSvW57IyOocLlWQS3rB3w3qwXj4rTImwusvMkt9ZM/versions?page[after]=1&page[size]=2
-                "[conformance] Success":
-                  value:
-                    self: https://api-conformance.ebsi.eu/timestamp/v4/records/uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE/versions?page[after]=1&page[size]=2
-                    items:
-                      - versionId: 0
-                        href: https://api-conformance.ebsi.eu/timestamp/v4/records/uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE/versions/0
-                    total: 1
-                    pageSize: 2
-                    links:
-                      first: https://api-conformance.ebsi.eu/timestamp/v4/records/uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE/versions?page[after]=1&page[size]=2
-                      prev: https://api-conformance.ebsi.eu/timestamp/v4/records/uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE/versions?page[after]=1&page[size]=2
-                      next: https://api-conformance.ebsi.eu/timestamp/v4/records/uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE/versions?page[after]=1&page[size]=2
-                      last: https://api-conformance.ebsi.eu/timestamp/v4/records/uayjbVvTT2SAAKvbiNg76PeSt1BLpHX4ah-xoGM4QqCE/versions?page[after]=1&page[size]=2
         "400":
           description: Bad Request Error
           content:
@@ -730,7 +598,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /timestamp/v4/records/{recordId}/versions/{versionId}:
     get:
-      operationId: get-timestamp-v4-records-record-id-versions-version-id
+      operationId: get-record-version
       summary: Get a version
       description: Returns a record version identified by its version ID.
       tags:
@@ -741,11 +609,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] recordId":
-              description: valid test multibase base64url encoded recordId
-              value: uN70SX6SsuY1s0qZK0eD0uFbfoswfmyuSdcVj2gQaFZI
-            "[pilot] recordId":
-              description: valid pilot multibase base64url encoded recordId
+            recordId:
+              description: Valid Pilot multibase base64url encoded recordId
               value: u6QSSvW57IyOocLlWQS3rB3w3qwXj4rTImwusvMkt9ZM
           description: Record ID (multibase base64url encoded)
           required: true
@@ -816,7 +681,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /timestamp/v4/jsonrpc:
     post:
-      operationId: post-timestamp-v4-jsonrpc
+      operationId: post-jsonrpc
       summary: JSON-RPC API
       description: |
         The JSON-RPC API provides methods assisting the construction of blockchain transactions for
@@ -843,6 +708,7 @@ paths:
           #### insertHashAlgorithm
 
           Call to build an unsigned transaction to insert a new hash algorithm.
+          Requires admin rights.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -855,9 +721,11 @@ paths:
           #### updateHashAlgorithm
 
           Call to build an unsigned transaction to update a hash algorithm.
+          Requires admin rights.
 
           Parameters:
           - **from**: Ethereum address of the signer
+          - **hashAlgorithmId**: ID of the hash algorithm to update
           - **outputLength**: hash output length (in bits)
           - **ianaName**: IANA name of the hash algorithm
           - **oid**: object identifier (OID)
@@ -868,6 +736,7 @@ paths:
 
           Call to build an unsigned transaction to timestamp hashes. It's possible to insert up to
           3 hashes in a single transaction.
+          Requires an access token with "timestamp_write" scope.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -879,6 +748,7 @@ paths:
 
           Call to build an unsigned transaction to timestamp data and create a record of it with
           some info. It's possible to insert up to 3 hashes in a single transaction.
+          Requires an access token with "timestamp_write" scope.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -892,6 +762,7 @@ paths:
           Call to build an unsigned transaction to timestamp hashes and store them under the given
           record. It's possible to insert up to 3 hashes in a single transaction. This method can
           be called only by record owners.
+          Requires an access token with "timestamp_write" scope.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -905,6 +776,7 @@ paths:
 
           Call to build an unsigned transaction to insert a record owner. This method can be called
           only by record owners.
+          Requires an access token with "timestamp_write" scope.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -917,6 +789,7 @@ paths:
 
           Call to build an unsigned transaction to revoke a record owner. This method can be called
           only by record owners.
+          Requires an access token with "timestamp_write" scope.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -928,6 +801,7 @@ paths:
           Call to build an unsigned transaction to timestamp data and link it to a new version of
           an existing record. It's possible to insert up to 3 hashes in a single transaction. This
           method can be called only by record owners.
+          Requires an access token with "timestamp_write" scope.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -942,6 +816,7 @@ paths:
           Call to build an unsigned transaction to timestamp data and link it to an existing
           version of a record. It's possible to insert up to 3 hashes in a single transaction. This
           method can be called only by record owners.
+          Requires an access token with "timestamp_write" scope.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -956,6 +831,7 @@ paths:
 
           Call to build an unsigned transaction to detach a hash from the timestamps ids of a
           version of an existing record. This method can be called only by record owners.
+          Requires an access token with "timestamp_write" scope.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -968,6 +844,7 @@ paths:
 
           Call to build an unsigned transaction to to insert new info to a version of an existing
           record. This method can be called only by record owners.
+          Requires an access token with "timestamp_write" scope.
 
           Parameters:
           - **from**: Ethereum address of the signer
@@ -978,6 +855,7 @@ paths:
           #### sendSignedTransaction
 
           Call to send a signed transaction to the blockchain.
+          Requires an access token with "timestamp_write" scope.
         content:
           application/json:
             schema:
@@ -1401,5 +1279,5 @@ servers:
     description: EBSI Test Environment
   - url: https://api-pilot.ebsi.eu
     description: EBSI Pilot Environment
-  - url: "https://api-conformance.ebsi.eu"
+  - url: https://api-conformance.ebsi.eu
     description: EBSI Conformance Environment

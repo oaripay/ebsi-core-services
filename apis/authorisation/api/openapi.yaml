@@ -32,23 +32,17 @@ servers:
     description: EBSI Test Environment
   - url: https://api-pilot.ebsi.eu
     description: EBSI Pilot Environment
-  - url: "https://api-conformance.ebsi.eu"
+  - url: https://api-conformance.ebsi.eu
     description: EBSI Conformance Environment
 paths:
   /authorisation/v2/authentication-requests:
     post:
-      operationId: post-authorisation-v2-authentication-requests
+      operationId: post-authentication-requests
+      tags:
+        - Endpoints
       summary: Initiate a SIOP DID Auth request
       description: Natural Person and Legal Entities entry point to initiate a SIOP DID Auth Request.
-      parameters:
-        - $ref: "#/components/parameters/conformanceHeader"
       requestBody:
-        description: |
-          [conformance description]
-          [EBSI conformance testing](https://api-conformance.ebsi.eu/docs/wallet-conformance)
-
-          The API supports the following EBSI conformance tests
-          - Request Access Token (CT ONBOARD_051)
         content:
           application/json:
             schema:
@@ -78,11 +72,11 @@ paths:
           $ref: "#/components/responses/500"
   /authorisation/v2/siop-sessions:
     post:
-      operationId: post-authorisation-v2-siop-sessions
+      operationId: post-siop-sessions
       summary: Create a SIOP Session
       description: Sessions Token endpoint as the callback for DID SIOP Response.
-      parameters:
-        - $ref: "#/components/parameters/conformanceHeader"
+      tags:
+        - Endpoints
       requestBody:
         description: |
           The request body must contain an ID Token (parameter name: `id_token`) and, optionally, a VP token (as `vp_token`) (only for onboarding).
@@ -158,9 +152,11 @@ paths:
           $ref: "#/components/responses/500"
   /authorisation/v2/oauth2-sessions:
     post:
-      operationId: post-authorisation-v2-oauth2-sessions
+      operationId: post-oauth2-sessions
       summary: Create an OAuth2 Session
       description: Session Token endpoint for Component Authorisation (DID Auth - CCG Flow).
+      tags:
+        - Endpoints
       requestBody:
         content:
           application/json:
@@ -428,18 +424,3 @@ components:
         title: Internal Server Error
         status: 500
         detail: The server encountered an internal error and was unable to process your request.
-  parameters:
-    conformanceHeader:
-      in: header
-      name: Conformance
-      description: |
-        The header MUST be used ONLY for the EBSI conformance testing.
-        - Type: string
-        - Format: UUID V4
-
-        The header is used to log the activities.
-      required: false
-      schema:
-        type: string
-        format: uuid
-      example: edb60e02-398d-4b62-8028-85710b2476a5

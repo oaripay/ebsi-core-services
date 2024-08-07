@@ -1229,5 +1229,5 @@ servers:
     description: EBSI Test Environment
   - url: https://api-pilot.ebsi.eu
     description: EBSI Pilot Environment
-  - url: "https://api-conformance.ebsi.eu"
+  - url: https://api-conformance.ebsi.eu
     description: EBSI Conformance Environment

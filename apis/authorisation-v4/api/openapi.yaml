@@ -78,7 +78,7 @@ paths:
                       Ref: [OIDC](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
                     type: string
                     format: URI
-                    example: https://api-test.ebsi.eu/authorisation/v4
+                    example: https://api-pilot.ebsi.eu/authorisation/v4
                   authorization_endpoint:
                     title: Authorization Endpoint
                     description: |
@@ -89,7 +89,7 @@ paths:
                       Ref: [OIDC](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
                     type: string
                     format: URI
-                    example: https://api-test.ebsi.eu/authorisation/v4/authorize
+                    example: https://api-pilot.ebsi.eu/authorisation/v4/authorize
                   token_endpoint:
                     title: Token Endpoint
                     description: |
@@ -100,7 +100,7 @@ paths:
                       Ref: [OIDC](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
                     type: string
                     format: URI
-                    example: https://api-test.ebsi.eu/authorisation/v4/token
+                    example: https://api-pilot.ebsi.eu/authorisation/v4/token
                   presentation_definition_endpoint:
                     title: Presentation Definitions Endpoint
                     description: |
@@ -109,7 +109,7 @@ paths:
                       Non-standard (yet). Used in EBSI.
                     type: string
                     format: URI
-                    example: https://api-test.ebsi.eu/authorisation/v4/presentation-definitions
+                    example: https://api-pilot.ebsi.eu/authorisation/v4/presentation-definitions
                   jwks_uri:
                     title: JWKS URI
                     description: |
@@ -118,7 +118,7 @@ paths:
                       Ref: [OIDC](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
                     type: string
                     format: URI
-                    example: https://api-test.ebsi.eu/authorisation/v4/jwks
+                    example: https://api-pilot.ebsi.eu/authorisation/v4/jwks
                   scopes_supported:
                     title: Supported Scopes
                     description: |
@@ -378,14 +378,14 @@ paths:
                   summary: |
                     Profile: Authorisation Server v3
                   value:
-                    issuer: https://api-test.ebsi.eu/authorisation/v4
-                    authorization_endpoint: https://api-test.ebsi.eu/authorisation/v4/authorize
+                    issuer: https://api-pilot.ebsi.eu/authorisation/v4
+                    authorization_endpoint: https://api-pilot.ebsi.eu/authorisation/v4/authorize
                     id_token_signing_alg_values_supported:
                       - ES256
                     grant_types_supported:
                       - vp_token
                     jwks_uri: /jwks
-                    presentation_definition_endpoint: https://api-test.ebsi.eu/authorisation/v4/presentation_definitions
+                    presentation_definition_endpoint: https://api-pilot.ebsi.eu/authorisation/v4/presentation_definitions
                     response_types_supported:
                       - vp_token
                     request_parameter_supported: true
@@ -402,7 +402,7 @@ paths:
                       - tnt_write
                       - tpr_write
                       - tsr_write
-                    token_endpoint: https://api-test.ebsi.eu/authorisation/v4/token
+                    token_endpoint: https://api-pilot.ebsi.eu/authorisation/v4/token
                     subject_types_supported:
                       - public
                     token_endpoint_auth_methods_supported:

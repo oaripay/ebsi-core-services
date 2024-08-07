@@ -67,35 +67,35 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               example:
-                self: https://api-test.ebsi.eu/track-and-trace/v1/documents?page[after]=1&page[size]=10
+                self: https://api-pilot.ebsi.eu/track-and-trace/v1/documents?page[after]=1&page[size]=10
                 items:
-                  - documentId: "0x65292ff9c6f87f754fe33a03d0b385b2c2d6bbaedff22438bec39593ce5920f4"
-                    href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0x65292ff9c6f87f754fe33a03d0b385b2c2d6bbaedff22438bec39593ce5920f4
+                  - documentId: "0xbfc90433cfe7cf69119899a96837032bee6c84ba7f6ac9aa008ef2de5eeacfb8"
+                    href: https://api-pilot.ebsi.eu/track-and-trace/v1/documents/0xbfc90433cfe7cf69119899a96837032bee6c84ba7f6ac9aa008ef2de5eeacfb8
                   - documentId: "0x99ab5f3cfc581c53a9210fc4588416fbc84b3ff09950ddc84e0efd1e2b2e147a"
-                    href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0x99ab5f3cfc581c53a9210fc4588416fbc84b3ff09950ddc84e0efd1e2b2e147a
+                    href: https://api-pilot.ebsi.eu/track-and-trace/v1/documents/0x99ab5f3cfc581c53a9210fc4588416fbc84b3ff09950ddc84e0efd1e2b2e147a
                   - documentId: "0x4ed9c02a2c28de4ebfb274f8036d961062b05d8ea7a06682725d36224718e03e"
-                    href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0x4ed9c02a2c28de4ebfb274f8036d961062b05d8ea7a06682725d36224718e03e
+                    href: https://api-pilot.ebsi.eu/track-and-trace/v1/documents/0x4ed9c02a2c28de4ebfb274f8036d961062b05d8ea7a06682725d36224718e03e
                   - documentId: "0xdd97695335b338c3de251247b533589cd2847000c4c0100a5ece17f28feb8640"
-                    href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0xdd97695335b338c3de251247b533589cd2847000c4c0100a5ece17f28feb8640
+                    href: https://api-pilot.ebsi.eu/track-and-trace/v1/documents/0xdd97695335b338c3de251247b533589cd2847000c4c0100a5ece17f28feb8640
                   - documentId: "0xb64f68452c5b4a30ff952e4f873df8f5d340684d98b90417a6c26e9f48ff4e11"
-                    href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0xb64f68452c5b4a30ff952e4f873df8f5d340684d98b90417a6c26e9f48ff4e11
+                    href: https://api-pilot.ebsi.eu/track-and-trace/v1/documents/0xb64f68452c5b4a30ff952e4f873df8f5d340684d98b90417a6c26e9f48ff4e11
                   - documentId: "0x9a7897302b2967c8818ea2b61fa64138ea6f370640739f4a04957dd15c0c43e2"
-                    href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0x9a7897302b2967c8818ea2b61fa64138ea6f370640739f4a04957dd15c0c43e2
+                    href: https://api-pilot.ebsi.eu/track-and-trace/v1/documents/0x9a7897302b2967c8818ea2b61fa64138ea6f370640739f4a04957dd15c0c43e2
                   - documentId: "0x8edbce68309d79731a9e45bba4448b3c705e4074016e0f2cf994e8ad37e99b85"
-                    href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0x8edbce68309d79731a9e45bba4448b3c705e4074016e0f2cf994e8ad37e99b85
+                    href: https://api-pilot.ebsi.eu/track-and-trace/v1/documents/0x8edbce68309d79731a9e45bba4448b3c705e4074016e0f2cf994e8ad37e99b85
                   - documentId: "0x6e64123aaaa5d5e73fc878cc374e72bc9b7791f0048c968953d1943ea0138305"
-                    href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0x6e64123aaaa5d5e73fc878cc374e72bc9b7791f0048c968953d1943ea0138305
+                    href: https://api-pilot.ebsi.eu/track-and-trace/v1/documents/0x6e64123aaaa5d5e73fc878cc374e72bc9b7791f0048c968953d1943ea0138305
                   - documentId: "0x32a2334e9b8793fe4862ba6bac909e148b9ff98c4ca3ed54e598aa5cff63e670"
-                    href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0x32a2334e9b8793fe4862ba6bac909e148b9ff98c4ca3ed54e598aa5cff63e670
+                    href: https://api-pilot.ebsi.eu/track-and-trace/v1/documents/0x32a2334e9b8793fe4862ba6bac909e148b9ff98c4ca3ed54e598aa5cff63e670
                   - documentId: "0xb08f451727fd50a5cd8433a86ce04302462477e7e978028d71094fc564dbad5e"
-                    href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0xb08f451727fd50a5cd8433a86ce04302462477e7e978028d71094fc564dbad5e
+                    href: https://api-pilot.ebsi.eu/track-and-trace/v1/documents/0xb08f451727fd50a5cd8433a86ce04302462477e7e978028d71094fc564dbad5e
                 total: 98
                 pageSize: 10
                 links:
-                  first: https://api-test.ebsi.eu/track-and-trace/v1/documents?page[after]=1&page[size]=10
-                  prev: https://api-test.ebsi.eu/track-and-trace/v1/documents?page[after]=1&page[size]=10
-                  next: https://api-test.ebsi.eu/track-and-trace/v1/documents?page[after]=2&page[size]=10
-                  last: https://api-test.ebsi.eu/track-and-trace/v1/documents?page[after]=10&page[size]=10
+                  first: https://api-pilot.ebsi.eu/track-and-trace/v1/documents?page[after]=1&page[size]=10
+                  prev: https://api-pilot.ebsi.eu/track-and-trace/v1/documents?page[after]=1&page[size]=10
+                  next: https://api-pilot.ebsi.eu/track-and-trace/v1/documents?page[after]=2&page[size]=10
+                  last: https://api-pilot.ebsi.eu/track-and-trace/v1/documents?page[after]=10&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -132,7 +132,7 @@ paths:
           required: true
           schema:
             type: string
-          example: "0x65292ff9c6f87f754fe33a03d0b385b2c2d6bbaedff22438bec39593ce5920f4"
+          example: "0xbfc90433cfe7cf69119899a96837032bee6c84ba7f6ac9aa008ef2de5eeacfb8"
       responses:
         "200":
           description: Success
@@ -193,7 +193,7 @@ paths:
           required: true
           schema:
             type: string
-          example: "0x65292ff9c6f87f754fe33a03d0b385b2c2d6bbaedff22438bec39593ce5920f4"
+          example: "0xbfc90433cfe7cf69119899a96837032bee6c84ba7f6ac9aa008ef2de5eeacfb8"
         - in: query
           name: page[after]
           schema:
@@ -238,21 +238,21 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               example:
-                self: https://api-test.ebsi.eu/track-and-trace/v1/documents/0x65292ff9c6f87f754fe33a03d0b385b2c2d6bbaedff22438bec39593ce5920f4/events?page[after]=1&page[size]=10
+                self: https://api-pilot.ebsi.eu/track-and-trace/v1/documents/0xbfc90433cfe7cf69119899a96837032bee6c84ba7f6ac9aa008ef2de5eeacfb8/events?page[after]=1&page[size]=10
                 items:
-                  - eventId: "0xcc1aea14885d7683ce062c8e3b755c4075ef274199c659d03eafa4a6cc0bb587"
-                    href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0x65292ff9c6f87f754fe33a03d0b385b2c2d6bbaedff22438bec39593ce5920f4/events/0xcc1aea14885d7683ce062c8e3b755c4075ef274199c659d03eafa4a6cc0bb587
+                  - eventId: "0x17387b16ebd0df6d0debcd4204fecb5cef827b98a51d3736a223d0cf6dbe48f6"
+                    href: https://api-pilot.ebsi.eu/track-and-trace/v1/documents/0xbfc90433cfe7cf69119899a96837032bee6c84ba7f6ac9aa008ef2de5eeacfb8/events/0x17387b16ebd0df6d0debcd4204fecb5cef827b98a51d3736a223d0cf6dbe48f6
                   - eventId: "0x502b93df1016f58eb69e1246c97ffc2f4ffeae36432b60626c973dd029fc21e6"
-                    href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0x65292ff9c6f87f754fe33a03d0b385b2c2d6bbaedff22438bec39593ce5920f4/events/0x502b93df1016f58eb69e1246c97ffc2f4ffeae36432b60626c973dd029fc21e6
+                    href: https://api-pilot.ebsi.eu/track-and-trace/v1/documents/0xbfc90433cfe7cf69119899a96837032bee6c84ba7f6ac9aa008ef2de5eeacfb8/events/0x502b93df1016f58eb69e1246c97ffc2f4ffeae36432b60626c973dd029fc21e6
                   - eventId: "0x780ee9343e9406d785a2261963bef1d0979e992895bddc0f2893c1946661b32f"
-                    href: https://api-test.ebsi.eu/track-and-trace/v1/documents/0x65292ff9c6f87f754fe33a03d0b385b2c2d6bbaedff22438bec39593ce5920f4/events/0x780ee9343e9406d785a2261963bef1d0979e992895bddc0f2893c1946661b32f
+                    href: https://api-pilot.ebsi.eu/track-and-trace/v1/documents/0xbfc90433cfe7cf69119899a96837032bee6c84ba7f6ac9aa008ef2de5eeacfb8/events/0x780ee9343e9406d785a2261963bef1d0979e992895bddc0f2893c1946661b32f
                 total: 3
                 pageSize: 10
                 links:
-                  first: https://api-test.ebsi.eu/track-and-trace/v1/documents/0x65292ff9c6f87f754fe33a03d0b385b2c2d6bbaedff22438bec39593ce5920f4/events?page[after]=1&page[size]=10
-                  prev: https://api-test.ebsi.eu/track-and-trace/v1/documents/0x65292ff9c6f87f754fe33a03d0b385b2c2d6bbaedff22438bec39593ce5920f4/events?page[after]=1&page[size]=10
-                  next: https://api-test.ebsi.eu/track-and-trace/v1/documents/0x65292ff9c6f87f754fe33a03d0b385b2c2d6bbaedff22438bec39593ce5920f4/events?page[after]=2&page[size]=10
-                  last: https://api-test.ebsi.eu/track-and-trace/v1/documents/0x65292ff9c6f87f754fe33a03d0b385b2c2d6bbaedff22438bec39593ce5920f4/events?page[after]=10&page[size]=10
+                  first: https://api-pilot.ebsi.eu/track-and-trace/v1/documents/0xbfc90433cfe7cf69119899a96837032bee6c84ba7f6ac9aa008ef2de5eeacfb8/events?page[after]=1&page[size]=10
+                  prev: https://api-pilot.ebsi.eu/track-and-trace/v1/documents/0xbfc90433cfe7cf69119899a96837032bee6c84ba7f6ac9aa008ef2de5eeacfb8/events?page[after]=1&page[size]=10
+                  next: https://api-pilot.ebsi.eu/track-and-trace/v1/documents/0xbfc90433cfe7cf69119899a96837032bee6c84ba7f6ac9aa008ef2de5eeacfb8/events?page[after]=2&page[size]=10
+                  last: https://api-pilot.ebsi.eu/track-and-trace/v1/documents/0xbfc90433cfe7cf69119899a96837032bee6c84ba7f6ac9aa008ef2de5eeacfb8/events?page[after]=10&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -303,7 +303,7 @@ paths:
           required: true
           schema:
             type: string
-          example: "0x65292ff9c6f87f754fe33a03d0b385b2c2d6bbaedff22438bec39593ce5920f4"
+          example: "0xbfc90433cfe7cf69119899a96837032bee6c84ba7f6ac9aa008ef2de5eeacfb8"
         - in: path
           name: eventId
           description: |
@@ -311,7 +311,7 @@ paths:
           required: true
           schema:
             type: string
-          example: "0xcc1aea14885d7683ce062c8e3b755c4075ef274199c659d03eafa4a6cc0bb587"
+          example: "0x4791c04d2e4838042c67f3e739ab8639b6bd0f6896ec7e32e99c640d43b530c7"
       responses:
         "200":
           description: Success
@@ -320,13 +320,13 @@ paths:
               schema:
                 $ref: "#/components/schemas/Event"
               example:
-                externalHash: "0xcc43351fa3c5d304fd2d1b472f8c27a2ffa930510c5eb42b972efd33166c91b9"
-                hash: "0xcc1aea14885d7683ce062c8e3b755c4075ef274199c659d03eafa4a6cc0bb587"
+                externalHash: "0x7caebd56efed5cf6758c401961de9e33dff856cece64cb6ff3aa3a587393b96d"
+                hash: "0x4791c04d2e4838042c67f3e739ab8639b6bd0f6896ec7e32e99c640d43b530c7"
                 timestamp:
-                  datetime: "0x65c3881c"
+                  datetime: "0x65d372cb"
                   source: block
-                  proof: "0x0000000000000000000000000000000000000000000000000000000000a026d9"
-                sender: "did:ebsi:zkrLJ5WyqiHbiXjur3TqzfA"
+                  proof: "0x000000000000000000000000000000000000000000000000000000000047a88d"
+                sender: "did:ebsi:zxaYaUtb8pvoAtYNWbKcveg"
                 origin: origin
                 metadata: eventMetadata
         "400":
@@ -381,7 +381,7 @@ paths:
           required: true
           schema:
             type: string
-          example: "0x65292ff9c6f87f754fe33a03d0b385b2c2d6bbaedff22438bec39593ce5920f4"
+          example: "0xbfc90433cfe7cf69119899a96837032bee6c84ba7f6ac9aa008ef2de5eeacfb8"
         - in: query
           name: page[after]
           schema:
@@ -435,27 +435,19 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               example:
-                self: https://api-test.ebsi.eu/track-and-trace/v1/documents/0x65292ff9c6f87f754fe33a03d0b385b2c2d6bbaedff22438bec39593ce5920f4/accesses?page[after]=1&page[size]=10
+                self: https://api-pilot.ebsi.eu/track-and-trace/v1/documents/0xbfc90433cfe7cf69119899a96837032bee6c84ba7f6ac9aa008ef2de5eeacfb8/accesses?page[after]=1&page[size]=10
                 items:
-                  - subject: did:ebsi:zYgwhP7EDQ5bsNeghFLDVbk
-                    documentId: "0x65292ff9c6f87f754fe33a03d0b385b2c2d6bbaedff22438bec39593ce5920f4"
-                    grantedBy: did:ebsi:zYgwhP7EDQ5bsNeghFLDVbk
+                  - subject: did:ebsi:zxaYaUtb8pvoAtYNWbKcveg
+                    documentId: "0xbfc90433cfe7cf69119899a96837032bee6c84ba7f6ac9aa008ef2de5eeacfb8"
+                    grantedBy: did:ebsi:zxaYaUtb8pvoAtYNWbKcveg
                     permission: creator
-                  - subject: did:ebsi:zqNtY2Cv8wuFBVW7FTtNk84
-                    documentId: "0x65292ff9c6f87f754fe33a03d0b385b2c2d6bbaedff22438bec39593ce5920f4"
-                    grantedBy: did:ebsi:zYgwhP7EDQ5bsNeghFLDVbk
-                    permission: delegate
-                  - subject: did:ebsi:zqNtY2Cv8wuFBVW7FTtNk84
-                    documentId: "0x65292ff9c6f87f754fe33a03d0b385b2c2d6bbaedff22438bec39593ce5920f4"
-                    grantedBy: did:ebsi:zYgwhP7EDQ5bsNeghFLDVbk
-                    permission: write
-                total: 3
+                total: 1
                 pageSize: 10
                 links:
-                  first: https://api-test.ebsi.eu/track-and-trace/v1/documents/0x65292ff9c6f87f754fe33a03d0b385b2c2d6bbaedff22438bec39593ce5920f4/accesses?page[after]=1&page[size]=10
-                  prev: https://api-test.ebsi.eu/track-and-trace/v1/documents/0x65292ff9c6f87f754fe33a03d0b385b2c2d6bbaedff22438bec39593ce5920f4/accesses?page[after]=1&page[size]=10
-                  next: https://api-test.ebsi.eu/track-and-trace/v1/documents/0x65292ff9c6f87f754fe33a03d0b385b2c2d6bbaedff22438bec39593ce5920f4/accesses?page[after]=1&page[size]=10
-                  last: https://api-test.ebsi.eu/track-and-trace/v1/documents/0x65292ff9c6f87f754fe33a03d0b385b2c2d6bbaedff22438bec39593ce5920f4/accesses?page[after]=1&page[size]=10
+                  first: https://api-pilot.ebsi.eu/track-and-trace/v1/documents/0xbfc90433cfe7cf69119899a96837032bee6c84ba7f6ac9aa008ef2de5eeacfb8/accesses?page[after]=1&page[size]=10
+                  prev: https://api-pilot.ebsi.eu/track-and-trace/v1/documents/0xbfc90433cfe7cf69119899a96837032bee6c84ba7f6ac9aa008ef2de5eeacfb8/accesses?page[after]=1&page[size]=10
+                  next: https://api-pilot.ebsi.eu/track-and-trace/v1/documents/0xbfc90433cfe7cf69119899a96837032bee6c84ba7f6ac9aa008ef2de5eeacfb8/accesses?page[after]=1&page[size]=10
+                  last: https://api-pilot.ebsi.eu/track-and-trace/v1/documents/0xbfc90433cfe7cf69119899a96837032bee6c84ba7f6ac9aa008ef2de5eeacfb8/accesses?page[after]=1&page[size]=10
         "400":
           description: Bad Request Error
           content:
@@ -505,7 +497,7 @@ paths:
           schema:
             type: string
           required: true
-          example: did:ebsi:zkrLJ5WyqiHbiXjur3TqzfA
+          example: did:ebsi:zxaYaUtb8pvoAtYNWbKcveg
       responses:
         "204":
           description: Success
@@ -528,7 +520,7 @@ paths:
           schema:
             type: string
           required: true
-          example: did:ebsi:zkrLJ5WyqiHbiXjur3TqzfA
+          example: did:ebsi:zxaYaUtb8pvoAtYNWbKcveg
       responses:
         "200":
           description: Success
@@ -573,23 +565,23 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               example:
-                self: https://api-test.ebsi.eu/track-and-trace/v1/accesses?page[after]=1&page[size]=10&subject=did:ebsi:ztqWJAmfyuUEf9Jvh97p167
+                self: https://api-pilot.ebsi.eu/track-and-trace/v1/accesses?page[after]=1&page[size]=10&subject=did:ebsi:ztqWJAmfyuUEf9Jvh97p167
                 items:
-                  - documentId: "0x65292ff9c6f87f754fe33a03d0b385b2c2d6bbaedff22438bec39593ce5920f4"
+                  - documentId: "0xbfc90433cfe7cf69119899a96837032bee6c84ba7f6ac9aa008ef2de5eeacfb8"
                     subject: did:ebsi:ztqWJAmfyuUEf9Jvh97p167
                     grantedBy: did:ebsi:zmRQoAM1YrVBVA3cP6CwYfc
                     permission: write
-                  - documentId: "0x65292ff9c6f87f754fe33a03d0b385b2c2d6bbaedff22438bec39593ce5920f4"
+                  - documentId: "0xbfc90433cfe7cf69119899a96837032bee6c84ba7f6ac9aa008ef2de5eeacfb8"
                     subject: did:ebsi:ztqWJAmfyuUEf9Jvh97p167
                     grantedBy: did:ebsi:zmRQoAM1YrVBVA3cP6CwYfc
                     permission: delegate
                 total: 2
                 pageSize: 10
                 links:
-                  first: https://api-test.ebsi.eu/track-and-trace/v1/accesses?page[after]=1&page[size]=10&subject=did:ebsi:ztqWJAmfyuUEf9Jvh97p167
-                  prev: https://api-test.ebsi.eu/track-and-trace/v1/accesses?page[after]=1&page[size]=10&subject=did:ebsi:ztqWJAmfyuUEf9Jvh97p167
-                  next: https://api-test.ebsi.eu/track-and-trace/v1/accesses?page[after]=2&page[size]=10&subject=did:ebsi:ztqWJAmfyuUEf9Jvh97p167
-                  last: https://api-test.ebsi.eu/track-and-trace/v1/accesses?page[after]=10&page[size]=10&subject=did:ebsi:ztqWJAmfyuUEf9Jvh97p167
+                  first: https://api-pilot.ebsi.eu/track-and-trace/v1/accesses?page[after]=1&page[size]=10&subject=did:ebsi:ztqWJAmfyuUEf9Jvh97p167
+                  prev: https://api-pilot.ebsi.eu/track-and-trace/v1/accesses?page[after]=1&page[size]=10&subject=did:ebsi:ztqWJAmfyuUEf9Jvh97p167
+                  next: https://api-pilot.ebsi.eu/track-and-trace/v1/accesses?page[after]=2&page[size]=10&subject=did:ebsi:ztqWJAmfyuUEf9Jvh97p167
+                  last: https://api-pilot.ebsi.eu/track-and-trace/v1/accesses?page[after]=10&page[size]=10&subject=did:ebsi:ztqWJAmfyuUEf9Jvh97p167
         "400":
           description: Bad Request
           content:
@@ -776,7 +768,7 @@ paths:
                   method: removeDocument
                   params:
                     - from: "0xc9765eC58E49e6E386549CEAA34FB0d8bB69C320"
-                    - documentHash: "0xcd299cdabd6299907c31f7cdf112830bda9e2d9f5d33c9fc75dd62caa6b9bd67"
+                      documentHash: "0xcd299cdabd6299907c31f7cdf112830bda9e2d9f5d33c9fc75dd62caa6b9bd67"
                   id: 474
               Build tx to grantAccess:
                 value:

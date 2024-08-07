@@ -3,14 +3,14 @@ info:
   title: Trusted Issuers Registry API v4
   version: 4.0.0
   description: |
-    The Trusted Issuers Registry (TIR) is a decentralised registry for storing information about trusted issuers, such as public information and accreditations. The TIR stores all information within a smart contract in the form of Verifiable Accreditations, which are issued by Trusted Issuers or self-issued. Issuers can designate proxies for credential verification to ensure their validity or check for revocation. Details on the verification process can be found in the [EBSI Verifiable Accreditation and Verifiable Authorisation Revocation](https://ec.europa.eu/digital-building-blocks/wikis/pages/viewpage.action?spaceKey=BLOCKCHAININT&title=EBSI+Verifiable+Accreditation+and+Verifiable+Authorisation+Revocation).
+    The Trusted Issuers Registry (TIR) is a decentralised registry for storing information about trusted issuers, such as public information and accreditations. The TIR stores all information within a smart contract in the form of Verifiable Accreditations, which are issued by Trusted Issuers or self-issued. Issuers can designate proxies for credential verification to ensure their validity or check for revocation. Details on the verification process can be found in the [Credential Status Framework](https://hub.ebsi.eu/vc-framework/credential-status-framework).
 
     To register a DID with the TIR, a Legal Entity (LE) must generate a DID and DID document, then request a _VerifiableAuthorisationToOnboard_ VC from the Issuer. The LE presents the _VerifiableAuthorisationToOnboard_ to receive an access token, allowing it to register its DID in the DID registry. To become a Truster Issuer, the LE must register its DID in the TIR by requesting a _VerifiableAccreditationToAttest_ VC. Upon presentation of this VC, the LE receives an access token to insert its DID into the TIR.
 
     The TIR service comprises a smart contract (TIR SC) and an API (TIR API). The TIR SC is an Ethereum SC deployed on the EBSI ledger, and all public smart contract methods are exposed via APIs. There are two type of APIs available: JSON-RPC for write operations and REST for read operations. The TIR API enables the management and verification of Trusted Issuers' information and accreditations. However, accreditation of trusted issuers is domain-specific and falls outside the scope of EBSI.
 
     For more information see:
-    + [CLI Tool page](https://api-pilot.ebsi.eu/docs/demonstrator): Test the capabilities using the EBSI CLI tool
+    + [CLI Tool page](https://hub.ebsi.eu/tools/cli): Test the capabilities using the EBSI CLI tool
   contact:
     name: EBSI Support - Service Desk
     url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11
@@ -20,7 +20,7 @@ info:
 paths:
   /trusted-issuers-registry/v4/issuers:
     get:
-      operationId: get-trusted-issuers-registry-v4-issuers
+      operationId: get-issuers
       summary: List issuers
       description: Returns a list of trusted issuers.
       tags:
@@ -68,31 +68,7 @@ paths:
                   links:
                     $ref: "#/components/schemas/links"
               examples:
-                "[test] Success":
-                  value:
-                    self: https://api-test.ebsi.eu/trusted-issuers-registry/v4/issuers?page[after]=182&page[size]=10
-                    items:
-                      - did: did:ebsi:zppVrNT9bBgMqxrJqVEnvyk
-                        href: https://api-test.ebsi.eu/trusted-issuers-registry/v4/issuers/did:ebsi:zppVrNT9bBgMqxrJqVEnvyk
-                      - did: did:ebsi:zwTCXnY8azCDqmpDz4dkmHP
-                        href: https://api-test.ebsi.eu/trusted-issuers-registry/v4/issuers/did:ebsi:zwTCXnY8azCDqmpDz4dkmHP
-                      - did: did:ebsi:zkwPdAxVESRPSZxfYJMi7aG
-                        href: https://api-test.ebsi.eu/trusted-issuers-registry/v4/issuers/did:ebsi:zkwPdAxVESRPSZxfYJMi7aG
-                      - did: did:ebsi:zzQar5zYxUCo1bPypeN3tiF
-                        href: https://api-test.ebsi.eu/trusted-issuers-registry/v4/issuers/did:ebsi:zzQar5zYxUCo1bPypeN3tiF
-                      - did: did:ebsi:z23usJB14wsPNwTds2esnoJt
-                        href: https://api-test.ebsi.eu/trusted-issuers-registry/v4/issuers/did:ebsi:z23usJB14wsPNwTds2esnoJt
-                      - did: did:ebsi:zZviptEhFN1r2u18hhi7Hof
-                        href: https://api-test.ebsi.eu/trusted-issuers-registry/v4/issuers/did:ebsi:zZviptEhFN1r2u18hhi7Hof
-                    total: 1816
-                    pageSize: 10
-                    links:
-                      first: https://api-test.ebsi.eu/trusted-issuers-registry/v4/issuers?page[after]=1&page[size]=10
-                      prev: https://api-test.ebsi.eu/trusted-issuers-registry/v4/issuers?page[after]=181&page[size]=10
-                      next: https://api-test.ebsi.eu/trusted-issuers-registry/v4/issuers?page[after]=182&page[size]=10
-                      last: https://api-test.ebsi.eu/trusted-issuers-registry/v4/issuers?page[after]=182&page[size]=10
-
-                "[pilot] Success":
+                Success:
                   value:
                     self: https://api-pilot.ebsi.eu/trusted-issuers-registry/v4/issuers?page[after]=182&page[size]=10
                     items:
@@ -136,7 +112,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /trusted-issuers-registry/v4/issuers/{did}:
     get:
-      operationId: get-trusted-issuers-registry-v4-issuers-issuer
+      operationId: get-issuer
       summary: Get an issuer
       description: Returns a trusted issuer identified by its decentralised identifier (DID).
       tags:
@@ -147,11 +123,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] did":
-              description: valid test did
-              value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
-            "[pilot] did":
-              description: valid pilot did
+            "did":
+              description: Valid Pilot DID
               value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
           required: true
       responses:
@@ -162,16 +135,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/issuer"
               examples:
-                "[test] Success":
-                  value:
-                    did: did:ebsi:zwTCXnY8azCDqmpDz4dkmHP
-                    attributes:
-                      - hash: 317ee465aa7c80ec734c1291da037dd0e25faf549c43964f9f9f0658474d199b
-                        body: eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJkaWQ6ZWJzaTp6MjU2YXNCV21IQnNqMlpOVnhHNU1oa3Aja2V5cy0yIn0.eyJpYXQiOjE2NzYzNzY0NTYsImp0aSI6InVybjp1dWlkOjFkMWMwODk4LTAwYWYtNDY0ZC1hZWZkLTI1YmYxMjZjYTA4OCIsIm5iZiI6MTY3NjM3NjQ1NiwiZXhwIjoxNzA3OTEyNDU2LCJzdWIiOiJkaWQ6ZWJzaTp6eW1COVdkR3g3SGN5bWFIb0JxQVZoZiIsInZjIjp7IkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIl0sImlkIjoidXJuOnV1aWQ6MWQxYzA4OTgtMDBhZi00NjRkLWFlZmQtMjViZjEyNmNhMDg4IiwidHlwZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCIsIkFjY3JlZGl0ZWRWZXJpZmlhYmxlQXR0ZXN0YXRpb24iLCJWZXJpZmlhYmxlQWNjcmVkaXRhdGlvblRJUERBMSJdLCJpc3N1ZXIiOiJkaWQ6ZWJzaTp6blZxSEttVDE0WTI0TG5CZEF5eHZoNSIsImlzc3VhbmNlRGF0ZSI6IjIwMjItMDYtMjdUMDk6MDA6MDBaIiwidmFsaWRGcm9tIjoiMjAyMi0wNi0yN1QwOTowMDowMFoiLCJleHBpcmF0aW9uRGF0ZSI6IjIwMzAtMDYtMjdUMDk6MDA6MDBaIiwidGVybXNPZlVzZSI6W3sidHlwZSI6IlZlcmlmaWFibGVBY2NyZWRpdGF0aW9uIiwiaWQiOiJodHRwczovL2FwaS1waWxvdC5lYnNpLmV1L3RydXN0ZWQtaXNzdWVycy1yZWdpc3RyeS92Mi9pc3N1ZXJzL2RpZDplYnNpOnpuVnFIS21UMTRZMjRMbkJkQXl4dmg1L2F0dHJpYnV0ZXMvYzIzOTU4OTY2NTc1MmE3ZDg0MmY4Y2ZkN2MzNGY4ZTNjZjJiYWE3YzRmMmFiMGEwMTFiMDdlZDdjNWNiZWQ2MiJ9XSwiaXNzdWVkIjoiMjAyMi0wNi0yN1QwOTowMDowMFoiLCJjcmVkZW50aWFsU3ViamVjdCI6eyJpZCI6ImRpZDplYnNpOnp5bUI5V2RHeDdIY3ltYUhvQnFBVmhmIiwiYXV0aG9yaXNhdGlvbkNsYWltcyI6W3siYXV0aG9yaXNlZFNjaGVtYUlkIjoiaHR0cHM6Ly9hcGktcGlsb3QuZWJzaS5ldS90cnVzdGVkLXNjaGVtYXMtcmVnaXN0cnkvdjEvc2NoZW1hcy8weDUwNDkwZWM0ZTJiMzA1M2Y3MDdjYzEyMWMyNjIxN2NiZWMzNjNmM2I5ZTkwOTE3NWQwNzNkMDRjNzM4OTBmOWEifV19LCJjcmVkZW50aWFsU3RhdHVzIjp7ImlkIjoiaHR0cHM6Ly9lc3NpZi5ldXJvcGEuZXUvc3RhdHVzLzEiLCJ0eXBlIjoiQ3JlZGVudGlhbHNTdGF0dXNMaXN0MjAyMCJ9LCJjcmVkZW50aWFsU2NoZW1hIjp7ImlkIjoiaHR0cHM6Ly9hcGktcGlsb3QuZWJzaS5ldS90cnVzdGVkLXNjaGVtYXMtcmVnaXN0cnkvdjEvc2NoZW1hcy8weDljMjZkMTkwMzJkZWI1ZDcyZjRhYzU2ZjNiODhjNDAyNWM2YmU4MTIzYzI0NGZlNTdhN2Q2ZTUzNDNiNzFiNjUiLCJ0eXBlIjoiRnVsbEpzb25TY2hlbWFWYWxpZGF0b3IyMDIxIn19LCJpc3MiOiJkaWQ6ZWJzaTp6MjU2YXNCV21IQnNqMlpOVnhHNU1oa3AifQ.00Cl-pnL-YSEQYTKA02MVWwryUX_i76l39BRXLiwLV1nnugIKHT7zJoiXnS3vFeaZ2R4HFNx1EK38CCs6gNh2g
-                        issuerType: TAO
-                        tao: did:ebsi:zppVrNT9bBgMqxrJqVEnvyk
-                        rootTao: did:ebsi:zppVrNT9bBgMqxrJqVEnvyk
-                "[pilot] Success":
+                Success:
                   value:
                     did: did:ebsi:zr2rWDHHrUCdZAW7wsSb5nQ
                     attributes:
@@ -212,7 +176,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /trusted-issuers-registry/v4/issuers/{did}/attributes:
     get:
-      operationId: get-trusted-issuers-registry-v4-issuers-did-attributes
+      operationId: get-issuer-attributes
       summary: List attributes
       description: Returns a list of attributes of a trusted issuer.
       tags:
@@ -223,11 +187,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] did":
-              description: valid test did
-              value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
-            "[pilot] did":
-              description: valid pilot did
+            "did":
+              description: Valid Pilot DID
               value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
           required: true
         - in: query
@@ -272,20 +233,7 @@ paths:
                   links:
                     $ref: "#/components/schemas/links"
               examples:
-                "[test] Success":
-                  value:
-                    self: https://api-test.ebsi.eu/trusted-issuers-registry/v4/issuers/did:ebsi:zwTCXnY8azCDqmpDz4dkmHP/attributes?page[after]=1&page[size]=10
-                    items:
-                      - id: 317ee465aa7c80ec734c1291da037dd0e25faf549c43964f9f9f0658474d199b
-                        href: https://api-test.ebsi.eu/trusted-issuers-registry/v4/issuers/did:ebsi:zwTCXnY8azCDqmpDz4dkmHP/attributes/317ee465aa7c80ec734c1291da037dd0e25faf549c43964f9f9f0658474d199b
-                    total: 1
-                    pageSize: 10
-                    links:
-                      first: https://api-test.ebsi.eu/trusted-issuers-registry/v4/issuers/did:ebsi:zwTCXnY8azCDqmpDz4dkmHP/attributes?page[after]=1&page[size]=10
-                      prev: https://api-test.ebsi.eu/trusted-issuers-registry/v4/issuers/did:ebsi:zwTCXnY8azCDqmpDz4dkmHP/attributes?page[after]=1&page[size]=10
-                      next: https://api-test.ebsi.eu/trusted-issuers-registry/v4/issuers/did:ebsi:zwTCXnY8azCDqmpDz4dkmHP/attributes?page[after]=1&page[size]=10
-                      last: https://api-test.ebsi.eu/trusted-issuers-registry/v4/issuers/did:ebsi:zwTCXnY8azCDqmpDz4dkmHP/attributes?page[after]=1&page[size]=10
-                "[pilot] Success":
+                Success:
                   value:
                     self: https://api-pilot.ebsi.eu/trusted-issuers-registry/v4/issuers/did:ebsi:zr2rWDHHrUCdZAW7wsSb5nQ/attributes?page[after]=1&page[size]=10
                     items:
@@ -331,7 +279,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /trusted-issuers-registry/v4/issuers/{did}/attributes/{attributeId}:
     get:
-      operationId: get-trusted-issuers-registry-v4-issuers-did-attributes-attributeid
+      operationId: get-issuer-attribute
       summary: Get an attribute
       description: Returns the latest revision of an issuer attribute.
       tags:
@@ -342,11 +290,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] did":
-              description: valid test did
-              value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
-            "[pilot] did":
-              description: valid pilot did
+            "did":
+              description: Valid Pilot DID
               value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
           required: true
         - name: attributeId
@@ -354,11 +299,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] attributeId":
-              description: valid test attributeId
-              value: 25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
-            "[pilot] attributeId":
-              description: valid pilot attributeId
+            "attributeId":
+              description: Valid Pilot attributeId
               value: 4763114aaa3ba460849a5da50797ab6709f2b346788c6749067ac5b3413ad83e
           required: true
       responses:
@@ -369,16 +311,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/attributeDetails"
               examples:
-                "[test] Success":
-                  value:
-                    did: did:ebsi:zwTCXnY8azCDqmpDz4dkmHP
-                    attribute:
-                      hash: 317ee465aa7c80ec734c1291da037dd0e25faf549c43964f9f9f0658474d199b
-                      body: eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJkaWQ6ZWJzaTp6MjU2YXNCV21IQnNqMlpOVnhHNU1oa3Aja2V5cy0yIn0.eyJpYXQiOjE2NzYzNzY0NTYsImp0aSI6InVybjp1dWlkOjFkMWMwODk4LTAwYWYtNDY0ZC1hZWZkLTI1YmYxMjZjYTA4OCIsIm5iZiI6MTY3NjM3NjQ1NiwiZXhwIjoxNzA3OTEyNDU2LCJzdWIiOiJkaWQ6ZWJzaTp6eW1COVdkR3g3SGN5bWFIb0JxQVZoZiIsInZjIjp7IkBjb250ZXh0IjpbImh0dHBzOi8vd3d3LnczLm9yZy8yMDE4L2NyZWRlbnRpYWxzL3YxIl0sImlkIjoidXJuOnV1aWQ6MWQxYzA4OTgtMDBhZi00NjRkLWFlZmQtMjViZjEyNmNhMDg4IiwidHlwZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCIsIkFjY3JlZGl0ZWRWZXJpZmlhYmxlQXR0ZXN0YXRpb24iLCJWZXJpZmlhYmxlQWNjcmVkaXRhdGlvblRJUERBMSJdLCJpc3N1ZXIiOiJkaWQ6ZWJzaTp6blZxSEttVDE0WTI0TG5CZEF5eHZoNSIsImlzc3VhbmNlRGF0ZSI6IjIwMjItMDYtMjdUMDk6MDA6MDBaIiwidmFsaWRGcm9tIjoiMjAyMi0wNi0yN1QwOTowMDowMFoiLCJleHBpcmF0aW9uRGF0ZSI6IjIwMzAtMDYtMjdUMDk6MDA6MDBaIiwidGVybXNPZlVzZSI6W3sidHlwZSI6IlZlcmlmaWFibGVBY2NyZWRpdGF0aW9uIiwiaWQiOiJodHRwczovL2FwaS1waWxvdC5lYnNpLmV1L3RydXN0ZWQtaXNzdWVycy1yZWdpc3RyeS92Mi9pc3N1ZXJzL2RpZDplYnNpOnpuVnFIS21UMTRZMjRMbkJkQXl4dmg1L2F0dHJpYnV0ZXMvYzIzOTU4OTY2NTc1MmE3ZDg0MmY4Y2ZkN2MzNGY4ZTNjZjJiYWE3YzRmMmFiMGEwMTFiMDdlZDdjNWNiZWQ2MiJ9XSwiaXNzdWVkIjoiMjAyMi0wNi0yN1QwOTowMDowMFoiLCJjcmVkZW50aWFsU3ViamVjdCI6eyJpZCI6ImRpZDplYnNpOnp5bUI5V2RHeDdIY3ltYUhvQnFBVmhmIiwiYXV0aG9yaXNhdGlvbkNsYWltcyI6W3siYXV0aG9yaXNlZFNjaGVtYUlkIjoiaHR0cHM6Ly9hcGktcGlsb3QuZWJzaS5ldS90cnVzdGVkLXNjaGVtYXMtcmVnaXN0cnkvdjEvc2NoZW1hcy8weDUwNDkwZWM0ZTJiMzA1M2Y3MDdjYzEyMWMyNjIxN2NiZWMzNjNmM2I5ZTkwOTE3NWQwNzNkMDRjNzM4OTBmOWEifV19LCJjcmVkZW50aWFsU3RhdHVzIjp7ImlkIjoiaHR0cHM6Ly9lc3NpZi5ldXJvcGEuZXUvc3RhdHVzLzEiLCJ0eXBlIjoiQ3JlZGVudGlhbHNTdGF0dXNMaXN0MjAyMCJ9LCJjcmVkZW50aWFsU2NoZW1hIjp7ImlkIjoiaHR0cHM6Ly9hcGktcGlsb3QuZWJzaS5ldS90cnVzdGVkLXNjaGVtYXMtcmVnaXN0cnkvdjEvc2NoZW1hcy8weDljMjZkMTkwMzJkZWI1ZDcyZjRhYzU2ZjNiODhjNDAyNWM2YmU4MTIzYzI0NGZlNTdhN2Q2ZTUzNDNiNzFiNjUiLCJ0eXBlIjoiRnVsbEpzb25TY2hlbWFWYWxpZGF0b3IyMDIxIn19LCJpc3MiOiJkaWQ6ZWJzaTp6MjU2YXNCV21IQnNqMlpOVnhHNU1oa3AifQ.00Cl-pnL-YSEQYTKA02MVWwryUX_i76l39BRXLiwLV1nnugIKHT7zJoiXnS3vFeaZ2R4HFNx1EK38CCs6gNh2g
-                      issuerType: TAO
-                      tao: did:ebsi:zppVrNT9bBgMqxrJqVEnvyk
-                      rootTao: did:ebsi:zppVrNT9bBgMqxrJqVEnvyk
-                "[pilot] Success":
+                Success:
                   value:
                     did: did:ebsi:zr2rWDHHrUCdZAW7wsSb5nQ
                     attribute:
@@ -419,7 +352,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /trusted-issuers-registry/v4/issuers/{did}/attributes/{attributeId}/revisions:
     get:
-      operationId: get-trusted-issuers-registry-v4-issuers-did-attributes-attributeid-revisions
+      operationId: get-issuer-attribute-revisions
       summary: List revisions
       description: Returns a list of revisions of an attribute.
       tags:
@@ -430,11 +363,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] did":
-              description: valid test did
-              value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
-            "[pilot] did":
-              description: valid pilot did
+            "did":
+              description: Valid Pilot DID
               value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
           required: true
         - name: attributeId
@@ -442,11 +372,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] attributeId":
-              description: valid test attributeId
-              value: 25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
-            "[pilot] attributeId":
-              description: valid pilot attributeId
+            "attributeId":
+              description: Valid Pilot attributeId
               value: 4763114aaa3ba460849a5da50797ab6709f2b346788c6749067ac5b3413ad83e
           required: true
         - in: query
@@ -484,23 +411,7 @@ paths:
                   links:
                     $ref: "#/components/schemas/links"
               examples:
-                "[test] Success":
-                  value:
-                    self: https://api-test.ebsi.eu/trusted-issuers-registry/v4/issuers/did:ebsi:zwTCXnY8azCDqmpDz4dkmHP/attributes/317ee465aa7c80ec734c1291da037dd0e25faf549c43964f9f9f0658474d199b/revisions?page[after]=1&page[size]=10
-                    items:
-                      - hash: 317ee465aa7c80ec734c1291da037dd0e25faf549c43964f9f9f0658474d199b
-                        body: test-a0b5b66f5676e006fee6f5e9
-                        issuerType: TAO
-                        tao: did:ebsi:zppVrNT9bBgMqxrJqVEnvyk
-                        rootTao: did:ebsi:zppVrNT9bBgMqxrJqVEnvyk
-                    total: 1
-                    pageSize: 10
-                    links:
-                      first: https://api-test.ebsi.eu/trusted-issuers-registry/v4/issuers/did:ebsi:zwTCXnY8azCDqmpDz4dkmHP/attributes/317ee465aa7c80ec734c1291da037dd0e25faf549c43964f9f9f0658474d199b/revisions?page[after]=1&page[size]=10
-                      prev: https://api-test.ebsi.eu/trusted-issuers-registry/v4/issuers/did:ebsi:zwTCXnY8azCDqmpDz4dkmHP/attributes/317ee465aa7c80ec734c1291da037dd0e25faf549c43964f9f9f0658474d199b/revisions?page[after]=1&page[size]=10
-                      next: https://api-test.ebsi.eu/trusted-issuers-registry/v4/issuers/did:ebsi:zwTCXnY8azCDqmpDz4dkmHP/attributes/317ee465aa7c80ec734c1291da037dd0e25faf549c43964f9f9f0658474d199b/revisions?page[after]=1&page[size]=10
-                      last: https://api-test.ebsi.eu/trusted-issuers-registry/v4/issuers/did:ebsi:zwTCXnY8azCDqmpDz4dkmHP/attributes/317ee465aa7c80ec734c1291da037dd0e25faf549c43964f9f9f0658474d199b/revisions?page[after]=1&page[size]=10
-                "[pilot] Success":
+                Success:
                   value:
                     self: https://api-pilot.ebsi.eu/trusted-issuers-registry/v4/issuers/did:ebsi:zr2rWDHHrUCdZAW7wsSb5nQ/attributes/317ee465aa7c80ec734c1291da037dd0e25faf549c43964f9f9f0658474d199b/revisions?page[after]=1&page[size]=10
                     items:
@@ -549,7 +460,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /trusted-issuers-registry/v4/issuers/{did}/proxies:
     get:
-      operationId: get-trusted-issuers-registry-v4-issuers-did-proxies
+      operationId: get-issuer-proxies
       summary: List proxies
       description: Returns a list of proxies of a trusted issuer.
       tags:
@@ -560,11 +471,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] did":
-              description: valid test did
-              value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
-            "[pilot] did":
-              description: valid pilot did
+            "did":
+              description: Valid Pilot DID
               value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
           required: true
       responses:
@@ -591,13 +499,7 @@ paths:
                     type: integer
                     description: Total number of items in a collection
               examples:
-                "[test] Success":
-                  value:
-                    items:
-                      - proxyId: "0x22523141178108904061a339205ca512d19a59bdc101b220dba5a378a18ffb5f"
-                        href: https://api-test.ebsi.eu/trusted-issuers-registry/v4/issuers/did:ebsi:zkwPdAxVESRPSZxfYJMi7aG/proxies/0x22523141178108904061a339205ca512d19a59bdc101b220dba5a378a18ffb5f
-                    total: 1
-                "[pilot] Success":
+                Success:
                   value:
                     items:
                       - proxyId: "0x22523141178108904061a339205ca512d19a59bdc101b220dba5a378a18ffb5f"
@@ -635,7 +537,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /trusted-issuers-registry/v4/issuers/{did}/proxies/{proxyId}:
     get:
-      operationId: get-trusted-issuers-registry-v4-issuers-did-proxies-proxyid
+      operationId: get-issuer-proxy
       summary: Get a proxy
       description: Returns an issuer proxy identified by its proxy ID.
       tags:
@@ -646,11 +548,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] did":
-              description: valid test did
-              value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
-            "[pilot] did":
-              description: valid pilot did
+            "did":
+              description: Valid Pilot DID
               value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
           required: true
         - name: proxyId
@@ -658,11 +557,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] proxyId":
-              description: valid test proxyId
-              value: 25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
-            "[pilot] proxyId":
-              description: valid pilot proxyId
+            "proxyId":
+              description: Valid Pilot proxyId
               value: "0xe34e137dbefa842d71c0c840ddb4900af3611e297d8403e80f99a13e187e8d63"
           required: true
       responses:
@@ -673,13 +569,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/attributeDetails"
               examples:
-                "[test] Success":
-                  value:
-                    prefix: https://example.com
-                    headers:
-                      authorization: Bearer 6e9b01cb7b2a269be20aaebc17657d7d
-                    testSuffix: /creds/1
-                "[pilot] Success":
+                Success:
                   value:
                     prefix: https://example.com
                     headers:
@@ -717,7 +607,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /trusted-issuers-registry/v4/issuers/{did}/proxies/{proxyId}/{path}:
     get:
-      operationId: get-trusted-issuers-registry-v4-issuers-did-proxies-proxyid-path
+      operationId: get-issuer-proxy-path
       summary: Get StatusList2021Credential
       description: Retrieves a StatusList2021Credential JWT through the issuer's proxy.
       tags:
@@ -728,11 +618,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] did":
-              description: valid test did
-              value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
-            "[pilot] did":
-              description: valid pilot did
+            "did":
+              description: Valid Pilot DID
               value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
           required: true
         - name: proxyId
@@ -740,11 +627,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] proxyId":
-              description: valid test proxyId
-              value: 25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
-            "[pilot] proxyId":
-              description: valid pilot proxyId
+            "proxyId":
+              description: Valid Pilot proxyId
               value: "0xe34e137dbefa842d71c0c840ddb4900af3611e297d8403e80f99a13e187e8d63"
           required: true
         - name: path
@@ -764,9 +648,7 @@ paths:
               schema:
                 type: string
               examples:
-                "[test] Success":
-                  value: eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJkaWQ6ZWJzaTp6cGlESjZaWExnTmU3UGVTMjdjdGhURiNrZXlzLTEifQ.eyJqdGkiOiJodHRwczovL2V4YW1wbGUubmV0L2NyZWQvMSIsInN1YiI6ImRpZDplYnNpOnpwaURKNlpYTGdOZTdQZVMyN2N0aFRGIiwiaXNzIjoiZGlkOmVic2k6enBpREo2WlhMZ05lN1BlUzI3Y3RoVEYiLCJuYmYiOjE2MTc2MzI4NjAsImlhdCI6MTYxNzYzMjg2MCwidmMiOnsiQGNvbnRleHQiOlsiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZGVudGlhbHMvdjEiLCJodHRwczovL3czaWQub3JnL3ZjL3N0YXR1cy1saXN0LzIwMjEvdjEiXSwiaWQiOiJodHRwczovL2V4YW1wbGUubmV0L2NyZWQvMSIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJTdGF0dXNMaXN0MjAyMUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmVic2k6enBpREo2WlhMZ05lN1BlUzI3Y3RoVEYiLCJpc3N1ZWQiOiIyMDIxLTA0LTA1VDE0OjI3OjQwWiIsImlzc3VhbmNlRGF0ZSI6IjIwMjEtMDQtMDVUMTQ6Mjc6NDBaIiwidmFsaWRGcm9tIjoiMjAyMS0wNC0wNVQxNDoyNzo0MFoiLCJjcmVkZW50aWFsU3ViamVjdCI6eyJpZCI6ImRpZDplYnNpOnpwaURKNlpYTGdOZTdQZVMyN2N0aFRGIiwidHlwZSI6IlN0YXR1c0xpc3QyMDIxIiwic3RhdHVzUHVycG9zZSI6InJldm9jYXRpb24iLCJlbmNvZGVkTGlzdCI6Ikg0c0lBQUFBQUFBQUEtM0JNUUVBQUFEQ29QVlBiUXdmb0FBQUFBQUFBQUFBQUFBQUFBQUFBSUMzQVliU1ZLc0FRQUFBIn0sImNyZWRlbnRpYWxTY2hlbWEiOlt7ImlkIjoiaHR0cHM6Ly9hcGktdGVzdC5lYnNpLmV1L3RydXN0ZWQtc2NoZW1hcy1yZWdpc3RyeS92Mi9zY2hlbWFzLzB4MjMwMzllNjM1NmVhNmI3MDNjZTY3MmU3Y2ZhYzBiNDI3NjViMTUwZjYzZGY3OGUyYmQxOGFlNzg1Nzg3ZjZhMiIsInR5cGUiOiJGdWxsSnNvblNjaGVtYVZhbGlkYXRvcjIwMjEifSx7ImlkIjoiaHR0cHM6Ly9hcGktdGVzdC5lYnNpLmV1L3RydXN0ZWQtc2NoZW1hcy1yZWdpc3RyeS92Mi9zY2hlbWFzLzB4NjBkMmI2YTlhOTIzZGFjZmE2YzJjYjAzZDEwMWI5MmMyYjI2ODNlZDVlMjQ4ZmZhOGZiNDE0ZWRiYjZiOTY3MCIsInR5cGUiOiJGdWxsSnNvblNjaGVtYVZhbGlkYXRvcjIwMjEifV19fQ.j_rSoYiqLjo0HQhnq1Gu4FMPLbstfG7ONYjW0N5gBFdtCJb-Mel6kVplBHCTWC9GY2GHEOhYDpI7wo5leVa0ZQ
-                "[pilot] Success":
+                Success:
                   value: eyJhbGciOiJFUzI1NksiLCJ0eXAiOiJKV1QiLCJraWQiOiJkaWQ6ZWJzaTp6cGlESjZaWExnTmU3UGVTMjdjdGhURiNrZXlzLTEifQ.eyJqdGkiOiJodHRwczovL2V4YW1wbGUubmV0L2NyZWQvMSIsInN1YiI6ImRpZDplYnNpOnpwaURKNlpYTGdOZTdQZVMyN2N0aFRGIiwiaXNzIjoiZGlkOmVic2k6enBpREo2WlhMZ05lN1BlUzI3Y3RoVEYiLCJuYmYiOjE2MTc2MzI4NjAsImlhdCI6MTYxNzYzMjg2MCwidmMiOnsiQGNvbnRleHQiOlsiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZGVudGlhbHMvdjEiLCJodHRwczovL3czaWQub3JnL3ZjL3N0YXR1cy1saXN0LzIwMjEvdjEiXSwiaWQiOiJodHRwczovL2V4YW1wbGUubmV0L2NyZWQvMSIsInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJTdGF0dXNMaXN0MjAyMUNyZWRlbnRpYWwiXSwiaXNzdWVyIjoiZGlkOmVic2k6enBpREo2WlhMZ05lN1BlUzI3Y3RoVEYiLCJpc3N1ZWQiOiIyMDIxLTA0LTA1VDE0OjI3OjQwWiIsImlzc3VhbmNlRGF0ZSI6IjIwMjEtMDQtMDVUMTQ6Mjc6NDBaIiwidmFsaWRGcm9tIjoiMjAyMS0wNC0wNVQxNDoyNzo0MFoiLCJjcmVkZW50aWFsU3ViamVjdCI6eyJpZCI6ImRpZDplYnNpOnpwaURKNlpYTGdOZTdQZVMyN2N0aFRGIiwidHlwZSI6IlN0YXR1c0xpc3QyMDIxIiwic3RhdHVzUHVycG9zZSI6InJldm9jYXRpb24iLCJlbmNvZGVkTGlzdCI6Ikg0c0lBQUFBQUFBQUEtM0JNUUVBQUFEQ29QVlBiUXdmb0FBQUFBQUFBQUFBQUFBQUFBQUFBSUMzQVliU1ZLc0FRQUFBIn0sImNyZWRlbnRpYWxTY2hlbWEiOlt7ImlkIjoiaHR0cHM6Ly9hcGktdGVzdC5lYnNpLmV1L3RydXN0ZWQtc2NoZW1hcy1yZWdpc3RyeS92Mi9zY2hlbWFzLzB4MjMwMzllNjM1NmVhNmI3MDNjZTY3MmU3Y2ZhYzBiNDI3NjViMTUwZjYzZGY3OGUyYmQxOGFlNzg1Nzg3ZjZhMiIsInR5cGUiOiJGdWxsSnNvblNjaGVtYVZhbGlkYXRvcjIwMjEifSx7ImlkIjoiaHR0cHM6Ly9hcGktdGVzdC5lYnNpLmV1L3RydXN0ZWQtc2NoZW1hcy1yZWdpc3RyeS92Mi9zY2hlbWFzLzB4NjBkMmI2YTlhOTIzZGFjZmE2YzJjYjAzZDEwMWI5MmMyYjI2ODNlZDVlMjQ4ZmZhOGZiNDE0ZWRiYjZiOTY3MCIsInR5cGUiOiJGdWxsSnNvblNjaGVtYVZhbGlkYXRvcjIwMjEifV19fQ.j_rSoYiqLjo0HQhnq1Gu4FMPLbstfG7ONYjW0N5gBFdtCJb-Mel6kVplBHCTWC9GY2GHEOhYDpI7wo5leVa0ZQ
         "400":
           description: Bad Request
@@ -800,7 +682,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /trusted-issuers-registry/v4/jsonrpc:
     post:
-      operationId: post-ledger-v2-blockchains-besu
+      operationId: post-jsonrpc
       summary: JSON-RPC API
       description: |
         The JSON-RPC API provides methods assisting the construction of blockchain transactions for

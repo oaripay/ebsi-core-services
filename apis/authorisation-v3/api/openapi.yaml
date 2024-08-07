@@ -17,7 +17,7 @@ info:
     Anonymous users can only read public information, so they can call all the REST endpoints, but no the JSON-RPC endpoints.
 
     For more information see:
-    + [CLI Tool page](https://api-pilot.ebsi.eu/docs/demonstrator): Test the capabilities using the EBSI CLI tool
+    + [CLI Tool page](https://hub.ebsi.eu/tools/cli): Test the capabilities using the EBSI CLI tool
   contact:
     name: EBSI Support - Service Desk
     url: https://ec.europa.eu/digital-building-blocks/tracker/plugins/servlet/desk/portal/11
@@ -40,7 +40,7 @@ paths:
   /authorisation/v3/.well-known/openid-configuration:
     get:
       summary: OpenID Provider Metadata
-      operationId: get-v3-well-known-openid-config
+      operationId: get-well-known-openid-config
       tags:
         - Authorisation Service
       description: Exposes the configuration of the OpenID Provider
@@ -78,7 +78,7 @@ paths:
                       Ref: [OIDC](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
                     type: string
                     format: URI
-                    example: https://api-test.ebsi.eu/authorisation/v3
+                    example: https://api-pilot.ebsi.eu/authorisation/v3
                   authorization_endpoint:
                     title: Authorization Endpoint
                     description: |
@@ -89,7 +89,7 @@ paths:
                       Ref: [OIDC](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
                     type: string
                     format: URI
-                    example: https://api-test.ebsi.eu/authorisation/v3/authorize
+                    example: https://api-pilot.ebsi.eu/authorisation/v3/authorize
                   token_endpoint:
                     title: Token Endpoint
                     description: |
@@ -100,7 +100,7 @@ paths:
                       Ref: [OIDC](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
                     type: string
                     format: URI
-                    example: https://api-test.ebsi.eu/authorisation/v3/token
+                    example: https://api-pilot.ebsi.eu/authorisation/v3/token
                   presentation_definition_endpoint:
                     title: Presentation Definitions Endpoint
                     description: |
@@ -109,7 +109,7 @@ paths:
                       Non-standard (yet). Used in EBSI.
                     type: string
                     format: URI
-                    example: https://api-test.ebsi.eu/authorisation/v3/presentation-definitions
+                    example: https://api-pilot.ebsi.eu/authorisation/v3/presentation-definitions
                   jwks_uri:
                     title: JWKS URI
                     description: |
@@ -118,7 +118,7 @@ paths:
                       Ref: [OIDC](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata)
                     type: string
                     format: URI
-                    example: https://api-test.ebsi.eu/authorisation/v3/jwks
+                    example: https://api-pilot.ebsi.eu/authorisation/v3/jwks
                   scopes_supported:
                     title: Supported Scopes
                     description: |
@@ -345,14 +345,14 @@ paths:
                   summary: |
                     Profile: Authorisation Server v3
                   value:
-                    issuer: https://api-test.ebsi.eu/authorisation/v3
-                    authorization_endpoint: https://api-test.ebsi.eu/authorisation/v3/authorize
+                    issuer: https://api-pilot.ebsi.eu/authorisation/v3
+                    authorization_endpoint: https://api-pilot.ebsi.eu/authorisation/v3/authorize
                     id_token_signing_alg_values_supported:
                       - ES256
                     grant_types_supported:
                       - vp_token
                     jwks_uri: /jwks
-                    presentation_definition_endpoint: https://api-test.ebsi.eu/authorisation/v3/presentation_definitions
+                    presentation_definition_endpoint: https://api-pilot.ebsi.eu/authorisation/v3/presentation_definitions
                     response_types_supported:
                       - vp_token
                     request_parameter_supported: true
@@ -363,7 +363,7 @@ paths:
                       - didr_write
                       - tir_invite
                       - tir_write
-                    token_endpoint: https://api-test.ebsi.eu/authorisation/v3/token
+                    token_endpoint: https://api-pilot.ebsi.eu/authorisation/v3/token
                     subject_types_supported:
                       - public
                     token_endpoint_auth_methods_supported:
@@ -399,7 +399,7 @@ paths:
                     detail: Internal error
   /authorisation/v3/jwks:
     get:
-      operationId: get-v3-jwks
+      operationId: get-jwks
       description: Exposes the public keys of the authorisation service in JWKS format
       tags:
         - Authorisation Service
@@ -436,7 +436,7 @@ paths:
                     detail: Internal error
   /authorisation/v3/presentation-definitions:
     get:
-      operationId: get-v3-presentation-definitions
+      operationId: get-presentation-definitions
       tags:
         - Authorisation Service
       summary: Presentation definition requirements
@@ -460,7 +460,7 @@ paths:
               summary: Register DID into DID Registry
               value: openid didr_invite
             tir_write:
-              summary: Write to TIR Registry
+              summary: Write to Trusted Issuers Registry
               value: openid tir_write
             tir_invite:
               summary: Register VC into Trusted Issuers Registry
@@ -584,7 +584,7 @@ paths:
                     detail: Internal error
   /authorisation/v3/token:
     post:
-      operationId: post-v3-token
+      operationId: post-token
       tags:
         - Authorisation Service
       summary: Token Endpoint
@@ -711,10 +711,10 @@ components:
           description: The scope of the access token
           type: string
           enum:
-            - openid didr_invite
             - openid didr_write
-            - openid tir_invite
+            - openid didr_invite
             - openid tir_write
+            - openid tir_invite
         id_token:
           description: ID Token value associated with the authenticated session. Presents client's identity. ID Token is issued in a JWS format. See also the "ID Token" schema definition.
           example: eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NksifQ.eyJpYXQiOjE2NDE1NTI2MDAsInN1YiI6Imh0dHA6Ly9sb2NhbGhvc3Q6MzAwMCIsImF1ZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6MzAwMCIsImlzcyI6ImRpZDplYnNpOnoyMVNxTUo1M2ZZUzY5VlpSWVRVRURhZyJ9.YIdjUCinbG2DRU0VhFTOPcHK9D0iLcx6zBPmF94phfVOx8IVZwOLMfnEp_9xx87-UNODVCLWNR2UdjUgQyv14A

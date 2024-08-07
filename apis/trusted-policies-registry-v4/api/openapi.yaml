@@ -48,21 +48,7 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                "[test] Success":
-                  value:
-                    self: https://api-test.ebsi.eu/trusted-policies-registry/v4/policies?page[after]=3&page[size]=2
-                    items:
-                      - policyName: "TSR:insertSchema"
-                        href: https://api-test.ebsi.eu/trusted-policies-registry/v4/policies/TSR:insertSchema
-                      - policyName: "TSR:updateSchema"
-                        href: https://api-test.ebsi.eu/trusted-policies-registry/v4/policies/TSR:updateSchema
-                    pageSize: 2
-                    links:
-                      first: https://api-test.ebsi.eu/trusted-policies-registry/v4/policies?page[after]=1&page[size]=2
-                      prev: https://api-test.ebsi.eu/trusted-policies-registry/v4/policies?page[after]=2&page[size]=2
-                      next: https://api-test.ebsi.eu/trusted-policies-registry/v4/policies?page[after]=4&page[size]=2
-                      last: https://api-test.ebsi.eu/trusted-policies-registry/v4/policies?page[after]=62&page[size]=2
-                "[pilot] Success":
+                Success:
                   value:
                     self: https://api-pilot.ebsi.eu/trusted-policies-registry/v4/policies?page[after]=3&page[size]=2
                     items:
@@ -155,21 +141,7 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                "[test] Success":
-                  value:
-                    self: https://api-test.ebsi.eu/trusted-policies-registry/v4/users?page[after]=3&page[size]=2
-                    items:
-                      - user: "0x7E918E979A5FFa5e540d8C8d6dB220E3f0704858"
-                        href: https://api-test.ebsi.eu/trusted-policies-registry/v4/users/0x7E918E979A5FFa5e540d8C8d6dB220E3f0704858
-                      - user: "0x69e48d89bf5e09588E858D757323b4abBBB3f814"
-                        href: https://api-test.ebsi.eu/trusted-policies-registry/v4/users/0x69e48d89bf5e09588E858D757323b4abBBB3f814
-                    pageSize: 2
-                    links:
-                      first: https://api-test.ebsi.eu/trusted-policies-registry/v4/users?page[after]=1&page[size]=2
-                      prev: https://api-test.ebsi.eu/trusted-policies-registry/v4/users?page[after]=2&page[size]=2
-                      next: https://api-test.ebsi.eu/trusted-policies-registry/v4/users?page[after]=4&page[size]=2
-                      last: https://api-test.ebsi.eu/trusted-policies-registry/v4/users?page[after]=62&page[size]=2
-                "[pilot] Success":
+                Success:
                   value:
                     self: https://api-pilot.ebsi.eu/trusted-policies-registry/v4/users?page[after]=3&page[size]=2
                     items:
@@ -201,11 +173,8 @@ paths:
             type: string
           required: true
           examples:
-            "[test] user":
-              description: valid test user
-              value: "0x69e48d89bf5e09588E858D757323b4abBBB3f814"
-            "[pilot] user":
-              description: valid pilot user
+            user:
+              description: Valid Pilot user
               value: "0x69e48d89bf5e09588E858D757323b4abBBB3f814"
       responses:
         "200":
@@ -653,5 +622,5 @@ servers:
     description: EBSI Test Environment
   - url: https://api-pilot.ebsi.eu
     description: EBSI Pilot Environment
-  - url: "https://api-conformance.ebsi.eu"
+  - url: https://api-conformance.ebsi.eu
     description: EBSI Conformance Environment

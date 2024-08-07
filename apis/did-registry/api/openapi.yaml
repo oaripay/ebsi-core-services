@@ -25,7 +25,7 @@ paths:
         - DID documents
       summary: List identifiers
       description: Returns a list of identifiers.
-      operationId: get-did-registry-v3-identifiers
+      operationId: get-identifiers
       parameters:
         - in: query
           name: page[after]
@@ -76,51 +76,7 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                "[test] Success":
-                  value:
-                    self: https://api-test.ebsi.eu/did-registry/v3/identifiers?page[after]=3&page[size]=10
-                    items:
-                      - did: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
-                        href: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z
-                      - did: did:ebsi:zZssKY2QbbKEqVRgMP1iCLr
-                        href: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:zZssKY2QbbKEqVRgMP1iCLr
-                      - did: did:ebsi:zb3EMmQSCWZHvFSrBTuoXsv
-                        href: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:zb3EMmQSCWZHvFSrBTuoXsv
-                      - did: did:ebsi:zwkvdg7fEoiWnLm8zXWxcHf
-                        href: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:zwkvdg7fEoiWnLm8zXWxcHf
-                      - did: did:ebsi:ziu9WCB3mDWMLVpF8GfEMG8
-                        href: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:ziu9WCB3mDWMLVpF8GfEMG8
-                      - did: did:ebsi:znrtw6tCorGWkUoAHiSPuz6
-                        href: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:znrtw6tCorGWkUoAHiSPuz6
-                      - did: did:ebsi:zqEozSTPA46JgCeP8d9XFGZ
-                        href: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:zqEozSTPA46JgCeP8d9XFGZ
-                      - did: did:ebsi:z25a4Dcp8K7SULVfUCw4fFb7
-                        href: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25a4Dcp8K7SULVfUCw4fFb7
-                      - did: did:ebsi:z239Np1bLCJiJLdkaSqq9XxV
-                        href: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z239Np1bLCJiJLdkaSqq9XxV
-                      - did: did:ebsi:z23ETkVyJGeLWysGD11s2Jof
-                        href: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z23ETkVyJGeLWysGD11s2Jof
-                    total: 124
-                    pageSize: 10
-                    links:
-                      first: https://api-test.ebsi.eu/did-registry/v3/identifiers?page[after]=1&page[size]=10
-                      prev: https://api-test.ebsi.eu/did-registry/v3/identifiers?page[after]=2&page[size]=10
-                      next: https://api-test.ebsi.eu/did-registry/v3/identifiers?page[after]=4&page[size]=10
-                      last: https://api-test.ebsi.eu/did-registry/v3/identifiers?page[after]=13&page[size]=10
-                "[test] Filter by controller":
-                  value:
-                    self: https://api-test.ebsi.eu/did-registry/v3/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
-                    items:
-                      - did: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
-                        href: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z
-                    total: 1
-                    pageSize: 10
-                    links:
-                      first: https://api-test.ebsi.eu/did-registry/v3/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
-                      prev: https://api-test.ebsi.eu/did-registry/v3/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
-                      next: https://api-test.ebsi.eu/did-registry/v3/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
-                      last: https://api-test.ebsi.eu/did-registry/v3/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
-                "[pilot] Success":
+                Success:
                   value:
                     self: https://api-pilot.ebsi.eu/did-registry/v3/identifiers?page[after]=3&page[size]=10
                     items:
@@ -151,7 +107,7 @@ paths:
                       prev: https://api-pilot.ebsi.eu/did-registry/v3/identifiers?page[after]=2&page[size]=10
                       next: https://api-pilot.ebsi.eu/did-registry/v3/identifiers?page[after]=4&page[size]=10
                       last: https://api-pilot.ebsi.eu/did-registry/v3/identifiers?page[after]=13&page[size]=10
-                "[pilot] Filter by controller":
+                Filter by controller:
                   value:
                     self: https://api-pilot.ebsi.eu/did-registry/v3/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
                     items:
@@ -191,41 +147,26 @@ paths:
         - DID documents
       summary: Get a DID document
       description: Gets the DID document corresponding to the DID.
-      operationId: get-did-registry-v3-identifier
+      operationId: get-identifier
       parameters:
         - in: path
           name: did
-          description: |
-            A DID to be resolved.
-            [conformance description] The API supports the following EBSI conformance tests:
-            - A user wallet checks if the DID is correctly included in the DID Registry (CT ONBOARD_063)
+          description: A DID to be resolved.
           required: true
           schema:
             type: string
           examples:
-            "[test] DID":
-              value: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
-            "[pilot] DID":
+            DID:
               value: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw
       responses:
         "200":
-          description: Success. A user wallet gets DID resolution (CT ONBOARD_063)
+          description: Success. A user wallet gets DID resolution.
           content:
             application/did+ld+json:
               schema:
                 $ref: "#/components/schemas/DIDDocument"
               examples:
-                "[test] Success":
-                  value:
-                    "@context":
-                      - https://www.w3.org/ns/did/v1
-                    id: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
-                    verificationMethod:
-                      - controller: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
-                        id: did:ebsi:z25F87e2MyLKF7DViuHi5b4z#vm-3
-                        type: EcdsaSecp256k1RecoveryMethod2020
-                        publicKeyBase58: H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV
-                "[pilot] Success":
+                Success:
                   value:
                     "@context":
                       - https://www.w3.org/ns/did/v1
@@ -308,7 +249,7 @@ paths:
         - DID documents
       summary: List DID document versions
       description: Returns a list of DID document versions.
-      operationId: get-did-registry-v3-identifiers-versions
+      operationId: get-identifiers-versions
       parameters:
         - in: query
           name: page[after]
@@ -327,9 +268,7 @@ paths:
           schema:
             type: string
           examples:
-            "[test] DID":
-              value: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
-            "[pilot] DID":
+            DID:
               value: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw
       responses:
         "200":
@@ -365,20 +304,7 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                "[test] Success":
-                  value:
-                    self: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions?page[after]=1&page[size]=10
-                    items:
-                      - versionId: "0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a"
-                        href: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a
-                    total: 1
-                    pageSize: 10
-                    links:
-                      first: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions?page[after]=1&page[size]=10
-                      prev: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions?page[after]=1&page[size]=10
-                      next: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions?page[after]=1&page[size]=10
-                      last: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions?page[after]=1&page[size]=10
-                "[pilot] Success":
+                Success:
                   value:
                     self: https://api-pilot.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions?page[after]=1&page[size]=10
                     items:
@@ -432,7 +358,7 @@ paths:
         - DID documents
       summary: Get a DID document by version ID
       description: Gets a DID document based on its version ID
-      operationId: get-did-registry-v3-identifier-version
+      operationId: get-identifier-version
       parameters:
         - in: path
           name: did
@@ -441,9 +367,7 @@ paths:
           schema:
             type: string
           examples:
-            "[test] DID":
-              value: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
-            "[pilot] DID":
+            DID:
               value: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw
         - in: path
           name: versionId
@@ -452,9 +376,7 @@ paths:
           schema:
             type: string
           examples:
-            "[test] Version ID":
-              value: "0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a"
-            "[pilot] Version ID":
+            "Version ID":
               value: "0xa009395f9e2a7809f1b550e0efbe2443dce931fe747d269a5c312e5ad75f88e1"
       responses:
         "200":
@@ -464,17 +386,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/DIDDocument"
               examples:
-                "[test] Success":
-                  value:
-                    "@context":
-                      - https://www.w3.org/ns/did/v1
-                    id: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
-                    verificationMethod:
-                      - controller: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
-                        id: did:ebsi:z25F87e2MyLKF7DViuHi5b4z#vm-3
-                        type: EcdsaSecp256k1RecoveryMethod2020
-                        publicKeyBase58: H3C2AVvLMv6gmMNam3uVAjZpfkcJCwDwnZn6z3wXmqPV
-                "[pilot] Success":
+                Success:
                   value:
                     "@context": https://w3id.org/did/v1
                     id: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
@@ -530,7 +442,7 @@ paths:
         - DID documents
       summary: List DID document metadata
       description: Returns a list of DID document metadata.
-      operationId: get-did-registry-v3-identifiers-versions-metadata
+      operationId: get-identifiers-versions-metadata
       parameters:
         - in: query
           name: page[after]
@@ -549,9 +461,7 @@ paths:
           schema:
             type: string
           examples:
-            "[test] DID":
-              value: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
-            "[pilot] DID":
+            DID:
               value: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw
         - in: path
           name: versionId
@@ -560,9 +470,7 @@ paths:
           schema:
             type: string
           examples:
-            "[test] Version ID":
-              value: "0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a"
-            "[pilot] Version ID":
+            "Version ID":
               value: "0xa009395f9e2a7809f1b550e0efbe2443dce931fe747d269a5c312e5ad75f88e1"
       responses:
         "200":
@@ -598,20 +506,7 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                "[test] Success":
-                  value:
-                    self: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
-                    items:
-                      - metadataId: "0xb5ed423b79dd39df26194f708414e394eb924638a0b8e8e0a09c760dc7cdc607"
-                        href: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata/0xb5ed423b79dd39df26194f708414e394eb924638a0b8e8e0a09c760dc7cdc607
-                    total: 1
-                    pageSize: 10
-                    links:
-                      first: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
-                      prev: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
-                      next: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
-                      last: https://api-test.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions/0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a/metadata?page[after]=1&page[size]=10
-                "[pilot] Success":
+                Success:
                   value:
                     self: https://api-pilot.ebsi.eu/did-registry/v3/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z/versions/0x43f83ef52855e76833f7cf2552d1bee82f8de198e718a1da8a45df1a1616fe8c/metadata?page[after]=1&page[size]=10
                     items:
@@ -672,7 +567,7 @@ paths:
         - DID documents
       summary: Get DID document metadata
       description: Returns the DID document metadata based on their ID.
-      operationId: get-did-registry-v3-identifier-version-metadata
+      operationId: get-identifier-version-metadata
       parameters:
         - in: path
           name: did
@@ -681,9 +576,7 @@ paths:
           schema:
             type: string
           examples:
-            "[test] DID":
-              value: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
-            "[pilot] DID":
+            DID:
               value: did:ebsi:zbM8cCuoBMFNLeQyLiVFyxw
         - in: path
           name: versionId
@@ -692,9 +585,7 @@ paths:
           schema:
             type: string
           examples:
-            "[test] Version ID":
-              value: "0x909f8a83b0a4542e13afa30ce198234e919bffd90965f684a2491e6db70fe92a"
-            "[pilot] Version ID":
+            "Version ID":
               value: "0xa009395f9e2a7809f1b550e0efbe2443dce931fe747d269a5c312e5ad75f88e1"
         - in: path
           name: metadataId
@@ -703,9 +594,7 @@ paths:
           schema:
             type: string
           examples:
-            "[test] Metadata ID":
-              value: "0xb5ed423b79dd39df26194f708414e394eb924638a0b8e8e0a09c760dc7cdc607"
-            "[pilot] Metadata ID":
+            "Metadata ID":
               value: "0x7469f0576c88bc878adf6d0091228c2081d28fc6fc87af630a1fd3d252d644fc"
       responses:
         "200":
@@ -768,7 +657,7 @@ paths:
         - DID Timestamps
       summary: List DID Timestamps
       description: Returns a list of DID Timestamps.
-      operationId: get-did-registry-v3-did-timestamps
+      operationId: get-did-timestamps
       parameters:
         - in: query
           name: page[after]
@@ -822,51 +711,7 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                "[test] Success":
-                  value:
-                    self: https://api-test.ebsi.eu/did-registry/v3/did-timestamps?page[after]=3&page[size]=10
-                    items:
-                      - timestampId: uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
-                        href: https://api-test.ebsi.eu/did-registry/v3/did-timestamps/uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
-                      - timestampId: uzMRQ0TI4Vxo2gHIrcVLKLYOnBQ4t1ZkZYyT2QVyNgKo
-                        href: https://api-test.ebsi.eu/did-registry/v3/did-timestamps/uzMRQ0TI4Vxo2gHIrcVLKLYOnBQ4t1ZkZYyT2QVyNgKo
-                      - timestampId: uLy3HmncmAorLT-iay2y_mbzYLHa-ww53HM6VSQlYaHE
-                        href: https://api-test.ebsi.eu/did-registry/v3/did-timestamps/uLy3HmncmAorLT-iay2y_mbzYLHa-ww53HM6VSQlYaHE
-                      - timestampId: urqQNspg0BqR8XCqmXt2sRZnvuhyeaNM6O-lA7OznRN8
-                        href: https://api-test.ebsi.eu/did-registry/v3/did-timestamps/urqQNspg0BqR8XCqmXt2sRZnvuhyeaNM6O-lA7OznRN8
-                      - timestampId: ugcOHT5tMm04KBRefXxewebFzZJcuer2k8faZhdOUymc
-                        href: https://api-test.ebsi.eu/did-registry/v3/did-timestamps/ugcOHT5tMm04KBRefXxewebFzZJcuer2k8faZhdOUymc
-                      - timestampId: u5BbCzBKnFO-FjzmFwbUUhdktTYOMqLlR7mV5C2Y9Exo
-                        href: https://api-test.ebsi.eu/did-registry/v3/did-timestamps/u5BbCzBKnFO-FjzmFwbUUhdktTYOMqLlR7mV5C2Y9Exo
-                      - timestampId: umoafX3iynkFfL1PygxbEDnx6IOGVwya5flZ_EVs5Ark
-                        href: https://api-test.ebsi.eu/did-registry/v3/did-timestamps/umoafX3iynkFfL1PygxbEDnx6IOGVwya5flZ_EVs5Ark
-                      - timestampId: u3qxc1zktQQ6yRtz3Se127ORLivKYjlgDw23PCDNVUkI
-                        href: https://api-test.ebsi.eu/did-registry/v3/did-timestamps/u3qxc1zktQQ6yRtz3Se127ORLivKYjlgDw23PCDNVUkI
-                      - timestampId: urfWWoYSy9vHeq-IMQiJAr79Yx3dJ-9wvReEcvycbsGs
-                        href: https://api-test.ebsi.eu/did-registry/v3/did-timestamps/urfWWoYSy9vHeq-IMQiJAr79Yx3dJ-9wvReEcvycbsGs
-                      - timestampId: udgAv5lWYXKCBLp3T26uMKJpXdX0vg-FxNnVuoCQBZeM
-                        href: https://api-test.ebsi.eu/did-registry/v3/did-timestamps/udgAv5lWYXKCBLp3T26uMKJpXdX0vg-FxNnVuoCQBZeM
-                    total: 124
-                    pageSize: 10
-                    links:
-                      first: https://api-test.ebsi.eu/did-registry/v3/did-timestamps?page[after]=1&page[size]=10
-                      prev: https://api-test.ebsi.eu/did-registry/v3/did-timestamps?page[after]=2&page[size]=10
-                      next: https://api-test.ebsi.eu/did-registry/v3/did-timestamps?page[after]=4&page[size]=10
-                      last: https://api-test.ebsi.eu/did-registry/v3/did-timestamps?page[after]=13&page[size]=10
-                "[test] Filter by identifier and version ID":
-                  value:
-                    self: https://api-test.ebsi.eu/did-registry/v3/did-timestamps?identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
-                    items:
-                      - timestampId: uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
-                        href: https://api-test.ebsi.eu/did-registry/v3/did-timestamps/uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
-                    total: 1
-                    pageSize: 10
-                    links:
-                      first: https://api-test.ebsi.eu/did-registry/v3/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
-                      prev: https://api-test.ebsi.eu/did-registry/v3/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
-                      next: https://api-test.ebsi.eu/did-registry/v3/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
-                      last: https://api-test.ebsi.eu/did-registry/v3/did-timestamps?page[after]=1&page[size]=10&identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
-                "[pilot] Success":
+                Success:
                   value:
                     self: https://api-pilot.ebsi.eu/did-registry/v3/did-timestamps?page[after]=3&page[size]=10
                     items:
@@ -897,7 +742,7 @@ paths:
                       prev: https://api-pilot.ebsi.eu/did-registry/v3/did-timestamps?page[after]=2&page[size]=10
                       next: https://api-pilot.ebsi.eu/did-registry/v3/did-timestamps?page[after]=4&page[size]=10
                       last: https://api-pilot.ebsi.eu/did-registry/v3/did-timestamps?page[after]=13&page[size]=10
-                "[pilot] Filter by identifier and version ID":
+                "Filter by identifier and version ID":
                   value:
                     self: https://api-pilot.ebsi.eu/did-registry/v3/did-timestamps?identifier=did:ebsi:zZssKY2QbbKEqVRgMP1iCLr&version-id=1
                     items:
@@ -937,16 +782,14 @@ paths:
         - DID Timestamps
       summary: Get a DID Timestamp
       description: Gets a DID Timestamp based on its ID.
-      operationId: get-did-registry-v3-did-timestamp
+      operationId: get-did-timestamp
       parameters:
         - in: path
           name: timestampId
           schema:
             type: string
           examples:
-            "[test] Timestamp ID":
-              value: uEUPEJU2bU5LTGRjjuZuTuItiJ2On63FxJm9P6xYZ5_Q
-            "[pilot] Timestamp ID":
+            "Timestamp ID":
               value: uGiaHOVFw-Zzg-OCeDAwLn30xnqHrPHgd_wdhusk0xo4
           required: true
       responses:
@@ -997,7 +840,7 @@ paths:
     get:
       tags:
         - Hash Algorithms
-      operationId: get-did-registry-v3-hash-algorithms
+      operationId: get-hash-algorithms
       summary: List hash algorithms
       description: Returns a list of available hash algorithms.
       parameters:
@@ -1043,38 +886,7 @@ paths:
                   links:
                     $ref: "#/components/schemas/Links"
               examples:
-                "[test] Success":
-                  value:
-                    self: https://api-test.ebsi.eu/did-registry/v3/hash-algorithms?page[after]=1&page[size]=10
-                    items:
-                      - hashAlgorithmId: 0
-                        href: https://api-test.ebsi.eu/did-registry/v3/hash-algorithms/0
-                      - hashAlgorithmId: 1
-                        href: https://api-test.ebsi.eu/did-registry/v3/hash-algorithms/1
-                      - hashAlgorithmId: 2
-                        href: https://api-test.ebsi.eu/did-registry/v3/hash-algorithms/2
-                      - hashAlgorithmId: 3
-                        href: https://api-test.ebsi.eu/did-registry/v3/hash-algorithms/3
-                      - hashAlgorithmId: 4
-                        href: https://api-test.ebsi.eu/did-registry/v3/hash-algorithms/4
-                      - hashAlgorithmId: 5
-                        href: https://api-test.ebsi.eu/did-registry/v3/hash-algorithms/5
-                      - hashAlgorithmId: 6
-                        href: https://api-test.ebsi.eu/did-registry/v3/hash-algorithms/6
-                      - hashAlgorithmId: 7
-                        href: https://api-test.ebsi.eu/did-registry/v3/hash-algorithms/7
-                      - hashAlgorithmId: 8
-                        href: https://api-test.ebsi.eu/did-registry/v3/hash-algorithms/8
-                      - hashAlgorithmId: 9
-                        href: https://api-test.ebsi.eu/did-registry/v3/hash-algorithms/9
-                    total: 124
-                    pageSize: 10
-                    links:
-                      first: https://api-test.ebsi.eu/did-registry/v3/hash-algorithms?page[after]=1&page[size]=10
-                      prev: https://api-test.ebsi.eu/did-registry/v3/hash-algorithms?page[after]=1&page[size]=10
-                      next: https://api-test.ebsi.eu/did-registry/v3/hash-algorithms?page[after]=2&page[size]=10
-                      last: https://api-test.ebsi.eu/did-registry/v3/hash-algorithms?page[after]=13&page[size]=10
-                "[pilot] Success":
+                Success:
                   value:
                     self: https://api-pilot.ebsi.eu/did-registry/v3/hash-algorithms?page[after]=1&page[size]=10
                     items:
@@ -1130,7 +942,7 @@ paths:
     get:
       tags:
         - Hash Algorithms
-      operationId: get-did-registry-v3-hash-algorithms-hash-algorithm-id
+      operationId: get-hash-algorithm
       summary: Get a hash algorithm
       description: Returns a hash algorithm based on its ID.
       parameters:
@@ -1187,7 +999,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /did-registry/v3/jsonrpc:
     post:
-      operationId: post-did-registry-v3-jsonrpc
+      operationId: post-jsonrpc
       tags:
         - JSON-RPC
       summary: JSON-RPC API
@@ -1196,20 +1008,6 @@ paths:
         interaction with the ledger, i.e. write operation on ledger.
       security:
         - bearerAuth: []
-      parameters:
-        - in: header
-          name: Conformance
-          description: |
-            The header MUST be used ONLY for the EBSI conformance testing.
-            - Type: string
-            - Format: UUID V4
-
-            The header is used to log the activities. See Conformance testing header section in the [documentation](https://ec.europa.eu/digital-building-blocks/wikis/x/5YDwG).
-          required: false
-          schema:
-            type: string
-            format: uuid
-          example: edb60e02-398d-4b62-8028-85710b2476a5
       requestBody:
         required: true
         description: |
@@ -1355,15 +1153,6 @@ paths:
           #### sendSignedTransaction
 
           Call to send a signed transaction to the blockchain.
-
-          [conformance description]
-
-          ### [EBSI conformance testing](https://ec.europa.eu/digital-building-blocks/wikis/x/5YDwG)
-
-          The API supports the following EBSI conformance tests:
-
-          - Construct a blockchain transaction to register a DID (CT ONBOARD_061)
-          - Broadcast a signed blockchain transaction to register a DID (CT ONBOARD_062)
         content:
           application/json:
             schema:
@@ -1390,56 +1179,6 @@ paths:
                   type: integer
                   example: 1
             examples:
-              "[conformance] ct1_did_01":
-                summary: Build blockchain transaction to register a DID document (CT ONBOARD_061)
-                description: |
-                  EBSI conformance test: Build blockchain transaction to register a DID document (DID_01).
-
-                  A successful response (HTTP 200) means that the service (wallet) can:
-
-                    - create an [EBSI-compliant DID](https://ec.europa.eu/digital-building-blocks/wikis/x/x4XyGQ)
-                    - create an [EBSI-compliant DID document](https://ec.europa.eu/digital-building-blocks/wikis/x/x4XyGQ)
-                value:
-                  jsonrpc: "2.0"
-                  method: insertDidDocument
-                  params:
-                    - from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                      identifier: "0x6469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e"
-                      hashAlgorithmId: 0
-                      hashValue: "0xf0fcfaf89af366f278900538f074eba8469408b1c54451e4ff4660a379e7e8f5"
-                      didVersionInfo: "0x7b2240636f6e74657874223a2268747470733a2f2f7777772e77332e6f72672f6e732f6469642f7631222c226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c22766572696669636174696f6e4d6574686f64223a5b7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235a43326a58544f36743452353031626643587633527861725a795562645032775f70734c774d7559366563222c2274797065223a2245643235353139566572696669636174696f6e4b657932303138222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b6579426173653538223a22483343324156764c4d7636676d4d4e616d337556416a5a70666b634a437744776e5a6e367a3377586d715056227d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e237a5133736850326d57735a59576776674d31316e656e58525478394c3179694a4b6d6b6639646658374e614d4b62317058222c2274797065223a224563647361536563703235366b31566572696669636174696f6e4b657932303139222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b6579426173653538223a2264356357325235334e4854546b76374551535952385978614b78374d56436363686a6d4b354567434e58786f227d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235f517130554c3246713635315130466a643654766e59452d666148694f70526c50565163595f2d74413441222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224f4b50222c22637276223a2245643235353139222c2278223a225643706f324c4d4c686e3669576b75384d4b76534c67325a416f432d6e6c4f79505651614f334678566551227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e237a364c536e6a61677a686538446636675a6d726f5733776a44643758514c77417559667761345a6554424347466f5963222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224f4b50222c22637276223a22583235353139222c2278223a2270455f6d473039387264516a59334d4b4b324435535551365a4f45573361365a3654375a3453676e7a4345227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e2334535a2d5374587270355964345f347278485654435954487974347a7950664e3166497559736d366b3341222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22736563703235366b31222c2278223a225a3459334e4e4f7876304a36744367714f42466e486e615a684a46364c64756c54377a38412d3244355f38222c2279223a22693561324e744a6f554b586b4c6d3671386e4f457539574f6b736f3141673646545554366b5f4c4d6e476b227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e236e3463512d495f576b484d637758424a613749486b597538434d66644e635a4b6e4b734f726e484c704673222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a22525341222c2265223a2241514142222c226e223a226f6d777343314171456b3677687678794f6c74434657686553517676314d45787535524c434d54346a566b396b684a4b76384a654d5857653362574861746a50736b646632646c61476b5735516a744f6e554b4c3734326d76723474436c644b5333554c49615431684a496e4d4848786a32676375624f366545656741435134515375394c4f30482d4c4d5f4c3344735241424237516a61384865637079757370573154755f4462717863536e77656e64616d774c3532563137654b686c4f34755877763248466c78756646484d304b6d434a756a494b7941786a445f6d33715f5f496948555648443174444945764c50684739417a736e336a3935642d736149675a7a504c685146694b6c754776736a72536b595535705856574973562d42326a744c65654c433134586359785744554a3071566f70786b4276646c4552634e746746346476573458303045486a3476436c6a4677227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e235f544b7a4876326a464979766454474631447367776e67666467335348365470447630546131614f456b77222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d323536222c2278223a2233384d3146447473374f65613775726d7365697567475737745763336d4c704a6836724b653778494e5a38222c2279223a226e44515736585a37625f7532537939736c6f66594c6c473033734f456f7567334930614150513065787334227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e233877675266593373576d7a6f65414c2d37382d6f414c4e764e6a36375a6c5178643173735f4e5831685a59222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d333834222c2278223a22476e4c6c366d4474693761325655495a50357736706352583871356e764549674233515f355249327039465f51567361416c444e37494736384a6e3064535f46222c2279223a226a7134516f41484b69497a657a44703838735f637853505874755859466c697543476e646755345170386c3931787a44317370436d46497a5167566a71766350227d7d2c7b226964223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e234e6a5136595f5a4d6a3649554b5f586b67434477744b486c4e545554566a45594f575a74786870316e2d45222c2274797065223a224a736f6e5765624b657932303230222c22636f6e74726f6c6c6572223a226469643a656273693a434245736e5445445434764d714a73396b38576759644e757945796b6a57706276645a4d6363596456456e4e222c227075626c69634b65794a776b223a7b226b7479223a224543222c22637276223a22502d353231222c2278223a2241566c5a4732334c795859776c626a6247504d785a62486d4a704453752d497670754b6967454e32707a675774536f2d2d5277642d6e37386e72576e5a7a6544633138374c6e3371486c77354c524772583471674c512d79222c2279223a22414e4962466552645048663157594d43556a63507a2d5a6865635a4679624f714c494a6a564f6c4c4554483775506c79473067456f4d576e495a58685156797050795f48745569557a646e53455041796c59684842545832227d7d5d7d"
-                      timestampData: "0x7b2264617461223a2274657374222c2272223a2239333133313465363232633231613635227d"
-                      didVersionMetadata: "0x7b226d657461223a2238313239336463633863623537623930663835383662396237343139333530653636316166623530663563633461656666376632643532373863623530353562227d"
-                  id: 1
-              "[conformance] ct1_did_02":
-                summary: Send blockchain transaction to register a DID document (CT ONBOARD_062)
-                description: |
-                  EBSI conformance test: Send blockchain transaction to register a DID document (DID_02).
-
-                  A successful response (HTTP 200) means that the service (wallet) can:
-
-                    - create an [EBSI-compliant DID](https://ec.europa.eu/digital-building-blocks/wikis/x/x4XyGQ)
-                    - create an [EBSI-compliant DID document](https://ec.europa.eu/digital-building-blocks/wikis/x/x4XyGQ)
-                    - [create signed blockchain transaction]()
-                value:
-                  jsonrpc: "2.0"
-                  method: sendSignedTransaction
-                  id: 1
-                  params:
-                    - protocol: eth
-                      unsignedTransaction:
-                        from: "0x416e6e6162656c2e4c65652e452d412d506f652e"
-                        to: "0xFde86148db58f57787C06BeAf63a9c3f789357b3"
-                        data: 0x0000...
-                        nonce: "0x00"
-                        chainId: "0x1b3b"
-                        gasLimit: "0x10000"
-                        gasPrice: "0x00"
-                        value: "0x00"
-                      r: 0x...
-                      s: 0x...
-                      v: 0x...
-                      signedRawTransaction: "--- signed raw transaction ---"
               Build tx to insertHashAlgorithm:
                 value:
                   jsonrpc: "2.0"
@@ -1810,5 +1549,5 @@ servers:
     description: EBSI Test Environment
   - url: https://api-pilot.ebsi.eu
     description: EBSI Pilot Environment
-  - url: "https://api-conformance.ebsi.eu"
+  - url: https://api-conformance.ebsi.eu
     description: EBSI Conformance Environment

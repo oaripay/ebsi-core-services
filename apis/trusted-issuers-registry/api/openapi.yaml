@@ -3,7 +3,7 @@ info:
   title: Trusted Issuers Registry API v3
   version: 3.0.0
   description: |
-    Trusted Issuers Registry (TIR) is a generic decentralised registry holding information about trusted issuers, like public information, accreditations and other. All information is stored in the smart contract in form of Attribute envelops (like Verifiable Credentials) that are issued by Trusted Issuers or self-issued. Generic Envelop (like Verifiable Credential) validation is performed outside EBSI. The issuers can define proxies that will be used during the verification of credentials to check if they are still valid or revoked. The flow for verification can be found at [EBSI Verifiable Accreditation and Verifiable Authorisation Revocation](https://ec.europa.eu/digital-building-blocks/wikis/pages/viewpage.action?spaceKey=BLOCKCHAININT&title=EBSI+Verifiable+Accreditation+and+Verifiable+Authorisation+Revocation).
+    Trusted Issuers Registry (TIR) is a generic decentralised registry holding information about trusted issuers, like public information, accreditations and other. All information is stored in the smart contract in form of Attribute envelops (like Verifiable Credentials) that are issued by Trusted Issuers or self-issued. Generic Envelop (like Verifiable Credential) validation is performed outside EBSI. The issuers can define proxies that will be used during the verification of credentials to check if they are still valid or revoked. The flow for verification can be found at [Credential Status Framework](https://hub.ebsi.eu/vc-framework/credential-status-framework).
 
     EBSI Trusted Issuers Registry (TIR) is a core EBSI service that enables validation of identities and accreditations of Trusted Issuers.
 
@@ -19,7 +19,7 @@ info:
 paths:
   /trusted-issuers-registry/v3/issuers:
     get:
-      operationId: get-trusted-issuers-registry-v3-issuers
+      operationId: get-issuers
       summary: List issuers
       description: Returns a list of trusted issuers.
       tags:
@@ -67,22 +67,7 @@ paths:
                   links:
                     $ref: "#/components/schemas/links"
               examples:
-                "[test] Success":
-                  value:
-                    self: https://api-test.ebsi.eu/trusted-issuers-registry/v3/issuers
-                    items:
-                      - did: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
-                        href: https://api-test.ebsi.eu/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17
-                      - did: did:ebsi:zy2Qja194nGwT5tPHrRY6Ly
-                        href: https://api-test.ebsi.eu/trusted-issuers-registry/v3/issuers/did:ebsi:zy2Qja194nGwT5tPHrRY6Ly
-                    total: 2
-                    pageSize: 10
-                    links:
-                      first: https://api-test.ebsi.eu/trusted-issuers-registry/v3/issuers?page[after]=0&page[size]=10
-                      prev: https://api-test.ebsi.eu/trusted-issuers-registry/v3/issuers?page[after]=2&page[size]=10
-                      next: https://api-test.ebsi.eu/trusted-issuers-registry/v3/issuers?page[after]=4&page[size]=10
-                      last: https://api-test.ebsi.eu/trusted-issuers-registry/v3/issuers?page[after]=13&page[size]=10
-                "[pilot] Success":
+                Success:
                   value:
                     self: https://api-pilot.ebsi.eu/trusted-issuers-registry/v3/issuers
                     items:
@@ -120,7 +105,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /trusted-issuers-registry/v3/issuers/{did}:
     get:
-      operationId: get-trusted-issuers-registry-v3-issuers-issuer
+      operationId: get-issuer
       summary: Get an issuer
       description: Returns a trusted issuer identified by its decentralised identifier (DID).
       tags:
@@ -131,11 +116,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] did":
-              description: valid test did
-              value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
-            "[pilot] did":
-              description: valid pilot did
+            "did":
+              description: Valid Pilot DID
               value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
           required: true
       responses:
@@ -146,13 +128,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/issuer"
               examples:
-                "[test] Success":
-                  value:
-                    did: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
-                    attributes:
-                      - hash: 25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
-                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
-                "[pilot] Success":
+                Success:
                   value:
                     did: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
                     attributes:
@@ -190,7 +166,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /trusted-issuers-registry/v3/issuers/{did}/attributes:
     get:
-      operationId: get-trusted-issuers-registry-v3-issuers-did-attributes
+      operationId: get-issuer-attributes
       summary: List attributes
       description: Returns a list of attributes of a trusted issuer.
       tags:
@@ -201,11 +177,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] did":
-              description: valid test did
-              value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
-            "[pilot] did":
-              description: valid pilot did
+            "did":
+              description: Valid Pilot DID
               value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
           required: true
         - in: query
@@ -250,20 +223,7 @@ paths:
                   links:
                     $ref: "#/components/schemas/links"
               examples:
-                "[test] Success":
-                  value:
-                    self: https://api-test.ebsi.eu/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes
-                    items:
-                      - id: 25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
-                        href: https://api-test.ebsi.eu/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
-                    total: 1
-                    pageSize: 10
-                    links:
-                      first: https://api-test.ebsi.eu/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes?page[after]=0&page[size]=10
-                      prev: https://api-test.ebsi.eu/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes?page[after]=2&page[size]=10
-                      next: https://api-test.ebsi.eu/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes?page[after]=4&page[size]=10
-                      last: https://api-test.ebsi.eu/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes?page[after]=13&page[size]=10
-                "[pilot] Success":
+                Success:
                   value:
                     self: https://api-pilot.ebsi.eu/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes
                     items:
@@ -308,7 +268,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /trusted-issuers-registry/v3/issuers/{did}/attributes/{attributeId}:
     get:
-      operationId: get-trusted-issuers-registry-v3-issuers-did-attributes-attributeid
+      operationId: get-issuer-attribute
       summary: Get an attribute
       description: Returns an issuer attribute identified by its attribute ID.
       tags:
@@ -319,11 +279,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] did":
-              description: valid test did
-              value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
-            "[pilot] did":
-              description: valid pilot did
+            "did":
+              description: Valid Pilot DID
               value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
           required: true
         - name: attributeId
@@ -331,11 +288,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] attributeId":
-              description: valid test attributeId
-              value: 25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
-            "[pilot] attributeId":
-              description: valid pilot attributeId
+            "attributeId":
+              description: Valid Pilot attributeId
               value: 4763114aaa3ba460849a5da50797ab6709f2b346788c6749067ac5b3413ad83e
           required: true
       responses:
@@ -346,13 +300,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/attributeDetails"
               examples:
-                "[test] Success":
-                  value:
-                    did: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
-                    attribute:
-                      hash: 25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
-                      body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
-                "[pilot] Success":
+                Success:
                   value:
                     did: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
                     attribute:
@@ -390,7 +338,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /trusted-issuers-registry/v3/issuers/{did}/attributes/{attributeId}/revisions:
     get:
-      operationId: get-trusted-issuers-registry-v3-issuers-did-attributes-attributeid-revisions
+      operationId: get-issuer-attribute-revisions
       summary: List revisions
       description: Returns a list of revisions of an attribute.
       tags:
@@ -401,11 +349,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] did":
-              description: valid test did
-              value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
-            "[pilot] did":
-              description: valid pilot did
+            "did":
+              description: Valid Pilot DID
               value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
           required: true
         - name: attributeId
@@ -413,11 +358,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] attributeId":
-              description: valid test attributeId
-              value: 25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
-            "[pilot] attributeId":
-              description: valid pilot attributeId
+            "attributeId":
+              description: Valid Pilot attributeId
               value: 4763114aaa3ba460849a5da50797ab6709f2b346788c6749067ac5b3413ad83e
           required: true
         - in: query
@@ -455,22 +397,7 @@ paths:
                   links:
                     $ref: "#/components/schemas/links"
               examples:
-                "[test] Success":
-                  value:
-                    self: https://api-test.ebsi.eu/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f/revisions
-                    items:
-                      - hash: "0x31a014c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da63229d3"
-                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSJ9
-                      - hash: "0x56ef14c390aa9ad2b47a1df8904c8addf87db279b06eae50797f546da632125a"
-                        body: eyJhbnkiOiJBbnkgYXR0cmlidXRlIGhlcmUiLCJ0eXBlIjoiY3JlZGVudGlhbCIsImRhdGEiOiI2ZDdlNWUxZjJlYmExZDU2ZTJmZThlZjdiMTZmNGRlNSe8
-                    total: 2
-                    pageSize: 10
-                    links:
-                      first: https://api-test.ebsi.eu/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f/revisions?page[after]=0&page[size]=10
-                      prev: https://api-test.ebsi.eu/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f/revisions?page[after]=2&page[size]=10
-                      next: https://api-test.ebsi.eu/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f/revisions?page[after]=4&page[size]=10
-                      last: https://api-test.ebsi.eu/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f/revisions?page[after]=13&page[size]=10
-                "[pilot] Success":
+                Success:
                   value:
                     self: https://api-pilot.ebsi.eu/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/attributes/db14d3c6ee1a499c2719a9e2c93c240105cc82545fc491f7eea15e738d45ea73/revisions
                     items:
@@ -518,7 +445,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /trusted-issuers-registry/v3/issuers/{did}/proxies:
     get:
-      operationId: get-trusted-issuers-registry-v3-issuers-did-proxies
+      operationId: get-issuer-proxies
       summary: List proxies
       description: Returns a list of proxies of a trusted issuer.
       tags:
@@ -529,11 +456,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] did":
-              description: valid test did
-              value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
-            "[pilot] did":
-              description: valid pilot did
+            "did":
+              description: Valid Pilot DID
               value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
           required: true
       responses:
@@ -560,13 +484,7 @@ paths:
                     type: integer
                     description: Total number of items in a collection
               examples:
-                "[test] Success":
-                  value:
-                    items:
-                      - proxyId: 25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
-                        href: https://api-test.ebsi.eu/trusted-issuers-registry/v3/issuers/did:ebsi:zkFpKw8Q6EJW75cDue7bg17/proxies/25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
-                    total: 1
-                "[pilot] Success":
+                Success:
                   value:
                     items:
                       - id: db14d3c6ee1a499c2719a9e2c93c240105cc82545fc491f7eea15e738d45ea73
@@ -604,7 +522,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /trusted-issuers-registry/v3/issuers/{did}/proxies/{proxyId}:
     get:
-      operationId: get-trusted-issuers-registry-v3-issuers-did-proxies-proxyid
+      operationId: get-issuer-proxy
       summary: Get a proxy
       description: Returns an issuer proxy identified by its proxy ID.
       tags:
@@ -615,11 +533,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] did":
-              description: valid test did
-              value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
-            "[pilot] did":
-              description: valid pilot did
+            "did":
+              description: Valid Pilot DID
               value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
           required: true
         - name: proxyId
@@ -627,11 +542,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] proxyId":
-              description: valid test proxyId
-              value: 25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
-            "[pilot] proxyId":
-              description: valid pilot proxyId
+            "proxyId":
+              description: Valid Pilot proxyId
               value: "0xe34e137dbefa842d71c0c840ddb4900af3611e297d8403e80f99a13e187e8d63"
           required: true
       responses:
@@ -642,7 +554,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/attributeDetails"
               examples:
-                "Success":
+                Success:
                   value:
                     prefix: https://example.net
                     headers:
@@ -680,7 +592,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /trusted-issuers-registry/v3/issuers/{did}/proxies/{proxyId}/{path}:
     get:
-      operationId: get-trusted-issuers-registry-v3-issuers-did-proxies-proxyid-path
+      operationId: get-issuer-proxy-path
       summary: Get StatusList2021Credential
       description: Retrieves a StatusList2021Credential JWT through the issuer's proxy.
       tags:
@@ -691,11 +603,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] did":
-              description: valid test did
-              value: did:ebsi:zkFpKw8Q6EJW75cDue7bg17
-            "[pilot] did":
-              description: valid pilot did
+            "did":
+              description: Valid Pilot DID
               value: did:ebsi:zsqBYQuKunNdr3XfGfPUvU7
           required: true
         - name: proxyId
@@ -703,11 +612,8 @@ paths:
           schema:
             type: string
           examples:
-            "[test] proxyId":
-              description: valid test proxyId
-              value: 25284c605f007c353abba4a6c3e059ba5d4c6adec2ad7f480c81c994e95f263f
-            "[pilot] proxyId":
-              description: valid pilot proxyId
+            "proxyId":
+              description: Valid Pilot proxyId
               value: "0xe34e137dbefa842d71c0c840ddb4900af3611e297d8403e80f99a13e187e8d63"
           required: true
         - name: path
@@ -727,7 +633,7 @@ paths:
               schema:
                 type: string
               examples:
-                "Success":
+                Success:
                   value: eyJh...GRlNSJ9
         "400":
           description: Bad Request
@@ -761,7 +667,7 @@ paths:
                   $ref: "#/components/examples/InternalError"
   /trusted-issuers-registry/v3/jsonrpc:
     post:
-      operationId: post-ledger-v2-blockchains-besu
+      operationId: post-jsonrpc
       summary: JSON-RPC API
       description: |
         The JSON-RPC API provides methods assisting the construction of blockchain transactions for
@@ -1108,5 +1014,5 @@ servers:
     description: EBSI Test Environment
   - url: https://api-pilot.ebsi.eu
     description: EBSI Pilot Environment
-  - url: "https://api-conformance.ebsi.eu"
+  - url: https://api-conformance.ebsi.eu
     description: EBSI Conformance Environment
