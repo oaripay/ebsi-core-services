@@ -26,6 +26,7 @@ COPY ./apis/timestamp/package.json ./apis/timestamp/
 COPY ./apis/timestamp-v4/package.json ./apis/timestamp-v4/
 COPY ./apis/timestamp-v5/package.json ./apis/timestamp-v5/
 COPY ./apis/track-and-trace-v1/package.json ./apis/track-and-trace-v1/
+COPY ./apis/track-and-trace-v2/package.json ./apis/track-and-trace-v2/
 COPY ./apis/trusted-apps-registry/package.json ./apis/trusted-apps-registry/
 COPY ./apis/trusted-apps-registry-v4/package.json ./apis/trusted-apps-registry-v4/
 COPY ./apis/trusted-issuers-registry/package.json ./apis/trusted-issuers-registry/
