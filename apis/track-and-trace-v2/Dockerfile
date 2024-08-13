@@ -42,4 +42,4 @@ ARG DOCKER_TAG
 RUN echo "DOCKER_TAG=$DOCKER_TAG" >> .env.default
 RUN chown node:node /app
 USER node
-CMD [ "node", "apis/track-and-trace-v1/dist/main" ]
+CMD [ "node", "apis/track-and-trace-v2/dist/main" ]
