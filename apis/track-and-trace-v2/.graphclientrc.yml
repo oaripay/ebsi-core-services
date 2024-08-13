@@ -1,0 +1,9 @@
+# .graphclientrc.yml
+sources:
+  - name: TrackAndTrace
+    handler:
+      graphql:
+        endpoint: "{context.myCustomEndpoint}"
+        source: "./schema.graphql"
+documents:
+  - ./src/modules/documents/queries/queries.graphql

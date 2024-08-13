@@ -1,0 +1,74 @@
+query GetDocuments($skip: Int!, $pagesize: Int!) {
+  documents(first: $pagesize, skip: $skip) {
+    id
+  }
+}
+
+query GetDocument($documentId: String!) {
+  document(id: $documentId) {
+    creator
+    timestamp
+    source
+    proof
+    metadata
+    events(first: 1000, skip: 0) {
+      id
+    }
+  }
+}
+
+query GetDocumentEvents($documentId: String!, $skip: Int!, $pagesize: Int!) {
+  document(id: $documentId) {
+    events(first: $pagesize, skip: $skip) {
+      id
+    }
+  }
+}
+
+query GetDocumentEvent($documentId: String!, $eventId: String!) {
+  document(id: $documentId) {
+    events(first: 1, skip: 0, where: { id: $eventId }) {
+      sender
+      hash
+      externalHash
+      timestamp
+      source
+      proof
+      metadata
+      origin
+    }
+  }
+}
+
+query GetDocumentInvitations(
+  $documentId: String!
+  $skip: Int!
+  $pagesize: Int!
+) {
+  document(id: $documentId) {
+    invitations(first: $pagesize, skip: $skip) {
+      subject
+      grantedBy
+      type
+    }
+  }
+}
+
+query GetCreator($did: String!) {
+  creator(id: $did) {
+    active
+  }
+}
+
+query GetOperator($subject: String!, $skip: Int!, $pagesize: Int!) {
+  operator(id: $subject) {
+    invitations(first: $pagesize, skip: $skip) {
+      subject
+      grantedBy
+      type
+      document {
+        id
+      }
+    }
+  }
+}

@@ -1,1 +1,2 @@
-# No CVE to ignore
+# Axios https://github.com/axios/axios/issues/6463 - No fix available yet (13/08/2024)
+CVE-2024-39338

@@ -4,7 +4,7 @@
   "private": true,
   "license": "EUPL-1.2",
   "scripts": {
-    "audit": "audit-ci --skip-dev --moderate",
+    "audit": "audit-ci --skip-dev --moderate -a GHSA-8hc4-vh64-cxmj",
     "clean": "nx run-many --target=clean --all",
     "build": "nx affected --target=build --parallel=1",
     "build:all": "nx run-many --target=build --all",

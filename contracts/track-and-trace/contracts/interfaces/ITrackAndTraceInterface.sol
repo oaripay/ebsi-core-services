@@ -108,6 +108,7 @@ interface ITrackAndTraceInterface {
         Source source,
         bytes32 proof
     );
+    event DocumentRemoved(bytes32 docHash);
     event AccessGranted(
         bytes32 docHash,
         bytes subject,

@@ -1,0 +1,74 @@
+schema {
+  query: Query
+}
+
+enum Source {
+  block
+  external
+}
+
+enum Permission {
+  delegate
+  write
+  creator
+}
+
+type Creator {
+  id: String!
+  active: Boolean!
+  documents(first: Int = 100, skip: Int = 0): [Document!]!
+}
+
+type Operator {
+  id: String!
+  invitations(first: Int = 100, skip: Int = 0): [Invitation!]!
+}
+
+type Document {
+  id: String!
+  creator: String!
+  timestamp: String!
+  source: Source!
+  proof: String!
+  metadata: String!
+  events(first: Int = 100, skip: Int = 0, where: ID_filter): [Event!]!
+  invitations(first: Int = 100, skip: Int = 0): [Invitation!]!
+}
+
+type Invitation {
+  id: String!
+  document: Document!
+  type: Permission!
+  grantedBy: String!
+  subject: String!
+  children(first: Int = 100, skip: Int = 0): [Invitation!]!
+}
+
+type Event {
+  id: String!
+  externalHash: String!
+  hash: String!
+  timestamp: String!
+  source: Source!
+  proof: String!
+  sender: String!
+  origin: String!
+  metadata: String!
+}
+
+type Query {
+  creators(first: Int = 100, skip: Int = 0): [Creator!]!
+  operators(first: Int = 100, skip: Int = 0): [Operator!]!
+  documents(first: Int = 100, skip: Int = 0): [Document!]!
+  invitations(first: Int = 100, skip: Int = 0): [Invitation!]!
+  events(first: Int = 100, skip: Int = 0): [Event!]!
+  creator(id: String!): Creator!
+  operator(id: String!): Operator!
+  document(id: String!): Document!
+  invitation(id: String!): Invitation!
+  event(id: String!): Event!
+}
+
+input ID_filter {
+  id: String!
+}
