@@ -17,7 +17,7 @@ import {
 } from "../../src/config/configuration.js";
 import { getServer } from "../utils/getServer.js";
 
-describe("TnT API v1 - Generic tests (e2e)", () => {
+describe("Track and Trace API v2 - Generic tests (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let apiUrlPrefix = "";

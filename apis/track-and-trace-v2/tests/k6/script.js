@@ -14,7 +14,7 @@ export const options = {
 };
 
 export default function loadTesting() {
-  const pathname = "/track-and-trace/v1/health";
+  const pathname = "/track-and-trace/v2/health";
 
   group(pathname, () => {
     const url = `${BASE_URL}${pathname}`;
