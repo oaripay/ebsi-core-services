@@ -14,6 +14,7 @@ COPY --from=builder /app/package.json ./package.json
 # Copy TnT API v2
 COPY --from=builder /app/apis/track-and-trace-v2/package.json ./apis/track-and-trace-v2/package.json
 COPY --from=builder /app/apis/track-and-trace-v2/dist ./apis/track-and-trace-v2/dist
+COPY --from=builder /app/apis/track-and-trace-v2/.graphclient ./apis/track-and-trace-v2/.graphclient
 COPY --from=builder /app/apis/track-and-trace-v2/api ./apis/track-and-trace-v2/api
 # Copy Bootstrap SC v2
 COPY --from=builder /app/contracts/bootstrap-v2/package.json ./contracts/bootstrap-v2/package.json
