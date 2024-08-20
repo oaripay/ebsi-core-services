@@ -144,23 +144,6 @@ contract TrackAndTrace is
 
         documentsMapped.remove(documentHash);
         delete documents[documentHash];
-
-        emit DocumentRemoved(documentHash);
-    }
-
-    function migrationRemoveDocument(bytes32 documentHash) external {
-        // the document must be already removed
-        if (bytes(documents[documentHash].creator).length > 0) {
-            revert DocumentExists();
-        }
-        require(
-            trustedPoliciesRegistry.checkPolicy(
-                "TNT:migrationRemoveDocument",
-                msg.sender
-            ),
-            "Policy error: sender doesn't have the attribute TNT:migrationRemoveDocument"
-        );
-        emit DocumentRemoved(documentHash);
     }
 
     function grantAccess(

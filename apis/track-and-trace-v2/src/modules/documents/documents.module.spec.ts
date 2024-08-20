@@ -8,7 +8,7 @@ import {
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
-import { TrackAndTrace__factory } from "@ebsiint-sc/track-and-trace";
+import { TrackAndTrace__factory } from "@ebsiint-sc/track-and-trace-v2";
 import { setupServer } from "msw/node";
 import { DocumentsModule } from "./documents.module.js";
 import type {

@@ -29,7 +29,7 @@ import { http, HttpResponse } from "msw";
 import {
   TrackAndTrace,
   TrackAndTrace__factory,
-} from "@ebsiint-sc/track-and-trace";
+} from "@ebsiint-sc/track-and-trace-v2";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { util } from "@cef-ebsi/key-did-resolver";
 import { encode } from "@ebsiint-api/shared";

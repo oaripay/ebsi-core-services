@@ -183,7 +183,7 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
     const responseBuild = await axios.post<
       JsonRpcResponseObject<UnsignedTransaction>
     >(
-      `${domain}/did-registry/v5/jsonrpc`,
+      `${domain}/did-registry/v6/jsonrpc`,
       {
         jsonrpc: "2.0",
         method: "insertDidDocument",
@@ -204,7 +204,7 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
     const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
 
     const responseSend = await axios.post<JsonRpcResponseObject<string>>(
-      `${domain}/did-registry/v5/jsonrpc`,
+      `${domain}/did-registry/v6/jsonrpc`,
       {
         jsonrpc: "2.0",
         method: "sendSignedTransaction",
@@ -251,6 +251,11 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
       let user: TestUser;
 
       beforeAll(async () => {
+        // Wait 3 seconds for the results to become available in The Graph
+        await new Promise<void>((resolve) => {
+          setTimeout(() => resolve(), 3000);
+        });
+
         const ebsiAuthority = configService
           .get<string>("domain")
           .replace(/^https?:\/\//, "");
@@ -261,10 +266,10 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
           network: configService.get("network", { infer: true }),
           hosts: [ebsiAuthority, ...trustedHostnames],
           services: {
-            "did-registry": "v5",
-            "trusted-issuers-registry": "v5",
-            "trusted-policies-registry": "v3",
-            "trusted-schemas-registry": "v3",
+            "did-registry": "v6",
+            "trusted-issuers-registry": "v6",
+            "trusted-policies-registry": "v4",
+            "trusted-schemas-registry": "v4",
           },
         } satisfies EbsiEnvConfiguration;
 

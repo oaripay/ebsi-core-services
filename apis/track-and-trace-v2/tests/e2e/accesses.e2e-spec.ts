@@ -148,7 +148,6 @@ describe("Track and Trace API v2 - Accesses (e2e)", () => {
             permission: expect.stringMatching(/^(write|delegate|creator)$/),
           }),
         ]),
-        total: expect.any(Number),
         pageSize: 10,
         links: {
           first: expect.stringContaining(
@@ -158,7 +157,6 @@ describe("Track and Trace API v2 - Accesses (e2e)", () => {
             `/accesses?page[after]=1&page[size]=10&subject=${testAuthorisedLegalEntityDid}`,
           ),
           next: expect.stringContaining("/accesses?page[after]="),
-          last: expect.stringContaining("/accesses?page[after]="),
         },
       });
       expect(response.status).toBe(200);

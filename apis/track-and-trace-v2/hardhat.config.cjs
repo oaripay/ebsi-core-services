@@ -7,7 +7,7 @@ require("@nomiclabs/hardhat-ethers");
 require("@openzeppelin/hardhat-upgrades");
 
 const tntScPath = path.resolve(
-  require.resolve("@ebsiint-sc/track-and-trace"),
+  require.resolve("@ebsiint-sc/track-and-trace-v2"),
   "../..", // relative to "dist/index.js"
 );
 

@@ -30,7 +30,7 @@
     "@cef-ebsi/ebsi-uri": "^0.1.0",
     "@cef-ebsi/key-did-resolver": "^2.0.2",
     "@ebsiint-api/shared": "^1.1.0-rc.9",
-    "@ebsiint-sc/track-and-trace": "1.0.0-rc.3",
+    "@ebsiint-sc/track-and-trace-v2": "2.0.0-rc.0",
     "@ethersproject/address": "^5.7.0",
     "@ethersproject/bignumber": "^5.7.0",
     "@fastify/helmet": "^11.1.1",

@@ -1858,7 +1858,7 @@ describe.each(["EBSI URI", "URL"] as const)(
                 case TNT_CREATE_SCOPE: {
                   mockServer.use(
                     http.head(
-                      `${domain}/track-and-trace/v1/accesses`,
+                      `${domain}/track-and-trace/v2/accesses`,
                       ({ request: req }) => {
                         const creator = new URL(req.url).searchParams.get(
                           "creator",
@@ -1881,7 +1881,7 @@ describe.each(["EBSI URI", "URL"] as const)(
                 case TNT_WRITE_SCOPE: {
                   mockServer.use(
                     http.get(
-                      `${domain}/track-and-trace/v1/accesses`,
+                      `${domain}/track-and-trace/v2/accesses`,
                       ({ request: req }) => {
                         const subject = new URL(req.url).searchParams.get(
                           "subject",
@@ -2001,7 +2001,7 @@ describe.each(["EBSI URI", "URL"] as const)(
               if (customScope === TNT_CREATE_SCOPE) {
                 mockServer.use(
                   http.head(
-                    `${domain}/track-and-trace/v1/accesses`,
+                    `${domain}/track-and-trace/v2/accesses`,
                     ({ request: req }) => {
                       const creator = new URL(req.url).searchParams.get(
                         "creator",
@@ -2022,7 +2022,7 @@ describe.each(["EBSI URI", "URL"] as const)(
               if (customScope === TNT_WRITE_SCOPE) {
                 mockServer.use(
                   http.get(
-                    `${domain}/track-and-trace/v1/accesses`,
+                    `${domain}/track-and-trace/v2/accesses`,
                     ({ request: req }) => {
                       const subject = new URL(req.url).searchParams.get(
                         "subject",
@@ -2560,7 +2560,7 @@ describe.each(["EBSI URI", "URL"] as const)(
               if (customScope === TNT_CREATE_SCOPE) {
                 mockServer.use(
                   http.head(
-                    `${domain}/track-and-trace/v1/accesses`,
+                    `${domain}/track-and-trace/v2/accesses`,
                     ({ request: req }) => {
                       const creator = new URL(req.url).searchParams.get(
                         "creator",
@@ -2581,7 +2581,7 @@ describe.each(["EBSI URI", "URL"] as const)(
               if (customScope === TNT_WRITE_SCOPE) {
                 mockServer.use(
                   http.get(
-                    `${domain}/track-and-trace/v1/accesses`,
+                    `${domain}/track-and-trace/v2/accesses`,
                     ({ request: req }) => {
                       const subject = new URL(req.url).searchParams.get(
                         "subject",

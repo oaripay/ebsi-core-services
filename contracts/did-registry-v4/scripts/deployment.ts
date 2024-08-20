@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "path";
 import { ethers } from "hardhat";
-import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
+import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v3";
 import { DidRegistry } from "../src/types";
 
 async function main() {

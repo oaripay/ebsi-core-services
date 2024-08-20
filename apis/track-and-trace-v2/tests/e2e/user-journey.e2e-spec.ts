@@ -272,10 +272,10 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
       network: configService.get("network", { infer: true }),
       hosts: [ebsiAuthority, ...trustedHostnames],
       services: {
-        "did-registry": "v5",
-        "trusted-issuers-registry": "v5",
-        "trusted-policies-registry": "v3",
-        "trusted-schemas-registry": "v3",
+        "did-registry": "v6",
+        "trusted-issuers-registry": "v6",
+        "trusted-policies-registry": "v4",
+        "trusted-schemas-registry": "v4",
       },
     } satisfies EbsiEnvConfiguration;
 
@@ -319,6 +319,11 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
       responseSend.body.result as string,
     );
     expect(receipt.status).toBe(1);
+
+    // Wait 3 seconds for the results to become available in The Graph
+    await new Promise<void>((resolve) => {
+      setTimeout(() => resolve(), 3000);
+    });
 
     // Check if "documentCreator" is registered as a creator
     let response = await request(server).head(
@@ -382,6 +387,11 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
     // Extract datetime and proof from block
     document1.timestamp.datetime = `0x${block.timestamp.toString(16)}`;
     document1.timestamp.proof = `0x${block.number.toString(16).padStart(64, "0")}`;
+
+    // Wait 3 seconds for the results to become available in The Graph
+    await new Promise<void>((resolve) => {
+      setTimeout(() => resolve(), 3000);
+    });
 
     // Check document
     response = await request(server).get(`/documents/${document1.hash}`);
@@ -463,6 +473,11 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
       Buffer.from(document1Event1.externalHash, "utf-8"), // Note: externalHash is treated as an UTF-8 string
     );
 
+    // Wait 3 seconds for the results to become available in The Graph
+    await new Promise<void>((resolve) => {
+      setTimeout(() => resolve(), 3000);
+    });
+
     // Check document
     response = await request(server).get(`/documents/${document1.hash}`);
 
@@ -529,6 +544,11 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
     );
     expect(receipt.status).toBe(1);
 
+    // Wait 3 seconds for the results to become available in The Graph
+    await new Promise<void>((resolve) => {
+      setTimeout(() => resolve(), 3000);
+    });
+
     // Check access
     response = await request(server).get(
       `/documents/${document1.hash}/accesses`,
@@ -538,7 +558,7 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
       self: expect.stringContaining(
         `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
       ),
-      items: [
+      items: expect.arrayContaining([
         {
           documentId: document1.hash,
           grantedBy: documentCreator.info.did,
@@ -551,8 +571,7 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
           permission: "delegate",
           subject: didKeyDelegate.info.did,
         },
-      ] satisfies DocumentAccesses,
-      total: 2,
+      ] satisfies DocumentAccesses),
       pageSize: 10,
       links: {
         first: expect.stringContaining(
@@ -611,6 +630,11 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
     );
     expect(receipt.status).toBe(1);
 
+    // Wait 3 seconds for the results to become available in The Graph
+    await new Promise<void>((resolve) => {
+      setTimeout(() => resolve(), 3000);
+    });
+
     // Check access
     response = await request(server).get(
       `/documents/${document1.hash}/accesses`,
@@ -620,7 +644,7 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
       self: expect.stringContaining(
         `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
       ),
-      items: [
+      items: expect.arrayContaining([
         {
           documentId: document1.hash,
           grantedBy: documentCreator.info.did,
@@ -639,8 +663,7 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
           permission: "write",
           subject: didKeyEventsCreator.info.did,
         },
-      ] satisfies DocumentAccesses,
-      total: 3,
+      ] satisfies DocumentAccesses),
       pageSize: 10,
       links: {
         first: expect.stringContaining(
@@ -719,6 +742,11 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
       Buffer.from(document1Event2.externalHash, "utf-8"), // Note: externalHash is treated as an UTF-8 string
     );
 
+    // Wait 3 seconds for the results to become available in The Graph
+    await new Promise<void>((resolve) => {
+      setTimeout(() => resolve(), 3000);
+    });
+
     // Check document
     response = await request(server).get(`/documents/${document1.hash}`);
 
@@ -729,7 +757,10 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
         datetime: document1.timestamp.datetime,
         proof: document1.timestamp.proof,
       },
-      events: [document1Event1.hash, document1Event2.hash],
+      events: expect.arrayContaining([
+        document1Event1.hash,
+        document1Event2.hash,
+      ]),
       creator: document1.creator,
     } satisfies Document);
 
@@ -783,6 +814,11 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
     );
     expect(receipt.status).toBe(1);
 
+    // Wait 3 seconds for the results to become available in The Graph
+    await new Promise<void>((resolve) => {
+      setTimeout(() => resolve(), 3000);
+    });
+
     // Check access
     response = await request(server).get(
       `/documents/${document1.hash}/accesses`,
@@ -792,7 +828,7 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
       self: expect.stringContaining(
         `/documents/${document1.hash}/accesses?page[after]=1&page[size]=10`,
       ),
-      items: [
+      items: expect.arrayContaining([
         {
           documentId: document1.hash,
           grantedBy: documentCreator.info.did,
@@ -805,8 +841,7 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
           permission: "delegate",
           subject: didKeyDelegate.info.did,
         },
-      ] satisfies DocumentAccesses,
-      total: 2,
+      ] satisfies DocumentAccesses),
       pageSize: 10,
       links: {
         first: expect.stringContaining(
@@ -856,6 +891,11 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
     );
     expect(receipt.status).toBe(1);
 
+    // Wait 3 seconds for the results to become available in The Graph
+    await new Promise<void>((resolve) => {
+      setTimeout(() => resolve(), 3000);
+    });
+
     // Check access
     response = await request(server).get(
       `/documents/${document1.hash}/accesses`,
@@ -873,7 +913,6 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
           subject: documentCreator.info.did,
         },
       ] satisfies DocumentAccesses,
-      total: 1,
       pageSize: 10,
       links: {
         first: expect.stringContaining(
@@ -919,6 +958,11 @@ describeWriteOps()("Track and Trace - User Journey (e2e)", () => {
       responseSend.body.result as string,
     );
     expect(receipt.status).toBe(1);
+
+    // Wait 3 seconds for the results to become available in The Graph
+    await new Promise<void>((resolve) => {
+      setTimeout(() => resolve(), 3000);
+    });
 
     // Check document
     response = await request(server).get(`/documents/${document1.hash}`);

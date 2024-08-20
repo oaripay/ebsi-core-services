@@ -35,15 +35,14 @@ const DIDR_PATH = "/did-registry/v6";
 const TIR_PATH = "/trusted-issuers-registry/v6";
 const TPR_PATH = "/trusted-policies-registry/v4";
 const TSR_PATH = "/trusted-schemas-registry/v4";
-// TODO: use TNT v2 when available
-const TNT_PATH = "/track-and-trace/v1";
+const TNT_PATH = "/track-and-trace/v2";
 
 export const DEPENDENCIES = {
   "DIDR API v6": DIDR_PATH,
   "TIR API v6": TIR_PATH,
   "TPR API v4": TPR_PATH,
   "TSR API v4": TSR_PATH,
-  "TNT API v1": TNT_PATH,
+  "TNT API v2": TNT_PATH,
 } as const;
 
 // Config factory

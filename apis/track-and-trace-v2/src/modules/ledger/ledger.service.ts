@@ -6,7 +6,7 @@ import { Mutex } from "async-mutex";
 import {
   TrackAndTrace,
   TrackAndTrace__factory,
-} from "@ebsiint-sc/track-and-trace";
+} from "@ebsiint-sc/track-and-trace-v2";
 import { InternalServerError } from "@ebsiint-api/shared";
 import type { ApiConfig } from "../../config/configuration.js";
 

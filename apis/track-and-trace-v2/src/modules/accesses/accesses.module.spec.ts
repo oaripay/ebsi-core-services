@@ -8,7 +8,7 @@ import {
 } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
 import { setupServer } from "msw/node";
-import { TrackAndTrace__factory } from "@ebsiint-sc/track-and-trace";
+import { TrackAndTrace__factory } from "@ebsiint-sc/track-and-trace-v2";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { AccessesModule } from "./accesses.module.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";

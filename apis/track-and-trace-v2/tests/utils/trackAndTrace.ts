@@ -1,9 +1,9 @@
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
-/// <reference path="../../../../contracts/track-and-trace/src/types/hardhat.d.ts" />
+/// <reference path="../../../../contracts/track-and-trace-v2/src/types/hardhat.d.ts" />
 import hre from "hardhat";
 import "@nomiclabs/hardhat-ethers";
 import { ethers } from "ethers";
-import { TrackAndTrace } from "@ebsiint-sc/track-and-trace";
+import { TrackAndTrace } from "@ebsiint-sc/track-and-trace-v2";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 // eslint-disable-next-line import/extensions
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers.js";

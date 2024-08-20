@@ -24,10 +24,10 @@ COPY --from=builder /app/contracts/bootstrap-v2/artifacts ./contracts/bootstrap-
 COPY --from=builder /app/contracts/did-registry-v4/package.json ./contracts/did-registry-v4/package.json
 COPY --from=builder /app/contracts/did-registry-v4/dist ./contracts/did-registry-v4/dist
 COPY --from=builder /app/contracts/did-registry-v4/artifacts ./contracts/did-registry-v4/artifacts
-# Copy TPR SC v2
-COPY --from=builder /app/contracts/trusted-policies-registry-v2/package.json ./contracts/trusted-policies-registry-v2/package.json
-COPY --from=builder /app/contracts/trusted-policies-registry-v2/dist ./contracts/trusted-policies-registry-v2/dist
-COPY --from=builder /app/contracts/trusted-policies-registry-v2/artifacts ./contracts/trusted-policies-registry-v2/artifacts
+# Copy TPR SC v3
+COPY --from=builder /app/contracts/trusted-policies-registry-v3/package.json ./contracts/trusted-policies-registry-v3/package.json
+COPY --from=builder /app/contracts/trusted-policies-registry-v3/dist ./contracts/trusted-policies-registry-v3/dist
+COPY --from=builder /app/contracts/trusted-policies-registry-v3/artifacts ./contracts/trusted-policies-registry-v3/artifacts
 # Copy shared code
 COPY --from=builder /app/apis/shared/package.json ./apis/shared/package.json
 COPY --from=builder /app/apis/shared/dist ./apis/shared/dist

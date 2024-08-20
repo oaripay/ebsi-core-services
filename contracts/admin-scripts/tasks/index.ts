@@ -14,6 +14,7 @@ import "./insertTSRSchema";
 import "./updateTSRSchema";
 import "./grantRole";
 import "./trackAndTrace";
+import "./trackAndTraceV2";
 import "./trustedSchemaRegistryV3SC";
 import "./trustedIssuersRegistryV4SC";
 import "./timestampV3";

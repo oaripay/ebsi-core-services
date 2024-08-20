@@ -1,25 +1,29 @@
 interface NetworkConfig {
   tprV1Address?: string;
   tprV2Address?: string;
+  tprV3Address?: string;
   didV1Address?: string;
   didV2Address?: string;
   didV3Address?: string;
   didV4Address?: string;
 }
 
-interface Dependencies {
-  [chainId: number]: NetworkConfig;
-}
+type Dependencies = Record<
+  "6175" | "1337" | "6176" | "6179" | "6178",
+  NetworkConfig
+>;
 
-export const dependencies: Dependencies = {
+export const dependencies = {
   6176: {},
   6175: {
     // Test Env
     tprV1Address: "0x17a340418937A38b3Cb62FdA42241eB0722868A6", // TPR API v2
     tprV2Address: "0x3d5edA0b5183e245bA9713B58834525EDfE46E90", // TPR API v3
+    tprV3Address: "0x61b6AD18C74C2158445F524E9f868Da13Aba8E2F", // TPR API v4
     didV1Address: "0x15582f47140ff4bd74843583a1e3111032fb91c8", // DID API v3
     didV2Address: "0x823BBc0ceE3dE3B61AcfA0CEedb951AB9a013F05", // DID API v4
     didV3Address: "0x26E603f6FdCfC007c7bdC5be5f2c91D2a64a32E7", // DID API v5
+    didV4Address: "0xb44e3f0e2A049EBEd8fB5a28524D2164796a9963", // DID API v6
   },
   1337: {
     tprV1Address: "0x331fC724f2e88269DFC96ddA52119752999EB25C",
@@ -42,6 +46,6 @@ export const dependencies: Dependencies = {
     didV3Address: "0x76C8190D7422e5fa2A0190Bc2313bab0b2afEC78", // DID API v5
     didV4Address: "0x236De3Bdd88764858d985681f3fc607EBf2082Df", // DID API v6
   },
-};
+} as const satisfies Dependencies;
 
 export default dependencies;

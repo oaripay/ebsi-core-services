@@ -20,18 +20,18 @@ COPY --from=builder /app/apis/track-and-trace-v2/api ./apis/track-and-trace-v2/a
 COPY --from=builder /app/contracts/bootstrap-v2/package.json ./contracts/bootstrap-v2/package.json
 COPY --from=builder /app/contracts/bootstrap-v2/dist ./contracts/bootstrap-v2/dist
 COPY --from=builder /app/contracts/bootstrap-v2/artifacts ./contracts/bootstrap-v2/artifacts
-# Copy TPR SC v2
-COPY --from=builder /app/contracts/trusted-policies-registry-v2/package.json ./contracts/trusted-policies-registry-v2/package.json
-COPY --from=builder /app/contracts/trusted-policies-registry-v2/dist ./contracts/trusted-policies-registry-v2/dist
-COPY --from=builder /app/contracts/trusted-policies-registry-v2/artifacts ./contracts/trusted-policies-registry-v2/artifacts
-# Copy DID Registry SC v3
-COPY --from=builder /app/contracts/did-registry-v3/package.json ./contracts/did-registry-v3/package.json
-COPY --from=builder /app/contracts/did-registry-v3/dist ./contracts/did-registry-v3/dist
-COPY --from=builder /app/contracts/did-registry-v3/artifacts ./contracts/did-registry-v3/artifacts
-# Copy Track and Trace SC v1
-COPY --from=builder /app/contracts/track-and-trace/package.json ./contracts/track-and-trace/package.json
-COPY --from=builder /app/contracts/track-and-trace/dist ./contracts/track-and-trace/dist
-COPY --from=builder /app/contracts/track-and-trace/artifacts ./contracts/track-and-trace/artifacts
+# Copy TPR SC v3
+COPY --from=builder /app/contracts/trusted-policies-registry-v3/package.json ./contracts/trusted-policies-registry-v3/package.json
+COPY --from=builder /app/contracts/trusted-policies-registry-v3/dist ./contracts/trusted-policies-registry-v3/dist
+COPY --from=builder /app/contracts/trusted-policies-registry-v3/artifacts ./contracts/trusted-policies-registry-v3/artifacts
+# Copy DID Registry SC v4
+COPY --from=builder /app/contracts/did-registry-v4/package.json ./contracts/did-registry-v4/package.json
+COPY --from=builder /app/contracts/did-registry-v4/dist ./contracts/did-registry-v4/dist
+COPY --from=builder /app/contracts/did-registry-v4/artifacts ./contracts/did-registry-v4/artifacts
+# Copy Track and Trace SC v2
+COPY --from=builder /app/contracts/track-and-trace-v2/package.json ./contracts/track-and-trace-v2/package.json
+COPY --from=builder /app/contracts/track-and-trace-v2/dist ./contracts/track-and-trace-v2/dist
+COPY --from=builder /app/contracts/track-and-trace-v2/artifacts ./contracts/track-and-trace-v2/artifacts
 # Copy shared code
 COPY --from=builder /app/apis/shared/package.json ./apis/shared/package.json
 COPY --from=builder /app/apis/shared/dist ./apis/shared/dist

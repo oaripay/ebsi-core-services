@@ -11,7 +11,7 @@ const func: DeployFunction = async (hre: HardhatRuntimeEnvironment) => {
   // get Proxy of TPR
   const { chainId } = await ethers.provider.getNetwork();
   console.log(`chain id ${chainId}`);
-  let tprAddress = dependencies[chainId]?.tprV2Address;
+  let tprAddress = dependencies[chainId]?.tprV3Address;
   if (!ethers.utils.isAddress(tprAddress)) {
     console.log(`Deploying TPR for testnet`);
     // deploy for testnet

@@ -74,3 +74,6 @@ cp -r ${SCRIPT_DIR}/../../trusted-schemas-registry-v3/contracts ${SCRIPT_DIR}/..
 
 echo Copy the track-and-trace
 cp -r ${SCRIPT_DIR}/../../track-and-trace/contracts ${SCRIPT_DIR}/../contracts/track-and-trace
+
+echo Copy the track-and-trace-v2
+cp -r ${SCRIPT_DIR}/../../track-and-trace-v2/contracts ${SCRIPT_DIR}/../contracts/track-and-trace-v2

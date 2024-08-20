@@ -119,25 +119,33 @@ export async function getAccessToken(
     });
   }
 
-  const response = await axios.post(
-    `${authorisationApiUrl}/token`,
-    new URLSearchParams({
-      grant_type: "vp_token",
-      scope,
-      vp_token: vpJwt,
-      presentation_submission: JSON.stringify(presentationSubmission),
-    }).toString(),
-    {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
+  try {
+    const response = await axios.post(
+      `${authorisationApiUrl}/token`,
+      new URLSearchParams({
+        grant_type: "vp_token",
+        scope,
+        vp_token: vpJwt,
+        presentation_submission: JSON.stringify(presentationSubmission),
+      }).toString(),
+      {
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
       },
-    },
-  );
+    );
 
-  // Decode access token
-  const { access_token: accessToken } = response.data as {
-    access_token: string;
-  };
+    // Decode access token
+    const { access_token: accessToken } = response.data as {
+      access_token: string;
+    };
 
-  return accessToken;
+    return accessToken;
+  } catch (e) {
+    if (axios.isAxiosError(e)) {
+      throw new Error(JSON.stringify(e.response?.data), { cause: e.cause });
+    }
+
+    throw e;
+  }
 }

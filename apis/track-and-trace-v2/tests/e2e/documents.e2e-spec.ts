@@ -19,7 +19,7 @@ describe("Track and Trace API v2 - Documents (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let configService: ConfigService<ApiConfig, true>;
-  let lastDocumentEvents: {
+  let firstPageLastDocumentEvents: {
     eventId: string;
     href: string;
   }[] = [];
@@ -53,34 +53,18 @@ describe("Track and Trace API v2 - Documents (e2e)", () => {
       infer: true,
     });
 
-    // Get last events
+    // Get events of the last document of the first page (50 items)
     const getAllEvents = await request(server).get(
       `/documents/${documentWithEvents}/events?page[size]=50`,
     );
-    const { total: totalEvents } = getAllEvents.body as {
-      total: number;
-    };
 
-    if (totalEvents > 50) {
-      const getEventsLastPage = await request(server).get(
-        `/documents/${documentWithEvents}/events?page[after]=${Math.ceil(totalEvents / 10)}&page[size]=10`,
-      );
-      const { items: events } = getEventsLastPage.body as {
-        items: {
-          eventId: string;
-          href: string;
-        }[];
-      };
-      lastDocumentEvents = events;
-    } else if (totalEvents > 0) {
-      const { items: events } = getAllEvents.body as {
-        items: {
-          eventId: string;
-          href: string;
-        }[];
-      };
-      lastDocumentEvents = events;
-    }
+    const { items: events } = getAllEvents.body as {
+      items: {
+        eventId: string;
+        href: string;
+      }[];
+    };
+    firstPageLastDocumentEvents = events;
   });
 
   afterAll(async () => {
@@ -93,36 +77,24 @@ describe("Track and Trace API v2 - Documents (e2e)", () => {
 
       const response = await request(server).get("/documents");
 
-      const total =
-        ((response.body as Record<string, unknown>)?.["total"] as number) ?? 0;
-
       expect(response.body).toStrictEqual({
         self: expect.stringContaining("/documents?page[after]=1&page[size]=10"),
-        items:
-          total > 0
-            ? expect.arrayContaining([
-                {
-                  documentId: expect.stringContaining("0x"),
-                  href: expect.stringContaining("/documents/"),
-                },
-              ])
-            : [],
-        total: expect.any(Number),
+        items: expect.arrayContaining([
+          {
+            documentId: expect.stringContaining("0x"),
+            href: expect.stringContaining("/documents/"),
+          },
+        ]),
         pageSize: 10,
-        links: {
+        links: expect.objectContaining({
           first: expect.stringContaining(
             "/documents?page[after]=1&page[size]=10",
           ),
           prev: expect.stringContaining(
             "/documents?page[after]=1&page[size]=10",
           ),
-          next: expect.stringContaining(
-            `/documents?page[after]=${total > 10 ? 2 : 1}&page[size]=10`,
-          ),
-          last: expect.stringContaining(
-            `/documents?page[after]=${Math.max(Math.ceil(total / 10), 1)}&page[size]=10`,
-          ),
-        },
+          next: expect.stringContaining(`/documents?page[after]=`),
+        }),
       });
       expect(response.status).toBe(200);
     });
@@ -372,27 +344,20 @@ describe("Track and Trace API v2 - Documents (e2e)", () => {
         `/documents/${documentWithEvents}/events`,
       );
 
-      const total =
-        ((response.body as Record<string, unknown>)?.["total"] as number) ?? 0;
-
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           `/documents/${documentWithEvents}/events?page[after]=1&page[size]=10`,
         ),
-        items:
-          total > 0
-            ? expect.arrayContaining([
-                {
-                  eventId: expect.stringContaining("0x"),
-                  href: expect.stringContaining(
-                    `/documents/${documentWithEvents}/events/`,
-                  ),
-                },
-              ])
-            : [],
-        total: expect.any(Number),
+        items: expect.arrayContaining([
+          {
+            eventId: expect.stringContaining("0x"),
+            href: expect.stringContaining(
+              `/documents/${documentWithEvents}/events/`,
+            ),
+          },
+        ]),
         pageSize: 10,
-        links: {
+        links: expect.objectContaining({
           first: expect.stringContaining(
             `/documents/${documentWithEvents}/events?page[after]=1&page[size]=10`,
           ),
@@ -400,12 +365,9 @@ describe("Track and Trace API v2 - Documents (e2e)", () => {
             `/documents/${documentWithEvents}/events?page[after]=1&page[size]=10`,
           ),
           next: expect.stringContaining(
-            `/documents/${documentWithEvents}/events?page[after]=${total > 10 ? 2 : 1}&page[size]=10`,
+            `/documents/${documentWithEvents}/events?page[after]=`,
           ),
-          last: expect.stringContaining(
-            `/documents/${documentWithEvents}/events?page[after]=${Math.max(Math.ceil(total / 10), 1)}&page[size]=10`,
-          ),
-        },
+        }),
       });
       expect(response.status).toBe(200);
     });
@@ -467,7 +429,7 @@ describe("Track and Trace API v2 - Documents (e2e)", () => {
       expect.assertions(3);
 
       const response = await request(server).get(
-        `/documents/${documentWithEvents}/events/${lastDocumentEvents[0]!.eventId}`,
+        `/documents/${documentWithEvents}/events/${firstPageLastDocumentEvents[0]!.eventId}`,
       );
 
       expect(response.body).toStrictEqual({
@@ -702,29 +664,20 @@ describe("Track and Trace API v2 - Documents (e2e)", () => {
         `/documents/${documentWithEvents}/accesses`,
       );
 
-      const total =
-        ((response.body as Record<string, unknown>)?.["total"] as number) ?? 0;
-
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
           `/documents/${documentWithEvents}/accesses?page[after]=1&page[size]=10`,
         ),
-        items:
-          total > 0
-            ? expect.arrayContaining([
-                {
-                  grantedBy: expect.stringMatching(/^did:/),
-                  permission: expect.stringMatching(
-                    /^(write|delegate|creator)$/,
-                  ),
-                  subject: expect.stringMatching(/^did:/),
-                  documentId: documentWithEvents,
-                },
-              ])
-            : [],
-        total: expect.any(Number),
+        items: expect.arrayContaining([
+          {
+            grantedBy: expect.stringMatching(/^did:/),
+            permission: expect.stringMatching(/^(write|delegate|creator)$/),
+            subject: expect.stringMatching(/^did:/),
+            documentId: documentWithEvents,
+          },
+        ]),
         pageSize: 10,
-        links: {
+        links: expect.objectContaining({
           first: expect.stringContaining(
             `/documents/${documentWithEvents}/accesses?page[after]=1&page[size]=10`,
           ),
@@ -732,12 +685,9 @@ describe("Track and Trace API v2 - Documents (e2e)", () => {
             `/documents/${documentWithEvents}/accesses?page[after]=1&page[size]=10`,
           ),
           next: expect.stringContaining(
-            `/documents/${documentWithEvents}/accesses?page[after]=${total > 10 ? 2 : 1}&page[size]=10`,
+            `/documents/${documentWithEvents}/accesses?page[after]=`,
           ),
-          last: expect.stringContaining(
-            `/documents/${documentWithEvents}/accesses?page[after]=${Math.max(Math.ceil(total / 10), 1)}&page[size]=10`,
-          ),
-        },
+        }),
       });
       expect(response.status).toBe(200);
     });

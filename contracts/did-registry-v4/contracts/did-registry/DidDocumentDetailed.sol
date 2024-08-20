@@ -5,7 +5,7 @@ import "./DidDocumentStorage.sol";
 import "./ControllersStorage.sol";
 import "./DidDocumentLib.sol";
 import "./ControllersLib.sol";
-import "@ebsiint-sc/trusted-policies-registry-v2/contracts/trusted-policies-registry/interfaces/IPolicyRegistry.sol";
+import "@ebsiint-sc/trusted-policies-registry-v3/contracts/trusted-policies-registry/interfaces/IPolicyRegistry.sol";
 import "./interfaces/IDidRegistry.sol";
 
 abstract contract DidDocumentDetailed is
