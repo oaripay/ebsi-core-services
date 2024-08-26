@@ -4,7 +4,7 @@
   "private": true,
   "license": "EUPL-1.2",
   "scripts": {
-    "audit": "audit-ci --skip-dev --moderate -a GHSA-8hc4-vh64-cxmj",
+    "audit": "audit-ci --skip-dev --moderate",
     "clean": "nx run-many --target=clean --all",
     "build": "nx affected --target=build --parallel=1",
     "build:all": "nx run-many --target=build --all",
@@ -65,6 +65,7 @@
     "**/ganache/utf-8-validate": "^6.0.3",
     "**/@ganache/utils/@trufflesuite/bigint-buffer": "1.1.10",
     "**/@ethersproject/providers/ws": "^7.5.10",
+    "**/@ethersproject/signing-key/elliptic": "^6.5.7",
     "**/@graphql-mesh/cli/node-libcurl": "link:./node_modules/.cache/null"
   }
 }

@@ -1,4 +1,3 @@
-/* eslint-disable import/no-extraneous-dependencies */
 import { URLSearchParams } from "node:url";
 import { randomUUID } from "node:crypto";
 import axios, { type AxiosResponse } from "axios";

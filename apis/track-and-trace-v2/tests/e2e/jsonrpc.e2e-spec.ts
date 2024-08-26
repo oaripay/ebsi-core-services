@@ -76,6 +76,7 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
   let server: RawServerDefault | string;
   let configService: ConfigService<ApiConfig, true>;
   let ledgerApi: string;
+  let ebsiEnvConfig: EbsiEnvConfiguration;
   let authoriser: TestUser;
   let creator: TestUser;
   const did1 = EbsiWallet.createDid();
@@ -108,6 +109,23 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
     server = getServer(app, configService);
 
     ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
+
+    const ebsiAuthority = configService
+      .get<string>("domain")
+      .replace(/^https?:\/\//, "");
+    const trustedHostnames = configService.get("trustedHostnames", {
+      infer: true,
+    });
+    ebsiEnvConfig = {
+      network: configService.get("network", { infer: true }),
+      hosts: [ebsiAuthority, ...trustedHostnames],
+      services: {
+        "did-registry": "v6",
+        "trusted-issuers-registry": "v6",
+        "trusted-policies-registry": "v4",
+        "trusted-schemas-registry": "v4",
+      },
+    } satisfies EbsiEnvConfiguration;
 
     const kid = configService.get<string>("testAuthorisedLegalEntityKid");
     const did = kid.split("#")[0] as string;
@@ -255,23 +273,6 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
         await new Promise<void>((resolve) => {
           setTimeout(() => resolve(), 3000);
         });
-
-        const ebsiAuthority = configService
-          .get<string>("domain")
-          .replace(/^https?:\/\//, "");
-        const trustedHostnames = configService.get("trustedHostnames", {
-          infer: true,
-        });
-        const ebsiEnvConfig = {
-          network: configService.get("network", { infer: true }),
-          hosts: [ebsiAuthority, ...trustedHostnames],
-          services: {
-            "did-registry": "v6",
-            "trusted-issuers-registry": "v6",
-            "trusted-policies-registry": "v4",
-            "trusted-schemas-registry": "v4",
-          },
-        } satisfies EbsiEnvConfiguration;
 
         if (method === "authoriseDid") {
           authoriser.accessToken.tntAuthorise = await getAccessToken(
@@ -480,6 +481,7 @@ describeWriteOps()("Track and Trace - JSON-RPC (e2e)", () => {
           ledgerApi,
           responseSend.body.result as string,
         );
+
         expect(receipt.status).toBe(1);
       });
     });

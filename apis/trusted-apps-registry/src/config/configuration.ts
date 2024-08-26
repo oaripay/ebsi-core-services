@@ -5,7 +5,6 @@ import Joi from "joi";
 export interface ApiConfig {
   apiPort: number;
   apiUrlPrefix: string;
-  apiName: string;
   authorisationApiName: string;
   authorisationApiUrl: string;
   contractAddr: string;
@@ -47,7 +46,6 @@ export const loadConfig = (): ApiConfig => {
     // TAR API variables
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
     apiUrlPrefix: process.env.API_URL_PREFIX || "/trusted-apps-registry/v3",
-    apiName: process.env.API_NAME || "trusted-apps-registry-api",
     domain: DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
     logLevel: process.env.LOG_LEVEL || "warn",
@@ -93,7 +91,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
     // TAR specific variables
     API_PORT: Joi.string().default("3000"),
     API_URL_PREFIX: Joi.string(),
-    API_NAME: Joi.string(),
     LOG_LEVEL: Joi.string().valid(
       "silent",
       "error",

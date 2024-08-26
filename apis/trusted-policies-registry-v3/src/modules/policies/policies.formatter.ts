@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call */
 import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
 import { PaginatedList, paginate } from "@ebsiint-api/shared";
 import { PolicyLink } from "./policies.interface.js";

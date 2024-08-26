@@ -4,9 +4,7 @@ import Joi from "joi";
 // List here all the values that will be returned by the config factory
 export interface ApiConfig {
   apiPort: number;
-  apiPrivateKey: string;
   apiUrlPrefix: string;
-  apiName: string;
   domain: string;
   localOrigin: string;
   logLevel: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
@@ -58,8 +56,6 @@ export const loadConfig = (): ApiConfig => {
 
   return {
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
-    apiPrivateKey: process.env.API_PRIVATE_KEY,
-    apiName: process.env.API_NAME,
     apiUrlPrefix: process.env.API_URL_PREFIX || "/trusted-schemas-registry/v2",
     domain: DOMAIN,
     localOrigin: process.env.LOCAL_ORIGIN || "",
@@ -105,9 +101,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       .valid("development", "production", "test")
       .default("development"),
     API_PORT: Joi.string().default("3000"),
-    API_PRIVATE_KEY: Joi.string().required(),
     API_URL_PREFIX: Joi.string(),
-    API_NAME: Joi.string().required(),
     LOG_LEVEL: Joi.string().valid(
       "silent",
       "error",

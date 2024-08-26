@@ -1044,7 +1044,6 @@ describe("Record Hashes", () => {
       ),
     );
     // INSERT SHOULD BE DONE IN ORDER !!!
-    // eslint-disable-next-line no-await-in-loop
     await ts.timestampRecordHashes(
       [0, 1, 2],
       [hash1Value, hash2Value, hash3Value],
@@ -1673,7 +1672,6 @@ describe("Record Hashes", () => {
       ),
     );
     // INSERT SHOULD BE DONE IN ORDER !!!
-    // eslint-disable-next-line no-await-in-loop
     await ts.timestampRecordHashes(
       [0, 1, 2],
       [hash1Value, hash2Value, hash3Value],

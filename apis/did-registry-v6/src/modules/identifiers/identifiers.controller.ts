@@ -39,7 +39,6 @@ export default class IdentifiersController {
   async getIdentifiers(
     @Query() query: GetIdentifiersDto,
   ): Promise<PaginatedList<DidLink>> {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const { identifiers, prevPageIdentifiers, nextPageIdentifiers } =
       await this.identifiersService.getIdentifiers(
         query["page[after]"],

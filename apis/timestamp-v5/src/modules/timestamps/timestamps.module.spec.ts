@@ -15,7 +15,6 @@ import { TimestampsModule } from "./timestamps.module.js";
 import { TimestampLink } from "./timestamps.interface.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { setupTestEnv } from "../../../tests/utils/timestamp.js";
-// eslint-disable-next-line import/extensions
 import { graphServer } from "../../../tests/utils/graphServer.js";
 
 describe("Timestamps Module", () => {

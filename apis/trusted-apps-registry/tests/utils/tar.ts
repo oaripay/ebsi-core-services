@@ -1,4 +1,3 @@
-/* eslint-disable import/no-extraneous-dependencies */
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="../../../../contracts/trusted-apps-registry/src/types/hardhat.d.ts" />
 import hre from "hardhat";

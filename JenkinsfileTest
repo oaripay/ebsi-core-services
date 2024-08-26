@@ -93,9 +93,6 @@ pipeline {
         }
 
         stage('Unit test affected packages') {
-          environment {
-            API_PRIVATE_KEY=credentials('API_PRIVATE_KEY')
-          }
           steps {
             sh '''
               source $NVM_DIR/nvm.sh > /dev/null 2>&1

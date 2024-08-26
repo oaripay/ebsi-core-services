@@ -222,7 +222,6 @@ describe("Besu Module", () => {
       });
       expect(response.status).toBe(200);
       expect(response.header).toHaveProperty("content-type");
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       expect(response.headers["content-type"]).toStrictEqual(
         expect.stringContaining("application/json"),
       );

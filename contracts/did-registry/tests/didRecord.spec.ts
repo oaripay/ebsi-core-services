@@ -1574,7 +1574,6 @@ describe("Record Hashes", () => {
       didVersionInfos.push(ethers.utils.hexlify(didVersionInfo));
     }
     didVersionInfoIds.forEach(async (el, id) => {
-      // eslint-disable-next-line no-await-in-loop
       const rlast = await ts.getDidDocumentVersionInfo(el);
       expect(rlast).to.equal(didVersionInfos[id]);
     });
@@ -1616,7 +1615,6 @@ describe("Record Hashes", () => {
       didVersionMetadataIds.push(didVersionMetadataId);
     }
     didVersionMetadataIds.forEach(async (el, id) => {
-      // eslint-disable-next-line no-await-in-loop
       const rlast = await ts.getDidDocumentVersionMetadata(el);
       expect(rlast).to.equal(didVersionMetadatas[id]);
     });

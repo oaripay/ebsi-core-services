@@ -3,10 +3,8 @@ declare global {
   namespace NodeJS {
     interface ProcessEnv {
       NODE_ENV: "development" | "production" | "test";
-      API_PRIVATE_KEY: string;
       API_PORT?: string;
       API_URL_PREFIX?: string;
-      API_NAME: string;
       AUTHORISATION_API_NAME?: string;
       BESU_RPC_NODE: string;
       BESU_READINESS_ENDPOINT: string;

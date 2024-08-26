@@ -14,7 +14,6 @@ import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { setupTestEnv } from "../../../tests/utils/schemaRegistry.js";
 import { LedgerService } from "../ledger/ledger.service.js";
 import { hexToMultibaseBase58Btc } from "./schemas.utils.js";
-// eslint-disable-next-line import/extensions
 import { graphServer } from "../../../tests/utils/graphServer.js";
 import {
   SCHEMAS_TOTAL,

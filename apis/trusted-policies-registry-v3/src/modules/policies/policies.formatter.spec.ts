@@ -4,7 +4,6 @@ import { PolicyRegistry } from "@ebsiint-sc/trusted-policies-registry-v2";
 import { formatPolicies } from "./policies.formatter.js";
 
 describe("formatPolicies", () => {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const policies = {
     prev: ethers.BigNumber.from("1"),
     next: ethers.BigNumber.from("3"),

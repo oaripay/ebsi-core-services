@@ -5,7 +5,6 @@ declare global {
       NODE_ENV: "development" | "production" | "test";
       API_PORT?: string;
       API_URL_PREFIX?: string;
-      API_NAME?: string;
       DOMAIN: string;
       LOCAL_ORIGIN?: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";

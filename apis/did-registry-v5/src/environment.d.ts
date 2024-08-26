@@ -5,8 +5,6 @@ declare global {
   namespace NodeJS {
     interface ProcessEnv {
       NODE_ENV: "development" | "production" | "test";
-      API_PRIVATE_KEY: string;
-      API_NAME: string;
       API_PORT?: string;
       API_URL_PREFIX?: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";

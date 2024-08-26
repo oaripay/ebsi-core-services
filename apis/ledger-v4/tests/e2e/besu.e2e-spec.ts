@@ -77,7 +77,6 @@ describe("Ledger API v4 - POST /ledger/v4/blockchains/besu", () => {
     });
     expect(response.status).toBe(200);
     expect(response.header).toHaveProperty("content-type");
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     expect(response.headers["content-type"]).toStrictEqual(
       expect.stringContaining("application/json"),
     );

@@ -149,7 +149,7 @@ describe("Track and Trace API v2 - Accesses (e2e)", () => {
           }),
         ]),
         pageSize: 10,
-        links: {
+        links: expect.objectContaining({
           first: expect.stringContaining(
             `/accesses?page[after]=1&page[size]=10&subject=${testAuthorisedLegalEntityDid}`,
           ),
@@ -157,7 +157,7 @@ describe("Track and Trace API v2 - Accesses (e2e)", () => {
             `/accesses?page[after]=1&page[size]=10&subject=${testAuthorisedLegalEntityDid}`,
           ),
           next: expect.stringContaining("/accesses?page[after]="),
-        },
+        }),
       });
       expect(response.status).toBe(200);
     });

@@ -1109,7 +1109,6 @@ describe("JsonRpc Module", () => {
           const thumbprint = await calculateJwkThumbprint(publicKeyJwk);
 
           testSetup.push({
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error - isSecp256k1 should be true
             params: {
               from: signer.address,
@@ -1374,7 +1373,6 @@ describe("JsonRpc Module", () => {
           });
 
           testSetup.push({
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-expect-error - `name: "bad-name` is invalid
             params: {
               from: signer.address,

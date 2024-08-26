@@ -12,7 +12,6 @@ import { UsersModule } from "./users.module.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { setupTestEnv } from "../../../tests/utils/trustedPoliciesRegistry.js";
 import { LedgerService } from "../ledger/ledger.service.js";
-// eslint-disable-next-line import/extensions
 import { graphServer } from "../../../tests/utils/graphServer.js";
 import { USERS_TOTAL } from "../../../tests/utils/data.js";
 

@@ -5,8 +5,6 @@ import { NETWORKS, type Network } from "@cef-ebsi/ebsi-uri";
 // List here all the values that will be returned by the config factory
 export interface ApiConfig {
   apiPort: number;
-  apiPrivateKey: string;
-  apiName: string;
   apiES256PrivateKey: string;
   apiUrlPrefix: string;
   domain: string;
@@ -56,8 +54,6 @@ export const loadConfig = (): ApiConfig => {
   return {
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
     apiES256PrivateKey: process.env.API_ES256_PRIVATE_KEY,
-    apiPrivateKey: process.env.API_PRIVATE_KEY,
-    apiName: process.env.API_NAME,
     apiUrlPrefix: process.env.API_URL_PREFIX || "/authorisation/v4",
     logLevel: process.env.LOG_LEVEL || "warn",
     domain: DOMAIN,
@@ -101,8 +97,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
       .default("development"),
     API_PORT: Joi.string().default("3000"),
     API_ES256_PRIVATE_KEY: Joi.string().required(),
-    API_PRIVATE_KEY: Joi.string().required(),
-    API_NAME: Joi.string().required(),
     API_URL_PREFIX: Joi.string(),
     AUTHORISATION_CREDENTIAL_SCHEMA: Joi.string().required(),
     LOG_LEVEL: Joi.string().valid(

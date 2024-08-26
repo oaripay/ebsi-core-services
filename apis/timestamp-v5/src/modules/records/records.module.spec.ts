@@ -14,7 +14,6 @@ import { RecordsModule } from "./records.module.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { setupTestEnv } from "../../../tests/utils/timestamp.js";
 import { RecordLink } from "./records.interface.js";
-// eslint-disable-next-line import/extensions
 import { graphServer } from "../../../tests/utils/graphServer.js";
 
 describe("Records Module", () => {

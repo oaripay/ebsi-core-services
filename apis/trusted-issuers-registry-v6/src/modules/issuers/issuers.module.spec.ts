@@ -15,7 +15,6 @@ import { IssuersModule } from "./issuers.module.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { IssuerObject, setupTestEnv } from "../../../tests/utils/tir.js";
 import { LedgerService } from "../ledger/ledger.service.js";
-// eslint-disable-next-line import/extensions
 import { graphServer } from "../../../tests/utils/graphServer.js";
 import { ROOTTAO } from "../../../tests/utils/data.js";
 import { IssuerTypeNames } from "./issuers.constants.js";

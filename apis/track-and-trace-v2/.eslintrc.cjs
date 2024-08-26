@@ -1,5 +1,10 @@
+/**
+ * ESLint config
+ * @type {import("eslint").Linter.LegacyConfig}
+ */
 module.exports = {
   root: true,
+  reportUnusedDisableDirectives: true,
   extends: ["airbnb-base", "plugin:prettier/recommended"],
   rules: {
     // Error: https://github.com/import-js/eslint-plugin-import/issues/2890

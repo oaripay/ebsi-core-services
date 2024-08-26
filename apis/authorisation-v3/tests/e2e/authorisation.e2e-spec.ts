@@ -549,7 +549,6 @@ describe("Authorisation API v3 (e2e)", () => {
                 const vpTokenTampered = await createJWT(
                   vpJwtDecoded.payload,
                   {
-                    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
                     issuer: vpJwtDecoded.payload.iss as string,
                     signer: ES256KSigner(randomBytes(32)),
                   },

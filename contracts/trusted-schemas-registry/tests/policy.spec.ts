@@ -146,7 +146,6 @@ describe("SchemaPolicies", () => {
           const data = `data-update-${i}`;
           const inputdata = ethers.utils.toUtf8Bytes(data);
           // INSERT SHOULD BE DONE IN ORDER !!!
-          // eslint-disable-next-line no-await-in-loop
           ts.updatePolicy(did, inputdata);
         }
 
@@ -177,7 +176,6 @@ describe("SchemaPolicies", () => {
           const data = `data-update-${i}`;
           const inputdata = ethers.utils.toUtf8Bytes(data);
           // INSERT SHOULD BE DONE IN ORDER !!!
-          // eslint-disable-next-line no-await-in-loop
           ts.updatePolicy(did, inputdata);
         }
         // page = 0 and pagesize is less than total
@@ -459,7 +457,6 @@ describe("SchemaPolicies", () => {
           expect(policyDataV2).to.equal(ethers.utils.hexlify(inputdataV2));
         }
 
-        // eslint-disable-next-line no-await-in-loop
         await expect(
           tsUser.getPolicyByHash(
             ethers.utils.sha256(ethers.utils.toUtf8Bytes("modifieddata4")),

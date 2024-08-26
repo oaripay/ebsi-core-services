@@ -48,7 +48,6 @@ task(
         "utf-8",
       ).toString("hex")}`;
 
-      // eslint-disable-next-line no-await-in-loop
       try {
         // eslint-disable-next-line no-await-in-loop
         await (await tsr.insertSchema(schemaId, schemaHex, schema)).wait(1);

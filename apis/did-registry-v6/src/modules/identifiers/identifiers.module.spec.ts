@@ -10,16 +10,13 @@ import type { RawServerDefault } from "fastify";
 import { ethers } from "ethers";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import { DidRegistry__factory } from "@ebsiint-sc/did-registry-v4";
-// eslint-disable-next-line import/extensions
 import { graphServer } from "../../../tests/mocks/node.js";
-// eslint-disable-next-line import/extensions
 import { dids } from "../../../tests/mocks/handlers.js";
 import { IdentifiersModule } from "./identifiers.module.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { setupTestEnv } from "../../../tests/utils/didRegistry.js";
 import { LedgerService } from "../ledger/ledger.service.js";
 import { UserDetails } from "../../../tests/utils/data.js";
-// eslint-disable-next-line import/extensions
 import {
   did1,
   did2,

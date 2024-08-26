@@ -1,5 +1,10 @@
+/**
+ * ESLint config
+ * @type {import("eslint").Linter.LegacyConfig}
+ */
 module.exports = {
   root: true,
+  reportUnusedDisableDirectives: true,
   extends: [
     "airbnb-base",
     "airbnb-typescript/base",

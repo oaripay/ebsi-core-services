@@ -11,7 +11,6 @@ import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp-v3";
 import { HashAlgorithmsModule } from "./hash-algorithms.module.js";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { setupTestEnv } from "../../../tests/utils/timestamp.js";
-// eslint-disable-next-line import/extensions
 import { graphServer } from "../../../tests/utils/graphServer.js";
 
 describe("HashAlgorithms Module", () => {
