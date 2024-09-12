@@ -1,0 +1,57 @@
+enum HashAlgoStatus {
+  undefined
+  active
+  revoked
+}
+
+type HashAlgo @entity {
+  id: String!
+  ianaName: String!
+  multiHash: String!
+  oid: String!
+  outputLength: BigInt!
+  status: HashAlgoStatus!
+}
+
+type TimestampSet @entity {
+  id: Bytes!
+  creator: Bytes!
+  blockNumber: BigInt!
+  transactionHash: Bytes!
+  timestamp: BigInt!
+  hashAlgorithmId: BigInt!
+  timestampData: Bytes!
+  hashValue: Bytes!
+  recordIdsFirstVersion: [Record!]!
+}
+
+type VersionInfo @entity {
+  id: Bytes!
+  content: Bytes!
+}
+
+type Version @entity {
+  id: Bytes!
+  recordId: Bytes!
+  versionNumber: BigInt!
+  timestamps: [TimestampSet!]!
+  infos: [VersionInfo!]!
+}
+
+type Owner @entity {
+  id: String!
+  recordIds: [Record!]!
+}
+
+type OwnerRecord @entity {
+  id: String!
+  address: String!
+  notBefore: BigInt!
+  notAfter: BigInt!
+}
+
+type Record @entity {
+  id: Bytes!
+  owners: [OwnerRecord!]!
+  versions: [Version!]!
+}

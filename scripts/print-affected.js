@@ -27,7 +27,8 @@ try {
     .filter(
       (project) =>
         project.startsWith("@ebsiint-api") ||
-        project.startsWith("@ebsiint-app"),
+        project.startsWith("@ebsiint-app") ||
+        project === "@ebsiint-subgraph/deployer",
     )
     // NOT service utilities
     .filter((project) => project !== "@ebsiint-api/shared")

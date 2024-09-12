@@ -1,0 +1,36 @@
+diff --git a/node_modules/@graphprotocol/graph-cli/dist/commands/test.js b/node_modules/@graphprotocol/graph-cli/dist/commands/test.js
+index 4c94661..9c20a71 100644
+--- a/node_modules/@graphprotocol/graph-cli/dist/commands/test.js
++++ b/node_modules/@graphprotocol/graph-cli/dist/commands/test.js
+@@ -239,7 +239,7 @@ async function runDocker(datasource, opts) {
+         // Build the `docker run` command options and flags
+         const dockerRunOpts = [
+             'run',
+-            '-it',
++            // '-it',
+             '--rm',
+             '--mount',
+             `type=bind,source=${current_folder},target=/matchstick`,
+@@ -265,14 +265,20 @@ async function runDocker(datasource, opts) {
+                 stdio: 'inherit',
+             }).on('close', code => {
+                 if (code === 0) {
+-                    (0, child_process_1.spawn)('docker', dockerRunOpts, { stdio: 'inherit' });
++                    const spawnedDocker = (0, child_process_1.spawn)('docker', dockerRunOpts, { stdio: 'inherit' });
++                    spawnedDocker.on('close', (code) => {
++                      if (code !== 0) process.exit(code);
++                    });
+                 }
+             });
+         }
+         else {
+             this.log('Docker image already exists. Skipping `docker build` command...');
+             // Run the container from the existing matchstick docker image
+-            (0, child_process_1.spawn)('docker', dockerRunOpts, { stdio: 'inherit' });
++            const spawnedDocker = (0, child_process_1.spawn)('docker', dockerRunOpts, { stdio: 'inherit' });
++            spawnedDocker.on('close', (code) => {
++              if (code !== 0) process.exit(code);
++            });
+         }
+     });
+ }

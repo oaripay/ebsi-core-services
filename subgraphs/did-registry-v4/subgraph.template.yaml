@@ -1,0 +1,42 @@
+specVersion: 0.0.4
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: DidRegistry
+    network: besu
+    source:
+      abi: DidRegistry
+      address: "{{ address }}"
+      # prettier-ignore
+      startBlock: {{ startBlock }}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - DidDocument
+        - Controller
+        - VerificationMethod
+        - VerificationRelationship
+        - Event
+      abis:
+        - name: DidRegistry
+          # prettier-ignore
+          file: {{ &abi }}
+      eventHandlers:
+        - event: BaseDocumentUpdated(string,string)
+          handler: handleBaseDocumentUpdated
+        - event: ControllerAdded(string,string)
+          handler: handleControllerAdded
+        - event: ControllerRevoked(string,string)
+          handler: handleControllerRevoked
+        - event: DidDocumentInserted(string,string,string,bytes,bool,uint256,uint256)
+          handler: handleDidDocumentInserted
+        - event: VerificationMethodAdded(string,string,bytes,bool)
+          handler: handleVerificationMethodAdded
+        - event: VerificationMethodRevoked(string,string,uint256)
+          handler: handleVerificationMethodRevoked
+        - event: VerificationRelationshipAdded(uint256,string,string,string,uint256,uint256)
+          handler: handleVerificationRelationshipAdded
+      file: ./src/did-registry.ts

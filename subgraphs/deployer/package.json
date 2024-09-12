@@ -1,0 +1,17 @@
+{
+  "private": true,
+  "name": "@ebsiint-subgraph/deployer",
+  "version": "0.0.0-rc.0",
+  "type": "module",
+  "scripts": {
+    "docker:build": "docker build . -t ebsi/subgraphs-deployer:${GIT_COMMIT} --build-arg DOCKER_TAG=${GIT_COMMIT}"
+  },
+  "dependencies": {
+    "@ebsiint-subgraph/did-registry-v4": "^0.0.0-rc.0",
+    "@ebsiint-subgraph/timestamp-v3": "^0.0.0-rc.0",
+    "@ebsiint-subgraph/track-and-trace-v2": "^0.0.0-rc.0",
+    "@ebsiint-subgraph/trusted-issuers-registry-v4": "^0.0.0-rc.0",
+    "@ebsiint-subgraph/trusted-policies-registry-v3": "^0.0.0-rc.0",
+    "@ebsiint-subgraph/trusted-schemas-registry-v3": "^0.0.0-rc.0"
+  }
+}

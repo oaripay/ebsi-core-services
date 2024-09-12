@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@ebsiint-sc/trusted-policies-registry-v3/contracts/trusted-policies-registry/interfaces/IPolicyRegistry.sol";
-import "@ebsiint-sc/did-registry-v3/contracts/did-registry/interfaces/IDidRegistry.sol";
+import "@ebsiint-sc/did-registry-v4/contracts/did-registry/interfaces/IDidRegistry.sol";
 
 contract TrustedIssuersRegistry is UUPSUpgradeable, AccessControlUpgradeable {
     enum IssuerType {

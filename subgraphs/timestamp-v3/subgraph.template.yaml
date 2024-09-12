@@ -1,0 +1,45 @@
+specVersion: 0.0.4
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: Timestamp
+    network: besu
+    source:
+      abi: Timestamp
+      address: "{{ address }}"
+      # prettier-ignore
+      startBlock: {{ startBlock }}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Policy
+        - Event
+      abis:
+        - name: Timestamp
+          # prettier-ignore
+          file: {{ &abi }}
+      eventHandlers:
+        - event: AddNewHashAlgo(indexed uint256,string,uint256,string,uint8,string)
+          handler: handleAddNewHashAlgo
+        - event: UpdateHashAlgo(indexed uint256,string,uint256,string,uint8,string)
+          handler: handleUpdateHashAlgo
+        - event: TimestampedHashes(bytes32[],uint256[],bytes[],bytes[])
+          handler: handleTimestampedHashes
+        - event: NewRecord(indexed bytes32,bytes32[],bytes,bytes32,string)
+          handler: handleNewRecord
+        - event: RecordedHashes(indexed bytes32,bytes32[],bytes,bytes32)
+          handler: handleRecordedHashes
+        - event: VersionUpdated(indexed bytes32,bytes32[],bytes,bytes32,uint256)
+          handler: handleVersionUpdated
+        - event: RecordOwnerAdded(bytes32,string,uint256,uint256)
+          handler: handleRecordOwnerAdded
+        - event: OwnerIdRevoked(bytes32,string,uint256)
+          handler: handleOwnerIdRevoked
+        - event: RecordVersionInfo(bytes32,bytes,bytes32,uint256)
+          handler: handleRecordVersionInfo
+        - event: TimestampIdDetached(bytes32,bytes32,uint256)
+          handler: handleTimestampIdDetached
+      file: ./src/timestamp.ts

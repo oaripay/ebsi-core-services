@@ -1,0 +1,53 @@
+enum Source {
+  block
+  external
+}
+
+enum Permission {
+  delegate
+  write
+  creator
+}
+
+type Creator @entity {
+  id: String!
+  active: Boolean!
+  documents: [Document!]!
+}
+
+type Operator @entity {
+  id: Bytes!
+  invitations: [Invitation!]!
+}
+
+type Document @entity {
+  id: Bytes!
+  creator: String!
+  timestamp: BigInt!
+  source: Source!
+  proof: Bytes!
+  metadata: String!
+  events: [Event!]!
+  invitations: [Invitation!]!
+}
+
+type Invitation @entity {
+  id: String!
+  document: Document!
+  type: Permission!
+  grantedBy: Bytes!
+  subject: Bytes!
+  children: [Invitation!]!
+}
+
+type Event @entity {
+  id: Bytes!
+  externalHash: String!
+  hash: Bytes!
+  timestamp: BigInt!
+  source: Source!
+  proof: Bytes!
+  sender: Bytes!
+  origin: String!
+  metadata: String!
+}

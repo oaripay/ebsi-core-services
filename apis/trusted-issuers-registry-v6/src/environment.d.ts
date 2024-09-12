@@ -19,6 +19,7 @@ declare global {
       BESU_RPC_NODE: string;
       BESU_READINESS_ENDPOINT: string;
       BESU_TRUSTED_ISSUERS_REGISTRY_ADDRESS: string;
+      GRAPHQL_ENDPOINT: string;
       // Test vars
       TEST_ADMIN_KID?: string;
       TEST_ADMIN_PRIVATE_KEY?: string;

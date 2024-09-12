@@ -117,6 +117,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     BESU_RPC_NODE: Joi.string().uri().required(),
     BESU_READINESS_ENDPOINT: Joi.string().uri().required(),
     CONTRACT_ADDR: Joi.string().required(),
+    GRAPHQL_ENDPOINT: Joi.string().uri().required(),
     // Tests
     TEST_ADMIN_KID: Joi.string().allow(""),
     TEST_ADMIN_PRIVATE_KEY: Joi.string().allow(""),

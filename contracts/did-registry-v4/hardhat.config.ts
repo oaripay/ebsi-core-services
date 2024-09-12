@@ -39,6 +39,7 @@ const config: HardhatUserConfig = {
     path: "./src/abi",
     clear: true,
     flat: true,
+    runOnCompile: true,
   },
   solidity: {
     version: "0.8.12",

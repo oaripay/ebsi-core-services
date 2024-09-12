@@ -14,6 +14,7 @@ declare global {
       REQUEST_TIMEOUT?: string;
       AXIOS_RETRY_DELAY?: string;
       CONTRACT_ADDR: string;
+      GRAPHQL_ENDPOINT: string;
       DOMAIN: string;
       LOCAL_ORIGIN?: string;
       NETWORK: Network;

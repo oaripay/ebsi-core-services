@@ -4,5 +4,7 @@ coverage*
 build
 dist
 node_modules
-contracts/**/src
+apis/*/.graphclient
+contracts/*/src
+subgraphs/*/generated
 .nx/cache

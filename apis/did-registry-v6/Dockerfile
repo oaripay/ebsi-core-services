@@ -1,6 +1,6 @@
 # Create reference to core-services
 ARG DOCKER_TAG=latest
-FROM ebsi/core-services:$DOCKER_TAG as builder
+FROM ebsi/core-services:$DOCKER_TAG AS builder
 
 FROM node:20.16.0-alpine3.20@sha256:eb8101caae9ac02229bd64c024919fe3d4504ff7f329da79ca60a04db08cef52
 
@@ -24,6 +24,9 @@ COPY --from=builder /app/contracts/bootstrap-v2/artifacts ./contracts/bootstrap-
 COPY --from=builder /app/contracts/did-registry-v4/package.json ./contracts/did-registry-v4/package.json
 COPY --from=builder /app/contracts/did-registry-v4/dist ./contracts/did-registry-v4/dist
 COPY --from=builder /app/contracts/did-registry-v4/artifacts ./contracts/did-registry-v4/artifacts
+# Copy DID Registry SC v4 subgraph
+COPY --from=builder /app/subgraphs/did-registry-v4/package.json ./subgraphs/did-registry-v4/package.json
+# TODO: import other required files
 # Copy TPR SC v3
 COPY --from=builder /app/contracts/trusted-policies-registry-v3/package.json ./contracts/trusted-policies-registry-v3/package.json
 COPY --from=builder /app/contracts/trusted-policies-registry-v3/dist ./contracts/trusted-policies-registry-v3/dist

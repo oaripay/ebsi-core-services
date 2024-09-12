@@ -25,3 +25,11 @@ typechain
 
 # manifest created by nx for Jenkins CD
 affected.yaml
+
+# Subgraphs
+subgraphs/*/subgraph.yaml
+subgraphs/*/build
+subgraphs/*/generated
+subgraphs/*/tests/.bin
+subgraphs/*/tests/.docker
+subgraphs/*/tests/.latest.json

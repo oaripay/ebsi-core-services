@@ -19,6 +19,7 @@ declare global {
       BESU_RPC_NODE: string;
       BESU_READINESS_ENDPOINT: string;
       CONTRACT_ADDR: string;
+      GRAPHQL_ENDPOINT: string;
       // Test variables
       TEST_AUTH_API_ES256_PRIVATE_KEY?: string;
       TEST_AUTHORISED_LEGAL_ENTITY_KID?: string;

@@ -1,6 +1,6 @@
-# Admin scripts for smart contract
+![EBSI Logo](https://ec.europa.eu/digital-building-blocks/wikis/images/logo/default-space-logo.svg)
 
-![Logo of the project](https://ec.europa.eu/cefdigital/wiki/images/logo/default-space-logo.svg)
+# Admin scripts for smart contract
 
 > Smart contract utility scripts.
 
@@ -16,7 +16,7 @@ Compile the smart contracts:
 yarn nx compile @ebsiint-sc/admin-scripts
 ```
 
-This will take all the latest solidity source code from smart contracts projects (worskpace packages under `@ebsiint-sc/` namespace) and create an output `src` folder with all the information related to the smart contracts:
+This will take all the latest solidity source code from smart contracts projects (workspace packages under `@ebsiint-sc/` namespace) and create an output `src` folder with all the information related to the smart contracts:
 
 - `abi`
 - `artifacts`
@@ -40,13 +40,13 @@ To verify the chainId that will be used by hardhat:
 yarn hardhat --network pilot chainId
 ```
 
-To get the lastest block number on the specified network:
+To get the latest block number on the specified network:
 
 ```sh
 yarn hardhat --network pilot blockNumber
 ```
 
-To get some inforamtion about a transaction:
+To get some information about a transaction:
 
 ```sh
 yarn hardhat --network pilot tx --hash 0xd0f11a38650c987063b689b5384ae17e6506fbd179e50e47a84111695331302ds

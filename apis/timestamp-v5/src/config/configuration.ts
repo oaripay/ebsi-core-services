@@ -123,6 +123,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
       .required(),
     AUTHORISATION_API_NAME: Joi.string(),
     CONTRACT_ADDR: Joi.string(),
+    GRAPHQL_ENDPOINT: Joi.string().uri().required(),
     REQUEST_TIMEOUT: Joi.string(),
     AXIOS_RETRY_DELAY: Joi.string(),
     TEST_ADMIN_KID: Joi.string(),

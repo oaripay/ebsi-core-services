@@ -1,6 +1,6 @@
 # Create reference to core-services
 ARG DOCKER_TAG=latest
-FROM ebsi/core-services:$DOCKER_TAG as builder
+FROM ebsi/core-services:$DOCKER_TAG AS builder
 
 FROM node:20.16.0-alpine3.20@sha256:eb8101caae9ac02229bd64c024919fe3d4504ff7f329da79ca60a04db08cef52
 
@@ -32,6 +32,8 @@ COPY --from=builder /app/contracts/did-registry-v4/artifacts ./contracts/did-reg
 COPY --from=builder /app/contracts/track-and-trace-v2/package.json ./contracts/track-and-trace-v2/package.json
 COPY --from=builder /app/contracts/track-and-trace-v2/dist ./contracts/track-and-trace-v2/dist
 COPY --from=builder /app/contracts/track-and-trace-v2/artifacts ./contracts/track-and-trace-v2/artifacts
+# Copy Track and Trace SC v2 subgraph
+COPY --from=builder /app/subgraphs/track-and-trace-v2/package.json ./subgraphs/track-and-trace-v2/package.json
 # Copy shared code
 COPY --from=builder /app/apis/shared/package.json ./apis/shared/package.json
 COPY --from=builder /app/apis/shared/dist ./apis/shared/dist

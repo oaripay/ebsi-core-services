@@ -13,6 +13,7 @@ declare global {
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
       DOCKER_TAG?: string;
       CONTRACT_ADDR: string;
+      GRAPHQL_ENDPOINT: string;
       DOMAIN: string;
       LOCAL_ORIGIN?: string;
       NETWORK: Network;

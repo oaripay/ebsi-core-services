@@ -12,6 +12,7 @@ declare global {
       BESU_RPC_NODE: string;
       BESU_READINESS_ENDPOINT: string;
       CONTRACT_ADDR: string;
+      GRAPHQL_ENDPOINT: string;
       DOMAIN: string;
       LOCAL_ORIGIN?: string;
       NETWORK: Network;

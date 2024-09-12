@@ -1,0 +1,16 @@
+type Schema @entity {
+  id: Bytes!
+  revisions: [Revision!]!
+  lastRevision: Revision!
+}
+
+type Revision @entity {
+  id: Bytes!
+  content: String!
+  metadata: [Metadata!]!
+}
+
+type Metadata @entity {
+  id: Bytes!
+  content: String!
+}

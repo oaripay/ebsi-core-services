@@ -1,0 +1,31 @@
+specVersion: 0.0.4
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: TrustedSchemasRegistry
+    network: besu
+    source:
+      abi: TrustedSchemasRegistry
+      address: "{{ address }}"
+      # prettier-ignore
+      startBlock: {{ startBlock }}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - Policy
+        - Event
+      abis:
+        - name: TrustedSchemasRegistry
+          # prettier-ignore
+          file: {{ &abi }}
+      eventHandlers:
+        - event: SchemaInserted(bytes,bytes32,bytes32,bytes,bytes)
+          handler: handleSchemaInserted
+        - event: SchemaUpdated(bytes,bytes32,bytes32,bytes,bytes)
+          handler: handleSchemaUpdated
+        - event: MetadataUpdated(bytes32,bytes32,bytes)
+          handler: handleMetadataUpdated
+      file: ./src/trusted-schemas-registry.ts

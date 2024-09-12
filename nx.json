@@ -16,12 +16,15 @@
     "production": [
       "{projectRoot}/src/**/*",
       "{projectRoot}/contracts/**/*",
+      "{projectRoot}/scripts/**/*",
       "!{projectRoot}/**/*.spec.ts",
       "!{projectRoot}/.solhint*",
       "{projectRoot}/.graphclientrc.yml",
       "{projectRoot}/hardhat.config.ts",
       "{projectRoot}/nest-cli.json",
       "{projectRoot}/package.json",
+      "{projectRoot}/schema.graphql",
+      "{projectRoot}/subgraph.template.yaml",
       "{projectRoot}/tsconfig.production.json",
       "{projectRoot}/tsconfig.json"
     ]
@@ -29,7 +32,7 @@
   "targetDefaults": {
     "build": {
       "inputs": ["production", "^production"],
-      "outputs": ["{projectRoot}/dist"],
+      "outputs": ["{projectRoot}/dist", "{projectRoot}/generated"],
       "dependsOn": ["^build", "prepare"],
       "cache": true
     },

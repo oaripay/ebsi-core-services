@@ -1,0 +1,37 @@
+specVersion: 0.0.4
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: TrackAndTrace
+    network: besu
+    source:
+      abi: TrackAndTrace
+      address: "{{ address }}"
+      # prettier-ignore
+      startBlock: {{ startBlock }}
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      abis:
+        - name: TrackAndTrace
+          # prettier-ignore
+          file: {{ &abi }}
+      entities:
+        - Timestamp
+        - Event
+      eventHandlers:
+        - event: DidEbsiAuthorised(string,bool)
+          handler: handleDidEbsiAuthorised
+        - event: DocumentCreated(bytes32,string,string,uint256,uint8,bytes32)
+          handler: handleDocumentCreated
+        - event: DocumentRemoved(bytes32)
+          handler: handleDocumentRemoved
+        - event: AccessGranted(bytes32,bytes,bytes,uint8)
+          handler: handleAccessGranted
+        - event: AccessRevoked(bytes32,bytes,bytes)
+          handler: handleAccessRevoked
+        - event: EventWritten(bytes32,bytes32,bytes,string,string,uint256,uint8,bytes32)
+          handler: handleEventWritten
+      file: ./src/track-and-trace.ts

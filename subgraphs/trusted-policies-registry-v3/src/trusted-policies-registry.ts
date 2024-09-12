@@ -1,0 +1,67 @@
+import {
+  PolicyInserted,
+  PolicyUpdated,
+  PolicyDeactivated,
+  PolicyActivated,
+  UserAttributeInserted,
+  UserAttributeDeleted,
+} from "../generated/TrustedPoliciesRegistry/TrustedPoliciesRegistry";
+import { Policy, User } from "../generated/schema";
+
+export function handlePolicyInserted(event: PolicyInserted): void {
+  const policy = new Policy(event.params.policyId.toString());
+  policy.policyName = event.params.policyName;
+  policy.description = event.params.description;
+  policy.status = true;
+  policy.save();
+}
+
+export function handlePolicyUpdated(event: PolicyUpdated): void {
+  const policy = Policy.load(event.params.policyId.toString());
+  if (!policy) return;
+  policy.description = event.params.newDescription;
+  policy.save();
+}
+
+export function handlePolicyDeactivated(event: PolicyDeactivated): void {
+  const policy = Policy.load(event.params.policyId.toString());
+  if (!policy) return;
+  policy.status = false;
+  policy.save();
+}
+
+export function handlePolicyActivated(event: PolicyActivated): void {
+  const policy = Policy.load(event.params.policyId.toString());
+  if (!policy) return;
+  policy.status = true;
+  policy.save();
+}
+
+export function handleUserAttributeInserted(
+  event: UserAttributeInserted,
+): void {
+  let user = User.load(event.params.user);
+  let attributes: string[] = [];
+  if (user) {
+    attributes = user.attributes;
+  } else {
+    user = new User(event.params.user);
+  }
+  attributes.push(event.params.attribute);
+  user.attributes = attributes;
+  user.save();
+}
+
+export function handleUserAttributeDeleted(event: UserAttributeDeleted): void {
+  const user = User.load(event.params.user);
+  if (!user) return;
+  const attributes: string[] = user.attributes;
+  for (let i = 0; i < attributes.length; i += 1) {
+    if (attributes[i] == event.params.attribute) {
+      attributes.splice(i, 1);
+      break;
+    }
+  }
+  user.attributes = attributes;
+  user.save();
+}

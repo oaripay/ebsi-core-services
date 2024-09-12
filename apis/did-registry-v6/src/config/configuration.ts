@@ -94,6 +94,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     ),
     DOCKER_TAG: Joi.string(),
     CONTRACT_ADDR: Joi.string().required(),
+    GRAPHQL_ENDPOINT: Joi.string().uri().required(),
     // DID Registry specific variables
     DOMAIN: Joi.string().uri().required(),
     LOCAL_ORIGIN: Joi.string().uri(),

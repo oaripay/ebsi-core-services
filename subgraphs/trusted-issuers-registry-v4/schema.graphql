@@ -1,0 +1,37 @@
+enum IssuerType {
+  Undefined
+  RootTAO
+  TAO
+  TI
+  Revoked
+}
+
+type Issuer @entity {
+  id: String!
+  attributes: [Attribute!]!
+  proxies: [Proxy!]!
+}
+
+type Attribute @entity {
+  id: Bytes!
+  revisions: [Revision!]!
+  lastRevision: Revision!
+}
+
+type Revision @entity {
+  id: Bytes!
+  data: String!
+  issuerType: IssuerType!
+  tao: String!
+  rootTao: String!
+}
+
+type Proxy @entity {
+  id: Bytes!
+  data: String!
+}
+
+type Metadata @entity {
+  id: Bytes!
+  content: String!
+}

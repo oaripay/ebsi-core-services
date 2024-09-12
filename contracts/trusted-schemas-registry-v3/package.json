@@ -52,6 +52,7 @@
       "build": {
         "outputs": [
           "{projectRoot}/dist",
+          "{projectRoot}/src/abi",
           "{projectRoot}/src/types"
         ]
       },

@@ -19,3 +19,14 @@ contracts/*/dist
 contracts/*/src
 contracts/*/scripts
 contracts/*/tests
+
+## Subgraphs
+subgraphs/*/subgraph.yaml
+subgraphs/*/build
+subgraphs/*/generated
+subgraphs/*/tests/.bin
+subgraphs/*/tests/.docker
+subgraphs/*/tests/.latest.json
+
+## Tests
+tests
