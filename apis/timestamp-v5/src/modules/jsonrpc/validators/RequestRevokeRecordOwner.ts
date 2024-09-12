@@ -4,11 +4,11 @@ import { baseParamSchema } from "./BaseParamSchema.js";
 
 import { refinements } from "./utils.js";
 
-const { isHexadecimal } = refinements;
+const { isHexadecimal, isEthereumAddress } = refinements;
 export const revokeRecordOwnerSchema = baseParamSchema.merge(
   z.object({
     recordId: z.string().superRefine(isHexadecimal),
-    ownerId: z.string(),
+    ownerId: z.string().superRefine(isEthereumAddress),
   }),
 );
 

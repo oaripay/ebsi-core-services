@@ -213,7 +213,7 @@ describe("Records Module", () => {
 
   describe("GET /records/{recordId}", () => {
     it("should return a specific record", async () => {
-      expect.assertions(2);
+      expect.assertions(3);
 
       const respRecords = await request(server).get("/records");
 
@@ -233,6 +233,11 @@ describe("Records Module", () => {
         totalVersions: 2,
       });
       expect(response.status).toBe(200);
+
+      const correctOwnerIds = (
+        response.body as { ownerIds: string[] }
+      ).ownerIds.map((ownerId) => /^(0x)?[0-9a-fA-F]{40}$/g.test(ownerId));
+      expect(correctOwnerIds).toStrictEqual([true, true]);
     });
 
     it("should throw an error if the record is not found", async () => {

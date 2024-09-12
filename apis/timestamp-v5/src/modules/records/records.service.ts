@@ -131,10 +131,10 @@ export default class RecordsService {
     const now = Math.floor(Date.now() / 1000);
     const ownerIds = res.record.owners
       .filter((o) => now >= Number(o.notBefore) && now <= Number(o.notAfter))
-      .map((o) => o.id);
+      .map((o) => o.id.slice(o.id.lastIndexOf("0x")));
     const revokedOwnerIds = res.record.owners
       .filter((o) => now > Number(o.notAfter))
-      .map((o) => o.id);
+      .map((o) => o.id.slice(o.id.lastIndexOf("0x")));
     const totalVersions = res.record.versions.length;
     const firstVersionTimestamps =
       totalVersions > 0

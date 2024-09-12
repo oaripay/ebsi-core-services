@@ -703,7 +703,7 @@ describe("JsonRpc Module", () => {
           param = {
             from: testAdmin.wallet.address,
             recordId,
-            ownerId: "owner",
+            ownerId: "0x12f83f9024E6e2a1426B306BF8242b9156F6c18A",
             notBefore: 1042,
             notAfter: 1021201545,
           } satisfies InsertRecordOwnerSchema;
@@ -719,7 +719,7 @@ describe("JsonRpc Module", () => {
           param = {
             from: testAdmin.wallet.address,
             recordId,
-            ownerId: "owner",
+            ownerId: "0x12f83f9024E6e2a1426B306BF8242b9156F6c18A",
           } satisfies RevokeRecordOwnerSchema;
           break;
         }
@@ -993,7 +993,7 @@ describe("JsonRpc Module", () => {
             from: testAdmin.wallet.address,
             recordId:
               "0x011742226f9fad758490f98ba3d3a7c841db6ce3b6a889748b419e50eb63513d",
-            ownerId: "owner",
+            ownerId: "0x12f83f9024E6e2a1426B306BF8242b9156F6c18A",
             notBefore: 1042,
             notAfter: 1021201545,
           } satisfies InsertRecordOwnerSchema;
@@ -1004,7 +1004,7 @@ describe("JsonRpc Module", () => {
             from: testAdmin.wallet.address,
             recordId:
               "0x011742226f9fad758490f98ba3d3a7c841db6ce3b6a889748b419e50eb63513d",
-            ownerId: "owner",
+            ownerId: "0x12f83f9024E6e2a1426B306BF8242b9156F6c18A",
           } satisfies RevokeRecordOwnerSchema;
           break;
         }
@@ -1460,11 +1460,13 @@ describe("JsonRpc Module", () => {
 
           param2 = {
             from: testAdmin.wallet.address,
+            ownerId: "owner",
             recordId:
               "0x1234567890123456789012345678901234567890123456789012345678901234",
           } as unknown as RevokeRecordOwnerSchema;
 
-          expectedErrorMessage2 = "Invalid 'params.0.ownerId': Required";
+          expectedErrorMessage2 =
+            "Invalid 'params.0.ownerId': Must be an ethereum address";
 
           param3 = {
             from: testAdmin.wallet.address,
@@ -1848,7 +1850,7 @@ describe("JsonRpc Module", () => {
           param1 = {
             from: testUser.wallet.address,
             recordId,
-            ownerId: "owner",
+            ownerId: "0x92D270f56652Fe1b6c3a531944b7707689cC014E",
             notBefore: 1042,
             notAfter: 1021201545,
           } satisfies InsertRecordOwnerSchema;
@@ -1856,7 +1858,8 @@ describe("JsonRpc Module", () => {
           param2 = {
             from: testAdmin.wallet.address,
             recordId,
-            ownerId: "ownerchanged",
+            // owner changed
+            ownerId: "0x832531A8eaEfeB8E83088Be1914420d94Ca01eC0",
             notBefore: 1042,
             notAfter: 1021201545,
           } satisfies InsertRecordOwnerSchema;
@@ -1874,13 +1877,14 @@ describe("JsonRpc Module", () => {
           param1 = {
             from: testUser.wallet.address,
             recordId,
-            ownerId: "owner",
+            ownerId: "0x92D270f56652Fe1b6c3a531944b7707689cC014E",
           } satisfies RevokeRecordOwnerSchema;
 
           param2 = {
             from: testAdmin.wallet.address,
             recordId,
-            ownerId: "ownerchanged",
+            // owner changed
+            ownerId: "0x832531A8eaEfeB8E83088Be1914420d94Ca01eC0",
           } satisfies RevokeRecordOwnerSchema;
 
           break;

@@ -10,12 +10,12 @@ import { baseParamSchema } from "./BaseParamSchema.js";
 
 import { refinements } from "./utils.js";
 
-const { isHexadecimal } = refinements;
+const { isHexadecimal, isEthereumAddress } = refinements;
 
 export const insertRecordOwnerSchema = baseParamSchema.merge(
   z.object({
     recordId: z.string().superRefine(isHexadecimal),
-    ownerId: z.string(),
+    ownerId: z.string().superRefine(isEthereumAddress),
     notBefore: z
       .custom<BigNumberish>((val) => isBigNumberish(val))
       .refine((val) => BigNumber.from(val).gte(0), {

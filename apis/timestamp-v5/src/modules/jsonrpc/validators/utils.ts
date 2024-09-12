@@ -83,6 +83,15 @@ export const refinements = {
       });
     }
   },
+  isEthereumAddress: (val: string, ctx: RefinementCtx) => {
+    if (!validators.isEthereumAddress(val)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Must be an ethereum address",
+        fatal: true,
+      });
+    }
+  },
   isHexadecimalJSON: (val: string, ctx: RefinementCtx) => {
     const isValid = isHexadecimalJSON(val);
 
