@@ -765,7 +765,7 @@ describe("Schemas Module", () => {
 
       expect(response.body).toStrictEqual({
         detail:
-          '["schemaRevisionId must be a hexadecimal number","schemaRevisionId must match /^0x/ regular expression"]',
+          '["schemaRevisionId must be longer than or equal to 66 characters","schemaRevisionId must be a hexadecimal number","schemaRevisionId must start with 0x"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -989,7 +989,7 @@ describe("Schemas Module", () => {
 
       expect(response.body).toStrictEqual({
         detail:
-          '["schemaRevisionId must be a hexadecimal number","schemaRevisionId must match /^0x/ regular expression"]',
+          '["schemaRevisionId must be longer than or equal to 66 characters","schemaRevisionId must be a hexadecimal number","schemaRevisionId must start with 0x"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -1244,18 +1244,34 @@ describe("Schemas Module", () => {
     });
 
     it("should throw an error if the schema revision ID is not hexadecimal", async () => {
-      expect.assertions(3);
+      expect.assertions(6);
 
       const schemaId = `0x${crypto.randomBytes(32).toString("hex")}`;
       const metadataId = `0x${crypto.randomBytes(32).toString("hex")}`;
 
-      const response = await request(server).get(
+      let response = await request(server).get(
         `/schemas/${schemaId}/revisions/no-revision/metadata/${metadataId}`,
       );
 
       expect(response.body).toStrictEqual({
         detail:
-          '["schemaRevisionId must be a hexadecimal number","schemaRevisionId must match /^0x/ regular expression"]',
+          '["schemaRevisionId must be longer than or equal to 66 characters","schemaRevisionId must be a hexadecimal number","schemaRevisionId must start with 0x"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+
+      response = await request(server).get(
+        `/schemas/${schemaId}/revisions/0x00/metadata/${metadataId}`,
+      );
+
+      expect(response.body).toStrictEqual({
+        detail:
+          '["schemaRevisionId must be longer than or equal to 66 characters"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -1291,19 +1307,34 @@ describe("Schemas Module", () => {
     });
 
     it("should throw an error if the metadata ID is not hexadecimal", async () => {
-      expect.assertions(3);
+      expect.assertions(6);
 
       const schema = testEnv.schemas[0]!;
       const { schemaId } = schema;
       const schemaRevisionId = ethers.utils.sha256(schema.serializedSchema);
 
-      const response = await request(server).get(
+      let response = await request(server).get(
         `/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata/no-metadata`,
       );
 
       expect(response.body).toStrictEqual({
         detail:
-          '["metadataId must be a hexadecimal number","metadataId must match /^0x/ regular expression"]',
+          '["metadataId must be longer than or equal to 66 characters","metadataId must be a hexadecimal number","metadataId must start with 0x"]',
+        status: 400,
+        title: "Bad Request",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+      expect(
+        (response.headers as { "content-type": string })["content-type"],
+      ).toStrictEqual(expect.stringContaining("application/problem+json"));
+
+      response = await request(server).get(
+        `/schemas/${schemaId}/revisions/${schemaRevisionId}/metadata/0x00`,
+      );
+
+      expect(response.body).toStrictEqual({
+        detail: '["metadataId must be longer than or equal to 66 characters"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
@@ -1319,7 +1350,7 @@ describe("Schemas Module", () => {
 
       const schema = testEnv.schemas[0]!;
       const { schemaId } = schema;
-      const schemaRevisionId = `0x${crypto.randomBytes(32).toString("hex")}`;
+      const schemaRevisionId = ethers.utils.sha256(schema.serializedSchema);
       const metadataId = `0x${crypto.randomBytes(32).toString("hex")}`;
 
       const response = await request(server).get(
@@ -1327,9 +1358,9 @@ describe("Schemas Module", () => {
       );
 
       expect(response.body).toStrictEqual({
-        title: "Revision Not Found",
+        title: "Metadata Not Found",
         status: 404,
-        detail: `Revision ${schemaRevisionId} not found`,
+        detail: `Metadata ${metadataId} not found`,
         type: "about:blank",
       });
       expect(response.status).toBe(404);
