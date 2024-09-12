@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "@ebsiint-subgraph/deployer",
+  "name": "@ebsiint-subgraph/subgraphs-deployer",
   "version": "0.0.0-rc.0",
   "type": "module",
   "scripts": {
