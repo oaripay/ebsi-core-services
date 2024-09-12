@@ -22,9 +22,9 @@ query GetRevisions($schemaId: String!, $skip: Int!, $pagesize: Int!) {
 
 query GetAllRevisionsWithMetadata($schemaId: String!) {
   schema(id: $schemaId) {
-    revisions(first: 10000, skip: 0) {
+    revisions(first: 1000, skip: 0) {
       id
-      metadata(first: 10000, skip: 0) {
+      metadata(first: 1000, skip: 0) {
         content
       }
     }
