@@ -1,7 +1,7 @@
-import { IsMultibase64urlEncoded } from "@ebsiint-api/shared";
+import { IsMultihashMultibase64urlEncoded } from "@ebsiint-api/shared";
 
 export class GetTimestampDto {
-  @IsMultibase64urlEncoded()
+  @IsMultihashMultibase64urlEncoded()
   timestampId!: string;
 }
 

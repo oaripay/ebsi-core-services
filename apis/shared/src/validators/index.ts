@@ -1,6 +1,7 @@
 export * from "./IsDidV1.js";
 export * from "./IsDid.js";
 export * from "./IsMultibase64urlEncoded.js";
+export * from "./IsMultihashMultibase64urlEncoded.js";
 export * from "./IsDidDocument.js";
 export * from "./IsBaseDocument.js";
 export * from "./IsPublicKeyHex.js";

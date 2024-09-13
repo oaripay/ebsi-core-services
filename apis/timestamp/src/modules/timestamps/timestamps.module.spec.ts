@@ -389,7 +389,7 @@ describe("Timestamps Module", () => {
       const response = await request(server).get(`/timestamps/${timestampId}`);
 
       expect(response.body).toStrictEqual({
-        detail: '["timestampId must be multi-base64url encoded"]',
+        detail: '["timestampId must be multihash encoded in multi-base64url"]',
         status: 400,
         title: "Bad Request",
         type: "about:blank",
