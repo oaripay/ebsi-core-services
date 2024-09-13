@@ -346,6 +346,21 @@ describe("Identifiers Module", () => {
       ).toStrictEqual(expect.stringContaining("application/did+json"));
     });
 
+    it("should throw an error if valid-at is before epoch time", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get(
+        `/identifiers/${did2}?valid-at=1023-11-14`,
+      );
+      expect(response.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: "valid-at cannot be before 1970-01-01",
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
+    });
+
     it("should return a DID document valid at a specific time", async () => {
       expect.assertions(2);
 

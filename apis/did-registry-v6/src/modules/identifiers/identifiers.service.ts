@@ -263,22 +263,28 @@ export default class IdentifiersService {
       document = res;
     } else {
       const timestamp = Math.floor(new Date(validAt).getTime() / 1000);
+      if (timestamp < 0) {
+        throw new BadRequestError("Bad Request", {
+          detail: "valid-at cannot be before 1970-01-01",
+        });
+      }
       const res = await sdk.GetDidDocumentByTimestamp({
         id: did,
         did,
         timestamp,
       });
       document = res;
-      if (document.didDocument?.verificationRelationships.length === 0) {
-        document.didDocument.controllers = [];
-        document.didDocument.verificationMethods = [];
-      }
     }
 
-    if (!document.didDocument?.baseDocument) {
+    if (!document.didDocument || !document.didDocument.baseDocument) {
       throw new NotFoundError("Identifier Not Found", {
         detail: `Identifier ${did} not found`,
       });
+    }
+
+    if (document.didDocument.verificationRelationships.length === 0) {
+      document.didDocument.controllers = [];
+      document.didDocument.verificationMethods = [];
     }
 
     let baseDocument: Record<string, unknown>;
