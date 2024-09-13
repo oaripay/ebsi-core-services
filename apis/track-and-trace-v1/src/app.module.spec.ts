@@ -67,11 +67,11 @@ interface SupertestJsonRpcResponse {
 }
 
 /**
- * Encode DID in URLs mocked by MSW
+ * Escape DID in URLs mocked by MSW
  * @see https://github.com/mswjs/msw/discussions/739#discussioncomment-2524732
  */
-function encodeDid(did: string) {
-  return did.replaceAll(":", "\\:");
+function escapeDid(url: string) {
+  return url.replace("did:ebsi:", "did\\:ebsi\\:");
 }
 
 describe("App Module", () => {
@@ -450,11 +450,13 @@ describe("App Module", () => {
     // documentCreator and didEbsiEventsCreator exist in the DID registry
     mockServer.use(
       http.get(
-        `${didRegistryApiUrl}/identifiers/${encodeDid(documentCreator.did)}`,
+        escapeDid(`${didRegistryApiUrl}/identifiers/${documentCreator.did}`),
         () => HttpResponse.json({}),
       ),
       http.get(
-        `${didRegistryApiUrl}/identifiers/${encodeDid(didEbsiEventsCreator.did)}`,
+        escapeDid(
+          `${didRegistryApiUrl}/identifiers/${didEbsiEventsCreator.did}`,
+        ),
         () => HttpResponse.json({}),
       ),
     );

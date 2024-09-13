@@ -68,6 +68,14 @@ type JsonRpcParams =
   | AddIssuerProxyParam
   | UpdateIssuerProxyParam;
 
+/**
+ * Escape DID in URLs mocked by MSW
+ * @see https://github.com/mswjs/msw/discussions/739#discussioncomment-2524732
+ */
+function escapeDid(url: string) {
+  return url.replace("did:ebsi:", "did\\:ebsi\\:");
+}
+
 describe("JsonRpc Module", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault;
@@ -344,12 +352,15 @@ describe("JsonRpc Module", () => {
 
     mockServer.use(
       // Mock DIDR API v4 /identifiers/${issuer.did}
-      http.get(`${didRegistryApiUrl}/identifiers/${issuer.did}`, () =>
-        HttpResponse.json(issuer1DidDocument),
+      http.get(
+        escapeDid(`${didRegistryApiUrl}/identifiers/${issuer.did}`),
+        () => HttpResponse.json(issuer1DidDocument),
       ),
       // Make test status list JWT available
       http.get(
-        `${issuers[0]!.proxy.obj.prefix}${issuers[0]!.proxy.obj.testSuffix}`,
+        escapeDid(
+          `${issuers[0]!.proxy.obj.prefix}${issuers[0]!.proxy.obj.testSuffix}`,
+        ),
         () => HttpResponse.json(issuerV1StatusList2021CredentialJwt),
       ),
     );
@@ -404,9 +415,11 @@ describe("JsonRpc Module", () => {
     // The DID does not exist
     mockServer.use(
       http.post(
-        `${configService.get<string>(
-          "didRegistryApiUrl",
-        )}/identifiers/${tao1.did}/actions`,
+        escapeDid(
+          `${configService.get<string>(
+            "didRegistryApiUrl",
+          )}/identifiers/${tao1.did}/actions`,
+        ),
         () =>
           HttpResponse.json(
             {

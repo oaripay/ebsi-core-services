@@ -58,11 +58,11 @@ import { configureApp } from "../../../tests/utils/app.js";
 import { CreateAccessTokenDto } from "./dto/index.js";
 
 /**
- * Encode DID in URLs mocked by MSW
+ * Escape DID in URLs mocked by MSW
  * @see https://github.com/mswjs/msw/discussions/739#discussioncomment-2524732
  */
-function encodeDid(did: string) {
-  return did.replaceAll(":", "\\:");
+function escapeDid(url: string) {
+  return url.replace("did:ebsi:", "did\\:ebsi\\:");
 }
 
 describe.each(["EBSI URI", "URL"] as const)(
@@ -132,15 +132,15 @@ describe.each(["EBSI URI", "URL"] as const)(
     beforeEach(async () => {
       mockServer.use(
         http.get(
-          `${domain}/did-registry/v4/identifiers/${encodeDid(
-            credentialIssuer.did,
-          )}`,
+          escapeDid(
+            `${domain}/did-registry/v4/identifiers/${credentialIssuer.did}`,
+          ),
           () => HttpResponse.json(credentialIssuer.didDocument),
         ),
         http.get(
-          `${domain}/trusted-issuers-registry/v4/issuers/${encodeDid(
-            credentialIssuer.did,
-          )}`,
+          escapeDid(
+            `${domain}/trusted-issuers-registry/v4/issuers/${credentialIssuer.did}`,
+          ),
           () => HttpResponse.json({}),
         ),
       );
@@ -213,7 +213,7 @@ describe.each(["EBSI URI", "URL"] as const)(
       );
 
       mockServer.use(
-        http.get(credentialIssuerAccreditationUrl, () =>
+        http.get(escapeDid(credentialIssuerAccreditationUrl), () =>
           HttpResponse.json({ attribute: { body: accreditationVcJwt } }),
         ),
       );
@@ -380,7 +380,7 @@ describe.each(["EBSI URI", "URL"] as const)(
 
         //  With explicit scope "openid didr_invite"
         let response = await request(server).get(
-          `/presentation-definitions?scope=${encodeDid(
+          `/presentation-definitions?scope=${encodeURIComponent(
             `openid ${DIDR_INVITE_SCOPE}`,
           )}`,
         );
@@ -392,7 +392,7 @@ describe.each(["EBSI URI", "URL"] as const)(
 
         // With explicit scope "openid didr_write"
         response = await request(server).get(
-          `/presentation-definitions?scope=${encodeDid(
+          `/presentation-definitions?scope=${encodeURIComponent(
             `openid ${DIDR_WRITE_SCOPE}`,
           )}`,
         );
@@ -402,7 +402,7 @@ describe.each(["EBSI URI", "URL"] as const)(
 
         // With explicit scope "openid tir_invite"
         response = await request(server).get(
-          `/presentation-definitions?scope=${encodeDid(
+          `/presentation-definitions?scope=${encodeURIComponent(
             `openid ${TIR_INVITE_SCOPE}`,
           )}`,
         );
@@ -412,7 +412,7 @@ describe.each(["EBSI URI", "URL"] as const)(
 
         // With explicit scope "openid tir_write"
         response = await request(server).get(
-          `/presentation-definitions?scope=${encodeDid(
+          `/presentation-definitions?scope=${encodeURIComponent(
             `openid ${TIR_WRITE_SCOPE}`,
           )}`,
         );
@@ -558,18 +558,18 @@ describe.each(["EBSI URI", "URL"] as const)(
           if (customScope === DIDR_INVITE_SCOPE) {
             mockServer.use(
               http.get(
-                `${domain}/did-registry/v4/identifiers/${encodeDid(
-                  credentialSubject.did,
-                )}`,
+                escapeDid(
+                  `${domain}/did-registry/v4/identifiers/${credentialSubject.did}`,
+                ),
                 () => new HttpResponse(null, { status: 404 }), // HttpResponse.text("Not found", { status: 404 }),
               ),
             );
           } else {
             mockServer.use(
               http.get(
-                `${domain}/did-registry/v4/identifiers/${encodeDid(
-                  credentialSubject.did,
-                )}`,
+                escapeDid(
+                  `${domain}/did-registry/v4/identifiers/${credentialSubject.did}`,
+                ),
                 () => HttpResponse.json(credentialSubject.didDocument),
               ),
             );
@@ -578,9 +578,9 @@ describe.each(["EBSI URI", "URL"] as const)(
           if (customScope === TIR_INVITE_SCOPE) {
             mockServer.use(
               http.get(
-                `${domain}/trusted-issuers-registry/v4/issuers/${encodeDid(
-                  credentialSubject.did,
-                )}`,
+                escapeDid(
+                  `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}`,
+                ),
                 () =>
                   HttpResponse.json({
                     did: credentialSubject.did,
@@ -609,9 +609,9 @@ describe.each(["EBSI URI", "URL"] as const)(
             // For tir_invite, create empty revisions
             mockServer.use(
               http.get(
-                `${domain}/trusted-issuers-registry/v4/issuers/${encodeDid(
-                  credentialSubject.did,
-                )}`,
+                escapeDid(
+                  `${domain}/trusted-issuers-registry/v4/issuers/${credentialSubject.did}`,
+                ),
                 () =>
                   HttpResponse.json({
                     did: credentialSubject.did,
@@ -1494,9 +1494,9 @@ describe.each(["EBSI URI", "URL"] as const)(
 
               mockServer.use(
                 http.get(
-                  `${domain}/did-registry/v4/identifiers/${encodeDid(
-                    vpSigner.did,
-                  )}`,
+                  escapeDid(
+                    `${domain}/did-registry/v4/identifiers/${vpSigner.did}`,
+                  ),
                   () => HttpResponse.text("Not found", { status: 404 }),
                 ),
               );
@@ -1521,15 +1521,17 @@ describe.each(["EBSI URI", "URL"] as const)(
 
               mockServer.use(
                 http.get(
-                  `${domain}/did-registry/v4/identifiers/${encodeDid(
-                    vpSigner.did,
-                  )}`,
+                  escapeDid(
+                    `${domain}/did-registry/v4/identifiers/${vpSigner.did}`,
+                  ),
                   () => HttpResponse.json(vpSigner.didDocument),
                 ),
                 http.get(
-                  `${domain}/trusted-issuers-registry/v4/issuers/${encodeDid(
-                    vpSigner.did,
-                  )}`,
+                  escapeDid(
+                    `${domain}/trusted-issuers-registry/v4/issuers/${
+                      vpSigner.did
+                    }`,
+                  ),
                   () => HttpResponse.text("Not found", { status: 404 }),
                 ),
               );
@@ -1801,13 +1803,13 @@ describe.each(["EBSI URI", "URL"] as const)(
 
       mockServer.use(
         http.get(
-          `${domain}/did-registry/v4/identifiers/${encodeDid(vpSigner.did)}`,
+          escapeDid(`${domain}/did-registry/v4/identifiers/${vpSigner.did}`),
           () => HttpResponse.json(vpSigner.didDocument),
         ),
         http.get(
-          `${domain}/trusted-issuers-registry/v4/issuers/${encodeDid(
-            vpSigner.did,
-          )}`,
+          escapeDid(
+            `${domain}/trusted-issuers-registry/v4/issuers/${vpSigner.did}`,
+          ),
           () => HttpResponse.text("Not found", { status: 404 }),
         ),
       );

@@ -72,6 +72,14 @@ type JsonRpcParams =
   | TimestampVersionHashesSchema
   | UnsignedTransactionSchema;
 
+/**
+ * Escape DID in URLs mocked by MSW
+ * @see https://github.com/mswjs/msw/discussions/739#discussioncomment-2524732
+ */
+function escapeDid(url: string) {
+  return url.replace("did:ebsi:", "did\\:ebsi\\:");
+}
+
 describe("JsonRpc Module", () => {
   let app: NestFastifyApplication;
   let configService: ConfigService<ApiConfig, true>;
@@ -378,9 +386,11 @@ describe("JsonRpc Module", () => {
     // The DID does not exist
     mockServer.use(
       http.post(
-        `${configService.get<string>(
-          "didRegistryApiUrl",
-        )}/identifiers/${testAdmin.did}/actions`,
+        escapeDid(
+          `${configService.get<string>(
+            "didRegistryApiUrl",
+          )}/identifiers/${testAdmin.did}/actions`,
+        ),
         () =>
           HttpResponse.json(
             {

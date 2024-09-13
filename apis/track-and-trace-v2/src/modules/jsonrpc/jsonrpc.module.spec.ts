@@ -78,11 +78,11 @@ type JsonRpcParams =
   | WriteEventSchema;
 
 /**
- * Encode DID in URLs mocked by MSW
+ * Escape DID in URLs mocked by MSW
  * @see https://github.com/mswjs/msw/discussions/739#discussioncomment-2524732
  */
-function encodeDid(did: string) {
-  return did.replaceAll(":", "\\:");
+function escapeDid(url: string) {
+  return url.replace("did:ebsi:", "did\\:ebsi\\:");
 }
 
 describe("JsonRpc Module", () => {
@@ -255,10 +255,10 @@ describe("JsonRpc Module", () => {
         }),
       ),
       // Mock users 1 and 2 DID documents (the documents don't matter, they just need to exist)
-      http.get(`${didRegistryApiUrl}/identifiers/${encodeDid(user1.did)}`, () =>
+      http.get(escapeDid(`${didRegistryApiUrl}/identifiers/${user1.did}`), () =>
         HttpResponse.json({}),
       ),
-      http.get(`${didRegistryApiUrl}/identifiers/${encodeDid(user2.did)}`, () =>
+      http.get(escapeDid(`${didRegistryApiUrl}/identifiers/${user2.did}`), () =>
         HttpResponse.json({}),
       ),
     );
@@ -887,7 +887,9 @@ describe("JsonRpc Module", () => {
             });
             mockServer.use(
               http.get(
-                `${didRegistryApiUrl}/identifiers/${encodeDid(randomAuthorisedDid)}`,
+                escapeDid(
+                  `${didRegistryApiUrl}/identifiers/${randomAuthorisedDid}`,
+                ),
                 () =>
                   HttpResponse.json(
                     {
