@@ -26,7 +26,7 @@ type TimestampSet {
   hashAlgorithmId: String!
   timestampData: String!
   hashValue: String!
-  recordIdsFirstVersion(first: Int = 100, skip: Int = 0): [String!]!
+  recordIdsFirstVersion(first: Int = 100, skip: Int = 0): [Record!]!
 }
 
 type VersionInfo {
@@ -44,7 +44,7 @@ type Version {
 
 type Owner {
   id: String!
-  recordIds(first: Int = 100, skip: Int = 0): [String!]!
+  recordIds(first: Int = 100, skip: Int = 0): [Record!]!
 }
 
 type OwnerRecord {

@@ -75,7 +75,7 @@ export default class RecordsService {
       throw new InternalServerError();
     }
 
-    const ids = res.timestampSet.recordIdsFirstVersion;
+    const ids = res.timestampSet.recordIdsFirstVersion.map((r) => r.id);
     return { items: ids };
   }
 
@@ -102,7 +102,7 @@ export default class RecordsService {
       return { items: [] };
     }
 
-    return { items: res.owner.recordIds };
+    return { items: res.owner.recordIds.map((r) => r.id) };
   }
 
   async getRecord(recordIdEncoded: string): Promise<RecordResponseObject> {

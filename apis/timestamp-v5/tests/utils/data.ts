@@ -156,7 +156,6 @@ for (let i = 0; i < timestampSets.length; i += 1) {
         },
       ],
     };
-    timestampSets[i]!.recordIdsFirstVersion.push(recordId);
     const record: Record = {
       id: recordId,
       owners: dummyEthAddresses.map((address) => ({
@@ -166,9 +165,10 @@ for (let i = 0; i < timestampSets.length; i += 1) {
       })),
       versions: [version],
     };
+    timestampSets[i]!.recordIdsFirstVersion.push(record);
     records.push(record);
     owners.forEach((owner) => {
-      owner.recordIds.push(recordId);
+      owner.recordIds.push(record);
     });
   } else {
     // add a new version to last record

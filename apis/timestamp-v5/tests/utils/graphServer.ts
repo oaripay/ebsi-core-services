@@ -215,10 +215,12 @@ export const graphServer = setupServer(
         },
       });
     }
-    const recordIdsFirstVersion = timestampSet.recordIdsFirstVersion.slice(
-      skip,
-      skip + pagesize,
-    );
+    const recordIdsFirstVersion = timestampSet.recordIdsFirstVersion
+      .slice(skip, skip + pagesize)
+      .map((r) => {
+        const { id } = r;
+        return { id };
+      });
     return HttpResponse.json({
       data: {
         timestamp: {
@@ -242,7 +244,9 @@ export const graphServer = setupServer(
         },
       });
     }
-    const recordIds = owner.recordIds.slice(skip, skip + pagesize);
+    const recordIds = owner.recordIds.slice(skip, skip + pagesize).map((r) => {
+      return { id: r.id };
+    });
     return HttpResponse.json({
       data: {
         owner: {

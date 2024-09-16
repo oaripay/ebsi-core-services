@@ -46,12 +46,16 @@ query GetTimestampRecordIdsFirstVersion(
   $pagesize: Int!
 ) {
   timestampSet(id: $timestampId) {
-    recordIdsFirstVersion(first: $pagesize, skip: $skip)
+    recordIdsFirstVersion(first: $pagesize, skip: $skip) {
+      id
+    }
   }
 }
 
 query GetOwner($id: String!, $skip: Int!, $pagesize: Int!) {
   owner(id: $id) {
-    recordIds(first: $pagesize, skip: $skip)
+    recordIds(first: $pagesize, skip: $skip) {
+      id
+    }
   }
 }
