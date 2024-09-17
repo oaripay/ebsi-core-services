@@ -1,5 +1,5 @@
-query GetIssuers($skip: Int!, $pagesize: Int!) {
-  issuers(first: $pagesize, skip: $skip) {
+query GetIssuers($skip: Int!, $pagesize: Int!, $where: Issuer_filter) {
+  issuers(first: $pagesize, skip: $skip, where: $where) {
     id
   }
 }
@@ -18,9 +18,14 @@ query GetIssuer($did: String!) {
   }
 }
 
-query GetAttributes($did: String!, $skip: Int!, $pagesize: Int!) {
+query GetAttributes(
+  $did: String!
+  $skip: Int!
+  $pagesize: Int!
+  $where: Attribute_filter
+) {
   issuer(id: $did) {
-    attributes(first: $pagesize, skip: $skip) {
+    attributes(first: $pagesize, skip: $skip, where: $where) {
       id
     }
   }
@@ -45,6 +50,7 @@ query GetRevisions(
   $attributeId: String!
   $skip: Int!
   $pagesize: Int!
+  $where: Revision_filter
 ) {
   issuer(id: $did) {
     attributes(first: 1, skip: 0, where: { id: $attributeId }) {
@@ -59,7 +65,12 @@ query GetRevisions(
   }
 }
 
-query GetProxies($did: String!, $skip: Int!, $pagesize: Int!) {
+query GetProxies(
+  $did: String!
+  $skip: Int!
+  $pagesize: Int!
+  $where: Proxy_filter
+) {
   issuer(id: $did) {
     proxies(first: $pagesize, skip: $skip) {
       id

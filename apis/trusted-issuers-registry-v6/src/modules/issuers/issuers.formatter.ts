@@ -14,6 +14,7 @@ export function formatIssuers(
   page: number,
   pageSize: number,
   baseUrl: string,
+  extraQuery?: string,
 ): PaginatedListWithoutTotal<DidLink> {
   // Reshape items
   const items = issuers.items.map((did) => ({
@@ -21,7 +22,13 @@ export function formatIssuers(
     href: `${baseUrl}/${did}`,
   }));
 
-  return paginateWithoutTotal<DidLink>(items, baseUrl, page, pageSize);
+  return paginateWithoutTotal<DidLink>(
+    items,
+    baseUrl,
+    page,
+    pageSize,
+    extraQuery,
+  );
 }
 
 export function formatAttributes(
@@ -29,13 +36,20 @@ export function formatAttributes(
   page: number,
   pageSize: number,
   baseUrl: string,
+  extraQuery?: string,
 ): PaginatedListWithoutTotal<IdLink> {
   const items = attributes.items.map((id) => ({
     id,
     href: `${baseUrl}/${id}`,
   }));
 
-  return paginateWithoutTotal<IdLink>(items, baseUrl, page, pageSize);
+  return paginateWithoutTotal<IdLink>(
+    items,
+    baseUrl,
+    page,
+    pageSize,
+    extraQuery,
+  );
 }
 
 export function formatRevisions(

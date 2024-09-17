@@ -24,9 +24,16 @@ import {
 import type { ApiConfig } from "../../config/configuration.js";
 import {
   GetIssuerAttributeParamsDto,
+  GetIssuerAttributesQueryDto,
   GetIssuerParamsDto,
   GetIssuerProxyParamsDto,
+  GetIssuersQueryDto,
 } from "./dto/index.js";
+import {
+  Attribute_filter,
+  Issuer_filter,
+  // eslint-disable-next-line import/extensions, import/no-relative-packages
+} from "../../../.graphclient/index.js";
 
 @Controller("/issuers")
 export class IssuersController {
@@ -37,21 +44,41 @@ export class IssuersController {
 
   @Get("")
   async issuers(
-    @Query() query: PaginationQuery,
+    @Query() query: GetIssuersQueryDto,
   ): Promise<PaginatedListWithoutTotal<DidLink>> {
+    const where: Issuer_filter = {
+      ...(query["attribute-id"] && {
+        attributes_: {
+          id: query["attribute-id"],
+        },
+      }),
+      ...(query["proxy-id"] && {
+        proxies_: {
+          id: query["proxy-id"],
+        },
+      }),
+    };
+
     const issuers = await this.issuersService.getIssuers(
       query["page[after]"],
       query["page[size]"],
+      where,
     );
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
     const domain = this.configService.get<string>("domain");
     const baseUrl = `${domain}${apiUrlPrefix}/issuers`;
+
+    let extraQuery = "";
+    if (query["attribute-id"])
+      extraQuery += `&attribute-id=${query["attribute-id"]}`;
+    if (query["proxy-id"]) extraQuery += `&proxy-id=${query["proxy-id"]}`;
 
     return formatIssuers(
       issuers,
       query["page[after]"],
       query["page[size]"],
       baseUrl,
+      extraQuery,
     );
   }
 
@@ -66,25 +93,38 @@ export class IssuersController {
   @Get("/:did/attributes")
   async getIssuerAttributes(
     @Param() params: GetIssuerParamsDto,
-    @Query() query: PaginationQuery,
+    @Query() query: GetIssuerAttributesQueryDto,
   ): Promise<PaginatedListWithoutTotal<IdLink>> {
     const { did } = params;
+    const where: Attribute_filter = {
+      ...(query["issuer-type"] && {
+        lastRevision_: {
+          issuerType: query["issuer-type"],
+        },
+      }),
+    };
 
     const attributes = await this.issuersService.getAttributes(
       did,
       query["page[after]"],
       query["page[size]"],
+      where,
     );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
     const domain = this.configService.get<string>("domain");
     const baseUrl = `${domain}${apiUrlPrefix}/issuers/${did}/attributes`;
 
+    const extraQuery = query["issuer-type"]
+      ? `&issuer-type=${query["issuer-type"]}`
+      : "";
+
     return formatAttributes(
       attributes,
       query["page[after]"],
       query["page[size]"],
       baseUrl,
+      extraQuery,
     );
   }
 

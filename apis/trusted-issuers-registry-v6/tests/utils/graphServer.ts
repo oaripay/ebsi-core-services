@@ -1,13 +1,37 @@
+/* eslint-disable no-underscore-dangle */
 import { setupServer } from "msw/node";
 import { graphql, HttpResponse } from "msw";
 import { dummyIssuers } from "./data.js";
+// eslint-disable-next-line import/extensions, import/no-relative-packages
+import { Attribute_filter, Issuer_filter } from "../../.graphclient/index.js";
 
 export const graphServer = setupServer(
   graphql.query("GetIssuers", ({ variables }) => {
-    const { skip, pagesize } = variables as { skip: number; pagesize: number };
+    const { skip, pagesize, where } = variables as {
+      skip: number;
+      pagesize: number;
+      where?: Issuer_filter;
+    };
     return HttpResponse.json({
       data: {
         issuers: dummyIssuers
+          .filter((i) => {
+            if (
+              where &&
+              where.attributes_ &&
+              where.attributes_.id &&
+              !i.attributes.find((a) => a.id === where.attributes_!.id)
+            )
+              return false;
+            if (
+              where &&
+              where.proxies_ &&
+              where.proxies_.id &&
+              !i.proxies.find((p) => p.id === where.proxies_!.id)
+            )
+              return false;
+            return true;
+          })
           .slice(skip, skip + pagesize)
           .map((i) => ({ id: i.id })),
       },
@@ -35,10 +59,11 @@ export const graphServer = setupServer(
   }),
 
   graphql.query("GetAttributes", ({ variables }) => {
-    const { did, skip, pagesize } = variables as {
+    const { did, skip, pagesize, where } = variables as {
       did: string;
       skip: number;
       pagesize: number;
+      where?: Attribute_filter;
     };
     const issuer = dummyIssuers.find((i) => i.id === did);
     if (!issuer)
@@ -51,6 +76,15 @@ export const graphServer = setupServer(
       data: {
         issuer: {
           attributes: issuer.attributes
+            .filter((a) => {
+              if (
+                where &&
+                where.lastRevision_ &&
+                a.lastRevision.issuerType !== where.lastRevision_.issuerType
+              )
+                return false;
+              return true;
+            })
             .slice(skip, skip + pagesize)
             .map((i) => ({ id: i.id })),
         },

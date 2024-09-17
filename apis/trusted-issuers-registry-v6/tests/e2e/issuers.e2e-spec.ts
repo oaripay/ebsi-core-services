@@ -81,8 +81,8 @@ function getEbsiIssuer(privateKeyHex: string, did: string, kid: string) {
   const issuer: EbsiIssuer = {
     did,
     kid,
-    alg: "ES256K",
-    signer: getSigner(privateKey, "ES256K"),
+    alg: "ES256",
+    signer: getSigner(privateKey, "ES256"),
   };
   return issuer;
 }

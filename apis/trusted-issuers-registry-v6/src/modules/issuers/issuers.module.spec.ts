@@ -101,6 +101,58 @@ describe("Issuers Module", () => {
       expect(response.status).toBe(200);
     });
 
+    it("should filter by attribute-id", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get(
+        `/issuers?attribute-id=${issuer.attribute.id}`,
+      );
+      const selfLink = `/issuers?page[after]=1&page[size]=10&attribute-id=${issuer.attribute.id}`;
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(selfLink),
+        items: [
+          {
+            did: issuer.did,
+            href: expect.stringContaining(`/issuers/${issuer.did}`),
+          },
+        ],
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(selfLink),
+          prev: expect.stringContaining(selfLink),
+          next: expect.stringContaining(selfLink),
+          last: expect.stringContaining(selfLink),
+        },
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should filter by proxy-id", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get(
+        `/issuers?proxy-id=${issuer.proxy.id}`,
+      );
+      const selfLink = `/issuers?page[after]=1&page[size]=10&proxy-id=${issuer.proxy.id}`;
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(selfLink),
+        items: [
+          {
+            did: issuer.did,
+            href: expect.stringContaining(`/issuers/${issuer.did}`),
+          },
+        ],
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(selfLink),
+          prev: expect.stringContaining(selfLink),
+          next: expect.stringContaining(selfLink),
+          last: expect.stringContaining(selfLink),
+        },
+      });
+      expect(response.status).toBe(200);
+    });
+
     it("should handle the pagination properly", async () => {
       expect.assertions(12);
 
@@ -304,6 +356,36 @@ describe("Issuers Module", () => {
           prev: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
           next: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
           last: expect.stringContaining(`${url}?page[after]=1&page[size]=10`),
+        },
+      });
+      expect(response.status).toBe(200);
+    });
+
+    it("should return the attributes filtered by issuer-type", async () => {
+      expect.assertions(2);
+
+      const url = `/issuers/${issuer.did}/attributes?issuer-type=TI`;
+      const attributeId = remove0xPrefix(issuer.attribute.id);
+
+      const response = await request(server).get(url);
+
+      const selfLink = `/issuers/${issuer.did}/attributes?page[after]=1&page[size]=10&issuer-type=TI`;
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(selfLink),
+        items: [
+          {
+            href: expect.stringContaining(
+              `/issuers/${issuer.did}/attributes/${attributeId}`,
+            ),
+            id: attributeId,
+          },
+        ],
+        pageSize: expect.any(Number),
+        links: {
+          first: expect.stringContaining(selfLink),
+          prev: expect.stringContaining(selfLink),
+          next: expect.stringContaining(selfLink),
+          last: expect.stringContaining(selfLink),
         },
       });
       expect(response.status).toBe(200);

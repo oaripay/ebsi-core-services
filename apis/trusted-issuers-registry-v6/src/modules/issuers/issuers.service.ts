@@ -25,6 +25,8 @@ import {
   GetRevisionsQuery,
   GetProxiesQuery,
   GetProxyQuery,
+  Issuer_filter,
+  Attribute_filter,
   // eslint-disable-next-line import/extensions, import/no-relative-packages
 } from "../../../.graphclient/index.js";
 
@@ -58,13 +60,14 @@ export class IssuersService {
   async getIssuers(
     page: number,
     pagesize: number,
+    where: Issuer_filter,
   ): Promise<{ items: string[] }> {
     const skip = (page - 1) * pagesize;
     let res: GetIssuersQuery;
     try {
       // get one more item to clarify next pages in pagination
       const queryPageSize = pagesize + 1;
-      res = await sdk.GetIssuers({ skip, pagesize: queryPageSize });
+      res = await sdk.GetIssuers({ skip, pagesize: queryPageSize, where });
     } catch (error) {
       this.logger.error(
         error,
@@ -111,13 +114,19 @@ export class IssuersService {
     did: string,
     page: number,
     pagesize: number,
+    where: Attribute_filter,
   ): Promise<{ items: string[] }> {
     const skip = (page - 1) * pagesize;
     let res: GetAttributesQuery;
     try {
       // get one more item to clarify next pages in pagination
       const queryPageSize = pagesize + 1;
-      res = await sdk.GetAttributes({ skip, pagesize: queryPageSize, did });
+      res = await sdk.GetAttributes({
+        skip,
+        pagesize: queryPageSize,
+        did,
+        where,
+      });
     } catch (error) {
       this.logger.error(
         error,

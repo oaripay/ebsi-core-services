@@ -95,7 +95,7 @@ async function getEbsiIssuer(
   const publicKeyJwk = await getPublicKeyJwk(privateKey, alg);
   const issuer: EbsiIssuer = {
     did,
-    kid: kid ?? publicKeyJwk.kid,
+    kid: kid ?? `${did}#${publicKeyJwk.kid}`,
     alg,
     signer: getSigner(privateKey, alg),
   };
@@ -338,368 +338,373 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
 
       beforeEach(async () => {
         if (useNewIssuer) {
-          // Dynamically create pristine issuer
-          const newIssuerWallet = ethers.Wallet.createRandom();
-          const newIssuerPrivateKey = newIssuerWallet.privateKey;
-          const newIssuerDid = EbsiWallet.createDid();
-          const newIssuerInfo = await getEbsiIssuer(
-            newIssuerPrivateKey,
-            newIssuerDid,
-            undefined,
-            "ES256K",
-          );
-          const {
-            privateKey: newIssuerES256PrivateKey,
-            publicKey: newIssuerES256PublicKey,
-          } = await generateKeyPair("ES256");
-          const newIssuerES256PrivateKeyHex = encode.privateKey.fromJWKToHex(
-            await exportJWK(newIssuerES256PrivateKey),
-          );
-          const newIssuerES256PublicKeyJwk = await exportJWK(
-            newIssuerES256PublicKey,
-          );
-          const newIssuerES256PublicKeyThumbprint =
-            await calculateJwkThumbprint(newIssuerES256PublicKeyJwk);
-          const newIssuerES256Info = await getEbsiIssuer(
-            newIssuerES256PrivateKeyHex,
-            newIssuerDid,
-          );
-
-          // Admin issuer inserts the new TI's DID document
-          const didWriteAccessToken = await getDidrWriteAccessToken(
-            authorisationApiUrl,
-            adminIssuer.info,
-            ebsiEnvConfig,
-          );
-          const didRegistryApiUrl =
-            configService.get<string>("didRegistryApiUrl");
-          const now = Math.floor(Date.now() / 1000);
-          const in6months = now + 6 * 30 * 24 * 3600;
-          let responseBuild: SupertestJsonRpcResponse = await request(
-            didRegistryApiUrl,
-          )
-            .post("/jsonrpc")
-            .auth(didWriteAccessToken, { type: "bearer" })
-            .send({
-              jsonrpc: "2.0",
-              method: "insertDidDocument",
-              params: [
-                {
-                  from: adminIssuer.wallet.address,
-                  did: newIssuerInfo.did,
-                  baseDocument: JSON.stringify({
-                    "@context": [
-                      "https://www.w3.org/ns/did/v1",
-                      "https://w3id.org/security/suites/jws-2020/v1", // Required
-                    ],
-                  }),
-                  vMethodId: newIssuerInfo.kid.split("#")[1],
-                  publicKey: newIssuerWallet.publicKey,
-                  isSecp256k1: true,
-                  notBefore: now,
-                  notAfter: in6months,
-                },
-              ],
-              id: 231,
-            });
-
-          let unsignedTransaction = responseBuild.body.result;
-          let uTx = formatEthersUnsignedTransaction(
-            JSON.parse(
-              JSON.stringify(unsignedTransaction),
-            ) as UnsignedTransaction,
-          );
-          uTx.chainId = Number(uTx.chainId);
-          let sgnTx = await adminIssuer.wallet.signTransaction(uTx);
-          let parsedTx = ethers.utils.parseTransaction(sgnTx);
-          let responseSend: SupertestJsonRpcResponse = await request(
-            didRegistryApiUrl,
-          )
-            .post("/jsonrpc")
-            .auth(didWriteAccessToken, { type: "bearer" })
-            .send({
-              jsonrpc: "2.0",
-              method: "sendSignedTransaction",
-              params: [
-                {
-                  protocol: "eth",
-                  unsignedTransaction,
-                  r: parsedTx.r,
-                  s: parsedTx.s,
-                  v: `0x${Number(parsedTx.v).toString(16)}`,
-                  signedRawTransaction: sgnTx,
-                },
-              ],
-              id: "45",
-            });
-
-          // Wait to be mined
-          await waitToBeMined(ledgerApi, responseSend.body.result as string);
-
-          // Add ES256 verification method to DID document
-          responseBuild = await request(didRegistryApiUrl)
-            .post("/jsonrpc")
-            .auth(didWriteAccessToken, { type: "bearer" })
-            .send({
-              jsonrpc: "2.0",
-              method: "addVerificationMethod",
-              params: [
-                {
-                  from: adminIssuer.wallet.address,
-                  did: newIssuerInfo.did,
-                  vMethodId: newIssuerES256PublicKeyThumbprint,
-                  publicKey: `0x${Buffer.from(
-                    JSON.stringify(newIssuerES256PublicKeyJwk),
-                  ).toString("hex")}`,
-                  isSecp256k1: false,
-                },
-              ],
-              id: 1,
-            });
-
-          unsignedTransaction = responseBuild.body.result;
-
-          uTx = formatEthersUnsignedTransaction(
-            JSON.parse(
-              JSON.stringify(unsignedTransaction),
-            ) as UnsignedTransaction,
-          );
-          uTx.chainId = Number(uTx.chainId);
-          sgnTx = await adminIssuer.wallet.signTransaction(uTx);
-          parsedTx = ethers.utils.parseTransaction(sgnTx);
-          responseSend = await request(didRegistryApiUrl)
-            .post("/jsonrpc")
-            .auth(didWriteAccessToken, { type: "bearer" })
-            .send({
-              jsonrpc: "2.0",
-              method: "sendSignedTransaction",
-              params: [
-                {
-                  protocol: "eth",
-                  unsignedTransaction,
-                  r: parsedTx.r,
-                  s: parsedTx.s,
-                  v: `0x${Number(parsedTx.v).toString(16)}`,
-                  signedRawTransaction: sgnTx,
-                },
-              ],
-              id: "45",
-            });
-
-          // Wait to be mined
-          await waitToBeMined(ledgerApi, responseSend.body.result as string);
-
-          // Register ES256 verification method as assertionMethod
-          responseBuild = await request(didRegistryApiUrl)
-            .post("/jsonrpc")
-            .auth(didWriteAccessToken, { type: "bearer" })
-            .send({
-              jsonrpc: "2.0",
-              method: "addVerificationRelationship",
-              params: [
-                {
-                  from: adminIssuer.wallet.address,
-                  did: newIssuerInfo.did,
-                  name: "assertionMethod",
-                  vMethodId: newIssuerES256PublicKeyThumbprint,
-                  notBefore: now,
-                  notAfter: in6months,
-                },
-              ],
-              id: 1,
-            });
-
-          unsignedTransaction = responseBuild.body.result;
-
-          uTx = formatEthersUnsignedTransaction(
-            JSON.parse(
-              JSON.stringify(unsignedTransaction),
-            ) as UnsignedTransaction,
-          );
-          uTx.chainId = Number(uTx.chainId);
-          sgnTx = await adminIssuer.wallet.signTransaction(uTx);
-          parsedTx = ethers.utils.parseTransaction(sgnTx);
-          responseSend = await request(didRegistryApiUrl)
-            .post("/jsonrpc")
-            .auth(didWriteAccessToken, { type: "bearer" })
-            .send({
-              jsonrpc: "2.0",
-              method: "sendSignedTransaction",
-              params: [
-                {
-                  protocol: "eth",
-                  unsignedTransaction,
-                  r: parsedTx.r,
-                  s: parsedTx.s,
-                  v: `0x${Number(parsedTx.v).toString(16)}`,
-                  signedRawTransaction: sgnTx,
-                },
-              ],
-              id: "45",
-            });
-
-          // Wait to be mined
-          await waitToBeMined(ledgerApi, responseSend.body.result as string);
-
-          // Register ES256 verification method as authentication method
-          responseBuild = await request(didRegistryApiUrl)
-            .post("/jsonrpc")
-            .auth(didWriteAccessToken, { type: "bearer" })
-            .send({
-              jsonrpc: "2.0",
-              method: "addVerificationRelationship",
-              params: [
-                {
-                  from: adminIssuer.wallet.address,
-                  did: newIssuerInfo.did,
-                  name: "authentication",
-                  vMethodId: newIssuerES256PublicKeyThumbprint,
-                  notBefore: now,
-                  notAfter: in6months,
-                },
-              ],
-              id: 1,
-            });
-
-          unsignedTransaction = responseBuild.body.result;
-
-          uTx = formatEthersUnsignedTransaction(
-            JSON.parse(
-              JSON.stringify(unsignedTransaction),
-            ) as UnsignedTransaction,
-          );
-          uTx.chainId = Number(uTx.chainId);
-          sgnTx = await adminIssuer.wallet.signTransaction(uTx);
-          parsedTx = ethers.utils.parseTransaction(sgnTx);
-          responseSend = await request(didRegistryApiUrl)
-            .post("/jsonrpc")
-            .auth(didWriteAccessToken, { type: "bearer" })
-            .send({
-              jsonrpc: "2.0",
-              method: "sendSignedTransaction",
-              params: [
-                {
-                  protocol: "eth",
-                  unsignedTransaction,
-                  r: parsedTx.r,
-                  s: parsedTx.s,
-                  v: `0x${Number(parsedTx.v).toString(16)}`,
-                  signedRawTransaction: sgnTx,
-                },
-              ],
-              id: "45",
-            });
-
-          // Wait to be mined
-          await waitToBeMined(ledgerApi, responseSend.body.result as string);
-
-          // wait some seconds to update the subgraph
-          await new Promise((r) => {
-            setTimeout(r, 6000);
-          });
-
-          // Admin issuer inserts the new TI
-          responseBuild = await request(server)
-            .post("/jsonrpc")
-            .auth(adminIssuer.token, { type: "bearer" })
-            .send({
-              jsonrpc: "2.0",
-              method: "setAttributeMetadata",
-              params: [
-                {
-                  from: adminIssuer.wallet.address,
-                  did: newIssuerDid,
-                  revisionId: `0x${randomBytes(32).toString("hex")}`,
-                  issuerType: IssuerType.RootTAO,
-                  taoDid: newIssuerDid,
-                  attributeIdTao: `0x${"0".repeat(64)}`,
-                } satisfies SetAttributeMetadataSchema,
-              ],
-              id: 231,
-            });
-
-          unsignedTransaction = responseBuild.body.result;
-          uTx = formatEthersUnsignedTransaction(
-            JSON.parse(
-              JSON.stringify(unsignedTransaction),
-            ) as UnsignedTransaction,
-          );
-          uTx.chainId = Number(uTx.chainId);
-          sgnTx = await adminIssuer.wallet.signTransaction(uTx);
-          parsedTx = ethers.utils.parseTransaction(sgnTx);
-          responseSend = await request(server)
-            .post("/jsonrpc")
-            .auth(adminIssuer.token, { type: "bearer" })
-            .send({
-              jsonrpc: "2.0",
-              method: "sendSignedTransaction",
-              params: [
-                {
-                  protocol: "eth",
-                  unsignedTransaction,
-                  r: parsedTx.r,
-                  s: parsedTx.s,
-                  v: `0x${Number(parsedTx.v).toString(16)}`,
-                  signedRawTransaction: sgnTx,
-                },
-              ],
-              id: "45",
-            });
-
-          // Wait to be mined
-          await waitToBeMined(ledgerApi, responseSend.body.result as string);
-
-          // wait some seconds to update the subgraph
-          await new Promise((r) => {
-            setTimeout(r, 6000);
-          });
-
-          // Admin Issuer issues a "VerifiableAccreditationToAccredit" to the new issuer
-          const issuanceDate = new Date(Date.now() - 5000); // issue 5 seconds ago
-          const expirationDate = new Date(
-            issuanceDate.getTime() + 2 * 60 * 60 * 1000,
-          );
-          const verifiableAttestationSchemaUrl = `${trustedSchemasRegistryApiUrl}/schemas/${testVerifiableAttestationSchemaId}`;
-          const termsOfUseUrl = configService.get<string>(
-            "testAdminAccreditation",
-          );
-          const vcPayload: EbsiVerifiableAttestation = {
-            "@context": ["https://www.w3.org/2018/credentials/v1"],
-            id: `urn:uuid:${randomUUID()}`,
-            type: [
-              "VerifiableCredential",
-              "VerifiableAttestation",
-              "VerifiableAccreditationToAccredit",
-            ],
-            issuer: adminIssuer.info.did,
-            issuanceDate: `${issuanceDate.toISOString().slice(0, -5)}Z`,
-            issued: `${issuanceDate.toISOString().slice(0, -5)}Z`,
-            validFrom: `${issuanceDate.toISOString().slice(0, -5)}Z`,
-            expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
-            credentialSubject: { id: newIssuerDid },
-            credentialSchema: {
-              id:
-                uriType === "URL"
-                  ? verifiableAttestationSchemaUrl
-                  : fromUrl(verifiableAttestationSchemaUrl),
-              type: "FullJsonSchemaValidator2021",
-            },
-            termsOfUse: {
-              id: uriType === "URL" ? termsOfUseUrl : fromUrl(termsOfUseUrl),
-              type: "IssuanceCertificate",
-            },
-          };
-          const vcJwt = await createVerifiableCredentialJwt(
-            vcPayload,
-            adminIssuer.info,
-            {
-              ...ebsiEnvConfig,
-              skipValidation: true,
-            },
-          );
-
-          // Get access token for new issuer
           try {
+            // Dynamically create pristine issuer
+            const newIssuerWallet = ethers.Wallet.createRandom();
+            const newIssuerPrivateKey = newIssuerWallet.privateKey;
+            const newIssuerDid = EbsiWallet.createDid();
+            const newIssuerInfo = await getEbsiIssuer(
+              newIssuerPrivateKey,
+              newIssuerDid,
+              undefined,
+              "ES256K",
+            );
+            const {
+              privateKey: newIssuerES256PrivateKey,
+              publicKey: newIssuerES256PublicKey,
+            } = await generateKeyPair("ES256");
+            const newIssuerES256PrivateKeyHex = encode.privateKey.fromJWKToHex(
+              await exportJWK(newIssuerES256PrivateKey),
+            );
+            const newIssuerES256PublicKeyJwk = await exportJWK(
+              newIssuerES256PublicKey,
+            );
+            const newIssuerES256PublicKeyThumbprint =
+              await calculateJwkThumbprint(newIssuerES256PublicKeyJwk);
+            const newIssuerES256Info = await getEbsiIssuer(
+              newIssuerES256PrivateKeyHex,
+              newIssuerDid,
+            );
+
+            // Admin issuer inserts the new TI's DID document
+            const didWriteAccessToken = await getDidrWriteAccessToken(
+              authorisationApiUrl,
+              adminIssuer.info,
+              ebsiEnvConfig,
+            );
+            const didRegistryApiUrl =
+              configService.get<string>("didRegistryApiUrl");
+            const now = Math.floor(Date.now() / 1000);
+            const in6months = now + 6 * 30 * 24 * 3600;
+            let responseBuild: SupertestJsonRpcResponse = await request(
+              didRegistryApiUrl,
+            )
+              .post("/jsonrpc")
+              .auth(didWriteAccessToken, { type: "bearer" })
+              .send({
+                jsonrpc: "2.0",
+                method: "insertDidDocument",
+                params: [
+                  {
+                    from: adminIssuer.wallet.address,
+                    did: newIssuerInfo.did,
+                    baseDocument: JSON.stringify({
+                      "@context": [
+                        "https://www.w3.org/ns/did/v1",
+                        "https://w3id.org/security/suites/jws-2020/v1", // Required
+                      ],
+                    }),
+                    vMethodId: newIssuerInfo.kid.split("#")[1],
+                    publicKey: newIssuerWallet.publicKey,
+                    isSecp256k1: true,
+                    notBefore: now,
+                    notAfter: in6months,
+                  },
+                ],
+                id: 231,
+              });
+
+            if (!responseBuild.body.result) {
+              throw new Error(JSON.stringify(responseBuild.body));
+            }
+
+            let unsignedTransaction: unknown = responseBuild.body.result;
+            let uTx = formatEthersUnsignedTransaction(
+              JSON.parse(
+                JSON.stringify(unsignedTransaction),
+              ) as UnsignedTransaction,
+            );
+            uTx.chainId = Number(uTx.chainId);
+            let sgnTx = await adminIssuer.wallet.signTransaction(uTx);
+            let parsedTx = ethers.utils.parseTransaction(sgnTx);
+            let responseSend: SupertestJsonRpcResponse = await request(
+              didRegistryApiUrl,
+            )
+              .post("/jsonrpc")
+              .auth(didWriteAccessToken, { type: "bearer" })
+              .send({
+                jsonrpc: "2.0",
+                method: "sendSignedTransaction",
+                params: [
+                  {
+                    protocol: "eth",
+                    unsignedTransaction,
+                    r: parsedTx.r,
+                    s: parsedTx.s,
+                    v: `0x${Number(parsedTx.v).toString(16)}`,
+                    signedRawTransaction: sgnTx,
+                  },
+                ],
+                id: "45",
+              });
+
+            // Wait to be mined
+            await waitToBeMined(ledgerApi, responseSend.body.result as string);
+
+            // Add ES256 verification method to DID document
+            responseBuild = await request(didRegistryApiUrl)
+              .post("/jsonrpc")
+              .auth(didWriteAccessToken, { type: "bearer" })
+              .send({
+                jsonrpc: "2.0",
+                method: "addVerificationMethod",
+                params: [
+                  {
+                    from: adminIssuer.wallet.address,
+                    did: newIssuerInfo.did,
+                    vMethodId: newIssuerES256PublicKeyThumbprint,
+                    publicKey: `0x${Buffer.from(
+                      JSON.stringify(newIssuerES256PublicKeyJwk),
+                    ).toString("hex")}`,
+                    isSecp256k1: false,
+                  },
+                ],
+                id: 1,
+              });
+
+            unsignedTransaction = responseBuild.body.result;
+
+            uTx = formatEthersUnsignedTransaction(
+              JSON.parse(
+                JSON.stringify(unsignedTransaction),
+              ) as UnsignedTransaction,
+            );
+            uTx.chainId = Number(uTx.chainId);
+            sgnTx = await adminIssuer.wallet.signTransaction(uTx);
+            parsedTx = ethers.utils.parseTransaction(sgnTx);
+            responseSend = await request(didRegistryApiUrl)
+              .post("/jsonrpc")
+              .auth(didWriteAccessToken, { type: "bearer" })
+              .send({
+                jsonrpc: "2.0",
+                method: "sendSignedTransaction",
+                params: [
+                  {
+                    protocol: "eth",
+                    unsignedTransaction,
+                    r: parsedTx.r,
+                    s: parsedTx.s,
+                    v: `0x${Number(parsedTx.v).toString(16)}`,
+                    signedRawTransaction: sgnTx,
+                  },
+                ],
+                id: "45",
+              });
+
+            // Wait to be mined
+            await waitToBeMined(ledgerApi, responseSend.body.result as string);
+
+            // Register ES256 verification method as assertionMethod
+            responseBuild = await request(didRegistryApiUrl)
+              .post("/jsonrpc")
+              .auth(didWriteAccessToken, { type: "bearer" })
+              .send({
+                jsonrpc: "2.0",
+                method: "addVerificationRelationship",
+                params: [
+                  {
+                    from: adminIssuer.wallet.address,
+                    did: newIssuerInfo.did,
+                    name: "assertionMethod",
+                    vMethodId: newIssuerES256PublicKeyThumbprint,
+                    notBefore: now,
+                    notAfter: in6months,
+                  },
+                ],
+                id: 1,
+              });
+
+            unsignedTransaction = responseBuild.body.result;
+
+            uTx = formatEthersUnsignedTransaction(
+              JSON.parse(
+                JSON.stringify(unsignedTransaction),
+              ) as UnsignedTransaction,
+            );
+            uTx.chainId = Number(uTx.chainId);
+            sgnTx = await adminIssuer.wallet.signTransaction(uTx);
+            parsedTx = ethers.utils.parseTransaction(sgnTx);
+            responseSend = await request(didRegistryApiUrl)
+              .post("/jsonrpc")
+              .auth(didWriteAccessToken, { type: "bearer" })
+              .send({
+                jsonrpc: "2.0",
+                method: "sendSignedTransaction",
+                params: [
+                  {
+                    protocol: "eth",
+                    unsignedTransaction,
+                    r: parsedTx.r,
+                    s: parsedTx.s,
+                    v: `0x${Number(parsedTx.v).toString(16)}`,
+                    signedRawTransaction: sgnTx,
+                  },
+                ],
+                id: "45",
+              });
+
+            // Wait to be mined
+            await waitToBeMined(ledgerApi, responseSend.body.result as string);
+
+            // Register ES256 verification method as authentication method
+            responseBuild = await request(didRegistryApiUrl)
+              .post("/jsonrpc")
+              .auth(didWriteAccessToken, { type: "bearer" })
+              .send({
+                jsonrpc: "2.0",
+                method: "addVerificationRelationship",
+                params: [
+                  {
+                    from: adminIssuer.wallet.address,
+                    did: newIssuerInfo.did,
+                    name: "authentication",
+                    vMethodId: newIssuerES256PublicKeyThumbprint,
+                    notBefore: now,
+                    notAfter: in6months,
+                  },
+                ],
+                id: 1,
+              });
+
+            unsignedTransaction = responseBuild.body.result;
+
+            uTx = formatEthersUnsignedTransaction(
+              JSON.parse(
+                JSON.stringify(unsignedTransaction),
+              ) as UnsignedTransaction,
+            );
+            uTx.chainId = Number(uTx.chainId);
+            sgnTx = await adminIssuer.wallet.signTransaction(uTx);
+            parsedTx = ethers.utils.parseTransaction(sgnTx);
+            responseSend = await request(didRegistryApiUrl)
+              .post("/jsonrpc")
+              .auth(didWriteAccessToken, { type: "bearer" })
+              .send({
+                jsonrpc: "2.0",
+                method: "sendSignedTransaction",
+                params: [
+                  {
+                    protocol: "eth",
+                    unsignedTransaction,
+                    r: parsedTx.r,
+                    s: parsedTx.s,
+                    v: `0x${Number(parsedTx.v).toString(16)}`,
+                    signedRawTransaction: sgnTx,
+                  },
+                ],
+                id: "45",
+              });
+
+            // Wait to be mined
+            await waitToBeMined(ledgerApi, responseSend.body.result as string);
+
+            // wait some seconds to update the subgraph
+            await new Promise((r) => {
+              setTimeout(r, 6000);
+            });
+
+            // Admin issuer inserts the new TI
+            responseBuild = await request(server)
+              .post("/jsonrpc")
+              .auth(adminIssuer.token, { type: "bearer" })
+              .send({
+                jsonrpc: "2.0",
+                method: "setAttributeMetadata",
+                params: [
+                  {
+                    from: adminIssuer.wallet.address,
+                    did: newIssuerDid,
+                    revisionId: `0x${randomBytes(32).toString("hex")}`,
+                    issuerType: IssuerType.RootTAO,
+                    taoDid: newIssuerDid,
+                    attributeIdTao: `0x${"0".repeat(64)}`,
+                  } satisfies SetAttributeMetadataSchema,
+                ],
+                id: 231,
+              });
+
+            unsignedTransaction = responseBuild.body.result;
+            uTx = formatEthersUnsignedTransaction(
+              JSON.parse(
+                JSON.stringify(unsignedTransaction),
+              ) as UnsignedTransaction,
+            );
+            uTx.chainId = Number(uTx.chainId);
+            sgnTx = await adminIssuer.wallet.signTransaction(uTx);
+            parsedTx = ethers.utils.parseTransaction(sgnTx);
+            responseSend = await request(server)
+              .post("/jsonrpc")
+              .auth(adminIssuer.token, { type: "bearer" })
+              .send({
+                jsonrpc: "2.0",
+                method: "sendSignedTransaction",
+                params: [
+                  {
+                    protocol: "eth",
+                    unsignedTransaction,
+                    r: parsedTx.r,
+                    s: parsedTx.s,
+                    v: `0x${Number(parsedTx.v).toString(16)}`,
+                    signedRawTransaction: sgnTx,
+                  },
+                ],
+                id: "45",
+              });
+
+            // Wait to be mined
+            await waitToBeMined(ledgerApi, responseSend.body.result as string);
+
+            // wait some seconds to update the subgraph
+            await new Promise((r) => {
+              setTimeout(r, 6000);
+            });
+
+            // Admin Issuer issues a "VerifiableAccreditationToAccredit" to the new issuer
+            const issuanceDate = new Date(Date.now() - 5000); // issue 5 seconds ago
+            const expirationDate = new Date(
+              issuanceDate.getTime() + 2 * 60 * 60 * 1000,
+            );
+            const verifiableAttestationSchemaUrl = `${trustedSchemasRegistryApiUrl}/schemas/${testVerifiableAttestationSchemaId}`;
+            const termsOfUseUrl = configService.get<string>(
+              "testAdminAccreditation",
+            );
+            const vcPayload: EbsiVerifiableAttestation = {
+              "@context": ["https://www.w3.org/2018/credentials/v1"],
+              id: `urn:uuid:${randomUUID()}`,
+              type: [
+                "VerifiableCredential",
+                "VerifiableAttestation",
+                "VerifiableAccreditationToAccredit",
+              ],
+              issuer: adminIssuer.info.did,
+              issuanceDate: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+              issued: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+              validFrom: `${issuanceDate.toISOString().slice(0, -5)}Z`,
+              expirationDate: `${expirationDate.toISOString().slice(0, -5)}Z`,
+              credentialSubject: { id: newIssuerDid },
+              credentialSchema: {
+                id:
+                  uriType === "URL"
+                    ? verifiableAttestationSchemaUrl
+                    : fromUrl(verifiableAttestationSchemaUrl),
+                type: "FullJsonSchemaValidator2021",
+              },
+              termsOfUse: {
+                id: uriType === "URL" ? termsOfUseUrl : fromUrl(termsOfUseUrl),
+                type: "IssuanceCertificate",
+              },
+            };
+            const vcJwt = await createVerifiableCredentialJwt(
+              vcPayload,
+              adminIssuer.info,
+              {
+                ...ebsiEnvConfig,
+                skipValidation: true,
+              },
+            );
+
+            // Get access token for new issuer
+
             newIssuer = {
               info: newIssuerInfo,
               token: await getTirInviteAccessToken(
