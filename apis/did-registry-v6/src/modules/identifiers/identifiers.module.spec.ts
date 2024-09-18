@@ -58,7 +58,13 @@ describe("Identifiers Module", () => {
     Logger.overrideLogger(false);
 
     app.useGlobalFilters(new AllExceptionsFilter());
-    app.useGlobalPipes(new ValidationPipe({ transform: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({
+        transform: true,
+        whitelist: true,
+        forbidNonWhitelisted: true,
+      }),
+    );
     await app.init();
     await app.getHttpAdapter().getInstance().ready();
     server = app.getHttpServer();
@@ -105,6 +111,22 @@ describe("Identifiers Module", () => {
         dids.length,
       );
       expect(response.status).toBe(200);
+    });
+
+    it("should reject a non whitelisted query", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get(
+        "/identifiers?invalid-query=abc",
+      );
+
+      expect(response.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["property invalid-query should not exist"]',
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
     });
 
     it("should return an empty array for an unknown controller", async () => {

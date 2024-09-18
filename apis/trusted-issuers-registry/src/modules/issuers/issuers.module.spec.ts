@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { vi, describe, beforeAll, afterAll, it, expect } from "vitest";
 import request from "supertest";
 import { Test, type TestingModule } from "@nestjs/testing";
@@ -210,6 +211,20 @@ describe("Issuers Module", () => {
         type: "about:blank",
       });
       expect(response4.status).toBe(400);
+    });
+
+    it("should reject a non whitelisted query", async () => {
+      expect.assertions(2);
+
+      const response = await request(server).get("/issuers?invalid-query=abc");
+
+      expect(response.body).toStrictEqual({
+        title: "Bad Request",
+        status: 400,
+        detail: '["property invalid-query should not exist"]',
+        type: "about:blank",
+      });
+      expect(response.status).toBe(400);
     });
   });
 
@@ -630,7 +645,7 @@ describe("Issuers Module", () => {
     it("should throw an error if the attribute is not found", async () => {
       expect.assertions(2);
 
-      const wrongDataHash = "wrong-hash";
+      const wrongDataHash = randomBytes(32).toString("hex");
       const url = `/issuers/${issuerDid}/attributes/${wrongDataHash}/revisions`;
 
       const response = await request(server).get(url);

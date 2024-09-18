@@ -1,4 +1,13 @@
-import { Controller, Get, Query, Param, Req, Header } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Query,
+  Param,
+  Req,
+  Header,
+  ValidationPipe,
+  UsePipes,
+} from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import {
   PaginatedListWithoutTotal,
@@ -35,6 +44,12 @@ import {
   // eslint-disable-next-line import/extensions, import/no-relative-packages
 } from "../../../.graphclient/index.js";
 
+const validationPipe = new ValidationPipe({
+  transform: true,
+  whitelist: true,
+  forbidNonWhitelisted: true,
+});
+
 @Controller("/issuers")
 export class IssuersController {
   constructor(
@@ -43,6 +58,7 @@ export class IssuersController {
   ) {}
 
   @Get("")
+  @UsePipes(validationPipe)
   async issuers(
     @Query() query: GetIssuersQueryDto,
   ): Promise<PaginatedListWithoutTotal<DidLink>> {
@@ -83,6 +99,7 @@ export class IssuersController {
   }
 
   @Get("/:did")
+  @UsePipes(validationPipe)
   async getIssuer(
     @Param() params: GetIssuerParamsDto,
   ): Promise<IssuerResponseObject> {
@@ -91,6 +108,7 @@ export class IssuersController {
   }
 
   @Get("/:did/attributes")
+  @UsePipes(validationPipe)
   async getIssuerAttributes(
     @Param() params: GetIssuerParamsDto,
     @Query() query: GetIssuerAttributesQueryDto,
@@ -129,6 +147,7 @@ export class IssuersController {
   }
 
   @Get("/:did/attributes/:attributeId")
+  @UsePipes(validationPipe)
   async issuerAttributeId(
     @Param() params: GetIssuerAttributeParamsDto,
   ): Promise<AttributeDetailsObject> {
@@ -143,6 +162,7 @@ export class IssuersController {
   }
 
   @Get("/:did/attributes/:attributeId/revisions")
+  @UsePipes(validationPipe)
   async issuerAttributeIdRevisions(
     @Param() params: GetIssuerAttributeParamsDto,
     @Query() query: PaginationQuery,
@@ -169,6 +189,7 @@ export class IssuersController {
   }
 
   @Get("/:did/proxies")
+  @UsePipes(validationPipe)
   async getIssuerProxies(
     @Param() params: GetIssuerParamsDto,
     @Query() query: PaginationQuery,
@@ -194,6 +215,7 @@ export class IssuersController {
   }
 
   @Get("/:did/proxies/:proxyId")
+  @UsePipes(validationPipe)
   async getIssuerProxy(
     @Param() params: GetIssuerProxyParamsDto,
   ): Promise<IssuerProxyResponseObject> {
@@ -203,6 +225,8 @@ export class IssuersController {
   }
 
   @Get("/:did/proxies/:proxyId/*")
+  // it does not use the restrictive validation pipe because
+  // it accepts all routes (*)
   @Header("content-type", "text/plain; charset=utf-8")
   async proxyRequest(
     @Param() params: GetIssuerProxyParamsDto,

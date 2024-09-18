@@ -63,7 +63,13 @@ async function bootstrap(): Promise<void> {
 
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
   app.useGlobalFilters(new AllExceptionsFilter());
-  app.useGlobalPipes(new ValidationPipe({ transform: true }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    }),
+  );
 
   // Setup axios interceptors
   setupInterceptors(domain, localOrigin);
