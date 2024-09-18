@@ -14,6 +14,7 @@ export function formatSchemas(
   page: number,
   pageSize: number,
   baseUrl: string,
+  extraQuery?: string,
 ): PaginatedListWithoutTotal<GetSchemasResponse> {
   // Reshape items
   const items = schemas.items.map((schema) => {
@@ -30,6 +31,7 @@ export function formatSchemas(
     baseUrl,
     page,
     pageSize,
+    extraQuery,
   );
 }
 
@@ -38,15 +40,13 @@ export function formatSchemaRevisions(
   page: number,
   pageSize: number,
   baseUrl: string,
-  validAt?: string,
+  extraQuery?: string,
 ): PaginatedListWithoutTotal<GetSchemaRevisionsResponse> {
   // Reshape items
   const items = schemas.items.map((schemaRevisionId) => ({
     schemaRevisionId,
     href: `${baseUrl}/${schemaRevisionId}`,
   }));
-
-  const extraQuery = validAt ? `&valid-at=${validAt}` : "";
 
   return paginateWithoutTotal<GetSchemaRevisionsResponse>(
     items,

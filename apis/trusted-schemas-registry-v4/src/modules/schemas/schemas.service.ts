@@ -10,6 +10,8 @@ import {
   GetRevisionsQuery,
   GetSchemaQuery,
   GetSchemasQuery,
+  Schema_filter,
+  Revision_filter,
   // eslint-disable-next-line import/extensions, import/no-relative-packages
 } from "../../../.graphclient/index.js";
 
@@ -19,13 +21,17 @@ const sdk = getBuiltGraphSDK();
 export class SchemasService {
   private readonly logger = new Logger(SchemasService.name);
 
-  async getSchemas(page = 1, pagesize = 10): Promise<{ items: string[] }> {
+  async getSchemas(
+    page = 1,
+    pagesize = 10,
+    where: Schema_filter = {},
+  ): Promise<{ items: string[] }> {
     const skip = (page - 1) * pagesize;
     let res: GetSchemasQuery;
     try {
       // get one more item to clarify next pages in pagination
       const queryPageSize = pagesize + 1;
-      res = await sdk.GetSchemas({ skip, pagesize: queryPageSize });
+      res = await sdk.GetSchemas({ skip, pagesize: queryPageSize, where });
     } catch (error) {
       this.logger.error(
         error,
@@ -75,6 +81,7 @@ export class SchemasService {
     schemaId: string,
     page = 1,
     pagesize = 10,
+    where: Revision_filter = {},
     validAt?: string,
   ): Promise<{ items: string[] }> {
     const hexSchemaId = schemaIdToHex(schemaId);
@@ -83,7 +90,10 @@ export class SchemasService {
       let res: GetAllRevisionsWithMetadataQuery = { schema: { revisions: [] } };
 
       try {
-        res = await sdk.GetAllRevisionsWithMetadata({ schemaId: hexSchemaId });
+        res = await sdk.GetAllRevisionsWithMetadata({
+          schemaId: hexSchemaId,
+          where,
+        });
       } catch (error) {
         this.logger.error(
           error,
@@ -153,6 +163,7 @@ export class SchemasService {
         schemaId: hexSchemaId,
         skip,
         pagesize: queryPageSize,
+        where,
       });
     } catch (error) {
       this.logger.error(

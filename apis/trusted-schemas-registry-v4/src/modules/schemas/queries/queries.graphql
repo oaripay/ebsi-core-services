@@ -1,5 +1,5 @@
-query GetSchemas($skip: Int!, $pagesize: Int!) {
-  schemas(first: $pagesize, skip: $skip) {
+query GetSchemas($skip: Int!, $pagesize: Int!, $where: Schema_filter) {
+  schemas(first: $pagesize, skip: $skip, where: $where) {
     id
   }
 }
@@ -12,17 +12,22 @@ query GetSchema($schemaId: String!) {
   }
 }
 
-query GetRevisions($schemaId: String!, $skip: Int!, $pagesize: Int!) {
+query GetRevisions(
+  $schemaId: String!
+  $skip: Int!
+  $pagesize: Int!
+  $where: Revision_filter
+) {
   schema(id: $schemaId) {
-    revisions(first: $pagesize, skip: $skip) {
+    revisions(first: $pagesize, skip: $skip, where: $where) {
       id
     }
   }
 }
 
-query GetAllRevisionsWithMetadata($schemaId: String!) {
+query GetAllRevisionsWithMetadata($schemaId: String!, $where: Revision_filter) {
   schema(id: $schemaId) {
-    revisions(first: 1000, skip: 0) {
+    revisions(first: 1000, skip: 0, where: $where) {
       id
       metadata(first: 1000, skip: 0) {
         content
@@ -44,10 +49,11 @@ query GetMetadatas(
   $revisionId: String!
   $skip: Int!
   $pagesize: Int!
+  $where: Metadata_filter
 ) {
   schema(id: $schemaId) {
     revisions(first: 1, skip: 0, where: { id: $revisionId }) {
-      metadata(first: $pagesize, skip: $skip) {
+      metadata(first: $pagesize, skip: $skip, where: $where) {
         id
       }
     }

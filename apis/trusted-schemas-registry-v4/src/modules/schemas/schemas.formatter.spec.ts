@@ -71,7 +71,13 @@ describe("formatSchemaRevisions", () => {
     const validAt = new Date().toISOString();
 
     expect(
-      formatSchemaRevisions(schemaRevisions, page, pageSize, "", validAt),
+      formatSchemaRevisions(
+        schemaRevisions,
+        page,
+        pageSize,
+        "",
+        `&valid-at=${validAt}`,
+      ),
     ).toStrictEqual({
       items: [
         {

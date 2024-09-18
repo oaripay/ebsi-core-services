@@ -39,6 +39,11 @@ paths:
           in: query
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
+        - schema:
+            type: string
+          in: query
+          name: schema-revision-id
+          description: Filter schemas by revision ID.
       responses:
         "200":
           description: Success
@@ -197,6 +202,11 @@ paths:
           in: query
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
+        - schema:
+            type: string
+          in: query
+          name: metadata-id
+          description: Filter revisions by metadata ID.
         - in: query
           name: valid-at
           schema:

@@ -36,6 +36,16 @@ paths:
           in: query
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
+        - schema:
+            type: string
+          in: query
+          name: attribute-id
+          description: Filter issuers by attribute ID.
+        - schema:
+            type: string
+          in: query
+          name: proxy-id
+          description: Filter issuers by proxy ID.
       responses:
         "200":
           description: Success
@@ -197,6 +207,11 @@ paths:
           in: query
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
+        - schema:
+            type: string
+          in: query
+          name: issuer-type
+          description: Filter attributes by issuer type (RootTAO, TAO, TI, Revoked).
       responses:
         "200":
           description: Success

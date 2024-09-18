@@ -21,6 +21,11 @@ import {
   GetSchemaRevisionMetadataQuery,
 } from "./dto/index.js";
 import type { ApiConfig } from "../../config/configuration.js";
+import {
+  Schema_filter,
+  Revision_filter,
+  // eslint-disable-next-line import/extensions, import/no-relative-packages
+} from "../../../.graphclient/index.js";
 
 @Controller("/schemas")
 export class SchemasController {
@@ -33,20 +38,34 @@ export class SchemasController {
   async getSchemas(
     @Query() query: GetSchemasQuery,
   ): Promise<PaginatedListWithoutTotal<GetSchemasResponse>> {
+    const where: Schema_filter = {
+      ...(query["schema-revision-id"] && {
+        revisions_: {
+          id: query["schema-revision-id"],
+        },
+      }),
+    };
+
     const schemas = await this.schemasService.getSchemas(
       query["page[after]"],
       query["page[size]"],
+      where,
     );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
     const domain = this.configService.get<string>("domain");
     const baseUrl = `${domain}${apiUrlPrefix}/schemas`;
 
+    let extraQuery = "";
+    if (query["schema-revision-id"])
+      extraQuery += `&schema-revision-id=${query["schema-revision-id"]}`;
+
     return formatSchemas(
       schemas,
       query["page[after]"],
       query["page[size]"],
       baseUrl,
+      extraQuery,
     );
   }
 
@@ -63,10 +82,19 @@ export class SchemasController {
   ): Promise<PaginatedListWithoutTotal<GetSchemaRevisionsResponse>> {
     const { schemaId } = params;
 
+    const where: Revision_filter = {
+      ...(query["metadata-id"] && {
+        metadata_: {
+          id: query["metadata-id"],
+        },
+      }),
+    };
+
     const revisions = await this.schemasService.getSchemaRevisions(
       schemaId,
       query["page[after]"],
       query["page[size]"],
+      where,
       query["valid-at"],
     );
 
@@ -74,12 +102,18 @@ export class SchemasController {
     const domain = this.configService.get<string>("domain");
     const baseUrl = `${domain}${apiUrlPrefix}/schemas/${schemaId}/revisions`;
 
+    let extraQuery = "";
+    if (query["metadata-id"])
+      extraQuery += `&metadata-id=${query["metadata-id"]}`;
+
+    if (query["valid-at"]) extraQuery += `&valid-at${query["valid-at"]}`;
+
     return formatSchemaRevisions(
       revisions,
       query["page[after]"],
       query["page[size]"],
       baseUrl,
-      query["valid-at"],
+      extraQuery,
     );
   }
 
