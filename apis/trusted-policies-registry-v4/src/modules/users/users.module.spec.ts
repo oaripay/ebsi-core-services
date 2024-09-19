@@ -196,6 +196,39 @@ describe("Policies Module", () => {
       });
       expect(response4.status).toBe(400);
     });
+
+    it("should get users filtered by attribute", async () => {
+      expect.assertions(3);
+
+      const response = await request(server).get(
+        "/users?attribute=policyName1",
+      );
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          "/users?page[after]=1&page[size]=10&attribute=policyName1",
+        ),
+        items: expect.arrayContaining([]),
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            "/users?page[after]=1&page[size]=10&attribute=policyName1",
+          ),
+          prev: expect.stringContaining(
+            "/users?page[after]=1&page[size]=10&attribute=policyName1",
+          ),
+          next: expect.stringContaining(
+            `/users?page[after]=${Math.min(
+              Math.ceil(USERS_TOTAL / 10),
+              2,
+            )}&page[size]=10&attribute=policyName1`,
+          ),
+        },
+      });
+      expect((response.body as { items: string }).items).toHaveLength(
+        Math.min(10, USERS_TOTAL),
+      );
+      expect(response.status).toBe(200);
+    });
   });
 
   describe("GET /users/{address}", () => {

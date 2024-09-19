@@ -16,10 +16,15 @@ type User {
 
 input Policy_filter {
   policyName: String
+  status: Boolean
+}
+
+input User_filter {
+  attributes_contains: [String!]
 }
 
 type Query {
   policies(skip: Int = 0, first: Int = 100, where: Policy_filter): [Policy!]!
-  users(skip: Int = 0, first: Int = 100): [User!]!
+  users(skip: Int = 0, first: Int = 100, where: User_filter): [User!]!
   user(id: ID!): User
 }

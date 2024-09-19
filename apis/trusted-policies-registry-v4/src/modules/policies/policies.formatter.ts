@@ -9,6 +9,7 @@ export function formatPolicies(
   page: number,
   pageSize: number,
   baseUrl: string,
+  extraQuery?: string,
 ): PaginatedListWithoutTotal<PolicyLink> {
   // Reshape items
   const items = policies.items.map((policyName) => {
@@ -18,7 +19,13 @@ export function formatPolicies(
     };
   });
 
-  return paginateWithoutTotal<PolicyLink>(items, baseUrl, page, pageSize);
+  return paginateWithoutTotal<PolicyLink>(
+    items,
+    baseUrl,
+    page,
+    pageSize,
+    extraQuery,
+  );
 }
 
 export default formatPolicies;

@@ -228,6 +228,37 @@ describe("Policies Module", () => {
       expect(response4.status).toBe(400);
     });
 
+    it("should return policies filtered by status", async () => {
+      expect.assertions(3);
+
+      const response = await request(server).get("/policies?status=true");
+      expect(response.body).toStrictEqual({
+        self: expect.stringContaining(
+          "/policies?page[after]=1&page[size]=10&status=true",
+        ),
+        items: expect.arrayContaining([]),
+        pageSize: 10,
+        links: {
+          first: expect.stringContaining(
+            "/policies?page[after]=1&page[size]=10&status=true",
+          ),
+          prev: expect.stringContaining(
+            "/policies?page[after]=1&page[size]=10&status=true",
+          ),
+          next: expect.stringContaining(
+            `/policies?page[after]=${Math.min(
+              Math.ceil(POLICIES_TOTAL / 10),
+              2,
+            )}&page[size]=10&status=true`,
+          ),
+        },
+      });
+      expect((response.body as { items: string }).items).toHaveLength(
+        Math.min(10, POLICIES_TOTAL),
+      );
+      expect(response.status).toBe(200);
+    });
+
     it("should reject a non whitelisted query", async () => {
       expect.assertions(2);
 

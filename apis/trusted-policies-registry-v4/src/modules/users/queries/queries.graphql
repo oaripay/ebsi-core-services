@@ -1,5 +1,5 @@
-query GetUsers($skip: Int!, $pagesize: Int!) {
-  users(first: $pagesize, skip: $skip) {
+query GetUsers($skip: Int!, $pagesize: Int!, $where: User_filter) {
+  users(first: $pagesize, skip: $skip, where: $where) {
     id
   }
 }

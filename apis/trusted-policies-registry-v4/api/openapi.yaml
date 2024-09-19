@@ -19,6 +19,22 @@ paths:
       description: Returns a list of policies registered in the blockchain.
       tags:
         - Policies
+      parameters:
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+        - schema:
+            type: string
+          in: query
+          name: status
+          description: Use status=true to get only the active policies. Or use status=false to get the inactive policies.
       responses:
         "200":
           description: Success
@@ -112,6 +128,22 @@ paths:
       description: Returns a list of users registered in the registry.
       tags:
         - Users
+      parameters:
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - schema:
+            type: integer
+          in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+        - schema:
+            type: string
+          in: query
+          name: attribute
+          description: Filter users by attribute.
       responses:
         "200":
           description: Success

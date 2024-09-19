@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { isEthersError, NotFoundError } from "@ebsiint-api/shared";
 import { UserResponseObject } from "./users.interface.js";
 // eslint-disable-next-line import/extensions, import/no-relative-packages
-import { getBuiltGraphSDK } from "../../../.graphclient/index.js";
+import { getBuiltGraphSDK, User_filter } from "../../../.graphclient/index.js";
 
 const sdk = getBuiltGraphSDK();
 
@@ -10,12 +10,16 @@ const sdk = getBuiltGraphSDK();
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
 
-  async getUsers(page = 1, pagesize = 10): Promise<{ items: string[] }> {
+  async getUsers(
+    page = 1,
+    pagesize = 10,
+    where: User_filter = {},
+  ): Promise<{ items: string[] }> {
     const skip = (page - 1) * pagesize;
     try {
       // get one more item to clarify next pages in pagination
       const queryPageSize = pagesize + 1;
-      const res = await sdk.GetUsers({ skip, pagesize: queryPageSize });
+      const res = await sdk.GetUsers({ skip, pagesize: queryPageSize, where });
       const users = res.users.map((u) => u.id);
       return { items: users };
     } catch (error) {

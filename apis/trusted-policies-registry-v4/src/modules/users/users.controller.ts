@@ -1,14 +1,13 @@
 import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import {
-  PaginationQuery,
-  PaginatedListWithoutTotal,
-} from "@ebsiint-api/shared";
+import { PaginatedListWithoutTotal } from "@ebsiint-api/shared";
 import { UsersService } from "./users.service.js";
 import { formatUsers } from "./users.formatter.js";
 import { UserLink, UserResponseObject } from "./users.interface.js";
 import type { ApiConfig } from "../../config/configuration.js";
-import { GetUserParams } from "./dto/index.js";
+import { GetUserParams, GetUsersQuery } from "./dto/index.js";
+// eslint-disable-next-line import/extensions, import/no-relative-packages
+import { User_filter } from "../../../.graphclient/index.js";
 
 @Controller("/users")
 export class UsersController {
@@ -19,22 +18,33 @@ export class UsersController {
 
   @Get("")
   async getUsers(
-    @Query() query: PaginationQuery,
+    @Query() query: GetUsersQuery,
   ): Promise<PaginatedListWithoutTotal<UserLink>> {
+    const where: User_filter = {
+      ...(query.attribute && {
+        attributes_contains: [query.attribute],
+      }),
+    };
+
     const users = await this.usersService.getUsers(
       query["page[after]"],
       query["page[size]"],
+      where,
     );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
     const domain = this.configService.get<string>("domain");
     const baseUrl = `${domain}${apiUrlPrefix}/users`;
 
+    let extraQuery = "";
+    if (query.attribute) extraQuery += `&attribute=${query.attribute}`;
+
     return formatUsers(
       users,
       query["page[after]"],
       query["page[size]"],
       baseUrl,
+      extraQuery,
     );
   }
 

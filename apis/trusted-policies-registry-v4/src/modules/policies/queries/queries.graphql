@@ -1,5 +1,5 @@
-query GetPolicyNames($skip: Int!, $pagesize: Int!) {
-  policies(first: $pagesize, skip: $skip) {
+query GetPolicyNames($skip: Int!, $pagesize: Int!, $where: Policy_filter) {
+  policies(first: $pagesize, skip: $skip, where: $where) {
     policyName
   }
 }

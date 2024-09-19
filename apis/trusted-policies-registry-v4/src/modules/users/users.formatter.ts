@@ -9,6 +9,7 @@ export function formatUsers(
   page: number,
   pageSize: number,
   baseUrl: string,
+  extraQuery?: string,
 ): PaginatedListWithoutTotal<UserLink> {
   // Reshape items
   const items = users.items.map((user) => {
@@ -18,7 +19,13 @@ export function formatUsers(
     };
   });
 
-  return paginateWithoutTotal<UserLink>(items, baseUrl, page, pageSize);
+  return paginateWithoutTotal<UserLink>(
+    items,
+    baseUrl,
+    page,
+    pageSize,
+    extraQuery,
+  );
 }
 
 export default formatUsers;
