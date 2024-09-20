@@ -84,10 +84,18 @@ export class IssuersController {
     const domain = this.configService.get<string>("domain");
     const baseUrl = `${domain}${apiUrlPrefix}/issuers`;
 
-    let extraQuery = "";
-    if (query["attribute-id"])
-      extraQuery += `&attribute-id=${query["attribute-id"]}`;
-    if (query["proxy-id"]) extraQuery += `&proxy-id=${query["proxy-id"]}`;
+    const searchParams = new URLSearchParams();
+    Object.keys(query).forEach((k) => {
+      const key = k as keyof GetIssuersQueryDto;
+      if (
+        query[key] !== undefined &&
+        key !== "page[after]" &&
+        key !== "page[size]"
+      ) {
+        searchParams.append(key, query[key]!);
+      }
+    });
+    const extraQuery = searchParams.size ? `&${searchParams.toString()}` : "";
 
     return formatIssuers(
       issuers,

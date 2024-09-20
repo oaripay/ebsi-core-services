@@ -38,13 +38,11 @@ export default class AppsController {
     let apps: AppObject[] = [];
     const pageAfter = query["page[after]"];
     const pageSize = query["page[size]"];
-    let extraQuery = "";
 
     const appIds = await this.appsService.getApps(pageAfter, pageSize);
     const total = appIds.total.toNumber();
     let tempTotal = 0;
     if (query.public_key_id) {
-      extraQuery = `&public_key_id=${query.public_key_id}`;
       if (pageAfter === 1) {
         try {
           const appByPublicKeyId = await this.appsService.getAppByPublicKeyId(
@@ -75,6 +73,19 @@ export default class AppsController {
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
     const domain = this.configService.get<string>("domain");
     const baseUrl = `${domain}${apiUrlPrefix}/apps`;
+
+    const searchParams = new URLSearchParams();
+    Object.keys(query).forEach((k) => {
+      const key = k as keyof GetAppsDto;
+      if (
+        query[key] !== undefined &&
+        key !== "page[after]" &&
+        key !== "page[size]"
+      ) {
+        searchParams.append(key, query[key]!);
+      }
+    });
+    const extraQuery = searchParams.size ? `&${searchParams.toString()}` : "";
 
     const responseApps = formatApps(
       apps,
@@ -144,7 +155,6 @@ export default class AppsController {
     const pageSize = query["page[size]"];
 
     let authorizations: { items: AuthorizationItemObject[]; total: number };
-    let extraQuery = "";
     if (query.requesterApplicationName) {
       authorizations =
         await this.appsService.getAuthorizationsByRequesterApplicationName(
@@ -153,7 +163,6 @@ export default class AppsController {
           pageAfter,
           pageSize,
         );
-      extraQuery = `&requesterApplicationName=${query.requesterApplicationName}`;
     } else {
       authorizations = await this.appsService.getAuthorizations(
         applicationName,
@@ -165,6 +174,19 @@ export default class AppsController {
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
     const domain = this.configService.get<string>("domain");
     const baseUrl = `${domain}${apiUrlPrefix}/apps/${applicationName}/authorizations`;
+
+    const searchParams = new URLSearchParams();
+    Object.keys(query).forEach((k) => {
+      const key = k as keyof GetAuthorizationsDto;
+      if (
+        query[key] !== undefined &&
+        key !== "page[after]" &&
+        key !== "page[size]"
+      ) {
+        searchParams.append(key, query[key]!);
+      }
+    });
+    const extraQuery = searchParams.size ? `&${searchParams.toString()}` : "";
 
     return formatAuthorizations(
       items,

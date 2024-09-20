@@ -30,17 +30,14 @@ export default class RecordsController {
     let records: Awaited<ReturnType<Timestamp["getRecordIds"]>>;
     const pageAfter = query["page[after]"];
     const pageSize = query["page[size]"];
-    let extraQuery = "";
 
     if (query["first-version"]) {
-      extraQuery = `&first-version=${query["first-version"]}`;
       records = await this.recordsService.getRecordIdsByFirstVersionHash(
         query["first-version"],
         pageAfter,
         pageSize,
       );
     } else if (query.owner) {
-      extraQuery = `&owner=${query.owner}`;
       records = await this.recordsService.getRecordIdsByOwnerId(
         query.owner,
         pageAfter,
@@ -53,6 +50,19 @@ export default class RecordsController {
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
     const domain = this.configService.get<string>("domain");
     const baseUrl = `${domain}${apiUrlPrefix}/records`;
+
+    const searchParams = new URLSearchParams();
+    Object.keys(query).forEach((k) => {
+      const key = k as keyof GetRecordsDto;
+      if (
+        query[key] !== undefined &&
+        key !== "page[after]" &&
+        key !== "page[size]"
+      ) {
+        searchParams.append(key, query[key]!);
+      }
+    });
+    const extraQuery = searchParams.size ? `&${searchParams.toString()}` : "";
 
     return formatRecords(records, pageAfter, pageSize, baseUrl, extraQuery);
   }

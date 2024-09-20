@@ -36,8 +36,18 @@ export class PoliciesController {
     const domain = this.configService.get<string>("domain");
     const baseUrl = `${domain}${apiUrlPrefix}/policies`;
 
-    let extraQuery = "";
-    if (query.status) extraQuery += `&status=${query.status}`;
+    const searchParams = new URLSearchParams();
+    Object.keys(query).forEach((k) => {
+      const key = k as keyof GetPoliciesQuery;
+      if (
+        query[key] !== undefined &&
+        key !== "page[after]" &&
+        key !== "page[size]"
+      ) {
+        searchParams.append(key, query[key]);
+      }
+    });
+    const extraQuery = searchParams.size ? `&${searchParams.toString()}` : "";
 
     return formatPolicies(
       policies,

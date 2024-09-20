@@ -56,9 +56,18 @@ export class SchemasController {
     const domain = this.configService.get<string>("domain");
     const baseUrl = `${domain}${apiUrlPrefix}/schemas`;
 
-    let extraQuery = "";
-    if (query["schema-revision-id"])
-      extraQuery += `&schema-revision-id=${query["schema-revision-id"]}`;
+    const searchParams = new URLSearchParams();
+    Object.keys(query).forEach((k) => {
+      const key = k as keyof GetSchemasQuery;
+      if (
+        query[key] !== undefined &&
+        key !== "page[after]" &&
+        key !== "page[size]"
+      ) {
+        searchParams.append(key, query[key]);
+      }
+    });
+    const extraQuery = searchParams.size ? `&${searchParams.toString()}` : "";
 
     return formatSchemas(
       schemas,
@@ -102,11 +111,18 @@ export class SchemasController {
     const domain = this.configService.get<string>("domain");
     const baseUrl = `${domain}${apiUrlPrefix}/schemas/${schemaId}/revisions`;
 
-    let extraQuery = "";
-    if (query["metadata-id"])
-      extraQuery += `&metadata-id=${query["metadata-id"]}`;
-
-    if (query["valid-at"]) extraQuery += `&valid-at${query["valid-at"]}`;
+    const searchParams = new URLSearchParams();
+    Object.keys(query).forEach((k) => {
+      const key = k as keyof GetSchemaRevisionsQuery;
+      if (
+        query[key] !== undefined &&
+        key !== "page[after]" &&
+        key !== "page[size]"
+      ) {
+        searchParams.append(key, query[key]!);
+      }
+    });
+    const extraQuery = searchParams.size ? `&${searchParams.toString()}` : "";
 
     return formatSchemaRevisions(
       revisions,

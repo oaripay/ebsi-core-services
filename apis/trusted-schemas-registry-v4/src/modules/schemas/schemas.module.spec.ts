@@ -566,6 +566,7 @@ describe("Schemas Module", () => {
       const revisionId3 = ethers.utils.sha256(
         schemaRevisions[1]!.serializedSchema,
       );
+      const selfLink = `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10&valid-at=${encodeURIComponent(validAt)}`;
 
       expect(response.body).toStrictEqual({
         items: expect.arrayContaining([
@@ -589,23 +590,13 @@ describe("Schemas Module", () => {
           },
         ]),
         links: {
-          first: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
-          ),
-          last: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
-          ),
-          next: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
-          ),
-          prev: expect.stringContaining(
-            `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
-          ),
+          first: expect.stringContaining(selfLink),
+          last: expect.stringContaining(selfLink),
+          next: expect.stringContaining(selfLink),
+          prev: expect.stringContaining(selfLink),
         },
         pageSize: 10,
-        self: expect.stringContaining(
-          `/schemas/${schema.schemaId}/revisions?page[after]=1&page[size]=10`,
-        ),
+        self: expect.stringContaining(selfLink),
       });
       expect(response.status).toBe(200);
       expect(
