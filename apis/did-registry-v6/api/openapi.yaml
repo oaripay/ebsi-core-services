@@ -46,6 +46,16 @@ paths:
           description: Filter by controller DID.
           schema:
             type: string
+        - in: query
+          name: verification-method-id
+          description: Parameter to be used in conjunction with controller and verification-relationship for a fine filter.
+          schema:
+            type: string
+        - in: query
+          name: verification-relationship
+          description: Parameter to be used in conjunction with controller and verification-method-id for a fine filter.
+          schema:
+            type: string
       responses:
         "200":
           description: Success
