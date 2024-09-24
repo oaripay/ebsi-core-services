@@ -73,3 +73,11 @@ query GetMetadata(
     }
   }
 }
+
+query GetBlockTimestamp {
+  _meta {
+    block {
+      timestamp
+    }
+  }
+}

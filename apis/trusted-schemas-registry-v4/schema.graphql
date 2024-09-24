@@ -147,6 +147,14 @@ type Metadata {
   content: String!
 }
 
+type _Block_ {
+  timestamp: Int!
+}
+
+type _Meta_ {
+  block: _Block_!
+}
+
 type Query {
   schemas(skip: Int = 0, first: Int = 100, where: Schema_filter): [Schema!]!
   schema(id: String!): Schema!
@@ -157,4 +165,5 @@ type Query {
   ): [Revision!]!
   revision(id: String!): Revision!
   metadata(id: String!): Metadata!
+  _meta: _Meta_!
 }
