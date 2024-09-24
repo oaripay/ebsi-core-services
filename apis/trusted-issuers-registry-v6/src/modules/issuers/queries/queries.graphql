@@ -85,3 +85,11 @@ query GetProxy($did: String!, $proxyId: String!) {
     }
   }
 }
+
+query GetBlockTimestamp {
+  _meta {
+    block {
+      timestamp
+    }
+  }
+}

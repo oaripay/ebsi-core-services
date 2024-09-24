@@ -72,3 +72,11 @@ query GetOperator($subject: String!, $skip: Int!, $pagesize: Int!) {
     }
   }
 }
+
+query GetBlockTimestamp {
+  _meta {
+    block {
+      timestamp
+    }
+  }
+}

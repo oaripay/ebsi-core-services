@@ -56,6 +56,14 @@ type Event {
   metadata: String!
 }
 
+type _Block_ {
+  timestamp: Int!
+}
+
+type _Meta_ {
+  block: _Block_!
+}
+
 type Query {
   creators(first: Int = 100, skip: Int = 0): [Creator!]!
   operators(first: Int = 100, skip: Int = 0): [Operator!]!
@@ -67,6 +75,7 @@ type Query {
   document(id: String!): Document!
   invitation(id: String!): Invitation!
   event(id: String!): Event!
+  _meta: _Meta_!
 }
 
 input ID_filter {

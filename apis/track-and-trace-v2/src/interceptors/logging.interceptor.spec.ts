@@ -15,7 +15,7 @@ import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { http, HttpResponse } from "msw";
+import { graphql, http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { AppModule } from "../app.module.js";
 import { AllExceptionsFilter } from "../filters/http-exception.filter.js";
@@ -24,7 +24,12 @@ import { DEPENDENCIES, type ApiConfig } from "../config/configuration.js";
 describe("Logging interceptor", () => {
   let app: NestFastifyApplication;
   let configService: ConfigService<ApiConfig, true>;
-  const mockServer = setupServer();
+  const mockServer = setupServer(
+    graphql.query("GetBlockTimestamp", () => {
+      const timestamp = Math.floor(Date.now() / 1000);
+      return HttpResponse.json({ data: { _meta: { block: { timestamp } } } });
+    }),
+  );
 
   const mockedLogger = {
     log: vi.fn(),
@@ -225,6 +230,7 @@ describe("Logging interceptor", () => {
           [`${dependency}`]: { status: "up" },
         }))
         .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
+      expectedStatuses["TNT Subgraph"] = { status: "up" };
 
       // It should have logged the response (with body)
       expect(mockedLogger.log).toHaveBeenNthCalledWith(

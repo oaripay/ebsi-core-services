@@ -156,3 +156,11 @@ fragment DidDocumentEvents on DidDocument {
     blockNumber
   }
 }
+
+query GetBlockTimestamp {
+  _meta {
+    block {
+      timestamp
+    }
+  }
+}

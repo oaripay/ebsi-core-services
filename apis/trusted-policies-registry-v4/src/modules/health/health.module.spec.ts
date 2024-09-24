@@ -18,7 +18,7 @@ import {
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
 import type { RawServerDefault } from "fastify";
-import { http, HttpResponse } from "msw";
+import { graphql, http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
 import { DEPENDENCIES, type ApiConfig } from "../../config/configuration.js";
@@ -33,7 +33,13 @@ describe("Health Module", () => {
   const dependencies = Object.keys(
     DEPENDENCIES,
   ) as (keyof typeof DEPENDENCIES)[];
-  const mockServer = setupServer();
+  let subgraphTimestamp: number | undefined;
+  const mockServer = setupServer(
+    graphql.query("GetBlockTimestamp", () => {
+      const timestamp = subgraphTimestamp ?? Math.floor(Date.now() / 1000);
+      return HttpResponse.json({ data: { _meta: { block: { timestamp } } } });
+    }),
+  );
 
   beforeAll(async () => {
     // Intercept network requests
@@ -117,6 +123,7 @@ describe("Health Module", () => {
           [`${dependency}`]: { status: "up" },
         }))
         .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
+      expectedStatuses["TPR Subgraph"] = { status: "up" };
 
       expect(response.body).toStrictEqual({
         details: expectedStatuses,
@@ -175,6 +182,7 @@ describe("Health Module", () => {
             }) satisfies HealthIndicatorResult,
         )
         .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
+      expectedStatuses["TPR Subgraph"] = { status: "up" };
 
       const { "Authorisation API v5": errorStatus, ...otherStatuses } =
         expectedStatuses;
@@ -236,6 +244,7 @@ describe("Health Module", () => {
             }) satisfies HealthIndicatorResult,
         )
         .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
+      expectedStatuses["TPR Subgraph"] = { status: "up" };
 
       const { Besu: errorStatus, ...otherStatuses } = expectedStatuses;
 
@@ -243,6 +252,62 @@ describe("Health Module", () => {
         details: expectedStatuses,
         error: {
           Besu: errorStatus,
+        },
+        info: otherStatuses,
+        status: "error",
+      });
+      expect(response.status).toBe(503);
+    });
+
+    it("should return 'error' if the Subgraph is not synced", async () => {
+      expect.assertions(2 + dependencies.length);
+
+      // Old timestamp in the subgraph
+      subgraphTimestamp = Math.floor(Date.now() / 1000 - 3600);
+
+      // All the dependencies return a 200 except Besu readiness (503)
+      mockServer.use(
+        ...dependencies.map((dependency) =>
+          http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
+            HttpResponse.json({}),
+          ),
+        ),
+        http.get(configService.get<string>("besuReadinessEndpoint"), () =>
+          HttpResponse.json({}),
+        ),
+      );
+
+      const spy = vi.spyOn(httpService, "request");
+
+      const response = await request(server).get("/health").send();
+
+      // Expect httpService.request to have been called for every dependency
+      dependencies.forEach((dependency) => {
+        expect(spy).toHaveBeenCalledWith({
+          url: `${localOrigin}${DEPENDENCIES[dependency]}`,
+        });
+      });
+
+      // Expect all the dependencies to be up except Besu
+      const expectedStatuses: Record<string, unknown> = (
+        [...dependencies, "Besu"] as const
+      )
+        .map((dependency) => ({
+          [`${dependency}`]: { status: "up" },
+        }))
+        .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
+      expectedStatuses["TPR Subgraph"] = {
+        status: "down",
+        message: "Not synchronized",
+      };
+
+      const { "TPR Subgraph": errorStatus, ...otherStatuses } =
+        expectedStatuses;
+
+      expect(response.body).toStrictEqual({
+        details: expectedStatuses,
+        error: {
+          "TPR Subgraph": errorStatus,
         },
         info: otherStatuses,
         status: "error",

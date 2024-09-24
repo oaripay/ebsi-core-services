@@ -247,6 +247,14 @@ type Proxy {
   data: String!
 }
 
+type _Block_ {
+  timestamp: Int!
+}
+
+type _Meta_ {
+  block: _Block_!
+}
+
 type Query {
   issuers(skip: Int = 0, first: Int = 100, where: Issuer_filter): [Issuer!]!
   issuer(id: String!): Issuer!
@@ -264,4 +272,5 @@ type Query {
   revision(id: String!): Revision!
   proxies(skip: Int = 0, first: Int = 100, where: Proxy_filter): [Proxy!]!
   proxy(id: String!): Proxy!
+  _meta: _Meta_!
 }

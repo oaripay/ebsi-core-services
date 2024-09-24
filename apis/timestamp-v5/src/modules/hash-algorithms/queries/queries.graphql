@@ -13,3 +13,11 @@ query GetHashAlgorithm($hashAlgorithmId: String!) {
     status
   }
 }
+
+query GetBlockTimestamp {
+  _meta {
+    block {
+      timestamp
+    }
+  }
+}

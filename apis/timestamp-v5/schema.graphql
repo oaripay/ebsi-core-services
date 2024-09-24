@@ -63,6 +63,14 @@ type Record {
   ): [Version!]!
 }
 
+type _Block_ {
+  timestamp: Int!
+}
+
+type _Meta_ {
+  block: _Block_!
+}
+
 type Query {
   hashAlgos(skip: Int = 0, first: Int = 100): [HashAlgo!]!
   hashAlgo(id: String!): HashAlgo!
@@ -71,6 +79,7 @@ type Query {
   records(skip: Int = 0, first: Int = 100): [Record!]!
   record(id: String!): Record!
   owner(id: String!): Owner!
+  _meta: _Meta_!
 }
 
 input Timestamp_filter {

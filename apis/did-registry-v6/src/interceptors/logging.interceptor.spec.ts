@@ -15,7 +15,7 @@ import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
-import { http, HttpResponse } from "msw";
+import { graphql, http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { EbsiWallet } from "@cef-ebsi/wallet-lib";
 import {
@@ -38,7 +38,12 @@ describe("Logging interceptor", () => {
     error: vi.fn(),
   };
 
-  const mockServer = setupServer();
+  const mockServer = setupServer(
+    graphql.query("GetBlockTimestamp", () => {
+      const timestamp = Math.floor(Date.now() / 1000);
+      return HttpResponse.json({ data: { _meta: { block: { timestamp } } } });
+    }),
+  );
 
   beforeAll(async () => {
     // Intercept network requests
@@ -138,6 +143,7 @@ describe("Logging interceptor", () => {
           [`${dependency}`]: { status: "up" },
         }))
         .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
+      expectedStatuses["DIDR Subgraph"] = { status: "up" };
 
       // It should have logged the response
       expect(mockedLogger.log).toHaveBeenNthCalledWith(
