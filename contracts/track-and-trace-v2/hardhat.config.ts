@@ -1,11 +1,12 @@
 import "@typechain/hardhat";
-import "@nomiclabs/hardhat-waffle";
+import "@nomicfoundation/hardhat-chai-matchers";
 import "@nomiclabs/hardhat-solhint";
 import "hardhat-abi-exporter";
 import "solidity-coverage";
 import "@openzeppelin/hardhat-upgrades";
 import { HardhatUserConfig, task } from "hardhat/config";
 import * as fs from "node:fs";
+import "./tasks/index";
 
 // The solhint plugin overrides the check task, runs solhint
 // on the project's sources and prints the report to the console
@@ -45,6 +46,7 @@ const config: HardhatUserConfig = {
   typechain: {
     outDir: "src/types",
     target: "ethers-v5",
+    alwaysGenerateOverloads: true,
   },
   abiExporter: {
     path: "./src/abi",

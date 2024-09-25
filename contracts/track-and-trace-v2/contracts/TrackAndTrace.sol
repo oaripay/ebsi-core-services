@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: EUPL V1.2
 pragma solidity ^0.8.12;
 
+// Imports necessary contracts and libraries from OpenZeppelin,
+// TrackAndTrace interface, DID registry, and EBSI Policy Registry.
+
 import "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "./interfaces/ITrackAndTraceInterface.sol";
@@ -11,6 +14,15 @@ import {EnumerableMapUpgradeable} from "@openzeppelin/contracts-upgradeable/util
 import "@ebsiint-sc/bootstrap-v2/contracts/utils/Pagination.sol";
 import "./libraries/TrackAndTraceLib.sol";
 
+/**
+ * @title TrackAndTrace
+ * @notice This contract implements a decentralized document and event tracking system that leverages
+ * DID (Decentralized Identifiers) and policy-based access control for secure creation, modification,
+ * and sharing of documents.
+ * The contract allows for document creation, event writing, and access control management
+ * (granting and revoking permissions).
+ * It integrates with EBSI policy and DID registries to ensure decentralized verification and control over identities.
+ */
 contract TrackAndTrace is
     UUPSUpgradeable,
     ITrackAndTraceInterface,
@@ -42,6 +54,13 @@ contract TrackAndTrace is
         _disableInitializers();
     }
 
+    /**
+     * @dev Initializes the contract by setting roles, addresses for policy and DID registries.
+     * @param _roleDefaultAdminAddress The address with default admin role.
+     * @param _upgraderAddress The address with upgrader role for upgrading the contract.
+     * @param _tprAddress The address of the Trusted Policies Registry.
+     * @param _didRegistryAddress The address of the DID registry for verifying decentralized identities.
+     */
     function initialize(
         address _roleDefaultAdminAddress,
         address _upgraderAddress,
@@ -54,7 +73,13 @@ contract TrackAndTrace is
         trustedPoliciesRegistry = IPolicyRegistry(_tprAddress);
         didRegistry = IDidRegistry(_didRegistryAddress);
     }
-
+    /**
+     * @notice Authorizes a DID to be either whitelisted or removed.
+     * @dev Verifies the sender's identity and policy compliance through EBSI policies before proceeding.
+     * @param senderDid The DID of the sender initiating the authorization.
+     * @param authorisedDid The DID to be authorized.
+     * @param whiteList Boolean flag indicating if the DID should be whitelisted or removed.
+     */
     function authoriseDid(
         string calldata senderDid,
         string calldata authorisedDid,
@@ -72,7 +97,13 @@ contract TrackAndTrace is
         invitedDidEbsiAccounts[authorisedDid] = whiteList;
         emit DidEbsiAuthorised(authorisedDid, whiteList);
     }
-
+    /**
+     * @notice Creates a new document, registering its metadata and hash.
+     * @dev The creator's DID must be authorized, and they must have proper access permissions to create the document.
+     * @param documentHash The hash representing the document content.
+     * @param documentMetadata Metadata associated with the document.
+     * @param didEbsiCreator DID of the document creator.
+     */
     function createDocument(
         bytes32 documentHash,
         string calldata documentMetadata,
@@ -100,7 +131,15 @@ contract TrackAndTrace is
             didEbsiCreator
         );
     }
-
+    /**
+     * @notice Creates a new document, registering its metadata and hash.
+     * @dev The creator's DID must be authorized, and they must have proper access permissions to create the document.
+     * @param documentHash The hash representing the document content.
+     * @param documentMetadata Metadata associated with the document.
+     * @param didEbsiCreator DID of the document creator.
+     * @param timestamp external timestamp.
+     * @param timestampProof proof for external timestamp.
+     */
     function createDocument(
         bytes32 documentHash,
         string calldata documentMetadata,
@@ -130,7 +169,11 @@ contract TrackAndTrace is
             didEbsiCreator
         );
     }
-
+    /**
+     * @notice Removes an existing document by its hash.
+     * @dev Only the document's creator or authorized user can remove the document.
+     * @param documentHash The hash of the document to be removed.
+     */
     function removeDocument(bytes32 documentHash) external {
         // authorize signer
         if (
@@ -162,7 +205,17 @@ contract TrackAndTrace is
         );
         emit DocumentRemoved(documentHash);
     }
-
+    /**
+     * @notice Grants access to a document for a specific subject.
+     * @dev The grantedBy account must be authorized, and appropriate permission levels
+     * (create, delegate, write) are enforced.
+     * @param documentHash The hash of the document for which access is granted.
+     * @param grantedByAccount The account granting access.
+     * @param subjectAccount The account receiving access.
+     * @param grantedByAccType The type of the granting account.
+     * @param subjectAccType The type of the receiving account.
+     * @param permission The access level (create, delegate, or write).
+     */
     function grantAccess(
         bytes32 documentHash,
         bytes calldata grantedByAccount,
@@ -213,7 +266,14 @@ contract TrackAndTrace is
             permission
         );
     }
-
+    /**
+     * @notice Revokes access to a document from a subject.
+     * @dev Only the account that granted access can revoke it, and the account must be authorized.
+     * @param documentHash The hash of the document for which access is revoked.
+     * @param revokedByAccount The account revoking the access.
+     * @param subjectAccount The account whose access is being revoked.
+     * @param permission The access level being revoked.
+     */
     function revokeAccess(
         bytes32 documentHash,
         bytes calldata revokedByAccount,
@@ -247,7 +307,32 @@ contract TrackAndTrace is
             permission
         );
     }
-
+    /**
+     * @notice Writes a new event for a specific document. The event includes metadata, an external hash,
+     *      and the sender's information.
+     * @dev This function ensures that the sender is authorized to write the event,
+     *      and that they have proper permissions (creator or writer).
+     *      The event metadata and sender are recorded along with the document's hash.
+     *      The event timestamp and proof are automatically generated using block data.
+     * @param eventParams A struct containing the event details, including:
+     *      - `documentHash`: The hash of the document the event is related to.
+     *      - `externalHash`: A hash representing the external data or event content.
+     *      - `sender`: The address or DID of the account writing the event.
+     *      - `origin`: A string indicating the origin of the event (e.g., system or user source).
+     *      - `metadata`: A string containing additional event-specific information or metadata.
+     *
+     * Requirements:
+     * - The `sender` must be authorized to write to the document.
+     * - The sender must have the appropriate permission (`TNT_WRITE`).
+     * - The event metadata length must not exceed `MAX_METADATA_LENGTH`.
+     *
+     * Emits an `EventWritten` event upon success.
+     *
+     * Reverts:
+     * - `NotDidController` if the sender is not authorized to control the DID.
+     * - `OnlyCreatorOrWriter` if the sender does not have permission to write the event.
+     * - `InvalidMetadata` if the event metadata exceeds the allowed length.
+     */
     function writeEvent(WriteEvent calldata eventParams) external {
         // authorize signer
         if (
@@ -276,7 +361,33 @@ contract TrackAndTrace is
             bytes32(block.number)
         );
     }
-
+    /**
+     * @notice Writes a new event for a specific document. The event includes metadata, an external hash,
+     *      and the sender's information.
+     * @dev This function ensures that the sender is authorized to write the event,
+     *      and that they have proper permissions (creator or writer).
+     *      The event metadata and sender are recorded along with the document's hash.
+     *      The event timestamp and proof are automatically generated using block data.
+     * @param eventParams A struct containing the event details, including:
+     *      - `documentHash`: The hash of the document the event is related to.
+     *      - `externalHash`: A hash representing the external data or event content.
+     *      - `sender`: The address or DID of the account writing the event.
+     *      - `origin`: A string indicating the origin of the event (e.g., system or user source).
+     *      - `metadata`: A string containing additional event-specific information or metadata.
+     * @param timestamp external timestamp.
+     * @param timestampProof proof for external timestamp.
+     * Requirements:
+     * - The `sender` must be authorized to write to the document.
+     * - The sender must have the appropriate permission (`TNT_WRITE`).
+     * - The event metadata length must not exceed `MAX_METADATA_LENGTH`.
+     *
+     * Emits an `EventWritten` event upon success.
+     *
+     * Reverts:
+     * - `NotDidController` if the sender is not authorized to control the DID.
+     * - `OnlyCreatorOrWriter` if the sender does not have permission to write the event.
+     * - `InvalidMetadata` if the event metadata exceeds the allowed length.
+     */
     function writeEvent(
         WriteEvent calldata eventParams,
         uint256 timestamp,
@@ -308,7 +419,28 @@ contract TrackAndTrace is
     function getImplementation() external view returns (address) {
         return _getImplementation();
     }
-
+    /**
+     * @notice Retrieves a paginated list of document hashes stored in the contract.
+     * @dev This function allows users to fetch documents in pages, based on the specified page number and page size.
+     *      Pagination is used to efficiently handle large datasets.
+     * @param page The page number to retrieve. Must be greater than 0.
+     * @param pageSize The number of document hashes to retrieve per page.
+     *      Must be greater than 0 and less than or equal to 50.
+     * @return items An array of document hashes corresponding to the requested page.
+     * @return total The total number of document hashes stored in the contract.
+     * @return howMany The number of document hashes returned in the current page.
+     * @return prev The previous page number, or 0 if there is no previous page.
+     * @return next The next page number, or 0 if there is no next page.
+     *
+     * Requirements:
+     * - `page` must be greater than 0.
+     * - `pageSize` must be greater than 0 and less than or equal to 50.
+     *
+     * Reverts:
+     * - `PSize not <= 50` if the `pageSize` exceeds 50.
+     * - `PSize not > 0` if the `pageSize` is 0.
+     * - `Page not > 0` if the `page` is 0.
+     */
     function getDocuments(
         uint256 page,
         uint256 pageSize
@@ -328,7 +460,22 @@ contract TrackAndTrace is
         require(page > 0, "Page not >0");
         return documentsMapped.keys().paginate(page, pageSize);
     }
-
+    /**
+     * @notice Retrieves the details of a specific document by its hash.
+     * @dev This function returns the metadata, creator, and associated events of a document stored in the contract.
+     * @param documentHash The hash of the document to retrieve.
+     * @return DocumentGetter A struct containing:
+     *      - `creator`: The DID or account that created the document.
+     *      - `documentMetadata`: The metadata associated with the document.
+     *      - `documentTimestamp`: The timestamp of when the document was created.
+     *      - `eventHashes`: An array of event hashes associated with the document.
+     *
+     * Requirements:
+     * - The document identified by `documentHash` must exist.
+     *
+     * Reverts:
+     * - `Document does not exist` if no document with the specified `documentHash` is found.
+     */
     function getDocument(
         bytes32 documentHash
     ) external view returns (DocumentGetter memory) {
@@ -341,7 +488,30 @@ contract TrackAndTrace is
         doc.eventHashes = iDoc.eventHashes;
         return doc;
     }
-
+    /**
+     * @notice Retrieves a paginated list of event hashes associated with a specific document.
+     * @dev This function allows users to fetch events related to a document in a paginated manner.
+     * @param documentHash The hash of the document for which events are being retrieved.
+     * @param page The page number to retrieve. Must be greater than 0.
+     * @param pageSize The number of event hashes to retrieve per page.
+     *     Must be greater than 0 and less than or equal to 50.
+     * @return items An array of event hashes corresponding to the requested page.
+     * @return total The total number of event hashes associated with the document.
+     * @return howMany The number of event hashes returned in the current page.
+     * @return prev The previous page number, or 0 if there is no previous page.
+     * @return next The next page number, or 0 if there is no next page.
+     *
+     * Requirements:
+     * - `documentHash` must correspond to an existing document.
+     * - `page` must be greater than 0.
+     * - `pageSize` must be greater than 0 and less than or equal to 50.
+     *
+     * Reverts:
+     * - `PSize not <= 50` if the `pageSize` exceeds 50.
+     * - `PSize not > 0` if the `pageSize` is 0.
+     * - `Page not > 0` if the `page` is 0.
+     * - `Document does not exist` if no document with the specified `documentHash` is found.
+     */
     function getEvents(
         bytes32 documentHash,
         uint256 page,
@@ -366,7 +536,27 @@ contract TrackAndTrace is
         );
         return documents[documentHash].eventHashes.paginate(page, pageSize);
     }
-
+    /**
+     * @notice Retrieves the details of a specific event associated with a document.
+     * @dev This function returns the details of an event for a given document, identified by the event's hash.
+     * @param documentHash The hash of the document to which the event is associated.
+     * @param eventHash The hash of the event to retrieve.
+     * @return Event A struct containing the following event details:
+     *      - `hash`: The hash of the event.
+     *      - `externalHash`: A hash representing external data related to the event.
+     *      - `sender`: The account or DID that submitted the event.
+     *      - `origin`: The origin of the event (e.g., system or user).
+     *      - `eventMetadata`: The metadata associated with the event.
+     *      - `eventTimestamp`: A struct containing the timestamp of when the event was recorded.
+     *
+     * Requirements:
+     * - The document identified by `documentHash` must exist.
+     * - The event identified by `eventHash` must exist.
+     *
+     * Reverts:
+     * - `Document does not exist` if the document with the specified `documentHash` is not found.
+     * - `Event does not exist` if the event with the specified `eventHash` is not found.
+     */
     function getEvent(
         bytes32 documentHash,
         bytes32 eventHash
@@ -379,7 +569,31 @@ contract TrackAndTrace is
         require(ev.sender.length > 0, "Event does not exist");
         return ev;
     }
-
+    /**
+     * @notice Retrieves a paginated list of accounts that have been granted access to a specific document.
+     * @dev This function returns the list of accounts (subjects) that have access to a document,
+     *      based on the document's hash.
+     *      The result is paginated based on the specified page number and page size.
+     * @param documentHash The hash of the document for which access details are being retrieved.
+     * @param page The page number to retrieve. Must be greater than 0.
+     * @param pageSize The number of accounts to retrieve per page. Must be greater than 0 and less than or equal to 50.
+     * @return items An array of accounts (subjects) that have access to the document for the requested page.
+     * @return total The total number of accounts with access to the document.
+     * @return howMany The number of accounts returned in the current page.
+     * @return prev The previous page number, or 0 if there is no previous page.
+     * @return next The next page number, or 0 if there is no next page.
+     *
+     * Requirements:
+     * - `documentHash` must correspond to an existing document.
+     * - `page` must be greater than 0.
+     * - `pageSize` must be greater than 0 and less than or equal to 50.
+     *
+     * Reverts:
+     * - `PSize not <= 50` if `pageSize` exceeds 50.
+     * - `PSize not > 0` if `pageSize` is 0.
+     * - `Page not > 0` if `page` is 0.
+     * - `Document does not exist` if no document with the specified `documentHash` is found.
+     */
     function getAccessesByDocument(
         bytes32 documentHash,
         uint256 page,
@@ -405,7 +619,30 @@ contract TrackAndTrace is
         bytes[] storage invitedUsers = documents[documentHash].allInvited;
         return invitedUsers.paginate(page, pageSize);
     }
-
+    /**
+     * @notice Retrieves a paginated list of document hashes that a specific subject (account) has access to.
+     * @dev This function allows for fetching all documents a subject has been granted access to, using pagination.
+     * @param subject The account (subject) whose document accesses are being queried.
+     * @param page The page number to retrieve. Must be greater than 0.
+     * @param pageSize The number of document hashes to retrieve per page.
+     *      Must be greater than 0 and less than or equal to 50.
+     * @return items An array of document hashes that the subject has access to, corresponding to the requested page.
+     * @return total The total number of documents the subject has access to.
+     * @return howMany The number of document hashes returned in the current page.
+     * @return prev The previous page number, or 0 if there is no previous page.
+     * @return next The next page number, or 0 if there is no next page.
+     *
+     * Requirements:
+     * - `subject` must have access to at least one document.
+     * - `page` must be greater than 0.
+     * - `pageSize` must be greater than 0 and less than or equal to 50.
+     *
+     * Reverts:
+     * - `PSize not <= 50` if `pageSize` exceeds 50.
+     * - `PSize not > 0` if `pageSize` is 0.
+     * - `Page not > 0` if `page` is 0.
+     * - `Subject does not exist` if the subject does not have access to any documents.
+     */
     function getAccessesBySubject(
         bytes calldata subject,
         uint256 page,
@@ -427,11 +664,67 @@ contract TrackAndTrace is
         require(accessBySubject[subject].length > 0, "Subject does not exist");
         return accessBySubject[subject].paginate(page, pageSize);
     }
-
+    /**
+     * @notice Checks whether the given DID (Decentralized Identifier) is a creator within the system.
+     * @dev This function verifies if the provided DID has the permission to create new documents.
+     * @param did The Decentralized Identifier (DID) of the account to be checked.
+     * @return bool A boolean value indicating whether the given DID is a creator (`true`) or not (`false`).
+     *
+     * Requirements:
+     * - The DID must be present in the system and must have been granted the `TNT_CREATE` permission.
+     */
     function isCreator(bytes calldata did) external view returns (bool) {
         return _getAccountAccess(bytes32(0), did, SCOPE.TNT_CREATE);
     }
-
+    /**
+     * @notice Checks whether a given account has the specified access level (scope) for a particular document.
+     * @dev This function verifies if the account has access to the document based on the requested scope
+     *      (e.g., create, write, or delegate permissions).
+     * @param documentHash The hash of the document for which access is being checked.
+     *      If checking general access (e.g., for creating a new document), pass `bytes32(0)`.
+     * @param account The account (or DID) whose access is being checked.
+     * @param scopeRequested The scope of access being requested. Possible values are:
+     *      - `TNT_CREATE`: Check if the account has permission to create documents.
+     *      - `TNT_WRITE`: Check if the account has write access to the document.
+     *      - `TNT_DELEGATE`: Check if the account can delegate permissions for the document.
+     * @return bool A boolean value indicating whether the account has the requested access (`true`) or not (`false`).
+     *
+     * Requirements:
+     * - The document identified by `documentHash` must exist if checking specific document access.
+     * - The `scopeRequested` must be one of the predefined scopes (`TNT_CREATE`, `TNT_WRITE`, `TNT_DELEGATE`).
+     *
+     * Reverts:
+     * - Returns `false` if the account does not have the requested access or if the scope is invalid.
+     */
+    function getAccountAccess(
+        bytes32 documentHash,
+        bytes memory account,
+        SCOPE scopeRequested
+    ) external view returns (bool) {
+        return _getAccountAccess(documentHash, account, scopeRequested);
+    }
+    /**
+     * @notice Retrieves the accounts that granted specific access levels to a given DID for a particular document.
+     * @dev This function returns the accounts (grantedBy), account types,
+     *      and access statuses for the specified DID and access levels on a given document.
+     * @param docHash The hash of the document for which the access information is being queried.
+     * @param did The Decentralized Identifier (DID) for which access information is being retrieved.
+     * @param acc An array of access types (`ACCESS_ENUM`) for which the grantedBy information is being requested.
+     *      - Valid values of `ACCESS_ENUM` include `CREATOR`, `DELEGATE`, and `WRITE`.
+     * @return bytes[] memory An array of accounts that granted the requested access levels to the specified DID.
+     * @return ACCOUNT_TYPE[] memory An array of account types corresponding to the accounts that
+     *      granted the requested access.
+     * @return bool[] memory An array of boolean values indicating whether the requested
+     *      access is granted (`true`) or not (`false`).
+     *
+     * Requirements:
+     * - The `acc` array must contain at least one access type.
+     * - The document identified by `docHash` must exist.
+     *
+     * Reverts:
+     * - `InvalidArrayLength` if the `acc` array is empty.
+     * - `Document does not exist` if the document with the given `docHash` is not found.
+     */
     function getGrantedBy(
         bytes32 docHash,
         bytes calldata did,
