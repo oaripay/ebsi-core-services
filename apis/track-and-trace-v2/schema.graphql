@@ -13,15 +13,54 @@ enum Permission {
   creator
 }
 
+enum Event_orderBy {
+  id
+  externalHash
+  hash
+  timestamp
+  source
+  proof
+  sender
+  origin
+  metadata
+}
+
+input Document_filter {
+  creator: String
+  source: Source
+}
+
+input Event_filter {
+  id: String
+  externalHash: String
+  source: Source
+  sender: String
+  origin: String
+}
+
+input Invitation_filter {
+  type: Permission
+  grantedBy: String
+  subject: String
+}
+
 type Creator {
   id: String!
   active: Boolean!
-  documents(first: Int = 100, skip: Int = 0): [Document!]!
+  documents(
+    first: Int = 100
+    skip: Int = 0
+    where: Document_filter
+  ): [Document!]!
 }
 
 type Operator {
   id: String!
-  invitations(first: Int = 100, skip: Int = 0): [Invitation!]!
+  invitations(
+    first: Int = 100
+    skip: Int = 0
+    where: Invitation_filter
+  ): [Invitation!]!
 }
 
 type Document {
@@ -31,8 +70,17 @@ type Document {
   source: Source!
   proof: String!
   metadata: String!
-  events(first: Int = 100, skip: Int = 0, where: ID_filter): [Event!]!
-  invitations(first: Int = 100, skip: Int = 0): [Invitation!]!
+  events(
+    first: Int = 100
+    skip: Int = 0
+    orderby: Event_orderBy
+    where: Event_filter
+  ): [Event!]!
+  invitations(
+    first: Int = 100
+    skip: Int = 0
+    where: Invitation_filter
+  ): [Invitation!]!
 }
 
 type Invitation {
@@ -67,17 +115,26 @@ type _Meta_ {
 type Query {
   creators(first: Int = 100, skip: Int = 0): [Creator!]!
   operators(first: Int = 100, skip: Int = 0): [Operator!]!
-  documents(first: Int = 100, skip: Int = 0): [Document!]!
-  invitations(first: Int = 100, skip: Int = 0): [Invitation!]!
-  events(first: Int = 100, skip: Int = 0): [Event!]!
+  documents(
+    first: Int = 100
+    skip: Int = 0
+    where: Document_filter
+  ): [Document!]!
+  invitations(
+    first: Int = 100
+    skip: Int = 0
+    where: Invitation_filter
+  ): [Invitation!]!
+  events(
+    first: Int = 100
+    skip: Int = 0
+    orderby: Event_orderBy
+    where: Event_filter
+  ): [Event!]!
   creator(id: String!): Creator!
   operator(id: String!): Operator!
   document(id: String!): Document!
   invitation(id: String!): Invitation!
   event(id: String!): Event!
   _meta: _Meta_!
-}
-
-input ID_filter {
-  id: String!
 }

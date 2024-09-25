@@ -33,6 +33,16 @@ paths:
           in: query
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
+        - name: creator
+          in: query
+          schema:
+            type: string
+          description: Filter documents by creator.
+        - name: source
+          in: query
+          schema:
+            type: string
+          description: Filter documents by source of proof (block or external).
       responses:
         "200":
           description: Success
@@ -200,6 +210,26 @@ paths:
           in: query
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
+        - name: external-hash
+          in: query
+          schema:
+            type: string
+          description: Filter events by external hash.
+        - name: origin
+          in: query
+          schema:
+            type: string
+          description: Filter events by origin.
+        - name: sender
+          in: query
+          schema:
+            type: string
+          description: Filter events by sender.
+        - name: source
+          in: query
+          schema:
+            type: string
+          description: Filter events by source.
       responses:
         "200":
           description: Success
@@ -384,6 +414,21 @@ paths:
           in: query
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
+        - name: permission
+          in: query
+          schema:
+            type: string
+          description: Filter accesses by permission (creator, delegate, or write).
+        - name: granted-by
+          in: query
+          schema:
+            type: string
+          description: Filter accesses by granter.
+        - name: subject
+          in: query
+          schema:
+            type: string
+          description: Filter accesses by subject DID.
       responses:
         "200":
           description: Success
@@ -517,6 +562,16 @@ paths:
             type: string
           required: true
           example: did:ebsi:zkrLJ5WyqiHbiXjur3TqzfA
+        - name: permission
+          in: query
+          schema:
+            type: string
+          description: Filter accesses by permission (creator, delegate, or write).
+        - name: granted-by
+          in: query
+          schema:
+            type: string
+          description: Filter accesses by granter.
       responses:
         "200":
           description: Success

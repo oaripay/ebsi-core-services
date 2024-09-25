@@ -24,6 +24,12 @@ import {
   GetDocumentsDto,
 } from "./dto/index.js";
 import type { ApiConfig } from "../../config/configuration.js";
+import {
+  Document_filter,
+  Event_filter,
+  Invitation_filter,
+  // eslint-disable-next-line import/extensions, import/no-relative-packages
+} from "../../../.graphclient/index.js";
 
 @Controller("/documents")
 export default class DocumentsController {
@@ -36,20 +42,44 @@ export default class DocumentsController {
   async getDocuments(
     @Query() query: GetDocumentsDto,
   ): Promise<PaginatedListWithoutTotal<DocumentsLink>> {
+    const where: Document_filter = {
+      ...(query.creator && {
+        creator: query.creator,
+      }),
+      ...(query.source && {
+        source: query.source,
+      }),
+    };
+
     const documents = await this.documentsService.getDocuments(
       query["page[after]"],
       query["page[size]"],
+      where,
     );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
     const domain = this.configService.get<string>("domain");
     const baseUrl = `${domain}${apiUrlPrefix}/documents`;
 
+    const searchParams = new URLSearchParams();
+    Object.keys(query).forEach((k) => {
+      const key = k as keyof GetDocumentsDto;
+      if (
+        query[key] !== undefined &&
+        key !== "page[after]" &&
+        key !== "page[size]"
+      ) {
+        searchParams.append(key, query[key]!);
+      }
+    });
+    const extraQuery = searchParams.size ? `&${searchParams.toString()}` : "";
+
     return formatDocuments(
       documents,
       query["page[after]"],
       query["page[size]"],
       baseUrl,
+      extraQuery,
     );
   }
 
@@ -69,21 +99,43 @@ export default class DocumentsController {
   ): Promise<PaginatedListWithoutTotal<DocumentEventsLink>> {
     const { documentId } = params;
 
+    const where: Event_filter = {
+      ...(query["external-hash"] && { externalHash: query["external-hash"] }),
+      ...(query.origin && { origin: query.origin }),
+      ...(query.sender && { sender: query.sender }),
+      ...(query.source && { source: query.source }),
+    };
+
     const events = await this.documentsService.getDocumentEvents(
       documentId,
       query["page[after]"],
       query["page[size]"],
+      where,
     );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
     const domain = this.configService.get<string>("domain");
     const baseUrl = `${domain}${apiUrlPrefix}/documents/${documentId}/events`;
 
+    const searchParams = new URLSearchParams();
+    Object.keys(query).forEach((k) => {
+      const key = k as keyof GetDocumentEventsDto;
+      if (
+        query[key] !== undefined &&
+        key !== "page[after]" &&
+        key !== "page[size]"
+      ) {
+        searchParams.append(key, query[key]!);
+      }
+    });
+    const extraQuery = searchParams.size ? `&${searchParams.toString()}` : "";
+
     return formatDocumentEvents(
       events,
       query["page[after]"],
       query["page[size]"],
       baseUrl,
+      extraQuery,
     );
   }
 
@@ -108,21 +160,42 @@ export default class DocumentsController {
   ): Promise<PaginatedListWithoutTotal<Access>> {
     const { documentId } = params;
 
+    const where: Invitation_filter = {
+      ...(query.permission && { type: query.permission }),
+      ...(query["granted-by"] && { grantedBy: query["granted-by"] }),
+      ...(query.subject && { subject: query.subject }),
+    };
+
     const accesses = await this.documentsService.getDocumentAccesses(
       documentId,
       query["page[after]"],
       query["page[size]"],
+      where,
     );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
     const domain = this.configService.get<string>("domain");
     const baseUrl = `${domain}${apiUrlPrefix}/documents/${documentId}/accesses`;
 
+    const searchParams = new URLSearchParams();
+    Object.keys(query).forEach((k) => {
+      const key = k as keyof GetDocumentAccessesDto;
+      if (
+        query[key] !== undefined &&
+        key !== "page[after]" &&
+        key !== "page[size]"
+      ) {
+        searchParams.append(key, query[key]!);
+      }
+    });
+    const extraQuery = searchParams.size ? `&${searchParams.toString()}` : "";
+
     return formatDocumentAccesses(
       accesses,
       query["page[after]"],
       query["page[size]"],
       baseUrl,
+      extraQuery,
     );
   }
 }

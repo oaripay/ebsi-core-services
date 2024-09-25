@@ -13,6 +13,7 @@ export function formatDocuments(
   page: number,
   pageSize: number,
   baseUrl: string,
+  extraQuery?: string,
 ): PaginatedListWithoutTotal<DocumentsLink> {
   const items = documents.items.map((documentId) => {
     return {
@@ -21,7 +22,13 @@ export function formatDocuments(
     };
   });
 
-  return paginateWithoutTotal<DocumentsLink>(items, baseUrl, page, pageSize);
+  return paginateWithoutTotal<DocumentsLink>(
+    items,
+    baseUrl,
+    page,
+    pageSize,
+    extraQuery,
+  );
 }
 
 export function formatDocumentEvents(
@@ -29,6 +36,7 @@ export function formatDocumentEvents(
   page: number,
   pageSize: number,
   baseUrl: string,
+  extraQuery?: string,
 ): PaginatedListWithoutTotal<DocumentEventsLink> {
   const items = events.items.map((eventId) => {
     return {
@@ -42,6 +50,7 @@ export function formatDocumentEvents(
     baseUrl,
     page,
     pageSize,
+    extraQuery,
   );
 }
 
@@ -50,8 +59,15 @@ export function formatDocumentAccesses(
   page: number,
   pageSize: number,
   baseUrl: string,
+  extraQuery?: string,
 ): PaginatedListWithoutTotal<Access> {
   const { items } = accesses;
 
-  return paginateWithoutTotal<Access>(items, baseUrl, page, pageSize);
+  return paginateWithoutTotal<Access>(
+    items,
+    baseUrl,
+    page,
+    pageSize,
+    extraQuery,
+  );
 }

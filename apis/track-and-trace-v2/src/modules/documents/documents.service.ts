@@ -10,6 +10,9 @@ import {
   GetDocumentEventsQuery,
   GetDocumentEventQuery,
   GetDocumentInvitationsQuery,
+  Document_filter,
+  Invitation_filter,
+  Event_filter,
   // eslint-disable-next-line import/extensions, import/no-relative-packages
 } from "../../../.graphclient/index.js";
 import Access from "../accesses/accesses.interface.js";
@@ -23,13 +26,14 @@ export default class DocumentsService {
   async getDocuments(
     page: number,
     pagesize: number,
+    where: Document_filter = {},
   ): Promise<{ items: string[] }> {
     const skip = (page - 1) * pagesize;
     let res: GetDocumentsQuery;
     try {
       // get one more item to clarify next pages in pagination
       const queryPageSize = pagesize + 1;
-      res = await sdk.GetDocuments({ skip, pagesize: queryPageSize });
+      res = await sdk.GetDocuments({ skip, pagesize: queryPageSize, where });
     } catch (error) {
       this.logger.error(
         error,
@@ -86,6 +90,7 @@ export default class DocumentsService {
     documentId: string,
     page: number,
     pagesize: number,
+    where: Event_filter,
   ): Promise<{ items: string[] }> {
     const skip = (page - 1) * pagesize;
     let res: GetDocumentEventsQuery;
@@ -96,6 +101,7 @@ export default class DocumentsService {
         documentId,
         skip,
         pagesize: queryPageSize,
+        where,
       });
     } catch (error) {
       this.logger.error(
@@ -170,6 +176,7 @@ export default class DocumentsService {
     documentId: string,
     page: number,
     pagesize: number,
+    where: Invitation_filter,
   ): Promise<{ items: Access[] }> {
     const skip = (page - 1) * pagesize;
     let res: GetDocumentInvitationsQuery;
@@ -180,6 +187,7 @@ export default class DocumentsService {
         documentId,
         skip,
         pagesize: queryPageSize,
+        where,
       });
     } catch (error) {
       this.logger.error(

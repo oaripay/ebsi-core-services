@@ -1,5 +1,5 @@
-query GetDocuments($skip: Int!, $pagesize: Int!) {
-  documents(first: $pagesize, skip: $skip) {
+query GetDocuments($skip: Int!, $pagesize: Int!, $where: Document_filter) {
+  documents(first: $pagesize, skip: $skip, where: $where) {
     id
   }
 }
@@ -11,15 +11,20 @@ query GetDocument($documentId: String!) {
     source
     proof
     metadata
-    events(first: 1000, skip: 0) {
+    events(first: 1000, skip: 0, orderby: timestamp) {
       id
     }
   }
 }
 
-query GetDocumentEvents($documentId: String!, $skip: Int!, $pagesize: Int!) {
+query GetDocumentEvents(
+  $documentId: String!
+  $skip: Int!
+  $pagesize: Int!
+  $where: Event_filter
+) {
   document(id: $documentId) {
-    events(first: $pagesize, skip: $skip) {
+    events(first: $pagesize, skip: $skip, orderby: timestamp, where: $where) {
       id
     }
   }
@@ -27,7 +32,7 @@ query GetDocumentEvents($documentId: String!, $skip: Int!, $pagesize: Int!) {
 
 query GetDocumentEvent($documentId: String!, $eventId: String!) {
   document(id: $documentId) {
-    events(first: 1, skip: 0, where: { id: $eventId }) {
+    events(first: 1, skip: 0, orderby: timestamp, where: { id: $eventId }) {
       sender
       hash
       externalHash
@@ -44,9 +49,10 @@ query GetDocumentInvitations(
   $documentId: String!
   $skip: Int!
   $pagesize: Int!
+  $where: Invitation_filter
 ) {
   document(id: $documentId) {
-    invitations(first: $pagesize, skip: $skip) {
+    invitations(first: $pagesize, skip: $skip, where: $where) {
       subject
       grantedBy
       type
@@ -60,9 +66,14 @@ query GetCreator($did: String!) {
   }
 }
 
-query GetOperator($subject: String!, $skip: Int!, $pagesize: Int!) {
+query GetOperator(
+  $subject: String!
+  $skip: Int!
+  $pagesize: Int!
+  $where: Invitation_filter
+) {
   operator(id: $subject) {
-    invitations(first: $pagesize, skip: $skip) {
+    invitations(first: $pagesize, skip: $skip, where: $where) {
       subject
       grantedBy
       type

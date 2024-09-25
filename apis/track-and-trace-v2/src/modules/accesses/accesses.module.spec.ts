@@ -134,27 +134,27 @@ describe("Accesses Module", () => {
 
       const randomDid = EbsiWallet.createDid();
       const response = await request(server).get(
-        `/accesses?subject=${randomDid}`,
+        `/accesses?subject=${encodeURIComponent(randomDid)}`,
       );
 
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          `/accesses?page[after]=1&page[size]=10&subject=${randomDid}`,
+          `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(randomDid)}`,
         ),
         items: [],
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/accesses?page[after]=1&page[size]=10&subject=${randomDid}`,
+            `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(randomDid)}`,
           ),
           prev: expect.stringContaining(
-            `/accesses?page[after]=1&page[size]=10&subject=${randomDid}`,
+            `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(randomDid)}`,
           ),
           next: expect.stringContaining(
-            `/accesses?page[after]=1&page[size]=10&subject=${randomDid}`,
+            `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(randomDid)}`,
           ),
           last: expect.stringContaining(
-            `/accesses?page[after]=1&page[size]=10&subject=${randomDid}`,
+            `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(randomDid)}`,
           ),
         },
       });
@@ -176,7 +176,7 @@ describe("Accesses Module", () => {
 
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          `/accesses?page[after]=1&page[size]=10&subject=${grantedDidEbsiAccount}`,
+          `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(grantedDidEbsiAccount)}`,
         ),
         items: [
           {
@@ -189,16 +189,16 @@ describe("Accesses Module", () => {
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/accesses?page[after]=1&page[size]=10&subject=${grantedDidEbsiAccount}`,
+            `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(grantedDidEbsiAccount)}`,
           ),
           prev: expect.stringContaining(
-            `/accesses?page[after]=1&page[size]=10&subject=${grantedDidEbsiAccount}`,
+            `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(grantedDidEbsiAccount)}`,
           ),
           next: expect.stringContaining(
-            `/accesses?page[after]=1&page[size]=10&subject=${grantedDidEbsiAccount}`,
+            `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(grantedDidEbsiAccount)}`,
           ),
           last: expect.stringContaining(
-            `/accesses?page[after]=1&page[size]=10&subject=${grantedDidEbsiAccount}`,
+            `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(grantedDidEbsiAccount)}`,
           ),
         },
       });
@@ -220,7 +220,7 @@ describe("Accesses Module", () => {
 
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          `/accesses?page[after]=1&page[size]=10&subject=${grantedDidKeyAccount}`,
+          `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(grantedDidKeyAccount)}`,
         ),
         items: [
           {
@@ -233,16 +233,16 @@ describe("Accesses Module", () => {
         pageSize: 10,
         links: {
           first: expect.stringContaining(
-            `/accesses?page[after]=1&page[size]=10&subject=${grantedDidKeyAccount}`,
+            `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(grantedDidKeyAccount)}`,
           ),
           prev: expect.stringContaining(
-            `/accesses?page[after]=1&page[size]=10&subject=${grantedDidKeyAccount}`,
+            `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(grantedDidKeyAccount)}`,
           ),
           next: expect.stringContaining(
-            `/accesses?page[after]=1&page[size]=10&subject=${grantedDidKeyAccount}`,
+            `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(grantedDidKeyAccount)}`,
           ),
           last: expect.stringContaining(
-            `/accesses?page[after]=1&page[size]=10&subject=${grantedDidKeyAccount}`,
+            `/accesses?page[after]=1&page[size]=10&subject=${encodeURIComponent(grantedDidKeyAccount)}`,
           ),
         },
       });

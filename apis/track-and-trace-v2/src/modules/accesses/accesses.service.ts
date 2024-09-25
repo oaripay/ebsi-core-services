@@ -6,6 +6,7 @@ import {
   getBuiltGraphSDK,
   GetCreatorQuery,
   GetOperatorQuery,
+  Invitation_filter,
   // eslint-disable-next-line import/extensions, import/no-relative-packages
 } from "../../../.graphclient/index.js";
 
@@ -38,6 +39,7 @@ export default class AccessesService {
     subject: string,
     page: number,
     pagesize: number,
+    where: Invitation_filter,
   ): Promise<{ items: Access[] }> {
     const skip = (page - 1) * pagesize;
     let res: GetOperatorQuery;
@@ -49,6 +51,7 @@ export default class AccessesService {
         subject: subjectBuffer,
         skip,
         pagesize: queryPageSize,
+        where,
       });
     } catch (error) {
       this.logger.error(
