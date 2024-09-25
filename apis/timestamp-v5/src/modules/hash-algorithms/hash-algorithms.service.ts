@@ -5,6 +5,7 @@ import {
   getBuiltGraphSDK,
   GetHashAlgorithmsQuery,
   GetHashAlgorithmQuery,
+  HashAlgo_filter,
   // eslint-disable-next-line import/extensions, import/no-relative-packages
 } from "../../../.graphclient/index.js";
 
@@ -17,13 +18,18 @@ export class HashAlgorithmsService {
   async getHashAlgorithms(
     page: number,
     pagesize: number,
+    where: HashAlgo_filter = {},
   ): Promise<{ items: number[] }> {
     const skip = (page - 1) * pagesize;
     let res: GetHashAlgorithmsQuery;
     try {
       // get one more item to clarify next pages in pagination
       const queryPageSize = pagesize + 1;
-      res = await sdk.GetHashAlgorithms({ skip, pagesize: queryPageSize });
+      res = await sdk.GetHashAlgorithms({
+        skip,
+        pagesize: queryPageSize,
+        where,
+      });
     } catch (error) {
       this.logger.error(
         error,

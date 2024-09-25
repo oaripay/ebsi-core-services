@@ -32,6 +32,31 @@ paths:
           in: query
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
+        - name: iananame
+          description: Filter hash algorithms by iananame
+          in: query
+          schema:
+            type: string
+        - name: multihash
+          description: Filter hash algorithms by multihash
+          in: query
+          schema:
+            type: string
+        - name: oid
+          description: Filter hash algorithms by oid
+          in: query
+          schema:
+            type: string
+        - name: "output-length"
+          description: Filter hash algorithms by output length
+          in: query
+          schema:
+            type: string
+        - name: status
+          description: Filter hash algorithms by status
+          in: query
+          schema:
+            type: string
       responses:
         "200":
           description: Success
@@ -173,6 +198,16 @@ paths:
           in: query
           name: page[size]
           description: Defines the maximum number of objects that may be returned.
+        - name: creator
+          description: Filter timestamps by creator.
+          in: query
+          schema:
+            type: string
+        - name: "hash-algorithm-id"
+          description: Filter timestamps by hash algorithm ID.
+          in: query
+          schema:
+            type: string
       responses:
         "200":
           description: Success

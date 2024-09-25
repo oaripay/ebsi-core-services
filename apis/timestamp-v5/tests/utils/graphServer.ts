@@ -1,13 +1,38 @@
 import { setupServer } from "msw/node";
 import { graphql, HttpResponse } from "msw";
 import { dummyData } from "./data.js";
+import {
+  TimestampSet_filter,
+  HashAlgo_filter,
+  // eslint-disable-next-line import/extensions, import/no-relative-packages
+} from "../../.graphclient/index.js";
 
 export const graphServer = setupServer(
   graphql.query("GetHashAlgorithms", ({ variables }) => {
-    const { skip, pagesize } = variables as { skip: number; pagesize: number };
+    const { skip, pagesize, where } = variables as {
+      skip: number;
+      pagesize: number;
+      where: HashAlgo_filter;
+    };
     return HttpResponse.json({
       data: {
         hashAlgos: dummyData.hashAlgos
+          .filter((h) => {
+            if (where && where.ianaName && h.ianaName !== where.ianaName)
+              return false;
+            if (where && where.multiHash && h.multiHash !== where.multiHash)
+              return false;
+            if (where && where.oid && h.oid !== where.oid) return false;
+            if (
+              where &&
+              where.outputLength &&
+              h.outputLength !== where.outputLength
+            )
+              return false;
+            if (where && where.status && h.status !== where.outputLength)
+              return false;
+            return true;
+          })
           .slice(skip, skip + pagesize)
           .map((i) => ({ id: i.id })),
       },
@@ -33,10 +58,25 @@ export const graphServer = setupServer(
   }),
 
   graphql.query("GetTimestamps", ({ variables }) => {
-    const { skip, pagesize } = variables as { skip: number; pagesize: number };
+    const { skip, pagesize, where } = variables as {
+      skip: number;
+      pagesize: number;
+      where: TimestampSet_filter;
+    };
     return HttpResponse.json({
       data: {
         timestampSets: dummyData.timestampSets
+          .filter((t) => {
+            if (where && where.creator && t.creator !== where.creator)
+              return false;
+            if (
+              where &&
+              where.hashAlgorithmId &&
+              t.hashAlgorithmId !== where.hashAlgorithmId
+            )
+              return false;
+            return true;
+          })
           .slice(skip, skip + pagesize)
           .map((i) => ({ id: i.id })),
       },

@@ -1,5 +1,5 @@
-query GetTimestamps($skip: Int!, $pagesize: Int!) {
-  timestampSets(first: $pagesize, skip: $skip) {
+query GetTimestamps($skip: Int!, $pagesize: Int!, $where: TimestampSet_filter) {
+  timestampSets(first: $pagesize, skip: $skip, where: $where) {
     id
   }
 }

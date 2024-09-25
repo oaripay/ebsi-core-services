@@ -13,6 +13,7 @@ import {
   GetTimestampsQuery,
   GetTimestampQuery,
   GetHashAlgorithmQuery,
+  TimestampSet_filter,
   // eslint-disable-next-line import/extensions, import/no-relative-packages
 } from "../../../.graphclient/index.js";
 
@@ -25,13 +26,14 @@ export default class TimestampsService {
   async getTimestamps(
     page: number,
     pagesize: number,
+    where: TimestampSet_filter = {},
   ): Promise<{ items: string[] }> {
     const skip = (page - 1) * pagesize;
     let res: GetTimestampsQuery;
     try {
       // get one more item to clarify next pages in pagination
       const queryPageSize = pagesize + 1;
-      res = await sdk.GetTimestamps({ skip, pagesize: queryPageSize });
+      res = await sdk.GetTimestamps({ skip, pagesize: queryPageSize, where });
     } catch (error) {
       this.logger.error(
         error,

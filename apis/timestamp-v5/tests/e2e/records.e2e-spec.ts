@@ -494,7 +494,7 @@ describe("Timestamp API v5 - Records (e2e)", () => {
           param = {
             from: testUser.wallet.address,
             recordId,
-            ownerId: "myownerid",
+            ownerId: "0xE1A8865514816bBD7D1b95b3cB29d8E337143240",
             notBefore,
             notAfter: notBefore + 1000000,
           } satisfies InsertRecordOwnerSchema;
@@ -510,7 +510,7 @@ describe("Timestamp API v5 - Records (e2e)", () => {
           param = {
             from: testUser.wallet.address,
             recordId,
-            ownerId: "myownerid",
+            ownerId: "0xE1A8865514816bBD7D1b95b3cB29d8E337143240",
           } satisfies RevokeRecordOwnerSchema;
           break;
         }
@@ -1168,7 +1168,7 @@ describe("Timestamp API v5 - Records (e2e)", () => {
           param = {
             from: testUser.wallet.address,
             recordId: decodedRecordId,
-            ownerId: "myownerid",
+            ownerId: "0xE1A8865514816bBD7D1b95b3cB29d8E337143240",
             notBefore,
             notAfter: notBefore + 1000000,
           } satisfies InsertRecordOwnerSchema;
@@ -1178,7 +1178,7 @@ describe("Timestamp API v5 - Records (e2e)", () => {
           param = {
             from: testUser.wallet.address,
             recordId: decodedRecordId,
-            ownerId: "myownerid",
+            ownerId: "0xE1A8865514816bBD7D1b95b3cB29d8E337143240",
           } satisfies RevokeRecordOwnerSchema;
           break;
         }

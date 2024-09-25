@@ -1,5 +1,5 @@
-query GetHashAlgorithms($skip: Int!, $pagesize: Int!) {
-  hashAlgos(first: $pagesize, skip: $skip) {
+query GetHashAlgorithms($skip: Int!, $pagesize: Int!, $where: HashAlgo_filter) {
+  hashAlgos(first: $pagesize, skip: $skip, where: $where) {
     id
   }
 }

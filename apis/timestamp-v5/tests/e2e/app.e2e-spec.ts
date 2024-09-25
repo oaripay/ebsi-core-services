@@ -73,6 +73,7 @@ describe("Timestamp API v4 - Generic tests (e2e)", () => {
           [`${dependency}`]: { status: "up" },
         }))
         .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
+      expectedStatuses["Timestamp Subgraph"] = { status: "up" };
 
       expect(response.body).toStrictEqual({
         details: expectedStatuses,

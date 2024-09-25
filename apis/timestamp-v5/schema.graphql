@@ -8,6 +8,19 @@ enum HashAlgoStatus {
   revoked
 }
 
+input HashAlgo_filter {
+  ianaName: String
+  multiHash: String
+  oid: String
+  outputLength: String
+  status: HashAlgoStatus
+}
+
+input TimestampSet_filter {
+  creator: String
+  hashAlgorithmId: String
+}
+
 type HashAlgo {
   id: String!
   ianaName: String!
@@ -72,9 +85,17 @@ type _Meta_ {
 }
 
 type Query {
-  hashAlgos(skip: Int = 0, first: Int = 100): [HashAlgo!]!
+  hashAlgos(
+    skip: Int = 0
+    first: Int = 100
+    where: HashAlgo_filter
+  ): [HashAlgo!]!
   hashAlgo(id: String!): HashAlgo!
-  timestampSets(skip: Int = 0, first: Int = 100): [TimestampSet!]!
+  timestampSets(
+    skip: Int = 0
+    first: Int = 100
+    where: TimestampSet_filter
+  ): [TimestampSet!]!
   timestampSet(id: String!): TimestampSet!
   records(skip: Int = 0, first: Int = 100): [Record!]!
   record(id: String!): Record!
