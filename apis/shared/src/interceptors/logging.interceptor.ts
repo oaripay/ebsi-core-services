@@ -8,11 +8,13 @@ import {
   Logger,
   NestInterceptor,
 } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
 import type { FastifyRequest, FastifyReply } from "fastify";
 import type { Observable } from "rxjs";
 import { tap } from "rxjs/operators";
-import type { ApiConfig } from "../config/configuration.js";
+import {
+  METHOD_LOG_METADATA,
+  type LogOptions,
+} from "../decorators/log.decorator.js";
 
 /**
  * Interceptor that logs input/output requests
@@ -23,7 +25,15 @@ export class LoggingInterceptor implements NestInterceptor {
 
   private readonly logger: Logger = new Logger(this.ctxPrefix);
 
-  constructor(private configService: ConfigService<ApiConfig, true>) {}
+  constructor(
+    private logLevel:
+      | "silent"
+      | "error"
+      | "warn"
+      | "info"
+      | "verbose"
+      | "debug",
+  ) {}
 
   /**
    * Intercept method, logs before and after the request being processed
@@ -38,9 +48,26 @@ export class LoggingInterceptor implements NestInterceptor {
       .switchToHttp()
       .getRequest<FastifyRequest>();
     const { method, url, body, headers } = req;
-    const skipLogging = headers && "ebsi-healthcheck" in headers;
 
-    if (!skipLogging) {
+    // Global condition: "ebsi-healthcheck" should not be present in the request headers. If it's the case, the request and response are not logged.
+    let logRequest = !(headers && "ebsi-healthcheck" in headers);
+
+    // Local condition: check if the route has the @Log decorator and how it's configured.
+    const options = Reflect.getMetadata(
+      METHOD_LOG_METADATA,
+      context.getHandler(),
+    ) as LogOptions | undefined;
+
+    if (logRequest && options && options.logRequest !== undefined) {
+      if (typeof options.logRequest === "function") {
+        logRequest = options.logRequest(req);
+      } else {
+        logRequest = options.logRequest;
+      }
+    }
+
+    // Log request if logRequest is still true at this point
+    if (logRequest) {
       const ctx = `${this.ctxPrefix} - ${method} - ${url}`;
       const message = `Incoming request - ${method} - ${url}`;
 
@@ -57,9 +84,11 @@ export class LoggingInterceptor implements NestInterceptor {
 
     return call$.handle().pipe(
       tap({
-        next: (val: unknown): void => {
-          this.logNext(val, context);
-        },
+        ...(logRequest && {
+          next: (val: unknown): void => {
+            this.logNext(val, context);
+          },
+        }),
         error: (err: Error): void => {
           this.logError(err, context);
         },
@@ -79,22 +108,18 @@ export class LoggingInterceptor implements NestInterceptor {
     const res: FastifyReply = context
       .switchToHttp()
       .getResponse<FastifyReply>();
-    const { method, url, headers } = req;
-    const skipLogging = headers && "ebsi-healthcheck" in headers;
+    const { method, url } = req;
 
-    if (!skipLogging) {
-      const { statusCode } = res;
-      const ctx = `${this.ctxPrefix} - ${statusCode} - ${method} - ${url}`;
-      const message = `Outgoing response - ${statusCode} - ${method} - ${url}`;
-      const logLevel = this.configService.get("logLevel", { infer: true });
-      this.logger.log(
-        {
-          message,
-          ...(logLevel === "debug" && { body }),
-        },
-        ctx,
-      );
-    }
+    const { statusCode } = res;
+    const ctx = `${this.ctxPrefix} - ${statusCode} - ${method} - ${url}`;
+    const message = `Outgoing response - ${statusCode} - ${method} - ${url}`;
+    this.logger.log(
+      {
+        message,
+        ...(this.logLevel === "debug" && { body }),
+      },
+      ctx,
+    );
   }
 
   /**

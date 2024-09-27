@@ -1,11 +1,12 @@
 import { Module, Logger } from "@nestjs/common";
 import { APP_INTERCEPTOR } from "@nestjs/core";
-import { ApiConfigModule } from "./config/configuration.js";
+import { ConfigService } from "@nestjs/config";
+import { LoggingInterceptor } from "@ebsiint-api/shared";
+import { ApiConfigModule, type ApiConfig } from "./config/configuration.js";
 import { IssuersModule } from "./modules/issuers/issuers.module.js";
 import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module.js";
 import { PoliciesModule } from "./modules/policies/policies.module.js";
 import { HealthModule } from "./modules/health/health.module.js";
-import { LoggingInterceptor } from "./interceptors/logging.interceptor.js";
 import { OpenApiModule } from "./modules/openapi/openapi.module.js";
 import { AppService } from "./app.service.js";
 import { AppController } from "./app.controller.js";
@@ -24,7 +25,9 @@ import { AppController } from "./app.controller.js";
     Logger,
     {
       provide: APP_INTERCEPTOR,
-      useClass: LoggingInterceptor,
+      useFactory: (configService: ConfigService<ApiConfig, true>) =>
+        new LoggingInterceptor(configService.get("logLevel")),
+      inject: [ConfigService],
     },
     AppService,
   ],

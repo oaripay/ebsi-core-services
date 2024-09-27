@@ -92,9 +92,6 @@ describe("Health Module", () => {
         http.get(configService.get<string>("besuReadinessEndpoint"), () =>
           HttpResponse.json({}),
         ),
-        http.get(configService.get<string>("besuReadinessEndpoint"), () =>
-          HttpResponse.json({}),
-        ),
       );
 
       const spy = vi.spyOn(httpService, "request");

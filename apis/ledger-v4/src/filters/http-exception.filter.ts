@@ -85,6 +85,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
         .send(err.getResponse());
     }
 
+    // Axios-specific error
+    if (axios.isAxiosError(err)) {
+      logAxiosError(err, this.logger);
+    } else {
+      this.logger.error(err.message, err.stack);
+    }
+
+    // Generic error
     const problemError = getProblemDetailsError(err, this.logger);
 
     this.logger.debug(

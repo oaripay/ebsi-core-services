@@ -4,15 +4,20 @@ import type { NestFastifyApplication } from "@nestjs/platform-fastify";
 import { ValidationPipe } from "@nestjs/common";
 import { fastifyHelmet } from "@fastify/helmet";
 import { fastifyFormbody } from "@fastify/formbody";
+import { frameworkErrors } from "@ebsiint-api/shared";
 import qs from "qs";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
+import { createLogger } from "../../src/logger/logger.js";
 
 /**
  * Configure Nest Fastify app with all the parsers, filters, and validation pipes.
  * /!\ Must be aligned with src/main.ts.
  */
 export async function configureApp(moduleFixture: TestingModule) {
-  const fastifyAdapter = new FastifyAdapter();
+  const logger = createLogger({ silent: true });
+  const fastifyAdapter = new FastifyAdapter({
+    frameworkErrors: frameworkErrors(logger),
+  });
   fastifyAdapter.enableCors({ methods: "*" });
 
   // Register "application/x-www-form-urlencoded" parser

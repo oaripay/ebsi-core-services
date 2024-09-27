@@ -78,6 +78,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         .send(err.getResponse());
     }
 
+    // Service-specific type of error
     if (err instanceof InvalidRequestJsonRpcError) {
       const JsonRpcError = err;
       this.logger.debug(JsonRpcError.toString());
@@ -87,6 +88,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
         .send(JsonRpcError.toJSON());
     }
 
+    // Axios-specific error
+    if (axios.isAxiosError(err)) {
+      logAxiosError(err, this.logger);
+    } else {
+      this.logger.error(err.message, err.stack);
+    }
+
+    // Generic error
     const problemError = getProblemDetailsError(err, this.logger);
 
     this.logger.debug(

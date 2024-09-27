@@ -8,11 +8,11 @@ import {
   type ArgumentsHost,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { AxiosError } from "axios";
 import {
   FastifyAdapter,
   type NestFastifyApplication,
 } from "@nestjs/platform-fastify";
+import type { AxiosError } from "axios";
 import { ProblemDetailsError } from "@ebsiint-api/shared";
 import { AllExceptionsFilter } from "./http-exception.filter.js";
 
@@ -62,6 +62,7 @@ describe("All exception filter tests", () => {
 
     app.useGlobalFilters(new AllExceptionsFilter());
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
+
     await app.init();
     await app.getHttpAdapter().getInstance().ready();
     service = moduleFixture.get<AllExceptionsFilter>(AllExceptionsFilter);

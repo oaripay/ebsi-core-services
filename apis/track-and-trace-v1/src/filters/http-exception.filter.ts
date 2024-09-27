@@ -7,6 +7,8 @@ import {
   BadRequestException,
   ServiceUnavailableException,
 } from "@nestjs/common";
+import type { FastifyReply } from "fastify";
+import axios from "axios";
 import {
   ProblemDetailsError,
   InternalServerError,
@@ -15,8 +17,6 @@ import {
   logAxiosError,
   InvalidRequestJsonRpcError,
 } from "@ebsiint-api/shared";
-import type { FastifyReply } from "fastify";
-import axios from "axios";
 
 function getProblemDetailsError(
   error: unknown,
@@ -76,6 +76,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
         .code(err.getStatus())
         .type("application/json")
         .send(err.getResponse());
+    }
+
+    if (axios.isAxiosError(err)) {
+      logAxiosError(err, this.logger);
+    } else {
+      this.logger.error(err.message, err.stack);
     }
 
     if (err instanceof InvalidRequestJsonRpcError) {
