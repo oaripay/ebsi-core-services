@@ -24,8 +24,6 @@
     "@ebsiint-sc/proxy": "^2.0.0-rc.8",
     "@ebsiint-sc/timestamp": "^1.0.1-rc.8",
     "@ebsiint-sc/timestamp-v2": "^2.0.0-rc.4",
-    "@ebsiint-sc/trusted-apps-registry": "^2.0.1-rc.8",
-    "@ebsiint-sc/trusted-apps-registry-v3": "^3.0.0-rc.4",
     "@ebsiint-sc/trusted-issuers-registry": "^2.0.0-rc.8",
     "@ebsiint-sc/trusted-issuers-registry-v3": "^3.0.0-rc.5",
     "@ebsiint-sc/trusted-policies-registry": "^1.0.1-rc.8",

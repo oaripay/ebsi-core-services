@@ -10,10 +10,7 @@ import {
 import type { RawServerDefault } from "fastify";
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
-import {
-  DEPENDENCIES,
-  type ApiConfig,
-} from "../../src/config/configuration.js";
+import { type ApiConfig } from "../../src/config/configuration.js";
 import { getServer } from "../utils/getServer.js";
 
 describe("Ledger API v3 - Generic tests (e2e)", () => {
@@ -67,10 +64,7 @@ describe("Ledger API v3 - Generic tests (e2e)", () => {
       const response = await request(server).get("/health");
 
       // Expect all the dependencies to be up
-      const dependencies = Object.keys(
-        DEPENDENCIES,
-      ) as (keyof typeof DEPENDENCIES)[];
-      const expectedStatuses = ([...dependencies, "Besu"] as const)
+      const expectedStatuses = (["Besu"] as const)
         .map((dependency) => ({
           [`${dependency}`]: { status: "up" },
         }))

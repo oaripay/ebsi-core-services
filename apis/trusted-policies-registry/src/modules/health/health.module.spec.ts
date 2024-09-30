@@ -21,7 +21,7 @@ import type { RawServerDefault } from "fastify";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 import { AllExceptionsFilter } from "../../filters/http-exception.filter.js";
-import { DEPENDENCIES, type ApiConfig } from "../../config/configuration.js";
+import { type ApiConfig } from "../../config/configuration.js";
 import { HealthModule } from "./health.module.js";
 
 describe("Health Module", () => {
@@ -29,10 +29,7 @@ describe("Health Module", () => {
   let server: RawServerDefault;
   let httpService: HttpService;
   let configService: ConfigService<ApiConfig, true>;
-  let localOrigin: string;
-  const dependencies = Object.keys(
-    DEPENDENCIES,
-  ) as (keyof typeof DEPENDENCIES)[];
+
   const mockServer = setupServer();
 
   beforeAll(async () => {
@@ -62,10 +59,6 @@ describe("Health Module", () => {
     server = app.getHttpServer();
 
     httpService = await moduleFixture.resolve<HttpService>(HttpService);
-
-    localOrigin =
-      configService.get<string>("localOrigin") ||
-      configService.get<string>("domain");
   });
 
   afterEach(() => {
@@ -80,15 +73,10 @@ describe("Health Module", () => {
 
   describe("GET /health", () => {
     it("should return 'ok' if all the dependencies return a 20x", async () => {
-      expect.assertions(3 + dependencies.length);
+      expect.assertions(3);
 
       // All the dependencies return a 200
       mockServer.use(
-        ...dependencies.map((dependency) =>
-          http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
-            HttpResponse.json({}),
-          ),
-        ),
         http.get(configService.get<string>("besuReadinessEndpoint"), () =>
           HttpResponse.json({}),
         ),
@@ -99,17 +87,12 @@ describe("Health Module", () => {
       const response = await request(server).get("/health").send();
 
       // Expect httpService.request to have been called for every dependency
-      dependencies.forEach((dependency) => {
-        expect(spy).toHaveBeenCalledWith({
-          url: `${localOrigin}${DEPENDENCIES[dependency]}`,
-        });
-      });
       expect(spy).toHaveBeenCalledWith({
         url: configService.get<string>("besuReadinessEndpoint"),
       });
 
       // Expect all the dependencies to be up
-      const expectedStatuses = ([...dependencies, "Besu"] as const)
+      const expectedStatuses = (["Besu"] as const)
         .map((dependency) => ({
           [`${dependency}`]: { status: "up" },
         }))
@@ -124,79 +107,11 @@ describe("Health Module", () => {
       expect(response.status).toBe(200);
     });
 
-    it("should return 'error' if some dependencies do not return a 20x", async () => {
-      expect.assertions(3 + dependencies.length);
-
-      // All the dependencies return a 200 except Authorisation API v2
-      mockServer.use(
-        ...dependencies.map((dependency) =>
-          http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
-            dependency === "Authorisation API v2"
-              ? HttpResponse.json({}, { status: 500 })
-              : HttpResponse.json({}),
-          ),
-        ),
-        http.get(configService.get<string>("besuReadinessEndpoint"), () =>
-          HttpResponse.json({}),
-        ),
-      );
-
-      const spy = vi.spyOn(httpService, "request");
-
-      const response = await request(server).get("/health").send();
-
-      // Expect httpService.request to have been called for every dependency
-      dependencies.forEach((dependency) => {
-        expect(spy).toHaveBeenCalledWith({
-          url: `${localOrigin}${DEPENDENCIES[dependency]}`,
-        });
-      });
-      expect(spy).toHaveBeenCalledWith({
-        url: configService.get<string>("besuReadinessEndpoint"),
-      });
-
-      // Expect all the dependencies to be up except Authorisation API v2
-      const expectedStatuses = ([...dependencies, "Besu"] as const)
-        .map(
-          (dependency) =>
-            ({
-              [`${dependency}`]:
-                dependency === "Authorisation API v2"
-                  ? ({
-                      message: "Request failed with status code 500",
-                      status: "down",
-                      statusCode: 500,
-                      statusText: "Internal Server Error",
-                    } as const)
-                  : ({ status: "up" } as const),
-            }) satisfies HealthIndicatorResult,
-        )
-        .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
-
-      const { "Authorisation API v2": errorStatus, ...otherStatuses } =
-        expectedStatuses;
-
-      expect(response.body).toStrictEqual({
-        details: expectedStatuses,
-        error: {
-          "Authorisation API v2": errorStatus,
-        },
-        info: otherStatuses,
-        status: "error",
-      });
-      expect(response.status).toBe(503);
-    });
-
     it("should return 'error' if Besu readiness endpoint returns 503", async () => {
-      expect.assertions(3 + dependencies.length);
+      expect.assertions(3);
 
       // All the dependencies return a 200 except Besu readiness (503)
       mockServer.use(
-        ...dependencies.map((dependency) =>
-          http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
-            HttpResponse.json({}),
-          ),
-        ),
         http.get(configService.get<string>("besuReadinessEndpoint"), () =>
           HttpResponse.json({}, { status: 503 }),
         ),
@@ -207,17 +122,12 @@ describe("Health Module", () => {
       const response = await request(server).get("/health").send();
 
       // Expect httpService.request to have been called for every dependency
-      dependencies.forEach((dependency) => {
-        expect(spy).toHaveBeenCalledWith({
-          url: `${localOrigin}${DEPENDENCIES[dependency]}`,
-        });
-      });
       expect(spy).toHaveBeenCalledWith({
         url: configService.get<string>("besuReadinessEndpoint"),
       });
 
       // Expect all the dependencies to be up except Besu
-      const expectedStatuses = ([...dependencies, "Besu"] as const)
+      const expectedStatuses = (["Besu"] as const)
         .map(
           (dependency) =>
             ({

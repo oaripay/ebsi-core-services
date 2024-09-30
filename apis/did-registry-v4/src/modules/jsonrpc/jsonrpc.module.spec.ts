@@ -227,7 +227,7 @@ describe(
 
       // Mock Auth API v3
       const authorisationApiUrl = configService.get<string>(
-        "authorisationApiV3Url",
+        "authorisationApiUrl",
       );
 
       mockServer.use(

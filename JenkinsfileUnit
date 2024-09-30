@@ -41,23 +41,6 @@ pipeline {
                 }
             }
         }
-        stage('Authorisation-Api') {
-            when {
-                expression { params.api == 'all' || params.api.contains('authorisation-api-v2') }
-            }
-            steps {
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    sh '''
-                        source $NVM_DIR/nvm.sh > /dev/null 2>&1
-                        nvm use > /dev/null 2>&1
-                        yarn nx test:ci @ebsiint-api/authorisation-api-v2
-                    '''
-                }
-                script{
-                    sh 'rm ${WORKSPACE}/apis/authorisation/.scannerwork/report-task.txt'
-                }
-            }
-        }
         stage('Authorisation-Api-v3') {
             when {
                 expression { params.api == 'all' || params.api.contains('authorisation-api-v3') }
@@ -89,23 +72,6 @@ pipeline {
                 }
                 script {
                     sh 'rm ${WORKSPACE}/apis/authorisation-v4/.scannerwork/report-task.txt'
-                }
-            }
-        }
-        stage('Did-Registry-Api') {
-            when {
-                expression { params.api == 'all' || params.api.contains('did-registry-api-v3') }
-            }
-            steps {
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    sh '''
-                        source $NVM_DIR/nvm.sh > /dev/null 2>&1
-                        nvm use > /dev/null 2>&1
-                        yarn nx test:ci @ebsiint-api/did-registry-api-v3
-                    '''
-                }
-                script {
-                    sh 'rm ${WORKSPACE}/apis/did-registry/.scannerwork/report-task.txt'
                 }
             }
         }
@@ -276,23 +242,6 @@ pipeline {
                 }
                 script {
                     sh 'rm ${WORKSPACE}/apis/trusted-apps-registry-v4/.scannerwork/report-task.txt'
-                }
-            }
-        }
-        stage('Trusted-issuers-registry-Api') {
-            when {
-                expression { params.api == 'all' || params.api.contains('trusted-issuers-registry-api-v3') }
-            }
-            steps {
-                catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-                    sh '''
-                        source $NVM_DIR/nvm.sh > /dev/null 2>&1
-                        nvm use > /dev/null 2>&1
-                        yarn nx test:ci @ebsiint-api/trusted-issuers-registry-api-v3
-                    '''
-                }
-                script {
-                    sh 'rm ${WORKSPACE}/apis/trusted-issuers-registry/.scannerwork/report-task.txt'
                 }
             }
         }

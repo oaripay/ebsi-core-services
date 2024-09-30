@@ -7,7 +7,6 @@ declare global {
       NODE_ENV: "development" | "production" | "test";
       API_PORT?: string;
       API_URL_PREFIX?: string;
-      AUTHORISATION_API_NAME?: string;
       BESU_RPC_NODE: string;
       BESU_READINESS_ENDPOINT: string;
       LOG_LEVEL?: "silent" | "error" | "warn" | "info" | "verbose" | "debug";

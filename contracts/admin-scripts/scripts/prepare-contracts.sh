@@ -42,9 +42,6 @@ cp -r ${SCRIPT_DIR}/../../timestamp-v2/contracts ${SCRIPT_DIR}/../contracts/time
 echo Copy the timestamp-v3
 cp -r ${SCRIPT_DIR}/../../timestamp-v3/contracts ${SCRIPT_DIR}/../contracts/timestamp-v3
 
-echo Copy the trusted-apps-registry
-cp -r ${SCRIPT_DIR}/../../trusted-apps-registry/contracts ${SCRIPT_DIR}/../contracts/trusted-apps-registry
-
 echo Copy the trusted-issuers-registry
 cp -r ${SCRIPT_DIR}/../../trusted-issuers-registry/contracts ${SCRIPT_DIR}/../contracts/trusted-issuers-registry
 

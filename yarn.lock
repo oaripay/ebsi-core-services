@@ -644,10 +644,10 @@
     "@types/tough-cookie" "^4.0.5"
     tough-cookie "^4.1.4"
 
-"@cef-ebsi/ebsi-did-resolver@^4.0.3-alpha.0":
-  version "4.0.3-alpha.0"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/ebsi-did-resolver/-/ebsi-did-resolver-4.0.3-alpha.0.tgz#b29761394fb78d2b863aa217e9b4f1bf921d7af9"
-  integrity sha512-RNhzRjKKMww14YJaUwJNQwmOy3CIZQIEee2iFPq0cH7hXx+Tie3xxwhwoP9WaiiGi4SZ/q/VFpwrJwskxkQC5Q==
+"@cef-ebsi/ebsi-did-resolver@^4.0.3":
+  version "4.0.3"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/ebsi-did-resolver/-/ebsi-did-resolver-4.0.3.tgz#6f99e02ab641ce58cb1738a6cc594e7bb613482a"
+  integrity sha512-0GpZ1wtA0YZj4JqpnF2MhYqhOrNuEjh+QJLMOMAa8LKflBVoKljWsf41W8H61b5bbSXWlb0IjBCUqvXUacJAuw==
   dependencies:
     axios "^1.7.7"
     did-resolver "^4.1.0"
@@ -658,56 +658,23 @@
   resolved "https://registry.yarnpkg.com/@cef-ebsi/ebsi-uri/-/ebsi-uri-0.1.0.tgz#be0f80c8724f63fa669481d2d4327fb7aef45a50"
   integrity sha512-6YH8RehbOoFL+WES999HfiflYcYHxif4W5lWCHjsvUlPqmBRvOtEJ5pew/Fyi4goP4y0WbCwDWYGWfq3ywQ8hw==
 
-"@cef-ebsi/key-did-resolver@^2.0.3-alpha.0":
-  version "2.0.3-alpha.0"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/key-did-resolver/-/key-did-resolver-2.0.3-alpha.0.tgz#12daf5db309c655a6fc2f6c331f60e59019df1ff"
-  integrity sha512-aqkuXEg9XZa7Qa83W/bzm4cBgmOUTUKxutEdfkfO71XfuxWQQZfmWzb4oghm9s8HofMZ3aH1WxeqCwo9Pv/U9g==
+"@cef-ebsi/key-did-resolver@^2.0.3":
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/key-did-resolver/-/key-did-resolver-2.0.3.tgz#468079bff945514448fc6f0e29a07741103b01a6"
+  integrity sha512-6wcPGhGItnNA+nLmkvSnWwcinykNmEd6Msr8mwsaI8Qv4zzmnJE1I9V6YLqUsxZX+WZPKMOBcZ3c69LnIy9x7A==
   dependencies:
     did-resolver "^4.1.0"
     jose "^4.15.5"
     lodash.isplainobject "^4.0.6"
     multiformats "^9.6.2"
 
-"@cef-ebsi/key-encoder@^1.0.3-alpha.0":
-  version "1.0.3-alpha.0"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/key-encoder/-/key-encoder-1.0.3-alpha.0.tgz#0b6d8740460831ee5f68b15e0d490ded04ff0dde"
-  integrity sha512-+O/gzO/6OtjJZD6ZVj7jSLUyfO2lSpmRj+6gnRNOMk6F+4ry3X+8Awm2HGfwvlg3gqaPUq5tyOfS/pf1FzZdjQ==
+"@cef-ebsi/key-encoder@^1.0.3":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/key-encoder/-/key-encoder-1.0.3.tgz#1502442c3e4e72a9eb5a3e989ad7b98574cdc98d"
+  integrity sha512-8wduTq7NyD9A+QISjdubeIjA+EJRC1gCyyDyoKNrUMAJuP7YKqx/A0CHKEU3gnvIy/khSRAjYKsznQs+qyfhVg==
   dependencies:
     asn1.js "^5.4.1"
     elliptic "^6.5.7"
-
-"@cef-ebsi/oauth2-auth@^3.0.3-alpha.0":
-  version "3.0.3-alpha.0"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/oauth2-auth/-/oauth2-auth-3.0.3-alpha.0.tgz#54aaa12471d232811933a6151b81c5c92294845e"
-  integrity sha512-XdwQ7rmrSVfKTelA7bum8ChQLOgh6NGM4ejEuhdqhKZCbiSHU2o8lTGg3aKJcLqLZn7bW34riKB42HMran8KCw==
-  dependencies:
-    "@cef-ebsi/key-encoder" "^1.0.3-alpha.0"
-    "@cef-ebsi/siop-auth" "^4.0.3-alpha.0"
-    "@noble/hashes" "^1.5.0"
-    did-jwt "^8.0.4"
-    eciesjs "^0.4.7"
-    elliptic "^6.5.7"
-    jose "^4.15.5"
-    multiformats "^9.6.2"
-    uuid "^9.0.1"
-
-"@cef-ebsi/siop-auth@^4.0.3-alpha.0":
-  version "4.0.3-alpha.0"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/siop-auth/-/siop-auth-4.0.3-alpha.0.tgz#e3c9ce36f3cf92ea09cda63de745dd95d4e037f7"
-  integrity sha512-MBo+Pd9CSEekaJRVA6BtGipdquWC928yFzJnvpyflfD18SJwqZhzApwiKnftOWGxDtlbUdz4MzzPRmd7vkEhqg==
-  dependencies:
-    "@cef-ebsi/ebsi-did-resolver" "^4.0.3-alpha.0"
-    "@cef-ebsi/key-did-resolver" "^2.0.3-alpha.0"
-    "@cef-ebsi/key-encoder" "^1.0.3-alpha.0"
-    "@noble/hashes" "^1.5.0"
-    axios "^1.7.7"
-    did-jwt "^8.0.4"
-    did-resolver "^4.1.0"
-    eciesjs "^0.4.7"
-    elliptic "^6.5.7"
-    jose "^4.15.5"
-    multiformats "^9.6.2"
-    uuid "^9.0.1"
 
 "@cef-ebsi/vcdm1.1-accreditation-schema@1.3.0":
   version "1.3.0"
@@ -733,14 +700,14 @@
   dependencies:
     "@cef-ebsi/vcdm1.1-attestation-schema" "1.3.0"
 
-"@cef-ebsi/verifiable-credential@^6.0.1-alpha.0":
-  version "6.0.1-alpha.0"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-credential/-/verifiable-credential-6.0.1-alpha.0.tgz#344007a0fae30687769ffe86d95629e62f2817ca"
-  integrity sha512-52MD4WUt6Ey8zrcriS3vBMkL6ga261TlSK7nQJzoz8pGN+YxCQIPdRmHVkczJ/CQfuJAmmkouJKnYTBQNZ3clA==
+"@cef-ebsi/verifiable-credential@^6.0.3":
+  version "6.0.3"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-credential/-/verifiable-credential-6.0.3.tgz#29a4b48be4661c1226d9be5f324eb443f5599733"
+  integrity sha512-4ntk/zTBVKZz178RLubDCONzBE4ny0vAncnMDu7Tm8BWEtSnZL4okx5/Te/KXG8Nenywf+kkavm6J1pbhYjgkg==
   dependencies:
-    "@cef-ebsi/ebsi-did-resolver" "^4.0.3-alpha.0"
+    "@cef-ebsi/ebsi-did-resolver" "^4.0.3"
     "@cef-ebsi/ebsi-uri" "^0.1.0"
-    "@cef-ebsi/key-did-resolver" "^2.0.3-alpha.0"
+    "@cef-ebsi/key-did-resolver" "^2.0.3"
     "@cef-ebsi/vcdm1.1-accreditation-schema" "1.3.0"
     "@cef-ebsi/vcdm1.1-attestation-schema" "1.3.0"
     "@cef-ebsi/vcdm1.1-revocation-statuslist-schema" "1.3.0"
@@ -759,30 +726,30 @@
     pako "^2.1.0"
     uint8arrays "3.1.1"
 
-"@cef-ebsi/verifiable-presentation@^7.0.1-alpha.0":
-  version "7.0.1-alpha.0"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-presentation/-/verifiable-presentation-7.0.1-alpha.0.tgz#e0b0e78a1755a46025e7d4d563369a081004b114"
-  integrity sha512-I/DJkeZvRUXHbPQnRkxBOwl3GsnIsky8QzfqmnMtmjQtntmV65Rg+2aiDAC/am4Siv2kRCdoYob8QjXcHjkdpA==
+"@cef-ebsi/verifiable-presentation@^7.0.3":
+  version "7.0.3"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/verifiable-presentation/-/verifiable-presentation-7.0.3.tgz#112dbdc82fdc0e223a61a9d95d5246979921fa34"
+  integrity sha512-MVUW/7Wzf3x7F+1/oiIVq0k1fPkbWW+kCOCpa4VZ/Bj8S/352Gwjnsqv6a/Rktq5DGN4QxG8fPPjGvXPDiz4Qg==
   dependencies:
-    "@cef-ebsi/ebsi-did-resolver" "^4.0.3-alpha.0"
+    "@cef-ebsi/ebsi-did-resolver" "^4.0.3"
     "@cef-ebsi/ebsi-uri" "^0.1.0"
-    "@cef-ebsi/key-did-resolver" "^2.0.3-alpha.0"
+    "@cef-ebsi/key-did-resolver" "^2.0.3"
     "@cef-ebsi/vcdm1.1-presentation-schema" "1.0.3"
-    "@cef-ebsi/verifiable-credential" "^6.0.1-alpha.0"
+    "@cef-ebsi/verifiable-credential" "^6.0.3"
     "@segment/ajv-human-errors" "^2.13.0"
     did-jwt "^8.0.4"
     did-resolver "^4.1.0"
     jose "^4.15.5"
     memoize "^10.0.0"
 
-"@cef-ebsi/wallet-lib@^5.0.3-alpha.0":
-  version "5.0.3-alpha.0"
-  resolved "https://registry.yarnpkg.com/@cef-ebsi/wallet-lib/-/wallet-lib-5.0.3-alpha.0.tgz#30ddc99804bea6112e5b5f4ae0d4fe2c8df7e4fb"
-  integrity sha512-ch9KmR8mrohHU5GyQpYwOVm8XvKeJv2RGFixqnzrFQEA/yj53Nh6YtjxrN49X4m1XMYRgth1CVKor1W8/4Hg9w==
+"@cef-ebsi/wallet-lib@^5.0.3":
+  version "5.0.3"
+  resolved "https://registry.yarnpkg.com/@cef-ebsi/wallet-lib/-/wallet-lib-5.0.3.tgz#b120eb03b3f2ee1fafaf7c978b1151d28bc25a88"
+  integrity sha512-DBZ9lAqZheZzfIyNRpN0z8d6uBuosirFbJONORzfjYr6XrAfb/TyZig60/uGDQREAyKaQHWJcmPLzrReXmE2Jg==
   dependencies:
-    "@cef-ebsi/ebsi-did-resolver" "^4.0.3-alpha.0"
-    "@cef-ebsi/key-did-resolver" "^2.0.3-alpha.0"
-    "@cef-ebsi/key-encoder" "^1.0.3-alpha.0"
+    "@cef-ebsi/ebsi-did-resolver" "^4.0.3"
+    "@cef-ebsi/key-did-resolver" "^2.0.3"
+    "@cef-ebsi/key-encoder" "^1.0.3"
     "@ethersproject/providers" "^5.7.2"
     "@noble/hashes" "^1.5.0"
     bn.js "^5.2.1"
@@ -1431,14 +1398,6 @@
     crc-32 "^1.2.0"
     ethereumjs-util "^7.1.5"
 
-"@ethereumjs/common@^3.2.0":
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/common/-/common-3.2.0.tgz#b71df25845caf5456449163012074a55f048e0a0"
-  integrity sha512-pksvzI0VyLgmuEF2FA/JR/4/y6hcPq8OUail3/AvycBaW1d5VSauOZzqGvJ3RTmR4MU35lWE8KseKOsEhrFRBA==
-  dependencies:
-    "@ethereumjs/util" "^8.1.0"
-    crc-32 "^1.2.0"
-
 "@ethereumjs/ethash@^1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@ethereumjs/ethash/-/ethash-1.1.0.tgz#7c5918ffcaa9cb9c1dc7d12f77ef038c11fb83fb"
@@ -1449,11 +1408,6 @@
     buffer-xor "^2.0.1"
     ethereumjs-util "^7.1.1"
     miller-rabin "^4.0.0"
-
-"@ethereumjs/rlp@^4.0.1":
-  version "4.0.1"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/rlp/-/rlp-4.0.1.tgz#626fabfd9081baab3d0a3074b0c7ecaf674aaa41"
-  integrity sha512-tqsQiBQDQdmPWE1xkkBq4rlSW5QZpLOUJ5RJh2/9fug+q9tnUhuZoVLk7s0scUIKTOzEtR72DFBXI4WiZcMpvw==
 
 "@ethereumjs/tx@3.4.0":
   version "3.4.0"
@@ -1470,25 +1424,6 @@
   dependencies:
     "@ethereumjs/common" "^2.6.4"
     ethereumjs-util "^7.1.5"
-
-"@ethereumjs/tx@^4.2.0":
-  version "4.2.0"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/tx/-/tx-4.2.0.tgz#5988ae15daf5a3b3c815493bc6b495e76009e853"
-  integrity sha512-1nc6VO4jtFd172BbSnTnDQVr9IYBFl1y4xPzZdtkrkKIncBCkdbgfdRV+MiTkJYAtTxvV12GRZLqBFT1PNK6Yw==
-  dependencies:
-    "@ethereumjs/common" "^3.2.0"
-    "@ethereumjs/rlp" "^4.0.1"
-    "@ethereumjs/util" "^8.1.0"
-    ethereum-cryptography "^2.0.0"
-
-"@ethereumjs/util@^8.1.0":
-  version "8.1.0"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/util/-/util-8.1.0.tgz#299df97fb6b034e0577ce9f94c7d9d1004409ed4"
-  integrity sha512-zQ0IqbdX8FZ9aw11vP+dZkKDkS+kgIvQPHnSAXzP9pLu+Rfu3D3XEeLbicvoXJTYnhZiPmsZUxgdzXwNKxRPbA==
-  dependencies:
-    "@ethereumjs/rlp" "^4.0.1"
-    ethereum-cryptography "^2.0.0"
-    micro-ftch "^0.3.1"
 
 "@ethereumjs/vm@5.6.0":
   version "5.6.0"
@@ -3146,7 +3081,7 @@
     jsonc-parser "3.3.1"
     pluralize "8.0.0"
 
-"@nestjs/terminus@10.2.3", "@nestjs/terminus@^10.2.3":
+"@nestjs/terminus@^10.2.3":
   version "10.2.3"
   resolved "https://registry.yarnpkg.com/@nestjs/terminus/-/terminus-10.2.3.tgz#72c8a66d04df52aeaae807551245480fd7239a75"
   integrity sha512-iX7gXtAooePcyQqFt57aDke5MzgdkBeYgF5YsFNNFwOiAFdIQEhfv3PR0G+HlH9F6D7nBCDZt9U87Pks/qHijg==
@@ -3161,12 +3096,12 @@
   dependencies:
     tslib "2.6.3"
 
-"@noble/ciphers@^0.5.0", "@noble/ciphers@^0.5.3":
+"@noble/ciphers@^0.5.0":
   version "0.5.3"
   resolved "https://registry.yarnpkg.com/@noble/ciphers/-/ciphers-0.5.3.tgz#48b536311587125e0d0c1535f73ec8375cd76b23"
   integrity sha512-B0+6IIHiqEs3BPMT0hcRmHvEj2QHOLu+uwt+tqDDeVd0oyVzh7BPrDcPjRnV1PV/5LaknXJJQvOuRGR0zQJz+w==
 
-"@noble/curves@1.4.2", "@noble/curves@^1.0.0", "@noble/curves@^1.4.0", "@noble/curves@~1.4.0":
+"@noble/curves@^1.0.0":
   version "1.4.2"
   resolved "https://registry.yarnpkg.com/@noble/curves/-/curves-1.4.2.tgz#40309198c76ed71bc6dbf7ba24e81ceb4d0d1fe9"
   integrity sha512-TavHr8qycMChk8UwMld0ZDRvatedkzWfH8IiaeGCfymOP5i0hSCozz9vHOL0nkwk7HRMlFnAiKpS2jrUmSybcw==
@@ -3185,12 +3120,12 @@
   resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.2.0.tgz#a3150eeb09cc7ab207ebf6d7b9ad311a9bdbed12"
   integrity sha512-FZfhjEDbT5GRswV3C6uvLPHMiVD6lQBmpoX5+eSiPaMTXte/IKqI5dykDxzZB/WBeK/CDuQRBWarPdi3FNY2zQ==
 
-"@noble/hashes@1.4.0", "@noble/hashes@~1.4.0":
+"@noble/hashes@1.4.0":
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.4.0.tgz#45814aa329f30e4fe0ba49426f49dfccdd066426"
   integrity sha512-V1JJ1WTRUqHHrOSh597hURcMqVKVGL/ea3kv0gSnEdsEZ0/+VyPghM1lMNGc00z7CIQorSvbKpuJkxvuHbvdbg==
 
-"@noble/hashes@1.5.0", "@noble/hashes@^1.3.0", "@noble/hashes@^1.4.0", "@noble/hashes@^1.5.0":
+"@noble/hashes@1.5.0", "@noble/hashes@^1.3.0", "@noble/hashes@^1.5.0":
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.5.0.tgz#abadc5ca20332db2b1b2aa3e496e9af1213570b0"
   integrity sha512-1j6kQFb7QRru7eKN3ZDvRcP13rugwdxZqCjbiAVZfIJwgj2A65UmT4TgARXGlXgnRkORLTDTrO19ZErt7+QXgA==
@@ -4021,7 +3956,7 @@
   resolved "https://registry.yarnpkg.com/@rtsao/scc/-/scc-1.1.0.tgz#927dd2fae9bc3361403ac2c7a00c32ddce9ad7e8"
   integrity sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==
 
-"@scure/base@^1.1.1", "@scure/base@^1.1.3", "@scure/base@~1.1.0", "@scure/base@~1.1.6":
+"@scure/base@^1.1.1", "@scure/base@^1.1.3", "@scure/base@~1.1.0":
   version "1.1.7"
   resolved "https://registry.yarnpkg.com/@scure/base/-/base-1.1.7.tgz#fe973311a5c6267846aa131bc72e96c5d40d2b30"
   integrity sha512-PPNYBslrLNNUQ/Yad37MHYsNQtK67EhWb6WtSvNLLPo7SdVZgkUjD6Dg+5On7zNwmskf8OX7I7Nx5oN+MIWE0g==
@@ -4035,15 +3970,6 @@
     "@noble/secp256k1" "~1.7.0"
     "@scure/base" "~1.1.0"
 
-"@scure/bip32@1.4.0":
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/@scure/bip32/-/bip32-1.4.0.tgz#4e1f1e196abedcef395b33b9674a042524e20d67"
-  integrity sha512-sVUpc0Vq3tXCkDGYVWGIZTRfnvu8LoTDaev7vbwh0omSvVORONr960MQWdKqJDCReIEmTj3PAr73O3aoxz7OPg==
-  dependencies:
-    "@noble/curves" "~1.4.0"
-    "@noble/hashes" "~1.4.0"
-    "@scure/base" "~1.1.6"
-
 "@scure/bip39@1.1.1":
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/@scure/bip39/-/bip39-1.1.1.tgz#b54557b2e86214319405db819c4b6a370cf340c5"
@@ -4051,14 +3977,6 @@
   dependencies:
     "@noble/hashes" "~1.2.0"
     "@scure/base" "~1.1.0"
-
-"@scure/bip39@1.3.0":
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/@scure/bip39/-/bip39-1.3.0.tgz#0f258c16823ddd00739461ac31398b4e7d6a18c3"
-  integrity sha512-disdg7gHuTDZtY+ZdkmLpPCk7fxZSu3gBiEGuoC1XYxv9cGx3Z6cpTggCgW6odSOOIXCiDjuGejW+aJKCY/pIQ==
-  dependencies:
-    "@noble/hashes" "~1.4.0"
-    "@scure/base" "~1.1.6"
 
 "@sd-jwt/decode@0.6.1", "@sd-jwt/decode@^0.6.1":
   version "0.6.1"
@@ -5105,7 +5023,7 @@
   resolved "https://registry.yarnpkg.com/@types/sarif/-/sarif-2.1.6.tgz#3193ee191cb686c43b4136311c3efbf27e1094ca"
   integrity sha512-x+68l19JJnfXX9oq85k6KZwsPuOa2BKESkYqbRbA09zLSZXIDNyDo1illgDB/P0ZdpIa4EII3pHJ6DQq3xo3Qw==
 
-"@types/secp256k1@^4.0.1", "@types/secp256k1@^4.0.6":
+"@types/secp256k1@^4.0.1":
   version "4.0.6"
   resolved "https://registry.yarnpkg.com/@types/secp256k1/-/secp256k1-4.0.6.tgz#d60ba2349a51c2cbc5e816dcd831a42029d376bf"
   integrity sha512-hHxJU6PAEUn0TP4S/ZOzuTUvJWuZ6eIKeNKb5RBpODvSl6hp1Wrw4s7ATY50rklRCScUDpHzVA/DQdSjJ3UoYQ==
@@ -7705,15 +7623,6 @@ ecc-jsbn@~0.1.1:
     jsbn "~0.1.0"
     safer-buffer "^2.1.0"
 
-eciesjs@^0.4.7:
-  version "0.4.7"
-  resolved "https://registry.yarnpkg.com/eciesjs/-/eciesjs-0.4.7.tgz#df82a881e7d4aa4dc35649c18fc73c512ec2d6a4"
-  integrity sha512-4JQahOkBdDy27jjW4q3FJQigHlcwZXx28sCtBQkBamF2XUdcNXrInpgrr8h205MtVIS0CMHufyIKGVjtjxQ2ZA==
-  dependencies:
-    "@noble/ciphers" "^0.5.3"
-    "@noble/curves" "^1.4.0"
-    "@noble/hashes" "^1.4.0"
-
 ejs@3.1.8, ejs@^3.1.10, ejs@^3.1.7, ejs@^3.1.8:
   version "3.1.10"
   resolved "https://registry.yarnpkg.com/ejs/-/ejs-3.1.10.tgz#69ab8358b14e896f80cc39e62087b88500c3ac3b"
@@ -8276,16 +8185,6 @@ ethereum-cryptography@^1.0.3:
     "@noble/secp256k1" "1.7.1"
     "@scure/bip32" "1.1.5"
     "@scure/bip39" "1.1.1"
-
-ethereum-cryptography@^2.0.0:
-  version "2.2.1"
-  resolved "https://registry.yarnpkg.com/ethereum-cryptography/-/ethereum-cryptography-2.2.1.tgz#58f2810f8e020aecb97de8c8c76147600b0b8ccf"
-  integrity sha512-r/W8lkHSiTLxUxW8Rf3u4HGB0xQweG2RyETjywylKZSzLWoWAijRz8WCuOtJ6wah+avllXBqZuk29HCCvhEIRg==
-  dependencies:
-    "@noble/curves" "1.4.2"
-    "@noble/hashes" "1.4.0"
-    "@scure/bip32" "1.4.0"
-    "@scure/bip39" "1.3.0"
 
 ethereum-waffle@^4.0.10:
   version "4.0.10"
@@ -11470,11 +11369,6 @@ methods@^1.1.2:
   resolved "https://registry.yarnpkg.com/methods/-/methods-1.1.2.tgz#5529a4d67654134edcc5266656835b0f851afcee"
   integrity sha512-iclAHeNqNm68zFtnZ0e+1L2yUIdvzNoauKU4WBA3VvH/vPFieF7qfRlwUZU+DA9P9bPXIS90ulxoUoCH23sV2w==
 
-micro-ftch@^0.3.1:
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/micro-ftch/-/micro-ftch-0.3.1.tgz#6cb83388de4c1f279a034fb0cf96dfc050853c5f"
-  integrity sha512-/0LLxhzP0tfiR5hcQebtudP56gUurs2CLkGarnCiB/OqEyUFQ6U3paQi/tgLv0hBJYt2rnr9MNpxz4fiiugstg==
-
 micromatch@^4.0.2, micromatch@^4.0.4, micromatch@~4.0.8:
   version "4.0.8"
   resolved "https://registry.yarnpkg.com/micromatch/-/micromatch-4.0.8.tgz#d66fa18f3a47076789320b9b1af32bd86d9fa202"
@@ -11869,11 +11763,6 @@ node-addon-api@^2.0.0:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/node-addon-api/-/node-addon-api-2.0.2.tgz#432cfa82962ce494b132e9d72a15b29f71ff5d32"
   integrity sha512-Ntyt4AIXyaLIuMHF6IOoTakB3K+RWxwtsHNRxllEoA6vPwP9o4866g6YWDLUdnucilZhmkxiHwHr11gAENw+QA==
-
-node-addon-api@^5.0.0:
-  version "5.1.0"
-  resolved "https://registry.yarnpkg.com/node-addon-api/-/node-addon-api-5.1.0.tgz#49da1ca055e109a23d537e9de43c09cca21eb762"
-  integrity sha512-eh0GgfEkpnoWDq+VY8OyvYhFEzBk6jIYbRKdIlyTiAXIVJ8PyBaKb0rp7oDtoddbdoHWhq8wwr+XZ81F1rpNdA==
 
 node-emoji@1.11.0, node-emoji@^1.10.0:
   version "1.11.0"
@@ -13293,9 +13182,9 @@ rollup@^4.2.0:
     fsevents "~2.3.2"
 
 rollup@~2.79.0:
-  version "2.79.1"
-  resolved "https://registry.yarnpkg.com/rollup/-/rollup-2.79.1.tgz#bedee8faef7c9f93a2647ac0108748f497f081c7"
-  integrity sha512-uKxbd0IhMZOhjAiD5oAFp7BqvkA4Dv47qpOCtaNvng4HBwdbWtdOh8f5nZNuk2rp51PMGk3bzfWu5oayNEuYnw==
+  version "2.79.2"
+  resolved "https://registry.yarnpkg.com/rollup/-/rollup-2.79.2.tgz#f150e4a5db4b121a21a747d762f701e5e9f49090"
+  integrity sha512-fS6iqSPZDs3dr/y7Od6y5nha8dW1YnbgtsyotCVvoFGKbERG++CVRFv1meyGDE1SNItQA8BrnCw7ScdAhRJ3XQ==
   optionalDependencies:
     fsevents "~2.3.2"
 
@@ -13432,15 +13321,6 @@ secp256k1@4.0.3, secp256k1@^4.0.1:
   dependencies:
     elliptic "^6.5.4"
     node-addon-api "^2.0.0"
-    node-gyp-build "^4.2.0"
-
-secp256k1@^5.0.0:
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/secp256k1/-/secp256k1-5.0.0.tgz#be6f0c8c7722e2481e9773336d351de8cddd12f7"
-  integrity sha512-TKWX8xvoGHrxVdqbYeZM9w+izTF4b9z3NhSaDkdn81btvuh+ivbIMGT/zQvDtTFWhRlThpoz6LEYTr7n8A5GcA==
-  dependencies:
-    elliptic "^6.5.4"
-    node-addon-api "^5.0.0"
     node-gyp-build "^4.2.0"
 
 secure-json-parse@^2.7.0:
@@ -14926,11 +14806,6 @@ uuid@^8.3.2:
   version "8.3.2"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-8.3.2.tgz#80d5b5ced271bb9af6c445f21a1a04c606cefbe2"
   integrity sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==
-
-uuid@^9.0.1:
-  version "9.0.1"
-  resolved "https://registry.yarnpkg.com/uuid/-/uuid-9.0.1.tgz#e188d4c8853cc722220392c424cd637f32293f30"
-  integrity sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==
 
 v8-compile-cache-lib@^3.0.1:
   version "3.0.1"

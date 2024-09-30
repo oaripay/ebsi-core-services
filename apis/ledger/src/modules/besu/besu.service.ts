@@ -3,14 +3,9 @@ import { Injectable, Logger, OnModuleDestroy } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import type WebSocket from "ws";
-import {
-  BadRequestError,
-  ForbiddenError,
-  InternalServerError,
-} from "@ebsiint-api/shared";
+import { InternalServerError } from "@ebsiint-api/shared";
 import { BesuResponseObject, BesuServiceResponse } from "./besu.interface.js";
 import type { ApiConfig } from "../../config/configuration.js";
-import { isDeployingSmartContract } from "./besu.utils.js";
 import { BesuDto } from "./dto/index.js";
 
 const EXPECTED_PONG_BACK = 15_000;
@@ -59,8 +54,6 @@ export class BesuService implements OnModuleDestroy {
   private ethersProvider: ethers.providers.JsonRpcProvider | undefined;
 
   private reconnectWebSocket = true;
-
-  private chainId: number | undefined;
 
   private timeout: number;
 
@@ -149,20 +142,6 @@ export class BesuService implements OnModuleDestroy {
     return this.ethersProvider!;
   }
 
-  async getChainId(): Promise<number> {
-    if (!this.chainId) {
-      try {
-        this.chainId = (await this.getEthersProvider().getNetwork()).chainId;
-      } catch (error) {
-        throw new Error(
-          `Error getting EBSI chainId: ${(error as Error).message}`,
-        );
-      }
-    }
-
-    return this.chainId;
-  }
-
   // Make it easier to override the config in tests
   getBesuRpcNode(): string {
     return this.configService.get<string>("besuRpcNode");
@@ -173,29 +152,8 @@ export class BesuService implements OnModuleDestroy {
   }
 
   async sendToBesu(query: BesuDto): Promise<BesuServiceResponse> {
-    let isDeployingSC = false;
-
     if (!this.ethersProvider) {
       this.initBesuProvider();
-    }
-
-    try {
-      const chainId = await this.getChainId();
-      isDeployingSC = isDeployingSmartContract(query, chainId);
-    } catch (error) {
-      if ((error as Error).message.includes("Error getting EBSI chainId")) {
-        throw error;
-      }
-
-      throw new BadRequestError(BadRequestError.defaultTitle, {
-        detail: `Error parsing the transaction: ${(error as Error).message}`,
-      });
-    }
-
-    if (isDeployingSC) {
-      throw new ForbiddenError(ForbiddenError.defaultTitle, {
-        detail: "Deployment of new smart contracts is not allowed",
-      });
     }
 
     // Send request to Besu

@@ -9,44 +9,17 @@ export interface ApiConfig {
   localOrigin: string;
   logLevel: "silent" | "error" | "warn" | "info" | "verbose" | "debug";
   requestTimeout: number;
-  axiosRetryDelay: number;
   // Ledger & SC
   besuRpcNode: string;
   besuReadinessEndpoint: string;
-  ledgerApiUrl: string;
   contractAddr: string;
-  // Authorisation API
-  authorisationApiUrl: string;
-  // DID Registry API
-  didRegistryApiUrl: string;
-  // Trusted Apps Registry API
-  trustedAppsRegistryApiUrl: string;
   // Test variables
-  testAdminKid: string | undefined;
-  testAdminPrivateKey: string | undefined;
   testVaSchemaUrl: string;
-  testLoadBalancerDomain: string;
   testSpecificNodeDomain: string | undefined;
   dockerContainerTag: string;
-  blockscout: {
-    url: string | undefined;
-    bearerToken: string | undefined;
-  };
 }
 
-const AUTH_API_PATH = "/authorisation/v2";
-const DIDR_API_PATH = "/did-registry/v4";
-const LEDGER_API_PATH = "/ledger/v3";
-const TAR_API_PATH = "/trusted-apps-registry/v3";
 const TSR_API_PATH = "/trusted-schemas-registry/v2";
-
-export const DEPENDENCIES = {
-  "Authorisation API v2": AUTH_API_PATH,
-  "DIDR API v4": DIDR_API_PATH,
-  "Ledger API v3": LEDGER_API_PATH,
-  "TAR API v3": TAR_API_PATH,
-  "TSR API v2": TSR_API_PATH,
-} as const;
 
 // Config factory
 // Note that process.env — for which provide typings in src/environment.d.ts —
@@ -61,29 +34,14 @@ export const loadConfig = (): ApiConfig => {
     localOrigin: process.env.LOCAL_ORIGIN || "",
     logLevel: process.env.LOG_LEVEL || "warn",
     requestTimeout: parseInt(process.env.REQUEST_TIMEOUT || "15000", 10),
-    axiosRetryDelay: parseInt(process.env.AXIOS_RETRY_DELAY || "10000", 10),
     // Ledger & SC
     besuRpcNode: process.env.BESU_RPC_NODE,
     besuReadinessEndpoint: process.env.BESU_READINESS_ENDPOINT,
-    ledgerApiUrl: DOMAIN + LEDGER_API_PATH,
     contractAddr: process.env.CONTRACT_ADDR,
-    // Authorisation API
-    authorisationApiUrl: DOMAIN + AUTH_API_PATH,
-    // DID Registry API
-    didRegistryApiUrl: DOMAIN + DIDR_API_PATH,
-    // Trusted Apps Registry API
-    trustedAppsRegistryApiUrl: DOMAIN + TAR_API_PATH,
     // Test vars
-    testAdminKid: process.env.TEST_ADMIN_KID,
-    testAdminPrivateKey: process.env.TEST_ADMIN_PRIVATE_KEY,
     testVaSchemaUrl: `${DOMAIN}${TSR_API_PATH}/schemas/${process.env.TEST_VA_SCHEMA}`,
-    testLoadBalancerDomain: process.env.TEST_LB_DOMAIN || "",
     testSpecificNodeDomain: process.env.TEST_SPECIFIC_NODE_DOMAIN,
     dockerContainerTag: process.env.DOCKER_TAG || "",
-    blockscout: {
-      url: process.env.BLOCKSCOUT_URL,
-      bearerToken: process.env.BLOCKSCOUT_BEARER_TOKEN,
-    },
   };
 };
 
@@ -114,20 +72,13 @@ export const ApiConfigModule = ConfigModule.forRoot({
     DOMAIN: Joi.string().uri().required(),
     LOCAL_ORIGIN: Joi.string().uri(),
     REQUEST_TIMEOUT: Joi.string(),
-    AXIOS_RETRY_DELAY: Joi.string(),
     // Ledger & SC
     BESU_RPC_NODE: Joi.string().uri().required(),
     BESU_READINESS_ENDPOINT: Joi.string().uri().required(),
     CONTRACT_ADDR: Joi.string().required(),
     // Test vars
-    TEST_ADMIN_KID: Joi.string(),
-    TEST_ADMIN_PRIVATE_KEY: Joi.string(),
     TEST_VA_SCHEMA: Joi.string(),
-    TEST_LB_DOMAIN: Joi.string().uri(),
     TEST_ENV: Joi.string(),
-    TEST_ENABLE_WRITE_OPS: Joi.string(),
-    BLOCKSCOUT_URL: Joi.string(),
-    BLOCKSCOUT_BEARER_TOKEN: Joi.string(),
     TEST_SPECIFIC_NODE_DOMAIN: Joi.string().uri(),
     // Generic variables
     TZ: Joi.string(),

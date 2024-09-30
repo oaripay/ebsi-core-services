@@ -27,13 +27,6 @@ paths:
       summary: Besu JSON-RPC API
       description: |
         Hyperledger Besu Ethereum Enterprise Client JSON-RPC API.
-        For some protected methods, the endpoint requires authentication via the Authorisation API.
-        It accepts OAuth2 tokens (for Trusted Apps) or SIOP tokens (for DIDs).
-        The protected methods are:
-          - eth_sendRawTransaction
-          - eth_estimateGas
-      security:
-        - bearerAuth: []
       requestBody:
         required: true
         description: |
@@ -88,13 +81,6 @@ paths:
                   method: eth_getTransactionByHash
                   params:
                     - "0x88df016429689c079f3b2f6ad39fa052532c56795b733da78a91ebe6a713944b"
-                  id: 1
-              Send Transaction:
-                value:
-                  jsonrpc: "2.0"
-                  method: eth_sendRawTransaction
-                  params:
-                    - "---signed raw transaction---"
                   id: 1
       responses:
         "200":
@@ -161,8 +147,6 @@ paths:
               examples:
                 Bad Request:
                   $ref: "#/components/examples/BadRequest"
-                Invalid Token:
-                  $ref: "#/components/examples/InvalidToken"
                 Method Disabled:
                   $ref: "#/components/examples/MethodDisabled"
                 Invalid Method:
@@ -173,20 +157,12 @@ paths:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                Unauthorized:
-                  $ref: "#/components/examples/NoAnonymous"
         "403":
           description: Forbidden
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
-              examples:
-                Forbidden:
-                  $ref: "#/components/examples/BesuPermissions"
-                Deployment Forbidden:
-                  $ref: "#/components/examples/NoDeploySC"
 components:
   schemas:
     JsonRpcResponse:
@@ -253,24 +229,6 @@ components:
             An absolute URI that identifies the specific occurrence of the problem.
             It may or may not yield further information if dereferenced.
   examples:
-    BesuPermissions:
-      value:
-        title: Forbidden
-        status: 403
-        detail: The method 'eth_sendRawTransaction' needs besu permissions
-        type: about:blank
-    NoDeploySC:
-      value:
-        title: Forbidden
-        status: 403
-        detail: Deployment of new smart contracts is not allowed
-        type: about:blank
-    NoAnonymous:
-      value:
-        title: Unauthorized
-        status: 401
-        detail: The method 'eth_sendRawTransaction' is not available for anonymous access
-        type: about:blank
     MethodDisabled:
       value:
         title: Bad Request
@@ -289,17 +247,6 @@ components:
         status: 400
         detail: Bad request.
         type: about:blank
-    InvalidToken:
-      value:
-        title: Invalid Token
-        status: 400
-        detail: Token has expired. Max age of a token is 15 min.
-        type: about:blank
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
 servers:
   - url: http://localhost
     description: Local Computer Environment

@@ -244,7 +244,7 @@ describeWriteOps()("DID Registry API v4 - JSON RPC - e2e", () => {
           infer: true,
         });
         const didrWriteToken = await getDidrWriteAccessToken(
-          configService.get<string>("authorisationApiV3Url"),
+          configService.get<string>("authorisationApiUrl"),
           user.info,
           {
             network: configService.get("network", { infer: true }),

@@ -11,8 +11,13 @@ const { writeFileSync } = require("fs");
  */
 
 const deprecatedServices = [
-  "@ebsiint-sc/trusted-apps-registry-v3",
+  "@ebsiint-api/authorisation-api-v2",
+  "@ebsiint-api/did-registry-api-v3",
+  "@ebsiint-api/trusted-apps-registry-api-v3",
   "@ebsiint-api/trusted-apps-registry-api-v4",
+  "@ebsiint-api/trusted-issuers-registry-api-v3",
+  "@ebsiint-sc/trusted-apps-registry",
+  "@ebsiint-sc/trusted-apps-registry-v3",
 ];
 
 const processResult = spawnSync("sh", [

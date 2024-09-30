@@ -7,7 +7,7 @@ import {
   HttpHealthIndicator,
   HealthCheckResult,
 } from "@nestjs/terminus";
-import { DEPENDENCIES, type ApiConfig } from "../../config/configuration.js";
+import { type ApiConfig } from "../../config/configuration.js";
 
 @Controller("/health")
 export class HealthController {
@@ -21,16 +21,6 @@ export class HealthController {
   @HealthCheck()
   check(): Promise<HealthCheckResult> {
     return this.health.check([
-      ...(Object.keys(DEPENDENCIES) as (keyof typeof DEPENDENCIES)[]).map(
-        (dependency) => async () =>
-          this.http.pingCheck(
-            dependency,
-            `${
-              this.configService.get<string>("localOrigin") ||
-              this.configService.get<string>("domain")
-            }${DEPENDENCIES[dependency]}`,
-          ),
-      ),
       () =>
         this.http.pingCheck(
           "Besu",

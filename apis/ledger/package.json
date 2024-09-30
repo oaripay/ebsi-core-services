@@ -24,10 +24,7 @@
     "test:ci": "yarn test:unit --coverage --reporter=default"
   },
   "dependencies": {
-    "@cef-ebsi/oauth2-auth": "^3.0.3-alpha.0",
     "@ebsiint-api/shared": "^1.1.0-rc.10",
-    "@ethereumjs/common": "^3.2.0",
-    "@ethereumjs/tx": "^4.2.0",
     "@fastify/helmet": "^11.1.1",
     "@nestjs/axios": "^3.0.3",
     "@nestjs/common": "^10.4.1",
@@ -38,7 +35,6 @@
     "axios": "^1.7.7",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
-    "did-jwt": "^8.0.4",
     "ethers": "^5.7.2",
     "joi": "^17.13.3",
     "nest-winston": "^1.9.7",
@@ -48,14 +44,13 @@
     "yaml": "^2.5.1"
   },
   "devDependencies": {
-    "@cef-ebsi/siop-auth": "^4.0.3-alpha.0",
-    "@cef-ebsi/wallet-lib": "^5.0.3-alpha.0",
     "@nestjs/cli": "^10.4.5",
     "@nestjs/schematics": "^10.1.4",
     "@nestjs/testing": "^10.4.1",
     "@nomiclabs/hardhat-ethers": "^2.2.3",
     "@stoplight/spectral-cli": "^6.12.0",
     "@swc/core": "^1.7.26",
+    "@total-typescript/ts-reset": "^0.6.1",
     "@tsconfig/node20": "^20.1.4",
     "@tsconfig/strictest": "^2.0.5",
     "@types/k6": "^0.53.1",
@@ -64,7 +59,6 @@
     "@types/ws": "^7.4.7",
     "@vitest/coverage-v8": "^1.4.0",
     "hardhat": "~2.20.1",
-    "jose": "^4.15.5",
     "msw": "^2.3.5",
     "supertest": "^6.3.4",
     "ts-node": "^10.9.2",

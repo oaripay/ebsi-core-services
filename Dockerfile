@@ -11,11 +11,9 @@ RUN apk update && \
 COPY yarn.lock package.json ./
 
 # Copy projects' package.json files
-COPY ./apis/authorisation/package.json ./apis/authorisation/
 COPY ./apis/authorisation-v3/package.json ./apis/authorisation-v3/
 COPY ./apis/authorisation-v4/package.json ./apis/authorisation-v4/
 COPY ./apis/authorisation-v5/package.json ./apis/authorisation-v5/
-COPY ./apis/did-registry/package.json ./apis/did-registry/
 COPY ./apis/did-registry-v4/package.json ./apis/did-registry-v4/
 COPY ./apis/did-registry-v5/package.json ./apis/did-registry-v5/
 COPY ./apis/did-registry-v6/package.json ./apis/did-registry-v6/
@@ -27,9 +25,6 @@ COPY ./apis/timestamp-v4/package.json ./apis/timestamp-v4/
 COPY ./apis/timestamp-v5/package.json ./apis/timestamp-v5/
 COPY ./apis/track-and-trace-v1/package.json ./apis/track-and-trace-v1/
 COPY ./apis/track-and-trace-v2/package.json ./apis/track-and-trace-v2/
-COPY ./apis/trusted-apps-registry/package.json ./apis/trusted-apps-registry/
-COPY ./apis/trusted-apps-registry-v4/package.json ./apis/trusted-apps-registry-v4/
-COPY ./apis/trusted-issuers-registry/package.json ./apis/trusted-issuers-registry/
 COPY ./apis/trusted-issuers-registry-v4/package.json ./apis/trusted-issuers-registry-v4/
 COPY ./apis/trusted-issuers-registry-v5/package.json ./apis/trusted-issuers-registry-v5/
 COPY ./apis/trusted-issuers-registry-v6/package.json ./apis/trusted-issuers-registry-v6/
@@ -50,8 +45,6 @@ COPY ./contracts/track-and-trace-v2/package.json ./contracts/track-and-trace-v2/
 COPY ./contracts/timestamp/package.json ./contracts/timestamp/
 COPY ./contracts/timestamp-v2/package.json ./contracts/timestamp-v2/
 COPY ./contracts/timestamp-v3/package.json ./contracts/timestamp-v3/
-COPY ./contracts/trusted-apps-registry/package.json ./contracts/trusted-apps-registry/
-COPY ./contracts/trusted-apps-registry-v3/package.json ./contracts/trusted-apps-registry-v3/
 COPY ./contracts/trusted-issuers-registry/package.json ./contracts/trusted-issuers-registry/
 COPY ./contracts/trusted-issuers-registry-v3/package.json ./contracts/trusted-issuers-registry-v3/
 COPY ./contracts/trusted-issuers-registry-v4/package.json ./contracts/trusted-issuers-registry-v4/

@@ -6,8 +6,7 @@ import { NETWORKS, type Network } from "@cef-ebsi/ebsi-uri";
 export interface ApiConfig {
   apiPort: number;
   apiUrlPrefix: string;
-  authorisationApiV2Url: string;
-  authorisationApiV3Url: string;
+  authorisationApiUrl: string;
   contractAddr: string;
   contractAddrV1: string;
   domain: string;
@@ -31,14 +30,12 @@ export interface ApiConfig {
   };
 }
 
-const AUTH_API_V2_PATH = "/authorisation/v2";
-const AUTH_API_V3_PATH = "/authorisation/v3";
+const AUTH_API_PATH = "/authorisation/v3";
 const LEDGER_API_PATH = "/ledger/v3";
 const TAR_API_PATH = "/trusted-apps-registry/v3";
 
 export const DEPENDENCIES = {
-  "Authorisation API v2": AUTH_API_V2_PATH,
-  "Authorisation API v3": AUTH_API_V3_PATH,
+  "Authorisation API v3": AUTH_API_PATH,
   "Ledger API v3": LEDGER_API_PATH,
   "TAR API v3": TAR_API_PATH,
 } as const;
@@ -52,8 +49,7 @@ export const loadConfig = (): ApiConfig => {
   return {
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
     apiUrlPrefix: process.env.API_URL_PREFIX || "/did-registry/v4",
-    authorisationApiV2Url: DOMAIN + AUTH_API_V2_PATH,
-    authorisationApiV3Url: DOMAIN + AUTH_API_V3_PATH,
+    authorisationApiUrl: DOMAIN + AUTH_API_PATH,
     contractAddr: process.env.CONTRACT_ADDR,
     contractAddrV1: process.env.CONTRACT_V1_ADDR,
     domain: DOMAIN,

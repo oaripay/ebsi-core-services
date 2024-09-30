@@ -6,7 +6,6 @@ import { NETWORKS, type Network } from "@cef-ebsi/ebsi-uri";
 export interface ApiConfig {
   apiPort: number;
   apiUrlPrefix: string;
-  authorisationApiName: string;
   authorisationApiUrl: string;
   ledgerApiUrl: string;
   didRegistryApiUrl: string;
@@ -55,8 +54,6 @@ export const loadConfig = (): ApiConfig => {
   return {
     apiPort: parseInt(process.env.API_PORT || "3000", 10),
     apiUrlPrefix: process.env.API_URL_PREFIX || "/timestamp/v5",
-    authorisationApiName:
-      process.env.AUTHORISATION_API_NAME || "authorisation-api",
     authorisationApiUrl: DOMAIN + AUTH_API_PATH,
     besuRpcNode: process.env.BESU_RPC_NODE,
     besuReadinessEndpoint: process.env.BESU_READINESS_ENDPOINT,
@@ -121,7 +118,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
     NETWORK: Joi.string()
       .valid(...NETWORKS)
       .required(),
-    AUTHORISATION_API_NAME: Joi.string(),
     CONTRACT_ADDR: Joi.string(),
     GRAPHQL_ENDPOINT: Joi.string().uri().required(),
     REQUEST_TIMEOUT: Joi.string(),

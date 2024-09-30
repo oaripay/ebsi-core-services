@@ -1,8 +1,8 @@
 import { registerDecorator, buildMessage } from "class-validator";
 
-// Allowed methods are defined in the specs
-// https://ec.europa.eu/digital-building-blocks/wikis/display/BLOCKCHAININT/Ledger+API
-const allowedMethods = [
+// Commented methods are private
+// Methods that are not listed here are not available through Ledger API
+export const PUBLIC_BESU_METHODS = [
   "net_version",
   "eth_chainId",
   "eth_blockNumber",
@@ -14,9 +14,9 @@ const allowedMethods = [
   "eth_getUncleCountByBlockHash",
   "eth_getUncleCountByBlockNumber",
   "eth_getCode",
-  "eth_sendRawTransaction",
+  // "eth_sendRawTransaction",
   "eth_call",
-  "eth_estimateGas",
+  // "eth_estimateGas",
   "eth_getBlockByHash",
   "eth_getBlockByNumber",
   "eth_getTransactionByHash",
@@ -24,7 +24,7 @@ const allowedMethods = [
   "eth_getTransactionByBlockNumberAndIndex",
   "eth_getTransactionReceipt",
   "eth_getLogs",
-];
+] as const;
 
 export function IsValidMethod() {
   return (object: object, propertyName: string): void => {
@@ -34,7 +34,9 @@ export function IsValidMethod() {
       propertyName,
       validator: {
         validate(value: unknown) {
-          return typeof value === "string" && allowedMethods.includes(value);
+          return (
+            typeof value === "string" && PUBLIC_BESU_METHODS.includes(value)
+          );
         },
         defaultMessage: buildMessage(
           (eachPrefix) => `${eachPrefix}$property must be a valid method`,

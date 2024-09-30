@@ -20,18 +20,13 @@ import { setupServer } from "msw/node";
 import { frameworkErrors } from "@ebsiint-api/shared";
 import { AppModule } from "./app.module.js";
 import { AllExceptionsFilter } from "./filters/http-exception.filter.js";
-import { DEPENDENCIES, type ApiConfig } from "./config/configuration.js";
+import { type ApiConfig } from "./config/configuration.js";
 import { createLogger } from "./logger/logger.js";
 
 describe("App Module", () => {
   const mockServer = setupServer();
-  const dependencies = Object.keys(
-    DEPENDENCIES,
-  ) as (keyof typeof DEPENDENCIES)[];
 
   beforeAll(() => {
-    process.env.AXIOS_RETRY_DELAY = "1"; // 1ms
-
     // Intercept network requests
     mockServer.listen({
       onUnhandledRequest: ({ url }, print) => {
@@ -49,158 +44,6 @@ describe("App Module", () => {
 
   afterAll(() => {
     mockServer.close();
-  });
-
-  describe("onApplicationBootstrap hook", () => {
-    afterEach(() => {
-      mockServer.resetHandlers();
-    });
-
-    it("should prevent the app from starting if a dependency triggers a network error", async () => {
-      expect.assertions(1);
-
-      const moduleFixture: TestingModule = await Test.createTestingModule({
-        imports: [AppModule],
-      }).compile();
-
-      const app = moduleFixture.createNestApplication<NestFastifyApplication>(
-        new FastifyAdapter(),
-      );
-
-      // Turn off logger
-      Logger.overrideLogger(false);
-
-      const configService =
-        app.get<ConfigService<ApiConfig, true>>(ConfigService);
-
-      app.useGlobalFilters(new AllExceptionsFilter());
-      app.useGlobalPipes(new ValidationPipe({ transform: true }));
-
-      const domain = configService.get<string>("domain");
-      const localOrigin = configService.get<string>("localOrigin") || domain;
-
-      // All the dependencies return a 200 except Authorisation API
-      mockServer.use(
-        ...dependencies.map((dependency) => {
-          return http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
-            dependency === "Authorisation API v2"
-              ? HttpResponse.error()
-              : HttpResponse.json({}),
-          );
-        }),
-      );
-
-      await expect(() => app.init()).rejects.toThrow(
-        `Unable to get ${localOrigin}${DEPENDENCIES["Authorisation API v2"]}, shutting down...`,
-      );
-
-      await app.close();
-    });
-
-    it("should prevent the app from starting if one of the dependencies still responds with a 404 after all the attempts", async () => {
-      expect.assertions(2);
-
-      const moduleFixture: TestingModule = await Test.createTestingModule({
-        imports: [AppModule],
-      }).compile();
-
-      const app = moduleFixture.createNestApplication<NestFastifyApplication>(
-        new FastifyAdapter(),
-      );
-
-      const mockedLogger = {
-        log: vi.fn(),
-        warn: vi.fn(),
-        error: vi.fn(),
-      };
-      Logger.overrideLogger(mockedLogger);
-
-      const configService =
-        app.get<ConfigService<ApiConfig, true>>(ConfigService);
-
-      app.useGlobalFilters(new AllExceptionsFilter());
-      app.useGlobalPipes(new ValidationPipe({ transform: true }));
-
-      const domain = configService.get<string>("domain");
-      const localOrigin = configService.get<string>("localOrigin") || domain;
-
-      mockServer.use(
-        ...dependencies.map((dependency) => {
-          return http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
-            dependency === "Authorisation API v2"
-              ? HttpResponse.text("Not Found", { status: 404 })
-              : HttpResponse.json({}),
-          );
-        }),
-      );
-
-      await expect(() => app.init()).rejects.toThrow(
-        `Unable to get ${localOrigin}${DEPENDENCIES["Authorisation API v2"]}, shutting down...`,
-      );
-
-      // Retry 30 times -> log 30 errors
-      expect(mockedLogger.error).toHaveBeenCalledTimes(30);
-
-      await app.close();
-    });
-
-    it("should start if all the dependencies are up and running", async () => {
-      expect.assertions(2);
-
-      const moduleFixture: TestingModule = await Test.createTestingModule({
-        imports: [AppModule],
-      }).compile();
-
-      const app = moduleFixture.createNestApplication<NestFastifyApplication>(
-        new FastifyAdapter(),
-      );
-
-      const mockedLogger = {
-        log: vi.fn(),
-        warn: vi.fn(),
-        error: vi.fn(),
-      };
-      Logger.overrideLogger(mockedLogger);
-
-      const configService =
-        app.get<ConfigService<ApiConfig, true>>(ConfigService);
-
-      app.useGlobalFilters(new AllExceptionsFilter());
-      app.useGlobalPipes(new ValidationPipe({ transform: true }));
-
-      const domain = configService.get<string>("domain");
-      const localOrigin = configService.get<string>("localOrigin") || domain;
-
-      let reqCounter = 0;
-
-      mockServer.use(
-        ...dependencies.map((dependency) => {
-          return http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () => {
-            if (dependency === "Authorisation API v2") {
-              reqCounter += 1;
-
-              // Authorisation API first responds 15 times with a 404 (because it's starting)
-              if (reqCounter <= 15) {
-                return HttpResponse.text("Not Found", { status: 404 });
-              }
-
-              // Then, it responds with a 200
-              return HttpResponse.json({});
-            }
-
-            // All other dependencies respond with a 200
-            return HttpResponse.json({});
-          });
-        }),
-      );
-
-      await expect(app.init()).resolves.not.toThrow();
-
-      // Retry 15 times -> log 15 errors
-      expect(mockedLogger.error).toHaveBeenCalledTimes(15);
-
-      await app.close();
-    });
   });
 
   describe("Generic tests", () => {
@@ -226,22 +69,8 @@ describe("App Module", () => {
       // Turn off logger
       Logger.overrideLogger(mockedLogger);
 
-      const configService =
-        app.get<ConfigService<ApiConfig, true>>(ConfigService);
       app.useGlobalFilters(new AllExceptionsFilter());
       app.useGlobalPipes(new ValidationPipe({ transform: true }));
-
-      const domain = configService.get<string>("domain");
-      const localOrigin = configService.get<string>("localOrigin") || domain;
-
-      // Mock dependencies
-      const authorisationApiUrl = `${configService.get<string>(
-        "authorisationApiUrl",
-      )}`.replace(domain, localOrigin);
-
-      mockServer.use(
-        http.get(authorisationApiUrl, () => HttpResponse.json({})),
-      );
 
       await app.init();
       await app.getHttpAdapter().getInstance().ready();
@@ -345,17 +174,8 @@ describe("App Module", () => {
         const configService =
           app.get<ConfigService<ApiConfig, true>>(ConfigService);
 
-        const localOrigin =
-          configService.get<string>("localOrigin") ||
-          configService.get<string>("domain");
-
         // All the dependencies return a 200
         mockServer.use(
-          ...dependencies.map((dependency) =>
-            http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
-              HttpResponse.json({}),
-            ),
-          ),
           http.get(configService.get("besuReadinessEndpoint"), () =>
             HttpResponse.json({}),
           ),
@@ -384,17 +204,8 @@ describe("App Module", () => {
         const configService =
           app.get<ConfigService<ApiConfig, true>>(ConfigService);
 
-        const localOrigin =
-          configService.get<string>("localOrigin") ||
-          configService.get<string>("domain");
-
         // All the dependencies return a 200
         mockServer.use(
-          ...dependencies.map((dependency) =>
-            http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
-              HttpResponse.json({}),
-            ),
-          ),
           http.get(configService.get("besuReadinessEndpoint"), () =>
             HttpResponse.json({}),
           ),
@@ -442,17 +253,8 @@ describe("App Module", () => {
         const configService =
           app.get<ConfigService<ApiConfig, true>>(ConfigService);
 
-        const localOrigin =
-          configService.get<string>("localOrigin") ||
-          configService.get<string>("domain");
-
         // All the dependencies return a 200
         mockServer.use(
-          ...dependencies.map((dependency) =>
-            http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
-              HttpResponse.json({}),
-            ),
-          ),
           http.get(configService.get("besuReadinessEndpoint"), () =>
             HttpResponse.json({}),
           ),
@@ -479,7 +281,7 @@ describe("App Module", () => {
         );
 
         // Expect all the dependencies to be up
-        const expectedStatuses = [...dependencies, "Besu"]
+        const expectedStatuses = ["Besu"]
           .map((dependency) => ({
             [`${dependency}`]: { status: "up" },
           }))

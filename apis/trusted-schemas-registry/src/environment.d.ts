@@ -10,19 +10,12 @@ declare global {
       BESU_RPC_NODE: string;
       BESU_READINESS_ENDPOINT: string;
       REQUEST_TIMEOUT?: string;
-      AXIOS_RETRY_DELAY?: string;
       CONTRACT_ADDR: string;
       DOMAIN: string;
       LOCAL_ORIGIN?: string;
-      TEST_ADMIN_KID?: string;
-      TEST_ADMIN_PRIVATE_KEY?: string;
       TEST_VA_SCHEMA?: string;
       TEST_ENV?: string;
-      TEST_ENABLE_WRITE_OPS?: string;
-      TEST_LB_DOMAIN?: string;
       TEST_SPECIFIC_NODE_DOMAIN?: string;
-      BLOCKSCOUT_URL?: string;
-      BLOCKSCOUT_BEARER_TOKEN?: string;
     }
   }
 

@@ -20,7 +20,7 @@ import { HttpResponse, http } from "msw";
 import { frameworkErrors } from "@ebsiint-api/shared";
 import { AppModule } from "./app.module.js";
 import { AllExceptionsFilter } from "./filters/http-exception.filter.js";
-import { ApiConfig, DEPENDENCIES } from "./config/configuration.js";
+import { type ApiConfig } from "./config/configuration.js";
 import { createLogger } from "./logger/logger.js";
 
 const mockedLogger = {
@@ -166,21 +166,8 @@ describe("App Module", () => {
       const configService =
         app.get<ConfigService<ApiConfig, true>>(ConfigService);
 
-      const dependencies = Object.keys(
-        DEPENDENCIES,
-      ) as (keyof typeof DEPENDENCIES)[];
-
-      const localOrigin =
-        configService.get<string>("localOrigin") ||
-        configService.get<string>("domain");
-
       // All the dependencies return a 200
       mockServer.use(
-        ...dependencies.map((dependency) =>
-          http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
-            HttpResponse.json({}),
-          ),
-        ),
         http.get(configService.get("besuReadinessEndpoint"), () =>
           HttpResponse.json({}),
         ),
@@ -209,21 +196,8 @@ describe("App Module", () => {
       const configService =
         app.get<ConfigService<ApiConfig, true>>(ConfigService);
 
-      const dependencies = Object.keys(
-        DEPENDENCIES,
-      ) as (keyof typeof DEPENDENCIES)[];
-
-      const localOrigin =
-        configService.get<string>("localOrigin") ||
-        configService.get<string>("domain");
-
       // All the dependencies return a 200
       mockServer.use(
-        ...dependencies.map((dependency) =>
-          http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
-            HttpResponse.json({}),
-          ),
-        ),
         http.get(configService.get("besuReadinessEndpoint"), () =>
           HttpResponse.json({}),
         ),
@@ -271,21 +245,8 @@ describe("App Module", () => {
       const configService =
         app.get<ConfigService<ApiConfig, true>>(ConfigService);
 
-      const dependencies = Object.keys(
-        DEPENDENCIES,
-      ) as (keyof typeof DEPENDENCIES)[];
-
-      const localOrigin =
-        configService.get<string>("localOrigin") ||
-        configService.get<string>("domain");
-
       // All the dependencies return a 200
       mockServer.use(
-        ...dependencies.map((dependency) =>
-          http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
-            HttpResponse.json({}),
-          ),
-        ),
         http.get(configService.get("besuReadinessEndpoint"), () =>
           HttpResponse.json({}),
         ),
@@ -312,7 +273,7 @@ describe("App Module", () => {
       );
 
       // Expect all the dependencies to be up
-      const expectedStatuses = [...dependencies, "Besu"]
+      const expectedStatuses = ["Besu"]
         .map((dependency) => ({
           [`${dependency}`]: { status: "up" },
         }))

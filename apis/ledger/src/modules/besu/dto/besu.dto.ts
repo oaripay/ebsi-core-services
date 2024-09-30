@@ -1,12 +1,12 @@
 import { IsArray, Equals, IsOptional } from "class-validator";
-import { IsValidMethod } from "../validators/index.js";
+import { IsValidMethod, PUBLIC_BESU_METHODS } from "../validators/index.js";
 
 export class BesuDto {
   @Equals("2.0")
   jsonrpc!: string;
 
   @IsValidMethod()
-  method!: string;
+  method!: (typeof PUBLIC_BESU_METHODS)[number];
 
   @IsArray()
   params!: unknown[];

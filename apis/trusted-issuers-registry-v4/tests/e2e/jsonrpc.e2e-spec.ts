@@ -112,7 +112,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
     let testStatusListSchemaId: string;
     let ledgerApi: string;
     let trustedSchemasRegistryApiUrl: string;
-    let authorisationApiV3Url: string;
+    let authorisationApiUrl: string;
     let sampleTransaction: string;
     let blockscout: {
       url: string;
@@ -241,9 +241,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
       trustedSchemasRegistryApiUrl = configService.get<string>(
         "trustedSchemasRegistryApiUrl",
       );
-      authorisationApiV3Url = configService.get<string>(
-        "authorisationApiV3Url",
-      );
+      authorisationApiUrl = configService.get<string>("authorisationApiUrl");
       testVerifiableAttestationSchemaId = configService.get<string>(
         "testVerifiableAttestationSchemaId",
       );
@@ -285,7 +283,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
         testIssuerWithProxy = {
           info: testIssuerWithProxyInfo,
           token: await getTirWriteAccessToken(
-            authorisationApiV3Url,
+            authorisationApiUrl,
             testIssuerWithProxyInfo,
             ebsiEnvConfig,
           ),
@@ -314,7 +312,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
         adminIssuer = {
           info: adminIssuerInfo,
           token: await getTirWriteAccessToken(
-            authorisationApiV3Url,
+            authorisationApiUrl,
             adminIssuerInfo,
             ebsiEnvConfig,
           ),
@@ -357,7 +355,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
 
             // Admin issuer inserts the new TI's DID document
             const didWriteAccessToken = await getDidrWriteAccessToken(
-              authorisationApiV3Url,
+              authorisationApiUrl,
               adminIssuer.info,
               ebsiEnvConfig,
             );
@@ -527,7 +525,7 @@ describeWriteOps().each(["EBSI URI", "URL"] as const)(
               newIssuer = {
                 info: newIssuerInfo,
                 token: await getTirInviteAccessToken(
-                  authorisationApiV3Url,
+                  authorisationApiUrl,
                   newIssuerInfo,
                   vcJwt,
                   ebsiEnvConfig,

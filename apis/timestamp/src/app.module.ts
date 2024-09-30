@@ -3,19 +3,16 @@ import { ConfigService } from "@nestjs/config";
 import { APP_INTERCEPTOR } from "@nestjs/core";
 import { LoggingInterceptor } from "@ebsiint-api/shared";
 import { ApiConfigModule, type ApiConfig } from "./config/configuration.js";
-import { JsonRpcModule } from "./modules/jsonrpc/jsonrpc.module.js";
 import { HashAlgorithmsModule } from "./modules/hash-algorithms/hash-algorithms.module.js";
 import { RecordsModule } from "./modules/records/records.module.js";
 import { TimestampsModule } from "./modules/timestamps/timestamps.module.js";
 import { HealthModule } from "./modules/health/health.module.js";
 import { OpenApiModule } from "./modules/openapi/openapi.module.js";
-import { AppService } from "./app.service.js";
 import { AppController } from "./app.controller.js";
 
 @Module({
   imports: [
     ApiConfigModule,
-    JsonRpcModule,
     HashAlgorithmsModule,
     RecordsModule,
     TimestampsModule,
@@ -31,7 +28,6 @@ import { AppController } from "./app.controller.js";
         new LoggingInterceptor(configService.get("logLevel")),
       inject: [ConfigService],
     },
-    AppService,
   ],
 })
 export class AppModule {}

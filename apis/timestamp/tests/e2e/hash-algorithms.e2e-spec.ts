@@ -1,6 +1,5 @@
 import { randomInt } from "node:crypto";
 import { describe, beforeAll, it, expect, afterAll } from "vitest";
-import { ethers } from "ethers";
 import request from "supertest";
 import { Test, type TestingModule } from "@nestjs/testing";
 import { ValidationPipe, Logger } from "@nestjs/common";
@@ -10,82 +9,15 @@ import {
 } from "@nestjs/platform-fastify";
 import { ConfigService } from "@nestjs/config";
 import type { RawServerDefault } from "fastify";
-import { HashName } from "multihashes";
-import { prefixWith0x, waitToBeMined } from "@ebsiint-api/shared";
-import type { TransactionRequest } from "@ethersproject/abstract-provider";
 import { AppModule } from "../../src/app.module.js";
 import { AllExceptionsFilter } from "../../src/filters/http-exception.filter.js";
-import type { JsonRpcResponseObject } from "../../src/modules/jsonrpc/jsonrpc.interface.js";
-import {
-  InsertHashAlgorithmParam,
-  UnsignedTransaction,
-  UpdateHashAlgorithmParam,
-} from "../../src/modules/jsonrpc/dto/index.js";
-import { formatEthersUnsignedTransaction } from "../../src/modules/jsonrpc/jsonrpc.utils.js";
 import { HashAlgorithmLink } from "../../src/modules/hash-algorithms/hash-algorithms.interface.js";
 import type { ApiConfig } from "../../src/config/configuration.js";
-import { requestSiopJwt } from "../utils/auth.js";
-import { describeWriteOps } from "../utils/describeWriteOps.js";
 import { getServer } from "../utils/getServer.js";
-
-interface SupertestJsonRpcResponse {
-  status: number;
-  body: JsonRpcResponseObject;
-}
-
-type JsonRpcParams = InsertHashAlgorithmParam | UpdateHashAlgorithmParam;
-
-const validHashAlgorithms = {
-  "sha-256": {
-    outputLength: 256,
-    multihash: "sha2-256",
-    oid: "2.16.840.1.101.3.4.2.1",
-  },
-  "sha-512": {
-    outputLength: 512,
-    multihash: "sha2-512",
-    oid: "2.16.840.1.101.3.4.2.3",
-  },
-  "sha3-224": {
-    outputLength: 224,
-    multihash: "sha3-224",
-    oid: "2.16.840.1.101.3.4.2.7",
-  },
-  "sha3-256": {
-    outputLength: 256,
-    multihash: "sha3-256",
-    oid: "2.16.840.1.101.3.4.2.8",
-  },
-  "sha3-384": {
-    outputLength: 384,
-    multihash: "sha3-384",
-    oid: "2.16.840.1.101.3.4.2.9",
-  },
-  "sha3-512": {
-    outputLength: 512,
-    multihash: "sha3-512",
-    oid: "2.16.840.1.101.3.4.2.10",
-  },
-} as const satisfies Record<
-  string,
-  { outputLength: number; multihash: HashName; oid: string }
->;
 
 describe("Timestamp API v3 - HashAlgorithms (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
-  let testAdmin: {
-    kid: string;
-    privateKey: string;
-    wallet: ethers.Wallet;
-    token: string;
-  };
-  let testUser: {
-    kid: string;
-    privateKey: string;
-    token: string;
-  };
-  let ledgerApi: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -107,49 +39,6 @@ describe("Timestamp API v3 - HashAlgorithms (e2e)", () => {
     await app.getHttpAdapter().getInstance().ready();
 
     server = getServer(app, configService);
-
-    try {
-      const configUser = configService.get<{
-        kid: string;
-        privateKey: string;
-      }>("testUser");
-
-      testUser = {
-        ...configUser,
-        token: await requestSiopJwt({
-          clientKid: configUser.kid,
-          clientPrivateKey: configUser.privateKey,
-          configService,
-        }),
-      };
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error(e);
-      throw e;
-    }
-
-    try {
-      const configAdmin = configService.get<{
-        kid: string;
-        privateKey: string;
-      }>("testAdmin");
-
-      testAdmin = {
-        ...configAdmin,
-        wallet: new ethers.Wallet(prefixWith0x(configAdmin.privateKey)),
-        token: await requestSiopJwt({
-          clientKid: configAdmin.kid,
-          clientPrivateKey: configAdmin.privateKey,
-          configService,
-        }),
-      };
-    } catch (e) {
-      // eslint-disable-next-line no-console
-      console.error(e);
-      throw e;
-    }
-
-    ledgerApi = `${configService.get<string>("ledgerApiUrl")}/blockchains/besu`;
   });
 
   afterAll(async () => {
@@ -225,204 +114,5 @@ describe("Timestamp API v3 - HashAlgorithms (e2e)", () => {
       });
       expect(response.status).toBe(404);
     });
-  });
-
-  describeWriteOps().each([
-    "insertHashAlgorithm",
-    "updateHashAlgorithm",
-  ] as const)(
-    "/jsonrpc - send transaction for %s",
-    (method: "insertHashAlgorithm" | "updateHashAlgorithm") => {
-      it("should work", async () => {
-        expect.assertions(5);
-
-        let params: JsonRpcParams | null = null;
-
-        switch (method) {
-          case "insertHashAlgorithm": {
-            const hashes = Object.keys(validHashAlgorithms);
-            const randomHash = hashes[
-              randomInt(hashes.length)
-            ] as keyof typeof validHashAlgorithms;
-
-            params = {
-              from: testAdmin.wallet.address,
-              outputLength: validHashAlgorithms[randomHash].outputLength,
-              ianaName: randomHash,
-              oid: validHashAlgorithms[randomHash].oid,
-              status: 1,
-              multihash: validHashAlgorithms[randomHash].multihash,
-            } as InsertHashAlgorithmParam;
-            break;
-          }
-          case "updateHashAlgorithm": {
-            const response = await request(server).get("/hash-algorithms");
-            const hashAlgorithmId =
-              (response.body as { total: number }).total - 1;
-
-            const hashes = Object.keys(validHashAlgorithms);
-            const randomHash = hashes[
-              randomInt(hashes.length)
-            ] as keyof typeof validHashAlgorithms;
-
-            params = {
-              from: testAdmin.wallet.address,
-              hashAlgorithmId,
-              outputLength: validHashAlgorithms[randomHash].outputLength,
-              ianaName: randomHash,
-              oid: validHashAlgorithms[randomHash].oid,
-              status: 1,
-              multihash: validHashAlgorithms[randomHash].multihash,
-            } as UpdateHashAlgorithmParam;
-            break;
-          }
-          default:
-            // Never happens
-            break;
-        }
-
-        const responseBuild: SupertestJsonRpcResponse = await request(server)
-          .post("/jsonrpc")
-          .auth(testAdmin.token, { type: "bearer" })
-          .send({
-            jsonrpc: "2.0",
-            method,
-            params: [params],
-            id: 231,
-          });
-
-        expect(responseBuild.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: 231,
-          result: {
-            chainId: expect.any(String),
-            data: expect.any(String),
-            from: testAdmin.wallet.address,
-            gasLimit: expect.any(String),
-            gasPrice: expect.any(String),
-            nonce: expect.any(String),
-            to: expect.any(String),
-            value: expect.any(String),
-          },
-        });
-        expect(responseBuild.status).toBe(200);
-
-        const unsignedTransaction = responseBuild.body.result;
-        const uTx = formatEthersUnsignedTransaction(
-          JSON.parse(
-            JSON.stringify(unsignedTransaction),
-          ) as unknown as UnsignedTransaction,
-        );
-        uTx.chainId = Number(uTx.chainId);
-        const sgnTx = await testAdmin.wallet.signTransaction(
-          uTx as TransactionRequest,
-        );
-        const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
-
-        const responseSend: SupertestJsonRpcResponse = await request(server)
-          .post("/jsonrpc")
-          .auth(testAdmin.token, { type: "bearer" })
-          .send({
-            jsonrpc: "2.0",
-            method: "sendSignedTransaction",
-            params: [
-              {
-                protocol: "eth",
-                unsignedTransaction,
-                r,
-                s,
-                v: `0x${Number(v).toString(16)}`,
-                signedRawTransaction: sgnTx,
-              },
-            ],
-            id: "45",
-          });
-
-        expect(responseSend.body).toStrictEqual({
-          jsonrpc: "2.0",
-          id: "45",
-          result: expect.any(String),
-        });
-        expect(responseSend.status).toBe(200);
-
-        // wait to be mined
-        const receipt = await waitToBeMined(
-          ledgerApi,
-          responseSend.body.result as string,
-        );
-        expect(receipt.status).toBe(1);
-      });
-    },
-  );
-
-  it("should reject impersonating transactions: admin wallet using jwt from user", async () => {
-    expect.assertions(2);
-
-    const hashes = Object.keys(validHashAlgorithms);
-    const randomHash = hashes[
-      randomInt(hashes.length)
-    ] as keyof typeof validHashAlgorithms;
-
-    const param = {
-      from: testAdmin.wallet.address,
-      outputLength: validHashAlgorithms[randomHash].outputLength,
-      ianaName: randomHash,
-      oid: validHashAlgorithms[randomHash].oid,
-      status: 1,
-      multihash: validHashAlgorithms[randomHash].multihash,
-    } as InsertHashAlgorithmParam;
-
-    const responseBuild: SupertestJsonRpcResponse = await request(server)
-      .post("/jsonrpc")
-      .auth(testUser.token, { type: "bearer" })
-      .send({
-        jsonrpc: "2.0",
-        method: "insertHashAlgorithm",
-        params: [param],
-        id: 231,
-      });
-
-    const unsignedTransaction = responseBuild.body.result;
-    const uTx = formatEthersUnsignedTransaction(
-      JSON.parse(
-        JSON.stringify(unsignedTransaction),
-      ) as unknown as UnsignedTransaction,
-    );
-    uTx.chainId = Number(uTx.chainId);
-    const sgnTx = await testAdmin.wallet.signTransaction(
-      uTx as TransactionRequest,
-    );
-    const { r, s, v } = ethers.utils.parseTransaction(sgnTx);
-
-    const responseSend: SupertestJsonRpcResponse = await request(server)
-      .post("/jsonrpc")
-      .auth(testUser.token, { type: "bearer" })
-      .send({
-        jsonrpc: "2.0",
-        method: "sendSignedTransaction",
-        params: [
-          {
-            protocol: "eth",
-            unsignedTransaction,
-            r,
-            s,
-            v: `0x${Number(v).toString(16)}`,
-            signedRawTransaction: sgnTx,
-          },
-        ],
-        id: "45",
-      });
-
-    expect(responseSend.body).toStrictEqual({
-      jsonrpc: "2.0",
-      id: "45",
-      error: {
-        code: -32600,
-        message: `The DID ${
-          testUser.kid.split("#")[0]
-        } is not controlled by the address ${testAdmin.wallet.address.toLowerCase()}`,
-      },
-    });
-    expect(responseSend.status).toBe(400);
   });
 });

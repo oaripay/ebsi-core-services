@@ -83,7 +83,7 @@ describe("App Module", () => {
       mockServer.use(
         ...dependencies.map((dependency) => {
           return http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
-            dependency === "Authorisation API v2"
+            dependency === "Authorisation API v3"
               ? HttpResponse.error()
               : HttpResponse.json({}),
           );
@@ -91,7 +91,7 @@ describe("App Module", () => {
       );
 
       await expect(() => app.init()).rejects.toThrow(
-        `Unable to get ${localOrigin}${DEPENDENCIES["Authorisation API v2"]}, shutting down...`,
+        `Unable to get ${localOrigin}${DEPENDENCIES["Authorisation API v3"]}, shutting down...`,
       );
 
       await app.close();
@@ -127,7 +127,7 @@ describe("App Module", () => {
       mockServer.use(
         ...dependencies.map((dependency) => {
           return http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () =>
-            dependency === "Authorisation API v2"
+            dependency === "Authorisation API v3"
               ? HttpResponse.text("Not Found", { status: 404 })
               : HttpResponse.json({}),
           );
@@ -135,7 +135,7 @@ describe("App Module", () => {
       );
 
       await expect(() => app.init()).rejects.toThrow(
-        `Unable to get ${localOrigin}${DEPENDENCIES["Authorisation API v2"]}, shutting down...`,
+        `Unable to get ${localOrigin}${DEPENDENCIES["Authorisation API v3"]}, shutting down...`,
       );
 
       // Retry 30 times -> log 30 errors
@@ -176,7 +176,7 @@ describe("App Module", () => {
       mockServer.use(
         ...dependencies.map((dependency) => {
           return http.get(`${localOrigin}${DEPENDENCIES[dependency]}`, () => {
-            if (dependency === "Authorisation API v2") {
+            if (dependency === "Authorisation API v3") {
               reqCounter += 1;
 
               // Authorisation API first responds 15 times with a 404 (because it's starting)
@@ -235,12 +235,12 @@ describe("App Module", () => {
       const localOrigin = configService.get<string>("localOrigin") || domain;
 
       // Mock dependencies
-      const authorisationApiV2Url = `${configService.get<string>(
-        "authorisationApiV2Url",
+      const authorisationApiUrl = `${configService.get<string>(
+        "authorisationApiUrl",
       )}`.replace(domain, localOrigin);
 
       mockServer.use(
-        http.get(authorisationApiV2Url, () => HttpResponse.json({})),
+        http.get(authorisationApiUrl, () => HttpResponse.json({})),
       );
 
       await app.init();
