@@ -387,7 +387,7 @@ describe("Identifiers Module", () => {
       expect.assertions(2);
 
       const response = await request(server).get(
-        `/identifiers/${did2}?valid-at=2024-04-19`,
+        `/identifiers/${did2}?valid-at=${new Date(Date.now() + 3600).toISOString()}`,
       );
       expect(response.body).toStrictEqual(didDocument);
       expect(response.status).toBe(200);

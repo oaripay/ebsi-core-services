@@ -58,12 +58,6 @@ query GetDidsByControllerAndVerificationRelationshipQuery(
   }
 }
 
-query GetDidDocument($did: ID!) {
-  didDocument(id: $did) {
-    ...DocumentFields
-  }
-}
-
 query GetDidDocumentByTimestamp($id: ID!, $did: String, $timestamp: BigInt!) {
   didDocument(id: $id) {
     ...DocumentFieldsByTimestamp

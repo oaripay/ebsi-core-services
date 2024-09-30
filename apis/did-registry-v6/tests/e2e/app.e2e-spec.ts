@@ -79,6 +79,7 @@ describe("DID Registry API v6 - Generic tests (e2e)", () => {
           [`${dependency}`]: { status: "up" },
         }))
         .reduce((acc, currentVal) => ({ ...acc, ...currentVal }), {});
+      expectedStatuses["DIDR Subgraph"] = { status: "up" };
 
       expect(response.body).toStrictEqual({
         details: expectedStatuses,

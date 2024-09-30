@@ -98,45 +98,6 @@ export function getDidsByControllerAndVerificationRelationshipQuery() {
   `;
 }
 
-export function getDidDocumentQuery() {
-  return /* GraphQL */ `
-    query GetDidDocument($did: String) {
-      didDocument(id: $did) {
-        id
-        baseDocument
-        isSecp256k1
-        notAfter
-        notBefore
-        publicKey
-        vMethodId
-        controllers {
-          id
-          controller {
-            id
-          }
-          controlledDocument {
-            id
-          }
-          status
-        }
-        verificationRelationships {
-          id
-          name
-          vMethodId
-          notBefore
-          notAfter
-        }
-        verificationMethods {
-          id
-          publicKey
-          isSecp256k1
-          status
-        }
-      }
-    }
-  `;
-}
-
 export function getDidDocumentByTimestampQuery() {
   return /* GraphQL */ `
     query GetDidDocument($did: String, $timestamp: Int) {

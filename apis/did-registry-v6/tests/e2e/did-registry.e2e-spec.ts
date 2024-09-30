@@ -132,6 +132,13 @@ describe("DID Registry API v (e2e)", () => {
           break;
         }
       }
+
+      if (!vRelationship) {
+        throw new Error(
+          `No verification relationship found in the list of identifiers`,
+        );
+      }
+
       /**
        * Call /identifiers and specify the verification relationship
        * and the verification method id

@@ -11,11 +11,8 @@ import {
 } from "@ebsiint-api/shared";
 import type { JWK } from "jose";
 import axios from "axios";
-import {
-  getBuiltGraphSDK,
-  type GetDidDocumentQuery,
-  // eslint-disable-next-line import/extensions, import/no-relative-packages
-} from "../../../.graphclient/index.js";
+// eslint-disable-next-line import/extensions, import/no-relative-packages
+import { getBuiltGraphSDK } from "../../../.graphclient/index.js";
 import type { JsonRpcSchema } from "./validators/JsonRpcSchema.js";
 import { requestCheckControllerDtoSchema } from "./validators/RequestCheckControllerSchema.js";
 import { Documents, Events, Event } from "./identifiers.interface.js";
@@ -256,25 +253,21 @@ export default class IdentifiersService {
     did: string,
     validAt?: string,
   ): Promise<Record<string, unknown>> {
-    let document: GetDidDocumentQuery;
+    const timestamp = validAt
+      ? Math.floor(new Date(validAt).getTime() / 1000)
+      : Math.floor(Date.now() / 1000);
 
-    if (!validAt) {
-      const res = await sdk.GetDidDocument({ did });
-      document = res;
-    } else {
-      const timestamp = Math.floor(new Date(validAt).getTime() / 1000);
-      if (timestamp < 0) {
-        throw new BadRequestError("Bad Request", {
-          detail: "valid-at cannot be before 1970-01-01",
-        });
-      }
-      const res = await sdk.GetDidDocumentByTimestamp({
-        id: did,
-        did,
-        timestamp,
+    if (timestamp < 0) {
+      throw new BadRequestError("Bad Request", {
+        detail: "valid-at cannot be before 1970-01-01",
       });
-      document = res;
     }
+
+    const document = await sdk.GetDidDocumentByTimestamp({
+      id: did,
+      did,
+      timestamp,
+    });
 
     if (!document.didDocument || !document.didDocument.baseDocument) {
       throw new NotFoundError("Identifier Not Found", {
@@ -311,7 +304,7 @@ export default class IdentifiersService {
       const vMethodId = `${did}#${vRelationship.vMethodId}`;
       if (
         !document.didDocument?.verificationMethods.find(
-          (v) => v.id === vMethodId && v.status === "Active",
+          (v) => v.id === vMethodId,
         )
       )
         return;

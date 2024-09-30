@@ -273,13 +273,24 @@ export const handlers = [
       },
     });
   }),
-  graphql.query("GetDidDocument", ({ variables }) => {
-    const { did } = variables;
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  graphql.query("GetDidDocumentByTimestamp", ({ variables }) => {
+    const { did, timestamp } = variables;
 
     if (did === did2) {
       return HttpResponse.json({
         data: {
-          ...didDocumentData,
+          didDocument: {
+            ...didDocumentData.didDocument,
+            verificationRelationships:
+              didDocumentData.didDocument.verificationRelationships.filter(
+                (v) => {
+                  return v.notBefore <= timestamp && timestamp <= v.notAfter;
+                },
+              ),
+          },
         },
       });
     }
@@ -305,25 +316,6 @@ export const handlers = [
       return HttpResponse.json({
         data: {
           ...didInvalidKey,
-        },
-      });
-    }
-
-    return HttpResponse.json({
-      data: {
-        ...didDocumentDataEmpty,
-      },
-    });
-  }),
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  graphql.query("GetDidDocumentByTimestamp", ({ variables }) => {
-    const { did, timestamp } = variables;
-
-    if (did === did2 && timestamp === 1713484800) {
-      return HttpResponse.json({
-        data: {
-          ...didDocumentData,
         },
       });
     }

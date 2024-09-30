@@ -1,3 +1,6 @@
+const notBefore = Math.floor(Date.now() / 1000 - 24 * 3600);
+const notAfter = Math.floor(Date.now() / 1000 + 5 * 365 * 24 * 3600);
+
 export const didDocument = {
   "@context": [
     "https://www.w3.org/ns/did/v1",
@@ -68,29 +71,29 @@ export const didDocumentData = {
         id: "did:ebsi:ziuZbygL2HMhNFHcoB5W99h authentication WOLnKUBaBqFDLdcensmBLp0xFbMIaXB54UjTCmSIuEE",
         name: "authentication",
         vMethodId: "WOLnKUBaBqFDLdcensmBLp0xFbMIaXB54UjTCmSIuEE",
-        notBefore: "1708010585",
-        notAfter: "1723562585",
+        notBefore,
+        notAfter,
       },
       {
         id: "did:ebsi:ziuZbygL2HMhNFHcoB5W99h capabilityInvocation WOLnKUBaBqFDLdcensmBLp0xFbMIaXB54UjTCmSIuEE",
         name: "capabilityInvocation",
         vMethodId: "WOLnKUBaBqFDLdcensmBLp0xFbMIaXB54UjTCmSIuEE",
-        notBefore: "1708010585",
-        notAfter: "1723562585",
+        notBefore,
+        notAfter,
       },
       {
         id: "did:ebsi:ziuZbygL2HMhNFHcoB5W99h assertionMethod KClc_fzaknHRoxjSOmy2MopYPnz2RD5L3oMbn7GIi5g",
         name: "assertionMethod",
         vMethodId: "KClc_fzaknHRoxjSOmy2MopYPnz2RD5L3oMbn7GIi5g",
-        notBefore: "1708010585",
-        notAfter: "1723562585",
+        notBefore,
+        notAfter: notBefore, // expired
       },
       {
         id: "did:ebsi:ziuZbygL2HMhNFHcoB5W99h assertionMethod jFy-BG_mIriRxdE5ZD7XnZeypKoPbv1L_PIPbXbZoO8",
         name: "assertionMethod",
         vMethodId: "jFy-BG_mIriRxdE5ZD7XnZeypKoPbv1L_PIPbXbZoO8",
-        notBefore: "1708010585",
-        notAfter: "1723562585",
+        notBefore,
+        notAfter,
       },
     ],
   },
