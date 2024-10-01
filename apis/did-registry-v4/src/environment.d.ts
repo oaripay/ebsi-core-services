@@ -22,7 +22,6 @@ declare global {
       TEST_AUTH_API_V3_ES256_PRIVATE_KEY?: string;
       TEST_ENV?: string;
       TEST_ENABLE_WRITE_OPS?: string;
-      TEST_LB_DOMAIN?: string;
       TEST_SPECIFIC_NODE_DOMAIN?: string;
       BLOCKSCOUT_URL?: string;
       BLOCKSCOUT_BEARER_TOKEN?: string;

@@ -22,8 +22,6 @@ export interface ApiConfig {
   authorisationApiUrl: string;
   // DID Registry API
   didRegistryApiUrl: string;
-  // Trusted Apps Registry API
-  trustedAppsRegistryApiUrl: string;
   // TSR API (used in tests only)
   trustedSchemasRegistryApiUrl: string;
   // Test variables
@@ -34,7 +32,6 @@ export interface ApiConfig {
   testIssuerWithProxyPrivateKey: string;
   testVerifiableAttestationSchemaId: string;
   testStatusListSchemaId: string;
-  testLoadBalancerDomain: string;
   testSpecificNodeDomain: string | undefined;
   dockerContainerTag: string;
   blockscout: {
@@ -86,8 +83,6 @@ export const loadConfig = (): ApiConfig => {
     didRegistryApiUrl: DOMAIN + DIDR_API_PATH,
     // TSR API
     trustedSchemasRegistryApiUrl: DOMAIN + TSR_API_PATH,
-    // Trusted Apps Registry API
-    trustedAppsRegistryApiUrl: DOMAIN + TAR_API_PATH,
     // Test vars
     testAdminKid: process.env.TEST_ADMIN_KID ?? "",
     testAdminPrivateKey: process.env.TEST_ADMIN_PRIVATE_KEY ?? "",
@@ -98,7 +93,6 @@ export const loadConfig = (): ApiConfig => {
     testVerifiableAttestationSchemaId:
       process.env.TEST_VERIFIABLE_ATTESTATION_SCHEMA_ID ?? "",
     testStatusListSchemaId: process.env.TEST_STATUS_LIST_SCHEMA_ID ?? "",
-    testLoadBalancerDomain: process.env.TEST_LB_DOMAIN || "",
     testSpecificNodeDomain: process.env.TEST_SPECIFIC_NODE_DOMAIN,
     dockerContainerTag: process.env.DOCKER_TAG || "",
     blockscout: {
@@ -152,7 +146,6 @@ export const ApiConfigModule = ConfigModule.forRoot({
     TEST_ISSUER_WITH_PROXY_PRIVATE_KEY: Joi.string(),
     TEST_VERIFIABLE_ATTESTATION_SCHEMA_ID: Joi.string(),
     TEST_STATUS_LIST_SCHEMA_ID: Joi.string(),
-    TEST_LB_DOMAIN: Joi.string().uri(),
     TEST_ENV: Joi.string(),
     TEST_ENABLE_WRITE_OPS: Joi.string(),
     TEST_SPECIFIC_NODE_DOMAIN: Joi.string().uri(),

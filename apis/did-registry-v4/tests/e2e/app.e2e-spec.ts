@@ -21,7 +21,6 @@ describe("DID Registry API v4 - Generic tests (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let apiUrlPrefix = "";
-  let trustedAppsRegistryApiUrl: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -50,18 +49,6 @@ describe("DID Registry API v4 - Generic tests (e2e)", () => {
 
     if (process.env.TEST_ENV === "remote") {
       apiUrlPrefix = configService.get<string>("apiUrlPrefix");
-    }
-
-    trustedAppsRegistryApiUrl = configService.get<string>(
-      "trustedAppsRegistryApiUrl",
-    );
-
-    // Use TEST_LB_DOMAIN if defined
-    if (configService.get<string>("testLoadBalancerDomain")) {
-      trustedAppsRegistryApiUrl = trustedAppsRegistryApiUrl.replace(
-        configService.get<string>("domain"),
-        configService.get<string>("testLoadBalancerDomain"),
-      );
     }
   });
 
