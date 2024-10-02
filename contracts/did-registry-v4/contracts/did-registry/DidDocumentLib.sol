@@ -381,7 +381,10 @@ library DidDocumentLib {
                     )
                 ),
                 d.vRelationships[i].indexDid,
-                args.notBefore + args.duration
+                args.did,
+                args.notBefore + args.duration,
+                d.vRelationships[i].name,
+                args.oldVMethodId
             );
             d.vRelationships[i].notAfter = args.notBefore + args.duration;
 
@@ -433,7 +436,10 @@ library DidDocumentLib {
                     )
                 ),
                 d.capabilityInvocations[i].indexDid,
-                args.notBefore + args.duration
+                args.did,
+                args.notBefore + args.duration,
+                "capabilityInvocation",
+                args.oldVMethodId
             );
             d.capabilityInvocations[i].notAfter =
                 args.notBefore +
@@ -630,7 +636,10 @@ library DidDocumentLib {
                     )
                 ),
                 d.vRelationships[index].indexDid,
-                notAfter
+                did,
+                notAfter,
+                d.vRelationships[index].name,
+                vMethodId
             );
         }
 
@@ -650,7 +659,10 @@ library DidDocumentLib {
                     )
                 ),
                 d.capabilityInvocations[i].indexDid,
-                notAfter
+                did,
+                notAfter,
+                "capabilityInvocation",
+                vMethodId
             );
         }
 

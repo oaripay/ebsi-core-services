@@ -13,7 +13,13 @@ library VRelationshipsLib {
         uint256 notAfter
     );
 
-    event VerificationRelationshipUpdated(uint256 vrId, uint256 notAfter);
+    event VerificationRelationshipUpdated(
+        uint256 vrId,
+        string did,
+        string name,
+        string vMethodId,
+        uint256 notAfter
+    );
 
     function addVerificationRelationship(
         VRelationshipsStorage.VRelationships storage vs,
@@ -47,10 +53,19 @@ library VRelationshipsLib {
         VRelationshipsStorage.VRelationships storage vs,
         uint256 vrId,
         uint256 indexDid,
-        uint256 notAfter
+        string memory did,
+        uint256 notAfter,
+        string memory name,
+        string memory vMethodId
     ) external returns (bool) {
         vs.didsByVRelationship[vrId][indexDid].notAfter = notAfter;
-        emit VerificationRelationshipUpdated(vrId, notAfter);
+        emit VerificationRelationshipUpdated(
+            vrId,
+            did,
+            name,
+            vMethodId,
+            notAfter
+        );
         return true;
     }
 }

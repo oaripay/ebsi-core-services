@@ -66,7 +66,13 @@ abstract contract DidDocumentDetailed is
         uint256 duration
     );
 
-    event VerificationRelationshipUpdated(uint256 vrId, uint256 notAfter);
+    event VerificationRelationshipUpdated(
+        uint256 vrId,
+        string did,
+        string name,
+        string vMethodId,
+        uint256 notAfter
+    );
 
     function insertDidDocument(
         string memory did,

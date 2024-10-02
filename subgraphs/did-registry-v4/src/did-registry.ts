@@ -6,6 +6,7 @@ import {
   VerificationMethodAdded,
   VerificationMethodRevoked,
   VerificationRelationshipAdded,
+  VerificationRelationshipUpdated,
 } from "../generated/DidRegistry/DidRegistry";
 import {
   ControllerRelationship,
@@ -163,7 +164,7 @@ export function handleVerificationRelationshipAdded(
 }
 
 export function handleVerificationRelationshipUpdated(
-  event: VerificationRelationshipAdded,
+  event: VerificationRelationshipUpdated,
 ): void {
   const verificationRelationship = VerificationRelationship.load(
     `${event.params.did} ${event.params.name} ${event.params.vMethodId}`,
