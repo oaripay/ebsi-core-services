@@ -14,6 +14,7 @@ import {
   handleVerificationMethodAdded,
   handleVerificationMethodRevoked,
   handleVerificationRelationshipAdded,
+  handleVerificationRelationshipUpdated,
 } from "../src/did-registry";
 import {
   createBaseDocumentUpdatedEvent,
@@ -22,6 +23,7 @@ import {
   createVerificationMethodAddedEvent,
   createVerificationMethodRevokedEvent,
   createVerificationRelationshipAddedEvent,
+  createVerificationRelationshipUpdatedEvent,
 } from "./did-registry-utils";
 import { computeEventId } from "../utils/utils";
 
@@ -160,6 +162,33 @@ describe("DID Registry - entity assertions", () => {
     );
     assert.fieldEquals("VerificationRelationship", vrId, "notBefore", "1000");
     assert.fieldEquals("VerificationRelationship", vrId, "notAfter", "2000");
+  });
+
+  test("Update verification relationship", () => {
+    const vrIdBigInt = BigInt.fromI32(1);
+    const event = createVerificationRelationshipUpdatedEvent(
+      vrIdBigInt,
+      did,
+      "assertionMethod",
+      "keys-1",
+      BigInt.fromI32(1500),
+    );
+    const eventId = computeEventId(event);
+    handleVerificationRelationshipUpdated(event);
+
+    assert.fieldEquals("Event", eventId, "did", did);
+    assert.entityCount("VerificationRelationship", 3);
+    const vrId = `${did} assertionMethod keys-1`;
+    assert.fieldEquals("VerificationRelationship", vrId, "did", did);
+    assert.fieldEquals("VerificationRelationship", vrId, "vMethodId", "keys-1");
+    assert.fieldEquals(
+      "VerificationRelationship",
+      vrId,
+      "name",
+      "assertionMethod",
+    );
+    assert.fieldEquals("VerificationRelationship", vrId, "notBefore", "1000");
+    assert.fieldEquals("VerificationRelationship", vrId, "notAfter", "1500");
   });
 
   test("Revoke verification method", () => {

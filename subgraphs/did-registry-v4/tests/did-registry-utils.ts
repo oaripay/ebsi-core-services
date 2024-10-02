@@ -12,6 +12,7 @@ import {
   VerificationMethodRevoked,
   VerificationMethodRolled,
   VerificationRelationshipAdded,
+  VerificationRelationshipUpdated,
 } from "../generated/DidRegistry/DidRegistry";
 
 export function createBaseDocumentUpdatedEvent(
@@ -313,4 +314,28 @@ export function createVerificationRelationshipAddedEvent(
   );
 
   return verificationRelationshipAddedEvent;
+}
+
+export function createVerificationRelationshipUpdatedEvent(
+  vrId: BigInt,
+  did: string,
+  name: string,
+  vMethodId: string,
+  notAfter: BigInt,
+): VerificationRelationshipUpdated {
+  const verificationRelationshipUpdatedEvent =
+    changetype<VerificationRelationshipUpdated>(newMockEvent());
+
+  verificationRelationshipUpdatedEvent.parameters = [
+    new ethereum.EventParam("vrId", ethereum.Value.fromUnsignedBigInt(vrId)),
+    new ethereum.EventParam("did", ethereum.Value.fromString(did)),
+    new ethereum.EventParam("name", ethereum.Value.fromString(name)),
+    new ethereum.EventParam("vMethodId", ethereum.Value.fromString(vMethodId)),
+    new ethereum.EventParam(
+      "notAfter",
+      ethereum.Value.fromUnsignedBigInt(notAfter),
+    ),
+  ];
+
+  return verificationRelationshipUpdatedEvent;
 }

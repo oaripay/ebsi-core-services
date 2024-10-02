@@ -39,4 +39,6 @@ dataSources:
           handler: handleVerificationMethodRevoked
         - event: VerificationRelationshipAdded(uint256,string,string,string,uint256,uint256)
           handler: handleVerificationRelationshipAdded
+        - event: VerificationRelationshipUpdated(uint256,string,string,string,uint256)
+          handler: handleVerificationRelationshipUpdated
       file: ./src/did-registry.ts
