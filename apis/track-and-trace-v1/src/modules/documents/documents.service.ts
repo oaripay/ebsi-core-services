@@ -21,9 +21,9 @@ export default class DocumentsService {
     pageSize: number,
   ): ReturnType<TrackAndTrace["getDocuments"]> {
     try {
-      return await (
-        await this.ledgerService.getContract()
-      ).getDocuments(page, pageSize);
+      return await this.ledgerService
+        .getContract()
+        .getDocuments(page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -38,9 +38,7 @@ export default class DocumentsService {
     let document: Awaited<ReturnType<TrackAndTrace["getDocument"]>>;
 
     try {
-      document = await (
-        await this.ledgerService.getContract()
-      ).getDocument(documentId);
+      document = await this.ledgerService.getContract().getDocument(documentId);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -68,9 +66,9 @@ export default class DocumentsService {
     pageSize: number,
   ): ReturnType<TrackAndTrace["getEvents"]> {
     try {
-      return await (
-        await this.ledgerService.getContract()
-      ).getEvents(documentId, page, pageSize);
+      return await this.ledgerService
+        .getContract()
+        .getEvents(documentId, page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -85,9 +83,9 @@ export default class DocumentsService {
     let event: Awaited<ReturnType<TrackAndTrace["getEvent"]>>;
 
     try {
-      event = await (
-        await this.ledgerService.getContract()
-      ).getEvent(documentId, eventId);
+      event = await this.ledgerService
+        .getContract()
+        .getEvent(documentId, eventId);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -133,9 +131,9 @@ export default class DocumentsService {
     /* eslint-disable no-await-in-loop */
     do {
       try {
-        invitedUsers = await (
-          await this.ledgerService.getContract()
-        ).getAccessesByDocument(documentId, currentPage, pageSize);
+        invitedUsers = await this.ledgerService
+          .getContract()
+          .getAccessesByDocument(documentId, currentPage, pageSize);
       } catch (error) {
         if (isEthersError(error)) {
           this.logger.error(error, error.stack);
@@ -149,13 +147,13 @@ export default class DocumentsService {
         ...(
           await Promise.all(
             invitedUsers.items.map(async (did) => {
-              const [grantedByAccounts, , access] = await (
-                await this.ledgerService.getContract()
-              ).getGrantedBy(documentId, did, [
-                Permission.DELEGATE,
-                Permission.WRITE,
-                Permission.CREATOR,
-              ]);
+              const [grantedByAccounts, , access] = await this.ledgerService
+                .getContract()
+                .getGrantedBy(documentId, did, [
+                  Permission.DELEGATE,
+                  Permission.WRITE,
+                  Permission.CREATOR,
+                ]);
 
               const accesses: DocumentAccesses = [];
 

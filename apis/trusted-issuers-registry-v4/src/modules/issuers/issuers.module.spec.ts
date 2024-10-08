@@ -70,8 +70,8 @@ describe("Issuers Module", () => {
 
     // Mock TIR contract
     const ledgerService = moduleFixture.get<LedgerService>(LedgerService);
-    vi.spyOn(ledgerService, "getContract").mockImplementation(async () =>
-      Promise.resolve(tirContract),
+    vi.spyOn(ledgerService, "getContract").mockImplementation(
+      () => tirContract,
     );
   });
 

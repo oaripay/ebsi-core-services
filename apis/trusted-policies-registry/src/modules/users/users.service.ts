@@ -16,9 +16,7 @@ export class UsersService {
     pageSize: number,
   ): ReturnType<PolicyRegistry["getUsers"]> {
     try {
-      return await (
-        await this.ledgerService.getContract()
-      ).getUsers(page, pageSize);
+      return await this.ledgerService.getContract().getUsers(page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -31,9 +29,9 @@ export class UsersService {
 
   async getAllUserAttributes(address: string, page = 1): Promise<string[]> {
     try {
-      const userAttributes = await (
-        await this.ledgerService.getContract()
-      ).getUserAttributes(address, page, 50);
+      const userAttributes = await this.ledgerService
+        .getContract()
+        .getUserAttributes(address, page, 50);
       const nextPage = Number(
         ethers.BigNumber.from(userAttributes.next).toString(),
       );
@@ -64,9 +62,9 @@ export class UsersService {
       const userAttributes = await this.getAllUserAttributes(address);
       await Promise.all(
         userAttributes.map(async (attributeName) => {
-          const attributeValue = await (
-            await this.ledgerService.getContract()
-          ).getUserAttribute(address, attributeName);
+          const attributeValue = await this.ledgerService
+            .getContract()
+            .getUserAttribute(address, attributeName);
           user.attributes[attributeName] = attributeValue;
         }),
       );

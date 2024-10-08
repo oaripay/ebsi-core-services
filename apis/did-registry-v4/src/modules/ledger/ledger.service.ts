@@ -2,7 +2,6 @@ import { Injectable, Logger, OnModuleDestroy } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import type WebSocket from "ws";
-import { Mutex } from "async-mutex";
 import { DidRegistry, DidRegistry__factory } from "@ebsiint-sc/did-registry-v2";
 import {
   DidRegistry as DidRegistryV1,
@@ -32,14 +31,11 @@ export class LedgerService implements OnModuleDestroy {
 
   private timeout: number;
 
-  private readonly publicProviderMutex: Mutex;
-
   constructor(private configService: ConfigService<ApiConfig, true>) {
     this.didRegistryAddress = this.configService.get<string>("contractAddr");
     this.didRegistryV1Address =
       this.configService.get<string>("contractAddrV1");
     this.timeout = configService.get<number>("requestTimeout");
-    this.publicProviderMutex = new Mutex();
   }
 
   private initBesuProvider(): void {
@@ -123,50 +119,34 @@ export class LedgerService implements OnModuleDestroy {
     return this.ethersProvider!;
   }
 
-  async getContract() {
+  getContract() {
     if (this.didRegistryContract) {
       return this.didRegistryContract;
     }
 
-    if (this.publicProviderMutex.isLocked()) {
-      // A connection is already being made, wait until it's finished
-      await this.publicProviderMutex.waitForUnlock();
-    } else {
-      // Create a new connection
-      await this.publicProviderMutex.runExclusive(() => {
-        const provider = this.getEthersProvider();
+    const provider = this.getEthersProvider();
 
-        this.didRegistryContract = DidRegistry__factory.connect(
-          this.didRegistryAddress,
-          provider,
-        );
-      });
-    }
+    this.didRegistryContract = DidRegistry__factory.connect(
+      this.didRegistryAddress,
+      provider,
+    );
 
-    return this.didRegistryContract!;
+    return this.didRegistryContract;
   }
 
-  async getContractV1(): Promise<DidRegistryV1> {
+  getContractV1(): DidRegistryV1 {
     if (this.didRegistryContractV1) {
       return this.didRegistryContractV1;
     }
 
-    if (this.publicProviderMutex.isLocked()) {
-      // A connection is already being made, wait until it's finished
-      await this.publicProviderMutex.waitForUnlock();
-    } else {
-      // Create a new connection
-      await this.publicProviderMutex.runExclusive(() => {
-        const provider = this.getEthersProvider();
+    const provider = this.getEthersProvider();
 
-        this.didRegistryContractV1 = DidRegistryV1__factory.connect(
-          this.didRegistryV1Address,
-          provider,
-        );
-      });
-    }
+    this.didRegistryContractV1 = DidRegistryV1__factory.connect(
+      this.didRegistryV1Address,
+      provider,
+    );
 
-    return this.didRegistryContractV1!;
+    return this.didRegistryContractV1;
   }
 
   getContractAddress() {

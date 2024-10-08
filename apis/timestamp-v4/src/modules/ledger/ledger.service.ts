@@ -2,7 +2,6 @@ import { Injectable, Logger, OnModuleDestroy } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import type WebSocket from "ws";
-import { Mutex } from "async-mutex";
 import { Timestamp, Timestamp__factory } from "@ebsiint-sc/timestamp-v2";
 import { InternalServerError } from "@ebsiint-api/shared";
 import type { ApiConfig } from "../../config/configuration.js";
@@ -24,12 +23,9 @@ export class LedgerService implements OnModuleDestroy {
 
   private timeout: number;
 
-  private readonly publicProviderMutex: Mutex;
-
   constructor(private configService: ConfigService<ApiConfig, true>) {
     this.timestampAddress = this.configService.get<string>("contractAddr");
     this.timeout = configService.get<number>("requestTimeout");
-    this.publicProviderMutex = new Mutex();
   }
 
   private initBesuProvider(): void {
@@ -113,27 +109,19 @@ export class LedgerService implements OnModuleDestroy {
     return this.ethersProvider!;
   }
 
-  async getContract() {
+  getContract() {
     if (this.timestampContract) {
       return this.timestampContract;
     }
 
-    if (this.publicProviderMutex.isLocked()) {
-      // A connection is already being made, wait until it's finished
-      await this.publicProviderMutex.waitForUnlock();
-    } else {
-      // Create a new connection
-      await this.publicProviderMutex.runExclusive(() => {
-        const provider = this.getEthersProvider();
+    const provider = this.getEthersProvider();
 
-        this.timestampContract = Timestamp__factory.connect(
-          this.timestampAddress,
-          provider,
-        );
-      });
-    }
+    this.timestampContract = Timestamp__factory.connect(
+      this.timestampAddress,
+      provider,
+    );
 
-    return this.timestampContract!;
+    return this.timestampContract;
   }
 
   getContractAddress() {

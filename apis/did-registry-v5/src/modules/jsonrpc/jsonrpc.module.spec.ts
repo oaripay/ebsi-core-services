@@ -168,8 +168,8 @@ describe("JsonRpc Module", () => {
     // Mock Contract service
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
-    vi.spyOn(ledgerService, "getContract").mockImplementation(async () =>
-      Promise.resolve(didRegistryContract),
+    vi.spyOn(ledgerService, "getContract").mockImplementation(
+      () => didRegistryContract,
     );
 
     // Generate key pair for Authorisation API v3 and create access token

@@ -16,9 +16,9 @@ export class PoliciesService {
     pageSize: number,
   ): ReturnType<PolicyRegistry["getPolicyNames"]> {
     try {
-      return await (
-        await this.ledgerService.getContract()
-      ).getPolicyNames(page, pageSize);
+      return await this.ledgerService
+        .getContract()
+        .getPolicyNames(page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error.message, error.stack);
@@ -33,9 +33,9 @@ export class PoliciesService {
     let policy: Awaited<ReturnType<PolicyRegistry["getPolicy(string)"]>>;
 
     try {
-      policy = await (
-        await this.ledgerService.getContract()
-      )["getPolicy(string)"](policyName);
+      policy = await this.ledgerService
+        .getContract()
+        ["getPolicy(string)"](policyName);
     } catch (e) {
       if (isEthersError(e)) {
         this.logger.error(e.message, e.stack);

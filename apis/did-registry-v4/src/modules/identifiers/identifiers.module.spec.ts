@@ -66,11 +66,11 @@ describe(
 
       // Mock Contract service
       ledgerService = moduleFixture.get<LedgerService>(LedgerService);
-      vi.spyOn(ledgerService, "getContract").mockImplementation(async () =>
-        Promise.resolve(didRegistryContract),
+      vi.spyOn(ledgerService, "getContract").mockImplementation(
+        () => didRegistryContract,
       );
-      vi.spyOn(ledgerService, "getContractV1").mockImplementation(async () =>
-        Promise.resolve(testEnv.setupV1.didRegistryV1Contract),
+      vi.spyOn(ledgerService, "getContractV1").mockImplementation(
+        () => testEnv.setupV1.didRegistryV1Contract,
       );
     });
 

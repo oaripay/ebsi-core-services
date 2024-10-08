@@ -317,8 +317,8 @@ describe("JsonRpc Module", () => {
 
   beforeEach(() => {
     // Mock TIR contract
-    vi.spyOn(ledgerService, "getContract").mockImplementation(async () =>
-      Promise.resolve(tirContract),
+    vi.spyOn(ledgerService, "getContract").mockImplementation(
+      () => tirContract,
     );
 
     // For the tests, we assume that the DID is controlled by the signer

@@ -47,8 +47,8 @@ describe("Policies Module", () => {
     // Mock contract
     const ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
-    vi.spyOn(ledgerService, "getContract").mockImplementation(async () =>
-      Promise.resolve(policiesRegistryContract),
+    vi.spyOn(ledgerService, "getContract").mockImplementation(
+      () => policiesRegistryContract,
     );
 
     graphServer.listen({

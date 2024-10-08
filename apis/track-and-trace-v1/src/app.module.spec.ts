@@ -608,8 +608,8 @@ describe("App Module", () => {
     // Mock Contract service
     const ledgerService = moduleFixture.get<LedgerService>(LedgerService);
 
-    vi.spyOn(ledgerService, "getContract").mockImplementation(async () =>
-      Promise.resolve(trackAndTraceContract),
+    vi.spyOn(ledgerService, "getContract").mockImplementation(
+      () => trackAndTraceContract,
     );
 
     // Generate key pair for Authorisation API v4

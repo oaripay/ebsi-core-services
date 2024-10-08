@@ -24,9 +24,9 @@ export default class TimestampsService {
     pageSize: number,
   ): ReturnType<Timestamp["getTimestamps"]> {
     try {
-      return await (
-        await this.ledgerService.getContract()
-      ).getTimestamps(page, pageSize);
+      return await this.ledgerService
+        .getContract()
+        .getTimestamps(page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -44,9 +44,9 @@ export default class TimestampsService {
         multihashDecode(multibase.base64url.decode(timestampId)),
       ).toString("hex")}`;
 
-      timestamp = await (
-        await this.ledgerService.getContract()
-      ).getTimestampById(timestampIdDecoded);
+      timestamp = await this.ledgerService
+        .getContract()
+        .getTimestampById(timestampIdDecoded);
     } catch (error) {
       this.logger.error((error as Error).message, (error as Error).stack);
       throw new NotFoundError("Timestamp Not Found", {
@@ -59,12 +59,12 @@ export default class TimestampsService {
     try {
       // Parallelize SC calls
       const [hashAlgorithm, block] = await Promise.all([
-        (await this.ledgerService.getContract()).getHashAlgorithmById(
-          hash.algorithm.toNumber(),
-        ),
-        (
-          await this.ledgerService.getContract()
-        ).provider.getBlockWithTransactions(blockNumber.toNumber()),
+        this.ledgerService
+          .getContract()
+          .getHashAlgorithmById(hash.algorithm.toNumber()),
+        this.ledgerService
+          .getContract()
+          .provider.getBlockWithTransactions(blockNumber.toNumber()),
       ]);
 
       // Multi-hash (multibase base64url)
@@ -89,8 +89,7 @@ export default class TimestampsService {
         });
       }
 
-      const { interface: contractInterface } =
-        await this.ledgerService.getContract();
+      const { interface: contractInterface } = this.ledgerService.getContract();
 
       // Find the transaction in the block that was sent with:
       // {

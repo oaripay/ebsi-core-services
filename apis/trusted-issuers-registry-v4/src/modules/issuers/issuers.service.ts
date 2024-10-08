@@ -54,9 +54,7 @@ export class IssuersService {
     pageSize: number,
   ): ReturnType<Tir["getIssuers"]> {
     try {
-      return await (
-        await this.ledgerService.getContract()
-      ).getIssuers(page, pageSize);
+      return await this.ledgerService.getContract().getIssuers(page, pageSize);
     } catch (e) {
       if (isEthersError(e)) {
         this.logger.error(e, e.stack);
@@ -74,9 +72,9 @@ export class IssuersService {
     let attributeByHash: Awaited<ReturnType<Tir["getIssuerAttributeByHash"]>>;
 
     try {
-      attributeByHash = await (
-        await this.ledgerService.getContract()
-      ).getIssuerAttributeByHash(hash);
+      attributeByHash = await this.ledgerService
+        .getContract()
+        .getIssuerAttributeByHash(hash);
     } catch (e) {
       if (isEthersError(e)) {
         this.logger.error(e, e.stack);
@@ -106,15 +104,15 @@ export class IssuersService {
     let revisionHashes: Awaited<ReturnType<Tir["getIssuerAttributeRevisions"]>>;
     try {
       // get the first attribute revision
-      revisionHashes = await (
-        await this.ledgerService.getContract()
-      ).getIssuerAttributeRevisions(hash, 1, 1);
+      revisionHashes = await this.ledgerService
+        .getContract()
+        .getIssuerAttributeRevisions(hash, 1, 1);
 
       // use total revisions to get the latest attribute revision
       const totalRevisions = revisionHashes.total.toNumber();
-      revisionHashes = await (
-        await this.ledgerService.getContract()
-      ).getIssuerAttributeRevisions(hash, totalRevisions, 1);
+      revisionHashes = await this.ledgerService
+        .getContract()
+        .getIssuerAttributeRevisions(hash, totalRevisions, 1);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -131,9 +129,9 @@ export class IssuersService {
     let attributesLastHash: string[];
 
     try {
-      attributesLastHash = await (
-        await this.ledgerService.getContract()
-      ).getIssuer(issuerDid);
+      attributesLastHash = await this.ledgerService
+        .getContract()
+        .getIssuer(issuerDid);
 
       if (attributesLastHash.length === 0) {
         throw new Error();
@@ -156,7 +154,7 @@ export class IssuersService {
 
   async assertIssuerExists(did: string): Promise<void> {
     try {
-      await (await this.ledgerService.getContract()).getIssuer(did);
+      await this.ledgerService.getContract().getIssuer(did);
     } catch (e) {
       if (isEthersError(e)) {
         this.logger.error(e, e.stack);
@@ -180,9 +178,9 @@ export class IssuersService {
     let attributesLastHash: string[];
 
     try {
-      attributesLastHash = await (
-        await this.ledgerService.getContract()
-      ).getIssuer(did);
+      attributesLastHash = await this.ledgerService
+        .getContract()
+        .getIssuer(did);
     } catch (e) {
       if (isEthersError(e)) {
         this.logger.error(e, e.stack);
@@ -201,9 +199,9 @@ export class IssuersService {
     try {
       const revisionHashesList = await Promise.all(
         attributesLastHash.map(async (hash) => {
-          return (
-            await this.ledgerService.getContract()
-          ).getIssuerAttributeRevisions(hash, 1, 50);
+          return this.ledgerService
+            .getContract()
+            .getIssuerAttributeRevisions(hash, 1, 50);
         }),
       );
 
@@ -229,9 +227,9 @@ export class IssuersService {
     const hash = prefixWith0x(attributeId);
 
     try {
-      const revisionHashes = await (
-        await this.ledgerService.getContract()
-      ).getIssuerAttributeRevisions(hash, page, pageSize);
+      const revisionHashes = await this.ledgerService
+        .getContract()
+        .getIssuerAttributeRevisions(hash, page, pageSize);
 
       const revisions = await Promise.all(
         revisionHashes.items.map(async (revisionHash) => {
@@ -257,9 +255,7 @@ export class IssuersService {
     let proxies: Awaited<ReturnType<Tir["getIssuerProxies"]>>;
 
     try {
-      proxies = await (
-        await this.ledgerService.getContract()
-      ).getIssuerProxies(did);
+      proxies = await this.ledgerService.getContract().getIssuerProxies(did);
     } catch (e) {
       if (isEthersError(e)) {
         this.logger.error(e, e.stack);
@@ -278,9 +274,9 @@ export class IssuersService {
 
     let proxy: string;
     try {
-      proxy = await (
-        await this.ledgerService.getContract()
-      ).getIssuerProxyById(did, proxyId);
+      proxy = await this.ledgerService
+        .getContract()
+        .getIssuerProxyById(did, proxyId);
 
       // Throw an error if the proxy is empty (i.e. not found)
       if (!proxy) throw new Error();

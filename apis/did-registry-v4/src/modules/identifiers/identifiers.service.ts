@@ -24,9 +24,9 @@ export default class IdentifiersService {
 
   async getDidDocumentV3(did: string): Promise<Record<string, unknown>> {
     const hexDid = `0x${Buffer.from(did).toString("hex")}`;
-    const latestDidDoc = await (
-      await this.ledgerService.getContractV1()
-    ).getLatestDidDocumentVersion(hexDid);
+    const latestDidDoc = await this.ledgerService
+      .getContractV1()
+      .getLatestDidDocumentVersion(hexDid);
     return JSON.parse(
       Buffer.from(remove0xPrefix(latestDidDoc), "hex").toString(),
     ) as Record<string, unknown>;
@@ -50,9 +50,9 @@ export default class IdentifiersService {
       }
 
       try {
-        return await (
-          await this.ledgerService.getContract()
-        ).getDidsByController(controller, page, pageSize);
+        return await this.ledgerService
+          .getContract()
+          .getDidsByController(controller, page, pageSize);
       } catch (error) {
         if (isEthersError(error)) {
           this.logger.error(error, error.stack);
@@ -77,14 +77,14 @@ export default class IdentifiersService {
       }
 
       try {
-        const didsWithPeriod = await (
-          await this.ledgerService.getContract()
-        ).getDidsByVerificationRelationship(
-          vMethodId,
-          vRelationship,
-          page,
-          pageSize,
-        );
+        const didsWithPeriod = await this.ledgerService
+          .getContract()
+          .getDidsByVerificationRelationship(
+            vMethodId,
+            vRelationship,
+            page,
+            pageSize,
+          );
         const dids: string[] = [];
         const now = Math.floor(Date.now() / 1000);
         didsWithPeriod.items.forEach((didWithPeriod) => {
@@ -111,9 +111,7 @@ export default class IdentifiersService {
     }
 
     try {
-      return await (
-        await this.ledgerService.getContract()
-      ).getDids(page, pageSize);
+      return await this.ledgerService.getContract().getDids(page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -128,7 +126,7 @@ export default class IdentifiersService {
     did: string,
     validAt?: string,
   ): Promise<Record<string, unknown>> {
-    const contract = await this.ledgerService.getContract();
+    const contract = this.ledgerService.getContract();
     let document: Awaited<ReturnType<typeof contract.getDidDocument>>;
 
     try {
@@ -223,7 +221,7 @@ export default class IdentifiersService {
   ): Promise<boolean> {
     try {
       await validateClass(RequestCheckControllerDto, body);
-      const contract = await this.ledgerService.getContract();
+      const contract = this.ledgerService.getContract();
       const address = body.params[0]!;
       return await contract["checkController(string,address)"](did, address);
     } catch (err) {

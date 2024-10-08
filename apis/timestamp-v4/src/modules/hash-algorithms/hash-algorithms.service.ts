@@ -15,9 +15,9 @@ export class HashAlgorithmsService {
     pageSize: number,
   ): Promise<ReturnType<Timestamp["getHashAlgorithms"]>> {
     try {
-      return await (
-        await this.ledgerService.getContract()
-      ).getHashAlgorithms(page, pageSize);
+      return await this.ledgerService
+        .getContract()
+        .getHashAlgorithms(page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -34,9 +34,9 @@ export class HashAlgorithmsService {
     let hashAlgorithm: Awaited<ReturnType<Timestamp["getHashAlgorithmById"]>>;
 
     try {
-      hashAlgorithm = await (
-        await this.ledgerService.getContract()
-      ).getHashAlgorithmById(hashAlgorithmId);
+      hashAlgorithm = await this.ledgerService
+        .getContract()
+        .getHashAlgorithmById(hashAlgorithmId);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);

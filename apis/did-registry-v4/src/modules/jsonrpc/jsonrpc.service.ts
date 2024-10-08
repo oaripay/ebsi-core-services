@@ -78,7 +78,7 @@ export class JsonRpcService {
    * DID Registry V4
    */
   async validateControllerOnV3(did: string, controller: string): Promise<void> {
-    const contract = await this.ledgerService.getContractV1();
+    const contract = this.ledgerService.getContractV1();
     const didHex = `0x${Buffer.from(did).toString("hex")}`;
     try {
       await contract.getLatestDidDocumentVersion(didHex);
@@ -97,9 +97,9 @@ export class JsonRpcService {
   async getChainId(): Promise<string> {
     if (!this.chainId) {
       try {
-        const { chainId } = await (
-          await this.ledgerService.getContract()
-        ).provider.getNetwork();
+        const { chainId } = await this.ledgerService
+          .getContract()
+          .provider.getNetwork();
         this.chainId = ethers.BigNumber.from(chainId).toHexString();
       } catch (error) {
         if (isEthersError(error)) {
@@ -117,9 +117,7 @@ export class JsonRpcService {
     const { from, to, data, value } = transaction;
 
     try {
-      return await (
-        await this.ledgerService.getContract()
-      ).provider.estimateGas({
+      return await this.ledgerService.getContract().provider.estimateGas({
         from,
         to,
         data,
@@ -180,9 +178,9 @@ export class JsonRpcService {
     }
 
     // verify function and parameters encoded in unsignedTransaction.data
-    const { args, functionFragment } = (
-      await this.ledgerService.getContract()
-    ).interface.parseTransaction(unsignedTransaction);
+    const { args, functionFragment } = this.ledgerService
+      .getContract()
+      .interface.parseTransaction(unsignedTransaction);
 
     switch (functionFragment.name) {
       case "insertDidDocument": {
@@ -264,9 +262,9 @@ export class JsonRpcService {
     params: string,
   ): Promise<UnsignedTransaction> {
     try {
-      const nonceInt = await (
-        await this.ledgerService.getContract()
-      ).provider.getTransactionCount(from);
+      const nonceInt = await this.ledgerService
+        .getContract()
+        .provider.getTransactionCount(from);
 
       const unsignedTransaction: UnsignedTransaction = {
         from,
@@ -342,17 +340,17 @@ export class JsonRpcService {
 
       await this.validateControllerOnV3(did, from);
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("insertDidDocument", [
-        did,
-        baseDocument,
-        vMethodId,
-        publicKey,
-        isSecp256k1,
-        notBefore,
-        notAfter,
-      ]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("insertDidDocument", [
+          did,
+          baseDocument,
+          vMethodId,
+          publicKey,
+          isSecp256k1,
+          notBefore,
+          notAfter,
+        ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -377,9 +375,12 @@ export class JsonRpcService {
 
       const { from, did, baseDocument } = body.params[0]!;
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("updateBaseDocument", [did, baseDocument]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("updateBaseDocument", [
+          did,
+          baseDocument,
+        ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -404,9 +405,9 @@ export class JsonRpcService {
 
       const { from, did, controller } = body.params[0]!;
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("addController", [did, controller]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("addController", [did, controller]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -431,9 +432,9 @@ export class JsonRpcService {
 
       const { from, did, controller } = body.params[0]!;
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("revokeController", [did, controller]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("revokeController", [did, controller]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -458,14 +459,14 @@ export class JsonRpcService {
 
       const { from, did, vMethodId, publicKey, isSecp256k1 } = body.params[0]!;
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("addVerificationMethod", [
-        did,
-        vMethodId,
-        publicKey,
-        isSecp256k1,
-      ]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("addVerificationMethod", [
+          did,
+          vMethodId,
+          publicKey,
+          isSecp256k1,
+        ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -495,15 +496,15 @@ export class JsonRpcService {
       const { from, did, name, vMethodId, notBefore, notAfter } =
         body.params[0]!;
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("addVerificationRelationship", [
-        did,
-        name,
-        vMethodId,
-        notBefore,
-        notAfter,
-      ]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("addVerificationRelationship", [
+          did,
+          name,
+          vMethodId,
+          notBefore,
+          notAfter,
+        ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -528,13 +529,13 @@ export class JsonRpcService {
 
       const { from, did, vMethodId, notAfter } = body.params[0]!;
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("revokeVerificationMethod", [
-        did,
-        vMethodId,
-        notAfter,
-      ]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("revokeVerificationMethod", [
+          did,
+          vMethodId,
+          notAfter,
+        ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -559,13 +560,13 @@ export class JsonRpcService {
 
       const { from, did, vMethodId, notAfter } = body.params[0]!;
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("expireVerificationMethod", [
-        did,
-        vMethodId,
-        notAfter,
-      ]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("expireVerificationMethod", [
+          did,
+          vMethodId,
+          notAfter,
+        ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -600,18 +601,18 @@ export class JsonRpcService {
         duration,
       } = body.params[0]!;
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("rollVerificationMethod", [
-        did,
-        vMethodId,
-        publicKey,
-        isSecp256k1,
-        notBefore,
-        notAfter,
-        oldVMethodId,
-        duration,
-      ]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("rollVerificationMethod", [
+          did,
+          vMethodId,
+          publicKey,
+          isSecp256k1,
+          notBefore,
+          notAfter,
+          oldVMethodId,
+          duration,
+        ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -636,9 +637,9 @@ export class JsonRpcService {
 
       await this.verifyTransaction(sub, request, scope);
 
-      const tx = await (
-        await this.ledgerService.getContract()
-      ).provider.sendTransaction(request.signedRawTransaction);
+      const tx = await this.ledgerService
+        .getContract()
+        .provider.sendTransaction(request.signedRawTransaction);
 
       return tx.hash;
     } catch (err) {

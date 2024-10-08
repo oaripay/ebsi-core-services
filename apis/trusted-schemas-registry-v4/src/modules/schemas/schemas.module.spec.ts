@@ -58,8 +58,8 @@ describe("Schemas Module", () => {
     server = app.getHttpServer();
 
     // Mock TSR contract
-    vi.spyOn(ledgerService, "getContract").mockImplementation(async () =>
-      Promise.resolve(testEnv.schemasRegistryContract),
+    vi.spyOn(ledgerService, "getContract").mockImplementation(
+      () => testEnv.schemasRegistryContract,
     );
 
     graphServer.listen({

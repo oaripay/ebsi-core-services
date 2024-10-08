@@ -15,9 +15,9 @@ export default class AccessesService {
 
   async isCreator(did: string): Promise<void> {
     try {
-      const res = await (
-        await this.ledgerService.getContract()
-      ).isCreator(utils.toUtf8Bytes(did));
+      const res = await this.ledgerService
+        .getContract()
+        .isCreator(utils.toUtf8Bytes(did));
       if (!res) throw new Error();
     } catch (error) {
       if (isEthersError(error)) {
@@ -31,7 +31,7 @@ export default class AccessesService {
 
   async getAccessesBySubject(subject: string): Promise<Access[]> {
     const pageSize = 50;
-    const contract = await this.ledgerService.getContract();
+    const contract = this.ledgerService.getContract();
     const subjectBuffer = await didToHex(subject);
     const documentIds: string[] = [];
     let currentPage = 1;

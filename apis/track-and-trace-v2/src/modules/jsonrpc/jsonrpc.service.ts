@@ -100,9 +100,9 @@ export class JsonRpcService {
   async getChainId(): Promise<string> {
     if (!this.chainId) {
       try {
-        const { chainId } = await (
-          await this.ledgerService.getContract()
-        ).provider.getNetwork();
+        const { chainId } = await this.ledgerService
+          .getContract()
+          .provider.getNetwork();
         this.chainId = ethers.BigNumber.from(chainId).toHexString();
       } catch (error) {
         if (isEthersError(error)) {
@@ -120,9 +120,7 @@ export class JsonRpcService {
     const { from, to, data, value } = transaction;
 
     try {
-      return await (
-        await this.ledgerService.getContract()
-      ).provider.estimateGas({
+      return await this.ledgerService.getContract().provider.estimateGas({
         from,
         to,
         data,
@@ -183,9 +181,9 @@ export class JsonRpcService {
     }
 
     // verify function and parameters encoded in unsignedTransaction.data
-    const { args, functionFragment } = (
-      await this.ledgerService.getContract()
-    ).interface.parseTransaction(unsignedTransaction);
+    const { args, functionFragment } = this.ledgerService
+      .getContract()
+      .interface.parseTransaction(unsignedTransaction);
 
     // Extract named args from args (args is a mixed array with named and unnamed values)
     const argsObject = {
@@ -262,9 +260,9 @@ export class JsonRpcService {
     params: string,
   ): Promise<UnsignedTransaction> {
     try {
-      const nonceInt = await (
-        await this.ledgerService.getContract()
-      ).provider.getTransactionCount(from);
+      const nonceInt = await this.ledgerService
+        .getContract()
+        .provider.getTransactionCount(from);
 
       const unsignedTransaction: UnsignedTransaction = {
         from,
@@ -324,13 +322,13 @@ export class JsonRpcService {
       // Verify that the Access Token sub and the senderDid match
       assertDidMatchesSub(senderDid, sub);
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("authoriseDid", [
-        senderDid,
-        authorisedDid,
-        whiteList,
-      ]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("authoriseDid", [
+          senderDid,
+          authorisedDid,
+          whiteList,
+        ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -379,7 +377,9 @@ export class JsonRpcService {
           ]
         : [documentHash, documentMetadata, didEbsiCreator];
 
-      const data = (await this.ledgerService.getContract()).interface // @ts-expect-error No overload matches this call
+      const data = this.ledgerService
+        .getContract()
+        .interface // @ts-expect-error No overload matches this call
         .encodeFunctionData(functionSig, args);
 
       return await this.buildTransaction(from, data);
@@ -405,9 +405,9 @@ export class JsonRpcService {
 
       const { from, documentHash } = parsedBody.params[0]!;
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("removeDocument", [documentHash]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("removeDocument", [documentHash]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -444,16 +444,16 @@ export class JsonRpcService {
       const grantedByAccountDid = hexToDid(grantedByAccount);
       assertDidMatchesSub(grantedByAccountDid, sub);
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("grantAccess", [
-        documentHash,
-        grantedByAccount,
-        subjectAccount,
-        grantedByAccType,
-        subjectAccType,
-        permission,
-      ]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("grantAccess", [
+          documentHash,
+          grantedByAccount,
+          subjectAccount,
+          grantedByAccType,
+          subjectAccType,
+          permission,
+        ]);
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
@@ -487,14 +487,14 @@ export class JsonRpcService {
       const revokedByAccountDid = hexToDid(revokedByAccount);
       assertDidMatchesSub(revokedByAccountDid, sub);
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("revokeAccess", [
-        documentHash,
-        revokedByAccount,
-        subjectAccount,
-        permission,
-      ]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("revokeAccess", [
+          documentHash,
+          revokedByAccount,
+          subjectAccount,
+          permission,
+        ]);
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
@@ -524,19 +524,19 @@ export class JsonRpcService {
 
       let data: string;
       if (timestamp && timestampProof !== undefined) {
-        data = (
-          await this.ledgerService.getContract()
-        ).interface.encodeFunctionData(
-          "writeEvent((bytes32,string,bytes,string,string),uint256,bytes32)",
-          [eventParams, timestamp, timestampProof],
-        );
+        data = this.ledgerService
+          .getContract()
+          .interface.encodeFunctionData(
+            "writeEvent((bytes32,string,bytes,string,string),uint256,bytes32)",
+            [eventParams, timestamp, timestampProof],
+          );
       } else {
-        data = (
-          await this.ledgerService.getContract()
-        ).interface.encodeFunctionData(
-          "writeEvent((bytes32,string,bytes,string,string))",
-          [eventParams],
-        );
+        data = this.ledgerService
+          .getContract()
+          .interface.encodeFunctionData(
+            "writeEvent((bytes32,string,bytes,string,string))",
+            [eventParams],
+          );
       }
 
       return await this.buildTransaction(from, data);
@@ -563,9 +563,9 @@ export class JsonRpcService {
 
       await this.verifyTransaction(sub, request, scope);
 
-      const tx = await (
-        await this.ledgerService.getContract()
-      ).provider.sendTransaction(request.signedRawTransaction);
+      const tx = await this.ledgerService
+        .getContract()
+        .provider.sendTransaction(request.signedRawTransaction);
 
       return tx.hash;
     } catch (err) {

@@ -222,8 +222,8 @@ describe("JsonRpc Module", () => {
 
     // Mock Contract service
     ledgerService = moduleFixture.get<LedgerService>(LedgerService);
-    vi.spyOn(ledgerService, "getContract").mockImplementation(async () =>
-      Promise.resolve(timestampContract),
+    vi.spyOn(ledgerService, "getContract").mockImplementation(
+      () => timestampContract,
     );
 
     // Mock Auth API

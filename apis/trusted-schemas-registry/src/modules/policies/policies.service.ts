@@ -20,9 +20,7 @@ export class PoliciesService {
     pageSize: number,
   ): ReturnType<SchemaSCRegistry["getPolicies"]> {
     try {
-      return await (
-        await this.ledgerService.getContract()
-      ).getPolicies(page, pageSize);
+      return await this.ledgerService.getContract().getPolicies(page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -38,9 +36,7 @@ export class PoliciesService {
 
     try {
       // Preserve case! Don't lowercase the policyId
-      policy = await (
-        await this.ledgerService.getContract()
-      ).getPolicy(policyId);
+      policy = await this.ledgerService.getContract().getPolicy(policyId);
     } catch (e) {
       if (isEthersError(e)) {
         this.logger.error(e, e.stack);
@@ -69,9 +65,9 @@ export class PoliciesService {
     let revisions: Awaited<ReturnType<SchemaSCRegistry["getPolicyRevisions"]>>;
 
     try {
-      revisions = await (
-        await this.ledgerService.getContract()
-      ).getPolicyRevisions(policyId, page, pageSize);
+      revisions = await this.ledgerService
+        .getContract()
+        .getPolicyRevisions(policyId, page, pageSize);
     } catch (e) {
       if (isEthersError(e)) {
         this.logger.error(e, e.stack);
@@ -81,7 +77,7 @@ export class PoliciesService {
       });
     }
 
-    const contract = await this.ledgerService.getContract();
+    const contract = this.ledgerService.getContract();
     const getPoliciesByRevisions = revisions.items.map((hash) =>
       contract.getPolicyByHash(hash),
     );

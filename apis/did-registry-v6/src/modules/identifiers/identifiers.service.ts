@@ -423,7 +423,7 @@ export default class IdentifiersService {
     try {
       const parsedBody = requestCheckControllerDtoSchema.parse(body);
       const address = parsedBody.params[0]!;
-      const contract = await this.ledgerService.getContract();
+      const contract = this.ledgerService.getContract();
       return await contract["checkController(string,address)"](did, address);
     } catch (err) {
       if (isEthersError(err)) {

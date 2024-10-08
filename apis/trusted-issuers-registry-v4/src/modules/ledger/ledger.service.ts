@@ -2,7 +2,6 @@ import { Injectable, Logger, OnModuleDestroy } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import type WebSocket from "ws";
-import { Mutex } from "async-mutex";
 import { Tir, Tir__factory } from "@ebsiint-sc/trusted-issuers-registry";
 import { InternalServerError } from "@ebsiint-api/shared";
 import type { ApiConfig } from "../../config/configuration.js";
@@ -24,14 +23,11 @@ export class LedgerService implements OnModuleDestroy {
 
   private timeout: number;
 
-  private readonly publicProviderMutex: Mutex;
-
   constructor(private configService: ConfigService<ApiConfig, true>) {
     this.tirAddress = this.configService.get<string>(
       "besuTrustedIssuersRegistryAddress",
     );
     this.timeout = configService.get<number>("requestTimeout");
-    this.publicProviderMutex = new Mutex();
   }
 
   private initBesuProvider(): void {
@@ -115,24 +111,14 @@ export class LedgerService implements OnModuleDestroy {
     return this.ethersProvider!;
   }
 
-  async getContract() {
+  getContract() {
     if (this.tirContract) {
       return this.tirContract;
     }
 
-    if (this.publicProviderMutex.isLocked()) {
-      // A connection is already being made, wait until it's finished
-      await this.publicProviderMutex.waitForUnlock();
-    } else {
-      // Create a new connection
-      await this.publicProviderMutex.runExclusive(() => {
-        const provider = this.getEthersProvider();
-
-        this.tirContract = Tir__factory.connect(this.tirAddress, provider);
-      });
-    }
-
-    return this.tirContract!;
+    const provider = this.getEthersProvider();
+    this.tirContract = Tir__factory.connect(this.tirAddress, provider);
+    return this.tirContract;
   }
 
   getContractAddress() {

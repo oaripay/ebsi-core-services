@@ -105,9 +105,9 @@ export class JsonRpcService {
   async getChainId(): Promise<string> {
     if (!this.chainId) {
       try {
-        const { chainId } = await (
-          await this.ledgerService.getContract()
-        ).provider.getNetwork();
+        const { chainId } = await this.ledgerService
+          .getContract()
+          .provider.getNetwork();
         this.chainId = ethers.BigNumber.from(chainId).toHexString();
       } catch (error) {
         if (isEthersError(error)) {
@@ -125,9 +125,7 @@ export class JsonRpcService {
     const { from, to, data, value } = transaction;
 
     try {
-      return await (
-        await this.ledgerService.getContract()
-      ).provider.estimateGas({
+      return await this.ledgerService.getContract().provider.estimateGas({
         from,
         to,
         data,
@@ -188,9 +186,9 @@ export class JsonRpcService {
     }
 
     // verify function and parameters encoded in unsignedTransaction.data
-    const { args, functionFragment } = (
-      await this.ledgerService.getContract()
-    ).interface.parseTransaction(unsignedTransaction);
+    const { args, functionFragment } = this.ledgerService
+      .getContract()
+      .interface.parseTransaction(unsignedTransaction);
 
     // Extract named args from args (args is a mixed array with named and unnamed values)
     const argsObject = {
@@ -285,9 +283,9 @@ export class JsonRpcService {
     params: string,
   ): Promise<UnsignedTransaction> {
     try {
-      const nonceInt = await (
-        await this.ledgerService.getContract()
-      ).provider.getTransactionCount(from);
+      const nonceInt = await this.ledgerService
+        .getContract()
+        .provider.getTransactionCount(from);
 
       const unsignedTransaction: UnsignedTransaction = {
         from,
@@ -362,17 +360,17 @@ export class JsonRpcService {
         assertDidMatchesSub(did, sub);
       }
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("insertDidDocument", [
-        did,
-        baseDocument,
-        vMethodId,
-        publicKey,
-        isSecp256k1,
-        notBefore,
-        notAfter,
-      ]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("insertDidDocument", [
+          did,
+          baseDocument,
+          vMethodId,
+          publicKey,
+          isSecp256k1,
+          notBefore,
+          notAfter,
+        ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -385,7 +383,7 @@ export class JsonRpcService {
   }
 
   async getDidDocument(did: string): ReturnType<DidRegistry["getDidDocument"]> {
-    const contract = await this.ledgerService.getContract();
+    const contract = this.ledgerService.getContract();
     try {
       return await contract.getDidDocument(did);
     } catch (error) {
@@ -438,12 +436,12 @@ export class JsonRpcService {
 
       baseDocument.service.push(JSON.parse(service));
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("updateBaseDocument", [
-        did,
-        JSON.stringify(baseDocument),
-      ]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("updateBaseDocument", [
+          did,
+          JSON.stringify(baseDocument),
+        ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -492,12 +490,12 @@ export class JsonRpcService {
         }
       }
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("updateBaseDocument", [
-        did,
-        JSON.stringify(baseDocument),
-      ]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("updateBaseDocument", [
+          did,
+          JSON.stringify(baseDocument),
+        ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -523,9 +521,12 @@ export class JsonRpcService {
 
       const { from, did, baseDocument } = parsedBody.params[0]!;
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("updateBaseDocument", [did, baseDocument]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("updateBaseDocument", [
+          did,
+          baseDocument,
+        ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -550,9 +551,9 @@ export class JsonRpcService {
 
       const { from, did, controller } = parsedBody.params[0]!;
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("addController", [did, controller]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("addController", [did, controller]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -578,9 +579,9 @@ export class JsonRpcService {
 
       const { from, did, controller } = parsedBody.params[0]!;
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("revokeController", [did, controller]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("revokeController", [did, controller]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -607,14 +608,14 @@ export class JsonRpcService {
       const { from, did, vMethodId, publicKey, isSecp256k1 } =
         parsedBody.params[0]!;
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("addVerificationMethod", [
-        did,
-        vMethodId,
-        publicKey,
-        isSecp256k1,
-      ]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("addVerificationMethod", [
+          did,
+          vMethodId,
+          publicKey,
+          isSecp256k1,
+        ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -645,15 +646,15 @@ export class JsonRpcService {
       const { from, did, name, vMethodId, notBefore, notAfter } =
         parsedBody.params[0]!;
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("addVerificationRelationship", [
-        did,
-        name,
-        vMethodId,
-        notBefore,
-        notAfter,
-      ]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("addVerificationRelationship", [
+          did,
+          name,
+          vMethodId,
+          notBefore,
+          notAfter,
+        ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -679,13 +680,13 @@ export class JsonRpcService {
 
       const { from, did, vMethodId, notAfter } = parsedBody.params[0]!;
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("revokeVerificationMethod", [
-        did,
-        vMethodId,
-        notAfter,
-      ]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("revokeVerificationMethod", [
+          did,
+          vMethodId,
+          notAfter,
+        ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -711,13 +712,13 @@ export class JsonRpcService {
 
       const { from, did, vMethodId, notAfter } = parsedBody.params[0]!;
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("expireVerificationMethod", [
-        did,
-        vMethodId,
-        notAfter,
-      ]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("expireVerificationMethod", [
+          did,
+          vMethodId,
+          notAfter,
+        ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -743,9 +744,9 @@ export class JsonRpcService {
 
       const { from, args } = parsedBody.params[0]!;
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("rollVerificationMethod", [args]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("rollVerificationMethod", [args]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -771,9 +772,9 @@ export class JsonRpcService {
 
       await this.verifyTransaction(sub, request, scope);
 
-      const tx = await (
-        await this.ledgerService.getContract()
-      ).provider.sendTransaction(request.signedRawTransaction);
+      const tx = await this.ledgerService
+        .getContract()
+        .provider.sendTransaction(request.signedRawTransaction);
 
       return tx.hash;
     } catch (err) {

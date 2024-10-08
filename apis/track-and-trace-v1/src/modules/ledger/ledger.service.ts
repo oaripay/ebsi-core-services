@@ -2,7 +2,6 @@ import { Injectable, Logger, OnModuleDestroy } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import type WebSocket from "ws";
-import { Mutex } from "async-mutex";
 import {
   TrackAndTrace,
   TrackAndTrace__factory,
@@ -27,12 +26,9 @@ export class LedgerService implements OnModuleDestroy {
 
   private timeout: number;
 
-  private readonly publicProviderMutex: Mutex;
-
   constructor(private configService: ConfigService<ApiConfig, true>) {
     this.trackAndTraceAddress = this.configService.get<string>("contractAddr");
     this.timeout = configService.get<number>("requestTimeout");
-    this.publicProviderMutex = new Mutex();
   }
 
   private initBesuProvider(): void {
@@ -116,27 +112,19 @@ export class LedgerService implements OnModuleDestroy {
     return this.ethersProvider!;
   }
 
-  async getContract() {
+  getContract() {
     if (this.trackAndTraceContract) {
       return this.trackAndTraceContract;
     }
 
-    if (this.publicProviderMutex.isLocked()) {
-      // A connection is already being made, wait until it's finished
-      await this.publicProviderMutex.waitForUnlock();
-    } else {
-      // Create a new connection
-      await this.publicProviderMutex.runExclusive(() => {
-        const provider = this.getEthersProvider();
+    const provider = this.getEthersProvider();
 
-        this.trackAndTraceContract = TrackAndTrace__factory.connect(
-          this.trackAndTraceAddress,
-          provider,
-        );
-      });
-    }
+    this.trackAndTraceContract = TrackAndTrace__factory.connect(
+      this.trackAndTraceAddress,
+      provider,
+    );
 
-    return this.trackAndTraceContract!;
+    return this.trackAndTraceContract;
   }
 
   getContractAddress() {

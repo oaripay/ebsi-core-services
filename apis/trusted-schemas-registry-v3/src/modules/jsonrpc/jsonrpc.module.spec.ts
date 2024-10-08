@@ -228,8 +228,8 @@ describe("JsonRpc Module", () => {
 
   beforeEach(() => {
     // Mock TSR contract
-    vi.spyOn(ledgerService, "getContract").mockImplementation(async () =>
-      Promise.resolve(testEnv.schemasRegistryContract),
+    vi.spyOn(ledgerService, "getContract").mockImplementation(
+      () => testEnv.schemasRegistryContract,
     );
 
     // For the tests, we assume that the DID is controlled by the signer

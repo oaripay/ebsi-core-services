@@ -34,14 +34,14 @@ export default class RecordsService {
     switch (fnName) {
       case "getRecordVersion": {
         try {
-          const { hashValues, infoIds, total } = await (
-            await this.ledgerService.getContract()
-          ).getRecordVersion(
-            params[0] as string,
-            params[1] as number,
-            page,
-            50,
-          );
+          const { hashValues, infoIds, total } = await this.ledgerService
+            .getContract()
+            .getRecordVersion(
+              params[0] as string,
+              params[1] as number,
+              page,
+              50,
+            );
           return { hashValues, infoIds, total };
         } catch (error) {
           if (isEthersError(error)) {
@@ -90,9 +90,9 @@ export default class RecordsService {
     pageSize: number,
   ): ReturnType<Timestamp["getRecordIds"]> {
     try {
-      return await (
-        await this.ledgerService.getContract()
-      ).getRecordIds(page, pageSize);
+      return await this.ledgerService
+        .getContract()
+        .getRecordIds(page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -109,9 +109,9 @@ export default class RecordsService {
     pageSize: number,
   ): ReturnType<Timestamp["getRecordIdsByFirstVersionHash"]> {
     try {
-      return await (
-        await this.ledgerService.getContract()
-      ).getRecordIdsByFirstVersionHash(firstVersion, page, pageSize);
+      return await this.ledgerService
+        .getContract()
+        .getRecordIdsByFirstVersionHash(firstVersion, page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -128,9 +128,9 @@ export default class RecordsService {
     pageSize: number,
   ): ReturnType<Timestamp["getRecordIdsByOwnerId"]> {
     try {
-      return await (
-        await this.ledgerService.getContract()
-      ).getRecordIdsByOwnerId(owner.toLowerCase(), page, pageSize);
+      return await this.ledgerService
+        .getContract()
+        .getRecordIdsByOwnerId(owner.toLowerCase(), page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -148,9 +148,7 @@ export default class RecordsService {
     ).toString("hex")}`;
 
     try {
-      record = await (
-        await this.ledgerService.getContract()
-      ).getRecord(recordId);
+      record = await this.ledgerService.getContract().getRecord(recordId);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -188,9 +186,7 @@ export default class RecordsService {
     ).toString("hex")}`;
 
     try {
-      record = await (
-        await this.ledgerService.getContract()
-      ).getRecord(recordId);
+      record = await this.ledgerService.getContract().getRecord(recordId);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -225,7 +221,7 @@ export default class RecordsService {
     ]);
 
     try {
-      const contract = await this.ledgerService.getContract();
+      const contract = this.ledgerService.getContract();
       const infosBytes = await Promise.all(
         infoIds.map((infoId) => contract.getRecordVersionInfo(infoId)),
       );

@@ -38,9 +38,9 @@ export default class IdentifiersService {
       }
 
       try {
-        return await (
-          await this.ledgerService.getContract()
-        ).getDidsByController(controller, page, pageSize);
+        return await this.ledgerService
+          .getContract()
+          .getDidsByController(controller, page, pageSize);
       } catch (error) {
         if (isEthersError(error)) {
           this.logger.error(error, error.stack);
@@ -65,14 +65,14 @@ export default class IdentifiersService {
       }
 
       try {
-        const didsWithPeriod = await (
-          await this.ledgerService.getContract()
-        ).getDidsByVerificationRelationship(
-          vMethodId,
-          vRelationship,
-          page,
-          pageSize,
-        );
+        const didsWithPeriod = await this.ledgerService
+          .getContract()
+          .getDidsByVerificationRelationship(
+            vMethodId,
+            vRelationship,
+            page,
+            pageSize,
+          );
         const dids: string[] = [];
         const now = Math.floor(Date.now() / 1000);
         didsWithPeriod.items.forEach((didWithPeriod) => {
@@ -99,9 +99,7 @@ export default class IdentifiersService {
     }
 
     try {
-      return await (
-        await this.ledgerService.getContract()
-      ).getDids(page, pageSize);
+      return await this.ledgerService.getContract().getDids(page, pageSize);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -116,7 +114,7 @@ export default class IdentifiersService {
     did: string,
     validAt?: string,
   ): Promise<Record<string, unknown>> {
-    const contract = await this.ledgerService.getContract();
+    const contract = this.ledgerService.getContract();
     let document: Awaited<ReturnType<typeof contract.getDidDocument>>;
 
     try {
@@ -208,7 +206,7 @@ export default class IdentifiersService {
     try {
       const parsedBody = requestCheckControllerDtoSchema.parse(body);
       const address = parsedBody.params[0]!;
-      const contract = await this.ledgerService.getContract();
+      const contract = this.ledgerService.getContract();
       return await contract["checkController(string,address)"](did, address);
     } catch (err) {
       if (isEthersError(err)) {

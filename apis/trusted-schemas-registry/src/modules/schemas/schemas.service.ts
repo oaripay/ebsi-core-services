@@ -21,9 +21,9 @@ export class SchemasService {
 
   async getSchemas(page: number, pageSize: number): Promise<ItemsList> {
     try {
-      const result = await (
-        await this.ledgerService.getContract()
-      ).getSchemaIds(page, pageSize);
+      const result = await this.ledgerService
+        .getContract()
+        .getSchemaIds(page, pageSize);
 
       return {
         items: result.items,
@@ -46,9 +46,9 @@ export class SchemasService {
     const hexSchemaId = schemaIdToHex(schemaId);
 
     try {
-      schema = await (
-        await this.ledgerService.getContract()
-      ).getLatestSchemaRevision(hexSchemaId);
+      schema = await this.ledgerService
+        .getContract()
+        .getLatestSchemaRevision(hexSchemaId);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -75,9 +75,9 @@ export class SchemasService {
 
     // Make sure the schema exists
     try {
-      await (
-        await this.ledgerService.getContract()
-      ).getLatestSchemaRevision(hexSchemaId);
+      await this.ledgerService
+        .getContract()
+        .getLatestSchemaRevision(hexSchemaId);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -94,16 +94,16 @@ export class SchemasService {
         const allRevisionsIds: string[] = [];
 
         // Get the first MAX_RESULTS_PER_PAGE revisions IDs
-        const revisions = await (
-          await this.ledgerService.getContract()
-        ).getSchemaRevisionIds(hexSchemaId, 1, MAX_RESULTS_PER_PAGE);
+        const revisions = await this.ledgerService
+          .getContract()
+          .getSchemaRevisionIds(hexSchemaId, 1, MAX_RESULTS_PER_PAGE);
         allRevisionsIds.push(...revisions.items);
         const total = revisions.total.toNumber();
 
         const limit = pLimit(MAX_CONCURRENT_PROMISES); // Limit concurrent promises
 
         if (total > MAX_RESULTS_PER_PAGE) {
-          const contract = await this.ledgerService.getContract();
+          const contract = this.ledgerService.getContract();
           // We need to fetch the next pages
           allRevisionsIds.push(
             ...(
@@ -125,7 +125,7 @@ export class SchemasService {
         }
 
         // For each revision ID, get latest metadata
-        const contract = await this.ledgerService.getContract();
+        const contract = this.ledgerService.getContract();
         const allMetadata = await Promise.all(
           allRevisionsIds.map((id) =>
             limit(() =>
@@ -175,9 +175,9 @@ export class SchemasService {
       }
 
       // Get the revisions
-      const revisions = await (
-        await this.ledgerService.getContract()
-      ).getSchemaRevisionIds(hexSchemaId, page, pageSize);
+      const revisions = await this.ledgerService
+        .getContract()
+        .getSchemaRevisionIds(hexSchemaId, page, pageSize);
 
       return {
         items: revisions.items,
@@ -201,9 +201,9 @@ export class SchemasService {
 
     // Make sure the schema exists
     try {
-      await (
-        await this.ledgerService.getContract()
-      ).getLatestSchemaRevision(hexSchemaId);
+      await this.ledgerService
+        .getContract()
+        .getLatestSchemaRevision(hexSchemaId);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -216,9 +216,9 @@ export class SchemasService {
     // Get revision
     let revision: Awaited<ReturnType<SchemaSCRegistry["getSchemaRevision"]>>;
     try {
-      revision = await (
-        await this.ledgerService.getContract()
-      ).getSchemaRevision(schemaRevisionId);
+      revision = await this.ledgerService
+        .getContract()
+        .getSchemaRevision(schemaRevisionId);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -245,9 +245,9 @@ export class SchemasService {
 
     // Make sure the schema exists
     try {
-      await (
-        await this.ledgerService.getContract()
-      ).getLatestSchemaRevision(hexSchemaId);
+      await this.ledgerService
+        .getContract()
+        .getLatestSchemaRevision(hexSchemaId);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -259,9 +259,9 @@ export class SchemasService {
 
     // Make sure the revision exists
     try {
-      await (
-        await this.ledgerService.getContract()
-      ).getSchemaRevision(schemaRevisionId);
+      await this.ledgerService
+        .getContract()
+        .getSchemaRevision(schemaRevisionId);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -273,9 +273,9 @@ export class SchemasService {
 
     try {
       // Get metadata
-      const metadata = await (
-        await this.ledgerService.getContract()
-      ).getSchemaRevisionMetadataIds(schemaRevisionId, page, pageSize);
+      const metadata = await this.ledgerService
+        .getContract()
+        .getSchemaRevisionMetadataIds(schemaRevisionId, page, pageSize);
 
       return {
         items: metadata.items,
@@ -300,9 +300,9 @@ export class SchemasService {
 
     // Make sure the schema exists
     try {
-      await (
-        await this.ledgerService.getContract()
-      ).getLatestSchemaRevision(hexSchemaId);
+      await this.ledgerService
+        .getContract()
+        .getLatestSchemaRevision(hexSchemaId);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -314,9 +314,9 @@ export class SchemasService {
 
     // Make sure the revision exists
     try {
-      await (
-        await this.ledgerService.getContract()
-      ).getSchemaRevision(schemaRevisionId);
+      await this.ledgerService
+        .getContract()
+        .getSchemaRevision(schemaRevisionId);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);
@@ -331,9 +331,9 @@ export class SchemasService {
       ReturnType<SchemaSCRegistry["getSchemaRevisionMetadataByMetadataId"]>
     >;
     try {
-      metadata = await (
-        await this.ledgerService.getContract()
-      ).getSchemaRevisionMetadataByMetadataId(metadataId);
+      metadata = await this.ledgerService
+        .getContract()
+        .getSchemaRevisionMetadataByMetadataId(metadataId);
     } catch (error) {
       if (isEthersError(error)) {
         this.logger.error(error, error.stack);

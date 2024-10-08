@@ -123,9 +123,9 @@ export class JsonRpcService {
   async getChainId(): Promise<string> {
     if (!this.chainId) {
       try {
-        const { chainId } = await (
-          await this.ledgerService.getContract()
-        ).provider.getNetwork();
+        const { chainId } = await this.ledgerService
+          .getContract()
+          .provider.getNetwork();
         this.chainId = ethers.BigNumber.from(chainId).toHexString();
       } catch (error) {
         if (isEthersError(error)) {
@@ -143,9 +143,7 @@ export class JsonRpcService {
     const { from, to, data, value } = transaction;
 
     try {
-      return await (
-        await this.ledgerService.getContract()
-      ).provider.estimateGas({
+      return await this.ledgerService.getContract().provider.estimateGas({
         from,
         to,
         data,
@@ -208,9 +206,9 @@ export class JsonRpcService {
 
         // Get hash algorithm corresponding to algId
         try {
-          const hashAlgorithm = await (
-            await this.ledgerService.getContract()
-          ).getHashAlgorithmById(algId);
+          const hashAlgorithm = await this.ledgerService
+            .getContract()
+            .getHashAlgorithmById(algId);
 
           const outputLength = hashAlgorithm.outputLength.toNumber();
 
@@ -294,9 +292,9 @@ export class JsonRpcService {
     }
 
     // verify function and parameters encoded in unsignedTransaction.data
-    const { args, functionFragment } = (
-      await this.ledgerService.getContract()
-    ).interface.parseTransaction(unsignedTransaction);
+    const { args, functionFragment } = this.ledgerService
+      .getContract()
+      .interface.parseTransaction(unsignedTransaction);
 
     // Extract named args from args (args is a mixed array with named and unnamed values)
     const argsObject = {
@@ -375,9 +373,9 @@ export class JsonRpcService {
     from: string,
     params: string,
   ): Promise<UnsignedTransaction> {
-    const nonceInt = await (
-      await this.ledgerService.getContract()
-    ).provider.getTransactionCount(from);
+    const nonceInt = await this.ledgerService
+      .getContract()
+      .provider.getTransactionCount(from);
 
     const unsignedTransaction: UnsignedTransaction = {
       from,
@@ -422,15 +420,15 @@ export class JsonRpcService {
       const { from, outputLength, ianaName, oid, status, multiHash } =
         parsedBody.params[0]!;
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("insertHashAlgorithm", [
-        outputLength,
-        ianaName ?? "",
-        oid ?? "",
-        status,
-        multiHash,
-      ]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("insertHashAlgorithm", [
+          outputLength,
+          ianaName ?? "",
+          oid ?? "",
+          status,
+          multiHash,
+        ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -460,16 +458,16 @@ export class JsonRpcService {
         multiHash,
       } = parsedBody.params[0]!;
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("updateHashAlgorithm", [
-        hashAlgorithmId,
-        outputLength,
-        ianaName ?? "",
-        oid ?? "",
-        status,
-        multiHash,
-      ]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("updateHashAlgorithm", [
+          hashAlgorithmId,
+          outputLength,
+          ianaName ?? "",
+          oid ?? "",
+          status,
+          multiHash,
+        ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -493,13 +491,13 @@ export class JsonRpcService {
 
       await this.checkHashes(hashAlgorithmIds, hashValues);
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("timestampHashes", [
-        hashAlgorithmIds,
-        hashValues,
-        timestampData || [],
-      ]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("timestampHashes", [
+          hashAlgorithmIds,
+          hashValues,
+          timestampData || [],
+        ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -530,15 +528,15 @@ export class JsonRpcService {
 
       await this.checkHashes(hashAlgorithmIds, hashValues);
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("timestampVersionHashes", [
-        versionHash,
-        hashAlgorithmIds,
-        hashValues,
-        timestampData || [],
-        versionInfo,
-      ]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("timestampVersionHashes", [
+          versionHash,
+          hashAlgorithmIds,
+          hashValues,
+          timestampData || [],
+          versionInfo,
+        ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -561,14 +559,14 @@ export class JsonRpcService {
       const { from, recordId, ownerId, notBefore, notAfter } =
         parsedBody.params[0]!;
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("insertRecordOwner", [
-        recordId,
-        ownerId.toLowerCase(),
-        notBefore,
-        notAfter,
-      ]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("insertRecordOwner", [
+          recordId,
+          ownerId.toLowerCase(),
+          notBefore,
+          notAfter,
+        ]);
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
@@ -589,12 +587,12 @@ export class JsonRpcService {
 
       const { from, recordId, ownerId } = parsedBody.params[0]!;
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("revokeRecordOwner", [
-        recordId,
-        ownerId.toLowerCase(),
-      ]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("revokeRecordOwner", [
+          recordId,
+          ownerId.toLowerCase(),
+        ]);
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
@@ -615,13 +613,13 @@ export class JsonRpcService {
 
       const { from, recordId, versionId, versionInfo } = parsedBody.params[0]!;
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("insertRecordVersionInfo", [
-        recordId,
-        versionId,
-        versionInfo,
-      ]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("insertRecordVersionInfo", [
+          recordId,
+          versionId,
+          versionInfo,
+        ]);
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
@@ -642,13 +640,13 @@ export class JsonRpcService {
 
       const { from, recordId, versionId, hashValue } = parsedBody.params[0]!;
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("detachRecordVersionHash", [
-        recordId,
-        versionId,
-        hashValue,
-      ]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("detachRecordVersionHash", [
+          recordId,
+          versionId,
+          hashValue,
+        ]);
       return await this.buildTransaction(from, data);
     } catch (err) {
       const error = new InvalidRequestJsonRpcError(getErrorMessage(err), id);
@@ -672,14 +670,14 @@ export class JsonRpcService {
 
       await this.checkHashes(hashAlgorithmIds, hashValues);
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("timestampRecordHashes", [
-        hashAlgorithmIds,
-        hashValues,
-        timestampData || [],
-        versionInfo,
-      ]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("timestampRecordHashes", [
+          hashAlgorithmIds,
+          hashValues,
+          timestampData || [],
+          versionInfo,
+        ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -710,15 +708,15 @@ export class JsonRpcService {
 
       await this.checkHashes(hashAlgorithmIds, hashValues);
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("timestampRecordVersionHashes", [
-        recordId,
-        hashAlgorithmIds,
-        hashValues,
-        timestampData || [],
-        versionInfo,
-      ]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("timestampRecordVersionHashes", [
+          recordId,
+          hashAlgorithmIds,
+          hashValues,
+          timestampData || [],
+          versionInfo,
+        ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -750,16 +748,16 @@ export class JsonRpcService {
 
       await this.checkHashes(hashAlgorithmIds, hashValues);
 
-      const data = (
-        await this.ledgerService.getContract()
-      ).interface.encodeFunctionData("appendRecordVersionHashes", [
-        recordId,
-        versionId,
-        hashAlgorithmIds,
-        hashValues,
-        timestampData || [],
-        versionInfo,
-      ]);
+      const data = this.ledgerService
+        .getContract()
+        .interface.encodeFunctionData("appendRecordVersionHashes", [
+          recordId,
+          versionId,
+          hashAlgorithmIds,
+          hashValues,
+          timestampData || [],
+          versionInfo,
+        ]);
 
       return await this.buildTransaction(from, data);
     } catch (err) {
@@ -793,9 +791,9 @@ export class JsonRpcService {
 
       await this.verifyEthereumAddress(signer, user);
 
-      const tx = await (
-        await this.ledgerService.getContract()
-      ).provider.sendTransaction(request.signedRawTransaction);
+      const tx = await this.ledgerService
+        .getContract()
+        .provider.sendTransaction(request.signedRawTransaction);
       return tx.hash;
     } catch (err) {
       if (isEthersError(err)) {
