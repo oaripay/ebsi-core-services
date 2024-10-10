@@ -79,9 +79,6 @@ paths:
                         href:
                           type: string
                           description: Link to the resource
-                  total:
-                    type: integer
-                    description: Total number of items across all pages.
                   pageSize:
                     type: integer
                     description: |
@@ -114,7 +111,6 @@ paths:
                         href: https://api-pilot.ebsi.eu/did-registry/v6/identifiers/did:ebsi:zgEQpSQLSKoKG6dES7ab5xn
                       - did: did:ebsi:zgUB1p2zNmGtymUwzHrxh24
                         href: https://api-pilot.ebsi.eu/did-registry/v6/identifiers/did:ebsi:zgUB1p2zNmGtymUwzHrxh24
-                    total: 98
                     pageSize: 10
                     links:
                       first: https://api-pilot.ebsi.eu/did-registry/v6/identifiers?page[after]=1&page[size]=10
@@ -127,7 +123,6 @@ paths:
                     items:
                       - did: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
                         href: https://api-pilot.ebsi.eu/did-registry/v6/identifiers/did:ebsi:z25F87e2MyLKF7DViuHi5b4z
-                    total: 1
                     pageSize: 10
                     links:
                       first: https://api-pilot.ebsi.eu/did-registry/v6/identifiers?page[after]=1&page[size]=10&controller=0x2430ec99974524fA4133a7456e8a1C8533B36f0f
@@ -244,6 +239,149 @@ paths:
           description: Internal Server Error
           content:
             application/json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Internal Server Error:
+                  $ref: "#/components/examples/InternalError"
+  /did-registry/v6/identifiers/{did}/events:
+    get:
+      tags:
+        - DID documents
+      summary: List of events of an identifier
+      description: Returns a list of events.
+      operationId: get-identifier-events
+      parameters:
+        - in: path
+          name: did
+          description: A DID to be resolved.
+          required: true
+          schema:
+            type: string
+          examples:
+            DID:
+              value: did:ebsi:z25F87e2MyLKF7DViuHi5b4z
+        - in: query
+          name: page[after]
+          schema:
+            type: string
+          description: Cursor that points to the end of the page of data that has been returned.
+        - in: query
+          name: page[size]
+          description: Defines the maximum number of objects that may be returned.
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  self:
+                    type: string
+                    description: Absolute path to the collection (consult)
+                  items:
+                    type: array
+                    description: List of events
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          description: Event ID
+                        event:
+                          type: string
+                          description: Event name
+                        signer:
+                          type: string
+                          description: Ethereum address of the transaction sender
+                        timestamp:
+                          type: string
+                          description: Timestamp
+                        txId:
+                          type: string
+                          description: Transaction ID
+                        blockNumber:
+                          type: string
+                          description: Block number
+                  pageSize:
+                    type: integer
+                    description: |
+                      Maximum number of items per page. For the last page, its value should be
+                      independent of the number of actually returned items.
+                  links:
+                    $ref: "#/components/schemas/Links"
+              examples:
+                Success:
+                  value:
+                    self: https://api-pilot.ebsi.eu/did-registry/v6/identifiers/did%3Aebsi%3AzxAFkP2dnB5oL2A5iaaK5K3/events?page[after]=1&page[size]=10
+                    items:
+                      - id: "0x6ff7491ae71787fa22e812f544ca4919535d6ffebc113bd380de35e0ddec29d800000000"
+                        event: "VerificationRelationshipAdded"
+                        signer: "0x69e48d89bf5e09588e858d757323b4abbbb3f814"
+                        timestamp: "1721033279"
+                        txId: "0x6ff7491ae71787fa22e812f544ca4919535d6ffebc113bd380de35e0ddec29d8"
+                        blockNumber: "11866593"
+                      - id: "0x71959b749b299244496df234229b52b6761811405af3a80866fcd350a28a5e3a00000000"
+                        event: "VerificationMethodAdded"
+                        signer: "0x69e48d89bf5e09588e858d757323b4abbbb3f814"
+                        timestamp: "1721033271"
+                        txId: "0x71959b749b299244496df234229b52b6761811405af3a80866fcd350a28a5e3a"
+                        blockNumber: "11866592"
+                      - id: "0x92a4e4b0bf5b5369d3165c30811f49dbb0e04e4f1ef22218fca7e7826e3180cc00000000"
+                        event: "VerificationRelationshipAdded"
+                        signer: "0x69e48d89bf5e09588e858d757323b4abbbb3f814"
+                        timestamp: "1721033255"
+                        txId: "0x92a4e4b0bf5b5369d3165c30811f49dbb0e04e4f1ef22218fca7e7826e3180cc"
+                        blockNumber: "11866591"
+                      - id: "0x92a4e4b0bf5b5369d3165c30811f49dbb0e04e4f1ef22218fca7e7826e3180cc01000000"
+                        event: "VerificationRelationshipAdded"
+                        signer: "0x69e48d89bf5e09588e858d757323b4abbbb3f814"
+                        timestamp: "1721033255"
+                        txId: "0x92a4e4b0bf5b5369d3165c30811f49dbb0e04e4f1ef22218fca7e7826e3180cc"
+                        blockNumber: "11866591"
+                      - id: "0x92a4e4b0bf5b5369d3165c30811f49dbb0e04e4f1ef22218fca7e7826e3180cc02000000"
+                        event: "DidDocumentInserted"
+                        signer: "0x69e48d89bf5e09588e858d757323b4abbbb3f814"
+                        timestamp: "1721033255"
+                        txId: "0x92a4e4b0bf5b5369d3165c30811f49dbb0e04e4f1ef22218fca7e7826e3180cc"
+                        blockNumber: "11866591"
+                      - id: "0x92a4e4b0bf5b5369d3165c30811f49dbb0e04e4f1ef22218fca7e7826e3180cc03000000"
+                        event: "ControllerAdded"
+                        signer: "0x69e48d89bf5e09588e858d757323b4abbbb3f814"
+                        timestamp: "1721033255"
+                        txId: "0x92a4e4b0bf5b5369d3165c30811f49dbb0e04e4f1ef22218fca7e7826e3180cc"
+                        blockNumber: "11866591"
+                      - id: "0x9bb37d378f684f3158ff4e52e7a23dbcf6e7182b457c6105fb62bf00b40bcd3e00000000"
+                        event: "VerificationRelationshipAdded"
+                        signer: "0x69e48d89bf5e09588e858d757323b4abbbb3f814"
+                        timestamp: "1721033287"
+                        txId: "0x9bb37d378f684f3158ff4e52e7a23dbcf6e7182b457c6105fb62bf00b40bcd3e"
+                        blockNumber: "11866594"
+                    pageSize: 10
+                    links:
+                      first: https://api-pilot.ebsi.eu/did-registry/v6/identifiers/did%3Aebsi%3AzxAFkP2dnB5oL2A5iaaK5K3/events?page[after]=1&page[size]=10
+                      prev: https://api-pilot.ebsi.eu/did-registry/v6/identifiers/did%3Aebsi%3AzxAFkP2dnB5oL2A5iaaK5K3/events?page[after]=1&page[size]=10
+                      next: https://api-pilot.ebsi.eu/did-registry/v6/identifiers/did%3Aebsi%3AzxAFkP2dnB5oL2A5iaaK5K3/events?page[after]=2&page[size]=10
+                      last: https://api-pilot.ebsi.eu/did-registry/v6/identifiers/did%3Aebsi%3AzxAFkP2dnB5oL2A5iaaK5K3/events?page[after]=1&page[size]=10
+        "400":
+          description: Bad Request Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+              examples:
+                Bad Paging Request:
+                  value:
+                    title: Bad Paging Request
+                    status: 400
+                    detail: PageSize should not be greater than 50
+        "500":
+          description: Internal Server Error
+          content:
+            application/problem+json:
               schema:
                 $ref: "#/components/schemas/ProblemDetails"
               examples:

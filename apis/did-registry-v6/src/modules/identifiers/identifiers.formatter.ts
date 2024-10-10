@@ -1,58 +1,46 @@
-import { PaginatedList } from "../../interfaces/index.js";
-import { paginate, paginateEvents } from "../../utils/pagination.utils.js";
+import {
+  PaginatedListWithoutTotal,
+  paginateWithoutTotal,
+} from "@ebsiint-api/shared";
 import { DidLink, Event } from "./identifiers.interface.js";
 
 export function formatIdentifiers(
-  identifiers: string[],
+  identifiers: { items: string[] },
   page: number,
   pageSize: number,
   baseUrl: string,
-  prevPageIdentifiers: string[],
-  nextPageIdentifiers: string[],
-  controller?: string,
-  vMethodId?: string,
-  vRelationship?: string,
-): PaginatedList<DidLink> {
-  let extraQuery = controller ? `&controller=${controller}` : "";
-  extraQuery +=
-    vMethodId && vRelationship
-      ? `&verification-method-id=${vMethodId}&verification-relationship=${vRelationship}`
-      : "";
-
+  extraQuery?: string,
+): PaginatedListWithoutTotal<DidLink> {
   // Reshape items
-  const items = identifiers.map((did) => {
+  const items = identifiers.items.map((did) => {
     return {
       did,
       href: `${baseUrl}/${did}`,
     };
   });
 
-  return paginate<DidLink>(
+  return paginateWithoutTotal<DidLink>(
     items,
     baseUrl,
     page,
     pageSize,
-    prevPageIdentifiers,
-    nextPageIdentifiers,
     extraQuery,
   );
 }
 
 export function formatEvents(
-  events: Event[],
+  events: { items: Event[] },
   page: number,
   pageSize: number,
   baseUrl: string,
-  prevPageEvents: Event[],
-  nextPageEvents: Event[],
-): PaginatedList<Event> {
-  return paginateEvents<Event>(
-    events,
+  extraQuery?: string,
+): PaginatedListWithoutTotal<Event> {
+  return paginateWithoutTotal<Event>(
+    events.items,
     baseUrl,
     page,
     pageSize,
-    prevPageEvents,
-    nextPageEvents,
+    extraQuery,
   );
 }
 

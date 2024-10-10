@@ -18,6 +18,7 @@ export interface ApiConfig {
   requestTimeout: number;
   axiosRetryDelay: number;
   trustedHostnames: string[];
+  testUserDid: string;
   testAuthApiV5ES256PrivateKey: string;
   testSpecificNodeDomain: string | undefined;
   dockerContainerTag: string;
@@ -58,6 +59,7 @@ export const loadConfig = (): ApiConfig => {
     trustedHostnames: (process.env.TRUSTED_HOSTNAMES || "")
       .split(",")
       .filter(Boolean),
+    testUserDid: process.env.TEST_USER_DID || "",
     testAuthApiV5ES256PrivateKey:
       process.env.TEST_AUTH_API_V4_ES256_PRIVATE_KEY || "",
     testSpecificNodeDomain: process.env.TEST_SPECIFIC_NODE_DOMAIN,
@@ -106,6 +108,7 @@ export const ApiConfigModule = ConfigModule.forRoot({
     REQUEST_TIMEOUT: Joi.string(),
     AXIOS_RETRY_DELAY: Joi.string(),
     TRUSTED_HOSTNAMES: Joi.string(),
+    TEST_USER_DID: Joi.string(),
     TEST_AUTH_API_V4_ES256_PRIVATE_KEY: Joi.string(),
     TEST_ENV: Joi.string(),
     TEST_ENABLE_WRITE_OPS: Joi.string(),

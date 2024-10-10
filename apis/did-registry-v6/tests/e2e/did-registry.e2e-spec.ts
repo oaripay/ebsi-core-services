@@ -21,11 +21,8 @@ describe("DID Registry API v (e2e)", () => {
   let app: NestFastifyApplication;
   let server: RawServerDefault | string;
   let configService: ConfigService<ApiConfig, true>;
-
-  let lastIdentifiers: {
-    did: string;
-    href: string;
-  }[];
+  let testUserDid: string;
+  let testUserDidDocument: DidDocumentResponse;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -51,16 +48,11 @@ describe("DID Registry API v (e2e)", () => {
 
     server = getServer(app, configService);
 
-    // Get last identifier
-    const getAllIdentifiers = await request(server).get("/identifiers");
+    testUserDid = configService.get("testUserDid");
+    if (!testUserDid) throw new Error("TEST_USER_DID is not defined");
 
-    const { items: identifiers } = getAllIdentifiers.body as {
-      items: {
-        did: string;
-        href: string;
-      }[];
-    };
-    lastIdentifiers = identifiers;
+    const resp = await request(server).get(`/identifiers/${testUserDid}`);
+    testUserDidDocument = resp.body as DidDocumentResponse;
   });
 
   afterAll(async () => {
@@ -85,7 +77,12 @@ describe("DID Registry API v (e2e)", () => {
         ]),
         pageSize: 10,
         links: {
-          prev: expect.stringContaining("/identifiers?page[size]=10"),
+          first: expect.stringContaining(
+            "/identifiers?page[after]=1&page[size]=10",
+          ),
+          prev: expect.stringContaining(
+            "/identifiers?page[after]=1&page[size]=10",
+          ),
           next: expect.stringContaining(
             `/identifiers?page[after]=2&page[size]=10`,
           ),
@@ -93,51 +90,29 @@ describe("DID Registry API v (e2e)", () => {
       });
       expect(response.status).toBe(200);
     });
+
     it("should return a paginated collection of identifiers filtered by verification relationship", async () => {
       expect.assertions(2);
-      /**
-       * To perform this test we need a DID that contains at
-       * least 1 valid verification relationship.
-       * Since a document could have all the keys expired, then
-       * we use a for loop to check and get one from the last page of
-       * DIDs.
-       * At the end we have: did, 1 verification relationship, and
-       * its corresponding verification method id
-       */
-      let did = "";
-      let vMethodId = "";
-      let vRelationship = "";
-      // eslint-disable-next-line no-restricted-syntax
-      for (const identifier of lastIdentifiers) {
-        // eslint-disable-next-line no-await-in-loop
-        const resp = await request(server).get(
-          `/identifiers/${identifier.did}`,
-        );
-        const didDocument = resp.body as DidDocumentResponse;
-        const vr = (
-          [
-            "authentication",
-            "assertionMethod",
-            "keyAgreement",
-            "capabilityInvocation",
-            "capabilityDelegation",
-          ] as const
-        ).find((r) => {
-          return Object.keys(didDocument).includes(r);
-        });
-        if (vr) {
-          did = identifier.did;
-          vRelationship = vr;
-          vMethodId = (didDocument[vr] as string[])[0]!.split("#")[1]!;
-          break;
-        }
-      }
+
+      const vRelationship = (
+        [
+          "authentication",
+          "assertionMethod",
+          "keyAgreement",
+          "capabilityInvocation",
+          "capabilityDelegation",
+        ] as const
+      ).find((r) => {
+        return Object.keys(testUserDidDocument).includes(r);
+      });
 
       if (!vRelationship) {
-        throw new Error(
-          `No verification relationship found in the list of identifiers`,
-        );
+        throw new Error(`No verification relationship found in ${testUserDid}`);
       }
+
+      const vMethodId = (
+        testUserDidDocument[vRelationship] as string[]
+      )[0]!.split("#")[1]!;
 
       /**
        * Call /identifiers and specify the verification relationship
@@ -153,69 +128,63 @@ describe("DID Registry API v (e2e)", () => {
         items: expect.arrayContaining([
           // the list of items should contain at least the DID obtained above
           {
-            did,
+            did: testUserDid,
             href: expect.stringContaining("/identifiers/"),
           },
         ]),
         pageSize: 10,
         links: {
+          first: expect.stringContaining(
+            `/identifiers?page[after]=1&page[size]=10&${extraQuery}`,
+          ),
           prev: expect.stringContaining(
-            `/identifiers?page[size]=10&${extraQuery}`,
+            `/identifiers?page[after]=1&page[size]=10&${extraQuery}`,
           ),
           next: expect.stringContaining(
-            `/identifiers?page[size]=10&${extraQuery}`,
+            `/identifiers?page[after]=1&page[size]=10&${extraQuery}`,
+          ),
+          last: expect.stringContaining(
+            `/identifiers?page[after]=1&page[size]=10&${extraQuery}`,
           ),
         },
       });
       expect(response.status).toBe(200);
     });
+
     it("should return a paginated collection of identifiers filtered by verification relationship and controller", async () => {
       expect.assertions(2);
-      /**
-       * To perform this test we need a DID that contains at
-       * least 1 valid verification relationship.
-       * Since a document could have all the keys expired, then
-       * we use a for loop to check and get one from the last page of
-       * DIDs.
-       * At the end we have: did, 1 verification relationship, and
-       * its corresponding verification method id
-       */
-      let did = "";
-      let vMethodId = "";
-      let vRelationship = "";
-      let controller = "";
-      // eslint-disable-next-line no-restricted-syntax
-      for (const identifier of lastIdentifiers) {
-        // eslint-disable-next-line no-await-in-loop
-        const resp = await request(server).get(
-          `/identifiers/${identifier.did}`,
-        );
-        const didDocument = resp.body as DidDocumentResponse;
-        const vr = (
-          [
-            "authentication",
-            "assertionMethod",
-            "keyAgreement",
-            "capabilityInvocation",
-            "capabilityDelegation",
-          ] as const
-        ).find((r) => {
-          return Object.keys(didDocument).includes(r);
-        });
-        if (vr) {
-          did = identifier.did;
-          vRelationship = vr;
-          vMethodId = (didDocument[vr] as string[])[0]!.split("#")[1]!;
-          controller = didDocument.controller[0]!;
-          break;
-        }
+
+      const vRelationship = (
+        [
+          "authentication",
+          "assertionMethod",
+          "keyAgreement",
+          "capabilityInvocation",
+          "capabilityDelegation",
+        ] as const
+      ).find((r) => {
+        return Object.keys(testUserDidDocument).includes(r);
+      });
+
+      if (!vRelationship) {
+        throw new Error(`No verification relationship found in ${testUserDid}`);
       }
+
+      const vMethodId = (
+        testUserDidDocument[vRelationship] as string[]
+      )[0]!.split("#")[1]!;
+      const controller = testUserDidDocument.controller[0]!;
+
       /**
        * Call /identifiers and specify the verification relationship
        * and the verification method id
        */
-      const extraQuery = `controller=${controller}&verification-method-id=${vMethodId}&verification-relationship=${vRelationship}`;
+      let extraQuery = `controller=${controller}&verification-method-id=${vMethodId}&verification-relationship=${vRelationship}`;
       const response = await request(server).get(`/identifiers?${extraQuery}`);
+      extraQuery = extraQuery.replace(
+        controller,
+        encodeURIComponent(controller),
+      );
 
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
@@ -224,22 +193,29 @@ describe("DID Registry API v (e2e)", () => {
         items: expect.arrayContaining([
           // the list of items should contain at least the DID obtained above
           {
-            did,
+            did: testUserDid,
             href: expect.stringContaining("/identifiers/"),
           },
         ]),
         pageSize: 10,
         links: {
+          first: expect.stringContaining(
+            `/identifiers?page[after]=1&page[size]=10&${extraQuery}`,
+          ),
           prev: expect.stringContaining(
-            `/identifiers?page[size]=10&${extraQuery}`,
+            `/identifiers?page[after]=1&page[size]=10&${extraQuery}`,
           ),
           next: expect.stringContaining(
-            `/identifiers?page[size]=10&${extraQuery}`,
+            `/identifiers?page[after]=1&page[size]=10&${extraQuery}`,
+          ),
+          last: expect.stringContaining(
+            `/identifiers?page[after]=1&page[size]=10&${extraQuery}`,
           ),
         },
       });
       expect(response.status).toBe(200);
     });
+
     it("should throw a Bad Request for bad pagination", async () => {
       expect.assertions(8);
       const response1 = await request(server).get(
@@ -281,12 +257,11 @@ describe("DID Registry API v (e2e)", () => {
       expect(response4.status).toBe(400);
     });
   });
+
   describe("GET /identifiers/{did}", () => {
     it("should return a specific identifier", async () => {
       expect.assertions(4);
-      const response = await request(server).get(
-        `/identifiers/${lastIdentifiers[0]!.did}`,
-      );
+      const response = await request(server).get(`/identifiers/${testUserDid}`);
 
       expect(response.body).toStrictEqual(
         expect.objectContaining({
@@ -303,31 +278,11 @@ describe("DID Registry API v (e2e)", () => {
         (response.headers as { "content-type": string })["content-type"],
       ).toStrictEqual(expect.stringContaining("application/did+ld+json"));
     });
-    it("should return a specific identifier filtered by verification", async () => {
-      expect.assertions(4);
-      const response = await request(server).get(
-        `/identifiers/${lastIdentifiers[0]!.did}`,
-      );
 
-      expect(response.body).toStrictEqual(
-        expect.objectContaining({
-          id: expect.stringContaining("did:"),
-          controller: expect.arrayContaining([]),
-          verificationMethod: expect.arrayContaining([]),
-        }),
-      );
-      expect(
-        response.body as { "@context": string | string[] }["@context"],
-      ).toBeDefined();
-      expect(response.status).toBe(200);
-      expect(
-        (response.headers as { "content-type": string })["content-type"],
-      ).toStrictEqual(expect.stringContaining("application/did+ld+json"));
-    });
     it("should return a did document valid at specific time", async () => {
       expect.assertions(3);
       const response = await request(server).get(
-        `/identifiers/${lastIdentifiers[0]!.did}?valid-at=1970-01-01`,
+        `/identifiers/${testUserDid}?valid-at=1970-01-01`,
       );
       expect(response.body).toStrictEqual(
         expect.objectContaining({
@@ -341,10 +296,11 @@ describe("DID Registry API v (e2e)", () => {
       ).toBeDefined();
       expect(response.status).toBe(200);
     });
+
     it("should return a specific identifier as 'application/did+json' if 'Accept' header is 'application/did+json'", async () => {
       expect.assertions(3);
       const response = await request(server)
-        .get(`/identifiers/${lastIdentifiers[0]!.did}`)
+        .get(`/identifiers/${testUserDid}`)
         .set("Accept", "application/did+json");
       expect(response.body).toStrictEqual(
         expect.objectContaining({
@@ -358,6 +314,7 @@ describe("DID Registry API v (e2e)", () => {
         (response.headers as { "content-type": string })["content-type"],
       ).toStrictEqual(expect.stringContaining("application/did+json"));
     });
+
     it("should throw an error if the identifier is not a valid did", async () => {
       expect.assertions(2);
       const response = await request(server).get("/identifiers/invalid");
@@ -369,6 +326,7 @@ describe("DID Registry API v (e2e)", () => {
       });
       expect(response.status).toBe(400);
     });
+
     it("should throw an error if the identifier is not found", async () => {
       expect.assertions(2);
       const randomDid = EbsiWallet.createDid();
@@ -382,16 +340,17 @@ describe("DID Registry API v (e2e)", () => {
       expect(response.status).toBe(404);
     });
   });
+
   describe("GET /identifiers/{did}/events", () => {
     it("should return a paginated collection of identifiers events", async () => {
       expect.assertions(2);
       const response = await request(server).get(
-        `/identifiers/${lastIdentifiers[0]!.did}/events`,
+        `/identifiers/${testUserDid}/events`,
       );
 
       expect(response.body).toStrictEqual({
         self: expect.stringContaining(
-          `/identifiers/${lastIdentifiers[0]!.did}/events?page[after]=1&page[size]=10`,
+          `/identifiers/${testUserDid}/events?page[after]=1&page[size]=1`,
         ),
         items: expect.arrayContaining([
           {
@@ -405,24 +364,28 @@ describe("DID Registry API v (e2e)", () => {
         ]),
         pageSize: 10,
         links: {
+          first: expect.stringContaining(
+            `/identifiers/${testUserDid}/events?page[after]=1&page[size]=1`,
+          ),
           prev: expect.stringContaining(
-            `/identifiers/${lastIdentifiers[0]!.did}/events?page[size]=10`,
+            `/identifiers/${testUserDid}/events?page[after]=1&page[size]=1`,
           ),
           next: expect.stringContaining(
-            `/identifiers/${lastIdentifiers[0]!.did}/events?page[size]=10`,
+            `/identifiers/${testUserDid}/events?page[after]=2&page[size]=1`,
           ),
         },
       });
       expect(response.status).toBe(200);
     });
   });
+
   describe("POST /identifiers/{did}/actions", () => {
     it("should perform the action checkController", async () => {
       expect.assertions(2);
 
       const randomAddress = ethers.Wallet.createRandom().address;
       const response = await request(server)
-        .post(`/identifiers/${lastIdentifiers[0]!.did}/actions`)
+        .post(`/identifiers/${testUserDid}/actions`)
         .send({
           jsonrpc: "2.0",
           method: "checkController",

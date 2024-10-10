@@ -8,15 +8,19 @@ import {
   isEthersError,
   InvalidRequestJsonRpcError,
   logAxiosError,
+  InternalServerError,
 } from "@ebsiint-api/shared";
 import type { JWK } from "jose";
 import axios from "axios";
-// eslint-disable-next-line import/extensions, import/no-relative-packages
-import { getBuiltGraphSDK } from "../../../.graphclient/index.js";
+import {
+  getBuiltGraphSDK,
+  GetDidDocumentEventsQuery,
+  // eslint-disable-next-line import/extensions, import/no-relative-packages
+} from "../../../.graphclient/index.js";
 import type { JsonRpcSchema } from "./validators/JsonRpcSchema.js";
 import { requestCheckControllerDtoSchema } from "./validators/RequestCheckControllerSchema.js";
-import { Documents, Events, Event } from "./identifiers.interface.js";
 import LedgerService from "../ledger/ledger.service.js";
+import { Event } from "./identifiers.interface.js";
 
 const sdk = getBuiltGraphSDK();
 
@@ -27,30 +31,15 @@ export default class IdentifiersService {
   constructor(private ledgerService: LedgerService) {}
 
   async getIdentifiers(
-    page?: number,
-    pageSize?: number,
+    page = 1,
+    pagesize = 10,
     controller?: string,
     vMethodId?: string,
     vRelationship?: string,
-  ): Promise<Documents> {
-    const identifiers: string[] = [];
-    const prevPageIdentifiers: string[] = [];
-    const nextPageIdentifiers: string[] = [];
-
-    let pageVar = page;
-    let pagesizeVar = pageSize;
-
-    if (!pageVar) {
-      pageVar = 1;
-    }
-
-    if (!pagesizeVar) {
-      pagesizeVar = 10;
-    }
-
-    const skip = (pageVar - 1) * pagesizeVar;
-    const skipPrev = (pageVar - 2) * pagesizeVar;
-    const skipNext = pageVar * pagesizeVar;
+  ): Promise<{ items: string[] }> {
+    const skip = (page - 1) * pagesize;
+    // get one more item to clarify next pages in pagination
+    const queryPageSize = pagesize + 1;
 
     if (controller) {
       if (vMethodId || vRelationship) {
@@ -70,42 +59,11 @@ export default class IdentifiersService {
               skip,
               vMethodId,
               vRelationship,
-              pagesize: pagesizeVar,
+              pagesize: queryPageSize,
             });
 
-          res.didDocuments.forEach((doc) => {
-            identifiers.push(doc.id);
-          });
-
-          if (Math.sign(skipPrev) !== -1) {
-            const resPrev =
-              await sdk.GetDidsByControllerAndVerificationRelationshipQuery({
-                controller,
-                skip: skipPrev,
-                vMethodId,
-                vRelationship,
-                pagesize: pagesizeVar,
-              });
-
-            resPrev.didDocuments.forEach((doc) => {
-              prevPageIdentifiers.push(doc.id);
-            });
-          }
-
-          const resNext =
-            await sdk.GetDidsByControllerAndVerificationRelationshipQuery({
-              controller,
-              skip: skipNext,
-              vMethodId,
-              vRelationship,
-              pagesize: pagesizeVar,
-            });
-
-          resNext.didDocuments.forEach((doc) => {
-            nextPageIdentifiers.push(doc.id);
-          });
-
-          return { identifiers, prevPageIdentifiers, nextPageIdentifiers };
+          const identifiers = res.didDocuments.map((d) => d.id);
+          return { items: identifiers };
         } catch (error) {
           if ((error as Error).message.includes(`"controller doesn't exist"`)) {
             throw new NotFoundError(NotFoundError.defaultTitle, {
@@ -120,36 +78,11 @@ export default class IdentifiersService {
         const res = await sdk.GetDidsByController({
           controller,
           skip,
-          pagesize: pagesizeVar,
+          pagesize: queryPageSize,
         });
 
-        res.didDocuments.forEach((doc) => {
-          identifiers.push(doc.id);
-        });
-
-        if (Math.sign(skipPrev) !== -1) {
-          const resPrev = await sdk.GetDidsByController({
-            controller,
-            skip: skipPrev,
-            pagesize: pagesizeVar,
-          });
-
-          resPrev.didDocuments.forEach((doc) => {
-            prevPageIdentifiers.push(doc.id);
-          });
-        }
-
-        const resNext = await sdk.GetDidsByController({
-          controller,
-          skip: skipNext,
-          pagesize: pagesizeVar,
-        });
-
-        resNext.didDocuments.forEach((doc) => {
-          nextPageIdentifiers.push(doc.id);
-        });
-
-        return { identifiers, prevPageIdentifiers, nextPageIdentifiers };
+        const identifiers = res.didDocuments.map((d) => d.id);
+        return { items: identifiers };
       } catch (error) {
         if ((error as Error).message.includes(`"controller doesn't exist"`)) {
           throw new NotFoundError(NotFoundError.defaultTitle, {
@@ -175,38 +108,11 @@ export default class IdentifiersService {
           vMethodId,
           vRelationship,
           skip,
-          pagesize: pagesizeVar,
+          pagesize: queryPageSize,
         });
 
-        res.didDocuments.forEach((doc) => {
-          identifiers.push(doc.id);
-        });
-
-        if (Math.sign(skipPrev) !== -1) {
-          const resPrev = await sdk.GetDidsByVerificationRelationship({
-            vMethodId,
-            vRelationship,
-            skip: skipPrev,
-            pagesize: pagesizeVar,
-          });
-
-          resPrev.didDocuments.forEach((doc) => {
-            prevPageIdentifiers.push(doc.id);
-          });
-        }
-
-        const resNext = await sdk.GetDidsByVerificationRelationship({
-          vMethodId,
-          vRelationship,
-          skip: skipNext,
-          pagesize: pagesizeVar,
-        });
-
-        resNext.didDocuments.forEach((doc) => {
-          prevPageIdentifiers.push(doc.id);
-        });
-
-        return { identifiers, prevPageIdentifiers, nextPageIdentifiers };
+        const identifiers = res.didDocuments.map((d) => d.id);
+        return { items: identifiers };
       } catch (error) {
         throw new NotFoundError("No identifiers found", {
           detail: "No identifiers found",
@@ -215,33 +121,10 @@ export default class IdentifiersService {
     }
 
     try {
-      const res = await sdk.GetDids({ skip, pagesize: pagesizeVar });
+      const res = await sdk.GetDids({ skip, pagesize: queryPageSize });
 
-      res.didDocuments.forEach((did) => {
-        identifiers.push(did.id);
-      });
-
-      if (Math.sign(skipPrev) !== -1) {
-        const resPrev = await sdk.GetDids({
-          skip: skipPrev,
-          pagesize: pagesizeVar,
-        });
-
-        resPrev.didDocuments.forEach((did) => {
-          prevPageIdentifiers.push(did.id);
-        });
-      }
-
-      const resNext = await sdk.GetDids({
-        skip: skipNext,
-        pagesize: pagesizeVar,
-      });
-
-      resNext.didDocuments.forEach((did) => {
-        nextPageIdentifiers.push(did.id);
-      });
-
-      return { identifiers, prevPageIdentifiers, nextPageIdentifiers };
+      const identifiers = res.didDocuments.map((d) => d.id);
+      return { items: identifiers };
     } catch (error) {
       throw new NotFoundError("No identifiers found", {
         detail: "No identifiers found",
@@ -352,67 +235,36 @@ export default class IdentifiersService {
 
   async getDidDocumentEvents(
     did: string,
-    page?: number,
-    pageSize?: number,
-  ): Promise<Events> {
-    let events: Event[] = [];
-    let prevPageEvents: Event[] = [];
-    let nextPageEvents: Event[] = [];
+    page = 1,
+    pagesize = 10,
+  ): Promise<{ items: Event[] }> {
+    const skip = (page - 1) * pagesize;
 
-    let pageVar = page;
-    let pagesizeVar = pageSize;
+    // get one more item to clarify next pages in pagination
+    const queryPageSize = pagesize + 1;
 
-    if (!pageVar) {
-      pageVar = 1;
-    }
-
-    if (!pagesizeVar) {
-      pagesizeVar = 10;
-    }
-
-    const skip = (pageVar - 1) * pagesizeVar;
-    const skipPrev = (pageVar - 2) * pagesizeVar;
-    const skipNext = pageVar * pagesizeVar;
-
+    let res: GetDidDocumentEventsQuery;
     try {
-      const res = await sdk.GetDidDocumentEvents({
+      res = await sdk.GetDidDocumentEvents({
         did,
         skip,
-        pagesize: pagesizeVar,
+        pagesize: queryPageSize,
       });
-
-      if (res.didDocument?.events) {
-        events = res.didDocument?.events;
-      }
-
-      if (Math.sign(skipPrev) !== -1) {
-        const resPrev = await sdk.GetDidDocumentEvents({
-          did,
-          skip: skipPrev,
-          pagesize: pagesizeVar,
-        });
-
-        if (resPrev.didDocument?.events) {
-          prevPageEvents = resPrev.didDocument?.events;
-        }
-      }
-
-      const resNext = await sdk.GetDidDocumentEvents({
-        did,
-        skip: skipNext,
-        pagesize: pagesizeVar,
-      });
-
-      if (resNext.didDocument?.events) {
-        nextPageEvents = resNext.didDocument?.events;
-      }
-
-      return { events, prevPageEvents, nextPageEvents };
     } catch (error) {
-      throw new NotFoundError("No identifiers found", {
-        detail: "No identifiers found",
+      this.logger.error(
+        error,
+        error instanceof Error ? error.stack : undefined,
+      );
+      throw new InternalServerError();
+    }
+
+    if (!res.didDocument) {
+      throw new NotFoundError("Identifier Not Found", {
+        detail: `Identifier ${did} not found`,
       });
     }
+
+    return { items: res.didDocument.events };
   }
 
   async checkController(

@@ -13,9 +13,9 @@ import { ConfigService } from "@nestjs/config";
 import type { FastifyReply } from "fastify";
 import {
   InvalidRequestJsonRpcError,
+  PaginatedListWithoutTotal,
   getErrorMessage,
 } from "@ebsiint-api/shared";
-import { PaginatedList } from "../../interfaces/index.js";
 import IdentifiersService from "./identifiers.service.js";
 import { formatEvents, formatIdentifiers } from "./identifiers.formatter.js";
 import { DidLink, Event } from "./identifiers.interface.js";
@@ -38,30 +38,38 @@ export default class IdentifiersController {
   @Get("")
   async getIdentifiers(
     @Query() query: GetIdentifiersDto,
-  ): Promise<PaginatedList<DidLink>> {
-    const { identifiers, prevPageIdentifiers, nextPageIdentifiers } =
-      await this.identifiersService.getIdentifiers(
-        query["page[after]"],
-        query["page[size]"],
-        query.controller,
-        query["verification-method-id"],
-        query["verification-relationship"],
-      );
+  ): Promise<PaginatedListWithoutTotal<DidLink>> {
+    const identifiers = await this.identifiersService.getIdentifiers(
+      query["page[after]"],
+      query["page[size]"],
+      query.controller,
+      query["verification-method-id"],
+      query["verification-relationship"],
+    );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
     const domain = this.configService.get<string>("domain");
     const baseUrl = `${domain}${apiUrlPrefix}/identifiers`;
+
+    const searchParams = new URLSearchParams();
+    Object.keys(query).forEach((k) => {
+      const key = k as keyof GetIdentifiersDto;
+      if (
+        query[key] !== undefined &&
+        key !== "page[after]" &&
+        key !== "page[size]"
+      ) {
+        searchParams.append(key, query[key]!);
+      }
+    });
+    const extraQuery = searchParams.size ? `&${searchParams.toString()}` : "";
 
     return formatIdentifiers(
       identifiers,
       query["page[after]"],
       query["page[size]"],
       baseUrl,
-      prevPageIdentifiers,
-      nextPageIdentifiers,
-      query.controller,
-      query["verification-method-id"],
-      query["verification-relationship"],
+      extraQuery,
     );
   }
 
@@ -91,15 +99,14 @@ export default class IdentifiersController {
   async getDidDocumentEvents(
     @Param() params: GetIdentifierParamsDto,
     @Query() query: GetIdentifiersDto,
-  ): Promise<PaginatedList<Event>> {
+  ): Promise<PaginatedListWithoutTotal<Event>> {
     const { did } = params;
 
-    const { events, prevPageEvents, nextPageEvents } =
-      await this.identifiersService.getDidDocumentEvents(
-        did,
-        query["page[after]"],
-        query["page[size]"],
-      );
+    const events = await this.identifiersService.getDidDocumentEvents(
+      did,
+      query["page[after]"],
+      query["page[size]"],
+    );
 
     const apiUrlPrefix = this.configService.get<string>("apiUrlPrefix");
     const domain = this.configService.get<string>("domain");
@@ -110,8 +117,6 @@ export default class IdentifiersController {
       query["page[after]"],
       query["page[size]"],
       baseUrl,
-      prevPageEvents,
-      nextPageEvents,
     );
   }
 

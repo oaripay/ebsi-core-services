@@ -68,18 +68,6 @@ export interface ControllerData {
   id: string;
 }
 
-export interface Documents {
-  identifiers: string[];
-  prevPageIdentifiers: string[];
-  nextPageIdentifiers: string[];
-}
-
-export interface Events {
-  events: Event[];
-  prevPageEvents: Event[];
-  nextPageEvents: Event[];
-}
-
 export interface VerificationMethod {
   did?: string;
   isSecp256k1: boolean;

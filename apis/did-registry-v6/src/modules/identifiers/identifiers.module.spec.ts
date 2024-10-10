@@ -103,8 +103,18 @@ describe("Identifiers Module", () => {
         ),
         pageSize: 10,
         links: {
-          prev: expect.stringContaining("/identifiers?page[size]=10"),
-          next: expect.stringContaining("/identifiers?page[size]=10"),
+          first: expect.stringContaining(
+            "/identifiers?page[after]=1&page[size]=10",
+          ),
+          last: expect.stringContaining(
+            "/identifiers?page[after]=1&page[size]=10",
+          ),
+          next: expect.stringContaining(
+            "/identifiers?page[after]=1&page[size]=10",
+          ),
+          prev: expect.stringContaining(
+            "/identifiers?page[after]=1&page[size]=10",
+          ),
         },
       });
       expect((response.body as { items: string }).items).toHaveLength(
@@ -137,19 +147,16 @@ describe("Identifiers Module", () => {
       const response = await request(server).get(
         `/identifiers?controller=${controller}`,
       );
+      const selfLink = `/identifiers?page[after]=1&page[size]=10&controller=${encodeURIComponent(controller)}`;
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/identifiers?page[after]=1&page[size]=10&controller=${controller}`,
-        ),
+        self: expect.stringContaining(selfLink),
         items: [],
         pageSize: 10,
         links: {
-          prev: expect.stringContaining(
-            `/identifiers?page[size]=10&controller=${controller}`,
-          ),
-          next: expect.stringContaining(
-            `/identifiers?page[size]=10&controller=${controller}`,
-          ),
+          first: expect.stringContaining(selfLink),
+          last: expect.stringContaining(selfLink),
+          prev: expect.stringContaining(selfLink),
+          next: expect.stringContaining(selfLink),
         },
       });
       expect(response.status).toBe(200);
@@ -163,10 +170,9 @@ describe("Identifiers Module", () => {
       const response = await request(server).get(
         `/identifiers?controller=${controller}`,
       );
+      const selfLink = `/identifiers?page[after]=1&page[size]=10&controller=${encodeURIComponent(controller)}`;
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/identifiers?page[after]=1&page[size]=10&controller=${controller}`,
-        ),
+        self: expect.stringContaining(selfLink),
         items: [
           {
             did: controller,
@@ -175,12 +181,10 @@ describe("Identifiers Module", () => {
         ],
         pageSize: 10,
         links: {
-          prev: expect.stringContaining(
-            `/identifiers?page[size]=10&controller=${controller}`,
-          ),
-          next: expect.stringContaining(
-            `/identifiers?page[size]=10&controller=${controller}`,
-          ),
+          first: expect.stringContaining(selfLink),
+          last: expect.stringContaining(selfLink),
+          prev: expect.stringContaining(selfLink),
+          next: expect.stringContaining(selfLink),
         },
       });
       expect(response.status).toBe(200);
@@ -192,10 +196,9 @@ describe("Identifiers Module", () => {
       const extraQuery = `verification-method-id=0x5145304834586d6434646a787435345f7a6e364c4a6769685052525030767275444a31416c6b3544447977&verification-relationship=capabilityInvocation`;
 
       const response = await request(server).get(`/identifiers?${extraQuery}`);
+      const selfLink = `/identifiers?page[after]=1&page[size]=10&${extraQuery}`;
       expect(response.body).toStrictEqual({
-        self: expect.stringContaining(
-          `/identifiers?page[after]=1&page[size]=10&${extraQuery}`,
-        ),
+        self: expect.stringContaining(selfLink),
         items: [
           {
             did: "did:ebsi:z23FGxCRmGZmei6uY3KCseXA",
@@ -204,12 +207,10 @@ describe("Identifiers Module", () => {
         ],
         pageSize: 10,
         links: {
-          prev: expect.stringContaining(
-            `/identifiers?page[size]=10&${extraQuery}`,
-          ),
-          next: expect.stringContaining(
-            `/identifiers?page[size]=10&${extraQuery}`,
-          ),
+          first: expect.stringContaining(selfLink),
+          last: expect.stringContaining(selfLink),
+          prev: expect.stringContaining(selfLink),
+          next: expect.stringContaining(selfLink),
         },
       });
       expect(response.status).toBe(200);
@@ -226,7 +227,12 @@ describe("Identifiers Module", () => {
         items: expect.arrayContaining([]),
         pageSize: 2,
         links: {
-          prev: expect.stringContaining("/identifiers?page[size]=2"),
+          first: expect.stringContaining(
+            "/identifiers?page[after]=1&page[size]=2",
+          ),
+          prev: expect.stringContaining(
+            "/identifiers?page[after]=1&page[size]=2",
+          ),
           next: expect.stringContaining(
             "/identifiers?page[after]=2&page[size]=2",
           ),
@@ -246,13 +252,18 @@ describe("Identifiers Module", () => {
         items: expect.arrayContaining([]),
         pageSize: 2,
         links: {
+          first: expect.stringContaining(
+            "/identifiers?page[after]=1&page[size]=2",
+          ),
           prev: expect.stringContaining(
             "/identifiers?page[after]=1&page[size]=2",
           ),
-          next: expect.stringContaining("/identifiers?page[size]=2"),
+          next: expect.stringContaining(
+            "/identifiers?page[after]=3&page[size]=2",
+          ),
         },
       });
-      expect((response2.body as { items: string }).items).toHaveLength(1);
+      expect((response2.body as { items: string }).items).toHaveLength(2);
       expect(response2.status).toBe(200);
 
       // big page
@@ -266,11 +277,18 @@ describe("Identifiers Module", () => {
         items: expect.arrayContaining([]),
         pageSize: 2,
         links: {
-          prev: expect.stringContaining("/identifiers?page[size]=2"),
-          next: expect.stringContaining("/identifiers?page[size]=2"),
+          first: expect.stringContaining(
+            "/identifiers?page[after]=1&page[size]=2",
+          ),
+          prev: expect.stringContaining(
+            "/identifiers?page[after]=99&page[size]=2",
+          ),
+          next: expect.stringContaining(
+            "/identifiers?page[after]=101&page[size]=2",
+          ),
         },
       });
-      expect((response3.body as { items: string }).items).toHaveLength(0);
+      expect((response3.body as { items: string }).items).toHaveLength(2);
       expect(response3.status).toBe(200);
 
       // page["after"] defined but page["size"] undefined
@@ -282,8 +300,18 @@ describe("Identifiers Module", () => {
         items: expect.arrayContaining([]),
         pageSize: 10,
         links: {
-          prev: expect.stringContaining("/identifiers?page[size]=10"),
-          next: expect.stringContaining("/identifiers?page[size]=10"),
+          first: expect.stringContaining(
+            "/identifiers?page[after]=1&page[size]=10",
+          ),
+          prev: expect.stringContaining(
+            "/identifiers?page[after]=1&page[size]=10",
+          ),
+          next: expect.stringContaining(
+            "/identifiers?page[after]=1&page[size]=10",
+          ),
+          last: expect.stringContaining(
+            "/identifiers?page[after]=1&page[size]=10",
+          ),
         },
       });
       expect((response4.body as { items: string }).items).toHaveLength(3);
