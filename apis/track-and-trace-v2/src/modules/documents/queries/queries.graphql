@@ -11,7 +11,7 @@ query GetDocument($documentId: String!) {
     source
     proof
     metadata
-    events(first: 1000, skip: 0, orderby: timestamp) {
+    events(first: 1000, skip: 0, orderBy: timestamp) {
       id
     }
   }
@@ -24,7 +24,7 @@ query GetDocumentEvents(
   $where: Event_filter
 ) {
   document(id: $documentId) {
-    events(first: $pagesize, skip: $skip, orderby: timestamp, where: $where) {
+    events(first: $pagesize, skip: $skip, orderBy: timestamp, where: $where) {
       id
     }
   }
@@ -32,7 +32,7 @@ query GetDocumentEvents(
 
 query GetDocumentEvent($documentId: String!, $eventId: String!) {
   document(id: $documentId) {
-    events(first: 1, skip: 0, orderby: timestamp, where: { id: $eventId }) {
+    events(first: 1, skip: 0, orderBy: timestamp, where: { id: $eventId }) {
       sender
       hash
       externalHash

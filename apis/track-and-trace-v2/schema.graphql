@@ -73,7 +73,7 @@ type Document {
   events(
     first: Int = 100
     skip: Int = 0
-    orderby: Event_orderBy
+    orderBy: Event_orderBy
     where: Event_filter
   ): [Event!]!
   invitations(
@@ -128,7 +128,7 @@ type Query {
   events(
     first: Int = 100
     skip: Int = 0
-    orderby: Event_orderBy
+    orderBy: Event_orderBy
     where: Event_filter
   ): [Event!]!
   creator(id: String!): Creator!
