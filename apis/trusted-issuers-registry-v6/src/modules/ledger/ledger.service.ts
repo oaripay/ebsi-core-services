@@ -7,6 +7,7 @@ import {
   TrustedIssuersRegistry,
   TrustedIssuersRegistry__factory,
 } from "@ebsiint-sc/trusted-issuers-registry-v4";
+import { stringify } from "safe-stable-stringify";
 import type { ApiConfig } from "../../config/configuration.js";
 
 const EXPECTED_PONG_BACK = 15000;
@@ -90,7 +91,7 @@ export class LedgerService implements OnModuleDestroy {
 
     websocket.on("close", (err: unknown) => {
       this.logger.warn(
-        `The ws connection was closed: ${JSON.stringify(err, null, 2)}`,
+        `The ws connection was closed: ${stringify(err, null, 2)}`,
       );
 
       if (keepAliveInterval) clearInterval(keepAliveInterval);

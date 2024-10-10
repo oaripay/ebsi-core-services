@@ -51,6 +51,16 @@
     "postinstall": {
       "dependsOn": []
     },
+    "start": {
+      "inputs": ["production", "^production"],
+      "outputs": [],
+      "dependsOn": ["^build", "prepare"]
+    },
+    "start:dev": {
+      "inputs": ["production", "^production"],
+      "outputs": [],
+      "dependsOn": ["^build", "prepare"]
+    },
     "start:prod": {
       "inputs": ["production", "^production"],
       "outputs": [],

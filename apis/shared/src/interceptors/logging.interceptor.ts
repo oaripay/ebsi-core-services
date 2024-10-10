@@ -123,7 +123,7 @@ export class LoggingInterceptor implements NestInterceptor {
   }
 
   /**
-   * Logs the request response in success cases
+   * Logs the request in error cases
    * @param error Error object
    * @param context details about the current request
    */
@@ -134,7 +134,7 @@ export class LoggingInterceptor implements NestInterceptor {
     const { method, url, body } = req;
 
     if (error instanceof HttpException) {
-      const statusCode: number = error.getStatus();
+      const statusCode = error.getStatus();
       const ctx = `${this.ctxPrefix} - ${statusCode} - ${method} - ${url}`;
       const message = `Outgoing response - ${statusCode} - ${method} - ${url}`;
       const jsonLog = {

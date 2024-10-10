@@ -6,6 +6,7 @@ import {
   NotFoundException,
   BadRequestException,
   ServiceUnavailableException,
+  ForbiddenException,
 } from "@nestjs/common";
 import type { FastifyReply } from "fastify";
 import axios from "axios";
@@ -16,7 +17,9 @@ import {
   BadRequestError,
   logAxiosError,
   InvalidRequestJsonRpcError,
+  ForbiddenError,
 } from "@ebsiint-api/shared";
+import { stringify } from "safe-stable-stringify";
 
 function getProblemDetailsError(
   error: unknown,
@@ -27,27 +30,43 @@ function getProblemDetailsError(
   }
 
   if (error instanceof NotFoundException) {
+    // Log NestJS NotFoundException
+    logger.error(error.message, error.stack);
+
+    // Map to Problem Details error
     return new NotFoundError(NotFoundError.defaultTitle, {
       detail: error.message,
     });
   }
 
+  if (error instanceof ForbiddenException) {
+    // Log NestJS ForbiddenError
+    logger.error(error.message, error.stack);
+
+    // Map to Problem Details error
+    return new ForbiddenError(ForbiddenError.defaultTitle, {
+      detail: error.message,
+    });
+  }
+
   if (error instanceof BadRequestException) {
+    // Log NestJS BadRequestException
+    logger.error(error.message, error.stack);
+
     let detail = error.message;
     const resp = error.getResponse();
-    if (typeof resp === "object") {
-      const { message } = resp as { message: string };
-      if (message) {
-        if (typeof message === "string") detail = message;
-        else detail = JSON.stringify(message);
-      }
+    if (typeof resp === "object" && "message" in resp && resp.message) {
+      if (typeof resp.message === "string") detail = resp.message;
+      else detail = stringify(resp.message);
     }
 
+    // Map to Problem Details error
     return new BadRequestError(BadRequestError.defaultTitle, {
       detail,
     });
   }
 
+  // Log unhandled error
   if (axios.isAxiosError(error)) {
     logAxiosError(error, logger);
   } else if (error instanceof Error) {
@@ -78,12 +97,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
         .send(err.getResponse());
     }
 
-    if (axios.isAxiosError(err)) {
-      logAxiosError(err, this.logger);
-    } else {
-      this.logger.error(err.message, err.stack);
-    }
-
     if (err instanceof InvalidRequestJsonRpcError) {
       const JsonRpcError = err;
       this.logger.debug(JsonRpcError.toString());
@@ -93,11 +106,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
         .send(JsonRpcError.toJSON());
     }
 
+    // Generic error
     const problemError = getProblemDetailsError(err, this.logger);
-
-    this.logger.debug(
-      `${problemError.toString()}: ${problemError.detail || "No detail"}`,
-    );
 
     return response
       .code(problemError.status)

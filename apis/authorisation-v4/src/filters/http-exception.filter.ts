@@ -6,6 +6,7 @@ import {
   NotFoundException,
   BadRequestException,
   ServiceUnavailableException,
+  ForbiddenException,
 } from "@nestjs/common";
 import type { FastifyReply } from "fastify";
 import axios from "axios";
@@ -15,7 +16,9 @@ import {
   InternalServerError,
   NotFoundError,
   BadRequestError,
+  ForbiddenError,
 } from "@ebsiint-api/shared";
+import { stringify } from "safe-stable-stringify";
 import { OAuth2Error } from "../modules/authorisation/errors/index.js";
 
 function getProblemDetailsError(
@@ -27,27 +30,43 @@ function getProblemDetailsError(
   }
 
   if (error instanceof NotFoundException) {
+    // Log NestJS NotFoundException
+    logger.error(error.message, error.stack);
+
+    // Map to Problem Details error
     return new NotFoundError(NotFoundError.defaultTitle, {
       detail: error.message,
     });
   }
 
+  if (error instanceof ForbiddenException) {
+    // Log NestJS ForbiddenError
+    logger.error(error.message, error.stack);
+
+    // Map to Problem Details error
+    return new ForbiddenError(ForbiddenError.defaultTitle, {
+      detail: error.message,
+    });
+  }
+
   if (error instanceof BadRequestException) {
+    // Log NestJS BadRequestException
+    logger.error(error.message, error.stack);
+
     let detail = error.message;
     const resp = error.getResponse();
-    if (typeof resp === "object") {
-      const { message } = resp as { message: string };
-      if (message) {
-        if (typeof message === "string") detail = message;
-        else detail = JSON.stringify(message);
-      }
+    if (typeof resp === "object" && "message" in resp && resp.message) {
+      if (typeof resp.message === "string") detail = resp.message;
+      else detail = stringify(resp.message);
     }
 
+    // Map to Problem Details error
     return new BadRequestError(BadRequestError.defaultTitle, {
       detail,
     });
   }
 
+  // Log unhandled error
   if (axios.isAxiosError(error)) {
     logAxiosError(error, logger);
   } else if (error instanceof Error) {
@@ -78,7 +97,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
         .send(err.getResponse());
     }
 
-    // Case 1: service-specific error
+    // Service-specific error
     if (err instanceof OAuth2Error) {
       return response
         .code(err.statusCode)
@@ -86,20 +105,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
         .send(err.toJSON());
     }
 
-    // Case 2: axios-specific error
-    if (axios.isAxiosError(err)) {
-      logAxiosError(err, this.logger);
-    } else {
-      this.logger.error(err.message, err.stack);
-    }
-
-    // Case 3: generic error
-
+    // Generic error
     const problemError = getProblemDetailsError(err, this.logger);
-
-    this.logger.debug(
-      `${problemError.toString()}: ${problemError.detail || "No detail"}`,
-    );
 
     return response
       .code(problemError.status)

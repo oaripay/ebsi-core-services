@@ -4,6 +4,7 @@ import { ConfigService } from "@nestjs/config";
 import { ethers } from "ethers";
 import type WebSocket from "ws";
 import { InternalServerError } from "@ebsiint-api/shared";
+import { stringify } from "safe-stable-stringify";
 import { BesuResponseObject, BesuServiceResponse } from "./besu.interface.js";
 import type { ApiConfig } from "../../config/configuration.js";
 import { BesuDto } from "./dto/index.js";
@@ -142,7 +143,7 @@ export class BesuService implements OnModuleDestroy {
 
     websocket.on("close", (err: unknown) => {
       this.logger.warn(
-        `The ws connection was closed: ${JSON.stringify(err, null, 2)}`,
+        `The ws connection was closed: ${stringify(err, null, 2)}`,
       );
 
       if (keepAliveInterval) clearInterval(keepAliveInterval);

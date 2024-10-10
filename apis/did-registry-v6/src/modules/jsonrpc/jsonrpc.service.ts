@@ -9,6 +9,7 @@ import {
 } from "@ebsiint-api/shared";
 import { DidRegistry } from "@ebsiint-sc/did-registry-v4";
 import axios from "axios";
+import { stringify } from "safe-stable-stringify";
 import {
   formatEthersUnsignedTransaction,
   formatEthersSignature,
@@ -440,7 +441,7 @@ export class JsonRpcService {
         .getContract()
         .interface.encodeFunctionData("updateBaseDocument", [
           did,
-          JSON.stringify(baseDocument),
+          stringify(baseDocument),
         ]);
 
       return await this.buildTransaction(from, data);
@@ -494,7 +495,7 @@ export class JsonRpcService {
         .getContract()
         .interface.encodeFunctionData("updateBaseDocument", [
           did,
-          JSON.stringify(baseDocument),
+          stringify(baseDocument),
         ]);
 
       return await this.buildTransaction(from, data);
