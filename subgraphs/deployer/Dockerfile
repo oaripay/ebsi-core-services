@@ -41,7 +41,7 @@ COPY --from=builder /app/contracts/trusted-schemas-registry-v3 ./contracts/trust
 COPY --from=builder /app/subgraphs/trusted-schemas-registry-v3 ./subgraphs/trusted-schemas-registry-v3
 
 # Install all the dependencies
-RUN yarn install --frozen-lockfile --silent && yarn cache clean
+RUN --mount=type=cache,target=/app/.yarn-cache YARN_CACHE_FOLDER=/app/.yarn-cache yarn install --frozen-lockfile --silent
 
 RUN chown -R node:node /app
 USER node

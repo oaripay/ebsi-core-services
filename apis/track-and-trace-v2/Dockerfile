@@ -40,7 +40,7 @@ COPY --from=builder /app/apis/shared/dist ./apis/shared/dist
 # Define ENV
 ENV NODE_ENV=production
 # Install prod dependencies
-RUN yarn install --frozen-lockfile --silent --production --ignore-scripts && yarn cache clean
+RUN --mount=type=cache,target=/app/.yarn-cache YARN_CACHE_FOLDER=/app/.yarn-cache yarn install --frozen-lockfile --silent --production --ignore-scripts
 ARG DOCKER_TAG
 RUN echo "DOCKER_TAG=$DOCKER_TAG" >> .env.default
 RUN chown node:node /app

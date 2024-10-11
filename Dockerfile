@@ -54,6 +54,7 @@ COPY ./contracts/trusted-policies-registry-v3/package.json ./contracts/trusted-p
 COPY ./contracts/trusted-schemas-registry/package.json ./contracts/trusted-schemas-registry/
 COPY ./contracts/trusted-schemas-registry-v2/package.json ./contracts/trusted-schemas-registry-v2/
 COPY ./contracts/trusted-schemas-registry-v3/package.json ./contracts/trusted-schemas-registry-v3/
+COPY ./subgraphs/deployer/package.json ./subgraphs/deployer/
 COPY ./subgraphs/did-registry-v4/package.json ./subgraphs/did-registry-v4/
 COPY ./subgraphs/timestamp-v3/package.json ./subgraphs/timestamp-v3/
 COPY ./subgraphs/track-and-trace-v2/package.json ./subgraphs/track-and-trace-v2/
@@ -61,18 +62,14 @@ COPY ./subgraphs/trusted-issuers-registry-v4/package.json ./subgraphs/trusted-is
 COPY ./subgraphs/trusted-policies-registry-v3/package.json ./subgraphs/trusted-policies-registry-v3/
 COPY ./subgraphs/trusted-schemas-registry-v3/package.json ./subgraphs/trusted-schemas-registry-v3/
 
-# Copy patches
-COPY ./.git ./.git
-COPY ./patches ./patches
-
 # Install all the dependencies
 ENV PUPPETEER_SKIP_DOWNLOAD=true
-RUN yarn install --frozen-lockfile --silent && yarn cache clean
+RUN --mount=type=cache,target=/app/.yarn-cache YARN_CACHE_FOLDER=/app/.yarn-cache yarn install --frozen-lockfile --silent
 
 # Copy all other files
 COPY . .
 
 # Build affected projects and delete node_modules
-RUN yarn build && rm -rf ./**/node_modules
+RUN --mount=type=cache,target=/app/.nx yarn patch-package && yarn build && rm -rf ./**/node_modules
 
 USER node

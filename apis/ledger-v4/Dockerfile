@@ -20,8 +20,8 @@ COPY --from=builder /app/apis/shared/package.json ./apis/shared/package.json
 COPY --from=builder /app/apis/shared/dist ./apis/shared/dist
 # Define ENV
 ENV NODE_ENV=production
-# This is required for nestjs runtime.
-RUN yarn install --frozen-lockfile --silent --production --ignore-scripts && yarn cache clean
+# Install prod dependencies
+RUN --mount=type=cache,target=/app/.yarn-cache YARN_CACHE_FOLDER=/app/.yarn-cache yarn install --frozen-lockfile --silent --production --ignore-scripts
 ARG DOCKER_TAG
 RUN echo "DOCKER_TAG=$DOCKER_TAG" >> .env.default
 RUN chown node:node /app
